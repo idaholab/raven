@@ -1000,11 +1000,13 @@ class AMSC_Object(object):
 
 try:
   import PySide.QtCore
-  import colors
+
+  TolColors = ['#88CCEE', '#DDCC77', '#AA4499', '#117733', '#332288', '#999933',
+             '#44AA99', '#882255', '#CC6677']
 
   class QAMSC_Object(AMSC_Object,PySide.QtCore.QObject):
     ## Paul Tol's colorblind safe colors
-    colorList = itertools.cycle(colors.TolColors)
+    colorList = itertools.cycle(TolColors)
 
     sigPersistenceChanged = PySide.QtCore.Signal()
     sigSelectionChanged = PySide.QtCore.Signal()
@@ -1234,5 +1236,6 @@ try:
       return True
 
 except ImportError as e:
-  sys.stderr.write('')
   pass
+  # sys.stderr.write(str(e) +'\n')
+  # sys.exit(1)

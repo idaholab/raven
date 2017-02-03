@@ -1,5 +1,32 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.CubitMooseInterface</name>
+    <author>senrs</author>
+    <created>2015-10-06</created>
+    <classesTested>Models.Code.CubitMoose, Models.AliasSystem</classesTested>
+    <description>
+       An example of using the CubitMoose code interface.
+       This test is designed to ensure the CubitMoose interface runs correctly (using the RAVEN alias system as well)
+       It will only run if a cubit executable is found.  At this time, the
+       cubit executable directory is specified only for INL HPC machines, thus the
+       test will not run on machines where cubit is not installed in the
+        hpc-common apps local cubit 13.2 bin directory. This will need to change
+       to accomodate variations in the exeucutable's location across platforms.
+       Two variables are sampled in this test: one boundary condition value and
+       one geometric property (length) that will be sent to the MOOSE input file
+       and Cubit journal file respectively.  Variables are sampled in a grid with
+       specified values for each parameter.
+       The test checks for generated exodus meshes and diffs the generated csv with
+       the gold one.
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="tompjame" date="2016-08-29">ref #668 Added tests for Bison and relap mammoth interaction, reorganized Mammoth Interface test folder, updated syntax in mammoth and mesh interface tests, added conversion scripts for new cubit and mammoth input file syntax. Ref #668 Updated mammoth interface for additional extensibility and individual entries for input file variables. Ref #668 Had to edit the method of checking correct files in Rattlesnake interface and add more test files for no executable test. Ref #668 Removed whitespace from test inputs. Ref #668 Updated documentation. Ref #668 Removing more whitespace. Ref #668 Edited test files. Ref #668 Removed unnecessary files from test folder for interface.</revision>
+      <revision author="alfoa" date="2016-12-15">Closes #769</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <!--CubitMoose Interface Test
   This test is designed to ensure the CubitMoose interface runs correctly.
   It will only run if a cubit executable is found.  At this time, the

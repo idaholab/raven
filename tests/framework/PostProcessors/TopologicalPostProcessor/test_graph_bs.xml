@@ -1,7 +1,25 @@
 <?xml version="1.0" ?>
 <Simulation>
-  <!-- An example of the approximate Morse-Smale complex interface that tests each
-     graph structures available -->
+  <TestInfo>
+    <name>framework/PostProcessors/TopologicalPostProcessor.relaxed_beta_skeleton</name>
+    <author>maljdan</author>
+    <created>2015-09-21</created>
+    <classesTested>PostProcessors.TopologicalDecomposition</classesTested>
+    <description>
+       A simple example of the approximate Morse-Smale complex (AMSC) interface
+       that exercises the beta skeleton graph structure as the underlying
+       connectivity model for the point cloud. Note, each of the "graph" test
+       cases uses the GaussianPeaks test case which consists of 4 distinctly
+       shaped Gaussian peaks in a 2D input domain.
+    </description>
+    <revisions>
+      <revision author="cogljj" date="2015-09-29">Modifying external modules to use relative to working directory.</revision>
+      <revision author="maljdan" date="2015-10-06">Reducing the graph tests for the topology pp, and re-golding them, also adding a plotter to validate the results visually.</revision>
+      <revision author="talbpaul" date="2016-02-08">Converted failing tests.</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>

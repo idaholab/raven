@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/Clustering/HierarchicalScipy</name>
+    <author>mannd</author>
+    <created>2016-10-10</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with the Hierarchical model.
+    </description>
+  </TestInfo>
   <RunInfo>
     <internalParallel>False</internalParallel>
     <WorkingDir>Hierarchical</WorkingDir>

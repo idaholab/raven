@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/test_comparison_statistics</name>
+    <author>cogljj</author>
+    <created>2014-10-16</created>
+    <classesTested>ComparisonStatistics</classesTested>
+    <description>
+      Tests the comparison statistics class including both two PointSets
+      and PointSet to distribution.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>test_cc_stats</WorkingDir>
     <Sequence>test_read_in,test_stats_step,dump_data</Sequence>

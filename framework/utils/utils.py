@@ -215,7 +215,18 @@ def interpretBoolean(inArg):
       else                                                : raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
   else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inArg).__name__)
 
-def compare(s1,s2,sig_fig = 6):
+def isClose(f1, f2, relTolerance=1e-14, absTolerance=0.0):
+  """
+    Method to compare two floats
+    @ In, f1, float, first float
+    @ In, f2, float, first float
+    @ In, relTolerance, float, optional, relative tolerance
+    @ In, absTolerance, float, optional, absolute tolerance
+    @ Out, isClose, bool, is it close enough?
+  """
+  return abs(f1-f2) <= max(relTolerance * max(abs(f1), abs(f2)), absTolerance)
+
+def compare(s1,s2,relTolerance = 1e-14):
   """
     Method aimed to compare two strings. This method tries to convert the 2
     strings in float and uses an integer representation to compare them.
@@ -223,12 +234,12 @@ def compare(s1,s2,sig_fig = 6):
     convertable), the method compares strings as they are.
     @ In, s1, string, first string to be compared
     @ In, s2, string, second string to be compared
-    @ In, sig_fig, int, minimum number of digits that need to match
+    @ In, relTolerance, float, relative tolerance
     @ Out, response, bool, the boolean response (True if s1==s2, False otherwise)
   """
   w1, w2 = floatConversion(s1), floatConversion(s2)
   if   type(w1) == type(w2) and type(w1) != float: return s1 == s2
-  elif type(w1) == type(w2) and type(w1) == float: return int(w1*10**sig_fig) == int(w2*10**sig_fig)
+  elif type(w1) == type(w2) and type(w1) == float: return isClose(w1,w2,relTolerance)
   elif type(w1) != type(w2) and type(w1) in [float,int] and type(w2) in [float,int]:
     w1, w2 = float(w1), float(w2)
     return compare(w1,w2)

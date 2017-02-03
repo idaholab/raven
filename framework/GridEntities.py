@@ -403,6 +403,7 @@ class GridEntity(GridBase):
     self.gridContainer['initDictionary'] = initDict
     #building the grid point coordinates
     for varId, varName in enumerate(self.gridContainer['dimensionNames']):
+      checkBounds = True
       if len(stepLength[varId]) == 1:
         # equally spaced or volumetriRatio. (the use of np.finfo(float).eps is only to avoid round-off error, the upperBound is included in the mesh)
         # Any number greater than zero and less than one should suffice
@@ -438,16 +439,17 @@ class GridEntity(GridBase):
         # it is not very efficient, but this approach is only for custom grids => limited number of discretizations
         gridMesh = [self.gridContainer['bounds']["lowerBounds"][varName]]
         for stepLengthi in stepLength[varId]: gridMesh.append(round(gridMesh[-1],14)+round(stepLengthi,14))
+        if len(gridMesh) == 1: checkBounds = False
         self.gridContainer['gridVectors'][varName] = np.asarray(gridMesh)
-      if compare(round(self.gridContainer['bounds']["lowerBounds" ][varName],14), round(self.gridContainer['bounds']["upperBounds" ][varName],14)):
+      if checkBounds and compare(self.gridContainer['bounds']["lowerBounds" ][varName], self.gridContainer['bounds']["upperBounds" ][varName]):
         self.raiseAnError(IOError,"the lowerBound and upperBound for dimension named " + varName + " are the same!. lowerBound = "+ str(self.gridContainer['bounds']["lowerBounds" ][varName]) +
                                   " and upperBound = "+ str(self.gridContainer['bounds']["upperBounds" ][varName]))
       lowerBound = self.gridContainer['bounds']["lowerBounds"][varName] if not excludeBounds['lowerBounds'] else self.gridContainer['bounds']["lowerBounds"][varName] + stepLength[varId][-1]
       upperBound = self.gridContainer['bounds']["upperBounds"][varName] if not excludeBounds['upperBounds'] else self.gridContainer['bounds']["upperBounds"][varName] - stepLength[varId][-1]
-      if not compare(round(max(self.gridContainer['gridVectors'][varName]),14), round(upperBound,14)) and self.volumetricRatio == None:
+      if not compare(max(self.gridContainer['gridVectors'][varName]), upperBound) and self.volumetricRatio == None:
         self.raiseAnError(IOError,"the maximum value in the grid is different than the upperBound! upperBound: "+str(upperBound) +
                                   " != maxValue in grid: "+str(max(self.gridContainer['gridVectors'][varName])))
-      if not compare(round(min(self.gridContainer['gridVectors'][varName]),14),round(lowerBound,14)):
+      if not compare(min(self.gridContainer['gridVectors'][varName]),lowerBound):
         self.raiseAnError(IOError,"the minimum value in the grid is different than the lowerBound! lowerBound: "+str(lowerBound) +
                                   " != minValue in grid: "+str(min(self.gridContainer['gridVectors'][varName])))
       if self.gridContainer['transformationMethods'] != None:

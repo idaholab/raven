@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/InterfacedPostProcessor/interfacedPostProcessor</name>
+    <author>mandd</author>
+    <created>2019-01-16</created>
+    <classesTested>InterfacedPostProcessor</classesTested>
+    <description>
+      Test of the interfaced post-processor interface
+    </description>
+  </TestInfo>
+  
   <RunInfo>
     <WorkingDir>interfacedPostProcessor</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>

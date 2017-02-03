@@ -1,5 +1,44 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>framework.ND_external_grid_cdf</name>
+    <author>mandd</author>
+    <created>2015-03-04</created>
+    <classesTested>Distributions.NDInverseWeight, Distrubtions.NDCartesianSpline, Samplers.Grid</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to handle ND probability density functions (distributions), when 
+       a Grid sampling strategy is performed. In this case, the capability to construct marginal distributions (for each uncertanties of
+       the ND distribution domain), when the discretization is performed in CDF.
+    </description>
+    <revisions>
+      <revision author="mandd" date="2015-03-09">test fixes</revision>
+      <revision author="mandd" date="2015-03-09">test fixes</revision>
+      <revision author="mandd" date="2015-03-09">fix tests</revision>
+      <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
+      <revision author="senrs" date="2015-05-18">update the test cases</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="talbpaul" date="2015-07-06">standardization of tests</revision>
+      <revision author="talbpaul" date="2015-07-06">Revert "standardization of tests"        This reverts commit 68099325e8daba0f756179a20b5c75ba651cb62d.</revision>
+      <revision author="talbpaul" date="2015-07-06">updated tests, added script</revision>
+      <revision author="talbpaul" date="2015-07-07">updated to restrict partial-node comments</revision>
+      <revision author="talbpaul" date="2015-07-07">standardized tests</revision>
+      <revision author="talbpaul" date="2015-07-09">tests pass, except LSIntegral needs regolding</revision>
+      <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
+      <revision author="wangc" date="2015-09-30">improve efficiency when calculate the SampledVarsPb with N-Dimensional PDF, fix the issue #298</revision>
+      <revision author="wangc" date="2015-09-30">add new tests for the issue #298</revision>
+      <revision author="alfoa" date="2015-10-06">modified all the other files</revision>
+      <revision author="alfoa" date="2015-10-06">final modifications</revision>
+      <revision author="alfoa" date="2015-10-06">Merge branch 'devel' of hpcgitlab.inl.gov:idaholab/raven into wangc/fix_bug</revision>
+      <revision author="alfoa" date="2015-10-15">merged devel and resolved conflicts</revision>
+      <revision author="mandd" date="2015-11-04">edits</revision>
+      <revision author="mandd" date="2015-11-06">edits</revision>
+      <revision author="mandd" date="2015-11-17">final merging with devel</revision>
+      <revision author="talbpaul" date="2016-02-08">first update, looking for more failing tests to add</revision>
+      <revision author="mandd" date="2016-02-11">merged with devel</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>ND_test_Grid_cdf</WorkingDir>
     <Sequence>FirstMRun</Sequence>

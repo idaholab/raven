@@ -1,5 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.testMCMammothNoExecutable_BisonRelap7</name>
+    <author>tompjame</author>
+    <created>2016-08-29</created>
+    <classesTested>Models.Code.MAMMOTH, Models.AliasSystem</classesTested>
+    <description>
+       An example of using the MAMMOTH code interface (no executable). It checks Bison and RELAP7. 
+       This test is designed to ensure the MAMMOTH interface mechanics is correctly functional.
+       In addition it used the RAVEN alias system.
+    </description>
+    <revisions>
+      <revision author="talbpaul" date="2016-09-15">Test updates</revision>
+      <revision author="alfoa" date="2016-11-30">Added alias for MAMMOTH just to test the new system</revision>
+      <revision author="alfoa" date="2016-12-12">Added type for alias system in mammoth test</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>MammothInterface/Bison_Relap7</WorkingDir>
     <Sequence>MCTestMammoth,print</Sequence>

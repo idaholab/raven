@@ -1,9 +1,27 @@
 <?xml version="1.0" ?>
 <Simulation>
-  <!-- A simple example of the approximate Morse-Smale complex interface
-       has four local minima surrounding a global maximum, and each of the
-       examples will showcase different levels of partitions using the default
-       persistence simplfication metric -->
+  <TestInfo>
+    <name>framework/PostProcessors/TopologicalPostProcessor.topology_simple</name>
+    <author>maljdan</author>
+    <created>2015-09-02</created>
+    <classesTested>PostProcessors.TopologicalDecomposition</classesTested>
+    <description>
+       A simple example of the approximate Morse-Smale complex (AMSC) interface
+       using a test function consisting of a 2D Gaussian with a single maximum
+       and 4 local minimum occurring at the corners of the domain space. The
+       hill in the middle is purposefully off-centered so as to create
+       non-uniform cases at each corner allowing us to simplify each local
+       minimum in turn to create a 4 partition case, a 3 partition case, a 2
+       partition case, and a single partition case.
+    </description>
+    <revisions>
+      <revision author="cogljj" date="2015-09-29">Modifying external modules to use relative to working directory.</revision>
+      <revision author="maljdan" date="2015-10-06">Correcting the user manual and reducing the sleepTime on these tests to reduce their total run time to ~15 s on my local machine.</revision>
+      <revision author="talbpaul" date="2016-02-08">Converted failing tests.</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>

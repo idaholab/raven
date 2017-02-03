@@ -5,6 +5,15 @@
     <Sequence>FirstMRun,computeRank</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pca_grid/transformationMatrix</name>
+    <author>wangc</author>
+    <created>2016-07-15</created>
+    <classesTested>PostProcessors.ImportanceRank</classesTested>
+    <description>
+      Tests the ImportanceRank postprocessor to output transformation and inverse transformation matrices.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>

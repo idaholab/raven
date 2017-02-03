@@ -5,6 +5,15 @@
     <Sequence>Cmake,Ctrain,Ctest,Cprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/SparseGrid/customGrid</name>
+    <author>talbpaul</author>
+    <created>2015-09-11</created>
+    <classesTested>IndexSets.Custom</classesTested>
+    <description>
+      This tests the creation of a Custom sparse grid.
+    </description>
+  </TestInfo>
 
   <Distributions>
     <Uniform name="UniDist">

@@ -1,5 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.custom1D</name>
+    <author>mandd</author>
+    <created>2016-08-08</created>
+    <classesTested>Distributions.Custom1D</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to handle custom probability density functions (distributions).
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>custom1D/</WorkingDir>
     <!--

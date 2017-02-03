@@ -5,6 +5,15 @@
     <Sequence>make,train,pkDump,pkLoad,sampleNatural,samplePickle,write</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/stochPolyPickleTest</name>
+    <author>talbpaul</author>
+    <created>2015-07-07</created>
+    <classesTested>SupervisedLearning.GaussPolynomialROM</classesTested>
+    <description>
+      This test checks the pickling and unpickling of the GaussPolynomialROM
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="ROMpk" type="">ROMpk</Input>

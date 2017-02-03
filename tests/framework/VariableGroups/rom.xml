@@ -1,11 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <!-- tests external model and ROM -->
   <RunInfo>
     <WorkingDir>ROMs</WorkingDir>
     <Sequence>sample,train,samprom,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/VariableGroups/ROM</name>
+    <author>talbpaul</author>
+    <created>2016-02-08</created>
+    <classesTested>VariableGroups</classesTested>
+    <description>
+      tests variable groups when used as part of a ROM or external model
+    </description>
+  </TestInfo>
 
   <VariableGroups>
     <Group name="x_odd">x1,x3,x5</Group>
