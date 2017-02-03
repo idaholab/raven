@@ -1,12 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-    
   <TestInfo>
-    <name>framework/ROM/TimeSeries.ARMA</name>
+    <name>framework/ROM/TimeSeries.ARMAparallel</name>
     <author>alfoa</author>
     <created>2017-02-02</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
+       A copy of framework/ROM/TimeSeries.ARMA where the internal parallel system
+       has been activated in order to test its functionality in conjunction
+       with the ARMA model.
+
        This test is aimed to check the possibility to train an ARMA+Fourier model and its
        capability to generate intrinsically stochastic time series
     </description>
@@ -14,14 +17,16 @@
       <revision author="alfoa" date="2017-02-03">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-    
+
+
     <RunInfo>
-        <WorkingDir>ARMA</WorkingDir>
+        <WorkingDir>ARMAparallel</WorkingDir>
 		<Sequence>readIn,ARMATrain,runARMA,writeOut</Sequence>
         <batchSize>1</batchSize>
+        <internalParallel>True</internalParallel>
     </RunInfo>
     <Files>
-        <Input name="rawDataFile">./dataSet.csv</Input>
+        <Input name="rawDataFile">../ARMA/dataSet.csv</Input>
     </Files>
     <Distributions>
 		<Uniform name="uniDist">
@@ -31,15 +36,15 @@
 	</Distributions>
 
 	<Samplers>
-		<Grid name="gridSampler">
+		<MonteCarlo name="mcSampler">
 			<samplerInit>
+                <limit>3</limit>
 				<initialSeed>20021986</initialSeed>
 			</samplerInit>
 			<variable name="scaling">
 				<distribution>uniDist</distribution>
-                <grid type='value' construction='equal' steps='1'>1.0 2.0</grid>
 			</variable>
-        </Grid>
+        </MonteCarlo>
 	</Samplers> 
 	
 	<Models>			
@@ -67,7 +72,7 @@
 		</RomTrainer>
 		<MultiRun name='runARMA'>
 			<Input    class = 'DataObjects'       type = 'PointSet'       >dataIn</Input>
-			<Sampler class="Samplers"  type="Grid"  >gridSampler</Sampler>
+			<Sampler class="Samplers"  type="MonteCarlo"  >mcSampler</Sampler>
 			<Model   class='Models' 			  type = 'ROM' 	 		 >ARMA</Model>
 			<Output    class = 'DataObjects'       type = 'HistorySet'    >synData</Output> 
 		</MultiRun>

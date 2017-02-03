@@ -4,4 +4,11 @@
   input = 'test_ARMA.xml'
   output = 'ARMA/writeSynDataOut.csv ARMA/writeSynDataOut.xml'
   csv = 'ARMA/writeSynDataOut_0.csv'
+  [../]
+ [./ARMAparallel]
+  type = 'RavenFramework'
+  input = 'test_ARMA_parallel.xml'
+  output = 'ARMAparallel/writeSynDataOut.csv ARMAparallel/writeSynDataOut.xml'
+  csv = 'ARMAparallel/writeSynDataOut_0.csv'
+  [../]
 []
