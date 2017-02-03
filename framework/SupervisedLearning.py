@@ -1037,7 +1037,7 @@ class HDMRRom(GaussPolynomialRom):
     if not self.initialized:
       self.raiseAnError(RuntimeError,'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?')
     ft={}
-    self.refSoln = dict.fromkeys(self.target,{})
+    self.refSoln = {key:dict({}) for key in self.target}
     for i in range(len(featureVals)):
       ft[tuple(featureVals[i])]=targetVals[i,:]
 
@@ -1046,9 +1046,7 @@ class HDMRRom(GaussPolynomialRom):
     for cnt, target in enumerate(self.target):
       self.refSoln[target] = ft[self.refpt][cnt]
     for combo,rom in self.ROMs.items():
-      subtdict = {}
-      for target in self.target: subtdict[target]=[]
-      #subtdict=dict.fromkeys(self.target,[])
+      subtdict = {key:list([]) for key in self.target}
       for c in combo: subtdict[c]=[]
       SG = rom.sparseGrid
       fvals=np.zeros([len(SG),len(combo)])
@@ -1158,8 +1156,9 @@ class HDMRRom(GaussPolynomialRom):
       @ Out, __variance__, float, the variance
     """
     if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate variance, as ROM is not trained!')
-    self.getSensitivities(targ)
-    return sum(val for val in self.partialVariances.values())
+    target = self.target[0] if targ is None else targ
+    self.getSensitivities(target)
+    return sum(val for val in self.partialVariances[target].values())
 
   def _calcMean(self,fromDict,targ=None):
     """
@@ -1220,9 +1219,9 @@ class HDMRRom(GaussPolynomialRom):
       @ Out, getSensitivities, tuple(dict), Sobol indices and partial variances keyed by subset
     """
     target = self.target[0] if targ is None else targ
-    if self.sdx is not None and self.partialVariances is not None:
+    if self.sdx is not None and self.partialVariances is not None and target in self.sdx.keys():
       self.raiseADebug('Using previously-constructed ANOVA terms...')
-      return self.sdx,self.partialVariances
+      return self.sdx[target],self.partialVariances[target]
     self.raiseADebug('Constructing ANOVA terms...')
     #collect terms
     terms = {}
@@ -1239,15 +1238,15 @@ class HDMRRom(GaussPolynomialRom):
         if poly not in terms[polySubset].keys(): terms[polySubset][poly] = 0
         terms[polySubset][poly] += coeff*mult
     #calculate partial variances
-    self.partialVariances = {}
+    self.partialVariances = {target: dict({})}
+    self.sdx              = {target: dict({})}
     for subset in terms.keys():
-      self.partialVariances[subset] = sum(v*v for v in terms[subset].values())
+      self.partialVariances[target][subset] = sum(v*v for v in terms[subset].values())
     #calculate indices
-    totVar = sum(self.partialVariances.values())
-    self.sdx = {}
-    for subset,value in self.partialVariances.items():
-      self.sdx[subset] = value / totVar
-    return self.sdx,self.partialVariances
+    totVar = sum(self.partialVariances[target].values())
+    for subset,value in self.partialVariances[target].items():
+      self.sdx[target][subset] = value / totVar
+    return self.sdx[target],self.partialVariances[target]
 
 #
 #
