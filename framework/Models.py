@@ -742,28 +742,28 @@ class ROM(Dummy):
     """
     return Dummy.updateInputFromOutside(self, Input, externalDict)
 
-  def __getstate__(self):
-    """
-      This function return the state of the ROM
-      @ In, None
-      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
-    """
-    # capture what is normally pickled
-    state = self.__dict__.copy()
-    if not self.amITrained:
-      supervisedEngineObj = state.pop("supervisedEngine")
-      del supervisedEngineObj
-    return state
-
-  def __setstate__(self, newstate):
-    """
-      Initialize the ROM with the data contained in newstate
-      @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
-      @ Out, None
-    """
-    self.__dict__.update(newstate)
-    if not self.amITrained:
-      self.supervisedEngine = supervisedLearningGate.returnInstance('SupervisedGate', self.subType, self,**self.initializationOptionDict)
+#   def __getstate__(self):
+#     """
+#       This function return the state of the ROM
+#       @ In, None
+#       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
+#     """
+#     # capture what is normally pickled
+#     state = self.__dict__.copy()
+#     if not self.amITrained:
+#       supervisedEngineObj = state.pop("supervisedEngine")
+#       del supervisedEngineObj
+#     return state
+#
+#   def __setstate__(self, newstate):
+#     """
+#       Initialize the ROM with the data contained in newstate
+#       @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
+#       @ Out, None
+#     """
+#     self.__dict__.update(newstate)
+#     if not self.amITrained:
+#       self.supervisedEngine = supervisedLearningGate.returnInstance('SupervisedGate', self.subType, self,**self.initializationOptionDict)
 
   def _readMoreXML(self,xmlNode):
     """
@@ -797,7 +797,7 @@ class ROM(Dummy):
     self._initializeSupervisedGate(**self.initializationOptionDict)
     #the ROM is instanced and initialized
     # check how many targets
-    #self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine),True)) - set(self.mods))
+    #self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(self.supervisedContainer),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(supervisedLearningGate),True)) - set(self.mods))
     #restore targets to initialization option dict
@@ -837,7 +837,7 @@ class ROM(Dummy):
     #establish targets
     targets = options['target'].split(',') if 'target' in options.keys() else ROMtargets
     #establish sets of engines to work from
-    engines = self.supervisedEngine.SupervisedEngine
+    engines = self.supervisedEngine.supervisedContainer
     #handle 'all' case
     if 'all' in targets: targets = ROMtargets
     #this loop is only 1 entry long if not dynamic

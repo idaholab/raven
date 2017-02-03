@@ -273,7 +273,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         self._retrieveNeededPoints(toDoSub)
       elif which == 'subset':
         self._makeSubsetRom(toDoSub)
-        self.ROMs[toDoSub] = self.romShell[toDoSub].supervisedEngine.SupervisedEngine[0]
+        self.ROMs[toDoSub] = self.romShell[toDoSub].supervisedEngine.supervisedContainer[0]
         self.inTraining.append(('subset',toDoSub,self.romShell[toDoSub]))
         #get initial needed points and store them locally
         self._retrieveNeededPoints(toDoSub)
@@ -381,10 +381,10 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     # claims a sensitivity of 0 for that subset (rightfully so), but that leads
     # into a problem searching unless you start with tensor [0,1] indices.
     #copyShell = copy.deepcopy(self.ROM)
-    #copyShell.SupervisedEngine = {}
-    #for targ,rom in self.ROM.SupervisedEngine.items():
-    #  copyShell.SupervisedEngine[targ] = copy.deepcopy(rom)
-    #copyROM =  copyShell.SupervisedEngine[target]
+    #copyShell.supervisedContainer = {}
+    #for targ,rom in self.ROM.supervisedContainer.items():
+    #  copyShell.supervisedContainer[targ] = copy.deepcopy(rom)
+    #copyROM =  copyShell.supervisedContainer[target]
     #self._finalizeROM(rom=copyShell,include=[subset])
     #copyShell.train(self.solns)
     #sens,partVar = copyROM.getSensitivities()
@@ -506,7 +506,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     for subset in self.ROMs.keys():
       if subset not in self.useSet.keys() and subset not in include:
         del initDict['ROMs'][subset]
-    rom.supervisedEngine.SupervisedEngine[0].initialize(initDict)
+    rom.supervisedEngine.supervisedContainer[0].initialize(initDict)
 
   def _finalizeSubset(self,subset):
     """
@@ -523,7 +523,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #train the ROM
     self.romShell[subset].train(sampler.solns)
     #store rom in dedicated use set
-    self.useSet[subset] = self.romShell[subset].supervisedEngine.SupervisedEngine[0]
+    self.useSet[subset] = self.romShell[subset].supervisedEngine.supervisedContainer[0]
 
   def _generateSubsets(self,subset):
     """
@@ -670,7 +670,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     from .Factory import returnInstance
     verbosity = self.subVerbosity #sets verbosity of created RAVEN objects
-    SVL = self.ROM.supervisedEngine.SupervisedEngine[0] #an example SVL for most parameters
+    SVL = self.ROM.supervisedEngine.supervisedContainer[0] #an example SVL for most parameters
     #replicate "normal" construction of the ROM
     distDict={}
     quadDict={}
@@ -720,7 +720,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.romShell[subset].initializationOptionDict['PolynomialOrder']='1'
     self.romShell[subset]._initializeSupervisedGate(**self.romShell[subset].initializationOptionDict)
     #coordinate SVLs
-    self.romShell[subset].supervisedEngine.SupervisedEngine = [self.ROMs[subset]]
+    self.romShell[subset].supervisedEngine.supervisedContainer = [self.ROMs[subset]]
     #instantiate the adaptive sparse grid sampler for this rom
     samp = returnInstance('AdaptiveSparseGrid',self)
     samp.messageHandler = self.messageHandler
@@ -787,10 +787,10 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       for t in self.targets:
         self.statesFile.writelines('  %12s' %t)
       self.statesFile.writelines('\n')
-      for coeff in self.romShell[sub].supervisedEngine.SupervisedEngine[0].polyCoeffDict.values()[0].keys():
+      for coeff in self.romShell[sub].supervisedEngine.supervisedContainer[0].polyCoeffDict.values()[0].keys():
         self.statesFile.writelines('    %12s' %','.join(str(c) for c in coeff))
         for t in self.targets:
-          self.statesFile.writelines('  %1.6e' %self.romShell[sub].supervisedEngine.SupervisedEngine[0].polyCoeffDict[t][coeff])
+          self.statesFile.writelines('  %1.6e' %self.romShell[sub].supervisedEngine.supervisedContainer[0].polyCoeffDict[t][coeff])
         self.statesFile.writelines('\n')
       #polynomials in training
       if any(sub==item[1] for item in self.inTraining): self.statesFile.writelines('TRAINING:\n')

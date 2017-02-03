@@ -41,6 +41,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.messageHandler          = messageHandler
     self.initializationOptions   = kwargs
     self.amITrained              = False
+    self.ROMclass                = ROMclass
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptions.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
@@ -50,26 +51,36 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.canHandleDynamicData = modelInstance.isDynamic()
     # is this ROM  time-dependent ?
     self.isADynamicModel      = False
-    # if it is dynamic and time series are passed in, self.SupervisedEngine is not going to be expanded, else it is going to
-    self.SupervisedEngine     = [modelInstance]
+    # if it is dynamic and time series are passed in, self.supervisedContainer is not going to be expanded, else it is going to
+    self.supervisedContainer     = [modelInstance]
     # check if pivotParameter is specified and in case store it
     self.pivotParameterId     = self.initializationOptions.pop("pivotParameter",'time')
     #
     self.historySteps         = []
 
-#     if 'SKLtype' in self.initializationOptions and 'MultiTask' in self.initializationOptions['SKLtype']:
-#       self.initializationOptions['Target'] = targets
-#       model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptions)
-#       for target in targets:
-#         self.SupervisedEngine[target] = model
-#     else:
-#       for target in targets:
-#         self.initializationOptions['Target'] = target
-#         self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
-#     # extend the list of modules this ROM depen on
-#     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine,True)) - set(self.mods)))
-#     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
+  def __getstate__(self):
+    """
+      This function return the state of the ROM
+      @ In, None
+      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
+    """
+    # capture what is normally pickled
+    state = self.__dict__.copy()
+    if not self.amITrained:
+      supervisedEngineObj = state.pop("supervisedContainer")
+      del supervisedEngineObj
+    return state
 
+  def __setstate__(self, newstate):
+    """
+      Initialize the ROM with the data contained in newstate
+      @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(newstate)
+    if not self.amITrained:
+      modelInstance             = SupervisedLearning.returnInstance(self.ROMclass,self,**self.initializationOptions)
+      self.supervisedContainer  = [modelInstance]
 
   def reset(self):
     """
@@ -77,7 +88,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       @ In, None
       @ Out, None
     """
-    for rom in self.SupervisedEngine: rom.reset()
+    for rom in self.supervisedContainer: rom.reset()
     self.amITrained = False
 
   def getInitParams(self):
@@ -89,7 +100,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = self.SupervisedEngine[-1].returnInitialParameters()
+    paramDict = self.supervisedContainer[-1].returnInitialParameters()
     return paramDict
 
   def train(self,trainingSet):
@@ -110,7 +121,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       if len(self.historySteps) == 0: self.raiseAnError(IOError,"the training set is empty!")
       if self.canHandleDynamicData:
         # the ROM is able to manage the time dependency on its own
-        self.SupervisedEngine[0].train(trainingSet)
+        self.supervisedContainer[0].train(trainingSet)
       else:
         # we need to construct a chain of ROMs
         # the check on the number of time steps (consistency) is performed inside the historySnapShoots method
@@ -118,16 +129,16 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
         newTrainingSet = mathUtils.historySnapShoots(trainingSet, len(self.historySteps))
         if type(newTrainingSet).__name__ != 'list': self.raiseAnError(IOError,newTrainingSet)
         # copy the original ROM
-        originalROM = copy.deepcopy(self.SupervisedEngine[0])
+        originalROM = copy.deepcopy(self.supervisedContainer[0])
         # start creating and training the time-dep ROMs
-        self.SupervisedEngine = [] # [copy.deepcopy(originalROM) for _ in range(len(self.historySteps))]
+        self.supervisedContainer = [] # [copy.deepcopy(originalROM) for _ in range(len(self.historySteps))]
         # train
         for ts in range(len(self.historySteps)):
-          self.SupervisedEngine.append(copy.deepcopy(originalROM))
-          self.SupervisedEngine[-1].train(newTrainingSet[ts])
+          self.supervisedContainer.append(copy.deepcopy(originalROM))
+          self.supervisedContainer[-1].train(newTrainingSet[ts])
     else:
       #self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-      self.SupervisedEngine[0].train(trainingSet)
+      self.supervisedContainer[0].train(trainingSet)
     self.amITrained = True
 
   def confidence(self, request):
@@ -140,7 +151,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     """
     if not self.amITrained: self.raiseAnError(RuntimeError, "ROM "+self.initializationOptions['name']+" has not been trained yet and, consequentially, can not be evaluated!")
     confidenceDict = {}
-    for rom in self.SupervisedEngine:
+    for rom in self.supervisedContainer:
       sliceEvaluation = rom.confidence(request)
       if len(confidenceDict.keys()) == 0:
         confidenceDict.update(sliceEvaluation)
@@ -156,7 +167,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     """
     if not self.amITrained: self.raiseAnError(RuntimeError, "ROM "+self.initializationOptions['name']+" has not been trained yet and, consequentially, can not be evaluated!")
     resultsDict = {}
-    for rom in self.SupervisedEngine:
+    for rom in self.supervisedContainer:
       sliceEvaluation = rom.evaluate(request)
       if len(resultsDict.keys()) == 0:
         resultsDict.update(sliceEvaluation)
