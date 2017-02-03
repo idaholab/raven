@@ -156,11 +156,11 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     #set a pointer to the GaussPolynomialROM object
     SVL = self.readFromROM()
-    self.targets = self.ROM.initializationOptionDict['Target'].split(',') #the output space variables
+    self.targets = SVL.target #the output space variables
     #initialize impact dictionaries by target
-    for t in self.targets:
-      self.expImpact[t] = {}
-      self.actImpact[t] = {}
+    self.expImpact = {key: dict({}) for key in self.targets}
+    self.actImpact = {key: dict({}) for key in self.targets}
+
     mpo = self.maxPolyOrder #save it to re-set it after calling generateQuadsAndPolys
     self._generateQuadsAndPolys(SVL) #lives in GaussPolynomialRom object
     self.maxPolyOrder = mpo #re-set it
@@ -357,7 +357,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ Out, impact, float, estimated impact factor for this index set and sparse grid
     """
     if self.convType.lower()=='variance':
-      impact = rom.polyCoeffDict[poly]**2 / sum(rom.polyCoeffDict[p]**2 for p in rom.polyCoeffDict.keys())
+      impact = rom.polyCoeffDict[target][poly]**2 / sum(rom.polyCoeffDict[target][p]**2 for p in rom.polyCoeffDict[target].keys())
     #FIXME 'coeffs' has to be updated to fit in the new rework before it can be used.
     # elif self.convType.lower()=='coeffs':
     #   #new = self._makeARom(rom.sparseGrid,rom.indexSet).SupervisedEngine[target]
@@ -412,7 +412,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     if rom == None: rom = self.ROM
     self.raiseADebug('No more samples to try! Declaring sampling complete.')
     #initialize final rom with final sparse grid and index set
-    for target,SVL in rom.SupervisedEngine.items():
+    for SVL in rom.supervisedEngine.SupervisedEngine:
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.dists,
                       'quads':self.quadDict,
@@ -470,7 +470,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     sg.messageHandler   = self.messageHandler
     iset.messageHandler = self.messageHandler
     rom.messageHandler  = self.messageHandler
-    for svl in rom.SupervisedEngine.values():
+    for svl in rom.supervisedEngine.SupervisedEngine:
       svl.initialize({'SG'   :sg,
                       'dists':self.dists,
                       'quads':self.quadDict,
@@ -572,7 +572,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     rom = self._makeARom(self.sparseGrid,self.indexSet)
     for poly in self.indexSet.points:
       for t in self.targets:
-        impact = self._convergence(poly,rom.SupervisedEngine[t],t)
+        impact = self._convergence(poly,rom.supervisedEngine.SupervisedEngine[0],t)
         self.actImpact[t][poly] = impact
 
   def _writeConvergencePoint(self,runPoint):
