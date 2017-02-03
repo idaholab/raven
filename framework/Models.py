@@ -831,8 +831,7 @@ class ROM(Dummy):
     #establish sets of engines to work from
     engines = self.supervisedEngine.SupervisedEngine
     #handle 'all' case
-    #if 'all' in targets:
-    #  targets = ROMtargets
+    if 'all' in targets: targets = ROMtargets
     #this loop is only 1 entry long if not dynamic
     for s,rom in enumerate(engines):
       if dynamic:

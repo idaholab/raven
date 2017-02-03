@@ -701,13 +701,10 @@ class GaussPolynomialRom(superVisedLearning):
     self.raiseADebug('training',self.features,'->',self.target)
     self.featv, self.targv = featureVals,targetVals
     self.polyCoeffDict = {key: dict({}) for key in self.target}
-    #self.polyCoeffDict=dict.fromkeys(self.target,{})
     #check equality of point space
     self.raiseADebug('...checking required points are available...')
     fvs = []
     tvs = {key: list({}) for key in self.target}
-    #for target in self.target: tvs[target] = []
-    #tvs = dict.fromkeys(self.target,[])
     sgs = list(self.sparseGrid.points())
     missing=[]
     kdTree = spatial.KDTree(featureVals)
@@ -722,9 +719,6 @@ class GaussPolynomialRom(superVisedLearning):
         found = True
         point = tuple(featureVals[idx])
       #end KDTree way
-      #brute way
-      #found,idx,point = mathUtils.NDInArray(featureVals,pt)
-      #end brute way
       if found:
         fvs.append(point)
         for cnt, target in enumerate(self.target):  tvs[target].append(targetVals[idx,cnt])
