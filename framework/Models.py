@@ -794,7 +794,7 @@ class ROM(Dummy):
           self.initializationOptionDict[child.getName()] = {}
           for node in child.subparts: self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
         else: self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
-    self.supervisedEngine = supervisedLearningGate.returnInstance('SupervisedGate', self.subType, self,**self.initializationOptionDict)
+    self._initializeSupervisedGate(**self.initializationOptionDict)
     #the ROM is instanced and initialized
     # check how many targets
     #self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine),True)) - set(self.mods))
@@ -802,6 +802,14 @@ class ROM(Dummy):
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(supervisedLearningGate),True)) - set(self.mods))
     #restore targets to initialization option dict
 #     self.initializationOptionDict['Target'] = ','.join(targets)
+
+  def _initializeSupervisedGate(self,**initializationOptions):
+    """
+      Method to initialize the supervisedGate class
+      @ In, initializationOptions, dict, the initialization options
+      @ Out, None
+    """
+    self.supervisedEngine = supervisedLearningGate.returnInstance('SupervisedGate', self.subType, self,**initializationOptions)
 
   def printXML(self,options={}):
     """
