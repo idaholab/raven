@@ -18,11 +18,11 @@
 	<Samplers>
 		<Grid name="gridSampler">
 			<samplerInit>
-				<limit>1</limit>
+				<initialSeed>20021986</initialSeed>
 			</samplerInit>
 			<variable name="scaling">
 				<distribution>uniDist</distribution>
-      <grid type='value' construction='equal' steps='1'>1.0 2.0</grid>
+                <grid type='value' construction='equal' steps='1'>1.0 2.0</grid>
 			</variable>
         </Grid>
 	</Samplers> 

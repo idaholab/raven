@@ -674,7 +674,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     from .Factory import returnInstance
     verbosity = self.subVerbosity #sets verbosity of created RAVEN objects
-    SVL = self.ROM.supervisedEngine.SupervisedEngine.values()[0] #an example SVL for most parameters
+    SVL = self.ROM.supervisedEngine.SupervisedEngine[0] #an example SVL for most parameters
     #replicate "normal" construction of the ROM
     distDict={}
     quadDict={}
@@ -723,8 +723,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.romShell[subset].initializationOptionDict['IndexSet']='TotalDegree'
     self.romShell[subset].initializationOptionDict['PolynomialOrder']='1'
     #coordinate SVLs
-    #for t in self.targets:
-    self.romShell[subset].supervisedEngine.SupervisedEngine = [self.ROMs[t][subset]]
+    self.romShell[subset].supervisedEngine.SupervisedEngine = [self.ROMs[subset]]
     #instantiate the adaptive sparse grid sampler for this rom
     samp = returnInstance('AdaptiveSparseGrid',self)
     samp.messageHandler = self.messageHandler
@@ -743,8 +742,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     samp.printTag = 'ASG:('+','.join(subset)+')'
     #propogate sparse grid back from sampler #TODO self.SQs might not really be necessary.
     self.SQs[subset] = samp.sparseGrid
-    for target in self.targets:
-      self.ROMs[target][subset].sparseGrid  = samp.sparseGrid
+    self.ROMs[subset].sparseGrid  = samp.sparseGrid
     self.samplers[subset] = samp
     #initialize pointsNeeded and pointsCollected databases
     self.pointsNeeded[subset] = []
