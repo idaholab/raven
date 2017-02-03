@@ -148,17 +148,6 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       targetValues = np.concatenate([np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
     # construct the evaluation matrixes
     featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
-#     else:
-#       if self.target in names:
-#         targetValues = values[names.index(self.target)]
-#       else:
-#         self.raiseAnError(IOError,'The target ' + self.target + ' is not in the training set')
-#       # check if the targetValues are consistent with the expected structure
-#       resp = self.checkArrayConsistency(targetValues)
-#       if not resp[0]:
-#         self.raiseAnError(IOError,'In training set for target '+self.target+':'+resp[1])
-#       # construct the evaluation matrixes
-#       featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
