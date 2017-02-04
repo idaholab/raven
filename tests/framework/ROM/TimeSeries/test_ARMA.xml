@@ -25,21 +25,21 @@
     </Files>
     <Distributions>
 		<Uniform name="uniDist">
-			<lowerBound>0</lowerBound>
-			<upperBound>1</upperBound>
+			<lowerBound>1</lowerBound>
+			<upperBound>1.00001</upperBound>
 		</Uniform>		
 	</Distributions>
 
 	<Samplers>
-		<Grid name="gridSampler">
+		<MonteCarlo name="mcSampler">
 			<samplerInit>
-				<initialSeed>20021986</initialSeed>
+                <limit>1</limit>
+                <initialSeed>20021986</initialSeed>
 			</samplerInit>
 			<variable name="scaling">
 				<distribution>uniDist</distribution>
-                <grid type='value' construction='equal' steps='1'>1.0 2.0</grid>
 			</variable>
-        </Grid>
+        </MonteCarlo>
 	</Samplers> 
 	
 	<Models>			
@@ -67,7 +67,7 @@
 		</RomTrainer>
 		<MultiRun name='runARMA'>
 			<Input    class = 'DataObjects'       type = 'PointSet'      >dataIn</Input>
-			<Sampler class="Samplers"             type="Grid"            >gridSampler</Sampler>
+			<Sampler class="Samplers"             type="MonteCarlo"      >mcSampler</Sampler>
 			<Model   class='Models' 			  type = 'ROM' 	 		 >ARMA</Model>
 			<Output    class = 'DataObjects'      type = 'HistorySet'    >synData</Output>
 		</MultiRun>
