@@ -72,12 +72,12 @@
 		</RomTrainer>
 		<MultiRun name='runARMA'>
 			<Input    class = 'DataObjects'       type = 'PointSet'       >dataIn</Input>
+            <Model   class='Models' 			  type = 'ROM' 	 		 >ARMA</Model>
 			<Sampler class="Samplers"  type="MonteCarlo"  >mcSampler</Sampler>
-			<Model   class='Models' 			  type = 'ROM' 	 		 >ARMA</Model>
 			<Output    class = 'DataObjects'       type = 'HistorySet'    >synData</Output> 
 		</MultiRun>
         <IOStep name='writeOut' pauseAtEnd = 'True'>
-			<Input    class = 'DataObjects'       type = 'HistorySet'    >synData</Input>		 			
+			<Input    class = 'DataObjects'       type = 'HistorySet'    >synData</Input>
 			<Output   class = 'OutStreams'  type = 'Print'    >writeSynDataOut</Output>
 			<Output   class = 'OutStreams'  type = 'Plot'    >plotSynData</Output> 
 		</IOStep>	
@@ -103,18 +103,18 @@
 	</OutStreams>
 	
     <DataObjects>
-        <HistorySet name="rawData">
+      <PointSet name="dataIn">
+        <Input>scaling</Input>
+        <Output>OutputPlaceHolder</Output>
+      </PointSet>
+      <HistorySet name="rawData">
+        <Input>scaling</Input>
+        <Output>Time,Speed</Output>
+      </HistorySet>
+      <HistorySet name="synData">
        <Input>scaling</Input>
        <Output>Time,Speed</Output>
-        </HistorySet>
-		<PointSet name="dataIn">
-       <Input>scaling</Input>
-       <Output>OutputPlaceHolder</Output>
-        </PointSet>
-		<HistorySet name="synData">
-       <Input>scaling</Input>
-       <Output>Time,Speed</Output>
-        </HistorySet>
+      </HistorySet>
     </DataObjects>
 </Simulation>
 
