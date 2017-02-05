@@ -268,7 +268,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
   def isDynamic(self):
     """
       This method is a utility function that tells if the relative ROM is able to
-      treat dynamic data (e.g. time-series) on its own or not (Primarly called by learningGate)
+      treat dynamic data (e.g. time-series) on its own or not (Primarly called by LearningGate)
       @ In, None
       @ Out, isDynamic, bool, True if the ROM is able to treat dynamic data, False otherwise
     """

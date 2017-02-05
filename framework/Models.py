@@ -34,7 +34,7 @@ import Files
 import graphStructure
 import InputData
 import PostProcessors
-import learningGate
+import LearningGate
 from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -775,7 +775,7 @@ class ROM(Dummy):
     #the ROM is instanced and initialized
     # check how many targets
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(learningGate),True)) - set(self.mods))
+    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
 
   def _initializeSupervisedGate(self,**initializationOptions):
     """
@@ -783,7 +783,7 @@ class ROM(Dummy):
       @ In, initializationOptions, dict, the initialization options
       @ Out, None
     """
-    self.supervisedEngine = learningGate.returnInstance('SupervisedGate', self.subType, self,**initializationOptions)
+    self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self,**initializationOptions)
 
   def printXML(self,options={}):
     """
