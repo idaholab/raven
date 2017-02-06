@@ -1,5 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/RattlesnakeInterface.testMC</name>
+    <author>wangc</author>
+    <created>2016-04-21</created>
+    <classesTested>Models.Code.Rattlesnake, Sampler.MonteCarlo</classesTested>
+    <description>
+       An example of using the code interface RattleSnake when XS need to be perturbed.
+       This test is aimed to check the functionality (running the code) of the Rattlesnake interface
+       when a MonteCarlo sampling approach is used.
+    </description>
+    <revisions>
+      <revision author="wangc" date="2016-08-04">Modify test to perturb transport XS and regold the tests</revision>
+      <revision author="talbpaul" date="2016-09-15">Test updates</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>TestRattlesnake</WorkingDir>
     <Sequence>MCTest</Sequence>

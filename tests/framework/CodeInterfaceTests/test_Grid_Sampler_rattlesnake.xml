@@ -1,5 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.testGridRattlesnake</name>
+    <author>wangc</author>
+    <created>2016-04-20</created>
+    <classesTested>Models.Code.MooseBasedApp</classesTested>
+    <description>
+       An example of using the code interface of type MooseBasedApp for
+       perturbing a RattleSnake input (when XS are not needed to be perturbed)
+    </description>
+    <revisions>
+      <revision author="wangc" date="2016-04-20">Update the input file, because OutStreamManager is changed to OutStreams</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>GridTestTwigl</WorkingDir>
     <Sequence>CustomSampler</Sequence>

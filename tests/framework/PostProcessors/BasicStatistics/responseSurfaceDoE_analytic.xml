@@ -5,6 +5,15 @@
     <Sequence>SamplingMirrowModelBoxBehnkenRespDesign,SamplingMirrowModelCentralCompositeRespDesign,PP1BoxBehnkenRespDesign,PP1CentralCompositeRespDesign</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/responseSurfaceDoE_analytic</name>
+    <author>alfoa</author>
+    <created>2015-11-22</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This test checks the basic statistics on Response Surface Design of Experiment samples
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="output_basicStatistics_PP1BoxBehnkenRespDesign.csv" type="">output_basicStatistics_PP1BoxBehnkenRespDesign.csv</Input>

@@ -1,5 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.test_merge_2_databases</name>
+    <author>alfoa</author>
+    <created>2015-03-03</created>
+    <classesTested>Databases.HDF5</classesTested>
+    <description>
+       This test is aimed to check the possiblity in RAVEN to merge 2 different  Databases of type HDF5.
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="talbpaul" date="2016-04-26">some tests slipped through</revision>
+      <revision author="alfoa" date="2016-04-27">New subdirectories structure</revision>
+      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+      <revision author="maljdan" date="2016-05-23">Changing and regolding a test case that uses an external model when unnecessary.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>test_merge_2_databases</WorkingDir>
     <Sequence>MonteCarlo,test_extract,test_push_in,test_extract_again</Sequence>

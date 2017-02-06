@@ -5,9 +5,17 @@
     <Sequence>basic,basicpp,coll,colltrain,collprint,pp</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/RavenOutputPostProcessor/static</name>
+    <author>talbpaul</author>
+    <created>2016-05-20</created>
+    <classesTested>PostProcessors.RavenOutput</classesTested>
+    <description>
+      This test checks using the RavenOutput postprocessor to read multiple RAVEN XML output files.
+      Creates both a BasicStatistics and collocation ROM dump XML for loading, then loads comparable values from them.
+    </description>
+  </TestInfo>
 
-  <!--Creates both a BasicStatistics and collocation ROM dump XML
-       for loading, then loads comparable values from them.-->
   <Files>
     <Input name="first">basic.xml</Input>
     <Input name="second">collocation.xml</Input>

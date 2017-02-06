@@ -1487,7 +1487,8 @@ class Code(Model):
       @ In, currentInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+           a mandatory key is the SampledVars'that contains a dictionary {'name variable':value}
+           also 'additionalEdits', similar dictionary for non-variables
       @ Out, createNewInput, tuple, return the new input in a tuple form
     """
     Kwargs['executable'] = self.executable
@@ -1784,7 +1785,7 @@ class PostProcessor(Model, Assembler):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, createNewInput, tuple, return the new input in a tuple form
     """
-    return self.interface.inputToInternal(self,myInput)
+    return self.interface.inputToInternal(myInput)
 
 class EnsembleModel(Dummy, Assembler):
   """

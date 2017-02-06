@@ -5,6 +5,16 @@
     <Sequence>make,train,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/ROM/Sobol/AdaptiveSobolMaxRuns</name>
+    <author>talbpaul</author>
+    <created>2016-02-08</created>
+    <classesTested>Samplers.AdaptiveSobol,SupervisedLearning.HDMRRom</classesTested>
+    <description>
+      This tests using the AdaptiveSobol sampler to construct HDMRRom ROMs, but restricted by
+      a specified number of samples (maxRuns in the sampler).
+    </description>
+  </TestInfo>
 
   <Steps>
     <MultiRun name="make" pauseAtEnd="False">

@@ -5,6 +5,16 @@
     <Sequence>Nmake,Nprint1,Ntrain,Ntest,Nprint2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pca_sparseGrid/MVNCorrelated</name>
+    <author>wangc</author>
+    <created>2015-11-23</created>
+    <classesTested>Samplers.SparseGridCollocation,SupervisedLearning.GaussPolynomialROM</classesTested>
+    <description>
+      Tests the SparseGridCollocation sampler combined with input reductions via PCA method,
+      using correlated multivariate normal distributions.
+    </description>
+  </TestInfo>
 
   <Distributions>
     <MultivariateNormal method="pca" name="MVNDist">

@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/Clustering/time_dep_clustering_filtered</name>
+    <author>mandd</author>
+    <created>2016-07-20</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with the MeanShift model and preprocessing.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>time_dep_meanshift</WorkingDir>
     <Sequence>FirstMRun,pp1,plotAllHists,filter0,filter1</Sequence>

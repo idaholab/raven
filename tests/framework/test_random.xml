@@ -1,5 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.testRandom</name>
+    <author>cogljj</author>
+    <created>2014-02-18</created>
+    <classesTested>Samplers.MonteCarlo</classesTested>
+    <description>
+       This test is aimed to check the functionality of RAVEN to perform random sampling (MonteCarlo) on simple 1Dimensional distributions.
+       Since the goal of the test is to check the Sampler only, a Dummy Model is used.
+    </description>
+    <revisions>
+      <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
+      <revision author="alfoa" date="2015-05-18">Closes #169</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>RandomTest</WorkingDir>
     <Sequence>Sampler1,Sampler2,Sampler3,Sampler4,Sampler5</Sequence>

@@ -1,15 +1,23 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/DymolaInterfaceTestTimeDepNoExecutable</name>
+    <author>alfoa</author>
+    <created>2016-11-11</created>
+    <revisions>
+      <revision date="2016-12-01" author="@alfoa">Fixed order of test inputs to respect XSD schema</revision>
+    </revisions>
+    <classesTested>Models.EnsembleModel,CodeInterfaces.OpenModelica</classesTested>
+    <description>
+       The purpose of this test is to ensure that the Dyola external code interface functions properly with the
+       new ensemble model functionality.  Since the output files have been pre-generated, a Dymola executable is
+       not necessary to run this test.
+    </description>
+  </TestInfo>
   <Files>
     <Input name="dsin.txt" type="DymolaInitialisation">dsin.txt</Input>
     <Input name="addinp.txt" type="DymolaVectors">addinp.txt</Input>
   </Files>
-  <!-- 
-     The purpose of this test is to exercise the Dymola external code interface without needing to have a built
-     executable.  It is directly modeled on the test_relap5_code_interface.xml test and works by making sure that
-      1) The input files are perturbed correctly
-      2) The raw output MAT files are properly processed for reading by RAVEN 
-   -->
   <RunInfo>
     <WorkingDir>DMInterfaceTestTimedep</WorkingDir>
     <Sequence>testDummyStep,testPrintUnstructuredInputSpace</Sequence>

@@ -1,5 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/fail_csv</name>
+    <author>cogljj</author>
+    <created>2016-04-14</created>
+    <classesTested>TestHarness.testers.RavenFramework</classesTested>
+    <description>
+      Tests the test harness by checking that differences in the csv file
+      cause the test to fail (but it passes because expected_fail is used
+      in the tests file).  If the CSV check passes, then this will fail the
+      test.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>fail_csv</WorkingDir>
     <Sequence>External_Model,MakeSet</Sequence>

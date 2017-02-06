@@ -1,5 +1,27 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.test_mpi</name>
+    <author>cogljj</author>
+    <created>2013-09-18</created>
+    <classesTested>Models.Code, JobHandler.ExternalRunner</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to handle external codes that are MPI parallelized.
+    </description>
+    <revisions>
+      <revision author="cogljj" date="2013-10-03">Switching name ThreadingProcessor to NumThreads. This is after a discussion decided new name makes more sense. This switch also switches some places that used ParallelProcNumb when they should have used NumThreads. SVN r21991</revision>
+      <revision author="cogljj" date="2013-10-03">Renaming ParallelProcNumb to NumMPI This is based on a discussion. This also changes some errorous uses of numNode where NumMPI should be used. SVN r21992</revision>
+      <revision author="cogljj" date="2013-10-22">Updating test_mpi.xml to use subType instead of type. SVN r22359</revision>
+      <revision author="cogljj" date="2013-10-29">Updating runinfo dictionary stuff. Most significant is renaming totNumbCores to totalNumCoresUsed. SVN r22532</revision>
+      <revision author="cogljj" date="2014-06-06">Fixing test_mpi.xml to run again. SVN r27735</revision>
+      <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
+      <revision author="alfoa" date="2015-05-18">Closes #167</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="talbpaul" date="2016-04-26">removed 'type' in databases</revision>
+      <revision author="alfoa" date="2016-04-27">New subdirectories structure</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>mpi_driver_test</WorkingDir>
     <Sequence>FirstMRun</Sequence>

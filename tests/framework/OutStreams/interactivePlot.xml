@@ -1,5 +1,20 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/OutStreams.interactive_plotting</name>
+    <author>maljdan</author>
+    <created>2016-06-30</created>
+    <classesTested>OutStreams.Plot</classesTested>
+    <description>
+       Test to check the functionalities of OutStreams system in RAVEN of type Plot.
+       This test is aimed to check the capability of RAVEN to create a Plot and visualize it on the screen (interactvly)
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-09-01">Close #650</revision>
+      <revision author="talbpaul" date="2016-09-15">Test updates</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
 	<RunInfo>
 		<WorkingDir>plot</WorkingDir>
 		<Sequence>SampleAModel</Sequence>
@@ -38,23 +53,23 @@
 		</Grid>
 	</Samplers>
 	<OutStreams>
-		<Plot name="plotResponse"   overwrite="False">
-			<plotSettings>
-				<plot>
-					<type>scatter</type>
-					<x>outGRID|Input|x1</x>
-					<y>outGRID|Input|x2</y>
-					<z>outGRID|Output|y</z>
-					<colorMap>outGRID|Output|y</colorMap>
-          <range>
+	 <Plot name="plotResponse"   overwrite="False">
+		<plotSettings>
+		  <plot>
+			<type>scatter</type>
+			<x>outGRID|Input|x1</x>
+			<y>outGRID|Input|x2</y>
+			<z>outGRID|Output|y</z>
+			<colorMap>outGRID|Output|y</colorMap>
+            <range>
             <xmin>0.0</xmin>
             <xmax>2.0</xmax>
             <ymin>0.0</ymin>
             <ymax>2.0</ymax>
             <zmin>0.0</zmin>
             <zmax>6.0</zmax>
-          </range>
-        </plot>
+            </range>
+          </plot>
         <xlabel>x1</xlabel>
         <ylabel>x2</ylabel>
         <zlabel>y</zlabel>

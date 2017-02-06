@@ -1,5 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/fail_xml</name>
+    <author>cogljj</author>
+    <created>2016-04-14</created>
+    <classesTested>TestHarness.testers.XMLDiff,TestHarness.testers.RavenFramework</classesTested>
+    <description>
+      Tests the test harness by checking that differences in the xml file
+      cause the test to fail (but it passes because expected_fail is used
+      in the tests file).  If the XML check passes, then this will fail the
+      test.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>fail_xml</WorkingDir>
     <Sequence>External_Model,MakeSet</Sequence>

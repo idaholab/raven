@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>cluster_tests/test_pbsdsh</name>
+    <author>cogljj</author>
+    <created>2013-08-08</created>
+    <classesTested>SimulationMode</classesTested>
+    <description>
+      Tests using a custom mode with the pbsdsh command.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstPRun</Sequence>

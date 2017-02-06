@@ -1,5 +1,20 @@
 <?xml version="1.0" ?>
 <Simulation printTimeStamps="false" verbosity="debug">
+  <TestInfo>
+    <name>framework/ErrorChecks.missingSteps</name>
+    <author>talbpaul</author>
+    <created>2016-02-09</created>
+    <classesTested>Steps.MultiRun</classesTested>
+    <description>
+       This test is aimed to check the functionality of RAVEN to error out in case some input inconsistencies are found.
+       In this case, the error in case of no Step is tested.
+    </description>
+    <revisions>
+      <revision author="talbpaul" date="2016-04-26">Updated test to accept new ``overwrite'' attribute in HDF5</revision>
+      <revision author="alfoa" date="2016-04-27">New subdirectories structure</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>./revirD_tset</WorkingDir>
     <Sequence>FirstMRun</Sequence>

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<xsd:schema version="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"  elementFormDefault="qualified">
+
+    <xsd:complexType name="TestInfoData">
+        <xsd:all>
+            <xsd:element name="name" type="xsd:string"          minOccurs="1"/>
+            <xsd:element name="author" type="xsd:string"        minOccurs="1"/>
+            <xsd:element name="created" type="xsd:date"         minOccurs="0"/>
+            <xsd:element name="description" type="xsd:string"   minOccurs="1"/>
+            <xsd:element name="classesTested" type="xsd:string" minOccurs="1"/>
+            <xsd:element name="analytic" type="xsd:string"      minOccurs="0"/>
+            <xsd:element name="requirements" type="xsd:string"  minOccurs="0"/>
+            <xsd:element name="revisions" type="testInfoRevisionsType" minOccurs="0"/>
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="testInfoRevisionsType">
+        <xsd:sequence minOccurs="0">
+            <xsd:element name="revision" type="testInfoRevisionType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="testInfoRevisionType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="author" type="xsd:string" use="required"/>
+                <xsd:attribute name="date" type="xsd:date" use="required"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+</xsd:schema>

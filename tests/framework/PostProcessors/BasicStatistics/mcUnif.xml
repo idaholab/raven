@@ -5,6 +5,15 @@
     <Sequence>MC,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/mc_uniform</name>
+    <author>mandd</author>
+    <created>2016-11-28</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      Tests basic statistics on uniformly-sampled normally-distributed Monte Carlo sampling.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="output_basicStatistics_PP.csv" type="">output_basicStatistics_PP.csv</Input>
@@ -19,7 +28,7 @@
       <expectedValue>out</expectedValue>
     </PostProcessor>
   </Models>
-  
+
   <Distributions>
     <Normal name="normal">
       <mean>0.0</mean>

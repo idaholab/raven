@@ -5,6 +5,15 @@
     <Sequence>RelRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pca_rom/MVNRel</name>
+    <author>wangc</author>
+    <created>2015-09-14</created>
+    <classesTested>Distributions.MultivariateNormal</classesTested>
+    <description>
+      Tests MVN with relative covariance matrix
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
