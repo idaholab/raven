@@ -8,6 +8,15 @@
     <WorkingDir>StatisticalAnalysis</WorkingDir>
     <batchSize>40</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/user_guide/StatisticalAnalysis/StatisticalAnalysis</name>
+    <author>talbpw</author>
+    <created>2017-01-27</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+       This test is an example for the user guide to draw from.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>

@@ -5,6 +5,15 @@
     <Sequence>sampleMC,kmeans,pca</Sequence>
     <batchSize>40</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/user_guide/DataMining/dataMiningAnalysis</name>
+    <author>talbpw</author>
+    <created>2017-01-30</created>
+    <classesTested>PostProcessor.DataMining</classesTested>
+    <description>
+       This test is an example for the user guide to draw from.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>

@@ -6,6 +6,15 @@
     <WorkingDir>LSsearch</WorkingDir>
     <batchSize>12</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/user_guide/AdaptiveSamplingStrategies/limitSurfaceSearch</name>
+    <author>talbpw</author>
+    <created>2017-01-26</created>
+    <classesTested>Samplers.LimitSurfaceSearch,PostProcessors.LimitSurfaceIntegral</classesTested>
+    <description>
+       This test is an example for the user guide to draw from.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>

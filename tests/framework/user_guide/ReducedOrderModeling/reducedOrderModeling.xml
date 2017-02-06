@@ -10,6 +10,15 @@
     <WorkingDir>ROMConstruction</WorkingDir>
     <batchSize>12</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/user_guide/ReducedOrderModelling/ROMConstruction</name>
+    <author>talbpw</author>
+    <created>2017-01-27</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>
+       This test is an example for the user guide to draw from.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>

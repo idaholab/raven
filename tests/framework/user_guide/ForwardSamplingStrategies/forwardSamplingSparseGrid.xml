@@ -6,6 +6,15 @@
     <Sequence>sample,train,validateModel,validateROM,output_print,output_plot</Sequence>
     <batchSize>12</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/user_guide/ForwardSamplingStrategies/SparseGrid</name>
+    <author>talbpw</author>
+    <created>2017-01-26</created>
+    <classesTested>Samplers.SparseGrid</classesTested>
+    <description>
+       This test is an example for the user guide to draw from.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>

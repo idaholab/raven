@@ -6,6 +6,15 @@
     <WorkingDir>RunDir/Stratified</WorkingDir>
     <batchSize>40</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/user_guide/ForwardSamplingStrategies/Stratified</name>
+    <author>talbpw</author>
+    <created>2017-01-26</created>
+    <classesTested>Samplers.Stratified</classesTested>
+    <description>
+       This test is an example for the user guide to draw from.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
