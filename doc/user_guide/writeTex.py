@@ -56,7 +56,8 @@ if __name__=='__main__':
   strNode = getNode(fname,nname)
   outFile = file('raven_temp_tex_xml.tex','w')
   printName = os.path.join('raven',fname.replace('../','')).replace('_','\_')
-  toWrite = chooseSize(printName)+'\n\\texttt{'+printName+'}\n'+\
+  toWrite = '\\FloatBarrier\n'+\
+            chooseSize(printName)+'\n\\texttt{'+printName+'}\n'+\
             chooseSize(strNode)+'\n'+\
             '\\begin{lstlisting}[style=XML,morekeywords={'+highlight+'}]\n'+\
             strNode+'\n'+\
