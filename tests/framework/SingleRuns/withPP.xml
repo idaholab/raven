@@ -4,6 +4,15 @@
     <Sequence>sample</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/SingleRuns/postProcessorFails</name>
+    <author>talbpw</author>
+    <created>2017-01-27</created>
+    <classesTested>Steps.SingleRun,Model.PostProcessor</classesTested>
+    <description>
+       This test assures the SingleRun produces the correct error when paired with the PostProcessor model.
+    </description>
+  </TestInfo>
 
   <Steps>
     <SingleRun name="sample">

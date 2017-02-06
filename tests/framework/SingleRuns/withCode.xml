@@ -4,6 +4,15 @@
     <Sequence>sample</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/SingleRuns/codeModel</name>
+    <author>talbpw</author>
+    <created>2017-02-02</created>
+    <classesTested>Steps.SingleRun,Model.Code</classesTested>
+    <description>
+       This test assures the SingleRun works in conjunction with the Code model.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="inp" type="">projectile_input.i</Input>
