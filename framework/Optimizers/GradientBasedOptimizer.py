@@ -17,6 +17,7 @@ import os
 import copy
 import abc
 import numpy as np
+from numpy import linalg as LA
 from sklearn.neighbors import NearestNeighbors
 #External Modules End--------------------------------------------------------------------------------
 
@@ -41,15 +42,16 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     Optimizer.__init__(self)
-    self.constraintHandlingPara = {}                  # Dict containing parameters for parameters related to constraints handling
-    self.gradDict = {}                                # Dict containing information for gradient related operations
-    self.gradDict['numIterForAve'] = 1                # Number of iterations for gradient estimation averaging
-    self.gradDict['pertNeeded'] = 1                   # Number of perturbation needed to evaluate gradient
-    self.gradDict['pertPoints'] = {}                  # Dict containing normalized inputs sent to model for gradient evaluation
-    self.counter['perturbation'] = {}                 # Counter for the perturbation performed.
-    self.readyVarsUpdate = {}                         # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
-    self.counter['varsUpdate'] = {}
-    self.counter['solutionUpdate'] = {}
+    self.constraintHandlingPara     = {}              # Dict containing parameters for parameters related to constraints handling
+    self.gradDict                   = {}              # Dict containing information for gradient related operations
+    self.gradDict['numIterForAve']  = 1               # Number of iterations for gradient estimation averaging
+    self.gradDict['pertNeeded']     = 1               # Number of perturbation needed to evaluate gradient
+    self.gradDict['pertPoints']     = {}              # Dict containing normalized inputs sent to model for gradient evaluation
+    self.counter['perturbation']    = {}              # Counter for the perturbation performed.
+    self.readyVarsUpdate            = {}              # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
+    self.counter['gradientHistory'] = {}              # In this dict we store the gradient value for current and previous iterations {'trajectoryID':[{},{}]}
+    self.counter['varsUpdate'     ] = {}
+    self.counter['solutionUpdate' ] = {}
     self.convergeTraj = {}
 
   def localInputAndChecks(self, xmlNode):
@@ -65,6 +67,7 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['perturbation'][traj]      = 0
       self.counter['varsUpdate'][traj]        = 0
       self.counter['solutionUpdate'][traj]    = 0
+      self.counter['gradientHistory'][traj]   = [{},{}]
       self.optVarsHist[traj]                  = {}
       self.readyVarsUpdate[traj]              = False
       self.convergeTraj[traj]                 = False
@@ -176,7 +179,7 @@ class GradientBasedOptimizer(Optimizer):
     """
     self.readyVarsUpdate = {traj:False for traj in self.optTrajLive}
 
-  def evaluateGradient(self, optVarsValues):
+  def evaluateGradient(self, optVarsValues, traj):
     """
       Method to evaluate gradient based on perturbed points and model evaluations.
       @ In, optVarsValues, dict, dictionary containing perturbed points.
@@ -184,6 +187,7 @@ class GradientBasedOptimizer(Optimizer):
                                  Therefore, each optVarsValues[pertIndex] should return a dict of variable values
                                  that is sufficient for gradient evaluation for at least one variable
                                  (depending on specific optimization algorithm)
+      @ In, traj, int, the trajectory id
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     gradArray = {}
@@ -193,6 +197,8 @@ class GradientBasedOptimizer(Optimizer):
     for pertIndex in optVarsValues.keys():
       tempDictPerturbed = optVarsValues[pertIndex]
       tempDictPerturbed['lossValue'] = copy.copy(self.lossFunctionEval(tempDictPerturbed))
+      print(tempDictPerturbed['lossValue'])
+      print(tempDictPerturbed['lossValue'])
       lossDiff = tempDictPerturbed['lossValue'][0] - tempDictPerturbed['lossValue'][1]
       for var in self.optVars:
         if tempDictPerturbed[var][0] != tempDictPerturbed[var][1]:
@@ -201,8 +207,9 @@ class GradientBasedOptimizer(Optimizer):
     gradient = {}
     for var in self.optVars:
       gradient[var] = gradArray[var].mean()
-
     gradient = self.localEvaluateGradient(optVarsValues, gradient)
+    self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][0]
+    self.counter['gradientHistory'][traj][0] = gradient
     return gradient
 
   def localEvaluateGradient(self, optVarsValues, gradient = None):
@@ -243,7 +250,10 @@ class GradientBasedOptimizer(Optimizer):
     if self.convergeTraj[traj] == False:
       if varsUpdate > 1:
         oldVal = copy.deepcopy(self.lossFunctionEval(self.optVarsHist[traj][varsUpdate-1]))
-        if abs(currentLossValue-oldVal) < self.convergenceTol:
+        lll = LA.norm(self.counter['gradientHistory'][traj][0].values())
+        print(lll)
+        #if abs(currentLossValue-oldVal) < self.convergenceTol or LA.norm(self.counter['gradientHistory'][traj][0].values()) < self.convergenceTol:
+        if LA.norm(self.counter['gradientHistory'][traj][0].values()) < self.convergenceTol:
           self.convergeTraj[traj] = True
           for trajInd, tr in enumerate(self.optTrajLive):
             if tr == traj:

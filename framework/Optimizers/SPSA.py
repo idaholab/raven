@@ -159,8 +159,9 @@ class SPSA(GradientBasedOptimizer):
             self.counter['varsUpdate'][traj] += 1
 
             ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj]) # Compute the new ak
-            gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj])
-
+            gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
+            if LA.norm(gradient.values()) <= 1.0e-7:
+              print("lupo")
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
             varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
 
