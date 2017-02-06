@@ -66,7 +66,7 @@
   </Distributions>
 
   <Samplers>
-    <AdaptiveDynamicEventTree name="adaptive" printEndXmlSummary="yes">
+    <AdaptiveDynamicEventTree name="adaptive" printEndXmlSummary="yes" removeXmlBranchInfo="False">
       <ROM class="Models" type="ROM">ROM_test</ROM>
       <Function class="Functions" type="External">maapFunctionSimple</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOutsimple</TargetEvaluation>

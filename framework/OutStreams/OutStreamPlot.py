@@ -832,7 +832,7 @@ class OutStreamPlot(OutStreamManager):
       @ Out, None
     """
     if 'dim' in xmlNode.attrib.keys():
-      self.raiseAnError("the 'dim' attribute has been deprecated. This warning will become an error in January 2017")
+      self.raiseAnError(IOError,"the 'dim' attribute has been deprecated. This warning became an error in January 2017")
     foundPlot = False
     for subnode in xmlNode:
       # if actions, read actions block

@@ -116,15 +116,12 @@ class Sobol(SparseGridCollocation):
     """
     SVL = self.readFromROM()
     #make combination of ROMs that we need
-    self.targets  = self.ROM.SupervisedEngine.keys()
-    SVLs = self.ROM.SupervisedEngine.values()
     self.sobolOrder = SVL.sobolOrder
     self._generateQuadsAndPolys(SVL)
     self.features = SVL.features
     needCombos = itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(self.sobolOrder+1))
     self.SQs={}
-    self.ROMs={} #keys are [target][combo]
-    for t in self.targets: self.ROMs[t]={}
+    self.ROMs={} #keys are [combo]
     for combo in needCombos:
       if len(combo)==0:
         continue
@@ -142,23 +139,20 @@ class Sobol(SparseGridCollocation):
       iset.initialize(combo,imptDict,SVL.maxPolyOrder)
       self.SQs[combo] = Quadratures.returnInstance(self.sparseGridType,self)
       self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
-      # initDict is for SVL.__init__()
-      initDict={'IndexSet'       :iset.type,        # type of index set
-                'PolynomialOrder':SVL.maxPolyOrder, # largest polynomial
-                'Interpolation'  :SVL.itpDict,      # polys, quads per input
-                'Features'       :','.join(combo),  # input variables
-                'Target'         :None}             # set below, per-case basis
+      initDict={'IndexSet'       :iset.type,             # type of index set
+                'PolynomialOrder':SVL.maxPolyOrder,      # largest polynomial
+                'Interpolation'  :SVL.itpDict,           # polys, quads per input
+                'Features'       :','.join(combo),       # input variables
+                'Target'         :','.join(SVL.target)}# set below, per-case basis
       #initializeDict is for SVL.initialize()
       initializeDict={'SG'   :self.SQs[combo],      # sparse grid
                       'dists':distDict,             # distributions
                       'quads':quadDict,             # quadratures
                       'polys':polyDict,             # polynomials
                       'iSet' :iset}                 # index set
-      for name,SVL in self.ROM.SupervisedEngine.items():
-        initDict['Target']     = SVL.target
-        self.ROMs[name][combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
-        self.ROMs[name][combo].initialize(initializeDict)
-        self.ROMs[name][combo].messageHandler = self.messageHandler
+      self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
+      self.ROMs[combo].initialize(initializeDict)
+      self.ROMs[combo].messageHandler = self.messageHandler
     #make combined sparse grids
     self.references={}
     for var in self.features:
@@ -171,7 +165,7 @@ class Sobol(SparseGridCollocation):
     self.pointsToRun.append(tuple(newpt))
     self.distinctPoints.add(tuple(newpt))
     #now do the rest
-    for combo,rom in utils.first(self.ROMs.values()).items(): #each target is the same, so just for each combo
+    for combo,rom in self.ROMs.items(): # just for each combo
       SG = rom.sparseGrid #they all should have the same sparseGrid
       SG._remap(combo)
       for l in range(len(SG)):
@@ -186,16 +180,15 @@ class Sobol(SparseGridCollocation):
           self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
     self.raiseADebug('Needed points: %i' %self.limit)
-    initdict={'ROMs':None,
+    initdict={'ROMs':self.ROMs,
               'SG':self.SQs,
               'dists':self.dists,
               'quads':self.quadDict,
               'polys':self.polyDict,
               'refs':self.references,
               'numRuns':len(self.distinctPoints)}
-    for target in self.targets:
-      initdict['ROMs'] = self.ROMs[target]
-      self.ROM.SupervisedEngine[target].initialize(initdict)
+    #for target in self.targets:
+    self.ROM.supervisedEngine.supervisedContainer[0].initialize(initdict)
 
   def localGenerateInput(self,model,myInput):
     """

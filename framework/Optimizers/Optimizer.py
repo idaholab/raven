@@ -370,7 +370,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.objSearchingROM.train(tempDict)
     optVars = self.denormalizeData(optVars)
     for key in optVars.keys():                    optVars[key] = np.atleast_1d(optVars[key])
-    lossFunctionValue = self.objSearchingROM.evaluate(optVars)
+    lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
 
     if self.optType == 'min':           return lossFunctionValue
     else:                               return lossFunctionValue*-1.0

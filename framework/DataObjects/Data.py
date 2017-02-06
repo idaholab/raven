@@ -72,7 +72,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #self._unstructuredInputContainer     = {}                         # Dict that contains the input space in unstrctured form (e.g. 1-D arrays)
     self._dataContainer['metadata'     ] = {}                         # In this dictionary we store metadata (For example, probability,input file names, etc)
     self.metaAdditionalInOrOut           = ['PointProbability','ProbabilityWeight']            # list of metadata keys that will be printed in the CSV one
-    self.acceptHierarchy                 = False                      # flag to tell if a sub-type accepts hierarchy
     self.inputKDTree                     = None                       # KDTree for speedy querying of input space
     self.treeScalingFactors = {}                                      # dictionary of means, scaling factors for KDTree searches
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
@@ -98,19 +97,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, __len__, integer, size of first output element
     """
     if len(self._dataParameters['outParam']) == 0: return 0
-    else:
-      if self.type != "HistorySet": return self.sizeData('output',keyword=self._dataParameters['outParam'][0])[self._dataParameters['outParam'][0]]
-      else                        : return self.sizeData('output',keyword=1)[1]
+    else                                         : return self.sizeData()
 
   ## Public Methods
-
-  def acceptHierarchical(self):
-    """
-      This function returns a boolean. True if the specialized Data accepts the hierarchical structure
-      @ In, None
-      @ Out, acceptHierarchy, bool, flag is True if this class accepts the hierarchical structure
-    """
-    return self.acceptHierarchy
 
   def addOutput(self,toLoadFrom,options=None):
     """
@@ -563,15 +552,14 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, index, int, index of realization to return
       @ Out, realization, dict, {'inputs':{inName:value}, 'outputs':{outName:value}}
     """
-    if index >= len(self):
-      self.raiseAnError(IndexError,'Requested entry %i but only entries 0 through %i exist!' %(index,len(self)-1))
+    if index >= len(self): self.raiseAnError(IndexError,'Requested entry %i but only entries 0 through %i exist!' %(index,len(self)-1))
     realization = {}
-    inps = self.getParaKeys('inputs')
-    outs = self.getParaKeys('outputs')
-    allInVals = self.getParametersValues('inputs')
-    allOutVals = self.getParametersValues('outputs')
-    inVals = list(allInVals[var][index] for var in inps)
-    outVals = list(allOutVals[var][index] for var in outs)
+    inps       = self.getParaKeys('inputs')
+    outs       = self.getParaKeys('outputs')
+    allInVals  = self.getParametersValues('inputs', nodeId = 'RecontructEnding')
+    allOutVals = self.getParametersValues('outputs', nodeId = 'RecontructEnding')
+    inVals     = list(allInVals[var][index] for var in inps)   if self.type == 'PointSet' else list(allInVals[index+1][var] for var in inps)
+    outVals    = list(allOutVals[var][index] for var in outs) if self.type == 'PointSet' else list(allOutVals[index+1][var] for var in outs)
     realization['inputs'] = dict((k,v) for (k,v) in zip(inps,inVals))
     realization['outputs'] = dict((k,v) for (k,v) in zip(outs,outVals))
     return realization
@@ -727,35 +715,16 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             self.raiseAnError(RuntimeError,'the node ' + nodeName + 'has been found but no one has a parent named '+ parentName)
           else: return(foundNodes[0])
 
-  def sizeData(self,typeVar,keyword=None,nodeId=None,serialize=False):
+  def sizeData(self):
     """
-      Function to get the size of the Data.
-      @ In, typeVar, string, required, variable type (input/inputs, output/outputs, metadata)
-      @ In, keyword, string, optional, variable keyword. If None, the sizes of each variables are returned
-      @ In, nodeId, string, optional, id of the node if hierarchical
-      @ In, serialize, bool, optional, serialize the tree if in hierarchical mode
-      @ Out, outcome, dict, {keyword:size}
+      Method to get the size of the Data. (Number of realizations)
+      @ In, None
+      @ Out, outcome, int, number of realizations
     """
-    outcome   = {}
-    emptyData = False
-    if self.isItEmpty(): emptyData = True
-    if typeVar.lower() in ['input','inputs','output','outputs']:
-      if keyword != None:
-        if not emptyData: outcome[keyword] = len(self.getParam(typeVar,keyword,nodeId,serialize))
-        else            : outcome[keyword] = 0
-      else:
-        for key in self.getParaKeys(typeVar):
-          if not emptyData: outcome[key] = len(self.getParam(typeVar,key,nodeId,serialize))
-          else            : outcome[key] = 0
-    elif typeVar.lower() == 'metadata':
-      if keyword != None:
-        if not emptyData: outcome[keyword] = len(self.getMetadata(keyword,nodeId,serialize))
-        else            : outcome[keyword] = 0
-      else:
-        for key,value in self.getAllMetadata(nodeId,serialize):
-          if not emptyData: outcome[key] = len(value)
-          else            : outcome[key] = 0
-    else: self.raiseAnError(RuntimeError,'type ' + typeVar + ' is not a valid type. Function: Data.sizeData')
+    outcome   = 0
+    if self.isItEmpty(): return outcome
+    if self.type == 'PointSet': outcome = len(self.getParam('input',self.getParaKeys('input')[-1],nodeId = 'RecontructEnding'))
+    else                      : outcome = len(self.getParametersValues('input', nodeId='RecontructEnding').keys())
     return outcome
 
   def updateInputValue(self,name,value,options=None):
@@ -894,8 +863,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     # retrieve input/outputs parameters' keywords
-    self._dataParameters['inParam']  = list(inp.strip() for inp in xmlNode.find('Input' ).text.strip().split(','))
-    self._dataParameters['outParam'] = list(out.strip() for out in xmlNode.find('Output').text.strip().split(','))
+    if xmlNode.find('Input' ) is None and xmlNode.find('Output' ) is None: self.raiseAnError(IOError,"At least one of the Input or Output XML block needs to be inputted!")
+    # we allow to avoid to have an <Input> block if not needed (InputPlaceHolder) or a <Output> block if not needed (OutputPlaceHolder)
+    self._dataParameters['inParam']  = list(inp.strip() for inp in xmlNode.find('Input' ).text.strip().split(',')) if xmlNode.find('Input' ) is not None else ['InputPlaceHolder']
+    self._dataParameters['outParam'] = list(out.strip() for out in xmlNode.find('Output').text.strip().split(',')) if xmlNode.find('Output') is not None else ['OutputPlaceHolder']
     if '' in self._dataParameters['inParam'] : self.raiseAnError(IOError, 'In DataObject  ' +self.name+' there is a trailing comma in the "Input" XML block!')
     if '' in self._dataParameters['outParam']: self.raiseAnError(IOError, 'In DataObject  ' +self.name+' there is a trailing comma in the "Output" XML block!')
     #test for keywords not allowed
@@ -917,10 +888,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if 'hierarchical' in xmlNode.attrib.keys():
       if xmlNode.attrib['hierarchical'].lower() in utils.stringsThatMeanTrue(): self._dataParameters['hierarchical'] = True
       else                                                                    : self._dataParameters['hierarchical'] = False
-      if self._dataParameters['hierarchical'] and not self.acceptHierarchical():
-        self.raiseAWarning('hierarchical fashion is not available (No Sense) for Data named '+ self.name + 'of type ' + self.type + '!!!')
-        self._dataParameters['hierarchical'] = False
-      else: self.TSData, self.rootToBranch = None, {}
+      if self._dataParameters['hierarchical']: self.TSData, self.rootToBranch = None, {}
     else: self._dataParameters['hierarchical'] = False
 
   def _specializedInputCheck(self,xmlNode):
