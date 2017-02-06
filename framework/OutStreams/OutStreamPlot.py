@@ -1812,7 +1812,7 @@ class OutStreamPlot(OutStreamManager):
         # OSX to fail.  Which is correct for windows has not been determined.
         def handle_close(event):
           """
-            This method is aimed to handle the closing of figures (overall when in inte
+            This method is aimed to handle the closing of figures (overall when in interactive mode)
             @ In, event, instance, the event to close
             @ Out, None
           """
@@ -1836,7 +1836,7 @@ class OutStreamPlot(OutStreamManager):
       # self.fig.canvas.flush_events()
 
     for fileType in self.destinations:
-      if fileType.lower() == 'screen':
+      if fileType == 'screen':
         continue
 
       if not self.overwrite:
@@ -1850,4 +1850,6 @@ class OutStreamPlot(OutStreamManager):
         name = prefix + self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "")
 
       plt.savefig(name + '.' + fileType, format = fileType)
+
+    if 'screen' not in self.destinations:
       plt.close()
