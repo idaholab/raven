@@ -1,5 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.redundantInputsSCgPC</name>
+    <author>talbpaul</author>
+    <created>2016-01-07</created>
+    <classesTested>Samplers.SparseGridCollocation, Functions.External</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to treat redundant input variables, when the Sampler of type ``SparseGridCollocation'' is used.
+       This test shows how some of the
+       variables defined in the Sampler, can be associated to Functions (External) instead of Distributions. In this way,
+       the user can ``sample'' the variable as combination of the other variables.
+    </description>
+    <revisions>
+      <revision author="talbpaul" date="2016-01-07">Tests updated</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>RedundantInputs</WorkingDir>
     <Sequence>sim_py_SC</Sequence>

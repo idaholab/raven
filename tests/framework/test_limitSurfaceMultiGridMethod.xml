@@ -1,5 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.testLimitSurfaceMultiGridSampling</name>
+    <author>alfoa</author>
+    <created>2015-09-10</created>
+    <classesTested>Samplers.LimitSurfaceSearch, Functions.External</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to perform an adaptive sampling strategy of type LimitSurfaceSearch
+       when using the convergence acceleration scheme of type Multi-Grid.
+    </description>
+    <revisions>
+      <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
+      <revision author="alfoa" date="2015-10-05">Modified multigrid test to make it faster</revision>
+      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+      <revision author="maljdan" date="2016-11-08">Serializing the adaptive tests and regolding the multigrid case since I can validate the results look good. I am still trying to understand what the correct results for the 3D case are.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>limitSurfaceMultiGrid</WorkingDir>
     <Sequence>GoalOrientedStep,dumpLSout</Sequence>

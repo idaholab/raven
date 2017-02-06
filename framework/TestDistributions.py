@@ -1071,3 +1071,32 @@ checkAnswer("Custom1D ppf(00.971283440184)",Custom1D.ppf(0.971283440184),1.90000
 print(results)
 
 sys.exit(results["fail"])
+"""
+  <TestInfo>
+    <name>framework.test_distributions</name>
+    <author>cogljj</author>
+    <created>2013-12-10</created>
+    <classesTested> </classesTested>
+    <description>
+       This test is a Unit Test for the Distributions classes. It tests all the distributions and all the methods.
+    </description>
+    <revisions>
+      <revision author="cogljj" date="2013-12-10">Adding test of all the rest of the distributions except for binomial.        r23360</revision>
+      <revision author="senrs" date="2015-01-26">fixed Bug in Distribution.py    the attribute mean is obsolete use untrMean instead</revision>
+      <revision author="senrs" date="2015-01-26">Fixed bugs in the if statements, etc...and included tests for Distributions.py</revision>
+      <revision author="talbpaul" date="2015-02-05">added pickle methods and tests for distributionsw</revision>
+      <revision author="alfoa" date="2015-02-10">finished caching of data</revision>
+      <revision author="talbpaul" date="2015-03-11">added way to do beta through keywords, still need to test stochcoll, but testdistros is passing</revision>
+      <revision author="cogljj" date="2015-04-29">Adding test of standard deviation.</revision>
+      <revision author="cogljj" date="2015-05-05">Adding check of std deviation of a binomial.</revision>
+      <revision author="cogljj" date="2015-05-06">Adding additional checks of the mean and standard deviation.</revision>
+      <revision author="alfoa" date="2015-05-18">modified test distribution</revision>
+      <revision author="mandd" date="2015-06-16">fixed testDistributions</revision>
+      <revision author="alfoa" date="2016-03-31">Closes #478</revision>
+      <revision author="maljdan" date="2016-04-12">Improving readability of our own code and removing extraneous functions.</revision>
+      <revision author="cogljj" date="2016-04-12">Converting Distributions to use the new input system. All distributions have been converted.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+    <requirements>R-RE-1</requirements>
+  </TestInfo>
+"""

@@ -1,5 +1,24 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/metaModelsTests.testEnsembleModelLinearParallelWithOptimizer</name>
+    <author>alfoa</author>
+    <created>2016-09-01</created>
+    <classesTested>Models.EnsembleModel, Models.ExternalModel, JobHandler.ParallelPython</classesTested>
+    <description>
+       Example of usage of the Ensemble Model capability in RAVEN, connecting multiple External Models.
+       This test is aimed to check the functionality of assembling multiple Models, when they result in a single chain
+       of Models (linear system) and they are sampled with an Optimization scheme.  
+       This test checks the functionality of the model using 
+       a multi processor (ParallelPython) parallelization scheme.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-10-20">Modified XSD and removed dim attribute from all the tests</revision>
+      <revision author="chenj" date="2016-10-31">Regold parallel EnsembleModel test since change in the optimization algorithm</revision>
+      <revision author="alfoa" date="2016-11-14">New syntax ensemble</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>metaModelLinearParallelWithOptimizer</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>

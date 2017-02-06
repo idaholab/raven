@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/DimensionalityReduction/SparsePCA</name>
+    <author>senrs</author>
+    <created>2015-11-24</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests decomposition with SparsePCA
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>SparsePCA</WorkingDir>
     <Sequence>readIn,PCAIris,output</Sequence>

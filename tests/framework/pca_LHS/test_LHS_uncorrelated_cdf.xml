@@ -5,6 +5,15 @@
     <Sequence>LHSRun,Dump,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pca_LHS/LHSuncorrelated</name>
+    <author>wangc</author>
+    <created>2015-11-18</created>
+    <classesTested>Distributions.MultivariateNormal,Samplers.Stratified,PostProcessors.BasicStatistics</classesTested>
+    <description>
+      Benchmark for test of the PCA method to sample in LHS surrogate input space.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>

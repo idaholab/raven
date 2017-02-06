@@ -3,6 +3,7 @@ from Tester import Tester
 from CSVDiffer import CSVDiffer
 import RavenUtils
 import os, subprocess
+import distutils.version
 
 class RavenPython(Tester):
   try:
@@ -26,6 +27,7 @@ class RavenPython(Tester):
     params.addParam('required_executable','','Skip test if this executable is not found')
     params.addParam('required_libraries','','Skip test if any of these libraries are not found')
     params.addParam('required_executable_check_flags','','Flags to add to the required executable to make sure it runs without fail when testing its existence on the machine')
+    params.addParam('minimum_library_versions','','Skip test if the library listed is below the supplied version (e.g. minimum_library_versions = \"name1 version1 name2 version2\")')
 
     return params
 
@@ -54,8 +56,22 @@ class RavenPython(Tester):
     self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.required_executable_check_flags = self.specs['required_executable_check_flags'].split(' ')
+    self.minimum_libraries = self.specs['minimum_library_versions'].split(' ')  if len(self.specs['minimum_library_versions']) > 0 else []
 
   def checkRunnable(self, option):
+    i = 0
+    if len(self.minimum_libraries) % 2:
+      return (False,'skipped (libraries are not matched to versions numbers: '+str(self.minimum_libraries)+')')
+    while i < len(self.minimum_libraries):
+      libraryName = self.minimum_libraries[i]
+      libraryVersion = self.minimum_libraries[i+1]
+      found, message, actualVersion = RavenUtils.moduleReport(libraryName,libraryName+'.__version__')
+      if not found:
+        return (False,'skipped (Unable to import library: "'+libraryName+'")')
+      if distutils.version.LooseVersion(actualVersion) < distutils.version.LooseVersion(libraryVersion):
+        return (False,'skipped (Outdated library: "'+libraryName+'")')
+      i+=2
+
     if len(self.required_executable) > 0:
       try:
         argsList = [self.required_executable]

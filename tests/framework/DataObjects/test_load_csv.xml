@@ -1,5 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/DataObjects.load_csv</name>
+    <author>maljdan</author>
+    <created>2016-06-23</created>
+    <classesTested>DataObjects.PointSet</classesTested>
+    <description>
+       Test to check the functionalities of DataObjects.PointSet to be constructed by an extern input file (csv)
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>csv</WorkingDir>
     <Sequence>in,out</Sequence>

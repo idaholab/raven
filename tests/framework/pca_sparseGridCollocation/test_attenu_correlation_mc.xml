@@ -5,6 +5,20 @@
     <batchSize>1</batchSize>
     <Sequence>sample,print</Sequence>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pca_sparseGrid/attenuCorrelationMC</name>
+    <author>wangc</author>
+    <created>2015-11-23</created>
+    <classesTested>Samplers.MonteCarlo</classesTested>
+    <description>
+      Tests the SparseGridCollocation sampler combined wit input reductions via PCA method,
+      using correlated multivariate normal distributions.
+    </description>
+    <analytic>
+      This test is analytic in mean and variance using the "attenuation" analytic model
+      documented in the analytic tests.
+    </analytic>
+  </TestInfo>
 
   <DataObjects>
     <PointSet name="dummyIN">

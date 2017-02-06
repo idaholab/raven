@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/InterfacedPostProcessor/hs_sync_max</name>
+    <author>talbpaul</author>
+    <created>2016-04-14</created>
+    <classesTested>InterfacedPostProcessor</classesTested>
+    <description>
+      Tests of the HistorySetSync interfaced post-processor and in particular the MAX syncMethod
+    </description>
+  </TestInfo>
+  
   <RunInfo>
     <WorkingDir>hs_sync_max</WorkingDir>
     <Sequence>make,sync,train,print</Sequence>

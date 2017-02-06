@@ -5,6 +5,16 @@
     <Sequence>FirstMRun,PP1,PP2,PP3,PP4,PP5,PP6</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/general</name>
+    <author>alfoa</author>
+    <created>2014-05-21</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This requirements test checks operation of the basic statistics postprocessor.
+    </description>
+    <requirements>R-RA-5</requirements>
+  </TestInfo>
 
   <Files>
     <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>

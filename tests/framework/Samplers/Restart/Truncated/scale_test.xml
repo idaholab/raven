@@ -5,6 +5,17 @@
     <Sequence>makeCoarse,printCoarse,load,makeRestart,printRestart</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/Restart/Truncated/Scaled</name>
+    <author>@talbpaul</author>
+    <created>2016-10-26</created>
+    <classesTested>Samplers</classesTested>
+    <description>
+      One challenge for the restartTolerance in restarting a sampler is finding a matching point in the restart data
+      when the scale of the various inputs is wildly different.  This test assures such a restart can be performed.
+      See parent directory for how restarts are tested.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="inp" type="">input_truncated.i</Input>

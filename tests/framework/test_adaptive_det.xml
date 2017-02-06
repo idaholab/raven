@@ -1,11 +1,23 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <!-- TestInfo -->
+  <TestInfo>
+    <name>framework/testAdaptiveDynamicEventTreeRAVEN</name>
+    <author>@alfoa</author>
+    <created>2015-05-01</created>
+    <classesTested>Databases.HDF5</classesTested>
+    <description>
+        This  test is aimed to test the capability of RAVEN to employ the Adaptive Dynamic Event Tree Sampling strategy (using RELAP7 as system code) in a larger case
+    </description>
+  </TestInfo>
+  <!-- RunInfo. 1 Step is performed in this case -->
   <RunInfo>
     <WorkingDir>AdaptiveDET</WorkingDir>
     <Sequence>AdaptiveDETrunTest</Sequence>
     <batchSize>8</batchSize>
   </RunInfo>
-
+  
+  <!-- Files.  6 input files are listed (2 model input files and 4 restart files) -->
   <Files>
     <Input name="TMI_PRA_trans_DET_control.py" type="">TMI_PRA_trans_DET_control.py</Input>
     <Input name="TMI.i" type="">TMI.i</Input>
@@ -14,7 +26,8 @@
     <Input name="TMI_steady_restart/0957.xdr.0000" type="">TMI_steady_restart/0957.xdr.0000</Input>
     <Input name="TMI_steady_restart/0957_mesh.cpr" type="">TMI_steady_restart/0957_mesh.cpr</Input>
   </Files>
-
+  
+  <!-- Models.  2 Models are listed. The Code (RELAP7) and an accelleration ROM -->
   <Models>
     <Code name="MyRAVEN" subType="RELAP7">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
@@ -29,7 +42,8 @@
       <C>50</C>
     </ROM>
   </Models>
-
+  
+  <!-- Functions.  1 Function is listed. The goal function for the adaptive search. -->
   <Functions>
     <External file="AdaptiveDET/relapFunction.py" name="relapFunction">
       <variable type="numpy.float64">DG1_time_ratio</variable>
@@ -40,7 +54,8 @@
       <variable type="numpy.float64">CladDamaged</variable>
     </External>
   </Functions>
-
+  
+  <!-- Distributions. 5 Distributions (5 aleatory uncertanties are sampled) -->
   <Distributions>
     <Normal name="crewSecPG">
       <mean>1400</mean>
@@ -66,10 +81,14 @@
       <sigma>500</sigma>
     </Normal>
   </Distributions>
-
+  
+  <!-- Samplers. In here we specify the characteristics of the Adaptive DET sampling -->
   <Samplers>
     <AdaptiveDynamicEventTree maxSimulationTime="2500.0" name="AdaptiveDET" printEndXmlSummary="yes">
       <Convergence forceIteration="False" limit="1600" persistence="20" weight="CDF">0.0001</Convergence>
+      <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOut</TargetEvaluation>
+      <Function class="Functions" type="External">relapFunction</Function>
+      <ROM class="Models" type="ROM">Acc</ROM>
       <Distribution name="DG1recoveryTime">
         <distribution>crew1DG1</distribution>
         <grid construction="custom" type="CDF">0.1 0.9</grid>
@@ -93,31 +112,31 @@
     </AdaptiveDynamicEventTree>
   </Samplers>
 
+  <!-- Steps. 1 MultiRun -->
   <Steps>
-    <LimitSurfaceSearch name="AdaptiveDETrunTest">
+    <MultiRun name="AdaptiveDETrunTest">
       <Input class="Files" type="">TMI.i</Input>
       <Input class="Files" type="">TMI_PRA_trans_DET_control.py</Input>
       <Input class="Files" type="">TMI_steady_restart/0957.rd-0</Input>
       <Input class="Files" type="">TMI_steady_restart/0957.xdr</Input>
       <Input class="Files" type="">TMI_steady_restart/0957.xdr.0000</Input>
       <Input class="Files" type="">TMI_steady_restart/0957_mesh.cpr</Input>
-      <ROM class="Models" type="ROM">Acc</ROM>
       <Model class="Models" type="Code">MyRAVEN</Model>
-      <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOut</TargetEvaluation>
       <SolutionExport class="DataObjects" type="PointSet">LimitSurf</SolutionExport>
-      <Function class="Functions" type="External">relapFunction</Function>
       <Sampler class="Samplers" type="AdaptiveDynamicEventTree">AdaptiveDET</Sampler>
       <Output class="DataObjects" type="PointSet">adaptiveOut</Output>
       <Output class="Databases" type="HDF5">testAdaptiveBranchDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">timepointset</Output>
-    </LimitSurfaceSearch>
+    </MultiRun>
   </Steps>
-
+  
+  <!-- Databases. The final results are stored in a database -->
   <Databases>
     <HDF5 name="testAdaptiveBranchDatabase"/>
   </Databases>
-
+  
+  <!-- OutStreams. The final results are printed -->
   <OutStreams>
     <Print name="stories_from_database_dump">
       <type>csv</type>
@@ -125,6 +144,7 @@
     </Print>
   </OutStreams>
 
+  <!-- DataObjects. DataObjects to contain the final results of the analysis and the converged Limit Surface -->
   <DataObjects>
     <HistorySet name="stories">
       <options>

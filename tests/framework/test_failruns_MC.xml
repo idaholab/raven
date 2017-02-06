@@ -1,5 +1,20 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.failrunsMC</name>
+    <author>talbpaul</author>
+    <created>2015-08-25</created>
+    <classesTested>Steps.MultiRun</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to identify failures (Model crashes in some realizations) when a sampling strategy is employed.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2015-09-12">removed syntax inconsistency with respect standards for Samplers (underscores instead of camelBack) + created conversion script</revision>
+      <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>RunFailures</WorkingDir>
     <Sequence>sample,print,csample,cprint</Sequence>

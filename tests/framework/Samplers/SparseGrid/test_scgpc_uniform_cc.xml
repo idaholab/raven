@@ -5,6 +5,15 @@
     <Sequence>UCmake,UCtrain,UCtest,UCprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/SparseGrid/uniform_cc</name>
+    <author>talbpaul</author>
+    <created>2015-09-11</created>
+    <classesTested>Samplers.SparseGridCollocation</classesTested>
+    <description>
+      This tests using SparseGridCollocation with Clenshaw Curtis points and weights (on uniformly-distributed variables).
+    </description>
+  </TestInfo>
 
   <Distributions>
     <Uniform name="UniDist">

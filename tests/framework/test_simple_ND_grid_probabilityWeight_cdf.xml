@@ -1,5 +1,25 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>framework.NDGridProbabilityWeightCDF</name>
+    <author>wangc</author>
+    <created>2015-09-30</created>
+    <classesTested>Distributions.NDInverseWeight, Distrubtions.NDCartesianSpline, Samplers.Grid</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to handle ND probability density functions (distributions), when 
+       a Grid sampling strategy is performed. In this case, the capability to construct marginal distributions (for each uncertanties of
+       the ND distribution domain), when the discretization is performed in CDF.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2015-10-15">merged devel and resolved conflicts</revision>
+      <revision author="mandd" date="2015-11-06">edits</revision>
+      <revision author="mandd" date="2015-11-17">final merging with devel</revision>
+      <revision author="talbpaul" date="2016-02-08">first update, looking for more failing tests to add</revision>
+      <revision author="mandd" date="2016-02-11">merged with devel</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>NDGridPWcdf</WorkingDir>
     <Sequence>FirstMRun</Sequence>

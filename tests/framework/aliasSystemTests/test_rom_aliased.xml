@@ -1,5 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/aliasSystemTests.testROMAliased</name>
+    <author>alfoa</author>
+    <created>2016-11-18</created>
+    <classesTested>Models.ROM, Models.AliasSystem</classesTested>
+    <description>
+       An example of using the the alias system in RAVEN with a ROM Model.
+       This capability allows the user to alias Models variables within the RAVEN framework
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-11-22">Closes #754</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>rom_aliased</WorkingDir>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>

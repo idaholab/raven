@@ -1,5 +1,32 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+
+  <TestInfo>
+    <name>framework/Samplers/AdaptiveBatch.PreRankingSimplification</name>
+    <author>maljdan</author>
+    <created>2015-11-03</created>
+    <classesTested>Samplers.LimitSurfaceSearch</classesTested>
+    <description>
+       A copy of framework/Samplers/AdaptiveBatch.MaxPDistance (test_maxp_d.xml)
+       except it has been modified to provide a simplification value which is
+       used to set a level for persistence simplification before extracting
+       local maximum from either the maxP or maxV batch strategies. In this
+       example, the value is 0.5, so any persistence value less than 0.5 of the
+       scoring function's range of values is removed and thus we may end up with
+       very few local maxima candidates.
+
+       Note, all of the tests in AdaptiveBatch operate on a 2D input domain with
+       the goal of extracting a circular limit surface with radius 0.5 and
+       centered at the origin, (0,0).
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2015-11-20">Collapsing the batch sampling into the limit surface class, updating documentation, XSD, and the test cases to reflect this change.</revision>
+      <revision author="talbpaul" date="2016-02-08">First update, looking for more failing tests to add.</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="maljdan" date="2017-01-18">Adding test description.</revision>
+    </revisions>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>circle</WorkingDir>
     <Sequence>sample,adapt,dump</Sequence>

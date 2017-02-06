@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>cluster_tests/test_mpi</name>
+    <author>cogljj</author>
+    <created>2013-09-10</created>
+    <classesTested>MPISimulationMode</classesTested>
+    <description>
+      This is used for testing that mpi can be used directly, without
+      a qsub.  This could be used in pbs interactive mode.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstMRun</Sequence>

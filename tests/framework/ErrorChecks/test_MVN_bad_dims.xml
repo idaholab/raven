@@ -1,5 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation printTimeStamps="False" verbosity="debug">
+  <TestInfo>
+    <name>framework/ErrorChecks.MVNbadDims</name>
+    <author>talbpaul</author>
+    <created>2016-07-14</created>
+    <classesTested>Distributions.MultivariateNormal, Samplers.MonteCarlo</classesTested>
+    <description>
+       This test is aimed to check the functionality of RAVEN to error out in case some input inconsistencies are found.
+       In this case, the fact that the MultiVariate distribution errors out when not all the dimensions of the MultiVariate
+       are used in the sampling strategy. 
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>pcaIndex</WorkingDir>
     <Sequence>FirstMRun,Dump</Sequence>

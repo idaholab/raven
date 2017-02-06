@@ -5,7 +5,16 @@
     <Sequence>modelRun,computeRank</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-  
+  <TestInfo>
+    <name>framework/pca_grid/importanceRankRelCov</name>
+    <author>wangc</author>
+    <created>2016-03-15</created>
+    <classesTested>PostProcessors.ImportanceRank</classesTested>
+    <description>
+      Tests the ImportanceRank postprocessor based on MVN distribution with relative covariance matrix.
+    </description>
+  </TestInfo>
+
   <Files>
     <Input name="output.csv" type="">output.csv</Input>
     <Input name="output.xml" type="">output.xml</Input>

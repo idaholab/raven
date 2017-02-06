@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/DimensionalityReduction/TruncatedSVD</name>
+    <author>senrs</author>
+    <created>2015-11-24</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Test decomposition using the TruncatedSVD model.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>TruncatedSVD</WorkingDir>
     <Sequence>readIn,PCAIris,output</Sequence>
