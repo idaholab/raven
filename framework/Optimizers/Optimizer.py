@@ -396,7 +396,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         break
     satisfied = self.localCheckConstraint(optVars, satisfied)
     satisfaction = satisfied,violatedConstrains
-    return satisfaction[0]
+    return satisfaction
 
   @abc.abstractmethod
   def localCheckConstraint(self, optVars, satisfaction = True):

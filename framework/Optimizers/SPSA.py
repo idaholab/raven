@@ -190,10 +190,13 @@ class SPSA(GradientBasedOptimizer):
     tempVarKPlus = {}
     for var in self.optVars:
       tempVarKPlus[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
-
-    if self.checkConstraint(tempVarKPlus):
-      return tempVarKPlus
-
+    
+    satisfied, activeConstraints = self.checkConstraint(tempVarKPlus)
+    if satisfied: return tempVarKPlus
+    else:
+      # check if the active constraints are the boundary ones. In case, project the gradient
+      if len(activeConstraints['internal']) > 0:
+      
     # Try to find varKPlus by shorten the gradient vector
     foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, gradient)
     if foundVarsUpdate:
@@ -224,7 +227,7 @@ class SPSA(GradientBasedOptimizer):
       tempVarKPlus = {}
       for var in self.optVars:
         tempVarKPlus[var] = copy.copy(varK[var]-ak*pendVector[var]*1.0)
-      if self.checkConstraint(tempVarKPlus):                  foundPendVector = True
+      foundPendVector, activeConstraints = self.checkConstraint(tempVarKPlus)
       if not foundPendVector:
         foundPendVector, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, pendVector)
 
@@ -245,7 +248,8 @@ class SPSA(GradientBasedOptimizer):
         for var in self.optVars:
           sumVector[var] = copy.deepcopy(sumVector[var]/np.sqrt(lenSumVector)*lenPendVector)
           tempTempVarKPlus[var] = copy.copy(varK[var]-ak*sumVector[var]*1.0)
-        if self.checkConstraint(tempTempVarKPlus):
+        satisfied, activeConstraints = self.checkConstraint(tempTempVarKPlus)
+        if satisfied:
           tempVarKPlus = copy.deepcopy(tempTempVarKPlus)
           pendVector = copy.deepcopy(sumVector)
         else:
@@ -273,8 +277,8 @@ class SPSA(GradientBasedOptimizer):
     while np.absolute(bounds[1]-bounds[0]) >= innerBisectionThreshold:
       for var in self.optVars:
         tempVarNew[var] = copy.copy(varK[var]-gain*vector[var]*1.0*frac)
-
-      if self.checkConstraint(tempVarNew):
+      satisfied, activeConstraints = self.checkConstraint(tempVarNew)
+      if satisfied:
         bounds[0] = copy.deepcopy(frac)
         if np.absolute(bounds[1]-bounds[0]) < innerBisectionThreshold:
           if frac >= fracLowerLimit:
