@@ -198,8 +198,9 @@ class DynamicEventTree(Grid):
         try:
           # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha' """
           for pb in xrange(len(endInfo['branchChangedParams'][key]['associatedProbability'])): unchangedPb = unchangedPb + endInfo['branchChangedParams'][key]['associatedProbability'][pb]
-        except KeyError: pass
+        except KeyError: self.raiseAWarning("KeyError:"+str(key))
         if(unchangedPb <= 1): endInfo['branchChangedParams'][key]['unchangedPb'] = 1.0-unchangedPb
+        else: self.raiseAWarning("unchangedPb > 1:"+str(unchangedPb))
       else:
         # Two-Way mode => the resulting branches from this parent calculation (just ended) = 2
         if branchedLevel[endInfo['branchDist']] > len(self.branchProbabilities[endInfo['branchDist']])-1: pb = 1.0

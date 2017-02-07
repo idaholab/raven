@@ -26,13 +26,12 @@
   </RunInfo>
 
   <Files>
-    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
-    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
+    <Input name="simple_det_test.i" type="">simple_det_test.i</Input>
   </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RELAP7">
-      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
+      <executable>%FRAMEWORK_DIR%/../tests/framework/Samplers/DynamicEventTrees/simple_det.py</executable>
     </Code>
   </Models>
 
@@ -117,8 +116,7 @@
 
   <Steps>
     <MultiRun name="DETrunTest">
-      <Input class="Files" type="">ideal_pump.i</Input>
-      <Input class="Files" type="">ideal_pump_control.py</Input>
+      <Input class="Files" type="">simple_det_test.i</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="DynamicEventTree">DET_test</Sampler>
       <Output class="Databases" type="HDF5">testBranchDatabase</Output>
