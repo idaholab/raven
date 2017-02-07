@@ -379,20 +379,24 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       Method to check whether a set of decision variables satisfy the constraint or not
       @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
-      @ Out, satisfaction, bool, variable indicating the satisfaction of constraints at the point optVars
+      @ Out, satisfaction, tuple, (bool,list) => (variable indicating the satisfaction of constraints at the point optVars, list of the violated constrains)
     """
+    violatedConstrains = {'internal':[],'external':[]}
     if self.constraintFunction == None:
-      satisfaction = True
+      satisfied = True
     else:
-      satisfaction = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
+      satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
+      if not satisfied: violatedConstrains['external'].append(self.constraintFunction.name)
     optVars = self.denormalizeData(optVars)
     for var in optVars:
       if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
-        satisfaction = False
+        satisfied = False
+        if optVars[var] > self.optVarsInit['upperBound'][var]: violatedConstrains['internal'].append('upper_'+var)
+        if optVars[var] < self.optVarsInit['lowerBound'][var]: violatedConstrains['internal'].append('lower_'+var)
         break
-
-    satisfaction = self.localCheckConstraint(optVars, satisfaction)
-    return satisfaction
+    satisfied = self.localCheckConstraint(optVars, satisfied)
+    satisfaction = satisfied,violatedConstrains
+    return satisfaction[0]
 
   @abc.abstractmethod
   def localCheckConstraint(self, optVars, satisfaction = True):

@@ -197,13 +197,10 @@ class GradientBasedOptimizer(Optimizer):
     for pertIndex in optVarsValues.keys():
       tempDictPerturbed = optVarsValues[pertIndex]
       tempDictPerturbed['lossValue'] = copy.copy(self.lossFunctionEval(tempDictPerturbed))
-      print(tempDictPerturbed['lossValue'])
-      print(tempDictPerturbed['lossValue'])
       lossDiff = tempDictPerturbed['lossValue'][0] - tempDictPerturbed['lossValue'][1]
       for var in self.optVars:
         if tempDictPerturbed[var][0] != tempDictPerturbed[var][1]:
           gradArray[var] = np.append(gradArray[var], lossDiff/(tempDictPerturbed[var][0]-tempDictPerturbed[var][1])*1.0)
-
     gradient = {}
     for var in self.optVars:
       gradient[var] = gradArray[var].mean()
