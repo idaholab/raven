@@ -3,12 +3,16 @@
     type = 'RavenFramework'
     input = 'singleRunPlotAndPrint-VI.I.xml'
     csv = 'sectionVI.I/history_0.csv sectionVI.I/pointValues.csv'
+    text = 'sectionVI.I/1-historyPlot_line-line-line-line.eps'
+    comment='%'
     rel_err = 0.00001
   [../]
   [./singleRunSelective]
     type = 'RavenFramework'
     input = 'singleRunSubPlotsAndSelectivePrint-VI.II.xml'
     csv = 'sectionVI.II/history_0.csv sectionVI.II/pointValues.csv'
+    text = 'sectionVI.II/1-historyPlot_line-line-line-line.eps'
+    comment='%'
     rel_err = 0.00001
   [../]
 []
