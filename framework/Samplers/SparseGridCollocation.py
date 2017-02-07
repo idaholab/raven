@@ -192,7 +192,7 @@ class SparseGridCollocation(Grid):
     self.raiseADebug('Finished sampler generation.')
 
     self.raiseADebug('indexset:',self.indexSet)
-    for SVL in self.ROM.SupervisedEngine.values():
+    for SVL in self.ROM.supervisedEngine.supervisedContainer:
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.dists,
                       'quads':self.quadDict,
@@ -203,7 +203,7 @@ class SparseGridCollocation(Grid):
     """
       Builds the quadrature objects, polynomial objects, and importance weights for all
       the distributed variables.  Also sets maxPolyOrder.
-      @ In, SVL, SupervisedEngine object, one of the SupervisedEngine objects from the ROM
+      @ In, SVL, supervisedContainer object, one of the supervisedContainer objects from the ROM
       @ Out, None
     """
     ROMdata = SVL.interpolationInfo()
@@ -312,7 +312,7 @@ class SparseGridCollocation(Grid):
       @ Out, SVL, supervisedLearning object, SVL object
     """
     self.ROM = self.assemblerDict['ROM'][0][3]
-    SVLs = self.ROM.SupervisedEngine.values()
+    SVLs = self.ROM.supervisedEngine.supervisedContainer
     SVL = utils.first(SVLs)
     self.features = SVL.features
     self.sparseGridType = SVL.sparseGridType.lower()

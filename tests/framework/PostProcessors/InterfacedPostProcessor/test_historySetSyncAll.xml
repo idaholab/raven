@@ -84,6 +84,7 @@
       <extension>extended</extension>
     </PostProcessor>
     <ROM name="rom" subType="HDMRRom">
+      <pivotParameter>t</pivotParameter>
       <SobolOrder>1</SobolOrder>
       <Target>a,b,t</Target>
       <Features>x,y</Features>

@@ -79,7 +79,7 @@ class c1darray(object):
 
     #lock.acquire()
     try:
-      if type(x).__name__ != 'ndarray':
+      if type(x).__name__ not in ['ndarray','c1darray']:
         if self.size  == self.capacity:
           self.capacity *= 4
           newdata = np.zeros((self.capacity,),dtype=self.values.dtype)

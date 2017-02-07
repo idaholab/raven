@@ -720,11 +720,8 @@ class IOStep(Step):
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
         fileobj = inDictionary['Input'][i]
-        #fileobj.open(mode='rb+')
-        #unpickledObj = pickle.load(fileobj) #FIXME this fails with EOFError, and I don't know why
         unpickledObj = pickle.load(file(fileobj.getAbsFile(),'rb+'))
         outputs[i].train(unpickledObj)
-        fileobj.close()
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]

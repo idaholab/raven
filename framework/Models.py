@@ -34,6 +34,8 @@ import Files
 import graphStructure
 import InputData
 import PostProcessors
+import LearningGate
+from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -417,16 +419,27 @@ class Dummy(Model):
     #self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
     if  type(dataIN).__name__ !='dict':
       if dataIN.type not in self.admittedData: self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
-    if full==True:  length = 0
-    if full==False: length = -1
-    localInput = {}
     if type(dataIN)!=dict:
-      for entries in dataIN.getParaKeys('inputs' ):
-        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[length:])
-        else:                      localInput[entries] = None
-      for entries in dataIN.getParaKeys('outputs'):
-        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(np.array(dataIN.getParam('output',entries))[length:])
-        else:                      localInput[entries] = None
+      localInput = dict.fromkeys(dataIN.getParaKeys('inputs' )+dataIN.getParaKeys('outputs' ),None)
+      if not dataIN.isItEmpty():
+        if dataIN.type == 'PointSet':
+          for entries in dataIN.getParaKeys('inputs' ): localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[0 if full else -1:])
+          for entries in dataIN.getParaKeys('outputs'): localInput[entries] = copy.copy(np.array(dataIN.getParam('output',entries))[0 if full else -1:])
+        else:
+          if full:
+            for hist in range(len(dataIN)):
+              realization = dataIN.getRealization(hist)
+              for entries in dataIN.getParaKeys('inputs' ):
+                if localInput[entries] is None: localInput[entries] = c1darray(shape=(1,))
+                localInput[entries].append(realization['inputs'][entries])
+              for entries in dataIN.getParaKeys('outputs' ):
+                if localInput[entries] is None: localInput[entries] = []
+                localInput[entries].append(realization['outputs'][entries])
+          else:
+            realization = dataIn.getRealization(len(dataIn)-1)
+            for entries in dataIN.getParaKeys('inputs' ):  localInput[entries] = [realization['inputs'][entries]]
+            for entries in dataIN.getParaKeys('outputs' ): localInput[entries] = [realization['outputs'][entries]]
+
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getParaKeys('outputs'): localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
     else: localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
@@ -583,6 +596,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
+    inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputData.StringType))
     inputSpecification.addSub(InterpolationInput)
     inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
@@ -679,6 +693,13 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("nugget", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("optimizer", InputData.StringType)) #enum
     inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Pmax", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Pmin", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Qmax", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Qmin", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("outTruncation", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Fourier", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
@@ -709,12 +730,8 @@ class ROM(Dummy):
     Dummy.__init__(self,runInfoDict)
     self.initializationOptionDict = {}          # ROM initialization options
     self.amITrained                = False      # boolean flag, is the ROM trained?
-    self.howManyTargets            = 0          # how many targets?
-    self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
+    self.supervisedEngine          = None       # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
-    self.numberOfTimeStep          = 1
-    self.historyPivotParameter     = 'none'     #time-like pivot parameter for data object on which ROM was trained
-    self.historySteps              = []
 
   def updateInputFromOutside(self, Input, externalDict):
     """
@@ -724,50 +741,6 @@ class ROM(Dummy):
       @ Out, inputOut, list, updated list of inputs
     """
     return Dummy.updateInputFromOutside(self, Input, externalDict)
-
-  def __getstate__(self):
-    """
-      This function return the state of the ROM
-      @ In, None
-      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
-    """
-    # capture what is normally pickled
-    state = self.__dict__.copy()
-    if not self.amITrained:
-      a = state.pop("SupervisedEngine")
-      del a
-    return state
-
-  def __setstate__(self, newstate):
-    """
-      Initialize the ROM with the data contained in newstate
-      @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
-      @ Out, None
-    """
-    self.__dict__.update(newstate)
-    if not self.amITrained:
-      if self.numberOfTimeStep > 1:
-        targets = self.initializationOptionDict['Target'].split(',')
-        self.howManyTargets = len(targets)
-        self.SupervisedEngine = []
-        for t in range(self.numberOfTimeStep):
-          tempSupervisedEngine = {}
-          for target in targets:
-            self.initializationOptionDict['Target'] = target
-            tempSupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-            self.initializationOptionDict['Target'] = ','.join(targets)
-          self.SupervisedEngine.append(tempSupervisedEngine)
-      else:
-        #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
-        targets = self.initializationOptionDict['Target'].split(',')
-        self.howManyTargets = len(targets)
-        self.SupervisedEngine = {}
-
-        for target in targets:
-          self.initializationOptionDict['Target'] = target
-          self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-          #restore targets to initialization option dict
-          self.initializationOptionDict['Target'] = ','.join(targets)
 
   def _readMoreXML(self,xmlNode):
     """
@@ -786,44 +759,31 @@ class ROM(Dummy):
         @ In, s, string, possible string
         @ Out, s, string, original type, or possibly parsed string
       """
-      if type(s).__name__ in ['str','unicode']:
-        return utils.tryParse(s)
-      return s
+      return utils.tryParse(s) if type(s).__name__ in ['str','unicode'] else s
 
     for child in paramInput.subparts:
       if len(child.parameterValues) > 0:
         if child.getName() == 'alias': continue
-        if child.getName() not in self.initializationOptionDict.keys():
-          self.initializationOptionDict[child.getName()]={}
+        if child.getName() not in self.initializationOptionDict.keys(): self.initializationOptionDict[child.getName()]={}
         self.initializationOptionDict[child.getName()][child.value]=child.parameterValues
       else:
         if child.getName() == 'estimator':
           self.initializationOptionDict[child.getName()] = {}
-          for node in child.subparts:
-            self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
-        else:
-          self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
-
+          for node in child.subparts: self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
+        else: self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
+    self._initializeSupervisedGate(**self.initializationOptionDict)
     #the ROM is instanced and initialized
     # check how many targets
-    if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
-    targets = self.initializationOptionDict['Target'].split(',')
-    self.howManyTargets = len(targets)
-
-    if 'SKLtype' in self.initializationOptionDict and 'MultiTask' in self.initializationOptionDict['SKLtype']:
-      self.initializationOptionDict['Target'] = targets
-      model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-      for target in targets:
-        self.SupervisedEngine[target] = model
-    else:
-      for target in targets:
-        self.initializationOptionDict['Target'] = target
-        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-    # extend the list of modules this ROM depen on
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
-    #restore targets to initialization option dict
-    self.initializationOptionDict['Target'] = ','.join(targets)
+    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
+
+  def _initializeSupervisedGate(self,**initializationOptions):
+    """
+      Method to initialize the supervisedGate class
+      @ In, initializationOptions, dict, the initialization options
+      @ Out, None
+    """
+    self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self,**initializationOptions)
 
   def printXML(self,options={}):
     """
@@ -832,12 +792,9 @@ class ROM(Dummy):
       @ Out, None
     """
     #determine dynamic or static
-    if type(self.SupervisedEngine) == list:
-      dynamic = True
-    elif type(self.SupervisedEngine) == dict:
-      dynamic = False
-    else:
-      self.raiseAnError(RuntimeError,'Unrecognized structure for self.SupervisedEngine:',type(self.SupervisedEnging))
+    dynamic          = self.supervisedEngine.isADynamicModel
+    # get pivot parameter
+    pivotParameterId = self.supervisedEngine.pivotParameterId
     # establish file
     if 'filenameroot' in options.keys():
       filenameLocal = options['filenameroot']
@@ -848,34 +805,30 @@ class ROM(Dummy):
     else:
       outFile = Files.returnInstance('StaticXMLOutput',self)
     outFile.initialize(filenameLocal+'.xml',self.messageHandler)
-    outFile.newTree('ROM',pivotParam=self.historyPivotParameter)
+    outFile.newTree('ROM',pivotParam=pivotParameterId)
+    #get all the targets the ROMs have
+    ROMtargets = self.supervisedEngine.initializationOptions['Target'].split(",")
     #establish targets
-    if 'target' in options.keys():
-      targets = options['target'].split(',')
-    else:
-      targets = ['all']
+    targets = options['target'].split(',') if 'target' in options.keys() else ROMtargets
     #establish sets of engines to work from
-    if dynamic:
-      engines = self.SupervisedEngine
-    else:
-      engines = [self.SupervisedEngine]
+    engines = self.supervisedEngine.supervisedContainer
     #handle 'all' case
-    if 'all' in targets:
-      targets = engines[0].keys()
+    if 'all' in targets: targets = ROMtargets
     #this loop is only 1 entry long if not dynamic
-    for s,step in enumerate(engines):
+    for s,rom in enumerate(engines):
       if dynamic:
-        pivotValue = self.historySteps[s]
+        pivotValue = self.supervisedEngine.historySteps[s]
       else:
         pivotValue = 0
-      for key,target in step.items():
+      for target in targets:
+        #for key,target in step.items():
         #skip the pivot param
-        if key == self.historyPivotParameter:
-          continue
+        if target == pivotParameterId: continue
         #otherwise, if this is one of the requested keys, call engine's print method
-        if key in targets:
-          self.raiseAMessage('Printing time',pivotValue,'target',key,'ROM XML')
-          target.printXML(outFile,pivotValue,options)
+        if target in ROMtargets:
+          options['Target'] = target
+          self.raiseAMessage('Printing time-like',pivotValue,'target',target,'ROM XML')
+          rom.printXML(outFile,pivotValue,options)
     self.raiseADebug('Writing to XML file...')
     outFile.writeFile()
     self.raiseAMessage('ROM XML printed to "'+filenameLocal+'.xml"')
@@ -886,14 +839,8 @@ class ROM(Dummy):
       @ In,  None
       @ Out, None
     """
-    if type(self.SupervisedEngine).__name__ == 'list':
-      for ts in self.SupervisedEngine:
-        for instrom in ts.values():
-          instrom.reset()
-    else:
-      for instrom in self.SupervisedEngine.values():
-        instrom.reset()
-      self.amITrained   = False
+    self.supervisedEngine.reset()
+    self.amITrained   = False
 
   def getInitParams(self):
     """
@@ -904,9 +851,7 @@ class ROM(Dummy):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = {}
-    for target, instrom in self.SupervisedEngine.items():
-      paramDict[self.name + '|' + target] = instrom.returnInitialParameters()
+    paramDict = self.supervisedEngine.getInitParams()
     return paramDict
 
   def train(self,trainingSet):
@@ -916,57 +861,15 @@ class ROM(Dummy):
       @ Out, None
     """
     if type(trainingSet).__name__ == 'ROM':
-      self.howManyTargets           = copy.deepcopy(trainingSet.howManyTargets)
       self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
-      self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
-      self.historyPivotParameter    = copy.deepcopy(getattr(trainingSet,self.historyPivotParameter,'time'))
-      self.historySteps             = copy.deepcopy(trainingSet.historySteps)
+      self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
     else:
-      if 'HistorySet' in type(trainingSet).__name__:
-        #get the pivot parameter if specified
-        self.historyPivotParameter = trainingSet._dataParameters.get('pivotParameter','time')
-        #get the list of history steps if specified
-        self.historySteps = trainingSet.getParametersValues('outputs').values()[0].get(self.historyPivotParameter,[])
-        #store originals for future copying
-        origRomCopies = {}
-        for target,engine in self.SupervisedEngine.items():
-          origRomCopies[target] = copy.deepcopy(engine)
-        #clear engines for time-based storage
-        self.SupervisedEngine = []
-        outKeys = trainingSet.getParaKeys('outputs')
-        targets = origRomCopies.keys()
-        # check that all histories have the same length
-        tmp = trainingSet.getParametersValues('outputs')
-        for t in tmp:
-          if t==1:
-            self.numberOfTimeStep = len(tmp[t][outKeys[0]])
-          else:
-            if self.numberOfTimeStep != len(tmp[t][outKeys[0]]):
-              self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
-        # train the ROM
-        self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
-        for ts in range(self.numberOfTimeStep):
-          newRom = {}
-          for target in targets:
-            newRom[target] =  copy.deepcopy(origRomCopies[target])
-          for target,instrom in newRom.items():
-            # train the ROM
-            self._replaceVariablesNamesWithAliasSystem(self.trainingSet[ts], 'inout', False)
-            instrom.train(self.trainingSet[ts])
-            self.amITrained = self.amITrained and instrom.amITrained
-          self.SupervisedEngine.append(newRom)
-        self.amITrained = True
-      else:
-        self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-        if type(self.trainingSet) is dict:
-          self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-          self.amITrained = True
-          for instrom in self.SupervisedEngine.values():
-            instrom.train(self.trainingSet)
-            self.amITrained = self.amITrained and instrom.amITrained
-          self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+      self.trainingSet = copy.copy(self._inputToInternal(trainingSet, full=True))
+      self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
+      self.supervisedEngine.train(self.trainingSet)
+      self.amITrained = self.supervisedEngine.amITrained
 
   def confidence(self,request,target = None):
     """
@@ -974,44 +877,21 @@ class ROM(Dummy):
       forecasting the target value for the given set of features. The reason to chose the inverse is because
       in case of normal distance this would be 1/distance that could be infinity
       @ In, request, datatype, feature coordinates (request)
-      @ In, target, string, optional, target name (by default the first target entered in the input file)
+      @ Out, confidenceDict, dict, the dict containing the confidence on each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
     """
     inputToROM = self._inputToInternal(request)
-    if target != None:
-      if type(self.SupervisedEngine) is list:
-        confDic = {}
-        for ts in self.SupervisedEngine:
-          confDic[ts] = ts[target].confidence(inputToROM)
-        return confDic
-      else:
-        return self.SupervisedEngine[target].confidence(inputToROM)
-    else:
-      if type(self.SupervisedEngine) is list:
-        confDic = {}
-        for ts in self.SupervisedEngine:
-          confDic[ts] = ts.values()[0].confidence(inputToROM)
-        return confDic
-      else:
-        return self.SupervisedEngine.values()[0].confidence(inputToROM)
+    confidenceDict = self.supervisedEngine.confidence(inputToROM)
+    return confidenceDict
 
-  def evaluate(self,request, target = None, timeInst = None):
+  def evaluate(self,request):
     """
       When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
       @ In, request, datatype, feature coordinates (request)
-      @ In, target, string, optional, target name (by default the first target entered in the input file)
-      @ In, timeInst, int, element of the temporal ROM to evaluate
+      @ Out, outputEvaluation, dict, the dict containing the outputs for each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
     """
-    inputToROM = self._inputToInternal(request)
-    if target != None:
-      if timeInst == None:
-        return self.SupervisedEngine[target].evaluate(inputToROM)
-      else:
-        return self.SupervisedEngine[timeInst][target].evaluate(inputToROM)
-    else:
-      if timeInst == None:
-        return utils.first(self.SupervisedEngine.values()).evaluate(inputToROM)
-      else:
-        return self.SupervisedEngine[timeInst].values()[0].evaluate(inputToROM)
+    inputToROM       = self._inputToInternal(request)
+    outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
+    return outputEvaluation
 
   def __externalRun(self,inRun):
     """
@@ -1019,27 +899,17 @@ class ROM(Dummy):
       @ In, inRun, datatype, feature coordinates
       @ Out, returnDict, dict, the return dictionary containing the results
     """
-    returnDict = {}
-    if type(self.SupervisedEngine).__name__ == 'list':
-      targets = self.SupervisedEngine[0].keys()
-      for target in targets:
-        returnDict[target] = np.zeros(0)
-      for ts in range(len(self.SupervisedEngine)):
-        for target in targets:
-          returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target,ts))
-    else:
-      for target in self.SupervisedEngine.keys():
-        returnDict[target] = self.evaluate(inRun,target)
+    returnDict = self.evaluate(inRun)
     self._replaceVariablesNamesWithAliasSystem(returnDict, 'output',True)
     self._replaceVariablesNamesWithAliasSystem(inRun, 'input',True)
     return returnDict
 
   def run(self,Input,jobHandler):
     """
-       This method executes the model ROM.
-       @ In,  Input, object, object contained the data to process. (inputToInternal output)
-       @ In,  jobHandler, JobHandler instance, the global job handler instance
-       @ Out, None
+      This method executes the model ROM.
+      @ In,  Input, object, object contained the data to process. (inputToInternal output)
+      @ In,  jobHandler, JobHandler instance, the global job handler instance
+      @ Out, None
     """
     inRun = self._manipulateInput(Input[0])
     uniqueHandler = Input[1]['uniqueHandler'] if 'uniqueHandler' in Input[1].keys() else 'any'

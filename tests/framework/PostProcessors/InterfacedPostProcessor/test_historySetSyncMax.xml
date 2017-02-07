@@ -85,6 +85,7 @@
     </PostProcessor>
     <ROM name="rom" subType="HDMRRom">
       <SobolOrder>1</SobolOrder>
+      <pivotParameter>t</pivotParameter>
       <Target>a,b,t</Target>
       <Features>x,y</Features>
       <IndexSet>TotalDegree</IndexSet>

@@ -35,7 +35,6 @@ class PointSet(Data):
       @ Out, None
     """
     Data.__init__(self)
-    self.acceptHierarchy = True
 
   def addSpecializedReadingSettings(self):
     """

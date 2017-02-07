@@ -85,7 +85,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.ROM             = None    #HDMR rom that will be constructed with the samples found here
 
     #storage dictionaries
-    self.ROMs            = {} #subset reduced-order models by target,subset: self.ROMs[target][subset]
+    self.ROMs            = {} #subset reduced-order models by subset: self.ROMs[target][subset]
     self.SQs             = {} #stores sparse grid quadrature objects
     self.samplers        = {} #stores adaptive sparse grid sampling objects
     self.romShell        = {} #stores Model.ROM objects for each subset
@@ -177,14 +177,9 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       self.raiseAnError(IOError,'AdaptiveSobol does not take Restart node!  Use TargetEvaluation instead.')
     #set up assembly-based objects
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
-    self.ROM   = self.assemblerDict['ROM'][0][3]
-    SVLs = self.ROM.SupervisedEngine.values()
-    SVL = SVLs[0]
-    self.features = SVL.features
-    self.targets = self.ROM.initializationOptionDict['Target'].split(',')
-    for t in self.targets:
-      self.ROMs[t]            = {}
-      self.subsetImpact[t]    = {}
+    SVL = self.readFromROM()
+    self.targets = SVL.target
+    self.subsetImpact = {key: dict({}) for key in self.targets}
     #generate quadratures and polynomials
     self._generateQuadsAndPolys(SVL)
     #set up reference case
@@ -278,8 +273,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         self._retrieveNeededPoints(toDoSub)
       elif which == 'subset':
         self._makeSubsetRom(toDoSub)
-        for t in self.targets: #TODO might be redundant, if you're cleaning up code.
-          self.ROMs[t][toDoSub] = self.romShell[toDoSub].SupervisedEngine[t]
+        self.ROMs[toDoSub] = self.romShell[toDoSub].supervisedEngine.supervisedContainer[0]
         self.inTraining.append(('subset',toDoSub,self.romShell[toDoSub]))
         #get initial needed points and store them locally
         self._retrieveNeededPoints(toDoSub)
@@ -379,18 +373,18 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       @ Out, _calcActualImpact, float, the "error" reduced by acquiring the new point
     """
     #add the new term to the use set
-    if subset not in self.useSet.keys(): self.useSet[subset] = {}
-    self.useSet[subset][target] = self.ROMs[target][subset]
+    if subset not in self.useSet.keys(): self.useSet[subset] = None
+    self.useSet[subset] = self.ROMs[subset]
     #compute the impact as the contribution to the variance
     ### SAVING for FUTURE: attempt at improving Adaptive Sobol algorithm.
     # The problem is, until the (1,1,1,...,1) point is in the index set, it
     # claims a sensitivity of 0 for that subset (rightfully so), but that leads
     # into a problem searching unless you start with tensor [0,1] indices.
     #copyShell = copy.deepcopy(self.ROM)
-    #copyShell.SupervisedEngine = {}
-    #for targ,rom in self.ROM.SupervisedEngine.items():
-    #  copyShell.SupervisedEngine[targ] = copy.deepcopy(rom)
-    #copyROM =  copyShell.SupervisedEngine[target]
+    #copyShell.supervisedContainer = {}
+    #for targ,rom in self.ROM.supervisedContainer.items():
+    #  copyShell.supervisedContainer[targ] = copy.deepcopy(rom)
+    #copyROM =  copyShell.supervisedContainer[target]
     #self._finalizeROM(rom=copyShell,include=[subset])
     #copyShell.train(self.solns)
     #sens,partVar = copyROM.getSensitivities()
@@ -400,12 +394,12 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     ### END SAVING
     totvar = 0
     for s in self.useSet.keys():
-      totvar += self.ROMs[target][s].__variance__()
+      totvar += self.ROMs[s].__variance__(target)
     #avoid div by 0 error
     if totvar > 0:
-      return self.ROMs[target][subset].__variance__()/totvar
+      return self.ROMs[subset].__variance__(target)/totvar
     else:
-      return self.ROMs[target][subset].__variance__()
+      return self.ROMs[subset].__variance__(target)
 
   def _calcExpImpact(self,subset,target):
     """
@@ -475,12 +469,11 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     #remove unfinished subsets
     toRemove = []
-    for subset in self.ROMs.values()[0]:
+    for subset in self.ROMs.keys():
       if subset not in self.useSet.keys():
         toRemove.append(subset)
     for subset in toRemove:
-      for t in self.targets:
-        del self.ROMs[t][subset]
+      del self.ROMs[subset]
     #finalize subsets
     for sub in self.useSet.keys():
       self._finalizeSubset(sub)
@@ -508,13 +501,12 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
                 'refs':self.references,
                 'numRuns':len(self.distinctPoints)}
     #initialize each HDMRRom object in the ROM
-    for target in self.targets:
-      initDict['ROMs'] = copy.deepcopy(self.ROMs[target])
-      #remove unfinished subsets
-      for subset in self.ROMs.values()[0]:
-        if subset not in self.useSet.keys() and subset not in include:
-          del initDict['ROMs'][subset]
-      rom.SupervisedEngine[target].initialize(initDict)
+    initDict['ROMs'] = copy.deepcopy(self.ROMs)
+    #remove unfinished subsets
+    for subset in self.ROMs.keys():
+      if subset not in self.useSet.keys() and subset not in include:
+        del initDict['ROMs'][subset]
+    rom.supervisedEngine.supervisedContainer[0].initialize(initDict)
 
   def _finalizeSubset(self,subset):
     """
@@ -531,8 +523,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #train the ROM
     self.romShell[subset].train(sampler.solns)
     #store rom in dedicated use set
-    for target in self.targets:
-      self.useSet[subset][target] = self.romShell[subset].SupervisedEngine[target]
+    self.useSet[subset] = self.romShell[subset].supervisedEngine.supervisedContainer[0]
 
   def _generateSubsets(self,subset):
     """
@@ -679,7 +670,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     from .Factory import returnInstance
     verbosity = self.subVerbosity #sets verbosity of created RAVEN objects
-    SVL = self.ROM.SupervisedEngine.values()[0] #an example SVL for most parameters
+    SVL = self.ROM.supervisedEngine.supervisedContainer[0] #an example SVL for most parameters
     #replicate "normal" construction of the ROM
     distDict={}
     quadDict={}
@@ -702,21 +693,21 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.SQs[subset] = Quadratures.returnInstance(self.sparseGridType,self)
     self.SQs[subset].initialize(subset,iSet,distDict,quadDict,self.jobHandler,self.messageHandler)
     #instantiate the SVLs.  Note that we need to call both __init__ and initialize with dictionaries.
-    for target in self.targets:
-      initDict = {'IndexSet'       : iSet.type,
-                  'PolynomialOrder': SVL.maxPolyOrder,
-                  'Interpolation'  : SVL.itpDict,
-                  'Features'       : ','.join(subset),
-                  'Target'         : target}
-      self.ROMs[target][subset] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
-      initializeDict = {'SG'       : self.SQs[subset],
-                        'dists'    : distDict,
-                        'quads'    : quadDict,
-                        'polys'    : polyDict,
-                        'iSet'     : iSet}
-      self.ROMs[target][subset].initialize(initializeDict)
-      self.ROMs[target][subset].messageHandler = self.messageHandler
-      self.ROMs[target][subset].verbosity = verbosity
+    #for target in self.targets:
+    initDict = {'IndexSet'       : iSet.type,
+                'PolynomialOrder': SVL.maxPolyOrder,
+                'Interpolation'  : SVL.itpDict,
+                'Features'       : ','.join(subset),
+                'Target'         : ','.join(self.targets)}
+    self.ROMs[subset] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
+    initializeDict = {'SG'       : self.SQs[subset],
+                      'dists'    : distDict,
+                      'quads'    : quadDict,
+                      'polys'    : polyDict,
+                      'iSet'     : iSet}
+    self.ROMs[subset].initialize(initializeDict)
+    self.ROMs[subset].messageHandler = self.messageHandler
+    self.ROMs[subset].verbosity = verbosity
     #instantiate the shell ROM that contains the SVLs
     #   NOTE: the shell is only needed so we can call the train method with a data object.
     self.romShell[subset] = Models.returnInstance('ROM',{},self)
@@ -727,9 +718,9 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.romShell[subset].initializationOptionDict['Features']=','.join(subset)
     self.romShell[subset].initializationOptionDict['IndexSet']='TotalDegree'
     self.romShell[subset].initializationOptionDict['PolynomialOrder']='1'
+    self.romShell[subset]._initializeSupervisedGate(**self.romShell[subset].initializationOptionDict)
     #coordinate SVLs
-    for t in self.targets:
-      self.romShell[subset].SupervisedEngine[t] = self.ROMs[t][subset]
+    self.romShell[subset].supervisedEngine.supervisedContainer = [self.ROMs[subset]]
     #instantiate the adaptive sparse grid sampler for this rom
     samp = returnInstance('AdaptiveSparseGrid',self)
     samp.messageHandler = self.messageHandler
@@ -748,8 +739,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     samp.printTag = 'ASG:('+','.join(subset)+')'
     #propogate sparse grid back from sampler #TODO self.SQs might not really be necessary.
     self.SQs[subset] = samp.sparseGrid
-    for target in self.targets:
-      self.ROMs[target][subset].sparseGrid  = samp.sparseGrid
+    self.ROMs[subset].sparseGrid  = samp.sparseGrid
     self.samplers[subset] = samp
     #initialize pointsNeeded and pointsCollected databases
     self.pointsNeeded[subset] = []
@@ -797,10 +787,10 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       for t in self.targets:
         self.statesFile.writelines('  %12s' %t)
       self.statesFile.writelines('\n')
-      for coeff in self.romShell[sub].SupervisedEngine.values()[0].polyCoeffDict.keys():
+      for coeff in self.romShell[sub].supervisedEngine.supervisedContainer[0].polyCoeffDict.values()[0].keys():
         self.statesFile.writelines('    %12s' %','.join(str(c) for c in coeff))
         for t in self.targets:
-          self.statesFile.writelines('  %1.6e' %self.romShell[sub].SupervisedEngine[t].polyCoeffDict[coeff])
+          self.statesFile.writelines('  %1.6e' %self.romShell[sub].supervisedEngine.supervisedContainer[0].polyCoeffDict[t][coeff])
         self.statesFile.writelines('\n')
       #polynomials in training
       if any(sub==item[1] for item in self.inTraining): self.statesFile.writelines('TRAINING:\n')
