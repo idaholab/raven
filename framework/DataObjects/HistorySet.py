@@ -167,8 +167,7 @@ class HistorySet(Data):
       @ Out, None
       NB. This method, if the metadata name is already present, replaces it with the new value. No appending here, since the metadata are dishomogenius and a common updating strategy is not feasable.
     """
-    valueType = type(value) if type(value).__name__ not in ['str','unicode','bytes'] else object
-
+    valueType = None if utils.checkTypeRecursively(value) not in ['str','unicode','bytes'] else object
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'Point' has been stored
       parentID = None
@@ -189,8 +188,6 @@ class HistorySet(Data):
           nodeId = options['prefix']
           if 'parentID' in options.keys(): parentID = options['parentID']
       if parentID: tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
-      #if 'parentID' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parentID'])
-      #else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer:
         tsnode.add('dataContainer',{'metadata':{}})
@@ -198,15 +195,17 @@ class HistorySet(Data):
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
       if name in self._dataContainer['metadata'].keys():
-        self._dataContainer['metadata'][name].append(np.atleast_1d(np.array(value))) #= copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+        self._dataContainer['metadata'][name].append(np.atleast_1d(np.array(value)))
       else:
-        self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value,dtype=valueType))))
+        valueToAdd = np.array(value,dtype=valueType) if valueType is not None else np.array(value)
+        self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(valueToAdd)))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['metadata'].keys():
-        self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+        self._dataContainer['metadata'][name].append(np.atleast_1d(value))
       else:
-        self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value,dtype=valueType))))
+        valueToAdd = np.array(value,dtype=valueType) if valueType is not None else np.array(value)
+        self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(valueToAdd)))
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
     """
