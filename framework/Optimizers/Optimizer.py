@@ -97,7 +97,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.optTraj                        = None                      # Identifiers of parallel optimization trajectories
     self.thresholdTrajRemoval           = None                      # Threshold used to determine the convergence of parallel optimization trajectories
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
-    self.convergenceTol                 = 1e-3                      # Convergence threshold
+    self.absConvergenceTol              = 0.0                       # Convergence threshold (absolute value)
+    self.relConvergenceTol              = 1.e-3                     # Convergence threshold (relative value)
     self.solutionExport                 = None                      #This is the data used to export the solution (it could also not be present)
     self.values                         = {}                        # for each variable the current value {'var name':value}
     self.inputInfo                      = {}                        # depending on the optimizer several different type of keywarded information could be present only one is mandatory, see below
@@ -167,7 +168,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.optVarsInit['initial'][varname] = {}
             temp = childChild.text.split(',')
             for trajInd, initVal in enumerate(temp):
-              self.optVarsInit['initial'][varname][trajInd] = float(initVal)
+              try              : self.optVarsInit['initial'][varname][trajInd] = float(initVal)
+              except ValueError: self.raiseAnError(ValueError, "Unable to convert to float the intial value for variable "+varname+ " in trajectory "+str(trajInd)) 
             if self.optTraj == None:
               self.optTraj = range(len(self.optVarsInit['initial'][varname].keys()))
 
@@ -193,9 +195,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for childChild in child:
           if childChild.tag == "iterationLimit":
             self.limit['varsUpdate'] = int(childChild.text)
-          if childChild.tag == "threshold":
-            self.convergenceTol = float(childChild.text)
-
+          if childChild.tag == "absoluteThreshold":
+            self.absConvergenceTol = float(childChild.text)
+          if childChild.tag == "relativeThreshold":
+            self.relConvergenceTol = float(childChild.text)
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
 
@@ -213,10 +216,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for varname in self.optVars:
       if varname not in self.optVarsInit['upperBound'].keys(): self.raiseAnError(IOError, 'Upper bound for '+varname+' is not provided' )
       if varname not in self.optVarsInit['lowerBound'].keys(): self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
-      if varname not in self.optVarsInit['initial'].keys()   :
+      if varname not in self.optVarsInit['initial'].keys():
         self.optVarsInit['initial'][varname] = {}
         for trajInd in self.optTraj:
-          self.optVarsInit['initial'][varname][trajInd] = 1.0*(self.optVarsInit['upperBound'][varname]+self.optVarsInit['lowerBound'][varname])/2
+          self.optVarsInit['initial'][varname][trajInd] = (self.optVarsInit['upperBound'][varname]+self.optVarsInit['lowerBound'][varname])/2.0
+      else:
+        for trajInd in self.optTraj:
+          initVal =  self.optVarsInit['initial'][varname][trajInd]
+          if initVal < self.optVarsInit['lowerBound'][varname] or initVal > self.optVarsInit['upperBound'][varname]:
+            self.raiseAnError(IOError,"The initial value for variable "+varname+" and trajectory "+str(trajInd) +" is outside the domain identified by the lower and upper bounds!")
       if len(self.optTraj) != len(self.optVarsInit['initial'][varname].keys()):
         self.raiseAnError(ValueError, 'Number of initial values does not equal to the number of parallel optimization trajectories')
     self.optTrajLive = copy.deepcopy(self.optTraj)
@@ -308,7 +316,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.nVar = len(self.optVars)
 
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
-    self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.optVars)), 'Target':self.objVar, 'n_neighbors':1})
+    self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.optVars)), 'Target':self.objVar, 'n_neighbors':1,'weights':'distance'})
     self.solutionExport = solutionExport
 
     if solutionExport != None and type(solutionExport).__name__ != "HistorySet":
@@ -365,13 +373,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
-    for key in tempDict.keys():                   tempDict[key] = np.asarray(tempDict[key])
+    for key in tempDict.keys(): tempDict[key] = np.asarray(tempDict[key])
 
     self.objSearchingROM.train(tempDict)
-    optVars = self.denormalizeData(optVars)
-    for key in optVars.keys():                    optVars[key] = np.atleast_1d(optVars[key])
-    lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
-
+    if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
+    for key in optVars.keys(): optVars[key] = np.atleast_1d(optVars[key])
+    lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]  
     if self.optType == 'min':           return lossFunctionValue
     else:                               return lossFunctionValue*-1.0
 
@@ -387,13 +394,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
       if not satisfied: violatedConstrains['external'].append(self.constraintFunction.name)
-    optVars = self.denormalizeData(optVars)
+    if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
     for var in optVars:
       if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
         satisfied = False
-        if optVars[var] > self.optVarsInit['upperBound'][var]: violatedConstrains['internal'].append('upper_'+var)
-        if optVars[var] < self.optVarsInit['lowerBound'][var]: violatedConstrains['internal'].append('lower_'+var)
-        break
+        if optVars[var] > self.optVarsInit['upperBound'][var]: violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
+        if optVars[var] < self.optVarsInit['lowerBound'][var]: violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
+
     satisfied = self.localCheckConstraint(optVars, satisfied)
     satisfaction = satisfied,violatedConstrains
     return satisfaction

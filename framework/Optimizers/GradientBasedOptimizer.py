@@ -24,6 +24,7 @@ from sklearn.neighbors import NearestNeighbors
 #Internal Modules------------------------------------------------------------------------------------
 from .Optimizer import Optimizer
 from Assembler import Assembler
+import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GradientBasedOptimizer(Optimizer):
@@ -46,6 +47,7 @@ class GradientBasedOptimizer(Optimizer):
     self.gradDict                   = {}              # Dict containing information for gradient related operations
     self.gradDict['numIterForAve']  = 1               # Number of iterations for gradient estimation averaging
     self.gradDict['pertNeeded']     = 1               # Number of perturbation needed to evaluate gradient
+    self.gradDict['normalize']      = True            # use a normalized gradient or not?
     self.gradDict['pertPoints']     = {}              # Dict containing normalized inputs sent to model for gradient evaluation
     self.counter['perturbation']    = {}              # Counter for the perturbation performed.
     self.readyVarsUpdate            = {}              # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
@@ -61,6 +63,14 @@ class GradientBasedOptimizer(Optimizer):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
+    self.gradDict['normalize'] = utils.interpretBoolean(self.paramDict.get("normalize",True))
+
+  def localInitialize(self,solutionExport=None):
+    """
+      Method to initialize settings that belongs to all gradient based optimizer
+      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      @ Out, None
+    """
     self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
     for traj in self.optTraj:
       self.gradDict['pertPoints'][traj]       = {}
@@ -71,13 +81,6 @@ class GradientBasedOptimizer(Optimizer):
       self.optVarsHist[traj]                  = {}
       self.readyVarsUpdate[traj]              = False
       self.convergeTraj[traj]                 = False
-
-  def localInitialize(self,solutionExport=None):
-    """
-      Method to initialize settings that belongs to all gradient based optimizer
-      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
-      @ Out, None
-    """
     for traj in self.optTraj:
       self.gradDict['pertPoints'][traj] = {}
 
@@ -191,8 +194,8 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     gradArray = {}
-    for var in self.optVars:                      gradArray[var] = np.ndarray((0,0))
-
+    for var in self.optVars: gradArray[var] = np.ndarray((0,0))
+    
     # Evaluate gradient at each point
     for pertIndex in optVarsValues.keys():
       tempDictPerturbed = optVarsValues[pertIndex]
@@ -205,6 +208,10 @@ class GradientBasedOptimizer(Optimizer):
     for var in self.optVars:
       gradient[var] = gradArray[var].mean()
     gradient = self.localEvaluateGradient(optVarsValues, gradient)
+    if self.gradDict['normalize']: 
+      gradientL2norm = LA.norm(gradient.values())
+      if gradientL2norm != 0.0:
+        for var in self.optVars: gradient[var] = gradient[var]/gradientL2norm
     self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][0]
     self.counter['gradientHistory'][traj][0] = gradient
     return gradient
@@ -246,11 +253,11 @@ class GradientBasedOptimizer(Optimizer):
     """
     if self.convergeTraj[traj] == False:
       if varsUpdate > 1:
-        oldVal = copy.deepcopy(self.lossFunctionEval(self.optVarsHist[traj][varsUpdate-1]))
-        lll = LA.norm(self.counter['gradientHistory'][traj][0].values())
-        print(lll)
-        #if abs(currentLossValue-oldVal) < self.convergenceTol or LA.norm(self.counter['gradientHistory'][traj][0].values()) < self.convergenceTol:
-        if LA.norm(self.counter['gradientHistory'][traj][0].values()) < self.convergenceTol:
+        oldVal = copy.deepcopy(abs(self.lossFunctionEval(self.optVarsHist[traj][varsUpdate-1])))
+        gradNorm =  LA.norm(self.counter['gradientHistory'][traj][0].values())
+        if abs((currentLossValue-oldVal)/oldVal) <= self.relConvergenceTol or gradNorm <= self.relConvergenceTol or abs(currentLossValue-oldVal) <= self.absConvergenceTol:
+        #if LA.norm(self.counter['gradientHistory'][traj][0].values()) < self.convergenceTol:
+          oldVal = copy.deepcopy(abs(self.lossFunctionEval(self.optVarsHist[traj][varsUpdate-1])))
           self.convergeTraj[traj] = True
           for trajInd, tr in enumerate(self.optTrajLive):
             if tr == traj:

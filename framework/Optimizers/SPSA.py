@@ -54,12 +54,13 @@ class SPSA(GradientBasedOptimizer):
     self.paramDict['c']     = float(self.paramDict.get('c', 0.005))
 
     # Normalize the parameters...
-    tempMax = -1
-    for var in self.optVars:
-      if self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var] > tempMax:
-        tempMax = self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var]
-    self.paramDict['c'] = copy.deepcopy(self.paramDict['c']/tempMax)
-    self.paramDict['a'] = copy.deepcopy(self.paramDict['a']/(tempMax**2))
+    if self.gradDict['normalize']:
+      tempMax = -1
+      for var in self.optVars:
+        if self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var] > tempMax:
+          tempMax = self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var]
+      self.paramDict['c'] = copy.deepcopy(self.paramDict['c']/tempMax)
+      self.paramDict['a'] = copy.deepcopy(self.paramDict['a']/(tempMax**2))
 
     self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
     self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
@@ -109,7 +110,10 @@ class SPSA(GradientBasedOptimizer):
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
       for var in self.optVars:
         self.values[var] = self.optVarsInit['initial'][var][traj]
-      self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(self.normalizeData(self.values))
+        if self.values[var] >=  self.optVarsInit['upperBound'][var]: self.values[var]-= 0.01*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
+        if self.values[var] <=  self.optVarsInit['lowerBound'][var]: self.values[var]+= 0.01*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
+      data = self.normalizeData(self.values) if self.gradDict['normalize'] else self.values
+      self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(data)
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
       self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_v_' + str(self.counter['mdlEval'])
 
@@ -140,7 +144,7 @@ class SPSA(GradientBasedOptimizer):
           tempOptVars = {}
           for var in self.optVars:
             tempOptVars[var] = self.gradDict['pertPoints'][traj][loc2][var][loc1]
-          tempOptVarsDenorm = copy.deepcopy(self.denormalizeData(tempOptVars))
+          tempOptVarsDenorm = copy.deepcopy(self.denormalizeData(tempOptVars)) if self.gradDict['normalize'] else copy.deepcopy(tempOptVars)
           for var in self.optVars:
             self.values[var] = tempOptVarsDenorm[var]
           # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
@@ -160,13 +164,11 @@ class SPSA(GradientBasedOptimizer):
 
             ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj]) # Compute the new ak
             gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
-            if LA.norm(gradient.values()) <= 1.0e-7:
-              print("lupo")
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
             varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
 
             varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
-            varKPlusDenorm = self.denormalizeData(varKPlus)
+            varKPlusDenorm = self.denormalizeData(varKPlus) if self.gradDict['normalize'] else varKPlus
             for var in self.optVars:
               self.values[var] = copy.deepcopy(varKPlusDenorm[var])
               self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(varKPlus[var])
@@ -190,12 +192,16 @@ class SPSA(GradientBasedOptimizer):
     tempVarKPlus = {}
     for var in self.optVars:
       tempVarKPlus[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
-    
     satisfied, activeConstraints = self.checkConstraint(tempVarKPlus)
+    #satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempVarKPlus))
     if satisfied: return tempVarKPlus
     else:
       # check if the active constraints are the boundary ones. In case, project the gradient
       if len(activeConstraints['internal']) > 0:
+        projectedOnBoundary= {}
+        for activeConstraint in activeConstraints['internal']: projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
+      tempVarKPlus.update(self.normalizeData(projectedOnBoundary) if self.gradDict['normalize'] else projectedOnBoundary)
+      if len(activeConstraints['external']) == 0: return tempVarKPlus
       
     # Try to find varKPlus by shorten the gradient vector
     foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, gradient)
@@ -285,10 +291,10 @@ class SPSA(GradientBasedOptimizer):
             varKPlus = copy.deepcopy(tempVarNew)
             return True, varKPlus
           break
-        frac = copy.deepcopy(bounds[1]+bounds[0])/2
+        frac = copy.deepcopy(bounds[1]+bounds[0])/2.0
       else:
         bounds[1] = copy.deepcopy(frac)
-        frac = copy.deepcopy(bounds[1]+bounds[0])/2
+        frac = copy.deepcopy(bounds[1]+bounds[0])/2.0
     return False, None
 
   def angleBetween(self, d1, d2):
