@@ -142,7 +142,7 @@ class JobHandler(MessageHandler.MessageUser):
         if isinstance(running, Runners.ExternalRunner):
           outputFilename = running.getOutputFilename()
           if os.path.exists(outputFilename):
-            self.raiseAMessage(open(outputFilename,"r").read())
+            self.raiseAMessage(repr(open(outputFilename,"r").read()).replace("\\n","\n"))
           else:
             self.raiseAMessage(" No output "+outputFilename)
       else:
