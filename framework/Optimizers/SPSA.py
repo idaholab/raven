@@ -94,7 +94,7 @@ class SPSA(GradientBasedOptimizer):
     if convergence:             ready = False
     else:                       ready = True and ready
     return ready
-
+   
   def localGenerateInput(self,model,oldInput):
     """
       Method to generate input for model to run
@@ -115,8 +115,7 @@ class SPSA(GradientBasedOptimizer):
       data = self.normalizeData(self.values) if self.gradDict['normalize'] else self.values
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(data)
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
-      self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_v_' + str(self.counter['mdlEval'])
-
+      self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],'v',self.counter['mdlEval'])
     else:
       while True: # this while loop is needed to loop over all trajectories to find one that is ready for update.
         traj = self.optTrajLive.pop(0)
@@ -148,7 +147,7 @@ class SPSA(GradientBasedOptimizer):
           for var in self.optVars:
             self.values[var] = tempOptVarsDenorm[var]
           # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
-          self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_' + str(self.counter['perturbation'][traj]) + '_' + str(self.counter['mdlEval'])
+          self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],self.counter['perturbation'][traj],self.counter['mdlEval'])
           break
         else: # Enough gradient evaluation for decision variable update
           evalNotFinish = False
@@ -173,7 +172,7 @@ class SPSA(GradientBasedOptimizer):
               self.values[var] = copy.deepcopy(varKPlusDenorm[var])
               self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(varKPlus[var])
             # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
-            self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_v_' + str(self.counter['mdlEval'])
+            self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],'v',self.counter['mdlEval'])
 
             # remove redundant trajectory
             if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:

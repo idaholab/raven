@@ -216,6 +216,17 @@ class GradientBasedOptimizer(Optimizer):
     self.counter['gradientHistory'][traj][0] = gradient
     return gradient
 
+  def _createEvaluationIdentifier(self,trajID,iterID,evalType,globalID):
+    """
+      Create evaluation identifier
+      @ In, trajID, int, trajectory identifier
+      @ In, iterID, int, iteration number (identifier)
+      @ In, evalType, int, evaluation type (v for variable update; otherwise id for gradient evaluation)
+      @ In, globalID, int, global counter identifier
+    """
+    identifier = str(trajID) + '_' + str(iterID) + '_' + str(evalType) + '_' + str(globalID)
+    return identifier
+
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
       Local method to evaluate gradient.
@@ -254,6 +265,7 @@ class GradientBasedOptimizer(Optimizer):
     if self.convergeTraj[traj] == False:
       if varsUpdate > 1:
         oldVal = copy.deepcopy(abs(self.lossFunctionEval(self.optVarsHist[traj][varsUpdate-1])))
+        self.getLossFunctionGivenId("")
         gradNorm =  LA.norm(self.counter['gradientHistory'][traj][0].values())
         if abs((currentLossValue-oldVal)/oldVal) <= self.relConvergenceTol or gradNorm <= self.relConvergenceTol or abs(currentLossValue-oldVal) <= self.absConvergenceTol:
         #if LA.norm(self.counter['gradientHistory'][traj][0].values()) < self.convergenceTol:

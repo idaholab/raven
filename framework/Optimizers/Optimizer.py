@@ -363,6 +363,19 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, ready, bool, variable indicating whether the caller is prepared for another input.
     """
     return ready # To be overwritten by subclass
+  
+  
+  def getLossFunctionGivenId(self, evaluationID):
+    """
+      Method to get the Loss Function value given an evaluation ID
+      @ In, evaluationID, string, the evaluation identifier (prefix)
+      @ Out, functionValue, float, the loss function value
+    """
+    objective  = self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')[self.objVar]
+    prefix = self.mdlEvalHist.getMetadata('prefix',nodeId='RecontructEnding')
+    search = dict(zip(prefix, objective))
+    functionValue = search.get(evaluationID,None)
+    return functionValue
 
   def lossFunctionEval(self, optVars):
     """
@@ -374,7 +387,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
     for key in tempDict.keys(): tempDict[key] = np.asarray(tempDict[key])
-
+    
     self.objSearchingROM.train(tempDict)
     if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
     for key in optVars.keys(): optVars[key] = np.atleast_1d(optVars[key])
