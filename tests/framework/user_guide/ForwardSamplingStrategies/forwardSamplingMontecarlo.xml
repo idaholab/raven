@@ -165,7 +165,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>pdf,eps</how>
         <title>
           <text> </text>
         </title>
@@ -235,7 +235,7 @@
             <zlabel>final response</zlabel>
         </plotSettings>
         <actions>
-            <how>pdf</how>
+            <how>pdf,eps</how>
             <title>
                 <text> </text>
             </title>
