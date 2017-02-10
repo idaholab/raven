@@ -3,7 +3,7 @@
     <JobName>dataMiningAnalysis</JobName>
     <WorkingDir>dataMiningAnalysis</WorkingDir>
     <Sequence>sampleMC,kmeans,pca</Sequence>
-    <batchSize>40</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/DataMining/dataMiningAnalysis</name>
@@ -171,7 +171,7 @@
             </plot>
         </plotSettings>
         <actions>
-            <how>png</how>
+            <how>eps</how>
             <title>
                 <text> </text>
             </title>
@@ -190,7 +190,7 @@
         </plot>
       </plotSettings>
         <actions>
-          <how>png</how>
+          <how>eps</how>
           <title>
             <text> </text>
           </title>
@@ -208,7 +208,7 @@
         </plot>
       </plotSettings>
         <actions>
-          <how>png</how>
+          <how>eps</how>
           <title>
             <text> </text>
           </title>

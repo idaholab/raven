@@ -3,6 +3,8 @@
     type = 'RavenFramework'
     input = 'dataMiningAnalysis.xml'
     UnorderedCsv = 'dataMiningAnalysis/samplesDump.csv'
+    text = 'dataMining/1-PlotKMeans1_dataMining-dataMining-dataMining.eps dataMining/1-PlotLabels_dataMining.eps dataMining/1-PlotPCA1_dataMining.eps'
+    comment = '%'
     heavy = true
     rel_err = 1e-6
   [../]
