@@ -68,7 +68,7 @@
         <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
         <convergence>
             <iterationLimit>100</iterationLimit>
-            <threshold>1e-4</threshold>
+            <relativeThreshold>1e-4</relativeThreshold>
         </convergence>
         <variable name="leftTemperature">
 			<upperBound>250</upperBound>

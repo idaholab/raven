@@ -71,7 +71,9 @@ class SPSA(GradientBasedOptimizer):
       self.stochasticDistribution = Distributions.returnInstance('Bernoulli',self)
       self.stochasticDistribution.p = 0.5
       self.stochasticDistribution.initializeDistribution()
-      self.stochasticEngine = lambda: [1.0 if self.stochasticDistribution.rvs() == 1 else -1.0 for _ in range(self.nVar)] # Initialize bernoulli distribution for random perturbation
+      # Initialize bernoulli distribution for random perturbation. Add artificial noise to avoid that specular loss functions get false positive convergence
+      self.stochasticEngine = lambda: [1.0+(Distributions.random()/1000.0)*Distributions.randomIntegers(-1, 1, self) if self.stochasticDistribution.rvs() == 1 else
+                                      -1.0+(Distributions.random()/1000.0)*Distributions.randomIntegers(-1, 1, self) for _ in range(self.nVar)]
     else:
       self.raiseAnError(IOError, self.paramDict['stochasticEngine']+'is currently not support for SPSA')
 
@@ -94,7 +96,7 @@ class SPSA(GradientBasedOptimizer):
     if convergence:             ready = False
     else:                       ready = True and ready
     return ready
-   
+
   def localGenerateInput(self,model,oldInput):
     """
       Method to generate input for model to run
@@ -115,7 +117,7 @@ class SPSA(GradientBasedOptimizer):
       data = self.normalizeData(self.values) if self.gradDict['normalize'] else self.values
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(data)
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
-      self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],'v',self.counter['mdlEval'])
+      self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],'v')
     else:
       while True: # this while loop is needed to loop over all trajectories to find one that is ready for update.
         traj = self.optTrajLive.pop(0)
@@ -146,8 +148,8 @@ class SPSA(GradientBasedOptimizer):
           tempOptVarsDenorm = copy.deepcopy(self.denormalizeData(tempOptVars)) if self.gradDict['normalize'] else copy.deepcopy(tempOptVars)
           for var in self.optVars:
             self.values[var] = tempOptVarsDenorm[var]
-          # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
-          self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],self.counter['perturbation'][traj],self.counter['mdlEval'])
+          # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation)
+          self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],self.counter['perturbation'][traj])
           break
         else: # Enough gradient evaluation for decision variable update
           evalNotFinish = False
@@ -172,7 +174,7 @@ class SPSA(GradientBasedOptimizer):
               self.values[var] = copy.deepcopy(varKPlusDenorm[var])
               self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(varKPlus[var])
             # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
-            self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],'v',self.counter['mdlEval'])
+            self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],'v')
 
             # remove redundant trajectory
             if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
@@ -199,9 +201,9 @@ class SPSA(GradientBasedOptimizer):
       if len(activeConstraints['internal']) > 0:
         projectedOnBoundary= {}
         for activeConstraint in activeConstraints['internal']: projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
-      tempVarKPlus.update(self.normalizeData(projectedOnBoundary) if self.gradDict['normalize'] else projectedOnBoundary)
+        tempVarKPlus.update(self.normalizeData(projectedOnBoundary) if self.gradDict['normalize'] else projectedOnBoundary)
       if len(activeConstraints['external']) == 0: return tempVarKPlus
-      
+
     # Try to find varKPlus by shorten the gradient vector
     foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, gradient)
     if foundVarsUpdate:
@@ -297,10 +299,11 @@ class SPSA(GradientBasedOptimizer):
     return False, None
 
   def angleBetween(self, d1, d2):
-    """ Evaluate the angle between the two dictionaries of vars (d1 and d2) by means of the dot product. Unit: degree
-    @ In, d1, dict, first vector
-    @ In, d2, dict, second vector
-    @ Out, angleD, float, angle between d1 and d2 with unit of degree
+    """
+      Evaluate the angle between the two dictionaries of vars (d1 and d2) by means of the dot product. Unit: degree
+      @ In, d1, dict, first vector
+      @ In, d2, dict, second vector
+      @ Out, angleD, float, angle between d1 and d2 with unit of degree
     """
     v1, v2 = np.zeros(shape=[self.nVar,]), np.zeros(shape=[self.nVar,])
     for cnt, var in enumerate(self.optVars):
@@ -330,6 +333,7 @@ class SPSA(GradientBasedOptimizer):
       @ In, iterNum, int, current iteration index
       @ Out, ak, float, current value for gain ak
     """
+
     a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
     ak = a / (iterNum + A) ** alpha *1.0
     return ak

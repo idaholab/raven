@@ -169,7 +169,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             temp = childChild.text.split(',')
             for trajInd, initVal in enumerate(temp):
               try              : self.optVarsInit['initial'][varname][trajInd] = float(initVal)
-              except ValueError: self.raiseAnError(ValueError, "Unable to convert to float the intial value for variable "+varname+ " in trajectory "+str(trajInd)) 
+              except ValueError: self.raiseAnError(ValueError, "Unable to convert to float the intial value for variable "+varname+ " in trajectory "+str(trajInd))
             if self.optTraj == None:
               self.optTraj = range(len(self.optVarsInit['initial'][varname].keys()))
 
@@ -327,7 +327,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if 'constrain' not in self.constraintFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
 
-    if self.initSeed != None:           Distributions.randomSeed(self.initSeed)
+    if self.initSeed != None:
+      print("seeed")
+
+      Distributions.randomSeed(self.initSeed)
 
     # specializing the self.localInitialize()
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
@@ -363,8 +366,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, ready, bool, variable indicating whether the caller is prepared for another input.
     """
     return ready # To be overwritten by subclass
-  
-  
+
+
   def getLossFunctionGivenId(self, evaluationID):
     """
       Method to get the Loss Function value given an evaluation ID
@@ -387,11 +390,11 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
     for key in tempDict.keys(): tempDict[key] = np.asarray(tempDict[key])
-    
+
     self.objSearchingROM.train(tempDict)
     if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
     for key in optVars.keys(): optVars[key] = np.atleast_1d(optVars[key])
-    lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]  
+    lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
     if self.optType == 'min':           return lossFunctionValue
     else:                               return lossFunctionValue*-1.0
 
