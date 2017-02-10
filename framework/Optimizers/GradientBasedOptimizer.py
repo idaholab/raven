@@ -272,7 +272,9 @@ class GradientBasedOptimizer(Optimizer):
     """
     if self.convergeTraj[traj] == False:
       if varsUpdate > 1:
-        oldVal             = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,'v'))
+        oldValueId         = self._createEvaluationIdentifier(traj,varsUpdate-1,'v')
+        oldVal             = self.getLossFunctionGivenId(oldValueId)
+        if oldVal is None: self.raiseAnError(Exception,"the evaluation identified by the ID " +str(oldValueId)+ " has not been found!")
         gradNorm           = LA.norm(self.counter['gradientHistory'][traj][0].values())
         absDifference      = abs(currentLossValue-oldVal)
         relativeDifference = abs(absDifference/oldVal)

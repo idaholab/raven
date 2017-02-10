@@ -327,10 +327,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if 'constrain' not in self.constraintFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
 
-    if self.initSeed != None:
-      print("seeed")
-
-      Distributions.randomSeed(self.initSeed)
+    if self.initSeed != None: Distributions.randomSeed(self.initSeed)
 
     # specializing the self.localInitialize()
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
@@ -376,6 +373,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     objective  = self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')[self.objVar]
     prefix = self.mdlEvalHist.getMetadata('prefix',nodeId='RecontructEnding')
+    if len(prefix) > 0 and "|" in prefix[0]:
+      # ensemble model id modification
+      # FIXME: Need to find a better way to handle this case
+      prefix = [key.split("|")[-1] for key in prefix]
     search = dict(zip(prefix, objective))
     functionValue = search.get(evaluationID,None)
     return functionValue
