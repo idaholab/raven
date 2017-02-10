@@ -818,6 +818,9 @@ class OutStreamPlot(OutStreamManager):
           self.mixtureMeans.append(self.options['plotSettings']['plot'][pltindex]['attributes']['mixtureMeans'].split(','))
         if 'mixtureCovars' in self.options['plotSettings']['plot'][pltindex]['attributes'].keys():
           self.mixtureCovars.append(self.options['plotSettings']['plot'][pltindex]['attributes']['mixtureCovars'].split(','))
+    #DEBUGG
+    tempfile = open('plotSettings.log','w')
+    tempfile.write(str(self.options['plotSettings']))
     self.numberAggregatedOS = len(self.options['plotSettings']['plot'])
     # initialize here the base class
     OutStreamManager.initialize(self, inDict)
@@ -1868,5 +1871,11 @@ class OutStreamPlot(OutStreamManager):
       else:
         name = prefix + self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "")
 
+      #saveOpts = {}
+      if fileType == 'eps':
+        ax = self.plt.gca()
+        ax.set_rasterized(True)
+        #saveOpts['rasterized'] = True
+        #saveOpts['dpi'] = 300
       self.plt.savefig(name + '.' + fileType, format = fileType)
     self.plt.close()

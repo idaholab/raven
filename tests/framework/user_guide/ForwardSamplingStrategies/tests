@@ -3,30 +3,34 @@
     type = 'RavenFramework'
     input = 'forwardSamplingMonteCarlo.xml'
     csv = 'RunDir/MonteCarlo/histories_0.csv'
-    heavy = true
+    text = 'RunDir/MonteCarlo/1-historyPlot_line-line-line-line.eps RunDir/MonteCarlo/1-samplesPlot3D_scatter-scatter-scatter-scatter.eps'
+    comment = '%'
   [../]
 
   [./Grid]
     type = 'RavenFramework'
     input = 'forwardSamplingGrid.xml'
     csv = 'RunDir/Grid/histories_0.csv'
-    heavy = true
+    text = 'RunDir/Grid/1-historyPlot_line-line-line-line.eps RunDir/Grid/1-samplesPlot3D_scatter-scatter-scatter-sactter.eps'
+    comment = '%'
   [../]
 
   [./Stratified]
     type = 'RavenFramework'
     input = 'forwardSamplingStratified.xml'
     csv = 'RunDir/Stratified/histories_0.csv'
-    csv = ''
-    heavy = true
+    text = 'RunDir/Stratified/1-historyPlot_line-line-line-line.eps RunDir/Stratified/1-samplesPlot3D_scatter-scatter-scatter-sactter.eps'
+    comment = '%'
   [../]
 
   [./SparseGrid]
     type = 'RavenFramework'
     input = 'forwardSamplingSparseGrid.xml'
     UnorderedXml = 'RunDir/SparseGrid/rom_output.xml'
+    text = 'RunDir/SparseGrid/1-historyPlot_line-line-line-line.eps RunDir/SparseGrid/1-samplesModelPlot3D_scatter-scatter-scatter-sactter.eps RunDir/SparseGrid/1-samplesROMPlot3D_scatter-scatter-scatter-sactter.eps'
+    comment = '%'
     rel_err = 1e-8
-    zero_threshold = 1e-12
+    zero_threshold = 1e-10
     heavy = true
     max_time = 500
   [../]

@@ -186,7 +186,7 @@
 
         </plotSettings>
         <actions>
-            <how>png</how>
+            <how>eps</how>
             <title>
                 <text> </text>
             </title>
@@ -203,7 +203,7 @@
             <ylabel>sigma-A</ylabel>
           </plotSettings>
         <actions>
-            <how>png</how>
+            <how>eps</how>
             <range>
               <xmin>0.00000000</xmin>
               <xmax>0.0000001</xmax>
@@ -249,7 +249,7 @@
             <zlabel>final response</zlabel>
         </plotSettings>
         <actions>
-            <how>png</how>
+            <how>eps</how>
             <title>
                 <text> </text>
             </title>

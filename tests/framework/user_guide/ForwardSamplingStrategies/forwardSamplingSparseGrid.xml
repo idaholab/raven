@@ -288,7 +288,7 @@
 
         </plotSettings>
         <actions>
-            <how>png</how>
+            <how>eps</how>
             <title>
                 <text> </text>
             </title>
@@ -358,7 +358,7 @@
         <zlabel>final response</zlabel>
       </plotSettings>
       <actions>
-        <how>png</how>
+        <how>eps</how>
         <title>
           <text> </text>
         </title>
@@ -428,7 +428,7 @@
         <zlabel>final response</zlabel>
       </plotSettings>
       <actions>
-        <how>png</how>
+        <how>eps</how>
         <title>
           <text> </text>
         </title>
