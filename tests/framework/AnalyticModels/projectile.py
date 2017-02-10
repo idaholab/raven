@@ -23,7 +23,7 @@ def prange(v,th,y0=0,g=9.8):
     @ In, g, float, optional, gravitational constant (m/s/s)
     @ Out, prange, float, range
   """
-    return v*np.cos(th)/g * (v*np.sin(th)*np.sqrt(v*v*np.sin(th)**2+2.*g*y0))
+  return v*np.cos(th)/g * (v*np.sin(th)*np.sqrt(v*v*np.sin(th)**2+2.*g*y0))
 
 def time_to_ground(v,th,y0=0,g=9.8):
   """
@@ -34,7 +34,7 @@ def time_to_ground(v,th,y0=0,g=9.8):
     @ In, g, float, optional, gravitational constant (m/s/s)
     @ Out, time_to_ground, float, time projectile is above the ground
   """
-    return v*np.sin(th)/g + np.sqrt(v*v*np.sin(th)**2+2.*g*y0)/g
+  return v*np.sin(th)/g + np.sqrt(v*v*np.sin(th)**2+2.*g*y0)/g
 
 def x_pos(x0,v,t):
   """
@@ -54,7 +54,7 @@ def y_pos(y0,v,t):
     @ In, t, float, time of flight
     @ Out, y_pos, float, vertical position
   """
-    return y0 + v*t - 4.9*t*t
+  return y0 + v*t - 4.9*t*t
 
 def run(self,Input):
   """
