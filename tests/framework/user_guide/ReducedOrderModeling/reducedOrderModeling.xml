@@ -8,7 +8,7 @@
         sampleROMInverse,sampleROMsvm,writeHistories
     </Sequence>
     <WorkingDir>ROMConstruction</WorkingDir>
-    <batchSize>12</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/ReducedOrderModelling/ROMConstruction</name>
@@ -229,7 +229,7 @@
 
         </plotSettings>
         <actions>
-            <how>png</how>
+            <how>eps</how>
             <title>
                 <text> </text>
             </title>
@@ -268,7 +268,7 @@
             </plot>
       </plotSettings>
         <actions>
-            <how>png</how>
+            <how>eps</how>
             <title>
                 <text> </text>
             </title>
@@ -307,7 +307,7 @@
             </plot>
       </plotSettings>
         <actions>
-            <how>png</how>
+            <how>eps</how>
             <title>
                 <text> </text>
             </title>
@@ -346,7 +346,7 @@
             </plot>
       </plotSettings>
         <actions>
-            <how>png</how>
+            <how>eps</how>
             <title>
                 <text> </text>
             </title>
@@ -385,7 +385,7 @@
             </plot>
       </plotSettings>
         <actions>
-            <how>png</how>
+            <how>eps</how>
             <title>
                 <text> </text>
             </title>
