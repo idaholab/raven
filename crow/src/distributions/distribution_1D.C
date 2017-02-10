@@ -45,6 +45,8 @@
 #include <boost/math/distributions/binomial.hpp>
 #include <boost/math/distributions/logistic.hpp>
 #include <boost/math/distributions/bernoulli.hpp>
+#include <boost/math/distributions/laplace.hpp>
+#include <boost/math/distributions/geometric.hpp>
 
 #define _USE_MATH_DEFINES   // needed in order to use M_PI = 3.14159
 
@@ -503,6 +505,34 @@ BasicLogisticDistribution::~BasicLogisticDistribution()
 {
   delete _backend;
 }
+
+/*
+ * CLASS LAPLACE DISTRIBUTION
+ */
+class LaplaceDistributionBackend : public DistributionBackendTemplate<boost::math::laplace_distribution<> > {
+public:
+  LaplaceDistributionBackend(double location, double scale) {
+    _backend = new boost::math::laplace_distribution<>(location, scale);
+  }
+  ~LaplaceDistributionBackend() {
+    delete _backend;
+  }
+};
+
+BasicLaplaceDistribution::BasicLaplaceDistribution(double location, double scale, double x_min, double x_max):
+    BasicTruncatedDistribution(x_min,x_max)
+{
+  _dist_parameters["location"] = location;
+  _dist_parameters["scale"] = scale;
+
+  _backend = new LaplaceDistributionBackend(location, scale);
+}
+
+BasicLaplaceDistribution::~BasicLaplaceDistribution()
+{
+  delete _backend;
+}
+
 
 /*
  * CLASS TRIANGULAR DISTRIBUTION
@@ -1088,6 +1118,39 @@ BasicBernoulliDistribution::~BasicBernoulliDistribution()
 {
   delete _backend;
 }
+
+/*
+ * CLASS GEOMETRIC DISTRIBUTION
+ */
+
+class GeometricDistributionBackend : public DistributionBackendTemplate<boost::math::geometric_distribution<> > {
+public:
+  GeometricDistributionBackend(double p) {
+    _backend = new boost::math::geometric_distribution<>(p);
+  }
+  ~GeometricDistributionBackend() {
+    delete _backend;
+  }
+};
+
+BasicGeometricDistribution::BasicGeometricDistribution(double p)
+{
+  _dist_parameters["p"] = p;
+
+  if (p<0)
+    throwError("ERROR: incorrect value of p for geometric distribution");
+
+  _backend = new GeometricDistributionBackend(p);
+}
+
+BasicGeometricDistribution::~BasicGeometricDistribution()
+{
+  delete _backend;
+}
+
+/*
+ * CLASS CONSTANT DISTRIBUTION
+ */
 
 BasicConstantDistribution::BasicConstantDistribution(double value){
   _value = value;

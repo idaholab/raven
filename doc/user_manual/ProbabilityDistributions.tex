@@ -248,6 +248,45 @@ Example:
 </Distributions>
 \end{lstlisting}
 
+%%%%%% Laplace
+\paragraph{Laplace Distribution}
+\label{Laplace}
+The \distname{Laplace} distribution is a two-parameter continuous
+probability distribution.  It is the distribution of the differences
+between two independent random variables with identical exponential
+distributions.
+%
+Its default support is $x \in (-\infty,+\infty)$.
+
+\specBlock{a}{Laplace}
+%
+\attrIntro
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+\vspace{-5mm}
+\subnodesIntro
+\begin{itemize}
+\item \xmlNode{location}, \xmlDesc{float, required parameter},
+  determines the location or shift of the distribution.
+\item \xmlNode{scale}, \xmlDesc{float, required parameter}, must be
+  greater than 0, and determines how spread out the distribution is.
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML]
+<Distributions>
+  ...
+  <Laplace name='aUserDefinedName'>
+    <location>aFloatValue</location>
+    <scale>aFloatValue</scale>
+  </Laplace>
+  ...
+</Distributions>
+\end{lstlisting}
+
 %%%%%% Logistic
 \paragraph{Logistic Distribution}
 \label{Logistic}
@@ -694,6 +733,42 @@ Example:
     <n>aIntegerValue</n>
     <p>aFloatValue</p>
   </Binomial>
+  ...
+</Distributions>
+\end{lstlisting}
+
+%%%%%% Geometric
+\paragraph{Geometric Distribution}
+\label{Geometric}
+The \distname{Geometric} distribution is a one-parameter discrete probability distribution.
+%
+The distribution uses the probability $p$ that trial will be
+successful.  The geometric distribution gives the probability of
+observing $k$ trials before the first success.
+%
+Its support is $k \in {0, 1, 2, ..., n}$.
+
+\specBlock{a}{Geometric}
+
+\attrIntro
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+\item \nameDescription
+\end{itemize}
+\vspace{-5mm}
+\subnodesIntro
+\begin{itemize}
+\item \xmlNode{p}, \xmlDesc{float, required parameter}, the success fraction for the trials.
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML]
+<Distributions>
+  ...
+  <Geometric name='aUserDefinedName'>
+    <p>aFloatValue</p>
+  </Geometric>
   ...
 </Distributions>
 \end{lstlisting}
