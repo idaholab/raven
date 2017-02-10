@@ -4,7 +4,7 @@
     <JobName>RunDir/Grid</JobName>
     <Sequence>sample,writeHistories</Sequence>
     <WorkingDir>RunDir/Grid</WorkingDir>
-    <batchSize>12</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/ForwardSamplingStrategies/Grid</name>

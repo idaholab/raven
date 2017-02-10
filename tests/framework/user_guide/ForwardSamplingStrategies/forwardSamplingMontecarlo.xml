@@ -4,7 +4,7 @@
     <JobName>RunDir/MonteCarlo</JobName>
     <Sequence>sample,writeHistories</Sequence>
     <WorkingDir>RunDir/MonteCarlo</WorkingDir>
-    <batchSize>12</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/ForwardSamplingStrategies/MonteCarlo</name>
@@ -165,7 +165,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf,eps</how>
+        <how>eps</how>
         <title>
           <text> </text>
         </title>
@@ -235,7 +235,7 @@
             <zlabel>final response</zlabel>
         </plotSettings>
         <actions>
-            <how>pdf,eps</how>
+            <how>eps</how>
             <title>
                 <text> </text>
             </title>

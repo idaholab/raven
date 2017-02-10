@@ -4,7 +4,7 @@
     <JobName>RunDir/Stratified</JobName>
     <Sequence>sample,writeHistories</Sequence>
     <WorkingDir>RunDir/Stratified</WorkingDir>
-    <batchSize>40</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/ForwardSamplingStrategies/Stratified</name>

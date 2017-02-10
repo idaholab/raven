@@ -4,7 +4,7 @@
     <JobName>RunDir/SparseGrid</JobName>
     <WorkingDir>RunDir/SparseGrid</WorkingDir>
     <Sequence>sample,train,validateModel,validateROM,output_print,output_plot</Sequence>
-    <batchSize>12</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/ForwardSamplingStrategies/SparseGrid</name>
@@ -34,7 +34,7 @@
         decay-A,decay-B,decay-C,decay-D
       </Features>
       <IndexSet>TotalDegree</IndexSet>
-      <PolynomialOrder>3</PolynomialOrder>
+      <PolynomialOrder>2</PolynomialOrder>
       <Interpolation poly="Legendre" quad="Legendre" weight="1">sigma-A</Interpolation>
       <Interpolation poly="Legendre" quad="Legendre" weight="1">sigma-B</Interpolation>
       <Interpolation poly="Legendre" quad="Legendre" weight="1">sigma-C</Interpolation>
