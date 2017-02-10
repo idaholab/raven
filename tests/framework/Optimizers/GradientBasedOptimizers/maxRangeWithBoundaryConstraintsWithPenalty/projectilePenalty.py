@@ -37,7 +37,7 @@ def run(self,Input):
   vx0 = np.cos(ang)*v0
   vy0 = np.sin(ang)*v0
   r = range(v0,ang,y0)
-  
+
   # this is an example of a penalty function applied on the loss function.
   # the v0 should converge around 40.
   if v0 > 40.0:
