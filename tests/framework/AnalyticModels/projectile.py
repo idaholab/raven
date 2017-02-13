@@ -15,18 +15,54 @@
 import numpy as np
 
 def prange(v,th,y0=0,g=9.8):
-    return v*np.cos(th)/g * (v*np.sin(th)*np.sqrt(v*v*np.sin(th)**2+2.*g*y0))
+  """
+    Calculates the analytic range.
+    @ In, v, float, velocity of the projectile
+    @ In, th, float, angle to the ground for initial projectile motion
+    @ In, y0, float, optional, initial height of projectile
+    @ In, g, float, optional, gravitational constant (m/s/s)
+    @ Out, prange, float, range
+  """
+  return v*np.cos(th)/g * (v*np.sin(th)*np.sqrt(v*v*np.sin(th)**2+2.*g*y0))
 
 def time_to_ground(v,th,y0=0,g=9.8):
-    return v*np.sin(th)/g + np.sqrt(v*v*np.sin(th)**2+2.*g*y0)/g
+  """
+    Calculates the analytic time of flight
+    @ In, v, float, velocity of the projectile
+    @ In, th, float, angle to the ground for initial projectile motion
+    @ In, y0, float, optional, initial height of projectile
+    @ In, g, float, optional, gravitational constant (m/s/s)
+    @ Out, time_to_ground, float, time projectile is above the ground
+  """
+  return v*np.sin(th)/g + np.sqrt(v*v*np.sin(th)**2+2.*g*y0)/g
 
 def x_pos(x0,v,t):
+  """
+    Calculates the x position in time
+    @ In, x0, float, initial horizontal position
+    @ In, v, float, velocity of the projectile
+    @ In, t, float, time of flight
+    @ Out, x_pos, float, horizontal position
+  """
   return x0 + v*t
 
 def y_pos(y0,v,t):
-    return y0 + v*t - 4.9*t*t
+  """
+    Calculates the analytic vertical position in time
+    @ In, y0, float, initial vertical position
+    @ In, v, float, velocity of the projectile
+    @ In, t, float, time of flight
+    @ Out, y_pos, float, vertical position
+  """
+  return y0 + v*t - 4.9*t*t
 
 def run(self,Input):
+  """
+    Method require by RAVEN to run this as an external model.
+    @ In, self, object, object to store members on
+    @ In, Input, dict, dictionary containing inputs from RAVEN
+    @ Out, None
+  """
   x0 = Input.get('x0',0.0)
   y0 = Input.get('y0',0.0)
   v0 = Input.get('v0',1.0)
@@ -63,6 +99,9 @@ if __name__=="__main__":
     Input[arg] = float(val)
   #make a dummy class to hold values
   class IO:
+    """
+      Dummy class to hold values like RAVEN does
+    """
     pass
   io = IO()
   #run the code
