@@ -1133,7 +1133,6 @@ class OutStreamPlot(OutStreamManager):
                     scatterPlotOptions['c'] = plotSettings['c']
                   self.actPlot = plt.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], **scatterPlotOptions)
               elif self.dim == 3:
-                #scatterPlotOptions['rasterized'] = True
                 for zIndex in range(len(self.zValues[pltindex][key])):
                   if self.colorMapCoordinates[pltindex] != None:
                     scatterPlotOptions['c'] = self.colorMapValues[pltindex][key]
@@ -1672,7 +1671,6 @@ class OutStreamPlot(OutStreamManager):
                     myMembers = self.clusterValues[pltindex][1][0] == k
                     self.actPlot = plt.scatter(clusterDict[pltindex]['clusterValues'][myMembers, 0], clusterDict[pltindex]['clusterValues'][myMembers, 1] , color = col, **dataMiningPlotOptions)
                 elif self.dim == 3:
-                  dataMiningPlotOptions['rasterized'] = True
                   for zIndex in range(len(self.zValues[pltindex][key])):
                     clusterDict[pltindex]['clusterValues'][:, 2] = self.zValues[pltindex][key][zIndex]
                   for k, col in zip(range(clusterDict[pltindex]['noClusters']), colors):
@@ -1711,7 +1709,7 @@ class OutStreamPlot(OutStreamManager):
                   if not np.any(self.mixtureValues[pltindex][1][0] == i):
                       continue
                   myMembers = self.mixtureValues[pltindex][1][0] == i
-#                  self.make_ellipses(mixtureCovars, mixtureMeans, i, col)
+                  # self.make_ellipses(mixtureCovars, mixtureMeans, i, col)
                   self.actPlot = plt.scatter(clusterDict[pltindex]['mixtureValues'][myMembers, 0], clusterDict[pltindex]['mixtureValues'][myMembers, 1], color = col, **dataMiningPlotOptions)
               elif 'manifold' == plotSettings['SKLtype']:
                 if   self.dim == 2:
@@ -1737,7 +1735,6 @@ class OutStreamPlot(OutStreamManager):
                       myMembers = self.clusterValues[pltindex][1][0] == k
                       self.actPlot = plt.scatter(manifoldValues[myMembers, 0], manifoldValues[myMembers, 1], color = col, **dataMiningPlotOptions)
                   elif self.dim == 3:
-                    dataMiningPlotOptions['rasterized'] = True
                     for zIndex in range(len(self.zValues[pltindex][key])):
                       manifoldValues[:, 2] = self.zValues[pltindex][key][zIndex]
                     for k, col in zip(range(clusterDict[pltindex]['noClusters']), colors):
@@ -1747,7 +1744,6 @@ class OutStreamPlot(OutStreamManager):
                   if   self.dim == 2:
                     self.actPlot = plt.scatter(manifoldValues[:, 0], manifoldValues[:, 1], **dataMiningPlotOptions)
                   elif self.dim == 3:
-                    dataMiningPlotOptions['rasterized'] = True
                     for zIndex in range(len(self.zValues[pltindex][key])):
                       manifoldValues[:, 2] = self.zValues[pltindex][key][zIndex]
                       self.actPlot = self.plt3D.scatter(manifoldValues[:, 0], manifoldValues[:, 1], manifoldValues[:, 2], **dataMiningPlotOptions)
@@ -1769,7 +1765,6 @@ class OutStreamPlot(OutStreamManager):
                       myMembers = self.clusterValues[pltindex][1][0] == k
                       self.actPlot = plt.scatter(decompositionValues[myMembers, 0], decompositionValues[myMembers, 1], color = col, **dataMiningPlotOptions)
                   elif self.dim == 3:
-                    dataMiningPlotOptions['rasterized'] = True
                     for zIndex in range(len(self.zValues[pltindex][key])):
                       decompositionValues[:, 2] = self.zValues[pltindex][key][zIndex]
                     for k, col in zip(range(clusterDict[pltindex]['noClusters']), colors):
@@ -1779,7 +1774,6 @@ class OutStreamPlot(OutStreamManager):
                   if self.dim == 2:
                     self.actPlot = plt.scatter(decompositionValues[:, 0], decompositionValues[:, 1], **dataMiningPlotOptions)
                   elif self.dim == 3:
-                    dataMiningPlotOptions['rasterized'] = True
                     for zIndex in range(len(self.zValues[pltindex][key])):
                       decompositionValues[:, 2] = self.zValues[pltindex][key][zIndex]
                       self.actPlot = self.plt3D.scatter(decompositionValues[:, 0], decompositionValues[:, 1], decompositionValues[:, 2], **dataMiningPlotOptions)

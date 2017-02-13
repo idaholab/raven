@@ -218,7 +218,7 @@ def compareOrderedElement(a,b,*args,**kwargs):
   options = kwargs
   path = kwargs.get('path','')
   counter = kwargs.get('counter',0)
-  setDefaultOptions(options)
+  DU.setDefaultOptions(options)
 
   def failMessage(*args):
     """ adds the fail message to the list
