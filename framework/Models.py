@@ -1762,37 +1762,6 @@ class EnsembleModel(Dummy, Assembler):
     if len(models) == 0: models = None
     return models
 
-#   def __getExecutionList(self, orderedNodes, allPath):
-#     """
-#       Method to get the execution list
-#       @ In, orderedNodes, list, list of models ordered based on the input/output relationships
-#       @ In, allPath, list, list of lists containing all the path from orderedNodes[0] to orderedNodes[-1]
-#       @ Out, executionList, list, list of lists with the execution order (e.g. [[model1],[model2.1,model2.2],[model3], etc.]
-#     """
-#     numberPath = len(allPath)
-#     maxComponents = 0
-#     for path in allPath:
-#       if len(path) > maxComponents: maxComponents = len(path)
-#     executionList = [ [] for _ in range(maxComponents)]
-#     executionCounter = -1
-#     for node in orderedNodes:
-#       nodeCtn = 0
-#       for path in allPath:
-#         if node in path: nodeCtn +=1
-#       if nodeCtn == numberPath:
-#         executionCounter+=1
-#         executionList[executionCounter] = [node]
-#       else:
-#         previousNodesInPath = []
-#         for path in allPath:
-#           if path.count(node) > 0: previousNodesInPath.append(path[path.index(node)-1])
-#         for previousNode in previousNodesInPath:
-#           if previousNode in executionList[executionCounter]:
-#             executionCounter+=1
-#             break
-#         executionList[executionCounter].append(node)
-#     return executionList
-
   def __getExecutionList(self, orderedNodes, allPath):
     """
       Method to get the execution list
@@ -1896,7 +1865,7 @@ class EnsembleModel(Dummy, Assembler):
     self.needToCheckInputs = True
 
     # write debug statements
-    self.raiseAMessage("Specs of directed Graph formed by EnsembleModel:")
+    self.raiseAMessage("Specs of Graph Network represented by EnsembleModel:")
     self.raiseAMessage("Graph Degree Sequence is    : "+str(self.ensembleModelGraph.degreeSequence()))
     self.raiseAMessage("Graph Minimum/Maximum degree: "+str( (self.ensembleModelGraph.minDelta(), self.ensembleModelGraph.maxDelta())))
     self.raiseAMessage("Graph density/diameter      : "+str( (self.ensembleModelGraph.density(),  self.ensembleModelGraph.diameter())))
