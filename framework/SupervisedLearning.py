@@ -9,6 +9,8 @@
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
+from numpy import average
+from crow_modules.distribution1Dpy2 import CDF
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
@@ -30,6 +32,13 @@ import numpy as np
 import abc
 import ast
 from operator import itemgetter
+from collections import OrderedDict
+from scipy import spatial
+from scipy import optimize
+from sklearn.neighbors.kde import KernelDensity
+import math
+import copy
+import itertools
 import math
 from scipy import spatial
 from collections import OrderedDict
@@ -38,7 +47,9 @@ from collections import OrderedDict
 #Internal Modules------------------------------------------------------------------------------------
 import utils
 import mathUtils
+import sys
 import MessageHandler
+import Distributions
 interpolationND = utils.find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -47,9 +58,11 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     This is the general interface to any superVisedLearning learning method.
     Essentially it contains a train method and an evaluate method
   """
-  returnType      = '' #this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
-  qualityEstType  = [] #this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
-  ROMtype         = '' #the broad class of the interpolator
+  returnType       = ''    # this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
+  qualityEstType   = []    # this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
+  ROMtype          = ''    # the broad class of the interpolator
+  ROMmultiTarget   = False #
+  ROMtimeDependent = False # is this ROM able to treat time-like (any monotonic variable) explicitly in its formulation?
 
   @staticmethod
   def checkArrayConsistency(arrayIn):
@@ -60,8 +73,16 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     #checking if None provides a more clear message about the problem
     if arrayIn is None: return (False,' The object is None, and contains no entries!')
-    if type(arrayIn) != np.ndarray: return (False,' The object is not a numpy array')
-    if len(arrayIn.shape) > 1: return(False, ' The array must be 1-d')
+    if type(arrayIn).__name__ == 'list':
+      if self.isDynamic():
+        for cnt, elementArray in enumerate(arrayIn):
+          resp = checkArrayConsistency(elementArray)
+          if not resp[0]: return (False,' The element number '+str(cnt)+' is not a consistent array. Error: '+resp[1])
+      else:
+        return (False,' The list type is allowed for dynamic ROMs only')
+    else:
+      if type(arrayIn).__name__ not in ['ndarray','c1darray']: return (False,' The object is not a numpy array. Got type: '+type(arrayIn).__name__)
+      if len(np.asarray(arrayIn).shape) > 1                  : return(False, ' The array must be 1-d. Got shape: '+str(np.asarray(arrayIn).shape))
     return (True,'')
 
   def __init__(self,messageHandler,**kwargs):
@@ -71,19 +92,21 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    self.printTag = 'Supervised'
-    self.messageHandler = messageHandler
+    self.printTag          = 'Supervised'
+    self.messageHandler    = messageHandler
+    self._dynamicHandling = False
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
     if 'Features' not in self.initOptionDict.keys(): self.raiseAnError(IOError,'Feature names not provided')
     if 'Target'   not in self.initOptionDict.keys(): self.raiseAnError(IOError,'Target name not provided')
     self.features = self.initOptionDict['Features'].split(',')
-    self.target   = self.initOptionDict['Target'  ]
+    self.target   = self.initOptionDict['Target'  ].split(',')
     self.initOptionDict.pop('Target')
     self.initOptionDict.pop('Features')
     self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
-    if self.features.count(self.target) > 0: self.raiseAnError(IOError,'The target and one of the features have the same name!')
+    for target in self.target:
+      if self.features.count(target) > 0: self.raiseAnError(IOError,'The target "'+target+'" is also in the feature space!')
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
     self.muAndSigmaFeatures = {}
@@ -111,42 +134,34 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     names, values  = list(tdict.keys()), list(tdict.values())
     ## This is for handling the special case needed by SKLtype=*MultiTask* that
     ## requires multiple targets.
-    if isinstance(self.target,list):
-      targetValues = None
-      for target in self.target:
-        if target in names:
-          if targetValues is None:
-            targetValues = values[names.index(target)]
-          else:
-            targetValues = np.column_stack((targetValues,values[names.index(target)]))
-        else:
-          self.raiseAnError(IOError,'The target '+target+' is not in the training set')
-      # construct the evaluation matrixes
-      featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
+
+    targetValues = []
+    for target in self.target:
+      if target in names: targetValues.append(values[names.index(target)])
+      else              : self.raiseAnError(IOError,'The target '+target+' is not in the training set')
+
+    #FIXME: when we do not support anymore numpy <1.10, remove this IF STATEMENT
+    if int(np.__version__.split('.')[1]) >= 10:
+      targetValues = np.stack(targetValues, axis=-1)
     else:
-      if self.target in names:
-        targetValues = values[names.index(self.target)]
-      else:
-        self.raiseAnError(IOError,'The target ' + self.target + ' is not in the training set')
-      # check if the targetValues are consistent with the expected structure
-      resp = self.checkArrayConsistency(targetValues)
-      if not resp[0]:
-        self.raiseAnError(IOError,'In training set for target '+self.target+':'+resp[1])
-      # construct the evaluation matrixes
-      featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
+      sl = (slice(None),) * np.asarray(targetValues[0]).ndim + (np.newaxis,)
+      targetValues = np.concatenate([np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
+    # construct the evaluation matrixes
+    featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
       else:
-        resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]:
-          self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
-        if values[names.index(feat)].size != featureValues[:,0].size:
+        valueToUse = values[names.index(feat)]
+        resp = self.checkArrayConsistency(valueToUse)
+        if not resp[0]: self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
+        valueToUse = np.asarray(valueToUse)
+        if valueToUse.size != featureValues[:,0].size:
           self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
-          self.raiseAWarning('target values:',values[names.index(feat)].size,tag='ERROR')
+          self.raiseAWarning('target values:',valueToUse.size,tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
-        featureValues[:,cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        featureValues[:,cnt] = (valueToUse - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
 
@@ -250,6 +265,15 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     node.addText('ROM of type '+str(self.printTag.strip())+' has no special output options.')
 
+  def isDynamic(self):
+    """
+      This method is a utility function that tells if the relative ROM is able to
+      treat dynamic data (e.g. time-series) on its own or not (Primarly called by LearningGate)
+      @ In, None
+      @ Out, isDynamic, bool, True if the ROM is able to treat dynamic data, False otherwise
+    """
+    return self._dynamicHandling
+
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -314,7 +338,7 @@ class NDinterpolatorRom(superVisedLearning):
       @ Out, None
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
-    self.interpolator = None  # pointer to the C++ (crow) interpolator
+    self.interpolator = []    # pointer to the C++ (crow) interpolator (list of targets)
     self.featv        = None  # list of feature variables
     self.targv        = None  # list of target variables
     self.printTag = 'ND Interpolation ROM'
@@ -358,9 +382,9 @@ class NDinterpolatorRom(superVisedLearning):
     """
     self.featv, self.targv = featureVals,targetVals
     featv = interpolationND.vectd2d(featureVals[:][:])
-    targv = interpolationND.vectd(targetVals)
-
-    self.interpolator.fit(featv,targv)
+    for index, target in enumerate(self.target):
+      targv = interpolationND.vectd(targetVals[:,index])
+      self.interpolator[index].fit(featv,targv)
 
   def __confidenceLocal__(self,featureVals):
     """
@@ -377,11 +401,13 @@ class NDinterpolatorRom(superVisedLearning):
       @ In, featureVals, numpy.array 2-D, features
       @ Out, prediction, numpy.array 1-D, predicted values
     """
-    prediction = np.zeros(featureVals.shape[0])
-    for n_sample in range(featureVals.shape[0]):
-      featv = interpolationND.vectd(featureVals[n_sample][:])
-      prediction[n_sample] = self.interpolator.interpolateAt(featv)
-      self.raiseAMessage('NDinterpRom   : Prediction by ' + self.__class__.ROMtype + '. Predicted value is ' + str(prediction[n_sample]))
+    prediction = {} #np.zeros((featureVals.shape[0]))
+    for index, target in enumerate(self.target):
+      prediction[target] = np.zeros((featureVals.shape[0]))
+      for n_sample in range(featureVals.shape[0]):
+        featv = interpolationND.vectd(featureVals[n_sample][:])
+        prediction[target][n_sample] = self.interpolator[index].interpolateAt(featv)
+      self.raiseAMessage('NDinterpRom   : Prediction by ' + self.__class__.ROMtype + ' for target '+target+'. Predicted value is ' + str(prediction[target][n_sample]))
     return prediction
 
   def __returnInitialParametersLocal__(self):
@@ -450,7 +476,7 @@ class GaussPolynomialRom(superVisedLearning):
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.initialized   = False #only True once self.initialize has been called
     self.interpolator  = None #FIXME what's this?
-    self.printTag      = 'GAUSSgpcROM('+self.target+')'
+    self.printTag      = 'GAUSSgpcROM('+'-'.join(self.target)+')'
     self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
     self.indexSetVals  = []   #list of tuples, custom index set to use if CustomSet is the index set type
     self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
@@ -540,6 +566,8 @@ class GaussPolynomialRom(superVisedLearning):
       requests = list(o.strip() for o in options['what'].split(','))
     else:
       requests =['all']
+    # Target
+    target = options.get('Target',self.target[0])
     #handle "all" option
     if 'all' in requests:
       requests = canDo
@@ -550,29 +578,29 @@ class GaussPolynomialRom(superVisedLearning):
         if request.lower() in ['mean','expectedvalue']:
           #only calculate the mean once per printing
           if self.mean is None:
-            self.mean = self.__mean__()
+            self.mean = self.__mean__(target)
           val = self.mean
         elif request.lower() == 'variance':
           if variance is None:
-            variance = self.__variance__()
+            variance = self.__variance__(target)
           val = variance
         elif request.lower() == 'samples':
           if self.numRuns!=None:
             val = self.numRuns
           else:
             val = len(self.sparseGrid)
-        outFile.addScalar(self.target,request,val,pivotVal=pivotVal)
+        outFile.addScalar(target,request,val,pivotVal=pivotVal)
       elif request.lower() in vectors:
         if request.lower() == 'polycoeffs':
           valueDict = OrderedDict()
           valueDict['inputVariables'] = ','.join(self.features)
-          keys = self.polyCoeffDict.keys()
+          keys = self.polyCoeffDict[target].keys()
           keys.sort()
           for key in keys:
-            valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[key]
+            valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[target][key]
         elif request.lower() in ['partialvariance','sobolindices','soboltotalindices']:
           if sobolIndices is None or partialVars is None:
-            sobolIndices,partialVars = self.getSensitivities()
+            sobolIndices,partialVars = self.getSensitivities(target)
           if sobolTotals is None:
             sobolTotals = self.getTotalSensitivities(sobolIndices)
           #sort by value
@@ -594,7 +622,7 @@ class GaussPolynomialRom(superVisedLearning):
               valueDict[name] = sobolIndices[key]
             elif request.lower() == 'soboltotalindices':
               valueDict[name] = sobolTotals[key]
-        outFile.addVector(self.target,request,valueDict,pivotVal=pivotVal)
+        outFile.addVector(target,request,valueDict,pivotVal=pivotVal)
       else:
         self.raiseAWarning('ROM does not know how to return "'+request+'".  Skipping...')
 
@@ -661,11 +689,11 @@ class GaussPolynomialRom(superVisedLearning):
       self.raiseAnError(RuntimeError,'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?')
     self.raiseADebug('training',self.features,'->',self.target)
     self.featv, self.targv = featureVals,targetVals
-    self.polyCoeffDict={}
+    self.polyCoeffDict = {key: dict({}) for key in self.target}
     #check equality of point space
     self.raiseADebug('...checking required points are available...')
     fvs = []
-    tvs=[]
+    tvs = {key: list({}) for key in self.target}
     sgs = list(self.sparseGrid.points())
     missing=[]
     kdTree = spatial.KDTree(featureVals)
@@ -680,12 +708,9 @@ class GaussPolynomialRom(superVisedLearning):
         found = True
         point = tuple(featureVals[idx])
       #end KDTree way
-      #brute way
-      #found,idx,point = mathUtils.NDInArray(featureVals,pt)
-      #end brute way
       if found:
         fvs.append(point)
-        tvs.append(targetVals[idx])
+        for cnt, target in enumerate(self.target):  tvs[target].append(targetVals[idx,cnt])
       else:
         missing.append(pt)
     if len(missing)>0:
@@ -714,14 +739,15 @@ class GaussPolynomialRom(superVisedLearning):
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
     for i,idx in enumerate(self.indexSet):
       idx=tuple(idx)
-      self.polyCoeffDict[idx]=0
-      wtsum=0
-      for pt,soln in zip(fvs,tvs):
-        tupPt = tuple(pt)
-        stdPt = standardPoints[tupPt]
-        wt = self.sparseGrid.weights(translate[tupPt])
-        self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
-      self.polyCoeffDict[idx]*=self.norm
+      for target in self.target:
+        self.polyCoeffDict[target][idx]=0
+        wtsum=0
+        for pt,soln in zip(fvs,tvs[target]):
+          tupPt = tuple(pt)
+          stdPt = standardPoints[tupPt]
+          wt = self.sparseGrid.weights(translate[tupPt])
+          self.polyCoeffDict[target][idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
+        self.polyCoeffDict[target][idx]*=self.norm
     self.amITrained=True
     self.raiseADebug('...training complete!')
 
@@ -731,56 +757,62 @@ class GaussPolynomialRom(superVisedLearning):
       @ In, printZeros, bool, optional, optional flag for printing even zero coefficients
       @ Out, None
     """
-    data=[]
-    for idx,val in self.polyCoeffDict.items():
-      if abs(val) > 1e-12 or printZeros:
-        data.append([idx,val])
-    data.sort()
-    self.raiseADebug('polyDict for ['+self.target+'] with inputs '+str(self.features)+':')
-    for idx,val in data:
-      self.raiseADebug('    '+str(idx)+' '+str(val))
+    for target in self.target:
+      data=[]
+      for idx,val in self.polyCoeffDict[target].items():
+        if abs(val) > 1e-12 or printZeros:
+          data.append([idx,val])
+      data.sort()
+      self.raiseADebug('polyDict for ['+target+'] with inputs '+str(self.features)+':')
+      for idx,val in data:
+        self.raiseADebug('    '+str(idx)+' '+str(val))
 
   def checkForNonzeros(self,tol=1e-12):
     """
       Checks poly coefficient dictionary for nonzero entries.
       @ In, tol, float, optional, the tolerance under which is zero (default 1e-12)
-      @ Out, data, list(tuple), the indices and values of the nonzero coefficients
+      @ Out, data, dict, {'target1':list(tuple),'target2':list(tuple)}: the indices and values of the nonzero coefficients for each target
     """
-    data=[]
-    for idx,val in self.polyCoeffDict.items():
-      if round(val,11) !=0:
-        data.append([idx,val])
+    data = dict.fromkeys(self.target,[])
+    for target in self.target:
+      for idx,val in self.polyCoeffDict[target].items():
+        if round(val,11) !=0:
+          data[target].append([idx,val])
     return data
 
-  def __mean__(self):
+  def __mean__(self, targ=None):
     """
       Returns the mean of the ROM.
       @ In, None
+      @ In, targ, str, optional, the target for which the __mean__ needs to be computed
       @ Out, __mean__, float, the mean
     """
-    return self.__evaluateMoment__(1)
+    return self.__evaluateMoment__(1,targ)
 
-  def __variance__(self):
+  def __variance__(self, targ=None):
     """
       returns the variance of the ROM.
       @ In, None
+      @ In, targ, str, optional, the target for which the __variance__ needs to be computed
       @ Out, __variance__, float, variance
     """
-    mean = self.__evaluateMoment__(1)
-    return self.__evaluateMoment__(2) - mean*mean
+    mean = self.__evaluateMoment__(1,targ)
+    return self.__evaluateMoment__(2,targ) - mean*mean
 
-  def __evaluateMoment__(self,r):
+  def __evaluateMoment__(self,r, targ=None):
     """
       Use the ROM's built-in method to calculate moments.
-      @ In r, int, moment to calculate
+      @ In, r, int, moment to calculate
+      @ In, targ, str, optional, the target for which the moment needs to be computed
       @ Out, tot, float, evaluation of moment
     """
+    target = self.target[0] if targ is None else targ
     #TODO is there a faster way still to do this?
-    if r==1: return self.polyCoeffDict[tuple([0]*len(self.features))]
-    elif r==2: return sum(s**2 for s in self.polyCoeffDict.values())
+    if r==1: return self.polyCoeffDict[target][tuple([0]*len(self.features))]
+    elif r==2: return sum(s**2 for s in self.polyCoeffDict[target].values())
     tot=0
     for pt,wt in self.sparseGrid:
-      tot+=self.__evaluateLocal__([pt])**r*wt
+      tot+=self.__evaluateLocal__([pt])[target]**r*wt
     tot*=self.norm
     return tot
 
@@ -788,17 +820,20 @@ class GaussPolynomialRom(superVisedLearning):
     """
       Evaluates a point.
       @ In, featureVals, list, of values at which to evaluate the ROM
-      @ Out, tot, float, the evaluated point
+      @ Out, returnDict, dict, the evaluated point for each target
     """
     featureVals=featureVals[0]
-    tot=0
+    returnDict={}
     stdPt = np.zeros(len(featureVals))
     for p,pt in enumerate(featureVals):
       varName = self.sparseGrid.varNames[p]
       stdPt[p] = self.distDict[varName].convertToQuad(self.quads[varName].type,pt)
-    for idx,coeff in self.polyCoeffDict.items():
-      tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
-    return tot
+    for target in self.target:
+      tot=0
+      for idx,coeff in self.polyCoeffDict[target].items():
+        tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
+      returnDict[target] = tot
+    return returnDict
 
   def _printPolynomial(self):
     """
@@ -806,13 +841,14 @@ class GaussPolynomialRom(superVisedLearning):
       @ In, None
       @ Out, None
     """
-    self.raiseADebug('Coeff Idx')
-    for idx,coeff in self.polyCoeffDict.items():
-      if abs(coeff)<1e-12: continue
-      self.raiseADebug(str(idx))
-      for i,ix in enumerate(idx):
-        var = self.features[i]
-        self.raiseADebug(self.polys[var][ix]*coeff,'|',var)
+    for target in self.target:
+      self.raiseADebug('Target:'+target+'.Coeff Idx:')
+      for idx,coeff in self.polyCoeffDict[target].items():
+        if abs(coeff)<1e-12: continue
+        self.raiseADebug(str(idx))
+        for i,ix in enumerate(idx):
+          var = self.features[i]
+          self.raiseADebug(self.polys[var][ix]*coeff,'|',var)
 
   def __returnInitialParametersLocal__(self):
     """
@@ -823,17 +859,18 @@ class GaussPolynomialRom(superVisedLearning):
     params = {}
     return params
 
-  def getSensitivities(self):
+  def getSensitivities(self,targ=None):
     """
       Calculates the Sobol indices (percent partial variances) of the terms in this expansion.
-      @ In, None
+      @ In, targ, str, optional, the target for which the moment needs to be computed
       @ Out, getSensitivities, tuple(dict), Sobol indices and partial variances keyed by subset
     """
-    totVar = self.__variance__()
+    target = self.target[0] if targ is None else targ
+    totVar = self.__variance__(target)
     partials = {}
     #calculate partial variances
     self.raiseADebug('Calculating partial variances...')
-    for poly,coeff in self.polyCoeffDict.items():
+    for poly,coeff in self.polyCoeffDict[target].items():
       #use poly to determine subset
       subset = self._polyToSubset(poly)
       # skip mean
@@ -919,7 +956,7 @@ class HDMRRom(GaussPolynomialRom):
     """
     GaussPolynomialRom.__init__(self,messageHandler,**kwargs)
     self.initialized   = False #true only when self.initialize has been called
-    self.printTag      = 'HDMR_ROM('+self.target+')'
+    self.printTag      = 'HDMR_ROM('+'-'.join(self.target)+')'
     self.sobolOrder    = None #depth of HDMR/Sobol expansion
     self.ROMs          = {}   #dict of GaussPolyROM objects keyed by combination of vars that make them up
     self.sdx           = None #dict of sobol sensitivity coeffs, keyed on order and tuple(varnames)
@@ -983,27 +1020,30 @@ class HDMRRom(GaussPolynomialRom):
     if not self.initialized:
       self.raiseAnError(RuntimeError,'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?')
     ft={}
+    self.refSoln = {key:dict({}) for key in self.target}
     for i in range(len(featureVals)):
-      ft[tuple(featureVals[i])]=targetVals[i]
+      ft[tuple(featureVals[i])]=targetVals[i,:]
+
     #get the reference case
     self.refpt = tuple(self.__fillPointWithRef((),[]))
-    self.refSoln = ft[self.refpt]
+    for cnt, target in enumerate(self.target):
+      self.refSoln[target] = ft[self.refpt][cnt]
     for combo,rom in self.ROMs.items():
-      subtdict={}
+      subtdict = {key:list([]) for key in self.target}
       for c in combo: subtdict[c]=[]
-      subtdict[self.target]=[]
       SG = rom.sparseGrid
       fvals=np.zeros([len(SG),len(combo)])
-      tvals=np.zeros(len(SG))
+      tvals=np.zeros((len(SG),len(self.target)))
       for i in range(len(SG)):
         getpt=tuple(self.__fillPointWithRef(combo,SG[i][0]))
         #the 1e-10 is to be consistent with RAVEN's CSV print precision
-        tvals[i] = ft[tuple(mathUtils.NDInArray(np.array(ft.keys()),getpt,tol=1e-10)[2])]
+        tvals[i,:] = ft[tuple(mathUtils.NDInArray(np.array(ft.keys()),getpt,tol=1e-10)[2])]
         for fp,fpt in enumerate(SG[i][0]):
           fvals[i][fp] = fpt
       for i,c in enumerate(combo):
         subtdict[c] = fvals[:,i]
-      subtdict[self.target] = tvals
+      for cnt, target in enumerate(self.target):
+        subtdict[target] = tvals[:,cnt]
       rom.train(subtdict)
 
     #make ordered list of combos for use later
@@ -1070,44 +1110,49 @@ class HDMRRom(GaussPolynomialRom):
       @ Out, tot, float, the evaluated point
     """
     #am I trained?
+    returnDict = dict.fromkeys(self.target,None)
     if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate, as ROM is not trained!')
-    tot = 0
-    for term,mult in self.reducedTerms.items():
-      if term == ():
-        tot += self.refSoln*mult
-      else:
-        cutVals = [list(featureVals[0][self.features.index(j)] for j in term)]
-        tot += self.ROMs[term].__evaluateLocal__(cutVals)*mult
-    return tot
+    for target in self.target:
+      tot = 0
+      for term,mult in self.reducedTerms.items():
+        if term == ():
+          tot += self.refSoln[target]*mult
+        else:
+          cutVals = [list(featureVals[0][self.features.index(j)] for j in term)]
+          tot += self.ROMs[term].__evaluateLocal__(cutVals)[target]*mult
+      returnDict[target] = tot
+    return returnDict
 
-  def __mean__(self):
+  def __mean__(self,targ=None):
     """
       The Cut-HDMR approximation can return its mean easily.
-      @ In, None
+      @ In, targ, str, optional, the target for which the __mean__ needs to be computed
       @ Out, __mean__, float, the mean
     """
     if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate mean, as ROM is not trained!')
-    return self._calcMean(self.reducedTerms)
+    return self._calcMean(self.reducedTerms,targ)
 
-  def __variance__(self):
+  def __variance__(self,targ=None):
     """
       The Cut-HDMR approximation can return its variance somewhat easily.
-      @ In, None
+      @ In, targ, str, optional, the target for which the __mean__ needs to be computed
       @ Out, __variance__, float, the variance
     """
     if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate variance, as ROM is not trained!')
-    self.getSensitivities()
-    return sum(val for val in self.partialVariances.values())
+    target = self.target[0] if targ is None else targ
+    self.getSensitivities(target)
+    return sum(val for val in self.partialVariances[target].values())
 
-  def _calcMean(self,fromDict):
+  def _calcMean(self,fromDict,targ=None):
     """
       Given a subset, calculate mean from terms
       @ In, fromDict, dict{string:int}, ROM subsets and their multiplicity
+      @ In, targ, str, optional, the target for which the __mean__ needs to be computed
       @ Out, tot, float, mean
     """
     tot = 0
     for term,mult in fromDict.items():
-      tot += self._evaluateIntegral(term)*mult
+      tot += self._evaluateIntegral(term,targ)*mult
     return tot
 
   def _collectTerms(self,a,targetDict,sign=1,depth=0):
@@ -1124,18 +1169,19 @@ class HDMRRom(GaussPolynomialRom):
     for sub in self.terms[a]:
       self._collectTerms(sub,targetDict,sign*-1,depth+1)
 
-  def _evaluateIntegral(self,term):
+  def _evaluateIntegral(self,term, targ=None):
     """
       Uses properties of orthonormal gPC to algebraically evaluate integrals gPC
       This does assume the integral is over all the constituent variables in the the term
       @ In, term, string, subset term to integrate
+      @ In, targ, str, optional, the target for which the __mean__ needs to be computed
       @ Out, _evaluateIntegral, float, evaluation
 
     """
     if term in [(),'',None]:
-      return self.refSoln
+      return self.refSoln[targ if targ is not None else self.target[0]]
     else:
-      return self.ROMs[term].__evaluateMoment__(1)
+      return self.ROMs[term].__evaluateMoment__(1,targ)
 
   def _removeZeroTerms(self,d):
     """
@@ -1149,15 +1195,16 @@ class HDMRRom(GaussPolynomialRom):
     for rem in toRemove:
       del d[rem]
 
-  def getSensitivities(self):
+  def getSensitivities(self,targ=None):
     """
       Calculates the Sobol indices (percent partial variances) of the terms in this expansion.
-      @ In, None
+      @ In, targ, str, optional, the target for which the moment needs to be computed
       @ Out, getSensitivities, tuple(dict), Sobol indices and partial variances keyed by subset
     """
-    if self.sdx is not None and self.partialVariances is not None:
+    target = self.target[0] if targ is None else targ
+    if self.sdx is not None and self.partialVariances is not None and target in self.sdx.keys():
       self.raiseADebug('Using previously-constructed ANOVA terms...')
-      return self.sdx,self.partialVariances
+      return self.sdx[target],self.partialVariances[target]
     self.raiseADebug('Constructing ANOVA terms...')
     #collect terms
     terms = {}
@@ -1165,7 +1212,7 @@ class HDMRRom(GaussPolynomialRom):
     for subset,mult in self.reducedTerms.items():
       #skip mean, since it will be subtracted off in the end
       if subset == (): continue
-      for poly,coeff in self.ROMs[subset].polyCoeffDict.items():
+      for poly,coeff in self.ROMs[subset].polyCoeffDict[target].items():
         #skip mean terms
         if sum(poly) == 0: continue
         poly = self.__fillIndexWithRef(subset,poly)
@@ -1174,15 +1221,15 @@ class HDMRRom(GaussPolynomialRom):
         if poly not in terms[polySubset].keys(): terms[polySubset][poly] = 0
         terms[polySubset][poly] += coeff*mult
     #calculate partial variances
-    self.partialVariances = {}
+    self.partialVariances = {target: dict({})}
+    self.sdx              = {target: dict({})}
     for subset in terms.keys():
-      self.partialVariances[subset] = sum(v*v for v in terms[subset].values())
+      self.partialVariances[target][subset] = sum(v*v for v in terms[subset].values())
     #calculate indices
-    totVar = sum(self.partialVariances.values())
-    self.sdx = {}
-    for subset,value in self.partialVariances.items():
-      self.sdx[subset] = value / totVar
-    return self.sdx,self.partialVariances
+    totVar = sum(self.partialVariances[target].values())
+    for subset,value in self.partialVariances[target].items():
+      self.sdx[target][subset] = value / totVar
+    return self.sdx[target],self.partialVariances[target]
 
 #
 #
@@ -1213,7 +1260,7 @@ class MSR(NDinterpolatorRom):
                                 'biweight', 'quartic', 'triweight', 'tricube',
                                 'gaussian', 'cosine', 'logistic', 'silverman',
                                 'exponential']
-
+    self.__amsc = []                      # AMSC object
     # Some sensible default arguments
     self.gradient = 'steepest'            # Gradient estimate methodology
     self.graph = 'beta skeleton'          # Neighborhood graph used
@@ -1391,7 +1438,7 @@ class MSR(NDinterpolatorRom):
     for key, value in newState.iteritems():
         setattr(self, key, value)
     self.kdTree             = None
-    self.__amsc             = None
+    self.__amsc             = []
     self.__trainLocal__(self.X,self.Y)
 
   def __trainLocal__(self,featureVals,targetVals):
@@ -1419,7 +1466,7 @@ class MSR(NDinterpolatorRom):
     if self.knn <= 0:
       self.knn = self.X.shape[0]
 
-    names = [name.encode('ascii') for name in self.features + [self.target]]
+    names = [name.encode('ascii') for name in self.features + self.target]
     # Data is already normalized, so ignore this parameter
     ### Comment replicated from the post-processor version, not sure what it
     ### means (DM)
@@ -1429,13 +1476,14 @@ class MSR(NDinterpolatorRom):
     #        SupervisedLearning, which requires features and targets by
     #        default, which we don't have here. When the NearestNeighbor is
     #        implemented in unSupervisedLearning switch to it.
-    self.__amsc = AMSC_Object(X=self.X, Y=self.Y, w=weights, names=names,
-                              graph=self.graph, gradient=self.gradient,
-                              knn=self.knn, beta=self.beta,
-                              normalization=None,
-                              persistence=self.persistence)
-    self.__amsc.Persistence(self.simplification)
-    self.__amsc.BuildLinearModels(self.simplification)
+    for index in range(len(self.target)):
+      self.__amsc.append( AMSC_Object(X=self.X, Y=self.Y[:,index], w=weights, names=names,
+                                      graph=self.graph, gradient=self.gradient,
+                                      knn=self.knn, beta=self.beta,
+                                      normalization=None,
+                                      persistence=self.persistence) )
+      self.__amsc[index].Persistence(self.simplification)
+      self.__amsc[index].BuildLinearModels(self.simplification)
 
     # We need a KD-Tree for querying neighbors
     self.kdTree = neighbors.KDTree(self.X)
@@ -1611,114 +1659,113 @@ class MSR(NDinterpolatorRom):
       This will use the local predictor of each neighboring point weighted by its
       distance to that point.
       @ In, featureVals, numpy.array 2-D, features
-      @ Out, predictions, numpy.array 1-D, predicted values
+      @ Out, returnDict, dict, dict of predicted values for each target ({'target1':numpy.array 1-D,'target2':numpy.array 1-D}
     """
-    if self.partitionPredictor == 'kde':
-      partitions = self.__amsc.Partitions(self.simplification)
-      weights = {}
-      dists = np.zeros((featureVals.shape[0],self.X.shape[0]))
-      for i,row in enumerate(featureVals):
-        dists[i] = np.sqrt(((row-self.X)**2).sum(axis=-1))
-      # This is a variable-based bandwidth that will adjust to the density
-      # around the given query point
-      if self.bandwidth == 'variable':
-        h = sorted(dists)[self.knn-1]
-      else:
-        h = self.bandwidth
-      for key,indices in partitions.iteritems():
-        #############
-        ## Using SciKit Learn, we have a limited number of kernel functions to
-        ## choose from.
-        # kernel = self.kernel
-        # if kernel == 'uniform':
-        #   kernel = 'tophat'
-        # if kernel == 'triangular':
-        #   kernel = 'linear'
-        # kde = KernelDensity(kernel=kernel, bandwidth=h).fit(self.X[indices,])
-        # weights[key] = np.exp(kde.score_samples(featureVals))
-        #############
-        ## OR
-        #############
-        weights[key] = 0
-        for idx in indices:
-          weights[key] += self.__kernel(dists[:,idx]/h)
-        weights[key]
-        #############
+    returnDict = {}
+    for index, target in enumerate(self.target):
+      if self.partitionPredictor == 'kde':
+        partitions = self.__amsc[index].Partitions(self.simplification)
+        weights = {}
+        dists = np.zeros((featureVals.shape[0],self.X.shape[0]))
+        for i,row in enumerate(featureVals):
+          dists[i] = np.sqrt(((row-self.X)**2).sum(axis=-1))
+        # This is a variable-based bandwidth that will adjust to the density
+        # around the given query point
+        if self.bandwidth == 'variable':
+          h = sorted(dists)[self.knn-1]
+        else:
+          h = self.bandwidth
+        for key,indices in partitions.iteritems():
+          #############
+          ## Using SciKit Learn, we have a limited number of kernel functions to
+          ## choose from.
+          # kernel = self.kernel
+          # if kernel == 'uniform':
+          #   kernel = 'tophat'
+          # if kernel == 'triangular':
+          #   kernel = 'linear'
+          # kde = KernelDensity(kernel=kernel, bandwidth=h).fit(self.X[indices,])
+          # weights[key] = np.exp(kde.score_samples(featureVals))
+          #############
+          ## OR
+          #############
+          weights[key] = 0
+          for idx in indices:
+            weights[key] += self.__kernel(dists[:,idx]/h)
+          weights[key]
+          #############
 
-      if self.blending:
-        weightedPredictions = np.zeros(featureVals.shape[0])
-        sumW = 0
-        for key in partitions.keys():
-          fx = self.__amsc.Predict(featureVals,key)
-          wx = weights[key]
-          sumW += wx
-          weightedPredictions += fx*wx
-        if sumW == 0:
-          return weightedPredictions
-        return weightedPredictions / sumW
-      else:
-        predictions = np.zeros(featureVals.shape[0])
-        maxWeights = np.zeros(featureVals.shape[0])
-        for key in partitions.keys():
-          fx = self.__amsc.Predict(featureVals,key)
-          wx = weights[key]
-          predictions[wx > maxWeights] = fx
-          maxWeights[wx > maxWeights] = wx
-        return predictions
-    elif self.partitionPredictor == 'svm':
-      partitions = self.__amsc.Partitions(self.simplification)
-      labels = np.zeros(self.X.shape[0])
-      for idx,(key,indices) in enumerate(partitions.iteritems()):
-        labels[np.array(indices)] = idx
-      # In order to make this deterministic for testing purposes, let's fix
-      # the random state of the SVM object. Maybe, this could be exposed to the
-      # user, but it shouldn't matter too much what the seed is for this.
-      svc = svm.SVC(probability=True,random_state=np.random.RandomState(8),tol=1e-15)
-      svc.fit(self.X,labels)
-      probabilities = svc.predict_proba(featureVals)
-
-      classIdxs = list(svc.classes_)
-      if self.blending:
-        weightedPredictions = np.zeros(len(featureVals))
-        sumW = 0
-        for idx,key in enumerate(partitions.keys()):
-          fx = self.__amsc.Predict(featureVals,key)
-          # It could be that a particular partition consists of only the extrema
-          # and they themselves point to cells with different opposing extrema.
-          # That is, a maximum points to a different minimum than the minimum in
-          # the two point partition. Long story short, we need to be prepared for
-          # an empty partition which will thus not show up in the predictions of
-          # the SVC, since no point has it as a label.
-          if idx not in classIdxs:
-            wx = np.zeros(probabilities.shape[0])
-          else:
-            realIdx = list(svc.classes_).index(idx)
-            wx = probabilities[:,realIdx]
-          if self.blending:
-            weightedPredictions = weightedPredictions + fx*wx
+        if self.blending:
+          weightedPredictions = np.zeros(featureVals.shape[0])
+          sumW = 0
+          for key in partitions.keys():
+            fx = self.__amsc[index].Predict(featureVals,key)
+            wx = weights[key]
             sumW += wx
+            weightedPredictions += fx*wx
+          returnDict[target] = weightedPredictions if sumW == 0 else weightedPredictions / sumW
+        else:
+          predictions = np.zeros(featureVals.shape[0])
+          maxWeights = np.zeros(featureVals.shape[0])
+          for key in partitions.keys():
+            fx = self.__amsc[index].Predict(featureVals,key)
+            wx = weights[key]
+            predictions[wx > maxWeights] = fx
+            maxWeights[wx > maxWeights] = wx
+          returnDict[target] = predictions
+      elif self.partitionPredictor == 'svm':
+        partitions = self.__amsc[index].Partitions(self.simplification)
+        labels = np.zeros(self.X.shape[0])
+        for idx,(key,indices) in enumerate(partitions.iteritems()):
+          labels[np.array(indices)] = idx
+        # In order to make this deterministic for testing purposes, let's fix
+        # the random state of the SVM object. Maybe, this could be exposed to the
+        # user, but it shouldn't matter too much what the seed is for this.
+        svc = svm.SVC(probability=True,random_state=np.random.RandomState(8),tol=1e-15)
+        svc.fit(self.X,labels)
+        probabilities = svc.predict_proba(featureVals)
 
-        return weightedPredictions/sumW
-      else:
-        predictions = np.zeros(featureVals.shape[0])
-        maxWeights = np.zeros(featureVals.shape[0])
-        for idx,key in enumerate(partitions.keys()):
-          fx = self.__amsc.Predict(featureVals,key)
-          # It could be that a particular partition consists of only the extrema
-          # and they themselves point to cells with different opposing extrema.
-          # That is, a maximum points to a different minimum than the minimum in
-          # the two point partition. Long story short, we need to be prepared for
-          # an empty partition which will thus not show up in the predictions of
-          # the SVC, since no point has it as a label.
-          if idx not in classIdxs:
-            wx = np.zeros(probabilities.shape[0])
-          else:
-            realIdx = list(svc.classes_).index(idx)
-            wx = probabilities[:,realIdx]
-          predictions[wx > maxWeights] = fx
-          maxWeights[wx > maxWeights] = wx
-
-        return predictions
+        classIdxs = list(svc.classes_)
+        if self.blending:
+          weightedPredictions = np.zeros(len(featureVals))
+          sumW = 0
+          for idx,key in enumerate(partitions.keys()):
+            fx = self.__amsc[index].Predict(featureVals,key)
+            # It could be that a particular partition consists of only the extrema
+            # and they themselves point to cells with different opposing extrema.
+            # That is, a maximum points to a different minimum than the minimum in
+            # the two point partition. Long story short, we need to be prepared for
+            # an empty partition which will thus not show up in the predictions of
+            # the SVC, since no point has it as a label.
+            if idx not in classIdxs:
+              wx = np.zeros(probabilities.shape[0])
+            else:
+              realIdx = list(svc.classes_).index(idx)
+              wx = probabilities[:,realIdx]
+            if self.blending:
+              weightedPredictions = weightedPredictions + fx*wx
+              sumW += wx
+          returnDict[target] = weightedPredictions if sumW == 0 else weightedPredictions / sumW
+        else:
+          predictions = np.zeros(featureVals.shape[0])
+          maxWeights = np.zeros(featureVals.shape[0])
+          for idx,key in enumerate(partitions.keys()):
+            fx = self.__amsc[index].Predict(featureVals,key)
+            # It could be that a particular partition consists of only the extrema
+            # and they themselves point to cells with different opposing extrema.
+            # That is, a maximum points to a different minimum than the minimum in
+            # the two point partition. Long story short, we need to be prepared for
+            # an empty partition which will thus not show up in the predictions of
+            # the SVC, since no point has it as a label.
+            if idx not in classIdxs:
+              wx = np.zeros(probabilities.shape[0])
+            else:
+              realIdx = list(svc.classes_).index(idx)
+              wx = probabilities[:,realIdx]
+            predictions[wx > maxWeights] = fx
+            maxWeights[wx > maxWeights] = wx
+          returnDict[target] = predictions
+      return returnDict
 
 
   def __resetLocal__(self):
@@ -1729,7 +1776,7 @@ class MSR(NDinterpolatorRom):
     """
     self.X      = []
     self.Y      = []
-    self.__amsc = None
+    self.__amsc = []
     self.kdTree = None
 
 
@@ -1750,7 +1797,8 @@ class NDsplineRom(NDinterpolatorRom):
     """
     NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
     self.printTag = 'ND-SPLINE ROM'
-    self.interpolator = interpolationND.NDspline()
+    for _ in range(len(self.target)):
+      self.interpolator.append(interpolationND.NDspline())
 
   def __resetLocal__(self):
     """
@@ -1758,7 +1806,8 @@ class NDsplineRom(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    self.interpolator.reset()
+    for index in range(len(self.target)):
+      self.interpolator[index].reset()
 #
 #
 #
@@ -1786,7 +1835,9 @@ class NDinvDistWeight(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    self.interpolator = interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p']))
+    self.interpolator = []
+    for _ in range(len(self.target)):
+      self.interpolator.append(interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p'])))
 
   def __resetLocal__(self):
     """
@@ -1794,7 +1845,8 @@ class NDinvDistWeight(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    self.interpolator.reset(float(self.initOptionDict['p']))
+    for index in range(len(self.target)):
+      self.interpolator[index].reset(float(self.initOptionDict['p']))
 #
 #
 #
@@ -1921,6 +1973,7 @@ class SciKitLearn(superVisedLearning):
       self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM "'+name+'")')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.subType = SKLsubType
+    self.intrinsicMultiTarget     = 'MultiTask' in self.initOptionDict['SKLtype']
     self.initOptionDict.pop('SKLtype')
     if not SKLtype in self.__class__.availImpl.keys():
       self.raiseAnError(IOError,'not known SKLtype "' + SKLtype +'" (from ROM "'+name+'")')
@@ -1936,14 +1989,17 @@ class SciKitLearn(superVisedLearning):
       self.initOptionDict.pop('estimator')
       estimatorSKLtype, estimatorSKLsubType = estimatorDict['SKLtype'].split('|')
       estimator = self.__class__.availImpl[estimatorSKLtype][estimatorSKLsubType][0]()
-      self.ROM = self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)
+      if self.intrinsicMultiTarget: self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)]
+      else                        : self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0](estimator) for _ in range(len(self.target))]
     else:
-      self.ROM  = self.__class__.availImpl[SKLtype][SKLsubType][0]()
+      if self.intrinsicMultiTarget: self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0]()]
+      else                        : self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0]() for _ in range(len(self.target))]
 
     for key,value in self.initOptionDict.items():
-      try:self.initOptionDict[key] = ast.literal_eval(value)
+      try   : self.initOptionDict[key] = ast.literal_eval(value)
       except: pass
-    self.ROM.set_params(**self.initOptionDict)
+
+    for index in range(len(self.ROM)): self.ROM[index].set_params(**self.initOptionDict)
 
   def _readdressEvaluateConstResponse(self,edict):
     """
@@ -1952,9 +2008,11 @@ class SciKitLearn(superVisedLearning):
       and the 10 outcomes are all == to 1, this method returns one without the need of an
       evaluation)
       @ In, edict, dict, prediction request. Not used in this method (kept the consistency with evaluate method)
-      @ Out, myNumber, float, the evaluation
+      @ Out, returnDict, dict, dictionary with the evaluation (in this case, the constant number)
     """
-    return self.myNumber
+    returnDict = {}
+    for index,target in enumerate(self.target): returnDict[target] = self.myNumber[index]
+    return returnDict
 
   def _readdressEvaluateRomResponse(self,edict):
     """
@@ -1970,34 +2028,47 @@ class SciKitLearn(superVisedLearning):
       For an one-class model, +1 or -1 is returned.
       @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
         an array of input feature values
-      @ Out, targetVals, array, shape = [n_samples], an array of output target
+      @ Out, targetVals, array, shape = [n_samples,n_targets], an array of output target
         associated with the corresponding points in featureVals
     """
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
-    if len(np.unique(targetVals))>1:
-      self.ROM.fit(featureVals,targetVals)
-      self.evaluate = self._readdressEvaluateRomResponse
-      #self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
+    if self.intrinsicMultiTarget:
+      self.ROM[0].fit(featureVals,targetVals)
     else:
-      self.myNumber = np.unique(targetVals)[0]
-      self.evaluate = self._readdressEvaluateConstResponse
+      if not all([len(np.unique(targetVals[:,index]))>1 for index in range(len(self.ROM))]):
+        self.myNumber = [np.unique(targetVals[:,index])[0] for index in range(len(self.ROM)) ]
+        self.evaluate = self._readdressEvaluateConstResponse
+      else:
+        for index in range(len(self.ROM)):
+          self.ROM[index].fit(featureVals,targetVals[:,index])
+        self.evaluate = self._readdressEvaluateRomResponse
 
   def __confidenceLocal__(self,featureVals):
     """
       This should return an estimation of the quality of the prediction.
       @ In, featureVals, 2-D numpy array, [n_samples,n_features]
-      @ Out, predict_proba, float, the confidence
+      @ Out, confidenceDict, dict, dict of the dictionary for each target
     """
-    if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(featureVals)
+    confidenceDict = {}
+    if  'probability' in self.__class__.qualityEstType:
+      for index, target in enumerate(self.ROM):
+        confidenceDict[target] =  self.ROM[index].predict_proba(featureVals)
     else            : self.raiseAnError(IOError,'the ROM '+str(self.initOptionDict['name'])+'has not the an method to evaluate the confidence of the prediction')
+    return confidenceDict
 
   def __evaluateLocal__(self,featureVals):
     """
       Evaluates a point.
       @ In, featureVals, np.array, list of values at which to evaluate the ROM
-      @ Out, predict, float, the evaluated value
+      @ Out, returnDict, dict, dict of all the target results
     """
-    return self.ROM.predict(featureVals)
+    returnDict = {}
+    if not self.intrinsicMultiTarget:
+      for index, target in enumerate(self.target): returnDict[target] = self.ROM[index].predict(featureVals)
+    else:
+      outcome = self.ROM[0].predict(featureVals)
+      for index, target in enumerate(self.target): returnDict[target] = outcome[:,index]
+    return returnDict
 
   def __resetLocal__(self):
     """
@@ -2005,7 +2076,8 @@ class SciKitLearn(superVisedLearning):
       @ In, None
       @ Out, None
     """
-    self.ROM = self.ROM.__class__(**self.initOptionDict)
+    for index in range(len(self.ROM)):
+      self.ROM[index] = self.ROM[index].__class__(**self.initOptionDict)
 
   def __returnInitialParametersLocal__(self):
     """
@@ -2013,7 +2085,7 @@ class SciKitLearn(superVisedLearning):
       @ In, None
       @ Out, params, dict,  dictionary of parameter names and initial values
     """
-    params = self.ROM.get_params()
+    params = self.ROM[-1].get_params()
     return params
 
   def __returnCurrentSettingLocal__(self):
@@ -2041,6 +2113,448 @@ class SciKitLearn(superVisedLearning):
 #
 #
 #
+
+class ARMA(superVisedLearning):
+  """
+    Autoregressive Moving Average model for time series analysis. First train then evaluate.
+    Specify a Fourier node in input file if detrending by Fourier series is needed.
+
+    Time series Y: Y = X + \sum_{i}\sum_k [\delta_ki1*sin(2pi*k/basePeriod_i)+\delta_ki2*cos(2pi*k/basePeriod_i)]
+    ARMA series X: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
+  """
+  def __init__(self,messageHandler,**kwargs):
+    """
+      A constructor that will appropriately intialize a supervised learning object
+      @ In, messageHandler: a MessageHandler object in charge of raising errors,
+                           and printing messages
+      @ In, kwargs: an arbitrary dictionary of keywords and values
+    """
+    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    self.printTag          = 'ARMA'
+    self._dynamicHandling  = True                                    # This ROM is able to manage the time-series on its own. No need for special treatment outside
+    self.armaPara          = {}
+    self.armaPara['Pmax']      = kwargs.get('Pmax', 3)
+    self.armaPara['Pmin']      = kwargs.get('Pmin', 0)
+    self.armaPara['Qmax']      = kwargs.get('Qmax', 3)
+    self.armaPara['Qmin']      = kwargs.get('Qmin', 0)
+    self.armaPara['dimension'] = len(self.features)
+    self.outTruncation         = kwargs.get('outTruncation', None)     # Additional parameters to allow user to specify the time series to be all positive or all negative
+    self.pivotParameterID      = kwargs.get('pivotParameter', 'Time')
+    self.pivotParameterValues  = None                                  # In here we store the values of the pivot parameter (e.g. Time)
+    # check if the pivotParameter is among the targetValues
+    if self.pivotParameterID not in self.target: self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
+    if len(self.target) > 2: self.raiseAnError(IOError,"Multi-target ARMA not available yet!")
+    # Initialize parameters for Fourier detrending
+    if 'Fourier' not in self.initOptionDict.keys():
+      self.hasFourierSeries = False
+    else:
+      self.hasFourierSeries = True
+      self.fourierPara = {}
+      self.fourierPara['basePeriod'] = [float(temp) for temp in self.initOptionDict['Fourier'].split(',')]
+      self.fourierPara['FourierOrder'] = {}
+      if 'FourierOrder' not in self.initOptionDict.keys():
+        for basePeriod in self.fourierPara['basePeriod']:
+          self.fourierPara['FourierOrder'][basePeriod] = 4
+      else:
+        temps = self.initOptionDict['FourierOrder'].split(',')
+        for index, basePeriod in enumerate(self.fourierPara['basePeriod']):
+          self.fourierPara['FourierOrder'][basePeriod] = int(temps[index])
+      if len(self.fourierPara['basePeriod']) != len(self.fourierPara['FourierOrder']):
+        self.raiseAnError(ValueError, 'Length of FourierOrder should be ' + str(len(self.fourierPara['basePeriod'])))
+
+  def _localNormalizeData(self,values,names,feat): # This function is not used in this class and can be removed
+    """
+      Overwrites default normalization procedure.
+      @ In, values, unused
+      @ In, names, unused
+      @ In, feat, feature to normalize
+      @ Out, None
+    """
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
+
+  def __trainLocal__(self,featureVals,targetVals):
+    """
+      Perform training on input database stored in featureVals.
+
+      @ In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
+      @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
+    """
+    self.pivotParameterValues = targetVals[:,:,self.target.index(self.pivotParameterID)]
+    if len(self.pivotParameterValues) > 1: self.raiseAnError(Exception,self.printTag +" does not handle multiple histories data yet! # histories: "+str(len(self.pivotParameterValues)))
+    self.pivotParameterValues.shape = (self.pivotParameterValues.size,)
+    self.timeSeriesDatabase         = copy.deepcopy(np.delete(targetVals,self.target.index(self.pivotParameterID),2))
+    self.timeSeriesDatabase.shape   = (self.timeSeriesDatabase.size,)
+    self.target.pop(self.target.index(self.pivotParameterID))
+    # Fit fourier seires
+    if self.hasFourierSeries:
+      self.__trainFourier__()
+      self.armaPara['rSeries'] = self.timeSeriesDatabase - self.fourierResult['predict']
+    else:
+      self.armaPara['rSeries'] = self.timeSeriesDatabase
+
+#     Transform data to obatain normal distrbuted series. See
+#     J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
+#     Applied Energy, 87(2010) 843-855
+    self.__generateCDF__(self.armaPara['rSeries'])
+    self.armaPara['rSeriesNorm'] = self.__dataConversion__(self.armaPara['rSeries'], obj='normalize')
+
+    self.__trainARMA__() # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
+
+    del self.timeSeriesDatabase       # Delete to reduce the pickle size, since from now the original data will no longer be used in the evaluation.
+
+  def __trainFourier__(self):
+    """
+      Perform fitting of Fourier series on self.timeSeriesDatabase
+      @ In, none,
+      @ Out, none,
+    """
+    fourierSeriesAll = self.__generateFourierSignal__(self.pivotParameterValues, self.fourierPara['basePeriod'], self.fourierPara['FourierOrder'])
+    fourierEngine = linear_model.LinearRegression()
+    temp = {}
+    for bp in self.fourierPara['FourierOrder'].keys():
+      temp[bp] = range(1,self.fourierPara['FourierOrder'][bp]+1)
+    fourOrders = list(itertools.product(*temp.values())) # generate the set of combinations of the Fourier order
+
+    criterionBest = np.inf
+    fSeriesBest = []
+    self.fourierResult={}
+    self.fourierResult['residues'] = 0
+    self.fourierResult['fOrder'] = []
+
+    for fOrder in fourOrders:
+      fSeries = np.zeros(shape=(self.pivotParameterValues.size,2*sum(fOrder)))
+      indexTemp = 0
+      for index,bp in enumerate(self.fourierPara['FourierOrder'].keys()):
+        fSeries[:,indexTemp:indexTemp+fOrder[index]*2] = fourierSeriesAll[bp][:,0:fOrder[index]*2]
+        indexTemp += fOrder[index]*2
+      fourierEngine.fit(fSeries,self.timeSeriesDatabase)
+      r = (fourierEngine.predict(fSeries)-self.timeSeriesDatabase)**2
+      if r.size > 1:    r = sum(r)
+      r = r/self.pivotParameterValues.size
+      criterionCurrent = copy.copy(r)
+      if  criterionCurrent< criterionBest:
+        self.fourierResult['fOrder'] = copy.deepcopy(fOrder)
+        fSeriesBest = copy.deepcopy(fSeries)
+        self.fourierResult['residues'] = copy.deepcopy(r)
+        criterionBest = copy.deepcopy(criterionCurrent)
+
+    fourierEngine.fit(fSeriesBest,self.timeSeriesDatabase)
+    self.fourierResult['predict'] = np.asarray(fourierEngine.predict(fSeriesBest))
+
+  def __trainARMA__(self):
+    """
+      Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
+      Data series to this function has been normalized so that it is standard gaussian
+      @ In, none,
+      @ Out, none,
+    """
+    self.armaResult = {}
+    Pmax = self.armaPara['Pmax']
+    Pmin = self.armaPara['Pmin']
+    Qmax = self.armaPara['Qmax']
+    Qmin = self.armaPara['Qmin']
+
+    criterionBest = np.inf
+    for p in range(Pmin,Pmax+1):
+      for q in range(Qmin,Qmax+1):
+        if p is 0 and q is 0:     continue          # dump case so we pass
+        init = [0.0]*(p+q)*self.armaPara['dimension']**2
+        init_S = np.identity(self.armaPara['dimension'])
+        for n1 in range(self.armaPara['dimension']): init.append(init_S[n1,n1])
+
+        rOpt = {}
+        rOpt = optimize.fmin(self.__computeARMALikelihood__,init, args=(p,q) ,full_output = True)
+        tmp = (p+q)*self.armaPara['dimension']**2/self.pivotParameterValues.size
+        criterionCurrent = self.__computeAICorBIC(self.armaResult['sigHat'],noPara=tmp,cType='BIC',obj='min')
+        if criterionCurrent < criterionBest or 'P' not in self.armaResult.keys(): # to save the first iteration results
+          self.armaResult['P'] = p
+          self.armaResult['Q'] = q
+          self.armaResult['param'] = rOpt[0]
+          criterionBest = criterionCurrent
+
+    # saving training results
+    Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],self.armaResult['P'],self.armaResult['Q'],self.armaPara['dimension'] )
+    self.armaResult['Phi'] = Phi
+    self.armaResult['Theta'] = Theta
+    self.armaResult['sig'] = np.zeros(shape=(1, self.armaPara['dimension'] ))
+    for n in range(self.armaPara['dimension'] ):      self.armaResult['sig'][0,n] = np.sqrt(Cov[n,n])
+
+  def __generateCDF__(self, data):
+    """
+      Generate empirical CDF function of the input data, and save the results in self
+      @ In, data, array, shape = [n_timeSteps, n_dimension], data over which the CDF will be generated
+      @ Out, none,
+    """
+    self.armaNormPara = {}
+    self.armaNormPara['resCDF'] = {}
+
+    if len(data.shape) == 1: data = np.reshape(data, newshape = (data.shape[0],1))
+    num_bins = [0]*data.shape[1] # initialize num_bins, which will be calculated later by Freedman Diacoins rule
+
+    for d in range(data.shape[1]):
+      num_bins[d] = self.__computeNumberBins__(data[:,d])
+      counts, binEdges = np.histogram(data[:,d], bins = num_bins[d], normed = True)
+      Delta = np.zeros(shape=(num_bins[d],1))
+      for n in range(num_bins[d]):      Delta[n,0] = binEdges[n+1]-binEdges[n]
+      temp = np.cumsum(counts)*average(Delta)
+      cdf = np.insert(temp, 0, temp[0]) # minimum of CDF is set to temp[0] instead of 0 to avoid numerical issues
+      self.armaNormPara['resCDF'][d] = {}
+      self.armaNormPara['resCDF'][d]['bins'] = copy.deepcopy(binEdges)
+      self.armaNormPara['resCDF'][d]['binsMax'] = max(binEdges)
+      self.armaNormPara['resCDF'][d]['binsMin'] = min(binEdges)
+      self.armaNormPara['resCDF'][d]['CDF'] = copy.deepcopy(cdf)
+      self.armaNormPara['resCDF'][d]['CDFMax'] = max(cdf)
+      self.armaNormPara['resCDF'][d]['CDFMin'] = min(cdf)
+      self.armaNormPara['resCDF'][d]['binSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[b] for b in binEdges])
+      self.armaNormPara['resCDF'][d]['cdfSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])
+
+  def __computeNumberBins__(self, data):
+    """
+      Compute number of bins determined by Freedman Diaconis rule
+      https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
+      @ In, data, array, shape = [n_sample], data over which the number of bins is decided
+      @ Out, numBin, int, number of bins determined by Freedman Diaconis rule
+    """
+    IQR = np.percentile(data, 75) - np.percentile(data, 25)
+    binSize = 2.0*IQR*(data.size**(-1.0/3.0))
+    numBin = int((max(data)-min(data))/binSize)
+    return numBin
+
+  def __getCDF__(self,d,x):
+    """
+      Get residue CDF value at point x for d-th dimension
+      @ In, d, int, dimension id
+      @ In, x, float, variable value for which the CDF is computed
+      @ Out, y, float, CDF value
+    """
+    if x <= self.armaNormPara['resCDF'][d]['binsMin']:    y = self.armaNormPara['resCDF'][d]['CDF'][0]
+    elif x >= self.armaNormPara['resCDF'][d]['binsMax']:  y = self.armaNormPara['resCDF'][d]['CDF'][-1]
+    else:
+      ind = self.armaNormPara['resCDF'][d]['binSearchEng'].kneighbors(x, return_distance=False)
+      X, Y = self.armaNormPara['resCDF'][d]['bins'][ind], self.armaNormPara['resCDF'][d]['CDF'][ind]
+      if X[0,0] <= X[0,1]:        x1, x2, y1, y2 = X[0,0], X[0,1], Y[0,0], Y[0,1]
+      else:                       x1, x2, y1, y2 = X[0,1], X[0,0], Y[0,1], Y[0,0]
+      if x1 == x2:                y = (y1+y2)/2.0
+      else:                       y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
+    return y
+
+  def __getInvCDF__(self,d,x):
+    """
+      Get inverse residue CDF at point x for d-th dimension
+      @ In, d, int, dimension id
+      @ In, x, float, the CDF value for which the inverse value is computed
+      @ Out, y, float, variable value
+    """
+    if x < 0 or x > 1:    self.raiseAnError(ValueError, 'Input to __getRInvCDF__ is not in unit interval' )
+    elif x <= self.armaNormPara['resCDF'][d]['CDFMin']:   y = self.armaNormPara['resCDF'][d]['bins'][0]
+    elif x >= self.armaNormPara['resCDF'][d]['CDFMax']:   y = self.armaNormPara['resCDF'][d]['bins'][-1]
+    else:
+      ind = self.armaNormPara['resCDF'][d]['cdfSearchEng'].kneighbors(x, return_distance=False)
+      X, Y = self.armaNormPara['resCDF'][d]['CDF'][ind], self.armaNormPara['resCDF'][d]['bins'][ind]
+      if X[0,0] <= X[0,1]:        x1, x2, y1, y2 = X[0,0], X[0,1], Y[0,0], Y[0,1]
+      else:                       x1, x2, y1, y2 = X[0,1], X[0,0], Y[0,1], Y[0,0]
+      if x1 == x2:                y = (y1+y2)/2.0
+      else:                       y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
+    return y
+
+  def __dataConversion__(self, data, obj):
+    """
+      Transform input data to a Normal/empirical distribution data set.
+      @ In, data, array, shape=[n_timeStep, n_dimension], input data to be transformed
+      @ In, obj, string, specify whether to normalize or denormalize the data
+      @ Out, transformedData, array, shape = [n_timeStep, n_dimension], output transformed data that has normal/empirical distribution
+    """
+    # Instantiate a normal distribution for data conversion
+    normTransEngine = Distributions.returnInstance('Normal',self)
+    normTransEngine.mean, normTransEngine.sigma = 0, 1
+    normTransEngine.upperBoundUsed, normTransEngine.lowerBoundUsed = False, False
+    normTransEngine.initializeDistribution()
+
+    if len(data.shape) == 1: data = np.reshape(data, newshape = (data.shape[0],1))
+    # Transform data
+    transformedData = np.zeros(shape=data.shape)
+    for n1 in range(data.shape[0]):
+      for n2 in range(data.shape[1]):
+        if obj in ['normalize']:
+          temp = self.__getCDF__(n2, data[n1,n2])
+          # for numerical issues, value less than 1 returned by __getCDF__ can be greater than 1 when stored in temp
+          # This might be a numerical issue of dependent library.
+          # It seems gone now. Need further investigation.
+          if temp >= 1:                temp = 1 - np.finfo(float).eps
+          elif temp <= 0:              temp = np.finfo(float).eps
+          transformedData[n1,n2] = normTransEngine.ppf(temp)
+        elif obj in ['denormalize']:
+          temp = normTransEngine.cdf(data[n1, n2])
+          transformedData[n1,n2] = self.__getInvCDF__(n2, temp)
+        else:       self.raiseAnError(ValueError, 'Input obj to __dataConversion__ is not properly set')
+    return transformedData
+
+  def __generateFourierSignal__(self, Time, basePeriod, fourierOrder):
+    """
+      Generate fourier signal as specified by the input file
+      @ In, basePeriod, list, list of base periods
+      @ In, fourierOrder, dict, order for each base period
+      @ Out, fourierSeriesAll, array, shape = [n_timeStep, n_basePeriod]
+    """
+    fourierSeriesAll = {}
+    for bp in basePeriod:
+      fourierSeriesAll[bp] = np.zeros(shape=(Time.size, 2*fourierOrder[bp]))
+      for orderBp in range(fourierOrder[bp]):
+        fourierSeriesAll[bp][:, 2*orderBp] = np.sin(2*np.pi*(orderBp+1)/bp*Time)
+        fourierSeriesAll[bp][:, 2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/bp*Time)
+    return fourierSeriesAll
+
+  def __armaParamAssemb__(self,x,p,q,N):
+    """
+      Assemble ARMA parameter into matrices
+      @ In, x, list, ARMA parameter stored as vector
+      @ In, p, int, AR order
+      @ In, q, int, MA order
+      @ In, N, int, dimensionality of x
+      @ Out Phi, list, list of Phi parameters (each as an array) for each AR order
+      @ Out Theta, list, list of Theta parameters (each as an array) for each MA order
+      @ Out Cov, array, covariance matrix of the noise
+    """
+    Phi, Theta, Cov = {}, {}, np.identity(N)
+    for i in range(1,p+1):
+      Phi[i] = np.zeros(shape=(N,N))
+      for n in range(N):      Phi[i][n,:] = x[N**2*(i-1)+n*N:N**2*(i-1)+(n+1)*N]
+    for j in range(1,q+1):
+      Theta[j] = np.zeros(shape=(N,N))
+      for n in range(N):      Theta[j][n,:] = x[N**2*(p+j-1)+n*N:N**2*(p+j-1)+(n+1)*N]
+    for n in range(N):        Cov[n,n] = x[N**2*(p+q)+n]
+    return Phi, Theta, Cov
+
+  def __computeARMALikelihood__(self,x,*args):
+    """
+      Compute the likelihood given an ARMA model
+      @ In, x, list, ARMA parameter stored as vector
+      @ In, args, dict, additional argument
+      @ Out, lkHood, float, output likelihood
+    """
+    if len(args) != 2:    self.raiseAnError(ValueError, 'args to __computeARMALikelihood__ should have exactly 2 elements')
+
+    p, q, N = args[0], args[1], self.armaPara['dimension']
+    if len(x) != N**2*(p+q)+N:    self.raiseAnError(ValueError, 'input to __computeARMALikelihood__ has wrong dimension')
+    Phi, Theta, Cov = self.__armaParamAssemb__(x,p,q,N)
+    for n1 in range(N):
+      for n2 in range(N):
+        if Cov[n1,n2] <0:
+          lkHood = sys.float_info.max
+          return lkHood
+
+    CovInv = np.linalg.inv(Cov)
+    d = self.armaPara['rSeriesNorm']
+    numTimeStep = d.shape[0]
+    alpha = np.zeros(shape=d.shape)
+    L = -N*numTimeStep/2.0*np.log(2*np.pi) - numTimeStep/2.0*np.log(np.linalg.det(Cov))
+    for t in range(numTimeStep):
+      alpha[t,:] = d[t,:]
+      for i in range(1,min(p,t)+1):     alpha[t,:] -= np.dot(Phi[i],d[t-i,:])
+      for j in range(1,min(q,t)+1):     alpha[t,:] -= np.dot(Theta[j],alpha[t-j,:])
+      L -= 1/2.0*np.dot(np.dot(alpha[t,:].T,CovInv),alpha[t,:])
+
+    sigHat = np.dot(alpha.T,alpha)
+    while sigHat.size > 1:
+      sigHat = sum(sigHat)
+      sigHat = sum(sigHat.T)
+    sigHat = sigHat / numTimeStep
+    self.armaResult['sigHat'] = sigHat[0,0]
+    lkHood = -L
+    return lkHood
+
+  def __computeAICorBIC(self,maxL,noPara,cType,obj='max'):
+    """
+      Compute the AIC or BIC criteria for model selection.
+      @ In, maxL, float, likelihood of given parameters
+      @ In, noPara, int, number of parameters
+      @ In, cType, string, specify whether AIC or BIC should be returned
+      @ In, obj, string, specify the optimization is for maximum or minimum.
+      @ Out, criterionValue, float, value of AIC/BIC
+    """
+    if obj == 'min':        flag = -1
+    else:                   flag = 1
+    if cType == 'BIC':      criterionValue = -1*flag*np.log(maxL)+noPara*np.log(self.pivotParameterValues.size)
+    elif cType == 'AIC':    criterionValue = -1*flag*np.log(maxL)+noPara*2
+    else:                   criterionValue = maxL
+    return criterionValue
+
+  def __evaluateLocal__(self,featureVals):
+    """
+      @ In, featureVals, float, a scalar feature value is passed as scaling factor
+      @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
+    """
+    if featureVals.size > 1:
+      self.raiseAnError(ValueError, 'The input feature for ARMA for evaluation cannot have size greater than 1. ')
+
+    # Instantiate a normal distribution for time series synthesis (noise part)
+    normEvaluateEngine = Distributions.returnInstance('Normal',self)
+    normEvaluateEngine.mean, normEvaluateEngine.sigma = 0, 1
+    normEvaluateEngine.upperBoundUsed, normEvaluateEngine.lowerBoundUsed = False, False
+    normEvaluateEngine.initializeDistribution()
+
+    numTimeStep = len(self.pivotParameterValues)
+    tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
+    for t in range(numTimeStep):
+      for n in range(self.armaPara['dimension']):
+        tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult['sig'][0,n]
+
+    tSeriesNorm = np.zeros(shape=(numTimeStep,self.armaPara['rSeriesNorm'].shape[1]))
+    tSeriesNorm[0,:] = self.armaPara['rSeriesNorm'][0,:]
+    for t in range(numTimeStep):
+      for i in range(1,min(self.armaResult['P'], t)+1):
+        tSeriesNorm[t,:] += np.dot(tSeriesNorm[t-i,:], self.armaResult['Phi'][i])
+      for j in range(1,min(self.armaResult['Q'], t)+1):
+        tSeriesNorm[t,:] += np.dot(tSeriesNoise[t-j,:], self.armaResult['Theta'][j])
+      tSeriesNorm[t,:] += tSeriesNoise[t,:]
+
+    # Convert data back to empirically distributed
+    tSeries = self.__dataConversion__(tSeriesNorm, obj='denormalize')
+    # Add fourier trends
+    self.raiseADebug(self.fourierResult['predict'].shape, tSeries.shape)
+    if self.hasFourierSeries:
+      if len(self.fourierResult['predict'].shape) == 1:
+        tempFour = np.reshape(self.fourierResult['predict'], newshape=(self.fourierResult['predict'].shape[0],1))
+      else:
+        tempFour = self.fourierResult['predict'][0:numTimeStep,:]
+      tSeries += tempFour
+    # Ensure positivity --- FIXME
+    if self.outTruncation is not None:
+      if self.outTruncation == 'positive':      tSeries = np.absolute(tSeries)
+      elif self.outTruncation == 'negative':    tSeries = -np.absolute(tSeries)
+    returnEvaluation = {}
+    returnEvaluation[self.pivotParameterID] = self.pivotParameterValues[0:numTimeStep]
+    evaluation = tSeries*featureVals
+    for index, target in enumerate(self.target): returnEvaluation[target] = evaluation[:,index]
+    return returnEvaluation
+
+  def __confidenceLocal__(self,featureVals):
+    """
+      This method is currently not needed for ARMA
+    """
+    pass
+
+  def __resetLocal__(self,featureVals):
+    """
+      After this method the ROM should be described only by the initial parameter settings
+      Currently not implemented for ARMA
+    """
+    pass
+
+  def __returnInitialParametersLocal__(self):
+    """
+      there are no possible default parameters to report
+    """
+    localInitParam = {}
+    return localInitParam
+
+  def __returnCurrentSettingLocal__(self):
+    """
+      override this method to pass the set of parameters of the ROM that can change during simulation
+      Currently not implemented for ARMA
+    """
+    pass
+
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom
 __interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
@@ -2048,7 +2562,14 @@ __interfaceDict['SciKitLearn'         ] = SciKitLearn
 __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom
 __interfaceDict['MSR'                 ] = MSR
+__interfaceDict['ARMA'                ] = ARMA
 __base                                  = 'superVisedLearning'
+
+def returnStaticCharacteristics(infoType,ROMclass,caller,**kwargs):
+  """
+    This method is aimed to get the static characteristics of a certain ROM (e.g. multi-target, dynamic, etc.)
+  """
+
 
 def returnInstance(ROMclass,caller,**kwargs):
   """

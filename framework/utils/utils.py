@@ -915,3 +915,20 @@ def mergeSequences(seq1,seq2):
       merged += seq2[start2:end2]
   return merged
 
+def checkTypeRecursively(inObject):
+  """
+    This method check the type of the inner object in the inObject.
+    If inObject is an interable, this method returns the type of the first element
+    @ In, inObject, object, a pyhon object
+    @ Out, returnType, str, the type of the inner object
+
+  """
+  returnType = type(inObject).__name__
+  try:
+    for val in inObject:
+      returnType = checkTypeRecursively(val)
+      break
+  except: pass
+  return returnType
+
+
