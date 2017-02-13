@@ -799,7 +799,8 @@ class ComparisonStatistics(BasePostProcessor):
       @ Out, dataDict, dict, Dictionary containing the inputs
     """
     dataDict = {}
-    for aInput in input: dataDict[aInput.name] = aInput
+    for aInput in input:
+      dataDict[aInput.name] = aInput
     return dataDict
 
   def collectOutput(self, finishedJob, output):
