@@ -1,7 +1,10 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import sys,os,re
 
-from scipy.misc import imread
+try:
+  from scipy.misc import imread
+except ImportError:
+  print ('ImageDiff cannot run with scipy version less than 0.15.0')
 import numpy as np
 
 import diffUtils as DU

@@ -13,5 +13,6 @@
     csv = 'sectionVI.II/history_0.csv sectionVI.II/pointValues.csv'
     image = 'sectionVI.II/1-historyPlot_line-line-line-line.png'
     rel_err = 0.001
+    minimum_library_versions = 'scipy 0.15.0'
   [../]
 []
