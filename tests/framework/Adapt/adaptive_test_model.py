@@ -1,3 +1,4 @@
 import math
 def run(self,Input):
-  self.g = math.sin(self.x1)+math.sin(self.x2)-math.cos(self.gammay)
+  self.y1 = (self.x1-1)**2 + self.x2**2 + self.x3**2
+  self.y2 = (self.x1+1)**2 + self.x2**2 + self.x3**2

@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/InterfacedPostProcessor/hs_sync_all</name>
+    <author>talbpaul</author>
+    <created>2016-04-13</created>
+    <classesTested>InterfacedPostProcessor</classesTested>
+    <description>
+      Tests of the HistorySetSync interfaced post-processor and in particular the all syncMethod
+    </description>
+  </TestInfo>
+  
   <RunInfo>
     <WorkingDir>hs_sync_all</WorkingDir>
     <Sequence>make,sync,train,print</Sequence>
@@ -74,6 +84,7 @@
       <extension>extended</extension>
     </PostProcessor>
     <ROM name="rom" subType="HDMRRom">
+      <pivotParameter>t</pivotParameter>
       <SobolOrder>1</SobolOrder>
       <Target>a,b,t</Target>
       <Features>x,y</Features>

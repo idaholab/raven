@@ -20,7 +20,7 @@ try:
   import PySide.QtGui as qtg
   import PySide.QtCore as qtc
 
-  class InteractiveApplication(qtg.QApplication):
+  class InteractiveApplication(qtg.QApplication,MessageHandler.MessageUser):
     """
       Application - A subclass of the base QApplication where we can instantiate
       our own signals and slots, create UI elements, and manage inter-thread
@@ -32,6 +32,7 @@ try:
         A default constructor which will initialize an empty dictionary of user
         interfaces that will be managed by this instance.
       """
+      self.printTag = 'RAVEN Application'
       self.UIs = {}
       qtg.QApplication.__init__(self,arg__1)
       self.messageHandler = messageHandler
@@ -51,9 +52,26 @@ try:
       ## Note: This assumes that the class is contained in a Module of the same
       ## name. This should be the standard interface for UIs in RAVEN, otherwise
       ## this line of code should change to accommodate whatever standard is used.
-      self.UIs[uiID] = getattr(__import__(uiType),uiType)(**params)
-      self.UIs[uiID].show()
-      self.UIs[uiID].closed.connect(self.closeEvent)
+      # self.UIs[uiID] = getattr(__import__(uiType),uiType)(**params)
+      try:
+        self.UIs[uiID] = getattr(__import__('UI.'+uiType),uiType)(**params)
+        self.UIs[uiID].show()
+        self.UIs[uiID].closed.connect(self.closeEvent)
+      except ImportError as e:
+
+        message = 'The requested interactive UI is unavailable. '
+        message += 'RAVEN will continue in non-interactive mode for this step. '
+        message += 'Please file an issue on gitlab with the following debug '
+        message += 'information:\n\t' + str(e) + '\n'
+
+        ## This will ensure that the waiting threads are released.
+        self.windowClosed.emit(uiID)
+
+        ## We will execute a warning since the system can recover and proceed as
+        ## if in a non-interactive mode for this step, and potentially recover
+        ## and run more UIs in a later step. This is a failure in some sense, so
+        ## I am elevating the verbosity to be silent for this warning.
+        self.raiseAWarning(message,verbosity='silent')
 
     def closeEvent(self, window):
       """

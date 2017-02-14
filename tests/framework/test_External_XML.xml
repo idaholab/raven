@@ -1,5 +1,19 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.external_xml</name>
+    <author>wangc</author>
+    <created>2015-07-22</created>
+    <classesTested>Simulation.ExternalXML</classesTested>
+    <description>
+       This test is aimed to check the capability in RAVEN to load external XML files as part of the input file. 
+       Indeed, allows the user to inject in the input files XML blocks defined in external files
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="talbpaul" date="2016-04-26">added check for pre-existing backup files when validating</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>ExternalXMLTest</WorkingDir>
     <Sequence>CustomSampler</Sequence>

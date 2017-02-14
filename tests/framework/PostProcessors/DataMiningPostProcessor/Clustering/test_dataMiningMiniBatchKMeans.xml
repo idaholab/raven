@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/Clustering/MiniBatchKMeans</name>
+    <author>senrs</author>
+    <created>2015-11-24</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with the MiniBatchKMeans model.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>MiniBatchKMeans</WorkingDir>
     <Sequence>readIn,MiniBatchKMeansBlobs,MiniBatchKMeansCircles,MiniBatchKMeansMoons,output</Sequence>
@@ -16,6 +25,7 @@
         <Features>x1,x2</Features>
         <SKLtype>cluster|MiniBatchKMeans</SKLtype>
         <n_clusters>2</n_clusters>
+        <random_state>0</random_state>
       </KDD>
     </PostProcessor>
     <PostProcessor name="MiniBatchKMeansCircles" subType="DataMining" verbosity="quiet">
@@ -23,6 +33,7 @@
         <Features>y1,y2</Features>
         <SKLtype>cluster|MiniBatchKMeans</SKLtype>
         <n_clusters>2</n_clusters>
+        <random_state>0</random_state>
       </KDD>
     </PostProcessor>
     <PostProcessor name="MiniBatchKMeansMoons" subType="DataMining" verbosity="quiet">
@@ -30,6 +41,7 @@
         <Features>z1,z2</Features>
         <SKLtype>cluster|MiniBatchKMeans</SKLtype>
         <n_clusters>2</n_clusters>
+        <random_state>0</random_state>
       </KDD>
     </PostProcessor>
   </Models>
@@ -41,7 +53,9 @@
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreams" type="Plot">PlotMiniBatchKMeans</Output>
+      <Output class="OutStreams" type="Plot">PlotBlobs</Output>
+      <Output class="OutStreams" type="Plot">PlotCircles</Output>
+      <Output class="OutStreams" type="Plot">PlotMoons</Output>
       <Output class="OutStreams" type="Print">dummy</Output>
     </IOStep>
     <PostProcess name="MiniBatchKMeansBlobs" pauseAtEnd="True">
@@ -67,19 +81,14 @@
       <source>DataSets</source>
       <what>Output|CircleLabels,Output|MoonLabels,Output|BlobLabels</what>
     </Print>
-    <Plot  name="PlotMiniBatchKMeans" overwrite="false">
+    <Plot name="PlotBlobs" overwrite="false">
       <plotSettings>
-        <gridSpace>3 1</gridSpace>
         <plot>
           <type>scatter</type>
-          <x>DataSets|input|x1</x>
-          <y>DataSets|input|x2</y>
+          <x>DataSets|Input|x1</x>
+          <y>DataSets|Input|x2</y>
           <cmap>Set1</cmap>
           <colorMap>DataSets|Output|BlobLabels</colorMap>
-          <gridLocation>
-            <x>0</x>
-            <y>0</y>
-          </gridLocation>
           <range>
             <xmin>-2</xmin>
             <xmax>2</xmax>
@@ -90,36 +99,20 @@
             <edgecolor>None</edgecolor>
           </kwargs>
         </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+      <filename>blobs</filename>
+    </Plot>
+    <Plot name="PlotCircles" overwrite="false">
+      <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>DataSets|input|y1</x>
-          <y>DataSets|input|y2</y>
+          <x>DataSets|Input|y1</x>
+          <y>DataSets|Input|y2</y>
           <cmap>Set1</cmap>
           <colorMap>DataSets|Output|CircleLabels</colorMap>
-          <gridLocation>
-            <x>1</x>
-            <y>0</y>
-          </gridLocation>
-          <range>
-            <xmin>-4</xmin>
-            <xmax>4</xmax>
-            <ymin>-4</ymin>
-            <ymax>4</ymax>
-          </range>
-          <kwargs>
-            <edgecolor>None</edgecolor>
-          </kwargs>
-        </plot>
-        <plot>
-          <type>scatter</type>
-          <x>DataSets|input|z1</x>
-          <y>DataSets|input|z2</y>
-          <cmap>Set1</cmap>
-          <colorMap>DataSets|Output|MoonLabels</colorMap>
-          <gridLocation>
-            <x>2</x>
-            <y>0</y>
-          </gridLocation>
           <range>
             <xmin>-4</xmin>
             <xmax>4</xmax>
@@ -134,7 +127,31 @@
       <actions>
         <how>png</how>
       </actions>
-      <filename>scatter</filename>
+      <filename>circles</filename>
+    </Plot>
+    <Plot name="PlotMoons" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>DataSets|Input|z1</x>
+          <y>DataSets|Input|z2</y>
+          <cmap>Set1</cmap>
+          <colorMap>DataSets|Output|MoonLabels</colorMap>
+          <range>
+            <xmin>-4</xmin>
+            <xmax>4</xmax>
+            <ymin>-4</ymin>
+            <ymax>4</ymax>
+          </range>
+          <kwargs>
+            <edgecolor>None</edgecolor>
+          </kwargs>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+      <filename>moons</filename>
     </Plot>
   </OutStreams>
 

@@ -12,6 +12,9 @@ import sys, os, errno
 import inspect
 import subprocess
 import platform
+import copy
+import numpy
+from difflib import SequenceMatcher
 
 class Object(object):pass
 
@@ -212,7 +215,18 @@ def interpretBoolean(inArg):
       else                                                : raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
   else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inArg).__name__)
 
-def compare(s1,s2,sig_fig = 6):
+def isClose(f1, f2, relTolerance=1e-14, absTolerance=0.0):
+  """
+    Method to compare two floats
+    @ In, f1, float, first float
+    @ In, f2, float, first float
+    @ In, relTolerance, float, optional, relative tolerance
+    @ In, absTolerance, float, optional, absolute tolerance
+    @ Out, isClose, bool, is it close enough?
+  """
+  return abs(f1-f2) <= max(relTolerance * max(abs(f1), abs(f2)), absTolerance)
+
+def compare(s1,s2,relTolerance = 1e-14):
   """
     Method aimed to compare two strings. This method tries to convert the 2
     strings in float and uses an integer representation to compare them.
@@ -220,12 +234,12 @@ def compare(s1,s2,sig_fig = 6):
     convertable), the method compares strings as they are.
     @ In, s1, string, first string to be compared
     @ In, s2, string, second string to be compared
-    @ In, sig_fig, int, minimum number of digits that need to match
+    @ In, relTolerance, float, relative tolerance
     @ Out, response, bool, the boolean response (True if s1==s2, False otherwise)
   """
   w1, w2 = floatConversion(s1), floatConversion(s2)
   if   type(w1) == type(w2) and type(w1) != float: return s1 == s2
-  elif type(w1) == type(w2) and type(w1) == float: return int(w1*10**sig_fig) == int(w2*10**sig_fig)
+  elif type(w1) == type(w2) and type(w1) == float: return isClose(w1,w2,relTolerance)
   elif type(w1) != type(w2) and type(w1) in [float,int] and type(w2) in [float,int]:
     w1, w2 = float(w1), float(w2)
     return compare(w1,w2)
@@ -297,6 +311,34 @@ def toBytesIterative(s):
     for key,value in s.items(): tempdict[toBytes(key)] = toBytesIterative(value)
     return tempdict
   else: return toBytes(s)
+
+def toListFromNumpyOrC1array(array):
+  """
+    This method converts a numpy or c1darray into list
+    @ In, array, numpy or c1array,  array to be converted
+    @ Out, response, list, the casted value
+  """
+  response = array
+  if type(array).__name__ == 'ndarray':
+    response = array.tolist()
+  elif type(array).__name__.split(".")[0] == 'c1darray':
+    response = numpy.asarray(array).tolist()
+  return response
+
+def toListFromNumpyOrC1arrayIterative(array):
+  """
+    Method aimed to convert all the string-compatible content of
+    an object (dict, list, or string) in type list from numpy and c1darray types (recursively call toBytes(s))
+    @ In, array, object,  object whose content needs to be converted
+    @ Out, response, object, a copy of the object in which the string-compatible has been converted
+  """
+  if type(array) == list: return [toListFromNumpyOrC1array(x) for x in array]
+  elif type(array) == dict:
+    if len(array.keys()) == 0: return None
+    tempdict = {}
+    for key,value in array.items(): tempdict[toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
+    return tempdict
+  else: return toBytes(array)
 
 def toStrish(s):
   """
@@ -746,7 +788,6 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
       self.__dict__ = d
       self._handle = None
 
-
 def removeDuplicates(objectList):
   """
     Method to efficiently remove duplicates from a list and maintain their
@@ -770,5 +811,122 @@ def removeDuplicates(objectList):
   ## but efficient computation.
   uniqueObjectList = [x for x in objectList if not (x in seen or seen_add(x))]
   return uniqueObjectList
+
+def typeMatch(var,varTypeStr):
+  """
+    This method is aimed to check if a variable changed datatype
+    @ In, var, python datatype, the first variable to compare
+    @ In, varTypeStr, string, the type that this variable should have
+    @ Out, match, bool, is the datatype changed?
+  """
+  typeVar = type(var)
+  match = typeVar.__name__ == varTypeStr or typeVar.__module__+"."+typeVar.__name__ == varTypeStr
+  if not match:
+    # check if the types start with the same root
+    if len(typeVar.__name__) <= len(varTypeStr):
+      if varTypeStr.startswith(typeVar.__name__): match = True
+    else:
+      if typeVar.__name__.startswith(varTypeStr): match = True
+  return match
+
+def sizeMatch(var,sizeToCheck):
+  """
+    This method is aimed to check if a variable has an expected size
+    @ In, var, python datatype, the first variable to compare
+    @ In, sizeToCheck, int, the size this variable should have
+    @ Out, sizeMatched, bool, is the size ok?
+  """
+  sizeMatched = True
+  if len(numpy.atleast_1d(var)) != sizeToCheck: sizeMatched = False
+  return sizeMatched
+
+
+def isASubset(setToTest,pileList):
+  """
+     Check if setToTest is ordered subset of pileList in O(n)
+     @ In, setToTest, list, set that needs to be tested
+     @ In, pileList, list, pile of sets
+     @ Out, isASubset, bool, True if setToTest is a subset
+  """
+
+  if len(pileList) < len(setToTest): return False
+
+  index = 0
+  for element in setToTest:
+    try              : index = pileList.index(element, index) + 1
+    except ValueError: return False
+  else:
+    return True
+
+def filterAllSubSets(listOfLists):
+  """
+    Given list of listOfLists, return new list of listOfLists without subsets
+    @ In, listOfLists, list of lists, all lists to check
+    @ Out, setToTest, iterator, iterator over the list without subsets
+  """
+  for setToTest in listOfLists:
+    if not any(isASubset(setToTest, pileList) for pileList in listOfLists
+      if setToTest is not pileList):
+      yield setToTest
+
+def mergeDictionaries(*dictArgs):
+    '''
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    Adapted from: http://stackoverflow.com/questions/38987/how-to-merge-two-python-dictionaries-in-a-single-expression
+    @ In, dictArgs, dict, a list of dictionaries to merge
+    @ Out, mergedDict, dict, merged dictionary including keys from everything in dictArgs.
+    '''
+    mergedDict = {}
+    for dictionary in dictArgs:
+      overlap = set(dictionary.keys()).intersection(mergedDict.keys())
+      if len(overlap):
+        commonKeys = ', '.join(overlap)
+        caller.raiseAnError(IOError,'Utils, mergeDictionaries: the dictionaries being merged have the following overlapping keys: ' + str(commonKeys))
+      mergedDict.update(dictionary)
+    return mergedDict
+
+def mergeSequences(seq1,seq2):
+  """
+    This method has been taken from "http://stackoverflow.com"
+    It is aimed to merge two sequences (lists) into one preserving the order in the two lists
+    e.g. ['A', 'B', 'C', 'D', 'E',           'H', 'I']
+         ['A', 'B',           'E', 'F', 'G', 'H',      'J', 'K']
+    will become
+         ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']
+    @ In, seq1, list, the first sequence to be merged
+    @ In, seq2, list, the second sequence to be merged
+    @ Out, merged, list, the merged list of elements
+  """
+  sm=SequenceMatcher(a=seq1,b=seq2)
+  merged = []
+  for (op, start1, end1, start2, end2) in sm.get_opcodes():
+    if op == 'equal' or op=='delete':
+      #This range appears in both sequences, or only in the first one.
+      merged += seq1[start1:end1]
+    elif op == 'insert':
+      #This range appears in only the second sequence.
+      merged += seq2[start2:end2]
+    elif op == 'replace':
+      #There are different ranges in each sequence - add both.
+      merged += seq1[start1:end1]
+      merged += seq2[start2:end2]
+  return merged
+
+def checkTypeRecursively(inObject):
+  """
+    This method check the type of the inner object in the inObject.
+    If inObject is an interable, this method returns the type of the first element
+    @ In, inObject, object, a pyhon object
+    @ Out, returnType, str, the type of the inner object
+
+  """
+  returnType = type(inObject).__name__
+  try:
+    for val in inObject:
+      returnType = checkTypeRecursively(val)
+      break
+  except: pass
+  return returnType
 
 

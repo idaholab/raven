@@ -5,6 +5,15 @@
     <Sequence>SamplingMirrowModelMC,PP1mc</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/mc</name>
+    <author>alfoa</author>
+    <created>2015-11-18</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This test checks basic statistics on Monte Carlo samples.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="output_basicStatistics_PP1mc.csv" type="">output_basicStatistics_PP1mc.csv</Input>

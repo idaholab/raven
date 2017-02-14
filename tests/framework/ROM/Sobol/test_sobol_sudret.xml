@@ -5,6 +5,19 @@
     <Sequence>make,train,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/ROM/Sobol/sobolSudretAnalytic</name>
+    <author>talbpaul</author>
+    <created>2016-03-09</created>
+    <classesTested>SupervisedLearning.HDMRRom</classesTested>
+    <description>
+      This analytic test checks the performance of HDMRRom against the simple Sudret polynomial.
+    </description>
+    <analytic>
+      dumprom.xml has analytic mean and variance, and is documented in the analytic test documentation
+      under "Global Sobol Sensitivity: Sudret"
+    </analytic>
+  </TestInfo>
 
   <Steps>
     <MultiRun name="make" pauseAtEnd="False">

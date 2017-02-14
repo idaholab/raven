@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/TemporalDataMiningPostProcessor/Clustering/MiniBatchKMeans</name>
+    <author>chenj</author>
+    <created>2016-02-26</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with MiniBatchKMeans and a pivot parameter.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>MiniBatchKMeans</WorkingDir>
     <Sequence>readIn,pp1,writeOut</Sequence>
@@ -16,6 +25,7 @@
         <SKLtype>cluster|MiniBatchKMeans</SKLtype>
         <Features>x1,x2</Features>
         <n_clusters>3</n_clusters>
+        <random_state>0</random_state>
       </KDD>
       <pivotParameter>Time</pivotParameter>
     </PostProcessor>

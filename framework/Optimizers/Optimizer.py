@@ -90,12 +90,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.optVarsInit['upperBound']      = {}                        # Dict containing upper bounds of each decision variables
     self.optVarsInit['lowerBound']      = {}                        # Dict containing lower bounds of each decision variables
     self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables
-    self.optVarsHist                    = {}                        # History of decision variables for each iteration
+    self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
     self.nVar                           = 0                         # Number of decision variables
     self.objVar                         = None                      # Objective variable to be optimized
     self.optType                        = None                      # Either maximize or minimize
+    self.optTraj                        = None                      # Identifiers of parallel optimization trajectories
+    self.thresholdTrajRemoval           = None                      # Threshold used to determine the convergence of parallel optimization trajectories
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
-    self.convergenceTol                 = 1e-3                      # Convergence threshold
+    self.absConvergenceTol              = 0.0                       # Convergence threshold (absolute value)
+    self.relConvergenceTol              = 1.e-3                     # Convergence threshold (relative value)
     self.solutionExport                 = None                      #This is the data used to export the solution (it could also not be present)
     self.values                         = {}                        # for each variable the current value {'var name':value}
     self.inputInfo                      = {}                        # depending on the optimizer several different type of keywarded information could be present only one is mandatory, see below
@@ -161,10 +164,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for childChild in child:
           if   childChild.tag == "upperBound": self.optVarsInit['upperBound'][varname] = float(childChild.text)
           elif childChild.tag == "lowerBound": self.optVarsInit['lowerBound'][varname] = float(childChild.text)
-          elif childChild.tag == "initial"   : self.optVarsInit['initial'][varname] = float(childChild.text)
-        if varname not in self.optVarsInit['upperBound'].keys(): self.optVarsInit['upperBound'][varname] = sys.maxsize
-        if varname not in self.optVarsInit['lowerBound'].keys(): self.optVarsInit['lowerBound'][varname] = -sys.maxsize
-        if varname not in self.optVarsInit['initial'].keys()   : self.optVarsInit['initial'][varname] = 0.0
+          elif childChild.tag == "initial"   :
+            self.optVarsInit['initial'][varname] = {}
+            temp = childChild.text.split(',')
+            for trajInd, initVal in enumerate(temp):
+              try              : self.optVarsInit['initial'][varname][trajInd] = float(initVal)
+              except ValueError: self.raiseAnError(ValueError, "Unable to convert to float the intial value for variable "+varname+ " in trajectory "+str(trajInd))
+            if self.optTraj == None:
+              self.optTraj = range(len(self.optVarsInit['initial'][varname].keys()))
 
       elif child.tag == "objectVar":
         self.objVar = child.text
@@ -180,15 +187,18 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
               self.raiseAnError(IOError, 'Unknown optimization type '+childChild.text+'. Available: mix or max')
           elif childChild.tag == "initialSeed":
             self.initSeed = int(childChild.text)
+          elif childChild.tag == 'thresholdTrajRemoval':
+            self.thresholdTrajRemoval = float(childChild.text)
           else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
 
       elif child.tag == "convergence":
         for childChild in child:
           if childChild.tag == "iterationLimit":
             self.limit['varsUpdate'] = int(childChild.text)
-          if childChild.tag == "threshold":
-            self.convergenceTol = float(childChild.text)
-
+          if childChild.tag == "absoluteThreshold":
+            self.absConvergenceTol = float(childChild.text)
+          if childChild.tag == "relativeThreshold":
+            self.relConvergenceTol = float(childChild.text)
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
 
@@ -197,12 +207,27 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.paramDict[childChild.tag] = childChild.text
 
     if self.optType == None:    self.optType = 'min'
+    if self.thresholdTrajRemoval == None: self.thresholdTrajRemoval = 0.05
     if self.initSeed == None:   self.initSeed = Distributions.randomIntegers(0,2**31,self)
     if self.objVar == None:     self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
-    if self.optVars == None:
-      self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
-    else:
-      self.optVars.sort()
+    if self.optVars == None:    self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
+    else:                       self.optVars.sort()
+    if self.optTraj == None:    self.optTraj = [0]
+    for varname in self.optVars:
+      if varname not in self.optVarsInit['upperBound'].keys(): self.raiseAnError(IOError, 'Upper bound for '+varname+' is not provided' )
+      if varname not in self.optVarsInit['lowerBound'].keys(): self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
+      if varname not in self.optVarsInit['initial'].keys():
+        self.optVarsInit['initial'][varname] = {}
+        for trajInd in self.optTraj:
+          self.optVarsInit['initial'][varname][trajInd] = (self.optVarsInit['upperBound'][varname]+self.optVarsInit['lowerBound'][varname])/2.0
+      else:
+        for trajInd in self.optTraj:
+          initVal =  self.optVarsInit['initial'][varname][trajInd]
+          if initVal < self.optVarsInit['lowerBound'][varname] or initVal > self.optVarsInit['upperBound'][varname]:
+            self.raiseAnError(IOError,"The initial value for variable "+varname+" and trajectory "+str(trajInd) +" is outside the domain identified by the lower and upper bounds!")
+      if len(self.optTraj) != len(self.optVarsInit['initial'][varname].keys()):
+        self.raiseAnError(ValueError, 'Number of initial values does not equal to the number of parallel optimization trajectories')
+    self.optTrajLive = copy.deepcopy(self.optTraj)
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -287,22 +312,22 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     self.counter['mdlEval'] = 0
-    self.counter['varsUpdate'] = 0
+    self.counter['varsUpdate'] = [0]*len(self.optTraj)
     self.nVar = len(self.optVars)
 
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
-    self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.optVars)), 'Target':self.objVar, 'n_neighbors':1})
+    self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.optVars)), 'Target':self.objVar, 'n_neighbors':1,'weights':'distance'})
     self.solutionExport = solutionExport
 
-    if solutionExport != None and type(solutionExport).__name__ != "PointSet":
-      self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ type(solutionExport).__name__+ '!')
+    if solutionExport != None and type(solutionExport).__name__ != "HistorySet":
+      self.raiseAnError(IOError,'solutionExport type is not a HistorySet. Got '+ type(solutionExport).__name__+ '!')
 
     if 'Function' in self.assemblerDict.keys():
       self.constraintFunction = self.assemblerDict['Function'][0][3]
       if 'constrain' not in self.constraintFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
 
-    if self.initSeed != None:           Distributions.randomSeed(self.initSeed)
+    if self.initSeed != None: Distributions.randomSeed(self.initSeed)
 
     # specializing the self.localInitialize()
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
@@ -325,7 +350,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, ready, bool, indicating the readiness of the optimizer to generate a new input.
     """
-    ready = True if self.counter['mdlEval'] < self.limit['mdlEval'] and self.counter['varsUpdate'] < self.limit['varsUpdate'] else False
+    ready = True if self.counter['mdlEval'] < self.limit['mdlEval'] else False
     convergence = self.checkConvergence()
     ready = self.localStillReady(ready, convergence)
     return ready
@@ -339,6 +364,23 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     return ready # To be overwritten by subclass
 
+
+  def getLossFunctionGivenId(self, evaluationID):
+    """
+      Method to get the Loss Function value given an evaluation ID
+      @ In, evaluationID, string, the evaluation identifier (prefix)
+      @ Out, functionValue, float, the loss function value
+    """
+    objective  = self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')[self.objVar]
+    prefix = self.mdlEvalHist.getMetadata('prefix',nodeId='RecontructEnding')
+    if len(prefix) > 0 and "|" in prefix[0]:
+      # ensemble model id modification
+      # FIXME: Need to find a better way to handle this case
+      prefix = [key.split("|")[-1] for key in prefix]
+    search = dict(zip(prefix, objective))
+    functionValue = search.get(evaluationID,None)
+    return functionValue
+
   def lossFunctionEval(self, optVars):
     """
       Method to evaluate the loss function based on all model evaluation.
@@ -348,11 +390,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
-    for key in tempDict.keys():                   tempDict[key] = np.asarray(tempDict[key])
-    self.objSearchingROM.train(tempDict)
+    for key in tempDict.keys(): tempDict[key] = np.asarray(tempDict[key])
 
-    for key in optVars.keys():                    optVars[key] = np.atleast_1d(optVars[key])
-    lossFunctionValue = self.objSearchingROM.evaluate(optVars)
+    self.objSearchingROM.train(tempDict)
+    if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
+    for key in optVars.keys(): optVars[key] = np.atleast_1d(optVars[key])
+    lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
     if self.optType == 'min':           return lossFunctionValue
     else:                               return lossFunctionValue*-1.0
 
@@ -360,18 +403,23 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       Method to check whether a set of decision variables satisfy the constraint or not
       @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
-      @ Out, satisfaction, bool, variable indicating the satisfaction of constraints at the point optVars
+      @ Out, satisfaction, tuple, (bool,list) => (variable indicating the satisfaction of constraints at the point optVars, list of the violated constrains)
     """
+    violatedConstrains = {'internal':[],'external':[]}
     if self.constraintFunction == None:
-      satisfaction = True
+      satisfied = True
     else:
-      satisfaction = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
+      satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
+      if not satisfied: violatedConstrains['external'].append(self.constraintFunction.name)
+    if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
     for var in optVars:
       if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
-        satisfaction = False
-        break
+        satisfied = False
+        if optVars[var] > self.optVarsInit['upperBound'][var]: violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
+        if optVars[var] < self.optVarsInit['lowerBound'][var]: violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
 
-    satisfaction = self.localCheckConstraint(optVars, satisfaction)
+    satisfied = self.localCheckConstraint(optVars, satisfied)
+    satisfaction = satisfied,violatedConstrains
     return satisfaction
 
   @abc.abstractmethod
@@ -384,29 +432,35 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     return satisfaction
 
+  @abc.abstractmethod
   def checkConvergence(self):
     """
       Method to check whether the convergence criteria has been met.
       @ In, none,
       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
-    if self.counter['varsUpdate'] < 2:
-      convergence = False
-    elif abs(self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']])-self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']-1])) < self.convergenceTol:
-      convergence = True
-    else:
-      convergence = False
-    convergence = self.localCheckConvergence(convergence)
-    return convergence
 
-  @abc.abstractmethod
-  def localCheckConvergence(self, convergence = False):
+  def normalizeData(self, optVars):
     """
-      Local method to check convergence.
-      @ In, convergence, bool, optional, variable indicating how the caller determines the convergence.
-      @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
+      Method to normalize the data
+      @ In, optVars, dict, dictionary containing the value of decision variables to be normalized, in form of {varName: varValue}
+      @ Out, optVarsNorm, dict, dictionary containing the value of normalized decision variables, in form of {varName: varValue}
     """
-    return convergence
+    optVarsNorm = {}
+    for var in optVars.keys():
+      optVarsNorm[var] = (optVars[var]-self.optVarsInit['lowerBound'][var])/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
+    return optVarsNorm
+
+  def denormalizeData(self, optVars):
+    """
+      Method to normalize the data
+      @ In, optVars, dict, dictionary containing the value of decision variables to be deormalized, in form of {varName: varValue}
+      @ Out, optVarsDenorm, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
+    """
+    optVarsDenorm = {}
+    for var in optVars.keys():
+      optVarsDenorm[var] = optVars[var]*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])+self.optVarsInit['lowerBound'][var]
+    return optVarsDenorm
 
   def generateInput(self,model,oldInput):
     """

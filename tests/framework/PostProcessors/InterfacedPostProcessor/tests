@@ -17,6 +17,12 @@
     csv    = 'historySampling/PrintPPHistorySet_dump1_0.csv historySampling/PrintPPHistorySet_dump2_0.csv historySampling/PrintPPHistorySet_dump3_0.csv historySampling/PrintPPHistorySet_dump4_0.csv historySampling/PrintPPHistorySet_dump5_0.csv'
     output = 'historySampling/PrintPPHistorySet_dump1.xml historySampling/PrintPPHistorySet_dump2.xml historySampling/PrintPPHistorySet_dump3.xml historySampling/PrintPPHistorySet_dump4.xml historySampling/PrintPPHistorySet_dump5.xml'
   [../]
+  [./historySamplingIntervalAve]
+    type   = 'RavenFramework'
+    input  = 'test_historySetSamplingIntervalAve.xml'
+    csv    = 'historySamplingIntervalAve/dump_interval_average_0.csv'
+    output = 'historySamplingIntervalAve/dump_interval_average.xml historySamplingIntervalAve/1-plot_interval_average_line-scatter.pdf'
+  [../]  
   [./HistorySetSnapShot]
     type   = 'RavenFramework'
     input  = 'test_historySetSnapshot.xml'
@@ -71,4 +77,15 @@
     csv    = 'TypicalHistoryFromHS/writeTypDataOut_0.csv'
     output = 'TypicalHistoryFromHS/writeTypDataOut.csv TypicalHistoryFromHS/writeTypDataOut.xml'
   [../]
+  [./RiskMeasuresDiscrete]
+    type   = 'RavenFramework'
+    input  = 'test_riskMeasuresDiscrete.xml'
+    csv    = 'RiskMeasuresDiscrete/PrintPPS_dump.csv'
+  [../]
+ [./metadataUsageInInterfacePP]
+   type = 'RavenFramework'
+   input = 'test_metadata_usage_in_interfacePP.xml'
+   output = 'metadataUsageInInterfacePP/outputDataMChistory.xml metadataUsageInInterfacePP/outputDataMChistory.csv metadataUsageInInterfacePP/historiesSetSyncronized_dump.xml'
+   test_interface_only = True
+ [../]
 []

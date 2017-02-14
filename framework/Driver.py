@@ -29,7 +29,10 @@ sys.path.append(os.path.join(frameworkDir,'utils'))
 import utils
 import TreeStructure as TS
 utils.find_crow(frameworkDir)
-utils.add_path_recursively(os.path.join(frameworkDir,'contrib'))
+#utils.add_path_recursively(os.path.join(frameworkDir,'contrib'))
+utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
+utils.add_path(os.path.join(frameworkDir,'contrib','AMSC'))
+utils.add_path(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
 from Simulation import Simulation
 from Application import __PySideAvailable
@@ -43,21 +46,42 @@ def printStatement():
     @ Out, None
   """
   print("""
-  NOTICE: This computer software was prepared by Battelle Energy
-  Alliance, LLC, hereinafter the Contractor, under Contract
-  No. DE-AC07-05ID14517 with the United States (U.S.)  Department of
-  Energy (DOE). All rights in the computer software are reserved by
-  DOE on behalf of the United States Government and, if applicable,
-  the Contractor as provided in the Contract. You are authorized to
-  use this computer software for Governmental purposes but it is not
-  to be released or distributed to the public. NEITHER THE UNITED
-  STATES GOVERNMENT, NOR DOE, NOR THE CONTRACTOR MAKE ANY WARRANTY,
-  EXPRESSED OR IMPLIED, OR ASSUMES ANY LIABILITY OR RESPONSIBILITY FOR
-  THE USE, ACCURACY, COMPLETENESS, OR USEFULNESS OR ANY INFORMATION,
-  APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE
-  WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS. This notice, including
-  this sentence, must appear on any copies of this computer software.
+    NOTICE: This computer software was prepared by Battelle Energy
+    Alliance, LLC, hereinafter the Contractor, under Contract
+    No. DE-AC07-05ID14517 with the United States (U.S.)  Department of
+    Energy (DOE). All rights in the computer software are reserved by
+    DOE on behalf of the United States Government and, if applicable,
+    the Contractor as provided in the Contract. You are authorized to
+    use this computer software for Governmental purposes but it is not
+    to be released or distributed to the public. NEITHER THE UNITED
+    STATES GOVERNMENT, NOR DOE, NOR THE CONTRACTOR MAKE ANY WARRANTY,
+    EXPRESSED OR IMPLIED, OR ASSUMES ANY LIABILITY OR RESPONSIBILITY FOR
+    THE USE, ACCURACY, COMPLETENESS, OR USEFULNESS OR ANY INFORMATION,
+    APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE
+    WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS. This notice, including
+    this sentence, must appear on any copies of this computer software.
   """)
+
+def printLogo():
+  """
+    Method to print a RAVEN logo
+    @ In, None
+    @ Out, None
+  """
+  print("""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .---.        .-------########        ######     ###    ###  #########  ###    ###
+     /     \\  __  /    ---###    ###     ###   ###   ###    ###  ###        #####  ###
+    / /     \\(  )/    ---###    ###     ###    ###  ###    ###  #######    ### ######
+   //////   ' \\/ `   ---#########      ##########  ###    ###  ###        ###  #####
+  //// / // :    :   --###     ###    ###    ###    ### ###   ####       ###   ####
+ // /   /  /`    '----###       ###  ###    ###      ###     #########  ###    ###
+//          //..\\\\
+===========UU====UU=================================================================
+           '//||\\\\`
+             ''``
+    """)
 
 def checkVersions():
   """
@@ -84,6 +108,8 @@ def checkVersions():
 if __name__ == '__main__':
   """This is the main driver for the RAVEN framework"""
   # Retrieve the framework directory path and working dir
+
+  printLogo()
   printStatement()
 
   checkVersions()

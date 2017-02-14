@@ -1,38 +1,5 @@
 <?xml version="1.0" ?>
 <ROM type="Static">
-  <ans2>
-    <mean>0.9</mean>
-    <expectedValue>0.9</expectedValue>
-    <variance>1.6465</variance>
-    <samples>21</samples>
-    <polyCoeffs>
-      <inputVariables>y1,y2</inputVariables>
-      <_0_0_>0.9</_0_0_>
-      <_0_1_>1.05</_0_1_>
-      <_0_2_>6.62615558638e-16</_0_2_>
-      <_1_0_>0.48</_1_0_>
-      <_1_1_>0.56</_1_1_>
-      <_2_0_>6.71450432753e-16</_2_0_>
-      <_2_1_>-7.06789929214e-17</_2_1_>
-      <_3_0_>9.18826907978e-16</_3_0_>
-    </polyCoeffs>
-    <partialVariance>
-      <y2>1.1025</y2>
-      <y1.y2>0.3136</y1.y2>
-      <y1>0.2304</y1>
-    </partialVariance>
-    <sobolIndices>
-      <y2>0.669602186456</y2>
-      <y1.y2>0.190464621925</y1.y2>
-      <y1>0.139933191619</y1>
-    </sobolIndices>
-    <sobolTotalIndices>
-      <y2>0.860066808381</y2>
-      <y1>0.330397813544</y1>
-      <y1.y2>0.190464621925</y1.y2>
-    </sobolTotalIndices>
-  </ans2>
-
   <ans>
     <mean>1.434</mean>
     <expectedValue>1.434</expectedValue>
@@ -65,5 +32,38 @@
       <y1.y2>0.291965314872</y1.y2>
     </sobolTotalIndices>
   </ans>
+
+  <ans2>
+    <mean>0.9</mean>
+    <expectedValue>0.9</expectedValue>
+    <variance>1.6465</variance>
+    <samples>21</samples>
+    <polyCoeffs>
+      <inputVariables>y1,y2</inputVariables>
+      <_0_0_>0.9</_0_0_>
+      <_0_1_>1.05</_0_1_>
+      <_0_2_>6.62615558638e-16</_0_2_>
+      <_1_0_>0.48</_1_0_>
+      <_1_1_>0.56</_1_1_>
+      <_2_0_>6.71450432753e-16</_2_0_>
+      <_2_1_>-7.06789929214e-17</_2_1_>
+      <_3_0_>9.18826907978e-16</_3_0_>
+    </polyCoeffs>
+    <partialVariance>
+      <y2>1.1025</y2>
+      <y1.y2>0.3136</y1.y2>
+      <y1>0.2304</y1>
+    </partialVariance>
+    <sobolIndices>
+      <y2>0.669602186456</y2>
+      <y1.y2>0.190464621925</y1.y2>
+      <y1>0.139933191619</y1>
+    </sobolIndices>
+    <sobolTotalIndices>
+      <y2>0.860066808381</y2>
+      <y1>0.330397813544</y1>
+      <y1.y2>0.190464621925</y1.y2>
+    </sobolTotalIndices>
+  </ans2>
 
 </ROM>

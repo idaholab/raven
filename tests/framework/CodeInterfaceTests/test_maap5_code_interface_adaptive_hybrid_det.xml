@@ -1,0 +1,128 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.MAAP5interfaceAHDETSampling</name>
+    <author>alfoa</author>
+    <created>2016-07-11</created>
+    <classesTested>Models.Code.MAAP5, Samplers.AdaptiveDynamicEventTree</classesTested>
+    <description>
+       An example of using the the Model Code of type MAAP5.
+       This test is aimed to test the mechanics of the MAAP5 interface when used with 
+       the Adaptive Dynamic Event Tree methodology (Adaptive Hybrid Dynamic Event Tree).
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-07-21">Fixed XSD</revision>
+      <revision author="alfoa" date="2016-07-27">Modified xml input tests for MAAP5</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <batchSize>8</batchSize>
+    <WorkingDir>MAAP5_adaptiveHybridDET_test</WorkingDir>
+    <Sequence>AdaptiveDETrunTest</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="test.inp" type="">test.inp</Input>
+    <Input name="include_900_502" type="">include_900_502</Input>
+    <Input name="plot_900_502a.txt" type="">plot_900_502a.txt</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyMAAP" subType="MAAP5">
+      <executable></executable>         
+      <clargs type='input' extension='.inp'/>
+      <boolMaapOutputVariables>IEVNT(691)</boolMaapOutputVariables>
+      <contMaapOutputVariables>PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1),FAIL</contMaapOutputVariables>
+      <stopSimulation>mission_time</stopSimulation>
+      <includeForTimer>include_900_502</includeForTimer>
+    </Code>
+    <ROM name="ROM_test" subType="SciKitLearn">
+      <Features>TIMELOCA,AFWOFF</Features>
+      <Target>maapFunctionSimple</Target>
+      <SKLtype>svm|LinearSVC</SKLtype>
+    </ROM>
+  </Models>
+
+  <Functions>
+    <External file="MAAP5_adaptiveHybridDET_test/maapFunctionSimple.py" name="maapFunctionSimple">
+      <variable>FAIL</variable>
+    </External>
+  </Functions>
+
+  <Distributions>
+    <Uniform name="TIMELOCA_dist">
+      <lowerBound>100</lowerBound>
+      <upperBound>1800</upperBound>
+    </Uniform>
+    <Uniform name="AFWOFF_dist">
+      <lowerBound>300</lowerBound>
+      <upperBound>2100</upperBound>
+    </Uniform>
+    <Uniform name='ZCRU_dist'>
+      <lowerBound>6.1</lowerBound>
+      <upperBound>7.1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <AdaptiveDynamicEventTree name="adaptive" printEndXmlSummary="yes" removeXmlBranchInfo="False">
+      <ROM class="Models" type="ROM">ROM_test</ROM>
+      <Function class="Functions" type="External">maapFunctionSimple</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOutsimple</TargetEvaluation>
+      <Convergence forceIteration="False" limit="10" persistence="1" weight="CDF">0.5</Convergence>
+      <variable name="TIMELOCA">
+        <distribution>TIMELOCA_dist</distribution>
+        <grid construction="custom" type="CDF">0.1 0.95</grid>
+      </variable>
+      <variable name="AFWOFF">
+        <distribution>AFWOFF_dist</distribution>
+        <grid construction="custom" type="CDF">0.2 0.95</grid>
+      </variable>
+      <HybridSampler type="LimitSurface">
+          <variable name="ZCRU">
+              <distribution>ZCRU_dist</distribution>
+          </variable>
+      </HybridSampler>
+    </AdaptiveDynamicEventTree>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="AdaptiveDETrunTest" re-seeding="1">
+      <Input class="Files" type="">test.inp</Input>
+      <Input class="Files" type="">include_900_502</Input>
+      <Input class="Files" type="">plot_900_502a.txt</Input>
+      <Model class="Models" type="Code">MyMAAP</Model>
+      <Sampler class="Samplers" type="AdaptiveDynamicEventTree">adaptive</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">LimitSurfSimple</SolutionExport>
+      <Output class="DataObjects" type="PointSet">adaptiveOutsimple</Output>
+      <Output class="OutStreams" type="Print">limitSurfDump</Output>
+      <Output class="OutStreams" type="Print">adaptiveOutsimpleDump</Output>   </MultiRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="limitSurfDump">
+      <type>csv</type>
+      <source>LimitSurfSimple</source>
+    </Print>
+    <Print name="adaptiveOutsimpleDump">
+      <type>csv</type>
+      <source>adaptiveOutsimple</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="LimitSurfSimple">
+      <Input>TIMELOCA,AFWOFF,ZCRU</Input>
+      <Output>maapFunctionSimple</Output>
+    </PointSet>
+    <PointSet hierarchical="true" name="adaptiveOutsimple">
+      <options>
+        <inputRow>-1</inputRow>
+      </options>
+      <Input>TIMELOCA,AFWOFF,ZCRU</Input>
+      <Output>FAIL</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

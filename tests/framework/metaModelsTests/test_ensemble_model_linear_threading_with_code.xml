@@ -1,5 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/metaModelsTests.testEnsembleModelWithCode</name>
+    <author>alfoa</author>
+    <created>2016-04-14</created>
+    <classesTested>Models.EnsembleModel, Models.ExternalModel, Models.Code, JobHandler.Thread</classesTested>
+    <description>
+       Example of usage of the Ensemble Model capability in RAVEN, connecting multiple External Models and Codes.
+       This test is aimed to check the functionality of assembling multiple Models, when they result in a single chain
+       of Models (linear system).  This test checks the functionality of the model using a multi threading parallelization scheme
+       for the External Models and multi processor scheme for the external Code.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-04-21">Modified number of processors</revision>
+      <revision author="alfoa" date="2016-11-14">New syntax ensemble</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <JobName>metaModelWithCode</JobName>
     <Sequence>
@@ -25,12 +42,14 @@
       <variables>A,B,C,D,sum</variables>
     </ExternalModel>
     <EnsembleModel name="codeAndExtModel" subType="">
-      <Model class="Models" inputNames="inputPlaceHolderForInternalObjects" type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
         sumOfABCD
+        <Input class="DataObjects" type="PointSet">inputPlaceHolderForInternalObjects</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">sumData</TargetEvaluation>
       </Model>
-      <Model class="Models" inputNames="referenceInput.xml" type="Code">
+      <Model class="Models" type="Code">
           testModel
+        <Input class="Files" type="">referenceInput.xml</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">samplesMC</TargetEvaluation>
       </Model>
     </EnsembleModel>

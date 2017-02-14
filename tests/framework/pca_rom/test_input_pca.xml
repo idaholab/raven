@@ -5,6 +5,15 @@
     <Sequence>FirstMRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pca_rom/inputPCAReduction</name>
+    <author>wangc</author>
+    <created>2015-09-14</created>
+    <classesTested>Distributions.MultivariateNormal</classesTested>
+    <description>
+      Tests capability of PCA input reduction.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>

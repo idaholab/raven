@@ -1,5 +1,25 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.testExternalModelReseed</name>
+    <author>alfoa</author>
+    <created>2015-01-26</created>
+    <classesTested>Sampler.MonteCarlo</classesTested>
+    <description>
+       This test is aimed to test the capability of the random-based sampling strategies (e.g.MonteCarlo, Stratified, etc.) to
+       change the seeding of the random number generator every time a new realization is requested.
+    </description>
+    <revisions>
+      <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
+      <revision author="alfoa" date="2015-04-21">Closes #122</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="alfoa" date="2015-09-12">removed syntax inconsistency with respect standards for Samplers (underscores instead of camelBack) + created conversion script</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="talbpaul" date="2016-04-26">added check for pre-existing backup files when validating</revision>
+      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
     <Sequence>FirstMRun</Sequence>

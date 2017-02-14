@@ -34,7 +34,8 @@ class csvUtilityClass(object):
       @ In, mergeSameVariables, bool, optional, do variables with the same name need to be merged together ? (aka, take only the values of the first occurence)?
       @ Out, None
     """
-    if len(listOfFiles) == 0: raise IOError("MergeCSV class ERROR: the number of CSV files provided is equal to 0!! it can not merge anything!")
+    if len(listOfFiles) == 0:
+      raise IOError("MergeCSV class ERROR: the number of CSV files provided is equal to 0!! it can not merge anything!")
     self.listOfFiles    = []   # list of files
     self.dataContainer  = {}   # dictionary that is going to contain all the data from the multiple CSVs
     self.allHeaders     = []   # it containes all the headers

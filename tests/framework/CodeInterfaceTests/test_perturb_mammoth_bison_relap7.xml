@@ -1,5 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.testMCMammothNoExecutable_BisonRelap7</name>
+    <author>tompjame</author>
+    <created>2016-08-29</created>
+    <classesTested>Models.Code.MAMMOTH, Models.AliasSystem</classesTested>
+    <description>
+       An example of using the MAMMOTH code interface (no executable). It checks Bison and RELAP7. 
+       This test is designed to ensure the MAMMOTH interface mechanics is correctly functional.
+       In addition it used the RAVEN alias system.
+    </description>
+    <revisions>
+      <revision author="talbpaul" date="2016-09-15">Test updates</revision>
+      <revision author="alfoa" date="2016-11-30">Added alias for MAMMOTH just to test the new system</revision>
+      <revision author="alfoa" date="2016-12-12">Added type for alias system in mammoth test</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>MammothInterface/Bison_Relap7</WorkingDir>
     <Sequence>MCTestMammoth,print</Sequence>
@@ -17,6 +34,7 @@
         <!--  /path/to/mammoth/executable -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
+      <alias variable='init_liq_temp' type="input">Relap7@GlobalParams|initial_T_liquid</alias>
     </Code>
   </Models>
 
@@ -40,7 +58,7 @@
       <samplerInit>
         <limit>3</limit>
       </samplerInit>
-      <variable name="Relap7@GlobalParams|initial_T_liquid">
+      <variable name="init_liq_temp">
         <distribution>G1</distribution>
       </variable>
       <variable name="Bison@Materials|fuel_mechanical|poissons_ratio">
@@ -72,7 +90,7 @@
 
   <DataObjects>
     <HistorySet name="solns">
-      <Input>Relap7@GlobalParams|initial_T_liquid,Bison@Materials|fuel_mechanical|poissons_ratio</Input>
+      <Input>init_liq_temp,Bison@Materials|fuel_mechanical|poissons_ratio</Input>
       <Output>time,ave_temp_interior,peak_temp,peak_clad_temp,gas_volume</Output>
     </HistorySet>
   </DataObjects>

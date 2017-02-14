@@ -16,6 +16,7 @@ import io
 import string
 import datetime
 import numpy as np
+import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -538,6 +539,12 @@ class Simulation(MessageHandler.MessageUser):
     self.printTag = 'SIMULATION'
     self.raiseAMessage('Simulation started at',readtime,verbosity='silent')
 
+
+    self.pollingThread = threading.Thread(target=self.jobHandler.startLoop)
+    ## This allows RAVEN to exit when the only thing left is the JobHandler
+    self.pollingThread.daemon = True
+    self.pollingThread.start()
+
   def setInputFiles(self,inputFiles):
     """
       Method that can be used to set the input files that the program received.
@@ -672,7 +679,17 @@ class Simulation(MessageHandler.MessageUser):
         else:
           globalAttributes = child.attrib
           #if 'verbosity' in globalAttributes.keys(): self.verbosity = globalAttributes['verbosity']
-        if Class != 'RunInfo':
+        if Class not in ['RunInfo','OutStreams'] and "returnInputParameter" in self.addWhatDict[Class].__dict__:
+          paramInput = self.addWhatDict[Class].returnInputParameter()
+          paramInput.parseNode(child)
+          for childChild in paramInput.subparts:
+            childName = childChild.getName()
+            if "name" not in childChild.parameterValues:
+              self.raiseAnError(IOError,'not found name attribute for '+childName +' in '+Class)
+            name = childChild.parameterValues["name"]
+            self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childName,self)
+            self.whichDict[Class][name].handleInput(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
+        elif Class != 'RunInfo':
           for childChild in child:
             subType = childChild.tag
             if 'name' in childChild.attrib.keys():
@@ -699,10 +716,9 @@ class Simulation(MessageHandler.MessageUser):
                 self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
               else: self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else: self.raiseAnError(IOError,'not found name attribute for one '+Class)
-      else:
-        print('DEBUGG')
-        print(child.printXML())
-        self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+TreeStructure.tostring(child))
+      else: #tag not in whichDict, check if it's a documentation tag
+        if child.tag not in ['TestInfo']:
+          self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+TreeStructure.tostring(child))
     # If requested, duplicate input
     # ###NOTE: All substitutions to the XML input tree should be done BEFORE this point!!
     if self.runInfoDict.get('printInput',False):

@@ -15,6 +15,7 @@ if not 'xrange' in dir(__builtins__):
 from .Metric import Metric
 from .Minkowski import Minkowski
 from .DTW import DTW
+from .SklMetric import SKL
 ## [ Add new class here ]
 ################################################################################
 ## Alternatively, to fully automate this file:

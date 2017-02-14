@@ -1,5 +1,24 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.test_push_into_hdf5</name>
+    <author>alfoa</author>
+    <created>2013-11-11</created>
+    <classesTested>DataObjects.PointSet, DataObjects.HistorySet, Databases.HDF5</classesTested>
+    <description>
+       The idea of this input case is to test che capability of RAVEN create a Database HDF5 from DataObjects.PointSet and DataObjects.HistorySet and to
+       construct from a Database the DataObjects.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2015-05-19">Closes #171</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="alfoa" date="2015-06-21">modified Names + added new capabilities and flexibility in DataObjects + added options block. Modified XSD schema and manual to reflect the modifications</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="talbpaul" date="2016-04-26">added check for pre-existing backup files when validating</revision>
+      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>test_extract_data_s_from_hdf5</WorkingDir>
     <Sequence>MonteCarlo,test_extract,test_push_in,test_extract_again</Sequence>

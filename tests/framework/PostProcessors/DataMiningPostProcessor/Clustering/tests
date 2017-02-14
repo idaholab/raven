@@ -9,62 +9,56 @@
     type   = 'RavenFramework'
     input  = 'test_dataMiningKMeansPCA.xml'
     csv    = 'KMeansPCA/dump1.csv'
-	  output = 'KMeansPCA/scatter.png'
+    output = 'KMeansPCA/scatter.png'
     rel_err = 0.001
   [../]
   [./MiniBatchKMeans]
     type   = 'RavenFramework'
     input  = 'test_dataMiningMiniBatchKMeans.xml'
     csv    = 'MiniBatchKMeans/dummy.csv'
-    output = 'MiniBatchKMeans/scatter.png'
+    output = 'MiniBatchKMeans/blobs.png MiniBatchKMeans/circles.png MiniBatchKMeans/moons.png'
   [../]
   [./MeanShift]
-  	type   = 'RavenFramework'
-  	input  = 'test_dataMiningMeanShift.xml'
+    type   = 'RavenFramework'
+    input  = 'test_dataMiningMeanShift.xml'
     csv    = 'MeanShift/dummy.csv'
-  	output = 'MeanShift/scatter.png'
+    output = 'MeanShift/scatter.png'
   [../]
   [./AffinityPropogation]
-  	type   = 'RavenFramework'
-  	input  = 'test_dataMiningAffinityPropogation.xml'
+    type   = 'RavenFramework'
+    input  = 'test_dataMiningAffinityPropogation.xml'
     csv    = 'AffinityPropogation/dummy.csv'
-  	output = 'AffinityPropogation/scatter.png'
+    output = 'AffinityPropogation/scatter.png'
   [../]
   [./DBSCAN]
-  	type   = 'RavenFramework'
-  	input  = 'test_dataMiningDBSCAN.xml'
+    type   = 'RavenFramework'
+    input  = 'test_dataMiningDBSCAN.xml'
     csv    = 'DBSCAN/dummy.csv'
-  	output = 'DBSCAN/scatter.png'
+    output = 'DBSCAN/scatter.png'
   [../]
   [./SpectralClustering]
-  	type   = 'RavenFramework'
-  	input  = 'test_dataMiningSpectralClustering.xml'
+    type   = 'RavenFramework'
+    input  = 'test_dataMiningSpectralClustering.xml'
     csv    = 'SpectralClustering/dummy.csv'
-  	output = 'SpectralClustering/scatter.png'
+    output = 'SpectralClustering/scatter.png'
   [../]
   [./GaussianMixture]
-  	type   = 'RavenFramework'
-  	input  = 'test_dataMiningGaussianMixture.xml'
+    type   = 'RavenFramework'
+    input  = 'test_dataMiningGaussianMixture.xml'
     csv    = 'GaussianMixture/dummy.csv GaussianMixture/info.csv'
-  	output = 'GaussianMixture/scatter.png'
-  [../]
-  [./DirichletProcessGMM]
-  	type   = 'RavenFramework'
-  	input  = 'test_dataMiningDirichletProcessGMM.xml'
-    csv    = 'DirichletProcessGMM/dummy.csv'
-  	output = 'DirichletProcessGMM/scatter.png'
+    output = 'GaussianMixture/scatter.png'
   [../]
   [./time_dep_clustering_filtered]
-	  type   = 'RavenFramework'
-	  input  = 'test_TD_KMeans_Filtered.xml'
+    type   = 'RavenFramework'
+    input  = 'test_TD_KMeans_Filtered.xml'
     csv    = 'time_dep_clustering_filtered/print0_0.csv time_dep_clustering_filtered/print0_1.csv time_dep_clustering_filtered/print0_2.csv time_dep_clustering_filtered/print0_3.csv time_dep_clustering_filtered/print0_4.csv time_dep_clustering_filtered/print1_0.csv time_dep_clustering_filtered/print1_1.csv time_dep_clustering_filtered/print1_2.csv time_dep_clustering_filtered/print1_3.csv time_dep_clustering_filtered/print1_4.csv time_dep_clustering_filtered/print2_0.csv time_dep_clustering_filtered/print2_1.csv'
     output = 'time_dep_clustering_filtered/1-Clustered_HS_line.png'
-  [../] 
+  [../]
   [./VariationalGMM]
-  	type   = 'RavenFramework'
-  	input  = 'test_dataMiningVariationalGMM.xml'
+    type   = 'RavenFramework'
+    input  = 'test_dataMiningVariationalGMM.xml'
     csv    = 'VariationalGMM/dummy.csv'
-  	output = 'VariationalGMM/scatter.png'
+    output = 'VariationalGMM/scatter.png'
   [../]
   [./Agglomerative]
     type   = 'RavenFramework'
@@ -75,9 +69,9 @@
   [./time_dep_MeanShift]
     type   = 'RavenFramework'
     input  = 'test_TD_MeanShift.xml'
-    csv    = 'time_dep_meanshift/print0_0.csv time_dep_meanshift/print0_1.csv time_dep_meanshift/print0_2.csv time_dep_meanshift/print1_0.csv time_dep_meanshift/print1_1.csv' 
+    csv    = 'time_dep_meanshift/print0_0.csv time_dep_meanshift/print0_1.csv time_dep_meanshift/print0_2.csv time_dep_meanshift/print1_0.csv time_dep_meanshift/print1_1.csv'
     output = 'time_dep_meanshift/1-Clustered_HS_line.png time_dep_meanshift/1-Cluster_0_line.png time_dep_meanshift/1-Cluster_1_line.png time_dep_meanshift/1-hist0x_histogram.png time_dep_meanshift/1-hist0y_histogram.png time_dep_meanshift/1-hist0z_histogram.png time_dep_meanshift/1-plot5_histogram.png time_dep_meanshift/1-plot7_histogram.png'
-  [../] 
+  [../]
   [./time_dep_hierarchicalScipy_DTW]
     type   = 'RavenFramework'
     input  = 'test_TD_hierarchical_dtw.xml'
@@ -92,7 +86,6 @@
     type   = 'RavenFramework'
     input  = 'test_dataMiningHierarchical.xml'
     csv    = 'Hierarchical/dummy.csv'
-    output = 'Hierarchical/1-PlotHierarchical_scatter.png'
   [../]
   [./agglomerativeDTW]
     type   = 'RavenFramework'
@@ -104,5 +97,10 @@
     type   = 'RavenFramework'
     input  = 'test_TD_agglomerative_euclidean.xml'
     csv    = 'agglomerative_euclidean/printAll_0.csv agglomerative_euclidean/printAll_1.csv agglomerative_euclidean/printAll_2.csv agglomerative_euclidean/printAll_3.csv agglomerative_euclidean/printAll_4.csv agglomerative_euclidean/printAll_5.csv agglomerative_euclidean/printAll_6.csv agglomerative_euclidean/printAll_7.csv agglomerative_euclidean/printAll_8.csv agglomerative_euclidean/printAll_9.csv'
+  [../]
+  [./HierarchicalScipy_SKL]
+    type   = 'RavenFramework'
+    input  = 'test_dataMiningHierarchical_SKL_Pairwise.xml'
+    csv    = 'Hierarchical/dummy_SKL_1.csv Hierarchical/dummy_SKL_2.csv Hierarchical/dummy_SKL_3.csv'
   [../]
 []

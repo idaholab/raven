@@ -19,10 +19,7 @@ else:
   import cPickle as pickle
 import copy
 #import pickle as cloudpickle
-if sys.version_info.major == 2:
-  from serialization import cloudpickle
-else:
-  print("cloud does not support python3")
+import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -244,19 +241,28 @@ class SingleRun(Step):
     self.raiseADebug('the mapping used in the model for checking the compatibility of usage should be more similar to self.parList to avoid the double mapping below','FIXME')
     found     = 0
     rolesItem = []
+    #collect model, other entries
     for index, parameter in enumerate(self.parList):
       if parameter[0]=='Model':
         found +=1
         modelIndex = index
       else: rolesItem.append(parameter[0])
     #test the presence of one and only one model
-    if found > 1: self.raiseAnError(IOError,'Only one model is allowed for the step named '+str(self.name))
-    elif found == 0: self.raiseAnError(IOError,'No model has been found for the step named '+str(self.name))
+    if found > 1:
+      self.raiseAnError(IOError,'Only one model is allowed for the step named '+str(self.name))
+    elif found == 0:
+      self.raiseAnError(IOError,'No model has been found for the step named '+str(self.name))
+    #clarify run by roles
     roles      = set(rolesItem)
     if 'Optimizer' in roles:
       self.splType = 'Optimizer'
       if 'Sampler' in roles:
         self.raiseAnError(IOError, 'Only Sampler or Optimizer is alloweed for the step named '+str(self.name))
+    #if single run, make sure model is an instance of Code class
+    if self.type == 'SingleRun':
+      if self.parList[modelIndex][2] != 'Code':
+        self.raiseAnError(IOError,'<SingleRun> steps only support running "Code" model types!  Consider using a <MultiRun> step using a "Custom" sampler for other models.')
+    #build entry list for verification of correct input types
     toBeTested = {}
     for role in roles: toBeTested[role]=[]
     for  myInput in self.parList:
@@ -309,7 +315,13 @@ class SingleRun(Step):
     inputs         = inDictionary['Input'     ]
     outputs        = inDictionary['Output'    ]
 
-    model.run(inputs,jobHandler)
+    # the input provided by a SingleRun is simply the file to be run.  model.run, however, expects stuff to perturb.
+    # get an input to run -> different between SingleRun and PostProcessor runs
+    if self.type == 'SingleRun':
+      newInput = model.createNewInput(inputs,'None',**{'SampledVars':{},'additionalEdits':{}})
+    else:
+      newInput = inputs
+    model.run(newInput,jobHandler) #empty dictionary corresponds to sampling data in multirun
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
@@ -329,7 +341,6 @@ class SingleRun(Step):
     else:
       if len(self.failedRuns)>0: self.raiseAWarning('There were %i failed runs!' %len(self.failedRuns))
 
-
   def _localGetInitParams(self):
     """
       Place here a specialization of the exporting of what in the step is added to the initial parameters
@@ -342,6 +353,7 @@ class SingleRun(Step):
 #
 #
 #
+
 class MultiRun(SingleRun):
   """
     this class implements one step of the simulation pattern' where several runs are needed
@@ -442,18 +454,33 @@ class MultiRun(SingleRun):
           self.failedRuns.append(copy.copy(finishedJob))
           self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
           self.raiseADebug('the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
+
         # finalize actual sampler
         sampler.finalizeActualSampling(finishedJob,model,inputs)
         # add new job
-        for _ in range(min(jobHandler.howManyFreeSpots(),sampler.endJobRunnable())): # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
+
+        # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
+        ## In order to ensure that the queue does not grow too large, we will
+        ## employ a threshold on the number of jobs the jobHandler can take,
+        ## in addition, we cannot provide more jobs than the sampler can provide.
+        ## So, we take the minimum of these two values.
+        for _ in range(min(jobHandler.availability(),sampler.endJobRunnable())):
           self.raiseADebug('Testing the sampler if it is ready to generate a new input')
+
           if sampler.amIreadyToProvideAnInput():
             try:
               newInput = self._findANewInputToRun(inDictionary)
               model.run(newInput,jobHandler)
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
-      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
+              break
+          else:
+            break
+      ## If all of the jobs given to the job handler have finished, and the sampler
+      ## has nothing else to provide, then we are done with this step.
+      if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
+        self.raiseADebug('Finished with %d runs submitted, %d jobs running and %d jobs finished.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
+        break
       time.sleep(self.sleepTime)
     sampler.handleFailedRuns(self.failedRuns)
 
@@ -707,11 +734,8 @@ class IOStep(Step):
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
         fileobj = inDictionary['Input'][i]
-        #fileobj.open(mode='rb+')
-        #unpickledObj = pickle.load(fileobj) #FIXME this fails with EOFError, and I don't know why
         unpickledObj = pickle.load(file(fileobj.getAbsFile(),'rb+'))
         outputs[i].train(unpickledObj)
-        fileobj.close()
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]

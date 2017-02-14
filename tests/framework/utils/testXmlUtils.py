@@ -1,5 +1,5 @@
 """
-  This Module performs Unit Tests for the mathUtils methods
+  This Module performs Unit Tests for the xmlUtils methods
   It cannot be considered part of the active code but of the regression test system
 """
 
@@ -231,3 +231,19 @@ for ok in okay:
 print(results)
 
 sys.exit(results["fail"])
+"""
+  <TestInfo>
+    <name>framework.xmlUtils</name>
+    <author>talbpaul</author>
+    <created>2016-11-01</created>
+    <classesTested>utils.xmlUtils</classesTested>
+    <description>
+       This test performs Unit Tests for the xmlUtils class
+       It cannot be considered part of the active code but of the regression test system
+    </description>
+    <revisions>
+      <revision author="talbpaul" date="2016-11-08">Relocated utils tests</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+"""

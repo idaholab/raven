@@ -1,5 +1,24 @@
 <?xml version="1.0" ?>
 <Simulation printTimeStamps="false" verbosity="debug">
+  <TestInfo>
+    <name>framework/Samplers/DynamicEventTrees.testClassicDETshortRAVEN</name>
+    <author>alfoa</author>
+    <created>2015-10-05</created>
+    <classesTested>Samplers.DynamicEventTree, Models.Code</classesTested>
+    <description>
+       An example of using the Dynamic Event Tree Methodology with an external Code (RELAP7 in this case).
+       This test is a fast executing one that is aimed to check the mechanics of the DET methodology.
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input</revision>
+      <revision author="talbpaul" date="2016-04-26">Added check for pre-existing backup files when validating</revision>
+      <revision author="alfoa" date="2016-04-27">New subdirectories structure</revision>
+      <revision author="maljdan" date="2016-08-03">Removing PrintCSV PostProcessor from the DET test cases.</revision>
+      <revision author="maljdan" date="2016-08-08">Fixing DET test case.</revision>
+      <revision author="alfoa" date="2016-10-20">Modified XSD and removed dim attribute from all the tests</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>DETshort</WorkingDir>
     <Sequence>DETrunTest</Sequence>

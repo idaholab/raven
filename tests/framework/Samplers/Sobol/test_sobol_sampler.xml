@@ -5,6 +5,15 @@
     <Sequence>make,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/Sobol/Sobol</name>
+    <author>talbpaul</author>
+    <created>2015-09-14</created>
+    <classesTested>Samplers.Sobol</classesTested>
+    <description>
+      This tests using the Sobol static sampler with the basic syntax.
+    </description>
+  </TestInfo>
 
   <Steps>
     <MultiRun name="make" pauseAtEnd="false">

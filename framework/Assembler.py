@@ -1,9 +1,10 @@
-'''
+"""
 Created on Jan 20, 2015
 
 @author: senrs
 based on alfoa design
-'''
+
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -18,8 +19,8 @@ import MessageHandler
 
 class Assembler(MessageHandler.MessageUser):
   """
-  Assembler class is used as base class for all the objects that need, for initialization purposes,
-  to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
+    Assembler class is used as base class for all the objects that need, for initialization purposes,
+    to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
   """
   def __init__(self):
     """
@@ -138,5 +139,20 @@ class Assembler(MessageHandler.MessageUser):
     if newXmlFlg is not None: self.requiredAssObject[0] = newXmlFlg
     self.requiredAssObject[1][0].append(name)
     self.requiredAssObject[1][1].append(flag)
+
+  def retrieveObjectFromAssemblerDict(self,objectMainClass,objectName):
+    """
+      Method to retrieve an object from the assembler
+      @ In, objectName, str, the object name that needs to be retrieved
+      @ In, objectMainClass, str, the object main Class name (e.g. Input, Model, etc.) of the object that needs to be retrieved
+      @ Out, assemblerObject, instance, the instance requested (None if not found)
+    """
+    assemblerObject = None
+    if objectMainClass in self.assemblerDict.keys():
+      for assemblerObj in self.assemblerDict[objectMainClass]:
+        if objectName == assemblerObj[2]:
+          assemblerObject = assemblerObj[3]
+          break
+    return assemblerObject
 
 

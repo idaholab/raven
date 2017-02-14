@@ -56,6 +56,7 @@
   output = 'output_check/1-plot7_stem.png output_check/1-2DHistoryPlot_histogram.png output_check/1-test_line-line.png output_check/1-plot2_line-line.png output_check/1-plot4_scatter-scatter.png output_check/1-plot3_scatter-scatter.png output_check/1-plot9_stem.png output_check/1-plot8_stem.png output_check/1-plot7_stem.png output_check/1-plot6_histogram.png output_check/1-plot5_histogram.png output_check/1-plot11_step.png output_check/1-plot10_stem.png output_check/1-plot14_tri-surface-tri-surface.png output_check/1-plot13_surface-surface.png output_check/1-plot12_pseudocolor.png output_check/1-plot17_contour3D-filledContour3D.png output_check/1-plot16_contour-filledContour.png output_check/1-plot15_wireframe-wireframe.png output_check/1-plot18_scatter.png output_check/1-plot19_scatter.png output_check/fullprint_Pointset.csv'
   csv = 'output_check/fullprint_HistorySet_2.csv output_check/test_4.csv output_check/testprint_selective_hist1_4.csv output_check/testprint_selective_hist2_4.csv output_check/testprint_selective_hist3_4.csv output_check/testprint_selective_Pointset.csv'
   xml = 'output_check/fullprint_HistorySet.xml output_check/fullprint_Pointset.xml'
+  remove_unicode_identifier = true
  [../]
 
  [./testAdaptiveDynamicEventTreeRAVEN]
@@ -65,7 +66,7 @@
   csv = 'AdaptiveDET/limitSurfDump.csv'
   required_executable = '../../RAVEN-%METHOD%'
   rel_err = 0.0001
-  max_time = 400
+  max_time = 800
  [../]
 
  [./testAdaptiveHybridDynamicEventTreeRAVEN]
@@ -75,7 +76,7 @@
   csv = 'AdaptiveHybridDET/limitsurfaceDump.csv'
   required_executable = '../../RAVEN-%METHOD%'
   rel_err = 0.0001
-  max_time = 400
+  max_time = 800
  [../]
 
  [./test_mpi]
@@ -209,6 +210,7 @@
   xml = 'LHStest/outLHS_dump.xml LHStest/samples1D.xml'
   max_time = 500
   rel_err = 0.001
+  remove_unicode_identifier = true
  [../]
 
  [./testLHS_RELAP7]
@@ -224,7 +226,7 @@
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Raven.xml'
    output = 'GridTestRaven/FirstMRun/1/out~clg.massflowrate.3eqn'
-   UnorderedCsv = 'GridTestRaven/outGrid_dump.csv'
+   UnorderedCsv = 'GridTestRaven/outGrid_dump.csv GridTestRaven/outGridMax_dump.csv GridTestRaven/outGridMin_dump.csv GridTestRaven/outGridAverage_dump.csv GridTestRaven/outGridMaxFromHDF5_dump.csv GridTestRaven/outGridMinFromHDF5_dump.csv GridTestRaven/outGridAverageFromHDF5_dump.csv'
    method = 'devel opt'
    required_executable = '../../RAVEN-%METHOD%'
  [../]
@@ -277,7 +279,7 @@
   rel_err = 0.0001
  [../]
 
- [./test_bison_mc_simple_&_alias_system]
+ [./test_bison_mc_simple_and_alias_system]
   #REQUIREMENT_TEST R-IS-6
   type = 'RavenFramework'
   input = 'test_bison_mc_simple.xml'
@@ -329,6 +331,16 @@
    csv = 'test_iostep_load/reprint_HistorySet_1.csv test_iostep_load/reprint_Pointset.csv'
    xml = 'test_iostep_load/reprint_HistorySet.xml'
    prereq = test_output
+   remove_unicode_identifier = true
+ [../]
+
+ [./load_and_push_reusing_same_hdf5]
+   type = 'RavenFramework'
+   input = 'test_load_and_push_reusing_same_hdf5.xml'
+   output = 'GridTestRavenSameHDF5/MonteCarloRestarted/1/out~clg.massflowrate.3eqn GridTestRavenSameHDF5/outGrid_dump.csv GridTestRavenSameHDF5/outGridMax_dump.csv GridTestRavenSameHDF5/outGridMin_dump.csv GridTestRavenSameHDF5/outGridAverage_dump.csv GridTestRavenSameHDF5/stories2_dump_4.csv'
+   prereq = testGrid_RELAP7
+   method = 'devel opt'
+   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./adaptive_sampler_ext_model]
@@ -359,6 +371,7 @@
   output = 'StochasticPolyPickleTest/Udump.xml StochasticPolyPickleTest/pdump.xml'
   xml = 'StochasticPolyPickleTest/Udump.xml StochasticPolyPickleTest/pdump.xml'
   csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
+  remove_unicode_identifier = true
  [../]
 
  [./ND_external_MC]
@@ -382,6 +395,7 @@
   output = 'ND_test_LHS/testPrintPointSet_dump.csv ND_test_LHS/testPrintPointSet_dump.csv'
   csv = 'ND_test_LHS/testPrintPointSet_dump.csv ND_test_LHS/testPrintPointSet_dump.csv'
   xml = 'ND_test_LHS/testPrintPointSet_dump.xml ND_test_LHS/testPrintPointSet_dump.xml'
+  remove_unicode_identifier = true
  [../]
 
  [./ND_external_grid_value]
@@ -466,6 +480,7 @@
   output = 'LHStestVariables/outLHS_dump.csv'
   csv = 'LHStestVariables/outLHS_dump.csv'
   xml = 'LHStestVariables/outLHS_dump.xml'
+  remove_unicode_identifier = true
  [../]
 
  [./fail_csv]
@@ -507,13 +522,17 @@
    output = 'custom1D/PointSet2_dump.csv custom1D/PointSet2_dump.xml custom1D/PointSet3_dump.csv custom1D/PointSet3_dump.xml'
    csv    = 'custom1D/PointSet2_dump.csv custom1D/PointSet3_dump.csv'
  [../]
- 
+
  [./categorical]
    type   = 'RavenFramework'
    input  = 'test_distributionsCategorical.xml'
-   output = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv test_categorical/output_basicStatistics_Grid.csv test_categorical/output_basicStatistics_MC.csv' 
+   output = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv test_categorical/output_basicStatistics_Grid.csv test_categorical/output_basicStatistics_MC.csv'
    csv    = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv'
  [../]
+
+
+
+
 
 []
 

@@ -1,8 +1,32 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.testGrid_RELAP7</name>
+    <author>cogljj</author>
+    <created>2014-03-05</created>
+    <classesTested>Sampler.Grid</classesTested>
+    <description>
+       This test is aimed to check the capability in RAVEN to employ a Grid sampling strategy, using as driven code RELAP7.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2014-03-25">fixed test_Grid_sampler for raven. SVN r25883</revision>
+      <revision author="alfoa" date="2014-03-31">modified executable syntax plus improved stability of outstream system when adaptive is on...        r26112</revision>
+      <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
+      <revision author="alfoa" date="2015-05-18">Closes #167</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="alfoa" date="2015-09-12">removed syntax inconsistency with respect standards for Samplers (underscores instead of camelBack) + created conversion script</revision>
+      <revision author="alfoa" date="2015-10-01">Modified a test to make it parallel</revision>
+      <revision author="cogljj" date="2016-03-22">Updating samplers to new RELAP-7 inputs.</revision>
+      <revision author="alfoa" date="2016-03-24">removed controlled variable pipe_Dh since was not set in the input file and consequentially was getting garbage from the memory. In addition, set the raven_init to false in order to avoid to have the init csv into the GridRaven folder that is used to construct a data with the pp LoadIntoInternlaDataObject</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2016-04-27">New subdirectories structure</revision>
+      <revision author="alfoa" date="2016-11-16">Closes #751</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>GridTestRaven</WorkingDir>
-    <Sequence>FirstMRun</Sequence>
+    <Sequence>FirstMRun,maxFromHDF5</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
 
@@ -25,8 +49,8 @@
       <upperBound>320</upperBound>
     </Normal>
     <Normal name="ANormalDistribution">
-      <mean>-4</mean>
-      <sigma>2</sigma>
+      <mean>2</mean>
+      <sigma>1</sigma>
     </Normal>
   </Distributions>
 
@@ -37,11 +61,11 @@
       </samplerInit>
       <variable name="Components|pipe|Tw">
         <distribution>Gauss1</distribution>
-        <grid construction="equal" steps="1" type="value">300 303</grid>
+        <grid construction="equal" steps="1" type="value">300 330</grid>
       </variable>
       <Distribution name="Dummy1">
         <distribution>ANormalDistribution</distribution>
-        <grid construction="equal" steps="2" type="CDF">0.88 0.9</grid>
+        <grid construction="equal" steps="5" type="CDF">0.1 0.9</grid>
       </Distribution>
     </Grid>
   </Samplers>
@@ -52,14 +76,28 @@
       <Input class="Files" type="">clg_massflowrate_3eqn_control.py</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
-      <!--
-        <Databases class="Databases" type="">testMPIDatabase</Databases>
-      -->
       <Output class="Databases" type="HDF5">testGridRavenDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">outGrid</Output>
+      <Output class="DataObjects" type="PointSet">outGridMax</Output>
+      <Output class="DataObjects" type="PointSet">outGridMin</Output>
+      <Output class="DataObjects" type="PointSet">outGridAverage</Output>
       <Output class="OutStreams" type="Print">outGrid_dump</Output>
+      <Output class="OutStreams" type="Print">outGridMax_dump</Output>
+      <Output class="OutStreams" type="Print">outGridMin_dump</Output>
+      <Output class="OutStreams" type="Print">outGridAverage_dump</Output>
     </MultiRun>
+    <IOStep name="maxFromHDF5">
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input> 
+      <Output class="DataObjects" type="PointSet">outGridMaxFromHDF5</Output>
+      <Output class="DataObjects" type="PointSet">outGridMinFromHDF5</Output>
+      <Output class="DataObjects" type="PointSet">outGridAverageFromHDF5</Output>
+      <Output class="OutStreams" type="Print">outGridMaxFromHDF5_dump</Output>
+      <Output class="OutStreams" type="Print">outGridMinFromHDF5_dump</Output>
+      <Output class="OutStreams" type="Print">outGridAverageFromHDF5_dump</Output>
+    </IOStep>
   </Steps>
 
   <Databases>
@@ -71,16 +109,82 @@
       <type>csv</type>
       <source>outGrid</source>
     </Print>
+    <Print name="outGridMax_dump">
+      <type>csv</type>
+      <source>outGridMax</source>
+    </Print>
+    <Print name="outGridMin_dump">
+      <type>csv</type>
+      <source>outGridMin</source>
+    </Print>
+    <Print name="outGridAverage_dump">
+      <type>csv</type>
+      <source>outGridAverage</source>
+    </Print>
+     <Print name="outGridMaxFromHDF5_dump">
+      <type>csv</type>
+      <source>outGridMaxFromHDF5</source>
+    </Print>
+    <Print name="outGridMinFromHDF5_dump">
+      <type>csv</type>
+      <source>outGridMinFromHDF5</source>
+    </Print>
+    <Print name="outGridAverageFromHDF5_dump">
+      <type>csv</type>
+      <source>outGridAverageFromHDF5</source>
+    </Print>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="outGrid">
       <Input>pipe_Area,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+    </PointSet>
+    <PointSet name="outGridMaxFromHDF5">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>max</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridMinFromHDF5">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>min</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridAverageFromHDF5">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>average</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridMax">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>max</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridMin">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>min</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridAverage">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>average</operator>
+      </options>
     </PointSet>
     <HistorySet name="stories">
       <Input>pipe_Area</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
     </HistorySet>
   </DataObjects>
 

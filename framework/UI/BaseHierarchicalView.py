@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+
+"""
+  This BaseHierarchicalView is used by the HierarchicalWindow
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
+from PySide.QtCore import QSize
+from PySide.QtGui import QWidget
+
+from .ZoomableGraphicsView import ZoomableGraphicsView
+
+class BaseHierarchicalView(QWidget):
+  """ A base class for all widgets in this package.
+  """
+  def __init__(self, mainWindow=None, title=None):
+    """
+      Initialization method that can optionally specify the parent widget,
+        a title for this widget, and specific data used by this view.
+        @ In, mainWindow, an optional QWidget that will be the parent of this widget
+        @ In, title, an optional string specifying the title of this widget.
+    """
+
+    ## This is a stupid hack around the problem of multiple inheritance, maybe
+    ## I should rethink the class hierarchy here?
+    if not isinstance(self, ZoomableGraphicsView):
+      super(BaseHierarchicalView, self).__init__(mainWindow)
+
+    if title is None:
+      self.setWindowTitle(self.__class__.__name__)
+    else:
+      self.setWindowTitle(title)
+    self.scrollable = False
+    self.mainWindow = mainWindow
+
+  def sizeHint(self):
+    """
+      Specifies the default size hint for this widget
+      @ In, None
+      @ Out, size, QSize, suggested size
+    """
+    return QSize(200,200)
+
+  def clearLayout(self, layout):
+    """
+      Clears the layout and marks each child widget for deletion.
+      @ In, layout, QLayout, the layout to clear
+      @ Out, None
+    """
+    if layout is not None:
+      while layout.count():
+        item = layout.takeAt(0)
+        widget = item.widget()
+        if widget is not None:
+            widget.deleteLater()
+        else:
+            self.clearLayout(item.layout())
+
+
+  def updateScene(self):
+    """
+      This method will perform necessary operations in order to update the
+      scene drawn on this view's canvas
+      @ In, None
+      @ Out, None
+    """
+    pass
+
+  def colorChanged(self):
+    """
+      This callback will ensure the UI is appropriately updated when a user
+      triggers a color change to one of the partitions
+      @ In, None
+      @ Out, None
+    """
+    self.updateScene()
+
+  def levelChanged(self):
+    """
+      This callback will ensure the UI is appropriately updated when a user
+      triggers a level change to the hierarchy
+      @ In, None
+      @ Out, None
+    """
+    self.updateScene()

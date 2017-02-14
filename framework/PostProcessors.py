@@ -18,18 +18,22 @@ from collections import OrderedDict
 import time
 from sklearn.linear_model import LinearRegression
 import importlib
+import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from BaseClasses import BaseType
 import utils
 import mathUtils
 import xmlUtils
+import InputData
 import DataObjects
 from Assembler import Assembler
-import SupervisedLearning
+import LearningGate
 import MessageHandler
 import GridEntities
 import Files
+import Models
 from RAVENiterators import ravenArrayIterator
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
@@ -40,6 +44,18 @@ from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 #  *  SPECIALIZED PostProcessor CLASSES  *
 #  ***************************************
 #
+
+##########################################################
+## Temporary addition, remove this code once this inherits
+## from the base type
+class ModelInput(InputData.ParameterInput):
+  """
+    Class for reading in model input
+  """
+
+ModelInput.createClass("ModelInput")
+ModelInput.addParam("subType", InputData.StringType, True)
+##########################################################
 
 class BasePostProcessor(Assembler, MessageHandler.MessageUser):
   """
@@ -83,6 +99,30 @@ class BasePostProcessor(Assembler, MessageHandler.MessageUser):
       @ Out, None
     """
     pass
+
+class LimitSurfaceIntegralInput(InputData.ParameterInput):
+  """
+    Class for reading in the limit surface integral block
+  """
+
+LimitSurfaceIntegralInput.createClass("PostProcessor", False, baseNode=ModelInput)
+LSIVariableInput = InputData.parameterInputFactory("variable")
+LSIVariableInput.addParam("name", InputData.StringType)
+LSIDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
+LSIVariableInput.addSub(LSIDistributionInput)
+LSILowerBoundInput = InputData.parameterInputFactory("lowerBound", contentType=InputData.FloatType)
+LSIVariableInput.addSub(LSILowerBoundInput)
+LSIUpperBoundInput = InputData.parameterInputFactory("upperBound", contentType=InputData.FloatType)
+LSIVariableInput.addSub(LSIUpperBoundInput)
+LimitSurfaceIntegralInput.addSub(LSIVariableInput)
+LSIToleranceInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
+LimitSurfaceIntegralInput.addSub(LSIToleranceInput)
+LSIIntegralTypeInput = InputData.parameterInputFactory("integralType", contentType=InputData.StringType)
+LimitSurfaceIntegralInput.addSub(LSIIntegralTypeInput)
+LSISeedInput = InputData.parameterInputFactory("seed", contentType=InputData.IntegerType)
+LimitSurfaceIntegralInput.addSub(LSISeedInput)
+LSITargetInput = InputData.parameterInputFactory("target", contentType=InputData.StringType)
+LimitSurfaceIntegralInput.addSub(LSITargetInput)
 
 class LimitSurfaceIntegral(BasePostProcessor):
   """
@@ -141,36 +181,49 @@ class LimitSurfaceIntegral(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
+    paramInput = LimitSurfaceIntegralInput()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
       varName = None
-      if child.tag == 'variable':
-        varName = child.attrib['name']
+      if child.getName() == 'variable':
+        varName = child.parameterValues['name']
         self.lowerUpperDict[varName] = {}
         self.variableDist[varName] = None
-        for childChild in child:
-          if childChild.tag == 'distribution': self.variableDist[varName] = childChild.text
-          elif childChild.tag == 'lowerBound':
-            if self.variableDist[varName] != None: self.raiseAnError(NameError, 'you can not specify both distribution and lower/upper bounds nodes for variable ' + varName + ' !')
-            self.lowerUpperDict[varName]['lowerBound'] = float(childChild.text)
-          elif childChild.tag == 'upperBound':
-            if self.variableDist[varName] != None: self.raiseAnError(NameError, 'you can not specify both distribution and lower/upper bounds nodes for variable ' + varName + ' !')
-            self.lowerUpperDict[varName]['upperBound'] = float(childChild.text)
+        for childChild in child.subparts:
+          if childChild.getName() == 'distribution':
+            self.variableDist[varName] = childChild.value
+          elif childChild.getName() == 'lowerBound':
+            if self.variableDist[varName] != None:
+              self.raiseAnError(NameError, 'you can not specify both distribution and lower/upper bounds nodes for variable ' + varName + ' !')
+            self.lowerUpperDict[varName]['lowerBound'] = childChild.value
+          elif childChild.getName() == 'upperBound':
+            if self.variableDist[varName] != None:
+              self.raiseAnError(NameError, 'you can not specify both distribution and lower/upper bounds nodes for variable ' + varName + ' !')
+            self.lowerUpperDict[varName]['upperBound'] = childChild.value
           else:
-            self.raiseAnError(NameError, 'invalid labels after the variable call. Only "distribution", "lowerBound" abd "upperBound" is accepted. tag: ' + child.tag)
-      elif child.tag == 'tolerance':
-        try              : self.tolerance = float(child.text)
-        except ValueError: self.raiseAnError(ValueError, "tolerance can not be converted into a float value!")
-      elif child.tag == 'integralType':
-        self.integralType = child.text.strip().lower()
-        if self.integralType not in ['montecarlo']: self.raiseAnError(IOError, 'only one integral types are available: MonteCarlo!')
-      elif child.tag == 'seed':
-        try              : self.seed = int(child.text)
-        except ValueError: self.raiseAnError(ValueError, 'seed can not be converted into a int value!')
-        if self.integralType != 'montecarlo': self.raiseAWarning('integral type is ' + self.integralType + ' but a seed has been inputted!!!')
-        else: np.random.seed(self.seed)
-      elif child.tag == 'target':
-        self.target = child.text
-      else: self.raiseAnError(NameError, 'invalid or missing labels after the variables call. Only "variable" is accepted.tag: ' + child.tag)
+            self.raiseAnError(NameError, 'invalid labels after the variable call. Only "distribution", "lowerBound" abd "upperBound" is accepted. tag: ' + child.getName())
+      elif child.getName() == 'tolerance':
+        try:
+          self.tolerance = child.value
+        except ValueError:
+          self.raiseAnError(ValueError, "tolerance can not be converted into a float value!")
+      elif child.getName() == 'integralType':
+        self.integralType = child.value.strip().lower()
+        if self.integralType not in ['montecarlo']:
+          self.raiseAnError(IOError, 'only one integral types are available: MonteCarlo!')
+      elif child.getName() == 'seed':
+        try:
+          self.seed = child.value
+        except ValueError:
+          self.raiseAnError(ValueError, 'seed can not be converted into a int value!')
+        if self.integralType != 'montecarlo':
+          self.raiseAWarning('integral type is ' + self.integralType + ' but a seed has been inputted!!!')
+        else:
+          np.random.seed(self.seed)
+      elif child.getName() == 'target':
+        self.target = child.value
+      else:
+        self.raiseAnError(NameError, 'invalid or missing labels after the variables call. Only "variable" is accepted.tag: ' + child.getName())
       # if no distribution, we look for the integration domain in the input
       if varName != None:
         if self.variableDist[varName] == None:
@@ -190,7 +243,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     if self.integralType in ['montecarlo']:
       self.stat.toDo = {'expectedValue':set([self.target])}
       self.stat.initialize(runInfo, inputs, initDict)
-    self.functionS = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':','.join(list(self.variableDist.keys())), 'Target':self.target})
+    self.functionS = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':','.join(list(self.variableDist.keys())), 'Target':self.target})
     self.functionS.train(self.matrixDict)
     self.raiseADebug('DATA SET MATRIX:')
     self.raiseADebug(self.matrixDict)
@@ -230,9 +283,10 @@ class LimitSurfaceIntegral(BasePostProcessor):
       for index, varName in enumerate(self.variableDist.keys()):
         if self.variableDist[varName] == None: randomMatrix[:, index] = randomMatrix[:, index] * (self.lowerUpperDict[varName]['upperBound'] - self.lowerUpperDict[varName]['lowerBound']) + self.lowerUpperDict[varName]['lowerBound']
         else:
-          for samples in range(randomMatrix.shape[0]): randomMatrix[samples, index] = self.variableDist[varName].ppf(randomMatrix[samples, index])
+          f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float])
+          randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
-      pb = self.stat.run({'targets':{self.target:self.functionS.evaluate(tempDict)}})['expectedValue'][self.target]
+      pb = self.stat.run({'targets':{self.target:self.functionS.evaluate(tempDict)[self.target]}})['expectedValue'][self.target]
     else: self.raiseAnError(NotImplemented, "quadrature not yet implemented")
     return pb
 
@@ -271,6 +325,32 @@ class LimitSurfaceIntegral(BasePostProcessor):
       else: self.raiseAnError(Exception, self.type + ' accepts PointSet or File type only')
 #
 #
+
+class SafestPointInput(InputData.ParameterInput):
+  """
+    class for reading in the Safest Point block
+  """
+
+SafestPointInput.createClass("PostProcessor", False, baseNode=ModelInput)
+OuterDistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputData.StringType)
+OuterDistributionInput.addParam("class", InputData.StringType)
+OuterDistributionInput.addParam("type", InputData.StringType)
+SafestPointInput.addSub(OuterDistributionInput)
+VariableInput = InputData.parameterInputFactory("variable")
+VariableInput.addParam("name", InputData.StringType)
+InnerDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
+VariableInput.addSub(InnerDistributionInput)
+InnerGridInput = InputData.parameterInputFactory("grid", contentType=InputData.FloatType)
+InnerGridInput.addParam("type", InputData.StringType)
+InnerGridInput.addParam("steps", InputData.IntegerType)
+VariableInput.addSub(InnerGridInput)
+ControllableInput = InputData.parameterInputFactory("controllable", contentType=InputData.StringType)
+ControllableInput.addSub(VariableInput)
+SafestPointInput.addSub(ControllableInput)
+NoncontrollableInput = InputData.parameterInputFactory("non-controllable", contentType=InputData.StringType)
+NoncontrollableInput.addSub(VariableInput)
+SafestPointInput.addSub(NoncontrollableInput)
+
 #
 class SafestPoint(BasePostProcessor):
   """
@@ -318,18 +398,27 @@ class SafestPoint(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == 'controllable':
-        for childChild in child:
-          if childChild.tag == 'variable':
-            varName = childChild.attrib['name']
-            for childChildChild in childChild:
-              if childChildChild.tag == 'distribution':
-                self.controllableDist[varName] = childChildChild.text
-              elif childChildChild.tag == 'grid':
-                if 'type' in childChildChild.attrib.keys():
-                  if 'steps' in childChildChild.attrib.keys():
-                    self.controllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
+    paramInput = SafestPointInput()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
+      if child.getName() == 'controllable' or  child.getName() == 'non-controllable':
+        for childChild in child.subparts:
+          if childChild.getName() == 'variable':
+            varName = childChild.parameterValues['name']
+            for childChildChild in childChild.subparts:
+              if childChildChild.getName() == 'distribution':
+                if child.getName() == 'controllable':
+                  self.controllableDist[varName] = childChildChild.value
+                elif child.getName() == 'non-controllable':
+                  self.nonControllableDist[varName] = childChildChild.value
+              elif childChildChild.getName() == 'grid':
+                if 'type' in childChildChild.parameterValues:
+                  if 'steps' in childChildChild.parameterValues:
+                    childChildInfo = (childChildChild.parameterValues['type'], childChildChild.parameterValues['steps'], childChildChild.value)
+                    if child.getName() == 'controllable':
+                      self.controllableGrid[varName] = childChildInfo
+                    elif child.getName() == 'non-controllable':
+                      self.nonControllableGrid[varName] = childChildInfo
                   else:
                     self.raiseAnError(NameError, 'number of steps missing after the grid call.')
                 else:
@@ -337,26 +426,7 @@ class SafestPoint(BasePostProcessor):
               else:
                 self.raiseAnError(NameError, 'invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
           else:
-            self.raiseAnError(NameError, 'invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
-      elif child.tag == 'non-controllable':
-        for childChild in child:
-          if childChild.tag == 'variable':
-            varName = childChild.attrib['name']
-            for childChildChild in childChild:
-              if childChildChild.tag == 'distribution':
-                self.nonControllableDist[varName] = childChildChild.text
-              elif childChildChild.tag == 'grid':
-                if 'type' in childChildChild.attrib.keys():
-                  if 'steps' in childChildChild.attrib.keys():
-                    self.nonControllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
-                  else:
-                    self.raiseAnError(NameError, 'number of steps missing after the grid call.')
-                else:
-                  self.raiseAnError(NameError, 'grid type missing after the grid call.')
-              else:
-                self.raiseAnError(NameError, 'invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
-          else:
-            self.raiseAnError(NameError, 'invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
+            self.raiseAnError(NameError, 'invalid or missing labels after the '+child.getName()+' variables call. Only "variable" is accepted.')
     self.raiseADebug('CONTROLLABLE DISTRIBUTIONS:')
     self.raiseADebug(self.controllableDist)
     self.raiseADebug('CONTROLLABLE GRID:')
@@ -582,6 +652,36 @@ class SafestPoint(BasePostProcessor):
           for key, value in dataCollector.getAllMetadata().items(): output.updateMetadata(key, value)
 #
 #
+
+class ComparisonStatisticsInput(InputData.ParameterInput):
+  """
+    class for reading in comparison statistics block
+  """
+
+ComparisonStatisticsInput.createClass("PostProcessor", False, baseNode=ModelInput)
+KindInputEnumType = InputData.makeEnumType("kind","kindType",["uniformBins","equalProbability"])
+KindInput = InputData.parameterInputFactory("kind", contentType=KindInputEnumType)
+KindInput.addParam("numBins",InputData.IntegerType, False)
+KindInput.addParam("binMethod", InputData.StringType, False)
+ComparisonStatisticsInput.addSub(KindInput)
+class CSCompareInput(InputData.ParameterInput):
+  """
+    class for reading in the compare block in comparison statistics
+  """
+
+CSCompareInput.createClass("compare", False)
+CSDataInput = InputData.parameterInputFactory("data", contentType=InputData.StringType)
+CSCompareInput.addSub(CSDataInput)
+CSReferenceInput = InputData.parameterInputFactory("reference")
+CSReferenceInput.addParam("name", InputData.StringType, True)
+CSCompareInput.addSub(CSReferenceInput)
+ComparisonStatisticsInput.addSub(CSCompareInput)
+FZInput = InputData.parameterInputFactory("fz", contentType=InputData.StringType) #bool
+ComparisonStatisticsInput.addSub(FZInput)
+CSInterpolationEnumType = InputData.makeEnumType("csinterpolation","csinterpolationType",["linear","quadratic"])
+CSInterpolationInput = InputData.parameterInputFactory("interpolation",contentType=CSInterpolationEnumType)
+ComparisonStatisticsInput.addSub(CSInterpolationInput)
+
 #
 class ComparisonStatistics(BasePostProcessor):
   """
@@ -645,33 +745,35 @@ class ComparisonStatistics(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    for outer in xmlNode:
-      if outer.tag == 'compare':
+    paramInput = ComparisonStatisticsInput()
+    paramInput.parseNode(xmlNode)
+    for outer in paramInput.subparts:
+      if outer.getName() == 'compare':
         compareGroup = ComparisonStatistics.CompareGroup()
-        for child in outer:
-          if child.tag == 'data':
-            dataName = child.text
+        for child in outer.subparts:
+          if child.getName() == 'data':
+            dataName = child.value
             splitName = dataName.split("|")
             name, kind = splitName[:2]
             rest = splitName[2:]
             compareGroup.dataPulls.append([name, kind, rest])
-          elif child.tag == 'reference':
+          elif child.getName() == 'reference':
             # This has name=distribution
-            compareGroup.referenceData = dict(child.attrib)
+            compareGroup.referenceData = dict(child.parameterValues)
             if "name" not in compareGroup.referenceData:
               self.raiseAnError(IOError, 'Did not find name in reference block')
 
         self.compareGroups.append(compareGroup)
-      if outer.tag == 'kind':
-        self.methodInfo['kind'] = outer.text
-        if 'numBins' in outer.attrib:
-          self.methodInfo['numBins'] = int(outer.attrib['numBins'])
-        if 'binMethod' in outer.attrib:
-          self.methodInfo['binMethod'] = outer.attrib['binMethod'].lower()
-      if outer.tag == 'fz':
-        self.fZStats = (outer.text.lower() in utils.stringsThatMeanTrue())
-      if outer.tag == 'interpolation':
-        interpolation = outer.text.lower()
+      if outer.getName() == 'kind':
+        self.methodInfo['kind'] = outer.value
+        if 'numBins' in outer.parameterValues:
+          self.methodInfo['numBins'] = outer.parameterValues['numBins']
+        if 'binMethod' in outer.parameterValues:
+          self.methodInfo['binMethod'] = outer.parameterValues['binMethod'].lower()
+      if outer.getName() == 'fz':
+        self.fZStats = (outer.value.lower() in utils.stringsThatMeanTrue())
+      if outer.getName() == 'interpolation':
+        interpolation = outer.value.lower()
         if interpolation == 'linear':
           self.interpolation = 'linear'
         elif interpolation == 'quadratic':
@@ -697,7 +799,8 @@ class ComparisonStatistics(BasePostProcessor):
       @ Out, dataDict, dict, Dictionary containing the inputs
     """
     dataDict = {}
-    for aInput in input: dataDict[aInput.name] = aInput
+    for aInput in input:
+      dataDict[aInput.name] = aInput
     return dataDict
 
   def collectOutput(self, finishedJob, output):
@@ -1029,7 +1132,6 @@ class InterfacedPostProcessor(BasePostProcessor):
         output.updateMetadata(key,exportDict['metadata'][0][key])
 
 
-
   def inputToInternal(self,input):
     """
       Function to convert the received input into a format this object can
@@ -1054,6 +1156,37 @@ class InterfacedPostProcessor(BasePostProcessor):
 
 #
 #
+#
+
+class ImportanceRankInput(InputData.ParameterInput):
+  """
+    class for reading in the ImportanceRank block
+  """
+
+ImportanceRankInput.createClass("PostProcessor", False, baseNode=ModelInput)
+WhatInput = InputData.parameterInputFactory("what", contentType=InputData.StringType)
+ImportanceRankInput.addSub(WhatInput)
+VariablesInput = InputData.parameterInputFactory("variables", contentType=InputData.StringType)
+DimensionsInput = InputData.parameterInputFactory("dimensions", contentType=InputData.StringType)
+ManifestInput = InputData.parameterInputFactory("manifest", contentType=InputData.StringType)
+ManifestInput.addSub(VariablesInput)
+ManifestInput.addSub(DimensionsInput)
+LatentInput = InputData.parameterInputFactory("latent", contentType=InputData.StringType)
+LatentInput.addSub(VariablesInput)
+LatentInput.addSub(DimensionsInput)
+FeaturesInput = InputData.parameterInputFactory("features", contentType=InputData.StringType)
+FeaturesInput.addSub(ManifestInput)
+FeaturesInput.addSub(LatentInput)
+ImportanceRankInput.addSub(FeaturesInput)
+TargetsInput = InputData.parameterInputFactory("targets", contentType=InputData.StringType)
+ImportanceRankInput.addSub(TargetsInput)
+#DimensionsInput = InputData.parameterInputFactory("dimensions", contentType=InputData.StringType)
+#ImportanceRankInput.addSub(DimensionsInput)
+MVNDistributionInput = InputData.parameterInputFactory("mvnDistribution", contentType=InputData.StringType)
+ImportanceRankInput.addSub(MVNDistributionInput)
+PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+ImportanceRankInput.addSub(PivotParameterInput)
+
 #
 class ImportanceRank(BasePostProcessor):
   """
@@ -1118,9 +1251,11 @@ class ImportanceRank(BasePostProcessor):
       @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against the available options specific to this Sampler
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == 'what':
-        what = child.text.strip()
+    paramInput = ImportanceRankInput()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
+      if child.getName() == 'what':
+        what = child.value.strip()
         if what.lower() == 'all': self.what = self.all
         else:
           requestMetric = list(var.strip() for var in what.split(','))
@@ -1136,34 +1271,34 @@ class ImportanceRank(BasePostProcessor):
             else:
               self.raiseAnError(IOError, self.printTag,'asked unknown operation', metric, '. Available',str(self.acceptedMetric))
           self.what = toCalculate
-      elif child.tag == 'targets':
-        self.targets = list(inp.strip() for inp in child.text.strip().split(','))
-      elif child.tag == 'features':
-        for subNode in child:
-          if subNode.tag == 'manifest':
-            for subSubNode in subNode:
-              if subSubNode.tag == 'variables':
-                self.manifest = list(inp.strip() for inp in subSubNode.text.strip().split(','))
+      elif child.getName() == 'targets':
+        self.targets = list(inp.strip() for inp in child.value.strip().split(','))
+      elif child.getName() == 'features':
+        for subNode in child.subparts:
+          if subNode.getName() == 'manifest':
+            for subSubNode in subNode.subparts:
+              if subSubNode.getName() == 'variables':
+                self.manifest = list(inp.strip() for inp in subSubNode.value.strip().split(','))
                 self.features.extend(self.manifest)
-              elif subSubNode.tag == 'dimensions':
-                self.manifestDim = list(int(inp.strip()) for inp in subSubNode.text.strip().split(','))
+              elif subSubNode.getName() == 'dimensions':
+                self.manifestDim = list(int(inp.strip()) for inp in subSubNode.value.strip().split(','))
               else:
-                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.tag,'in',self.printTag)
-          if subNode.tag == 'latent':
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.getName(),'in',self.printTag)
+          if subNode.getName() == 'latent':
             self.latentSen = True
-            for subSubNode in subNode:
-              if subSubNode.tag == 'variables':
-                self.latent = list(inp.strip() for inp in subSubNode.text.strip().split(','))
+            for subSubNode in subNode.subparts:
+              if subSubNode.getName() == 'variables':
+                self.latent = list(inp.strip() for inp in subSubNode.value.strip().split(','))
                 self.features.extend(self.latent)
-              elif subSubNode.tag == 'dimensions':
-                self.latentDim = list(int(inp.strip()) for inp in subSubNode.text.strip().split(','))
+              elif subSubNode.getName() == 'dimensions':
+                self.latentDim = list(int(inp.strip()) for inp in subSubNode.value.strip().split(','))
               else:
-                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.tag,'in',self.printTag)
-      elif child.tag == 'mvnDistribution':
-        self.mvnDistribution = child.text.strip()
-      elif child.tag == "pivotParameter": self.pivotParameter = child.text
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.getName(),'in',self.printTag)
+      elif child.getName() == 'mvnDistribution':
+        self.mvnDistribution = child.value.strip()
+      elif child.getName() == "pivotParameter": self.pivotParameter = child.value
       else:
-        self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.tag + '!')
+        self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.getName() + '!')
     if not self.latentDim and len(self.latent) != 0:
       self.latentDim = range(1,len(self.latent)+1)
       self.raiseAWarning('The dimensions for given latent variables: ' + str(self.latent) + ' is not provided! Default dimensions will be used: ' + str(self.latentDim) + ' in ' + self.printTag)
@@ -1600,6 +1735,25 @@ class ImportanceRank(BasePostProcessor):
 
 #
 #
+
+#class BasicStatisticsInput(InputData.ParameterInput):
+#  """
+#    Class for reading the Basic Statistics block
+#  """
+
+#BasicStatisticsInput.createClass("PostProcessor", False, baseNode=ModelInput)
+#BasicStatisticsInput.addSub(WhatInput)
+#BiasedInput = InputData.parameterInputFactory("biased", contentType=InputData.StringType) #bool
+#BasicStatisticsInput.addSub(BiasedInput)
+#ParameterInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
+#BasicStatisticsInput.addSub(ParameterInput)
+#MethodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputData.StringType)
+#BasicStatisticsInput.addSub(MethodsToRunInput)
+#FunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
+#BasicStatisticsInput.addSub(FunctionInput)
+#PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+#BasicStatisticsInput.addSub(PivotParameterInput)
+
 #
 class BasicStatistics(BasePostProcessor):
   """
@@ -1707,7 +1861,7 @@ class BasicStatistics(BasePostProcessor):
         for entry in self.toDo[vector]:
           self.allUsedParams.update(entry['targets'])
           self.allUsedParams.update(entry['features'])
-    #for backward compatability, compile the full list of parameters used in Basic Statistics calculations
+    #for backward compatibility, compile the full list of parameters used in Basic Statistics calculations
     self.parameters['targets'] = list(self.allUsedParams)
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
@@ -2558,7 +2712,7 @@ class BasicStatistics(BasePostProcessor):
       Biased unweighted covariance matrix,   weights is None, bias is 1
       Unbiased weighted covariance matrix,   weights is not None, bias is 0
       Biased weighted covariance matrix,     weights is not None, bias is 1
-      can be calcuated depending on the selection of the inputs.
+      can be calculated depending on the selection of the inputs.
       @ In,  feature, list/numpy.array, [#targets,#samples]  features' samples
       @ In,  weights, list of list/numpy.array, optional, [#targets,#samples,realizationWeights]  reliability weights, and the last one in the list is the realization weights. Default is None
       @ In,  rowVar, int, optional, If rowVar is non-zero, then each row represents a variable,
@@ -2632,6 +2786,20 @@ class BasicStatistics(BasePostProcessor):
 
 #
 #
+
+class LimitSurfaceInput(InputData.ParameterInput):
+  """
+    Class for reading limit surface block
+  """
+
+LimitSurfaceInput.createClass("PostProcessor", False, baseNode=ModelInput)
+ParametersInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
+LimitSurfaceInput.addSub(ParametersInput)
+ToleranceInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
+LimitSurfaceInput.addSub(ToleranceInput)
+SideInput = InputData.parameterInputFactory("side", contentType=InputData.StringType)
+LimitSurfaceInput.addSub(SideInput)
+
 #
 class LimitSurface(BasePostProcessor):
   """
@@ -2724,7 +2892,7 @@ class LimitSurface(BasePostProcessor):
     self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
-      self.ROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':self.externalFunction.name})
+      self.ROM = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':[self.externalFunction.name]})
     else: self.ROM = self.assemblerDict['ROM'][0][3]
     self.ROM.reset()
     self.indexes = -1
@@ -2743,7 +2911,10 @@ class LimitSurface(BasePostProcessor):
         else:                self.paramType[param] = 'outputs'
     if self.bounds == None:
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
-      for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding'))
+      for key in self.parameters['targets']:
+        self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding'))
+        if utils.compare(round(self.bounds["lowerBounds"][key],14),round(self.bounds["upperBounds"][key],14)):
+          self.bounds["upperBounds"][key]+= abs(self.bounds["upperBounds"][key]/1.e7)
     self.gridEntity.initialize(initDictionary={"rootName":self.name,'constructTensor':True, "computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,
                                                "dimensionNames":self.parameters['targets'], "lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],
                                                "volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
@@ -2867,9 +3038,12 @@ class LimitSurface(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
+    paramInput = LimitSurfaceInput()
+    paramInput.parseNode(xmlNode)
     initDict = {}
-    for child in xmlNode: initDict[child.tag] = child.text
-    initDict.update(xmlNode.attrib)
+    for child in paramInput.subparts:
+      initDict[child.getName()] = child.value
+    initDict.update(paramInput.parameterValues)
     self._initFromDict(initDict)
 
   def collectOutput(self, finishedJob, output):
@@ -2927,7 +3101,7 @@ class LimitSurface(BasePostProcessor):
       tempDict ={}
       for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[nodeName][:,varId]
       self.testMatrix[nodeName].shape     = (self.gridCoord[nodeName].shape[0])                       #rearrange the grid matrix such as is an array of values
-      self.testMatrix[nodeName][:]        = self.ROM.evaluate(tempDict)                               #get the prediction on the testing grid
+      self.testMatrix[nodeName][:]        = self.ROM.evaluate(tempDict)[self.externalFunction.name]   #get the prediction on the testing grid
       self.testMatrix[nodeName].shape     = self.gridEntity.returnParameter("gridShape",nodeName)     #bring back the grid structure
       self.gridCoord[nodeName].shape      = self.gridEntity.returnParameter("gridCoorShape",nodeName) #bring back the grid structure
       self.raiseADebug('LimitSurface: Prediction performed')
@@ -3015,6 +3189,20 @@ class LimitSurface(BasePostProcessor):
 #
 #
 #
+class ExternalInput(InputData.ParameterInput):
+  """
+    Class for reading in the External post processor.
+  """
+
+ExternalInput.createClass("PostProcessor", False, baseNode=ModelInput)
+EMethodInput = InputData.parameterInputFactory("method")
+ExternalInput.addSub(EMethodInput)
+EFunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
+EFunctionInput.addParam("class", InputData.StringType)
+EFunctionInput.addParam("type", InputData.StringType)
+ExternalInput.addSub(EFunctionInput)
+
+
 
 class ExternalPostProcessor(BasePostProcessor):
   """
@@ -3129,9 +3317,11 @@ class ExternalPostProcessor(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == 'method':
-        methods = child.text.split(',')
+    paramInput = ExternalInput()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
+      if child.getName() == 'method':
+        methods = child.value.split(',')
         self.methodsToRun.extend(methods)
 
   def collectOutput(self, finishedJob, output):
@@ -3324,6 +3514,34 @@ class ExternalPostProcessor(BasePostProcessor):
 #
 #
 #
+
+class TopologicalDecompositionInput(InputData.ParameterInput):
+  """
+    class for reading in the topological decomposition block
+  """
+
+TopologicalDecompositionInput.createClass("PostProcessor", False, baseNode=ModelInput)
+TDGraphInput = InputData.parameterInputFactory("graph", contentType=InputData.StringType)
+TopologicalDecompositionInput.addSub(TDGraphInput)
+TDGradientInput = InputData.parameterInputFactory("gradient", contentType=InputData.StringType)
+TopologicalDecompositionInput.addSub(TDGradientInput)
+TDBetaInput = InputData.parameterInputFactory("beta", contentType=InputData.FloatType)
+TopologicalDecompositionInput.addSub(TDBetaInput)
+TDKNNInput = InputData.parameterInputFactory("knn", contentType=InputData.IntegerType)
+TopologicalDecompositionInput.addSub(TDKNNInput)
+TDWeightedInput = InputData.parameterInputFactory("weighted", contentType=InputData.StringType) #bool
+TopologicalDecompositionInput.addSub(TDWeightedInput)
+TDPersistenceInput = InputData.parameterInputFactory("persistence", contentType=InputData.StringType)
+TopologicalDecompositionInput.addSub(TDPersistenceInput)
+TDSimplificationInput = InputData.parameterInputFactory("simplification", contentType=InputData.FloatType)
+TopologicalDecompositionInput.addSub(TDSimplificationInput)
+TDParametersInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
+TopologicalDecompositionInput.addSub(TDParametersInput)
+TDResponseInput = InputData.parameterInputFactory("response", contentType=InputData.StringType)
+TopologicalDecompositionInput.addSub(TDResponseInput)
+TDNormalizationInput = InputData.parameterInputFactory("normalization", contentType=InputData.StringType)
+TopologicalDecompositionInput.addSub(TDNormalizationInput)
+
 #
 class TopologicalDecomposition(BasePostProcessor):
   """
@@ -3405,44 +3623,46 @@ class TopologicalDecomposition(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == "graph":
-        self.graph = child.text.encode('ascii').lower()
+    paramInput = TopologicalDecompositionInput()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
+      if child.getName() == "graph":
+        self.graph = child.value.encode('ascii').lower()
         if self.graph not in self.acceptedGraphParam:
           self.raiseAnError(IOError, 'Requested unknown graph type: ',
                             self.graph, '. Available options: ',
                             self.acceptedGraphParam)
-      elif child.tag == "gradient":
-        self.gradient = child.text.encode('ascii').lower()
+      elif child.getName() == "gradient":
+        self.gradient = child.value.encode('ascii').lower()
         if self.gradient not in self.acceptedGradientParam:
           self.raiseAnError(IOError, 'Requested unknown gradient method: ',
                             self.gradient, '. Available options: ',
                             self.acceptedGradientParam)
-      elif child.tag == "beta":
-        self.beta = float(child.text)
+      elif child.getName() == "beta":
+        self.beta = child.value
         if self.beta <= 0 or self.beta > 2:
           self.raiseAnError(IOError, 'Requested invalid beta value: ',
                             self.beta, '. Allowable range: (0,2]')
-      elif child.tag == 'knn':
-        self.knn = int(child.text)
-      elif child.tag == 'simplification':
-        self.simplification = float(child.text)
-      elif child.tag == 'persistence':
-        self.persistence = child.text.encode('ascii').lower()
+      elif child.getName() == 'knn':
+        self.knn = child.value
+      elif child.getName() == 'simplification':
+        self.simplification = child.value
+      elif child.getName() == 'persistence':
+        self.persistence = child.value.encode('ascii').lower()
         if self.persistence not in self.acceptedPersistenceParam:
           self.raiseAnError(IOError, 'Requested unknown persistence method: ',
                             self.persistence, '. Available options: ',
                             self.acceptedPersistenceParam)
-      elif child.tag == 'parameters':
-        self.parameters['features'] = child.text.strip().split(',')
+      elif child.getName() == 'parameters':
+        self.parameters['features'] = child.value.strip().split(',')
         for i, parameter in enumerate(self.parameters['features']):
           self.parameters['features'][i] = self.parameters['features'][i].encode('ascii')
-      elif child.tag == 'weighted':
-        self.weighted = child.text in ['True', 'true']
-      elif child.tag == 'response':
-        self.parameters['targets'] = child.text
-      elif child.tag == 'normalization':
-        self.normalization = child.text.encode('ascii').lower()
+      elif child.getName() == 'weighted':
+        self.weighted = child.value in ['True', 'true']
+      elif child.getName() == 'response':
+        self.parameters['targets'] = child.value
+      elif child.getName() == 'normalization':
+        self.normalization = child.value.encode('ascii').lower()
         if self.normalization not in self.acceptedNormalizationParam:
           self.raiseAnError(IOError, 'Requested unknown normalization type: ',
                             self.normalization, '. Available options: ',
@@ -3523,6 +3743,15 @@ class TopologicalDecomposition(BasePostProcessor):
     else:
       self.raiseAnError(IOError,'Unknown output type:',output.type)
 
+  def userInteraction(self):
+    """
+      A placeholder for allowing user's to interact and tweak the model in-situ
+      before saving the analysis results
+      @ In, None
+      @ Out, None
+    """
+    pass
+
   def run(self, inputIn):
     """
       Function to finalize the filter => execute the filtering
@@ -3530,35 +3759,41 @@ class TopologicalDecomposition(BasePostProcessor):
       @ Out, outputDict, dict, Dictionary containing the post-processed results
     """
 
-    input = self.inputToInternal(inputIn)
+    internalInput = self.inputToInternal(inputIn)
     outputDict = {}
 
-    myDataIn = input['features']
-    myDataOut = input['targets']
-    outputData = myDataOut[self.parameters['targets'].encode('UTF-8')]
-    self.pointCount = len(outputData)
+    myDataIn = internalInput['features']
+    myDataOut = internalInput['targets']
+
+    self.outputData = myDataOut[self.parameters['targets'].encode('UTF-8')]
+    self.pointCount = len(self.outputData)
     self.dimensionCount = len(self.parameters['features'])
 
-    inputData = np.zeros((self.pointCount, self.dimensionCount))
+    self.inputData = np.zeros((self.pointCount, self.dimensionCount))
     for i, lbl in enumerate(self.parameters['features']):
-      inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
+      self.inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
 
     if self.weighted:
-      weights = inputIn[0].getMetadata('PointProbability')
+      self.weights = inputIn[0].getMetadata('PointProbability')
     else:
-      weights = None
+      self.weights = None
 
-    names = self.parameters['features'] + [self.parameters['targets']]
+    self.names = self.parameters['features'] + [self.parameters['targets']]
+
+    self.__amsc = None
+    self.userInteraction()
 
     ## Possibly load this here in case people have trouble building it, so it
     ## only errors if they try to use it?
     from AMSC_Object import AMSC_Object
 
-    self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=weights,
-                              names=names, graph=self.graph,
-                              gradient=self.gradient, knn=self.knn,
-                              beta=self.beta, normalization=self.normalization,
-                              persistence=self.persistence, debug=False)
+    if self.__amsc is None:
+      self.__amsc = AMSC_Object(X=self.inputData, Y=self.outputData,
+                                w=self.weights, names=self.names,
+                                graph=self.graph, gradient=self.gradient,
+                                knn=self.knn, beta=self.beta,
+                                normalization=self.normalization,
+                                persistence=self.persistence, debug=False)
 
     self.__amsc.Persistence(self.simplification)
     partitions = self.__amsc.Partitions()
@@ -3582,10 +3817,6 @@ class TopologicalDecomposition(BasePostProcessor):
 
     return outputDict
 
-#
-#
-#
-#
 try:
   import PySide.QtCore as qtc
   class QTopologicalDecomposition(TopologicalDecomposition,qtc.QObject):
@@ -3599,6 +3830,7 @@ try:
       """
        Constructor
        @ In, messageHandler, message handler object
+       @ Out, None
       """
 
       TopologicalDecomposition.__init__(self, messageHandler)
@@ -3609,18 +3841,18 @@ try:
 
     def _localWhatDoINeed(self):
       """
-      This method is a local mirror of the general whatDoINeed method.
-      It is implemented by the samplers that need to request special objects
-      @ In , None, None
-      @ Out, needDict, list of objects needed
+        This method is a local mirror of the general whatDoINeed method.
+        It is implemented by the samplers that need to request special objects
+        @ In , None, None
+        @ Out, needDict, list of objects needed
       """
       return {'internal':[(None,'app')]}
 
     def _localGenerateAssembler(self,initDict):
       """
-      Generates the assembler.
-      @ In, initDict, dict of init objects
-      @ Out, None
+        Generates the assembler.
+        @ In, initDict, dict of init objects
+        @ Out, None
       """
       self.app = initDict['internal']['app']
       if self.app is None:
@@ -3638,93 +3870,47 @@ try:
         if child.tag == 'interactive':
           self.interactive = True
 
-    def run(self, InputIn):
+    def userInteraction(self):
       """
-       Function to finalize the filter => execute the filtering
-       @ In, InputIn, dictionary, dictionary of data to process
-       @ Out, outputDict, dictionary, dictionary with results
+        Launches an interface allowing the user to tweak specific model
+        parameters before saving the results to the output object(s).
+        @ In, None
+        @ Out, None
       """
-      Input = self.inputToInternal(InputIn)
-      outputDict = {}
+      self.uiDone = not self.interactive
 
-      myDataIn = Input['features']
-      myDataOut = Input['targets']
-      outputData = myDataOut[self.parameters['targets'].encode('UTF-8')]
-      self.pointCount = len(outputData)
-      self.dimensionCount = len(self.parameters['features'])
-
-      inputData = np.zeros((self.pointCount, self.dimensionCount))
-      for i, lbl in enumerate(self.parameters['features']):
-        inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
-
-      if self.weighted:
-        weights = InputIn[0].getMetadata('PointProbability')
-      else:
-        weights = None
-
-      names = self.parameters['features'] + [self.parameters['targets']]
-
-      self.__amsc = None
       if self.interactive:
         ## Connect our own signal to the slot on the main thread
         self.requestUI.connect(self.app.createUI)
+
         ## Connect our own slot to listen for whenver the main thread signals a
         ## window has been closed
         self.app.windowClosed.connect(self.signalDone)
+
         ## Give this UI a unique id in case other threads are requesting UI
         ##  elements
         uiID = unicode(id(self))
-        ## Set the flag to false before requesting the UI
-        self.uiDone = False
+
         ## Send the request for a UI thread to the main application
-        self.requestUI.emit('MainWindow', uiID,
-                            {'X':inputData, 'Y':outputData, 'w':weights,
-                             'names':names, 'graph':self.graph,
-                             'gradient': self.gradient, 'knn':self.knn,
-                             'beta':self.beta, 'normalization':self.normalization,
-                             'debug':False})
+        self.requestUI.emit('TopologyWindow', uiID,
+                            {'X':self.inputData, 'Y':self.outputData,
+                             'w':self.weights, 'names':self.names,
+                             'graph':self.graph, 'gradient': self.gradient,
+                             'knn':self.knn, 'beta':self.beta,
+                             'normalization':self.normalization, 'debug':False})
+
         ## Spinlock will wait until this instance's window has been closed
         while(not self.uiDone):
           time.sleep(1)
 
-        if hasattr(self.app.UIs[uiID],'amsc'):
+        ## First check that the requested UI exists, and then if that UI has the
+        ## requested information, if not proceed as if it were not an
+        ## interactive session.
+        if uiID in self.app.UIs and hasattr(self.app.UIs[uiID],'amsc'):
           self.__amsc = self.app.UIs[uiID].amsc
           self.simplification = self.app.UIs[uiID].amsc.Persistence()
         else:
           self.__amsc = None
-
-      if self.__amsc is None:
-        ## Possibly load this here in case people have trouble building it, so it
-        ## only errors if they try to use it?
-        from AMSC_Object import AMSC_Object
-
-        self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=weights,
-                                  names=names, graph=self.graph,
-                                  gradient=self.gradient, knn=self.knn,
-                                  beta=self.beta, normalization=self.normalization,
-                                  persistence=self.persistence, debug=False)
-
-      self.__amsc.Persistence(self.simplification)
-      partitions = self.__amsc.Partitions()
-
-      outputDict['minLabel'] = np.zeros(self.pointCount)
-      outputDict['maxLabel'] = np.zeros(self.pointCount)
-      for extPair, indices in partitions.iteritems():
-        for idx in indices:
-          outputDict['minLabel'][idx] = extPair[0]
-          outputDict['maxLabel'][idx] = extPair[1]
-      outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
-      self.__amsc.BuildModels()
-      linearFits = self.__amsc.SegmentFitCoefficients()
-      linearFitnesses = self.__amsc.SegmentFitnesses()
-
-      for key in linearFits.keys():
-        coefficients = linearFits[key]
-        rSquared = linearFitnesses[key]
-        outputDict['coefficients_%d_%d' % (key[0], key[1])] = coefficients
-        outputDict['R2_%d_%d' % (key[0], key[1])] = rSquared
-
-      return outputDict
 
     def signalDone(self,uiID):
       """
@@ -3759,16 +3945,8 @@ class DataMining(BasePostProcessor):
     BasePostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
 
-    self.algorithms = []                                  ## A list of Algorithm
-                                                          ## objects that
-                                                          ## contain definitions
-                                                          ## for all the
-                                                          ## algorithms the user
-                                                          ## wants
-
     self.requiredAssObject = (True, (['PreProcessor','Metric'], ['-1','-1']))
-    self.clusterLabels = None
-    self.labelAlgorithms = []
+
     self.solutionExport = None                            ## A data object to
                                                           ## hold derived info
                                                           ## about the algorithm
@@ -3785,26 +3963,24 @@ class DataMining(BasePostProcessor):
                                                           ## to a clustering or
                                                           ## a DR algorithm
 
-    self.dataObjects = []
     self.PreProcessor = None
     self.metric = None
 
   def _localWhatDoINeed(self):
     """
-    This method is a local mirror of the general whatDoINeed method.
-    It is implemented by the samplers that need to request special objects
-    @ In , None, None
-    @ Out, dict, dictionary of objects needed
+      This method is a local mirror of the general whatDoINeed method.
+      It is implemented by the samplers that need to request special objects
+      @ In , None, None
+      @ Out, dict, dictionary of objects needed
     """
     return {'internal':[(None,'jobHandler')]}
 
   def _localGenerateAssembler(self,initDict):
     """Generates the assembler.
-    @ In, initDict, dict, init objects
-    @ Out, None
+      @ In, initDict, dict, init objects
+      @ Out, None
     """
     self.jobHandler = initDict['internal']['jobHandler']
-
 
   def inputToInternal(self, currentInp):
     """
@@ -3969,10 +4145,6 @@ class DataMining(BasePostProcessor):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
 
-    if 'Label' in self.assemblerDict:
-      for val in self.assemblerDict['Label']:
-        self.labelAlgorithms.append(val[3])
-
     if "SolutionExport" in initDict:
       self.solutionExport = initDict["SolutionExport"]
 
@@ -4044,11 +4216,10 @@ class DataMining(BasePostProcessor):
     ## the word 'Dimension' + a numeric id for dimensionality reduction
     ## algorithms
     if self.labelFeature is None:
-      if self.unSupervisedEngine.SKLtype in ['cluster','mixture']:
+      if self.unSupervisedEngine.getDataMiningType() in ['cluster','mixture']:
         self.labelFeature = self.name+'Labels'
-      elif self.unSupervisedEngine.SKLtype in ['decomposition','manifold']:
+      elif self.unSupervisedEngine.getDataMiningType() in ['decomposition','manifold']:
         self.labelFeature = self.name+'Dimension'
-
 
   def collectOutput(self, finishedJob, output):
     """
@@ -4063,16 +4234,16 @@ class DataMining(BasePostProcessor):
     if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
     dataMineDict = finishedJob.getEvaluation()[1]
-    for key in dataMineDict['output']:
+    for key in dataMineDict['outputs']:
       for param in output.getParaKeys('output'):
         if key == param:
           output.removeOutputValue(key)
       if output.type == 'PointSet':
-        for value in dataMineDict['output'][key]:
+        for value in dataMineDict['outputs'][key]:
           output.updateOutputValue(key, copy.copy(value))
       elif output.type == 'HistorySet':
         if self.PreProcessor is not None or self.metric is not None:
-          for index,value in np.ndenumerate(dataMineDict['output'][key]):
+          for index,value in np.ndenumerate(dataMineDict['outputs'][key]):
             firstHist = output._dataContainer['outputs'].keys()[0]
             firstVar  = output._dataContainer['outputs'][index[0]+1].keys()[0]
             timeLength = output._dataContainer['outputs'][index[0]+1][firstVar].size
@@ -4082,9 +4253,8 @@ class DataMining(BasePostProcessor):
           tlDict = finishedJob.getEvaluation()[1]
           historyKey = output.getOutParametersValues().keys()
           for index, keyH in enumerate(historyKey):
-            for keyL in tlDict['output'].keys():
-              output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])
-
+            for keyL in tlDict['outputs'].keys():
+              output.updateOutputValue([keyH,keyL], tlDict['outputs'][keyL][index,:])
 
   def run(self, inputIn):
     """
@@ -4104,6 +4274,15 @@ class DataMining(BasePostProcessor):
     else:
       return self.__runSciKitLearn(Input)
 
+  def userInteraction(self):
+    """
+      A placeholder for allowing user's to interact and tweak the model in-situ
+      before saving the analysis results
+      @ In, None
+      @ Out, None
+    """
+    pass
+
   def __runSciKitLearn(self, Input):
     """
       This method executes the postprocessor action. In this case it loads the
@@ -4111,45 +4290,41 @@ class DataMining(BasePostProcessor):
       @ In, Input, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-
-    outputDict = {}
     self.unSupervisedEngine.features = Input['Features']
     if not self.unSupervisedEngine.amITrained:
       self.unSupervisedEngine.train(Input['Features'], self.metric)
     self.unSupervisedEngine.confidence()
-    outputDict['output'] = {}
 
-    ## These are very different things, shouldn't each one be its own class?
-    ## Proposed hierarchy:
-    ##   - DataMining
-    ##     - Classification
-    ##       - GMM
-    ##       - Clustering
-    ##         - Biclustering
-    ##         - Hierarchical
-    ##           - Topological
-    ##     - Dimensionality Reduction
-    ##       - Manifold Learning
-    ##       - Linear projection methods
-    if 'cluster' == self.unSupervisedEngine.getDataMiningType():
-      ## Get the cluster labels and store as a new column in the output
-      #assert  'labels' in self.unSupervisedEngine.outputDict.keys()== hasattr(self.unSupervisedEngine, 'labels_')
-      if hasattr(self.unSupervisedEngine, 'labels_'):
-        self.clusterLabels = self.unSupervisedEngine.labels_
-      outputDict['output'][self.labelFeature] = self.clusterLabels
-      self.raiseAWarning('The clustering algorithm have identified the following cluster labels: ' + str(set(self.clusterLabels)))
+    self.userInteraction()
 
-      ## Get the centroids and push them to a SolutionExport data object.
-      ## Also if we have the centers, assume we have the indices to match them
-      if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
-        centers = self.unSupervisedEngine.clusterCenters_
-        ## Does skl not provide a correlation between label ids and cluster centers?
-        if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
-          indices = self.unSupervisedEngine.clusterCentersIndices_
-        else:
-          indices = list(range(len(centers)))
+    outputDict = self.unSupervisedEngine.outputDict
 
-        if self.solutionExport is not None:
+    if 'bicluster' == self.unSupervisedEngine.getDataMiningType():
+      self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
+
+    ## Rename the algorithm output to point to the user-defined label feature
+    if 'labels' in outputDict['outputs']:
+      outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop('labels')
+    elif 'embeddingVectors' in outputDict['outputs']:
+      transformedData = outputDict['outputs'].pop('embeddingVectors')
+      reducedDimensionality = transformedData.shape[1]
+
+      for i in range(reducedDimensionality):
+        newColumnName = self.labelFeature + str(i + 1)
+        outputDict['outputs'][newColumnName] =  transformedData[:, i]
+
+    if self.solutionExport is not None:
+      if 'cluster' == self.unSupervisedEngine.getDataMiningType():
+        solutionExportDict = self.unSupervisedEngine.metaDict
+        if 'clusterCenters' in solutionExportDict:
+          centers = solutionExportDict['clusterCenters']
+
+          ## Does skl not provide a correlation between label ids and cluster centers?
+          if 'clusterCentersIndices' in solutionExportDict:
+            indices = solutionExportDict['clusterCentersIndices']
+          else:
+            indices = list(range(len(centers)))
+
           if self.PreProcessor is None:
             for index,center in zip(indices,centers):
               self.solutionExport.updateInputValue(self.labelFeature,index)
@@ -4169,7 +4344,6 @@ class DataMining(BasePostProcessor):
             for index,center in zip(indices,centers):
               self.solutionExport.updateInputValue(self.labelFeature,index)
 
-            listOutputParams = self.solutionExport.getParaKeys('outputs')
             if self.solutionExport.type == 'HistorySet':
               for hist in centers.keys():
                 for key in centers[hist].keys():
@@ -4179,26 +4353,15 @@ class DataMining(BasePostProcessor):
                 if key in self.solutionExport.getParaKeys('outputs'):
                   for value in centers[key]:
                     self.solutionExport.updateOutputValue(key,value)
+      elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
+        solutionExportDict = self.unSupervisedEngine.metaDict
+        mixtureMeans = solutionExportDict['means']
+        mixtureCovars = solutionExportDict['covars']
+        ## TODO: Export Gaussian centers to SolutionExport
+        ## Get the centroids and push them to a SolutionExport data object, if
+        ## we have both, also if we have the centers, assume we have the indices
+        ## to match them.
 
-      if hasattr(self.unSupervisedEngine, 'inertia_'):
-        inertia = self.unSupervisedEngine.inertia_
-
-    elif 'bicluster' == self.unSupervisedEngine.getDataMiningType():
-      self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
-    elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
-      if   hasattr(self.unSupervisedEngine, 'covars_'):
-        mixtureCovars = self.unSupervisedEngine.covars_
-
-      if hasattr(self.unSupervisedEngine, 'precs_'):
-        mixturePrecisions = self.unSupervisedEngine.precs_
-
-      mixtureValues = self.unSupervisedEngine.normValues
-      mixtureMeans = self.unSupervisedEngine.means_
-      mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
-      outputDict['output'][self.labelFeature] = mixtureLabels
-
-      if self.solutionExport is not None:
-        ## Get the means and push them to a SolutionExport data object.
         ## Does skl not provide a correlation between label ids and Gaussian
         ## centers?
         indices = list(range(len(mixtureMeans)))
@@ -4215,65 +4378,23 @@ class DataMining(BasePostProcessor):
             for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
               j = i+joffset
               self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),mixtureCovars[index][i,j])
+      elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
+        solutionExportDict = self.unSupervisedEngine.metaDict
 
-    elif 'manifold' == self.unSupervisedEngine.getDataMiningType():
-      manifoldValues = self.unSupervisedEngine.normValues
-
-      if hasattr(self.unSupervisedEngine, 'embeddingVectors_'):
-        embeddingVectors = self.unSupervisedEngine.embeddingVectors_
-      elif hasattr(self.unSupervisedEngine.Method, 'transform'):
-        embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
-      elif hasattr(self.unSupervisedEngine.Method, 'fit_transform'):
-        embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
-
-      if hasattr(self.unSupervisedEngine, 'reconstructionError_'):
-        reconstructionError = self.unSupervisedEngine.reconstructionError_
-
-      ## information stored on a per point basis, so no need to use a solution
-      ## export. Manifold methods do not give us a global transformation
-      ## matrix.
-      for i in range(len(embeddingVectors[0, :])):
-        newColumnName = self.labelFeature + str(i + 1)
-        outputDict['output'][newColumnName] =  embeddingVectors[:, i]
-
-    elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
-      decompositionValues = self.unSupervisedEngine.normValues
-
-      if hasattr(self.unSupervisedEngine, 'noComponents_'):
-        noComponents = self.unSupervisedEngine.noComponents_
-
-      if hasattr(self.unSupervisedEngine, 'components_'):
-        components = self.unSupervisedEngine.components_
-
-      if hasattr(self.unSupervisedEngine, 'explainedVarianceRatio_'):
-        explainedVarianceRatio = self.unSupervisedEngine.explainedVarianceRatio_
-
-      ## SCORE method does not work for SciKit Learn 0.14
-      # if hasattr(self.unSupervisedEngine.Method, 'score'):
-      #   score = self.unSupervisedEngine.Method.score(decompositionValues)
-      if   'transform'     in dir(self.unSupervisedEngine.Method):
-        transformedData = self.unSupervisedEngine.Method.transform(decompositionValues)
-      elif 'fit_transform' in dir(self.unSupervisedEngine.Method):
-        transformedData = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
-
-      ## information stored on a per point basis
-      for i in range(noComponents):
-        newColumnName = self.labelFeature + str(i + 1)
-        outputDict['output'][newColumnName] =  transformedData[:, i]
-
-      if self.solutionExport is not None:
         ## Get the transformation matrix and push it to a SolutionExport
         ## data object.
         ## Can I be sure of the order of dimensions in the features dict, is
         ## the same order as the data held in the UnSupervisedLearning object?
-        for row,values in enumerate(components):
-          self.solutionExport.updateInputValue(self.labelFeature, row+1)
-          for col,value in zip(self.unSupervisedEngine.features.keys(),values):
-            self.solutionExport.updateOutputValue(col,value)
+        if 'components' in solutionExportDict:
+          components = solutionExportDict['components']
+          for row,values in enumerate(components):
+            self.solutionExport.updateInputValue(self.labelFeature, row+1)
+            for col,value in zip(self.unSupervisedEngine.features.keys(),values):
+              self.solutionExport.updateOutputValue(col,value)
 
-          self.solutionExport.updateOutputValue('ExplainedVarianceRatio',explainedVarianceRatio[row])
+            if 'explainedVarianceRatio' in solutionExportDict:
+              self.solutionExport.updateOutputValue('ExplainedVarianceRatio',solutionExportDict['explainedVarianceRatio'][row])
     return outputDict
-
 
   def __runTemporalSciKitLearn(self, Input):
     """
@@ -4282,32 +4403,59 @@ class DataMining(BasePostProcessor):
       @ In, Input, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-
-    outputDict = {}
     self.unSupervisedEngine.features = Input['Features']
     self.unSupervisedEngine.pivotVariable = self.pivotVariable
 
     if not self.unSupervisedEngine.amITrained:
       self.unSupervisedEngine.train(Input['Features'])
     self.unSupervisedEngine.confidence()
-    outputDict['output'] = {}
+
+    self.userInteraction()
+
+    outputDict = self.unSupervisedEngine.outputDict
+
     numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
     numberOfSample = self.unSupervisedEngine.numberOfSample
 
-    if 'cluster' == self.unSupervisedEngine.getDataMiningType():
-      if 'labels' in self.unSupervisedEngine.outputDict.keys():
-        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-        for t in range(numberOfHistoryStep):
-          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
-        outputDict['output'][self.labelFeature] = labels
+    if 'bicluster' == self.unSupervisedEngine.getDataMiningType():
+      self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
 
+    ## Rename the algorithm output to point to the user-defined label feature
+    # if 'labels' in outputDict:
+    #   outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop('labels')
+    # elif 'embeddingVectors' in outputDict['outputs']:
+    #   transformedData = outputDict['outputs'].pop('embeddingVectors')
+    #   reducedDimensionality = transformedData.shape[1]
+
+    #   for i in range(reducedDimensionality):
+    #     newColumnName = self.labelFeature + str(i + 1)
+    #     outputDict['outputs'][newColumnName] =  transformedData[:, i]
+
+    if 'labels' in self.unSupervisedEngine.outputDict['outputs'].keys():
+      labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+      for t in range(numberOfHistoryStep):
+        labels[:,t] = self.unSupervisedEngine.outputDict['outputs']['labels'][t]
+      outputDict['outputs'][self.labelFeature] = labels
+    elif 'embeddingVectors' in outputDict['outputs']:
+      transformedData = outputDict['outputs'].pop('embeddingVectors')
+      reducedDimensionality = transformedData.values()[0].shape[1]
+
+      for i in range(reducedDimensionality):
+        dimensionI = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        newColumnName = self.labelFeature + str(i + 1)
+
+        for t in range(numberOfHistoryStep):
+          dimensionI[:, t] =  transformedData[t][:, i]
+        outputDict['outputs'][newColumnName] = dimensionI
+
+    if 'cluster' == self.unSupervisedEngine.getDataMiningType():
       ## SKL will always enumerate cluster centers starting from zero, if this
       ## is violated, then the indexing below will break.
-      if 'clusterCentersIndices' in self.unSupervisedEngine.outputDict.keys():
-        clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']
+      if 'clusterCentersIndices' in self.unSupervisedEngine.metaDict.keys():
+        clusterCentersIndices = self.unSupervisedEngine.metaDict['clusterCentersIndices']
 
-      if 'clusterCenters' in self.unSupervisedEngine.outputDict.keys():
-        clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
+      if 'clusterCenters' in self.unSupervisedEngine.metaDict.keys():
+        clusterCenters = self.unSupervisedEngine.metaDict['clusterCenters']
         # Output cluster centroid to solutionExport
         if self.solutionExport is not None:
           ## We will process each cluster in turn
@@ -4333,7 +4481,7 @@ class DataMining(BasePostProcessor):
                 ## indexes with no need to add another layer of obfuscation
                 if clusterIdx in clusterCentersIndices[timeIdx]:
                   loc = clusterCentersIndices[timeIdx].index(clusterIdx)
-                  timeSeries[timeIdx] = self.unSupervisedEngine.outputDict['clusterCenters'][timeIdx][loc,featureIdx]
+                  timeSeries[timeIdx] = self.unSupervisedEngine.metaDict['clusterCenters'][timeIdx][loc,featureIdx]
                 else:
                   timeSeries[timeIdx] = np.nan
 
@@ -4350,29 +4498,23 @@ class DataMining(BasePostProcessor):
         inertia = self.unSupervisedEngine.outputDict['inertia']
 
     elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
-      if 'labels' in self.unSupervisedEngine.outputDict.keys():
-        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-        for t in range(numberOfHistoryStep):
-          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
-        outputDict['output'][self.labelFeature] = labels
-
-      if 'covars' in self.unSupervisedEngine.outputDict.keys():
-        mixtureCovars = self.unSupervisedEngine.outputDict['covars']
+      if 'covars' in self.unSupervisedEngine.metaDict.keys():
+        mixtureCovars = self.unSupervisedEngine.metaDict['covars']
       else:
         mixtureCovars = None
 
-      if 'precs' in self.unSupervisedEngine.outputDict.keys():
-        mixturePrecs = self.unSupervisedEngine.outputDict['precs']
+      if 'precs' in self.unSupervisedEngine.metaDict.keys():
+        mixturePrecs = self.unSupervisedEngine.metaDict['precs']
       else:
         mixturePrecs = None
 
-      if 'componentMeanIndices' in self.unSupervisedEngine.outputDict.keys():
-        componentMeanIndices = self.unSupervisedEngine.outputDict['componentMeanIndices']
+      if 'componentMeanIndices' in self.unSupervisedEngine.metaDict.keys():
+        componentMeanIndices = self.unSupervisedEngine.metaDict['componentMeanIndices']
       else:
         componentMeanIndices = None
 
-      if 'means' in self.unSupervisedEngine.outputDict.keys():
-        mixtureMeans = self.unSupervisedEngine.outputDict['means']
+      if 'means' in self.unSupervisedEngine.metaDict.keys():
+        mixtureMeans = self.unSupervisedEngine.metaDict['means']
       else:
         mixtureMeans = None
 
@@ -4420,87 +4562,158 @@ class DataMining(BasePostProcessor):
                   loc = componentMeanIndices[timeIdx].index(clusterIdx)
                   timeSeries[timeIdx] = mixtureCovars[timeIdx][loc][i,j]
                 self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
-
-    elif 'manifold' == self.unSupervisedEngine.getDataMiningType():
-      noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
-
-      if 'embeddingVectors_' in self.unSupervisedEngine.outputDict.keys():
-        embeddingVectors = self.unSupervisedEngine.outputDict['embeddingVectors_']
-
-      if 'reconstructionError_' in self.unSupervisedEngine.outputDict.keys():
-        reconstructionError = self.unSupervisedEngine.outputDict['reconstructionError_']
-
-      for i in range(noComponents):
-        ## Looking at the lines between the initialization of
-        ## outputDict['output'] and here, how is this ever possible? I don't
-        ## think the if is necessary here.
-        # if self.name+'EmbeddingVector' + str(i + 1) not in outputDict['output'].keys():
-        outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-
-        ## Shouldn't this only happen if embeddingVectors is set above?
-        for t in range(numberOfHistoryStep):
-          outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)][:,t] =  embeddingVectors[t][:, i]
-
     elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
-      decompositionValues = self.unSupervisedEngine.normValues
-
-      noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
-
-      if 'components' in self.unSupervisedEngine.outputDict.keys():
-        components = self.unSupervisedEngine.outputDict['components']
-      else:
-        components = None
-
-      if 'transformedData' in self.unSupervisedEngine.outputDict.keys():
-        transformedData = self.unSupervisedEngine.outputDict['transformedData']
-      else:
-        transformedData = None
-
-      if 'explainedVarianceRatio' in self.unSupervisedEngine.outputDict.keys():
-        explainedVarianceRatio = self.unSupervisedEngine.outputDict['explainedVarianceRatio']
-      else:
-        explainedVarianceRatio = None
-
-      for i in range(noComponents):
-        ## Looking at the lines between the initialization of
-        ## outputDict['output'] and here, how is this ever possible? I don't
-        ## think the if is necessary here.
-        # if self.name+'PCAComponent' + str(i + 1) not in outputDict['output'].keys():
-        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-
-
-        if transformedData is not None:
-          for t in range(numberOfHistoryStep):
-            outputDict['output'][self.name+'PCAComponent' + str(i + 1)][:,t] = transformedData[t][:, i]
-
-
-      if self.solutionExport is not None and components is not None:
+      if self.solutionExport is not None:
+        solutionExportDict = self.unSupervisedEngine.metaDict
         ## Get the transformation matrix and push it to a SolutionExport
         ## data object.
         ## Can I be sure of the order of dimensions in the features dict, is
         ## the same order as the data held in the UnSupervisedLearning object?
-        for row in range(noComponents):
-          self.solutionExport.updateInputValue('component', row+1)
-          self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
-          for i,col in enumerate(self.unSupervisedEngine.features.keys()):
-            timeSeries = np.zeros(numberOfHistoryStep)
-            for timeIdx in range(numberOfHistoryStep):
-              timeSeries[timeIdx] = components[timeIdx][row][i]
-            self.solutionExport.updateOutputValue(col,timeSeries)
-          if explainedVarianceRatio is not None:
-            timeSeries = np.zeros(numberOfHistoryStep)
-            for timeIdx in range(numberOfHistoryStep):
-              timeSeries[timeIdx] = explainedVarianceRatio[timeIdx][row]
-            self.solutionExport.updateOutputValue('ExplainedVarianceRatio',timeSeries)
+        if 'components' in solutionExportDict:
+          components = solutionExportDict['components']
 
-    else:
-      self.raiseAnError(IOError,'%s has not yet implemented.' % self.unSupervisedEngine.getDataMiningType())
+          ## Note, this implies some data exists (Really this information should
+          ## be stored in a dictionary to begin with)
+          numComponents,numDimensions = components[0].shape
+
+          componentsArray = np.zeros((numberOfHistoryStep,numComponents, numDimensions))
+          evrArray = np.zeros((numberOfHistoryStep,numComponents))
+
+          for timeIdx in range(numberOfHistoryStep):
+            for componentIdx,values in enumerate(components[timeIdx]):
+              componentsArray[timeIdx,componentIdx,:] = values
+              evrArray[timeIdx,componentIdx] = solutionExportDict['explainedVarianceRatio'][timeIdx][componentIdx]
+
+          for componentIdx in range(numComponents):
+            ## First store the dimension name as the input for this component
+            self.solutionExport.updateInputValue(self.labelFeature, componentIdx+1)
+
+            ## The time series will be the first output
+            ## TODO: Ensure user requests this
+            self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+
+            ## Now we will process each feature available
+            ## TODO: Ensure user requests each of these
+            for dimIdx,dimName in enumerate(self.unSupervisedEngine.features.keys()):
+              values = componentsArray[:,componentIdx,dimIdx]
+              self.solutionExport.updateOutputValue(dimName,values)
+
+            if 'explainedVarianceRatio' in solutionExportDict:
+              self.solutionExport.updateOutputValue('ExplainedVarianceRatio',evrArray[:,componentIdx])
 
     return outputDict
-#
-#
-#
-#
+
+try:
+  import PySide.QtCore as qtc
+
+  class QDataMining(DataMining,qtc.QObject):
+    """
+      DataMining class - Computes a hierarchical clustering from an input point
+      cloud consisting of an arbitrary number of input parameters
+    """
+    requestUI = qtc.Signal(str,str,dict)
+    def __init__(self, messageHandler):
+      """
+       Constructor
+       @ In, messageHandler, message handler object
+       @ Out, None
+      """
+      DataMining.__init__(self, messageHandler)
+      qtc.QObject.__init__(self)
+      self.interactive = False
+
+    def _localReadMoreXML(self, xmlNode):
+      """
+        Function to grab the names of the methods this post-processor will be
+        using
+        @ In, xmlNode    : Xml element node
+        @ Out, None
+      """
+      DataMining._localReadMoreXML(self, xmlNode)
+      for child in xmlNode:
+        for grandchild in child:
+          if grandchild.tag == 'interactive':
+            self.interactive = True
+
+    def _localWhatDoINeed(self):
+      """
+        This method is a local mirror of the general whatDoINeed method.
+        It is implemented by the samplers that need to request special objects
+        @ In , None, None
+        @ Out, needDict, list of objects needed
+      """
+      needDict = DataMining._localWhatDoINeed(self)
+      needDict['internal'].append((None,'app'))
+      return needDict
+
+    def _localGenerateAssembler(self,initDict):
+      """
+        Generates the assembler.
+        @ In, initDict, dict of init objects
+        @ Out, None
+      """
+      DataMining._localGenerateAssembler(self, initDict)
+      self.app = initDict['internal']['app']
+      if self.app is None:
+        self.interactive = False
+
+    def userInteraction(self):
+      """
+        Launches an interface allowing the user to tweak specific model
+        parameters before saving the results to the output object(s).
+        @ In, None
+        @ Out, None
+      """
+
+      ## If it has not been requested, then we are not waiting for a UI,
+      ## otherwise the UI has been requested, and we are going to need to wait
+      ## for it.
+      self.uiDone = not self.interactive
+
+      if self.interactive:
+
+        ## Connect our own signal to the slot on the main thread
+        self.requestUI.connect(self.app.createUI)
+
+        ## Connect our own slot to listen for whenver the main thread signals a
+        ## window has been closed
+        self.app.windowClosed.connect(self.signalDone)
+
+        ## Give this UI a unique id in case other threads are requesting UI
+        ##  elements
+        uiID = unicode(id(self))
+
+        ## Send the request for a UI thread to the main application
+        self.requestUI.emit('HierarchyWindow', uiID,
+                            {'views': ['DendrogramView','ScatterView'],
+                             'debug': False,
+                             'engine': self.unSupervisedEngine})
+
+        ## Spinlock will wait until this instance's window has been closed
+        while(not self.uiDone):
+          time.sleep(1)
+
+        ## First check that the requested UI exists, and then if that UI has the
+        ## requested information, if not proceed as if it were not an
+        ## interactive session.
+        if uiID in self.app.UIs and hasattr(self.app.UIs[uiID],'level') and self.app.UIs[uiID].level is not None:
+          self.initializationOptionDict['KDD']['level'] = self.app.UIs[uiID].level
+
+    def signalDone(self,uiID):
+      """
+        In Qt language, this is a slot that will accept a signal from the UI
+        saying that it has completed, thus allowing the computation to begin
+        again with information updated by the user in the UI.
+        @In, uiID, string, the ID of the user interface that signaled its
+            completion. Thus, if several UI windows are open, we don't proceed,
+            until the correct one has signaled it is done.
+        @Out, None
+      """
+      if uiID == unicode(id(self)):
+        self.uiDone = True
+except ImportError as e:
+  pass
+
 class RavenOutput(BasePostProcessor):
   """
     This postprocessor collects the outputs of RAVEN runs (XML format) and turns entries into a PointSet
@@ -4660,8 +4873,10 @@ class RavenOutput(BasePostProcessor):
     realizations = finishedJob.getEvaluation()[1]['realizations']
     for real in realizations:
       for key in output.getParaKeys('inputs'):
+        if key not in real['inputs'].keys(): self.raiseAnError(RuntimeError, 'Requested input variable '+key+' has not been extracted. Check the consistency of your input')
         output.updateInputValue(key,real['inputs'][key])
       for key in output.getParaKeys('outputs'):
+        if key not in real['outputs'].keys(): self.raiseAnError(RuntimeError, 'Requested output variable '+key+' has not been extracted. Check the consistency of your input')
         output.updateOutputValue(key,real['outputs'][key])
       for key,val in real['metadata'].items():
         output.updateMetadata(key,val)
@@ -4701,7 +4916,12 @@ try:
   __interFaceDict['TopologicalDecomposition' ] = QTopologicalDecomposition
 except NameError:
   __interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
-__interFaceDict['DataMining'               ] = DataMining
+
+try:
+  __interFaceDict['DataMining'               ] = QDataMining
+except NameError:
+  __interFaceDict['DataMining'               ] = DataMining
+
 __interFaceDict['ImportanceRank'           ] = ImportanceRank
 __interFaceDict['RavenOutput'              ] = RavenOutput
 __knownTypes = __interFaceDict.keys()

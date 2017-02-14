@@ -1,0 +1,153 @@
+PLOTFIL 79 
+FAIL
+PPS
+PSGGEN(1)
+ZWDC2SG(1)
+WWBBN(1)
+WWTOTFW(1)
+TIM100
+TIM101
+IEVNT(691)
+IEVNT(224)
+ABBN(1)
+ABBN(2)
+ABBN(3)
+TIMELOCA
+AFWOFF
+PSGRV
+REFH3DEG
+ASGSTAB19BAR
+ZWCL1SG(1)
+MW1SG(1)  
+VW1SG(1)  
+ZWDC2SG(1) 
+MW2SG(1)
+VW2SG(1)
+ISTUCK(1)         
+ISTUCK(2)       
+ISTUCK(3)         
+MACUM             
+MCMTB(1)      
+MCMTPS      
+MCR        
+MH2CBT         
+MH2CR        
+MH2TOTBR       
+MH2TTT           
+MLTCR          
+MRWST       
+MSTPS1
+MWCST
+MWPST1      
+MWRB(11)       
+NCOM13      
+NFH2MOY        
+NFH2RB(1)  
+NFH2RB(10)     
+NFH2RB(11)    
+NFH2RB(13)   
+NFSTMOY       
+NFSTRB(1)      
+NFSTRB(10)       
+NFSTRB(11)
+NFSTRB(13)    
+NINE13         
+PPS             
+PRB(13)         
+PSGGEN(2)       
+TCLADMAX   
+TCRHOT        
+TGPZ             
+TGRB(13)    
+TRIC         
+TSUR          
+TWPZ             
+TWRB(11)      
+WBBB           
+WBRKPS         
+WCMVP            
+WGRV        
+WHPIXX       
+WLPI1X          
+WLPI2X       
+WSTRV         
+WWRV      
+WWSPUC    
+XCNDB(1)    
+ZWDC2SG(1)    
+ZWRCSN(9)        
+ZWRB(6)         
+ZWRWST           
+ZWDC2SG(2)        
+ZWV             
+END
+
+PLOTFILE 13
+  PPS        
+  PSGGEN(1)  
+  PSGGEN(2) 
+  TCRHOT    
+  TCLADMAX   
+  TRIC      
+  TWPZ      
+  TGPZ      
+  TSUR      
+  MWPST1    
+  ZWRCSN(9) 
+  ZWV       
+  FOXGAI   
+  MH2CR     
+  WACUM      
+  WHPIXX    
+  WLPI1X   
+  WWRV       
+  WGRV    
+  WWSPUC   
+  TWRB(11)  
+  ZWRWST    
+  ZWDC2SG(1) 
+  ZWDC2SG(2) 
+  TPHSF(6)   
+  TPHSF(14)  
+  TGRB(13)    
+  PRB(13)   
+  NFO2RB(13) 
+  NINE13   
+  NCOM13   
+  MH2TOTBR  
+  NFSTRB(13)  
+  NFSTMOY  
+  NFH2RB(13)  
+  NFH2MOY        
+  NFH2RB(1)
+  NFH2RB(2) 
+  NFH2RB(3) 
+  NFH2RB(4)  
+  NFH2RB(5)  
+  NFH2RB(6) 
+  NFH2RB(7)  
+  NFH2RB(8)  
+  NFH2RB(9)  
+  NFH2RB(10)   
+  NFH2RB(11)   
+  NFH2RB(12) 
+  NFSTRB(1)  
+  NFSTRB(10) 
+  NFSTRB(13)  
+  MCR      
+  MLTCR     
+  MCMTPS 
+  MCMTB(1)   
+  MWRB(6)   
+  XCNDB(1)  
+  MH2TTT     
+  MH2CBT    
+  MWCST     
+  FCRPSR    
+  NFH2MOY    
+  MH2TOTBR  
+  WLOOP(1)  
+  WLOOP(2)  
+  WLOOP(3)  
+END
+

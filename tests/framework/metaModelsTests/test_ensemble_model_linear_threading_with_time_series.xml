@@ -1,0 +1,221 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/metaModelsTests.testEnsembleModelLinearThreadWithTimeSeries</name>
+    <author>alfoa</author>
+    <created>2016-08-02</created>
+    <classesTested>Models.EnsembleModel, Models.ExternalModel, JobHandler.Thread</classesTested>
+    <description>
+       Example of usage of the Ensemble Model capability in RAVEN, connecting multiple External Models.
+       This test is aimed to check the functionality of assembling multiple Models, when they result in a single chain
+       of Models (linear system) and they need to transfer ``time series'' type of data (vectors). 
+       This test checks the functionality of the model using a multi threading parallelization scheme.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-11-29">Added test for time series</revision>
+      <revision author="alfoa" date="2016-12-01">Fixed order of objects in test inputs in order to respect the XSD schema</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>metaModelLinearThreadWithTimeSeries</WorkingDir>
+    <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Uniform name="leftTemperatureDist">
+      <lowerBound>500</lowerBound>
+      <upperBound>1700</upperBound>
+    </Uniform>
+    <Uniform name="rightTemperatureDist">
+      <lowerBound>500</lowerBound>
+      <upperBound>1700</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="EM1linearForTimeSeries" name="heatTransfer" subType="">
+      <variables>leftTemperature,rightTemperature,k,solution,timeFromFirstModel</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="EM2linearForTimeSeries" name="thermalConductivityComputation" subType="">
+      <variables>leftTemperature,rightTemperature,k,averageTemperature,timeFromFirstModel</variables>
+    </ExternalModel>
+    <EnsembleModel name="heatTransferEnsembleModel" subType="">
+      <Model class="Models" type="ExternalModel">
+         thermalConductivityComputation
+        <Input            class="DataObjects" type="PointSet">inputHolder</Input>
+        <TargetEvaluation class="DataObjects" type="HistorySet">thermalConductivityComputationContainer</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="ExternalModel">
+          heatTransfer
+        <Input            class="DataObjects" type="PointSet">inputHolder</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <Samplers>
+    <Grid name="MonteCarloTemperature">
+      <variable name="leftTemperature">
+        <distribution>leftTemperatureDist</distribution>
+        <grid construction="equal" steps="7" type="value">500 600</grid>
+      </variable>
+      <variable name="rightTemperature">
+        <distribution>rightTemperatureDist</distribution>
+        <grid construction="equal" steps="7" type="value">500 600</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+  <Databases>
+      <HDF5 name="testOutputDatabase" readMode="overwrite"/>
+  </Databases>
+  <Steps>
+    <MultiRun name="testMetamodelHeatTransfer">
+      <Input class="DataObjects"  type="PointSet">inputHolder</Input>
+      <Model class="Models"       type="EnsembleModel">heatTransferEnsembleModel</Model>
+      <Sampler class="Samplers"   type="Grid">MonteCarloTemperature</Sampler>
+      <Output class="DataObjects" type="PointSet">metaModelOutputTestPointSet</Output>
+      <Output class="DataObjects" type="PointSet">metaModelOutputTestHistorySet</Output>
+      <Output class="Databases"   type="HDF5">testOutputDatabase</Output>
+    </MultiRun>
+    <IOStep name="dumpResults" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">heatTransferContainer</Input>
+      <Input class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Input>
+      <Input class="DataObjects" type="PointSet">metaModelOutputTestPointSet</Input>
+      <Input class="DataObjects" type="HistorySet">metaModelOutputTestHistorySet</Input>
+      <Output class="OutStreams" type="Print">thermalConductivityComputationContainerDump</Output>
+      <Output class="OutStreams" type="Print">heatTransferContainerDump</Output>
+      <Output class="OutStreams" type="Plot">metaModelOutputTestPointSetSolution</Output>
+      <Output class="OutStreams" type="Plot">metaModelOutputTestPointSetK</Output>
+      <Output class="OutStreams" type="Plot">metaModelOutputTestHistorySetk</Output>
+      <Output class="OutStreams"  type="Print">metaModelOutputTestPointSetDump</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="thermalConductivityComputationContainerDump">
+      <type>csv</type>
+      <source>thermalConductivityComputationContainer</source>
+    </Print>
+    <Print name="heatTransferContainerDump">
+      <type>csv</type>
+      <source>heatTransferContainer</source>
+    </Print>
+    <Print name="metaModelOutputTestPointSetDump">
+      <type>csv</type>
+      <source>metaModelOutputTestPointSet</source>
+    </Print>
+    <Print name="metaModelOutputTestHistorySetDump">
+        <type>csv</type>
+        <source>metaModelOutputTestHistorySet</source>
+    </Print>
+    <Plot name="metaModelOutputTestHistorySetk" overwrite="false" verbosity="debug">
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>metaModelOutputTestHistorySet|Input|k</x>
+                <y>metaModelOutputTestHistorySet|Input|timeFromFirstModel</y>
+            </plot>
+            <xlabel>thermal conductivity</xlabel>
+            <ylabel>time (s)</ylabel>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+            <figureProperties>
+                <frameon>true</frameon>
+            </figureProperties>
+            <labelFormat>
+                <style>sci</style>
+            </labelFormat>
+            <grid>
+                <b>true</b>
+            </grid>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
+    </Plot>
+    <Plot name="metaModelOutputTestPointSetSolution" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>metaModelOutputTestPointSet|Input|leftTemperature</x>
+          <y>metaModelOutputTestPointSet|Input|rightTemperature</y>
+          <z>metaModelOutputTestPointSet|Output|solution</z>
+        </plot>
+        <xlabel>left Temperature (K)</xlabel>
+        <ylabel>right Temperature (K)</ylabel>
+        <zlabel>Temperature(K)</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <figureProperties>
+          <frameon>true</frameon>
+        </figureProperties>
+        <labelFormat>
+          <style>sci</style>
+        </labelFormat>
+        <grid>
+          <b>true</b>
+        </grid>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
+    </Plot>
+    <Plot name="metaModelOutputTestPointSetK" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>metaModelOutputTestPointSet|Input|leftTemperature</x>
+          <y>metaModelOutputTestPointSet|Input|rightTemperature</y>
+          <z>metaModelOutputTestPointSet|Output|k</z>
+        </plot>
+        <xlabel>left Temperature (K)</xlabel>
+        <ylabel>right Temperature (K)</ylabel>
+        <zlabel>k (W m-1 K)</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <figureProperties>
+          <frameon>true</frameon>
+        </figureProperties>
+        <labelFormat>
+          <style>sci</style>
+        </labelFormat>
+        <grid>
+          <b>true</b>
+        </grid>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="heatTransferContainer">
+      <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
+      <Output>solution</Output>
+    </PointSet>
+    <PointSet name="metaModelOutputTestPointSet">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>k,solution</Output>
+    </PointSet>
+    <PointSet name="metaModelOutputTestHistorySet">
+        <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
+        <Output>solution</Output>
+    </PointSet>
+    <HistorySet name="thermalConductivityComputationContainer">
+        <Input>leftTemperature,rightTemperature</Input>
+        <Output>k,timeFromFirstModel</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

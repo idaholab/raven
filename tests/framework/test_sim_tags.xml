@@ -1,5 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation color="true" printTimeStamps="false" verbosity="debug">
+  <TestInfo>
+    <name>framework.SimulationTags</name>
+    <author>talbpaul</author>
+    <created>2016-02-18</created>
+    <classesTested>Simulation</classesTested>
+    <description>
+       This test is aimed to check the functionality of the options that can be defined in the Simulation block (attributes), such as
+       ``color'', ``printTimeStamps'' and ``verbosity''.
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>SimulationTags</WorkingDir>
     <Sequence>sample</Sequence>

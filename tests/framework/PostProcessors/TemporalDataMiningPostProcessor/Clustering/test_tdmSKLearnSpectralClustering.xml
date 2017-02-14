@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/TemporalDataMiningPostProcessor/Clustering/SpectralClustering</name>
+    <author>chenj</author>
+    <created>2016-02-26</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with SpectralClustering with pivot parameter.
+    </description>
+  </TestInfo>
 
   <RunInfo>
     <WorkingDir>SpectralClustering</WorkingDir>
@@ -17,6 +26,7 @@
         <SKLtype>cluster|SpectralClustering</SKLtype>
         <Features>x1,x2</Features>
         <n_clusters>2</n_clusters>
+        <random_state>0</random_state>
       </KDD>
       <pivotParameter>Time</pivotParameter>
     </PostProcessor>

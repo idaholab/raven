@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/InterfacedPostProcessor/hs_sync_max</name>
+    <author>talbpaul</author>
+    <created>2016-04-14</created>
+    <classesTested>InterfacedPostProcessor</classesTested>
+    <description>
+      Tests of the HistorySetSync interfaced post-processor and in particular the MAX syncMethod
+    </description>
+  </TestInfo>
+  
   <RunInfo>
     <WorkingDir>hs_sync_max</WorkingDir>
     <Sequence>make,sync,train,print</Sequence>
@@ -75,6 +85,7 @@
     </PostProcessor>
     <ROM name="rom" subType="HDMRRom">
       <SobolOrder>1</SobolOrder>
+      <pivotParameter>t</pivotParameter>
       <Target>a,b,t</Target>
       <Features>x,y</Features>
       <IndexSet>TotalDegree</IndexSet>

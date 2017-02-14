@@ -1,5 +1,24 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="all">
+  <TestInfo>
+    <name>framework/Optimizers/GradientBasedOptimizers.SPSA</name>
+    <author>chenj</author>
+    <created>2016-06-27</created>
+    <classesTested>Optimizers.SPSA</classesTested>
+    <description>
+       Example of usage of the GradientBased Optimizer of type SPSA within the RAVEN framework in a unconstrained problem.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-09-01">Close #650</revision>
+      <revision author="alfoa" date="2016-09-01">Close #674</revision>
+      <revision author="talbpaul" date="2016-09-15">Test updates</revision>
+      <revision author="alfoa" date="2016-10-20">Modified XSD and removed dim attribute from all the tests</revision>
+      <revision author="chenj" date="2016-10-31">solutionexport as historyset and regold one test</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-02-09">Modified in order to add new tolerance parameters</revision>
+    </revisions>
+    <requirements>R-RM-1</requirements>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>SPSA</WorkingDir>
     <Sequence>optimization,optimizationdump</Sequence>
@@ -10,14 +29,12 @@
     <MultiRun name="optimization" pauseAtEnd="true">
       <Input class="DataObjects" type="PointSet">optInput</Input>
       <Model class="Models" type="ExternalModel">optObjModel</Model>
-      <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>
-      <SolutionExport class="DataObjects" type="PointSet">optData</SolutionExport>
+      <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>	  
+      <SolutionExport class="DataObjects" type="HistorySet">optData</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOutput</Output>
-      <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
-      <Output class="OutStreams" type="Print">mdlDataDump</Output>
     </MultiRun>
     <IOStep name="optimizationdump" pauseAtEnd="true">
-      <Input class="DataObjects" type="PointSet">optData</Input>
+      <Input class="DataObjects" type="HistorySet">optData</Input>
       <Input class="DataObjects" type="PointSet">optOutput</Input>
       <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
       <Output class="OutStreams" type="Print">mdlDataDump</Output>
@@ -35,33 +52,35 @@
       <Input>x1,x2</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="optData">
-      <Input>x1,x2,varsUpdate</Input>
-      <Output>c</Output>
-    </PointSet>
+    <HistorySet name="optData">
+      <Input>trajID</Input>
+      <Output>c,x1,x2,varsUpdate</Output>
+    </HistorySet>
   </DataObjects>
 
   <Optimizers>
     <SPSA name="opt_smp">
       <initialization>
-        <limit>300</limit>
+        <limit>5000</limit>
         <type>min</type>
         <initialSeed>30</initialSeed>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
-      <convergence>
-        <iterationLimit>50</iterationLimit>
-        <threshold>1e-3</threshold>
-      </convergence>
-      <variable name="x1">
-        <upperBound>100</upperBound>
-        <lowerBound>-100</lowerBound>
-        <initial>0</initial>
+	  <convergence>
+		<iterationLimit>1000</iterationLimit>
+        <relativeThreshold>1e-5</relativeThreshold>
+        <absoluteThreshold>1e-7</absoluteThreshold>
+        <gradientThreshold>1e-6</gradientThreshold>
+	  </convergence>
+	  <variable name="x1">
+        <upperBound>1</upperBound>
+		<lowerBound>0</lowerBound>
+		<initial>0.1</initial>
       </variable>
-      <variable name="x2">
-        <upperBound>100</upperBound>
-        <lowerBound>-100</lowerBound>
-        <initial>0</initial>
+	  <variable name="x2">
+        <upperBound>1</upperBound>
+		<lowerBound>0</lowerBound>
+		<initial>0.1</initial>
       </variable>
       <objectVar>c</objectVar>
       <parameter>
@@ -93,8 +112,8 @@
         <plotSettings>
             <plot>
                 <type>scatter</type>
-                <x>optData|Input|x1</x>
-                <y>optData|Input|x2</y>
+                <x>optData|Output|x1</x>
+                <y>optData|Output|x2</y>
                 <z>optData|Output|c</z>
             </plot>
             <xlabel>x1</xlabel>
@@ -111,8 +130,8 @@
 			<gridSpace>3 1</gridSpace>
             <plot>
                 <type>line</type>
-                <x>optData|Input|varsUpdate</x>
-                <y>optData|Input|x1</y>
+                <x>optData|Output|varsUpdate</x>
+                <y>optData|Output|x1</y>
 				<interpPointsX>300</interpPointsX>
 				<gridLocation><x>0</x><y>0</y></gridLocation>	
 				<ylabel>x1</ylabel>				
@@ -120,8 +139,8 @@
 			
 			<plot>
                 <type>line</type>
-                <x>optData|Input|varsUpdate</x>
-                <y>optData|Input|x2</y>
+                <x>optData|Output|varsUpdate</x>
+                <y>optData|Output|x2</y>
 				<interpPointsX>300</interpPointsX>
 				<gridLocation><x>1</x><y>0</y></gridLocation>	
 				<ylabel>2</ylabel>				
@@ -130,7 +149,7 @@
 			
 			<plot>
                 <type>line</type>
-                <x>optData|Input|varsUpdate</x>
+                <x>optData|Output|varsUpdate</x>
                 <y>optData|Output|c</y>
 				<interpPointsX>300</interpPointsX>
 				<gridLocation><x>2</x><y>0</y></gridLocation>	

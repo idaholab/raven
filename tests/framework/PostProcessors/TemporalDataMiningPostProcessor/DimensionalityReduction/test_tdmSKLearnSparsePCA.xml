@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/TemporalDataMiningPostProcessor/DimensionalityReduction/SparsePCA</name>
+    <author>chenj</author>
+    <created>2016-02-26</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests decomposition with SparsePCA and a pivot parameter.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>SparsePCA</WorkingDir>
     <Sequence>sampleGen,pp1</Sequence>
@@ -67,7 +76,7 @@
         <plot>
           <type>line</type>
           <x>mData|Output|Time</x>
-          <y>mData|Output|PCAPCAComponent1</y>
+          <y>mData|Output|PCADimension1</y>
           <interpPointsX>300</interpPointsX>
           <gridLocation>
             <x>0</x>
@@ -77,7 +86,7 @@
         <plot>
           <type>line</type>
           <x>mData|Output|Time</x>
-          <y>mData|Output|PCAPCAComponent2</y>
+          <y>mData|Output|PCADimension2</y>
           <interpPointsX>300</interpPointsX>
           <gridLocation>
             <x>1</x>

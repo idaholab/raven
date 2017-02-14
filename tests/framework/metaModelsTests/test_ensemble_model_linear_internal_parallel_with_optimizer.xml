@@ -1,5 +1,24 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="all">
+  <TestInfo>
+    <name>framework/metaModelsTests.testEnsembleModelLinearParallelWithOptimizer</name>
+    <author>alfoa</author>
+    <created>2016-09-01</created>
+    <classesTested>Models.EnsembleModel, Models.ExternalModel, JobHandler.ParallelPython</classesTested>
+    <description>
+       Example of usage of the Ensemble Model capability in RAVEN, connecting multiple External Models.
+       This test is aimed to check the functionality of assembling multiple Models, when they result in a single chain
+       of Models (linear system) and they are sampled with an Optimization scheme.  
+       This test checks the functionality of the model using 
+       a multi processor (ParallelPython) parallelization scheme.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-10-20">Modified XSD and removed dim attribute from all the tests</revision>
+      <revision author="chenj" date="2016-10-31">Regold parallel EnsembleModel test since change in the optimization algorithm</revision>
+      <revision author="alfoa" date="2016-11-14">New syntax ensemble</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>metaModelLinearParallelWithOptimizer</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
@@ -26,12 +45,14 @@
       <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
     </ExternalModel>
     <EnsembleModel name="heatTransferEnsembleModel" subType="">
-      <Model class="Models" inputNames="inputHolder" type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
         thermalConductivityComputation
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
       </Model>
-      <Model class="Models" inputNames="inputHolder" type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
           heatTransfer
+          <Input class="DataObjects" type="PointSet">inputHolder</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
       </Model>
     </EnsembleModel>
@@ -47,17 +68,21 @@
         <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
         <convergence>
             <iterationLimit>100</iterationLimit>
-            <threshold>1e-4</threshold>
+            <relativeThreshold>1e-6</relativeThreshold>
         </convergence>
         <variable name="leftTemperature">
+			<upperBound>250</upperBound>
+			<lowerBound>249</lowerBound>
             <initial>250</initial>
         </variable>
         <variable name="rightTemperature">
+			<upperBound>250</upperBound>
+			<lowerBound>249</lowerBound>
             <initial>250</initial>
         </variable>
         <objectVar>solution</objectVar>
         <parameter>
-            <numGradAvgIterations>1</numGradAvgIterations>
+          <numGradAvgIterations>1</numGradAvgIterations>
         </parameter>
     </SPSA>
   </Optimizers>
@@ -67,14 +92,14 @@
       <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="EnsembleModel">heatTransferEnsembleModel</Model>
       <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>
-      <SolutionExport class="DataObjects" type="PointSet">optData</SolutionExport>
+      <SolutionExport class="DataObjects" type="HistorySet">optData</SolutionExport>
       <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
       <Output class="DataObjects" type="PointSet">optOutput</Output>
       <Output class="OutStreams" type="Print">metaModelOutputTestDump</Output>
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">heatTransferContainer</Input>
-      <Input class="DataObjects" type="PointSet">optData</Input>
+      <Input class="DataObjects" type="HistorySet">optData</Input>
       <Input class="DataObjects" type="PointSet">optOutput</Input>
       <Input class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Input>
       <Input class="DataObjects" type="PointSet">metaModelOutputTest</Input>
@@ -118,9 +143,9 @@
         <plotSettings>
             <plot>
                 <type>scatter</type>
-                <x>optData|Input|leftTemperature</x>
-                <y>optData|Input|rightTemperature</y>
-                <z>optData|Input|solution</z>
+                <x>optData|Output|leftTemperature</x>
+                <y>optData|Output|rightTemperature</y>
+                <z>optData|Output|solution</z>
             </plot>
             <xlabel>leftTemperature</xlabel>
             <ylabel>rightTemperature</ylabel>
@@ -137,7 +162,7 @@
             <plot>
                 <type>line</type>
                 <x>optData|Output|varsUpdate</x>
-                <y>optData|Input|leftTemperature</y>
+                <y>optData|Output|leftTemperature</y>
                 <interpPointsX>300</interpPointsX>
                 <gridLocation><x>0</x><y>0</y></gridLocation>
                 <ylabel>x1</ylabel>
@@ -146,7 +171,7 @@
             <plot>
                 <type>line</type>
                 <x>optData|Output|varsUpdate</x>
-                <y>optData|Input|rightTemperature</y>
+                <y>optData|Output|rightTemperature</y>
                 <interpPointsX>300</interpPointsX>
                 <gridLocation><x>1</x><y>0</y></gridLocation>
                 <ylabel>2</ylabel>
@@ -156,7 +181,7 @@
             <plot>
                 <type>line</type>
                 <x>optData|Output|varsUpdate</x>
-                <y>optData|Input|solution</y>
+                <y>optData|Output|solution</y>
                 <interpPointsX>300</interpPointsX>
                 <gridLocation><x>2</x><y>0</y></gridLocation>	
                 <ylabel>c</ylabel>				
@@ -228,10 +253,6 @@
       <Input>rightTemperature,leftTemperature</Input>
       <Output>solution</Output>
     </PointSet>
-    <PointSet name="optData">
-      <Input>rightTemperature,leftTemperature,varsUpdate</Input>
-      <Output>solution</Output>
-    </PointSet>
     <PointSet name="inputHolder">
       <Input>leftTemperature,rightTemperature</Input>
       <Output>OutputPlaceHolder</Output>
@@ -248,6 +269,10 @@
       <Input>leftTemperature,rightTemperature</Input>
       <Output>k,solution</Output>
     </PointSet>
+    <HistorySet name="optData">
+        <Input>trajID</Input>
+        <Output>solution,rightTemperature,leftTemperature,varsUpdate</Output>
+    </HistorySet>
   </DataObjects>
 
 </Simulation>

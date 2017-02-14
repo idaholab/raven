@@ -1,5 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.test_mpi_bison</name>
+    <author>cogljj</author>
+    <created>2014-02-06</created>
+    <classesTested>Models.Code.MooseBasedApp, JobHandler.ExternalRunner</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to handle external codes that are MPI parallelized and multi-threaded.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2015-05-18">Closes #167</revision>
+      <revision author="alfoa" date="2015-05-29">finalized all the samplers</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="alfoa" date="2015-09-12">removed syntax inconsistency with respect standards for Samplers (underscores instead of camelBack) + created conversion script</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>mpi_bison_test</WorkingDir>
     <Sequence>myLHS</Sequence>

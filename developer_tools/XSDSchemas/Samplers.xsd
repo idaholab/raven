@@ -27,8 +27,9 @@
         <xsd:all>
             <!-- the requirements below will change depending on the fixes in the manual -->
             <xsd:element name="limit"                    type="xsd:string"  minOccurs="0"/>
-            <xsd:element name="initialSeed"             type="xsd:integer" minOccurs="0"/>
-            <xsd:element name="reseedEachIteration" type="xsd:string"  minOccurs="0"/>
+            <xsd:element name="initialSeed"              type="xsd:integer" minOccurs="0"/>
+            <xsd:element name="reseedEachIteration"      type="xsd:string"  minOccurs="0"/>
+            <xsd:element name="samplingType"             type="xsd:string"  minOccurs="0"/>
             <xsd:element name="distInit" minOccurs="0">
                 <xsd:complexType>
                     <xsd:sequence>
@@ -412,6 +413,7 @@
         </xsd:sequence>
         <xsd:attribute name="name"              type="xsd:string" use="required"/>
         <xsd:attribute name="printEndXmlSummary"     type="RavenBool"/>
+        <xsd:attribute name="removeXmlBranchInfo"    type="RavenBool"/>
         <xsd:attribute name="maxSimulationTime" type="xsd:float"/>
         <xsd:attribute name="mode"              type="modeAttr"  default="post"/>
         <xsd:attribute name="updateGrid"        type="RavenBool" default="true"/>

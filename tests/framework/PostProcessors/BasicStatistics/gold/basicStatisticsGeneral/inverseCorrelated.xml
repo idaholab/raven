@@ -4,11 +4,11 @@
     <expectedValue>5.09806943891</expectedValue>
     <minimum>4.2619817145</minimum>
     <maximum>5.77051947472</maximum>
-    <median>5.1798882832</median>
+    <median>5.08634460443</median>
     <variance>0.394040406601</variance>
     <sigma>0.627726378768</sigma>
-    <percentile_5>4.38563614799</percentile_5>
-    <percentile_95>5.69595634781</percentile_95>
+    <percentile_5>5.1798882832</percentile_5>
+    <percentile_95>5.77051947472</percentile_95>
     <variationCoefficient>0.123130213562</variationCoefficient>
     <skewness>-0.741178668839</skewness>
     <kurtosis>-0.429597817542</kurtosis>
@@ -39,11 +39,11 @@
     <expectedValue>95.9019305611</expectedValue>
     <minimum>95.2294805253</minimum>
     <maximum>96.7380182855</maximum>
-    <median>95.8201117168</median>
+    <median>95.726568038</median>
     <variance>0.394040406601</variance>
     <sigma>0.627726378768</sigma>
-    <percentile_5>95.3040436522</percentile_5>
-    <percentile_95>96.614363852</percentile_95>
+    <percentile_5>95.8201117168</percentile_5>
+    <percentile_95>96.7380182855</percentile_95>
     <variationCoefficient>0.0065455030477</variationCoefficient>
     <skewness>0.741178668839</skewness>
     <kurtosis>-0.429597817542</kurtosis>

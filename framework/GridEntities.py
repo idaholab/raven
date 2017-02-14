@@ -339,6 +339,7 @@ class GridEntity(GridBase):
       {lowerBounds:{}}, required, dictionary of lower bounds for each dimension
       {upperBounds:{}}, required, dictionary of upper bounds for each dimension
       {volumetriRatio:float or stepLength:dict}, required, p.u. volumetric ratio of the grid or dictionary of stepLengths ({'varName:list,etc'}
+      {excludeBounds:{'lowerBounds':bool,'upperBounds':bool}}, optional, dictionary of dictionaries that determines if the lower or upper bounds should be excluded or not
       {computeCells:bool},optional, boolean to ask to compute the cells ids and verteces coordinates, default = False
       {constructTensor:bool},optional, boolean to ask to compute the full grid (True) or just the ND iterator
       {transformationMethods:{}}, optional, dictionary of methods to transform p.u. step size into a transformed system of coordinate. the transformationMethods dictionary needs to be provided as follow:
@@ -391,18 +392,25 @@ class GridEntity(GridBase):
         if type(initDict["stepLength"]).__name__ != "dict": self.raiseAnError(Exception,'The stepLength entry is not a dictionary')
       stepLength = []
       for dimName in self.gridContainer['dimensionNames']: stepLength.append(initDict["stepLength"][dimName] if  "stepLength" not in readKeys else self.gridInitDict["stepLength"][dimName])
+
+    # check if the lower or upper bounds need to be excluded
+    excludeBounds   = initDict.get('excludeBounds',{'lowerBounds':False,'upperBounds':False})
+    if 'lowerBounds' not in excludeBounds.keys(): excludeBounds['lowerBounds'] = False
+    if 'upperBounds' not in excludeBounds.keys(): excludeBounds['upperBounds'] = False
+
     #moving forward building all the information set
     pointByVar                           = [None]*self.nVar  #list storing the number of point by cooridnate
     self.gridContainer['initDictionary'] = initDict
     #building the grid point coordinates
     for varId, varName in enumerate(self.gridContainer['dimensionNames']):
+      checkBounds = True
       if len(stepLength[varId]) == 1:
         # equally spaced or volumetriRatio. (the use of np.finfo(float).eps is only to avoid round-off error, the upperBound is included in the mesh)
         # Any number greater than zero and less than one should suffice
         if self.volumetricRatio != None:
-          self.gridContainer['gridVectors'][varName] = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],
-                                                                 self.gridContainer['bounds']["upperBounds" ][varName],
-                                                                 stepLength[varId][-1])
+          lowerBound = self.gridContainer['bounds']["lowerBounds"][varName] if not excludeBounds['lowerBounds'] else self.gridContainer['bounds']["lowerBounds"][varName] + stepLength[varId][-1]
+          upperBound = self.gridContainer['bounds']["upperBounds"][varName]
+          self.gridContainer['gridVectors'][varName] = np.arange(lowerBound, upperBound, stepLength[varId][-1])
         else:
           # maljdan: Enhancing readability of this conditional by using local
           # variables. This portion of the conditional is for evenly-spaced
@@ -421,23 +429,29 @@ class GridEntity(GridBase):
           # ub in terms of numerical stability, and any value lower will bias
           # towards the next lower grid cell. 0.5 puts us as far from making a
           # mistake in either direction as possible.
-          lb = self.gridContainer['bounds']["lowerBounds"][varName]
-          ub = self.gridContainer['bounds']["upperBounds" ][varName]
-          stepSize = stepLength[varId][-1]
+          stepSize   = stepLength[varId][-1]
+          lowerBound = self.gridContainer['bounds']["lowerBounds"][varName] if not excludeBounds['lowerBounds'] else self.gridContainer['bounds']["lowerBounds"][varName] + stepSize
+          upperBound = self.gridContainer['bounds']["upperBounds"][varName] if not excludeBounds['upperBounds'] else self.gridContainer['bounds']["upperBounds"][varName] - stepSize
           myEps = stepSize * 0.5 # stepSize * np.finfo(float).eps
-          self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(lb, ub-myEps, stepSize), np.atleast_1d(ub)))
+          self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(lowerBound, upperBound-myEps, stepSize), np.atleast_1d(upperBound)))
       else:
         # custom grid
         # it is not very efficient, but this approach is only for custom grids => limited number of discretizations
         gridMesh = [self.gridContainer['bounds']["lowerBounds"][varName]]
         for stepLengthi in stepLength[varId]: gridMesh.append(round(gridMesh[-1],14)+round(stepLengthi,14))
+        if len(gridMesh) == 1: checkBounds = False
         self.gridContainer['gridVectors'][varName] = np.asarray(gridMesh)
-      if not compare(round(max(self.gridContainer['gridVectors'][varName]),14), round(self.gridContainer['bounds']["upperBounds" ][varName],14)) and self.volumetricRatio == None: self.raiseAnError(IOError,"the maximum value in the grid is bigger that upperBound! upperBound: "+
-                                                                                                                                      str(self.gridContainer['bounds']["upperBounds" ][varName]) +
-                                                                                                                                      " < maxValue in grid: "+str(max(self.gridContainer['gridVectors'][varName])))
-      if not compare(round(min(self.gridContainer['gridVectors'][varName]),14),round(self.gridContainer['bounds']["lowerBounds" ][varName],14)): self.raiseAnError(IOError,"the minimum value in the grid is lower that lowerBound! lowerBound: "+
-                                                                                                                                      str(self.gridContainer['bounds']["lowerBounds"][varName]) +
-                                                                                                                                      " > minValue in grid: "+str(min(self.gridContainer['gridVectors'][varName])))
+      if checkBounds and compare(self.gridContainer['bounds']["lowerBounds" ][varName], self.gridContainer['bounds']["upperBounds" ][varName]):
+        self.raiseAnError(IOError,"the lowerBound and upperBound for dimension named " + varName + " are the same!. lowerBound = "+ str(self.gridContainer['bounds']["lowerBounds" ][varName]) +
+                                  " and upperBound = "+ str(self.gridContainer['bounds']["upperBounds" ][varName]))
+      lowerBound = self.gridContainer['bounds']["lowerBounds"][varName] if not excludeBounds['lowerBounds'] else self.gridContainer['bounds']["lowerBounds"][varName] + stepLength[varId][-1]
+      upperBound = self.gridContainer['bounds']["upperBounds"][varName] if not excludeBounds['upperBounds'] else self.gridContainer['bounds']["upperBounds"][varName] - stepLength[varId][-1]
+      if not compare(max(self.gridContainer['gridVectors'][varName]), upperBound) and self.volumetricRatio == None:
+        self.raiseAnError(IOError,"the maximum value in the grid is different than the upperBound! upperBound: "+str(upperBound) +
+                                  " != maxValue in grid: "+str(max(self.gridContainer['gridVectors'][varName])))
+      if not compare(min(self.gridContainer['gridVectors'][varName]),lowerBound):
+        self.raiseAnError(IOError,"the minimum value in the grid is different than the lowerBound! lowerBound: "+str(lowerBound) +
+                                  " != minValue in grid: "+str(min(self.gridContainer['gridVectors'][varName])))
       if self.gridContainer['transformationMethods'] != None:
         if varName in self.gridContainer['transformationMethods'].keys():
           self.gridContainer['gridVectors'][varName]    = np.asarray([self.gridContainer['transformationMethods'][varName][0](coor) for coor in self.gridContainer['gridVectors'][varName]])

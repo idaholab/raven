@@ -206,3 +206,19 @@ checkAnswer('Recorded data (dynamic 2):',c.findBranch('myMetric').text,299792358
 
 print('{0}ed: {2}, {1}ed: {3}'.format(*(list(str(r) for r in results.keys())+results.values())))
 sys.exit(results["fail"])
+"""
+  <TestInfo>
+    <name>framework.treeStructure</name>
+    <author>talbpaul</author>
+    <created>2016-11-01</created>
+    <classesTested>utils.TreeStructure</classesTested>
+    <description>
+       This test performs Unit Tests for the TreeStructure classes
+       It cannot be considered part of the active code but of the regression test system
+    </description>
+    <revisions>
+      <revision author="talbpaul" date="2016-11-08">Relocated utils tests</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+"""

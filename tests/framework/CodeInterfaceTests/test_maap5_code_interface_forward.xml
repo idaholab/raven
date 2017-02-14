@@ -1,5 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.MAAP5interfaceForwardSampling</name>
+    <author>alfoa</author>
+    <created>2016-06-27</created>
+    <classesTested>Models.Code.MAAP5</classesTested>
+    <description>
+       An example of using the the Model Code of type MAAP5, with Forward Sampling (e.g. MonteCarlo)
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-07-01">Addressed Dan's comments on interface (By Claudia Picoco)</revision>
+      <revision author="alfoa" date="2016-09-01">Close #650</revision>
+      <revision author="talbpaul" date="2016-09-15">Test updates</revision>
+      <revision author="talbpaul" date="2016-10-25">removed dim in OutStreams Plot for validation purposes</revision>
+      <revision author="alfoa" date="2016-11-15">Updated input files</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>MAAP5_Forward_test</WorkingDir>
     <Sequence>testDummyStep</Sequence>
@@ -15,7 +32,7 @@
       <executable>
       </executable>
       <clargs extension=".inp" type="input"/>
-      <boolMaapOutputVariables>691</boolMaapOutputVariables>
+      <boolMaapOutputVariables>IEVNT(691)</boolMaapOutputVariables>
       <contMaapOutputVariables>PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1)</contMaapOutputVariables>
     </Code>
   </Models>

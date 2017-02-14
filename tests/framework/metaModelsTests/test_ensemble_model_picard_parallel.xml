@@ -1,5 +1,24 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/metaModelsTests.testEnsembleModelNonLinearParallel</name>
+    <author>alfoa</author>
+    <created>2016-04-14</created>
+    <classesTested>Models.EnsembleModel, Models.ExternalModel, JobHandler.ParallelPython</classesTested>
+    <description>
+       Example of usage of the Ensemble Model capability in RAVEN, connecting multiple External Models.
+       This test is aimed to check the functionality of assembling multiple Models, testing the iterative
+       scheme present in RAVEN when the chain of Models turn to be a Non Linear System. This test checks
+       the functionality of the Model with a multi processor (Parallel Python) parallelization scheme.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-04-21">Modified number of processors</revision>
+      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+      <revision author="alfoa" date="2016-09-01">Close #650</revision>
+      <revision author="alfoa" date="2016-11-14">New syntax ensemble</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>metaModelNonLinearParallel</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
@@ -26,12 +45,20 @@
       <variables>k,averageTemperature</variables>
     </ExternalModel>
     <EnsembleModel name="heatTransferEnsembleModel" subType="">
-      <Model class="Models" inputNames="inputHolder" type="ExternalModel">
+      <settings>
+        <initialConditions>
+          <k>10.0</k>
+          <averageTemperature>1000.0</averageTemperature>
+        </initialConditions>
+      </settings> 
+      <Model class="Models" type="ExternalModel">
         thermalConductivityComputation
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
       </Model>
-      <Model class="Models" inputNames="inputHolder" type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
           heatTransfer
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
       </Model>
     </EnsembleModel>

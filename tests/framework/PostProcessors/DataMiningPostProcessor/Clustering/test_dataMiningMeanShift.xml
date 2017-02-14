@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/Clustering/MeanShift</name>
+    <author>senrs</author>
+    <created>2015-11-24</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with the MeanShift model.
+    </description>
+  </TestInfo>
   <RunInfo>
     <internalParallel>False</internalParallel>
     <WorkingDir>MeanShift</WorkingDir>

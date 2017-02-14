@@ -1,5 +1,24 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.MAAP5interfaceHybridDETSampling</name>
+    <author>alfoa</author>
+    <created>2016-07-01</created>
+    <classesTested>Models.Code.MAAP5, Samplers.DynamicEventTree</classesTested>
+    <description>
+       An example of using the the Model Code of type MAAP5.
+       This test is aimed to test the mechanics of the MAAP5 interface when used with the 
+       Dynamic Event Tree (Hybrid Dynamic Event Tree) methodology.
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2016-07-05">Fixing XSD and user manual to match XSD and code.</revision>
+      <revision author="alfoa" date="2016-09-01">Close #650</revision>
+      <revision author="talbpaul" date="2016-09-15">Test updates</revision>
+      <revision author="talbpaul" date="2016-10-25">removed dim in OutStream Plot for validation purposes</revision>
+      <revision author="alfoa" date="2016-11-15">Updated input files</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>MAAP5_HybridDET_test</WorkingDir>
     <Sequence>testDummyStep</Sequence>
@@ -17,7 +36,7 @@
       <executable>
       </executable>
       <clargs extension=".inp" type="input"/>
-      <boolMaapOutputVariables>691</boolMaapOutputVariables>
+      <boolMaapOutputVariables>IEVNT(691)</boolMaapOutputVariables>
       <contMaapOutputVariables>PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1) </contMaapOutputVariables>
       <stopSimulation>mission_time</stopSimulation>
       <includeForTimer>include_900_502</includeForTimer>
