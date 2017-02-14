@@ -69,6 +69,9 @@ class RavenFramework(Tester):
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.minimum_libraries = self.specs['minimum_library_versions'].split(' ')  if len(self.specs['minimum_library_versions']) > 0 else []
+    #for image tests, minimum library is always scipy 0.15.0
+    if len(self.img_files)>0:
+      self.minimum_libraries += ['scipy','0.15.0']
     self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
     self.specs['scale_refine'] = False
     self.driver = os.path.join(RAVEN_DIR,'Driver.py')
