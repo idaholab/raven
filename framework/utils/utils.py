@@ -61,7 +61,6 @@ def checkIfUnknowElementsinList(referenceList,listToTest):
     if elem not in referenceList: unknownElements.append(elem)
   return unknownElements
 
-
 def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   """
     Method to check if a path (file or directory) is currently
@@ -88,6 +87,14 @@ def checkIfLockedRavenFileIsPresent(pathName,fileName="ravenLockedKey.raven"):
   filePresent = os.path.isfile(os.path.join(pathName,fileName))
   open(os.path.join(pathName,fileName), 'w')
   return filePresent
+
+def removeFile(pathAndFileName):
+  """
+    Method to remove a file
+    @ In, pathAndFileName, string, string containing the path and filename
+    @ Out, None
+  """
+  if os.path.isfile(pathAndFileName): os.remove(pathAndFileName)
 
 def returnImportModuleString(obj,moduleOnly=False):
   """

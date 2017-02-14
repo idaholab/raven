@@ -16,7 +16,7 @@ import abc
 import sys
 import importlib
 import inspect
-import atexit
+#import atexit
 import time
 import threading
 from collections import OrderedDict
@@ -1201,7 +1201,6 @@ class Code(Model):
     self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
     self.codeFlags          = None #flags that need to be passed into code interfaces(if present)
     self.printTag           = 'CODE MODEL'
-    self.lockedFileName     = "ravenLocked.raven"
 
   def _readMoreXML(self,xmlNode):
     """
@@ -1336,9 +1335,9 @@ class Code(Model):
     except OSError:
       self.raiseAWarning('current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
       if utils.checkIfPathAreAccessedByAnotherProgram(self.workingDir,3.0): self.raiseAWarning('directory '+ self.workingDir + ' is likely used by another program!!! ')
-      if utils.checkIfLockedRavenFileIsPresent(self.workingDir,self.lockedFileName): self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ self.workingDir+". Please check your input!")
+      #if utils.checkIfLockedRavenFileIsPresent(self.workingDir,self.lockedFileName): self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ self.workingDir+". Please check your input!")
       # register function to remove the locked file at the end of execution
-      atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
+      #atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
     for inputFile in inputFiles:
       shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.oriInputFiles = []
@@ -1758,6 +1757,12 @@ class EnsembleModel(Dummy, Assembler):
     """
     models = []
     for key, value in self.modelsDictionary.items():
+      aliases = value['Instance'].alias[what.lowercase()]
+      if len(aliases.keys()) > 0:
+        # it has aliases
+        print("has alias")
+
+
       if subWhat in value[what]: models.append(key)
     if len(models) == 0: models = None
     return models
