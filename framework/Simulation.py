@@ -718,7 +718,7 @@ class Simulation(MessageHandler.MessageUser):
             else: self.raiseAnError(IOError,'not found name attribute for one '+Class)
       else: #tag not in whichDict, check if it's a documentation tag
         if child.tag not in ['TestInfo']:
-          self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+TreeStructure.tostring(child))
+          self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
     # If requested, duplicate input
     # ###NOTE: All substitutions to the XML input tree should be done BEFORE this point!!
     if self.runInfoDict.get('printInput',False):

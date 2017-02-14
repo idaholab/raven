@@ -1,4 +1,5 @@
 <?xml version="1.0" ?>
+<Simulation verbosity="all">
   <TestInfo>
     <name>framework.external_xml</name>
     <author>wangc</author>
