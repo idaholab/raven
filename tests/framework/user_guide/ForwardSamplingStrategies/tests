@@ -13,6 +13,7 @@
     csv = 'RunDir/Grid/histories_0.csv'
     text = 'RunDir/Grid/1-historyPlot_line-line-line-line.eps RunDir/Grid/1-samplesPlot3D_scatter-scatter-scatter-scatter.eps'
     comment = '%'
+    rel_err = 1e-4
   [../]
 
   [./Stratified]

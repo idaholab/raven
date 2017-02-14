@@ -115,7 +115,7 @@
             <ylabel>evolution (kg)</ylabel>
         </plotSettings>
         <actions>
-            <how>eps</how>
+            <how>png</how>
             <title>
                 <text> </text>
             </title>
