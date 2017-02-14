@@ -461,6 +461,18 @@ class InputNode:
         return child
     return None
 
+  def findall(self,nodeName):
+    """
+      Searches children for node with name matching nodeName.
+      @ In, nodeName, string, name to match
+      @ Out, nodes, [InputNode], all the matches
+    """
+    nodes = []
+    for child in self:
+      if child.tag == nodeName:
+        nodes.append(child)
+    return nodes
+
   def get(self,attr):
     """
       Obtains attribute value for "attr"
