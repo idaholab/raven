@@ -22,6 +22,9 @@ done
 
 rm -Rvf pdfs
 
+# add custom, collective inputs to TEXINPUTS
+export TEXINPUTS=.:$SCRIPT_DIR/tex_inputs:$TEXINPUTS
+
 if git describe
 then
     git describe | sed 's/_/\\_/g' > new_version.tex

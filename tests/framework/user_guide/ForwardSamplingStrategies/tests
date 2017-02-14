@@ -1,7 +1,7 @@
 [Tests]
   [./MonteCarlo]
     type = 'RavenFramework'
-    input = 'forwardSamplingMonteCarlo.xml'
+    input = 'forwardSamplingMontecarlo.xml'
     csv = 'RunDir/MonteCarlo/histories_0.csv'
     text = 'RunDir/MonteCarlo/1-historyPlot_line-line-line-line.eps RunDir/MonteCarlo/1-samplesPlot3D_scatter-scatter-scatter-scatter.eps'
     comment = '%'
