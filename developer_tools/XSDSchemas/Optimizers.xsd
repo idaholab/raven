@@ -28,8 +28,10 @@
 	
 	<xsd:complexType name="optConvergenceType">
         <xsd:all>
-			<xsd:element name="iterationLimit" 	 type="xsd:integer"  					minOccurs="0"/>
-			<xsd:element name="threshold"     	 type="xsd:float" 						minOccurs="0"/>
+			<xsd:element name="iterationLimit" 	  type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="relativeThreshold" type="xsd:float" 	 minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="absoluteThreshold" type="xsd:float" 	 minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="gradientThreshold" type="xsd:float" 	 minOccurs="0" maxOccurs="1"/>
 		</xsd:all>
     </xsd:complexType>
 
@@ -50,7 +52,8 @@
 						<xsd:element name="a"           	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
 						<xsd:element name="gamma"         	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
 						<xsd:element name="c"             	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
-						<xsd:element name="innerBisectionThreshold"             	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
+                        <xsd:element name="normalize"        type="xsd:boolean"  minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="innerBisectionThreshold" type="xsd:float"  minOccurs="0" maxOccurs="1"/>
 						<xsd:element name="innerLoopLimit"   type="xsd:float"  minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
 				</xsd:complexType>
