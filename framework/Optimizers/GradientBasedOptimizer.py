@@ -221,7 +221,7 @@ class GradientBasedOptimizer(Optimizer):
       gradientL2norm = LA.norm(gradient.values())
       if gradientL2norm != 0.0:
         for var in self.optVars: gradient[var] = gradient[var]/gradientL2norm
-    self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][0]
+    self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][traj][0]
     self.counter['gradientHistory'][traj][0] = gradient
     return gradient
 

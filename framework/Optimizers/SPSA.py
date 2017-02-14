@@ -333,13 +333,14 @@ class SPSA(GradientBasedOptimizer):
       @ In, iterNum, int, current iteration index
       @ Out, ak, float, current value for gain ak
     """
-#     if iterNum > 2:
+#     This block is going to be used and formalized in the future
+#     if iterNum > 1:
 #       traj = 0
 #       gradK     = self.counter['gradientHistory'][traj][0].values()
 #       gradPrevK = self.counter['gradientHistory'][traj][1].values()
 #       xK        =
 #       xPrevK    =
-#       deltaX    = xK - xPrevK
+#       deltaX    = np.asarray(xK) - np.asarray(xPrevK)
 #       gX        = gradK - gradPrevK
 #       ak        = (np.asarray(gX).T * np.asarray(deltaX))/(np.asarray(gX)*np.asarray(gX).T)
     a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
