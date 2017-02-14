@@ -46,8 +46,10 @@ def shortText(a,b):
   return prefix+a[start:firstDiff+halfDisplay]+" "+prefix+b[start:firstDiff+halfDisplay]
 
 def setDefaultOptions(options):
-  """ sets all the options to defaults
-  options: dictionary to add default options to
+  """
+    sets all the options to defaults
+    In, options, dict, dictionary to add default options to
+    Out, None
   """
   options["rel_err"] = float(options.get("rel_err",1.e-10))
   options["zero_threshold"] = float(options.get("zero_threshold",sys.float_info.min*4.0))
