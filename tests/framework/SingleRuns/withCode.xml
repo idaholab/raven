@@ -1,0 +1,56 @@
+<Simulation color="True" verbosity="debug">
+  <RunInfo>
+    <WorkingDir>run</WorkingDir>
+    <Sequence>sample</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/SingleRuns/codeModel</name>
+    <author>talbpw</author>
+    <created>2017-02-02</created>
+    <classesTested>Steps.SingleRun,Model.Code</classesTested>
+    <description>
+       This test assures the SingleRun works in conjunction with the Code model.
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="inp" type="">projectile_input.i</Input>
+  </Files>
+
+  <Steps>
+    <SingleRun name="sample">
+      <Input class="Files" type="Input">inp</Input>
+      <Model class="Models" type="Code">projectile</Model>
+      <Output class="DataObjects" type="PointSet">sample</Output>
+      <Output class="OutStreams" type="Print">sample</Output>
+    </SingleRun>
+  </Steps>
+
+  <Models>
+    <Code name="projectile" subType="GenericCode">
+      <executable>../AnalyticModels/projectile.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".i" type="input"/>
+      <clargs arg="-o" type="output"/>
+    </Code>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIn">
+      <Input>y0,ang</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="sample">
+      <Input>y0,ang</Input>
+      <Output>r</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="sample">
+      <type>csv</type>
+      <source>sample</source>
+    </Print>
+  </OutStreams>
+</Simulation>
