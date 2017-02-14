@@ -83,26 +83,10 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and on the screen.
    \end{itemize}
 \end{enumerate}
- Tables~\ref{historyVI.I} and \ref{pointValuesVI.I} show the results dumped by the OutStreams \textit{Print}.
+For examples of the numerical data produced by the OutStreams \textit{Print}, see \texttt{history\_0.csv} and
+\texttt{pointValues.csv} in the directory
+ \texttt{raven/tests/framework/user\_guide/SingleRuns/gold/sectionVI.I/}
  As previously mentioned, Figure~\ref{fig:historyPlotLine} reports the four plots (four variables) drawn in the same picture.
- % table history set
- \pgfplotstableset{precision=9}
- \begin{table}[h!]
-   \centering
-   \caption{``history'' HistorySet CSV output file.}
-   \label{historyVI.I}
-   \pgfplotstabletypeset[col sep=comma,
-     every head row/.style={after row={\hline}}
-   ]{../../tests/framework/user_guide/SingleRuns/gold/sectionVI.I/history_0.csv}
- \end{table}
- \begin{table}[h!]
-   \centering
-   \caption{``pointValues'' PointSet CSV output file.}
-   \label{pointValuesVI.I}
-   \pgfplotstabletypeset[col sep=comma,
-     every head row/.style={after row={\hline}}
-   ]{../../tests/framework/user_guide/SingleRuns/gold/sectionVI.I/pointValues.csv}
- \end{table}
 
 %\FloatBarrier
 \subsection{Single Run using the OutStream System to Sub-plot and Selectively print.}
