@@ -70,7 +70,7 @@ class GradientBasedOptimizer(Optimizer):
       gradientThreshold = convergence.find("gradientThreshold")
       try:
         if gradientThreshold is not None and self.gradDict['normalize']:
-          self.raiseAWarning("<gradientThreshold> has been inputted but the user requested a normalized gradient approach!!!!")
+          self.raiseAWarning("Conflicting inputs: gradientThreshold and normalized gradient have been inputed. These two intpus are conflicting. ")
         self.gradientNormTolerance = float(gradientThreshold.text) if gradientThreshold is not None else self.gradientNormTolerance
       except ValueError: self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float')
 
@@ -231,6 +231,7 @@ class GradientBasedOptimizer(Optimizer):
       @ In, trajID, int, trajectory identifier
       @ In, iterID, int, iteration number (identifier)
       @ In, evalType, int, evaluation type (v for variable update; otherwise id for gradient evaluation)
+      @ Out, identifier, string, the evaluation identifier
     """
     identifier = str(trajID) + '_' + str(iterID) + '_' + str(evalType)
     return identifier
