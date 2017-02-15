@@ -1,0 +1,46 @@
+<Simulation color="True" verbosity="debug">
+  <RunInfo>
+    <WorkingDir>run</WorkingDir>
+    <Sequence>sample</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/SingleRuns/postProcessorFails</name>
+    <author>talbpw</author>
+    <created>2017-01-27</created>
+    <classesTested>Steps.SingleRun,Model.PostProcessor</classesTested>
+    <description>
+       This test assures the SingleRun produces the correct error when paired with the PostProcessor model.
+    </description>
+  </TestInfo>
+
+  <Steps>
+    <SingleRun name="sample">
+      <Input class="DataObjects" type="PointSet">dummyIn</Input>
+      <Model class="Models" type="Dummy">dummy</Model>
+      <Output class="DataObjects" type="PointSet">sample</Output>
+    </SingleRun>
+  </Steps>
+
+  <Models>
+    <Dummy name="dummy" subType=""/>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIn">
+      <Input>a,b,c</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="sample">
+      <Input>a,b,c</Input>
+      <Output>x,y,z</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="sample">
+      <type>csv</type>
+      <source>sample</source>
+    </Print>
+  </OutStreams>
+</Simulation>

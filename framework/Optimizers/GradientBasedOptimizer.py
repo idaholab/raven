@@ -17,12 +17,14 @@ import os
 import copy
 import abc
 import numpy as np
+from numpy import linalg as LA
 from sklearn.neighbors import NearestNeighbors
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Optimizer import Optimizer
 from Assembler import Assembler
+import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GradientBasedOptimizer(Optimizer):
@@ -41,15 +43,18 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     Optimizer.__init__(self)
-    self.constraintHandlingPara = {}                  # Dict containing parameters for parameters related to constraints handling
-    self.gradDict = {}                                # Dict containing information for gradient related operations
-    self.gradDict['numIterForAve'] = 1                # Number of iterations for gradient estimation averaging
-    self.gradDict['pertNeeded'] = 1                   # Number of perturbation needed to evaluate gradient
-    self.gradDict['pertPoints'] = {}                  # Dict containing normalized inputs sent to model for gradient evaluation
-    self.counter['perturbation'] = {}                 # Counter for the perturbation performed.
-    self.readyVarsUpdate = {}                         # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
-    self.counter['varsUpdate'] = {}
-    self.counter['solutionUpdate'] = {}
+    self.constraintHandlingPara     = {}              # Dict containing parameters for parameters related to constraints handling
+    self.gradientNormTolerance      = 1.e-3           # tolerance on the L2 norm of the gradient
+    self.gradDict                   = {}              # Dict containing information for gradient related operations
+    self.gradDict['numIterForAve']  = 1               # Number of iterations for gradient estimation averaging
+    self.gradDict['pertNeeded']     = 1               # Number of perturbation needed to evaluate gradient
+    self.gradDict['normalize']      = False           # use a normalized gradient or not?
+    self.gradDict['pertPoints']     = {}              # Dict containing normalized inputs sent to model for gradient evaluation
+    self.counter['perturbation']    = {}              # Counter for the perturbation performed.
+    self.readyVarsUpdate            = {}              # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
+    self.counter['gradientHistory'] = {}              # In this dict we store the gradient value for current and previous iterations {'trajectoryID':[{},{}]}
+    self.counter['varsUpdate'     ] = {}
+    self.counter['solutionUpdate' ] = {}
     self.convergeTraj = {}
 
   def localInputAndChecks(self, xmlNode):
@@ -59,15 +64,15 @@ class GradientBasedOptimizer(Optimizer):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
-    for traj in self.optTraj:
-      self.gradDict['pertPoints'][traj]       = {}
-      self.counter['perturbation'][traj]      = 0
-      self.counter['varsUpdate'][traj]        = 0
-      self.counter['solutionUpdate'][traj]    = 0
-      self.optVarsHist[traj]                  = {}
-      self.readyVarsUpdate[traj]              = False
-      self.convergeTraj[traj]                 = False
+    convergence                = xmlNode.find("convergence")
+    self.gradDict['normalize'] = utils.interpretBoolean(self.paramDict.get("normalize",self.gradDict['normalize']))
+    if convergence is not None:
+      gradientThreshold = convergence.find("gradientThreshold")
+      try:
+        if gradientThreshold is not None and self.gradDict['normalize']:
+          self.raiseAWarning("Conflicting inputs: gradientThreshold and normalized gradient have been inputed. These two intpus are conflicting. ")
+        self.gradientNormTolerance = float(gradientThreshold.text) if gradientThreshold is not None else self.gradientNormTolerance
+      except ValueError: self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float')
 
   def localInitialize(self,solutionExport=None):
     """
@@ -75,6 +80,16 @@ class GradientBasedOptimizer(Optimizer):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
+    self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
+    for traj in self.optTraj:
+      self.gradDict['pertPoints'][traj]       = {}
+      self.counter['perturbation'][traj]      = 0
+      self.counter['varsUpdate'][traj]        = 0
+      self.counter['solutionUpdate'][traj]    = 0
+      self.counter['gradientHistory'][traj]   = [{},{}]
+      self.optVarsHist[traj]                  = {}
+      self.readyVarsUpdate[traj]              = False
+      self.convergeTraj[traj]                 = False
     for traj in self.optTraj:
       self.gradDict['pertPoints'][traj] = {}
 
@@ -176,7 +191,7 @@ class GradientBasedOptimizer(Optimizer):
     """
     self.readyVarsUpdate = {traj:False for traj in self.optTrajLive}
 
-  def evaluateGradient(self, optVarsValues):
+  def evaluateGradient(self, optVarsValues, traj):
     """
       Method to evaluate gradient based on perturbed points and model evaluations.
       @ In, optVarsValues, dict, dictionary containing perturbed points.
@@ -184,10 +199,11 @@ class GradientBasedOptimizer(Optimizer):
                                  Therefore, each optVarsValues[pertIndex] should return a dict of variable values
                                  that is sufficient for gradient evaluation for at least one variable
                                  (depending on specific optimization algorithm)
+      @ In, traj, int, the trajectory id
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     gradArray = {}
-    for var in self.optVars:                      gradArray[var] = np.ndarray((0,0))
+    for var in self.optVars: gradArray[var] = np.ndarray((0,0))
 
     # Evaluate gradient at each point
     for pertIndex in optVarsValues.keys():
@@ -197,13 +213,28 @@ class GradientBasedOptimizer(Optimizer):
       for var in self.optVars:
         if tempDictPerturbed[var][0] != tempDictPerturbed[var][1]:
           gradArray[var] = np.append(gradArray[var], lossDiff/(tempDictPerturbed[var][0]-tempDictPerturbed[var][1])*1.0)
-
     gradient = {}
     for var in self.optVars:
       gradient[var] = gradArray[var].mean()
-
     gradient = self.localEvaluateGradient(optVarsValues, gradient)
+    if self.gradDict['normalize']:
+      gradientL2norm = LA.norm(gradient.values())
+      if gradientL2norm != 0.0:
+        for var in self.optVars: gradient[var] = gradient[var]/gradientL2norm
+    self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][traj][0]
+    self.counter['gradientHistory'][traj][0] = gradient
     return gradient
+
+  def _createEvaluationIdentifier(self,trajID,iterID,evalType):
+    """
+      Create evaluation identifier
+      @ In, trajID, int, trajectory identifier
+      @ In, iterID, int, iteration number (identifier)
+      @ In, evalType, int, evaluation type (v for variable update; otherwise id for gradient evaluation)
+      @ Out, identifier, string, the evaluation identifier
+    """
+    identifier = str(trajID) + '_' + str(iterID) + '_' + str(evalType)
+    return identifier
 
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
@@ -242,8 +273,17 @@ class GradientBasedOptimizer(Optimizer):
     """
     if self.convergeTraj[traj] == False:
       if varsUpdate > 1:
-        oldVal = copy.deepcopy(self.lossFunctionEval(self.optVarsHist[traj][varsUpdate-1]))
-        if abs(currentLossValue-oldVal) < self.convergenceTol:
+        oldValueId         = self._createEvaluationIdentifier(traj,varsUpdate-1,'v')
+        oldVal             = self.getLossFunctionGivenId(oldValueId)
+        if oldVal is None: self.raiseAnError(Exception,"the evaluation identified by the ID " +str(oldValueId)+ " has not been found!")
+        gradNorm           = LA.norm(self.counter['gradientHistory'][traj][0].values())
+        absDifference      = abs(currentLossValue-oldVal)
+        relativeDifference = abs(absDifference/oldVal)
+        self.raiseAMessage("Trajectory: "+"%8i"% (traj)+      " | Iteration    : "+"%8i"% (varsUpdate)+ " | Loss function: "+"%8.2E"% (currentLossValue)+" |")
+        self.raiseAMessage("Grad Norm : "+"%8.2E"% (gradNorm)+" | Relative Diff: "+"%8.2E"% (relativeDifference)+" | Abs Diff     : "+"%8.2E"% (absDifference)+" |")
+        if gradNorm <= self.gradientNormTolerance or absDifference <= self.absConvergenceTol or relativeDifference <= self.relConvergenceTol:
+          self.raiseAMessage("Trajectory: "+"%8i"% (traj) +"   converged    !")
+          self.raiseAMessage("Grad Norm : "+"%8.2E"% (gradNorm)+" | Relative Diff: "+"%8.2E"% (relativeDifference)+" | Abs Diff     : "+"%8.2E"% (absDifference)+" |")
           self.convergeTraj[traj] = True
           for trajInd, tr in enumerate(self.optTrajLive):
             if tr == traj:

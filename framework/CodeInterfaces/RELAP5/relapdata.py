@@ -102,10 +102,12 @@ class relapdata:
       if flagg1==0:
         tempkeys=[]
         temp1 = re.split('\s{2,}|\n',lines[i])
-        temp2 = re.split('\s{2,}|\n',lines[i+1])
+        #temp2 = re.split('\s{2,}|\n',lines[i+1])
+        temp2 = [lines[i+1][j:j+13].strip() for j in range(0, len(lines[i+1]), 13)]
         temp1.pop()
         temp2.pop()
-        temp2.pop(0)
+        temp2 = ['_'.join(key.split()) for key in temp2]
+        #temp2.pop(0)
         tempArray=[]
         for j in range(len(temp1)):
           tempkeys.append(temp1[j]+'_'+temp2[j])
@@ -146,14 +148,29 @@ class relapdata:
     """
     count  = 0
     minorDict = None
+    timeList = []
     for i in range(len(lines)):
       if re.match('^1 time',lines[i]):
         count=count+1
         tempdict=self.readMinorBlock(lines,i)
-        if (count==1): minorDict=tempdict;
+        timeBlock = tempdict.pop('1 time_(sec)')
+        if (count==1):
+          minorDict=tempdict
+          timeList.append(timeBlock)
         else:
-          for k in minorDict.keys():
-            minorDict[k].extend(tempdict.get(k))
+          if set(timeBlock) != set(timeList[-1]):
+            timeList.append(timeBlock)
+          for k in tempdict.keys():
+            if k in minorDict.keys():
+              minorDict[k].extend(tempdict.get(k))
+            else:
+              minorDict[k] =  tempdict[k]
+#             for k in minorDict.keys():
+#               if k in tempdict.keys():
+#                 minorDict[k].extend(tempdict.get(k))
+    timeBlock = []
+    for tBlock in timeList: timeBlock.extend(tBlock)
+    minorDict['1 time_(sec)'] = timeBlock
     return minorDict
 
   def readRaven(self):
