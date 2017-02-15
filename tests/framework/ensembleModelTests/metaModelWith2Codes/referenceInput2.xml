@@ -9,8 +9,8 @@
     <A>
         <equationType>N1</equationType>
         <initialMass>$RAVEN-init-A:1.0$</initialMass>
-        <decayConstant>$RAVEN-decay-A|10$</decayConstant>
-        <sigma>$RAVEN-sigma-A|10$</sigma>
+        <decayConstant>$RAVEN-decay-A|10:0.00001$</decayConstant>
+        <sigma>$RAVEN-sigma-A|10:0.00001$</sigma>
         <ANumber>230</ANumber>
     </A>
     <B>

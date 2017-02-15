@@ -19,7 +19,7 @@
         sampleMC
     </Sequence>
     <WorkingDir>/Users/alfoa/projects/raven/tests/framework/ensembleModelTests/metaModelWith2Codes</WorkingDir>
-    <batchSize>2</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -29,14 +29,14 @@
 
   <Models>
     <Code name="testModel" subType="GenericCode">
-      <executable>metaModelWith2Codes/AnalyticalDplMain.py</executable>
+      <executable>/Users/alfoa/projects/raven/tests/framework/ensembleModelTests/metaModelWith2Codes/AnalyticalDplMain.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
       <prepend>python</prepend>
     </Code>
     <Code name="testModel2" subType="GenericCode">
-        <executable>metaModelWith2Codes/AnalyticalDplMain.py</executable>
+        <executable>/Users/alfoa/projects/raven/tests/framework/ensembleModelTests/metaModelWith2Codes/AnalyticalDplMain.py</executable>
         <clargs arg="python" type="prepend"/>
         <clargs arg="" extension=".xml" type="input"/>
         <clargs arg=" " extension=".csv" type="output"/>

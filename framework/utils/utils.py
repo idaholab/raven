@@ -85,7 +85,8 @@ def checkIfLockedRavenFileIsPresent(pathName,fileName="ravenLockedKey.raven"):
     @ Out, filePresent, bool, True if it is present, False otherwise
   """
   filePresent = os.path.isfile(os.path.join(pathName,fileName))
-  open(os.path.join(pathName,fileName), 'w')
+  if not filePresent:
+    open(os.path.join(pathName,fileName), 'w')
   return filePresent
 
 def removeFile(pathAndFileName):

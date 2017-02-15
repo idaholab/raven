@@ -283,10 +283,14 @@ class SingleRun(Step):
     if 'SolutionExport' in inDictionary.keys():
       modelInitDict['SolutionExport'] = inDictionary['SolutionExport']
     currentWorkingDirectory = os.path.join(inDictionary['jobHandler'].runInfoDict['WorkingDir'],inDictionary['jobHandler'].runInfoDict['stepName'])
-    if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
-      self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ currentWorkingDirectory+". Please check your input!")
-    # register function to remove the locked file at the end of execution
-    atexit.register(utils.removeFile,os.path.join(currentWorkingDirectory,self.lockedFileName))
+    try: os.mkdir(currentWorkingDirectory)
+    except OSError:
+      self.raiseAWarning('current working dir '+currentWorkingDirectory+' already exists, this might imply deletion of present files')
+      if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0): self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
+      if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
+        self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ currentWorkingDirectory+". Please check your input!")
+      # register function to remove the locked file at the end of execution
+      atexit.register(utils.removeFile,os.path.join(currentWorkingDirectory,self.lockedFileName))
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],modelInitDict)
 
     self.raiseADebug('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))

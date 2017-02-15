@@ -250,6 +250,25 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             else                   : sampledVars[varModel]     = originalVariables[varFramework]
     return originalVariables
 
+
+  def _replaceVariableWithAliasSystem(self,variableName,aliasType,fromModelToFramework=False):
+    """
+      Method to replace a variable name with the alias system
+      @ In , variableName, str, the variable name to be converted
+      @ In, aliasType, str, optional, type of alias to be replaced
+      @ In, fromModelToFramework, bool, optional, True if we need to replace the variable name from the model to the framework, False if opposite
+      @ Out, convertedVariable, str, the replaced variable
+    """
+    if aliasType.lower() not in ['input','output']: self.raiseAnError(ValueError,"aliasType not recognized. Got:"+aliasType)
+    mapping           = self.alias[aliasType.lower()]
+    convertedVariable = variableName
+    if len(mapping.keys()) != 0:
+      if fromModelToFramework:
+        convertedVariable = mapping.keys()[mapping.values().index(variableName)] if mapping.values().count(variableName) > 0 else None
+      else:
+        convertedVariable = mapping.get(variableName,None)
+    return convertedVariable
+
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the model parameter input.
@@ -1331,10 +1350,10 @@ class Code(Model):
     """
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
-    try: os.mkdir(self.workingDir)
-    except OSError:
-      self.raiseAWarning('current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
-      if utils.checkIfPathAreAccessedByAnotherProgram(self.workingDir,3.0): self.raiseAWarning('directory '+ self.workingDir + ' is likely used by another program!!! ')
+#     try: os.mkdir(self.workingDir)
+#     except OSError:
+#       self.raiseAWarning('current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+#       if utils.checkIfPathAreAccessedByAnotherProgram(self.workingDir,3.0): self.raiseAWarning('directory '+ self.workingDir + ' is likely used by another program!!! ')
       #if utils.checkIfLockedRavenFileIsPresent(self.workingDir,self.lockedFileName): self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ self.workingDir+". Please check your input!")
       # register function to remove the locked file at the end of execution
       #atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
@@ -1757,13 +1776,9 @@ class EnsembleModel(Dummy, Assembler):
     """
     models = []
     for key, value in self.modelsDictionary.items():
-      aliases = value['Instance'].alias[what.lowercase()]
-      if len(aliases.keys()) > 0:
-        # it has aliases
-        print("has alias")
-
-
-      if subWhat in value[what]: models.append(key)
+      converted = []
+      for val in value[what]: converted.append(value['Instance']._replaceVariableWithAliasSystem(val,what,fromModelToFramework=True))
+      if subWhat in converted: models.append(key)
     if len(models) == 0: models = None
     return models
 
@@ -1821,6 +1836,7 @@ class EnsembleModel(Dummy, Assembler):
       self.modelsDictionary[modelIn[2]]['Output'] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
     # construct chain connections
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
+
 
     for modelIn in self.modelsDictionary.keys():
       outputMatch = []
@@ -1942,8 +1958,9 @@ class EnsembleModel(Dummy, Assembler):
     for modelIn, specs in self.modelsDictionary.items():
       if self.needToCheckInputs:
         for inp in specs['Input']:
-          if inp not in allCoveredVariables:
-            self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inp+" has not been found among other models' outputs and sampled variables!")
+          inputToCheck = specs['Instance']._replaceVariableWithAliasSystem(inp,'input',fromModelToFramework=True)
+          if inputToCheck not in allCoveredVariables:
+            self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inputToCheck+" has not been found among other models' outputs and sampled variables!")
       newKwargs = self.__selectInputSubset(modelIn,Kwargs)
       inputDict = [self._inputToInternal(self.modelsDictionary[modelIn]['InputObject'][0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  self.modelsDictionary[modelIn]['InputObject']
       newInputs[modelIn] = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
@@ -2094,6 +2111,7 @@ class EnsembleModel(Dummy, Assembler):
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
           # get back the output in a general format
           self.modelsDictionary[modelIn]['Instance'].finalizeModelOutput(finishedRun[0])
+          print(modelIn)
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
           returnDict[modelIn]  = {}
           responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
