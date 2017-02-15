@@ -5,7 +5,8 @@ try:
   from scipy.misc import imread
   correctImport = True
 except ImportError:
-  pass #('ImageDiff cannot run with scipy version less than 0.15.0')
+  correctImport = False
+  print('ImageDiff cannot run with scipy version less than 0.15.0')
 import numpy as np
 
 import diffUtils as DU
@@ -79,6 +80,6 @@ class ImageDiff:
       onlyDiffs = diff[abs(diff)>self.__options['zero_threshold']]
       pctNumDiff = onlyDiffs.size/float(diff.size)
       if pctNumDiff > self.__options['rel_err']:
-        self.__messages += 'Difference between images is too large: %1.2e pct (allowable: %1.2e)' %(100*pctNumDiff,100*self.__options['rel_err'])
+        self.__messages += 'Difference between images is too large: %2.2f pct (allowable: %2.2f)' %(100*pctNumDiff,100*self.__options['rel_err'])
         self.__same = False
     return (self.__same,self.__messages)
