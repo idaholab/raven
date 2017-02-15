@@ -3,8 +3,8 @@
     type = 'RavenFramework'
     input = 'reducedOrderModeling.xml'
     csv = 'ROMConstruction/histories_0.csv'
-    text = 'ROMConstruction/1-historyPlot_line-line-line-line.eps ROMConstruction/1-samplesPlot3DROMgp_scatter-scatter.eps ROMConstruction/1-samplesPlot3DROMinverse_scatter-scatter.eps ROMConstruction/1-samplesPlot3DROMsvm_scatter-scatter.eps ROMConstruction/1-samplesPlot3D_scatter-scatter.eps'
-    comment = '%'
+    image = 'ROMConstruction/1-historyPlot_line-line-line-line.png ROMConstruction/1-samplesPlot3DROMgp_scatter-scatter.png ROMConstruction/1-samplesPlot3DROMinverse_scatter-scatter.png ROMConstruction/1-samplesPlot3DROMsvm_scatter-scatter.png ROMConstruction/1-samplesPlot3D_scatter-scatter.png'
+    rel_err = 0.01
     heavy = true
     max_time = 300
   [../]

@@ -3,35 +3,33 @@
     type = 'RavenFramework'
     input = 'forwardSamplingMontecarlo.xml'
     csv = 'RunDir/MonteCarlo/histories_0.csv'
-    text = 'RunDir/MonteCarlo/1-historyPlot_line-line-line-line.eps RunDir/MonteCarlo/1-samplesPlot3D_scatter-scatter-scatter-scatter.eps'
-    comment = '%'
+    image = 'RunDir/MonteCarlo/1-historyPlot_line-line-line-line.png RunDir/MonteCarlo/1-samplesPlot3D_scatter-scatter-scatter-scatter.png'
+    rel_err = 0.01
   [../]
 
   [./Grid]
     type = 'RavenFramework'
     input = 'forwardSamplingGrid.xml'
     csv = 'RunDir/Grid/histories_0.csv'
-    text = 'RunDir/Grid/1-historyPlot_line-line-line-line.eps RunDir/Grid/1-samplesPlot3D_scatter-scatter-scatter-scatter.eps'
-    comment = '%'
-    rel_err = 1e-4
+    image = 'RunDir/Grid/1-historyPlot_line-line-line-line.png RunDir/Grid/1-samplesPlot3D_scatter-scatter-scatter-scatter.png'
+    rel_err = 0.01
   [../]
 
   [./Stratified]
     type = 'RavenFramework'
     input = 'forwardSamplingStratified.xml'
     csv = 'RunDir/Stratified/histories_0.csv'
-    text = 'RunDir/Stratified/1-historyPlot_line-line-line-line.eps RunDir/Stratified/1-samplesPlot3D_scatter-scatter-scatter-scatter.eps'
-    comment = '%'
+    image = 'RunDir/Stratified/1-historyPlot_line-line-line-line.png RunDir/Stratified/1-samplesPlot3D_scatter-scatter-scatter-scatter.png'
+    rel_err = 0.01
   [../]
 
   [./SparseGrid]
     type = 'RavenFramework'
     input = 'forwardSamplingSparseGrid.xml'
     UnorderedXml = 'RunDir/SparseGrid/rom_output.xml'
-    text = 'RunDir/SparseGrid/1-historyPlot_line-line-line-line.eps RunDir/SparseGrid/1-samplesModelPlot3D_scatter-scatter-scatter-scatter.eps RunDir/SparseGrid/1-samplesROMPlot3D_scatter-scatter-scatter-scatter.eps'
-    comment = '%'
-    rel_err = 1e-8
-    zero_threshold = 1e-10
+    image = 'RunDir/SparseGrid/1-historyPlot_line-line-line-line.png RunDir/SparseGrid/1-samplesModelPlot3D_scatter-scatter-scatter-scatter.png RunDir/SparseGrid/1-samplesROMPlot3D_scatter-scatter-scatter-scatter.png'
+    rel_err = 0.01
+    zero_threshold = 1e-8
     heavy = true
     max_time = 500
   [../]

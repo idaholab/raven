@@ -4,7 +4,7 @@
     <JobName>RunDir/Grid</JobName>
     <Sequence>sample,writeHistories</Sequence>
     <WorkingDir>RunDir/Grid</WorkingDir>
-    <batchSize>1</batchSize>
+    <batchSize>8</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/ForwardSamplingStrategies/Grid</name>
@@ -169,7 +169,7 @@
 
         </plotSettings>
         <actions>
-            <how>eps</how>
+            <how>png</how>
             <title>
                 <text> </text>
             </title>
@@ -239,7 +239,7 @@
             <zlabel>final response</zlabel>
         </plotSettings>
         <actions>
-            <how>eps</how>
+            <how>png</how>
             <title>
                 <text> </text>
             </title>

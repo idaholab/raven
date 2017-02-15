@@ -3,9 +3,8 @@
     type = 'RavenFramework'
     input = 'singleRunPlotAndPrint-VI.I.xml'
     csv = 'sectionVI.I/history_0.csv sectionVI.I/pointValues.csv'
-    text = 'sectionVI.I/1-historyPlot_line-line-line-line.eps'
-    comment='%'
-    rel_err = 0.00001
+    image = 'sectionVI.I/1-historyPlot_line-line-line-line.png'
+    rel_err = 0.001
   [../]
   [./singleRunSelective]
     type = 'RavenFramework'
@@ -13,6 +12,5 @@
     csv = 'sectionVI.II/history_0.csv sectionVI.II/pointValues.csv'
     image = 'sectionVI.II/1-historyPlot_line-line-line-line.png'
     rel_err = 0.001
-    minimum_library_versions = 'scipy 0.15.0'
   [../]
 []
