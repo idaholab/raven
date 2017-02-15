@@ -4,7 +4,7 @@
     <JobName>LSsearch</JobName>
     <Sequence>sample,computeLSintegral,writeHistories</Sequence>
     <WorkingDir>LSsearch</WorkingDir>
-    <batchSize>8</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/AdaptiveSamplingStrategies/limitSurfaceSearch</name>

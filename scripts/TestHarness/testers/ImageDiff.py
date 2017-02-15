@@ -40,7 +40,6 @@ class ImageDiff:
     """
     # read in files
     filesRead = False
-    print('outfiles:',self.__outFile,file=sys.stderr)
     for outfile in self.__outFile:
       testFilename = os.path.join(self.__testDir,outfile)
       goldFilename = os.path.join(self.__testDir, 'gold', outfile)
@@ -80,7 +79,6 @@ class ImageDiff:
       onlyDiffs = diff[abs(diff)>self.__options['zero_threshold']]
       pctNumDiff = onlyDiffs.size/float(diff.size)
       if pctNumDiff > self.__options['rel_err']:
-        self.__messages += 'Difference between images is too large: %2.2f %' %(100*pctNumDiff)
+        self.__messages += 'Difference between images is too large: %1.2e pct (allowable: %1.2e)' %(100*pctNumDiff,100*self.__options['rel_err'])
         self.__same = False
-    print('Same?',self.__same,filesRead,self.__messages,file=sys.stderr)
     return (self.__same,self.__messages)

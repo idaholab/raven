@@ -196,6 +196,8 @@ class RavenFramework(Tester):
 
     #image
     imageOpts = {}
+    if 'rel_err'        in self.specs.keys(): imageOpts['rel_err'       ] = self.specs['rel_err'       ]
+    if 'zero_threshold' in self.specs.keys(): imageOpts['zero_threshold'] = self.specs['zero_threshold']
     imgDiff = ImageDiff(self.specs['test_dir'],self.img_files,**imageOpts)
     (imgSame,imgMessages) = imgDiff.diff()
     if not imgSame:

@@ -3,7 +3,7 @@
     type = 'RavenFramework'
     input = 'dataMiningAnalysis.xml'
     UnorderedCsv = 'dataMiningAnalysis/samplesDump.csv'
-    image = 'dataMining/1-PlotKMeans1_dataMining-dataMining-dataMining.png dataMining/1-PlotLabels_dataMining.png dataMining/1-PlotPCA1_dataMining.png'
+    image = 'dataMiningAnalysis/1-PlotKMeans1_dataMining-dataMining-dataMining.png dataMiningAnalysis/1-PlotLabels_dataMining.png dataMiningAnalysis/1-PlotPCA1_dataMining.png'
     heavy = true
     rel_err = 0.01
   [../]
