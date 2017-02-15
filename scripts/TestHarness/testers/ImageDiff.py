@@ -56,7 +56,7 @@ class ImageDiff:
     #read in files
     if filesRead:
       if not correctImport:
-        self.__messages+='ImageDiff cannot run with scipy version less than 0.15.0'
+        self.__messages+='ImageDiff cannot run with scipy version less than 0.15.0; scipy version is '+str(scipy.__version__)
         self.__same = False
         return(self.__same,self.__messages)
       try:
