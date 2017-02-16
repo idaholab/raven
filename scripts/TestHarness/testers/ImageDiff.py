@@ -7,7 +7,6 @@ try:
 except ImportError:
   import scipy
   correctImport = False
-  print('ImageDiff was unable to import "imread" from "scipy.misc"!  Scipy version is',scipy.__version__)
 import numpy as np
 
 import diffUtils as DU
@@ -56,7 +55,7 @@ class ImageDiff:
     #read in files
     if filesRead:
       if not correctImport:
-        self.__messages+='ImageDiff cannot run with scipy version less than 0.15.0; scipy version is '+str(scipy.__version__)
+        self.__messages+='ImageDiff cannot run with scipy version less than 0.15.0, and requires the PIL installed; scipy version is '+str(scipy.__version__)
         self.__same = False
         return(self.__same,self.__messages)
       try:

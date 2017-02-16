@@ -4,6 +4,7 @@
     input = 'singleRunPlotAndPrint-VI.I.xml'
     csv = 'sectionVI.I/history_0.csv sectionVI.I/pointValues.csv'
     image = 'sectionVI.I/1-historyPlot_line-line-line-line.png'
+    required_libraries = 'PIL'
     rel_err = 0.01
   [../]
   [./singleRunSelective]
