@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>Optimizers/GradientBasedOptimizers.SPSAParallel</name>
+    <name>framework/Optimizers/GradientBasedOptimizers.SPSAParallel</name>
     <author>chenj</author>
     <created>2016-11-03</created>
     <classesTested>Optimizers.SPSA</classesTested>
@@ -12,6 +12,7 @@
     <revisions>
       <revision author="chenj" date="2016-11-04">XSD</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-02-09">Modified in order to add new tolerance parameters</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -99,7 +100,9 @@
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
 	  <convergence>
 		<iterationLimit>50</iterationLimit>
-		<threshold>1e-5</threshold>
+        <relativeThreshold>1e-5</relativeThreshold>
+        <absoluteThreshold>1e-7</absoluteThreshold>
+        <gradientThreshold>1e-6</gradientThreshold>
 	  </convergence>
 	  <variable name="x1">
         <upperBound>1</upperBound>

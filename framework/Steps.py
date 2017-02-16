@@ -244,19 +244,28 @@ class SingleRun(Step):
     self.raiseADebug('the mapping used in the model for checking the compatibility of usage should be more similar to self.parList to avoid the double mapping below','FIXME')
     found     = 0
     rolesItem = []
+    #collect model, other entries
     for index, parameter in enumerate(self.parList):
       if parameter[0]=='Model':
         found +=1
         modelIndex = index
       else: rolesItem.append(parameter[0])
     #test the presence of one and only one model
-    if found > 1: self.raiseAnError(IOError,'Only one model is allowed for the step named '+str(self.name))
-    elif found == 0: self.raiseAnError(IOError,'No model has been found for the step named '+str(self.name))
+    if found > 1:
+      self.raiseAnError(IOError,'Only one model is allowed for the step named '+str(self.name))
+    elif found == 0:
+      self.raiseAnError(IOError,'No model has been found for the step named '+str(self.name))
+    #clarify run by roles
     roles      = set(rolesItem)
     if 'Optimizer' in roles:
       self.splType = 'Optimizer'
       if 'Sampler' in roles:
         self.raiseAnError(IOError, 'Only Sampler or Optimizer is alloweed for the step named '+str(self.name))
+    #if single run, make sure model is an instance of Code class
+    if self.type == 'SingleRun':
+      if self.parList[modelIndex][2] != 'Code':
+        self.raiseAnError(IOError,'<SingleRun> steps only support running "Code" model types!  Consider using a <MultiRun> step using a "Custom" sampler for other models.')
+    #build entry list for verification of correct input types
     toBeTested = {}
     for role in roles: toBeTested[role]=[]
     for  myInput in self.parList:
@@ -317,7 +326,13 @@ class SingleRun(Step):
     inputs         = inDictionary['Input'     ]
     outputs        = inDictionary['Output'    ]
 
-    model.run(inputs,jobHandler)
+    # the input provided by a SingleRun is simply the file to be run.  model.run, however, expects stuff to perturb.
+    # get an input to run -> different between SingleRun and PostProcessor runs
+    if self.type == 'SingleRun':
+      newInput = model.createNewInput(inputs,'None',**{'SampledVars':{},'additionalEdits':{}})
+    else:
+      newInput = inputs
+    model.run(newInput,jobHandler) #empty dictionary corresponds to sampling data in multirun
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
@@ -336,7 +351,6 @@ class SingleRun(Step):
     if sampler is not None: sampler.handleFailedRuns(self.failedRuns)
     else:
       if len(self.failedRuns)>0: self.raiseAWarning('There were %i failed runs!' %len(self.failedRuns))
-
 
   def _localGetInitParams(self):
     """
