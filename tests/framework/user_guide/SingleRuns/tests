@@ -11,6 +11,7 @@
     input = 'singleRunSubPlotsAndSelectivePrint-VI.II.xml'
     csv = 'sectionVI.II/history_0.csv sectionVI.II/pointValues.csv'
     image = 'sectionVI.II/1-historyPlot_line-line-line-line.png'
+    required_libraries = 'PIL'
     rel_err = 0.01
   [../]
 []
