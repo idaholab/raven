@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/metaModelsTests.testEnsembleModelLinearThreadWithTimeSeries</name>
+    <name>framework/ensembleModelTests.testEnsembleModelLinearThreadWithTimeSeries</name>
     <author>alfoa</author>
     <created>2016-08-02</created>
     <classesTested>Models.EnsembleModel, Models.ExternalModel, JobHandler.Thread</classesTested>
