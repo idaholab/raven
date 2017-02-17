@@ -1,18 +1,18 @@
-'''
+"""
 Created on Jul 26, 2013
 
 @author: andrea
-'''
+"""
 import math
 
 class BatemanClass:
-    '''
-    classdocs
-    '''
+    """
+     Bateman Class
+    """
     def __init__(self,initializationDict):
-        '''
-        Constructor
-        '''
+        """
+          Constructor
+        """
         if "totalTime" not in initializationDict.keys(): raise IOError("not total time day specified in the input")
         self.totaltime = initializationDict["totalTime"]
         if "powerHistory" not in initializationDict.keys(): raise IOError("not power history specified in the input")
@@ -40,9 +40,9 @@ class BatemanClass:
         self.result      = {}
         self.avogadro    = 6.02214199E+23
         self.barn        = 1.0e-24
-        '''
-          Nuclides
-        '''
+        #
+        # Nuclides
+        #
         if "nuclides" not in initializationDict.keys(): raise IOError("no nuclide specified in the input")
         nuclides = initializationDict["nuclides"]
         #self.IsoData[counter] = (EqTipe,ID,InitialMass,DecayConstant,sigma,AtomicNumber)

@@ -1,25 +1,24 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ensembleModelTests.testEnsembleModelWithCode</name>
+    <name>framework/ensembleModelTests.testEnsembleModelWith2CodesAndAlias</name>
     <author>alfoa</author>
-    <created>2016-04-14</created>
-    <classesTested>Models.EnsembleModel, Models.ExternalModel, Models.Code, JobHandler.Thread</classesTested>
+    <created>2017-02-16</created>
+    <classesTested>Models.Code, JobHandler.Thread</classesTested>
     <description>
-       Example of usage of the Ensemble Model capability in RAVEN, connecting multiple External Models and Codes.
-       This test is aimed to check the functionality of assembling multiple Models, when they result in a single chain
-       of Models (linear system).  This test checks the functionality of the model using a multi threading parallelization scheme
-       for the External Models and multi processor scheme for the external Code.
+       Example of usage of the Ensemble Model capability in RAVEN, connecting multiple multiple Codes together, with same output variable names.
+       This means that the alias system has been used and this test is aimed to show how to use it in these kinds of situations.
     </description>
   </TestInfo>
   
   <RunInfo>
-    <JobName>metaModelWithCode</JobName>
+    <JobName>testEnsembleModelWith2CodesAndAlias</JobName>
     <Sequence>
-        sampleMC
+        sampleMC,dumpResults
     </Sequence>
     <WorkingDir>/Users/alfoa/projects/raven/tests/framework/ensembleModelTests/metaModelWith2Codes</WorkingDir>
     <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
   </RunInfo>
 
   <Files>
@@ -29,22 +28,26 @@
 
   <Models>
     <Code name="testModel" subType="GenericCode">
-      <executable>/Users/alfoa/projects/raven/tests/framework/ensembleModelTests/metaModelWith2Codes/AnalyticalDplMain.py</executable>
+      <executable>/Users/alfoa/projects/raven/tests/framework/ensembleModelTests/metaModelWith2Codes/code/AnalyticalDplMain.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
       <prepend>python</prepend>
+      <alias variable="AtestModel1"           type="output">A</alias>
+      <alias variable="BtestModel1"           type="output">B</alias>
     </Code>
     <Code name="testModel2" subType="GenericCode">
-        <executable>/Users/alfoa/projects/raven/tests/framework/ensembleModelTests/metaModelWith2Codes/AnalyticalDplMain.py</executable>
+        <executable>/Users/alfoa/projects/raven/tests/framework/ensembleModelTests/metaModelWith2Codes/code/AnalyticalDplMain.py</executable>
         <clargs arg="python" type="prepend"/>
         <clargs arg="" extension=".xml" type="input"/>
         <clargs arg=" " extension=".csv" type="output"/>
         <prepend>python</prepend>
-        <alias variable="A"           type="input">init-A</alias>
-        <alias variable="B"           type="input">init-B</alias>
-        <alias variable="AtestModel2" type="output">A</alias>
-        <alias variable="BtestModel2" type="output">B</alias>
+        <alias variable="AtestModel1"           type="input">init-A</alias>
+        <alias variable="BtestModel1"           type="input">init-B</alias>
+        <alias variable="AtestModel2"           type="output">A</alias>
+        <alias variable="BtestModel2"           type="output">B</alias>
+        <alias variable="CtestModel2"           type="output">C</alias>
+        <alias variable="DtestModel2"           type="output">D</alias>
     </Code>
     <EnsembleModel name="codeAndExtModel" subType="">
       <Model class="Models" type="Code">
@@ -56,11 +59,6 @@
           testModel
         <Input class="Files" type="">referenceInput.xml</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">samplesMC</TargetEvaluation>
-        <!--
-        <metadataInfoNeeded>
-          <modelName>
-        </metadataInfoNeeded>
-         -->
       </Model>
     </EnsembleModel>
   </Models>
@@ -79,7 +77,7 @@
   <Samplers>
     <MonteCarlo name="mc">
       <samplerInit>
-        <limit>100</limit>
+        <limit>3</limit>
       </samplerInit>
       <variable name="sigma-A">
         <distribution>sigma</distribution>
@@ -103,8 +101,11 @@
       <Model class="Models" type="EnsembleModel">codeAndExtModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="PointSet">finalResponses</Output>
-      <Output class="OutStreams" type="Print">printFinalResults</Output>
     </MultiRun>
+    <IOStep name="dumpResults">
+        <Input class="DataObjects" type="PointSet">finalResponses</Input>
+        <Output class="OutStreams" type="Print">printFinalResults</Output>
+    </IOStep>
   </Steps>
 
   <OutStreams>
@@ -117,15 +118,15 @@
   <DataObjects>
     <PointSet name="samplesMC">
       <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>A,B,C,D</Output>
+      <Output>AtestModel1,BtestModel1,C,D</Output>
     </PointSet>
     <PointSet name="sumData">
-      <Input>init-B,init-A</Input>
-      <Output>AtestModel2,BtestModel2</Output>
+      <Input>AtestModel1,BtestModel1</Input>
+      <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
     </PointSet>
     <PointSet name="finalResponses">
       <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>A,B,C,D,AtestModel2,BtestModel2</Output>
+      <Output>AtestModel1,BtestModel1,C,D,AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
     </PointSet>
   </DataObjects>
 

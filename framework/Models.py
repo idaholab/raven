@@ -1777,9 +1777,9 @@ class EnsembleModel(Dummy, Assembler):
     """
     models = []
     for key, value in self.modelsDictionary.items():
-      converted = []
-      for val in value[what]: converted.append(value['Instance']._replaceVariableWithAliasSystem(val,what,fromModelToFramework=True))
-      if subWhat in converted: models.append(key)
+      #converted = []
+      #for val in value[what]: converted.append(value['Instance']._replaceVariableWithAliasSystem(val,what,fromModelToFramework=True))
+      if subWhat in value[what]: models.append(key)
     if len(models) == 0: models = None
     return models
 
@@ -1837,8 +1837,7 @@ class EnsembleModel(Dummy, Assembler):
       self.modelsDictionary[modelIn[2]]['Output'] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
     # construct chain connections
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
-
-
+    # find matching models
     for modelIn in self.modelsDictionary.keys():
       outputMatch = []
       for i in range(len(self.modelsDictionary[modelIn]['Output'])):
@@ -1846,15 +1845,6 @@ class EnsembleModel(Dummy, Assembler):
         outputMatch.extend(match if match is not None else [])
       outputMatch = list(set(outputMatch))
       modelsToOutputModels[modelIn] = outputMatch
-    orderList        = self.modelsDictionary.keys()
-    for modelIn in self.modelsDictionary.keys():
-      for i in range(len(self.modelsDictionary[modelIn]['Input'])):
-        inputMatch   = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
-        if inputMatch is not None:
-          for match in inputMatch:
-            indexModelIn = orderList.index(modelIn)
-            orderList.pop(indexModelIn)
-            orderList.insert(int(max(orderList.index(match)+1,indexModelIn)), modelIn)
     # construct the ensemble model directed graph
     self.ensembleModelGraph = graphStructure.graphObject(modelsToOutputModels)
     # make some checks
@@ -1944,7 +1934,7 @@ class EnsembleModel(Dummy, Assembler):
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      This function have to return a new input that will be submitted to the model, it is called by the sampler
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
@@ -1959,9 +1949,9 @@ class EnsembleModel(Dummy, Assembler):
     for modelIn, specs in self.modelsDictionary.items():
       if self.needToCheckInputs:
         for inp in specs['Input']:
-          inputToCheck = specs['Instance']._replaceVariableWithAliasSystem(inp,'input',fromModelToFramework=True)
-          if inputToCheck not in allCoveredVariables:
-            self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inputToCheck+" has not been found among other models' outputs and sampled variables!")
+          #inputToCheck = specs['Instance']._replaceVariableWithAliasSystem(inp,'input',fromModelToFramework=True)
+          if inp not in allCoveredVariables:
+            self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inp+" has not been found among other models' outputs and sampled variables!")
       newKwargs = self.__selectInputSubset(modelIn,Kwargs)
       inputDict = [self._inputToInternal(self.modelsDictionary[modelIn]['InputObject'][0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  self.modelsDictionary[modelIn]['InputObject']
       newInputs[modelIn] = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
@@ -2047,7 +2037,8 @@ class EnsembleModel(Dummy, Assembler):
     for previousOutputs, outputType in zip(listOfOutputs,typeOutputs):
       if len(previousOutputs.values()) > 0:
         for input in self.modelsDictionary[modelIn]['Input']:
-          if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input][-1] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
+          if input in previousOutputs.keys():
+            dependentOutputs[input] =  previousOutputs[input][-1] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
           #if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
     return dependentOutputs
 
@@ -2085,6 +2076,7 @@ class EnsembleModel(Dummy, Assembler):
       for modelCnt, modelIn in enumerate(self.orderList):
         tempTargetEvaluations[modelIn].resetData()
         dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
+
         if iterationCount == 1  and self.activatePicard:
           try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
           except           : sampledVars = Input[modelIn][1]['SampledVars'].keys()
@@ -2112,7 +2104,7 @@ class EnsembleModel(Dummy, Assembler):
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
           # get back the output in a general format
           self.modelsDictionary[modelIn]['Instance'].finalizeModelOutput(finishedRun[0])
-          print(modelIn)
+
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
           returnDict[modelIn]  = {}
           responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
@@ -2126,6 +2118,7 @@ class EnsembleModel(Dummy, Assembler):
 #           else:
 #             gotOutputs[modelCnt], inputSpace = responseSpace.values()[-1], inputSpace.values()[-1]
           gotOutputs[modelCnt]  = responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
+#          self.modelsDictionary[modelIn]['Instance']._replaceVariablesNamesWithAliasSystem(gotOutputs[modelCnt],'inout', False)
           #store the result in return dictionary
           returnDict[modelIn]['outputSpaceParams'] = gotOutputs[modelCnt]
           returnDict[modelIn]['inputSpaceParams' ] = inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]

@@ -8,14 +8,14 @@
   <nuclides>
     <A>
         <equationType>N1</equationType>
-        <initialMass>$RAVEN-init-A:$</initialMass>
+        <initialMass>$RAVEN-init-A:0.00001$</initialMass>
         <decayConstant>$RAVEN-decay-A|10:0.00001$</decayConstant>
         <sigma>$RAVEN-sigma-A|10:0.00001$</sigma>
         <ANumber>230</ANumber>
     </A>
     <B>
         <equationType>N2</equationType>
-        <initialMass>$RAVEN-init-B$</initialMass>
+        <initialMass>$RAVEN-init-B:0.00001$</initialMass>
         <decayConstant>$RAVEN-decay-B:0.000000006$</decayConstant>
         <sigma>$RAVEN-sigma-B:5$</sigma>
         <ANumber>200</ANumber>
