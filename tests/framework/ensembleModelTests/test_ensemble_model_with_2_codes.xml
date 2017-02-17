@@ -16,7 +16,7 @@
     <Sequence>
         sampleMC,dumpResults
     </Sequence>
-    <WorkingDir>/Users/alfoa/projects/raven/tests/framework/ensembleModelTests/metaModelWith2Codes</WorkingDir>
+    <WorkingDir>metaModelWith2Codes</WorkingDir>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
   </RunInfo>
