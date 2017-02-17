@@ -1743,14 +1743,10 @@ class EnsembleModel(Dummy, Assembler):
           try                  : self.modelsDictionary[modelName][childChild.tag].append(childChild.text.strip())
           except AttributeError: self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
         if self.modelsDictionary[modelName].values().count(None) != 1: self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
-        #if len(self.modelsDictionary[child.text.strip()].values()) > 2: self.raiseAnError(IOError, "TargetEvaluation xml block is the only XML sub-block allowed!")
-        #if 'inputNames' not in child.attrib.keys(): self.raiseAnError(IOError, "inputNames attribute for Model" + child.text.strip() +" has not been inputted!")
-        #self.modelsDictionary[modelName]['inputNames'] = [utils.toStrish(inpName) for inpName in child.attrib["inputNames"].split(",")]
         if len(self.modelsDictionary[modelName]['Input']) == 0 : self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
         if len(self.modelsDictionary[modelName].values()) > 3  : self.raiseAnError(IOError, "TargetEvaluation and Input XML blocks are the only XML sub-blocks allowed!")
         if child.attrib['type'].strip() == "Code": self.createWorkingDir =True
-      if child.tag == 'settings':
-        self.__readSettings(child)
+      if child.tag == 'settings': self.__readSettings(child)
     if len(self.modelsDictionary.keys()) < 2: self.raiseAnError(IOError, "The EnsembleModel needs at least 2 models to be constructed!")
 
   def __readSettings(self, xmlNode):
@@ -1787,35 +1783,41 @@ class EnsembleModel(Dummy, Assembler):
     if len(models) == 0: models = None
     return models
 
-  def __getExecutionList(self, orderedNodes, allPath):
-    """
-      Method to get the execution list
-      @ In, orderedNodes, list, list of models ordered based on the input/output relationships
-      @ In, allPath, list, list of lists containing all the path from orderedNodes[0] to orderedNodes[-1]
-      @ Out, executionList, list, list of lists with the execution order (e.g. [[model1],[model2.1,model2.2],[model3], etc.]
-    """
-    numberPath    = len(allPath)
-    maxComponents = max([len(path) for path in allPath])
-
-    executionList = [ [] for _ in range(maxComponents)]
-    executionCounter = -1
-    for node in orderedNodes:
-      nodeCtn = 0
-      for path in allPath:
-        if node in path: nodeCtn +=1
-      if nodeCtn == numberPath:
-        executionCounter+=1
-        executionList[executionCounter] = [node]
-      else:
-        previousNodesInPath = []
-        for path in allPath:
-          if path.count(node) > 0: previousNodesInPath.append(path[path.index(node)-1])
-        for previousNode in previousNodesInPath:
-          if previousNode in executionList[executionCounter]:
-            executionCounter+=1
-            break
-        executionList[executionCounter].append(node)
-    return executionList
+#######################################################################################
+#  To be uncommented when the execution list can be handled
+#  def __getExecutionList(self, orderedNodes, allPath):
+#    """
+#      Method to get the execution list
+#      @ In, orderedNodes, list, list of models ordered based
+#                       on the input/output relationships
+#      @ In, allPath, list, list of lists containing all the
+#                       path from orderedNodes[0] to orderedNodes[-1]
+#      @ Out, executionList, list, list of lists with the execution
+#                       order ([[model1],[model2.1,model2.2],[model3], etc.]
+#    """
+#    numberPath    = len(allPath)
+#    maxComponents = max([len(path) for path in allPath])
+#
+#    executionList = [ [] for _ in range(maxComponents)]
+#    executionCounter = -1
+#    for node in orderedNodes:
+#      nodeCtn = 0
+#      for path in allPath:
+#        if node in path: nodeCtn +=1
+#      if nodeCtn == numberPath:
+#        executionCounter+=1
+#        executionList[executionCounter] = [node]
+#      else:
+#        previousNodesInPath = []
+#        for path in allPath:
+#          if path.count(node) > 0: previousNodesInPath.append(path[path.index(node)-1])
+#        for previousNode in previousNodesInPath:
+#          if previousNode in executionList[executionCounter]:
+#            executionCounter+=1
+#            break
+#        executionList[executionCounter].append(node)
+#    return executionList
+#######################################################################################
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -1862,11 +1864,11 @@ class EnsembleModel(Dummy, Assembler):
     self.orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)
     self.raiseAMessage("Model Execution list: "+' -> '.join(self.orderList))
     ###################################################
-
-    #orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)
-
-    if len(allPath) > 1: self.executionList = self.__getExecutionList(self.orderList,allPath)
-    else               : self.executionList = allPath[-1]
+    ###########################################################################################
+    # to be uncommented when the execution list can be handled                                #
+    # if len(allPath) > 1: self.executionList = self.__getExecutionList(self.orderList,allPath) #
+    # else               : self.executionList = allPath[-1]                                     #
+    ###########################################################################################
     # check if Picard needs to be activated
     self.activatePicard = self.ensembleModelGraph.isALoop()
     if self.activatePicard:
