@@ -197,6 +197,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.subType  = ''
     self.runQueue = []
     self.printTag = 'MODEL'
+    self.createWorkingDir = False
 
   def _readMoreXML(self,xmlNode):
     """
@@ -1220,6 +1221,7 @@ class Code(Model):
     self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
     self.codeFlags          = None #flags that need to be passed into code interfaces(if present)
     self.printTag           = 'CODE MODEL'
+    self.createWorkingDir   = True
 
   def _readMoreXML(self,xmlNode):
     """
@@ -1734,6 +1736,7 @@ class EnsembleModel(Dummy, Assembler):
     for child in xmlNode:
       if child.tag not in  ["Model","settings"]: self.raiseAnError(IOError, "Expected <Model> or <settings> tag. Got "+child.tag)
       if child.tag == 'Model':
+        if 'type' not in child.attrib.keys() or 'class' not in child.attrib.keys(): self.raiseAnError(IOError, 'Tag Model must have attributes "class" and "type"')
         modelName = child.text.strip()
         self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[]}
         for childChild in child:
@@ -1745,6 +1748,7 @@ class EnsembleModel(Dummy, Assembler):
         #self.modelsDictionary[modelName]['inputNames'] = [utils.toStrish(inpName) for inpName in child.attrib["inputNames"].split(",")]
         if len(self.modelsDictionary[modelName]['Input']) == 0 : self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
         if len(self.modelsDictionary[modelName].values()) > 3  : self.raiseAnError(IOError, "TargetEvaluation and Input XML blocks are the only XML sub-blocks allowed!")
+        if child.attrib['type'].strip() == "Code": self.createWorkingDir =True
       if child.tag == 'settings':
         self.__readSettings(child)
     if len(self.modelsDictionary.keys()) < 2: self.raiseAnError(IOError, "The EnsembleModel needs at least 2 models to be constructed!")
@@ -1861,7 +1865,7 @@ class EnsembleModel(Dummy, Assembler):
 
     #orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)
 
-    if len(allPath) > 1: self.executionList = self.__getExecutionList(orderList,allPath)
+    if len(allPath) > 1: self.executionList = self.__getExecutionList(self.orderList,allPath)
     else               : self.executionList = allPath[-1]
     # check if Picard needs to be activated
     self.activatePicard = self.ensembleModelGraph.isALoop()
