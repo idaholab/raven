@@ -851,10 +851,10 @@ def sizeMatch(var,sizeToCheck):
 
 def isASubset(setToTest,pileList):
   """
-     Check if setToTest is ordered subset of pileList in O(n)
-     @ In, setToTest, list, set that needs to be tested
-     @ In, pileList, list, pile of sets
-     @ Out, isASubset, bool, True if setToTest is a subset
+    Check if setToTest is ordered subset of pileList in O(n)
+    @ In, setToTest, list, set that needs to be tested
+    @ In, pileList, list, pile of sets
+    @ Out, isASubset, bool, True if setToTest is a subset
   """
 
   if len(pileList) < len(setToTest): return False
@@ -878,21 +878,20 @@ def filterAllSubSets(listOfLists):
       yield setToTest
 
 def mergeDictionaries(*dictArgs):
-    '''
+  """
     Given any number of dicts, shallow copy and merge into a new dict,
     precedence goes to key value pairs in latter dicts.
     Adapted from: http://stackoverflow.com/questions/38987/how-to-merge-two-python-dictionaries-in-a-single-expression
     @ In, dictArgs, dict, a list of dictionaries to merge
     @ Out, mergedDict, dict, merged dictionary including keys from everything in dictArgs.
-    '''
-    mergedDict = {}
-    for dictionary in dictArgs:
-      overlap = set(dictionary.keys()).intersection(mergedDict.keys())
-      if len(overlap):
-        commonKeys = ', '.join(overlap)
-        caller.raiseAnError(IOError,'Utils, mergeDictionaries: the dictionaries being merged have the following overlapping keys: ' + str(commonKeys))
-      mergedDict.update(dictionary)
-    return mergedDict
+  """
+  mergedDict = {}
+  for dictionary in dictArgs:
+    overlap = set(dictionary.keys()).intersection(mergedDict.keys())
+    if len(overlap):
+      raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> mergeDictionaries: the dictionaries being merged have the following overlapping keys: ' + ', '.join(overlap))
+    mergedDict.update(dictionary)
+  return mergedDict
 
 def mergeSequences(seq1,seq2):
   """

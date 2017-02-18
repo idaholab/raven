@@ -1820,7 +1820,6 @@ class EnsembleModel(Dummy, Assembler):
       @ In, initDict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    #moldelNodes = {}
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
       inputInstancesForModel = []
@@ -1831,7 +1830,6 @@ class EnsembleModel(Dummy, Assembler):
         if mm not in self.mods: self.mods.append(mm)
       self.modelsDictionary[modelIn[2]]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
       self.tempTargetEvaluations[modelIn[2]]                 = copy.deepcopy(self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
-      #if type(self.tempTargetEvaluations[modelIn[2]]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(self.tempTargetEvaluations[modelIn[2]]).__name__)
       self.modelsDictionary[modelIn[2]]['Input' ] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
       self.modelsDictionary[modelIn[2]]['Output'] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
     # construct chain connections
@@ -1858,7 +1856,7 @@ class EnsembleModel(Dummy, Assembler):
     self.raiseAMessage("Model Execution list: "+' -> '.join(self.orderList))
     ###################################################
     ###########################################################################################
-    # to be uncommented when the execution list can be handled                                #
+    # To be uncommented when the execution list can be handled                                #
     # if len(allPath) > 1: self.executionList = self.__getExecutionList(self.orderList,allPath) #
     # else               : self.executionList = allPath[-1]                                     #
     ###########################################################################################
