@@ -1352,13 +1352,6 @@ class Code(Model):
     """
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
-#     try: os.mkdir(self.workingDir)
-#     except OSError:
-#       self.raiseAWarning('current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
-#       if utils.checkIfPathAreAccessedByAnotherProgram(self.workingDir,3.0): self.raiseAWarning('directory '+ self.workingDir + ' is likely used by another program!!! ')
-      #if utils.checkIfLockedRavenFileIsPresent(self.workingDir,self.lockedFileName): self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ self.workingDir+". Please check your input!")
-      # register function to remove the locked file at the end of execution
-      #atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
     for inputFile in inputFiles:
       shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.oriInputFiles = []
@@ -1949,18 +1942,18 @@ class EnsembleModel(Dummy, Assembler):
     """
     # check if all the inputs of the submodule are covered by the sampled vars and Outputs of the other sub-models
     if self.needToCheckInputs: allCoveredVariables = list(set(self.allOutputs + Kwargs['SampledVars'].keys()))
-    newInputs                     = {}
     identifier                    = Kwargs['prefix']
-    newInputs['prefix']           = identifier
+    # global prefix
+    newInputs                     = {'prefix':identifier}
     for modelIn, specs in self.modelsDictionary.items():
       if self.needToCheckInputs:
         for inp in specs['Input']:
-          #inputToCheck = specs['Instance']._replaceVariableWithAliasSystem(inp,'input',fromModelToFramework=True)
-          if inp not in allCoveredVariables:
-            self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inp+" has not been found among other models' outputs and sampled variables!")
+          if inp not in allCoveredVariables: self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inp+" has not been found among other models' outputs and sampled variables!")
       newKwargs = self.__selectInputSubset(modelIn,Kwargs)
       inputDict = [self._inputToInternal(self.modelsDictionary[modelIn]['InputObject'][0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  self.modelsDictionary[modelIn]['InputObject']
-      newInputs[modelIn] = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
+      # local prefix
+      newKwargs['prefix'] = modelIn+"|"+identifier
+      newInputs[modelIn]  = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
       if specs['Instance'].type == 'Code': newInputs[modelIn][1]['originalInput'] = inputDict
     self.needToCheckInputs = False
     return copy.deepcopy(newInputs)
@@ -2058,38 +2051,36 @@ class EnsembleModel(Dummy, Assembler):
     """
     Input, jobHandler = inRun[0], inRun[1]
     identifier = Input.pop('prefix')
-    #with self.lockSystem:
-
-    for modelIn in self.orderList:
-      self.tempTargetEvaluations[modelIn].resetData()
+    for modelIn in self.orderList: self.tempTargetEvaluations[modelIn].resetData()
     tempTargetEvaluations = copy.deepcopy(self.tempTargetEvaluations)
-    #modelsTargetEvaluations[modelIn] = copy.deepcopy(self.modelsDictionary[modelIn]['TargetEvaluation'])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
-    gotOutputs  = [{}]*len(self.orderList)
-    typeOutputs = ['']*len(self.orderList)
+    gotOutputs       = [{}]*len(self.orderList)
+    typeOutputs      = ['']*len(self.orderList)
+    # if nonlinear system, initialize residue container
     if self.activatePicard:
       for modelIn in self.orderList:
         residueContainer[modelIn] = {'residue':{},'iterValues':[{}]*2}
         for out in self.modelsDictionary[modelIn]['Output']:
           residueContainer[modelIn]['residue'][out], residueContainer[modelIn]['iterValues'][0][out], residueContainer[modelIn]['iterValues'][1][out] = np.zeros(1), np.zeros(1), np.zeros(1)
     maxIterations, iterationCount = (self.maxIterations, 0) if self.activatePicard else (1 , 0)
-    #if self.activatePicard: maxIterations, iterationCount = self.maxIterations, 0 if self.activatePicard else 1 , 0
-    #else                  : maxIterations, iterationCount = 1 , 0
     while iterationCount < maxIterations:
       returnDict     = {}
       iterationCount += 1
       if self.activatePicard: self.raiseAMessage("Picard's Iteration "+ str(iterationCount))
       for modelCnt, modelIn in enumerate(self.orderList):
         tempTargetEvaluations[modelIn].resetData()
+        # get dependent outputs
         dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
-
+        # if nonlinear system, check for initial coditions
         if iterationCount == 1  and self.activatePicard:
           try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
           except           : sampledVars = Input[modelIn][1]['SampledVars'].keys()
           for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
             if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = self.initialConditions[initCondToSet]
             else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
+        # update input with dependent outputs
         Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
+        # set new identifiers
         try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"|"+identifier, self.name+identifier
         except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
         nextModel = False
@@ -2097,7 +2088,7 @@ class EnsembleModel(Dummy, Assembler):
           moveOn = False
           while not moveOn:
             if jobHandler.availability() > 0:
-              #with self.lockSystem:
+              # run the model
               self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
               while not jobHandler.isThisJobFinished(modelIn+"|"+identifier): time.sleep(1.e-3)
               nextModel, moveOn = True, True
@@ -2109,29 +2100,22 @@ class EnsembleModel(Dummy, Assembler):
               if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "|" + identifier, uniqueHandler = self.name + identifier)
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
           # get back the output in a general format
+          # finalize model
           self.modelsDictionary[modelIn]['Instance'].finalizeModelOutput(finishedRun[0])
-
+          # collect output
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
-          returnDict[modelIn]  = {}
-          responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
-          inputSpace = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
-          #inputSpaceOut = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+          # store the results
+          returnDict[modelIn]   = {}
+          responseSpace         = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+          inputSpace            = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
           typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
-#           if typeOutputs[modelCnt] != 'HistorySet':
-#             gotOutputs[modelCnt], inputSpace = {}, {}
-#             for key,value in responseSpace.items(): gotOutputs[modelCnt][key] = np.atleast_1d(value[-1])
-#             for key,value in inputSpace.items()   : inputSpace[key]           = np.atleast_1d(value[-1])
-#           else:
-#             gotOutputs[modelCnt], inputSpace = responseSpace.values()[-1], inputSpace.values()[-1]
           gotOutputs[modelCnt]  = responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
-#          self.modelsDictionary[modelIn]['Instance']._replaceVariablesNamesWithAliasSystem(gotOutputs[modelCnt],'inout', False)
           #store the result in return dictionary
           returnDict[modelIn]['outputSpaceParams'] = gotOutputs[modelCnt]
           returnDict[modelIn]['inputSpaceParams' ] = inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
           returnDict[modelIn]['metadata'         ] = tempTargetEvaluations[modelIn].getAllMetadata()
-          #returnDict[modelIn] = {'outputSpaceParams':gotOutputs[modelCnt],'inputSpaceParams':tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding'),'metadata':tempTargetEvaluations[modelIn].getAllMetadata()}
+          # if nonlinear system, compute the residue
           if self.activatePicard:
-            # compute residue
             residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
             for out in gotOutputs[modelCnt].keys():
               residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
@@ -2141,6 +2125,7 @@ class EnsembleModel(Dummy, Assembler):
                 pass
               residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
             residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(residueContainer[modelIn]['iterValues'][1].values())-np.asarray(residueContainer[modelIn]['iterValues'][0].values()))
+      # if nonlinear system, check the total residue and convergence
       if self.activatePicard:
         iterZero, iterOne = [],[]
         for modelIn in self.orderList:
@@ -2155,7 +2140,7 @@ class EnsembleModel(Dummy, Assembler):
     return returnEvaluation
 
 """
- Factory......
+ Factory
 """
 __base = 'model'
 __interFaceDict = {}
