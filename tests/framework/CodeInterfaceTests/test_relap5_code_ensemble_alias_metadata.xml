@@ -14,7 +14,7 @@
     </revisions>
   </TestInfo>
   <RunInfo>
-    <WorkingDir>RELAP5ensemble2relaps</WorkingDir>
+    <WorkingDir>/Users/alfoa/projects/raven/tests/framework/CodeInterfaceTests/RELAP5ensemble2relaps</WorkingDir>
     <Sequence>testEnsemble2Relaps</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -57,6 +57,10 @@
           MyRELAP_restart
         <Input class="Files" type="">snc01_restart.i</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">MyRELAP_restartPS</TargetEvaluation>
+        <!-- block the define the metadataToTransfer. source="model from which it needs to be collected", 
+             alias="how it should be called in the receiver model"=> it is an optional argument, XML body is the name of the metadata to transfer
+         -->
+        <metadataToTransfer source="MyRELAP" alias="parentID"   >prefix</metadataToTransfer>
       </Model>
     </EnsembleModel>
 

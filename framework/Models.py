@@ -1731,13 +1731,18 @@ class EnsembleModel(Dummy, Assembler):
       if child.tag == 'Model':
         if 'type' not in child.attrib.keys() or 'class' not in child.attrib.keys(): self.raiseAnError(IOError, 'Tag Model must have attributes "class" and "type"')
         modelName = child.text.strip()
-        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[]}
+        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'metadataToTransfer':[]}
         for childChild in child:
-          try                  : self.modelsDictionary[modelName][childChild.tag].append(childChild.text.strip())
-          except AttributeError: self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
+          if childChild.tag.strip() == 'metadataToTransfer':
+            # list(metadataToTranfer, ModelSource,Alias (optional))
+            if 'source' not in childChild.attrib.keys(): self.raiseAnError(IOError, 'when metadataToTransfer XML block is defined, the "source" attribute must be inputted!')
+            self.modelsDictionary[modelName][childChild.tag].append([childChild.text.strip(),childChild.attrib['source'],childChild.attrib.get("alias",None)])
+          else:
+            try                  : self.modelsDictionary[modelName][childChild.tag].append(childChild.text.strip())
+            except AttributeError: self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
         if self.modelsDictionary[modelName].values().count(None) != 1: self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
         if len(self.modelsDictionary[modelName]['Input']) == 0 : self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
-        if len(self.modelsDictionary[modelName].values()) > 3  : self.raiseAnError(IOError, "TargetEvaluation and Input XML blocks are the only XML sub-blocks allowed!")
+        if len(self.modelsDictionary[modelName].values()) > 4  : self.raiseAnError(IOError, "TargetEvaluation, Input and metadataToTransfer XML blocks are the only XML sub-blocks allowed!")
         if child.attrib['type'].strip() == "Code": self.createWorkingDir =True
       if child.tag == 'settings': self.__readSettings(child)
     if len(self.modelsDictionary.keys()) < 2: self.raiseAnError(IOError, "The EnsembleModel needs at least 2 models to be constructed!")
