@@ -2210,9 +2210,9 @@
   2030    390050020  rktpow 0 0.5 0                                                                                     
   2031    .                                                                                                             
 0RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:01:32      
+ typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:14:19      
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:01:32      
+ typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:14:19      
 0Processing type is new     
 +                                       problem option is transnt 
 0inp-chk, run option is run.    
@@ -8081,12 +8081,12 @@
 0$$$$$$$$ For Hydro System 2 (1-step) the BPLU parameters are:    4    2
 0$$$$$$$$ For Hydro System 3 (1-step) the BPLU parameters are:    4    2
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:01:32      
+ typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:14:19      
 0MAJOR EDIT !!!time=   0.00000000     sec, M. Edit # =         1
 0 attempted adv: tot.=        0 edit=        0  min.dt=  0.00000     sec  last dt= 0.100000     sec  ms.red=    0.00000     lb
    repeated adv: tot.=        0 edit=        0  max.dt=  0.00000     sec  crnt.dt=  0.00000     sec  tot.ms=   1.139680E+06 lb
  successful adv: tot.=        0 edit=        0  avg.dt=  0.00000     sec  err.est=  0.00000          m.ratn=    0.00000    
-  requested adv: tot.=        0 edit=        0  req.dt= 0.100000     sec      cpu= 0.720050E-01 sec    time=    0.00000     sec
+  requested adv: tot.=        0 edit=        0  req.dt= 0.100000     sec      cpu= 0.720040E-01 sec    time=    0.00000     sec
    kinetics adv: tot.=        0 ksub=        0  kin.dt=  0.00000     sec
 0Solver cycles=, scycles=              0
 0Trip number, trip time (sec)
@@ -9142,7 +9142,7 @@
  285-000000  1.00000E-06   1.0000       0.0000       0.00       0.00       0.00       0.00       0.00       0.00     0      0      0
  287-000000  1.00000E-06   1.0000       0.0000       0.00       0.00       0.00       0.00       0.00       0.00     0      0      0
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:01:32      
+ typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:14:19      
 0 HEAT STRUCTURE OUTPUT +++time=     0.00000     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -9269,7 +9269,7 @@
  3360-002  left    0-000000 2259.647   0.0000       0.0000       0.0000     0.00   0     0.0000      6.98121E+05  2.48575E-09  1462.24
            right 335-020000  595.915  6.98121E+05   73.509       0.0000     0.00   2     1.6766    
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:01:32      
+ typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:14:19      
 0 HEAT STRUCTURE OUTPUT +++time=     0.00000     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -9533,14 +9533,14 @@ MINOR EDIT time=  9.90000000E+01 adv=  1384 M.Ed. Lines   100
    98.0000       963.62       897.08       890.88      0.18907      0.17520      1.29082E-02   904.60    
    99.0000       963.09       896.62       890.50      0.19025      0.17628      1.28385E-02   905.95    
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:01:32      
+ typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:14:19      
 0MAJOR EDIT !!!time=   100.000000     sec, M. Edit # =         2
 0 attempted adv: tot.=     1397 edit=     1397  min.dt= 2.500000E-02 sec  last dt= 0.100000     sec  ms.red=   -264.509     lb
    repeated adv: tot.=      151 edit=      151  max.dt= 0.100000     sec  crnt.dt= 0.568089     sec  tot.ms=   1.060394E+06 lb
  successful adv: tot.=     1246 edit=     1246  avg.dt= 8.025682E-02 sec  err.est= 1.943630E-06      m.rato=  -2.320905E-04
-  requested adv: tot.=      999 edit=      999  req.dt= 0.100000     sec      cpu=  3.53622     sec    time=    100.000     sec
+  requested adv: tot.=      999 edit=      999  req.dt= 0.100000     sec      cpu=  3.54422     sec    time=    100.000     sec
    kinetics adv: tot.=     1246 ksub=        0  kin.dt= 0.100000     sec
-0Solver cycles=, scycles=          83476
+0Solver cycles=, scycles=          83327
 0Trip number, trip time (sec)
      501   12.22891         502   15.62891         503   13.08365         504   18.08365         505   26.22891    
      506  1.0000000E-02     507   0.000000         508  -1.000000         509  -1.000000         510  -1.000000    
@@ -11032,7 +11032,7 @@ MINOR EDIT time=  9.90000000E+01 adv=  1384 M.Ed. Lines   100
  285-000000         0      0         0      0
  287-000000         0      0         0      0
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:01:32      
+ typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:14:19      
 0 HEAT STRUCTURE OUTPUT +++time=     100.000     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -11159,7 +11159,7 @@ MINOR EDIT time=  9.90000000E+01 adv=  1384 M.Ed. Lines   100
  3360-002  left    0-000000  597.229   0.0000       0.0000       0.0000     0.00   0     0.0000       24695.       482.91       573.45
            right 335-020000  542.644   25178.       2.6512       405.51     0.85   3    0.52655    
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:01:32      
+ typical pwr model -- 4 inch cold leg break 36.05 check case                      17/02/19     14:14:19      
 0 HEAT STRUCTURE OUTPUT +++time=     100.000     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -11318,6 +11318,6 @@ MINOR EDIT time=  1.00000000E+02 adv=  1397 M.Ed. Lines   101
                                                                                                          
    100.000       962.55       896.16       890.11      0.19135      0.17734      1.27701E-02   907.27    
 
- Final time=    100.000     sec   advancements attempted=     1397   kinetics advancements=     1246   clock cycles:        3491910
+ Final time=    100.000     sec   advancements attempted=     1397   kinetics advancements=     1246   clock cycles:        3496825
 
  Transient terminated by end of time step cards.
