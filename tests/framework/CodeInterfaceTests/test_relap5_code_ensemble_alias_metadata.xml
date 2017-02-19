@@ -70,6 +70,11 @@
     <PointSet name="MyRELAPPS">
       <Input>heat_capacity_155_variable,heat_capacity_154_variable,20100156:2,20100157:2,13550801:6</Input>
       <Output>massFlowRateAliasOutput,pressureAliasOutput,timeMyRelap</Output>
+     <options>
+       <outputRow>-3</outputRow>
+        
+     </options>  
+       
     </PointSet>
     <PointSet name="MyRELAP_restartPS">
       <Input>heat_capacity_155_variable,heat_capacity_154_variable,20100156:2,20100157:2,13550801:6,timeMyRelap</Input>
@@ -113,7 +118,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>5</limit>
+        <limit>2</limit>
       </samplerInit>
       <variable name="heat_capacity_154_variable">
         <distribution>heat_capacity_154</distribution>
