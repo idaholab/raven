@@ -130,7 +130,7 @@ class RELAP7(CodeInterfaceBase):
     if 'hybridsamplerCoordinate' in Kwargs.keys():
       for preconditioner in Kwargs['hybridsamplerCoordinate']:
         preconditioner['executable'] = Kwargs['executable']
-        if 'MC' in preconditioner['SamplerType']:
+        if 'MonteCarlo' in preconditioner['SamplerType']:
           listDict = self.__genBasePointSampler(**preconditioner)[1]
           listDict.extend(self.monteCarloForRELAP7(**preconditioner))
         elif 'Grid' in preconditioner['SamplerType']: listDict.extend(self.gridForRELAP7(**preconditioner))

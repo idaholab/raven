@@ -2256,7 +2256,7 @@ class BasicStatistics(BasePostProcessor):
       pbWeights['realization'] = None
       if 'metadata' in input.keys():
         if 'SamplerType' in input['metadata'].keys():
-          if input['metadata']['SamplerType'][0] != 'MC' :
+          if input['metadata']['SamplerType'][0] != 'MonteCarlo' :
             self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
         else:
           self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights. Assuming unit weights instead...')
