@@ -1950,7 +1950,7 @@ class EnsembleModel(Dummy, Assembler):
       newKwargs = self.__selectInputSubset(modelIn,Kwargs)
       inputDict = [self._inputToInternal(self.modelsDictionary[modelIn]['InputObject'][0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  self.modelsDictionary[modelIn]['InputObject']
       # local prefix
-      newKwargs['prefix'] = modelIn+"|"+identifier
+      newKwargs['prefix'] = modelIn+"_"+identifier
       newInputs[modelIn]  = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
       if specs['Instance'].type == 'Code': newInputs[modelIn][1]['originalInput'] = inputDict
     self.needToCheckInputs = False
