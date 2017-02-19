@@ -21,13 +21,14 @@
 
   <Files>
     <Input name="snc01.i" type="" >snc01.i</Input>
-    <Input name="snc01.i" type="" >snc01_restart.i</Input>
+    <Input name="snc01_restart.i" type="" >snc01_restart.i</Input>
     <Input name="tpfh2o"  type="" >tpfh2o</Input>
   </Files>
 
   <Models>
     <Code name="MyRELAP" subType="Relap5">
       <executable>
+        ~/Phisics_and_Relap_Repos/RELAP5_Src_for_PHISICS/r3d403is/relap/relap5.x 
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
       <alias variable="heat_capacity_155_variable"    type="input">20100155:2</alias>
@@ -38,6 +39,7 @@
     </Code>
     <Code name="MyRELAP_restart" subType="Relap5">
         <executable>
+           ~/Phisics_and_Relap_Repos/RELAP5_Src_for_PHISICS/r3d403is/relap/relap5.x
             <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
         </executable>
         <alias variable="heat_capacity_155_variable"    type="input">20100155:2</alias>
@@ -62,15 +64,15 @@
 
   <DataObjects>
     <PointSet name="allResutls">
-      <Input>heat_capacity_154_variable,heat_capacity_154_variable,20100156:2,20100157:2,13550801:6,timeMyRelap</Input>
+      <Input>heat_capacity_155_variable,heat_capacity_154_variable,20100156:2,20100157:2,13550801:6,timeMyRelap</Input>
       <Output>massFlowRateAliasOutput,pressureAliasOutput,mflowj_505000000,time,p_280010000</Output>
     </PointSet>
     <PointSet name="MyRELAPPS">
-      <Input>heat_capacity_154_variable,heat_capacity_154_variable,20100156:2,20100157:2,13550801:6</Input>
+      <Input>heat_capacity_155_variable,heat_capacity_154_variable,20100156:2,20100157:2,13550801:6</Input>
       <Output>massFlowRateAliasOutput,pressureAliasOutput,timeMyRelap</Output>
     </PointSet>
     <PointSet name="MyRELAP_restartPS">
-      <Input>heat_capacity_154_variable,heat_capacity_154_variable,20100156:2,20100157:2,13550801:6,timeMyRelap</Input>
+      <Input>heat_capacity_155_variable,heat_capacity_154_variable,20100156:2,20100157:2,13550801:6,timeMyRelap</Input>
       <Output>mflowj_505000000,time,p_280010000</Output>
     </PointSet>
   </DataObjects>
