@@ -289,16 +289,15 @@ class CsvLoader(MessageHandler.MessageUser):
       else:
         outputPivotValEnd, outputPivotVal = False,  float(outputPivotVal)
     else:
-      if operator is None: outputPivotValEnd = True
-      else               :
-        outputPivotValEnd = False
+      if operator is None and outputRow is None: outputPivotValEnd = True
+      else                                     : outputPivotValEnd = False
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow != None :
       inputRow = int(inputRow)
       if inputRow  > 0: inputRow  -= 1
     if outputRow != None:
-      outputRow = int(outputRow)
+      outputRow         = int(outputRow)
       if outputRow > 0: outputRow -= 1
     inDict, outDict = {}, {}
 

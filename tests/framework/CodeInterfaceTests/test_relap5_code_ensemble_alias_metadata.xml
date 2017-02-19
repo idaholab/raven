@@ -72,9 +72,7 @@
       <Output>massFlowRateAliasOutput,pressureAliasOutput,timeMyRelap</Output>
      <options>
        <outputRow>-3</outputRow>
-        
-     </options>  
-       
+     </options>
     </PointSet>
     <PointSet name="MyRELAP_restartPS">
       <Input>heat_capacity_155_variable,heat_capacity_154_variable,20100156:2,20100157:2,13550801:6,timeMyRelap</Input>
