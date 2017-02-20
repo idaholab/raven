@@ -116,8 +116,8 @@ if gold==test:
 else:
   print('ERROR: Test of "pretty" failed!  See',prettyFileName,'(below) vs gold/',prettyFileName)
   print('( START',prettyFileName,')')
-  for line in test:
-    print(line)
+  for line in file(prettyFileName,'r'):
+    print(line[:-1]) #omit newline
   print('( END',prettyFileName,')')
   results['fail']+=1
 
