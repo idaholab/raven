@@ -528,7 +528,7 @@ class InputNode:
     """
     self.children.remove(node)
 
-class HierarchalNode(MessageHandler.MessageUser):
+class HierarchicalNode(MessageHandler.MessageUser):
   """
     The Node class. It represents the base for each TreeStructure construction
     These Nodes are particularly for heirarchal structures.
@@ -919,11 +919,11 @@ class InputTree:
 
 
 
-class HierarchalTree(MessageHandler.MessageUser):
+class HierarchicalTree(MessageHandler.MessageUser):
   """
     The class that realizes a hierarchal Tree Structure
   """
-  #TODO the common elements between HierarchalTree and InputTree should be extracted to a Tree class.
+  #TODO the common elements between HierarchicalTree and InputTree should be extracted to a Tree class.
   def __init__(self, messageHandler, node=None):
     """
       Constructor
@@ -1058,7 +1058,7 @@ class HierarchalTree(MessageHandler.MessageUser):
 ##################
 # METADATA TREE #
 #################
-class MetadataTree(HierarchalTree):
+class MetadataTree(HierarchicalTree):
   """
     Class for construction of metadata xml trees used in data objects.  Usually contains summary data
     such as that produced by postprocessor models.  Two types of tree exist: dynamic and static.  See
@@ -1067,8 +1067,8 @@ class MetadataTree(HierarchalTree):
   #TODO change to inherit from InputTree or base Tree
   def __init__(self,messageHandler,rootName):
     self.pivotParam = None
-    node = HierarchalNode(messageHandler,rootName, valuesIn={'dynamic':str(self.dynamic)})
-    HierarchalTree.__init__(self,messageHandler,node)
+    node = HierarchicalNode(messageHandler,rootName, valuesIn={'dynamic':str(self.dynamic)})
+    HierarchicalTree.__init__(self,messageHandler,node)
 
   def __repr__(self):
     """
@@ -1093,7 +1093,7 @@ class MetadataTree(HierarchalTree):
       root = self.getrootnode()
     #FIXME it's possible the user could provide illegal characters here.  What are illegal characters for us?
     targ = self._findTarget(root,target,pivotVal)
-    targ.appendBranch(HierarchalNode(self.messageHandler,name,text=value))
+    targ.appendBranch(HierarchicalNode(self.messageHandler,name,text=value))
 
   def _findTarget(self,root,target,pivotVal=None):
     """
@@ -1105,7 +1105,7 @@ class MetadataTree(HierarchalTree):
     """
     tNode = root.findBranch(target)
     if tNode is None:
-      tNode = HierarchalNode(self.messageHandler,target)
+      tNode = HierarchicalNode(self.messageHandler,target)
       root.appendBranch(tNode)
     return tNode
 
@@ -1184,7 +1184,7 @@ class DynamicMetadataTree(MetadataTree):
         break
     #if not found, make it!
     if not found:
-      pivotNode = HierarchalNode(self.messageHandler,self.pivotParam,valuesIn={'value':pivotVal})
+      pivotNode = HierarchicalNode(self.messageHandler,self.pivotParam,valuesIn={'value':pivotVal})
       root.appendBranch(pivotNode)
     return pivotNode
 
@@ -1195,7 +1195,7 @@ class DynamicMetadataTree(MetadataTree):
 ####################
 class NodePath(object):
   """
-    NodePath class. It is used to perform iterations over the HierarchalTree
+    NodePath class. It is used to perform iterations over the HierarchicalTree
   """
   def find(self, node, name):
     """

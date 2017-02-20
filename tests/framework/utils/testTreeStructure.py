@@ -108,46 +108,46 @@ def checkType(comment,value,expected,updateResults=True):
 
 #test equivalency (eq, neq, hash)
 ## test all same are same
-a = TS.HierarchalNode(mh,'rightTag',valuesIn={'attrib1':1,'attrib2':'2'},text='sampleText')
-b = TS.HierarchalNode(mh,'rightTag',valuesIn={'attrib1':1,'attrib2':'2'},text='sampleText')
+a = TS.HierarchicalNode(mh,'rightTag',valuesIn={'attrib1':1,'attrib2':'2'},text='sampleText')
+b = TS.HierarchicalNode(mh,'rightTag',valuesIn={'attrib1':1,'attrib2':'2'},text='sampleText')
 checkSame('Equivalency of nodes ==:',a==b,True)
 checkSame('Equivalency of nodes !=:',a!=b,False)
 
 ## test different tag
-b = TS.HierarchalNode(mh,'diffTag',valuesIn={'attrib1':1,'attrib2':'2'},text='sampleText')
+b = TS.HierarchicalNode(mh,'diffTag',valuesIn={'attrib1':1,'attrib2':'2'},text='sampleText')
 checkSame('Inequivalent tag ==:',a==b,False)
 checkSame('Inequivalent tag !=:',a!=b,True)
 
 ## test different attribute name
-b = TS.HierarchalNode(mh,'rightTag',valuesIn={'attrib3':1,'attrib2':'2'},text='sampleText')
+b = TS.HierarchicalNode(mh,'rightTag',valuesIn={'attrib3':1,'attrib2':'2'},text='sampleText')
 checkSame('Inequivalent value name ==:',a==b,False)
 checkSame('Inequivalent value name !=:',a!=b,True)
 
 ## test different attribute value
-b = TS.HierarchalNode(mh,'rightTag',valuesIn={'attrib1':3,'attrib2':'2'},text='sampleText')
+b = TS.HierarchicalNode(mh,'rightTag',valuesIn={'attrib1':3,'attrib2':'2'},text='sampleText')
 checkSame('Inequivalent value name ==:',a==b,False)
 checkSame('Inequivalent value name !=:',a!=b,True)
 
 ## test different text value
-b = TS.HierarchalNode(mh,'rightTag',valuesIn={'attrib1':3,'attrib2':'2'},text='diffText')
+b = TS.HierarchicalNode(mh,'rightTag',valuesIn={'attrib1':3,'attrib2':'2'},text='diffText')
 checkSame('Inequivalent value name ==:',a==b,False)
 checkSame('Inequivalent value name !=:',a!=b,True)
 
 ## test equivalent, only tags
-a = TS.HierarchalNode(mh,'rightTag')
-b = TS.HierarchalNode(mh,'rightTag')
+a = TS.HierarchicalNode(mh,'rightTag')
+b = TS.HierarchicalNode(mh,'rightTag')
 checkSame('Equivalency only tag ==:',a==b,True)
 checkSame('Equivalency only tag !=:',a!=b,False)
 
 ## test equivalent, only values
-a = TS.HierarchalNode(mh,'rightTag',valuesIn={'attrib1':1,'attrib2':'2'})
-b = TS.HierarchalNode(mh,'rightTag',valuesIn={'attrib1':1,'attrib2':'2'})
+a = TS.HierarchicalNode(mh,'rightTag',valuesIn={'attrib1':1,'attrib2':'2'})
+b = TS.HierarchicalNode(mh,'rightTag',valuesIn={'attrib1':1,'attrib2':'2'})
 checkSame('Equivalency only values ==:',a==b,True)
 checkSame('Equivalency only values !=:',a!=b,False)
 
 ## test equivalent, only text
-a = TS.HierarchalNode(mh,'rightTag',text='sampleText')
-b = TS.HierarchalNode(mh,'rightTag',text='sampleText')
+a = TS.HierarchicalNode(mh,'rightTag',text='sampleText')
+b = TS.HierarchicalNode(mh,'rightTag',text='sampleText')
 checkSame('Equivalency only text ==:',a==b,True)
 checkSame('Equivalency only text !=:',a!=b,False)
 
@@ -183,17 +183,17 @@ dynamic.addScalar('myTarget','myMetric',299792358,pivotVal='0.2') #pivot value a
 results['pass']+=1
 
 #test finding pivotNode (dynamic only)
-a = TS.HierarchalNode(mh,'timeParam',valuesIn={'value':0.2})
+a = TS.HierarchicalNode(mh,'timeParam',valuesIn={'value':0.2})
 b = dynamic._findPivot(dynamic.getrootnode(),0.2)
 checkSame('Finding pivot node:',b,a)
 
 #test finding targetNode
 ## static
-a = TS.HierarchalNode(mh,'myTarget')
+a = TS.HierarchicalNode(mh,'myTarget')
 b = static._findTarget(static.getrootnode(),'myTarget')
 checkSame('Finding target (static):',b,a)
 ## dynamic
-a = TS.HierarchalNode(mh,'myTarget')
+a = TS.HierarchicalNode(mh,'myTarget')
 c = dynamic._findTarget(dynamic.getrootnode(),'myTarget',0.2)
 checkSame('Finding target (dynamic):',c,a)
 

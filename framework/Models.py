@@ -1834,7 +1834,7 @@ class EnsembleModel(Dummy, Assembler):
       @ In, initDict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    self.tree = TreeStructure.HierarchalTree(self.messageHandler,TreeStructure.HierarchalNode(self.messageHandler,self.name))
+    self.tree = TreeStructure.HierarchicalTree(self.messageHandler,TreeStructure.HierarchicalNode(self.messageHandler,self.name))
     rootNode = self.tree.getrootnode()
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
