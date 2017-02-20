@@ -109,12 +109,16 @@ pretty = xmlUtils.prettify(xmlTree)
 prettyFileName = 'testXMLPretty.xml'
 file(prettyFileName,'w').writelines(pretty)
 gold = ''.join(line for line in file(os.path.join(os.path.dirname(__file__),'gold',prettyFileName),'r'))
-test = ''.join(line for line in file(                    prettyFileName ,'r'))
+test = ''.join(line for line in file(prettyFileName ,'r'))
 if gold==test:
   results['pass']+=1
   toRemove = attemptFileClear(prettyFileName,toRemove)
 else:
-  print('ERROR: Test of "pretty" failed!  See',prettyFileName,'vs gold/',prettyFileName)
+  print('ERROR: Test of "pretty" failed!  See',prettyFileName,'(below) vs gold/',prettyFileName)
+  print('( START',prettyFileName,')')
+  for line in test:
+    print(line)
+  print('( END',prettyFileName,')')
   results['fail']+=1
 
 # test newNode
