@@ -1959,7 +1959,7 @@ class EnsembleModel(Dummy, Assembler):
       newKwargs = self.__selectInputSubset(modelIn,Kwargs)
       inputDict = [self._inputToInternal(self.modelsDictionary[modelIn]['InputObject'][0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  self.modelsDictionary[modelIn]['InputObject']
       # local prefix
-      newKwargs['prefix'] = modelIn+"_"+identifier
+      newKwargs['prefix'] = modelIn+"++"+identifier
       newInputs[modelIn]  = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
       if specs['Instance'].type == 'Code': newInputs[modelIn][1]['originalInput'] = inputDict
     self.needToCheckInputs = False
@@ -2092,16 +2092,16 @@ class EnsembleModel(Dummy, Assembler):
             if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = self.initialConditions[initCondToSet]
             else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
         try:
-          Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"_"+identifier, self.name+identifier
+          Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"++"+identifier, self.name+identifier
           if metadataToTransfer is not None: Input[modelIn][0][1]['metadataToTransfer'] = metadataToTransfer
         except:
-          Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"_"+identifier, self.name+identifier
+          Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"++"+identifier, self.name+identifier
           if metadataToTransfer is not None: Input[modelIn][1]['metadataToTransfer'] = metadataToTransfer
         # update input with dependent outputs
         Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
         # set new identifiers
-        try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"_"+identifier, self.name+identifier
-        except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"_"+identifier, self.name+identifier
+        try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"++"+identifier, self.name+identifier
+        except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"++"+identifier, self.name+identifier
         nextModel = False
         while not nextModel:
           moveOn = False
@@ -2109,14 +2109,14 @@ class EnsembleModel(Dummy, Assembler):
             if jobHandler.availability() > 0:
               # run the model
               self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
-              while not jobHandler.isThisJobFinished(modelIn+"_"+identifier): time.sleep(1.e-3)
+              while not jobHandler.isThisJobFinished(modelIn+"++"+identifier): time.sleep(1.e-3)
               nextModel, moveOn = True, True
             else: time.sleep(1.e-3)
           # get job that just finished
-          finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+"_"+identifier, uniqueHandler=self.name+identifier)
+          finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+"++"+identifier, uniqueHandler=self.name+identifier)
           if finishedRun[0].getEvaluation() == -1:
             for modelToRemove in self.orderList:
-              if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "_" + identifier, uniqueHandler = self.name + identifier)
+              if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "++" + identifier, uniqueHandler = self.name + identifier)
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
           # get back the output in a general format
           # finalize model
