@@ -1844,19 +1844,11 @@ class EnsembleModel(Dummy, Assembler):
       self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
       for mm in self.modelsDictionary[modelIn[2]]['Instance'].mods:
         if mm not in self.mods: self.mods.append(mm)
-    for targetEval in self.assemblerDict['TargetEvaluation']:
-      for modelIn in self.modelsDictionary.keys():
-        if targetEval[2] == self.modelsDictionary[modelIn]['TargetEvaluation']:
-          self.modelsDictionary[modelIn]['TargetEvaluation'] = targetEval[3]
-          self.tempTargetEvaluations[modelIn]                = copy.deepcopy(targetEval[3])
-          if type(targetEval[3]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(targetEval[3]).__name__)
-          self.modelsDictionary[modelIn]['Input'] = targetEval[3].getParaKeys("inputs")
-          self.modelsDictionary[modelIn]['Output'] = targetEval[3].getParaKeys("outputs")
-          modelNode = TreeStructure.HierarchalNode(self.messageHandler,modelIn)
-          modelNode.add( 'inputs', targetEval[3].getParaKeys("inputs"))
-          modelNode.add('outputs', targetEval[3].getParaKeys("outputs"))
-          rootNode.appendBranch(modelNode)
-          break
+      self.modelsDictionary[modelIn[2]]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
+      self.tempTargetEvaluations[modelIn[2]]                 = copy.deepcopy(self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
+      #if type(self.tempTargetEvaluations[modelIn[2]]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(self.tempTargetEvaluations[modelIn[2]]).__name__)
+      self.modelsDictionary[modelIn[2]]['Input' ] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
+      self.modelsDictionary[modelIn[2]]['Output'] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
     # construct chain connections
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
 
