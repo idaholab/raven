@@ -34,9 +34,10 @@ def prettify(tree,doc=False,docLevel=0):
     @Out, towrite, string, the entire contents of the desired file to write, including newlines
   """
   def prettifyNode(node,tabs=0):
+    linesep = '\n' #fails test if using os.linesep
     child = None #putting it in namespace
     space = ' '*2*tabs
-    newlineAndTab = os.linesep+space
+    newlineAndTab = linesep+space
     if node.text is None:
       node.text = ''
     if len(node)>0:
@@ -59,13 +60,13 @@ def prettify(tree,doc=False,docLevel=0):
         node.tail += newlineAndTab + '...'
     #custom: RAVEN likes spaces between first-level tab objects
     if tabs == 1 and not isComment(node):
-      lines = os.linesep + os.linesep
+      lines = linesep + linesep
     else:
-      lines = os.linesep
+      lines = linesep
     node.tail = node.tail + lines + space
     #custom: except if you're the last child
     if tabs == 0 and child is not None:
-      child.tail = child.tail.replace(os.linesep+os.linesep,os.linesep)
+      child.tail = child.tail.replace(linesep+linesep,linesep)
   #end prettifyNode
   if isinstance(tree,ET.ElementTree):
     prettifyNode(tree.getroot())
