@@ -10,6 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 import relapdata
+import shutil
 import re
 from  __builtin__ import any as bAny
 from CodeInterfaceBaseClass import CodeInterfaceBase
@@ -129,6 +130,19 @@ class Relap5(CodeInterfaceBase):
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile())
+    metadataToTransfer = Kwargs.get("metadataToTransfer",None)
+    if metadataToTransfer is not None:
+      sourceID = metadataToTransfer.get("sourceID",None)
+      if sourceID is not None:
+        # search for restrt file
+        sourcePath = os.path.join(currentInputFiles[index].getPath(),"../",sourceID)
+        rstrtFile = None
+        for fileToCheck in os.listdir(sourcePath):
+          if fileToCheck.strip() == 'restrt' or fileToCheck.strip().endswith(".r"): rstrtFile = fileToCheck
+        if rstrtFile is None: raise IOError("metadataToTransfer|sourceID has been provided but no restart file has been found!")
+        sourceFile = os.path.join(sourcePath, rstrtFile)
+        try   : shutil.copy(sourceFile, currentInputFiles[index].getPath())
+        except: raise IOError('not able to copy restart file from "'+sourceFile+'" to "'+currentInputFiles[index].getPath()+'"')
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,True)
     parser.printInput(currentInputFiles[index])

@@ -1775,8 +1775,6 @@ class EnsembleModel(Dummy, Assembler):
     """
     models = []
     for key, value in self.modelsDictionary.items():
-      #converted = []
-      #for val in value[what]: converted.append(value['Instance']._replaceVariableWithAliasSystem(val,what,fromModelToFramework=True))
       if subWhat in value[what]: models.append(key)
     if len(models) == 0: models = None
     return models
@@ -1876,8 +1874,14 @@ class EnsembleModel(Dummy, Assembler):
     for modelIn in self.modelsDictionary.keys():
       for modelInOut in self.modelsDictionary[modelIn]['Output']:
         if modelInOut not in self.allOutputs: self.allOutputs.append(modelInOut)
+      # in case there are metadataToTransfer, let's check if the source model is executed before the one that requests info
+      if self.modelsDictionary[modelIn]['metadataToTransfer']:
+        indexModelIn = self.orderList.index(modelIn)
+        for metadataToGet, source, _ in self.modelsDictionary[modelIn]['metadataToTransfer']:
+          if self.orderList.index(source) >= indexModelIn:
+            self.raiseAnError(IOError, 'In model "'+modelIn+'" the "metadataToTransfer" named "'+metadataToGet+
+                                       '" is linked to the source"'+source+'" that will be executed after this model.')
     self.needToCheckInputs = True
-
     # write debug statements
     self.raiseAMessage("Specs of Graph Network represented by EnsembleModel:")
     self.raiseAMessage("Graph Degree Sequence is    : "+str(self.ensembleModelGraph.degreeSequence()))
@@ -2072,6 +2076,12 @@ class EnsembleModel(Dummy, Assembler):
       if self.activatePicard: self.raiseAMessage("Picard's Iteration "+ str(iterationCount))
       for modelCnt, modelIn in enumerate(self.orderList):
         tempTargetEvaluations[modelIn].resetData()
+        # in case there are metadataToTransfer, let's collect them from the source
+        metadataToTransfer = {} if self.modelsDictionary[modelIn]['metadataToTransfer'] else None
+        for metadataToGet, source, alias in self.modelsDictionary[modelIn]['metadataToTransfer']:
+          if metadataToGet not in returnDict[source]['metadata'].keys():
+            self.raiseAnError(RuntimeError,'metadata "'+metadataToGet+'" is not present among the ones available in source "'+source+'"!')
+          metadataToTransfer[metadataToGet if alias is None else alias] = returnDict[source]['metadata'][metadataToGet][-1]
         # get dependent outputs
         dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
         # if nonlinear system, check for initial coditions
@@ -2081,11 +2091,17 @@ class EnsembleModel(Dummy, Assembler):
           for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
             if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = self.initialConditions[initCondToSet]
             else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
+        try:
+          Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"_"+identifier, self.name+identifier
+          if metadataToTransfer is not None: Input[modelIn][0][1]['metadataToTransfer'] = metadataToTransfer
+        except:
+          Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"_"+identifier, self.name+identifier
+          if metadataToTransfer is not None: Input[modelIn][1]['metadataToTransfer'] = metadataToTransfer
         # update input with dependent outputs
         Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
         # set new identifiers
-        try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"|"+identifier, self.name+identifier
-        except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
+        try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"_"+identifier, self.name+identifier
+        except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"_"+identifier, self.name+identifier
         nextModel = False
         while not nextModel:
           moveOn = False
@@ -2093,14 +2109,14 @@ class EnsembleModel(Dummy, Assembler):
             if jobHandler.availability() > 0:
               # run the model
               self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
-              while not jobHandler.isThisJobFinished(modelIn+"|"+identifier): time.sleep(1.e-3)
+              while not jobHandler.isThisJobFinished(modelIn+"_"+identifier): time.sleep(1.e-3)
               nextModel, moveOn = True, True
             else: time.sleep(1.e-3)
           # get job that just finished
-          finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+"|"+identifier, uniqueHandler=self.name+identifier)
+          finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+"_"+identifier, uniqueHandler=self.name+identifier)
           if finishedRun[0].getEvaluation() == -1:
             for modelToRemove in self.orderList:
-              if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "|" + identifier, uniqueHandler = self.name + identifier)
+              if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "_" + identifier, uniqueHandler = self.name + identifier)
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
           # get back the output in a general format
           # finalize model

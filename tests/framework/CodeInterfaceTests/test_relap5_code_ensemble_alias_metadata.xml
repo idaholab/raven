@@ -60,7 +60,7 @@
         <!-- block the define the metadataToTransfer. source="model from which it needs to be collected", 
              alias="how it should be called in the receiver model"=> it is an optional argument, XML body is the name of the metadata to transfer
          -->
-        <metadataToTransfer source="MyRELAP" alias="parentID"   >prefix</metadataToTransfer>
+        <metadataToTransfer source="MyRELAP" alias="sourceID"   >prefix</metadataToTransfer>
       </Model>
     </EnsembleModel>
 
