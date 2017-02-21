@@ -100,16 +100,16 @@ def attemptFileClear(fName,later):
 #establish test XML
 xmlString = '<root ratr="root_attrib"><child catr1="child attrib 1" catr2="child attrib 2"><cchild ccatr="cc_attrib">cchildtext</cchild></child></root>'
 inFileName = 'testXMLInput.xml'
-file(inFileName,'w').write(xmlString)
+open(inFileName,'w').write(xmlString)
 xmlTree = ET.parse(inFileName)
 toRemove = attemptFileClear(inFileName,toRemove)
 
 # test prettify
 pretty = xmlUtils.prettify(xmlTree)
 prettyFileName = 'xml/testXMLPretty.xml'
-file(prettyFileName,'w').writelines(pretty)
-gold = ''.join(line.rstrip() for line in file(os.path.join(os.path.dirname(__file__),'gold',prettyFileName),'r'))
-test = ''.join(line.rstrip() for line in file(                    prettyFileName ,'r'))
+open(prettyFileName,'w').writelines(pretty)
+gold = ''.join(line.rstrip() for line in open(os.path.join(os.path.dirname(__file__),'gold',prettyFileName),'r'))
+test = ''.join(line.rstrip() for line in open(                    prettyFileName ,'r'))
 if gold==test:
   results['pass']+=1
   toRemove = attemptFileClear(prettyFileName,toRemove)

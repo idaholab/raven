@@ -37,11 +37,11 @@ def checkSameFile(a,b):
 
 #first test XML to XML
 print 'Testing XML to XML ...'
-tree = TS.parse(file(os.path.join('parse','example_xml.xml'),'r'))
+tree = TS.parse(open(os.path.join('parse','example_xml.xml'),'r'))
 strTree = TS.tostring(tree)
 fname = os.path.join('parse','fromXmltoXML.xml')
-file(fname,'w').write(strTree)
-same,msg = checkSameFile(file(fname,'r'),file(os.path.join('gold',fname),'r'))
+open(fname,'w').write(strTree)
+same,msg = checkSameFile(open(fname,'r'),open(os.path.join('gold',fname),'r'))
 if same:
   results['passed']+=1
   print '  ... passed!'
@@ -52,14 +52,14 @@ else:
 
 
 
-getpot = file(os.path.join('parse','example_getpot.i'),'r')
+getpot = open(os.path.join('parse','example_getpot.i'),'r')
 gtree = TS.parse(getpot,dType='GetPot')
 #third test GetPot to XML
 print 'Testing GetPot to XML ...'
 strTree = TS.tostring(gtree)
 fname = os.path.join('parse','fromGetpotToXml.xml')
-file(fname,'w').write(strTree)
-same,msg = checkSameFile(file(fname,'r'),file(os.path.join('gold',fname),'r'))
+open(fname,'w').write(strTree)
+same,msg = checkSameFile(open(fname,'r'),open(os.path.join('gold',fname),'r'))
 if same:
   results['passed']+=1
   print '  ... passed!'
@@ -73,8 +73,8 @@ else:
 print 'Testing XML to GetPot ...'
 strTree = tree.printGetPot()
 fname = os.path.join('parse','fromXmltoGetpot.i')
-file(fname,'w').write(strTree)
-same,msg = checkSameFile(file(fname,'r'),file(os.path.join('gold',fname),'r'))
+open(fname,'w').write(strTree)
+same,msg = checkSameFile(open(fname,'r'),open(os.path.join('gold',fname),'r'))
 if same:
   results['passed']+=1
   print '  ... passed!'
@@ -86,12 +86,12 @@ else:
 
 #second test Getpot to GetPot
 print 'Testing GetPot to GetPot ...'
-getpot = file(os.path.join('parse','example_getpot.i'),'r')
+getpot = open(os.path.join('parse','example_getpot.i'),'r')
 gtree = TS.parse(getpot,dType='GetPot')
 strTree = gtree.printGetPot()
 fname = os.path.join('parse','fromGetpotToGetpot.i')
-file(fname,'w').write(strTree)
-same,msg = checkSameFile(file(fname,'r'),file(os.path.join('gold',fname),'r'))
+open(fname,'w').write(strTree)
+same,msg = checkSameFile(open(fname,'r'),open(os.path.join('gold',fname),'r'))
 if same:
   results['passed']+=1
   print '  ... passed!'
