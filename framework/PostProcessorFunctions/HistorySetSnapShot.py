@@ -136,7 +136,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
       inputDic = inputDic[0]
       outputPSDic = {}
       outputHSDic = {}
-  
+
       #for timeSlice we call historySetWindow
       if self.type == 'timeSlice':
         outputHSDic = self.HSsyncPP.run([inputDic])

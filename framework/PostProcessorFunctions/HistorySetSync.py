@@ -86,7 +86,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
       outputDic['data'] = {}
       outputDic['data']['input'] = copy.deepcopy(inputDic['data']['input'])
       outputDic['data']['output'] = {}
-  
+
       newTime = []
       if self.syncMethod == 'grid':
         maxEndTime = []

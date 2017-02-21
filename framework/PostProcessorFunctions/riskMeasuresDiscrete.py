@@ -121,50 +121,50 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           pbPresent = False
       else:
         pbPresent = False
-  
+
       if not pbPresent:
         pbWeights= np.asarray([1.0 / len(inputDic['targets'][self.parameters['targets'][0]])]*len(inputDic['targets'][self.parameters['targets'][0]]))
       else:
         pbWeights = inputDic['metadata']['ProbabilityWeight']/np.sum(inputDic['metadata']['ProbabilityWeight'])
-  
+
       N = pbWeights.size
-  
+
       outputDic = {}
       outputDic['data'] = {}
       outputDic['data']['output'] = {}
       outputDic['data']['input']  = {}
-  
+
       for variable in self.variables:
         data=np.zeros((3,N))
         data[0] = pbWeights
         data[1] = inputDic['data']['input'][variable]
         data[2] = inputDic['data']['output'][self.target['targetID']]
-  
+
         #Calculate R0, Rminus, Rplus
-  
+
         indexSystemFailure = np.where(np.logical_or(data[2,:]<self.target['low'], data[2,:]>self.target['high']))
         dataSystemFailure  = np.delete(data, indexSystemFailure,  axis=1)
-  
+
         minusValues     = np.where(np.logical_or(dataSystemFailure[1,:]<self.variables[variable]['R1low'], dataSystemFailure[1,:]>self.variables[variable]['R1high']))
         plusValues      = np.where(np.logical_or(dataSystemFailure[1,:]<self.variables[variable]['R0low'], dataSystemFailure[1,:]>self.variables[variable]['R0high']))
         dataSystemMinus = np.delete(dataSystemFailure, minusValues, axis=1)
         dataSystemPlus  = np.delete(dataSystemFailure, plusValues , axis=1)
-  
+
         indexComponentFailureMinus = np.where(np.logical_or(data[1,:]<self.variables[variable]['R1low'], data[1,:]>self.variables[variable]['R1high']))
         indexComponentFailurePlus  = np.where(np.logical_or(data[1,:]<self.variables[variable]['R0low'], data[1,:]>self.variables[variable]['R0high']))
         dataComponentMinus = np.delete(data, indexComponentFailureMinus, axis=1)
         dataComponentPlus  = np.delete(data, indexComponentFailurePlus,  axis=1)
-  
+
         R0     = np.sum(dataSystemFailure[0,:])
         Rminus = np.sum(dataSystemMinus[0,:])/np.sum(dataComponentMinus[0,:])
         Rplus  = np.sum(dataSystemPlus[0,:]) /np.sum(dataComponentPlus[0,:])
-  
+
         # Calculate RRW, RAW, FV, B
         RRW = R0/Rminus
         RAW = Rplus/R0
         FV  = (R0-Rminus)/R0
         B   = Rplus-Rminus
-  
+
         if 'RRW' in self.measures:
           outputDic['data']['output'][variable + '_RRW'] = np.asanyarray([RRW])
           self.raiseADebug(str(variable) + ' RRW = ' + str(RRW))
@@ -177,11 +177,11 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         if 'B' in self.measures:
           outputDic['data']['output'][variable + '_B']   = np.asanyarray([B])
           self.raiseADebug(str(variable) + ' B  = ' + str(B))
-  
+
         outputDic['data']['input'][variable + '_avg'] = np.asanyarray([np.sum(dataSystemMinus[0,:])])
-  
+
       outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
-  
+
       return outputDic
 
 

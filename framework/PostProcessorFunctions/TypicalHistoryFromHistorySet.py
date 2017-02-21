@@ -41,9 +41,9 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       inputDict = inputDic[0]['data']
       self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
       self.features.remove(self.pivotParameterID)
-  
+
       if self.outputLen is None: self.outputLen = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])[-1]
-  
+
       tempInData = {}
       keyNewH = 0
       for keyH in inputDict['output'].keys():
@@ -63,11 +63,11 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
             keyNewH += 1
             startL = copy.copy(endL)
             endL += self.outputLen
-  
+
       inputDict['output'] = copy.deepcopy(tempInData)
       self.numHistory = len(inputDict['output'].keys())
       self.pivotParameter = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])
-  
+
       self.subsequence = {}
       startLocation, n = 0, 0
       while True:
@@ -81,7 +81,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         n+= 1
       subKeys = self.subsequence.keys()
       subKeys.sort()
-  
+
       tempData = {'all':{}}
       for keyF in self.features:
         tempData['all'][keyF] = np.array([])
@@ -93,7 +93,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         tempData[keySub][self.pivotParameterID] = np.extract(extractCondition, self.pivotParameter)
         if self.pivotParameter[-1] == self.subsequence[keySub][1]:
           tempData[keySub][self.pivotParameterID] = np.concatenate((tempData[keySub][self.pivotParameterID], np.asarray([self.pivotParameter[-1]])))
-  
+
         for keyF in self.features:
           tempData[keySub][keyF] = np.zeros(shape=(self.numHistory,len(tempData[keySub][self.pivotParameterID])))
           for cnt, keyH in enumerate(inputDict['output'].keys()):
@@ -102,7 +102,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
               tempData[keySub][keyF][cnt,-1] = inputDict['output'][keyH][keyF][-1]
             else:
               tempData[keySub][keyF][cnt,:] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
-  
+
       tempCDF = {'all':{}}
       for keyF in self.features:
   #       Bin size and number of bins determined by Freedman Diaconis rule
@@ -118,7 +118,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
           tempCDF[keySub][keyF] = np.zeros(shape=(self.numHistory,numBins))
           for cnt in range(tempData[keySub][keyF].shape[0]):
             tempCDF[keySub][keyF][cnt,:] = self.__computeECDF(tempData[keySub][keyF][cnt,:], binEdges)#numBins, dataRange)
-  
+
       tempTyp = {}
       for keySub in subKeys:
         tempTyp[keySub] = {}
@@ -132,17 +132,17 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
             d = FS
             for keyF in self.features:
               tempTyp[keySub][keyF] = tempData[keySub][keyF][cnt,:]
-  
+
       typicalTS = {self.pivotParameterID:np.array([])}
       for keySub in subKeys:
         typicalTS[self.pivotParameterID] = np.concatenate((typicalTS[self.pivotParameterID], tempTyp[keySub][self.pivotParameterID]))
         for keyF in self.features:
           if keyF not in typicalTS.keys():  typicalTS[keyF] = np.array([])
           typicalTS[keyF] = np.concatenate((typicalTS[keyF], tempTyp[keySub][keyF]))
-  
+
       for t in range(1,len(typicalTS[self.pivotParameterID])):
         if typicalTS[self.pivotParameterID][t] < typicalTS[self.pivotParameterID][t-1]: return None
-  
+
       outputDic ={'data':{'input':{},'output':{}}, 'metadata':{}}
       outputDic['data']['output'][1] = typicalTS
       keyH = inputDict['input'].keys()[0]

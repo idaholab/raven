@@ -93,13 +93,13 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       outputDic['data'] = {}
       outputDic['data']['input'] = copy.deepcopy(inputDic['data']['input'])
       outputDic['data']['output'] = {}
-  
+
       for hist in inputDic['data']['output']:
         if self.samplingType == 'uniform' or self.samplingType == 'firstDerivative' or self.samplingType == 'secondDerivative':
           outputDic['data']['output'][hist] = self.varsTimeInterp(inputDic['data']['output'][hist])
         elif self.samplingType == 'filteredFirstDerivative' or self.samplingType == 'filteredSecondDerivative':
           outputDic['data']['output'][hist] = timeSeriesFilter(self.pivotParameter,inputDic['data']['output'][hist],self.samplingType,self.tolerance)
-  
+
       return outputDic
 
   def varsTimeInterp(self, vars):
