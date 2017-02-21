@@ -108,8 +108,8 @@ toRemove = attemptFileClear(inFileName,toRemove)
 pretty = xmlUtils.prettify(xmlTree)
 prettyFileName = 'xml/testXMLPretty.xml'
 file(prettyFileName,'w').writelines(pretty)
-gold = ''.join(line for line in file(os.path.join(os.path.dirname(__file__),'gold',prettyFileName),'r'))
-test = ''.join(line for line in file(                    prettyFileName ,'r'))
+gold = ''.join(line.rstrip() for line in file(os.path.join(os.path.dirname(__file__),'gold',prettyFileName),'r'))
+test = ''.join(line.rstrip() for line in file(                    prettyFileName ,'r'))
 if gold==test:
   results['pass']+=1
   toRemove = attemptFileClear(prettyFileName,toRemove)

@@ -28,8 +28,9 @@ def checkSameFile(a,b):
       bl = genB.next()
     except StopIteration:
       return False,msg + ['file '+str(a)+' has more lines than '+str(b)]
-    if al != bl:
+    if al.rstrip() != bl.rstrip():
       same = False
+      print('al '+repr(al)+" != bl "+repr(bl))
       msg += ['line '+str(i)+' is not the same!']
 
 
