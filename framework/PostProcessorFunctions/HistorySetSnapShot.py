@@ -130,51 +130,55 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
      @ In,  inputDic, dict, input dictionary
      @ Out, outputPSDic, dict, output dictionary
     """
-    outputPSDic = {}
-    outputHSDic = {}
-
-    #for timeSlice we call historySetWindow
-    if self.type == 'timeSlice':
-      outputHSDic = self.HSsyncPP.run(inputDic)
-      outputPSDic = historySetWindow(outputHSDic,self.timeInstant,self.pivotParameter)
-      return outputPSDic
-    #for other non-mixed methods we call historySnapShot
-    elif self.type != 'mixed':
-      outputPSDic = historySnapShot(inputDic,self.pivotVar,self.type,self.pivotVal,self.pivotParameter)
-      return outputPSDic
-    #mixed is more complicated: we pull out values by method instead of a single slice type
-    #   We use the same methods to get slices, then pick out only the requested variables
+    if len(inputDic)>1:
+      self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
-      #establish the output dict
-      outDict = {'data':{'input':{},'output':{}}}
-      #replicate input space
-      for var in inputDic['data']['input'].values()[0].keys():
-        outDict['data']['input'][var] = np.array(list(inputDic['data']['input'][prefix][var] for prefix in inputDic['data']['input'].keys()))
-      #replicate metadata
-        outDict['metadata'] = inputDic['metadata']
-      #loop over the methods requested to fill output space
-      for method,entries in self.classifiers.items():
-        #min, max take no special effort
-        if method in ['min','max']:
-          for var in entries:
-            getDict = historySnapShot(inputDic,var,method)
-            outDict['data']['output'][var] = getDict['data']['output'][var]
-        #average requires the pivotParameter
-        elif method == 'average':
-          for var in entries:
-            getDict = historySnapShot(inputDic,var,method,tempID=self.pivotParameter)
-            outDict['data']['output'][var] = getDict['data']['output'][var]
-        #timeSlice requires the time value
-        #functionality removed for now until we recall why it's desirable
-        #elif method == 'timeSlice':
-        #  for var,time in entries:
-        #    getDict = historySetWindow(inputDic,time,self.pivotParameter)
-        #value requires the dependent variable and value
-        elif method == 'value':
-          for var,depVar,depVal in entries:
-            getDict = historySnapShot(inputDic,depVar,method,pivotVal=depVal)
-            outDict['data']['output'][var] = getDict['data']['output'][var]
-      return outDict
+      inputDic = inputDic[0]
+      outputPSDic = {}
+      outputHSDic = {}
+  
+      #for timeSlice we call historySetWindow
+      if self.type == 'timeSlice':
+        outputHSDic = self.HSsyncPP.run([inputDic])
+        outputPSDic = historySetWindow(outputHSDic,self.timeInstant,self.pivotParameter)
+        return outputPSDic
+      #for other non-mixed methods we call historySnapShot
+      elif self.type != 'mixed':
+        outputPSDic = historySnapShot(inputDic,self.pivotVar,self.type,self.pivotVal,self.pivotParameter)
+        return outputPSDic
+      #mixed is more complicated: we pull out values by method instead of a single slice type
+      #   We use the same methods to get slices, then pick out only the requested variables
+      else:
+        #establish the output dict
+        outDict = {'data':{'input':{},'output':{}}}
+        #replicate input space
+        for var in inputDic['data']['input'].values()[0].keys():
+          outDict['data']['input'][var] = np.array(list(inputDic['data']['input'][prefix][var] for prefix in inputDic['data']['input'].keys()))
+        #replicate metadata
+          outDict['metadata'] = inputDic['metadata']
+        #loop over the methods requested to fill output space
+        for method,entries in self.classifiers.items():
+          #min, max take no special effort
+          if method in ['min','max']:
+            for var in entries:
+              getDict = historySnapShot(inputDic,var,method)
+              outDict['data']['output'][var] = getDict['data']['output'][var]
+          #average requires the pivotParameter
+          elif method == 'average':
+            for var in entries:
+              getDict = historySnapShot(inputDic,var,method,tempID=self.pivotParameter)
+              outDict['data']['output'][var] = getDict['data']['output'][var]
+          #timeSlice requires the time value
+          #functionality removed for now until we recall why it's desirable
+          #elif method == 'timeSlice':
+          #  for var,time in entries:
+          #    getDict = historySetWindow(inputDic,time,self.pivotParameter)
+          #value requires the dependent variable and value
+          elif method == 'value':
+            for var,depVar,depVal in entries:
+              getDict = historySnapShot(inputDic,depVar,method,pivotVal=depVal)
+              outDict['data']['output'][var] = getDict['data']['output'][var]
+        return outDict
 
 
 def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = None):

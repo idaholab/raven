@@ -34,7 +34,10 @@ class testInterfacedPP_PointSet(PostProcessorInterfaceBase):
      @ Out, inputDic, dict, same inputDic dictionary
 
     """
-    return inputDic
+    if len(inputDic)>1:
+      self.raiseAnError(IOError, 'testInterfacedPP_PointSet Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+    else:
+      return inputDic[0]
 
   def readMoreXML(self,xmlNode):
     """
