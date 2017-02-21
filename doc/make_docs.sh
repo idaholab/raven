@@ -23,7 +23,7 @@ done
 rm -Rvf pdfs
 
 # add custom, collective inputs to TEXINPUTS
-export TEXINPUTS=.:$SCRIPT_DIR/tex_inputs//:$TEXINPUTS
+export TEXINPUTS=.:$SCRIPT_DIR/tex_inputs/:$TEXINPUTS
 
 if git describe
 then
