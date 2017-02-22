@@ -516,7 +516,7 @@ def numBinsDraconis(data):
     @ Out, numBins, int, optimal number of bins
     @ Out, binEdges, np.array, location of the bins
   """
-     
+
   IQR = np.percentile(data, 75) - np.percentile(data, 25)
   binSize = 2.0*IQR*(data.size**(-1.0/3.0))
   numBins = int((max(data)-min(data))/binSize)
