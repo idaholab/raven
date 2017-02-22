@@ -16,7 +16,8 @@
     <created>2017-01-27</created>
     <classesTested>Models.ROM</classesTested>
     <description>
-       This test is an example for the user guide to draw from.
+      This test is an example for the user guide to draw from.  It demonstrates the workflow for
+      obtaining samples, then constructing both ScitKitLearn and NDinvDistWeight reduced-order models.
     </description>
   </TestInfo>
 

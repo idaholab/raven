@@ -11,7 +11,8 @@
     <created>2017-01-30</created>
     <classesTested>PostProcessor.DataMining</classesTested>
     <description>
-       This test is an example for the user guide to draw from.
+      This test is an example for the user guide to draw from.  It demonstrates a typical workflow for sampling
+      then making use of the DataMining postprocessor.
     </description>
   </TestInfo>
 

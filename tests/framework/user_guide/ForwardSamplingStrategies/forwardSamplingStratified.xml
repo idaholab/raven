@@ -12,7 +12,8 @@
     <created>2017-01-26</created>
     <classesTested>Samplers.Stratified</classesTested>
     <description>
-       This test is an example for the user guide to draw from.
+      This test is an example for the user guide to draw from.  It exemplifies using the Stratified
+      sampler on a Code model (the Analytic Bateman in this case).
     </description>
   </TestInfo>
 

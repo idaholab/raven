@@ -12,7 +12,9 @@
     <created>2017-01-26</created>
     <classesTested>Samplers.LimitSurfaceSearch,PostProcessors.LimitSurfaceIntegral</classesTested>
     <description>
-       This test is an example for the user guide to draw from.
+      This test is an example for the user guide to draw from.  It demonstrates a typical workflow
+      for using the LimitSurface capabilities of RAVEN (both the LimitSurfaceSearch sampler and the
+      LimitSurfaceIntegral postprocessor.
     </description>
   </TestInfo>
 
