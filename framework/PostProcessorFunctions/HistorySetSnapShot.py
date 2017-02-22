@@ -127,7 +127,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
   def run(self,inputDic, pivotVal=None):
     """
      Method to post-process the dataObjects
-     @ In,  inputDic, dict, input dictionary
+     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
      @ Out, outputPSDic, dict, output dictionary
     """
     if len(inputDic)>1:

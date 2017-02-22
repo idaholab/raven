@@ -30,7 +30,7 @@ class testInterfacedPP_PointSet(PostProcessorInterfaceBase):
   def run(self,inputDic):
     """
     This method is transparent: it passes the inputDic directly as output
-     @ In, inputDic, dict, dictionary which contains the data inside the input DataObject
+     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
      @ Out, inputDic, dict, same inputDic dictionary
 
     """

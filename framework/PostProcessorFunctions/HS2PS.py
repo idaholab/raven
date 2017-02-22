@@ -64,7 +64,7 @@ class HS2PS(PostProcessorInterfaceBase):
   def run(self,inputDic):
     """
     This method performs the actual transformation of the data object from history set to point set
-      @ In, inputDic, dict, input dictionary
+      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
       @ Out, outputDic, dict, output dictionary
     """
     if len(inputDic)>1:
@@ -95,9 +95,7 @@ class HS2PS(PostProcessorInterfaceBase):
       referenceHistory = inputDic['data']['output'].keys()[0]
       referenceTimeAxis = inputDic['data']['output'][referenceHistory][self.pivotParameter]
       for hist in inputDic['data']['output']:
-        if (str(inputDic['data']['output'][hist][self.pivotParameter]) == str(referenceTimeAxis)):
-          pass
-        else:
+        if (str(inputDic['data']['output'][hist][self.pivotParameter]) != str(referenceTimeAxis)):
           self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' : one or more histories in the historySet have different time scale')
 
       tempDict = {}

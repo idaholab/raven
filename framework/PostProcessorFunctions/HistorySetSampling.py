@@ -81,8 +81,8 @@ class HistorySetSampling(PostProcessorInterfaceBase):
   def run(self,inputDic):
     """
      Method to post-process the dataObjects
-     @ In,  inputDic , dictionary
-     @ Out, outputDic, dictionary
+     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+     @ Out, outputDic, dict, dictionary ofr esampled histories
     """
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
@@ -95,11 +95,12 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       outputDic['data']['output'] = {}
 
       for hist in inputDic['data']['output']:
-        if self.samplingType == 'uniform' or self.samplingType == 'firstDerivative' or self.samplingType == 'secondDerivative':
+        if self.samplingType in ['uniform','firstDerivative','secondDerivative']:
           outputDic['data']['output'][hist] = self.varsTimeInterp(inputDic['data']['output'][hist])
-        elif self.samplingType == 'filteredFirstDerivative' or self.samplingType == 'filteredSecondDerivative':
+        elif self.samplingType in ['filteredFirstDerivative','filteredSecondDerivative']:
           outputDic['data']['output'][hist] = timeSeriesFilter(self.pivotParameter,inputDic['data']['output'][hist],self.samplingType,self.tolerance)
-
+        else:
+          self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : not recognized samplingType')
       return outputDic
 
   def varsTimeInterp(self, vars):

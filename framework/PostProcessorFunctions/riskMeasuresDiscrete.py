@@ -106,7 +106,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
   def run(self,inputDic):
     """
      This method perform the actual calculation of the risk measures
-     @ In,  inputDic,  dict, dictionary which contains the data inside the input DataObject
+     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
      @ Out, outputDic, dict, dictionary which contains the risk measures
 
     """
@@ -114,13 +114,9 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       self.raiseAnError(IOError, 'testInterfacedPP Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
       inputDic = inputDic[0]
-      if 'metadata' in inputDic.keys():
-        if 'ProbabilityWeight' in inputDic['metadata'].keys():
-          pbPresent = True
-        else:
-          pbPresent = False
-      else:
-        pbPresent = False
+      pbPresent = False
+      if 'metadata' in inputDic.keys() and 'ProbabilityWeight' in inputDic['metadata'].keys():
+        pbPresent = True
 
       if not pbPresent:
         pbWeights= np.asarray([1.0 / len(inputDic['targets'][self.parameters['targets'][0]])]*len(inputDic['targets'][self.parameters['targets'][0]]))
@@ -142,24 +138,32 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
 
         #Calculate R0, Rminus, Rplus
 
+        # Step 1: Retrieve points that contain system failure
         indexSystemFailure = np.where(np.logical_or(data[2,:]<self.target['low'], data[2,:]>self.target['high']))
         dataSystemFailure  = np.delete(data, indexSystemFailure,  axis=1)
 
+        # Step 2: Retrieve points from Step 1 that contain component reliability values equal to 1 (minusValues) and 0 (plusValues)
         minusValues     = np.where(np.logical_or(dataSystemFailure[1,:]<self.variables[variable]['R1low'], dataSystemFailure[1,:]>self.variables[variable]['R1high']))
         plusValues      = np.where(np.logical_or(dataSystemFailure[1,:]<self.variables[variable]['R0low'], dataSystemFailure[1,:]>self.variables[variable]['R0high']))
         dataSystemMinus = np.delete(dataSystemFailure, minusValues, axis=1)
         dataSystemPlus  = np.delete(dataSystemFailure, plusValues , axis=1)
 
+        # Step 3: Retrieve points from oriignal dataset that contain component reliability values equal to 1 (minusValues) and 0 (plusValues)
         indexComponentFailureMinus = np.where(np.logical_or(data[1,:]<self.variables[variable]['R1low'], data[1,:]>self.variables[variable]['R1high']))
         indexComponentFailurePlus  = np.where(np.logical_or(data[1,:]<self.variables[variable]['R0low'], data[1,:]>self.variables[variable]['R0high']))
         dataComponentMinus = np.delete(data, indexComponentFailureMinus, axis=1)
         dataComponentPlus  = np.delete(data, indexComponentFailurePlus,  axis=1)
 
+        # Step 4: Sum pb weights for the subsets retrieved in Steps 1 2 and 3
+
+        # R0 = pb of system failure
         R0     = np.sum(dataSystemFailure[0,:])
+        # Rminus = pb of system failure given component reliability is 1
         Rminus = np.sum(dataSystemMinus[0,:])/np.sum(dataComponentMinus[0,:])
+        # Rplus = pb of system failure given component reliability is 0
         Rplus  = np.sum(dataSystemPlus[0,:]) /np.sum(dataComponentPlus[0,:])
 
-        # Calculate RRW, RAW, FV, B
+        # Step 5: Calculate RRW, RAW, FV, B
         RRW = R0/Rminus
         RAW = Rplus/R0
         FV  = (R0-Rminus)/R0

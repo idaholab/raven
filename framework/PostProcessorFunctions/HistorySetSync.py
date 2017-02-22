@@ -75,7 +75,9 @@ class HistorySetSync(PostProcessorInterfaceBase):
 
   def run(self,inputDic):
     """
-    This method is transparent: it passes the inputDic directly as output
+     Method to post-process the dataObjects
+     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+     @ Out, outputPSDic, dict, output dictionary
     """
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')

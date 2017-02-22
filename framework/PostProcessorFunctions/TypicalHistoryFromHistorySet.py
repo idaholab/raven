@@ -9,6 +9,7 @@ warnings.simplefilter('default',DeprecationWarning)
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 import numpy as np
 import copy
+import mathUtils
 
 class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
   """
@@ -32,7 +33,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
 
   def run(self,inputDic):
     """
-      @ In, inputDic, dict, dictionary which contains the data inside the input DataObject
+      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
       @ Out, outputDic, dict, dictionary which contains the data to be collected by output DataObject
     """
     if len(inputDic)>1:
@@ -40,7 +41,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     else:
       inputDict = inputDic[0]['data']
       self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
-      self.features.remove(self.pivotParameterID)
+      if self.pivotParameterID in self.features:
+        self.features.remove(self.pivotParameterID)
 
       if self.outputLen is None: self.outputLen = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])[-1]
 
@@ -105,13 +107,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
 
       tempCDF = {'all':{}}
       for keyF in self.features:
-  #       Bin size and number of bins determined by Freedman Diaconis rule
-  #       https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
-        IQR = np.percentile(tempData['all'][keyF], 75) - np.percentile(tempData['all'][keyF], 25)
-        binSize = 2.0*IQR*(tempData['all'][keyF].size**(-1.0/3.0))
-        numBins = int((max(tempData['all'][keyF])-min(tempData['all'][keyF]))/binSize)
-        binEdges = np.linspace(start=min(tempData['all'][keyF]),stop=max(tempData['all'][keyF]),num=numBins+1)
-  #       dataRange = (min(tempData['all'][keyF]), max(tempData['all'][keyF]))
+        numBins , binEdges = mathUtils.numBinsDraconis(tempData['all'][keyF])
         tempCDF['all'][keyF] = self.__computeECDF(tempData['all'][keyF], binEdges)# numBins, dataRange)
         for keySub in subKeys:
           if keySub not in tempCDF.keys(): tempCDF[keySub] = {}

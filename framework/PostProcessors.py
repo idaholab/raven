@@ -1131,29 +1131,6 @@ class InterfacedPostProcessor(BasePostProcessor):
       for key in exportDict['metadata']:
         output.updateMetadata(key,exportDict['metadata'][key])
 
-  '''
-  def inputToInternal(self,input):
-    """
-      Function to convert the received input into a format this object can
-      understand
-      @ In, input, dataObject, data object handed to the post-processor
-      @ Out, inputDict, dict, a dictionary this object can process
-    """
-    inputDict = {'data':{}, 'metadata':{}}
-    metadata = []
-    if type(input) == dict:
-      return input
-    else:
-      if len(input[0]) == 0: self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : The input dataObject named '+input[0].name + ' is empty. Check your input!')
-      inputDict['data']['input']  = copy.deepcopy(input[0].getInpParametersValues())
-      inputDict['data']['output'] = copy.deepcopy(input[0].getOutParametersValues())
-    for item in input:
-      metadata.append(copy.deepcopy(item.getAllMetadata()))
-    metadata.append(item.getAllMetadata())
-    inputDict['metadata']=metadata
-    return inputDict
-
-  '''
 
   def inputToInternal(self,input):
     """

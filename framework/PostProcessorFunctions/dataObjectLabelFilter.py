@@ -62,7 +62,7 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
   def run(self,inputDic):
     """
      Method to post-process the dataObjects
-     @ In,  inputDic , dictionary, input dictionary provided by the base class
+     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
      @ Out, outputDic, dictionary, output dictionary to be provided to the base class
     """
     if len(inputDic)>1:
