@@ -509,3 +509,17 @@ def NDInArray(findIn,val,tol=1e-12):
     return False,None,None
   return found,idx,looking
 
+def numBinsDraconis(data):
+  """
+    Determine  Bin size and number of bins determined by Freedman Diaconis rule (https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule)
+    @ In, data, np.array, data to be binned
+    @ Out, numBins, int, optimal number of bins
+    @ Out, binEdges, np.array, location of the bins
+  """
+
+  IQR = np.percentile(data, 75) - np.percentile(data, 25)
+  binSize = 2.0*IQR*(data.size**(-1.0/3.0))
+  numBins = int((max(data)-min(data))/binSize)
+  binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
+  return numBins,binEdges
+
