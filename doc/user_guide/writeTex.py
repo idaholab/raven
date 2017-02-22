@@ -6,6 +6,12 @@ sys.path.append(os.path.join(os.getcwd(),'..','..','framework','utils'))
 import xmlUtils
 
 def getNode(fname,nodepath):
+  """
+    Searches file for particular node.  Note that this takes the first matching node path in the file.
+    @ In, fname, string, name of file with XML tree to search
+    @ In, nodepath, string, "."-separated string with xml node name path, i.e., Simulation.RunInfo.Sequence
+    @ Out, getNode, ET.Element, prettified element
+  """
   #TODO add option to include parent nodes with ellipses
   root = ET.parse(fname).getroot()
   #format nodepath
@@ -23,6 +29,13 @@ def getNode(fname,nodepath):
 
 
 def chooseSize(string):
+  """
+    Determines appropriate latex size to use so that the string fits in RAVEN-standard lstlisting examples
+      without flowing over to newline.  Could be improved to consider the overall number of lines in the
+      string as well, so that we don't have multi-page examples very often.
+    @ In, string, string, the string by which to determine the size
+    @ Out, chooseSize, string, the LaTeX-ready size at which the string should be represented
+  """
   longest = 0
   for line in string.split('\n'):
     longest = max(longest,len(line.rstrip()))

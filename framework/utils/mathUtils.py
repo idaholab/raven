@@ -506,10 +506,6 @@ def compareFloats(f1,f2,tol=1e-6):
     #try using the "measured" for scale
     if f1 != 0.0:
       scale = f1
-    #otherwise they're both zero, so they're the same
-    #try using the average of measured and actual
-    elif f1+f2 != 0:
-      scale = 0.5*(f1+f2)
     #at this point, they're both equal to zero, so just divide by 1.0
     else:
       scale = 1.0

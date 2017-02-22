@@ -6,17 +6,19 @@ import re,sys
 floatRe = re.compile("([-+]?\d*(?:(?:\d[.])|(?:[.]\d)|(?:\d))\d*(?:[eE][+-]\d+)?)")
 
 def splitIntoParts(s):
-  """Splits the string into floating parts and not float parts
-  s: the string
-  returns a list where the even indexs are string and the odd
-  indexs are floating point number strings.
+  """
+    Splits the string into floating parts and not float parts
+    @ In, s, string, the string to split
+    @ Out, splitIntoParts, string, a list where the even indexs are string and the odd indexs are floating point number strings.
   """
   return floatRe.split(s)
 
 def shortText(a,b):
-  """Returns a short portion of the text that shows the first difference
-  a: the first text element
-  b: the second text element
+  """
+    Returns a short portion of the text that shows the first difference
+    @ In, a, string, the first text element
+    @ In, b, string, the second text element
+    @ Out, shortText, string, resulting shortened diff
   """
   a = repr(a)
   b = repr(b)
@@ -48,8 +50,8 @@ def shortText(a,b):
 def setDefaultOptions(options):
   """
     sets all the options to defaults
-    In, options, dict, dictionary to add default options to
-    Out, None
+    @ In, options, dict, dictionary to add default options to
+    @ Out, None
   """
   options["rel_err"] = float(options.get("rel_err",1.e-10))
   options["zero_threshold"] = float(options.get("zero_threshold",sys.float_info.min*4.0))
@@ -57,8 +59,10 @@ def setDefaultOptions(options):
   options["remove_unicode_identifier"] = options.get("remove_unicode_identifier",False)
 
 def removeWhitespaceChars(s):
-  """ Removes whitespace characters
-  s: string to remove characters from
+  """
+    Removes whitespace characters
+    @ In, s, string, to remove characters from
+    @ Out, s, string, removed whitespace string
   """
   s = s.replace(" ","")
   s = s.replace("\t","")
@@ -69,24 +73,25 @@ def removeWhitespaceChars(s):
   return s
 
 def removeUnicodeIdentifiers(s):
-  """ Removes the u infrount of a unicode string: u'string' -> 'string'
-  Note that this also removes a u at the end of string 'stru' -> 'str'
-  which is not intended.
-  s: string to remove characters from
+  """
+    Removes the u infrount of a unicode string: u'string' -> 'string'
+    Note that this also removes a u at the end of string 'stru' -> 'str'
+      which is not intended.
+    @ In, s, string, string to remove characters from
+    @ Out, s, string, cleaned string
   """
   s = s.replace("u'","'")
   return s
 
 def compareStringsWithFloats(a,b,numTol = 1e-10, zeroThreshold = sys.float_info.min*4.0, removeWhitespace = False, removeUnicodeIdentifier = False):
-  """ Compares two strings that have floats inside them.  This searches for
-  floating point numbers, and compares them with a numeric tolerance.
-  a: first string to use
-  b: second string to use
-  numTol: the numerical tolerance.
-  zeroThershold: it represents the value below which a float is considered zero (XML comparison only). For example, if zeroThershold = 0.1, a float = 0.01 will be considered as it was 0.0
-  removeWhitespace: if True, remove all whitespace before comparing.
-  Return (succeeded, note) where succeeded is a boolean that is true if the
-  strings match, and note is a comment on the comparison.
+  """
+    Compares two strings that have floats inside them.  This searches for floating point numbers, and compares them with a numeric tolerance.
+    @ In, a, string, first string to use
+    @ In, b, string, second string to use
+    @ In, numTol, float, the numerical tolerance.
+    @ In, zeroThershold, float, it represents the value below which a float is considered zero (XML comparison only). For example, if zeroThershold = 0.1, a float = 0.01 will be considered as it was 0.0
+    @ In, removeWhitespace, bool, if True, remove all whitespace before comparing.
+    @ Out, compareStringWithFloats, (bool,string), (succeeded, note) where succeeded is a boolean that is true if the strings match, and note is a comment on the comparison.
   """
   if a == b:
     return (True,"Strings Match")
@@ -120,10 +125,11 @@ def compareStringsWithFloats(a,b,numTol = 1e-10, zeroThreshold = sys.float_info.
   return (True, "Strings Match Floatwise")
 
 def isANumber(x):
-  '''Checks if x can be converted to a float.
-  @ In, x, a variable or value
-  @ Out, bool, True if x can be converted to a float.
-  '''
+  """
+    Checks if x can be converted to a float.
+    @ In, x, object, a variable or value
+    @ Out, isANumber, bool, True if x can be converted to a float.
+  """
   try:
     float(x)
     return True

@@ -34,6 +34,13 @@ def prettify(tree,doc=False,docLevel=0):
     @Out, towrite, string, the entire contents of the desired file to write, including newlines
   """
   def prettifyNode(node,tabs=0):
+    """
+      "prettifies" a single node, and calls the same for its children
+      adds whitespace to make node more human-readable
+      @ In, node, ET.Element, node to prettify
+      @ In, tabs, int, optional, indentation level for this node in the global scheme
+      @ Out, None
+    """
     linesep = '\n' #fails test if using os.linesep
     child = None #putting it in namespace
     space = ' '*2*tabs

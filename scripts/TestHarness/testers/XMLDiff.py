@@ -8,10 +8,10 @@ numTol = 1e-10 #effectively zero for our purposes
 def findBranches(node,path,finished):
   """
     Iterative process to convert XML tree into list of entries
-    node: ET.Element whose children need sorting
-    path: list(ET.Element) leading to node
-    finished: list(list(ET.Element)) full entries
-    returns list(list(ET.Element)) of full entries
+    @ In, node, ET.Element, whose children need sorting
+    @ In, path, list(ET.Element), leading to node
+    @ In, finished, list(list(ET.Element)), full entries
+    @ Out, finished, list(list(ET.Element)), of full entries
   """
   for child in node:
     npath = path[:]+[child]
@@ -24,8 +24,8 @@ def findBranches(node,path,finished):
 def treeToList(node):
   """
     Converts XML tree to list of entries.  Useful to start recursive search.
-    node: the xml tree root node to convert
-    returns list(list(ET.Element)) of full paths to entries in xml tree
+    @ In, node, ET.Element, the xml tree root node to convert
+    @ Out, treeToList, list(list(ET.Element)), of full paths to entries in xml tree
   """
   flattened = findBranches(node,[node],[])
   return list(tuple(f) for f in flattened)
@@ -33,11 +33,11 @@ def treeToList(node):
 def compareListEntry(aList,bList,**kwargs):
   """
     Comparse flattened XML entries for equality
-    aList: list(ET.Element)
-    bList: list(ET.Element)
-    returns (bool,val)
-    bool is True if all tag, text, and attributes match, False otherwise
-    qual is percent of matching terms
+    return bool is True if all tag, text, and attributes match, False otherwise
+    return qual is percent of matching terms
+    @ In, aList, list(ET.Element), first set
+    @ In, bList, list(ET.Element), second set
+    @ Out, compareListEntry, (bool,val), results
   """
   numMatch = 0       #number of matching points between entries
   totalMatchable = 0 #total tag, text, and attributes available to match
@@ -110,8 +110,9 @@ def compareUnorderedElement(a,b,*args,**kwargs):
     where same is true if they are the same,
     and message is a list of the differences.
     Uses list of tree entries to find best match, instead of climbing the tree
-    a: the first element tree
-    b: the second element tree
+    @ In, a, ET.Element, the first element
+    @ In, b, ET.Element, the second element
+    @ Out, compareUnorderedElement, (bool,[string]), results of comparison
   """
   same = True
   message = []
@@ -121,8 +122,10 @@ def compareUnorderedElement(a,b,*args,**kwargs):
   DU.setDefaultOptions(options)
 
   def failMessage(*args):
-    """ adds the fail message to the list
-    args: The arguments to the fail message (will be converted with str())
+    """
+      adds the fail message to the list
+      @ In, args, list, The arguments to the fail message (will be converted with str())
+      @ Out, failMessage, (bool,string), results
     """
     printArgs = []
     printArgs.extend(args)
@@ -202,16 +205,18 @@ def compareUnorderedElement(a,b,*args,**kwargs):
     return (False,[note])
 
 def compareOrderedElement(a,b,*args,**kwargs):
-  """ Compares two element trees and returns (same,message)
-  where same is true if they are the same,
-  and message is a list of the differences
-  a: the first element tree
-  b: the second element tree
-  accepted args:
-    - none -
-  accepted kwargs:
-    path: a string to describe where the element trees are located (mainly
-          used recursively)
+  """
+    Compares two element trees and returns (same,message) where same is true if they are the same, and message is a list of the differences
+    @ In, a, ET.Element, the first element tree
+    @ In, b, ET.Element, the second element tree
+    @ In, args, dict, arguments
+    @ In, kwargs, dict, keyword arguments
+      accepted args:
+        - none -
+      accepted kwargs:
+        path: a string to describe where the element trees are located (mainly
+              used recursively)
+    @ Out, compareOrderedElement, (bool,[string]), results of comparison
   """
   same = True
   message = []
@@ -221,8 +226,10 @@ def compareOrderedElement(a,b,*args,**kwargs):
   DU.setDefaultOptions(options)
 
   def failMessage(*args):
-    """ adds the fail message to the list
-    args: The arguments to the fail message (will be converted with str())
+    """
+      adds the fail message to the list
+      @ In, args, list, The arguments to the fail message (will be converted with str())
+      @ Out, failMessage, (bool,string), results
     """
     printArgs = [path]
     printArgs.extend(args)
@@ -286,9 +293,10 @@ def compareOrderedElement(a,b,*args,**kwargs):
   return (same,message)
 
 class XMLDiff:
-  """ XMLDiff is used for comparing a bunch of xml files.
   """
-  #codes for differences
+    XMLDiff is used for comparing xml files.
+  """
+  #static codes for differences
   missingChildNode  = 0
   missingAttribute   = 1
   extraChildNode    = 2
@@ -298,12 +306,13 @@ class XMLDiff:
   notMatchText      = 6
 
   def __init__(self, testDir, outFile,**kwargs):
-    """ Create an XMLDiff class
-    testDir: the directory where the test takes place
-    outFile: the files to be compared.  They will be in testDir + outFile
-               and testDir + gold + outFile
-    args: other arguments that may be included:
-          - 'unordered': indicates unordered sorting
+    """
+      Create an XMLDiff class
+      @ In, testDir, string, the directory where the test takes place
+      @ In, outFile, string, the files to be compared.  They will be in testDir + outFile and testDir + gold + outFile
+      @ In, kwargs, dict,  other arguments that may be included:
+            - 'unordered': indicates unordered sorting
+      @ Out, None
     """
     self.__outFile = outFile
     self.__messages = ""
@@ -312,10 +321,10 @@ class XMLDiff:
     self.__options = kwargs
 
   def diff(self):
-    """ Run the comparison.
-    returns (same,messages) where same is true if all the
-    xml files are the same, and messages is a string with all the
-    differences.
+    """
+      Run the comparison.
+      @ In, None
+      @ Out, diff, (bool,string), (same,messages) where same is true if all the xml files are the same, and messages is a string with all the differences.
     """
     # read in files
     for outfile in self.__outFile:
