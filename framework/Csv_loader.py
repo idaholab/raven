@@ -142,17 +142,13 @@ class CsvLoader(MessageHandler.MessageUser):
           else:
             self.raiseAWarning('the ' + aliasType +' alias"'+var.strip()+'" has been defined but has not been found among the variables!')
 
-
-    if 'all' in outParam: self.allOutParam = True
-    else                : self.allOutParam = False
-
+    self.allOutParam = 'all' in outParam
     if outputPivotVal != None:
-      if 'end' in outputPivotVal: outputPivotValEnd = True
-      else:
-        outputPivotValEnd, outputPivotVal = False,  float(outputPivotVal)
+      outputPivotValEnd = 'end' in outputPivotVal
+      outputPivotVal    = float(outputPivotVal)
     else:
-      if operator is None: outputPivotValEnd = True
-      else               : outputPivotValEnd = False
+      outputPivotValEnd = operator is None and outputRow is None
+
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow != None :
       inputRow = int(inputRow)
@@ -281,18 +277,12 @@ class CsvLoader(MessageHandler.MessageUser):
           else:
             self.raiseAWarning('the ' + aliasType +' alias"'+var.strip()+'" has been defined but has not been found among the variables!')
 
-    if 'all' in outParam: self.allOutParam = True
-    else                : self.allOutParam = False
-
+    self.allOutParam = 'all' in outParam
     if outputPivotVal != None:
-      if 'end' in outputPivotVal: outputPivotValEnd = True
-      else:
-        outputPivotValEnd, outputPivotVal = False,  float(outputPivotVal)
+      outputPivotValEnd = 'end' in outputPivotVal
+      outputPivotVal    = float(outputPivotVal)
     else:
-      if operator is None and outputRow is None:
-        outputPivotValEnd = True
-      else:
-        outputPivotValEnd = False
+      outputPivotValEnd = operator is None and outputRow is None
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow != None :
@@ -430,8 +420,7 @@ class CsvLoader(MessageHandler.MessageUser):
 
     #load the data into the numpy array
     data = self.loadCsvFile(fileIn)
-    if 'all' in outParam: self.allOutParam = True
-    else                : self.allOutParam = False
+    self.allOutParam = 'all' in outParam
     if pivotParameter != None:
       pivotIndex = self.allFieldNames.index(pivotParameter) if pivotParameter in self.allFieldNames else None
       if pivotIndex == None: self.raiseAnError(IOError,'pivotParameter ' +pivotParameter+' has not been found in file '+ str(fileIn) + '!')
@@ -439,12 +428,10 @@ class CsvLoader(MessageHandler.MessageUser):
       pivotIndex = self.allFieldNames.index("time") if "time" in self.allFieldNames else None
       # if None...default is 0
       if pivotIndex == None: pivotIndex = 0
-
+    outputPivotValAll = True
     if outputPivotVal != None:
-      if 'all' in outputPivotVal: outputPivotValAll = True
-      else:
-        outputPivotValAll, outputPivotVal = False,  [float(x) for x in outputPivotVal.split()]
-    else: outputPivotValAll = True
+      outputPivotValAll = 'all' in outputPivotVal
+      if not outputPivotValAll: outputPivotVal = [float(x) for x in outputPivotVal.split()]
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow != None :
