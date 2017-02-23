@@ -45,6 +45,8 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     """
     self.variables = {}
     self.target    = {}
+    
+    IEdata = {}
 
     for child in xmlNode:
       if child.tag == 'measures':
@@ -95,7 +97,10 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           self.target['high'] = max(val1,val2)
         else:
           self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : attribute node values is not present for XML node: ' + str(child) )
-
+      
+      elif child.tag == 'data':
+        IEdata[child.text] = child.attrib['freq']
+      
       elif child.tag !='method':
         self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
@@ -106,61 +111,69 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
   def run(self,inputDic):
     """
      This method perform the actual calculation of the risk measures
-     @ In,  inputDic,  dict, dictionary which contains the data inside the input DataObject
+     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
      @ Out, outputDic, dict, dictionary which contains the risk measures
 
     """
-
-    if 'metadata' in inputDic.keys():
-      if 'ProbabilityWeight' in inputDic['metadata'][0].keys():
-        pbPresent = True
-      else:
-        pbPresent = False
-    else:
+    measures = { 'RRW':{},'RAW':{},'FV':{},'B':{} }
+    Rvalues = {}
+    for inp in inputDic:
+      Rvalues[variable] = {}
       pbPresent = False
+      if 'metadata' in inp.keys() and 'ProbabilityWeight' in inp['metadata'].keys():
+        pbPresent = True
 
-    if not pbPresent:
-      pbWeights= np.asarray([1.0 / len(inputDic['targets'][self.parameters['targets'][0]])]*len(inputDic['targets'][self.parameters['targets'][0]]))
-    else:
-      pbWeights = inputDic['metadata'][0]['ProbabilityWeight']/np.sum(inputDic['metadata'][0]['ProbabilityWeight'])
+      if not pbPresent:
+        pbWeights= np.asarray([1.0 / len(inp['targets'][self.parameters['targets'][0]])]*len(inp['targets'][self.parameters['targets'][0]]))
+      else:
+        pbWeights = inp['metadata']['ProbabilityWeight']/np.sum(inp['metadata']['ProbabilityWeight'])
 
-    N = pbWeights.size
+      N = pbWeights.size
 
-    outputDic = {}
-    outputDic['data'] = {}
-    outputDic['data']['output'] = {}
-    outputDic['data']['input']  = {}
+      outputDic = {}
+      outputDic['data'] = {}
+      outputDic['data']['output'] = {}
+      outputDic['data']['input']  = {}
 
-    for variable in self.variables:
-      data=np.zeros((3,N))
-      data[0] = pbWeights
-      data[1] = inputDic['data']['input'][variable]
-      data[2] = inputDic['data']['output'][self.target['targetID']]
+      for variable in self.variables:
+        Rvalues[variable] = {}
+        data=np.zeros((3,N))
+        data[0] = pbWeights
+        data[1] = inp['data']['input'][variable]
+        data[2] = inp['data']['output'][self.target['targetID']]
 
-      #Calculate R0, Rminus, Rplus
+        #Calculate R0, Rminus, Rplus
 
-      indexSystemFailure = np.where(np.logical_or(data[2,:]<self.target['low'], data[2,:]>self.target['high']))
-      dataSystemFailure  = np.delete(data, indexSystemFailure,  axis=1)
+        # Step 1: Retrieve points that contain system failure
+        indexSystemFailure = np.where(np.logical_or(data[2,:]<self.target['low'], data[2,:]>self.target['high']))
+        dataSystemFailure  = np.delete(data, indexSystemFailure,  axis=1)
 
-      minusValues     = np.where(np.logical_or(dataSystemFailure[1,:]<self.variables[variable]['R1low'], dataSystemFailure[1,:]>self.variables[variable]['R1high']))
-      plusValues      = np.where(np.logical_or(dataSystemFailure[1,:]<self.variables[variable]['R0low'], dataSystemFailure[1,:]>self.variables[variable]['R0high']))
-      dataSystemMinus = np.delete(dataSystemFailure, minusValues, axis=1)
-      dataSystemPlus  = np.delete(dataSystemFailure, plusValues , axis=1)
+        # Step 2: Retrieve points from Step 1 that contain component reliability values equal to 1 (minusValues) and 0 (plusValues)
+        minusValues     = np.where(np.logical_or(dataSystemFailure[1,:]<self.variables[variable]['R1low'], dataSystemFailure[1,:]>self.variables[variable]['R1high']))
+        plusValues      = np.where(np.logical_or(dataSystemFailure[1,:]<self.variables[variable]['R0low'], dataSystemFailure[1,:]>self.variables[variable]['R0high']))
+        dataSystemMinus = np.delete(dataSystemFailure, minusValues, axis=1)
+        dataSystemPlus  = np.delete(dataSystemFailure, plusValues , axis=1)
 
-      indexComponentFailureMinus = np.where(np.logical_or(data[1,:]<self.variables[variable]['R1low'], data[1,:]>self.variables[variable]['R1high']))
-      indexComponentFailurePlus  = np.where(np.logical_or(data[1,:]<self.variables[variable]['R0low'], data[1,:]>self.variables[variable]['R0high']))
-      dataComponentMinus = np.delete(data, indexComponentFailureMinus, axis=1)
-      dataComponentPlus  = np.delete(data, indexComponentFailurePlus,  axis=1)
+        # Step 3: Retrieve points from original dataset that contain component reliability values equal to 1 (minusValues) and 0 (plusValues)
+        indexComponentFailureMinus = np.where(np.logical_or(data[1,:]<self.variables[variable]['R1low'], data[1,:]>self.variables[variable]['R1high']))
+        indexComponentFailurePlus  = np.where(np.logical_or(data[1,:]<self.variables[variable]['R0low'], data[1,:]>self.variables[variable]['R0high']))
+        dataComponentMinus = np.delete(data, indexComponentFailureMinus, axis=1)
+        dataComponentPlus  = np.delete(data, indexComponentFailurePlus,  axis=1)
 
-      R0     = np.sum(dataSystemFailure[0,:])
-      Rminus = np.sum(dataSystemMinus[0,:])/np.sum(dataComponentMinus[0,:])
-      Rplus  = np.sum(dataSystemPlus[0,:]) /np.sum(dataComponentPlus[0,:])
+        # Step 4: Sum pb weights for the subsets retrieved in Steps 1 2 and 3
 
-      # Calculate RRW, RAW, FV, B
-      RRW = R0/Rminus
-      RAW = Rplus/R0
-      FV  = (R0-Rminus)/R0
-      B   = Rplus-Rminus
+        # R0 = pb of system failure
+        Rvalues[variable] ['R0']    = np.sum(dataSystemFailure[0,:])
+        # Rminus = pb of system failure given component reliability is 1
+        Rvalues[variable]['Rminus'] = np.sum(dataSystemMinus[0,:])/np.sum(dataComponentMinus[0,:])
+        # Rplus = pb of system failure given component reliability is 0
+        Rvalues[variable]['Rplus']  = np.sum(dataSystemPlus[0,:]) /np.sum(dataComponentPlus[0,:])
+
+        # Step 5: Calculate RRW, RAW, FV, B
+        measures['RRW'][variable] = R0/Rminus
+        measures['RAW'][variable] = Rplus/R0
+        measures['FV'][variable]  = (R0-Rminus)/R0
+        measures['B'][variable]   = Rplus-Rminus
 
       if 'RRW' in self.measures:
         outputDic['data']['output'][variable + '_RRW'] = np.asanyarray([RRW])
@@ -175,10 +188,10 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         outputDic['data']['output'][variable + '_B']   = np.asanyarray([B])
         self.raiseADebug(str(variable) + ' B  = ' + str(B))
 
-      outputDic['data']['input'][variable + '_avg'] = np.asanyarray([np.sum(dataSystemMinus[0,:])])
+        outputDic['data']['input'][variable + '_avg'] = np.asanyarray([np.sum(dataSystemMinus[0,:])])
 
-    outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
+      outputDic['metadata'] = copy.deepcopy(inp['metadata'])
 
-    return outputDic
+      return outputDic
 
 
