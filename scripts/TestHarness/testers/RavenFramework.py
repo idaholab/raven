@@ -3,6 +3,7 @@ from CSVDiffer import CSVDiffer
 from UnorderedCSVDiffer import UnorderedCSVDiffer
 from XMLDiff import XMLDiff
 from TextDiff import TextDiff
+from ImageDiff import ImageDiff
 import RavenUtils
 import os
 import subprocess
@@ -30,10 +31,11 @@ class RavenFramework(Tester):
     params.addParam('csv','',"List of csv files to check")
     params.addParam('UnorderedCsv','',"List of unordered csv files to check")
     params.addParam('xml','',"List of xml files to check")
-    params.addParam('text','',"List of generic text files to check")
-    params.addParam('comment','-20021986',"Character or string denoting comments, all text to the right of the symbol will be ignored in the diff of text files")
     params.addParam('UnorderedXml','',"List of unordered xml files to check")
     params.addParam('xmlopts','',"Options for xml checking")
+    params.addParam('text','',"List of generic text files to check")
+    params.addParam('comment','-20021986',"Character or string denoting comments, all text to the right of the symbol will be ignored in the diff of text files")
+    params.addParam('image','',"List of image files to check")
     params.addParam('rel_err','','Relative Error for csv files or floats in xml ones')
     params.addParam('required_executable','','Skip test if this executable is not found')
     params.addParam('required_libraries','','Skip test if any of these libraries are not found')
@@ -58,14 +60,18 @@ class RavenFramework(Tester):
 
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
-    self.csv_files = self.specs['csv'].split(" ") if len(self.specs['csv']) > 0 else []
-    self.xml_files = self.specs['xml'].split(" ") if len(self.specs['xml']) > 0 else []
+    self.csv_files  = self.specs['csv'         ].split(" ") if len(self.specs['csv'         ]) > 0 else []
+    self.xml_files  = self.specs['xml'         ].split(" ") if len(self.specs['xml'         ]) > 0 else []
     self.ucsv_files = self.specs['UnorderedCsv'].split(" ") if len(self.specs['UnorderedCsv']) > 0 else []
     self.uxml_files = self.specs['UnorderedXml'].split(" ") if len(self.specs['UnorderedXml']) > 0 else []
-    self.text_files = self.specs['text'].split(" ") if len(self.specs['text']) > 0 else []
+    self.text_files = self.specs['text'        ].split(" ") if len(self.specs['text'        ]) > 0 else []
+    self.img_files  = self.specs['image'       ].split(" ") if len(self.specs['image'       ]) > 0 else []
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.minimum_libraries = self.specs['minimum_library_versions'].split(' ')  if len(self.specs['minimum_library_versions']) > 0 else []
+    #for image tests, minimum library is always scipy 0.15.0
+    if len(self.img_files)>0:
+      self.minimum_libraries += ['scipy','0.15.0']
     self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
     self.specs['scale_refine'] = False
     self.driver = os.path.join(RAVEN_DIR,'Driver.py')
@@ -116,7 +122,8 @@ class RavenFramework(Tester):
       self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
     else:
       self.check_files = []
-    for filename in self.check_files+self.csv_files+self.xml_files+self.ucsv_files+self.uxml_files:# + [os.path.join(self.specs['test_dir'],filename)  for filename in self.csv_files]:
+    #self.check_files += self.csv_files+self.xml_files+self.ucsv_files+self.uxml_files+self.img_files
+    for filename in self.check_files + self.csv_files+self.xml_files+self.ucsv_files+self.uxml_files+self.img_files:
       if os.path.exists(filename):
         os.remove(filename)
 
@@ -174,6 +181,13 @@ class RavenFramework(Tester):
     if not xml_same:
       return (xml_messages,output)
 
+    #unordered xml
+    xmlopts['unordered'] = True
+    uxml_diff = XMLDiff(self.specs['test_dir'],self.uxml_files,**xmlopts)
+    (uxml_same,uxml_messages) = uxml_diff.diff()
+    if not uxml_same:
+      return (uxml_messages,output)
+
     #text
     textOpts = {'comment': self.specs['comment']}
     textDiff = TextDiff(self.specs['test_dir'],self.text_files,**textOpts)
@@ -181,11 +195,13 @@ class RavenFramework(Tester):
     if not textSame:
       return (textMessages,output)
 
-    #unordered xml
-    xmlopts['unordered'] = True
-    uxml_diff = XMLDiff(self.specs['test_dir'],self.uxml_files,**xmlopts)
-    (uxml_same,uxml_messages) = uxml_diff.diff()
-    if not uxml_same:
-      return (uxml_messages,output)
+    #image
+    imageOpts = {}
+    if 'rel_err'        in self.specs.keys(): imageOpts['rel_err'       ] = self.specs['rel_err'       ]
+    if 'zero_threshold' in self.specs.keys(): imageOpts['zero_threshold'] = self.specs['zero_threshold']
+    imgDiff = ImageDiff(self.specs['test_dir'],self.img_files,**imageOpts)
+    (imgSame,imgMessages) = imgDiff.diff()
+    if not imgSame:
+      return (imgMessages,output)
 
     return ('',output)

@@ -9,6 +9,7 @@ warnings.simplefilter('default',DeprecationWarning)
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 import numpy as np
 import copy
+import mathUtils
 
 class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
   """
@@ -32,122 +33,120 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
 
   def run(self,inputDic):
     """
-      @ In, inputDic, dict, dictionary which contains the data inside the input DataObject
+      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
       @ Out, outputDic, dict, dictionary which contains the data to be collected by output DataObject
     """
-    inputDict = inputDic['data']
-    self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
-    self.features.remove(self.pivotParameterID)
+    if len(inputDic)>1:
+      self.raiseAnError(IOError, 'TypicalHistoryFromHistorySet Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+    else:
+      inputDict = inputDic[0]['data']
+      self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
+      if self.pivotParameterID in self.features:
+        self.features.remove(self.pivotParameterID)
 
-    if self.outputLen is None: self.outputLen = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])[-1]
+      if self.outputLen is None: self.outputLen = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])[-1]
 
-    tempInData = {}
-    keyNewH = 0
-    for keyH in inputDict['output'].keys():
-      localPivotParameter = np.asarray(inputDict['output'][keyH][self.pivotParameterID])
-      if self.outputLen >= localPivotParameter[-1]:
-        tempInData[keyNewH] = inputDict['output'][keyH]
-        keyNewH += 1
-      else:
-        startL, endL = 0, self.outputLen
-        while endL <= localPivotParameter[-1]:
-          tempInDataH = {}
-          extractCondition = (localPivotParameter>=startL) * (localPivotParameter<=endL)
-          tempInDataH[self.pivotParameterID] = np.extract(extractCondition, localPivotParameter)-startL
-          for keyF in self.features:
-            tempInDataH[keyF] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
-          tempInData[keyNewH] = copy.deepcopy(tempInDataH)
-          keyNewH += 1
-          startL = copy.copy(endL)
-          endL += self.outputLen
-
-    inputDict['output'] = copy.deepcopy(tempInData)
-    self.numHistory = len(inputDict['output'].keys())
-    self.pivotParameter = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])
-
-    self.subsequence = {}
-    startLocation, n = 0, 0
-    while True:
-      subsequenceLength = self.subseqLen[n % len(self.subseqLen)]
-      if startLocation + subsequenceLength < self.pivotParameter[-1]:
-        self.subsequence[n] = [startLocation, startLocation+subsequenceLength]
-      else:
-        self.subsequence[n] = [startLocation, self.pivotParameter[-1]]
-        break
-      startLocation += subsequenceLength
-      n+= 1
-    subKeys = self.subsequence.keys()
-    subKeys.sort()
-
-    tempData = {'all':{}}
-    for keyF in self.features:
-      tempData['all'][keyF] = np.array([])
+      tempInData = {}
+      keyNewH = 0
       for keyH in inputDict['output'].keys():
-        tempData['all'][keyF] = np.concatenate((tempData['all'][keyF],inputDict['output'][keyH][keyF]))
-    for keySub in subKeys:
-      tempData[keySub] = {}
-      extractCondition = (self.pivotParameter>=self.subsequence[keySub][0]) * (self.pivotParameter<self.subsequence[keySub][1])
-      tempData[keySub][self.pivotParameterID] = np.extract(extractCondition, self.pivotParameter)
-      if self.pivotParameter[-1] == self.subsequence[keySub][1]:
-        tempData[keySub][self.pivotParameterID] = np.concatenate((tempData[keySub][self.pivotParameterID], np.asarray([self.pivotParameter[-1]])))
+        localPivotParameter = np.asarray(inputDict['output'][keyH][self.pivotParameterID])
+        if self.outputLen >= localPivotParameter[-1]:
+          tempInData[keyNewH] = inputDict['output'][keyH]
+          keyNewH += 1
+        else:
+          startL, endL = 0, self.outputLen
+          while endL <= localPivotParameter[-1]:
+            tempInDataH = {}
+            extractCondition = (localPivotParameter>=startL) * (localPivotParameter<=endL)
+            tempInDataH[self.pivotParameterID] = np.extract(extractCondition, localPivotParameter)-startL
+            for keyF in self.features:
+              tempInDataH[keyF] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
+            tempInData[keyNewH] = copy.deepcopy(tempInDataH)
+            keyNewH += 1
+            startL = copy.copy(endL)
+            endL += self.outputLen
 
+      inputDict['output'] = copy.deepcopy(tempInData)
+      self.numHistory = len(inputDict['output'].keys())
+      self.pivotParameter = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])
+
+      self.subsequence = {}
+      startLocation, n = 0, 0
+      while True:
+        subsequenceLength = self.subseqLen[n % len(self.subseqLen)]
+        if startLocation + subsequenceLength < self.pivotParameter[-1]:
+          self.subsequence[n] = [startLocation, startLocation+subsequenceLength]
+        else:
+          self.subsequence[n] = [startLocation, self.pivotParameter[-1]]
+          break
+        startLocation += subsequenceLength
+        n+= 1
+      subKeys = self.subsequence.keys()
+      subKeys.sort()
+
+      tempData = {'all':{}}
       for keyF in self.features:
-        tempData[keySub][keyF] = np.zeros(shape=(self.numHistory,len(tempData[keySub][self.pivotParameterID])))
-        for cnt, keyH in enumerate(inputDict['output'].keys()):
-          if self.pivotParameter[-1] == self.subsequence[keySub][1]:
-            tempData[keySub][keyF][cnt,0:-1] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
-            tempData[keySub][keyF][cnt,-1] = inputDict['output'][keyH][keyF][-1]
-          else:
-            tempData[keySub][keyF][cnt,:] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
-
-    tempCDF = {'all':{}}
-    for keyF in self.features:
-#       Bin size and number of bins determined by Freedman Diaconis rule
-#       https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
-      IQR = np.percentile(tempData['all'][keyF], 75) - np.percentile(tempData['all'][keyF], 25)
-      binSize = 2.0*IQR*(tempData['all'][keyF].size**(-1.0/3.0))
-      numBins = int((max(tempData['all'][keyF])-min(tempData['all'][keyF]))/binSize)
-      binEdges = np.linspace(start=min(tempData['all'][keyF]),stop=max(tempData['all'][keyF]),num=numBins+1)
-#       dataRange = (min(tempData['all'][keyF]), max(tempData['all'][keyF]))
-      tempCDF['all'][keyF] = self.__computeECDF(tempData['all'][keyF], binEdges)# numBins, dataRange)
+        tempData['all'][keyF] = np.array([])
+        for keyH in inputDict['output'].keys():
+          tempData['all'][keyF] = np.concatenate((tempData['all'][keyF],inputDict['output'][keyH][keyF]))
       for keySub in subKeys:
-        if keySub not in tempCDF.keys(): tempCDF[keySub] = {}
-        tempCDF[keySub][keyF] = np.zeros(shape=(self.numHistory,numBins))
-        for cnt in range(tempData[keySub][keyF].shape[0]):
-          tempCDF[keySub][keyF][cnt,:] = self.__computeECDF(tempData[keySub][keyF][cnt,:], binEdges)#numBins, dataRange)
+        tempData[keySub] = {}
+        extractCondition = (self.pivotParameter>=self.subsequence[keySub][0]) * (self.pivotParameter<self.subsequence[keySub][1])
+        tempData[keySub][self.pivotParameterID] = np.extract(extractCondition, self.pivotParameter)
+        if self.pivotParameter[-1] == self.subsequence[keySub][1]:
+          tempData[keySub][self.pivotParameterID] = np.concatenate((tempData[keySub][self.pivotParameterID], np.asarray([self.pivotParameter[-1]])))
 
-    tempTyp = {}
-    for keySub in subKeys:
-      tempTyp[keySub] = {}
-      tempTyp[keySub][self.pivotParameterID] = tempData[keySub][self.pivotParameterID]
-      d = np.inf
-      for cnt, keyH in enumerate(inputDict['output'].keys()):
-        FS = 0
         for keyF in self.features:
-          FS += self.__computeDist(tempCDF['all'][keyF],tempCDF[keySub][keyF][cnt,:])
-        if FS < d:
-          d = FS
-          for keyF in self.features:
-            tempTyp[keySub][keyF] = tempData[keySub][keyF][cnt,:]
+          tempData[keySub][keyF] = np.zeros(shape=(self.numHistory,len(tempData[keySub][self.pivotParameterID])))
+          for cnt, keyH in enumerate(inputDict['output'].keys()):
+            if self.pivotParameter[-1] == self.subsequence[keySub][1]:
+              tempData[keySub][keyF][cnt,0:-1] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
+              tempData[keySub][keyF][cnt,-1] = inputDict['output'][keyH][keyF][-1]
+            else:
+              tempData[keySub][keyF][cnt,:] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
 
-    typicalTS = {self.pivotParameterID:np.array([])}
-    for keySub in subKeys:
-      typicalTS[self.pivotParameterID] = np.concatenate((typicalTS[self.pivotParameterID], tempTyp[keySub][self.pivotParameterID]))
+      tempCDF = {'all':{}}
       for keyF in self.features:
-        if keyF not in typicalTS.keys():  typicalTS[keyF] = np.array([])
-        typicalTS[keyF] = np.concatenate((typicalTS[keyF], tempTyp[keySub][keyF]))
+        numBins , binEdges = mathUtils.numBinsDraconis(tempData['all'][keyF])
+        tempCDF['all'][keyF] = self.__computeECDF(tempData['all'][keyF], binEdges)# numBins, dataRange)
+        for keySub in subKeys:
+          if keySub not in tempCDF.keys(): tempCDF[keySub] = {}
+          tempCDF[keySub][keyF] = np.zeros(shape=(self.numHistory,numBins))
+          for cnt in range(tempData[keySub][keyF].shape[0]):
+            tempCDF[keySub][keyF][cnt,:] = self.__computeECDF(tempData[keySub][keyF][cnt,:], binEdges)#numBins, dataRange)
 
-    for t in range(1,len(typicalTS[self.pivotParameterID])):
-      if typicalTS[self.pivotParameterID][t] < typicalTS[self.pivotParameterID][t-1]: return None
+      tempTyp = {}
+      for keySub in subKeys:
+        tempTyp[keySub] = {}
+        tempTyp[keySub][self.pivotParameterID] = tempData[keySub][self.pivotParameterID]
+        d = np.inf
+        for cnt, keyH in enumerate(inputDict['output'].keys()):
+          FS = 0
+          for keyF in self.features:
+            FS += self.__computeDist(tempCDF['all'][keyF],tempCDF[keySub][keyF][cnt,:])
+          if FS < d:
+            d = FS
+            for keyF in self.features:
+              tempTyp[keySub][keyF] = tempData[keySub][keyF][cnt,:]
 
-    outputDic ={'data':{'input':{},'output':{}}, 'metadata':{0:{}}}
-    outputDic['data']['output'][1] = typicalTS
-    keyH = inputDict['input'].keys()[0]
-    outputDic['data']['input'][1] = {}
-    for keyIn in inputDict['input'][keyH].keys():
-      outputDic['data']['input'][1][keyIn] = np.array(inputDict['input'][keyH][keyIn][0])
+      typicalTS = {self.pivotParameterID:np.array([])}
+      for keySub in subKeys:
+        typicalTS[self.pivotParameterID] = np.concatenate((typicalTS[self.pivotParameterID], tempTyp[keySub][self.pivotParameterID]))
+        for keyF in self.features:
+          if keyF not in typicalTS.keys():  typicalTS[keyF] = np.array([])
+          typicalTS[keyF] = np.concatenate((typicalTS[keyF], tempTyp[keySub][keyF]))
 
-    return outputDic
+      for t in range(1,len(typicalTS[self.pivotParameterID])):
+        if typicalTS[self.pivotParameterID][t] < typicalTS[self.pivotParameterID][t-1]: return None
+
+      outputDic ={'data':{'input':{},'output':{}}, 'metadata':{}}
+      outputDic['data']['output'][1] = typicalTS
+      keyH = inputDict['input'].keys()[0]
+      outputDic['data']['input'][1] = {}
+      for keyIn in inputDict['input'][keyH].keys():
+        outputDic['data']['input'][1][keyIn] = np.array(inputDict['input'][keyH][keyIn][0])
+
+      return outputDic
 
   def __computeECDF(self, data, binEdgesIn):
     """

@@ -100,21 +100,25 @@ def attemptFileClear(fName,later):
 #establish test XML
 xmlString = '<root ratr="root_attrib"><child catr1="child attrib 1" catr2="child attrib 2"><cchild ccatr="cc_attrib">cchildtext</cchild></child></root>'
 inFileName = 'testXMLInput.xml'
-file(inFileName,'w').write(xmlString)
+open(inFileName,'w').write(xmlString)
 xmlTree = ET.parse(inFileName)
 toRemove = attemptFileClear(inFileName,toRemove)
 
 # test prettify
 pretty = xmlUtils.prettify(xmlTree)
-prettyFileName = 'testXMLPretty.xml'
-file(prettyFileName,'w').writelines(pretty)
-gold = ''.join(line for line in file(os.path.join(os.path.dirname(__file__),'gold',prettyFileName),'r'))
-test = ''.join(line for line in file(                    prettyFileName ,'r'))
+prettyFileName = 'xml/testXMLPretty.xml'
+open(prettyFileName,'w').writelines(pretty)
+gold = ''.join(line.rstrip('\n\r') for line in open(os.path.join(os.path.dirname(__file__),'gold',prettyFileName),'r'))
+test = ''.join(line.rstrip('\n\r') for line in open(                    prettyFileName ,'r'))
 if gold==test:
   results['pass']+=1
   toRemove = attemptFileClear(prettyFileName,toRemove)
 else:
-  print('ERROR: Test of "pretty" failed!  See',prettyFileName,'vs gold/',prettyFileName)
+  print('ERROR: Test of "pretty" failed!  See',prettyFileName,'(below) vs gold/',prettyFileName)
+  print('( START',prettyFileName,')')
+  for line in file(prettyFileName,'r'):
+    print(line[:-1]) #omit newline
+  print('( END',prettyFileName,')')
   results['fail']+=1
 
 # test newNode
@@ -197,6 +201,11 @@ for f in toRemove:
       os.remove(f)
     except OSError:
       print('WARNING: In cleaning up, could not remove file',f)
+
+#test findPathEllipsesParents
+found = xmlUtils.findPathEllipsesParents(xmlTree.getroot(),'child|cchild')
+print ('ellipses')
+print(xmlUtils.prettify(found,doc=True))
 
 #test bad XML tags
 # rule 1: only start with letter or underscore, can't start with xml
