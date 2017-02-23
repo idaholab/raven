@@ -29,7 +29,7 @@ class graphObject(object):
       @ In, graphDict, dict, the graph dictionary ({'Node':[connectedNode1,connectedNode2, etc.]}
     """
     if graphDict == None: graphDict = {}
-    self.__graphDict = { k:v.strip() for k, v in graphDict.iteritems()}
+    self.__graphDict = { k.strip():v for k, v in graphDict.iteritems()}
 
   def vertices(self):
     """
