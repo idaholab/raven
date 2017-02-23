@@ -2083,7 +2083,7 @@ class EnsembleModel(Dummy, Assembler):
         if iterationCount == 1  and self.activatePicard:
           try:
             sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
-          except IndexError:
+          except (IndexError,TypeError):
             sampledVars = Input[modelIn][1]['SampledVars'].keys()
           for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
             if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = self.initialConditions[initCondToSet]
@@ -2093,7 +2093,7 @@ class EnsembleModel(Dummy, Assembler):
           Input[modelIn][0][1]['prefix']        = modelIn+utils.returnIdSeparator()+identifier
           Input[modelIn][0][1]['uniqueHandler'] = self.name+identifier
           if metadataToTransfer is not None: Input[modelIn][0][1]['metadataToTransfer'] = metadataToTransfer
-        except IndexError:
+        except (IndexError,TypeError):
           Input[modelIn][1]['prefix']           = modelIn+utils.returnIdSeparator()+identifier
           Input[modelIn][1]['uniqueHandler']    = self.name+identifier
           if metadataToTransfer is not None: Input[modelIn][1]['metadataToTransfer'] = metadataToTransfer
