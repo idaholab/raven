@@ -149,7 +149,7 @@ class CsvLoader(MessageHandler.MessageUser):
     else:
       outputPivotValEnd = operator is None and outputRow is None
 
-    if inputRow == None and inputPivotVal == None: inputRow = 0
+    if [inputRow,inputPivotVal].count(None) == 2: inputRow = 0
     if inputRow != None :
       inputRow = int(inputRow)
       if inputRow  > 0: inputRow  -= 1
@@ -283,13 +283,12 @@ class CsvLoader(MessageHandler.MessageUser):
       outputPivotVal    = float(outputPivotVal)
     else:
       outputPivotValEnd = operator is None and outputRow is None
-    if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow == None and inputPivotVal == None: inputRow = 0
+    if [inputRow,inputPivotVal].count(None) == 2: inputRow = 0
     if inputRow != None :
       inputRow = int(inputRow)
       if inputRow  > 0: inputRow  -= 1
     if outputRow != None:
-      outputRow         = int(outputRow)
+      outputRow = int(outputRow)
       if outputRow > 0: outputRow -= 1
     inDict, outDict = {}, {}
 
@@ -432,8 +431,7 @@ class CsvLoader(MessageHandler.MessageUser):
     if outputPivotVal != None:
       outputPivotValAll = 'all' in outputPivotVal
       if not outputPivotValAll: outputPivotVal = [float(x) for x in outputPivotVal.split()]
-    if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow == None and inputPivotVal == None: inputRow = 0
+    if [inputRow,inputPivotVal].count(None) == 2: inputRow = 0
     if inputRow != None :
       inputRow = int(inputRow)
       if inputRow  > 0: inputRow  -= 1
