@@ -16,7 +16,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import sys,os
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
-
+import re
 
 print("Arguments:",sys.argv)
 
@@ -36,6 +36,9 @@ lines = inputFile.readlines()
 lastLine = lines.index("[]\n")
 
 def get_params(line):
+  start_match = re.search("\[\./([a-zA-Z_]+)\]",line)
+  if start_match is not None:
+    return "[./]",start_match.group(1)
   if " = " not in line:
     return None, None
   equalsIndex = line.index("=")
@@ -46,10 +49,17 @@ def get_params(line):
   else:
     return name,line[equalsIndex + 1:].strip()
 
+triggerLow = []
+triggerHigh = []
+
 for name, params in [get_params(l) for l in lines]:
   print(name,params)
   if name == "names":
+    nameList = params
     names = ",".join(["time","x"]+params)
+    nameIndexs = {}
+    for i in range(len(params)):
+      nameIndexs[params[i]] = i
   elif name == "start":
     start = list(map(float, params))
   elif name == "dt":
@@ -74,27 +84,58 @@ for name, params in [get_params(l) for l in lines]:
     endProbability = list(map(float, params))
   elif name == "trigger_name":
     triggerName = params.strip()
+  elif name == "trigger_low":
+    triggerLow = list(map(float, params))
+  elif name == "trigger_high":
+    triggerHigh = list(map(float, params))
+  elif name == "[./]":
+    header = params
   elif name == "value":
     temp_value = float(params)
-    xStart = temp_value - startTime * xDt
+    if header == "x":
+      xStart = temp_value - startTime * xDt
+    elif header in nameIndexs:
+      j = nameIndexs[header]
+      start[j] = temp_value - startTime * dt[j]
 
 print(names,file=outFile)
 
 #timeDelta = (endTime - startTime)/timesteps
 
+if len(triggerLow) > 0 and len(triggerHigh) > 0:
+  hasTrigger = True
+else:
+  hasTrigger = False
+
+triggerVariable = ""
+triggerValue = 0.0
+
 for i in range(0,timesteps+1):
+  shouldBreak = False
   time = startTime + timeDelta * i
   x = xStart + xDt * time
   print(time, end=",", file=outFile)
   print(x, end="", file=outFile)
   for j in range(0,min(len(start),len(dx),len(dt))):
     print(end=",", file=outFile)
-    print(start[j] + time*dt[j] + x*dx[j], end="", file=outFile)
+    value = start[j] + time*dt[j] + x*dx[j]
+    print(value, end="", file=outFile)
+    if hasTrigger:
+      if triggerLow[j] < value < triggerHigh[j]:
+        shouldBreak = True
+        triggerVariable = nameList[j]
+        triggerValue = value
   print(file=outFile)
+  if shouldBreak:
+    break
 
 #print([x + endDxi for endDxi in endDx],endProbability)
 
 outFile.close()
+
+if len(triggerVariable) == 0:
+  triggerVariable = "x"
+  triggerValue = x
 
 if time < endTime:
   root = ET.Element('Branch_info')
@@ -102,10 +143,10 @@ if time < endTime:
   triggerNode=ET.SubElement(root,"Distribution_trigger")
   triggerNode.set("name", triggerName)
   var = ET.SubElement(triggerNode,'Variable')
-  var.text="x"
+  var.text=triggerVariable
   var.set('type', "auxiliary")
-  var.set('old_value', str(x))
-  var.set('actual_value', " ".join([str(v) for v in [x + endDxi for endDxi in endDx]]))
+  var.set('old_value', str(triggerValue))
+  var.set('actual_value', " ".join([str(v) for v in [triggerValue + endDxi for endDxi in endDx]]))
   var.set('probability', " ".join([str(p) for p in endProbability]))
 
   xmlFile = open(os.path.join(head,prefix+tail+"_actual_branch_info.xml"),"w")
