@@ -335,6 +335,8 @@ def normalizationFactors(values, mode='z'):
 
   return (offset, scale)
 
+
+
 #
 # I need to convert it in multi-dimensional
 # Not a priority yet. Andrea
@@ -477,6 +479,37 @@ def numpyNearestMatch(findIn,val):
   #idx = np.sum(np.abs(findIn-val),axis=0).argmin()
   returnMatch = idx,findIn[idx]
   return returnMatch
+
+def compareFloats(f1,f2,tol=1e-6):
+  """
+    Given two floats, safely compares them to determine equality to provided relative tolerance.
+    @ In, f1, float, first value (the value to compare to f2, "measured")
+    @ In, f2, float, second value (the value being compared to, "actual")
+    @ In, tol, float, optional, relative tolerance to determine match
+    @ Out, compareFloats, bool, True if floats close enough else False
+  """
+  if not isinstance(f1,float):
+    try:
+      f1 = float(f1)
+    except ValueError:
+      raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  First argument is %s type %s' %(str(f1),type(f1)))
+  if not isinstance(f2,float):
+    try:
+      f2 = float(f2)
+    except ValueError:
+      raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  Second argument is %s type %s' %(str(f2),type(f2)))
+  diff = abs(f1-f2)
+  #"scale" is the relative scaling factor
+  scale = f2
+  #protect against div 0
+  if f2 == 0.0:
+    #try using the "measured" for scale
+    if f1 != 0.0:
+      scale = f1
+    #at this point, they're both equal to zero, so just divide by 1.0
+    else:
+      scale = 1.0
+  return diff/abs(scale) < tol
 
 def NDInArray(findIn,val,tol=1e-12):
   """

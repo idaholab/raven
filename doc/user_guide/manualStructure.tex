@@ -3,7 +3,8 @@ This manual is intended to provide an overview of the RAVEN capabilities through
 To speed up the learning process, the examples are organized in an ascending complexity order, from simple data manipulation and visualization to
 full Probabilistic Risk Assessment and Uncertainty Quantification analysis. In addition, each example is followed by a brief explanation of the theoretical background of the methods that have been used.
 \\ It is important to notice that this document is intended to be consulted in conjunction with the user manual ~\cite{RAVENuserManual}.
-\\To generalize the examples to any driven software, a simple \texttt{Python} code (conventionally called \textbf{AnalyticBateman}) has been developed (located at ``\textit{doc/user\textunderscore guide/ravenInputs/physicalCode}''). It solves a system of ordinary differential equations (ODEs), of the form:
+\subsection{AnalyticBateman, Example Model}\label{sec:analyticalbateman}
+To generalize the examples to any driven software, a simple \texttt{Python} code (conventionally called \textbf{AnalyticBateman}) has been developed (located at ``\textit{doc/user\textunderscore guide/ravenInputs/physicalCode}''). It solves a system of ordinary differential equations (ODEs), of the form:
 
 \begin{equation}
 \begin{dcases}
@@ -29,47 +30,12 @@ For example, this  code is able to solve a system of equations as follows:
 \end{equation}
 
 The input of the \textbf{AnalyticBateman} code is in XML format.
-For example, the following is the reference input for a system of 4 Ordinary Differential Equations (ODEs) that is going to be used for all the examples reported in this manual:
+For example, the following is the reference input for a system of 4 Ordinary Differential Equations (ODEs)
+that is going to be used for all the examples reported in this manual.  For some examples, the number of
+calculated steps might be adjusted for time of calculation (\xmlNode{timeSteps}); however, the operation is
+similar for exemplary purposes.
 
-\begin{lstlisting}[style=XML]
-<AnalyticBateman>
-  <totalTime>300</totalTime>
-  <powerHistory>1 1 1</powerHistory>
-  <flux>1.e14 1.e14 1.e14</flux>
-  <stepDays>0 100 200 400</stepDays>
-  <timeSteps>3 5 5</timeSteps>
-  <nuclides>
-    <A>
-        <equationType>N1</equationType>
-        <initialMass>1.0</initialMass>
-        <decayConstant>0.000000005</decayConstant>
-        <sigma>8</sigma>
-        <ANumber>230</ANumber>
-    </A>
-    <B>
-        <equationType>N2</equationType>
-        <initialMass>1.0</initialMass>
-        <decayConstant>0.000000007</decayConstant>
-        <sigma>5</sigma>
-        <ANumber>200</ANumber>
-    </B>
-    <C>
-        <equationType>N3</equationType>
-        <initialMass>1.0</initialMass>
-        <decayConstant>0.000000008</decayConstant>
-        <sigma>3</sigma>
-        <ANumber>150</ANumber>
-    </C>
-    <D>
-        <equationType>N4</equationType>
-        <initialMass>1.0</initialMass>
-        <decayConstant>0.000000009</decayConstant>
-        <sigma>1</sigma>
-        <ANumber>100</ANumber>
-    </D>
-  </nuclides>
-</AnalyticBateman>
-\end{lstlisting}
+\xmlExample{framework/user_guide/physicalCode/analyticalbateman/Input.xml}{AnalyticalBateman}
 The code outputs the time evolution of the 4 variables ($A,B,C,D$) in a CSV file, producing the following output:
 \begin{table}[ht]
 \centering
@@ -94,4 +60,4 @@ The code outputs the time evolution of the 4 variables ($A,B,C,D$) in a CSV file
 \end{tabular}
 \end{table}
 
-RAVEN is able to directly retrieve CSV files as output; for this reason, the \textit{\textbf{GenericInterface}} (see ~\cite{RAVENuserManual}-Chapter ``Existing Interfaces'') is going to be used to drive the code.
+RAVEN is able to directly retrieve CSV files as output; for this reason, the \textit{\textbf{GenericInterface}} (see ~\cite{RAVENuserManual}-Chapter ``Existing Interfaces'') is used to drive the code.
