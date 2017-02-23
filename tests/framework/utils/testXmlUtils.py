@@ -114,7 +114,11 @@ if gold==test:
   results['pass']+=1
   toRemove = attemptFileClear(prettyFileName,toRemove)
 else:
-  print('ERROR: Test of "pretty" failed!  See',prettyFileName,'vs gold/',prettyFileName)
+  print('ERROR: Test of "pretty" failed!  See',prettyFileName,'(below) vs gold/',prettyFileName)
+  print('( START',prettyFileName,')')
+  for line in file(prettyFileName,'r'):
+    print(line[:-1]) #omit newline
+  print('( END',prettyFileName,')')
   results['fail']+=1
 
 # test newNode
@@ -197,6 +201,11 @@ for f in toRemove:
       os.remove(f)
     except OSError:
       print('WARNING: In cleaning up, could not remove file',f)
+
+#test findPathEllipsesParents
+found = xmlUtils.findPathEllipsesParents(xmlTree.getroot(),'child|cchild')
+print ('ellipses')
+print(xmlUtils.prettify(found,doc=True))
 
 #test bad XML tags
 # rule 1: only start with letter or underscore, can't start with xml

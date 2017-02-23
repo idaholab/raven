@@ -64,7 +64,7 @@ class TextDiff:
             self.__same = False
             separator = "\n"+" "*4
             self.__messages += "Mismatch between "+testFilename+" and "+goldFilename+separator
-            self.__messages += separator.join(diff) + "\n"
+            self.__messages += separator.join(diff[2:8]) + separator+'...' + "\n" #truncation prevents too much output
     if '[' in self.__messages or ']' in self.__messages:
       self.__messages = self.__messages.replace('[','(')
       self.__messages = self.__messages.replace(']',')')

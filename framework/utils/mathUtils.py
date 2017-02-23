@@ -335,6 +335,8 @@ def normalizationFactors(values, mode='z'):
 
   return (offset, scale)
 
+
+
 #
 # I need to convert it in multi-dimensional
 # Not a priority yet. Andrea
@@ -478,6 +480,37 @@ def numpyNearestMatch(findIn,val):
   returnMatch = idx,findIn[idx]
   return returnMatch
 
+def compareFloats(f1,f2,tol=1e-6):
+  """
+    Given two floats, safely compares them to determine equality to provided relative tolerance.
+    @ In, f1, float, first value (the value to compare to f2, "measured")
+    @ In, f2, float, second value (the value being compared to, "actual")
+    @ In, tol, float, optional, relative tolerance to determine match
+    @ Out, compareFloats, bool, True if floats close enough else False
+  """
+  if not isinstance(f1,float):
+    try:
+      f1 = float(f1)
+    except ValueError:
+      raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  First argument is %s type %s' %(str(f1),type(f1)))
+  if not isinstance(f2,float):
+    try:
+      f2 = float(f2)
+    except ValueError:
+      raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  Second argument is %s type %s' %(str(f2),type(f2)))
+  diff = abs(f1-f2)
+  #"scale" is the relative scaling factor
+  scale = f2
+  #protect against div 0
+  if f2 == 0.0:
+    #try using the "measured" for scale
+    if f1 != 0.0:
+      scale = f1
+    #at this point, they're both equal to zero, so just divide by 1.0
+    else:
+      scale = 1.0
+  return diff/abs(scale) < tol
+
 def NDInArray(findIn,val,tol=1e-12):
   """
     checks a numpy array of numpy arrays for a near match, then returns info.
@@ -508,4 +541,18 @@ def NDInArray(findIn,val,tol=1e-12):
   if not found:
     return False,None,None
   return found,idx,looking
+
+def numBinsDraconis(data):
+  """
+    Determine  Bin size and number of bins determined by Freedman Diaconis rule (https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule)
+    @ In, data, np.array, data to be binned
+    @ Out, numBins, int, optimal number of bins
+    @ Out, binEdges, np.array, location of the bins
+  """
+
+  IQR = np.percentile(data, 75) - np.percentile(data, 25)
+  binSize = 2.0*IQR*(data.size**(-1.0/3.0))
+  numBins = int((max(data)-min(data))/binSize)
+  binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
+  return numBins,binEdges
 

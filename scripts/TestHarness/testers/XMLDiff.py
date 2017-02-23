@@ -1,133 +1,17 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import sys,os,re
 import xml.etree.ElementTree as ET
+import diffUtils as DU
 
 numTol = 1e-10 #effectively zero for our purposes
-
-#A float consists of possibly a + or -, followed possibly by some digits
-# followed by one of ( digit. | .digit | or digit) possibly followed by some
-# more digits possibly followed by an exponent
-floatRe = re.compile("([-+]?\d*(?:(?:\d[.])|(?:[.]\d)|(?:\d))\d*(?:[eE][+-]\d+)?)")
-
-def splitIntoParts(s):
-  """Splits the string into floating parts and not float parts
-  s: the string
-  returns a list where the even indexs are string and the odd
-  indexs are floating point number strings.
-  """
-  return floatRe.split(s)
-
-def shortText(a,b):
-  """Returns a short portion of the text that shows the first difference
-  a: the first text element
-  b: the second text element
-  """
-  a = repr(a)
-  b = repr(b)
-  displayLen = 20
-  halfDisplay = displayLen//2
-  if len(a)+len(b) < displayLen:
-    return a+" "+b
-  firstDiff = -1
-  i = 0
-  while i < len(a) and i < len(b):
-    if a[i] == b[i]:
-      i += 1
-    else:
-      firstDiff = i
-      break
-  if firstDiff >= 0:
-    #diff in content
-    start = max(0,firstDiff - halfDisplay)
-  else:
-    #diff in length
-    firstDiff = min(len(a),len(b))
-    start = max(0,firstDiff - halfDisplay)
-  if start > 0:
-    prefix = "..."
-  else:
-    prefix = ""
-  return prefix+a[start:firstDiff+halfDisplay]+" "+prefix+b[start:firstDiff+halfDisplay]
-
-def setDefaultOptions(options):
-  """ sets all the options to defaults
-  options: dictionary to add default options to
-  """
-  options["rel_err"] = float(options.get("rel_err",1.e-10))
-  options["zero_threshold"] = float(options.get("zero_threshold",sys.float_info.min*4.0))
-  options["remove_whitespace"] = options.get("remove_whitespace",False)
-  options["remove_unicode_identifier"] = options.get("remove_unicode_identifier",False)
-
-def removeWhitespaceChars(s):
-  """ Removes whitespace characters
-  s: string to remove characters from
-  """
-  s = s.replace(" ","")
-  s = s.replace("\t","")
-  s = s.replace("\n","")
-  #if this were python3 this would work:
-  #removeWhitespaceTrans = "".maketrans("",""," \t\n")
-  #s = s.translate(removeWhitespaceTrans)
-  return s
-
-def removeUnicodeIdentifiers(s):
-  """ Removes the u infrount of a unicode string: u'string' -> 'string'
-  Note that this also removes a u at the end of string 'stru' -> 'str'
-  which is not intended.
-  s: string to remove characters from
-  """
-  s = s.replace("u'","'")
-  return s
-
-def compareStringsWithFloats(a,b,numTol = 1e-10, zeroThreshold = sys.float_info.min*4.0, removeWhitespace = False, removeUnicodeIdentifier = False):
-  """ Compares two strings that have floats inside them.  This searches for
-  floating point numbers, and compares them with a numeric tolerance.
-  a: first string to use
-  b: second string to use
-  numTol: the numerical tolerance.
-  zeroThershold: it represents the value below which a float is considered zero (XML comparison only). For example, if zeroThershold = 0.1, a float = 0.01 will be considered as it was 0.0
-  removeWhitespace: if True, remove all whitespace before comparing.
-  Return (succeeded, note) where succeeded is a boolean that is true if the
-  strings match, and note is a comment on the comparison.
-  """
-  if a == b:
-    return (True,"Strings Match")
-  if a is None or b is None: return (False,"One of the strings contain a None")
-  if removeWhitespace:
-    a = removeWhitespaceChars(a)
-    b = removeWhitespaceChars(b)
-  if removeUnicodeIdentifier:
-    a = removeUnicodeIdentifiers(a)
-    b = removeUnicodeIdentifiers(b)
-  aList = splitIntoParts(a)
-  bList = splitIntoParts(b)
-  if len(aList) != len(bList):
-    return (False,"Different numbers of float point numbers")
-  for i in range(len(aList)):
-    aPart = aList[i].strip()
-    bPart = bList[i].strip()
-    if i % 2 == 0:
-      #In string
-      if aPart != bPart:
-        return (False,"Mismatch of "+shortText(aPart,bPart))
-    else:
-      #In number
-      aFloat = float(aPart)
-      bFloat = float(bPart)
-      aFloat = aFloat if abs(aFloat) > zeroThreshold else 0.0
-      bFloat = bFloat if abs(bFloat) > zeroThreshold else 0.0
-      if abs(aFloat - bFloat) > numTol:
-        return (False,"Numeric Mismatch of '"+aPart+"' and '"+bPart+"'")
-
-  return (True, "Strings Match Floatwise")
 
 def findBranches(node,path,finished):
   """
     Iterative process to convert XML tree into list of entries
-    node: ET.Element whose children need sorting
-    path: list(ET.Element) leading to node
-    finished: list(list(ET.Element)) full entries
-    returns list(list(ET.Element)) of full entries
+    @ In, node, ET.Element, whose children need sorting
+    @ In, path, list(ET.Element), leading to node
+    @ In, finished, list(list(ET.Element)), full entries
+    @ Out, finished, list(list(ET.Element)), of full entries
   """
   for child in node:
     npath = path[:]+[child]
@@ -140,8 +24,8 @@ def findBranches(node,path,finished):
 def treeToList(node):
   """
     Converts XML tree to list of entries.  Useful to start recursive search.
-    node: the xml tree root node to convert
-    returns list(list(ET.Element)) of full paths to entries in xml tree
+    @ In, node, ET.Element, the xml tree root node to convert
+    @ Out, treeToList, list(list(ET.Element)), of full paths to entries in xml tree
   """
   flattened = findBranches(node,[node],[])
   return list(tuple(f) for f in flattened)
@@ -149,11 +33,11 @@ def treeToList(node):
 def compareListEntry(aList,bList,**kwargs):
   """
     Comparse flattened XML entries for equality
-    aList: list(ET.Element)
-    bList: list(ET.Element)
-    returns (bool,val)
-    bool is True if all tag, text, and attributes match, False otherwise
-    qual is percent of matching terms
+    return bool is True if all tag, text, and attributes match, False otherwise
+    return qual is percent of matching terms
+    @ In, aList, list(ET.Element), first set
+    @ In, bList, list(ET.Element), second set
+    @ Out, compareListEntry, (bool,val), results
   """
   numMatch = 0       #number of matching points between entries
   totalMatchable = 0 #total tag, text, and attributes available to match
@@ -172,7 +56,7 @@ def compareListEntry(aList,bList,**kwargs):
     a = aList[i]
     b = bList[i]
     #match tag
-    same,note = compareStringsWithFloats(a.tag,b.tag,options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
+    same,note = DU.compareStringsWithFloats(a.tag,b.tag,options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
     totalMatchable += 1
     if not same:
       match = False
@@ -181,7 +65,7 @@ def compareListEntry(aList,bList,**kwargs):
       numMatch += 1
     #match text
     #if (a.text is None or len(a.text)>0) and (b.text is None or len(b.text)>0):
-    same,note = compareStringsWithFloats(a.text,b.text,options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
+    same,note = DU.compareStringsWithFloats(a.text,b.text,options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
     if not same:
       match = False
       diff.append((b,XMLDiff.notMatchText,str(a.text),str(b.text)))
@@ -197,7 +81,7 @@ def compareListEntry(aList,bList,**kwargs):
         match = False
         diff.append((b,XMLDiff.missingAttribute,attrib,None))
         continue
-      same,note = compareStringsWithFloats(a.attrib[attrib],b.attrib[attrib],options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
+      same,note = DU.compareStringsWithFloats(a.attrib[attrib],b.attrib[attrib],options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
       if not same:
         match = False
         diff.append((b,XMLDiff.notMatchAttribute,(a,attrib),(b,attrib)))
@@ -226,26 +110,29 @@ def compareUnorderedElement(a,b,*args,**kwargs):
     where same is true if they are the same,
     and message is a list of the differences.
     Uses list of tree entries to find best match, instead of climbing the tree
-    a: the first element tree
-    b: the second element tree
+    @ In, a, ET.Element, the first element
+    @ In, b, ET.Element, the second element
+    @ Out, compareUnorderedElement, (bool,[string]), results of comparison
   """
   same = True
   message = []
   options = kwargs
   matchvals = {}
   diffs = {}
-  setDefaultOptions(options)
+  DU.setDefaultOptions(options)
 
   def failMessage(*args):
-    """ adds the fail message to the list
-    args: The arguments to the fail message (will be converted with str())
+    """
+      adds the fail message to the list
+      @ In, args, list, The arguments to the fail message (will be converted with str())
+      @ Out, failMessage, (bool,string), results
     """
     printArgs = []
     printArgs.extend(args)
     argsExpanded = " ".join([str(x) for x in printArgs])
     message.append(argsExpanded)
   if a.text != b.text:
-    succeeded, note = compareStringsWithFloats(a.text, b.text, options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
+    succeeded, note = DU.compareStringsWithFloats(a.text, b.text, options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
     if not succeeded:
       same = False
       failMessage(note)
@@ -318,27 +205,31 @@ def compareUnorderedElement(a,b,*args,**kwargs):
     return (False,[note])
 
 def compareOrderedElement(a,b,*args,**kwargs):
-  """ Compares two element trees and returns (same,message)
-  where same is true if they are the same,
-  and message is a list of the differences
-  a: the first element tree
-  b: the second element tree
-  accepted args:
-    - none -
-  accepted kwargs:
-    path: a string to describe where the element trees are located (mainly
-          used recursively)
+  """
+    Compares two element trees and returns (same,message) where same is true if they are the same, and message is a list of the differences
+    @ In, a, ET.Element, the first element tree
+    @ In, b, ET.Element, the second element tree
+    @ In, args, dict, arguments
+    @ In, kwargs, dict, keyword arguments
+      accepted args:
+        - none -
+      accepted kwargs:
+        path: a string to describe where the element trees are located (mainly
+              used recursively)
+    @ Out, compareOrderedElement, (bool,[string]), results of comparison
   """
   same = True
   message = []
   options = kwargs
   path = kwargs.get('path','')
   counter = kwargs.get('counter',0)
-  setDefaultOptions(options)
+  DU.setDefaultOptions(options)
 
   def failMessage(*args):
-    """ adds the fail message to the list
-    args: The arguments to the fail message (will be converted with str())
+    """
+      adds the fail message to the list
+      @ In, args, list, The arguments to the fail message (will be converted with str())
+      @ Out, failMessage, (bool,string), results
     """
     printArgs = [path]
     printArgs.extend(args)
@@ -351,7 +242,7 @@ def compareOrderedElement(a,b,*args,**kwargs):
   else:
     path += a.tag + "/"
   if a.text != b.text:
-    succeeded, note = compareStringsWithFloats(a.text, b.text, options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
+    succeeded, note = DU.compareStringsWithFloats(a.text, b.text, options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
     if not succeeded:
       same = False
       failMessage(note)
@@ -401,21 +292,11 @@ def compareOrderedElement(a,b,*args,**kwargs):
                            " "+bString)
   return (same,message)
 
-def isANumber(x):
-  '''Checks if x can be converted to a float.
-  @ In, x, a variable or value
-  @ Out, bool, True if x can be converted to a float.
-  '''
-  try:
-    float(x)
-    return True
-  except ValueError:
-    return False
-
 class XMLDiff:
-  """ XMLDiff is used for comparing a bunch of xml files.
   """
-  #codes for differences
+    XMLDiff is used for comparing xml files.
+  """
+  #static codes for differences
   missingChildNode  = 0
   missingAttribute   = 1
   extraChildNode    = 2
@@ -425,12 +306,13 @@ class XMLDiff:
   notMatchText      = 6
 
   def __init__(self, testDir, outFile,**kwargs):
-    """ Create an XMLDiff class
-    testDir: the directory where the test takes place
-    outFile: the files to be compared.  They will be in testDir + outFile
-               and testDir + gold + outFile
-    args: other arguments that may be included:
-          - 'unordered': indicates unordered sorting
+    """
+      Create an XMLDiff class
+      @ In, testDir, string, the directory where the test takes place
+      @ In, outFile, string, the files to be compared.  They will be in testDir + outFile and testDir + gold + outFile
+      @ In, kwargs, dict,  other arguments that may be included:
+            - 'unordered': indicates unordered sorting
+      @ Out, None
     """
     self.__outFile = outFile
     self.__messages = ""
@@ -439,10 +321,10 @@ class XMLDiff:
     self.__options = kwargs
 
   def diff(self):
-    """ Run the comparison.
-    returns (same,messages) where same is true if all the
-    xml files are the same, and messages is a string with all the
-    differences.
+    """
+      Run the comparison.
+      @ In, None
+      @ Out, diff, (bool,string), (same,messages) where same is true if all the xml files are the same, and messages is a string with all the differences.
     """
     # read in files
     for outfile in self.__outFile:

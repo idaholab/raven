@@ -141,12 +141,12 @@ data, without any dependencies on a particular prediction model.
 These algorithms directly build a neighborhood structure as the
 ROM (e.g., a relaxed Gabriel graph) on the initial training data. Examples of such ROM type are nearest neighbors and decision trees.
 
-\textcolor{red}{\\It is important to NOTE that RAVEN uses a Z-score normalization of the training data before 
+\textcolor{red}{\\It is important to NOTE that RAVEN uses a Z-score normalization of the training data before
   constructing most of the ROMs:
 \begin{equation}
   \mathit{\mathbf{X}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
-\end{equation} 
- } 
+\end{equation}
+ }
 In order to identify which ROMs get trained with data normalized by the previous reported normalization approach, please refer to the RAVEN user manual \cite{RAVENuserManual}.
 
 \subsubsection{Gaussian Process Models}
@@ -328,18 +328,7 @@ The goals of this section are about learning how to:
 In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
-\begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <RunInfo>
-    <JobName>Chapter-IX/ROMConstruction</JobName>
-    <Sequence>
-        sample,trainROMGaussianProcess,trainROMsvm,
-        trainROMinverse,sampleROMGaussianProcess,
-        sampleROMInverse,sampleROMsvm,writeHistories
-    </Sequence>
-    <WorkingDir>ROMConstruction</WorkingDir>
-    <batchSize>12</batchSize>
-  </RunInfo>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/ReducedOrderModeling/reducedOrderModeling.xml}{RunInfo}
    As in the other examples, the the \textit{RunInfo} \textbf{Entity} is intended  to set up the analysis sequence that
    needs to be performed. In this specific case, eight steps  (\xmlNode{Sequence}) are going to be sequentially run
    using eight processors (\xmlNode{batchSize}).
@@ -347,48 +336,12 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
    train three different ROMs.These ROMs are sampled by the same strategy used in the first step in order to compare the
    ROMs' responses with the ones coming from the original physical model.
    \item \textbf{\textit{Files}}:
-\begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <Files>
-    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
-  </Files>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/ReducedOrderModeling/reducedOrderModeling.xml}{Files}
    Since the driven code uses a single input file, the original input is placed in this section. As detailed in the user manual
    the attribute  \xmlAttr{name} represents the alias that is going to be
    used in all the other input blocks in order to refer to this file.
    \item \textbf{\textit{Models}}:
-\begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <Models>
-    <Code name="testModel" subType="GenericCode">
-      <executable>
-       ../physicalCode/analyticalbateman/AnalyticalDplMain.py
-      </executable>
-      <clargs arg="python" type="prepend"/>
-      <clargs arg="" extension=".xml" type="input"/>
-      <clargs arg="" extension=".csv" type="output"/>
-      <prepend>python</prepend>
-    </Code>
-    <ROM name="ROMGaussianProcess" subType="SciKitLearn">
-      <Features>sigma-A,sigma-B,decay-A,decay-B</Features>
-      <Target>A,B</Target>
-      <SKLtype>GaussianProcess|GaussianProcess</SKLtype>
-      <regr>quadratic</regr>
-      <theta0>10</theta0>
-    </ROM>
-    <ROM name="ROMsvm" subType="SciKitLearn">
-      <Features>sigma-A,sigma-B,decay-A,decay-B</Features>
-      <Target>A,B</Target>
-      <SKLtype>svm|SVR</SKLtype>
-      <kernel>rbf</kernel>
-      <C>50.0</C>
-      <tol>0.000001</tol>
-    </ROM>
-    <ROM name="ROMinverse" subType="NDinvDistWeight">
-      <Features>sigma-A,sigma-B,decay-A,decay-B</Features>
-      <Target>A,B</Target>
-      <p>3</p>
-    </ROM>
-  </Models>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/ReducedOrderModeling/reducedOrderModeling.xml}{Models}
  As mentioned above, the goal of this example is the employment of
  a sampling strategy in order to construct multiple types of ROMs.
  \\Indeed, in addition to the previously explained Code
@@ -400,18 +353,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
  the ROMs will be constructed considering four features ($sigma-A,\,sigma-B,\, decay-A \,,and \, decay-B$) and two targets
  ($A \, and \, B$).
    \item \textbf{\textit{Distributions}}:
-\begin{lstlisting}[style=XML]
-  <Distributions>
-      <Uniform name="sigma">
-          <lowerBound>0</lowerBound>
-          <upperBound>1000</upperBound>
-      </Uniform>
-      <Uniform name="decayConstant">
-          <lowerBound>0.00000001</lowerBound>
-          <upperBound>0.0000001</upperBound>
-      </Uniform>
-  </Distributions>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/ReducedOrderModeling/reducedOrderModeling.xml}{Distributions}
   In the Distributions XML section, the stochastic model for the
   uncertainties are reported. In
   this case two distributions are defined:
@@ -423,59 +365,11 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     associated with  the Model \textit{decay-A} and \textit{decay-B}.
   \end{itemize}
    \item \textbf{\textit{Samplers}}:
-\begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <Samplers>
-    <Grid name="grid">
-      <variable name="sigma-A">
-        <distribution>sigma</distribution>
-        <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
-      </variable>
-      <variable name="decay-A">
-        <distribution>decayConstant</distribution>
-        <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
-      </variable>
-      <variable name="sigma-B">
-          <distribution>sigma</distribution>
-          <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
-      </variable>
-      <variable name="decay-B">
-          <distribution>decayConstant</distribution>
-          <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
-      </variable>
-    </Grid>
-  </Samplers>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/ReducedOrderModeling/reducedOrderModeling.xml}{Samplers}
   To obtain the data-set through which the ROMs are going to be
   constructed, a \textit{Grid} sampling approach is here employed.
    \item \textbf{\textit{DataObjects}}:
-\begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <DataObjects>
-    <PointSet name="samples">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>A,B,C,D</Output>
-    </PointSet>
-    <HistorySet name="histories">
-        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-        <Output>A,B,C,D,time</Output>
-    </HistorySet>
-    <PointSet name="inputPlaceHolder">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
-    <PointSet name="samplesGP">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>A,B</Output>
-    </PointSet>
-    <PointSet name="samplesInverse">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>A,B</Output>
-    </PointSet>
-    <PointSet name="samplesSVM">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>A,B</Output>
-    </PointSet>
-  </DataObjects>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/ReducedOrderModeling/reducedOrderModeling.xml}{DataObjects}
   Int this block, six \textit{DataObjects} are defined: 1) PointSet
   named ``samples'' used to collect the final outcomes of the code, 2)
   HistorySet named ``histories'' in which the full time responses of the
@@ -489,73 +383,34 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
  %figure samples
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{pics/samplesplot3d.png}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ReducedOrderModeling/gold/ROMConstruction/1-samplesPlot3D_scatter-scatter.png}
   \caption{Plot of the samples generated by the Grid sampling for variables $A,B$.}
   \label{fig:ROMgrid_pointsets}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   \item \textbf{\textit{OutStreams}}:
+     \xmlExample{framework/user_guide/ReducedOrderModeling/reducedOrderModeling.xml}{OutStreams}
+     This model makes use of two Print OutStreams and five Plot OutStreams:
+     \begin{itemize}
+       \item ``samples,'' which writes the contents of the point-wise training samples to CSV,
+       \item ``histories,'' which writes the contents of the history-wise training samples to linked CSVs,
+       \item ``historyPlot,'' which plots the evolution of the training samples,
+       \item ``samplesPlot3D,'' which plots the final state of the training samples with relation to the
+         outputs of interest,
+       \item ``samplesPlot3DROMgp,'' which plots the validation samples of the Gaussian Process ROM,
+       \item ``samplesPlot3DROMsvm,'' which plots the validation samples of the Support-Vector Machine ROM,
+       \item ``samplesPlot3Dinverse,'' which plots the validation samples of the multidimensional Inverse
+         Weight ROM.
+     \end{itemize}
+     The 3D plots of the samples as well as the ROM samples can be used as a view-norm validation of the ROMs.
    \item \textbf{\textit{Steps}}:
-\begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <Steps>
-    <MultiRun name="sample">
-      <Input class="Files" type="input">referenceInput.xml</Input>
-      <Model class="Models" type="Code">testModel</Model>
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
-      <Output class="DataObjects" type="PointSet">samples</Output>
-      <Output class="DataObjects" type="HistorySet">histories</Output>
-    </MultiRun>
-    <MultiRun name="sampleROMGaussianProcess">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model class="Models" type="ROM">ROMGaussianProcess</Model>
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
-      <Output class="DataObjects" type="PointSet">samplesGP</Output>
-    </MultiRun>
-    <MultiRun name="sampleROMInverse">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model class="Models" type="ROM">ROMinverse</Model>
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
-      <Output class="DataObjects" type="PointSet">samplesInverse</Output>
-    </MultiRun>
-    <MultiRun name="sampleROMsvm">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model class="Models" type="ROM">ROMsvm</Model>
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
-      <Output class="DataObjects" type="PointSet">samplesSVM</Output>
-    </MultiRun>
-    <RomTrainer name="trainROMGaussianProcess">
-      <Input class="DataObjects" type="PointSet">samples</Input>
-      <Output class="Models" type="ROM">ROMGaussianProcess</Output>
-    </RomTrainer>
-    <RomTrainer name="trainROMsvm">
-      <Input class="DataObjects" type="PointSet">samples</Input>
-      <Output class="Models" type="ROM">ROMsvm</Output>
-    </RomTrainer>
-    <RomTrainer name="trainROMinverse">
-      <Input class="DataObjects" type="PointSet">samples</Input>
-      <Output class="Models" type="ROM">ROMinverse</Output>
-    </RomTrainer>
-    <IOStep name="writeHistories" pauseAtEnd="True">
-        <Input   class="DataObjects"      type="HistorySet">histories</Input>
-        <Input   class="DataObjects"      type="PointSet">samples</Input>
-        <Input   class="DataObjects"      type="PointSet">samplesGP</Input>
-        <Input   class="DataObjects"      type="PointSet">samplesInverse</Input>
-        <Input   class="DataObjects"      type="PointSet">samplesSVM</Input>
-        <Output class="OutStreams" type="Plot">samplesPlot3D</Output>
-        <Output class="OutStreams" type="Plot">samplesPlot3DROMgp</Output>
-        <Output class="OutStreams" type="Plot">samplesPlot3DROMsvm</Output>
-        <Output class="OutStreams" type="Plot">samplesPlot3DROMinverse</Output>
-        <Output class="OutStreams" type="Plot">historyPlot</Output>
-        <Output class="OutStreams" type="Print">samples</Output>
-        <Output class="OutStreams" type="Print">histories</Output>
-    </IOStep>
-  </Steps>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/ReducedOrderModeling/reducedOrderModeling.xml}{Steps}
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure samples
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{pics/reducedOrderModelingHistoriesPhysicalModel.png}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ReducedOrderModeling/gold/ROMConstruction/1-historyPlot_line-line-line-line.png}
   \caption{Plot of the histories generated by the Grid method for variables $A,B,C,D$.}
   \label{fig:ROMgrid_histories}
  \end{figure}
@@ -563,7 +418,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
  %figure samples
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{pics/samplesPlot3DROMgp_scatter-scatter.png}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ReducedOrderModeling/gold/ROMConstruction/1-samplesPlot3DROMgp_scatter-scatter.png}
   \caption{Plot of the samples generated by the Grid sampling applied on the Gaussian Process ROM for variables $A,B$}
   \label{fig:ROMgp_samples}
  \end{figure}
@@ -607,7 +462,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   %figure samples
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{pics/samplesPlot3DROMsvm_scatter-scatter.png}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ReducedOrderModeling/gold/ROMConstruction/1-samplesPlot3DROMsvm_scatter-scatter.png}
   \caption{Plot of the samples generated by the Grid sampling applied on the Support Vector Machine ROM for variables $A,B$}
   \label{fig:ROMsvm_samples}
  \end{figure}
@@ -616,7 +471,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   %figure samples
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{pics/samplesPlot3DROMinverse_scatter-scatter.png}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ReducedOrderModeling/gold/ROMConstruction/1-samplesPlot3DROMinverse_scatter-scatter.png}
   \caption{Plot of the samples generated by the Grid sampling applied on the Inverse Distance Weight ROM for variables $A,B$}
   \label{fig:ROMinverse_samples}
  \end{figure}
