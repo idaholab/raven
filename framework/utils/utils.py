@@ -20,7 +20,9 @@ class Object(object):pass
 
 #custom errors
 class NoMoreSamplesNeeded(GeneratorExit): pass
-
+# ID separator that should be used cross the code when combined ids need to be assembled.
+# For example, when the "EnsembleModel" creates new  ``prefix`` ids for sub-models
+__idSeparator = "++"
 
 def identifyIfExternalModelExists(caller, moduleIn, workingDir):
   """
@@ -935,5 +937,16 @@ def checkTypeRecursively(inObject):
       break
   except: pass
   return returnType
+
+def returnIdSeparator():
+  """
+    This method is aimed to return the ID separator that should be used cross the code when
+    combined ids need to be assembled. For example, when the "EnsembleModel" creates new
+    ``prefix`` ids for sub-models
+    @ In, None
+    @ Out, __idSeparator, string, the id separator
+  """
+  return __idSeparator
+
 
 

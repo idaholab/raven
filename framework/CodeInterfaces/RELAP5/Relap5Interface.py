@@ -143,6 +143,8 @@ class Relap5(CodeInterfaceBase):
         sourceFile = os.path.join(sourcePath, rstrtFile)
         try   : shutil.copy(sourceFile, currentInputFiles[index].getPath())
         except: raise IOError('not able to copy restart file from "'+sourceFile+'" to "'+currentInputFiles[index].getPath()+'"')
+      else:
+        raise IOError('the only metadtaToTransfer that is available in RELAP5 is "sourceID". Got instad: '+', '.join(metadataToTransfer.keys()))
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,True)
     parser.printInput(currentInputFiles[index])

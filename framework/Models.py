@@ -235,7 +235,13 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       Method to convert kwargs Sampled vars with the alias system
       @ In , sampledVars, dict, dictionary that are going to be modified
       @ In, aliasType, str, optional, type of alias to be replaced
-      @ In, fromModelToFramework, bool, optional, True if we need to replace the variable name from the model to the framework, False if opposite
+      @ In, fromModelToFramework, bool, optional, When we define aliases for some input variables, we need to be sure to convert the variable names
+                                                  (if alias is of type input) coming from RAVEN (e.g. sampled variables) into the corresponding names
+                                                  of the model (e.g. frameworkVariableName = "wolf", modelVariableName="thermal_conductivity").
+                                                  Viceversa, when we define aliases for some model output variables, we need to convert the variable
+                                                  names coming from the model into the one that are used in RAVEN (e.g. modelOutputName="00001111",
+                                                  frameworkVariableName="clad_temperature"). The fromModelToFramework bool flag controls this action
+                                                  (if True, we convert the name in the dictionary from the model names to the RAVEN names, False vice versa)
       @ Out, originalVariables, dict, dictionary of the original sampled variables
     """
     if aliasType =='inout': listAliasType = ['input','output']
@@ -250,25 +256,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             if fromModelToFramework: sampledVars[varFramework] = originalVariables[varModel]
             else                   : sampledVars[varModel]     = originalVariables[varFramework]
     return originalVariables
-
-
-  def _replaceVariableWithAliasSystem(self,variableName,aliasType,fromModelToFramework=False):
-    """
-      Method to replace a variable name with the alias system
-      @ In , variableName, str, the variable name to be converted
-      @ In, aliasType, str, optional, type of alias to be replaced
-      @ In, fromModelToFramework, bool, optional, True if we need to replace the variable name from the model to the framework, False if opposite
-      @ Out, convertedVariable, str, the replaced variable
-    """
-    if aliasType.lower() not in ['input','output']: self.raiseAnError(ValueError,"aliasType not recognized. Got:"+aliasType)
-    mapping           = self.alias[aliasType.lower()]
-    convertedVariable = variableName
-    if len(mapping.keys()) != 0:
-      if fromModelToFramework:
-        convertedVariable = mapping.keys()[mapping.values().index(variableName)] if mapping.values().count(variableName) > 0 else None
-      else:
-        convertedVariable = mapping.get(variableName,None)
-    return convertedVariable
 
   def _handleInput(self, paramInput):
     """
@@ -348,7 +335,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   @abc.abstractmethod
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
@@ -467,7 +454,7 @@ class Dummy(Model):
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      This function will return a new input to be submitted to the model, it is called by the sampler.
       here only a PointSet is accepted a local copy of the values is performed.
       For a PointSet, only the last set of entries are copied
       The copied values are returned as a dictionary back
@@ -1003,7 +990,7 @@ class ExternalModel(Dummy):
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
@@ -1363,7 +1350,7 @@ class Code(Model):
 
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     """
-      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      This function will return a new input to be submitted to the model, it is called by the sampler.
       here only a PointSet is accepted a local copy of the values is performed.
       For a PointSet only the last set of entries are copied.
       The copied values are returned as a dictionary back
@@ -1658,7 +1645,7 @@ class PostProcessor(Model, Assembler):
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      This function will return a new input to be submitted to the model, it is called by the sampler.
       here only a PointSet is accepted a local copy of the values is performed.
       For a PointSet, only the last set of entries is copied
       The copied values are returned as a dictionary back
@@ -1730,20 +1717,25 @@ class EnsembleModel(Dummy, Assembler):
       if child.tag not in  ["Model","settings"]: self.raiseAnError(IOError, "Expected <Model> or <settings> tag. Got "+child.tag)
       if child.tag == 'Model':
         if 'type' not in child.attrib.keys() or 'class' not in child.attrib.keys(): self.raiseAnError(IOError, 'Tag Model must have attributes "class" and "type"')
+        # get model name
         modelName = child.text.strip()
+        # create space of the allowed entries
         self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'metadataToTransfer':[]}
+        # number of allower entries
+        allowedEntriesLen = len(self.modelsDictionary[modelName].keys())
         for childChild in child:
           if childChild.tag.strip() == 'metadataToTransfer':
+            # metadata that needs to be transfered from a source model into this model
             # list(metadataToTranfer, ModelSource,Alias (optional))
             if 'source' not in childChild.attrib.keys(): self.raiseAnError(IOError, 'when metadataToTransfer XML block is defined, the "source" attribute must be inputted!')
             self.modelsDictionary[modelName][childChild.tag].append([childChild.text.strip(),childChild.attrib['source'],childChild.attrib.get("alias",None)])
           else:
             try                  : self.modelsDictionary[modelName][childChild.tag].append(childChild.text.strip())
             except AttributeError: self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
-        if self.modelsDictionary[modelName].values().count(None) != 1: self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
-        if len(self.modelsDictionary[modelName]['Input']) == 0 : self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
-        if len(self.modelsDictionary[modelName].values()) > 4  : self.raiseAnError(IOError, "TargetEvaluation, Input and metadataToTransfer XML blocks are the only XML sub-blocks allowed!")
-        if child.attrib['type'].strip() == "Code": self.createWorkingDir =True
+        if self.modelsDictionary[modelName].values().count(None) != 1         : self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
+        if len(self.modelsDictionary[modelName]['Input']) == 0                : self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
+        if len(self.modelsDictionary[modelName].values()) > allowedEntriesLen : self.raiseAnError(IOError, "TargetEvaluation, Input and metadataToTransfer XML blocks are the only XML sub-blocks allowed!")
+        if child.attrib['type'].strip() == "Code"                             : self.createWorkingDir = True
       if child.tag == 'settings': self.__readSettings(child)
     if len(self.modelsDictionary.keys()) < 2: self.raiseAnError(IOError, "The EnsembleModel needs at least 2 models to be constructed!")
 
@@ -1940,7 +1932,7 @@ class EnsembleModel(Dummy, Assembler):
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-      This function have to return a new input that will be submitted to the model, it is called by the sampler
+      This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
@@ -1959,7 +1951,7 @@ class EnsembleModel(Dummy, Assembler):
       newKwargs = self.__selectInputSubset(modelIn,Kwargs)
       inputDict = [self._inputToInternal(self.modelsDictionary[modelIn]['InputObject'][0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  self.modelsDictionary[modelIn]['InputObject']
       # local prefix
-      newKwargs['prefix'] = modelIn+"++"+identifier
+      newKwargs['prefix'] = modelIn+utils.returnIdSeparator()+identifier
       newInputs[modelIn]  = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
       if specs['Instance'].type == 'Code': newInputs[modelIn][1]['originalInput'] = inputDict
     self.needToCheckInputs = False
@@ -2077,7 +2069,8 @@ class EnsembleModel(Dummy, Assembler):
       for modelCnt, modelIn in enumerate(self.orderList):
         tempTargetEvaluations[modelIn].resetData()
         # in case there are metadataToTransfer, let's collect them from the source
-        metadataToTransfer = {} if self.modelsDictionary[modelIn]['metadataToTransfer'] else None
+        metadataToTransfer = None
+        if self.modelsDictionary[modelIn]['metadataToTransfer']: metadataToTransfer = {}
         for metadataToGet, source, alias in self.modelsDictionary[modelIn]['metadataToTransfer']:
           if metadataToGet not in returnDict[source]['metadata'].keys():
             self.raiseAnError(RuntimeError,'metadata "'+metadataToGet+'" is not present among the ones available in source "'+source+'"!')
@@ -2086,22 +2079,24 @@ class EnsembleModel(Dummy, Assembler):
         dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
         # if nonlinear system, check for initial coditions
         if iterationCount == 1  and self.activatePicard:
-          try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
-          except           : sampledVars = Input[modelIn][1]['SampledVars'].keys()
+          try:
+            sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
+          except IndexError:
+            sampledVars = Input[modelIn][1]['SampledVars'].keys()
           for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
             if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = self.initialConditions[initCondToSet]
             else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
+        # set new identifiers
         try:
-          Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"++"+identifier, self.name+identifier
+          Input[modelIn][0][1]['prefix']        = modelIn+utils.returnIdSeparator()+identifier
+          Input[modelIn][0][1]['uniqueHandler'] = self.name+identifier
           if metadataToTransfer is not None: Input[modelIn][0][1]['metadataToTransfer'] = metadataToTransfer
-        except:
-          Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"++"+identifier, self.name+identifier
+        except IndexError:
+          Input[modelIn][1]['prefix']           = modelIn+utils.returnIdSeparator()+identifier
+          Input[modelIn][1]['uniqueHandler']    = self.name+identifier
           if metadataToTransfer is not None: Input[modelIn][1]['metadataToTransfer'] = metadataToTransfer
         # update input with dependent outputs
         Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
-        # set new identifiers
-        try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"++"+identifier, self.name+identifier
-        except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"++"+identifier, self.name+identifier
         nextModel = False
         while not nextModel:
           moveOn = False
@@ -2109,27 +2104,29 @@ class EnsembleModel(Dummy, Assembler):
             if jobHandler.availability() > 0:
               # run the model
               self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
-              while not jobHandler.isThisJobFinished(modelIn+"++"+identifier): time.sleep(1.e-3)
+              # wait until the model finishes, in order to get ready to run the subsequential one
+              while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier): time.sleep(1.e-3)
               nextModel, moveOn = True, True
             else: time.sleep(1.e-3)
-          # get job that just finished
-          finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+"++"+identifier, uniqueHandler=self.name+identifier)
+          # get job that just finished to gather the results
+          finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
           if finishedRun[0].getEvaluation() == -1:
+            # the model failed
             for modelToRemove in self.orderList:
-              if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "++" + identifier, uniqueHandler = self.name + identifier)
+              if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
           # get back the output in a general format
-          # finalize model
+          # finalize the model (e.g. convert the output into a RAVEN understandable one)
           self.modelsDictionary[modelIn]['Instance'].finalizeModelOutput(finishedRun[0])
-          # collect output
+          # collect output in the temporary data object
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
-          # store the results
+          # store the results in the working dictionaries
           returnDict[modelIn]   = {}
           responseSpace         = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
           inputSpace            = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
           typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
           gotOutputs[modelCnt]  = responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
-          #store the result in return dictionary
+          #store the results in return dictionary
           returnDict[modelIn]['outputSpaceParams'] = gotOutputs[modelCnt]
           returnDict[modelIn]['inputSpaceParams' ] = inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
           returnDict[modelIn]['metadata'         ] = tempTargetEvaluations[modelIn].getAllMetadata()
@@ -2140,8 +2137,7 @@ class EnsembleModel(Dummy, Assembler):
               residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
               if iterationCount == 1: residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
             for out in gotOutputs[modelCnt].keys():
-              if np.asarray(residueContainer[modelIn]['iterValues'][0][out]).shape != np.asarray(residueContainer[modelIn]['iterValues'][1][out]).shape:
-                pass
+              if np.asarray(residueContainer[modelIn]['iterValues'][0][out]).shape != np.asarray(residueContainer[modelIn]['iterValues'][1][out]).shape: pass
               residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
             residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(residueContainer[modelIn]['iterValues'][1].values())-np.asarray(residueContainer[modelIn]['iterValues'][0].values()))
       # if nonlinear system, check the total residue and convergence
