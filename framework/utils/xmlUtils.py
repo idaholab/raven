@@ -41,7 +41,7 @@ def prettify(tree,doc=False,docLevel=0):
       @ In, tabs, int, optional, indentation level for this node in the global scheme
       @ Out, None
     """
-    linesep = os.linesep #'\n' #fails test if using os.linesep
+    linesep = os.linesep
     child = None #putting it in namespace
     space = ' '*2*tabs
     newlineAndTab = linesep+space
