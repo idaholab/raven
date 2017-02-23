@@ -145,7 +145,7 @@ class CsvLoader(MessageHandler.MessageUser):
     self.allOutParam = 'all' in outParam
     if outputPivotVal != None:
       outputPivotValEnd = 'end' in outputPivotVal
-      outputPivotVal    = float(outputPivotVal)
+      if not outputPivotValEnd: outputPivotVal = float(outputPivotVal)
     else:
       outputPivotValEnd = operator is None and outputRow is None
 
@@ -280,7 +280,7 @@ class CsvLoader(MessageHandler.MessageUser):
     self.allOutParam = 'all' in outParam
     if outputPivotVal != None:
       outputPivotValEnd = 'end' in outputPivotVal
-      outputPivotVal    = float(outputPivotVal)
+      if not outputPivotValEnd: outputPivotVal = float(outputPivotVal)
     else:
       outputPivotValEnd = operator is None and outputRow is None
     if [inputRow,inputPivotVal].count(None) == 2: inputRow = 0
