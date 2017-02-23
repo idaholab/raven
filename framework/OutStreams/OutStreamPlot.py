@@ -208,8 +208,8 @@ class OutStreamPlot(OutStreamManager):
         for subnode in node:
           if subnode.tag != 'kwargs':
             self.options[node.tag][subnode.tag] = subnode.text
-            if not subnode.text:
-              self.raiseAnError(IOError, 'In Plot ' + self.name + '. Problem in sub-tag ' + subnode.tag + ' in ' + node.tag + ' block. Please check!')
+            #if not subnode.text:
+            #  self.raiseAnError(IOError, 'In Plot ' + self.name + '. Problem in sub-tag ' + subnode.tag + ' in ' + node.tag + ' block. Please check!')
           else:
             self.options[node.tag]['attributes'] = {}
             for subsub in subnode:

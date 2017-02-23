@@ -696,18 +696,18 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, foundNodes, TreeStructure.Node, the found nodes
     """
     if not self.TSData: # there is no tree yet
-      self.TSData = {nodeName:TS.NodeTree(self.messageHandler,TS.Node(self.messageHandler,nodeName))}
+      self.TSData = {nodeName:TS.HierarchicalTree(self.messageHandler,TS.HierarchicalNode(self.messageHandler,nodeName))}
       return self.TSData[nodeName].getrootnode()
     else:
       if nodeName in self.TSData.keys(): return self.TSData[nodeName].getrootnode()
       elif parentName == 'root':
-        self.TSData[nodeName] = TS.NodeTree(self.messageHandler,TS.Node(self.messageHandler,nodeName))
+        self.TSData[nodeName] = TS.HierarchicalTree(self.messageHandler,TS.HierarchicalNode(self.messageHandler,nodeName))
         return self.TSData[nodeName].getrootnode()
       else:
         for TSDat in self.TSData.values():
           foundNodes = list(TSDat.iter(nodeName))
           if len(foundNodes) > 0: break
-        if len(foundNodes) == 0: return TS.Node(self.messageHandler,nodeName)
+        if len(foundNodes) == 0: return TS.HierarchicalNode(self.messageHandler,nodeName)
         else:
           if parentName:
             for node in foundNodes:

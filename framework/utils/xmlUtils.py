@@ -41,7 +41,7 @@ def prettify(tree,doc=False,docLevel=0):
       @ In, tabs, int, optional, indentation level for this node in the global scheme
       @ Out, None
     """
-    linesep = '\n' #fails test if using os.linesep
+    linesep = os.linesep
     child = None #putting it in namespace
     space = ' '*2*tabs
     newlineAndTab = linesep+space
@@ -109,7 +109,7 @@ def newNode(tag,text='',attrib={}):
   cleanAttrib = {}
   for key,value in attrib.items():
     value = str(value)
-    cleanAttrib[fixXmlTag(key)] = fixXmlText(value)
+    cleanAttrib[fixXmlText(key)] = fixXmlText(value)
   el = ET.Element(tag,attrib=cleanAttrib)
   el.text = fixXmlText(text)
   return el

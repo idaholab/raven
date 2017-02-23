@@ -261,7 +261,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       bcnt += 1
       rname = info['parentNode'].get('name') + '-' + str(bcnt)
     # create a subgroup that will be appended to the parent element in the xml tree structure
-    subGroup = ETS.Node(self.messageHandler,rname)
+    subGroup = ETS.HierarchicalNode(self.messageHandler,rname)
     subGroup.add('parent', info['parentNode'].get('name'))
     subGroup.add('name', rname)
     self.raiseADebug('cond pb = '+str(info['parentNode'].get('conditionalPbr')))
@@ -428,7 +428,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         self._constructEndInfoFromBranch(model, myInput, info, cdfValues)
       else:
         # create a new tree, since there are no branches that are close enough to the adaptive request
-        elm = ETS.Node(self.messageHandler,self.name + '_' + str(len(self.TreeInfo.keys())+1))
+        elm = ETS.HierarchicalNode(self.messageHandler,self.name + '_' + str(len(self.TreeInfo.keys())+1))
         elm.add('name', self.name + '_'+ str(len(self.TreeInfo.keys())+1))
         elm.add('startTime', 0.0)
         # Initialize the endTime to be equal to the start one...
@@ -459,7 +459,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
             hybridStrategy['ProbabilityWeight'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
           elm.add('hybridsamplerCoordinate', hybridSampled)
         # Here it is stored all the info regarding the DET => we create the info for all the branchings and we store them
-        self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.NodeTree(self.messageHandler,elm)
+        self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.HierarchicalTree(self.messageHandler,elm)
         self._createRunningQueueBeginOne(self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys()))],branchedLevel, model,myInput)
     return DynamicEventTree.localGenerateInput(self,model,myInput)
 
