@@ -180,7 +180,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           indexSystemFailure = np.where(np.logical_or(data[1,:]<self.target['low'], data[1,:]>self.target['high']))
           dataSystemFailure  = np.delete(data, indexSystemFailure,  axis=1)
           Rvalues[inp['name']][variable] ['R0'] = Rvalues[inp['name']][variable]['Rminus'] = Rvalues[inp['name']][variable]['Rplus'] = np.sum(dataSystemFailure[0,:])
-          
+
     #Step 5: Determine global values for RRW, RAW, FV, B
     RvaluesMacro = {}
     for variable in self.variables:
