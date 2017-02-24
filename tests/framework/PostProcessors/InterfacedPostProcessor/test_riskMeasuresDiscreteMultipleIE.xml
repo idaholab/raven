@@ -3,7 +3,7 @@
   <TestInfo>
     <name>framework/PostProcessors/InterfacedPostProcessor/RiskMeasuresDiscreteMultipleIE</name>
     <author>mandd</author>
-    <created>2017-2-23</created>
+    <created>2017-02-23</created>
     <classesTested>InterfacedPostProcessor</classesTested>
     <description>
       Tests of the four risk importance measures for multiple IEs: Risk Achievement Worth (RAW), Risk Reduction Worth (RRW), Birnbaum (B) and Fussell-Vesely (FV)
