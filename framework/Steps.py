@@ -10,8 +10,10 @@ if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import atexit
 import time
 import abc
+import os
 import sys
 if sys.version_info.major > 2:
   import pickle
@@ -227,9 +229,10 @@ class SingleRun(Step):
       @ Out, None
     """
     Step.__init__(self)
-    self.splType = 'Sampler'
-    self.failedRuns = []
-    self.printTag = 'STEP SINGLERUN'
+    self.splType        = 'Sampler'
+    self.failedRuns     = []
+    self.lockedFileName = "ravenLocked.raven"
+    self.printTag       = 'STEP SINGLERUN'
 
   def _localInputAndChecks(self,xmlNode):
     """
@@ -288,7 +291,16 @@ class SingleRun(Step):
     modelInitDict = {}
     if 'SolutionExport' in inDictionary.keys():
       modelInitDict['SolutionExport'] = inDictionary['SolutionExport']
-
+    if inDictionary['Model'].createWorkingDir:
+      currentWorkingDirectory = os.path.join(inDictionary['jobHandler'].runInfoDict['WorkingDir'],inDictionary['jobHandler'].runInfoDict['stepName'])
+      try: os.mkdir(currentWorkingDirectory)
+      except OSError:
+        self.raiseAWarning('current working dir '+currentWorkingDirectory+' already exists, this might imply deletion of present files')
+        if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0): self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
+        if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
+          self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ currentWorkingDirectory+". Please check your input!")
+        # register function to remove the locked file at the end of execution
+        atexit.register(utils.removeFile,os.path.join(currentWorkingDirectory,self.lockedFileName))
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],modelInitDict)
 
     self.raiseADebug('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))

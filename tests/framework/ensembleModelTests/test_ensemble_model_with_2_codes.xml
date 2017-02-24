@@ -1,0 +1,133 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ensembleModelTests.testEnsembleModelWith2CodesAndAlias</name>
+    <author>alfoa</author>
+    <created>2017-02-16</created>
+    <classesTested>Models.Code, JobHandler.Thread</classesTested>
+    <description>
+       Example of usage of the Ensemble Model capability in RAVEN, connecting multiple multiple Codes together, with same output variable names.
+       This means that the alias system has been used and this test is aimed to show how to use it in these kinds of situations.
+    </description>
+  </TestInfo>
+  
+  <RunInfo>
+    <JobName>testEnsembleModelWith2CodesAndAlias</JobName>
+    <Sequence>
+        sampleMC,dumpResults
+    </Sequence>
+    <WorkingDir>metaModelWith2Codes</WorkingDir>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Files>
+    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
+    <Input name="referenceInput2.xml" type="input">referenceInput2.xml</Input>
+  </Files>
+
+  <Models>
+    <Code name="testModel" subType="GenericCode">
+      <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg=" " extension=".csv" type="output"/>
+      <prepend>python</prepend>
+      <alias variable="AtestModel1"           type="output">A</alias>
+      <alias variable="BtestModel1"           type="output">B</alias>
+    </Code>
+    <Code name="testModel2" subType="GenericCode">
+        <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+        <clargs arg="python" type="prepend"/>
+        <clargs arg="" extension=".xml" type="input"/>
+        <clargs arg=" " extension=".csv" type="output"/>
+        <prepend>python</prepend>
+        <alias variable="AtestModel1"           type="input">init-A</alias>
+        <alias variable="BtestModel1"           type="input">init-B</alias>
+        <alias variable="AtestModel2"           type="output">A</alias>
+        <alias variable="BtestModel2"           type="output">B</alias>
+        <alias variable="CtestModel2"           type="output">C</alias>
+        <alias variable="DtestModel2"           type="output">D</alias>
+    </Code>
+    <EnsembleModel name="codeAndExtModel" subType="">
+      <Model class="Models" type="Code">
+        testModel2
+        <Input class="Files" type="">referenceInput2.xml</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">sumData</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="Code">
+          testModel
+        <Input class="Files" type="">referenceInput.xml</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">samplesMC</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="sigma">
+      <lowerBound>0</lowerBound>
+      <upperBound>1000</upperBound>
+    </Uniform>
+    <Uniform name="decayConstant">
+      <lowerBound>0.00000001</lowerBound>
+      <upperBound>0.0000001</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>3</limit>
+      </samplerInit>
+      <variable name="sigma-A">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay-A">
+        <distribution>decayConstant</distribution>
+      </variable>
+      <variable name="sigma-B">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay-B">
+        <distribution>decayConstant</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sampleMC">
+      <Input class="Files" type="">referenceInput.xml</Input>
+      <Input class="Files" type="">referenceInput2.xml</Input>
+      <Model class="Models" type="EnsembleModel">codeAndExtModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">finalResponses</Output>
+    </MultiRun>
+    <IOStep name="dumpResults">
+        <Input class="DataObjects" type="PointSet">finalResponses</Input>
+        <Output class="OutStreams" type="Print">printFinalResults</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="printFinalResults">
+      <type>csv</type>
+      <source>finalResponses</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="samplesMC">
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>AtestModel1,BtestModel1,C,D</Output>
+    </PointSet>
+    <PointSet name="sumData">
+      <Input>AtestModel1,BtestModel1</Input>
+      <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
+    </PointSet>
+    <PointSet name="finalResponses">
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>AtestModel1,BtestModel1,C,D,AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

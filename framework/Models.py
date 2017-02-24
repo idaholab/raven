@@ -16,7 +16,7 @@ import abc
 import sys
 import importlib
 import inspect
-import atexit
+#import atexit
 import time
 import threading
 from collections import OrderedDict
@@ -197,6 +197,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.subType  = ''
     self.runQueue = []
     self.printTag = 'MODEL'
+    self.createWorkingDir = False
 
   def _readMoreXML(self,xmlNode):
     """
@@ -234,7 +235,13 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       Method to convert kwargs Sampled vars with the alias system
       @ In , sampledVars, dict, dictionary that are going to be modified
       @ In, aliasType, str, optional, type of alias to be replaced
-      @ In, fromModelToFramework, bool, optional, True if we need to replace the variable name from the model to the framework, False if opposite
+      @ In, fromModelToFramework, bool, optional, When we define aliases for some input variables, we need to be sure to convert the variable names
+                                                  (if alias is of type input) coming from RAVEN (e.g. sampled variables) into the corresponding names
+                                                  of the model (e.g. frameworkVariableName = "wolf", modelVariableName="thermal_conductivity").
+                                                  Viceversa, when we define aliases for some model output variables, we need to convert the variable
+                                                  names coming from the model into the one that are used in RAVEN (e.g. modelOutputName="00001111",
+                                                  frameworkVariableName="clad_temperature"). The fromModelToFramework bool flag controls this action
+                                                  (if True, we convert the name in the dictionary from the model names to the RAVEN names, False vice versa)
       @ Out, originalVariables, dict, dictionary of the original sampled variables
     """
     if aliasType =='inout': listAliasType = ['input','output']
@@ -328,7 +335,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   @abc.abstractmethod
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
@@ -447,7 +454,7 @@ class Dummy(Model):
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      This function will return a new input to be submitted to the model, it is called by the sampler.
       here only a PointSet is accepted a local copy of the values is performed.
       For a PointSet, only the last set of entries are copied
       The copied values are returned as a dictionary back
@@ -983,7 +990,7 @@ class ExternalModel(Dummy):
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
@@ -1201,7 +1208,7 @@ class Code(Model):
     self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
     self.codeFlags          = None #flags that need to be passed into code interfaces(if present)
     self.printTag           = 'CODE MODEL'
-    self.lockedFileName     = "ravenLocked.raven"
+    self.createWorkingDir   = True
 
   def _readMoreXML(self,xmlNode):
     """
@@ -1334,13 +1341,6 @@ class Code(Model):
     """
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
-    try: os.mkdir(self.workingDir)
-    except OSError:
-      self.raiseAWarning('current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
-      if utils.checkIfPathAreAccessedByAnotherProgram(self.workingDir,3.0): self.raiseAWarning('directory '+ self.workingDir + ' is likely used by another program!!! ')
-      if utils.checkIfLockedRavenFileIsPresent(self.workingDir,self.lockedFileName): self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ self.workingDir+". Please check your input!")
-      # register function to remove the locked file at the end of execution
-      atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
     for inputFile in inputFiles:
       shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.oriInputFiles = []
@@ -1352,7 +1352,7 @@ class Code(Model):
 
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     """
-      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      This function will return a new input to be submitted to the model, it is called by the sampler.
       here only a PointSet is accepted a local copy of the values is performed.
       For a PointSet only the last set of entries are copied.
       The copied values are returned as a dictionary back
@@ -1647,7 +1647,7 @@ class PostProcessor(Model, Assembler):
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      This function will return a new input to be submitted to the model, it is called by the sampler.
       here only a PointSet is accepted a local copy of the values is performed.
       For a PointSet, only the last set of entries is copied
       The copied values are returned as a dictionary back
@@ -1718,19 +1718,27 @@ class EnsembleModel(Dummy, Assembler):
     for child in xmlNode:
       if child.tag not in  ["Model","settings"]: self.raiseAnError(IOError, "Expected <Model> or <settings> tag. Got "+child.tag)
       if child.tag == 'Model':
+        if 'type' not in child.attrib.keys() or 'class' not in child.attrib.keys(): self.raiseAnError(IOError, 'Tag Model must have attributes "class" and "type"')
+        # get model name
         modelName = child.text.strip()
-        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[]}
+        # create space of the allowed entries
+        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'metadataToTransfer':[]}
+        # number of allower entries
+        allowedEntriesLen = len(self.modelsDictionary[modelName].keys())
         for childChild in child:
-          try                  : self.modelsDictionary[modelName][childChild.tag].append(childChild.text.strip())
-          except AttributeError: self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
-        if self.modelsDictionary[modelName].values().count(None) != 1: self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
-        #if len(self.modelsDictionary[child.text.strip()].values()) > 2: self.raiseAnError(IOError, "TargetEvaluation xml block is the only XML sub-block allowed!")
-        #if 'inputNames' not in child.attrib.keys(): self.raiseAnError(IOError, "inputNames attribute for Model" + child.text.strip() +" has not been inputted!")
-        #self.modelsDictionary[modelName]['inputNames'] = [utils.toStrish(inpName) for inpName in child.attrib["inputNames"].split(",")]
-        if len(self.modelsDictionary[modelName]['Input']) == 0 : self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
-        if len(self.modelsDictionary[modelName].values()) > 3  : self.raiseAnError(IOError, "TargetEvaluation and Input XML blocks are the only XML sub-blocks allowed!")
-      if child.tag == 'settings':
-        self.__readSettings(child)
+          if childChild.tag.strip() == 'metadataToTransfer':
+            # metadata that needs to be transfered from a source model into this model
+            # list(metadataToTranfer, ModelSource,Alias (optional))
+            if 'source' not in childChild.attrib.keys(): self.raiseAnError(IOError, 'when metadataToTransfer XML block is defined, the "source" attribute must be inputted!')
+            self.modelsDictionary[modelName][childChild.tag].append([childChild.text.strip(),childChild.attrib['source'],childChild.attrib.get("alias",None)])
+          else:
+            try                  : self.modelsDictionary[modelName][childChild.tag].append(childChild.text.strip())
+            except AttributeError: self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
+        if self.modelsDictionary[modelName].values().count(None) != 1         : self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
+        if len(self.modelsDictionary[modelName]['Input']) == 0                : self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
+        if len(self.modelsDictionary[modelName].values()) > allowedEntriesLen : self.raiseAnError(IOError, "TargetEvaluation, Input and metadataToTransfer XML blocks are the only XML sub-blocks allowed!")
+        if child.attrib['type'].strip() == "Code"                             : self.createWorkingDir = True
+      if child.tag == 'settings': self.__readSettings(child)
     if len(self.modelsDictionary.keys()) < 2: self.raiseAnError(IOError, "The EnsembleModel needs at least 2 models to be constructed!")
 
   def __readSettings(self, xmlNode):
@@ -1765,66 +1773,41 @@ class EnsembleModel(Dummy, Assembler):
     if len(models) == 0: models = None
     return models
 
-#   def __getExecutionList(self, orderedNodes, allPath):
-#     """
-#       Method to get the execution list
-#       @ In, orderedNodes, list, list of models ordered based on the input/output relationships
-#       @ In, allPath, list, list of lists containing all the path from orderedNodes[0] to orderedNodes[-1]
-#       @ Out, executionList, list, list of lists with the execution order (e.g. [[model1],[model2.1,model2.2],[model3], etc.]
-#     """
-#     numberPath = len(allPath)
-#     maxComponents = 0
-#     for path in allPath:
-#       if len(path) > maxComponents: maxComponents = len(path)
-#     executionList = [ [] for _ in range(maxComponents)]
-#     executionCounter = -1
-#     for node in orderedNodes:
-#       nodeCtn = 0
-#       for path in allPath:
-#         if node in path: nodeCtn +=1
-#       if nodeCtn == numberPath:
-#         executionCounter+=1
-#         executionList[executionCounter] = [node]
-#       else:
-#         previousNodesInPath = []
-#         for path in allPath:
-#           if path.count(node) > 0: previousNodesInPath.append(path[path.index(node)-1])
-#         for previousNode in previousNodesInPath:
-#           if previousNode in executionList[executionCounter]:
-#             executionCounter+=1
-#             break
-#         executionList[executionCounter].append(node)
-#     return executionList
-
-  def __getExecutionList(self, orderedNodes, allPath):
-    """
-      Method to get the execution list
-      @ In, orderedNodes, list, list of models ordered based on the input/output relationships
-      @ In, allPath, list, list of lists containing all the path from orderedNodes[0] to orderedNodes[-1]
-      @ Out, executionList, list, list of lists with the execution order (e.g. [[model1],[model2.1,model2.2],[model3], etc.]
-    """
-    numberPath    = len(allPath)
-    maxComponents = max([len(path) for path in allPath])
-
-    executionList = [ [] for _ in range(maxComponents)]
-    executionCounter = -1
-    for node in orderedNodes:
-      nodeCtn = 0
-      for path in allPath:
-        if node in path: nodeCtn +=1
-      if nodeCtn == numberPath:
-        executionCounter+=1
-        executionList[executionCounter] = [node]
-      else:
-        previousNodesInPath = []
-        for path in allPath:
-          if path.count(node) > 0: previousNodesInPath.append(path[path.index(node)-1])
-        for previousNode in previousNodesInPath:
-          if previousNode in executionList[executionCounter]:
-            executionCounter+=1
-            break
-        executionList[executionCounter].append(node)
-    return executionList
+#######################################################################################
+#  To be uncommented when the execution list can be handled
+#  def __getExecutionList(self, orderedNodes, allPath):
+#    """
+#      Method to get the execution list
+#      @ In, orderedNodes, list, list of models ordered based
+#                       on the input/output relationships
+#      @ In, allPath, list, list of lists containing all the
+#                       path from orderedNodes[0] to orderedNodes[-1]
+#      @ Out, executionList, list, list of lists with the execution
+#                       order ([[model1],[model2.1,model2.2],[model3], etc.]
+#    """
+#    numberPath    = len(allPath)
+#    maxComponents = max([len(path) for path in allPath])
+#
+#    executionList = [ [] for _ in range(maxComponents)]
+#    executionCounter = -1
+#    for node in orderedNodes:
+#      nodeCtn = 0
+#      for path in allPath:
+#        if node in path: nodeCtn +=1
+#      if nodeCtn == numberPath:
+#        executionCounter+=1
+#        executionList[executionCounter] = [node]
+#      else:
+#        previousNodesInPath = []
+#        for path in allPath:
+#          if path.count(node) > 0: previousNodesInPath.append(path[path.index(node)-1])
+#        for previousNode in previousNodesInPath:
+#          if previousNode in executionList[executionCounter]:
+#            executionCounter+=1
+#            break
+#        executionList[executionCounter].append(node)
+#    return executionList
+#######################################################################################
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -1834,8 +1817,6 @@ class EnsembleModel(Dummy, Assembler):
       @ In, initDict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    self.tree = TreeStructure.HierarchicalTree(self.messageHandler,TreeStructure.HierarchicalNode(self.messageHandler,self.name))
-    rootNode = self.tree.getrootnode()
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
       inputInstancesForModel = []
@@ -1846,12 +1827,11 @@ class EnsembleModel(Dummy, Assembler):
         if mm not in self.mods: self.mods.append(mm)
       self.modelsDictionary[modelIn[2]]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
       self.tempTargetEvaluations[modelIn[2]]                 = copy.deepcopy(self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
-      #if type(self.tempTargetEvaluations[modelIn[2]]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(self.tempTargetEvaluations[modelIn[2]]).__name__)
       self.modelsDictionary[modelIn[2]]['Input' ] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
       self.modelsDictionary[modelIn[2]]['Output'] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
     # construct chain connections
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
-
+    # find matching models
     for modelIn in self.modelsDictionary.keys():
       outputMatch = []
       for i in range(len(self.modelsDictionary[modelIn]['Output'])):
@@ -1859,15 +1839,6 @@ class EnsembleModel(Dummy, Assembler):
         outputMatch.extend(match if match is not None else [])
       outputMatch = list(set(outputMatch))
       modelsToOutputModels[modelIn] = outputMatch
-    orderList        = self.modelsDictionary.keys()
-    for modelIn in self.modelsDictionary.keys():
-      for i in range(len(self.modelsDictionary[modelIn]['Input'])):
-        inputMatch   = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
-        if inputMatch is not None:
-          for match in inputMatch:
-            indexModelIn = orderList.index(modelIn)
-            orderList.pop(indexModelIn)
-            orderList.insert(int(max(orderList.index(match)+1,indexModelIn)), modelIn)
     # construct the ensemble model directed graph
     self.ensembleModelGraph = graphStructure.graphObject(modelsToOutputModels)
     # make some checks
@@ -1881,11 +1852,11 @@ class EnsembleModel(Dummy, Assembler):
     self.orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)
     self.raiseAMessage("Model Execution list: "+' -> '.join(self.orderList))
     ###################################################
-
-    #orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)
-
-    if len(allPath) > 1: self.executionList = self.__getExecutionList(orderList,allPath)
-    else               : self.executionList = allPath[-1]
+    ###########################################################################################
+    # To be uncommented when the execution list can be handled                                #
+    # if len(allPath) > 1: self.executionList = self.__getExecutionList(self.orderList,allPath) #
+    # else               : self.executionList = allPath[-1]                                     #
+    ###########################################################################################
     # check if Picard needs to be activated
     self.activatePicard = self.ensembleModelGraph.isALoop()
     if self.activatePicard:
@@ -1897,10 +1868,16 @@ class EnsembleModel(Dummy, Assembler):
     for modelIn in self.modelsDictionary.keys():
       for modelInOut in self.modelsDictionary[modelIn]['Output']:
         if modelInOut not in self.allOutputs: self.allOutputs.append(modelInOut)
+      # in case there are metadataToTransfer, let's check if the source model is executed before the one that requests info
+      if self.modelsDictionary[modelIn]['metadataToTransfer']:
+        indexModelIn = self.orderList.index(modelIn)
+        for metadataToGet, source, _ in self.modelsDictionary[modelIn]['metadataToTransfer']:
+          if self.orderList.index(source) >= indexModelIn:
+            self.raiseAnError(IOError, 'In model "'+modelIn+'" the "metadataToTransfer" named "'+metadataToGet+
+                                       '" is linked to the source"'+source+'" that will be executed after this model.')
     self.needToCheckInputs = True
-
     # write debug statements
-    self.raiseAMessage("Specs of directed Graph formed by EnsembleModel:")
+    self.raiseAMessage("Specs of Graph Network represented by EnsembleModel:")
     self.raiseAMessage("Graph Degree Sequence is    : "+str(self.ensembleModelGraph.degreeSequence()))
     self.raiseAMessage("Graph Minimum/Maximum degree: "+str( (self.ensembleModelGraph.minDelta(), self.ensembleModelGraph.maxDelta())))
     self.raiseAMessage("Graph density/diameter      : "+str( (self.ensembleModelGraph.density(),  self.ensembleModelGraph.diameter())))
@@ -1957,7 +1934,7 @@ class EnsembleModel(Dummy, Assembler):
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
@@ -1966,17 +1943,18 @@ class EnsembleModel(Dummy, Assembler):
     """
     # check if all the inputs of the submodule are covered by the sampled vars and Outputs of the other sub-models
     if self.needToCheckInputs: allCoveredVariables = list(set(self.allOutputs + Kwargs['SampledVars'].keys()))
-    newInputs                     = {}
     identifier                    = Kwargs['prefix']
-    newInputs['prefix']           = identifier
+    # global prefix
+    newInputs                     = {'prefix':identifier}
     for modelIn, specs in self.modelsDictionary.items():
       if self.needToCheckInputs:
         for inp in specs['Input']:
-          if inp not in allCoveredVariables:
-            self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inp+" has not been found among other models' outputs and sampled variables!")
+          if inp not in allCoveredVariables: self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inp+" has not been found among other models' outputs and sampled variables!")
       newKwargs = self.__selectInputSubset(modelIn,Kwargs)
       inputDict = [self._inputToInternal(self.modelsDictionary[modelIn]['InputObject'][0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  self.modelsDictionary[modelIn]['InputObject']
-      newInputs[modelIn] = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
+      # local prefix
+      newKwargs['prefix'] = modelIn+utils.returnIdSeparator()+identifier
+      newInputs[modelIn]  = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
       if specs['Instance'].type == 'Code': newInputs[modelIn][1]['originalInput'] = inputDict
     self.needToCheckInputs = False
     return copy.deepcopy(newInputs)
@@ -2059,7 +2037,8 @@ class EnsembleModel(Dummy, Assembler):
     for previousOutputs, outputType in zip(listOfOutputs,typeOutputs):
       if len(previousOutputs.values()) > 0:
         for input in self.modelsDictionary[modelIn]['Input']:
-          if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input][-1] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
+          if input in previousOutputs.keys():
+            dependentOutputs[input] =  previousOutputs[input][-1] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
           #if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
     return dependentOutputs
 
@@ -2073,86 +2052,96 @@ class EnsembleModel(Dummy, Assembler):
     """
     Input, jobHandler = inRun[0], inRun[1]
     identifier = Input.pop('prefix')
-    #with self.lockSystem:
-
-    for modelIn in self.orderList:
-      self.tempTargetEvaluations[modelIn].resetData()
+    for modelIn in self.orderList: self.tempTargetEvaluations[modelIn].resetData()
     tempTargetEvaluations = copy.deepcopy(self.tempTargetEvaluations)
-    #modelsTargetEvaluations[modelIn] = copy.deepcopy(self.modelsDictionary[modelIn]['TargetEvaluation'])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
-    gotOutputs  = [{}]*len(self.orderList)
-    typeOutputs = ['']*len(self.orderList)
+    gotOutputs       = [{}]*len(self.orderList)
+    typeOutputs      = ['']*len(self.orderList)
+    # if nonlinear system, initialize residue container
     if self.activatePicard:
       for modelIn in self.orderList:
         residueContainer[modelIn] = {'residue':{},'iterValues':[{}]*2}
         for out in self.modelsDictionary[modelIn]['Output']:
           residueContainer[modelIn]['residue'][out], residueContainer[modelIn]['iterValues'][0][out], residueContainer[modelIn]['iterValues'][1][out] = np.zeros(1), np.zeros(1), np.zeros(1)
     maxIterations, iterationCount = (self.maxIterations, 0) if self.activatePicard else (1 , 0)
-    #if self.activatePicard: maxIterations, iterationCount = self.maxIterations, 0 if self.activatePicard else 1 , 0
-    #else                  : maxIterations, iterationCount = 1 , 0
     while iterationCount < maxIterations:
       returnDict     = {}
       iterationCount += 1
       if self.activatePicard: self.raiseAMessage("Picard's Iteration "+ str(iterationCount))
       for modelCnt, modelIn in enumerate(self.orderList):
         tempTargetEvaluations[modelIn].resetData()
+        # in case there are metadataToTransfer, let's collect them from the source
+        metadataToTransfer = None
+        if self.modelsDictionary[modelIn]['metadataToTransfer']: metadataToTransfer = {}
+        for metadataToGet, source, alias in self.modelsDictionary[modelIn]['metadataToTransfer']:
+          if metadataToGet not in returnDict[source]['metadata'].keys():
+            self.raiseAnError(RuntimeError,'metadata "'+metadataToGet+'" is not present among the ones available in source "'+source+'"!')
+          metadataToTransfer[metadataToGet if alias is None else alias] = returnDict[source]['metadata'][metadataToGet][-1]
+        # get dependent outputs
         dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
+        # if nonlinear system, check for initial coditions
         if iterationCount == 1  and self.activatePicard:
-          try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
-          except           : sampledVars = Input[modelIn][1]['SampledVars'].keys()
+          try:
+            sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
+          except (IndexError,TypeError):
+            sampledVars = Input[modelIn][1]['SampledVars'].keys()
           for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
             if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = self.initialConditions[initCondToSet]
             else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
+        # set new identifiers
+        try:
+          Input[modelIn][0][1]['prefix']        = modelIn+utils.returnIdSeparator()+identifier
+          Input[modelIn][0][1]['uniqueHandler'] = self.name+identifier
+          if metadataToTransfer is not None: Input[modelIn][0][1]['metadataToTransfer'] = metadataToTransfer
+        except (IndexError,TypeError):
+          Input[modelIn][1]['prefix']           = modelIn+utils.returnIdSeparator()+identifier
+          Input[modelIn][1]['uniqueHandler']    = self.name+identifier
+          if metadataToTransfer is not None: Input[modelIn][1]['metadataToTransfer'] = metadataToTransfer
+        # update input with dependent outputs
         Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
-        try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"|"+identifier, self.name+identifier
-        except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
         nextModel = False
         while not nextModel:
           moveOn = False
           while not moveOn:
             if jobHandler.availability() > 0:
-              #with self.lockSystem:
+              # run the model
               self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
-              while not jobHandler.isThisJobFinished(modelIn+"|"+identifier): time.sleep(1.e-3)
+              # wait until the model finishes, in order to get ready to run the subsequential one
+              while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier): time.sleep(1.e-3)
               nextModel, moveOn = True, True
             else: time.sleep(1.e-3)
-          # get job that just finished
-          finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+"|"+identifier, uniqueHandler=self.name+identifier)
+          # get job that just finished to gather the results
+          finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
           if finishedRun[0].getEvaluation() == -1:
+            # the model failed
             for modelToRemove in self.orderList:
-              if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "|" + identifier, uniqueHandler = self.name + identifier)
+              if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
           # get back the output in a general format
+          # finalize the model (e.g. convert the output into a RAVEN understandable one)
           self.modelsDictionary[modelIn]['Instance'].finalizeModelOutput(finishedRun[0])
+          # collect output in the temporary data object
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
-          returnDict[modelIn]  = {}
-          responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
-          inputSpace = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
-          #inputSpaceOut = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+          # store the results in the working dictionaries
+          returnDict[modelIn]   = {}
+          responseSpace         = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+          inputSpace            = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
           typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
-#           if typeOutputs[modelCnt] != 'HistorySet':
-#             gotOutputs[modelCnt], inputSpace = {}, {}
-#             for key,value in responseSpace.items(): gotOutputs[modelCnt][key] = np.atleast_1d(value[-1])
-#             for key,value in inputSpace.items()   : inputSpace[key]           = np.atleast_1d(value[-1])
-#           else:
-#             gotOutputs[modelCnt], inputSpace = responseSpace.values()[-1], inputSpace.values()[-1]
           gotOutputs[modelCnt]  = responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
-          #store the result in return dictionary
+          #store the results in return dictionary
           returnDict[modelIn]['outputSpaceParams'] = gotOutputs[modelCnt]
           returnDict[modelIn]['inputSpaceParams' ] = inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
           returnDict[modelIn]['metadata'         ] = tempTargetEvaluations[modelIn].getAllMetadata()
-          #returnDict[modelIn] = {'outputSpaceParams':gotOutputs[modelCnt],'inputSpaceParams':tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding'),'metadata':tempTargetEvaluations[modelIn].getAllMetadata()}
+          # if nonlinear system, compute the residue
           if self.activatePicard:
-            # compute residue
             residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
             for out in gotOutputs[modelCnt].keys():
               residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
               if iterationCount == 1: residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
             for out in gotOutputs[modelCnt].keys():
-              if np.asarray(residueContainer[modelIn]['iterValues'][0][out]).shape != np.asarray(residueContainer[modelIn]['iterValues'][1][out]).shape:
-                pass
               residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
             residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(residueContainer[modelIn]['iterValues'][1].values())-np.asarray(residueContainer[modelIn]['iterValues'][0].values()))
+      # if nonlinear system, check the total residue and convergence
       if self.activatePicard:
         iterZero, iterOne = [],[]
         for modelIn in self.orderList:
@@ -2167,7 +2156,7 @@ class EnsembleModel(Dummy, Assembler):
     return returnEvaluation
 
 """
- Factory......
+ Factory
 """
 __base = 'model'
 __interFaceDict = {}

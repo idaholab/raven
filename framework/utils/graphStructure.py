@@ -10,6 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #----- end python 2 - 3 compatibility
 #External Modules------------------------------------------------------------------------------------
 import sys
+import itertools
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 import utils
@@ -28,7 +29,7 @@ class graphObject(object):
       @ In, graphDict, dict, the graph dictionary ({'Node':[connectedNode1,connectedNode2, etc.]}
     """
     if graphDict == None: graphDict = {}
-    self.__graphDict = graphDict
+    self.__graphDict = { k.strip():v for k, v in graphDict.iteritems()}
 
   def vertices(self):
     """
@@ -233,7 +234,7 @@ class graphObject(object):
     paths = []
     for vert in self.vertices():
       for vertex in self.vertices():
-        if vertex not in vert: paths.extend(self.findAllPaths(vertex, vert))
+        if vertex != vert: paths.extend(self.findAllPaths(vertex, vert))
     uniquePaths = list(utils.filterAllSubSets(paths))
     return uniquePaths
 
@@ -329,8 +330,10 @@ class graphObject(object):
       @ In, None
       @ Out, diameter, integer, ensity of a graph
     """
-    v = self.vertices()
-    pairs = [ (v[i],v[j]) for i in range(len(v)-1) for j in range(i+1, len(v))]
+    v    = self.vertices()
+    vrev = list(reversed(v))
+    pairs = list(itertools.combinations(v,2))
+    pairs.extend(list(itertools.combinations(vrev,2)))
     smallestPaths = []
     for (s,e) in pairs:
       paths = self.findAllPaths(s,e)

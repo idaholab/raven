@@ -156,7 +156,7 @@ class MonteCarlo(ForwardSampler):
         self.inputInfo['ProbabilityWeight'  ] = weight
       else:
         self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
-    self.inputInfo['SamplerType'] = 'MC'
+    self.inputInfo['SamplerType'] = 'MonteCarlo'
 
   def _localHandleFailedRuns(self,failedRuns):
     """

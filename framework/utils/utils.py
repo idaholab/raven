@@ -20,7 +20,9 @@ class Object(object):pass
 
 #custom errors
 class NoMoreSamplesNeeded(GeneratorExit): pass
-
+# ID separator that should be used cross the code when combined ids need to be assembled.
+# For example, when the "EnsembleModel" creates new  ``prefix`` ids for sub-models
+__idSeparator = "++"
 
 def identifyIfExternalModelExists(caller, moduleIn, workingDir):
   """
@@ -61,7 +63,6 @@ def checkIfUnknowElementsinList(referenceList,listToTest):
     if elem not in referenceList: unknownElements.append(elem)
   return unknownElements
 
-
 def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   """
     Method to check if a path (file or directory) is currently
@@ -86,8 +87,17 @@ def checkIfLockedRavenFileIsPresent(pathName,fileName="ravenLockedKey.raven"):
     @ Out, filePresent, bool, True if it is present, False otherwise
   """
   filePresent = os.path.isfile(os.path.join(pathName,fileName))
-  open(os.path.join(pathName,fileName), 'w')
+  if not filePresent:
+    open(os.path.join(pathName,fileName), 'w')
   return filePresent
+
+def removeFile(pathAndFileName):
+  """
+    Method to remove a file
+    @ In, pathAndFileName, string, string containing the path and filename
+    @ Out, None
+  """
+  if os.path.isfile(pathAndFileName): os.remove(pathAndFileName)
 
 def returnImportModuleString(obj,moduleOnly=False):
   """
@@ -845,10 +855,10 @@ def sizeMatch(var,sizeToCheck):
 
 def isASubset(setToTest,pileList):
   """
-     Check if setToTest is ordered subset of pileList in O(n)
-     @ In, setToTest, list, set that needs to be tested
-     @ In, pileList, list, pile of sets
-     @ Out, isASubset, bool, True if setToTest is a subset
+    Check if setToTest is ordered subset of pileList in O(n)
+    @ In, setToTest, list, set that needs to be tested
+    @ In, pileList, list, pile of sets
+    @ Out, isASubset, bool, True if setToTest is a subset
   """
 
   if len(pileList) < len(setToTest): return False
@@ -872,21 +882,20 @@ def filterAllSubSets(listOfLists):
       yield setToTest
 
 def mergeDictionaries(*dictArgs):
-    '''
+  """
     Given any number of dicts, shallow copy and merge into a new dict,
     precedence goes to key value pairs in latter dicts.
     Adapted from: http://stackoverflow.com/questions/38987/how-to-merge-two-python-dictionaries-in-a-single-expression
     @ In, dictArgs, dict, a list of dictionaries to merge
     @ Out, mergedDict, dict, merged dictionary including keys from everything in dictArgs.
-    '''
-    mergedDict = {}
-    for dictionary in dictArgs:
-      overlap = set(dictionary.keys()).intersection(mergedDict.keys())
-      if len(overlap):
-        commonKeys = ', '.join(overlap)
-        caller.raiseAnError(IOError,'Utils, mergeDictionaries: the dictionaries being merged have the following overlapping keys: ' + str(commonKeys))
-      mergedDict.update(dictionary)
-    return mergedDict
+  """
+  mergedDict = {}
+  for dictionary in dictArgs:
+    overlap = set(dictionary.keys()).intersection(mergedDict.keys())
+    if len(overlap):
+      raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> mergeDictionaries: the dictionaries being merged have the following overlapping keys: ' + ', '.join(overlap))
+    mergedDict.update(dictionary)
+  return mergedDict
 
 def mergeSequences(seq1,seq2):
   """
@@ -930,5 +939,16 @@ def checkTypeRecursively(inObject):
       break
   except: pass
   return returnType
+
+def returnIdSeparator():
+  """
+    This method is aimed to return the ID separator that should be used cross the code when
+    combined ids need to be assembled. For example, when the "EnsembleModel" creates new
+    ``prefix`` ids for sub-models
+    @ In, None
+    @ Out, __idSeparator, string, the id separator
+  """
+  return __idSeparator
+
 
 

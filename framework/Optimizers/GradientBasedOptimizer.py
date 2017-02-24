@@ -166,7 +166,7 @@ class GradientBasedOptimizer(Optimizer):
 
     prefix = self.mdlEvalHist.getMetadata('prefix')
     for index, pr in enumerate(prefix):
-      pr = pr.split('|')[-1].split('_')
+      pr = pr.split(utils.returnIdSeparator())[-1].split('_')
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
       if pr[0] == str(traj) and pr[1] == str(updateKey) and pr[2] == str(evalID):
         return (True, index)

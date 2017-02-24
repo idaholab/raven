@@ -373,10 +373,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     objective  = self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')[self.objVar]
     prefix = self.mdlEvalHist.getMetadata('prefix',nodeId='RecontructEnding')
-    if len(prefix) > 0 and "|" in prefix[0]:
+    if len(prefix) > 0 and utils.returnIdSeparator() in prefix[0]:
       # ensemble model id modification
       # FIXME: Need to find a better way to handle this case
-      prefix = [key.split("|")[-1] for key in prefix]
+      prefix = [key.split(utils.returnIdSeparator())[-1] for key in prefix]
     search = dict(zip(prefix, objective))
     functionValue = search.get(evaluationID,None)
     return functionValue
