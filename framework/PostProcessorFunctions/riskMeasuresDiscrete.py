@@ -181,10 +181,6 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           dataSystemFailure  = np.delete(data, indexSystemFailure,  axis=1)
           Rvalues[inp['name']][variable] ['R0'] = Rvalues[inp['name']][variable]['Rminus'] = Rvalues[inp['name']][variable]['Rplus'] = np.sum(dataSystemFailure[0,:])
 
-        print(str(variable) + " R0 : " + str(Rvalues[inp['name']][variable]['R0']))
-        print(str(variable) + " R- : " + str(Rvalues[inp['name']][variable]['Rminus']))
-        print(str(variable) + " R+ : " + str(Rvalues[inp['name']][variable]['Rplus']))
-
         # Step 5: Calculate RRW, RAW, FV, B for each variable and for each data set
         #measures[inp['name']][variable]['RRW'] = R0/Rminus
         #measures[inp['name']][variable]['RAW'] = Rplus/R0
