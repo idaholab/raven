@@ -275,70 +275,28 @@ The goals of this section is to show how to:
 In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
-\begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <RunInfo>
-    <JobName>Chapter-X/StatisticalAnalysis</JobName>
-    <Sequence>
-        sampleMC,statisticalAnalysisMC
-    </Sequence>
-    <WorkingDir>StatisticalAnalysis</WorkingDir>
-    <batchSize>40</batchSize>
-  </RunInfo>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{RunInfo}
    As shown in the other examples, the \textit{RunInfo} \textbf{Entity} is intended  to set up the desired analysis . In this specific case, two steps  (\xmlNode{Sequence}) are  sequentially run
    using forty processors (\xmlNode{batchSize}).
    \\In the first step, the original physical model is sampled. The obtained results are  analyzed with the Statistical Post-Processor.
    \item \textbf{\textit{Files}}:
-\begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <Files>
-    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
-    <Input name="output_stat_analysis_mc.csv" type="">output_stat_analysis_mc.csv</Input>
-  </Files>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{Files}
    Since the driven code uses a single input file, in this section the original input is placed. As detailed in the user manual
    the attribute  \xmlAttr{name} represents the alias that is going to be
    used in all the other input blocks in order to refer to this file.
    \\In addition, the output file of the \textit{PostProcess} \textbf{Step} is
-   here defined (CSV).
+   here defined (XML format).
    \item \textbf{\textit{Models}}:
-\begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <Models>
-    <Code name="testModel" subType="GenericCode">
-      <executable>
-     ../physicalCode/analyticalbateman/AnalyticalDplMain.py
-      </executable>
-      <clargs arg="python" type="prepend"/>
-      <clargs arg="" extension=".xml" type="input"/>
-      <clargs arg="" extension=".csv" type="output"/>
-      <prepend>python</prepend>
-    </Code>
-    <PostProcessor name="statisticalAnalysis" subType="BasicStatistics">
-      <what>all</what>
-      <parameters>
-        sigma-A,sigma-B,decay-A,decay-B,A,B,C,D
-      </parameters>
-    </PostProcessor>
-  </Models>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{Models}
  The goal of this example is to show how the
  principal statistical FOMs can be computed through RAVEN.
  \\Indeed, in addition to the previously explained Code
  model, a Post-Processor model (BasicStatistics) is here specified.
 Note that the post-process step is
-performed on all the variables/parameters used in this example ( $sigma-A,\,sigma-B,\, decay-A, \, decay-B,\, A,\, B,\, C \, and \, D$).
+performed on all the variables with respect to the parameters used in this example ( $A,\, B,\, C \, and \, D$
+with respect to $sigma-A,\,sigma-B,\, decay-A,$ and $decay-B$).
    \item \textbf{\textit{Distributions}}:
-\begin{lstlisting}[style=XML]
-  <Distributions>
-      <Uniform name="sigma">
-          <lowerBound>0</lowerBound>
-          <upperBound>1000</upperBound>
-      </Uniform>
-      <Uniform name="decayConstant">
-          <lowerBound>0.00000001</lowerBound>
-          <upperBound>0.0000001</upperBound>
-      </Uniform>
-  </Distributions>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{Distributions}
   In the Distributions XML section, the stochastic models for the
   uncertainties are reported. In
   this case 2 distributions are defined:
@@ -350,41 +308,10 @@ performed on all the variables/parameters used in this example ( $sigma-A,\,sigm
     associated with  the Model \textit{decay-A} and \textit{decay-B}.
   \end{itemize}
    \item \textbf{\textit{Samplers}}:
-\begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <Samplers>
-    <MonteCarlo name="mc">
-      <samplerInit>
-        <limit>1200</limit>
-      </samplerInit>
-      <variable name="sigma-A">
-        <distribution>sigma</distribution>
-      </variable>
-      <variable name="decay-A">
-        <distribution>decayConstant</distribution>
-      </variable>
-      <variable name="sigma-B">
-          <distribution>sigma</distribution>
-      </variable>
-      <variable name="decay-B">
-          <distribution>decayConstant</distribution>
-      </variable>
-    </MonteCarlo>
-  </Samplers>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{Samplers}
   In order to obtained the data-set through which the statistical FOMs need to be computed, a \textit{MonteCarlo} sampling approach is here employed.
    \item \textbf{\textit{DataObjects}}:
-\begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <DataObjects>
-    <PointSet name="samplesMC">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>A,B,C,D</Output>
-    </PointSet>
-    <HistorySet name="histories">
-        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-        <Output>A,B,C,D,time</Output>
-    </HistorySet>
-  </DataObjects>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{DataObjects}
   Int this block, two \textit{DataObjects} are defined:
   1) PointSet named ``samplesMC'' used to collect the final outcomes of
   the code,
@@ -392,22 +319,7 @@ performed on all the variables/parameters used in this example ( $sigma-A,\,sigm
   variables $A,B,C,D$ are going to be stored.
 
    \item \textbf{\textit{Steps}}:
-\begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <Steps>
-    <MultiRun name="sampleMC">
-      <Input   class="Files"       type="input">referenceInput.xml</Input>
-      <Model   class="Models"      type="Code">testModel</Model>
-      <Sampler class="Samplers"    type="MonteCarlo">mc</Sampler>
-      <Output  class="DataObjects" type="PointSet">samplesMC</Output>
-      <Output  class="DataObjects" type="HistorySet">histories</Output>
-    </MultiRun>
-    <PostProcess name="statisticalAnalysisMC">
-      <Input  class="DataObjects" type="PointSet">samplesMC</Input>
-      <Model  class="Models"      type="PostProcessor">statisticalAnalysis</Model>
-      <Output class="Files"       type="">output_stat_analysis_mc.csv</Output>
-    </PostProcess>
-  </Steps>
-\end{lstlisting}
+     \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{Steps}
 
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

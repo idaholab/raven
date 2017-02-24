@@ -1117,8 +1117,8 @@ class InterfacedPostProcessor(BasePostProcessor):
           for key in exportDict['outputSpaceParams']:
             if key in output.getParaKeys('outputs'):
               output.updateOutputValue(key,exportDict['outputSpaceParams'][str(key)])
-      for key in exportDict['metadata'][0]:
-        output.updateMetadata(key,exportDict['metadata'][0][key])
+      for key in exportDict['metadata']:
+        output.updateMetadata(key,exportDict['metadata'][key])
     else:   # output.type == 'PointSet':
       for key in exportDict['inputSpaceParams']:
         if key in output.getParaKeys('inputs'):
@@ -1128,30 +1128,28 @@ class InterfacedPostProcessor(BasePostProcessor):
         if str(key) in output.getParaKeys('outputs'):
           for value in exportDict['outputSpaceParams'][key]:
             output.updateOutputValue(str(key),value)
-      for key in exportDict['metadata'][0]:
-        output.updateMetadata(key,exportDict['metadata'][0][key])
+      for key in exportDict['metadata']:
+        output.updateMetadata(key,exportDict['metadata'][key])
 
 
   def inputToInternal(self,input):
     """
       Function to convert the received input into a format this object can
       understand
-      @ In, input, dataObject, data object handed to the post-processor
-      @ Out, inputDict, dict, a dictionary this object can process
+      @ In, input, list, list of dataObjects handed to the post-processor
+      @ Out, inputDict, list, list of dictionaries this object can process
     """
-    inputDict = {'data':{}, 'metadata':{}}
-    metadata = []
-    if type(input) == dict:
-      return input
-    else:
-      if len(input[0]) == 0: self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : The input dataObject named '+input[0].name + ' is empty. Check your input!')
-      inputDict['data']['input']  = copy.deepcopy(input[0].getInpParametersValues())
-      inputDict['data']['output'] = copy.deepcopy(input[0].getOutParametersValues())
-    for item in input:
-      metadata.append(copy.deepcopy(item.getAllMetadata()))
-    metadata.append(item.getAllMetadata())
-    inputDict['metadata']=metadata
-
+    inputDict = []
+    for inp in input:
+      if type(inp) == dict:
+        return [inp]
+      else:
+        inputDictTemp = {'data':{}, 'metadata':{}}
+        inputDictTemp['data']['input']  = copy.deepcopy(inp.getInpParametersValues())
+        inputDictTemp['data']['output'] = copy.deepcopy(inp.getOutParametersValues())
+        inputDictTemp['metadata']       = copy.deepcopy(inp.getAllMetadata())
+        inputDictTemp['name'] = inp.whoAreYou()['Name']
+      inputDict.append(inputDictTemp)
     return inputDict
 
 #

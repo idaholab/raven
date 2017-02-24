@@ -39,6 +39,7 @@ import utils
 from Application import __PySideAvailable
 if __PySideAvailable:
   from Application import InteractiveApplication
+import TreeStructure
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------
@@ -581,6 +582,7 @@ class Simulation(MessageHandler.MessageUser):
       @ In, xmlFileName, string, optional, the raven input file name
       @ Out, externalElemment, xml.etree.ElementTree.Element, object that will be added to the current tree of raven input
     """
+    #TODO make one for getpot too
     if '~' in externalXMLFile: externalXMLFile = os.path.expanduser(externalXMLFile)
     if not os.path.isabs(externalXMLFile):
       if xmlFileName == None:
@@ -588,7 +590,7 @@ class Simulation(MessageHandler.MessageUser):
       xmlDirectory = os.path.dirname(os.path.abspath(xmlFileName))
       externalXMLFile = os.path.join(xmlDirectory,externalXMLFile)
     if os.path.exists(externalXMLFile):
-      externalTree = ET.parse(externalXMLFile)
+      externalTree = TreeStructure.parse(externalXMLFile)
       externalElement = externalTree.getroot()
       if externalElement.tag != externalXMLNode:
         self.raiseAnError(IOError,'The required node is: ' + externalXMLNode + 'is different from the provided external xml type: ' + externalElement.tag)
@@ -596,24 +598,24 @@ class Simulation(MessageHandler.MessageUser):
       self.raiseAnError(IOError,'The external xml input file ' + externalXMLFile + ' does not exist!')
     return externalElement
 
-  def XMLpreprocess(self,xmlNode,xmlFileName=None):
+  def XMLpreprocess(self,node,inputFileName=None):
     """
-      Preprocess the xml input file, load external xml files into the main ET
-      @ In, xmlNode, xml.etree.ElementTree.Element, root element of RAVEN input file
-      @ In, xmlFileName, string, optional, the raven input file name
+      Preprocess the input file, load external xml files into the main ET
+      @ In, node, TreeStructure.InputNode, element of RAVEN input file
+      @ In, inputFileName, string, optional, the raven input file name
       @ Out, None
     """
-    self.verbosity = xmlNode.attrib.get('verbosity','all')
-    for element in xmlNode.iter():
+    self.verbosity = node.attrib.get('verbosity','all')
+    for element in node.iter():
       for subElement in element:
         if subElement.tag == 'ExternalXML':
           self.raiseADebug('-'*2+' Loading external xml within block '+ element.tag+ ' for: {0:15}'.format(str(subElement.attrib['node']))+2*'-')
           nodeName = subElement.attrib['node']
           xmlToLoad = subElement.attrib['xmlToLoad'].strip()
-          newElement = self.ExternalXMLread(xmlToLoad,nodeName,xmlFileName)
+          newElement = self.ExternalXMLread(xmlToLoad,nodeName,inputFileName)
           element.append(newElement)
           element.remove(subElement)
-          self.XMLpreprocess(xmlNode,xmlFileName)
+          self.XMLpreprocess(node,inputFileName)
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     """
@@ -623,6 +625,7 @@ class Simulation(MessageHandler.MessageUser):
       @ In, xmlFilename, string, optional, xml filename for relative directory
       @ Out, None
     """
+    #TODO update syntax to note that we read InputTrees not XmlTrees
     unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity','color'],list(xmlNode.attrib.keys()))
     if len(unknownAttribs) > 0:
       errorMsg = 'The following attributes are unknown:'
@@ -636,8 +639,9 @@ class Simulation(MessageHandler.MessageUser):
       self.raiseADebug('Setting color output mode to',xmlNode.attrib['color'])
       self.messageHandler.setColor(xmlNode.attrib['color'])
     self.messageHandler.verbosity = self.verbosity
-    try: runInfoNode = xmlNode.find('RunInfo')
-    except: self.raiseAnError(IOError,'The RunInfo node is missing!')
+    runInfoNode = xmlNode.find('RunInfo')
+    if runInfoNode is None:
+      self.raiseAnError(IOError,'The RunInfo node is missing!')
     self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
     ### expand variable groups before continuing ###
     ## build variable groups ##
@@ -721,7 +725,7 @@ class Simulation(MessageHandler.MessageUser):
       fileName = os.path.join(self.runInfoDict['WorkingDir'],self.runInfoDict['printInput'])
       self.raiseAMessage('Writing duplicate input file:',fileName)
       outFile = file(fileName,'w')
-      outFile.writelines(ET.tostring(xmlNode)+'\n') #\n for no-end-of-line issue
+      outFile.writelines(TreeStructure.tostring(xmlNode)+'\n') #\n for no-end-of-line issue
       outFile.close()
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
       self.raiseAnError(IOError,'The step list: '+str(self.stepSequenceList)+' contains steps that have not been declared: '+str(list(self.stepsDict.keys())))

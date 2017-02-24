@@ -75,44 +75,50 @@ class HistorySetSync(PostProcessorInterfaceBase):
 
   def run(self,inputDic):
     """
-    This method is transparent: it passes the inputDic directly as output
+     Method to post-process the dataObjects
+     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+     @ Out, outputPSDic, dict, output dictionary
     """
-    outputDic={}
-    outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
-    outputDic['data'] = {}
-    outputDic['data']['input'] = copy.deepcopy(inputDic['data']['input'])
-    outputDic['data']['output'] = {}
+    if len(inputDic)>1:
+      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+    else:
+      inputDic = inputDic[0]
+      outputDic={}
+      outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
+      outputDic['data'] = {}
+      outputDic['data']['input'] = copy.deepcopy(inputDic['data']['input'])
+      outputDic['data']['output'] = {}
 
-    newTime = []
-    if self.syncMethod == 'grid':
-      maxEndTime = []
-      minInitTime = []
+      newTime = []
+      if self.syncMethod == 'grid':
+        maxEndTime = []
+        minInitTime = []
+        for hist in inputDic['data']['output']:
+          maxEndTime.append(inputDic['data']['output'][hist][self.pivotParameter][-1])
+          minInitTime.append(inputDic['data']['output'][hist][self.pivotParameter][0])
+        maxTime = max(maxEndTime)
+        minTime = min(minInitTime)
+        newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
+      elif self.syncMethod == 'all':
+        times = set()
+        for hist in inputDic['data']['output']:
+          for value in inputDic['data']['output'][hist][self.pivotParameter]:
+            times.add(value)
+        times = list(times)
+        times.sort()
+        newTime = np.array(times)
+      elif self.syncMethod in ['min',"max"]:
+        notableHist = None   #set on first iteration
+        notableLength = None #set on first iteration
+        for h,hist in enumerate(inputDic['data']['output'].keys()):
+          l = len(inputDic['data']['output'][hist][self.pivotParameter])
+          if (h==0) or (self.syncMethod == 'max' and l > notableLength) or (self.syncMethod == 'min' and l < notableLength):
+            notableHist = inputDic['data']['output'][hist][self.pivotParameter][:]
+            notableLength = l
+        newTime = np.array(notableHist)
       for hist in inputDic['data']['output']:
-        maxEndTime.append(inputDic['data']['output'][hist][self.pivotParameter][-1])
-        minInitTime.append(inputDic['data']['output'][hist][self.pivotParameter][0])
-      maxTime = max(maxEndTime)
-      minTime = min(minInitTime)
-      newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
-    elif self.syncMethod == 'all':
-      times = set()
-      for hist in inputDic['data']['output']:
-        for value in inputDic['data']['output'][hist][self.pivotParameter]:
-          times.add(value)
-      times = list(times)
-      times.sort()
-      newTime = np.array(times)
-    elif self.syncMethod in ['min',"max"]:
-      notableHist = None   #set on first iteration
-      notableLength = None #set on first iteration
-      for h,hist in enumerate(inputDic['data']['output'].keys()):
-        l = len(inputDic['data']['output'][hist][self.pivotParameter])
-        if (h==0) or (self.syncMethod == 'max' and l > notableLength) or (self.syncMethod == 'min' and l < notableLength):
-          notableHist = inputDic['data']['output'][hist][self.pivotParameter][:]
-          notableLength = l
-      newTime = np.array(notableHist)
-    for hist in inputDic['data']['output']:
-      outputDic['data']['output'][hist] = self.resampleHist(inputDic['data']['output'][hist],newTime)
-    return outputDic
+        outputDic['data']['output'][hist] = self.resampleHist(inputDic['data']['output'][hist],newTime)
+      return outputDic
 
   def resampleHist(self, vars, newTime):
     newVars={}

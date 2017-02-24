@@ -54,7 +54,7 @@
    # test often does not work in debug mode because of the problem.
    method = 'devel opt'
  [../]
- 
+
  [./testGridRattlesnake]
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_rattlesnake.xml'
@@ -149,7 +149,7 @@
   csv = 'OMInterfaceTest/testDummyStep/1/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/2/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/3/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/4/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/5/out~BouncingBall_init.csv'
   test_interface_only = True
  [../]
- 
+
  [./DymolaInterfaceTestNoExecutable]
   type = 'RavenFramework'
   input = 'test_Dymola_code_interface.xml'
@@ -230,7 +230,7 @@
    csv = 'MAAP5_Forward_test/test_dataobject_2.csv'
    UnorderedXml = 'MAAP5_Forward_test/test_dataobject.xml'
    test_interface_only = True
-   rel_err = 0.0001 
+   rel_err = 0.0001
  [../]
  [./MAAP5interfaceDETSampling]
    type = 'RavenFramework'
@@ -284,6 +284,6 @@
    csv = 'RELAP5interfaceTestModifiedVersionINSS/histories_1.csv'
    text = 'RELAP5interfaceTestModifiedVersionINSS/INSS_RELAP5_step/1/modelpar.inp'
    test_interface_only = True
-   rel_err = 0.0001 
+   rel_err = 0.0001
  [../]
 []

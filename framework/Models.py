@@ -1265,12 +1265,14 @@ class Code(Model):
           if arg == None: self.raiseAnError(IOError,'filearg type "moosevpp" requires the template variable be specified in "arg" attribute!')
           self.fargs['moosevpp']=arg
         else: self.raiseAnError(IOError,'filearg type '+argtype+' not recognized!')
-    if self.executable == '': self.raiseAnError(IOError,'not found the node <executable> in the body of the code model '+str(self.name))
-    if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
-    abspath = os.path.abspath(str(self.executable))
-    if os.path.exists(abspath):
-      self.executable = abspath
-    else: self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
+    if self.executable == '':
+      self.raiseAWarning('The node "<executable>" was not found in the body of the code model '+str(self.name)+' so no code will be run...')
+    else:
+      if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
+      abspath = os.path.abspath(str(self.executable))
+      if os.path.exists(abspath):
+        self.executable = abspath
+      else: self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
     if self.preExec is not None:
       if '~' in self.preExec: self.preExec = os.path.expanduser(self.preExec)
       abspath = os.path.abspath(self.preExec)
@@ -1832,7 +1834,8 @@ class EnsembleModel(Dummy, Assembler):
       @ In, initDict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    #moldelNodes = {}
+    self.tree = TreeStructure.HierarchicalTree(self.messageHandler,TreeStructure.HierarchicalNode(self.messageHandler,self.name))
+    rootNode = self.tree.getrootnode()
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
       inputInstancesForModel = []
