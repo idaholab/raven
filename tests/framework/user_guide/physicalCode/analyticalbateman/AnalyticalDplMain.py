@@ -1,8 +1,8 @@
-'''
+"""
 Created on Jul 26, 2013
 
 @author: andrea
-'''
+"""
 import xml.etree.ElementTree as ET
 import sys
 from BatemanClass import *
