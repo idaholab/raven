@@ -82,10 +82,15 @@
     input  = 'test_riskMeasuresDiscrete.xml'
     csv    = 'RiskMeasuresDiscrete/PrintPPS_dump.csv'
   [../]
- [./metadataUsageInInterfacePP]
-   type = 'RavenFramework'
-   input = 'test_metadata_usage_in_interfacePP.xml'
-   output = 'metadataUsageInInterfacePP/outputDataMChistory.xml metadataUsageInInterfacePP/outputDataMChistory.csv metadataUsageInInterfacePP/historiesSetSyncronized_dump.xml'
-   test_interface_only = True
- [../]
+  [./metadataUsageInInterfacePP]
+    type = 'RavenFramework'
+    input = 'test_metadata_usage_in_interfacePP.xml'
+    output = 'metadataUsageInInterfacePP/outputDataMChistory.xml metadataUsageInInterfacePP/outputDataMChistory.csv metadataUsageInInterfacePP/historiesSetSyncronized_dump.xml'
+    test_interface_only = True
+  [../]
+  [./RiskMeasuresDiscreteMultipleIE]
+    type   = 'RavenFramework'
+    input  = 'test_riskMeasuresDiscreteMultipleIE.xml'
+    csv    = 'RiskMeasuresDiscreteMultipleIE/PrintPPS_dump.csv'
+  [../]
 []

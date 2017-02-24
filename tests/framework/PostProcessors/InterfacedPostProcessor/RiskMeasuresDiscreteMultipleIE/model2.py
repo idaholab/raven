@@ -11,5 +11,5 @@ def run(self,Input):
     self.outcome = 1.0
   else:
     self.outcome = 0.0
-  
+
   return self.outcome
