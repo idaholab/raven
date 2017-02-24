@@ -59,26 +59,6 @@
   remove_unicode_identifier = true
  [../]
 
- [./testAdaptiveDynamicEventTreeRAVEN]
-  type = 'RavenFramework'
-  input = 'test_adaptive_det_simple.xml'
-  output = 'AdaptiveDET/limitSurfDump.csv AdaptiveDET/adaptiveOutsimpleDump.csv'
-  csv = 'AdaptiveDET/limitSurfDump.csv'
-  required_executable = '../../RAVEN-%METHOD%'
-  rel_err = 0.0001
-  max_time = 800
- [../]
-
- [./testAdaptiveHybridDynamicEventTreeRAVEN]
-  type = 'RavenFramework'
-  input = 'test_adaptive_hybrid_det.xml'
-  output = 'AdaptiveHybridDET/limitsurfaceDump.csv AdaptiveHybridDET/adaptiveOutsimpleHier.csv'
-  csv = 'AdaptiveHybridDET/limitsurfaceDump.csv'
-  required_executable = '../../RAVEN-%METHOD%'
-  rel_err = 0.0001
-  max_time = 800
- [../]
-
  [./test_push_into_hdf5]
   type = 'RavenFramework'
   input = 'test_push_into_hdf5.xml'
