@@ -32,7 +32,7 @@
 
   <Models>
     <Code name="testModel" subType="GenericCode">
-      <executable>metaModelWithCode/AnalyticalDplMain.py</executable>
+      <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>

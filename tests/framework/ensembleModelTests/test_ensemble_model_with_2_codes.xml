@@ -28,7 +28,7 @@
 
   <Models>
     <Code name="testModel" subType="GenericCode">
-      <executable>metaModelWith2Codes/code/AnalyticalDplMain.py</executable>
+      <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
@@ -37,7 +37,7 @@
       <alias variable="BtestModel1"           type="output">B</alias>
     </Code>
     <Code name="testModel2" subType="GenericCode">
-        <executable>metaModelWith2Codes/code/AnalyticalDplMain.py</executable>
+        <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
         <clargs arg="python" type="prepend"/>
         <clargs arg="" extension=".xml" type="input"/>
         <clargs arg=" " extension=".csv" type="output"/>
