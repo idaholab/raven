@@ -626,15 +626,19 @@ def find_crow(framework_dir):
   except:
     ravenDir = os.path.dirname(framework_dir)
     #Add the module directory to the search path.
-    pmoduleDirs = [os.path.join(ravenDir,"crow","install"),
-                   os.path.join(os.path.dirname(ravenDir),"crow","install")]
+    crowDirs = [os.path.join(ravenDir,"crow"),
+                os.path.join(os.path.dirname(ravenDir),"crow")]
     if "CROW_DIR" in os.environ:
-      pmoduleDirs.insert(0,os.path.join(os.environ["CROW_DIR"],"install"))
-    for pmoduleDir in pmoduleDirs:
+      crowDirs.insert(0,os.path.join(os.environ["CROW_DIR"]))
+    for crowDir in crowDirs:
+      pmoduleDir = os.path.join(crowDir,"install")
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
         return
-    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be one of '+str(pmoduleDirs))
+    for crowDir in crowDirs:
+      if os.path.exists(os.path.join(crowDir,"tests")):
+        raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow was found in '+crowDir+' but does not seem to be compiled')
+    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow has not been found. It location is supposed to be one of '+str(crowDirs))
 
 def add_path(absolutepath):
   """
