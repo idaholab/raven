@@ -119,12 +119,11 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     Rvalues = {}
 
     for inp in inputDic:
-      print(inp['name'])
       Rvalues[inp['name']] = {}
       pbPresent = False
       if 'metadata' in inp.keys() and 'ProbabilityWeight' in inp['metadata'].keys():
         pbPresent = True
-
+      print(inp['data'])
       if not pbPresent:
         pbWeights= np.asarray([1.0 / len(inp['targets'][self.parameters['targets'][0]])]*len(inp['targets'][self.parameters['targets'][0]]))
       else:
@@ -194,10 +193,10 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         else:
           multiplier = 1.0
           self.raiseAWarning('RiskMeasuresDiscrete Interfaced Post-Processor: the dataObject ' + str (inp['name']) + ' does not have the frequency of the IE specified. It is assumed that the frequency of the IE is 1.0')
+        
         RvaluesMacro[variable]['R0']     += multiplier * Rvalues[inp['name']][variable]['R0']
         RvaluesMacro[variable]['Rminus'] += multiplier * Rvalues[inp['name']][variable]['Rminus']
         RvaluesMacro[variable]['Rplus']  += multiplier * Rvalues[inp['name']][variable]['Rplus']
-
 
       if 'RRW' in self.measures:
         RRW = outputDic['data']['output'][variable + '_RRW'] = np.asanyarray([RvaluesMacro[variable]['R0']/RvaluesMacro[variable]['Rminus']])
