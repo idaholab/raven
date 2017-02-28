@@ -122,7 +122,6 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
 
       r0Low = self.variables[variable]['R0low']
       r0High = self.variables[variable]['R0high']
-
       r1Low = self.variables[variable]['R1low']
       r1High = self.variables[variable]['R1high']
 

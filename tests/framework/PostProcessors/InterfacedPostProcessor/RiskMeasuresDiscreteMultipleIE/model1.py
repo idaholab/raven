@@ -1,8 +1,9 @@
-
-def initialize(self,runInfoDict,inputFiles):
-  return
-
 def run(self,Input):
+  """
+    Method that implement a simple system with two components (B and C) in a parallel configuration followed by a component in series (A)
+    @ In, Input, dict, dictionary containing the data
+    @ Out, outcome, float, logical status of the system given status of the components
+  """
   Astatus   = Input['Astatus'][0]
   Bstatus   = Input['Bstatus'][0]
   Cstatus   = Input['Cstatus'][0]
