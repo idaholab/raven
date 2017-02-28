@@ -153,15 +153,15 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         ## Calculate R0, Rminus, Rplus
 
         ## Step 1: Retrieve points that contain system failure
-        indexSystemFailure = np.where(np.logical_and(targetVar >= self.target['low'], targetVar <= self.target['high']))
+        indexSystemFailure, _ = np.where(np.logical_and(targetVar >= self.target['low'], targetVar <= self.target['high']))
 
         if variable in inputDataIn.keys():
           inputVar = np.asarray(inputDataIn[variable])
 
           ## Step 2: Retrieve points from original dataset that contain component reliability values equal to 1
           ##         (indexComponentMinus) and 0 (indexComponentPlus)
-          indexComponentMinus = np.where(np.logical_and(inputVar >= r1Low, inputVar <= r1High))
-          indexComponentPlus  = np.where(np.logical_and(inputVar >= r0Low, inputVar <= r0High))
+          indexComponentMinus, _ = np.where(np.logical_and(inputVar >= r1Low, inputVar <= r1High))
+          indexComponentPlus, _  = np.where(np.logical_and(inputVar >= r0Low, inputVar <= r0High))
 
           ## Step 3: Retrieve points from Step 1 that contain component reliability values equal to 1
           ##         (indexFailureMinus) and 0 (indexFailurePlus)
