@@ -14,7 +14,7 @@
     </revisions>
   </TestInfo>
   <RunInfo>
-    <WorkingDir>GridTestRavenSameHDF5</WorkingDir>
+    <WorkingDir>GridTestSameHDF5</WorkingDir>
     <Sequence>test_extract,MonteCarloRestarted,test_push</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
