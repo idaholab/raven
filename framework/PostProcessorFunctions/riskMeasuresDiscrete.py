@@ -132,11 +132,11 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         inputName = inp['name']
         inputDataIn = inp['data']['input']
         inputDataOut = inp['data']['output']
-        targetVar = inputDataOut[self.target['targetID']]
+        targetVar = np.asarray(inputDataOut[self.target['targetID']])
         inputMetadata = inp['metadata'] if 'metadata' in inp else None
 
         if inputMetadata is not None and 'ProbabilityWeight' in inputMetadata:
-          inputWeights = inp['metadata']['ProbabilityWeight']
+          inputWeights = np.asarray(inp['metadata']['ProbabilityWeight'])
           pbWeights = inputWeights/np.sum(inputWeights)
         else:
           ## Any variable will do, so just count the first input. We could also have count the outputs, but this could
@@ -156,7 +156,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         indexSystemFailure = np.where(np.logical_and(targetVar >= self.target['low'], targetVar <= self.target['high']))
 
         if variable in inputDataIn.keys():
-          inputVar = inputDataIn[variable]
+          inputVar = np.asarray(inputDataIn[variable])
 
           ## Step 2: Retrieve points from original dataset that contain component reliability values equal to 1
           ##         (indexComponentMinus) and 0 (indexComponentPlus)
