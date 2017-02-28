@@ -254,9 +254,8 @@
  [./test_custom_mode]
   type = 'RavenFramework'
   input = 'test_custom_mode.xml'
-  output = 'mode_test/FirstMRun/1/out~ideal_pump mode_test/FirstMRun/2/out~ideal_pump'
-  csv = 'mode_test/FirstMRun/2/out~ideal_pump.csv'
-  required_executable = '../../RAVEN-%METHOD%'
+  output = 'mode_test/FirstMRun/1/out~pump_fake mode_test/FirstMRun/2/out~pump_fake'
+  csv = 'mode_test/FirstMRun/2/out~pump_fake.csv'
  [../]
 
  [./test_distributions]

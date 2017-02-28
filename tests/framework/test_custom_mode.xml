@@ -36,13 +36,12 @@
   </RunInfo>
 
   <Files>
-    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
-    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
+    <Input name="pump_fake.i" type="">pump_fake.i</Input>
   </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RELAP7">
-      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
+      <executable>%FRAMEWORK_DIR%/../tests/framework/mode_test/simple_gp.py</executable>
     </Code>
   </Models>
 
@@ -82,8 +81,7 @@
 
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="1">
-      <Input class="Files" type="">ideal_pump.i</Input>
-      <Input class="Files" type="">ideal_pump_control.py</Input>
+      <Input class="Files" type="">pump_fake.i</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
       <Output class="Databases" type="HDF5">testMCDatabase</Output>

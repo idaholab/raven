@@ -4,9 +4,13 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import Simulation
 
 class NewMode(Simulation.SimulationMode):
-  def doOverrideRun(self):
-    print("######################################## in NewMode ")
-    return False
+  def __init__(self,simulation):
+    Simulation.SimulationMode.__init__(self,simulation)
+    self.__simulation = simulation
+
+  def modifySimulation(self):
+    self.__simulation.runInfoDict['precommand'] = self.__simulation.runInfoDict['precommand']+" python "
+
 
 
 
