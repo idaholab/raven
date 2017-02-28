@@ -299,10 +299,9 @@
  [./load_and_push_reusing_same_hdf5]
    type = 'RavenFramework'
    input = 'test_load_and_push_reusing_same_hdf5.xml'
-   output = 'GridTestRavenSameHDF5/MonteCarloRestarted/1/out~clg.massflowrate.3eqn GridTestRavenSameHDF5/outGrid_dump.csv GridTestRavenSameHDF5/outGridMax_dump.csv GridTestRavenSameHDF5/outGridMin_dump.csv GridTestRavenSameHDF5/outGridAverage_dump.csv GridTestRavenSameHDF5/stories2_dump_4.csv'
-   prereq = testGrid_RELAP7
+   output = 'GridTestRavenSameHDF5/MonteCarloRestarted/1/out~massflowrate_fake GridTestRavenSameHDF5/outGrid_dump.csv GridTestRavenSameHDF5/outGridMax_dump.csv GridTestRavenSameHDF5/outGridMin_dump.csv GridTestRavenSameHDF5/outGridAverage_dump.csv GridTestRavenSameHDF5/stories2_dump_4.csv'
+   prereq = testGrid
    method = 'devel opt'
-   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./adaptive_sampler_ext_model]

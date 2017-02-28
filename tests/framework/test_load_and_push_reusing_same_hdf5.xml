@@ -20,52 +20,62 @@
   </RunInfo>
 
   <Files>
-    <Input name="clg_massflowrate_3eqn.i" type="">clg.massflowrate.3eqn.i</Input>
-    <Input name="clg_massflowrate_3eqn_control.py" type="">clg_massflowrate_3eqn_control.py</Input>
+    <Input name="massflowrate_fake.i" type="">massflowrate_fake.i</Input>
   </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RELAP7">
-      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
+      <executable>%FRAMEWORK_DIR%/../tests/cluster_tests/simple_gp.py</executable>
     </Code>
   </Models>
 
   <Distributions>
     <Normal name="Gauss1">
-      <mean>310</mean>
-      <sigma>3</sigma>
-      <lowerBound>300</lowerBound>
-      <upperBound>320</upperBound>
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
     </Normal>
-    <Normal name="ANormalDistribution">
-      <mean>2</mean>
-      <sigma>1</sigma>
+    <Normal name="Gauss2">
+      <mean>1</mean>
+      <sigma>0.4</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
     </Normal>
+    <Triangular name="DistTri1">
+      <apex>1</apex>
+      <min>-0.1</min>
+      <max>4</max>
+    </Triangular>
   </Distributions>
 
   <Samplers>
     <Grid name="myGrid">
-      <samplerInit>
-        <initialSeed>1</initialSeed>
-      </samplerInit>
-      <variable name="Components|pipe|Tw">
+      <variable name="VarGauss1">
         <distribution>Gauss1</distribution>
-        <grid construction="equal" steps="1" type="value">300 305</grid>
+        <grid construction="custom" type="value">0.02 0.5 0.6</grid>
       </variable>
-      <Distribution name="Dummy1">
-        <distribution>ANormalDistribution</distribution>
-        <grid construction="equal" steps="5" type="CDF">0.3 0.75</grid>
-      </Distribution>
+      <variable name="VarGauss2">
+        <distribution>Gauss2</distribution>
+        <grid construction="custom" type="CDF">0.5 1.0 0.0</grid>
+      </variable>
+      <variable name="VarTri1">
+        <distribution>DistTri1</distribution>
+        <grid construction="equal" steps="1" type="value">3.5 4.0</grid>
+      </variable>
+      <variable name="TestOnePoint">
+          <distribution>DistTri1</distribution>
+          <grid construction="custom" type="CDF">0.5</grid>
+      </variable>
     </Grid>
   </Samplers>
 
   <Steps>
     <MultiRun name="MonteCarloRestarted">
-      <Input class="Files" type="">clg_massflowrate_3eqn.i</Input>
-      <Input class="Files" type="">clg_massflowrate_3eqn_control.py</Input>
+      <Input class="Files" type="">massflowrate_fake.i</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
-      <Output class="Databases" type="HDF5">testGridRavenDatabase</Output>
+      <Output class="Databases" type="HDF5">test_DummyModel_db</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">outGrid</Output>
       <Output class="DataObjects" type="PointSet">outGridMax</Output>
@@ -73,11 +83,11 @@
       <Output class="DataObjects" type="PointSet">outGridAverage</Output>
     </MultiRun>
     <IOStep name="test_extract">
-      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
-      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
-      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
-      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
-      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
+      <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
+      <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
+      <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
+      <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">outGrid</Output>
       <Output class="DataObjects" type="PointSet">outGridMax</Output>
@@ -89,14 +99,14 @@
       <Output class="OutStreams" type="Print">outGridAverage_dump</Output>
     </IOStep>
     <IOStep name="test_push">
-        <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+        <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
         <Output class="DataObjects" type="HistorySet">stories2</Output>
         <Output class="OutStreams" type="Print">stories2_dump</Output>
     </IOStep>
   </Steps>
 
   <Databases>
-    <HDF5 name="testGridRavenDatabase" directory="GridTestRaven/DatabaseStorage" readMode="read"/>
+    <HDF5 name="test_DummyModel_db" directory="GridTest/DatabaseStorage" readMode="read"/>
   </Databases>
 
   <OutStreams>
@@ -136,58 +146,58 @@
 
   <DataObjects>
     <PointSet name="outGrid">
-      <Input>pipe_Area,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="outGridMaxFromHDF5">
-      <Input>pipe_Area,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
       <options>
         <operator>max</operator>
       </options>
     </PointSet>
     <PointSet name="outGridMinFromHDF5">
-      <Input>pipe_Area,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
       <options>
         <operator>min</operator>
       </options>
     </PointSet>
     <PointSet name="outGridAverageFromHDF5">
-      <Input>pipe_Area,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
       <options>
         <operator>average</operator>
       </options>
     </PointSet>
     <PointSet name="outGridMax">
-      <Input>pipe_Area,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
       <options>
         <operator>max</operator>
       </options>
     </PointSet>
     <PointSet name="outGridMin">
-      <Input>pipe_Area,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
       <options>
         <operator>min</operator>
       </options>
     </PointSet>
     <PointSet name="outGridAverage">
-      <Input>pipe_Area,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
       <options>
         <operator>average</operator>
       </options>
     </PointSet>
     <HistorySet name="stories">
-      <Input>pipe_Area</Input>
-      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
     </HistorySet>
     <HistorySet name="stories2">
-        <Input>pipe_Area</Input>
-        <Output>pipe_Hw,pipe_Tw,time,func</Output>
+        <Input>VarGauss1,VarGauss2,VarTri1</Input>
+        <Output>OutputPlaceHolder</Output>
     </HistorySet>
     
     
