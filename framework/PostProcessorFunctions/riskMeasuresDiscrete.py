@@ -203,7 +203,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
                            'input': {},
                            'output': riskImportanceMeasures
                           },
-                  'metadata': copy.deepcopy(inputMetadata)
+                  'metadata': {}
                 }
     ## If for whatever reason passing an empty input back causes errors, then you may want to add some sort of dummy
     ## value.
