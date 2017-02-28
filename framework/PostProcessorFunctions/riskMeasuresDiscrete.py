@@ -130,16 +130,18 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         ## Get everything out of the inputDic at the outset, the hope is to have no string literals on the interior
         ## of this function.
         inputName = inp['name']
-        inputTargets = inp['targets']
         inputDataIn = inp['data']['input']
         inputDataOut = inp['data']['output']
         targetVar = inputDataOut[self.target['targetID']]
+        inputMetadata = inp['metadata'] if 'metadata' in inp else None
 
-        if 'metadata' in inp.keys() and 'ProbabilityWeight' in inputMetadata.keys():
+        if inputMetadata is not None and 'ProbabilityWeight' in inputMetadata:
           inputWeights = inp['metadata']['ProbabilityWeight']
           pbWeights = inputWeights/np.sum(inputWeights)
         else:
-          pointCount = len(inputTargets[self.parameters['targets'][0]])
+          ## Any variable will do, so just count the first input. We could also have count the outputs, but this could
+          ## be tricky if the data is a HistorySet and thus multidimensional.
+          pointCount = len(inputDataIn.values()[0])
           pbWeights = np.ones(pointCount)/float(pointCount)
 
         if inputName in self.IEdata.keys():
@@ -177,7 +179,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           R0 = Rminus = Rplus = np.sum(pbWeights[indexSystemFailure])
 
         macroR0     += multiplier * R0
-        macroRMinus += multiplier * RMinus
+        macroRMinus += multiplier * Rminus
         macroRPlus  += multiplier * Rplus
 
       if 'RRW' in self.measures:
@@ -199,11 +201,13 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     outputDic = {
                   'data': {
                            'input': {},
-                           # 'input': {'dummy' : np.asanyarray(0)},
-                           'output': {riskImportanceMeasures}
+                           'output': riskImportanceMeasures
                           },
-                  'metadata': copy.deepcopy(inp['metadata'])
-                 }
+                  'metadata': copy.deepcopy(inputMetadata)
+                }
+    ## If for whatever reason passing an empty input back causes errors, then you may want to add some sort of dummy
+    ## value.
+    # outputDic['data']['input'] = {} # {'dummy' : np.asanyarray(0)}
 
     return outputDic
 
