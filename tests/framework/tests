@@ -148,11 +148,10 @@
  [./testGrid_GetPot]
   type = 'RavenFramework'
   input = 'test_Grid_Sampler.i'
-  output = 'GridTest/outGrid_dump.csv'
-  csv = 'GridTest/outGrid_dump.csv'
+  output = 'GridTest_GetPot/outGrid_dump.csv'
+  csv = 'GridTest_GetPot/outGrid_dump.csv'
   max_time = 500
   rel_err = 0.001
-  prereq = testGrid
  [../]
 
  [./testRandom]
