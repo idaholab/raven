@@ -6,17 +6,6 @@
   required_executable = '../../../../RAVEN-%METHOD%'
  [../]
 
- [./testClassicDETheavyRAVEN]
-  type = 'RavenFramework'
-  input = 'testSboHeavyDET.xml'
-  output = 'SboDET/DET/DET_1-2-2/out~TMI SboDET/DET/DET_1-2-1-1-1-2/out~TMI.csv'
-  csv = 'SboDET/stories_from_database_dump_8.csv SboDET/DET/DET_1-2-1-1-1-2/out~TMI.csv'
-  max_time = 1000000
-  heavy = True
-  rel_err = 0.01
-  required_executable = '../../../../RAVEN-%METHOD%'
- [../]
-
  [./testHybridDETshortRAVEN]
   type = 'RavenFramework'
   input = 'testHybridDET.xml'

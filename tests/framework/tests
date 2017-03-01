@@ -79,24 +79,6 @@
   max_time = 800
  [../]
 
- [./test_mpi]
-  type = 'RavenFramework'
-  heavy= True
-  max_time = 100000
-  input = 'test_mpi.xml'
-  output = 'mpi_driver_test/FirstMRun/out~1~simple_flow_3eqn'
-  csv = 'mpi_driver_test/FirstMRun/out~6~simple_flow_3eqn.csv'
- [../]
-
- [./test_mpi_bison]
-  type = 'RavenFramework'
-  heavy= True
-  max_time = 100000
-  input = 'test_mpi_bison.xml'
-  output = 'mpi_bison_test/myLHS/1/out~case_1'
-  csv = 'mpi_bison_test/myLHS/out~1~case_1.csv'
- [../]
-
  [./test_push_into_hdf5]
   type = 'RavenFramework'
   input = 'test_push_into_hdf5.xml'
