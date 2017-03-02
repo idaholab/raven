@@ -5,6 +5,6 @@
     UnorderedXml = 'StatisticalAnalysis/output_stat_analysis_mc.xml'
     required_libraries = 'PIL'
     heavy = true
-    rel_err = 1e-6
+    rel_err = 1e-3
   [../]
 []

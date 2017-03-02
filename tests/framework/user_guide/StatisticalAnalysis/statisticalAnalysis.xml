@@ -55,6 +55,7 @@
     <MonteCarlo name="mc">
       <samplerInit>
         <limit>1200</limit>
+        <initialSeed>42</initialSeed>
       </samplerInit>
       <variable name="sigma-A">
         <distribution>sigma</distribution>
