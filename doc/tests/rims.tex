@@ -1,0 +1,138 @@
+\section{Risk Importance Measures}
+Associated test: \texttt{tests/framework/PostProcessors/InterfacedPostProcessor/\\test-riskMeasuresDiscreteMultipleIE.xml}
+Risk Importance Measures (RIMs) are originally defined for each basic event in a Event-Tree/Fault-Tree analysis.
+In a simulation based environment similar calculations can employed for boolean models.
+
+For each component $i$ and for each IE the following quantities are calculated:
+\begin{itemize}
+  \item $R^0$ = probability of system failure
+  \item $R^i_+$ = probability of system failure given component $i$ has failed
+  \item $R^i_-$ = probability of system failure given component $i$ is prefectly reliable
+\end{itemize}
+
+For each component $i$, four RIMs indexes can be computed:
+\begin{itemize}
+  \item $RAW^i = R^i_-/R^0$
+  \item $RAW^i = R^0/R^i_+$
+  \item $B^i = R^i_- R^i_+$
+  \item $FV^i = (R^0 -  R^i_-)/R^0$
+\end{itemize}
+
+In the asscoiated test, a system composed by four components (i.e., A, B, C and D) is analyzed for 2 Initiating Events (IEs), IE1 and IE2.
+Data associated for each IE is as follows:
+\begin{itemize}
+  \item IE1 (probability $p1=0.01$); 1 single MCS, $MCS1 = A+BC$
+  \item IE2 (probability $p1=0.02$); 1 single MCS, $MCS2 = BCD$
+\end{itemize}
+
+In the associated test, the following probabilities are provided:
+\begin{itemize}
+  \item $p_A = 0.01$
+  \item $p_B = 0.05$
+  \item $p_C = 0.1 $
+  \item $p_D = 0.02$
+\end{itemize}
+
+For each IE, the symbolic expressions and the numerical expressions of $R^0$, $R^i_+$ and $R^i_-$ are calculated
+(see Tables~\ref{tab:RIM_IE1_symb}, \ref{tab:RIM_IE1_num}, \ref{tab:RIM_IE2_symb} and \ref{tab:RIM_IE2_num}).
+
+\begin{table}[h!]
+  \centering
+  \caption{IE1: symbolic expressions of $R^0$, $R^i_+$ and $R^i_-$}
+  \label{tab:RIM_IE1_symb}
+  \begin{tabular}{c|ccc}
+    \toprule
+    & $R0$ & $R^i_+$ & $R^i_-$ \\
+    \midrule
+    A & A+BC & []   & BC   \\
+    B & A+BC & A+C  & A    \\
+    C & A+BC & A+B  & A    \\
+    D & A+BC & A+BC & A+BC \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[h!]
+  \centering
+  \caption{IE1: numerical value of $R^0$, $R^i_+$ and $R^i_-$}
+  \label{tab:RIM_IE1_num}
+  \begin{tabular}{c|ccc}
+    \toprule
+    & $R0$ & $R^i_+$ & $R^i_-$ \\
+    \midrule
+    A & 0.01495 & 1.0     & 0.005   \\
+    B & 0.01495 & 0.109   & 0.01    \\
+    C & 0.01495 & 0.0595  & 0.01    \\
+    D & 0.01495 & 0.01495 & 0.01495 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[h!]
+  \centering
+  \caption{IE2: symbolic expressions of $R^0$, $R^i_+$ and $R^i_-$}
+  \label{tab:RIM_IE2_symb}
+  \begin{tabular}{c|ccc}
+    \toprule
+    & $R0$ & $R^i_+$ & $R^i_-$ \\
+    \midrule
+    A & BCD & BCD & BCD  \\
+    B & BCD & CD  & -    \\
+    C & BCD & BD  & -    \\
+    D & BCD & BC  & BCD  \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[h!]
+  \centering
+  \caption{IE2: numerical value of $R^0$, $R^i_+$ and $R^i_-$}
+  \label{tab:RIM_IE2_num}
+  \begin{tabular}{c|ccc}
+    \toprule
+    & $R0$ & $R^i_+$ & $R^i_-$ \\
+    \midrule
+    A & 0.0001 & 0.0001 & 0.0001 \\
+    B & 0.0001 & 0.002  & 0.0    \\
+    C & 0.0001 & 0.001  & 0.0    \\
+    D & 0.0001 & 0.005  & 0.0    \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Given the values provided above it is possible to linearly weight them with the probability associated to each IE (see Table~\ref{tab:RIM_IE12}).
+
+\begin{table}[h!]
+  \centering
+  \caption{IE1+IE2: numerical value for $R^0$, $R^i_+$ and $R^i_-$}
+  \label{tab:RIM_IE12}
+  \begin{tabular}{c|ccc}
+    \toprule
+    & $R0$ & $R^i_+$ & $R^i_-$ \\
+    \midrule
+    A & 0.0001515 & 0.010002  & 0.000052  \\
+    B & 0.0001515 & 0.00113   & 0.0001    \\
+    C & 0.0001515 & 0.000615  & 0.0001    \\
+    D & 0.0001515 & 0.0002495 & 0.0001495 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Then, it is possible to obtain the values of each of the 4 RIMs for eah component:
+
+\begin{table}[h!]
+  \centering
+  \caption{IE1+IE2: numerical value for $R^0$, $R^i_+$ and $R^i_-$}
+  \label{tab:table1}
+  \begin{tabular}{c|cccc}
+    \toprule
+    & RAW & RRW & FV & B \\
+    \midrule
+    A & 66.01980198 & 2.913461538 & 0.656765677 & 0.00995  \\
+    B & 7.458745875 & 1.515       & 0.339933993 & 0.00103  \\
+    C & 4.059405941 & 1.515       & 0.339933993 & 0.000515 \\
+    D & 1.646864686 & 1.013377926 & 0.01320132  & 0.0001   \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+

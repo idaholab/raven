@@ -1,2 +1,2 @@
-valveTime_avg,pump1Time_avg,pump2Time_avg,valveTime_RAW,pump1Time_B,pump2Time_RAW,pump2Time_B,pump1Time_RAW,valveTime_RRW,valveTime_FV,valveTime_B,pump2Time_FV,pump1Time_RRW,pump1Time_FV,pump2Time_RRW
-0.05,0.05,0.05,2.85714285714,0.416666666667,0.0,-0.333333333333,2.14285714286,3.5,0.714285714286,0.9,0.047619047619,1.05,0.047619047619,1.05
+valveTime_RAW,pump1Time_B,pump2Time_RAW,pump2Time_B,pump1Time_RAW,valveTime_RRW,valveTime_FV,valveTime_B,pump2Time_FV,pump1Time_RRW,pump1Time_FV,pump2Time_RRW
+2.85714285714,0.416666666667,0.0,-0.333333333333,2.14285714286,3.5,0.714285714286,0.9,0.047619047619,1.05,0.047619047619,1.05

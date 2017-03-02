@@ -1337,6 +1337,51 @@ The desired outcome of the output variable Tmax occurs in the interval $[2200,25
   ...
 </Simulation>
 \end{lstlisting}
+
+This Post-Processor allows the user to consider also multiple datasets (a data set for each initiating event) and calculate the global risk importance measures. 
+This can be performed by:
+\begin{itemize}
+  \item Including all datasets in the step
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
+<Simulation>
+  ...
+  </Steps>
+    ...
+    <PostProcess name="PP">
+      <Input   class="DataObjects"  type="PointSet"        >outRun1</Input>
+      <Input   class="DataObjects"  type="PointSet"        >outRun2</Input>
+      <Model   class="Models"       type="PostProcessor"   >riskMeasuresDiscrete</Model>
+      <Output  class="DataObjects"  type="PointSet"        >outPPS</Output>
+      <Output  class="OutStreams"   type="Print"           >PrintPPS_dump</Output>
+    </PostProcess>
+  </Steps>
+  ...
+</Simulation>
+\end{lstlisting}
+  \item Adding in the Post-processor the frequency of the initiating event associated to each dataset
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
+      <method>riskMeasuresDiscrete</method>
+      <measures>FV,RAW</measures>
+      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Astatus</variable>
+      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Bstatus</variable>
+      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Cstatus</variable>
+      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Dstatus</variable>
+      <target   values='0.9,1.1'>outcome</target>
+      <data     freq='0.01'>outRun1</data>
+      <data     freq='0.02'>outRun2</data>
+    </PostProcessor>   
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+\end{itemize}
    
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%

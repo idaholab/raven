@@ -1148,6 +1148,7 @@ class InterfacedPostProcessor(BasePostProcessor):
         inputDictTemp['data']['input']  = copy.deepcopy(inp.getInpParametersValues())
         inputDictTemp['data']['output'] = copy.deepcopy(inp.getOutParametersValues())
         inputDictTemp['metadata']       = copy.deepcopy(inp.getAllMetadata())
+        inputDictTemp['name'] = inp.whoAreYou()['Name']
         inputDict.append(inputDictTemp)
     return inputDict
 
