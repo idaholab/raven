@@ -25,7 +25,6 @@ import traceback
 os.environ["MV2_ENABLE_AFFINITY"]="0"
 
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
-#sys.path.append(os.path.join(frameworkDir,'utils'))
 from utils import utils
 import utils.TreeStructure as TS
 utils.find_crow(frameworkDir)

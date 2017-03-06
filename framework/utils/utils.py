@@ -409,14 +409,13 @@ def importFromPath(filename, printImporting = True):
   """
   if printImporting: print('(            ) '+UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '      -> importing module '+ filename)
   import imp, os.path
-  #try:
-  if True:
+  try:
     (path, name) = os.path.split(filename)
     (name, ext) = os.path.splitext(name)
     (file, filename, data) = imp.find_module(name, [path])
     importedModule = imp.load_module(name, file, filename, data)
-  #except Exception as ae:
-  #  raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
+  except Exception as ae:
+    raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
   return importedModule
 
 def index(a, x):
