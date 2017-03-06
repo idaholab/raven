@@ -18,7 +18,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-import utils
+from utils import utils
 from CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------
 

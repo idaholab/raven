@@ -23,10 +23,11 @@ import abc
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-import utils
-import mathUtils
-import xmlUtils
-import InputData
+from utils import utils
+from utils import mathUtils
+from utils import xmlUtils
+from utils import InputData
+from utils.RAVENiterators import ravenArrayIterator
 import DataObjects
 from Assembler import Assembler
 import LearningGate
@@ -34,7 +35,6 @@ import MessageHandler
 import GridEntities
 import Files
 import Models
-from RAVENiterators import ravenArrayIterator
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 #Internal Modules End--------------------------------------------------------------------------------

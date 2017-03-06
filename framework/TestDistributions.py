@@ -15,7 +15,7 @@ import numpy as np
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.append(os.path.join(frameworkDir,'utils'))
 
-from utils import find_crow
+from utils.utils import find_crow
 
 find_crow(os.path.dirname(os.path.abspath(sys.argv[0])))
 

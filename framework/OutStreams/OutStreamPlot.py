@@ -25,9 +25,9 @@ from mpl_toolkits.mplot3d import Axes3D
 ## External Modules End---------------------------------------------------------
 
 ## Internal Modules-------------------------------------------------------------
-import utils
-import mathUtils
-from cached_ndarray import c1darray
+from utils import utils
+from utils import mathUtils
+from utils.cached_ndarray import c1darray
 from .OutStreamManager import OutStreamManager
 from ClassProperty import ClassProperty
 ## Internal Modules End---------------------------------------------------------

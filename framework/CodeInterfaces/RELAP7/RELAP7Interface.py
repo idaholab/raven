@@ -11,7 +11,7 @@ import os
 import sys
 import copy
 import utils
-from utils import toString
+from utils.utils import toString
 import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
 from CodeInterfaceBaseClass import CodeInterfaceBase

@@ -12,7 +12,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import os
 from copy import deepcopy
-import xmlUtils
+from utils import xmlUtils
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------

@@ -12,7 +12,7 @@ import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import utils
+from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):

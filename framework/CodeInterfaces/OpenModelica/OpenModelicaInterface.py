@@ -117,7 +117,7 @@ import os
 import copy
 import shutil
 import tempfile
-import utils
+from utils import utils
 import xml.etree.ElementTree as ET
 #from OMPython import OMCSession    # Get the library with Open Modelica Session (needed to run OM stuff)
 

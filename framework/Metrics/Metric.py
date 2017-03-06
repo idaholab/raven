@@ -10,26 +10,12 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import os
-import copy
-import shutil
-import math
-import numpy as np
 import abc
-import importlib
-import inspect
-import atexit
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from Assembler import Assembler
-import PostProcessors #import returnFilterInterface
-import CustomCommandExecuter
-import utils
-import mathUtils
-import Files
-
+from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):

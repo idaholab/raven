@@ -10,11 +10,11 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 import xml.etree.ElementTree as ET
-import xmlUtils
+from utils import xmlUtils
 
 #message handler
 import os, sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir)))
+#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir)))
 import MessageHandler
 
 ##################

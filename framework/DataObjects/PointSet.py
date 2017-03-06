@@ -18,10 +18,10 @@ import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from cached_ndarray import c1darray
+from utils.cached_ndarray import c1darray
 from .Data import Data, NotConsistentData, ConstructError
 import Files
-import utils
+from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PointSet(Data):

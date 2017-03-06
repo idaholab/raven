@@ -12,7 +12,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import abc
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
-import utils
+from utils import utils
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 

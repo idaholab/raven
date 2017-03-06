@@ -18,8 +18,8 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-import mathUtils
-import utils
+from utils import mathUtils
+from utils import utils
 import SupervisedLearning
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------

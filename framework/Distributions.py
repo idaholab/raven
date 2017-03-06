@@ -24,9 +24,9 @@ from scipy.interpolate import UnivariateSpline
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-import utils
+from utils import utils
 distribution1D = utils.find_distribution1D()
-import InputData
+from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 def factorial(x):

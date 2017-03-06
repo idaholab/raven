@@ -250,7 +250,7 @@ def compare(s1,s2,relTolerance = 1e-14):
   w1, w2 = floatConversion(s1), floatConversion(s2)
   if   type(w1) == type(w2) and type(w1) != float: return s1 == s2
   elif type(w1) == type(w2) and type(w1) == float:
-    import mathUtils
+    from utils import mathUtils
     return mathUtils.compareFloats(w1,w2,relTolerance)
   elif type(w1) != type(w2) and type(w1) in [float,int] and type(w2) in [float,int]:
     w1, w2 = float(w1), float(w2)
@@ -409,13 +409,14 @@ def importFromPath(filename, printImporting = True):
   """
   if printImporting: print('(            ) '+UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '      -> importing module '+ filename)
   import imp, os.path
-  try:
+  #try:
+  if True:
     (path, name) = os.path.split(filename)
     (name, ext) = os.path.splitext(name)
     (file, filename, data) = imp.find_module(name, [path])
     importedModule = imp.load_module(name, file, filename, data)
-  except Exception as ae:
-    raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
+  #except Exception as ae:
+  #  raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
   return importedModule
 
 def index(a, x):

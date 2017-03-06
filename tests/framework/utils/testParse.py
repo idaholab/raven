@@ -1,10 +1,10 @@
 import os,sys
 import xml.etree.ElementTree as ET
 
-utilsDir = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'framework','utils'))
-sys.path.append(utilsDir)
+frameworkDir = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'framework'))
+sys.path.append(frameworkDir)
 
-import TreeStructure as TS
+import utils.TreeStructure as TS
 
 results = {'failed':0,'passed':0}
 

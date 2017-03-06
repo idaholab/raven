@@ -26,8 +26,8 @@ import ast
 import copy
 #External Modules End-----------------------------------------------------------
 #Internal Modules---------------------------------------------------------------
-import utils
-import mathUtils
+from utils import utils
+from utils import mathUtils
 import MessageHandler
 import PostProcessors #import returnFilterInterface
 import DataObjects

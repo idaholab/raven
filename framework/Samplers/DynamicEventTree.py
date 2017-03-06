@@ -17,22 +17,11 @@ warnings.simplefilter('default',DeprecationWarning)
 import sys
 import os
 import copy
-import abc
-import numpy as np
-import json
-from operator import mul,itemgetter
+from operator import mul
 from functools import reduce
-from scipy import spatial
-from scipy.interpolate import InterpolatedUnivariateSpline
 import xml.etree.ElementTree as ET
 import itertools
-from math import ceil
-from collections import OrderedDict, Counter
-from sklearn import neighbors
-from sklearn.utils.extmath import cartesian
-
-if sys.version_info.major > 2: import pickle
-else: import cPickle as pickle
+from collections import Counter
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -40,23 +29,8 @@ from .Grid import Grid
 from .MonteCarlo import MonteCarlo
 from .Stratified import Stratified
 from .Sampler import Sampler
-import utils
-import mathUtils
-from BaseClasses import BaseType
-from Assembler import Assembler
-import Distributions
-import DataObjects
-import TreeStructure as ETS
-import SupervisedLearning
-import pyDOE as doe
-import Quadratures
-import OrthoPolynomials
-import IndexSets
-import Models
-import PostProcessors
-import MessageHandler
-import GridEntities
-distribution1D = utils.find_distribution1D()
+from utils import utils
+import utils.TreeStructure as ETS
 #Internal Modules End-------------------------------------------------------------------------------
 
 class DynamicEventTree(Grid):

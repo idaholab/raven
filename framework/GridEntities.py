@@ -19,10 +19,10 @@ import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import UreturnPrintTag,partialEval,compare, metaclass_insert
+from utils.utils import UreturnPrintTag,partialEval,compare, metaclass_insert
 from BaseClasses import BaseType
-import TreeStructure as ETS
-from RAVENiterators import ravenArrayIterator
+import utils.TreeStructure as ETS
+from utils.RAVENiterators import ravenArrayIterator
 #import TreeStructure as TS
 #Internal Modules End--------------------------------------------------------------------------------
 

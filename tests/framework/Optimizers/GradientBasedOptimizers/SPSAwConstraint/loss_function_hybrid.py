@@ -2,7 +2,7 @@ import os
 import sys
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.append(os.path.join(frameworkDir,'utils'))
-import utils
+from utils import utils
 utils.find_crow(frameworkDir)
 distribution1D = utils.find_distribution1D()
 stochasticEnv = distribution1D.DistributionContainer.instance()
