@@ -5,11 +5,6 @@
     <Sequence>ExternalModelMC,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted,ComputeLimitSurfaceIntegralUnWeighted</Sequence>
     <batchSize>25</batchSize>
     <internalParallel>True</internalParallel>
-    <mode>
-      mpi
-      <runQSUB/>
-    </mode>
-    <clusterParameters>-W block=true</clusterParameters>
     <expectedTime>00:10:00</expectedTime>
     <JobName>test_qsub</JobName>
   </RunInfo>

@@ -13,12 +13,7 @@
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstMQRun</Sequence>
     <batchSize>3</batchSize>
-    <clusterParameters>-W block=true</clusterParameters>
     <NumThreads>4</NumThreads>
-    <mode>
-      mpi
-      <runQSUB/>
-    </mode>
     <NumMPI>2</NumMPI>
     <expectedTime>0:10:00</expectedTime>
     <JobName>test_qsub</JobName>

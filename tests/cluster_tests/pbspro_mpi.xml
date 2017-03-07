@@ -1,0 +1,9 @@
+<Simulation>
+  <RunInfo>
+    <clusterParameters>-W block=true</clusterParameters>
+    <mode>
+      mpi
+      <runQSUB/>
+    </mode>
+  </RunInfo>
+</Simulation>
