@@ -20,6 +20,12 @@ import copy
 import numpy
 from difflib import SequenceMatcher
 
+class Object(object):
+  """
+    Simple custom inheritance object.
+  """
+  pass
+
 #custom errors
 class NoMoreSamplesNeeded(GeneratorExit):
   """
