@@ -34,7 +34,6 @@ import os
 import inspect
 frameworkFolder = os.path.realpath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())),"..",".."))
 if frameworkFolder not in sys.path: sys.path.insert(0, frameworkFolder)
-sys.path.append(os.path.join(frameworkFolder,'utils'))
 from utils.utils import add_path_recursively, add_path, find_crow
 find_crow(frameworkFolder)
 #add_path_recursively(os.path.join(frameworkFolder,'contrib'))

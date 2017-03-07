@@ -13,7 +13,6 @@ import sys, os
 import pickle as pk
 import numpy as np
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
-sys.path.append(os.path.join(frameworkDir,'utils'))
 
 from utils.utils import find_crow
 
