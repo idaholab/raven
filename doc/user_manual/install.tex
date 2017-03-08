@@ -67,14 +67,18 @@ When installing RAVEN on a Linux system, it is recommended that the
 distribution's package manager be used to install the dependencies.
 Doing so automates the process and automatically includes any needed
 dependencies of the requested packages.  Below are instructions for
-doing so for two popular Linux distributions, Ubuntu and Fedora.
+doing so for two popular Linux distributions, Ubuntu and Fedora.  If
+the distribution's packages are not available or too old, either a
+direct Miniconda (See Section \ref{miniconda_direct}) or a manual
+dependency install (See Section \ref{sysprep_manual}) can be used.
 
 \subsubsection{Ubuntu}
 
-The Ubuntu distribution of Linux makes use of the Advanced Package Tool
-(APT) to automate the installation of preconfigured software.  The following
-command uses the APT to add the needed packages and any needed
-dependencies not already on the system:
+The Ubuntu distribution of Linux makes use of the Advanced Package
+Tool (APT) to automate the installation of preconfigured software.
+Ubuntu 16.4 or newer provide all the packages needed for RAVEN.  The
+following command uses the APT to add the needed packages and any
+needed dependencies not already on the system:
 
 \begin{lstlisting}[language=bash]
 sudo apt-get install libtool git python-dev swig g++ \
@@ -175,6 +179,8 @@ Advanced note: This creates a conda environment called
 \texttt{raven\_libraries} and the command used to create this the \texttt{raven\_libraries} environment can be found by by running:
 \texttt{python scripts/TestHarness/testers/RavenUtils.py --conda-create}
 
+\label{miniconda_direct}
+
 Alternatively, Miniconda can be obtained and installed directly. See
 \url{http://conda.pydata.org/miniconda.html} for more information and
 installation files to download.  If your system already has Miniconda,
@@ -254,6 +260,23 @@ usually work):
 \end{enumerate}
 
 \goToRavenInstallation
+
+\subsubsection{PIP Install}
+
+PIP (Pip Installs Packages) is a package management system that can be
+used to install Python packages.  It cannot be used to install swig or
+hdf5, so those may need to be manually installed.  It probably will be
+useful to use a virtual environment with PIP:
+
+\lstinputlisting[language=bash]{pip_commands.txt}
+
+The following command can be used to find out the pip install command
+for the RAVEN dependencies:
+
+\texttt{python scripts/TestHarness/testers/RavenUtils.py --pip-install}
+
+\goToRavenInstallation
+
 
 \section{RAVEN Installation}
 \label{raven_installation}
