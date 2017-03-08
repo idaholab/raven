@@ -18,7 +18,7 @@ if not 'xrange' in dir(__builtins__):
 from BaseClasses import BaseType
 import DataObjects
 import Models
-import utils
+from utils import utils
 #Internal Modules End-----------------------------------------------------------
 
 class OutStreamManager(BaseType):

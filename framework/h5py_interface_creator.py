@@ -22,8 +22,8 @@ import difflib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import utils
-import mathUtils
+from utils import utils
+from utils import mathUtils
 import MessageHandler
 import Files
 #Internal Modules End--------------------------------------------------------------------------------

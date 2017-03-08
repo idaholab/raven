@@ -13,8 +13,8 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from cached_ndarray import c1darray
-import utils
+from utils.cached_ndarray import c1darray
+from utils import utils
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 

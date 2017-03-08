@@ -16,7 +16,7 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import utils
+from utils import utils
 from BaseClasses import BaseType
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------

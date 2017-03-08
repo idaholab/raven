@@ -11,13 +11,12 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
-import utils
+from utils import utils
 import sklearn.metrics.pairwise as pairwise
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
-
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SKL(Metric):

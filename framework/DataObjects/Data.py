@@ -26,12 +26,12 @@ import xml.etree.ElementTree as ET
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from cached_ndarray import c1darray
+from utils.cached_ndarray import c1darray
 from Csv_loader import CsvLoader as ld
 import Files
-import TreeStructure as TS
-import utils
-import mathUtils
+import utils.TreeStructure as TS
+from utils import utils
+from utils import mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 # Custom exceptions

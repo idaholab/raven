@@ -10,8 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import sys
 import copy
-import utils
-from utils import toString
+from utils import utils
 import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
 from CodeInterfaceBaseClass import CodeInterfaceBase
@@ -166,7 +165,7 @@ class RELAP7(CodeInterfaceBase):
             endTimeStepString = "0" + endTimeStepString
         splitted = Kwargs['outfile'].split('~')
         output_parent = splitted[0] + '~'  + splitted[1]
-        restartFileBase = os.path.join("..",toString(Kwargs['parentID']),output_parent + "_cp",endTimeStepString)
+        restartFileBase = os.path.join("..",utils.toString(Kwargs['parentID']),output_parent + "_cp",endTimeStepString)
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restartFileBase
         #print(' Restart file name base is "' + restart_file_base + '"')

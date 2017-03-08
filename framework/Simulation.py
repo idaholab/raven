@@ -35,11 +35,11 @@ import OutStreams
 from JobHandler import JobHandler
 import MessageHandler
 import VariableGroups
-import utils
+from utils import utils
+from utils import TreeStructure
 from Application import __PySideAvailable
 if __PySideAvailable:
   from Application import InteractiveApplication
-import TreeStructure
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------

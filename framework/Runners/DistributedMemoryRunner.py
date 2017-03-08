@@ -20,7 +20,7 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import utils
+from utils import utils
 from BaseClasses import BaseType
 import MessageHandler
 from .InternalRunner import InternalRunner

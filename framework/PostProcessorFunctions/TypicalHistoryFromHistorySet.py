@@ -9,7 +9,7 @@ warnings.simplefilter('default',DeprecationWarning)
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 import numpy as np
 import copy
-import mathUtils
+from utils import mathUtils
 
 class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
   """

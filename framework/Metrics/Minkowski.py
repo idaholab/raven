@@ -10,26 +10,13 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import os
-import shutil
 import math
 import numpy as np
-import abc
-import importlib
-import inspect
-import atexit
 import scipy.spatial.distance as spDist
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
-from Assembler import Assembler
-import CustomCommandExecuter
-import utils
-import mathUtils
-import Files
 from .Metric import Metric
-
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Minkowski(Metric):

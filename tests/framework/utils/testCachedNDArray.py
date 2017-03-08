@@ -11,10 +11,9 @@ warnings.simplefilter('default',DeprecationWarning)
 import os,sys
 import numpy as np
 
-utilsDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,'framework','utils'))
-sys.path.append(utilsDir)
-
-import cached_ndarray
+frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,'framework'))
+sys.path.append(frameworkDir)
+from utils import cached_ndarray
 print (cached_ndarray)
 
 

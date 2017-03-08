@@ -1,3 +1,7 @@
+"""
+  Utility module containing methods commonly used throughout the Python framework.
+"""
+
 from __future__ import division, print_function, absolute_import
 # WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
 import warnings
@@ -16,10 +20,18 @@ import copy
 import numpy
 from difflib import SequenceMatcher
 
-class Object(object):pass
+class Object(object):
+  """
+    Simple custom inheritance object.
+  """
+  pass
 
 #custom errors
-class NoMoreSamplesNeeded(GeneratorExit): pass
+class NoMoreSamplesNeeded(GeneratorExit):
+  """
+    Custom RAVEN error available for use in the framework.
+  """
+  pass
 # ID separator that should be used cross the code when combined ids need to be assembled.
 # For example, when the "EnsembleModel" creates new  ``prefix`` ids for sub-models
 __idSeparator = "++"
@@ -250,7 +262,7 @@ def compare(s1,s2,relTolerance = 1e-14):
   w1, w2 = floatConversion(s1), floatConversion(s2)
   if   type(w1) == type(w2) and type(w1) != float: return s1 == s2
   elif type(w1) == type(w2) and type(w1) == float:
-    import mathUtils
+    from utils import mathUtils
     return mathUtils.compareFloats(w1,w2,relTolerance)
   elif type(w1) != type(w2) and type(w1) in [float,int] and type(w2) in [float,int]:
     w1, w2 = float(w1), float(w2)

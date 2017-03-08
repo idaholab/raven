@@ -24,7 +24,7 @@ import inspect
 from BaseClasses import BaseType
 from JobHandler import JobHandler
 import MessageHandler
-import utils
+from utils import utils
 #Internal Modules End-----------------------------------------------------------------
 
 

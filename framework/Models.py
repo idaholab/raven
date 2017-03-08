@@ -27,15 +27,15 @@ from BaseClasses import BaseType
 from Assembler import Assembler
 import SupervisedLearning
 import CustomCommandExecuter
-import utils
-import mathUtils
-import TreeStructure
+from utils import utils
+from utils import mathUtils
+from utils import TreeStructure
+from utils import graphStructure
+from utils import InputData
+from utils.cached_ndarray import c1darray
 import Files
-import graphStructure
-import InputData
 import PostProcessors
 import LearningGate
-from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
 
 

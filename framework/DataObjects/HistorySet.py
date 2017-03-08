@@ -19,9 +19,9 @@ import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from cached_ndarray import c1darray
+from utils.cached_ndarray import c1darray
 from .Data import Data, NotConsistentData, ConstructError
-import utils
+from utils import utils
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 

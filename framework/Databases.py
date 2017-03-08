@@ -21,7 +21,7 @@ from scipy.interpolate import interp1d
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from h5py_interface_creator import hdf5Database as h5Data
-import utils
+from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DateBase(BaseType):
