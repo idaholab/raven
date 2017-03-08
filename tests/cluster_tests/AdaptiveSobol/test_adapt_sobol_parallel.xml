@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>workdir</WorkingDir>
     <Sequence>make,train,print</Sequence>
-    <batchSize>8</batchSize>
+    <batchSize>3</batchSize>
     <internalParallel>True</internalParallel>
     <expectedTime>00:10:00</expectedTime>
     <JobName>test_qsub</JobName>

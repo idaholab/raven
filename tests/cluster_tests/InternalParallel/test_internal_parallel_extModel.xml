@@ -4,7 +4,7 @@
   <RunInfo>
     <WorkingDir>InternalParallelExtModel</WorkingDir>
     <Sequence>ParalleMonteCarlo</Sequence>
-    <batchSize>25</batchSize>
+    <batchSize>3</batchSize>
     <internalParallel>True</internalParallel>
     <expectedTime>00:10:00</expectedTime>
     <JobName>test_qsub</JobName>
