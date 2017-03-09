@@ -13,7 +13,7 @@ RAVEN itself (Section \ref{raven_installation}).  For any particular
 installation, only one of the raven dependency procedures and one of
 the raven installation paths needs to be taken.
 
-For OSX it is recommended that the dependencies be installed with
+For macOS (OSX) it is recommended that the dependencies be installed with
 Miniconda (Section \ref{miniconda}).  For Linux, it is recommended
 that the distribution package manager be used if possible (Section
 \ref{sysprep_linux}).
@@ -162,16 +162,18 @@ With'' and then Installer.  The file can be gotten from the RAVEN wiki
 from a link on the page:
 \url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/installationMAC}
 
-The files will be installed into \texttt{/opt/raven\_libs}.
+The files will be installed into \texttt{/opt/raven\_libs}.  RAVEN
+will look at this directory during both compiling and running to get
+the RAVEN libraries from.
 
-Your \texttt{.bash\_profile} will be modified to source
-the\\ \texttt{/opt/raven\_libs/environments/raven\_libs\_profile}
-file.  This needs to be sourced either with the command:
-\begin{lstlisting}[language=bash]
-source $HOME/.bash_profile
-\end{lstlisting}
-or by reopening the terminal will put the correct Miniconda python in
-the path.
+%% Your \texttt{.bash\_profile} will be modified to source
+%% the\\ \texttt{/opt/raven\_libs/environments/raven\_libs\_profile}
+%% file.  This needs to be sourced either with the command:
+%% \begin{lstlisting}[language=bash]
+%% source $HOME/.bash_profile
+%% \end{lstlisting}
+%% or by reopening the terminal will put the correct Miniconda python in
+%% the path.
 
 Once this is installed you can go on to Section \ref{raven_installation} and install RAVEN.
 
@@ -223,7 +225,7 @@ provide this functionality.  More information about MSYS2 is available at
 	pre-packaged together in one large archive file.
     \item Download the pre-built archive file containing MSYS2 packages needed to run RAVEN.  A link to the current version of
 	this file may be found in the Windows installation section of the RAVEN Wiki:
-	\url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/installationWindows#obtain-and-install-the-pre-built-archive-containing-msys2-packages-needed-for-raven}
+	\url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/installationWindows#installation}
     \item Use a Windows archive file program such as WinZip to open the large zip file just downloaded.  Shut down any
 	MSYS2 shells you have open and then copy the "msys64" folder from the large zip file so that it is copied right
 	on top of the MSYS2 installation performed above. When the file copying is done (which will take a while)
@@ -265,10 +267,15 @@ usually work):
 
 PIP (Pip Installs Packages) is a package management system that can be
 used to install Python packages.  It cannot be used to install swig or
-hdf5, so those may need to be manually installed.  It probably will be
-useful to use a virtual environment with PIP:
+hdf5, so those may need to be manually installed.  Using a virtual
+environment with PIP is recommended (without the virtual environment,
+only the \texttt{pip install} command is needed):
 
 \lstinputlisting[language=bash]{pip_commands.txt}
+
+Note that the \texttt{source} command will need to be run to use the
+environment in the future when the shell is restarted since the
+virtual environment is only available after switching to it.
 
 The following command can be used to find out the pip install command
 for the RAVEN dependencies:
@@ -284,20 +291,24 @@ for the RAVEN dependencies:
 Once the RAVEN dependencies have been installed (See Section
 \ref{raven_dependencies}), the rest of RAVEN can be installed.
 
-There are several different ways to get RAVEN.  There are trade offs
+There are two different ways to get RAVEN.  There are trade offs
 between how easy it is to setup and how easy it is to develop with the
-method.  If you want to do development on RAVEN and RAVEN is the only
-MOOSE application you are using or you don't mind having duplicate
-MOOSE directories, go to Section \ref{submodule_git}. If you are using
-several MOOSE applications and want to share the MOOSE directory go to
-Section \ref{parallel_directory_git}.  If you don't need to do RAVEN
-development but want to keep up with the latest version of RAVEN, the
-RAVEN Whole repository can be used as described in Section
-\ref{raven_whole_devel}.  If you don't need to do RAVEN development,
-and want to track a stable version of RAVEN, the RAVEN Whole
-repository with a stable branch can be used as described in Section
-\ref{raven_whole_stable}.  If git is not used, the Source Code Package
-in Section \ref{raven_source_package} can be used.
+method.  If you want to do development on RAVEN or keep up with RAVEN
+changes go to Section \ref{submodule_git}.  If git is not used, the
+Source Code Package in Section \ref{raven_source_package} can be used.
+
+%If you are using
+%several MOOSE applications and want to share the MOOSE directory go to
+%Section \ref{parallel_directory_git}.
+%If you don't need to do
+%RAVEN development but want to keep up with the latest version of
+%RAVEN, the RAVEN Whole repository can be used as described in Section
+%\ref{raven_whole_devel}.
+%If you don't need to do RAVEN development,
+%and want to track a stable version of RAVEN, the RAVEN Whole
+%repository with a stable branch can be used as described in Section
+%\ref{raven_whole_stable}.
+
 
 \subsection{Submodule Git}
 \label{submodule_git}
@@ -325,134 +336,134 @@ git submodule update
 \end{lstlisting}
 
 
-\subsection{Parallel Directory Git}
-\label{parallel_directory_git}
+%% \subsection{Parallel Directory Git}
+%% \label{parallel_directory_git}
 
-This install method uses git to obtain the software, and the raven,
-crow, and moose directories are installed at the same level.  This is
-used to allow other MOOSE applications to share the same MOOSE and
-libmesh.
+%% This install method uses git to obtain the software, and the raven,
+%% crow, and moose directories are installed at the same level.  This is
+%% used to allow other MOOSE applications to share the same MOOSE and
+%% libmesh.
 
-First follow the MOOSE getting started instructions:  \url{http://mooseframework.org/getting-started/}
+%% First follow the MOOSE getting started instructions:  \url{http://mooseframework.org/getting-started/}
 
-This is generally:
+%% This is generally:
 
-\begin{lstlisting}[language=bash]
-git clone https://github.com/idaholab/moose.git
-cd  moose/scripts
-./update_and_rebuild_libmesh.sh
-cd ../../
-\end{lstlisting}
+%% \begin{lstlisting}[language=bash]
+%% git clone https://github.com/idaholab/moose.git
+%% cd  moose/scripts
+%% ./update_and_rebuild_libmesh.sh
+%% cd ../../
+%% \end{lstlisting}
 
-Next Crow and RAVEN need to be cloned:
+%% Next Crow and RAVEN need to be cloned:
 
-\begin{lstlisting}[language=bash]
-git clone git@hpcgitlab.inl.gov:idaholab/crow.git
-git clone git@hpcgitlab.inl.gov:idaholab/raven.git
-\end{lstlisting}
+%% \begin{lstlisting}[language=bash]
+%% git clone git@hpcgitlab.inl.gov:idaholab/crow.git
+%% git clone git@hpcgitlab.inl.gov:idaholab/raven.git
+%% \end{lstlisting}
 
-If RELAP-7 will be used, it should be cloned:
+%% If RELAP-7 will be used, it should be cloned:
 
-\begin{lstlisting}[language=bash]
-git clone git@hpcgitlab.inl.gov:idaholab/relap-7.git
-\end{lstlisting}
+%% \begin{lstlisting}[language=bash]
+%% git clone git@hpcgitlab.inl.gov:idaholab/relap-7.git
+%% \end{lstlisting}
 
-Next the RAVEN modules should be compiled:
+%% Next the RAVEN modules should be compiled:
 
-\begin{lstlisting}[language=bash]
-cd raven
-make framework_modules
-\end{lstlisting}
+%% \begin{lstlisting}[language=bash]
+%% cd raven
+%% make framework_modules
+%% \end{lstlisting}
 
-If RELAP-7 is used, the rest of raven can be compiled:
+%% If RELAP-7 is used, the rest of raven can be compiled:
 
-\begin{lstlisting}[language=bash]
-#make sure you are in the raven directory
-make
-\end{lstlisting}
-
-
-Then the testing should be done.  If RELAP-7 is not used the framework
-tests should be run:
-
-\begin{lstlisting}[language=bash]
-./run_framework_tests
-\end{lstlisting}
-
-If RELAP-7 is used, all the tests can be run:
-
-\begin{lstlisting}[language=bash]
-./run_tests
-\end{lstlisting}
+%% \begin{lstlisting}[language=bash]
+%% #make sure you are in the raven directory
+%% make
+%% \end{lstlisting}
 
 
-The output should describe why any tests failed.
+%% Then the testing should be done.  If RELAP-7 is not used the framework
+%% tests should be run:
 
-At the end, there should be a line that looks similar to the output below:
-\begin{lstlisting}[language=bash]
-8 passed, 19 skipped, 0 pending, 0 failed
-\end{lstlisting}
+%% \begin{lstlisting}[language=bash]
+%% ./run_framework_tests
+%% \end{lstlisting}
 
-Normally there are skipped tests because either some of the codes are
-not available, or some of the test are not currently working.  The
-output will explain why each is skipped.
+%% If RELAP-7 is used, all the tests can be run:
 
-If all the tests pass, you are ready to read about Running RAVEN in
-Section \ref{HowToRun}.
+%% \begin{lstlisting}[language=bash]
+%% ./run_tests
+%% \end{lstlisting}
 
-To update the software, the git pull command can be used:
 
-\begin{lstlisting}[language=bash]
-cd moose
-git pull
-#Possibly libmesh needs to be rebuilt at this point.
-cd ../crow
-git pull
-cd ../raven
-git pull
-\end{lstlisting}
+%% The output should describe why any tests failed.
 
-\subsection{RAVEN Whole Devel Branch}
-\label{raven_whole_devel}
+%% At the end, there should be a line that looks similar to the output below:
+%% \begin{lstlisting}[language=bash]
+%% 8 passed, 19 skipped, 0 pending, 0 failed
+%% \end{lstlisting}
 
-This install method uses git to get a custom repository that includes
-only the parts of Crow and MOOSE that are needed by RAVEN.  This
-repository is updated every time RAVEN or Crow or MOOSE are changed
-and the RAVEN framework tests pass.
+%% Normally there are skipped tests because either some of the codes are
+%% not available, or some of the test are not currently working.  The
+%% output will explain why each is skipped.
 
-First clone the RAVEN whole repository:
+%% If all the tests pass, you are ready to read about Running RAVEN in
+%% Section \ref{HowToRun}.
 
-\begin{lstlisting}[language=bash]
-git clone git@hpcgitlab.inl.gov:cogljj/raven.git
-cd raven
-\end{lstlisting}
+%% To update the software, the git pull command can be used:
 
-Next follow the compilation and testing instructions in Section \ref{raven_compilation}.
+%% \begin{lstlisting}[language=bash]
+%% cd moose
+%% git pull
+%% #Possibly libmesh needs to be rebuilt at this point.
+%% cd ../crow
+%% git pull
+%% cd ../raven
+%% git pull
+%% \end{lstlisting}
 
-To update the software, the git pull command can be used:
+%% \subsection{RAVEN Whole Devel Branch}
+%% \label{raven_whole_devel}
 
-\begin{lstlisting}[language=bash]
-git pull
-\end{lstlisting}
+%% This install method uses git to get a custom repository that includes
+%% only the parts of Crow and MOOSE that are needed by RAVEN.  This
+%% repository is updated every time RAVEN or Crow or MOOSE are changed
+%% and the RAVEN framework tests pass.
 
-\subsection{RAVEN Whole Stable Branch}
-\label{raven_whole_stable}
+%% First clone the RAVEN whole repository:
 
-This is the same as in the previous Section \ref{raven_whole_devel},
-but after the clone command a stable branch is checked out:
+%% \begin{lstlisting}[language=bash]
+%% git clone git@hpcgitlab.inl.gov:cogljj/raven.git
+%% cd raven
+%% \end{lstlisting}
 
-\begin{lstlisting}[language=bash]
-git clone git@hpcgitlab.inl.gov:cogljj/raven.git
-cd raven
-git checkout stable/2015_july
-\end{lstlisting}
+%% Next follow the compilation and testing instructions in Section \ref{raven_compilation}.
 
-The rest is the same as the RAVEN Whole devel branch.  The stable
-branches are updated less frequently, and input changes that would
-invalidate existing files are not allowed.
+%% To update the software, the git pull command can be used:
 
-The compilation and testing instructions in Section
-\ref{raven_compilation} can be followed.
+%% \begin{lstlisting}[language=bash]
+%% git pull
+%% \end{lstlisting}
+
+%% \subsection{RAVEN Whole Stable Branch}
+%% \label{raven_whole_stable}
+
+%% This is the same as in the previous Section \ref{raven_whole_devel},
+%% but after the clone command a stable branch is checked out:
+
+%% \begin{lstlisting}[language=bash]
+%% git clone git@hpcgitlab.inl.gov:cogljj/raven.git
+%% cd raven
+%% git checkout stable/2015_july
+%% \end{lstlisting}
+
+%% The rest is the same as the RAVEN Whole devel branch.  The stable
+%% branches are updated less frequently, and input changes that would
+%% invalidate existing files are not allowed.
+
+%% The compilation and testing instructions in Section
+%% \ref{raven_compilation} can be followed.
 
 \subsection{RAVEN Source Code Package}
 \label{raven_source_package}
@@ -495,25 +506,6 @@ Normally there are skipped tests because either some of the codes are
 not available, or some of the test are not currently working.  The
 output will explain why each is skipped.
 
-Note, that when using RAVEN remotely in a graphical session with X11 forwarded
-to the client, some tests may depend on live X11 forwarding to the remote
-client. If the user is not using X11 forwarding then RAVEN should degrade
-gracefully and still be able to pass all of the test cases, this case only
-arises when the user has forwarded their X11 environment to a ssh client, for
-example. The standard timeout of X for an untrusted connection is 20 minutes.
-Users wanting to run the full test suite including those involving
-graphical output may note that the this process can take longer than the
-aforementioned timeout. One way to alleviate this is to login to the remote
-host of RAVEN using a trusted connection by using the -Y flag:
-
-\begin{lstlisting}[language=bash]
-ssh -Y hostname
-\end{lstlisting}
-
-This should only be done when the user is using a secure connection to a known
-host though, as there are security concerns to the client machine when allowing
-a remote computer access to its graphical user interface.
-
 If all the tests pass, you are ready to read about Running RAVEN in
 Section \ref{HowToRun}.
 
@@ -533,6 +525,28 @@ can be used to check if all the libraries are available, and which
 ones are being used.  If amsc, distribution1D or interpolationND are
 missing, then the RAVEN modules need to be compiled or recompiled.
 Otherwise, the RAVEN dependencies need to be fixed.
+
+Note, that when using RAVEN remotely in a graphical session with X11
+forwarded to the client, some tests may depend on live X11 forwarding
+to the remote client. If the user is not using X11 forwarding then
+RAVEN should degrade gracefully and still be able to pass all of the
+test cases, this case only arises when the user has forwarded their
+X11 environment to a ssh client, for example. The standard timeout of
+X for an untrusted connection is 20 minutes.  Users wanting to run the
+full test suite including those involving graphical output may note
+that the this process can take longer than the aforementioned
+timeout. One way to alleviate this is to login to the remote host of
+RAVEN using a trusted connection by using the -Y flag:
+
+\begin{lstlisting}[language=bash]
+ssh -Y hostname
+\end{lstlisting}
+
+This should only be done when the user is using a secure connection to
+a known host though, as there are security concerns to the client
+machine when allowing a remote computer access to its graphical user
+interface.
+
 
 \subsection{In-use Testing}
 
