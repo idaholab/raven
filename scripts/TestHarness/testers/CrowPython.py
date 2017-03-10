@@ -76,5 +76,7 @@ class CrowPython(Tester):
         @ Out: a tuple with the error return code and the output passed in.
     """
     if retcode != 0:
-      return (str(retcode),output)
-    return ('',output)
+      self.setStatus(str(retcode), self.bucket_fail)
+      return output
+    self.setStatus(self.success_message, self.bucket_success)
+    return output
