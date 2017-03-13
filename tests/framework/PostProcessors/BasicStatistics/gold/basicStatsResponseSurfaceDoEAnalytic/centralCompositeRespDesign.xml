@@ -1,14 +1,13 @@
-<?xml version="1.0" ?>
 <BasicStatisticsPP type="Static">
   <y>
     <expectedValue>0.658876242481</expectedValue>
     <minimum>0.0</minimum>
     <maximum>1.0</maximum>
-    <median>0.5</median>
+    <median>0.765165042945</median>
     <variance>0.0723884859161</variance>
     <sigma>0.269051084213</sigma>
-    <percentile_5>0.5</percentile_5>
-    <percentile_95>0.765165042945</percentile_95>
+    <percentile_5>0.0</percentile_5>
+    <percentile_95>1.0</percentile_95>
     <variationCoefficient>0.408348437637</variationCoefficient>
     <skewness>-0.276088223536</skewness>
     <kurtosis>-0.867900607067</kurtosis>
@@ -16,7 +15,7 @@
     <sensitivity>
       <y>1.0</y>
       <x>0.0</x>
-      <z>5.38537270414e-17</z>
+      <z>1.07707454083e-16</z>
     </sensitivity>
     <covariance>
       <y>0.0723884859161</y>
@@ -44,11 +43,11 @@
     <expectedValue>0.658876242481</expectedValue>
     <minimum>0.0</minimum>
     <maximum>1.0</maximum>
-    <median>0.5</median>
+    <median>0.765165042945</median>
     <variance>0.0723884859161</variance>
     <sigma>0.269051084213</sigma>
-    <percentile_5>0.5</percentile_5>
-    <percentile_95>0.765165042945</percentile_95>
+    <percentile_5>0.0</percentile_5>
+    <percentile_95>1.0</percentile_95>
     <variationCoefficient>0.408348437637</variationCoefficient>
     <skewness>-0.276088223536</skewness>
     <kurtosis>-0.867900607067</kurtosis>
@@ -56,7 +55,7 @@
     <sensitivity>
       <y>0.0</y>
       <x>1.0</x>
-      <z>1.07707454083e-16</z>
+      <z>0.0</z>
     </sensitivity>
     <covariance>
       <y>-0.0108435956379</y>
@@ -84,7 +83,7 @@
     <expectedValue>0.658876242481</expectedValue>
     <minimum>0.0</minimum>
     <maximum>1.0</maximum>
-    <median>0.5</median>
+    <median>0.765165042945</median>
     <variance>0.0723884859161</variance>
     <sigma>0.269051084213</sigma>
     <percentile_5>0.234834957055</percentile_5>
@@ -119,5 +118,4 @@
       <z>1.0</z>
     </VarianceDependentSensitivity>
   </z>
-
 </BasicStatisticsPP>

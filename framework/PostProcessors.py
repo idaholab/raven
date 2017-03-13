@@ -2219,6 +2219,9 @@ class BasicStatistics(BasePostProcessor):
       @ Out, result, float, the percentile
     """
     idxs                   = np.argsort(np.asarray(zip(pbWeight,arrayIn))[:,1])
+    # Inserting [0.0,arrayIn[idxs[0]]] is needed when few samples are generated and
+    # a percentile that is < that the first pb weight is requested. Otherwise the median
+    # is returned (that is wrong).
     sortedWeightsAndPoints = np.insert(np.asarray(zip(pbWeight[idxs],arrayIn[idxs])),0,[0.0,arrayIn[idxs[0]]],axis=0)
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
     try:

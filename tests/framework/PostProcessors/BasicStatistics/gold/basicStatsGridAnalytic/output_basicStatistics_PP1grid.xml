@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <BasicStatisticsPP type="Static">
   <y1>
     <expectedValue>3.5</expectedValue>
@@ -7,15 +6,15 @@
     <median>3.5</median>
     <variance>3.08335408308</variance>
     <sigma>1.75594820057</sigma>
-    <percentile_5>0.35</percentile_5>
+    <percentile_5>0.875</percentile_5>
     <percentile_95>6.125</percentile_95>
     <variationCoefficient>0.501699485876</variationCoefficient>
-    <skewness>-8.20997868785e-16</skewness>
+    <skewness>-8.15159085048e-16</skewness>
     <kurtosis>-0.0773194394249</kurtosis>
     <samples>441</samples>
     <sensitivity>
       <y1>1.0</y1>
-      <x1>5.53837646669e-17</x1>
+      <x1>0.0</x1>
     </sensitivity>
     <covariance>
       <y1>3.08335408308</y1>
@@ -49,7 +48,7 @@
     <kurtosis>0.854052064355</kurtosis>
     <samples>441</samples>
     <sensitivity>
-      <y1>0.0</y1>
+      <y1>-6.65205617046e-18</y1>
       <x1>1.0</x1>
     </sensitivity>
     <covariance>
@@ -69,5 +68,4 @@
       <x1>1.0</x1>
     </VarianceDependentSensitivity>
   </x1>
-
 </BasicStatisticsPP>
