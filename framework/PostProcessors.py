@@ -2221,7 +2221,6 @@ class BasicStatistics(BasePostProcessor):
     idxs                   = np.argsort(np.asarray(zip(pbWeight,arrayIn))[:,1])
     sortedWeightsAndPoints = np.insert(np.asarray(zip(pbWeight[idxs],arrayIn[idxs])),0,[0.0,arrayIn[idxs[0]]],axis=0)
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
-    index = utils.find_le_index(weightsCDF,percent)
     try:
       index = utils.find_le_index(weightsCDF,percent)
       result = sortedWeightsAndPoints[index,1]
