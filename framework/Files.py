@@ -542,7 +542,6 @@ class StaticXMLOutput(RAVENGenerated):
       @ In, target, string, name of target to find
       @ Out, targ, xml.etree.ElementTree.Element, desired target node
     """
-    # try to create a new node to check if the target is allowed in XML
     #find target node
     targ = xmlUtils.findPath(root,target)
     #if it doesn't exist, make it and add it
