@@ -542,6 +542,7 @@ class StaticXMLOutput(RAVENGenerated):
       @ In, target, string, name of target to find
       @ Out, targ, xml.etree.ElementTree.Element, desired target node
     """
+    # try to create a new node to check if the target is allowed in XML
     #find target node
     targ = xmlUtils.findPath(root,target)
     #if it doesn't exist, make it and add it
@@ -634,6 +635,7 @@ class DynamicXMLOutput(StaticXMLOutput):
       root = self.tree.getroot()
     if pivotVal is None:
       self.raiseAnError(RuntimeError,'In addScalar no pivotVal specificied, but in dynamic mode!')
+    
     pivotNode = self.findPivotNode(root,pivotVal)
     StaticXMLOutput.addVector(self,target,name,valueDict,root=pivotNode)
 
