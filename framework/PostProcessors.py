@@ -2218,15 +2218,12 @@ class BasicStatistics(BasePostProcessor):
       @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
       @ Out, result, float, the percentile
     """
-    print(np.percentile(arrayIn, 5))
     idxs                   = np.argsort(np.asarray(zip(pbWeight,arrayIn))[:,1])
-    sortedWeightsAndPoints = np.asarray(zip(pbWeight[idxs],arrayIn[idxs]))
+    sortedWeightsAndPoints = np.insert(np.asarray(zip(pbWeight[idxs],arrayIn[idxs])),0,[0.0,arrayIn[idxs[0]]],axis=0)
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
-    percentileFunction     = interpolate.interp1d(weightsCDF,[i for i in range(len(arrayIn))],kind='nearest')
-    aaa    = percentileFunction(percent)
+    index = utils.find_le_index(weightsCDF,percent)
     try:
-      aaa    = percentileFunction(percent)
-      index  = int(percentileFunction(percent))
+      index = utils.find_le_index(weightsCDF,percent)
       result = sortedWeightsAndPoints[index,1]
     except ValueError:
       result = np.median(arrayIn)
