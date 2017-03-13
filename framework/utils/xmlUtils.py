@@ -1,7 +1,7 @@
-'''
+"""
 Tools used to format, edit, and print XML in a RAVEN-like way
 talbpaul, 2016-05
-'''
+"""
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -137,11 +137,13 @@ def findPath(root,path):
   if len(path)>1:
     oneUp = findPath(root,'|'.join(path[:-1]))
     if oneUp is not None:
-      return oneUp.find(path[-1])
+      toSearch = fixXmlTag(path[-1])
+      return oneUp.find(toSearch)
     else:
       return None
   else:
-    return root.find(path[-1])
+    toSearch = fixXmlTag(path[-1])
+    return root.find(toSearch)
 
 def findPathEllipsesParents(root,path,docLevel=0):
   """

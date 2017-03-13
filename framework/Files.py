@@ -634,6 +634,7 @@ class DynamicXMLOutput(StaticXMLOutput):
       root = self.tree.getroot()
     if pivotVal is None:
       self.raiseAnError(RuntimeError,'In addScalar no pivotVal specificied, but in dynamic mode!')
+
     pivotNode = self.findPivotNode(root,pivotVal)
     StaticXMLOutput.addVector(self,target,name,valueDict,root=pivotNode)
 

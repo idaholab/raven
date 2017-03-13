@@ -6,7 +6,7 @@
     <batchSize>4</batchSize>
   </RunInfo>
   <TestInfo>
-    <name>framework/PostProcessors/RavenOutputPostProcessor/static</name>
+    <name>framework/PostProcessors/RavenOutputPostProcessor.static</name>
     <author>talbpaul</author>
     <created>2016-05-20</created>
     <classesTested>PostProcessors.RavenOutput</classesTested>
