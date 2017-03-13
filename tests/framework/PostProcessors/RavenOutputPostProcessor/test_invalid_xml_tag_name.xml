@@ -49,8 +49,8 @@
     
     <IOStep name="load_existing_database">
         <Input class="Databases" type="HDF5">EXISTING_DATABASE</Input>
-        <Output class="DataObjects" type="PointSet">PointSets</Output>
         <Input class="Databases" type="HDF5">EXISTING_DATABASE</Input>
+        <Output class="DataObjects" type="PointSet">PointSets</Output>
         <Output class="DataObjects" type="HistorySet">stories</Output>
         <Output class="OutStreams" type="Print">PointSets_dump</Output>
     </IOStep>
@@ -91,15 +91,14 @@
       <Input>time</Input>
       <Output>mean,high,low</Output>
     </PointSet>
-    <!-- Modify variable names -->
-    <HistorySet name="stories">
-      <Input>9890201:2,20290000:4</Input>
-      <Output>time,mflowj_635000000,tempf_201020000</Output>
-    </HistorySet>
     <PointSet name="PointSets">
         <Input>9890201:2,20290000:4</Input>
         <Output>time,mflowj_635000000,tempf_201020000</Output>
     </PointSet>
+    <HistorySet name="stories">
+      <Input>9890201:2,20290000:4</Input>
+      <Output>time,mflowj_635000000,tempf_201020000</Output>
+    </HistorySet>
   </DataObjects>
 
 </Simulation>
