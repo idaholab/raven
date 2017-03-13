@@ -5,7 +5,7 @@
     <Sequence>sample,stats,read,print</Sequence>
   </RunInfo>
   <TestInfo>
-    <name>framework/PostProcessors/RavenOutputPostProcessor/dynamic</name>
+    <name>framework/PostProcessors/RavenOutputPostProcessor.dynamic</name>
     <author>talbpaul</author>
     <created>2016-06-22</created>
     <classesTested>PostProcessors.RavenOutput</classesTested>
