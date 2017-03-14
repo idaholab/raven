@@ -16,11 +16,14 @@ cd raven
 
 cd $MAIN_DIR/raven
 git checkout $RAVEN_REV -- framework
-git checkout $RAVEN_REV -- README.txt
+git checkout $RAVEN_REV -- README.md
+git checkout $RAVEN_REV -- NOTICE.txt
+git checkout $RAVEN_REV -- LICENSE.txt
 git checkout $RAVEN_REV -- Makefile
 git checkout $RAVEN_REV -- *.mk
 git checkout $RAVEN_REV -- developer_tools/py3_raven_libs_script.sh
 git checkout $RAVEN_REV -- developer_tools/backend_raven_libs_script.sh
+git checkout $RAVEN_REV -- developer_tools/createRegressionTestDocumentation.py
 git checkout $RAVEN_REV -- tests/framework
 git checkout $RAVEN_REV -- tests/cluster_tests
 git checkout $RAVEN_REV -- run_tests
@@ -33,6 +36,7 @@ git checkout $RAVEN_REV -- doc/user_guide
 git checkout $RAVEN_REV -- doc/make_docs.sh
 git checkout $RAVEN_REV -- doc/qa_docs
 git checkout $RAVEN_REV -- doc/tests
+git checkout $RAVEN_REV -- doc/tex_inputs
 git checkout $RAVEN_REV -- raven_framework
 git checkout $RAVEN_REV -- src/contrib
 git checkout $RAVEN_REV -- include/contrib
