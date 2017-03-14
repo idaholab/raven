@@ -2,6 +2,7 @@ from __future__ import print_function
 import os, sys
 import subprocess
 import distutils.version
+import importlib
 
 def checkVersions():
   """
@@ -77,6 +78,21 @@ def moduleReport(module,version=''):
   except:
     return (False,'Failed to find module '+module,"NA")
 
+def __importReport(module):
+  """ Directly checks the module version.
+  Returns (found_boolean,message,version)
+  The found_boolean is true if the module is found.
+  The message will be the result of print(module)
+  The version is the version number or "NA" if not known.
+  """
+  try:
+    loaded = importlib.import_module(module)
+    foundVersion = loaded.__version__
+    output = str(loaded)
+    return (True, output, foundVersion)
+  except ImportError:
+    return (False, 'Failed to find module '+module, "NA")
+
 def modulesReport():
   """Return a report on the modules.
   Returns a list of [(module_name,found_boolean,message,version)]
@@ -122,19 +138,24 @@ def __checkVersion(i, ev, qa, mv, found, version):
       notQA.append(i + " has version " + version + " but tested version is " + qa + " and unable to parse version")
   return missing, outOfRange, notQA
 
-def checkForMissingModules():
+def checkForMissingModules(subprocessCheck = True):
   """
   Looks for a list of modules, and the version numbers.
   returns (missing, outOfRange, notQA) where if they are all found is
   ([], [], []), but if they are missing or too old or too new  will put a
   error message in the result for each missing or too old module or not on
   the quality assurance version.
+  @In, subprocessCheck, bool, if true use a subprocess to check
+  @Out, result, tuple, returns (missing, outOfRange, notQA)
   """
   missing = []
   outOfRange = []
   notQA = []
   for i,fv,ev, qa, mv in modules_to_try:
-    found, message, version = moduleReport(i, fv)
+    if subprocessCheck:
+      found, message, version = moduleReport(i, fv)
+    else:
+      found, message, version = __importReport(i)
     moduleMissing, moduleOutOfRange, moduleNotQA = __checkVersion(i, ev, qa, mv, found, version)
     missing.extend(moduleMissing)
     outOfRange.extend(moduleOutOfRange)
