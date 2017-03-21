@@ -44,7 +44,8 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.ROMclass                = ROMclass
     #the ROM is instanced and initialized
     #if ROM comes from a pickled rom, this gate is just a placeholder and the Targets check doesn't apply
-    if not self.initializationOptions.pop('pickled',False):
+    self.pickled = self.initializationOptions.pop('pickled',False)
+    if not self.pickled:
       # check how many targets
       if not 'Target' in self.initializationOptions.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     # return instance of the ROMclass
@@ -167,6 +168,8 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       @ In, request, dict, realizations request ({'feature1':np.array(n_realizations),'feature2',np.array(n_realizations)})
       @ Out, resultsDict, dict, dictionary of results ({target1:np.array,'target2':np.array}).
     """
+    if self.pickled:
+      self.raiseAnError(RuntimeError,'ROM "'+self.initializationOptions['name']+'" has not been loaded yet!  Use an IOStep to load it.')
     if not self.amITrained: self.raiseAnError(RuntimeError, "ROM "+self.initializationOptions['name']+" has not been trained yet and, consequentially, can not be evaluated!")
     resultsDict = {}
     for rom in self.supervisedContainer:

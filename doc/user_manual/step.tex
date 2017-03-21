@@ -318,7 +318,7 @@ This XML node accepts the following attributes:
     input.
     For this role, only \xmlString{DataObjects} can be used.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
-    type. 
+    type.
     This attribute needs to specify the object type within the \texttt{DataObjects}
     object class.
     For example, the \xmlAttr{type} attribute might be \xmlString{PointSet},
@@ -332,7 +332,7 @@ This XML node accepts the following attributes:
     \xmlNode{SolutionExport} needs to be of type \xmlString{PointSet} and
     it will contain the coordinates, in the input space, that belong to the
     ``Limit Surface''. For Optimizers, the
-    \xmlNode{SolutionExport} needs to be of type \xmlString{HistorySet} and it will contains all the optimization trajectories, each as a history, that record how the variables are updated along each optimization trajectory. 
+    \xmlNode{SolutionExport} needs to be of type \xmlString{HistorySet} and it will contains all the optimization trajectories, each as a history, that record how the variables are updated along each optimization trajectory.
 \end{itemize}
 \item \xmlNode{Output}, \xmlDesc{string, required parameter} identifies an
 entity to be used as output for this step.
@@ -486,9 +486,9 @@ used for the first \xmlNode{Output}, etc.).
 \xmlAttr{class}\\\xmlString{OutStreams}, since  \textbf{OutStreams}
 objects are already linked to a Data object in the relative RAVEN input block.
 
-In this case, the user needs to provide in the \xmlNode{Input} nodes, all of the
+In this case, the user needs to provide all of the
 ``DataObjects'' objects linked to the OutStreams objects (see the example
-below):
+below) in the \xmlNode{Input} nodes:
 \begin{lstlisting}[style=XML,morekeywords={class}]
 <Steps>
   ...
