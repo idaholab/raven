@@ -1,0 +1,84 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='debug'>
+  <RunInfo>
+    <WorkingDir>ColdRestart</WorkingDir>
+    <Sequence>load,sample,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/ROM/coldRestart</name>
+    <author>talbpaul</author>
+    <created>2016-03-21</created>
+    <classesTested>SupervisedLearning.GaussPolynomialROM</classesTested>
+    <description>
+      This tests the ability of a ROM to be unpickled and used with minimal specification, and without the typically-associated
+      Sampler for the GaussPolynomialROM.
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="rompk" type="">../StochasticPolyPickleTest/ROMpk</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">rom</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </MultiRun>
+    <IOStep name="load">
+      <Input class="Files" type="">rompk</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </IOStep>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="OutStreams" type="Print">solns</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="UniDist">
+      <lowerBound>1</lowerBound>
+      <upperBound>5</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <initialSeed>42</initialSeed>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>UniDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>UniDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="rom" subType="pickledROM"/>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="solns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="solns">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

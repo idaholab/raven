@@ -6,6 +6,8 @@ pushd ../../framework
 RAVEN_FRAMEWORK_DIR=$(pwd)
 popd
 
+fails=''
+
 wait_lines ()
 {
     LS_DATA="$1"
@@ -22,6 +24,7 @@ wait_lines ()
         echo PASS $NAME
     else
         echo FAIL $NAME
+        fails=$fails', '$NAME
         num_fails=$(($num_fails+1))
         printf '\n\nStandard Error:\n'
         cat $RAVEN_FRAMEWORK_DIR/test_qsub.e*
@@ -156,6 +159,6 @@ cd ..
 if test $num_fails -eq 0; then
     echo ALL PASSED
 else
-    echo FAILED: $num_fails
+    echo FAILED: $num_fails $fails
 fi
 exit $num_fails
