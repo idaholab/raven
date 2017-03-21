@@ -267,9 +267,10 @@ usually work):
 
 PIP (Pip Installs Packages) is a package management system that can be
 used to install Python packages.  It cannot be used to install swig or
-hdf5, so those may need to be manually installed.  Using a virtual
-environment with PIP is recommended (without the virtual environment,
-only the \texttt{pip install} command is needed):
+hdf5, so those may need to be manually installed.  In general, PIP
+cannot be used with MSYS on Windows.  Using a virtual environment with
+PIP is recommended (without the virtual environment, only the
+\texttt{pip install} command is needed):
 
 \lstinputlisting[language=bash]{pip_commands.txt}
 
@@ -294,8 +295,10 @@ Once the RAVEN dependencies have been installed (See Section
 There are two different ways to get RAVEN.  There are trade offs
 between how easy it is to setup and how easy it is to develop with the
 method.  If you want to do development on RAVEN or keep up with RAVEN
-changes go to Section \ref{submodule_git}.  If git is not used, the
-Source Code Package in Section \ref{raven_source_package} can be used.
+changes go to Section \ref{submodule_git}, which describes obtaining
+the software directly from the online repository.  Otherwise, RAVEN
+may be installed from a stand alone source code package (Section
+\ref{raven_source_package}).
 
 %If you are using
 %several MOOSE applications and want to share the MOOSE directory go to
@@ -529,14 +532,13 @@ Otherwise, the RAVEN dependencies need to be fixed.
 Note, that when using RAVEN remotely in a graphical session with X11
 forwarded to the client, some tests may depend on live X11 forwarding
 to the remote client. If the user is not using X11 forwarding then
-RAVEN should degrade gracefully and still be able to pass all of the
-test cases, this case only arises when the user has forwarded their
-X11 environment to a ssh client, for example. The standard timeout of
-X for an untrusted connection is 20 minutes.  Users wanting to run the
-full test suite including those involving graphical output may note
-that the this process can take longer than the aforementioned
-timeout. One way to alleviate this is to login to the remote host of
-RAVEN using a trusted connection by using the -Y flag:
+RAVEN will work fine and not use X11.  However, when the user has
+forwarded their X11 environment to a ssh client, the connection may
+timeout. The standard timeout of X for an untrusted connection is 20
+minutes.  The full test suite including those involving graphical
+output can take longer than the aforementioned timeout. One way to
+alleviate this is to login to the remote host of RAVEN using a trusted
+connection by using the -Y flag:
 
 \begin{lstlisting}[language=bash]
 ssh -Y hostname

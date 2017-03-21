@@ -478,11 +478,12 @@ class NewMode(Simulation.SimulationMode):
   def doOverrideRun(self):
     # If doOverrideRun is true, then use runOverride instead of
     # running the simulation normally.
-    # This method should call simulation.run somehow
     return True
 
   def runOverride(self):
     # this can completely override the Simulation's run method
+    # If implemented this method should call simulation.run somehow,
+    # possibly very indirectly
     pass
 
   def modifySimulation(self):
@@ -498,14 +499,17 @@ class NewMode(Simulation.SimulationMode):
     pass
 \end{lstlisting}
 
-Essentially, the SimulationMode class allows modifications to the way
-RAVEN runs in two ways.  First of all, it allows modifying the various
-run info parameters before the code is run.  Secondly, it allows
-overriding how Simulation runs. This second bit can be used if for
+RAVEN's Job Handler module controls the creation and execution of
+individual code runs. Essentially, the SimulationMode class may be
+used when it is necessary to customize that behavior. First, it allows
+overriding how Simulation runs. This first method can be used if for
 example RAVEN needs to be run on a different machine such as a head
-node.  In this case, the runOverride can be done to somehow call RAVEN
-to be run on the head node, and then on the head node, it will run
-RAVEN normally.
+node of a computer cluster. In such a case, a runOverride function can
+be created that causes RAVEN to be instantiated on the cluster head
+node (in cases where that is different than the computer where the
+user is currently working).  Secondly, (and usually easier when this
+is sufficient) the SimulationMode class allows modifying the various
+run info parameters before the code is run.
 
 For modification of the run info parameters, generally the two most
 important are precommand and postcommand. They are placed in front and
@@ -513,16 +517,19 @@ back before running the code.  So for example if precommand is
 `mpiexec -n 3' and postcommand is `--number-threads=4' and the code
 command is `runIt' then the full command would be: `mpiexec -n 3 runIt
 --number-threads=4' The precommand and postcommand are used for any
-run type that is `parallel', but not for `serial' codes.
+run type that is `parallel', but not for `serial' codes.  They can be
+modified by overriding the \verb'modifySimulation' method and
+assigning to the \verb'runInfoDict' in the simulation passed in when
+the class is created.
 
 To help with these commands, there are several variables that are
 substituted in before running the command.  These are:
 
 \begin{description}
-\item[\%INDEX\%]  0 based index in list of running jobs.  Note that this is stable for the life of the job.
-\item[\%INDEX1\%] 1 based index in the list of running jobs, same as \%INDEX\%+1
-\item[\%CURRENT\_ID\%]  0 based id for the job handler.  This starts as 0, and increases for each job the job handler starts.
-\item[\%CURRENT\_ID1\%] 1 based id for the job handler, same as \%CURRENT\_ID\%+1
+\item[\%INDEX\%]  Contains the zero-based index in list of running jobs.  Note that this is stable for the life of the job.  After the job finishes, this is reused.  An example use would be if there were four cpus and the batch size was four, the \%INDEX\% could be used to determine which cpu to run on.
+\item[\%INDEX1\%] Contains the one-based index in the list of running jobs, same as \%INDEX\%+1
+\item[\%CURRENT\_ID\%]  zero-based id for the job handler.  This starts as 0, and increases for each job the job handler starts.
+\item[\%CURRENT\_ID1\%] one-based id for the job handler, same as \%CURRENT\_ID\%+1
 \item[\%SCRIPT\_DIR\%] Expands to the full path of the script directory (raven/scripts)
 \item[\%FRAMEWORK\_DIR\%]  Expands to the full path of the framework directory (raven/framework)
 \item[\%WORKING\_DIR\%]  Expands to the working directory where the input is
@@ -533,7 +540,7 @@ substituted in before running the command.  These are:
 \end{description}
 
 The final joining of the commands and substituting the variables is
-done in JobHandler.
+done in the JobHandler class.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%% RUN INFO EXAMPLES %%%%%%%%%%%
