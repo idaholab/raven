@@ -43,10 +43,12 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.amITrained              = False
     self.ROMclass                = ROMclass
     #the ROM is instanced and initialized
-    # check how many targets
-    if not 'Target' in self.initializationOptions.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
+    #if ROM comes from a pickled rom, this gate is just a placeholder and the Targets check doesn't apply
+    if not self.initializationOptions.pop('pickled',False):
+      # check how many targets
+      if not 'Target' in self.initializationOptions.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     # return instance of the ROMclass
-    modelInstance             = SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
+    modelInstance = SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
     # check if the model can autonomously handle the time-dependency (if not and time-dep data are passed in, a list of ROMs are constructed)
     self.canHandleDynamicData = modelInstance.isDynamic()
     # is this ROM  time-dependent ?

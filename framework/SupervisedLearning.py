@@ -1234,6 +1234,73 @@ class HDMRRom(GaussPolynomialRom):
 #
 #
 #
+class pickledROM(superVisedLearning):
+  def __init__(self,messageHandler,**kwargs):
+    """
+      A constructor that will appropriately intialize a supervised learning object
+      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
+      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ Out, None
+    """
+    self.printTag          = 'pickledROM'
+    self.messageHandler    = messageHandler
+    self._dynamicHandling  = False
+    self.initOptionDict    = {}
+    self.features          = ['PlaceHolder']
+    self.target            = 'PlaceHolder'
+
+  def __confidenceLocal__(self,featureVals):
+    """
+      This should return an estimation of the quality of the prediction.
+      @ In, featureVals, 2-D numpy array, [n_samples,n_features]
+      @ Out, confidence, float, the confidence
+    """
+    pass
+
+  def __resetLocal__(self):
+    """
+      Reset ROM. After this method the ROM should be described only by the initial parameter settings
+      @ In, None
+      @ Out, None
+    """
+    pass
+
+  def __returnCurrentSettingLocal__(self):
+    """
+      Returns a dictionary with the parameters and their current values
+      @ In, None
+      @ Out, params, dict, dictionary of parameter names and current values
+    """
+    pass
+
+  def __returnInitialParametersLocal__(self):
+    """
+      Returns a dictionary with the parameters and their initial values
+      @ In, None
+      @ Out, params, dict,  dictionary of parameter names and initial values
+    """
+    params = {}
+    return params
+
+  def __evaluateLocal__(self,featureVals):
+    """
+      Evaluates a point.
+      @ In, featureVals, list, of values at which to evaluate the ROM
+      @ Out, returnDict, dict, the evaluated point for each target
+    """
+    self.raiseAnError(RuntimeError, 'PickledROM has not been loaded from file yet!  An IO step is required to perform this action.')
+
+  def __trainLocal__(self,featureVals,targetVals):
+    """
+      Trains ROM.
+      @ In, featureVals, np.ndarray, feature values
+      @ In, targetVals, np.ndarray, target values
+    """
+    self.raiseAnError(RuntimeError, 'PickledROM has not been loaded from file yet!  An IO step is required to perform this action.')
+#
+#
+#
+#
 class MSR(NDinterpolatorRom):
   """
     MSR class - Computes an approximated hierarchical Morse-Smale decomposition
@@ -2562,6 +2629,7 @@ __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom
 __interfaceDict['MSR'                 ] = MSR
 __interfaceDict['ARMA'                ] = ARMA
+__interfaceDict['pickledROM'          ] = pickledROM
 __base                                  = 'superVisedLearning'
 
 def returnStaticCharacteristics(infoType,ROMclass,caller,**kwargs):

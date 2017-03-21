@@ -778,9 +778,11 @@ class ROM(Dummy):
           self.initializationOptionDict[child.getName()] = {}
           for node in child.subparts: self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
         else: self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
+    # if working with a pickled ROM, send along that information
+    if self.subType == 'pickledROM':
+      self.initializationOptionDict['pickled'] = True
     self._initializeSupervisedGate(**self.initializationOptionDict)
     #the ROM is instanced and initialized
-    # check how many targets
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
 
