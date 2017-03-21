@@ -84,14 +84,14 @@
       <Input>time</Input>
       <Output>mean,percentile_5,percentile_95,sigma</Output>
     </PointSet>
-    <HistorySet name="samples">
-      <Input>frequency,magnitude</Input>
-      <Output>time,single,square</Output>
-    </HistorySet>
     <PointSet name="dummyIn">
       <Input>frequency,magnitude</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+    <HistorySet name="samples">
+      <Input>frequency,magnitude</Input>
+      <Output>time,single,square</Output>
+    </HistorySet>
   </DataObjects>
 
 </Simulation>
