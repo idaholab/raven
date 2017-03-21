@@ -13,7 +13,6 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 from copy import deepcopy
 from utils import xmlUtils
-from collections import defaultdict
 import bisect
 #External Modules End--------------------------------------------------------------------------------
 
@@ -602,7 +601,7 @@ class DynamicXMLOutput(StaticXMLOutput):
     self.pivotNodes = []
     self.rootName = root
 
-  def addScalar(self,target,name,value,root=None,pivotVal=None):
+  def addScalar(self,target,name,value,pivotVal=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -613,7 +612,6 @@ class DynamicXMLOutput(StaticXMLOutput):
       @ In, target, string, target parameter to add node value to
       @ In, name, string, name of characteristic of target to add
       @ In, value, string/float/etc, value of characteristic
-    REMOVE @ In, root, xml.etree.ElementTree.Element, optional, root to add to
       @ Out, None
     """
     if pivotVal is None:
@@ -622,7 +620,7 @@ class DynamicXMLOutput(StaticXMLOutput):
     #use addScalar methods to add parameters
     StaticXMLOutput.addScalar(self,target,name,value,root=pivotNode)
 
-  def addVector(self,target,name,valueDict,root=None,pivotVal=None):
+  def addVector(self,target,name,valueDict,pivotVal=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -637,11 +635,8 @@ class DynamicXMLOutput(StaticXMLOutput):
       @ In, target, string, target parameter to add node value to
       @ In, name, string, name of characteristic of target to add
       @ In, valueDict, dict, name:value
-      @ In, root, xml.etree.ElementTree.Element, optional, root to add to
       @ Out, None
     """
-    if root is None:
-      root = self.tree.getroot()
     if pivotVal is None:
       self.raiseAnError(RuntimeError,'In addScalar no pivotVal specificied, but in dynamic mode!')
 
@@ -674,7 +669,7 @@ class DynamicXMLOutput(StaticXMLOutput):
     """
     if self.isOpen(): self.close()
     #write the root node manually
-    self.writelines('<'+self.rootName+'>\n',overwrite=True)
+    self.writelines('<'+self.rootName+' type="Dynamic">\n',overwrite=True)
     #write out each time step node
     for node in self.pivotNodes:
       pretty = xmlUtils.prettify(node,startingTabs=1,addRavenNewlines=False)
