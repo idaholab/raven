@@ -601,7 +601,6 @@ class DynamicXMLOutput(StaticXMLOutput):
     self.pivotParam = pivotParam
     self.pivotNodes = []
     self.rootName = root
-    #self.tree = defaultdict(self.__newElement) #xmlUtils.newTree(root,attrib={'type':'Dynamic'})
 
   def addScalar(self,target,name,value,root=None,pivotVal=None):
     """
