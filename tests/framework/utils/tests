@@ -1,4 +1,8 @@
 [Tests]
+ [./utils]
+  type = 'RavenPython'
+  input = 'testUtils.py'
+ [../]
  [./mathUtils]
   type = 'RavenPython'
   input = 'testMathUtils.py'
