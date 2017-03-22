@@ -190,17 +190,19 @@ class MessageHandler(object):
       @ In, None
       @ Out, None
     """
-    if len(self.warnings)>0 and self.verbCode[self.verbosity]>0:
-      print('-'*50)
-      print('There were warnings during the simulation run:')
-      for w,warning in enumerate(self.warnings):
-        count = self.warningCount[w]
-        time = 'time'
-        if count > 1:
-          time += 's'
-        print('(%i %s) %s' %(self.warningCount[w],time,warning))
-
-      print('-'*50)
+    if len(self.warnings)>0:
+      if self.verbCode[self.verbosity]>0:
+        print('-'*50)
+        print('There were %i warnings during the simulation run:' %sum(self.warningCount))
+        for w,warning in enumerate(self.warnings):
+          count = self.warningCount[w]
+          time = 'time'
+          if count > 1:
+            time += 's'
+          print('(%i %s) %s' %(self.warningCount[w],time,warning))
+        print('-'*50)
+      else:
+        print('There were %i warnings during the simulation run.' %sum(self.warningCount))
 
   def paint(self,str,color):
     """
