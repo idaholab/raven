@@ -9,7 +9,7 @@
     <description>
        This test was added to detect a defect in the plotting of something like
        a contour/surface/pcolor/wireframe where it is not well-defined when a
-       single point is used.
+       single point is used. See #832
     </description>
     <revisions>
     </revisions>
@@ -120,7 +120,7 @@
   </OutStreams>
 
   <Steps>
-    <MultiRun name="sampleOnce" pauseAtEnd="True">
+    <MultiRun name="sampleOnce">
       <Input class="DataObjects" type="PointSet">data</Input>
       <Model class="Models" type="Dummy">passThrough</Model>
       <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>

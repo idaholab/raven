@@ -65,6 +65,7 @@ class JobHandler(MessageHandler.MessageUser):
     self.isParallelPythonInitialized = False
 
     self.sleepTime  = 0.005
+    self.completed = False
 
     ## Stops the pending queue from getting too big. TODO: expose this to the
     ## user
@@ -291,7 +292,7 @@ class JobHandler(MessageHandler.MessageUser):
     constantly fill up its running queue with jobs in its pending queue and
     unload finished jobs into its finished queue to be extracted by
     """
-    while True:
+    while not self.completed:
       self.addRuns()
       self.cleanRuns()
       ## TODO May want to revisit this:
@@ -662,6 +663,15 @@ class JobHandler(MessageHandler.MessageUser):
     """
     with self.__queueLock:
       self.__submittedJobs = []
+
+  def shutdown(self):
+    """
+    This function will mark the job handler as done, so it can shutdown its
+    polling thread.
+    @ In, None
+    @ Out, None
+    """
+    self.completed = True
 
   def terminateAll(self):
     """

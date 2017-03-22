@@ -542,7 +542,9 @@ class Simulation(MessageHandler.MessageUser):
 
     self.pollingThread = threading.Thread(target=self.jobHandler.startLoop)
     ## This allows RAVEN to exit when the only thing left is the JobHandler
-    self.pollingThread.daemon = True
+    ## This should no longer be necessary since the jobHandler now has an off
+    ## switch that this object can flip when it is complete.
+    ## self.pollingThread.daemon = True
     self.pollingThread.start()
 
   def setInputFiles(self,inputFiles):
@@ -982,5 +984,6 @@ class Simulation(MessageHandler.MessageUser):
         if "finalize" in dir(output):
           output.finalize()
       self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
+    self.jobHandler.shutdown()
     self.raiseAMessage('Run complete!')
     self.messageHandler.printWarnings()
