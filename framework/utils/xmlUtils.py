@@ -24,21 +24,24 @@ def isComment(node):
     return True
   return False
 
-def prettify(tree,doc=False,docLevel=0):
+def prettify(tree,doc=False,docLevel=0,startingTabs=0,addRavenNewlines=True):
   """
     Script for turning XML tree into something mostly RAVEN-preferred.  Does not align attributes as some devs like (yet).
     The output can be written directly to a file, as file('whatever.who','w').writelines(prettify(mytree))
     @ In, tree, xml.etree.ElementTree object, the tree form of an input file
     @ In, doc, bool, optional, if True treats the XML as being prepared for documentation instead of full printing
     @ In, docLevel, int, optional, if doc then only this many levels of tabs will use ellipses documentation
+    @ In, startingTabs, int, optional, if provided determines the starting tab level for the prettified xml
+    @ In, addRavenNewlines, bool, optional, if True then adds newline space between each main-level entity
     @Out, towrite, string, the entire contents of the desired file to write, including newlines
   """
-  def prettifyNode(node,tabs=0):
+  def prettifyNode(node,tabs=0,ravenNewlines=True):
     """
       "prettifies" a single node, and calls the same for its children
       adds whitespace to make node more human-readable
       @ In, node, ET.Element, node to prettify
       @ In, tabs, int, optional, indentation level for this node in the global scheme
+      @ In, addRavenNewlines, bool, optional, if True then adds newline space between each main-level entity
       @ Out, None
     """
     linesep = os.linesep
@@ -54,7 +57,7 @@ def prettify(tree,doc=False,docLevel=0):
       else:
         node.text = node.text + newlineAndTab+'  '
       for child in node:
-        prettifyNode(child,tabs+1)
+        prettifyNode(child,tabs+1,ravenNewlines=ravenNewlines)
       #remove extra tab from last child
       child.tail = child.tail[:-2]
     if node.tail is None:
@@ -66,20 +69,20 @@ def prettify(tree,doc=False,docLevel=0):
       if doc and tabs<docLevel+1:
         node.tail += newlineAndTab + '...'
     #custom: RAVEN likes spaces between first-level tab objects
-    if tabs == 1 and not isComment(node):
+    if ravenNewlines and tabs == 1 and not isComment(node):
       lines = linesep + linesep
     else:
       lines = linesep
     node.tail = node.tail + lines + space
     #custom: except if you're the last child
-    if tabs == 0 and child is not None:
+    if ravenNewlines and tabs == 0 and child is not None:
       child.tail = child.tail.replace(linesep+linesep,linesep)
   #end prettifyNode
   if isinstance(tree,ET.ElementTree):
-    prettifyNode(tree.getroot())
+    prettifyNode(tree.getroot(),tabs=startingTabs,ravenNewlines=addRavenNewlines)
     return ET.tostring(tree.getroot())
   else:
-    prettifyNode(tree)
+    prettifyNode(tree,tabs=startingTabs,ravenNewlines=addRavenNewlines)
     return ET.tostring(tree)
 
 
