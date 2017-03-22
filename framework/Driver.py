@@ -57,20 +57,19 @@ def printStatement():
     @ Out, None
   """
   print("""
-    NOTICE: This computer software was prepared by Battelle Energy
-    Alliance, LLC, hereinafter the Contractor, under Contract
-    No. DE-AC07-05ID14517 with the United States (U.S.)  Department of
-    Energy (DOE). All rights in the computer software are reserved by
-    DOE on behalf of the United States Government and, if applicable,
-    the Contractor as provided in the Contract. You are authorized to
-    use this computer software for Governmental purposes but it is not
-    to be released or distributed to the public. NEITHER THE UNITED
-    STATES GOVERNMENT, NOR DOE, NOR THE CONTRACTOR MAKE ANY WARRANTY,
-    EXPRESSED OR IMPLIED, OR ASSUMES ANY LIABILITY OR RESPONSIBILITY FOR
-    THE USE, ACCURACY, COMPLETENESS, OR USEFULNESS OR ANY INFORMATION,
-    APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE
-    WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS. This notice, including
-    this sentence, must appear on any copies of this computer software.
+Copyright 2017 Battelle Energy Alliance, LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
   """)
 
 def printLogo():
