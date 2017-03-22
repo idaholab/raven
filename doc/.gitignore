@@ -11,6 +11,7 @@ new_version.tex
 user_manual/libraries.tex
 user_manual/new_libraries.tex
 user_manual/conda_command.txt
+user_manual/pip_commands.txt
 *.toc
 doxygen/html/
 doxygen/latex/
