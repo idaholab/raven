@@ -1,0 +1,143 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+
+  <TestInfo>
+    <name>framework/OutStreams.invalidInterpolation</name>
+    <author>maljdan</author>
+    <created>2017-03-22</created>
+    <classesTested>OutStreams.Plot</classesTested>
+    <description>
+       This test was added to detect a defect in the plotting of something like
+       a contour/surface/pcolor/wireframe where it is not well-defined when a
+       single point is used.
+    </description>
+    <revisions>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>plot</WorkingDir>
+    <Sequence>sampleOnce</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Dummy name="passThrough" subType=""/>
+  </Models>
+
+  <Distributions>
+    <Uniform name="zeroToOne">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>1</limit>
+      </samplerInit>
+      <variable name="x">
+        <distribution>zeroToOne</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>zeroToOne</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Plot  name="contour" overwrite="false">
+      <filename>contour</filename>
+      <plotSettings>
+        <plot>
+          <type>contour</type>
+          <x>data|Input|x</x>
+          <y>data|Input|y</y>
+          <colorMap>data|Output|OutputPlaceHolder</colorMap>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot  name="surface" overwrite="false">
+      <filename>surface</filename>
+      <plotSettings>
+        <plot>
+          <type>surface</type>
+          <x>data|Input|x</x>
+          <y>data|Input|y</y>
+          <z>data|Output|OutputPlaceHolder</z>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot  name="trisurface" overwrite="false">
+      <filename>trisurface</filename>
+      <plotSettings>
+        <plot>
+          <type>tri-surface</type>
+          <x>data|Input|x</x>
+          <y>data|Input|y</y>
+          <z>data|Output|OutputPlaceHolder</z>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot  name="wireframe" overwrite="false">
+      <filename>wireframe</filename>
+      <plotSettings>
+        <plot>
+          <type>wireframe</type>
+          <x>data|Input|x</x>
+          <y>data|Input|y</y>
+          <z>data|Output|OutputPlaceHolder</z>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot  name="pseudocolor" overwrite="false">
+      <filename>pseudocolor</filename>
+      <plotSettings>
+        <plot>
+          <type>pseudocolor</type>
+          <x>data|Input|x</x>
+          <y>data|Input|y</y>
+          <colorMap>data|Output|OutputPlaceHolder</colorMap>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <Steps>
+    <MultiRun name="sampleOnce" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">data</Input>
+      <Model class="Models" type="Dummy">passThrough</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">data</Output>
+      <Output class="OutStreams" type="Plot">contour</Output>
+      <Output class="OutStreams" type="Plot">surface</Output>
+      <Output class="OutStreams" type="Plot">wireframe</Output>
+      <Output class="OutStreams" type="Plot">trisurface</Output>
+      <Output class="OutStreams" type="Plot">pseudocolor</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="data">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

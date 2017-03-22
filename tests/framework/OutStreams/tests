@@ -32,6 +32,15 @@
   output = 'plot/test_0_1.png plot/test_0_2.png plot/test_1_0.png plot/test_1_1.png plot/test_1_2.png plot/test_2_0.png plot/test_2_1.png plot/test_2_2.png'
   [../]
 
+ [./invalidInterpolation]
+  type = 'RavenFramework'
+  input = 'invalidInterpolation.xml'
+  ## We don't care what these image files look like (since they should be empty)
+  ## Our only concern is that we are able to generate them without error, since
+  ## the defect these test had to do with the code crashing.
+  output = 'plot/contour.png plot/surface.png plot/trisurface.png plot/wireframe.png plot/pseudocolor.png'
+  [../]
+
  [./test_subPlot]
   type = 'RavenFramework'
   input = 'test_subPlot.xml'
