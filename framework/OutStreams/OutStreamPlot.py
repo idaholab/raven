@@ -932,6 +932,7 @@ class OutStreamPlot(OutStreamManager):
     self.counter += 1
     if self.counter > 1:
       self.fig.clear()
+      self.actcm = None
     # execute the actions again (we just cleared the figure)
     self.__executeActions()
     # start plotting.... we are here fort that...aren't we?

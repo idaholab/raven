@@ -79,7 +79,6 @@
         <title>
           <text>Sampled Response</text>
         </title>
-        <colorbar>off</colorbar>
       </actions>
     </Plot>
   </OutStreams>
