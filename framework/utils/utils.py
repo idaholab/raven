@@ -496,6 +496,51 @@ def find_ge(a, x):
   if i != len(a): return a[i],i
   return None,None
 
+def getRelativeSortedListEntry(sortedList,value,tol=1e-15):
+  """
+    !!WARNING!! This method expects "sortedList" to already be a sorted list of float values!
+    There are faster methods if they are not floats, and this will NOT work at all on unsorted lists.
+    - Looks for a (close enough) match to "value" in "sortedList" using binomial search.  If found,
+    returns the index and value of the matching entry.  If not found, adds a new entry to the sortedList
+    and returns the new index with the original value.
+    It is recommended that this method be used to add ALL entries into the sorted list to keep it sorted.
+    @ In, sortedList, list, list of __sorted__ float values
+    @ In, value, float, value to search for match
+    @ Out, sortedList, list, possibly modified by still ordered list of floats
+    @ Out, match_index, int, index of match in sortedList
+    @ Out, match, float, matching float
+  """
+  from utils.mathUtils import compareFloats #necessary to prevent errors at module load
+  index = bisect.bisect_left(sortedList,value)
+  match_index = None
+  match = None
+  #if "value" is smallest value in list...
+  if index == 0:
+    if len(sortedList)>0:
+      #check if current first matches
+      if compareFloats(sortedList[0], value, tol=tol):
+        match = sortedList[0]
+        match_index = index
+  #if "value" is largest value in list...
+  elif index > len(sortedList)-1:
+    #check if current last matches
+    if compareFloats(sortedList[-1], value, tol=tol):
+      match = sortedList[-1]
+      match_index = len(sortedList)-1
+  #if "value" is in the middle...
+  else:
+    #check both neighbors (left and right) for a match
+    for idx in [index-1, index]:
+      if compareFloats(sortedList[idx], value, tol=tol):
+        match = sortedList[idx]
+        match_index = idx
+  #if no match found, add it
+  if match is None:
+    sortedList.insert(index,value)
+    match = value
+    match_index = index
+  return sortedList,match_index,match
+
 # def metaclass_insert__getstate__(self):
 #   """
 #   Overwrite state (for pickle-ing)
@@ -638,15 +683,19 @@ def find_crow(framework_dir):
   except:
     ravenDir = os.path.dirname(framework_dir)
     #Add the module directory to the search path.
-    pmoduleDirs = [os.path.join(ravenDir,"crow","install"),
-                   os.path.join(os.path.dirname(ravenDir),"crow","install")]
+    crowDirs = [os.path.join(ravenDir,"crow"),
+                os.path.join(os.path.dirname(ravenDir),"crow")]
     if "CROW_DIR" in os.environ:
-      pmoduleDirs.insert(0,os.path.join(os.environ["CROW_DIR"],"install"))
-    for pmoduleDir in pmoduleDirs:
+      crowDirs.insert(0,os.path.join(os.environ["CROW_DIR"]))
+    for crowDir in crowDirs:
+      pmoduleDir = os.path.join(crowDir,"install")
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
         return
-    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be one of '+str(pmoduleDirs))
+    for crowDir in crowDirs:
+      if os.path.exists(os.path.join(crowDir,"tests")):
+        raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow was found in '+crowDir+' but does not seem to be compiled')
+    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow has not been found. It location is supposed to be one of '+str(crowDirs))
 
 def add_path(absolutepath):
   """
@@ -961,6 +1010,4 @@ def returnIdSeparator():
     @ Out, __idSeparator, string, the id separator
   """
   return __idSeparator
-
-
 

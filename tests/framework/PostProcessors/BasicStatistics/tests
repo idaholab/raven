@@ -110,5 +110,12 @@
     output = 'basicStatsMonteCarloUniformAnalytic/outputDataMC_dump.csv basicStatsMonteCarloUniformAnalytic/outputDataMC_dump.xml'
     rel_err = 1e-6
   [../]
+  [./writeHeavyXml]
+    type = 'RavenFramework'
+    input = 'heavy_xml_write.xml'
+    UnorderedCsv = 'HeavyXmlWrite/stats_dump.csv'
+    heavy = true
+    max_time = 200
+  [../]
 
 []

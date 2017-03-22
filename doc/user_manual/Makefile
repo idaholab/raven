@@ -4,13 +4,13 @@ LATEX_FLAGS=-interaction=nonstopmode
 
 all: raven_user_manual.pdf
 
-raven_user_manual.pdf: $(MANUAL_FILES) ../version.tex conda_command.txt
+raven_user_manual.pdf: $(MANUAL_FILES) ../version.tex conda_command.txt pip_commands.txt
 	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
 	bibtex $(SRCFILE)
 	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
 	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
 
-draft: $(MANUAL_FILES) ../version.tex conda_command.txt
+draft: $(MANUAL_FILES) ../version.tex conda_command.txt pip_commands.txt
 	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
 	bibtex $(SRCFILE)
 	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
@@ -30,3 +30,6 @@ libraries.tex : ../../scripts/TestHarness/testers/RavenUtils.py
 
 conda_command.txt : ../../scripts/TestHarness/testers/RavenUtils.py
 	./create_command.sh
+
+pip_commands.txt : ../../scripts/TestHarness/testers/RavenUtils.py
+	./create_pip_commands.sh
