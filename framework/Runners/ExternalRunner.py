@@ -28,6 +28,8 @@ if not 'xrange' in dir(__builtins__):
 import os
 import copy
 import abc
+import platform
+import shlex
 #import logging, logging.handlers
 
 #External Modules End--------------------------------------------------------------------------------
@@ -174,6 +176,59 @@ class ExternalRunner(Runner):
     """
     return None
 
+  def expandForWindows(self, origCommand):
+    """
+      Function to expand a command that has a #! to a windows runnable command
+      @ In, origCommand, string, The command to check for expantion
+      @ Out, commandSplit, string or String List, the expanded command or the original if not expanded.
+    """
+    if origCommand.strip() == '':
+      return origCommand
+    commandSplit = shlex.split(origCommand)
+    executable = commandSplit[0]
+
+    if os.path.exists(executable):
+      executableFile = open(executable, "r")
+
+      firstTwoChars = executableFile.read(2)
+
+      if firstTwoChars == "#!":
+        realExecutable = shlex.split(executableFile.readline())
+        self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
+        # The below code should work, and would be better than findMsys,
+        # but it doesn't work.
+        # winExecutable = subprocess.check_output(['cygpath','-w',realExecutable[0]],shell=True).rstrip()
+        # print("winExecutable",winExecutable)
+        # realExecutable[0] = winExecutable
+        def findMsys():
+          """
+            Function to try and figure out where the MSYS64 is.
+            @ In, None
+            @ Out, dir, String, If not None, the directory where msys is.
+          """
+          dir = os.getcwd()
+          head, tail = os.path.split(dir)
+          while True:
+            if tail.lower().startswith("msys"):
+              return dir
+            dir = head
+            head, tail = os.path.split(dir)
+          return None
+        msysDir = findMsys()
+        if msysDir is not None:
+          beginExecutable = realExecutable[0]
+          if beginExecutable.startswith("/"):
+            beginExecutable = beginExecutable.lstrip("/")
+          winExecutable = os.path.join(msysDir, beginExecutable)
+          self.raiseAMessage("winExecutable" + winExecutable)
+          realExecutable[0] = winExecutable
+        else:
+          self.raiseAWarning("Could not find msys in "+os.getcwd())
+        commandSplit = realExecutable + [executable] + commandSplit[1:]
+        return commandSplit
+    return origCommand
+
+
   def start(self):
     """
       Function to run the driven code
@@ -184,6 +239,9 @@ class ExternalRunner(Runner):
     os.chdir(self.workingDir)
     localenv = dict(os.environ)
     outFile = open(self.output,'w', self.bufferSize)
+    if platform.system() == 'Windows':
+      self.command = self.expandForWindows(self.command)
+      self.raiseAMessage("modified command to" + repr(self.command))
     self.__process = utils.pickleSafeSubprocessPopen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.workingDir,env=localenv)
     os.chdir(oldDir)
     self.started = True
