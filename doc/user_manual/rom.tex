@@ -154,6 +154,54 @@ Thus, it can only be trained from the outcomes of a grid sampling strategy.
 \end{lstlisting}
 
 %%%%% ROM Model - GaussPolynomialRom  %%%%%%%
+\subsubsection{pickledROM}
+\label{subsubsec:pickledROM}
+It is not uncommon for a reduced-order model (ROM) to be created and trained in one RAVEN run, then
+serialized to file (\emph{pickled}), then loaded into another RAVEN run to be used as a model.  When this is
+the case, a \xmlNode{ROM} with subtype \xmlString{pickledROM} is used to hold the place of the ROM that will
+be loaded from file.  The notation for this ROM is much less than a typical ROM; it only requires a name and
+its subtype.
+
+Note that when loading ROMs from file, RAVEN will not perform any checks on the expected inputs or outputs of
+a ROM; it is expected that a user know at least the I/O of a ROM before trying to use it as a model.
+
+Initially, a pickledROM is not usable.  It cannot be trained or sampled; attempting to do so will raise an
+error.  An \xmlNode{IOStep} is used to load the ROM from file, at which point the ROM will have all the same
+characteristics as when it was pickled in a previous RAVEN run.  Specifically, if it was trained before
+pickling, then it will be trained when it is loaded.
+
+\textbf{Example:}
+For this example the ROM has already been created and trained in another RAVEN run, then pickled to a file
+called \texttt{rom\_pickle.pk}.  In the example, the file is identified in \xmlNode{Files}, the model is
+defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
+{\footnotesize
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Files>
+    <Input name="rompk" type="">rom_pickle.pk</Input>
+  </Files>
+  ...
+  <Models>
+    ...
+    <ROM name="myRom" subType="pickledROM"/>
+    ...
+  </Models>
+  ...
+  <Steps>
+    ...
+    <IOStep name="loadROM">
+      <Input class="Files" type="">rompk</Input>
+      <Output class="Models" type="ROM">myRom</Output>
+    </IOStep>
+    ...
+  </Steps>
+  ...
+</Simulation>
+\end{lstlisting}
+}
+
+
 \subsubsection{GaussPolynomialRom}
 \label{subsubsec:GaussPolynomialRom}
 The GaussPolynomialRom sub-type contains a single ROM type, based on a
@@ -2784,7 +2832,7 @@ below).
   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defines the pivot variable (e.g., time) that is non-decreasing in the input HistorySet.
   \default{Time}
   \item \xmlNode{Features}, \xmlDesc{string, required field}, defines the features (e.g., scaling). Note that only one feature is allowed for \xmlString{ARMA} and in current implementation this is used for evaluation only.
-  \item \xmlNode{Target}, \xmlDesc{string, required field}, defines the variables of the time series. 
+  \item \xmlNode{Target}, \xmlDesc{string, required field}, defines the variables of the time series.
   \item \xmlNode{Pmax}, \xmlDesc{integer, optional field}, defines the maximum value of $p$.
   \default{3}
   \item \xmlNode{Pmin}, \xmlDesc{integer, optional field}, defines the minimum value of $p$.
@@ -2795,7 +2843,7 @@ below).
   \default{0}
   \item \xmlNode{Fourier}, \xmlDesc{integers, optional field}, must be positive integers. This defines the based period (with unit of second) that would be used for Fourier detrending, i.e., this field defines $1/f_m$ in the above equation. When this filed is not specified, the ARMA considers no Fourier detrend.
   \item \xmlNode{FourierOrder}, \xmlDesc{integers, optional field}, must be positive integers. The number of integers specified in this field should be exactly same as the number of base periods specified in the node \xmlNode{Fourier}. This field defines $K_m$ in the above equation.
-  \item \xmlNode{outTruncation}, \xmlDesc{string, optional field}, defines whether and how the output time series is truncated. Currently available options are: positive, negative. 
+  \item \xmlNode{outTruncation}, \xmlDesc{string, optional field}, defines whether and how the output time series is truncated. Currently available options are: positive, negative.
   \default{None}
 \end{itemize}
 
