@@ -62,8 +62,10 @@ class TorqueSimulationMode(Simulation.SimulationMode):
   """
 
   def __init__(self,simulation):
-    """Create a new TorqueSimulationMode instance.
-    simulation: the Simulation.Simulation object
+    """
+      Create a new TorqueSimulationMode instance.
+      @In, simulation, Simulation.simulation object, the base simulation object that this thing will build off of
+      @Out, None
     """
     Simulation.SimulationMode.__init__(self,simulation)
     self.__simulation = simulation
@@ -78,14 +80,21 @@ class TorqueSimulationMode(Simulation.SimulationMode):
     #self.printTag = returnPrintTag('PBSDSH SIMULATION MODE')
 
   def doOverrideRun(self):
-    """ Check if the simulation has been run in PBS mode and
-    if not the run needs to be overridden so qsub can be called.
+    """
+      Check if the simulation has been run in PBS mode and
+      if not the run needs to be overridden so qsub can be called.
+      @ In, None
+      @ Out, None
     """
     doOverrRun = (not self.__inPbs) and self.__runQsub
     return doOverrRun
 
   def runOverride(self):
-    """ If not in pbs mode, qsub needs to be called. """
+    """
+      If not in pbs mode, qsub needs to be called.
+      @ In, None
+      @ Out, None
+    """
     #Check and see if this is being accidently run
     assert not self.__inPbs
     createAndRunQSUB(self.__simulation)

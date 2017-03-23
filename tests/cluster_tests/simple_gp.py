@@ -56,6 +56,12 @@ outFile = open(os.path.join(head,"out~"+tail+".csv"),"w")
 lines = inputFile.readlines()
 
 def get_params(line):
+  """
+    Gets the parameters from a line.
+    @In, line, string, The line to parse
+    @Out, (name,params), (string,list), The name of the parameter
+      and a list of parameters.
+  """
   equalsIndex = line.index("=")
   name = line[:equalsIndex].strip()
   params = line[equalsIndex + 1:].strip().strip('"').split()
