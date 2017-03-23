@@ -22,6 +22,8 @@ import os
 import re
 import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
+## Maybe necessary
+# import _tkinter
 ## External Modules End---------------------------------------------------------
 
 ## Internal Modules-------------------------------------------------------------
@@ -710,8 +712,21 @@ class OutStreamPlot(OutStreamManager):
       @ Out, None
     """
     if instructionString == 'interactive' and 'screen' in self.destinations and displayAvailable:
-      plt.figure(self.name)
-      self.fig.ginput(n = -1, timeout = -1, show_clicks = False)
+      self.fig = plt.figure(self.name)
+      ## This seems a bit hacky, but we need the ginput in order to block
+      ## execution of raven until this is over, however closing the window can
+      ## cause this thing to fail.
+      try:
+        self.fig.ginput(n = -1, timeout = -1, show_clicks = False)
+      except:
+        ## I know this is bad, but it is a single line of code outside our
+        ## control, if it fails for any reason it should not be a huge deal, we
+        ## just want RAVEN to continue on its merry way when a figure closes.
+        pass
+      ## We may want to catch a more generic exception since this may be depedent
+      ## on the backend used, hence the code replacement above
+      # except _tkinter.TclError:
+      #   pass
 
   def initialize(self, inDict):
     """
