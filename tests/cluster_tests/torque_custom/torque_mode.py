@@ -134,6 +134,8 @@ class TorqueSimulationMode(Simulation.SimulationMode):
               nodeFile.write(line)
             nodeFile.close()
         else: #self.__noSplitNode == True or self.__limitNode == True
+          #XXX This may be much more complicated than needed.
+          # The needed functionality probably needs to be discussed.
           nodes = []
           for line in lines:
             nodes.append(line.strip())
