@@ -220,7 +220,7 @@ class testDescription(object):
       latexString += '   \\begin{itemize} \n'
       latexString += '     \\item ' +requirementDescription.strip().replace("#","\#")+'\n'
       latexString += '   \\end{itemize} \n'
-    if revisionsNode is not None:
+    if revisionsNode is not None and len(revisionsNode) > 0:
       latexString += '   \\item Since the creation of this test, the following main revisions have been performed:\n'
       latexString += '   \\begin{enumerate} \n'
       for child in revisionsNode:
