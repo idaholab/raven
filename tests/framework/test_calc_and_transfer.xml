@@ -36,6 +36,7 @@
     </ROM>
     <PostProcessor name="test_stats" subType="ComparisonStatistics">
       <kind binMethod="sturges">uniformBins</kind>
+      <interpolation>linear</interpolation>
       <compare>
         <data>RawPointSet|outputs|out1</data>
         <data>ROM1PointSet|outputs|out1</data>

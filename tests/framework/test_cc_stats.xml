@@ -25,6 +25,7 @@
   <Models>
     <PostProcessor name="test_stats" subType="ComparisonStatistics">
       <kind binMethod="sturges">uniformBins</kind>
+      <interpolation>linear</interpolation>
       <compare>
         <data>fullprint_Pointset|outputs|normal1</data>
         <reference name="normal_20_3"/>
