@@ -14,6 +14,7 @@ if not 'xrange' in dir(__builtins__):
 #External Modules------------------------------------------------------------------------------------
 import sys
 import time
+import bisect
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -170,6 +171,7 @@ class MessageHandler(object):
       'magenta' : '\033[35m',
       'cyan'    : '\033[36m'}
     self.warnings     = [] #collection of warnings that were raised during this run
+    self.warningCount = [] #count of the collections of warning above
 
   def initialize(self,initDict):
     """
@@ -189,11 +191,18 @@ class MessageHandler(object):
       @ Out, None
     """
     if len(self.warnings)>0:
-      print('-'*50)
-      print('There were warnings during the simulation run:')
-      for w in self.warnings:
-        print(w)
-      print('-'*50)
+      if self.verbCode[self.verbosity]>0:
+        print('-'*50)
+        print('There were %i warnings during the simulation run:' %sum(self.warningCount))
+        for w,warning in enumerate(self.warnings):
+          count = self.warningCount[w]
+          time = 'time'
+          if count > 1:
+            time += 's'
+          print('(%i %s) %s' %(self.warningCount[w],time,warning))
+        print('-'*50)
+      else:
+        print('There were %i warnings during the simulation run.' %sum(self.warningCount))
 
   def paint(self,str,color):
     """
@@ -299,10 +308,24 @@ class MessageHandler(object):
     """
     verbval = self.checkVerbosity(verbosity)
     okay,msg = self._printMessage(caller,message,tag,verbval,color)
-    if tag.lower().strip() == 'warning': self.warnings.append(msg)
+    if tag.lower().strip() == 'warning':
+      self.addWarning(message)
     if okay:
       print(msg)
     sys.stdout.flush()
+
+  def addWarning(self,msg):
+    """
+      Stores warnings so that they can be reported in summary later.
+      @ In, msg, string, only the main part of the message, used to determine uniqueness
+      @ Out, None
+    """
+    index = bisect.bisect_left(self.warnings,msg)
+    if len(self.warnings) == 0 or index == len(self.warnings) or self.warnings[index] != msg:
+      self.warnings.insert(index,msg)
+      self.warningCount.insert(index,1)
+    else:
+      self.warningCount[index] += 1
 
   def _printMessage(self,caller,message,tag,verbval,color=None):
     """
