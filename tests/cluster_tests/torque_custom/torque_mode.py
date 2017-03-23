@@ -64,8 +64,8 @@ class TorqueSimulationMode(Simulation.SimulationMode):
   def __init__(self,simulation):
     """
       Create a new TorqueSimulationMode instance.
-      @In, simulation, Simulation.simulation object, the base simulation object that this thing will build off of
-      @Out, None
+      @ In, simulation, Simulation.simulation object, the base simulation object that this thing will build off of
+      @ Out, None
     """
     Simulation.SimulationMode.__init__(self,simulation)
     self.__simulation = simulation

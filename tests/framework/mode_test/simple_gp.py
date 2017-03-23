@@ -57,8 +57,8 @@ lines = inputFile.readlines()
 def get_params(line):
   """
     Gets the parameters from a line.
-    @In, line, string, The line to parse
-    @Out, (name,params), (string,list), The name of the parameter
+    @ In, line, string, The line to parse
+    @ Out, (name,params), (string,list), The name of the parameter
       and a list of parameters.
   """
   equalsIndex = line.index("=")

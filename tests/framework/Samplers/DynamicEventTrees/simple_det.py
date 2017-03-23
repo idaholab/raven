@@ -51,8 +51,8 @@ lastLine = lines.index("[]\n")
 def get_params(line):
   """
     Gets the parameters from a line.
-    @In, line, string, The line to parse
-    @Out, (name,params), (string,string or list), The name of the parameter
+    @ In, line, string, The line to parse
+    @ Out, (name,params), (string,string or list), The name of the parameter
       and either a single parameter or a list of parameters.
   """
   start_match = re.search("\[\./([a-zA-Z_]+)\]",line)

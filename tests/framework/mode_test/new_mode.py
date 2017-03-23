@@ -27,8 +27,8 @@ class NewMode(Simulation.SimulationMode):
   def __init__(self,simulation):
     """
       Get the simulation and store it.
-      @In, simulation, Simulation.SimulationMode, the simulation to modify
-      @Out, None
+      @ In, simulation, Simulation.SimulationMode, the simulation to modify
+      @ Out, None
     """
     Simulation.SimulationMode.__init__(self,simulation)
     self.__simulation = simulation
@@ -36,8 +36,8 @@ class NewMode(Simulation.SimulationMode):
   def modifySimulation(self):
     """
       Modifies the simulation to add python to the precommand
-      @In, None
-      @Out, None
+      @ In, None
+      @ Out, None
     """
     self.__simulation.runInfoDict['precommand'] = self.__simulation.runInfoDict['precommand']+" python "
 
