@@ -22,6 +22,8 @@ import os
 import re
 import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
+## Maybe necessary
+# import _tkinter
 ## External Modules End---------------------------------------------------------
 
 ## Internal Modules-------------------------------------------------------------
@@ -710,8 +712,21 @@ class OutStreamPlot(OutStreamManager):
       @ Out, None
     """
     if instructionString == 'interactive' and 'screen' in self.destinations and displayAvailable:
-      plt.figure(self.name)
-      self.fig.ginput(n = -1, timeout = -1, show_clicks = False)
+      self.fig = plt.figure(self.name)
+      ## This seems a bit hacky, but we need the ginput in order to block
+      ## execution of raven until this is over, however closing the window can
+      ## cause this thing to fail.
+      try:
+        self.fig.ginput(n = -1, timeout = -1, show_clicks = False)
+      except:
+        ## I know this is bad, but it is a single line of code outside our
+        ## control, if it fails for any reason it should not be a huge deal, we
+        ## just want RAVEN to continue on its merry way when a figure closes.
+        pass
+      ## We may want to catch a more generic exception since this may be depedent
+      ## on the backend used, hence the code replacement above
+      # except _tkinter.TclError:
+      #   pass
 
   def initialize(self, inDict):
     """
@@ -932,6 +947,7 @@ class OutStreamPlot(OutStreamManager):
     self.counter += 1
     if self.counter > 1:
       self.fig.clear()
+      self.actcm = None
     # execute the actions again (we just cleared the figure)
     self.__executeActions()
     # start plotting.... we are here fort that...aren't we?
@@ -1358,6 +1374,13 @@ class OutStreamPlot(OutStreamManager):
         if self.dim == 2:
           for key in self.xValues[pltindex].keys():
             for xIndex in range(len(self.xValues[pltindex][key])):
+              ## Hopefully, x,y, and z are all the same length, so checking this
+              ## here should be good enough.
+              ## The problem is you cannot interpolate any amount of space if
+              ## you only have a single data point.
+              if self.xValues[pltindex][key][xIndex].size == 1:
+                self.raiseAWarning('Nothing to Plot Yet. Continuing to next plot.')
+                continue
               for yIndex in range(len(self.yValues[pltindex][key])):
                 if not self.colorMapCoordinates:
                   self.raiseAMessage('pseudocolor Plot needs coordinates for color map... Returning without plotting')
@@ -1397,6 +1420,13 @@ class OutStreamPlot(OutStreamManager):
             plotSettings['linewidth'] = '0'
           for key in self.xValues[pltindex].keys():
             for xIndex in range(len(self.xValues[pltindex][key])):
+              ## Hopefully, x,y, and z are all the same length, so checking this
+              ## here should be good enough.
+              ## The problem is you cannot interpolate any amount of space if
+              ## you only have a single data point.
+              if self.xValues[pltindex][key][xIndex].size == 1:
+                self.raiseAWarning('Nothing to Plot Yet. Continuing to next plot.')
+                continue
               for yIndex in range(len(self.yValues[pltindex][key])):
                 for zIndex in range(len(self.zValues[pltindex][key])):
                   if self.zValues[pltindex][key][zIndex].size <= 3:
@@ -1446,6 +1476,13 @@ class OutStreamPlot(OutStreamManager):
             plotSettings['shade'] = 'False'
           for key in self.xValues[pltindex].keys():
             for xIndex in range(len(self.xValues[pltindex][key])):
+              ## Hopefully, x,y, and z are all the same length, so checking this
+              ## here should be good enough.
+              ## The problem is you cannot interpolate any amount of space if
+              ## you only have a single data point.
+              if self.xValues[pltindex][key][xIndex].size == 1:
+                self.raiseAWarning('Nothing to Plot Yet. Continuing to next plot.')
+                continue
               for yIndex in range(len(self.yValues[pltindex][key])):
                 for zIndex in range(len(self.zValues[pltindex][key])):
                   metric = (self.xValues[pltindex][key][xIndex] ** 2 + self.yValues[pltindex][key][yIndex] ** 2) ** 0.5
@@ -1499,6 +1536,13 @@ class OutStreamPlot(OutStreamManager):
             plotSettings['cstride'] = '1'
           for key in self.xValues[pltindex].keys():
             for xIndex in range(len(self.xValues[pltindex][key])):
+              ## Hopefully, x,y, and z are all the same length, so checking this
+              ## here should be good enough.
+              ## The problem is you cannot interpolate any amount of space if
+              ## you only have a single data point.
+              if self.xValues[pltindex][key][xIndex].size == 1:
+                self.raiseAWarning('Nothing to Plot Yet. Continuing to next plot.')
+                continue
               for yIndex in range(len(self.yValues[pltindex][key])):
                 for zIndex in range(len(self.zValues[pltindex][key])):
                   if self.zValues[pltindex][key][zIndex].size <= 3:
@@ -1549,6 +1593,13 @@ class OutStreamPlot(OutStreamManager):
               self.raiseAWarning(self.outStreamTypes[pltindex] + ' Plot needs coordinates for color map... Returning without plotting')
               return
             for xIndex in range(len(self.xValues[pltindex][key])):
+              ## Hopefully, x,y, and z are all the same length, so checking this
+              ## here should be good enough.
+              ## The problem is you cannot interpolate any amount of space if
+              ## you only have a single data point.
+              if self.xValues[pltindex][key][xIndex].size == 1:
+                self.raiseAWarning('Nothing to Plot Yet. Continuing to next plot.')
+                continue
               for yIndex in range(len(self.yValues[pltindex][key])):
                 for zIndex in range(len(self.colorMapValues[pltindex][key])):
                   if self.actcm:
@@ -1580,6 +1631,7 @@ class OutStreamPlot(OutStreamManager):
         elif self.dim == 3:
           self.raiseAWarning('contour/filledContour is a 2-D plot, where x,y are the surface coordinates and colorMap vector is the array to visualize!\n               contour3D/filledContour3D are 3-D! ')
           return
+      ## These should be combined: ^^^ & vvv
       elif self.outStreamTypes[pltindex] == 'contour3D' or self.outStreamTypes[pltindex] == 'filledContour3D':
         if self.dim == 2:
           self.raiseAWarning('contour3D/filledContour3D Plot is NOT available for 2D plots, IT IS A 2D! Check "contour/filledContour"!')
@@ -1595,6 +1647,13 @@ class OutStreamPlot(OutStreamManager):
             ext3D = False
           for key in self.xValues[pltindex].keys():
             for xIndex in range(len(self.xValues[pltindex][key])):
+              ## Hopefully, x,y, and z are all the same length, so checking this
+              ## here should be good enough.
+              ## The problem is you cannot interpolate any amount of space if
+              ## you only have a single data point.
+              if self.xValues[pltindex][key][xIndex].size == 1:
+                self.raiseAWarning('Nothing to Plot Yet. Continuing to next plot.')
+                continue
               for yIndex in range(len(self.yValues[pltindex][key])):
                 for zIndex in range(len(self.colorMapValues[pltindex][key])):
                   if self.actcm:
