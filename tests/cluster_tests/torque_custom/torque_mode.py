@@ -240,4 +240,4 @@ class TorqueSimulationMode(Simulation.SimulationMode):
         if "noOverlap" in child.attrib and child.attrib["noOverlap"].lower() in utils.stringsThatMeanTrue():
           self.__noOverlap = True
       else:
-        self.raiseADebug("We should do something with child "+str(child))
+        self.raiseAWarning("We should do something with child "+str(child))
