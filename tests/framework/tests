@@ -59,26 +59,6 @@
   remove_unicode_identifier = true
  [../]
 
- [./testAdaptiveDynamicEventTreeRAVEN]
-  type = 'RavenFramework'
-  input = 'test_adaptive_det_simple.xml'
-  output = 'AdaptiveDET/limitSurfDump.csv AdaptiveDET/adaptiveOutsimpleDump.csv'
-  csv = 'AdaptiveDET/limitSurfDump.csv'
-  required_executable = '../../RAVEN-%METHOD%'
-  rel_err = 0.0001
-  max_time = 800
- [../]
-
- [./testAdaptiveHybridDynamicEventTreeRAVEN]
-  type = 'RavenFramework'
-  input = 'test_adaptive_hybrid_det.xml'
-  output = 'AdaptiveHybridDET/limitsurfaceDump.csv AdaptiveHybridDET/adaptiveOutsimpleHier.csv'
-  csv = 'AdaptiveHybridDET/limitsurfaceDump.csv'
-  required_executable = '../../RAVEN-%METHOD%'
-  rel_err = 0.0001
-  max_time = 800
- [../]
-
  [./test_push_into_hdf5]
   type = 'RavenFramework'
   input = 'test_push_into_hdf5.xml'
@@ -168,11 +148,10 @@
  [./testGrid_GetPot]
   type = 'RavenFramework'
   input = 'test_Grid_Sampler.i'
-  output = 'GridTest/outGrid_dump.csv'
-  csv = 'GridTest/outGrid_dump.csv'
+  output = 'GridTest_GetPot/outGrid_dump.csv'
+  csv = 'GridTest_GetPot/outGrid_dump.csv'
   max_time = 500
   rel_err = 0.001
-  prereq = testGrid
  [../]
 
  [./testRandom]
@@ -274,9 +253,8 @@
  [./test_custom_mode]
   type = 'RavenFramework'
   input = 'test_custom_mode.xml'
-  output = 'mode_test/FirstMRun/1/out~ideal_pump mode_test/FirstMRun/2/out~ideal_pump'
-  csv = 'mode_test/FirstMRun/2/out~ideal_pump.csv'
-  required_executable = '../../RAVEN-%METHOD%'
+  output = 'mode_test/FirstMRun/1/out~pump_fake mode_test/FirstMRun/2/out~pump_fake'
+  csv = 'mode_test/FirstMRun/2/out~pump_fake.csv'
  [../]
 
  [./test_distributions]
@@ -319,10 +297,9 @@
  [./load_and_push_reusing_same_hdf5]
    type = 'RavenFramework'
    input = 'test_load_and_push_reusing_same_hdf5.xml'
-   output = 'GridTestRavenSameHDF5/MonteCarloRestarted/1/out~clg.massflowrate.3eqn GridTestRavenSameHDF5/outGrid_dump.csv GridTestRavenSameHDF5/outGridMax_dump.csv GridTestRavenSameHDF5/outGridMin_dump.csv GridTestRavenSameHDF5/outGridAverage_dump.csv GridTestRavenSameHDF5/stories2_dump_4.csv'
-   prereq = testGrid_RELAP7
+   output = 'GridTestSameHDF5/MonteCarloRestarted/1/out~massflowrate_fake GridTestSameHDF5/outGrid_dump.csv GridTestSameHDF5/outGridMax_dump.csv GridTestSameHDF5/outGridMin_dump.csv GridTestSameHDF5/outGridAverage_dump.csv GridTestSameHDF5/stories2_dump_4.csv'
+   prereq = testGrid
    method = 'devel opt'
-   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./adaptive_sampler_ext_model]

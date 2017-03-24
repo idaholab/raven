@@ -1,12 +1,12 @@
 #!/bin/bash
 
 num_fails=0
+fails=''
 
 pushd ../../framework
 RAVEN_FRAMEWORK_DIR=$(pwd)
 popd
 
-fails=''
 
 wait_lines ()
 {
@@ -38,9 +38,9 @@ wait_lines ()
 rm -Rf FirstMQRun/
 
 #REQUIREMENT_TEST R-IS-7
-python ../../framework/Driver.py test_mpiqsub_local.xml cluster_runinfo.xml
+python ../../framework/Driver.py test_mpiqsub_local.xml pbspro_mpi.xml cluster_runinfo.xml
 
-wait_lines 'FirstMQRun/1/*eqn.csv FirstMQRun/2/*eqn.csv FirstMQRun/3/*eqn.csv FirstMQRun/4/*eqn.csv FirstMQRun/5/*eqn.csv FirstMQRun/6/*eqn.csv' 6 mpiqsub
+wait_lines 'FirstMQRun/[1-6]/*test.csv' 6 mpiqsub
 
 rm -Rf FirstMNRun/
 
@@ -58,13 +58,13 @@ rm -Rf FirstMRun/
 
 qsub -P moose -l select=6:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -l place=free -W block=true ./run_mpi_test.sh
 
-wait_lines 'FirstMQRun/1/*eqn.csv FirstMQRun/2/*eqn.csv FirstMQRun/3/*eqn.csv FirstMQRun/4/*eqn.csv FirstMQRun/5/*eqn.csv FirstMQRun/6/*eqn.csv' 6 mpi
+wait_lines 'FirstMRun/[1-6]/*test.csv' 6 mpi
 
 rm -Rf FirstPRun/
 
 python ../../framework/Driver.py test_pbs.xml cluster_runinfo.xml
 
-wait_lines 'FirstMQRun/1/*eqn.csv FirstMQRun/2/*eqn.csv FirstMQRun/3/*eqn.csv FirstMQRun/4/*eqn.csv FirstMQRun/5/*eqn.csv FirstMQRun/6/*eqn.csv' 6 pbsdsh
+wait_lines 'FirstPRun/[1-6]/*test.csv' 6 pbsdsh
 
 rm -Rf FirstMFRun/
 
@@ -80,7 +80,7 @@ cd InternalParallel/
 rm -Rf InternalParallelExtModel/*.csv
 
 #REQUIREMENT_TEST R-IS-8
-python ../../../framework/Driver.py test_internal_parallel_extModel.xml ../cluster_runinfo.xml
+python ../../../framework/Driver.py test_internal_parallel_extModel.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'InternalParallelExtModel/*.csv' 28 paralExtModel
 
@@ -91,7 +91,7 @@ cd InternalParallel/
 rm -Rf InternalParallelScikit/*.csv
 
 #REQUIREMENT_TEST R-IS-9
-python ../../../framework/Driver.py test_internal_parallel_ROM_scikit.xml ../cluster_runinfo.xml
+python ../../../framework/Driver.py test_internal_parallel_ROM_scikit.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'InternalParallelScikit/*.csv' 2 paralROM
 
@@ -101,7 +101,7 @@ cd ..
 cd InternalParallel/
 rm -Rf InternalParallelPostProcessorLS/*.csv
 
-python ../../../framework/Driver.py test_internal_parallel_PP_LS.xml ../cluster_runinfo.xml
+python ../../../framework/Driver.py test_internal_parallel_PP_LS.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'InternalParallelPostProcessorLS/*.csv' 6 parallelPP
 
@@ -112,7 +112,7 @@ cd ..
 cd InternalParallel/
 rm -Rf InternalParallelMSR/*.csv
 
-python ../../../framework/Driver.py test_internal_MSR.xml ../cluster_runinfo.xml
+python ../../../framework/Driver.py test_internal_MSR.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'InternalParallelMSR/*.csv' 1 parallelMSR
 
@@ -122,7 +122,7 @@ cd ..
 cd InternalParallel/
 rm -Rf metaModelNonLinearParallel/*.png
 
-python ../../../framework/Driver.py test_ensemble_model_picard_parallel.xml ../cluster_runinfo.xml
+python ../../../framework/Driver.py test_ensemble_model_picard_parallel.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'metaModelNonLinearParallel/*.png' 3 parallelEnsemblePicard
 
@@ -132,7 +132,7 @@ cd ..
 cd InternalParallel/
 rm -Rf metaModelLinearParallel/*.png
 
-python ../../../framework/Driver.py test_ensemble_model_linear_internal_parallel.xml ../cluster_runinfo.xml
+python ../../../framework/Driver.py test_ensemble_model_linear_internal_parallel.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'metaModelLinearParallel/*.png' 2 parallelEnsembleLinear
 
@@ -149,7 +149,7 @@ cd ..
 cd AdaptiveSobol/
 rm -Rf workdir/*
 
-python ../../../framework/Driver.py test_adapt_sobol_parallel.xml ../cluster_runinfo.xml
+python ../../../framework/Driver.py test_adapt_sobol_parallel.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'workdir/*.csv' 1 adaptiveSobol
 

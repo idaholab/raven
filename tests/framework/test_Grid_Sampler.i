@@ -3,7 +3,7 @@
 
   [./RunInfo]
     [./WorkingDir]
-      value = GridTest
+      value = GridTest_GetPot
     [../]
     [./Sequence]
       value = CustomSampler

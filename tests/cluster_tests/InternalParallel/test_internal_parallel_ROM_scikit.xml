@@ -3,14 +3,9 @@
   <RunInfo>
     <WorkingDir>InternalParallelScikit</WorkingDir>
     <Sequence>step1,step2,step3,step4</Sequence>
-    <batchSize>25</batchSize>
+    <batchSize>3</batchSize>
     <internalParallel>True</internalParallel>
-    <mode>
-      mpi
-      <runQSUB/>
-    </mode>
     <expectedTime>00:10:00</expectedTime>
-    <clusterParameters>-W block=true</clusterParameters>
     <JobName>test_qsub</JobName>
   </RunInfo>
 

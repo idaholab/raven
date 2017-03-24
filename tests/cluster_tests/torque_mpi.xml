@@ -1,0 +1,12 @@
+<Simulation>
+  <RunInfo>
+    <CustomMode class="TorqueSimulationMode" file="%FRAMEWORK_DIR%/../tests/cluster_tests/torque_custom/torque_mode.py">torque</CustomMode>
+    <mode>
+      torque
+      <runQSUB/>
+    </mode>
+    <clusterParameters>-I -x</clusterParameters>
+    <!-- <batchSize>1</batchSize> -->
+    <RemoteRunCommand>raven_qsub_torque.sh</RemoteRunCommand>
+  </RunInfo>
+</Simulation>

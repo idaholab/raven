@@ -1,0 +1,13 @@
+<Simulation>
+  <RunInfo>
+    <CustomMode class="TorqueSimulationMode" file="%BASE_WORKING_DIR%/torque_custom/torque_mode.py">torque</CustomMode>
+    <mode>
+      torque
+      <runQSUB/>
+      <NoSplitNode maxOnNode="4"/>
+    </mode>
+    <clusterParameters>-I -x</clusterParameters>
+    <batchSize>1</batchSize>
+    <RemoteRunCommand>raven_qsub_torque.sh</RemoteRunCommand>
+  </RunInfo>
+</Simulation>
