@@ -18,6 +18,12 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import sys
 import numpy as np
+import os
+
+raven_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+print("raven_dir",raven_dir)
+sys.path.append(os.path.join(raven_dir,"crow","install"))
+
 def find_distribution1D():
   """ find the crow distribution1D module and return it. """
   if sys.version_info.major > 2:
