@@ -14,7 +14,7 @@
       This test checks basic statistics on Monte Carlo samples, requesting percentiles less than 1 percent
     </description>
   </TestInfo>
-
+  
   <Files>
     <Input name="output_basicStatistics_PP1mc.csv" type="">output_basicStatistics_PP1mc.csv</Input>
     <Input name="output_basicStatistics_PP1mc.xml" type="">output_basicStatistics_PP1mc.xml</Input>
