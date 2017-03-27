@@ -26,6 +26,14 @@
     output = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.csv basicStatsMonteCarloAnalytic/outputDataMC_dump.xml'
     rel_err = 1e-6
   [../]
+  [./mcFloatPercentile]
+    type = 'RavenFramework'
+    input = 'mc_float_percentile.xml'
+    UnorderedCsv = 'basicStatsMonteCarloPercentileFloat/output_basicStatistics_PP1mc.csv'
+    UnorderedXml = 'basicStatsMonteCarloPercentileFloat/output_basicStatistics_PP1mc.xml'
+    output = 'basicStatsMonteCarloPercentileFloat/output_basicStatistics_PP1mc.csv basicStatsMonteCarloPercentileFloat/output_basicStatistics_PP1mc.xml'
+    rel_err = 1e-6
+  [../]
   [./stratified]
     type = 'RavenFramework'
     input = 'stratified_analytic.xml'

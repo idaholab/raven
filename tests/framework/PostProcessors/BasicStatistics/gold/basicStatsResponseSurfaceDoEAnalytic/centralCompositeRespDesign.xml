@@ -6,7 +6,7 @@
     <median>0.765165042945</median>
     <variance>0.0723884859161</variance>
     <sigma>0.269051084213</sigma>
-    <percentile_5>0.0</percentile_5>
+    <percentile_5>0.234834957055</percentile_5>
     <percentile_95>1.0</percentile_95>
     <variationCoefficient>0.408348437637</variationCoefficient>
     <skewness>-0.276088223536</skewness>
@@ -46,7 +46,7 @@
     <median>0.765165042945</median>
     <variance>0.0723884859161</variance>
     <sigma>0.269051084213</sigma>
-    <percentile_5>0.0</percentile_5>
+    <percentile_5>0.234834957055</percentile_5>
     <percentile_95>1.0</percentile_95>
     <variationCoefficient>0.408348437637</variationCoefficient>
     <skewness>-0.276088223536</skewness>
