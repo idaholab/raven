@@ -1,7 +1,7 @@
 --------
 Pull Requeset Description
 --------
-##### What issue does this change request address?
+##### What issue does this change request address? (Use "#" before the issue to link it, i.e., #42.)
 
 
 ##### What are the significant changes in functionality due to this change request?
