@@ -51,115 +51,154 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     """
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'TypicalHistoryFromHistorySet Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
-    else:
-      inputDict = inputDic[0]['data']
-      self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
-      if self.pivotParameterID in self.features:
-        self.features.remove(self.pivotParameterID)
 
-      if self.outputLen is None: self.outputLen = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])[-1]
+    #get actual data
+    inputDict = inputDic[0]['data']
+    #identify features
+    self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
+    #don't keep the pivot parameter in the feature space
+    if self.pivotParameterID in self.features:
+      self.features.remove(self.pivotParameterID)
 
-      tempInData = {}
-      keyNewH = 0
-      for keyH in inputDict['output'].keys():
-        localPivotParameter = np.asarray(inputDict['output'][keyH][self.pivotParameterID])
-        if self.outputLen >= localPivotParameter[-1]:
-          tempInData[keyNewH] = inputDict['output'][keyH]
-          keyNewH += 1
-        else:
-          startL, endL = 0, self.outputLen
-          while endL <= localPivotParameter[-1]:
-            tempInDataH = {}
-            extractCondition = (localPivotParameter>=startL) * (localPivotParameter<=endL)
-            tempInDataH[self.pivotParameterID] = np.extract(extractCondition, localPivotParameter)-startL
-            for keyF in self.features:
-              tempInDataH[keyF] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
-            tempInData[keyNewH] = copy.deepcopy(tempInDataH)
-            keyNewH += 1
-            startL = copy.copy(endL)
-            endL += self.outputLen
+    #if output length (size of desired output history) not set, set it now
+    if self.outputLen is None:
+      self.outputLen = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])[-1]
 
-      inputDict['output'] = copy.deepcopy(tempInData)
-      self.numHistory = len(inputDict['output'].keys())
-      self.pivotParameter = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])
+    # task: reshape the data into histories with the size of the output I'm looking for
+    #data dictionaries have form {historyNumber:{VarName:[data], VarName:[data]}}
+    reshapedData = {}
+    #keyNewH = 0
+    newHistoryCounter = 0 #new history tracking labels
+    for historyNumber in inputDict['output'].keys():
+      #array of the pivot values provided in the history
+      pivotValues = np.asarray(inputDict['output'][historyNumber][self.pivotParameterID])
+      #if the desired output pivot value length is (equal to or) longer than the provided history ...
+      #   -> (i.e. I have a year and I want output of a year)
+      if self.outputLen >= pivotValues[-1]:
+        #don't change the shape of this history; it's fine as is
+        reshapedData[newHistoryCounter] = inputDict['output'][historyNumber]
+        newHistoryCounter += 1
+      #if the provided history is longer than the requested output period
+      #   -> (i.e., I have a year of data and I only want output of 1 year)
+      else:
+        #reshape the history into multiple histories to use
+        startPivot = 0
+        endPivot = self.outputLen
+        # until you find the last observed pivot point...
+        while endPivot <= pivotValues[-1]:
+          #create a storage place for each new usable history
+          reshapedData[newHistoryCounter] = {}
+          # acceptable is if the pivot value is greater than start and less than end
+          # this doesn't work with "and" because of ambiguity, so we use "*" instead.
+          extractCondition = (pivotValues>=startPivot) * (pivotValues<=endPivot)
+          # extract out the acceptable parts from the pivotValues, and reset the base pivot point to 0
+          reshapedData[newHistoryCounter][self.pivotParameterID] = np.extract(extractCondition, pivotValues)-startPivot
+          # for each feature...
+          for feature in self.features:
+            # extract applicable information from the feature set
+            reshapedData[newHistoryCounter][feature] = np.extract(extractCondition, inputDict['output'][historyNumber][feature])
+          #increment history counter
+          newHistoryCounter += 1
+          #update new start/end points for grabbing the next history
+          startPivot = endPivot
+          endPivot += self.outputLen
 
-      self.subsequence = {}
-      startLocation, n = 0, 0
-      while True:
-        subsequenceLength = self.subseqLen[n % len(self.subseqLen)]
-        if startLocation + subsequenceLength < self.pivotParameter[-1]:
-          self.subsequence[n] = [startLocation, startLocation+subsequenceLength]
-        else:
-          self.subsequence[n] = [startLocation, self.pivotParameter[-1]]
-          break
-        startLocation += subsequenceLength
-        n+= 1
-      subKeys = self.subsequence.keys()
-      subKeys.sort()
+    inputDict['output'] = reshapedData
+    self.numHistory = len(inputDict['output'].keys()) #should be same as newHistoryCounter - 1, if that's faster
+    #update the set of pivot parameter values to match the first of the reshaped histories
+    self.pivotParameter = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])
 
-      tempData = {'all':{}}
+    # task: split the history into multiple subsequences so that the typical history can be constructed
+    #  -> i.e., split the year history into multiple months, so we get a typical January, February, ..., hence a typical year
+    self.subsequence = {} #TODO change this to a list instead of dict keyed on integers
+    startLocation = 0 #tracks the point in the history being evaluated
+    n = 0 #counts the number of the subsequence
+    # in this loop we collect the similar (in time) subsequences in each history
+    while True:
+      subsequenceLength = self.subseqLen[n % len(self.subseqLen)] # "%" lets different subsequence lengths be used
+      # if the history is longer than the subsequence we need, take the whole subsequence
+      if startLocation + subsequenceLength < self.pivotParameter[-1]:
+        self.subsequence[n] = [startLocation, startLocation+subsequenceLength]
+      # otherwise, take only as much as the history has, and exit
+      else:
+        self.subsequence[n] = [startLocation, self.pivotParameter[-1]]
+        break
+      # iterate forward
+      startLocation += subsequenceLength
+      n+= 1
+    # FIXME who is this guy
+    subKeys = self.subsequence.keys()
+    subKeys.sort() #FIXME why would we reorder them, this is just a range(n)
+
+    # FIXME terrible variable name
+    tempData = {'all':{}}  # eventually keys are 'all', each subsequence indicator index (fix this!)
+    # stack the similar histories in numpy arrays
+    for feature in self.features:
+      #tempData['all'][feature] = np.array([])
+      tempData['all'][feature] = np.concatenate(list(inputDict['output'][h][feature] for h in inputDict['output'].keys()))
+      #for each provided history ...
+      #for historyNumber in inputDict['output'].keys():
+      #  tempData['all'][feature] = np.concatenate((tempData['all'][feature],inputDict['output'][historyNumber][feature]))
+        # FIXME this is a fairly expensive operation to do in double-for-loop fashion, can we do them all at once?
+
+    for keySub in subKeys:
+      tempData[keySub] = {}
+      extractCondition = (self.pivotParameter>=self.subsequence[keySub][0]) * (self.pivotParameter<self.subsequence[keySub][1])
+      tempData[keySub][self.pivotParameterID] = np.extract(extractCondition, self.pivotParameter)
+      if self.pivotParameter[-1] == self.subsequence[keySub][1]:
+        tempData[keySub][self.pivotParameterID] = np.concatenate((tempData[keySub][self.pivotParameterID], np.asarray([self.pivotParameter[-1]])))
+
       for keyF in self.features:
-        tempData['all'][keyF] = np.array([])
-        for keyH in inputDict['output'].keys():
-          tempData['all'][keyF] = np.concatenate((tempData['all'][keyF],inputDict['output'][keyH][keyF]))
-      for keySub in subKeys:
-        tempData[keySub] = {}
-        extractCondition = (self.pivotParameter>=self.subsequence[keySub][0]) * (self.pivotParameter<self.subsequence[keySub][1])
-        tempData[keySub][self.pivotParameterID] = np.extract(extractCondition, self.pivotParameter)
-        if self.pivotParameter[-1] == self.subsequence[keySub][1]:
-          tempData[keySub][self.pivotParameterID] = np.concatenate((tempData[keySub][self.pivotParameterID], np.asarray([self.pivotParameter[-1]])))
+        tempData[keySub][keyF] = np.zeros(shape=(self.numHistory,len(tempData[keySub][self.pivotParameterID])))
+        for cnt, historyNumber in enumerate(inputDict['output'].keys()):
+          if self.pivotParameter[-1] == self.subsequence[keySub][1]:
+            tempData[keySub][keyF][cnt,0:-1] = np.extract(extractCondition, inputDict['output'][historyNumber][keyF])
+            tempData[keySub][keyF][cnt,-1] = inputDict['output'][historyNumber][keyF][-1]
+          else:
+            tempData[keySub][keyF][cnt,:] = np.extract(extractCondition, inputDict['output'][historyNumber][keyF])
 
+    tempCDF = {'all':{}}
+    for keyF in self.features:
+      numBins , binEdges = mathUtils.numBinsDraconis(tempData['all'][keyF])
+      tempCDF['all'][keyF] = self.__computeECDF(tempData['all'][keyF], binEdges)# numBins, dataRange)
+      for keySub in subKeys:
+        if keySub not in tempCDF.keys(): tempCDF[keySub] = {}
+        tempCDF[keySub][keyF] = np.zeros(shape=(self.numHistory,numBins))
+        for cnt in range(tempData[keySub][keyF].shape[0]):
+          tempCDF[keySub][keyF][cnt,:] = self.__computeECDF(tempData[keySub][keyF][cnt,:], binEdges)#numBins, dataRange)
+
+    tempTyp = {}
+    for keySub in subKeys:
+      tempTyp[keySub] = {}
+      tempTyp[keySub][self.pivotParameterID] = tempData[keySub][self.pivotParameterID]
+      d = np.inf
+      for cnt, historyNumber in enumerate(inputDict['output'].keys()):
+        FS = 0
         for keyF in self.features:
-          tempData[keySub][keyF] = np.zeros(shape=(self.numHistory,len(tempData[keySub][self.pivotParameterID])))
-          for cnt, keyH in enumerate(inputDict['output'].keys()):
-            if self.pivotParameter[-1] == self.subsequence[keySub][1]:
-              tempData[keySub][keyF][cnt,0:-1] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
-              tempData[keySub][keyF][cnt,-1] = inputDict['output'][keyH][keyF][-1]
-            else:
-              tempData[keySub][keyF][cnt,:] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
-
-      tempCDF = {'all':{}}
-      for keyF in self.features:
-        numBins , binEdges = mathUtils.numBinsDraconis(tempData['all'][keyF])
-        tempCDF['all'][keyF] = self.__computeECDF(tempData['all'][keyF], binEdges)# numBins, dataRange)
-        for keySub in subKeys:
-          if keySub not in tempCDF.keys(): tempCDF[keySub] = {}
-          tempCDF[keySub][keyF] = np.zeros(shape=(self.numHistory,numBins))
-          for cnt in range(tempData[keySub][keyF].shape[0]):
-            tempCDF[keySub][keyF][cnt,:] = self.__computeECDF(tempData[keySub][keyF][cnt,:], binEdges)#numBins, dataRange)
-
-      tempTyp = {}
-      for keySub in subKeys:
-        tempTyp[keySub] = {}
-        tempTyp[keySub][self.pivotParameterID] = tempData[keySub][self.pivotParameterID]
-        d = np.inf
-        for cnt, keyH in enumerate(inputDict['output'].keys()):
-          FS = 0
+          FS += self.__computeDist(tempCDF['all'][keyF],tempCDF[keySub][keyF][cnt,:])
+        if FS < d:
+          d = FS
           for keyF in self.features:
-            FS += self.__computeDist(tempCDF['all'][keyF],tempCDF[keySub][keyF][cnt,:])
-          if FS < d:
-            d = FS
-            for keyF in self.features:
-              tempTyp[keySub][keyF] = tempData[keySub][keyF][cnt,:]
+            tempTyp[keySub][keyF] = tempData[keySub][keyF][cnt,:]
 
-      typicalTS = {self.pivotParameterID:np.array([])}
-      for keySub in subKeys:
-        typicalTS[self.pivotParameterID] = np.concatenate((typicalTS[self.pivotParameterID], tempTyp[keySub][self.pivotParameterID]))
-        for keyF in self.features:
-          if keyF not in typicalTS.keys():  typicalTS[keyF] = np.array([])
-          typicalTS[keyF] = np.concatenate((typicalTS[keyF], tempTyp[keySub][keyF]))
+    typicalTS = {self.pivotParameterID:np.array([])}
+    for keySub in subKeys:
+      typicalTS[self.pivotParameterID] = np.concatenate((typicalTS[self.pivotParameterID], tempTyp[keySub][self.pivotParameterID]))
+      for keyF in self.features:
+        if keyF not in typicalTS.keys():  typicalTS[keyF] = np.array([])
+        typicalTS[keyF] = np.concatenate((typicalTS[keyF], tempTyp[keySub][keyF]))
 
-      for t in range(1,len(typicalTS[self.pivotParameterID])):
-        if typicalTS[self.pivotParameterID][t] < typicalTS[self.pivotParameterID][t-1]: return None
+    for t in range(1,len(typicalTS[self.pivotParameterID])):
+      if typicalTS[self.pivotParameterID][t] < typicalTS[self.pivotParameterID][t-1]: return None
 
-      outputDic ={'data':{'input':{},'output':{}}, 'metadata':{}}
-      outputDic['data']['output'][1] = typicalTS
-      keyH = inputDict['input'].keys()[0]
-      outputDic['data']['input'][1] = {}
-      for keyIn in inputDict['input'][keyH].keys():
-        outputDic['data']['input'][1][keyIn] = np.array(inputDict['input'][keyH][keyIn][0])
+    outputDic ={'data':{'input':{},'output':{}}, 'metadata':{}}
+    outputDic['data']['output'][1] = typicalTS
+    historyNumber = inputDict['input'].keys()[0]
+    outputDic['data']['input'][1] = {}
+    for keyIn in inputDict['input'][historyNumber].keys():
+      outputDic['data']['input'][1][keyIn] = np.array(inputDict['input'][historyNumber][keyIn][0])
 
-      return outputDic
+    return outputDic
 
   def __computeECDF(self, data, binEdgesIn):
     """
