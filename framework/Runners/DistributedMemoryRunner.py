@@ -106,8 +106,6 @@ class DistributedMemoryRunner(InternalRunner):
       @ Out, None
     """
     if not self.hasBeenAdded:
-      for row in self.__ppserver.collect_stats_in_list():
-        self.raiseADebug(row)
       if self.thread is not None:
         self.runReturn = self.thread()
       else:
