@@ -2084,7 +2084,7 @@ class BasicStatistics(BasePostProcessor):
             if param in outputDict.get(scalar,{}).keys():
               values[s] = valueFormat(outputDict[scalar][param])
             else:
-              value[s] = valueStrFormat('---')
+              values[s] = valueStrFormat('---')
           output.write(separator.join(values) + os.linesep)
       # then do vector metrics (matrix style)
       haveVectors = list(vector for vector in self.vectorVals if vector in outputDict.keys())
