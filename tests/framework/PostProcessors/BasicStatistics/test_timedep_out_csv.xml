@@ -1,5 +1,4 @@
 <?xml version="1.0" ?>
-<!-- <Simulation verbosity="debug"> -->
 <Simulation>
   <RunInfo>
     <WorkingDir>timeDepOutCsv</WorkingDir>
@@ -53,8 +52,13 @@
   </Samplers>
 
   <DataObjects>
+    <PointSet name="stats">
+        <Input>time</Input>
+        <Output>mean_T1,percentile_5_T1,percentile_95_T1,mean_T2,percentile_5_T2,percentile_95_T2</Output>
+    </PointSet>
     <PointSet name="DummyIN">
       <Input>X1,X2</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="Out">
       <Input>X1,X2</Input>
@@ -64,10 +68,6 @@
       <Input>X1,X2</Input>
       <Output>T1,T2,time</Output>
     </HistorySet>
-    <PointSet name="stats">
-        <Input>time</Input>
-        <Output>mean_T1,percentile_5_T1,percentile_95_T1,mean_T2,percentile_5_T2,percentile_95_T2</Output>
-    </PointSet>
   </DataObjects>
 
   <Models>
@@ -110,9 +110,9 @@
     <MultiRun name="GenerateData">
       <!--<Sampler class="Samplers"    type="MonteCarlo">myMC</Sampler>-->
       <!--<Sampler class="Samplers" type="Stratified">myLHS</Sampler>-->
-      <Sampler class="Samplers"    type="EnsembleForward">myEnse</Sampler>
       <Input   class="DataObjects" type="PointSet" >DummyIN</Input>
       <Model   class="Models"      type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers"    type="EnsembleForward">myEnse</Sampler>
       <Output  class="DataObjects" type="PointSet" >Out</Output>
       <Output  class="DataObjects" type="HistorySet">OutTime</Output>
     </MultiRun>
@@ -243,7 +243,7 @@
         <ylabel>T1</ylabel>
       </plotSettings>
       <actions>
-        <how>png,screen</how>
+        <how>png</how>
         <title>
           <text>My Plot Time</text>
         </title>
