@@ -125,5 +125,11 @@
     heavy = true
     max_time = 200
   [../]
+  [./timeDepOutCsv]
+    type = 'RavenFramework'
+    input = 'test_timedep_out_csv.xml'
+    output = 'timeDepOutCsv/fileOut.csv timeDepOutCsv/1-PlotStatsT2_scatter-scatter-scatter.png'
+    max_time = 200
+  [../]
 
 []

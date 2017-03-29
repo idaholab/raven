@@ -27,12 +27,11 @@ import os
 from glob import glob
 import copy
 import math
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 import time
 from sklearn.linear_model import LinearRegression
 import importlib
 import abc
-import six
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -1832,29 +1831,19 @@ class BasicStatistics(BasePostProcessor):
       inputs, outputs  = currentInput.getParametersValues('inputs',nodeId = 'ending'), currentInput.getParametersValues('outputs',nodeId = 'ending')
       nTs, self.dynamic = len(outputs.values()[0].values()[0]), True
       if self.pivotParameter not in currentInput.getParaKeys('output'): self.raiseAnError(IOError, self, 'Pivot parameter ' + self.pivotParameter + ' has not been found in output space of data object '+currentInput.name)
-      pivotParameter =  six.next(six.itervalues(outputs))[self.pivotParameter]
-      self.raiseAMessage("Starting recasting data for time-dependent statistics")
-      targetInput  = []
-      targetOutput = []
-      for targetP in self.parameters['targets']:
-        if targetP in currentInput.getParaKeys('output'):
-          targetOutput.append(targetP)
-        elif targetP in currentInput.getParaKeys('input'):
-          targetInput.append(targetP)
-        else: self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
-      inputDict = {}
-      inputDict['timeDepData'] = OrderedDict((el,defaultdict(dict)) for el in pivotParameter)
-      for targetP in targetInput:
-        inputValues = np.asarray([val[targetP][-1] for val in inputs.values()])
-        for ts in range(nTs): inputDict['timeDepData'][pivotParameter[ts]]['targets'][targetP] = inputValues
-      metadata = currentInput.getAllMetadata()
-      for cnt, targetP in enumerate(targetOutput):
-        outputValues = np.asarray([val[targetP] for val in outputs.values()])
-        if len(outputValues.shape) != 2: self.raiseAnError(IOError, 'Histories are not syncronized! Please, pre-process the data using Interfaced PostProcessor HistorySetSync!')
-        for ts in range(nTs):
-          inputDict['timeDepData'][pivotParameter[ts]]['targets'][targetP] = outputValues[:,ts]
-          if cnt == 0 : inputDict['timeDepData'][pivotParameter[ts]]['metadata'] = metadata
-    self.raiseAMessage("Recasting performed")
+      pivotParameter = []
+      for ts in range(len(outputs.values()[0][self.pivotParameter])):
+        currentSnapShot = [outputs[i][self.pivotParameter][ts] for i in outputs.keys()]
+        if len(set(currentSnapShot)) > 1: self.raiseAnError(IOError, self, 'Histories are not syncronized! Please, pre-process the data using Interfaced PostProcessor HistorySetSync!')
+        pivotParameter.append(currentSnapShot[-1])
+      inputDict = {'timeDepData':OrderedDict.fromkeys(pivotParameter,None)}
+      for ts in range(nTs):
+        inputDict['timeDepData'][pivotParameter[ts]] = {'targets':{}}
+        for targetP in self.parameters['targets']:
+          if targetP in currentInput.getParaKeys('output') : inputDict['timeDepData'][pivotParameter[ts]]['targets'][targetP] = np.asarray([outputs[i][targetP][ts] for i in outputs.keys()])
+          elif targetP in currentInput.getParaKeys('input'): inputDict['timeDepData'][pivotParameter[ts]]['targets'][targetP] = np.asarray([inputs[i][targetP][-1] for i in inputs.keys()])
+          else: self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
+        inputDict['timeDepData'][pivotParameter[ts]]['metadata'] = currentInput.getAllMetadata()
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -1909,26 +1898,20 @@ class BasicStatistics(BasePostProcessor):
         #prepare storage dictionary, keys are percentiles, values are set(targets)
         if 'percentile' not in self.toDo.keys():
           self.toDo['percentile']={}
-          self.parameters['percentile_map'] = {}
         if tag == 'percentile':
-          floatPercentile = [float(5),float(95)]
-          self.parameters['percentile_map'][floatPercentile[0]] = '5'
-          self.parameters['percentile_map'][floatPercentile[1]] = '95'
+          integerPercentile = [5,95]
         else:
           #user specified a percentage!
           splitTag = tag.split('_')
           if len(splitTag) != 2:
             self.raiseAWarning('Not able to parse "'+tag+'" to obtain percentile!  Expected "percentile_##%". Using 95% instead...')
-            floatPercentile = [float(95)]
-            self.parameters['percentile_map'][floatPercentile[-1]] = '95'
+            integerPercentile = [95]
           else:
-            floatPercentile = [utils.floatConversion(splitTag[1].replace("%",""))]
-            self.parameters['percentile_map'][floatPercentile[-1]] = splitTag[1]
-            if floatPercentile[0] is None:
+            integerPercentile = [utils.intConversion(splitTag[1].replace("%",""))]
+            if integerPercentile[0] is None:
               self.raiseAWarning('Not able to parse "'+tag+'" to obtain percentile!  Could not parse',strPercent,'as a percentile. Using 95% instead...')
-              floatPercentile = [float(95)]
-              self.parameters['percentile_map'][floatPercentile[-1]] = '95'
-        for reqPercent in floatPercentile:
+              integerPercentile = [95]
+        for reqPercent in integerPercentile:
           if reqPercent in self.toDo['percentile'].keys():
             self.toDo['percentile'][reqPercent].update(targets)
           else:
@@ -1974,9 +1957,7 @@ class BasicStatistics(BasePostProcessor):
           if scalar == 'percentile':
             if scalar not in self.toDo.keys():
               self.toDo[scalar] = {}
-              self.parameters[scalar+'_map'] = {}
-            for pct in [float(5),float(95)]:
-              self.parameters['percentile_map'][pct] = str(int(pct))
+            for pct in [5,95]:
               if pct in self.toDo[scalar].keys():
                 self.toDo[scalar][pct].update(targets)
               else:
@@ -2013,7 +1994,7 @@ class BasicStatistics(BasePostProcessor):
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
     if isinstance(output,Files.File):
-      availExtens = ['xml','csv']
+      availExtens = ['xml']
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
         self.raiseAMessage('BasicStatistics did not recognize extension ".'+str(outputExtension)+'" as ".xml", so writing text output...')
@@ -2023,8 +2004,7 @@ class BasicStatistics(BasePostProcessor):
       if outputExtension == 'xml':
         self._writeXML(output,outputDictionary,methodToTest)
       else:
-        separator = '   ' if outputExtension != 'csv' else ','
-        self._writeText(output,outputDictionary,methodToTest,separator)
+        self._writeText(output,outputDictionary,methodToTest)
     elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
@@ -2047,15 +2027,15 @@ class BasicStatistics(BasePostProcessor):
               self.raiseADebug('Dumping External Function parameter ' + what)
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
 
-  def _writeText(self,output,outputDictionary,methodToTest,separator='  '):
+  def _writeText(self,output,outputDictionary,methodToTest):
     """
       Defines the method for writing the basic statistics to a text file (space and newline delimited)
       @ In, output, File object, file to write to
       @ In, outputDictionary, dict, dictionary of statistics values (or list of the same if self.dynamic)
       @ In, methodToTest, list, strings of methods to test
-      @ In, separator, string, optional, separator string (e.g. for csv use ",")
       @ Out, None
     """
+    separator = '  '
     if self.dynamic: output.write('Dynamic BasicStatistics'+ separator+ 'Pivot Parameter' + separator + self.pivotParameter + separator + os.linesep)
     quantitiesToWrite = {}
     outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
@@ -2068,24 +2048,21 @@ class BasicStatistics(BasePostProcessor):
       # do scalars metrics first
       #header
       haveScalars = list(scalar for scalar in self.scalarVals if scalar in outputDict.keys())
-      if 'percentile_map' in self.parameters and len(self.parameters['percentile_map']) >0 :
-        haveScalars = haveScalars + ['percentile_'+val for val in self.parameters['percentile_map'].values()]
-      if len(haveScalars) > 0:
-        longestScalar = max(18,max(len(scalar) for scalar in haveScalars))
-        valueStrFormat = ('{:^22.22}').format
-        valueFormat = '{:+.15e}'.format
-        output.write(paramFormat('Metric:') + separator)
-        output.write(separator.join(valueStrFormat(scalar) for scalar in haveScalars) + os.linesep)
-        #body
-        for param in self.allUsedParams:
-          output.write(paramFormat(param) + separator)
-          values = [None]*len(haveScalars)
-          for s,scalar in enumerate(haveScalars):
-            if param in outputDict.get(scalar,{}).keys():
-              values[s] = valueFormat(outputDict[scalar][param])
-            else:
-              value[s] = valueStrFormat('---')
-          output.write(separator.join(values) + os.linesep)
+      longestScalar = max(18,max(len(scalar) for scalar in haveScalars))
+      valueStrFormat = ('{:^22.22}').format
+      valueFormat = '{:+.15e}'.format
+      output.write(paramFormat('Metric:') + separator)
+      output.write(separator.join(valueStrFormat(scalar) for scalar in haveScalars) + os.linesep)
+      #body
+      for param in self.allUsedParams:
+        output.write(paramFormat(param) + separator)
+        values = [None]*len(haveScalars)
+        for s,scalar in enumerate(haveScalars):
+          if param in outputDict.get(scalar,{}).keys():
+            values[s] = valueFormat(outputDict[scalar][param])
+          else:
+            values[s] = valueStrFormat('---')
+        output.write(separator.join(values) + os.linesep)
       # then do vector metrics (matrix style)
       haveVectors = list(vector for vector in self.vectorVals if vector in outputDict.keys())
       for vector in haveVectors:
@@ -2499,11 +2476,10 @@ class BasicStatistics(BasePostProcessor):
     metric = 'percentile'
     self.raiseADebug('Starting "'+metric+'"...')
     for percent,targets in needed[metric].items():
-      self.raiseADebug('...',str(percent),'...')
-      label = metric+'_'+self.parameters['percentile_map'][percent]
+      self.raiseADebug('...',percent,'...')
+      label = metric+'_'+str(percent)
       calculations[label] = {}
       for targetP in targets:
-        if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         calculations[label][targetP] = np.percentile(input['targets'][targetP], percent) if not pbPresent else self._computeWeightedPercentile(input['targets'][targetP],relWeight,percent=float(percent)/100.0)
     #################
     # VECTOR VALUES #
@@ -2666,7 +2642,7 @@ class BasicStatistics(BasePostProcessor):
       #if percentile, special treatment
       if metric == 'percentile':
         for pct,targets in params.items():
-          label = 'percentile_'+self.parameters['percentile_map'][pct]
+          label = 'percentile_'+str(pct)
           outputDict[label] = dict((target,calculations[label][target]) for target in targets)
       #if other scalar, just report the result
       elif metric in self.scalarVals:
@@ -4090,11 +4066,11 @@ class DataMining(BasePostProcessor):
       else:
         features = self.initializationOptionDict['KDD']['Features'].split(',')
         for param in currentInput.getParaKeys('input'):
-          if param in features:
-            inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['input'][param])
+           if param in features:
+             inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['input'][param])
         for param in currentInput.getParaKeys('output'):
-          if param in features:
-            inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['output'][param])
+           if param in features:
+             inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['output'][param])
 
       inputDict['metadata'] = currentInput.getAllMetadata()
 
@@ -4186,9 +4162,9 @@ class DataMining(BasePostProcessor):
       self.solutionExport = initDict["SolutionExport"]
 
     if "PreProcessor" in self.assemblerDict:
-      self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
-      if not '_inverse' in dir(self.PreProcessor.interface):
-        self.raiseAnError(IOError, 'PostProcessor ' + self.name + ' is using a pre-processor where the method inverse has not implemented')
+       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
+       if not '_inverse' in dir(self.PreProcessor.interface):
+         self.raiseAnError(IOError, 'PostProcessor ' + self.name + ' is using a pre-processor where the method inverse has not implemented')
 
 
     if 'Metric' in self.assemblerDict:
