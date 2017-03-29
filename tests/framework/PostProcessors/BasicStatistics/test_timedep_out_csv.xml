@@ -71,7 +71,7 @@
   </DataObjects>
 
   <Models>
-    <ExternalModel ModuleToLoad="/Users/alfoa/projects/raven/Workshop/NCSU_March_2017/inputs/timedep_statistics/example2/CrisForwSampl" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="CrisForwSampl" name="PythonModule" subType="">
       <variables>X1,X2,Y1,Y2,T1,T2,time</variables>
     </ExternalModel>
     <PostProcessor name="timeDepBasicStat" subType="BasicStatistics">
