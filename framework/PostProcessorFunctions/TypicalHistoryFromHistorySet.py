@@ -43,8 +43,10 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'HistorySet'
-    if not hasattr(self, 'pivotParameter'): self.pivotParameter = 'Time' #FIXME this assumes the ARMA model!  Dangerous assumption.
-    if not hasattr(self, 'outputLen'     ): self.outputLen = None
+    if not hasattr(self, 'pivotParameter'):
+      self.pivotParameter = 'Time' #FIXME this assumes the ARMA model!  Dangerous assumption.
+    if not hasattr(self, 'outputLen'):
+      self.outputLen = None
 
   def readMoreXML(self,xmlNode):
     """
