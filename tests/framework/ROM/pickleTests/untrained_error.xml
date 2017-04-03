@@ -1,0 +1,89 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='all'>
+  <RunInfo>
+    <WorkingDir>UntrainedError</WorkingDir>
+    <Sequence>make,pkDump</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/stochPolyPickleTest</name>
+    <author>talbpaul</author>
+    <created>2015-07-07</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>
+      This test checks that a reasonable error is given to the user if an untrained rom is unpickled then sampled.
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="ROMpk" type="">ROMpk</Input>
+  </Files>
+
+  <Distributions>
+    <Uniform name="UniDist">
+      <lowerBound>1</lowerBound>
+      <upperBound>5</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="x1">
+        <distribution>UniDist</distribution>
+        <grid construction="equal" steps="5" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="x2">
+        <distribution>UniDist</distribution>
+        <grid construction="equal" steps="5" type="CDF">0.0 1.0</grid>
+      </variable>
+    </Grid>
+    <SparseGridCollocation name="SG" parallel="1">
+      <variable name="x1">
+        <distribution>UniDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>UniDist</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">UROM</ROM>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="polynomial" name="polynomial" subType="">
+      <variables>x1,x2,ans</variables>
+    </ExternalModel>
+    <ROM name="UROM" subType="GaussPolynomialRom">
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TensorProduct</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+      <Interpolation poly="Legendre" quad="Legendre" weight="1">x1</Interpolation>
+      <Interpolation poly="Legendre" quad="Legendre" weight="1">x2</Interpolation>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <MultiRun name="make">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">polynomial</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">SG</Sampler>
+      <Output class="DataObjects" type="PointSet">SGsolns</Output>
+    </MultiRun>
+    <IOStep name="pkDump">
+      <Input class="Models" type="ROM">UROM</Input>
+      <Output class="Files" type="">ROMpk</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="SGsolns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
