@@ -104,6 +104,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.inputInfo['SampledVarsPb'   ] = {}                        # this is the location where to get the probability of the sampled variables
     self.inputInfo['PointProbability'] = None                      # this is the location where the point wise probability is stored (probability associated to a sampled point)
     self.inputInfo['crowDist']         = {}                        # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
+    self.constants                     = {}                        # In this dictionary
     self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
     self.FIXME                         = False                     # FIXME flag
     self.printTag                      = self.type                 # prefix for all prints (sampler type)
@@ -220,8 +221,22 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           listIndex = range(len(transformationDict["manifestVariables"]))
         transformationDict["manifestVariablesIndex"] = listIndex
         self.variablesTransformationDict[child.attrib['distribution']] = transformationDict
+      elif child.tag == "constant":
+        try:
+          value = utils.partialEval(child.text)
+          if value is None:
+            self.raiseAnError(IOError,'The body of "constant" XML block should be a number. Got: ' +child.text)
+          self.constants[child.attrib['name']] = value
+        except KeyError:
+          self.raiseAnError(KeyError,child.tag+' must have the attribute "name"!!!')
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
+
+    if len(self.constants) > 0:
+      # check if constant variables are also part of the sampled space. In case, error out
+      if not set(self.toBeSampled.keys()).isdisjoint(self.constants.keys()):
+        self.raiseAnError(IOError,"Some constant variables are also in the sampling space:" +
+                                  ' '.join([i if i in self.toBeSampled.keys() else "" for i in self.constants.keys()])  )
 
     if self.initSeed == None: self.initSeed = Distributions.randomIntegers(0,2**31,self)
     # Creation of the self.distributions2variablesMapping dictionary: {'distName': ({'variable_name1': dim1}, {'variable_name2': dim2})}
@@ -559,6 +574,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       test=self.funcDict[var].evaluate("evaluate",self.values)
       for corrVar in var.split(","):
         self.values[corrVar.strip()] = test
+    ##### CONSTANT VALUES ######
+    if len(self.constants) > 0: self.values.update(self.constants)
     ##### RESTART #####
     #check if point already exists
     if self.restartData is not None:
@@ -578,7 +595,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       realization['outputs'] = inExisting['outputs']
       realization['prefix'] = self.inputInfo['prefix']
       return 1,realization
-
 
   def pcaTransform(self,varsDict,dist):
     """

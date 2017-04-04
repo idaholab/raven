@@ -487,7 +487,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
-
+    #### CONSTANT VARIABLES ####
+    if len(self.constants) > 0: self.values.update(self.constants)
     self.raiseADebug('Found new input to evaluate:',self.values)
     return 0,model.createNewInput(oldInput,self.type,**self.inputInfo)
 
