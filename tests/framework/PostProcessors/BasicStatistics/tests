@@ -26,6 +26,14 @@
     output = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.csv basicStatsMonteCarloAnalytic/outputDataMC_dump.xml'
     rel_err = 1e-6
   [../]
+  [./mcFloatPercentile]
+    type = 'RavenFramework'
+    input = 'mc_float_percentile.xml'
+    UnorderedCsv = 'basicStatsMonteCarloPercentileFloat/output_basicStatistics_PP1mc.csv'
+    UnorderedXml = 'basicStatsMonteCarloPercentileFloat/output_basicStatistics_PP1mc.xml'
+    output = 'basicStatsMonteCarloPercentileFloat/output_basicStatistics_PP1mc.csv basicStatsMonteCarloPercentileFloat/output_basicStatistics_PP1mc.xml'
+    rel_err = 1e-6
+  [../]
   [./stratified]
     type = 'RavenFramework'
     input = 'stratified_analytic.xml'
@@ -115,6 +123,12 @@
     input = 'heavy_xml_write.xml'
     UnorderedCsv = 'HeavyXmlWrite/stats_dump.csv'
     heavy = true
+    max_time = 200
+  [../]
+  [./timeDepOutCsv]
+    type = 'RavenFramework'
+    input = 'test_timedep_out_csv.xml'
+    output = 'timeDepOutCsv/fileOut.csv timeDepOutCsv/1-PlotStatsT2_scatter-scatter-scatter.png'
     max_time = 200
   [../]
 
