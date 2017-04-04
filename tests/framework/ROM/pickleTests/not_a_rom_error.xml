@@ -6,7 +6,7 @@
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
-    <name></name>
+    <name>framework/ROM/pickleTests/loadNorROMError</name>
     <author>talbpaul</author>
     <created>2015-07-07</created>
     <classesTested>Models.ROM</classesTested>
