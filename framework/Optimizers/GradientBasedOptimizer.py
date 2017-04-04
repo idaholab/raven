@@ -77,15 +77,15 @@ class GradientBasedOptimizer(Optimizer):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    convergence                = xmlNode.find("convergence")
+    convergence = xmlNode.find("convergence")
     self.gradDict['normalize'] = utils.interpretBoolean(self.paramDict.get("normalize",self.gradDict['normalize']))
     if convergence is not None:
       gradientThreshold = convergence.find("gradientThreshold")
       try:
         if gradientThreshold is not None and self.gradDict['normalize']:
-          self.raiseAWarning("Conflicting inputs: gradientThreshold and normalized gradient have been inputed. These two intpus are conflicting. ")
+          self.raiseAWarning("Conflicting inputs: gradientThreshold and normalized gradient have both been input. These two intpus are conflicting. ")
         self.gradientNormTolerance = float(gradientThreshold.text) if gradientThreshold is not None else self.gradientNormTolerance
-      except ValueError: self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float')
+      except ValueError: self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float.')
 
   def localInitialize(self,solutionExport=None):
     """
@@ -306,7 +306,7 @@ class GradientBasedOptimizer(Optimizer):
   def _removeRedundantTraj(self, trajToRemove, currentInput):
     """
       Local method to remove multiple trajectory
-      @ In, traj, int, identifier of the trajector to remove
+      @ In, trajToRemove, int, identifier of the trajector to remove
       @ In, currentInput, dict, the last variable on trajectory traj
       @ Out, None
     """
@@ -314,7 +314,7 @@ class GradientBasedOptimizer(Optimizer):
     for traj in self.optTraj:
       if traj != trajToRemove:
         for updateKey in self.optVarsHist[traj].keys():
-          inp = copy.deepcopy(self.optVarsHist[traj][updateKey])
+          inp = copy.deepcopy(self.optVarsHist[traj][updateKey]) #FIXME deepcopy needed?
           removeLocalFlag = True
           for var in self.optVars:
             if abs(inp[var] - currentInput[var]) > self.thresholdTrajRemoval:

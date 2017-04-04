@@ -253,6 +253,14 @@ def calculateStats(data):
   ret["kurtosis"] = stats.kurtosis(data)
   return ret
 
+def hyperdiagonal(lengths):
+  """
+    Obtains the length of a diagonal of a hyperrectangle given the lengths of the sides.  Useful for high-dimensional distance scaling.
+    @ In, lengths, list(float), lengths of the sides of the ND rectangle
+    @ Out, diag, float, the length of the diagonal between furthest-separated corners of the hypercube
+  """
+  return np.sqrt(sum(x*x for x in lengths))
+
 def historySnapShoots(valueDict, numberOfTimeStep):
   """
     Method do to compute the temporal slices of each history
