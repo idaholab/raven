@@ -409,14 +409,23 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
-    for key in tempDict.keys(): tempDict[key] = np.asarray(tempDict[key])
+    for key in tempDict.keys():
+      tempDict[key] = np.asarray(tempDict[key])
 
+    print('DEBUGG trainingDict:')
+    for key,val in tempDict.items():
+      print('DEBUGG   ',key,val)
     self.objSearchingROM.train(tempDict)
-    if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
-    for key in optVars.keys(): optVars[key] = np.atleast_1d(optVars[key])
+    if self.gradDict['normalize']:
+      optVars = self.denormalizeData(optVars)
+    for key in optVars.keys():
+      optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
-    if self.optType == 'min':           return lossFunctionValue
-    else:                               return lossFunctionValue*-1.0
+    print('DEBUGG lossFunctionValue:',lossFunctionValue)
+    if self.optType == 'min':
+      return lossFunctionValue
+    else:
+      return lossFunctionValue*-1.0
 
   def checkConstraint(self, optVars):
     """
@@ -495,6 +504,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localGenerateInput(model,oldInput)
 
     self.raiseADebug('Found new input to evaluate:',self.values)
+    print('DEBUGG new input vals:',self.values.values(),np.nan in self.values.values())
+    if np.nan in self.values.values():
+      print('DEBUGG new input:',self.values)
     return 0,model.createNewInput(oldInput,self.type,**self.inputInfo)
 
   @abc.abstractmethod

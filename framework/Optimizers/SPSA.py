@@ -65,13 +65,16 @@ class SPSA(GradientBasedOptimizer):
     self.paramDict['A']     = float(self.paramDict.get('A', self.limit['mdlEval']/10))
     self.paramDict['a']     = self.paramDict.get('a', None)
     self.paramDict['c']     = float(self.paramDict.get('c', 0.005))
+    #FIXME the optimization parameters should probably all operate ONLY on normalized data!
+    #  -> perhaps the whole optimizer should only work on optimized data.
 
     #FIXME normalizing doesn't seem to have the desired effect, currently; it makes the step size very small (for large scales)
     #if "a" was defaulted, use the average scale of the input space.
     #This is the suggested value from the paper, missing a 1/gradient term since we don't know it yet.
     if self.paramDict['a'] is None:
-      minDesiredStep = min(self.optVarsInit['ranges'].values())/10.
-      self.paramDict['a'] = minDesiredStep #*(self.paramDict['A']+1.)**self.paramDict['alpha'] <-- without G to scale, this is bad
+      #minDesiredStep = min(self.optVarsInit['ranges'].values())/10.
+      #self.paramDict['a'] = minDesiredStep #*(self.paramDict['A']+1.)**self.paramDict['alpha'] <-- without G to scale, this is bad
+      self.paramDict['a'] = np.sqrt(sum(d*d for d in self.optVarsInit['ranges'].values())) #should be normalized!
       self.raiseAMessage('Defaulting "a" gradient parameter to',self.paramDict['a'])
     else:
       self.paramDict['a'] = float(self.paramDict['a'])
@@ -169,6 +172,9 @@ class SPSA(GradientBasedOptimizer):
                 if var not in self.gradDict['pertPoints'][traj][ind].keys():
                   p1 = np.asarray([varK[var]+ck*delta[varID]*1.0]).reshape((1,))
                   p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
+                  #sanity check: p1 != p2
+                  if p1 == p2:
+                    self.raiseAnError(RuntimeError,'In choosing gradient evaluation points, the same point was chosen twice for variable "%s"!' %var)
                   self.gradDict['pertPoints'][traj][ind][var] = np.concatenate((p1, p2))
 
           #what are these?
@@ -178,6 +184,7 @@ class SPSA(GradientBasedOptimizer):
           for var in self.optVars:
             tempOptVars[var] = self.gradDict['pertPoints'][traj][loc2][var][loc1]
           tempOptVarsDenorm = copy.deepcopy(self.denormalizeData(tempOptVars)) if self.gradDict['normalize'] else copy.deepcopy(tempOptVars)
+          print('DEBUGG make perturbed point:',tempOptVarsDenorm)
           for var in self.optVars:
             self.values[var] = tempOptVarsDenorm[var]
           # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation)
@@ -199,14 +206,18 @@ class SPSA(GradientBasedOptimizer):
 
             ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj]) # Compute the new ak
             gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
+            print('DEBUGG gradient:',gradient)
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
             varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
             # FIXME here is where adjustments to the step size should happen
+            #TODO this is part of a future request.  Commented for now.
             #get central response for this trajectory: how?? TODO FIXME
-            centralResponseIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj]-1,'v')[1]
-            self.estimateStochasticity(gradient,self.gradDict['pertPoints'][traj][self.counter['varsUpdate'][traj]-1],varK,centralResponseIndex) #TODO need current point too!
+            #centralResponseIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj]-1,'v')[1]
+            #self.estimateStochasticity(gradient,self.gradDict['pertPoints'][traj][self.counter['varsUpdate'][traj]-1],varK,centralResponseIndex) #TODO need current point too!
 
+            print('DEBUGG varK',varK)
             varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
+            print('DEBUGG varKPlus',varKPlus)
             varKPlusDenorm = self.denormalizeData(varKPlus) if self.gradDict['normalize'] else varKPlus
             for var in self.optVars:
               self.values[var] = copy.deepcopy(varKPlusDenorm[var])
@@ -232,36 +243,36 @@ class SPSA(GradientBasedOptimizer):
       @ In, centralResponseIndex, int, index at which central evaluation can be found
       @ Out, c, float, estimate of standard deviation
     """
-    print('DEBUGG numGradIters:',self.gradDict['numIterForAve'])
-    print('DEBUGG gradient:',gradient)
-    print('DEBUGG perturbedPoints:',perturbedPoints)
-    print('DEBUGG centralPoint:',centralPoint)
-    print('DEBUGG objVar:',self.objVar)
+    #print('DEBUGG numGradIters:',self.gradDict['numIterForAve'])
+    #print('DEBUGG gradient:',gradient)
+    #print('DEBUGG perturbedPoints:',perturbedPoints)
+    #print('DEBUGG centralPoint:',centralPoint)
+    #print('DEBUGG objVar:',self.objVar)
     centralResponse = self.mdlEvalHist.getRealization(centralResponseIndex)['outputs'][self.objVar]
-    print('DEBUGG cresponse:',centralResponse)
+    #print('DEBUGG cresponse:',centralResponse)
     numPerturbed = len(perturbedPoints.values()[0])
     inVars = gradient.keys()
     origin = np.array(centralPoint.values())
-    print('origin:',origin)
+    #print('origin:',origin)
     gradVal = gradient.values()
     #calculate the differences between gradient-based estimates and actual evaluations
     differences = []
     for n in range(numPerturbed):
-      print('doing n =',n)
+    #  print('doing n =',n)
       newPoint = np.array(list(perturbedPoints[var][n] for var in inVars))
-      print('  newPoint',newPoint)
+    #  print('  newPoint',newPoint)
       delta = newPoint - origin
-      print('  delta',delta)
+    #  print('  delta',delta)
       expectedResponse = sum(gradVal*delta) + centralResponse
-      print('  expRes',expectedResponse)
+    #  print('  expRes',expectedResponse)
       difference = centralResponse-expectedResponse
-      print('  diff',difference)
+    #  print('  diff',difference)
       differences.append(difference)
     c = np.sqrt(sum(d*d for d in differences))
-    print('c',c)
+    #print('c',c)
 
 
-    import sys;sys.exit()
+    #import sys;sys.exit()
 
   def _updateParameters(self):
     """

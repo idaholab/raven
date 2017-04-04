@@ -216,7 +216,9 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     gradArray = {}
-    for var in self.optVars: gradArray[var] = np.ndarray((0,0))
+    for var in self.optVars:
+      gradArray[var] = np.ndarray((0,0)) #why are we initializing to this?
+      print('DEBUGG init gradarray var:',var,gradArray[var])
 
     # Evaluate gradient at each point
     for pertIndex in optVarsValues.keys():
@@ -224,8 +226,11 @@ class GradientBasedOptimizer(Optimizer):
       tempDictPerturbed['lossValue'] = copy.copy(self.lossFunctionEval(tempDictPerturbed))
       lossDiff = tempDictPerturbed['lossValue'][0] - tempDictPerturbed['lossValue'][1]
       for var in self.optVars:
-        if tempDictPerturbed[var][0] != tempDictPerturbed[var][1]:
-          gradArray[var] = np.append(gradArray[var], lossDiff/(tempDictPerturbed[var][0]-tempDictPerturbed[var][1])*1.0)
+        #if tempDictPerturbed[var][0] != tempDictPerturbed[var][1]:
+        gradArray[var] = np.append(gradArray[var], lossDiff/(tempDictPerturbed[var][0]-tempDictPerturbed[var][1])*1.0)
+        print('DEBUGG eval gradarray var:',var,gradArray[var])
+        #else:
+        #  print('DEBUGG unnormed var:',var,gradArray[var]) #FIXME stuff that lands here fails the mean eval
     gradient = {}
     for var in self.optVars:
       gradient[var] = gradArray[var].mean()
