@@ -1,0 +1,270 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>timeDepOutCsv</WorkingDir>
+    <Sequence>GenerateData,PP,readStatistics,Plot</Sequence>
+    <batchSize>8</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="stat_csv" type="">output_TD_BS2.csv</Input>
+    <Input name="stat_xml" type="">output_TD_BS2.xml</Input>
+  </Files>
+
+  <Distributions>
+    <Normal name="Normal">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Exponential name="Exp">
+      <lambda>8.7E-4</lambda>
+    </Exponential>
+    <Triangular name="DistTri">
+      <apex>1</apex>
+      <min>-0.1</min>
+      <max>3</max>
+    </Triangular>
+    <Uniform name="Uniform">
+      <lowerBound>1000</lowerBound>
+      <upperBound>1001</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <EnsembleForward name="myEnse">
+      <MonteCarlo name="theMC">
+        <samplerInit>
+          <limit>50</limit>
+        </samplerInit>
+        <variable name="X1">
+          <distribution>Normal</distribution>
+        </variable>
+      </MonteCarlo>
+      <Grid name="theGrid">
+        <variable name="X2">
+          <distribution>Uniform</distribution>
+          <grid construction="custom" type="value">1000.1 1000.5 1000.9</grid>
+        </variable>
+      </Grid>
+    </EnsembleForward>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="stats">
+        <Input>time</Input>
+        <Output>mean_T1,percentile_5_T1,percentile_95_T1,mean_T2,percentile_5_T2,percentile_95_T2</Output>
+    </PointSet>
+    <PointSet name="DummyIN">
+      <Input>X1,X2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="Out">
+      <Input>X1,X2</Input>
+      <Output>Y1,Y2</Output>
+    </PointSet>
+    <HistorySet name="OutTime">
+      <Input>X1,X2</Input>
+      <Output>T1,T2,time</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <Models>
+    <ExternalModel ModuleToLoad="CrisForwSampl" name="PythonModule" subType="">
+      <variables>X1,X2,Y1,Y2,T1,T2,time</variables>
+    </ExternalModel>
+    <PostProcessor name="timeDepBasicStat" subType="BasicStatistics">
+        <pivotParameter>time</pivotParameter>
+        <expectedValue>T1,T2</expectedValue>
+        <percentile_5>T1,T2</percentile_5>
+        <percentile_95>T1,T2</percentile_95>
+        <variance>X1,X2,T1,T2</variance>
+        <covariance>
+            <targets>X1,X2</targets>
+            <features>T1,T2</features>
+        </covariance>
+        <pearson>
+            <targets>X1,X2,T1,T2</targets>
+            <features>X1,X2,T1,T2</features>
+        </pearson>
+        <sensitivity>
+            <targets>X1,X2,T1,T2</targets>
+            <features>X1,X2,T1,T2</features>
+        </sensitivity>
+    </PostProcessor>
+    <PostProcessor name="readStats" subType="RavenOutput">
+        <dynamic>true</dynamic>
+        <File ID="0" name="stat_xml">
+            <output name="mean_T1"          >T1 | expectedValue </output>
+            <output name="percentile_5_T1"  >T1 | percentile_5 </output>
+            <output name="percentile_95_T1" >T1 | percentile_95 </output>
+            <output name="mean_T2"          >T2 | expectedValue </output>
+            <output name="percentile_5_T2"  >T2 | percentile_5 </output>
+            <output name="percentile_95_T2" >T2 | percentile_95 </output>
+        </File>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <MultiRun name="GenerateData">
+      <!--<Sampler class="Samplers"    type="MonteCarlo">myMC</Sampler>-->
+      <!--<Sampler class="Samplers" type="Stratified">myLHS</Sampler>-->
+      <Input   class="DataObjects" type="PointSet" >DummyIN</Input>
+      <Model   class="Models"      type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers"    type="EnsembleForward">myEnse</Sampler>
+      <Output  class="DataObjects" type="PointSet" >Out</Output>
+      <Output  class="DataObjects" type="HistorySet">OutTime</Output>
+    </MultiRun>
+    <IOStep name="Plot" pauseAtEnd="True">
+      <Input  class="DataObjects" type="PointSet" >Out</Input>
+      <Input  class="DataObjects" type="HistorySet">OutTime</Input>
+      <Input  class="DataObjects" type="PointSet">stats</Input>
+      <Output class="OutStreams"  type="Print"    >fileOut</Output>
+      <Output class="OutStreams"  type="Plot"     >myPlot</Output>
+      <Output class="OutStreams"  type="Plot"     >myPlotTime1</Output>
+      <Output class="OutStreams"  type="Plot"     >myPlotTime2</Output>
+      <Output class="OutStreams"  type="Plot"     >PlotStatsT1</Output>
+      <Output class="OutStreams"  type="Plot"     >PlotStatsT2</Output>
+    </IOStep>
+    <PostProcess name="PP">
+      <Input class="DataObjects" type="HistorySet">OutTime</Input>
+      <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
+      <Output class="Files" type="">stat_xml</Output>
+      <Output class="Files" type="">stat_csv</Output>
+    </PostProcess>
+    <PostProcess name="readStatistics">
+        <Input    class="Files"         type=""                >stat_xml</Input>
+        <Model    class="Models"        type="PostProcessor"   >readStats</Model>
+        <Output   class="DataObjects"   type="PointSet"        >stats</Output>
+    </PostProcess>
+  </Steps>
+
+
+  <OutStreams>
+    <Print name="fileOut">
+      <type>csv</type>
+      <source>Out</source>
+    </Print>
+    <Plot name="PlotStatsT1" overwrite="false" verbosity="debug">
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>stats|Input|time</x>
+                <y>stats|Output|percentile_5_T1</y>
+                <marker>.</marker>
+            </plot>
+            <plot>
+                <type>scatter</type>
+                <x>stats|Input|time</x>
+                <y>stats|Output|percentile_95_T1</y>
+                <marker>.</marker>
+            </plot>
+            <plot>
+                <type>scatter</type>
+                <x>stats|Input|time</x>
+                <y>stats|Output|mean_T1</y>
+                <marker>.</marker>
+            </plot>
+            <xlabel>time</xlabel>
+            <ylabel>T1</ylabel>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+            <!-- <range>
+                <xmin>0.0</xmin>
+                <xmax>1.0</xmax>
+                <ymin>-15.0</ymin>
+                <ymax>20.0</ymax>
+            </range> -->
+        </actions>
+    </Plot>
+    <Plot name="PlotStatsT2" overwrite="false" verbosity="debug">
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>stats|Input|time</x>
+                <y>stats|Output|percentile_5_T2</y>
+                <marker>.</marker>
+            </plot>
+            <plot>
+                <type>scatter</type>
+                <x>stats|Input|time</x>
+                <y>stats|Output|percentile_95_T2</y>
+                <marker>.</marker>
+            </plot>
+            <plot>
+                <type>scatter</type>
+                <x>stats|Input|time</x>
+                <y>stats|Output|mean_T2</y>
+                <marker>.</marker>
+            </plot>
+            <xlabel>time</xlabel>
+            <ylabel>T2</ylabel>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+            <!-- <range>
+             <xmin>0.0</xmin>
+             <xmax>1.0</xmax>
+             <ymin>-15.0</ymin>
+             <ymax>20.0</ymax>
+             </range> -->
+        </actions>
+    </Plot>
+    <Plot  name="myPlot">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>Out|Input|X1</x>
+          <y>Out|Input|X2</y>
+          <z>Out|Output|Y1</z>
+          <colorMap>Out|Output|Y2</colorMap>
+        </plot>
+        <xlabel>X1</xlabel>
+        <ylabel>X2</ylabel>
+        <zlabel>Y2</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text>My Plot </text>
+        </title>
+      </actions>
+    </Plot>
+    <Plot  name="myPlotTime1">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>OutTime|Output|time</x>
+          <y>OutTime|Output|T1</y>
+        </plot>
+        <xlabel>Time</xlabel>
+        <ylabel>T1</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text>My Plot Time</text>
+        </title>
+      </actions>
+    </Plot>
+    <Plot  name="myPlotTime2">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>OutTime|Output|time</x>
+          <y>OutTime|Output|T2</y>
+        </plot>
+        <xlabel>Time</xlabel>
+        <ylabel>T2</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text>My Plot Time</text>
+        </title>
+      </actions>
+    </Plot>
+  </OutStreams>
+</Simulation>
