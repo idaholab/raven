@@ -1276,7 +1276,7 @@ For example, consider history of data collected over three years in one-second i
 where the user wants a single \emph{typical year} extracted from the data.
 The user wants this data constructed by combining twelve equal \emph{typical month}
 segments.  In this case, the parameter \xmlNode{outputLen} should be \texttt{31536000} (the number of seconds
-in a year), while the parameter \xmlNodt{subseqLen} should be \texttt{2592000} (the number of seconds in a
+in a year), while the parameter \xmlNode{subseqLen} should be \texttt{2592000} (the number of seconds in a
 month).  Using a value for \xmlNode{subseqLen} that is either much, much smaller than \xmlNode{outputLen} or
 of equal size to \xmlNode{outputLen} might have unexpected results.  In general, we recommend using a
 \xmlNode{subseqLen} that is roughly an order of magnitude smaller than \xmlNode{outputLen}.
