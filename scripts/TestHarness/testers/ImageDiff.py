@@ -83,7 +83,7 @@ class ImageDiff:
         self.__messages += 'Unrecognized file type for test image in scipy.imread: '+goldFilename
       #first check dimensionality
       if goldImage.shape != testImage.shape:
-        self.__messages += 'Gold and test image are not the same shape: '+str(godImage.shape)+', '+testImage.shape
+        self.__messages += 'Gold and test image are not the same shape: '+str(goldImage.shape)+', '+testImage.shape
         self.__same = False
       #set default options
       DU.setDefaultOptions(self.__options)
