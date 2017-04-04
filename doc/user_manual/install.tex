@@ -210,7 +210,7 @@ provide this functionality.  More information about MSYS2 is available at
     \item At least 7 Gigabytes of available disk space:
     \begin{itemize}
         \item 3.5 GB for MSYS2, including everything necessary to build and run RAVEN: Python, GNU compilers, required Python packages, git
-        \item 1.5 GB for RAVEN and Crow
+        \item 1.5 GB for RAVEN
         \item 1.1 GB for the MOOSE framework, upon which RAVEN is based
     \end{itemize}
 \end{itemize}
@@ -300,32 +300,19 @@ the software directly from the online repository.  Otherwise, RAVEN
 may be installed from a stand alone source code package (Section
 \ref{raven_source_package}).
 
-%If you are using
-%several MOOSE applications and want to share the MOOSE directory go to
-%Section \ref{parallel_directory_git}.
-%If you don't need to do
-%RAVEN development but want to keep up with the latest version of
-%RAVEN, the RAVEN Whole repository can be used as described in Section
-%\ref{raven_whole_devel}.
-%If you don't need to do RAVEN development,
-%and want to track a stable version of RAVEN, the RAVEN Whole
-%repository with a stable branch can be used as described in Section
-%\ref{raven_whole_stable}.
-
 
 \subsection{Submodule Git}
 \label{submodule_git}
 
 This install method uses git to obtain the software and uses
-submodules to get Crow and MOOSE.  This can be used for RAVEN and Crow
-development.
+submodules to get MOOSE.  This can be used for RAVEN development.
 
 First RAVEN needs to be cloned, and then the submodules initialized.
 
 \begin{lstlisting}[language=bash]
-git clone git@hpcgitlab.inl.gov:idaholab/raven.git
+git clone https://github.com/idaholab/raven.git
 cd raven
-git submodule update --init crow moose
+git submodule update --init moose
 \end{lstlisting}
 
 Next follow the compilation and testing instructions in Section \ref{raven_compilation}.
@@ -338,135 +325,6 @@ git pull
 git submodule update
 \end{lstlisting}
 
-
-%% \subsection{Parallel Directory Git}
-%% \label{parallel_directory_git}
-
-%% This install method uses git to obtain the software, and the raven,
-%% crow, and moose directories are installed at the same level.  This is
-%% used to allow other MOOSE applications to share the same MOOSE and
-%% libmesh.
-
-%% First follow the MOOSE getting started instructions:  \url{http://mooseframework.org/getting-started/}
-
-%% This is generally:
-
-%% \begin{lstlisting}[language=bash]
-%% git clone https://github.com/idaholab/moose.git
-%% cd  moose/scripts
-%% ./update_and_rebuild_libmesh.sh
-%% cd ../../
-%% \end{lstlisting}
-
-%% Next Crow and RAVEN need to be cloned:
-
-%% \begin{lstlisting}[language=bash]
-%% git clone git@hpcgitlab.inl.gov:idaholab/crow.git
-%% git clone git@hpcgitlab.inl.gov:idaholab/raven.git
-%% \end{lstlisting}
-
-%% If RELAP-7 will be used, it should be cloned:
-
-%% \begin{lstlisting}[language=bash]
-%% git clone git@hpcgitlab.inl.gov:idaholab/relap-7.git
-%% \end{lstlisting}
-
-%% Next the RAVEN modules should be compiled:
-
-%% \begin{lstlisting}[language=bash]
-%% cd raven
-%% make framework_modules
-%% \end{lstlisting}
-
-%% If RELAP-7 is used, the rest of raven can be compiled:
-
-%% \begin{lstlisting}[language=bash]
-%% #make sure you are in the raven directory
-%% make
-%% \end{lstlisting}
-
-
-%% Then the testing should be done.  If RELAP-7 is not used the framework
-%% tests should be run:
-
-%% \begin{lstlisting}[language=bash]
-%% ./run_framework_tests
-%% \end{lstlisting}
-
-%% If RELAP-7 is used, all the tests can be run:
-
-%% \begin{lstlisting}[language=bash]
-%% ./run_tests
-%% \end{lstlisting}
-
-
-%% The output should describe why any tests failed.
-
-%% At the end, there should be a line that looks similar to the output below:
-%% \begin{lstlisting}[language=bash]
-%% 8 passed, 19 skipped, 0 pending, 0 failed
-%% \end{lstlisting}
-
-%% Normally there are skipped tests because either some of the codes are
-%% not available, or some of the test are not currently working.  The
-%% output will explain why each is skipped.
-
-%% If all the tests pass, you are ready to read about Running RAVEN in
-%% Section \ref{HowToRun}.
-
-%% To update the software, the git pull command can be used:
-
-%% \begin{lstlisting}[language=bash]
-%% cd moose
-%% git pull
-%% #Possibly libmesh needs to be rebuilt at this point.
-%% cd ../crow
-%% git pull
-%% cd ../raven
-%% git pull
-%% \end{lstlisting}
-
-%% \subsection{RAVEN Whole Devel Branch}
-%% \label{raven_whole_devel}
-
-%% This install method uses git to get a custom repository that includes
-%% only the parts of Crow and MOOSE that are needed by RAVEN.  This
-%% repository is updated every time RAVEN or Crow or MOOSE are changed
-%% and the RAVEN framework tests pass.
-
-%% First clone the RAVEN whole repository:
-
-%% \begin{lstlisting}[language=bash]
-%% git clone git@hpcgitlab.inl.gov:cogljj/raven.git
-%% cd raven
-%% \end{lstlisting}
-
-%% Next follow the compilation and testing instructions in Section \ref{raven_compilation}.
-
-%% To update the software, the git pull command can be used:
-
-%% \begin{lstlisting}[language=bash]
-%% git pull
-%% \end{lstlisting}
-
-%% \subsection{RAVEN Whole Stable Branch}
-%% \label{raven_whole_stable}
-
-%% This is the same as in the previous Section \ref{raven_whole_devel},
-%% but after the clone command a stable branch is checked out:
-
-%% \begin{lstlisting}[language=bash]
-%% git clone git@hpcgitlab.inl.gov:cogljj/raven.git
-%% cd raven
-%% git checkout stable/2015_july
-%% \end{lstlisting}
-
-%% The rest is the same as the RAVEN Whole devel branch.  The stable
-%% branches are updated less frequently, and input changes that would
-%% invalidate existing files are not allowed.
-
-%% The compilation and testing instructions in Section
-%% \ref{raven_compilation} can be followed.
 
 \subsection{RAVEN Source Code Package}
 \label{raven_source_package}
