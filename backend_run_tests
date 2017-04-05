@@ -17,8 +17,8 @@ if os.path.exists(os.path.abspath(os.path.join('mini_moose', 'python'))):
     import shutil
     shutil.rmtree(os.path.abspath('moose'))
 #### See if MOOSE_DIR is already in the environment instead
-if "MOOSE_DIR" in os.environ:
-  MOOSE_DIR = os.environ['MOOSE_DIR']
+#if "MOOSE_DIR" in os.environ:
+#  MOOSE_DIR = os.environ['MOOSE_DIR']
 
 print("MOOSE_DIR:" + MOOSE_DIR)
 sys.path.append(os.path.join(MOOSE_DIR, 'python'))
