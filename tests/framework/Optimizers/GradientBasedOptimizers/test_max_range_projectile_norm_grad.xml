@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-    
+
   <!-- Test info -->
 
   <TestInfo>
@@ -15,7 +15,7 @@
        This example uses a projectile model and it is aimed to maximize the projectile range acting on the intial velocity and shooting angle
     </description>
   </TestInfo>
-   
+
   <!-- actual RAVEN input -->
 
   <RunInfo>
@@ -31,7 +31,7 @@
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
-      
+
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">optOut</Input>
@@ -40,7 +40,7 @@
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Plot">trajectory</Output>
       <Output class="OutStreams" type="Plot">convergenceHistory</Output>
-      
+
     </IOStep>
   </Steps>
 
@@ -53,7 +53,7 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <relativeThreshold>1.5e-5</relativeThreshold>
+        <relativeThreshold>1.5e-5</relativeThreshold>
       </convergence>
       <variable name='v0'>
         <upperBound>40</upperBound>
@@ -66,7 +66,7 @@
       </variable>
       <objectVar>r</objectVar>
       <parameter>
-          <normalize>true</normalize>
+        <normalize>true</normalize>
       </parameter>
     </SPSA>
   </Optimizers>
