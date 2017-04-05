@@ -48,10 +48,6 @@
       <convergence>
           <relativeThreshold>1e-7</relativeThreshold>
       </convergence>
-      <parameter>
-        <a>0.2</a>
-        <A>0</A>
-      </parameter>
       <variable name='x1'>
         <lowerBound>-5</lowerBound>
         <upperBound>10</upperBound>
@@ -73,6 +69,10 @@
         <upperBound>10</upperBound>
       </variable>
       <objectVar>ans</objectVar>
+      <parameter>
+        <A>0</A>
+        <a>0.2</a>
+      </parameter>
     </SPSA>
   </Optimizers>
 

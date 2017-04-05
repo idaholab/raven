@@ -65,10 +65,10 @@
         <lowerBound>30</lowerBound>
         <initial>40</initial>
       </variable>
+      <objectVar>r</objectVar>
       <parameter>
         <a>10</a>
       </parameter>
-      <objectVar>r</objectVar>
     </SPSA>
   </Optimizers>
 
