@@ -184,7 +184,6 @@ class SPSA(GradientBasedOptimizer):
           for var in self.optVars:
             tempOptVars[var] = self.gradDict['pertPoints'][traj][loc2][var][loc1]
           tempOptVarsDenorm = copy.deepcopy(self.denormalizeData(tempOptVars)) if self.gradDict['normalize'] else copy.deepcopy(tempOptVars)
-          print('DEBUGG make perturbed point:',tempOptVarsDenorm)
           for var in self.optVars:
             self.values[var] = tempOptVarsDenorm[var]
           # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation)
@@ -206,7 +205,6 @@ class SPSA(GradientBasedOptimizer):
 
             ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj]) # Compute the new ak
             gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
-            print('DEBUGG gradient:',gradient)
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
             varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
             # FIXME here is where adjustments to the step size should happen
@@ -215,9 +213,7 @@ class SPSA(GradientBasedOptimizer):
             #centralResponseIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj]-1,'v')[1]
             #self.estimateStochasticity(gradient,self.gradDict['pertPoints'][traj][self.counter['varsUpdate'][traj]-1],varK,centralResponseIndex) #TODO need current point too!
 
-            print('DEBUGG varK',varK)
             varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
-            print('DEBUGG varKPlus',varKPlus)
             varKPlusDenorm = self.denormalizeData(varKPlus) if self.gradDict['normalize'] else varKPlus
             for var in self.optVars:
               self.values[var] = copy.deepcopy(varKPlusDenorm[var])
@@ -243,42 +239,29 @@ class SPSA(GradientBasedOptimizer):
       @ In, centralResponseIndex, int, index at which central evaluation can be found
       @ Out, c, float, estimate of standard deviation
     """
-    #print('DEBUGG numGradIters:',self.gradDict['numIterForAve'])
-    #print('DEBUGG gradient:',gradient)
-    #print('DEBUGG perturbedPoints:',perturbedPoints)
-    #print('DEBUGG centralPoint:',centralPoint)
-    #print('DEBUGG objVar:',self.objVar)
     centralResponse = self.mdlEvalHist.getRealization(centralResponseIndex)['outputs'][self.objVar]
-    #print('DEBUGG cresponse:',centralResponse)
     numPerturbed = len(perturbedPoints.values()[0])
     inVars = gradient.keys()
     origin = np.array(centralPoint.values())
-    #print('origin:',origin)
     gradVal = gradient.values()
     #calculate the differences between gradient-based estimates and actual evaluations
     differences = []
     for n in range(numPerturbed):
-    #  print('doing n =',n)
       newPoint = np.array(list(perturbedPoints[var][n] for var in inVars))
-    #  print('  newPoint',newPoint)
       delta = newPoint - origin
-    #  print('  delta',delta)
       expectedResponse = sum(gradVal*delta) + centralResponse
-    #  print('  expRes',expectedResponse)
       difference = centralResponse-expectedResponse
-    #  print('  diff',difference)
       differences.append(difference)
     c = np.sqrt(sum(d*d for d in differences))
-    #print('c',c)
 
 
-    #import sys;sys.exit()
 
   def _updateParameters(self):
     """
       Uses information about the gradient and optimizer trajectory to update parameters
       Updated parameters include [a,A,alpha,c,gamma]
     """
+    pass #future tool
     #update A <-- shouldn't be needed since A is an early-life stabilizing parameter
     #update alpha <-- if we're moving basically in the same direction, don't damp!
     #update a <-- increase or decrease step size based on gradient information

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-    
+
   <!-- Test info -->
 
   <TestInfo>
@@ -16,7 +16,7 @@
        penalty function.
     </description>
   </TestInfo>
-   
+
   <!-- actual RAVEN input -->
 
   <RunInfo>
@@ -32,7 +32,7 @@
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
-      
+
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">optOut</Input>
@@ -41,7 +41,7 @@
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Plot">trajectory</Output>
       <Output class="OutStreams" type="Plot">convergenceHistory</Output>
-      
+
     </IOStep>
   </Steps>
 
@@ -65,6 +65,9 @@
         <lowerBound>30</lowerBound>
         <initial>40</initial>
       </variable>
+      <parameter>
+        <a>10</a>
+      </parameter>
       <objectVar>r</objectVar>
     </SPSA>
   </Optimizers>

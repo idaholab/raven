@@ -412,16 +412,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for key in tempDict.keys():
       tempDict[key] = np.asarray(tempDict[key])
 
-    print('DEBUGG trainingDict:')
-    for key,val in tempDict.items():
-      print('DEBUGG   ',key,val)
     self.objSearchingROM.train(tempDict)
     if self.gradDict['normalize']:
       optVars = self.denormalizeData(optVars)
     for key in optVars.keys():
       optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
-    print('DEBUGG lossFunctionValue:',lossFunctionValue)
     if self.optType == 'min':
       return lossFunctionValue
     else:
@@ -497,16 +493,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, generateInput, tuple(int,dict), (1,realization dictionary)
     """
-    self.counter['mdlEval'] +=1                              #since we are creating the input for the next run we increase the counter and global counter
+    self.counter['mdlEval'] +=1 #since we are creating the input for the next run we increase the counter and global counter
     self.inputInfo['prefix'] = str(self.counter['mdlEval'])
 
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
 
     self.raiseADebug('Found new input to evaluate:',self.values)
-    print('DEBUGG new input vals:',self.values.values(),np.nan in self.values.values())
-    if np.nan in self.values.values():
-      print('DEBUGG new input:',self.values)
     return 0,model.createNewInput(oldInput,self.type,**self.inputInfo)
 
   @abc.abstractmethod
