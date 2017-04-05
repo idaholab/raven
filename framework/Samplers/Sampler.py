@@ -222,10 +222,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         transformationDict["manifestVariablesIndex"] = listIndex
         self.variablesTransformationDict[child.attrib['distribution']] = transformationDict
       elif child.tag == "constant":
+        value = utils.partialEval(child.text)
+        if value is None:
+          self.raiseAnError(IOError,'The body of "constant" XML block should be a number. Got: ' +child.text)
         try:
-          value = utils.partialEval(child.text)
-          if value is None:
-            self.raiseAnError(IOError,'The body of "constant" XML block should be a number. Got: ' +child.text)
           self.constants[child.attrib['name']] = value
         except KeyError:
           self.raiseAnError(KeyError,child.tag+' must have the attribute "name"!!!')
@@ -520,7 +520,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     if len(self.constants) > 0:
+      # we inject the constant variables into the SampledVars
       self.inputInfo['SampledVars'  ].update(self.constants)
+      # we consider that CDF of the constant variables is equal to 1 (same as its Pb Weight)
       self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(),1.0))
       self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
 
