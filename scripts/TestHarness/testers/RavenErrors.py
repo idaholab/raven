@@ -19,7 +19,7 @@ import subprocess
 import platform
 
 fileDir = os.path.dirname(os.path.realpath(__file__))
-raven = os.path.abspath(os.path.join(fileDir,'..','..','..','framework','Driver.py '))
+raven = os.path.abspath(os.path.join(fileDir,'..','..','..','framework','Driver.py'))
 
 class RavenErrors(Tester):
   """
@@ -46,9 +46,9 @@ class RavenErrors(Tester):
     ravenflag = ''
     if self.specs['test_interface_only'].lower() == 'true': ravenflag = 'interfaceCheck '
     if RavenUtils.inPython3():
-      return "python3 "+ raven + ravenflag + self.specs["input"]
+      return ' '.join(["python3",raven,ravenflag,self.specs["input"]])
     else:
-      return "python " + raven + ravenflag + self.specs["input"]
+      return ' '.join(["python",raven,ravenflag,self.specs["input"]])
 
 
   def __init__(self, name, params):
