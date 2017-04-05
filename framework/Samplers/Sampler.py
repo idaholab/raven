@@ -513,6 +513,17 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
+  def _constantVariables(self):
+    """
+      Method to set the constant variables into the inputInfo dictionary
+      @ In, None
+      @ Out, None
+    """
+    if len(self.constants) > 0:
+      self.inputInfo['SampledVars'  ].update(self.constants)
+      self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(),1.0))
+      self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
+
   def amIreadyToProvideAnInput(self): #inLastOutput=None):
     """
       This is a method that should be call from any user of the sampler before requiring the generation of a new sample.
@@ -575,7 +586,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       for corrVar in var.split(","):
         self.values[corrVar.strip()] = test
     ##### CONSTANT VALUES ######
-    if len(self.constants) > 0: self.values.update(self.constants)
+    self._constantVariables()
     ##### RESTART #####
     #check if point already exists
     if self.restartData is not None:

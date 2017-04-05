@@ -105,6 +105,14 @@ XML node and the requirements for other attributes change:
   \end{itemize}
 }
 
+\newcommand{\constantVariablesDescription}
+{
+  \xmlNode{constant}, \xmlDesc{XML node,
+  optional parameter} the user is able to input variable that needs to be kept constant.    
+  For doing this, as many \xmlNode{constant} nodes as needed can be inputted, where the body of the node containing the constant value
+  that is going to be injected as additional variable.
+}
+
 \newcommand{\distributionDescription}
 {
   \xmlNode{distribution}, \xmlDesc{string,
@@ -554,7 +562,8 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
  \begin{itemize}
     \item \distributionDescription
     \item \functionDescription
-  \end{itemize}
+ \end{itemize}
+ \item \constantVariablesDescription
 \end{itemize}
 %\end{itemize}
 
@@ -648,6 +657,7 @@ Regarding the N-dimensional distributions, the user can specify for each dimensi
     \item \functionDescription
     \item \gridDescription
   \end{itemize}
+\item \constantVariablesDescription
 \end{itemize}
 
 If the input parameters are correlated, the \textbf{Grid} sampling approach can be also used if the user specified a
@@ -742,7 +752,9 @@ which use reduced combinations of polynomial orders to reduce the necessary samp
  \begin{itemize}
     \item \distributionDescription
     \item \functionDescription
- \end{itemize} \end{itemize}
+ \end{itemize} 
+ \item \constantVariablesDescription
+\end{itemize}
 Because of the tight coupling between the Sampler and the ROM in stochastic collocation for generalized polynomial chaos, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, and importance weights to use in each dimension (see \ref{subsubsec:GaussPolynomialRom}).
 
   % Assembler Objects
@@ -879,7 +891,9 @@ multivariate normal distribution objects. The \xmlNode{Sobol} node supports the 
  \begin{itemize}
     \item \distributionDescription
     \item \functionDescription
- \end{itemize} \end{itemize}
+ \end{itemize} 
+\item \constantVariablesDescription
+\end{itemize}
 
 Like the \textbf{SparseGridCollocation}, if multivariate normal distribution is provided, the following node need to be specified:
 \variablesTransformationDescription{Sobol}
@@ -954,6 +968,7 @@ constructed in equally-probable CDF bins.
     \item \functionDescription
     \item \gridDescription
   \end{itemize}
+\item \constantVariablesDescription
 \end{itemize}
 
 As one can see, the input specifications for the \textbf{Stratified} sampler are
@@ -1159,6 +1174,7 @@ defined within a \xmlNode{ResponseSurfaceDesign} block.
      \item \gridDescriptionOnlyCustom
      \nb{Only the construction ``custom'' is available. In the \xmlNode{grid} body only the lower and upper bounds can be inputted (2 numbers only).}
  \end{itemize}
+ \item \constantVariablesDescription
 \item \xmlNode{ResponseSurfaceDesignSettings}, \xmlDesc{required},
 In this sub-node, the user needs to specify different settings depending on the
 algorithm being used:
@@ -1345,6 +1361,7 @@ defined within a \xmlNode{FactorialDesign} block.
       \item \functionDescription
       \item \gridDescription
     \end{itemize}
+  \item \constantVariablesDescription
 \end{itemize}
 
 The main \xmlNode{FactorialDesign} block needs to contain an additional sub-node
@@ -1570,6 +1587,7 @@ In the \textbf{CustomSampler} input block, the user needs to specify the variabl
       \textbf{ProbabilityWeight} quantities are not found, the samples are assumed to come from a MonteCarlo (from a  statistical
       post-processing prospective).
   \end{itemize}
+ \item \constantVariablesDescription
 \end{itemize}
 
 Example:
@@ -1693,6 +1711,7 @@ space.
     \item \functionDescription
     \item \gridDescription
   \end{itemize}
+  \item \constantVariablesDescription
 \end{itemize}
 
 Example:
@@ -1802,6 +1821,7 @@ For this reason, its specifications must be defined within a
     \item \functionDescription
     \item \gridDescription
   \end{itemize}
+ \item \constantVariablesDescription
 \end{itemize}
 
 In order to activate the \textbf{Hybrid Dynamic Event Tree}  sampler, the main
@@ -1838,6 +1858,7 @@ As already mentioned, these variables are specified within consecutive
       \item \distributionDescription
       \item \functionDescription
     \end{itemize}
+  \item \constantVariablesDescription
  \end{itemize}
 
 If a pre-sampling strategy \xmlAttr{type} is either \xmlString{Grid} or
@@ -2219,6 +2240,7 @@ the input space in proximity of the limit surface.
     \item \functionDescription
     \item \gridDescription
   \end{itemize}
+  \item \constantVariablesDescription
 \end{itemize}
 
  In addition to the \xmlNode{variable} nodes, the main
@@ -2372,6 +2394,7 @@ For this reason, its specifications must be defined within a
     \item \functionDescription
     \item \gridDescription
   \end{itemize}
+  \item \constantVariablesDescription
 \end{itemize}
 
 In addition to the \xmlNode{variable} nodes, the main
@@ -2443,6 +2466,7 @@ As already mentioned, these variables are specified within consecutive
       \item \distributionDescription
       \item \functionDescription
     \end{itemize}
+  \item \constantVariablesDescription
  \end{itemize}
 
 
@@ -2539,6 +2563,7 @@ algorithm fails for the model $f(x)=x\cdot y$.
       \item \distributionDescription
     \item \functionDescription
     \end{itemize}
+    \item \constantVariablesDescription
 \end{itemize}
 
 In addition to the \xmlNode{variable} nodes, the main XML node
@@ -2718,6 +2743,7 @@ Note that the ROM specified for this sampler \emph{must} be an HDMRRom specified
       \item \distributionDescription
     \item \functionDescription
     \end{itemize}
+    \item \constantVariablesDescription
 \end{itemize}
 
 In addition to the \xmlNode{variable} nodes, the main XML node

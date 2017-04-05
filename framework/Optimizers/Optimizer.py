@@ -89,6 +89,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, None
     """
+    #FIXME: Since the similarity of this class with the base sampler, we should merge this
     BaseType.__init__(self)
     Assembler.__init__(self)
     self.counter                        = {}                        # Dict containing counters used for based and derived class
@@ -116,6 +117,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.values                         = {}                        # for each variable the current value {'var name':value}
     self.inputInfo                      = {}                        # depending on the optimizer several different type of keywarded information could be present only one is mandatory, see below
     self.inputInfo['SampledVars'     ]  = self.values               # this is the location where to get the values of the sampled variables
+    self.constants                      = {}                        # dictionary of constants variables
     self.FIXME                          = False                     # FIXME flag
     self.printTag                       = self.type                 # prefix for all prints (optimizer type)
 
@@ -185,7 +187,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
               except ValueError: self.raiseAnError(ValueError, "Unable to convert to float the intial value for variable "+varname+ " in trajectory "+str(trajInd))
             if self.optTraj == None:
               self.optTraj = range(len(self.optVarsInit['initial'][varname].keys()))
-
+      elif child.tag == "constant":
+        try:
+          value = utils.partialEval(child.text)
+          if value is None:
+            self.raiseAnError(IOError,'The body of "constant" XML block should be a number. Got: ' +child.text)
+          self.constants[child.attrib['name']] = value
+        except KeyError:
+          self.raiseAnError(KeyError,child.tag+' must have the attribute "name"!!!')
       elif child.tag == "objectVar":
         self.objVar = child.text
 
