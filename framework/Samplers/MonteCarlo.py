@@ -69,7 +69,7 @@ class MonteCarlo(ForwardSampler):
       if xmlNode.find('samplerInit').find('samplingType')!= None:
         self.samplingType = xmlNode.find('samplerInit').find('samplingType').text
       else:
-          self.samplingType = None
+        self.samplingType = None
     else: self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the samplerInit block')
 
   def localGenerateInput(self,model,myInput):

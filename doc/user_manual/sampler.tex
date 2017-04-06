@@ -972,6 +972,14 @@ constructed in equally-probable CDF bins.
   \end{itemize}
 \item \constantVariablesDescription
 \end{itemize}
+In addition, the settings for this sampler need to be specified in the \xmlNode{samplerInit} XML block:
+\begin{itemize}
+\item \xmlNode{samplerInit},  \textit{\textbf{XML node, required parameter}}. In this xml-node,the following xml sub-nodes need to be specified:
+  \begin{itemize}
+    \item \xmlNode{initialSeed}, \textit{\textbf{integer, optional field}}, initial seeding of random number generator
+    \item \xmlNode{distInit},  \textit{\textbf{integer, optional field}}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}).
+  \end{itemize}
+\end{itemize}
 
 As one can see, the input specifications for the \textbf{Stratified} sampler are
 similar to that of the \textbf{Grid} sampler.
