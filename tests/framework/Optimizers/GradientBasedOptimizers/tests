@@ -28,6 +28,12 @@
   csv = 'maxRangeWithBoundaryConstraints/opt_export_0.csv'
   rel_err = 1.e-4
  [../]
+ [./SPSAWithConstants]
+  type = 'RavenFramework'
+  input = 'test_max_range_projectile_with_constants.xml'
+  csv = 'maxRangeWithBoundaryConstraintsAndConstants/opt_dump.csv'
+  rel_err = 1.e-4
+ [../]
  [./SPSABoundConstraintsMaximizationNormGradient]
   type = 'RavenFramework'
   input = 'test_max_range_projectile_norm_grad.xml'
