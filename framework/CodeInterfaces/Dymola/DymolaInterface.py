@@ -325,7 +325,7 @@ class Dymola(CodeInterfaceBase):
     ###################################################################
     #FIXME: LOADMAT HAS A DIFFERENT BEHAVIOR IN SCIPY VERSION >= 0.18 #
     if int(scipy.__version__.split(".")[1])>17:
-      raise Warning("SCIPY version >0.17.xx has a different behavior in reading .mat files!")
+      warnings.warn("SCIPY version >0.17.xx has a different behavior in reading .mat files!")
     mat = scipy.io.loadmat(matSourceFileName, chars_as_strings=False)
     ###################################################################
 
