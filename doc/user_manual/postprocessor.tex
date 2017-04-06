@@ -1260,6 +1260,7 @@ FS_x &= \frac{1}{N}\sum_{n=1}^N\delta_n
 \end{align*}
 where $N$ is the number of value reading in the empirical CDF and $\delta_n$ is the absolute difference between the long term CDF and the subsequential CDF at value $x_n$. The subsequence $H_i^1$ with minimal FS statistics will be selected as the typical subsequence for the interval window $j=1$. Such process repeats for $j=2,3,\dots$ until all subsequences have been processed. Then all the typical subsequences will be concatenated to form a complete history.
 
+
 In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
 independent of the \xmlAttr{subType} specified:
 
@@ -1271,15 +1272,24 @@ independent of the \xmlAttr{subType} specified:
    \default{Maximum value of the variable with name of \xmlNode{pivotParameter}}
 \end{itemize}
 
+For example, consider history of data collected over three years in one-second increments,
+where the user wants a single \emph{typical year} extracted from the data.
+The user wants this data constructed by combining twelve equal \emph{typical month}
+segments.  In this case, the parameter \xmlNode{outputLen} should be \texttt{31536000} (the number of seconds
+in a year), while the parameter \xmlNode{subseqLen} should be \texttt{2592000} (the number of seconds in a
+month).  Using a value for \xmlNode{subseqLen} that is either much, much smaller than \xmlNode{outputLen} or
+of equal size to \xmlNode{outputLen} might have unexpected results.  In general, we recommend using a
+\xmlNode{subseqLen} that is roughly an order of magnitude smaller than \xmlNode{outputLen}.
+
 \paragraph{Method: Discrete Risk Measures}
 This Post-Processor calculates a series of risk importance measures from a PointSet. This calculation if performed for a set of input paramteres given an output target.
 
 The user is required to provide the following information:
 \begin{itemize}
-   \item the set of input variables. For each variable the following need to be specified: 
+   \item the set of input variables. For each variable the following need to be specified:
      \begin{itemize}
        \item the set of values that imply a reliability value equal to $1$ for the input variable
-       \item the set of values that imply a reliability value equal to $0$ for the input variable 
+       \item the set of values that imply a reliability value equal to $0$ for the input variable
      \end{itemize}
    \item the output target variable. For this variable it is needed to specify the values of the output target variable that defines the desired outcome.
 \end{itemize}
@@ -1289,11 +1299,11 @@ The following variables are first determined for each input variable $i$:
    \item $R_0$ Probability of the outcome of the output target variable (nominal value)
    \item $R^{+}_i$ Probability of the outcome of the output target variable if reliability of the input variable is equal to $0$
    \item $R^{-}_i$ Probability of the outcome of the output target variable if reliability of the input variable is equal to $1$
-\end{itemize} 
+\end{itemize}
 
 Available measures are:
 \begin{itemize}
-   \item Risk Achievement Worth (RAW): $RAW = R^{+}_i / R_0 $ 
+   \item Risk Achievement Worth (RAW): $RAW = R^{+}_i / R_0 $
    \item Risk Achievement Worth (RRW): $RRW = R_0 / R^{-}_i$
    \item Fussell-Vesely (FV): $FV = (R_0 - R^{-}_i) / R_0$
    \item Birnbaum (B): $B = R^{+}_i - R^{-}_i$
@@ -1314,7 +1324,7 @@ independent of the \xmlAttr{subType} specified:
 \end{itemize}
 
 \textbf{Example:}
-This example shows an example where it is desired to calculate all available risk importance measures for two input variables (i.e., pumpTime and valveTime) 
+This example shows an example where it is desired to calculate all available risk importance measures for two input variables (i.e., pumpTime and valveTime)
 given an output target variable (i.e., Tmax).
 A value of the input variable pumpTime in the interval $[0,240]$ implies a reliability value of the input variable pumpTime equal to $0$.
 A value of the input variable valveTime in the interval $[0,60]$ implies a reliability value of the input variable valveTime equal to $0$.
@@ -1331,14 +1341,14 @@ The desired outcome of the output variable Tmax occurs in the interval $[2200,25
       <variable R0values='0,240' R1values='1441,2880'>pumpTime</variable>
       <variable R0values='0,60'  R1values='1441,2880'>valveTime</variable>
       <target   values='2200,2500'                  >Tmax</target>
-    </PostProcessor>  
+    </PostProcessor>
     ...
   </Models>
   ...
 </Simulation>
 \end{lstlisting}
 
-This Post-Processor allows the user to consider also multiple datasets (a data set for each initiating event) and calculate the global risk importance measures. 
+This Post-Processor allows the user to consider also multiple datasets (a data set for each initiating event) and calculate the global risk importance measures.
 This can be performed by:
 \begin{itemize}
   \item Including all datasets in the step
@@ -1374,7 +1384,7 @@ This can be performed by:
       <target   values='0.9,1.1'>outcome</target>
       <data     freq='0.01'>outRun1</data>
       <data     freq='0.02'>outRun2</data>
-    </PostProcessor>   
+    </PostProcessor>
     ...
   </Models>
   ...
@@ -1382,7 +1392,7 @@ This can be performed by:
 \end{lstlisting}
 
 \end{itemize}
-   
+
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%  EnsembleModel  Model   %%%%%%

@@ -322,7 +322,12 @@ class Dymola(CodeInterfaceBase):
     #   store the data in this file to variable 'mat'.
     matSourceFileName = os.path.join(workingDir, output)
     matSourceFileName += '.mat'
+    ###################################################################
+    #FIXME: LOADMAT HAS A DIFFERENT BEHAVIOR IN SCIPY VERSION >= 0.18 #
+    if int(scipy.__version__.split(".")[1])>17:
+      warnings.warn("SCIPY version >0.17.xx has a different behavior in reading .mat files!")
     mat = scipy.io.loadmat(matSourceFileName, chars_as_strings=False)
+    ###################################################################
 
     # Define the functions that extract strings from the matrix:
     #  - strMatNormal: for parallel string
@@ -351,7 +356,7 @@ class Dymola(CodeInterfaceBase):
         c = abs(x)-1  # column (reduced)
         s = sign(x)   # sign
         if c:
-          self._vars[names[i]] = (descr[i], d, c, s)
+          self._vars[names[i]] = (descr[i], d, c, float(s))
           if not d in self._blocks:
             self._blocks.append(d)
         else:
@@ -374,7 +379,7 @@ class Dymola(CodeInterfaceBase):
       for (k,v) in self._vars.items():
         dataValue = mat['data_%d' % (v[1])][v[2]]
         if v[3] < 0:
-          dataValue = dataValue * -1
+          dataValue = dataValue * -1.0
         if v[1] == 1:
           self._namesData1.append(k)
           self._timeSeriesData1.append(dataValue)
