@@ -22,7 +22,7 @@
   <RunInfo>
     <WorkingDir>maxRangeWithBoundaryConstraintsWithPenalty</WorkingDir>
     <Sequence>optimize,print</Sequence>
-    <batchSize>12</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>

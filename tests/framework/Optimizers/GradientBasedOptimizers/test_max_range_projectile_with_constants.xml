@@ -11,12 +11,12 @@
         test is valid to demonstrate this capability for any Optimizer in RAVEN.
     </description>
   </TestInfo>
-  
+
   <!-- actual RAVEN input -->
   <RunInfo>
     <WorkingDir>maxRangeWithBoundaryConstraintsAndConstants</WorkingDir>
     <Sequence>optimize,print</Sequence>
-    <batchSize>12</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
@@ -26,7 +26,7 @@
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
-      
+
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">optOut</Input>
@@ -35,7 +35,7 @@
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Plot">trajectory</Output>
       <Output class="OutStreams" type="Plot">convergenceHistory</Output>
-      
+
     </IOStep>
   </Steps>
 
@@ -60,7 +60,7 @@
         <initial>40</initial>
       </variable>
       <constant name="y0"> 0.000001 </constant>
-      
+
       <objectVar>r</objectVar>
     </SPSA>
   </Optimizers>

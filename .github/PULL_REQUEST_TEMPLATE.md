@@ -1,5 +1,5 @@
 --------
-Pull Requeset Description
+Pull Request Description
 --------
 ##### What issue does this change request address? (Use "#" before the issue to link it, i.e., #42.)
 
