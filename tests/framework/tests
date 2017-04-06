@@ -145,6 +145,16 @@
   max_time = 500
   rel_err = 0.001
  [../]
+
+ [./testGridWithConstants]
+  type = 'RavenFramework'
+  input = 'test_Grid_Sampler_with_constants.xml'
+  output = 'GridTestWithConstants/outGrid_dump.csv'
+  csv = 'GridTestWithConstants/outGrid_dump.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
  [./testGrid_GetPot]
   type = 'RavenFramework'
   input = 'test_Grid_Sampler.i'
