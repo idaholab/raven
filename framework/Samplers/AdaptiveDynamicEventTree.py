@@ -318,6 +318,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     for varname in self.standardDETvariables:
       self.inputInfo['SampledVars'  ][varname] = self.distDict[varname].ppf(cdfValues[varname])
       self.inputInfo['SampledVarsPb'][varname] = cdfValues[varname]
+    # constant variables
+    self._constantVariables()
     if precSampled:
       for precSample in precSampled:
         self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
