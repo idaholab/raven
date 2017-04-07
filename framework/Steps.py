@@ -433,6 +433,7 @@ class MultiRun(SingleRun):
     #generate lambda function list to collect the output without checking the type
     self._outputCollectionLambda = []
     self._outputDictCollectionLambda = []
+    # set up output collection lambdas
     for outIndex, output in enumerate(inDictionary['Output']):
       if output.type not in ['OutStreamPlot','OutStreamPrint']:
         if 'SolutionExport' in inDictionary.keys() and output.name == inDictionary['SolutionExport'].name:
@@ -445,6 +446,14 @@ class MultiRun(SingleRun):
         self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
         self._outputDictCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
     self.raiseADebug('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
+    # set up and run the first batch of samples
+    # FIXME this duplicates a lot of code from _locatTakeAstepRun, which should be consolidated
+    # first, check and make sure the model is ready
+    model = inDictionary['Model']
+    if isinstance(model,Models.ROM):
+      if not model.amITrained:
+        model.raiseAnError(RuntimeError,'ROM model "%s" has not been trained yet, so it cannot be sampled!' %model.name+\
+                                        ' Use a RomTrainer step to train it.')
     for inputIndex in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
       if inDictionary[self.splType].amIreadyToProvideAnInput():
         try:
@@ -465,20 +474,31 @@ class MultiRun(SingleRun):
     inputs     = inDictionary['Input'     ]
     outputs    = inDictionary['Output'    ]
     sampler    = inDictionary[self.splType]
+    # check to make sure model can be run
+    ## first, if it's a ROM, check that it's trained
+    if isinstance(model,Models.ROM):
+      if not model.amITrained:
+        model.raiseAnError(RuntimeError,'ROM model "%s" has not been trained yet, so it cannot be sampled!' %model.name+\
+                                        ' Use a RomTrainer step to train it.')
+    # run step loop
     while True:
+      # collect finished jobs
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
+        # update number of collected runs
         self.counter +=1
+        # clean up so RAVEN can read output
         model.finalizeModelOutput(finishedJob)
+        # collect run if it succeeded
         if finishedJob.getReturnCode() == 0:
           for myLambda, outIndex in self._outputCollectionLambda:
             myLambda([finishedJob,outputs[outIndex]])
             self.raiseADebug('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
+        # pool it if it failed, before we loop back to "while True" we'll check for these again
         else:
           #add run to a pool that can be sent to the sampler later
           self.failedRuns.append(copy.copy(finishedJob))
           self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
-          self.raiseADebug('the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
 
         # finalize actual sampler
         sampler.finalizeActualSampling(finishedJob,model,inputs)
@@ -507,6 +527,7 @@ class MultiRun(SingleRun):
         self.raiseADebug('Finished with %d runs submitted, %d jobs running and %d jobs finished.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
       time.sleep(self.sleepTime)
+    # if any new collected runs failed, let the sampler treat them appropriately
     sampler.handleFailedRuns(self.failedRuns)
 
   def _findANewInputToRun(self,inDictionary):
@@ -588,65 +609,6 @@ class RomTrainer(Step):
     """
     #Train the ROM... It is not needed to add the trainingSet since it's already been added in the initialization method
     for ROM in inDictionary['Output']: ROM.train(inDictionary['Input'][0])
-#
-#
-#
-# class PostProcess(SingleRun):
-#   """this class implements a PostProcessing (PP) strategy. The driver of this PP action is the model that MUST be of type FILTER"""
-#   def __init__(self):
-#     SingleRun.__init__(self)
-#     self.foundFunction   = False
-#     self.functionCounter = 0
-#     self.ROMCounter      = 0
-#     self.foundROM        = False
-#     self.printTag = utils.returnPrintTag('STEP POSTPROCESS')
-#
-#   def _localInputAndChecks(self,xmlNode):
-#     found     = 0
-#     rolesItem = []
-#     for index, parameter in enumerate(self.parList):
-#       if parameter[0]=='Model':
-#         found +=1
-#         modelIndex = index
-#       else: rolesItem.append(parameter[0])
-#     #test the presence of one and only one model
-#     if found > 1: risea IOError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Only one model is allowed for the step named '+str(self.name))
-#     elif found == 0: risea IOError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> No model has been found for the step named '+str(self.name))
-#     roles      = set(rolesItem)
-#     toBeTested = {}
-#     for role in roles: toBeTested[role]=[]
-#     for  myInput in self.parList:
-#       if myInput[0] in rolesItem: toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
-#     #use the models static testing of roles compatibility
-#     for role in roles: Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
-#     #SingleRun._localInputAndChecks(self,xmlNode)
-#     for role in self.parList:
-#       if role[0] == 'Function':
-#         self.functionCounter+=1
-#         self.foundFunction   = True
-#         if role[1]!='Functions': risea IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The optional function must be of class "Functions", in step ' + self.name)
-#       elif role[0] == 'Model' and role[1] == 'Models':
-#         if role[2] != 'PostProcessor' : risea IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The required model in "PostProcess" step must be of type PostProcessor, in step ' + self.name)
-#       elif role[0] == 'ROM' and role[1] == 'Models':
-#         self.ROMCounter+=1
-#         self.foundROM   = True
-#         if role[2] != 'ROM' : risea IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The optional ROM in "PostProcess" step must be of type ROM, in step ' + self.name)
-#
-#   def _localInitializeStep(self,inDictionary):
-#     functionExt = None
-#     ROMExt      = None
-#     if self.foundFunction: functionExt = inDictionary['Function']
-#     if self.foundROM: ROMExt = inDictionary['ROM']
-#     initDict = {'externalFunction':functionExt,'ROM':ROMExt}
-#     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],initDict)
-#     #HDF5 initialization
-#     for i in range(len(inDictionary['Output'])):
-#       if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
-#         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
-#         elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
-#
-#   def _localTakeAstepRun(self,inDictionary):
-#     SingleRun._localTakeAstepRun(self, inDictionary)
 #
 #
 #
@@ -751,6 +713,9 @@ class IOStep(Step):
         outputs[i].addGroupDataObjects({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
+        #check the ROM is trained first
+        if not inDictionary['Input'][i].amITrained:
+          self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %inDictionary['Input'][i].name)
         fileobj = outputs[i]
         fileobj.open(mode='wb+')
         cloudpickle.dump(inDictionary['Input'][i],fileobj)
@@ -760,6 +725,10 @@ class IOStep(Step):
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
         fileobj = inDictionary['Input'][i]
         unpickledObj = pickle.load(file(fileobj.getAbsFile(),'rb+'))
+        if not isinstance(unpickledObj,Models.ROM):
+          self.raiseAnError(RuntimeError,'Pickled object in "%s" is not a ROM.  Exiting ...' %str(fileobj))
+        if not unpickledObj.amITrained:
+          self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %unpickledObj.name)
         outputs[i].train(unpickledObj)
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
