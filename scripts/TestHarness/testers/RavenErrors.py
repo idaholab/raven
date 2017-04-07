@@ -18,6 +18,9 @@ import os
 import subprocess
 import platform
 
+fileDir = os.path.dirname(os.path.realpath(__file__))
+raven = os.path.abspath(os.path.join(fileDir,'..','..','..','framework','Driver.py'))
+
 class RavenErrors(Tester):
   """
   This class tests if the expected error messages are generated or not.
@@ -35,13 +38,17 @@ class RavenErrors(Tester):
     return params
 
   def getCommand(self, options):
-    """This method returns the command to execute for the test"""
+    """
+      This method returns the command to execute for the test
+      @ In, options, argparse.Namespace, functionally a dictionary of options from the input
+      @ Out, getCommand, string, the command to run
+    """
     ravenflag = ''
     if self.specs['test_interface_only'].lower() == 'true': ravenflag = 'interfaceCheck '
     if RavenUtils.inPython3():
-      return "python3 ../../../framework/Driver.py " + ravenflag + self.specs["input"]
+      return ' '.join(["python3",raven,ravenflag,self.specs["input"]])
     else:
-      return "python ../../../framework/Driver.py " + ravenflag + self.specs["input"]
+      return ' '.join(["python",raven,ravenflag,self.specs["input"]])
 
 
   def __init__(self, name, params):

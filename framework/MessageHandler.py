@@ -300,16 +300,15 @@ class MessageHandler(object):
       @ Out, None
     """
     verbval = max(self.getDesiredVerbosity(caller),self.checkVerbosity(self.verbosity))
+    self.message(caller,message,tag,verbosity,color=color)
     if not self.suppressErrs:
       self.printWarnings()
       # debug mode gets full traceback, others quieted
       if verbval<3: #all, quiet, silent
         sys.tracebacklimit=0
       raise etype(message)
-    else:
-      print('\n'+etype.__name__+':',message,file=sys.stderr)
 
-  def message(self,caller,message,tag,verbosity,color=None):
+  def message(self,caller,message,tag,verbosity,color=None,writeTo=sys.stdout):
     """
       Print a message
       @ In, caller, object, the entity desiring to print a message
@@ -324,7 +323,7 @@ class MessageHandler(object):
     if tag.lower().strip() == 'warning':
       self.addWarning(message)
     if okay:
-      print(msg)
+      print(msg,file=writeTo)
     sys.stdout.flush()
 
   def addWarning(self,msg):
