@@ -57,7 +57,7 @@ uCpp = np.asarray(uCpp)
 uCpp = np.reshape(uCpp,(dimVector[0],dimVector[1]))
 
 # using numpy to compute the svd
-covNp = np.asarray(cov).reshape(-1,sqrt(len(cov)))
+covNp = np.asarray(cov).reshape(-1,int(sqrt(len(cov))))
 uNp,sNp,vNp = LA.svd(covNp,full_matrices=False)
 
 # compute the transformation matrix  = U*sqrt(S)
