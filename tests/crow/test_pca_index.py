@@ -60,7 +60,7 @@ rank = 4
 mvnDistribution = distribution1D.BasicMultivariateNormal(covCpp,muCpp,str(covType),rank)
 
 # using numpy to compute the svd
-COVn = np.asarray(cov).reshape(-1,sqrt(len(cov)))
+COVn = np.asarray(cov).reshape(-1,int(sqrt(len(cov))))
 Un,Sn,Vn = LA.svd(COVn,full_matrices=False)
 uNp = Un[:,index]
 sNp = Sn[index]
