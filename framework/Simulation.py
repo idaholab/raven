@@ -742,7 +742,7 @@ class Simulation(MessageHandler.MessageUser):
     if self.runInfoDict.get('printInput',False):
       fileName = os.path.join(self.runInfoDict['WorkingDir'],self.runInfoDict['printInput'])
       self.raiseAMessage('Writing duplicate input file:',fileName)
-      outFile = file(fileName,'w')
+      outFile = open(fileName,'w')
       outFile.writelines(TreeStructure.tostring(xmlNode)+'\n') #\n for no-end-of-line issue
       outFile.close()
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):

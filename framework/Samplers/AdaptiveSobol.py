@@ -132,7 +132,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       elif child.tag == 'maxSobolOrder'  : self.maxSobolOrder =   int(child.text)
       #elif child.tag== 'maxPolyOrder'   : self.maxPolyOrder  =   int(child.text) #TODO someday maybe.
       elif child.tag == 'progressParam'  : self.tweakParam    = float(child.text)
-      elif child.tag == 'logFile'        : self.statesFile    =  file(child.text,'w')
+      elif child.tag == 'logFile'        : self.statesFile    =  open(child.text,'w')
       elif child.tag == 'subsetVerbosity': self.subVerbosity  =       child.text.lower()
     if not 0 <= self.tweakParam <= 2:
       self.raiseAnError(IOError,'progressParam must be between 0 (only add polynomials) and 2 (only add subsets) (default 1).  Input value was',self.tweakParam,'!')
