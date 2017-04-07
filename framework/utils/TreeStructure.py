@@ -53,9 +53,9 @@ def parse(inFile,dType=None):
     @ In, dType, string, optional, type of processing to use (xml or getpot)
     @ Out, tree, InputTree, structured input
   """
-  #check type of file, make sure it's a file
-  if not isinstance(inFile,file):
-    inFile = file(inFile,'r')
+  #check type of file, and open if it is a string.
+  if type(inFile).__name__ in ['str','bytes','unicode']:
+    inFile = open(inFile,'r')
   if dType is None:
     extension = inFile.name.split('.')[-1].lower()
     if extension == 'xml':

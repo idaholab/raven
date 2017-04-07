@@ -193,7 +193,7 @@ if __name__ == '__main__':
   #  the developer or user might be obfuscated.
   for inputFile in inputFiles:
     try:
-      tree = TS.parse(file(inputFile,'r'))
+      tree = TS.parse(open(inputFile,'r'))
     except TS.InputParsingError as e:
       print('\nInput Parsing error!',e,'\n')
       sys.exit(1)
