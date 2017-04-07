@@ -356,6 +356,9 @@ class DynamicEventTree(Grid):
       #self.inputInfo['SampledVars'  ][varname] = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
       self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname] ]
       #self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
+    # constant variables
+    self._constantVariables()
+
     if precSampled:
       for precSample in precSampled:
         self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
@@ -539,6 +542,7 @@ class DynamicEventTree(Grid):
         self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname]]
         #self.inputInfo['SampledVars'][varname]   = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
         #self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
+      self._constantVariables()
       if precSampled:
         for precSample in precSampled:
           self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])

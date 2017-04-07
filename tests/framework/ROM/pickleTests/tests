@@ -13,4 +13,14 @@
     csv = 'ColdRestart/solns.csv'
     prereq = stochPolyPickleTest
   [../]
+  [./loadUntrainedError]
+    type = 'RavenErrors'
+    input = 'untrained_error.xml'
+    expect_err = 'RuntimeError: Pickled rom "UROM" was not trained!'
+  [../]
+  [./loadNotROMError]
+    type = 'RavenErrors'
+    input = 'not_a_rom_error.xml'
+    expect_err = 'RuntimeError: Pickled object in'
+  [../]
 []
