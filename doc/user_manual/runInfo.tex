@@ -174,7 +174,7 @@ execution commands flagged as ``parallel'' within the code interface.
   command.  For example, if qsub is used to submit a command, then these
   parameters will be used as extra parameters with the qsub command.
   This can be repeated multiple times as needed and they will all be passed
-  to the cluster submission command.
+  to the cluster submission command. 
 %
 \default{None}
 
@@ -233,6 +233,12 @@ RAVEN currently supports one pre-defined ``mode'':
              If the keyword is provided, RAVEN generates a \texttt{qsub}
              command, instantiates itself, and submits itself to the queue
              system.
+             \\ \nb The \textbf{qsub} command is, by default, generated requesting
+             resources in a free mode (i.e. \textbf{place=free}). In case the user
+             needs to request a certain amount of memory, the requested memory
+             needs to be inputted in the \xmlNode{clusterParameters} node (see below)
+             with the standard PBS nomenclature (e.g.. \texttt{mem=300gb}); in this case,
+             the nodes will be requested in exclusive mode  (i.e. \textbf{place=excl}).
            \item If the user decides to execute RAVEN from an ``interactive
              node'' (a certain number of nodes that have been reserved in
              interactive PBS mode), RAVEN, using the ``mpi'' system, is going to
@@ -263,9 +269,20 @@ RAVEN currently supports one pre-defined ``mode'':
                   to find the nodes' information in the enviroment variable
                   \texttt{PBS\_NODEFILE}.
            \end{itemize}
-           \item The mpi exec can be forced to run on one shared memory node with the \xmlNode{NoSplitNode}.  If this is present, the splitting apart of the batches will put each batch on one shared memory node.  Without \xmlNode{NoSplitNode}, they can be split across nodes.  There is an option \xmlAttr{maxOnNode} which puts at most \xmlAttr{maxOnNode} number of mpi processes on one node.  \xmlNode{NoSplitNode} can cause processes to not be placed, so \xmlNode{NoSplitNode} should not be used unless needed.  If limiting the number of mpi processes on one node is desired without forcing them to only run on one node, \xmlNode{LimitNode} can be used.  Both \xmlNode{NoSplitNode} and  \xmlNode{LimitNode} can have a \xmlAttr{noOverlap} which prevents multiple batches from running on a single node.
+           \item The mpi exec can be forced to run on one shared memory node with 
+           the \xmlNode{NoSplitNode}.  If this is present, the splitting apart of the 
+           batches will put each batch on one shared memory node.  Without 
+           \xmlNode{NoSplitNode}, they can be split across nodes.  There is an option 
+           \xmlAttr{maxOnNode} which puts at most \xmlAttr{maxOnNode} number of 
+           mpi processes on one node.  \xmlNode{NoSplitNode} can cause processes 
+           to not be placed, so \xmlNode{NoSplitNode} should not be used unless 
+           needed.  If limiting the number of mpi processes on one node is desired 
+           without forcing them to only run on one node, \xmlNode{LimitNode} can be 
+           used.  Both \xmlNode{NoSplitNode} and  \xmlNode{LimitNode} can have a 
+           \xmlAttr{noOverlap} which prevents multiple batches from running on a single 
+           node.
          \end{itemize}
-         In addition, this flag activates the remote (PBS) execution of internal Models (e.g. ROMs,
+         In addition, this flag activates the remote (PBS) execution of internal Models  (e.g. ROMs,
          ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
            are run using a multi-threading approach (i.e. master processor, multiple parallel threads)
    \end{itemize}
