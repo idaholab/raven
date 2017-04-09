@@ -127,6 +127,7 @@ class hdf5Database(MessageHandler.MessageUser):
     self.allGroupEnds  = {}
     if not self.fileOpen: self.h5FileW = self.openDatabaseW(self.filenameAndPath,'a')
     self.h5FileW.visititems(self.__isGroup)
+
     self.raiseAMessage('TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
 
   def __isGroup(self,name,obj):
@@ -139,12 +140,10 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     if isinstance(obj,h5.Group):
       self.allGroupPaths.append(name)
-      self.raiseAMessage('Accessing group named ' +name)
-      if "EndGroup" in obj.attrs:
-        self.allGroupEnds[name]  = obj.attrs["EndGroup"]
-      else:
-        self.raiseAWarning('not found attribute EndGroup in group ' + name + '.Set True.')
+      try   : self.allGroupEnds[name]  = obj.attrs["EndGroup"]
+      except:
         self.allGroupEnds[name]  = True
+        self.raiseAWarning('not found attribute EndGroup in group ' + name + '.Set True.')
       if "rootname" in obj.attrs: self.parentGroupName = name
     return
 
