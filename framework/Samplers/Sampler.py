@@ -316,7 +316,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                 else:
                   self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
               self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
-          #else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initialSeed, samplingType, reseedEachIteration and distInit!')
 
   def endJobRunnable(self):
     """
