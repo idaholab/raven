@@ -169,32 +169,12 @@ def createAndRunQSUB(simulation):
     jobName = jobName[:10]+'-'+jobName[-4:]
     simulation.raiseAMessage('JobName is limited to 15 characters; truncating to '+jobName)
   #Generate the qsub command needed to run input
-  clusterParameters = simulation.runInfoDict["clusterParameters"]
-  memToAdd = ''
-  place = "free"
-  toremove = None
-  #This is not very effective but in case we require a certain amount of memory, it is currently the
-  #only solution. This shows us that we really need to externalize the QSUB command creation. It should not
-  #be here. Andrea
-  for cnt,clusterParameter in enumerate(clusterParameters):
-    if 'mem' in clusterParameter:
-      doublesplit = clusterParameter.split("=")
-      if 'mem' in doublesplit:
-        memory = doublesplit[doublesplit.index('mem')+1]
-        toremove = cnt
-      memToAdd = ":mem="+str(memory).strip()
-      place = "excl"
-  if toremove is not None:
-    clusterParameters.pop(toremove)
-    clusterParameters.pop(toremove-1)
-
-      #clusterParameters = clusterParameters.replace("-l mem="+str(memory),"")
   command = ["qsub","-N",jobName]+\
-            clusterParameters+\
+            simulation.runInfoDict["clusterParameters"]+\
             ["-l",
-             "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1"+memToAdd,
+             "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1",
              "-l","walltime="+simulation.runInfoDict["expectedTime"],
-             "-l","place="+place,"-v",
+             "-l","place=free","-v",
              'COMMAND="python Driver.py '+
              " ".join(simulation.runInfoDict["SimulationFiles"])+'"',
              simulation.runInfoDict['RemoteRunCommand']]
