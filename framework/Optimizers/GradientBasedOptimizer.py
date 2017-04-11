@@ -37,7 +37,7 @@ from sklearn.neighbors import NearestNeighbors
 #Internal Modules------------------------------------------------------------------------------------
 from .Optimizer import Optimizer
 from Assembler import Assembler
-from utils import utils
+from utils import utils,cached_ndarray
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GradientBasedOptimizer(Optimizer):
