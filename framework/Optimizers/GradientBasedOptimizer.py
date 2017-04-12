@@ -216,11 +216,11 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     gradArray = {}
-    for var in self.optVars: 
+    for var in self.optVars:
       gradArray[var] = np.ndarray((0,0))
     # Evaluate gradient at each point
     for pertIndex in optVarsValues.keys():
-      if self.gradDict['normalize']: 
+      if self.gradDict['normalize']:
         tempDictPerturbed = self.denormalizeData(optVarsValues[pertIndex])
       else:
         tempDictPerturbed = optVarsValues[pertIndex]
