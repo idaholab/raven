@@ -107,6 +107,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
     self.nVar                           = 0                         # Number of decision variables
     self.objVar                         = None                      # Objective variable to be optimized
+    self.objVarBounds                   = None                      # Tuple of optional upper and lower bound for objective function
     self.optType                        = None                      # Either maximize or minimize
     self.optTraj                        = None                      # Identifiers of parallel optimization trajectories
     self.thresholdTrajRemoval           = None                      # Threshold used to determine the convergence of parallel optimization trajectories
@@ -173,8 +174,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     for child in xmlNode:
       if child.tag == "variable":
-        if self.optVars == None: self.optVars = []
-        varname = str(child.attrib['name'])
+        if self.optVars is None: 
+          self.optVars = []
+        try:
+          varname = child.attrib['name']
+        except KeyError: 
+          self.raiseAnError(IOError, child.tag+' node does not have the "name" attribute')
         self.optVars.append(varname)
         for childChild in child:
           if   childChild.tag == "upperBound": self.optVarsInit['upperBound'][varname] = float(childChild.text)
@@ -196,8 +201,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         except KeyError:
           self.raiseAnError(KeyError,child.tag+' must have the attribute "name"!!!')
       elif child.tag == "objectVar":
-        self.objVar = child.text
-
+        bounds = []
+        bounds.append(child.find("lowerBound"))
+        bounds.append(child.find("upperBound"))
+        
+        self.objVarBounds
+        try:
+          self.objVar = child.attrib['name']
+        except KeyError: 
+          self.raiseAnError(IOError, child.tag+' node does not have the "name" attribute')
       elif child.tag == "initialization":
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
@@ -228,16 +240,25 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for childChild in child:
           self.paramDict[childChild.tag] = childChild.text
 
-    if self.optType == None:    self.optType = 'min'
-    if self.thresholdTrajRemoval == None: self.thresholdTrajRemoval = 0.05
-    if self.initSeed == None:   self.initSeed = Distributions.randomIntegers(0,2**31,self)
-    if self.objVar == None:     self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
-    if self.optVars == None:    self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
-    else:                       self.optVars.sort()
-    if self.optTraj == None:    self.optTraj = [0]
+    if self.optType is None:    
+      self.optType = 'min'
+    if self.thresholdTrajRemoval is None: 
+      self.thresholdTrajRemoval = 0.05
+    if self.initSeed is None:   
+      self.initSeed = Distributions.randomIntegers(0,2**31,self)
+    if self.objVar is None:     
+      self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
+    if self.optVars is None:    
+      self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
+    else:                       
+      self.optVars.sort()
+    if self.optTraj is None:    
+      self.optTraj = [0]
     for varname in self.optVars:
-      if varname not in self.optVarsInit['upperBound'].keys(): self.raiseAnError(IOError, 'Upper bound for '+varname+' is not provided' )
-      if varname not in self.optVarsInit['lowerBound'].keys(): self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
+      if varname not in self.optVarsInit['upperBound'].keys(): 
+        self.raiseAnError(IOError, 'Upper bound for '+varname+' is not provided' )
+      if varname not in self.optVarsInit['lowerBound'].keys(): 
+        self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
       if varname not in self.optVarsInit['initial'].keys():
         self.optVarsInit['initial'][varname] = {}
         for trajInd in self.optTraj:
@@ -413,9 +434,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
     for key in tempDict.keys(): tempDict[key] = np.asarray(tempDict[key])
-
     self.objSearchingROM.train(tempDict)
-    if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
     for key in optVars.keys(): optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
     if self.optType == 'min':           return lossFunctionValue
