@@ -100,18 +100,12 @@ class OutStreamPrint(OutStreamManager):
     """
     self.type = 'OutStreamPrint'
     for subnode in xmlNode:
-      if subnode.tag == 'source':
-        self.sourceName = subnode.text.split(',')
-      elif subnode.tag == 'filename':
-        self.filename = subnode.text
-      else:
-        self.options[subnode.tag] = subnode.text
-    if 'type' not in self.options.keys():
-      self.raiseAnError(IOError, 'type tag not present in Print block called ' + self.name)
-    if self.options['type'] not in self.availableOutStreamTypes:
-      self.raiseAnError(TypeError, 'Print type ' + self.options['type'] + ' not available yet. ')
-    if 'what' in self.options.keys():
-      self.what = self.options['what']
+      if subnode.tag == 'source': self.sourceName = subnode.text.split(',')
+      elif subnode.tag == 'filename': self.filename = subnode.text
+      else:self.options[subnode.tag] = subnode.text
+    if 'type' not in self.options.keys(): self.raiseAnError(IOError, 'type tag not present in Print block called ' + self.name)
+    if self.options['type'] not in self.availableOutStreamTypes : self.raiseAnError(TypeError, 'Print type ' + self.options['type'] + ' not available yet. ')
+    if 'what' in self.options.keys(): self.what = self.options['what']
 
   def addOutput(self):
     """
@@ -134,24 +128,17 @@ class OutStreamPrint(OutStreamManager):
 
     for index in range(len(self.sourceName)):
       if self.options['type'] == 'csv':
-        if type(self.sourceData[index]) == DataObjects.Data:
-          empty = self.sourceData[index].isItEmpty()
-        else:
-          empty = False
+        if type(self.sourceData[index]) == DataObjects.Data: empty = self.sourceData[index].isItEmpty()
+        else: empty = False
         if not empty:
-          try:
-            self.sourceData[index].printCSV(dictOptions)
-          except AttributeError as e:
-            self.raiseAnError(IOError, 'no implementation for source type ' + str(type(self.sourceData[index])) + ' and output type "csv"!  Receieved error
+          try: self.sourceData[index].printCSV(dictOptions)
+          except AttributeError as e: self.raiseAnError(IOError, 'no implementation for source type ' + str(type(self.sourceData[index])) + ' and output type "csv"!  Receieved error:',e)
       elif self.options['type'] == 'xml':
-        if type(self.sourceData[index]) == DataObjects.Data:
-          empty = self.sourceData[index].isItEmpty()
-        else:
-          empty = False
+        if type(self.sourceData[index]) == DataObjects.Data: empty = self.sourceData[index].isItEmpty()
+        else: empty = False
         if not empty:
           # TODO FIXME before merging go back to just try case
           self.sourceData[index].printXML(dictOptions)
-          try:
-            self.sourceData[index].printXML(dictOptions)
+          try: self.sourceData[index].printXML(dictOptions)
           except AttributeError:
             self.raiseAnError(IOError, 'no implementation for source type', type(self.sourceData[index]), 'and output type "xml"!')

@@ -164,10 +164,8 @@ class ExternalRunner(Runner):
     returnCode = self.__process.returncode
     if self.codePointer != None:
       if 'checkForOutputFailure' in dir(self.codePointer):
-        if  self.codePointerFailed == None:
-          self.codePointerFailed = self.codePointer.checkForOutputFailure(self.output,self.getWorkingDir())
-      if self.codePointerFailed:
-        returnCode = 1
+        if  self.codePointerFailed == None: self.codePointerFailed = self.codePointer.checkForOutputFailure(self.output,self.getWorkingDir())
+      if self.codePointerFailed: returnCode = 1
     return returnCode
 
   def getEvaluation(self):

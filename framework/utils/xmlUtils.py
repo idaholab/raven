@@ -170,8 +170,7 @@ def findPathEllipsesParents(root,path,docLevel=0):
     @ Out, newRoot, None or xml.etree.ElementTree.Element, None if not found or element if found
   """
   foundNode = findPath(root,path)
-  if foundNode is None:
-    return None
+  if foundNode is None: return None
   newRoot = newNode(root.tag,text='...')
   curNode = newRoot
   path = path.split('|')[:-1]
@@ -206,8 +205,7 @@ def fixXmlText(msg):
     @ Out, msg, string, fixed string
   """
   #if not a string, pass it back through
-  if not isinstance(msg,basestring):
-    return msg
+  if not isinstance(msg,basestring): return msg
   #otherwise, replace illegal characters with "?"
   # from http://boodebr.org/main/python/all-about-python-and-unicode#UNI_XML
   RE_XML_ILLEGAL = u'([\u0000-\u0008\u000b-\u000c\u000e-\u001f\ufffe-\uffff])' + \
@@ -226,8 +224,7 @@ def fixXmlTag(msg):
     @ Out, msg, string, fixed string
   """
   #if not a string, pass it back through
-  if not isinstance(msg,basestring):
-    return msg
+  if not isinstance(msg,basestring): return msg
   #define some presets
   letters = u'([a-zA-Z])'
   notAllTagChars = '(^[a-zA-Z0-9-_.]+$)'
@@ -239,8 +236,7 @@ def fixXmlTag(msg):
     msg = re.sub(notTagChars,'.',msg)
     print('XML UTILS: Replacing illegal tag characters in "'+pre+'":',msg)
   #  2. Start with a letter or underscore
-  if not bool(re.match(letters+u'|([_])',msg[0])) or bool(re.match(u'([xX][mM][lL])',msg[:
-    3]))
+  if not bool(re.match(letters+u'|([_])',msg[0])) or bool(re.match(u'([xX][mM][lL])',msg[:3])):
     print('XML UTILS: Prepending "_" to illegal tag "'+msg+'"')
     msg = '_' + msg
   return msg

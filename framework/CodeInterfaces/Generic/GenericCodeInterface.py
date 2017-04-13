@@ -73,10 +73,8 @@ class GenericCode(CodeInterfaceBase):
     #check for duplicate extension use
     usedExt=[]
     for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
-      if ext not in usedExt:
-        usedExt.append(ext)
-      else:
-        raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
+      if ext not in usedExt: usedExt.append(ext)
+      else: raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
 
     #check all required input files are there
     inFiles=inputFiles[:]
@@ -88,8 +86,7 @@ class GenericCode(CodeInterfaceBase):
             found=True
             inFiles.remove(inf)
             break
-        if not found:
-          raise IOError('input extension "'+ext+'" listed in input but not in inputFiles!')
+        if not found: raise IOError('input extension "'+ext+'" listed in input but not in inputFiles!')
     #TODO if any remaining, check them against valid inputs
 
     #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
@@ -104,8 +101,7 @@ class GenericCode(CodeInterfaceBase):
         if inputFile.getExt() == ext:
           found=True
           break
-      if not found:
-        raise IOError('No InputFile with extension '+ext+' found!')
+      if not found: raise IOError('No InputFile with extension '+ext+' found!')
       return index,inputFile
 
     #prepend
@@ -119,15 +115,13 @@ class GenericCode(CodeInterfaceBase):
         for ext in exts:
           idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
           todo+=' '+fname.getFilename()
-          if index == None:
-            index = idx
+          if index == None: index = idx
         continue
       todo += ' '+flag
       for ext in exts:
         idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
         todo+=' '+fname.getFilename()
-        if index == None:
-          index = idx
+        if index == None: index = idx
     #outputs
     #FIXME I think if you give multiple output flags this could result in overwriting
     self.caseName = inputFiles[index].getBase()

@@ -60,10 +60,8 @@ class CubitMoose(CodeInterfaceBase): #MooseBasedAppInterface,CubitInterface):
       elif inFile.getType() == 'CubitInput':
         foundCubitInp = True
         cubitInp = inFile
-    if not foundMooseInp:
-      raise IOError('None of the input Files has the type "MooseInput"! CubitMoose interface requires one.')
-    if not foundCubitInp:
-      raise IOError('None of the input Files has the type "CubitInput"! CubitMoose interface requires one.')
+    if not foundMooseInp: raise IOError('None of the input Files has the type "MooseInput"! CubitMoose interface requires one.')
+    if not foundCubitInp: raise IOError('None of the input Files has the type "CubitInput"! CubitMoose interface requires one.')
     return mooseInp,cubitInp
 
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec = None):
@@ -79,8 +77,7 @@ class CubitMoose(CodeInterfaceBase): #MooseBasedAppInterface,CubitInterface):
       @ In, preExec, string, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-    if preExec is None:
-      raise IOError('No preExec listed in input!  Use MooseBasedAppInterface if mesh is not perturbed.  Exiting...')
+    if preExec is None: raise IOError('No preExec listed in input!  Use MooseBasedAppInterface if mesh is not perturbed.  Exiting...')
     mooseInp,cubitInp = self.findInps(inputFiles)
     #get the cubit part
     cubitCommand,_ = self.CubitInterface.generateCommand([cubitInp],preExec,clargs,fargs)

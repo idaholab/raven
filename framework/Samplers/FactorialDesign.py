@@ -60,36 +60,26 @@ class FactorialDesign(Grid):
     """
     Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("FactorialSettings")
-    if factsettings == None:
-      self.raiseAnError(IOError,'FactorialSettings xml node not found!')
+    if factsettings == None: self.raiseAnError(IOError,'FactorialSettings xml node not found!')
     facttype = factsettings.find("algorithmType")
-    if facttype == None:
-      self.raiseAnError(IOError,'node "algorithmType" not found in FactorialSettings xml node!!!')
-    elif not facttype.text.lower() in self.acceptedTypes:
-      self.raiseAnError(IOError,' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedTypes))
+    if facttype == None: self.raiseAnError(IOError,'node "algorithmType" not found in FactorialSettings xml node!!!')
+    elif not facttype.text.lower() in self.acceptedTypes:self.raiseAnError(IOError,' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedTypes))
     self.factOpt['algorithmType'] = facttype.text.lower()
     if self.factOpt['algorithmType'] == '2levelfract':
       self.factOpt['options'] = {}
       self.factOpt['options']['gen'] = factsettings.find("gen")
       self.factOpt['options']['genMap'] = factsettings.find("genMap")
-      if self.factOpt['options']['gen'] == None:
-        self.raiseAnError(IOError,'node "gen" not found in FactorialSettings xml node!!!')
-      if self.factOpt['options']['genMap'] == None:
-        self.raiseAnError(IOError,'node "genMap" not found in FactorialSettings xml node!!!')
+      if self.factOpt['options']['gen'] == None: self.raiseAnError(IOError,'node "gen" not found in FactorialSettings xml node!!!')
+      if self.factOpt['options']['genMap'] == None: self.raiseAnError(IOError,'node "genMap" not found in FactorialSettings xml node!!!')
       self.factOpt['options']['gen'] = self.factOpt['options']['gen'].text.split(',')
       self.factOpt['options']['genMap'] = self.factOpt['options']['genMap'].text.split(',')
-      if len(self.factOpt['options']['genMap']) != len(self.gridInfo.keys()):
-        self.raiseAnError(IOError,'number of variable in genMap != number of variables !!!')
-      if len(self.factOpt['options']['gen']) != len(self.gridInfo.keys()):
-        self.raiseAnError(IOError,'number of variable in gen != number of variables !!!')
+      if len(self.factOpt['options']['genMap']) != len(self.gridInfo.keys()): self.raiseAnError(IOError,'number of variable in genMap != number of variables !!!')
+      if len(self.factOpt['options']['gen']) != len(self.gridInfo.keys())   : self.raiseAnError(IOError,'number of variable in gen != number of variables !!!')
       rightOrder = [None]*len(self.gridInfo.keys())
-      if len(self.factOpt['options']['genMap']) != len(self.factOpt['options']['gen']):
-        self.raiseAnError(IOError,'gen and genMap different size!')
-      if len(self.factOpt['options']['genMap']) != len(self.gridInfo.keys()):
-        self.raiseAnError(IOError,'number of gen attributes and variables different!')
+      if len(self.factOpt['options']['genMap']) != len(self.factOpt['options']['gen']): self.raiseAnError(IOError,'gen and genMap different size!')
+      if len(self.factOpt['options']['genMap']) != len(self.gridInfo.keys()): self.raiseAnError(IOError,'number of gen attributes and variables different!')
       for ii,var in enumerate(self.factOpt['options']['genMap']):
-        if var not in self.gridInfo.keys():
-          self.raiseAnError(IOError,' variable "'+var+'" defined in genMap block not among the inputted variables!')
+        if var not in self.gridInfo.keys(): self.raiseAnError(IOError,' variable "'+var+'" defined in genMap block not among the inputted variables!')
         rightOrder[self.axisName.index(var)] = self.factOpt['options']['gen'][ii]
       self.factOpt['options']['orderedGen'] = rightOrder
     if self.factOpt['algorithmType'] != 'full':
@@ -99,8 +89,7 @@ class FactorialDesign(Grid):
           self.raiseAnError(IOError,'The number of levels for type '+
                         self.factOpt['algorithmType'] +' must be 2! In variable '+varname+ ' got number of levels = ' +
                         str(len(self.gridEntity.returnParameter("gridInfo")[varname][2])))
-    else:
-      self.externalgGridCoord = False
+    else: self.externalgGridCoord = False
 
   def localGetInitParams(self):
     """
@@ -129,10 +118,8 @@ class FactorialDesign(Grid):
       @ Out, None
     """
     Grid.localInitialize(self)
-    if   self.factOpt['algorithmType'] == '2levelfract':
-      self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
-    elif self.factOpt['algorithmType'] == 'pb':
-      self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
+    if   self.factOpt['algorithmType'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
+    elif self.factOpt['algorithmType'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
     if self.designMatrix != None:
       self.designMatrix[self.designMatrix == -1] = 0 # convert all -1 in 0 => we can access to the grid info directly
       self.limit = self.designMatrix.shape[0]        # the limit is the number of rows
@@ -147,8 +134,7 @@ class FactorialDesign(Grid):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    if self.factOpt['algorithmType'] == 'full':
-      Grid.localGenerateInput(self,model, myInput)
+    if self.factOpt['algorithmType'] == 'full':  Grid.localGenerateInput(self,model, myInput)
     else:
       self.gridCoordinate = self.designMatrix[self.counter - 1][:].tolist()
       Grid.localGenerateInput(self,model, myInput)

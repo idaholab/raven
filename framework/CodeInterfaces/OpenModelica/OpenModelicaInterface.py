@@ -117,8 +117,7 @@ An alternative would be to take the default .mat output type and use the open so
 Example of multiple parameter override (option 3 above): BouncingBall.exe -override "h=7,g=7,v=2"
 
 To use RAVEN, we need to be able to perturb the input and output files from the defaults.  The command line
-form of this is:
-  (Where the output file will be of the type originally configured)
+form of this is: (Where the output file will be of the type originally configured)
 
   <executable> -f <init file xml> -r <outputfile>
 """
@@ -176,8 +175,7 @@ class OpenModelica(CodeInterfaceBase):
       if self._isValidInput(inputFile):
         found = True
         break
-    if not found:
-      raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
+    if not found: raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
     # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
     #   input file passed in: /path/to/file/<Base Name>.ext.  'rawout' indicates that this is the direct
     #   output from running the OpenModelica executable.
@@ -192,8 +190,7 @@ class OpenModelica(CodeInterfaceBase):
       @ Out, valid, bool, 'True' if an input file has an extension of .'xml', 'XML' or 'Xml', otherwise 'False'.
     """
     valid = False
-    if inputFile.getExt() in ('xml', 'XML', 'Xml'):
-      valid = True
+    if inputFile.getExt() in ('xml', 'XML', 'Xml'): valid = True
     return valid
 
   def getInputExtension(self):
@@ -224,8 +221,7 @@ class OpenModelica(CodeInterfaceBase):
       if self._isValidInput(inputFile):
         found = True
         break
-    if not found:
-      raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
+    if not found: raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
 
     # Figure out the new file name and put it into the proper place in the return list
     #newInputFiles = copy.deepcopy(currentInputFiles)

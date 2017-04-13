@@ -64,15 +64,12 @@ class Grid(ForwardSampler):
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
       @ Out, None
     """
-    if 'limit' in xmlNode.attrib.keys():
-      self.raiseAnError(IOError,'limit is not used in Grid sampler')
+    if 'limit' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'limit is not used in Grid sampler')
     self.limit = 1
     self.gridEntity._readMoreXml(xmlNode,dimensionTags=["variable","Distribution"],messageHandler=self.messageHandler, dimTagsPrefix={"Distribution":"<distribution>"})
     grdInfo = self.gridEntity.returnParameter("gridInfo")
-    for axis, value in grdInfo.items():
-      self.gridInfo[axis] = value[0]
-    if len(self.toBeSampled.keys()) != len(grdInfo.keys()):
-      self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
+    for axis, value in grdInfo.items(): self.gridInfo[axis] = value[0]
+    if len(self.toBeSampled.keys()) != len(grdInfo.keys()): self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
     self.axisName = list(grdInfo.keys())
     self.axisName.sort()
 
@@ -131,12 +128,9 @@ class Grid(ForwardSampler):
     for i in range(len(self.axisName)):
       varName = self.axisName[i]
       if self.gridInfo[varName]=='CDF':
-        if self.distDict[varName].getDimensionality()==1:
-          recastDict[varName] = [self.distDict[varName].ppf]
-        else:
-          recastDict[varName] = [self.distDict[varName].inverseMarginalDistribution,[self.variables2distributionsMapping[varName]['dim']-1]]
-      elif self.gridInfo[varName]!='value':
-        self.raiseAnError(IOError,self.gridInfo[varName]+' is not know as value keyword for type. Sampler
+        if self.distDict[varName].getDimensionality()==1: recastDict[varName] = [self.distDict[varName].ppf]
+        else: recastDict[varName] = [self.distDict[varName].inverseMarginalDistribution,[self.variables2distributionsMapping[varName]['dim']-1]]
+      elif self.gridInfo[varName]!='value': self.raiseAnError(IOError,self.gridInfo[varName]+' is not know as value keyword for type. Sampler: '+self.name)
     if self.externalgGridCoord:
       currentIndexes = self.gridEntity.returnIteratorIndexesFromIndex(self.gridCoordinate)
       coordinates = self.gridEntity.returnCoordinateFromIndex(self.gridCoordinate, True, recastDict)
@@ -159,8 +153,7 @@ class Grid(ForwardSampler):
           self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
       # compute the SampledVarsPb for N-D distribution
       else:
-        if self.variables2distributionsMapping[varName]['reducedDim']==1:
-          # to avoid double count;
+        if self.variables2distributionsMapping[varName]['reducedDim']==1:    # to avoid double count;
           distName = self.variables2distributionsMapping[varName]['name']
           ndCoordinate=[0]*len(self.distributions2variablesMapping[distName])
           positionList = self.distributions2variablesIndexList[distName]
@@ -195,8 +188,7 @@ class Grid(ForwardSampler):
               midMinusCDF  = (coordinatesMinusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
               self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = midPlusCDF - midMinusCDF
               weight *= midPlusCDF - midMinusCDF
-          else:
-            # Value
+          else:   # Value
             if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
               midPlusValue   = (self.values[key]+coordinatesPlusOne[varName])/2.0
               midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
@@ -212,8 +204,7 @@ class Grid(ForwardSampler):
               weight *= 1.0 - self.distDict[varName].cdf(midMinusValue)
       # ND variable
       else:
-        if self.variables2distributionsMapping[varName]['reducedDim']==1:
-          # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
+        if self.variables2distributionsMapping[varName]['reducedDim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
           distName = self.variables2distributionsMapping[varName]['name']
           ndCoordinate=np.zeros(len(self.distributions2variablesMapping[distName]))
           dxs=np.zeros(len(self.distributions2variablesMapping[distName]))

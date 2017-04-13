@@ -84,21 +84,17 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, (consistent, 'error msg'), tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
     """
     #checking if None provides a more clear message about the problem
-    if arrayIn is None:
-      return (False,' The object is None, and contains no entries!')
+    if arrayIn is None: return (False,' The object is None, and contains no entries!')
     if type(arrayIn).__name__ == 'list':
       if self.isDynamic():
         for cnt, elementArray in enumerate(arrayIn):
           resp = checkArrayConsistency(elementArray)
-          if not resp[0]:
-            return (False,' The element number '+str(cnt)+' is not a consistent array. Error
+          if not resp[0]: return (False,' The element number '+str(cnt)+' is not a consistent array. Error: '+resp[1])
       else:
         return (False,' The list type is allowed for dynamic ROMs only')
     else:
-      if type(arrayIn).__name__ not in ['ndarray','c1darray']:
-        return (False,' The object is not a numpy array. Got type
-      if len(np.asarray(arrayIn).shape) > 1:
-        return(False, ' The array must be 1-d. Got shape
+      if type(arrayIn).__name__ not in ['ndarray','c1darray']: return (False,' The object is not a numpy array. Got type: '+type(arrayIn).__name__)
+      if len(np.asarray(arrayIn).shape) > 1                  : return(False, ' The array must be 1-d. Got shape: '+str(np.asarray(arrayIn).shape))
     return (True,'')
 
   def __init__(self,messageHandler,**kwargs):
@@ -112,22 +108,17 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self.messageHandler    = messageHandler
     self._dynamicHandling = False
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
-    if kwargs != None:
-      self.initOptionDict = kwargs
-    else:
-      self.initOptionDict = {}
-    if 'Features' not in self.initOptionDict.keys():
-      self.raiseAnError(IOError,'Feature names not provided')
-    if 'Target'   not in self.initOptionDict.keys():
-      self.raiseAnError(IOError,'Target name not provided')
+    if kwargs != None: self.initOptionDict = kwargs
+    else             : self.initOptionDict = {}
+    if 'Features' not in self.initOptionDict.keys(): self.raiseAnError(IOError,'Feature names not provided')
+    if 'Target'   not in self.initOptionDict.keys(): self.raiseAnError(IOError,'Target name not provided')
     self.features = self.initOptionDict['Features'].split(',')
     self.target   = self.initOptionDict['Target'  ].split(',')
     self.initOptionDict.pop('Target')
     self.initOptionDict.pop('Features')
     self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
     for target in self.target:
-      if self.features.count(target) > 0:
-        self.raiseAnError(IOError,'The target "'+target+'" is also in the feature space!')
+      if self.features.count(target) > 0: self.raiseAnError(IOError,'The target "'+target+'" is also in the feature space!')
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
     self.muAndSigmaFeatures = {}
@@ -158,10 +149,8 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
 
     targetValues = []
     for target in self.target:
-      if target in names:
-        targetValues.append(values[names.index(target)])
-      else:
-        self.raiseAnError(IOError,'The target '+target+' is not in the training set')
+      if target in names: targetValues.append(values[names.index(target)])
+      else              : self.raiseAnError(IOError,'The target '+target+' is not in the training set')
 
     #FIXME: when we do not support anymore numpy <1.10, remove this IF STATEMENT
     if int(np.__version__.split('.')[1]) >= 10:
@@ -177,11 +166,9 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       else:
         valueToUse = values[names.index(feat)]
         resp = self.checkArrayConsistency(valueToUse)
-        if not resp[0]:
-          self.raiseAnError(IOError,'In training set for feature '+feat+'
+        if not resp[0]: self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         valueToUse = np.asarray(valueToUse)
-        if valueToUse.size != featureValues[:
-          ,0].size
+        if valueToUse.size != featureValues[:,0].size:
           self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
           self.raiseAWarning('target values:',valueToUse.size,tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
@@ -208,21 +195,17 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, edict, dict, evaluation dictionary
       @ Out, confidence, float, the confidence
     """
-    if type(edict) != dict:
-      self.raiseAnError(IOError,'method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    if type(edict) != dict: self.raiseAnError(IOError,'method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values   = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index])
-      if not resp[0]:
-        self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+'
+      if not resp[0]: self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names:
-        self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
+      if feat not in names: self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]:
-          self.raiseAnError(IOError,'In training set for feature '+feat+'
+        if not resp[0]: self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = values[names.index(feat)]
     return self.__confidenceLocal__(featureValues)
 
@@ -234,22 +217,18 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluate, numpy.array, evaluated points
     """
-    if type(edict) != dict:
-      self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    if type(edict) != dict: self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values  = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index])
-      if not resp[0]:
-        self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+'
+      if not resp[0]: self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
     # construct the evaluation matrix
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names:
-        self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
+      if feat not in names: self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]:
-          self.raiseAnError(IOError,'In training set for feature '+feat+'
+        if not resp[0]: self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
     return self.__evaluateLocal__(featureValues)
 
@@ -533,8 +512,7 @@ class GaussPolynomialRom(superVisedLearning):
     self.sparseQuadOptions = ['smolyak','tensor'] # choice of sparse quadrature construction methods
 
     for key,val in kwargs.items():
-      if key=='IndexSet':
-        self.indexSetType = val
+      if key=='IndexSet':self.indexSetType = val
       elif key=='IndexPoints':
         self.indexSetVals=[]
         strIndexPoints = val.strip()
@@ -544,18 +522,15 @@ class GaussPolynomialRom(superVisedLearning):
         for s in strIndexPoints:
           self.indexSetVals.append(tuple(int(i) for i in s.split(',')))
         self.raiseADebug('points',self.indexSetVals)
-      elif key=='PolynomialOrder':
-        self.maxPolyOrder = val
+      elif key=='PolynomialOrder': self.maxPolyOrder = val
       elif key=='Interpolation':
         for var,val in val.items():
           self.itpDict[var]={'poly'  :'DEFAULT',
                              'quad'  :'DEFAULT',
                              'weight':'1'}
           for atrName,atrVal in val.items():
-            if atrName in ['poly','quad','weight']:
-              self.itpDict[var][atrName]=atrVal
-            else:
-              self.raiseAnError(IOError,'Unrecognized option
+            if atrName in ['poly','quad','weight']: self.itpDict[var][atrName]=atrVal
+            else: self.raiseAnError(IOError,'Unrecognized option: '+atrName)
       elif key == 'SparseGrid':
         if val.lower() not in self.sparseQuadOptions:
           self.raiseAnError(IOError,'No such sparse quadrature implemented: %s.  Options are %s.' %(val,str(self.sparseQuadOptions)))
@@ -564,12 +539,10 @@ class GaussPolynomialRom(superVisedLearning):
     if not self.indexSetType:
       self.raiseAnError(IOError,'No IndexSet specified!')
     if self.indexSetType=='Custom':
-      if len(self.indexSetVals)<1:
-        self.raiseAnError(IOError,'If using CustomSet, must specify points in <IndexPoints> node!')
+      if len(self.indexSetVals)<1: self.raiseAnError(IOError,'If using CustomSet, must specify points in <IndexPoints> node!')
       else:
         for i in self.indexSetVals:
-          if len(i)<len(self.features):
-            self.raiseAnError(IOError,'CustomSet points',i,'is too small!')
+          if len(i)<len(self.features): self.raiseAnError(IOError,'CustomSet points',i,'is too small!')
     if not self.maxPolyOrder:
       self.raiseAnError(IOError,'No maxPolyOrder specified!')
     if self.maxPolyOrder < 1:
@@ -586,8 +559,7 @@ class GaussPolynomialRom(superVisedLearning):
         'pivotVal': float value of dynamic pivotParam value
       @ Out, None
     """
-    if not self.amITrained:
-      self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+    if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     #reset stats so they're fresh for this calculation
     self.mean=None
     sobolIndices = None
@@ -645,8 +617,7 @@ class GaussPolynomialRom(superVisedLearning):
             sobolTotals = self.getTotalSensitivities(sobolIndices)
           #sort by value
           entries = []
-          if request.lower() in ['partialvariance','sobolindices']:
-            #these both will have same sort
+          if request.lower() in ['partialvariance','sobolindices']: #these both will have same sort
             for key in sobolIndices.keys():
               entries.append( ('.'.join(key),partialVars[key],key) )
           elif request.lower() in ['soboltotalindices']:
@@ -699,16 +670,11 @@ class GaussPolynomialRom(superVisedLearning):
     self.indexSet       = idict.get('iSet'      ,None)
     self.numRuns        = idict.get('numRuns'   ,None)
     #make sure requireds are not None
-    if self.sparseGrid is None:
-      self.raiseAnError(RuntimeError,'Tried to initialize without key object "SG"   ')
-    if self.distDict   is None:
-      self.raiseAnError(RuntimeError,'Tried to initialize without key object "dists"')
-    if self.quads      is None:
-      self.raiseAnError(RuntimeError,'Tried to initialize without key object "quads"')
-    if self.polys      is None:
-      self.raiseAnError(RuntimeError,'Tried to initialize without key object "polys"')
-    if self.indexSet   is None:
-      self.raiseAnError(RuntimeError,'Tried to initialize without key object "iSet" ')
+    if self.sparseGrid is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "SG"   ')
+    if self.distDict   is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "dists"')
+    if self.quads      is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "quads"')
+    if self.polys      is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "polys"')
+    if self.indexSet   is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "iSet" ')
     self.initialized = True
 
   def _multiDPolyBasisEval(self,orders,pts):
@@ -756,8 +722,7 @@ class GaussPolynomialRom(superVisedLearning):
       #end KDTree way
       if found:
         fvs.append(point)
-        for cnt, target in enumerate(self.target):
-          tvs[target].append(targetVals[idx,cnt])
+        for cnt, target in enumerate(self.target):  tvs[target].append(targetVals[idx,cnt])
       else:
         missing.append(pt)
     if len(missing)>0:
@@ -855,10 +820,8 @@ class GaussPolynomialRom(superVisedLearning):
     """
     target = self.target[0] if targ is None else targ
     #TODO is there a faster way still to do this?
-    if r==1:
-      return self.polyCoeffDict[target][tuple([0]*len(self.features))]
-    elif r==2:
-      return sum(s**2 for s in self.polyCoeffDict[target].values())
+    if r==1: return self.polyCoeffDict[target][tuple([0]*len(self.features))]
+    elif r==2: return sum(s**2 for s in self.polyCoeffDict[target].values())
     tot=0
     for pt,wt in self.sparseGrid:
       tot+=self.__evaluateLocal__([pt])[target]**r*wt
@@ -893,8 +856,7 @@ class GaussPolynomialRom(superVisedLearning):
     for target in self.target:
       self.raiseADebug('Target:'+target+'.Coeff Idx:')
       for idx,coeff in self.polyCoeffDict[target].items():
-        if abs(coeff)<1e-12:
-          continue
+        if abs(coeff)<1e-12: continue
         self.raiseADebug(str(idx))
         for i,ix in enumerate(idx):
           var = self.features[i]
@@ -924,8 +886,7 @@ class GaussPolynomialRom(superVisedLearning):
       #use poly to determine subset
       subset = self._polyToSubset(poly)
       # skip mean
-      if len(subset) < 1:
-        continue
+      if len(subset) < 1: continue
       subset = tuple(subset)
       if subset not in partials.keys():
         partials[subset] = 0
@@ -1017,8 +978,7 @@ class HDMRRom(GaussPolynomialRom):
     self.partialVariances = None #partial variance contributions
 
     for key,val in kwargs.items():
-      if key=='SobolOrder':
-        self.sobolOrder = int(val)
+      if key=='SobolOrder': self.sobolOrder = int(val)
 
   def _localPrintXML(self,outFile,pivotVal,options={}):
     """
@@ -1032,14 +992,12 @@ class HDMRRom(GaussPolynomialRom):
       @ Out, None
     """
     #inherit from GaussPolynomialRom
-    if not self.amITrained:
-      self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+    if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
     canDo = ['mean','expectedValue','variance','samples','partialVariance','sobolIndices','sobolTotalIndices']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
-      if 'all' in requests:
-        requests = canDo
+      if 'all' in requests: requests = canDo
       #protect against things SCgPC can do that HDMR can't
       if 'polyCoeffs' in requests:
         self.raiseAWarning('HDMRRom cannot currently print polynomial coefficients.  Skipping...')
@@ -1056,18 +1014,12 @@ class HDMRRom(GaussPolynomialRom):
       @ Out, None
     """
     for key,value in idict.items():
-      if   key == 'ROMs':
-        self.ROMs       = value
-      elif key == 'dists':
-        self.distDict   = value
-      elif key == 'quads':
-        self.quads      = value
-      elif key == 'polys':
-        self.polys      = value
-      elif key == 'refs':
-        self.references = value
-      elif key == 'numRuns':
-        self.numRuns    = value
+      if   key == 'ROMs'   : self.ROMs       = value
+      elif key == 'dists'  : self.distDict   = value
+      elif key == 'quads'  : self.quads      = value
+      elif key == 'polys'  : self.polys      = value
+      elif key == 'refs'   : self.references = value
+      elif key == 'numRuns': self.numRuns    = value
     self.initialized = True
 
   def __trainLocal__(self,featureVals,targetVals):
@@ -1090,8 +1042,7 @@ class HDMRRom(GaussPolynomialRom):
       self.refSoln[target] = ft[self.refpt][cnt]
     for combo,rom in self.ROMs.items():
       subtdict = {key:list([]) for key in self.target}
-      for c in combo:
-        subtdict[c]=[]
+      for c in combo: subtdict[c]=[]
       SG = rom.sparseGrid
       fvals=np.zeros([len(SG),len(combo)])
       tvals=np.zeros((len(SG),len(self.target)))
@@ -1172,8 +1123,7 @@ class HDMRRom(GaussPolynomialRom):
     """
     #am I trained?
     returnDict = dict.fromkeys(self.target,None)
-    if not self.amITrained:
-      self.raiseAnError(IOError,'Cannot evaluate, as ROM is not trained!')
+    if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate, as ROM is not trained!')
     for target in self.target:
       tot = 0
       for term,mult in self.reducedTerms.items():
@@ -1191,8 +1141,7 @@ class HDMRRom(GaussPolynomialRom):
       @ In, targ, str, optional, the target for which the __mean__ needs to be computed
       @ Out, __mean__, float, the mean
     """
-    if not self.amITrained:
-      self.raiseAnError(IOError,'Cannot evaluate mean, as ROM is not trained!')
+    if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate mean, as ROM is not trained!')
     return self._calcMean(self.reducedTerms,targ)
 
   def __variance__(self,targ=None):
@@ -1201,8 +1150,7 @@ class HDMRRom(GaussPolynomialRom):
       @ In, targ, str, optional, the target for which the __mean__ needs to be computed
       @ Out, __variance__, float, the variance
     """
-    if not self.amITrained:
-      self.raiseAnError(IOError,'Cannot evaluate variance, as ROM is not trained!')
+    if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate variance, as ROM is not trained!')
     target = self.target[0] if targ is None else targ
     self.getSensitivities(target)
     return sum(val for val in self.partialVariances[target].values())
@@ -1228,10 +1176,8 @@ class HDMRRom(GaussPolynomialRom):
       @ In, depth, int, optional, recursion depth
       @ Out, None
     """
-    if a not in targetDict.keys():
-      targetDict[a] = sign
-    else:
-      targetDict[a] += sign
+    if a not in targetDict.keys(): targetDict[a] = sign
+    else: targetDict[a] += sign
     for sub in self.terms[a]:
       self._collectTerms(sub,targetDict,sign*-1,depth+1)
 
@@ -1257,8 +1203,7 @@ class HDMRRom(GaussPolynomialRom):
     """
     toRemove=[]
     for key,val in d.items():
-      if abs(val) < 1e-15:
-        toRemove.append(key)
+      if abs(val) < 1e-15: toRemove.append(key)
     for rem in toRemove:
       del d[rem]
 
@@ -1278,18 +1223,14 @@ class HDMRRom(GaussPolynomialRom):
     allFalse = tuple(False for _ in self.features)
     for subset,mult in self.reducedTerms.items():
       #skip mean, since it will be subtracted off in the end
-      if subset == ():
-        continue
+      if subset == (): continue
       for poly,coeff in self.ROMs[subset].polyCoeffDict[target].items():
         #skip mean terms
-        if sum(poly) == 0:
-          continue
+        if sum(poly) == 0: continue
         poly = self.__fillIndexWithRef(subset,poly)
         polySubset = self._polyToSubset(poly)
-        if polySubset not in terms.keys():
-          terms[polySubset] = {}
-        if poly not in terms[polySubset].keys():
-          terms[polySubset][poly] = 0
+        if polySubset not in terms.keys(): terms[polySubset] = {}
+        if poly not in terms[polySubset].keys(): terms[polySubset][poly] = 0
         terms[polySubset][poly] += coeff*mult
     #calculate partial variances
     self.partialVariances = {target: dict({})}
@@ -1967,8 +1908,7 @@ class NDinvDistWeight(NDinterpolatorRom):
     """
     NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
     self.printTag = 'ND-INVERSEWEIGHT ROM'
-    if not 'p' in self.initOptionDict.keys():
-      self.raiseAnError(IOError,'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
+    if not 'p' in self.initOptionDict.keys(): self.raiseAnError(IOError,'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
     self.__initLocal__()
 
   def __initLocal__(self):
@@ -2097,12 +2037,9 @@ class SciKitLearn(superVisedLearning):
     qualityEstTypeDict[key1] = {}
     for key2 in myDict:
       qualityEstTypeDict[key1][key2] = []
-      if  callable(getattr(myDict[key2][0], "predict_proba", None)):
-        qualityEstTypeDict[key1][key2] += ['probability']
-      elif  callable(getattr(myDict[key2][0], "score"        , None)):
-        qualityEstTypeDict[key1][key2] += ['score']
-      else:
-        qualityEstTypeDict[key1][key2] = False
+      if  callable(getattr(myDict[key2][0], "predict_proba", None))  : qualityEstTypeDict[key1][key2] += ['probability']
+      elif  callable(getattr(myDict[key2][0], "score"        , None)): qualityEstTypeDict[key1][key2] += ['score']
+      else                                                           : qualityEstTypeDict[key1][key2] = False
 
   def __init__(self,messageHandler,**kwargs):
     """
@@ -2134,24 +2071,17 @@ class SciKitLearn(superVisedLearning):
       self.initOptionDict.pop('estimator')
       estimatorSKLtype, estimatorSKLsubType = estimatorDict['SKLtype'].split('|')
       estimator = self.__class__.availImpl[estimatorSKLtype][estimatorSKLsubType][0]()
-      if self.intrinsicMultiTarget:
-        self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)]
-      else:
-        self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0](estimator) for _ in range(len(self.target))]
+      if self.intrinsicMultiTarget: self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)]
+      else                        : self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0](estimator) for _ in range(len(self.target))]
     else:
-      if self.intrinsicMultiTarget:
-        self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0]()]
-      else:
-        self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0]() for _ in range(len(self.target))]
+      if self.intrinsicMultiTarget: self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0]()]
+      else                        : self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0]() for _ in range(len(self.target))]
 
     for key,value in self.initOptionDict.items():
-      try:
-        self.initOptionDict[key] = ast.literal_eval(value)
-      except:
-        pass
+      try   : self.initOptionDict[key] = ast.literal_eval(value)
+      except: pass
 
-    for index in range(len(self.ROM)):
-      self.ROM[index].set_params(**self.initOptionDict)
+    for index in range(len(self.ROM)): self.ROM[index].set_params(**self.initOptionDict)
 
   def _readdressEvaluateConstResponse(self,edict):
     """
@@ -2163,8 +2093,7 @@ class SciKitLearn(superVisedLearning):
       @ Out, returnDict, dict, dictionary with the evaluation (in this case, the constant number)
     """
     returnDict = {}
-    for index,target in enumerate(self.target):
-      returnDict[target] = self.myNumber[index]
+    for index,target in enumerate(self.target): returnDict[target] = self.myNumber[index]
     return returnDict
 
   def _readdressEvaluateRomResponse(self,edict):
@@ -2188,8 +2117,7 @@ class SciKitLearn(superVisedLearning):
     if self.intrinsicMultiTarget:
       self.ROM[0].fit(featureVals,targetVals)
     else:
-      if not all([len(np.unique(targetVals[:
-        ,index]))>1 for index in range(len(self.ROM))])
+      if not all([len(np.unique(targetVals[:,index]))>1 for index in range(len(self.ROM))]):
         self.myNumber = [np.unique(targetVals[:,index])[0] for index in range(len(self.ROM)) ]
         self.evaluate = self._readdressEvaluateConstResponse
       else:
@@ -2207,8 +2135,7 @@ class SciKitLearn(superVisedLearning):
     if  'probability' in self.__class__.qualityEstType:
       for index, target in enumerate(self.ROM):
         confidenceDict[target] =  self.ROM[index].predict_proba(featureVals)
-    else:
-      self.raiseAnError(IOError,'the ROM '+str(self.initOptionDict['name'])+'has not the an method to evaluate the confidence of the prediction')
+    else            : self.raiseAnError(IOError,'the ROM '+str(self.initOptionDict['name'])+'has not the an method to evaluate the confidence of the prediction')
     return confidenceDict
 
   def __evaluateLocal__(self,featureVals):
@@ -2219,12 +2146,10 @@ class SciKitLearn(superVisedLearning):
     """
     returnDict = {}
     if not self.intrinsicMultiTarget:
-      for index, target in enumerate(self.target):
-        returnDict[target] = self.ROM[index].predict(featureVals)
+      for index, target in enumerate(self.target): returnDict[target] = self.ROM[index].predict(featureVals)
     else:
       outcome = self.ROM[0].predict(featureVals)
-      for index, target in enumerate(self.target):
-        returnDict[target] = outcome[
+      for index, target in enumerate(self.target): returnDict[target] = outcome[:,index]
     return returnDict
 
   def __resetLocal__(self):
@@ -2299,10 +2224,8 @@ class ARMA(superVisedLearning):
     self.pivotParameterID      = kwargs.get('pivotParameter', 'Time')
     self.pivotParameterValues  = None                                  # In here we store the values of the pivot parameter (e.g. Time)
     # check if the pivotParameter is among the targetValues
-    if self.pivotParameterID not in self.target:
-      self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
-    if len(self.target) > 2:
-      self.raiseAnError(IOError,"Multi-target ARMA not available yet!")
+    if self.pivotParameterID not in self.target: self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
+    if len(self.target) > 2: self.raiseAnError(IOError,"Multi-target ARMA not available yet!")
     # Initialize parameters for Fourier detrending
     if 'Fourier' not in self.initOptionDict.keys():
       self.hasFourierSeries = False
@@ -2339,8 +2262,7 @@ class ARMA(superVisedLearning):
       @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
     """
     self.pivotParameterValues = targetVals[:,:,self.target.index(self.pivotParameterID)]
-    if len(self.pivotParameterValues) > 1:
-      self.raiseAnError(Exception,self.printTag +" does not handle multiple histories data yet! # histories
+    if len(self.pivotParameterValues) > 1: self.raiseAnError(Exception,self.printTag +" does not handle multiple histories data yet! # histories: "+str(len(self.pivotParameterValues)))
     self.pivotParameterValues.shape = (self.pivotParameterValues.size,)
     self.timeSeriesDatabase         = copy.deepcopy(np.delete(targetVals,self.target.index(self.pivotParameterID),2))
     self.timeSeriesDatabase.shape   = (self.timeSeriesDatabase.size,)
@@ -2389,8 +2311,7 @@ class ARMA(superVisedLearning):
         indexTemp += fOrder[index]*2
       fourierEngine.fit(fSeries,self.timeSeriesDatabase)
       r = (fourierEngine.predict(fSeries)-self.timeSeriesDatabase)**2
-      if r.size > 1:
-        r = sum(r)
+      if r.size > 1:    r = sum(r)
       r = r/self.pivotParameterValues.size
       criterionCurrent = copy.copy(r)
       if  criterionCurrent< criterionBest:
@@ -2418,19 +2339,16 @@ class ARMA(superVisedLearning):
     criterionBest = np.inf
     for p in range(Pmin,Pmax+1):
       for q in range(Qmin,Qmax+1):
-        if p is 0 and q is 0:
-          continue          # dump case so we pass
+        if p is 0 and q is 0:     continue          # dump case so we pass
         init = [0.0]*(p+q)*self.armaPara['dimension']**2
         init_S = np.identity(self.armaPara['dimension'])
-        for n1 in range(self.armaPara['dimension']):
-          init.append(init_S[n1,n1])
+        for n1 in range(self.armaPara['dimension']): init.append(init_S[n1,n1])
 
         rOpt = {}
         rOpt = optimize.fmin(self.__computeARMALikelihood__,init, args=(p,q) ,full_output = True)
         tmp = (p+q)*self.armaPara['dimension']**2/self.pivotParameterValues.size
         criterionCurrent = self.__computeAICorBIC(self.armaResult['sigHat'],noPara=tmp,cType='BIC',obj='min')
-        if criterionCurrent < criterionBest or 'P' not in self.armaResult.keys():
-          # to save the first iteration results
+        if criterionCurrent < criterionBest or 'P' not in self.armaResult.keys(): # to save the first iteration results
           self.armaResult['P'] = p
           self.armaResult['Q'] = q
           self.armaResult['param'] = rOpt[0]
@@ -2441,8 +2359,7 @@ class ARMA(superVisedLearning):
     self.armaResult['Phi'] = Phi
     self.armaResult['Theta'] = Theta
     self.armaResult['sig'] = np.zeros(shape=(1, self.armaPara['dimension'] ))
-    for n in range(self.armaPara['dimension'] ):
-      self.armaResult['sig'][0,n] = np.sqrt(Cov[n,n])
+    for n in range(self.armaPara['dimension'] ):      self.armaResult['sig'][0,n] = np.sqrt(Cov[n,n])
 
   def __generateCDF__(self, data):
     """
@@ -2453,16 +2370,14 @@ class ARMA(superVisedLearning):
     self.armaNormPara = {}
     self.armaNormPara['resCDF'] = {}
 
-    if len(data.shape) == 1:
-      data = np.reshape(data, newshape = (data.shape[0],1))
+    if len(data.shape) == 1: data = np.reshape(data, newshape = (data.shape[0],1))
     num_bins = [0]*data.shape[1] # initialize num_bins, which will be calculated later by Freedman Diacoins rule
 
     for d in range(data.shape[1]):
       num_bins[d] = self.__computeNumberBins__(data[:,d])
       counts, binEdges = np.histogram(data[:,d], bins = num_bins[d], normed = True)
       Delta = np.zeros(shape=(num_bins[d],1))
-      for n in range(num_bins[d]):
-        Delta[n,0] = binEdges[n+1]-binEdges[n]
+      for n in range(num_bins[d]):      Delta[n,0] = binEdges[n+1]-binEdges[n]
       temp = np.cumsum(counts)*average(Delta)
       cdf = np.insert(temp, 0, temp[0]) # minimum of CDF is set to temp[0] instead of 0 to avoid numerical issues
       self.armaNormPara['resCDF'][d] = {}
@@ -2494,21 +2409,15 @@ class ARMA(superVisedLearning):
       @ In, x, float, variable value for which the CDF is computed
       @ Out, y, float, CDF value
     """
-    if x <= self.armaNormPara['resCDF'][d]['binsMin']:
-      y = self.armaNormPara['resCDF'][d]['CDF'][0]
-    elif x >= self.armaNormPara['resCDF'][d]['binsMax']:
-      y = self.armaNormPara['resCDF'][d]['CDF'][-1]
+    if x <= self.armaNormPara['resCDF'][d]['binsMin']:    y = self.armaNormPara['resCDF'][d]['CDF'][0]
+    elif x >= self.armaNormPara['resCDF'][d]['binsMax']:  y = self.armaNormPara['resCDF'][d]['CDF'][-1]
     else:
       ind = self.armaNormPara['resCDF'][d]['binSearchEng'].kneighbors(x, return_distance=False)
       X, Y = self.armaNormPara['resCDF'][d]['bins'][ind], self.armaNormPara['resCDF'][d]['CDF'][ind]
-      if X[0,0] <= X[0,1]:
-        x1, x2, y1, y2 = X[0,0], X[0,1], Y[0,0], Y[0,1]
-      else:
-        x1, x2, y1, y2 = X[0,1], X[0,0], Y[0,1], Y[0,0]
-      if x1 == x2:
-        y = (y1+y2)/2.0
-      else:
-        y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
+      if X[0,0] <= X[0,1]:        x1, x2, y1, y2 = X[0,0], X[0,1], Y[0,0], Y[0,1]
+      else:                       x1, x2, y1, y2 = X[0,1], X[0,0], Y[0,1], Y[0,0]
+      if x1 == x2:                y = (y1+y2)/2.0
+      else:                       y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
     return y
 
   def __getInvCDF__(self,d,x):
@@ -2518,23 +2427,16 @@ class ARMA(superVisedLearning):
       @ In, x, float, the CDF value for which the inverse value is computed
       @ Out, y, float, variable value
     """
-    if x < 0 or x > 1:
-      self.raiseAnError(ValueError, 'Input to __getRInvCDF__ is not in unit interval' )
-    elif x <= self.armaNormPara['resCDF'][d]['CDFMin']:
-      y = self.armaNormPara['resCDF'][d]['bins'][0]
-    elif x >= self.armaNormPara['resCDF'][d]['CDFMax']:
-      y = self.armaNormPara['resCDF'][d]['bins'][-1]
+    if x < 0 or x > 1:    self.raiseAnError(ValueError, 'Input to __getRInvCDF__ is not in unit interval' )
+    elif x <= self.armaNormPara['resCDF'][d]['CDFMin']:   y = self.armaNormPara['resCDF'][d]['bins'][0]
+    elif x >= self.armaNormPara['resCDF'][d]['CDFMax']:   y = self.armaNormPara['resCDF'][d]['bins'][-1]
     else:
       ind = self.armaNormPara['resCDF'][d]['cdfSearchEng'].kneighbors(x, return_distance=False)
       X, Y = self.armaNormPara['resCDF'][d]['CDF'][ind], self.armaNormPara['resCDF'][d]['bins'][ind]
-      if X[0,0] <= X[0,1]:
-        x1, x2, y1, y2 = X[0,0], X[0,1], Y[0,0], Y[0,1]
-      else:
-        x1, x2, y1, y2 = X[0,1], X[0,0], Y[0,1], Y[0,0]
-      if x1 == x2:
-        y = (y1+y2)/2.0
-      else:
-        y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
+      if X[0,0] <= X[0,1]:        x1, x2, y1, y2 = X[0,0], X[0,1], Y[0,0], Y[0,1]
+      else:                       x1, x2, y1, y2 = X[0,1], X[0,0], Y[0,1], Y[0,0]
+      if x1 == x2:                y = (y1+y2)/2.0
+      else:                       y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
     return y
 
   def __dataConversion__(self, data, obj):
@@ -2550,8 +2452,7 @@ class ARMA(superVisedLearning):
     normTransEngine.upperBoundUsed, normTransEngine.lowerBoundUsed = False, False
     normTransEngine.initializeDistribution()
 
-    if len(data.shape) == 1:
-      data = np.reshape(data, newshape = (data.shape[0],1))
+    if len(data.shape) == 1: data = np.reshape(data, newshape = (data.shape[0],1))
     # Transform data
     transformedData = np.zeros(shape=data.shape)
     for n1 in range(data.shape[0]):
@@ -2561,16 +2462,13 @@ class ARMA(superVisedLearning):
           # for numerical issues, value less than 1 returned by __getCDF__ can be greater than 1 when stored in temp
           # This might be a numerical issue of dependent library.
           # It seems gone now. Need further investigation.
-          if temp >= 1:
-            temp = 1 - np.finfo(float).eps
-          elif temp <= 0:
-            temp = np.finfo(float).eps
+          if temp >= 1:                temp = 1 - np.finfo(float).eps
+          elif temp <= 0:              temp = np.finfo(float).eps
           transformedData[n1,n2] = normTransEngine.ppf(temp)
         elif obj in ['denormalize']:
           temp = normTransEngine.cdf(data[n1, n2])
           transformedData[n1,n2] = self.__getInvCDF__(n2, temp)
-        else:
-          self.raiseAnError(ValueError, 'Input obj to __dataConversion__ is not properly set')
+        else:       self.raiseAnError(ValueError, 'Input obj to __dataConversion__ is not properly set')
     return transformedData
 
   def __generateFourierSignal__(self, Time, basePeriod, fourierOrder):
@@ -2602,14 +2500,11 @@ class ARMA(superVisedLearning):
     Phi, Theta, Cov = {}, {}, np.identity(N)
     for i in range(1,p+1):
       Phi[i] = np.zeros(shape=(N,N))
-      for n in range(N):
-        Phi[i][n,
+      for n in range(N):      Phi[i][n,:] = x[N**2*(i-1)+n*N:N**2*(i-1)+(n+1)*N]
     for j in range(1,q+1):
       Theta[j] = np.zeros(shape=(N,N))
-      for n in range(N):
-        Theta[j][n,
-    for n in range(N):
-      Cov[n,n] = x[N**2*(p+q)+n]
+      for n in range(N):      Theta[j][n,:] = x[N**2*(p+j-1)+n*N:N**2*(p+j-1)+(n+1)*N]
+    for n in range(N):        Cov[n,n] = x[N**2*(p+q)+n]
     return Phi, Theta, Cov
 
   def __computeARMALikelihood__(self,x,*args):
@@ -2619,12 +2514,10 @@ class ARMA(superVisedLearning):
       @ In, args, dict, additional argument
       @ Out, lkHood, float, output likelihood
     """
-    if len(args) != 2:
-      self.raiseAnError(ValueError, 'args to __computeARMALikelihood__ should have exactly 2 elements')
+    if len(args) != 2:    self.raiseAnError(ValueError, 'args to __computeARMALikelihood__ should have exactly 2 elements')
 
     p, q, N = args[0], args[1], self.armaPara['dimension']
-    if len(x) != N**2*(p+q)+N:
-      self.raiseAnError(ValueError, 'input to __computeARMALikelihood__ has wrong dimension')
+    if len(x) != N**2*(p+q)+N:    self.raiseAnError(ValueError, 'input to __computeARMALikelihood__ has wrong dimension')
     Phi, Theta, Cov = self.__armaParamAssemb__(x,p,q,N)
     for n1 in range(N):
       for n2 in range(N):
@@ -2639,10 +2532,8 @@ class ARMA(superVisedLearning):
     L = -N*numTimeStep/2.0*np.log(2*np.pi) - numTimeStep/2.0*np.log(np.linalg.det(Cov))
     for t in range(numTimeStep):
       alpha[t,:] = d[t,:]
-      for i in range(1,min(p,t)+1):
-        alpha[t,
-      for j in range(1,min(q,t)+1):
-        alpha[t,
+      for i in range(1,min(p,t)+1):     alpha[t,:] -= np.dot(Phi[i],d[t-i,:])
+      for j in range(1,min(q,t)+1):     alpha[t,:] -= np.dot(Theta[j],alpha[t-j,:])
       L -= 1/2.0*np.dot(np.dot(alpha[t,:].T,CovInv),alpha[t,:])
 
     sigHat = np.dot(alpha.T,alpha)
@@ -2663,16 +2554,11 @@ class ARMA(superVisedLearning):
       @ In, obj, string, specify the optimization is for maximum or minimum.
       @ Out, criterionValue, float, value of AIC/BIC
     """
-    if obj == 'min':
-      flag = -1
-    else:
-      flag = 1
-    if cType == 'BIC':
-      criterionValue = -1*flag*np.log(maxL)+noPara*np.log(self.pivotParameterValues.size)
-    elif cType == 'AIC':
-      criterionValue = -1*flag*np.log(maxL)+noPara*2
-    else:
-      criterionValue = maxL
+    if obj == 'min':        flag = -1
+    else:                   flag = 1
+    if cType == 'BIC':      criterionValue = -1*flag*np.log(maxL)+noPara*np.log(self.pivotParameterValues.size)
+    elif cType == 'AIC':    criterionValue = -1*flag*np.log(maxL)+noPara*2
+    else:                   criterionValue = maxL
     return criterionValue
 
   def __evaluateLocal__(self,featureVals):
@@ -2716,15 +2602,12 @@ class ARMA(superVisedLearning):
       tSeries += tempFour
     # Ensure positivity --- FIXME
     if self.outTruncation is not None:
-      if self.outTruncation == 'positive':
-        tSeries = np.absolute(tSeries)
-      elif self.outTruncation == 'negative':
-        tSeries = -np.absolute(tSeries)
+      if self.outTruncation == 'positive':      tSeries = np.absolute(tSeries)
+      elif self.outTruncation == 'negative':    tSeries = -np.absolute(tSeries)
     returnEvaluation = {}
     returnEvaluation[self.pivotParameterID] = self.pivotParameterValues[0:numTimeStep]
     evaluation = tSeries*featureVals
-    for index, target in enumerate(self.target):
-      returnEvaluation[target] = evaluation[
+    for index, target in enumerate(self.target): returnEvaluation[target] = evaluation[:,index]
     return returnEvaluation
 
   def __confidenceLocal__(self,featureVals):
@@ -2779,10 +2662,8 @@ def returnInstance(ROMclass,caller,**kwargs):
     @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
     @ Out, returnInstance, instance, an instance of a ROM
   """
-  try:
-    return __interfaceDict[ROMclass](caller.messageHandler,**kwargs)
-  except KeyError as ae:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
+  try: return __interfaceDict[ROMclass](caller.messageHandler,**kwargs)
+  except KeyError as ae: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
 
 def returnClass(ROMclass,caller):
   """
@@ -2791,7 +2672,5 @@ def returnClass(ROMclass,caller):
     @ In, caller, instnace, object that will share its messageHandler instance
     @ Out, returnClass, the class definition of a ROM
   """
-  try:
-    return __interfaceDict[ROMclass]
-  except KeyError:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+ROMclass)
+  try: return __interfaceDict[ROMclass]
+  except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+ROMclass)

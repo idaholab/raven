@@ -37,8 +37,7 @@ class BISONMESHSCRIPTparser():
       @ Out, None
     """
     self.printTag = 'BISONMESHSCRIPT_PARSER'
-    if not os.path.exists(inputFile.getAbsFile()):
-      raise IOError('Input file not found
+    if not os.path.exists(inputFile.getAbsFile()): raise IOError('Input file not found: '+inputFile.getAbsFile())
     # Initialize file dictionary, storage order, and internal variables
     self.AllVarDict = collections.OrderedDict()
     self.fileOrderStorage = []
@@ -87,8 +86,7 @@ class BISONMESHSCRIPTparser():
           between_str += line
         else:
           # Append string of non-varying parts of input file to file storage and reset the collection string
-          if len(between_str) > 0:
-            self.fileOrderStorage.append(between_str); between_str = ''
+          if len(between_str) > 0: self.fileOrderStorage.append(between_str); between_str = ''
           dictname, varname, varvalue = re.split("\['|'] = |'] =|']= ", line)
           if dictname in self.AllVarDict.keys():
             self.AllVarDict[dictname][varname] = varvalue.strip()
@@ -103,13 +101,11 @@ class BISONMESHSCRIPTparser():
           between_str += "'''" + splitline[1]
         quote_comment_line = False
         apostrophe_comment_line = False
-      else:
-        # Didn't find a comment block flag
+      else: # Didn't find a comment block flag
         if quote_comment == True or apostrophe_comment == True:
           between_str += line
           continue
-        else:
-          # Outside of comment block (in code)
+        else: # Outside of comment block (in code)
           if len(line) == 0:
             between_str += line
           elif line.isspace():
@@ -122,8 +118,7 @@ class BISONMESHSCRIPTparser():
             between_str += line
           else:
             # Append string of non-varying parts of input file to file storage and reset the collection string
-            if len(between_str) > 0:
-              self.fileOrderStorage.append(between_str); between_str = ''
+            if len(between_str) > 0: self.fileOrderStorage.append(between_str); between_str = ''
             dictname, varname, varvalue = re.split("\['|'] = |'] =|']= ", line)
             if dictname in self.AllVarDict.keys():
               self.AllVarDict[dictname][varname] = varvalue.strip()
@@ -131,8 +126,7 @@ class BISONMESHSCRIPTparser():
               self.fileOrderStorage.append([dictname])
               self.AllVarDict[dictname] = collections.OrderedDict()
               self.AllVarDict[dictname][varname] = varvalue.strip()
-    if len(between_str) > 0:
-      self.fileOrderStorage.append(between_str)
+    if len(between_str) > 0: self.fileOrderStorage.append(between_str)
 
   def modifyInternalDictionary(self,**inDictionary):
     """
@@ -150,8 +144,7 @@ class BISONMESHSCRIPTparser():
       @ In, outfile, string, optional, output file name
       @ Out, None
     """
-    if outfile==None:
-      outfile = self.inputfile
+    if outfile==None: outfile = self.inputfile
     IOfile = open(outfile,'w')
     for e, entry in enumerate(self.fileOrderStorage):
       if type(entry) == unicode:

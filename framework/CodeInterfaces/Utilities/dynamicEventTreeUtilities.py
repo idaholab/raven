@@ -40,8 +40,7 @@ def writeXmlForDET(filename,trigger,listDict,stopInfo):
   #  stopInfo {'end_time': end simulation   time (already stopped), 'end_ts': end time step}
   root=ET.Element('Branch_info')
   root.set("end_time",stopInfo['end_time'])
-  if "end_ts" in stopInfo.keys():
-    root.set("end_ts",stopInfo['end_ts'])
+  if "end_ts" in stopInfo.keys(): root.set("end_ts",stopInfo['end_ts'])
   triggerNode=ET.SubElement(root,"Distribution_trigger")
   triggerNode.set("name",trigger)
   for varInfo in listDict:
@@ -50,8 +49,7 @@ def writeXmlForDET(filename,trigger,listDict,stopInfo):
     var.set('type',varInfo['type'])
     var.set('old_value',varInfo['old_value'])
     var.set('actual_value',varInfo['new_value'])
-    if 'associated_pb' in varInfo.keys():
-      var.set('probability',str(varInfo['associated_pb']))
+    if 'associated_pb' in varInfo.keys(): var.set('probability',str(varInfo['associated_pb']))
   fileObject = open(filename,'w')
   fileObject.write(minidom.parseString(ET.tostring(root, 'utf-8')).toprettyxml(indent="\t"))
   fileObject.close()

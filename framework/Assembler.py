@@ -63,8 +63,7 @@ class Assembler(MessageHandler.MessageUser):
       needDict = {}
     for val in self.assemblerObjects.values():
       for value  in val:
-        if value[0] not in needDict.keys():
-          needDict[value[0]] = []
+        if value[0] not in needDict.keys(): needDict[value[0]] = []
         needDict[value[0]].append((value[1],value[2]))
     return needDict
 
@@ -76,12 +75,10 @@ class Assembler(MessageHandler.MessageUser):
       @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
       @ Out, None
     """
-    if '_localGenerateAssembler' in dir(self):
-      self._localGenerateAssembler(initDict)
+    if '_localGenerateAssembler' in dir(self): self._localGenerateAssembler(initDict)
     for key, value in self.assemblerObjects.items():
       self.assemblerDict[key] =  []
-      for interface in value:
-        self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
+      for interface in value: self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
 
   def _readAssemblerObjects(self,subXmlNode, found, testObjects):
     """
@@ -96,10 +93,8 @@ class Assembler(MessageHandler.MessageUser):
       for token in self.requiredAssObject[1][0]:
         if subNode.tag == token:
           found[token] = True
-          if 'class' not in subNode.attrib.keys():
-            self.raiseAnError(IOError,'In '+self.type+' Object ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
-          if  subNode.tag not in self.assemblerObjects.keys():
-            self.assemblerObjects[subNode.tag.strip()] = []
+          if 'class' not in subNode.attrib.keys(): self.raiseAnError(IOError,'In '+self.type+' Object ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+          if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag.strip()] = []
           self.assemblerObjects[subNode.tag.strip()].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text.strip()])
           testObjects[token] += 1
     returnObject = found, testObjects
@@ -114,22 +109,18 @@ class Assembler(MessageHandler.MessageUser):
       @ Out, None
     """
     self.type = xmlNode.tag
-    if 'name' in xmlNode.attrib:
-      self.name = xmlNode.attrib['name']
+    if 'name' in xmlNode.attrib: self.name = xmlNode.attrib['name']
     self.printTag = self.type
-    if 'verbosity' in xmlNode.attrib.keys():
-      self.verbosity = xmlNode.attrib['verbosity']
+    if 'verbosity' in xmlNode.attrib.keys(): self.verbosity = xmlNode.attrib['verbosity']
     if self.requiredAssObject[0]:
       testObjects = {}
       for token in self.requiredAssObject[1][0]:
         testObjects[token] = 0
       found = dict.fromkeys(testObjects.keys(),False)
       found, testObjects = self._readAssemblerObjects(xmlNode, found, testObjects)
-      for subNode in xmlNode:
-        found, testObjects = self._readAssemblerObjects(subNode, found, testObjects)
+      for subNode in xmlNode: found, testObjects = self._readAssemblerObjects(subNode, found, testObjects)
       for token in self.requiredAssObject[1][0]:
-        if not found[token] and not str(self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]).strip().startswith('-'):
-          self.raiseAnError(IOError,'the required object ' +token+ ' is missed in the definition of the '+self.type+' Object! Required objects number are
+        if not found[token] and not str(self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]).strip().startswith('-'): self.raiseAnError(IOError,'the required object ' +token+ ' is missed in the definition of the '+self.type+' Object! Required objects number are :'+str(self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]))
       # test the objects found
       else:
         for cnt,toObjectName in enumerate(self.requiredAssObject[1][0]):
@@ -139,18 +130,14 @@ class Assembler(MessageHandler.MessageUser):
             if toObjectName in testObjects.keys():
               if testObjects[toObjectName] is not 0:
                 numerosity = numerosity.replace('-', '').replace('n',str(testObjects[toObjectName]))
-                if testObjects[toObjectName] != int(numerosity):
-                  self.raiseAnError(IOError,'Only '+numerosity+' '+toObjectName+' object/s is/are optionally required. Block '+self.name + ' got '+str(testObjects[toObjectName]) + '!')
+                if testObjects[toObjectName] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+toObjectName+' object/s is/are optionally required. Block '+self.name + ' got '+str(testObjects[toObjectName]) + '!')
           else:
             # required
-            if toObjectName not in testObjects.keys():
-              self.raiseAnError(IOError,'Required object/s "'+toObjectName+'" not found. Block '+self.name + '!')
+            if toObjectName not in testObjects.keys(): self.raiseAnError(IOError,'Required object/s "'+toObjectName+'" not found. Block '+self.name + '!')
             else:
               numerosity = numerosity.replace('n',str(testObjects[toObjectName]))
-              if testObjects[toObjectName] != int(numerosity):
-                self.raiseAnError(IOError,'Only '+numerosity+' '+toObjectName+' object/s is/are required. Block '+self.name + ' got '+str(testObjects[toObjectName]) + '!')
-    if '_localReadMoreXML' in dir(self):
-      self._localReadMoreXML(xmlNode)
+              if testObjects[toObjectName] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+toObjectName+' object/s is/are required. Block '+self.name + ' got '+str(testObjects[toObjectName]) + '!')
+    if '_localReadMoreXML' in dir(self): self._localReadMoreXML(xmlNode)
 
   def addAssemblerObject(self,name,flag, newXmlFlg = None):
     """
@@ -162,8 +149,7 @@ class Assembler(MessageHandler.MessageUser):
                                           For example, if newXmlFlg == True, the self.requiredAssObject[0] is set to True
       @ Out, None
     """
-    if newXmlFlg is not None:
-      self.requiredAssObject[0] = newXmlFlg
+    if newXmlFlg is not None: self.requiredAssObject[0] = newXmlFlg
     self.requiredAssObject[1][0].append(name)
     self.requiredAssObject[1][1].append(flag)
 

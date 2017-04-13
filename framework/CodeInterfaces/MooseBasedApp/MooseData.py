@@ -46,8 +46,7 @@ class mooseData:
     tempDict = {}
     for icsv, csvdictread in enumerate(csvreaders):
       tempDict[icsv] = {}
-      for row in csvdictread:
-        tempDict[icsv][row['id']] = row
+      for row in csvdictread: tempDict[icsv][row['id']] = row
     return tempDict
 
   def __sortDict(self, tempDict):
@@ -107,10 +106,8 @@ class mooseData:
       IOcsvfile.write('%s,' %(time))
       while(j < locationNo):
         key = location.keys()[j]
-        if j == (locationNo-1):
-          tempString = ('%s,%s,%s,%s,%s'  %(key,location[key]['x'],location[key]['y'],location[key]['z'],timeStep[key][time]))
-        else:
-          tempString = ('%s,%s,%s,%s,%s,' %(key,location[key]['x'],location[key]['y'],location[key]['z'],timeStep[key][time]))
+        if j == (locationNo-1): tempString = ('%s,%s,%s,%s,%s'  %(key,location[key]['x'],location[key]['y'],location[key]['z'],timeStep[key][time]))
+        else:                   tempString = ('%s,%s,%s,%s,%s,' %(key,location[key]['x'],location[key]['y'],location[key]['z'],timeStep[key][time]))
         j = j + 1
         IOcsvfile.write('%s' %(tempString))
       IOcsvfile.write('\n')

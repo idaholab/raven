@@ -31,8 +31,7 @@ class RELAPparser():
       @ Out, None
     """
     self.printTag = 'RELAP5 PARSER'
-    if not os.path.exists(inputFile):
-      raise IOError(self.printTag+'ERROR
+    if not os.path.exists(inputFile): raise IOError(self.printTag+'ERROR: not found RELAP input file')
     IOfile = open(inputFile,'r')
     self.inputfile = inputFile
     self.deckLines = {}
@@ -44,8 +43,7 @@ class RELAPparser():
         self.maxNumberOfDecks += 1
         self.deckLines[self.maxNumberOfDecks] = lines[prevDeckLineNum:lineNum+1]
         prevDeckLineNum = lineNum + 1
-    if self.maxNumberOfDecks < 1:
-      raise IOError(self.printTag+ "ERROR
+    if self.maxNumberOfDecks < 1: raise IOError(self.printTag+ "ERROR: the file "+inputFile+" does not contain a end case fullstop '.'!")
 
   def printInput(self,outfile=None):
     """
@@ -53,12 +51,10 @@ class RELAPparser():
       @ In, outfile, string, optional, output file root
       @ Out, None
     """
-    if outfile==None:
-      outfile =self.inputfile
+    if outfile==None: outfile =self.inputfile
     outfile.open('w')
     for deckNum in self.deckLines.keys():
-      for i in self.deckLines[deckNum]:
-        outfile.write('%s' %(i))
+      for i in self.deckLines[deckNum]: outfile.write('%s' %(i))
     outfile.close()
 
   def modifyOrAdd(self,dictionaryList,save=True):
@@ -73,19 +69,15 @@ class RELAPparser():
     decks              = {}
     lines              = []
     for i in dictionaryList:
-      if 'decks' not in i.keys():
-        raise IOError(self.printTag+"ERROR
-      else:
-        decks.update(i['decks'])
+      if 'decks' not in i.keys(): raise IOError(self.printTag+"ERROR: no card inputs found!!")
+      else                      : decks.update(i['decks'])
     for deckNum in decks.keys():
       a = self.deckLines.keys()
-      if deckNum not in self.deckLines.keys():
-        raise IOError("RELAP5 Interface
+      if deckNum not in self.deckLines.keys(): raise IOError("RELAP5 Interface: The number of deck found in the original input file is "+str(self.maxNumberOfDecks)+" while the user requested to modify the deck number "+str(deckNum))
       temp               = []
       modiDictionaryList = decks[deckNum]
       temp.append('*RAVEN INPUT VALUES\n')
-      if self.maxNumberOfDecks > 1:
-        temp.append('*'+' deckNum
+      if self.maxNumberOfDecks > 1: temp.append('*'+' deckNum: '+str(deckNum)+'\n')
       for j in modiDictionaryList:
         for var in modiDictionaryList[j]:
           temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+str(var['value'])+'\n')
@@ -95,8 +87,7 @@ class RELAPparser():
       cardLines = {}
       foundAllCards = dict.fromkeys(modiDictionaryList.keys(),False)
       for lineNum, line in enumerate(temp):
-        if all(foundAllCards.values()):
-          break
+        if all(foundAllCards.values()): break
         if not re.match('^\s*\n',line):
           card = line.split()[0].strip()
           if card in modiDictionaryList.keys():
@@ -109,8 +100,7 @@ class RELAPparser():
                 cardLines[card]['numberOfLevels'        ]+=1
                 cardLines[card]['numberOfAvailableWords']+=self.countNumberOfWords(temp[lineNum+cnt])
                 cnt+=1
-              else:
-                moveToNextLine=False
+              else: moveToNextLine=False
       # modify the cards
       for card in cardLines.keys():
         for var in modiDictionaryList[card]:
@@ -124,8 +114,7 @@ class RELAPparser():
               totalNumberOfWords+=numberOfWords
           else:
             raise IOError("RELAP5 Interface: The word that needs to be sampled is in a position ("+str(var['position'])+") > then the actual number of words ("+str(cardLines[card]['numberOfAvailableWords'])+")!!")
-      if save:
-        self.deckLines[deckNum]=temp
+      if save: self.deckLines[deckNum]=temp
       lines = lines + temp
     return lines
 
@@ -150,7 +139,6 @@ class RELAPparser():
     temp=line.split()
     temp[int(position)]=str(value)
     newline=temp.pop(0)
-    for i in temp:
-      newline=newline+'  '+i
+    for i in temp: newline=newline+'  '+i
     newline=newline+'\n'
     return newline

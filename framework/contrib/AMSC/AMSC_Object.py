@@ -582,8 +582,7 @@ class AMSC_Object(object):
     indexOrder = list(reversed(np.argsort(np.absolute(beta_hat))))
     for i,nextDim in enumerate(indexOrder):
       B = np.zeros(self.GetDimensionality())
-      for activeDim in indexOrder[0:
-        (i+1)]
+      for activeDim in indexOrder[0:(i+1)]:
         B[activeDim] = beta_hat[activeDim]
 
       X = self.X[np.array(items),:]

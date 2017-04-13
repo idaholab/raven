@@ -54,8 +54,7 @@ for moduleIndex in range(len(__moduleInterfaceList)):
     for key,modClass in inspect.getmembers(__moduleImportedList[-1], inspect.isclass):
       # in this way we can get all the class methods
       classMethods = [method for method in dir(modClass) if callable(getattr(modClass, method))]
-      if 'createNewInput' in classMethods:
-        __interFaceDict[key.replace("Interface","")] = modClass
+      if 'createNewInput' in classMethods:__interFaceDict[key.replace("Interface","")] = modClass
 __knownTypes      = list(__interFaceDict.keys())
 
 def knownTypes():
@@ -73,6 +72,5 @@ def returnCodeInterface(Type,caller):
     @ In, Type, string, the type of code interface to instanciate
     @ In, caller, instance, instance of the caller
   """
-  if Type not in knownTypes():
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+  if Type not in knownTypes(): caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
   return __interFaceDict[Type]()

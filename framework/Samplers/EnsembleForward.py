@@ -84,8 +84,7 @@ class EnsembleForwardSampler(ForwardSampler):
     for combSampler in self.instanciatedSamplers.values():
       preNeedDict = combSampler.whatDoINeed()
       for key,value in preNeedDict.items():
-        if key not in needDict.keys():
-          needDict[key] = []
+        if key not in needDict.keys(): needDict[key] = []
         needDict[key] = needDict[key] + value
     return needDict
 
@@ -99,8 +98,7 @@ class EnsembleForwardSampler(ForwardSampler):
     availableDist = initDict['Distributions']
     availableFunc = initDict['Functions']
     for combSampler in self.instanciatedSamplers.values():
-      if combSampler.type != 'CustomSampler':
-        combSampler._generateDistributions(availableDist,availableFunc)
+      if combSampler.type != 'CustomSampler': combSampler._generateDistributions(availableDist,availableFunc)
       combSampler._localGenerateAssembler(initDict)
     self.raiseADebug("Distributions initialized!")
 
@@ -148,18 +146,15 @@ class EnsembleForwardSampler(ForwardSampler):
     """
     index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict = True)
     coordinate = []
-    for samplingStrategy in self.instanciatedSamplers.keys():
-      coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
+    for samplingStrategy in self.instanciatedSamplers.keys(): coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
     for combination in coordinate:
       for key in combination.keys():
-        if key not in self.inputInfo.keys():
-          self.inputInfo[key] = combination[key]
+        if key not in self.inputInfo.keys(): self.inputInfo[key] = combination[key]
         else:
           if type(self.inputInfo[key]).__name__ == 'dict':
             self.inputInfo[key].update(combination[key])
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = 1.0
     for key in self.inputInfo.keys():
-      if key.startswith('ProbabilityWeight-'):
-        self.inputInfo['ProbabilityWeight' ] *= self.inputInfo[key]
+      if key.startswith('ProbabilityWeight-'):self.inputInfo['ProbabilityWeight' ] *= self.inputInfo[key]
     self.inputInfo['SamplerType'] = 'EnsembleForward'

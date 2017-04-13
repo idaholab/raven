@@ -118,14 +118,10 @@ class VariableGroup(BaseClasses.BaseType):
           modSet = deps[varName].getVars()
         orderOps.append(modSet[:])
         modSet = set(modSet)
-        if   op == '+':
-          baseVars.update(modSet)
-        elif op == '-':
-          baseVars.difference_update(modSet)
-        elif op == '^':
-          baseVars.intersection_update(modSet)
-        elif op == '%':
-          baseVars.symmetric_difference_update(modSet)
+        if   op == '+': baseVars.update(modSet)
+        elif op == '-': baseVars.difference_update(modSet)
+        elif op == '^': baseVars.intersection_update(modSet)
+        elif op == '%': baseVars.symmetric_difference_update(modSet)
       #sort variable list into self.variables
       #  -> first, sort through top-level vars
       for var in base.getVars():

@@ -48,8 +48,7 @@ class Cubit(CodeInterfaceBase):
       if inputFile.getExt() in self.getInputExtension():
         found = True
         break
-    if not found:
-      raise IOError('None of the input files has one of the following extensions
+    if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     returnCommand = [('serial',executable+ ' -batch ' + inputFiles[index].getFilename())], self.outputFile
     return returnCommand
 

@@ -74,13 +74,10 @@ class BaseType(MessageHandler.MessageUser):
     """
     self.setMessageHandler(messageHandler)
     self.variableGroups = variableGroups
-    if 'name' in xmlNode.attrib.keys():
-      self.name = xmlNode.attrib['name']
-    else:
-      self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
+    if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
+    else: self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
     self.type     = xmlNode.tag
-    if self.globalAttributes!= None:
-      self.globalAttributes = globalAttributes
+    if self.globalAttributes!= None: self.globalAttributes = globalAttributes
     if 'verbosity' in xmlNode.attrib.keys():
       self.verbosity = xmlNode.attrib['verbosity']
       self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
@@ -124,8 +121,7 @@ class BaseType(MessageHandler.MessageUser):
     else:
       self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
     self.type     = paramInput.getName()
-    if self.globalAttributes!= None:
-      self.globalAttributes = globalAttributes
+    if self.globalAttributes!= None: self.globalAttributes = globalAttributes
     if 'verbosity' in paramInput.parameterValues:
       self.verbosity = paramInput.parameterValues['verbosity']
       self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
@@ -228,13 +224,10 @@ class BaseType(MessageHandler.MessageUser):
       @ Out, None
     """
     tempDict = self.whoAreYou()
-    for key in tempDict.keys():
-      self.raiseADebug('       {0
+    for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.getInitParams()
     self.raiseADebug('       Initialization Parameters:')
-    for key in tempDict.keys():
-      self.raiseADebug('       {0
+    for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myCurrentSetting()
     self.raiseADebug('       Current Setting:')
-    for key in tempDict.keys():
-      self.raiseADebug('       {0
+    for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))

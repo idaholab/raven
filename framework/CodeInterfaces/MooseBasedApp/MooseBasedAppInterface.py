@@ -52,10 +52,8 @@ class MooseBasedApp(CodeInterfaceBase):
       if inputFile.getExt() in self.getInputExtension():
         found = True
         break
-    if not found:
-      raise IOError('None of the input files has one of the following extensions
-    if fargs['moosevpp'] != '':
-      self.mooseVPPFile = fargs['moosevpp']
+    if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if fargs['moosevpp'] != '' : self.mooseVPPFile = fargs['moosevpp']
     outputfile = self.outputPrefix+inputFiles[index].getBase()
     executeCommand = [('parallel',executable+' -i '+inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
@@ -91,8 +89,7 @@ class MooseBasedApp(CodeInterfaceBase):
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found:
-      raise IOError('None of the input files has one of the following extensions
+    if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outName = self.outputPrefix+currentInputFiles[index].getBase()
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
@@ -142,8 +139,7 @@ class MooseBasedApp(CodeInterfaceBase):
       @ Out, returnOut, string, optional, present in case the root of the output file gets changed in this method.
     """
     returnOut = output
-    if self.vectorPPFound:
-      returnOut = self.__mergeTime(output,workingDir)[0]
+    if self.vectorPPFound: returnOut = self.__mergeTime(output,workingDir)[0]
     return returnOut
 
   def __mergeTime(self,output,workingDir):
@@ -174,8 +170,7 @@ class MooseBasedApp(CodeInterfaceBase):
     for var in Kwargs['SampledVars']:
       key = var.split(':')
       modifDict = {}
-      if '|' not in key[0]:
-        continue
+      if '|' not in key[0]: continue
       modifDict['name'] = key[0].split('|')[:-1]
       modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
       listDict.append(modifDict)

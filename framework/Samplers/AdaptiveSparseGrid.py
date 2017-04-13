@@ -32,10 +32,8 @@ import numpy as np
 from operator import mul
 from functools import reduce
 
-if sys.version_info.major > 2:
-  import pickle
-else:
-  import cPickle as pickle
+if sys.version_info.major > 2: import pickle
+else: import cPickle as pickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -102,8 +100,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ Out, None
     """
     SparseGridCollocation.localInputAndChecks(self,xmlNode)
-    if 'Convergence' not in list(c.tag for c in xmlNode):
-      self.raiseAnError(IOError,'Convergence node not found in input!')
+    if 'Convergence' not in list(c.tag for c in xmlNode): self.raiseAnError(IOError,'Convergence node not found in input!')
     convnode  = xmlNode.find('Convergence')
     logNode   = xmlNode.find('logFile')
     studyNode = xmlNode.find('convergenceStudy')
@@ -112,10 +109,8 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     self.persistence  = int(convnode.attrib.get('persistence',2))
     self.maxRuns      = convnode.attrib.get('maxRuns',None)
     self.convValue    = float(convnode.text)
-    if logNode      is not None:
-      self.logFile = logNode.text
-    if self.maxRuns is not None:
-      self.maxRuns = int(self.maxRuns)
+    if logNode      is not None: self.logFile = logNode.text
+    if self.maxRuns is not None: self.maxRuns = int(self.maxRuns)
     if studyNode    is not None:
       self.doingStudy = True
       self.studyPoints = studyNode.find('runStatePoints').text
@@ -192,11 +187,9 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
     #if we're done, be done
-    if self.done:
-      return False
+    if self.done:return False
     #if we're not ready elsewhere, just be not ready
-    if ready==False:
-      return ready
+    if ready==False: return ready
     #if we still have a list of points to sample, just keep on trucking.
     if len(self.neededPoints)>0:
       return True
@@ -226,13 +219,10 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       if self.doingStudy:
         while len(self.studyPoints)>0 and len(self.pointsNeededToMakeROM) > self.studyPoints[0]:
           self._writeConvergencePoint(self.studyPoints[0])
-          if self.studyPickle:
-            self._writePickle(self.studyPoints[0])
+          if self.studyPickle: self._writePickle(self.studyPoints[0])
           #remove the point
-          if len(self.studyPoints)>1:
-            self.studyPoints=self.studyPoints[1
-          else:
-            self.studyPoints = []
+          if len(self.studyPoints)>1: self.studyPoints=self.studyPoints[1:]
+          else: self.studyPoints = []
       #if error small enough, converged!
       if abs(self.error) < self.convValue:
         self.done = True
@@ -329,10 +319,8 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ Out, None
     """
     #check if all sampling is done
-    if self.jobHandler.isFinished():
-      self.batchDone = True
-    else:
-      self.batchDone = False
+    if self.jobHandler.isFinished(): self.batchDone = True
+    else: self.batchDone = False
     #batchDone is used to check if the sampler should find new points.
 
   def _addNewPoints(self,SG=None):
@@ -341,10 +329,8 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, SG, SparseGrid, optional, sparse grid to comb for new points
       @ Out, None
     """
-    if SG is None:
-      SG = self.sparseGrid
-    for pt in SG.points()[:
-      ]
+    if SG is None: SG = self.sparseGrid
+    for pt in SG.points()[:]:
       self.pointsNeededToMakeROM.add(pt) #sets won't store redundancies
       #if pt isn't already in needed, and it hasn't already been solved, add it to the queue
       if pt not in self.neededPoints and self.solns.getMatchingRealization(self._tupleToDict(pt)) is None:
@@ -377,8 +363,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     #     else:
     #       tot+= new.polyCoeffDict[coeff]**2
     #   impact = np.sqrt(tot)
-    else:
-      self.raiseAnError(KeyError,'Unexpected convergence criteria
+    else: self.raiseAnError(KeyError,'Unexpected convergence criteria:',self.convType)
     return impact
 
   def _estimateImpact(self,idx):
@@ -388,8 +373,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ Out, None
     """
     #initialize
-    for t in self.targets:
-      self.expImpact[t][idx] = 1.
+    for t in self.targets: self.expImpact[t][idx] = 1.
     have = 0 #tracks the number of preceeding terms I have (e.g., terms on axes have less preceeding terms)
     #create a list of actual impacts for predecessors of idx
     predecessors = {}
@@ -401,8 +385,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
         subidx[i] -= 1
         for t in self.targets:
           predecessors[t].append(self.actImpact[t][tuple(subidx)])
-      else:
-        continue #on an axis or axial plane
+      else: continue #on an axis or axial plane
     #estimated impact is the product of the predecessor impacts raised to the power of the number of predecessors
     for t in self.targets:
       #raising each predecessor to the power of the predecessors makes a more fair order-of-magnitude comparison
@@ -415,8 +398,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, rom, GaussPolynomailROM object, optional, the rom to initialize, defaults to target rom
       @ Out, None
     """
-    if rom == None:
-      rom = self.ROM
+    if rom == None: rom = self.ROM
     self.raiseADebug('No more samples to try! Declaring sampling complete.')
     #initialize final rom with final sparse grid and index set
     for SVL in rom.supervisedEngine.supervisedContainer:
@@ -442,10 +424,8 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
         avg = new
         point = pt
     self.raiseADebug('Highest impact point is',point,'with expected average impact',avg)
-    if returnValue:
-      return point,avg
-    else:
-      return point
+    if returnValue: return point,avg
+    else: return point
 
   def _integrateFunction(self,sg,r,i):
     """

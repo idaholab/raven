@@ -61,8 +61,7 @@ class File(BaseType):
       @ Out, None
     """
     try:
-      if self.isOpen():
-        self.close()
+      if self.isOpen(): self.close()
     except AttributeError as e:
       print('Had a problem with closing file',self.getFilename(),'|',e)
 
@@ -182,10 +181,8 @@ class File(BaseType):
       @ In, path, string (optional), path to set
       @ Out, None
     """
-    if self.isOpen():
-      self.raiseAnError('Tried to change the path of an open file
-    if '~' in path:
-      path = os.path.expanduser(path)
+    if self.isOpen(): self.raiseAnError('Tried to change the path of an open file: %s! Close it first.' %self.getAbsFile())
+    if '~' in path: path = os.path.expanduser(path)
     self.__path = path
 
   def prependPath(self,addpath):
@@ -194,10 +191,8 @@ class File(BaseType):
       @ In, addpath, string, new path to prepend
       @ Out, None
     """
-    if self.isOpen():
-      self.raiseAnError('Tried to change the path of an open file
-    if '~' in addpath:
-      addpath = os.path.expanduser(addpath)
+    if self.isOpen(): self.raiseAnError('Tried to change the path of an open file: %s! Close it first.' %self.getAbsFile())
+    if '~' in addpath: addpath = os.path.expanduser(addpath)
     self.__path = os.path.join(addpath,self.getPath())
 
   def setBase(self,base):
@@ -206,8 +201,7 @@ class File(BaseType):
       @ In, base, string, base to change file to
       @ Out, None
     """
-    if self.isOpen():
-      self.raiseAnError('Tried to change the base name of an open file
+    if self.isOpen(): self.raiseAnError('Tried to change the base name of an open file: %s! Close it first.' %self.getAbsFile())
     self.__base = base
 
   def setExt(self,ext):
@@ -216,8 +210,7 @@ class File(BaseType):
       @ In, ext, string, extension to change file to
       @ Out, None
     """
-    if self.isOpen():
-      self.raiseAnError('Tried to change the extension of an open file
+    if self.isOpen(): self.raiseAnError('Tried to change the extension of an open file: %s! Close it first.' %self.getAbsFile())
     self.__ext = ext
 
   ## the base elements for the file are path, base, and extension ##
@@ -228,10 +221,8 @@ class File(BaseType):
       @ In, None
       @ Out, __base, string, filename
     """
-    if self.__ext is not None:
-      return '.'.join([self.__base,self.__ext])
-    else:
-      return self.__base
+    if self.__ext is not None: return '.'.join([self.__base,self.__ext])
+    else: return self.__base
 
   def getAbsFile(self):
     """
@@ -267,8 +258,7 @@ class File(BaseType):
       @ In, filename, string, full filename (without path)
       @ Out, None
     """
-    if self.isOpen():
-      self.raiseAnError('Tried to change the name of an open file
+    if self.isOpen(): self.raiseAnError('Tried to change the name of an open file: %s! Close it first.' %self.getAbsFile())
     filename = filename.strip()
 
     # This will split the file name at the rightmost '.'
@@ -289,8 +279,7 @@ class File(BaseType):
       @ In, pathandfile, string, path to file and the filename itself in a single string
       @ Out, None
     """
-    if self.isOpen():
-      self.raiseAnError('Tried to change the path/name of an open file
+    if self.isOpen(): self.raiseAnError('Tried to change the path/name of an open file: %s! Close it first.' %self.getAbsFile())
     path,filename = os.path.split(pathandfile)
     self.setFilename(filename)
     self.setPath(path)
@@ -312,8 +301,7 @@ class File(BaseType):
       @ Out, None
     """
     path = os.path.normpath(os.path.join(self.path,self.getFilename()))
-    if not os.path.exists(path):
-      self.raiseAnError(IOError,'File not found
+    if not os.path.exists(path): self.raiseAnError(IOError,'File not found:',path)
 
   ### FILE-LIKE FUNCTIONS ###
   def close(self):
@@ -326,8 +314,7 @@ class File(BaseType):
       self.__file.close()
       del self.__file
       self.__file = None
-    else:
-      self.raiseAWarning('Tried to close',self.getFilename(),'but file not open!')
+    else: self.raiseAWarning('Tried to close',self.getFilename(),'but file not open!')
 
   def flush(self):
     """
@@ -368,8 +355,7 @@ class File(BaseType):
       @ In, size, int, optional, number of bytes to read
       @ Out, bytesRead, string, bytes read from file
     """
-    if not self.isOpen():
-      self.open(mode)
+    if not self.isOpen(): self.open(mode)
     bytesRead = self.__file.read() if size is None else self.__file.read(size)
     return bytesRead
 
@@ -380,8 +366,7 @@ class File(BaseType):
       @ In, size, int, the number of bytes to read in, as per the Python file object
       @ Out, lineRead, string, next line from file
     """
-    if not self.isOpen():
-      self.open(mode)
+    if not self.isOpen(): self.open(mode)
     lineRead = self.__file.readline() if size is None else self.__file.readline(size)
     return lineRead
 
@@ -392,8 +377,7 @@ class File(BaseType):
       @ In, mode, string, the mode (r,a,w) with which to interact with the file
       @ Out, lines, list, lines read
     """
-    if not self.isOpen():
-      self.open(mode)
+    if not self.isOpen(): self.open(mode)
     lines = self.__file.readlines() if sizehint is None else self.__file.readlines(sizehint)
     return lines
 
@@ -404,10 +388,8 @@ class File(BaseType):
       @ In, whence, int, optional, integer indicator (see python file documentation)
       @ Out, None
     """
-    if whence is None:
-      return self.__file.seek(offset)
-    else:
-      return self.__file.seek(offset,whence)
+    if whence is None: return self.__file.seek(offset)
+    else: return self.__file.seek(offset,whence)
 
   def tell(self):
     """
@@ -424,10 +406,8 @@ class File(BaseType):
       @ In, size, int, optional, maximum file size after truncation
       @ Out, None
     """
-    if size is None:
-      return self.__file.truncate()
-    else:
-      return self.__file.truncate(size)
+    if size is None: return self.__file.truncate()
+    else: return self.__file.truncate(size)
 
   def write(self,string,overwrite=False):
     """
@@ -436,8 +416,7 @@ class File(BaseType):
       @ In, overwrite, bool, optional, whether to overwrite the existing file if not open
       @ Out, None
     """
-    if not self.isOpen():
-      self.open('a' if not overwrite else 'w')
+    if not self.isOpen(): self.open('a' if not overwrite else 'w')
     self.__file.write(string)
 
   def writelines(self,string,overwrite=False):
@@ -447,8 +426,7 @@ class File(BaseType):
       @ In, overwrite, bool, optional, if true will open file in write mode instead of append
       @ Out, None
     """
-    if not self.isOpen():
-      self.open('a' if not overwrite else 'w')
+    if not self.isOpen(): self.open('a' if not overwrite else 'w')
     self.__file.writelines(string)
 
   ### FILE-EXPECTED FUNCTIONS ###
@@ -459,10 +437,8 @@ class File(BaseType):
       @ In,  mode, string, optional, the read-write mode according to python "file" method ('r','a','w','rw',etc) (default 'rw')
       @ Out, None
     """
-    if not self.isOpen():
-      self.__file = open(self.getAbsFile(),mode)
-    else:
-      self.raiseAWarning('Tried to open',self.getFilename(),'but file already open!')
+    if not self.isOpen(): self.__file = open(self.getAbsFile(),mode)
+    else: self.raiseAWarning('Tried to open',self.getFilename(),'but file already open!')
 
   def __iter__(self): #MIGHT NEED TO REMOVE
     """
@@ -470,8 +446,7 @@ class File(BaseType):
       @ In, None
       @ Out, __iter__, iterator, file iterator
     """
-    if not self.isOpen():
-      self.open('r')
+    if not self.isOpen(): self.open('r')
     self.__file.seek(0)
     return self.__file.__iter__()
 #
@@ -599,8 +574,7 @@ class StaticXMLOutput(RAVENGenerated):
     #prettify tree
     pretty = xmlUtils.prettify(self.tree)
     #make sure file is written cleanly and anew
-    if self.isOpen():
-      self.close()
+    if self.isOpen(): self.close()
     self.writelines(pretty,overwrite=True)
     self.close()
 
@@ -706,8 +680,7 @@ class DynamicXMLOutput(StaticXMLOutput):
       @ In, None
       @ Out, None
     """
-    if self.isOpen():
-      self.close()
+    if self.isOpen(): self.close()
     #write the root node manually
     self.writelines('<'+self.rootName+' type="Dynamic">\n',overwrite=True)
     #write out each time step node
@@ -790,7 +763,5 @@ def returnInstance(Type,caller):
     @ In, caller, object, requesting object
     @ Out, __interFaceDict, instance, instance of the object
   """
-  try:
-    return __interFaceDict[Type]()
-  except KeyError:
-    caller.raiseAnError(NameError,'Files module does not recognize '+__base+' type '+Type)
+  try: return __interFaceDict[Type]()
+  except KeyError: caller.raiseAnError(NameError,'Files module does not recognize '+__base+' type '+Type)
