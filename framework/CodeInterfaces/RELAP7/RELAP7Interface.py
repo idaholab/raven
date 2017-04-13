@@ -48,10 +48,13 @@ class RELAP7(CodeInterfaceBase):
       if inputFile.getExt() in self.getInputExtension():
         found = True
         break
-    if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if not found:
+      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+inputFiles[index].getBase()
-    if clargs: precommand = executable + clargs['text']
-    else     : precommand = executable
+    if clargs:
+      precommand = executable + clargs['text']
+    else:
+      precommand = executable
     executeCommand = [('parallel',precommand + ' -i '+inputFiles[index].getFilename() + ' Outputs/file_base='+ outputfile +
                       ' Outputs/csv=false' + ' Outputs/checkpoint=true'+ ' Outputs/tail/type=ControlLogicBranchingInfo'+
                       ' Outputs/ravenCSV/type=CSVRaven')]
@@ -85,7 +88,8 @@ class RELAP7(CodeInterfaceBase):
       if inputFile.getExt() in self.getInputExtension():
         found = True
         break
-    if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if not found:
+      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
     Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
@@ -106,10 +110,14 @@ class RELAP7(CodeInterfaceBase):
       @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
-    if 'prefix' in Kwargs: counter = Kwargs['prefix']
-    else: raise IOError('a counter is needed for the Monte Carlo sampler for RELAP7')
-    if 'initialSeed' in Kwargs: initSeed = Kwargs['initialSeed']
-    else                       : initSeed = 1
+    if 'prefix' in Kwargs:
+      counter = Kwargs['prefix']
+    else:
+      raise IOError('a counter is needed for the Monte Carlo sampler for RELAP7')
+    if 'initialSeed' in Kwargs:
+      initSeed = Kwargs['initialSeed']
+    else:
+      initSeed = 1
     _,listDict = self.__genBasePointSampler(**Kwargs)
     #listDict = []
     modifDict = {}
@@ -145,8 +153,10 @@ class RELAP7(CodeInterfaceBase):
         if 'MonteCarlo' in preconditioner['SamplerType']:
           listDict = self.__genBasePointSampler(**preconditioner)[1]
           listDict.extend(self.monteCarloForRELAP7(**preconditioner))
-        elif 'Grid' in preconditioner['SamplerType']: listDict.extend(self.gridForRELAP7(**preconditioner))
-        elif 'Stratified' in preconditioner['SamplerType'] or 'Stratified' in preconditioner['SamplerType']: listDict.extend(self.latinHyperCubeForRELAP7(**preconditioner))
+        elif 'Grid' in preconditioner['SamplerType']:
+          listDict.extend(self.gridForRELAP7(**preconditioner))
+        elif 'Stratified' in preconditioner['SamplerType'] or 'Stratified' in preconditioner['SamplerType']:
+          listDict.extend(self.latinHyperCubeForRELAP7(**preconditioner))
     # Check the initiator distributions and add the next threshold
     if 'initiatorDistribution' in Kwargs.keys():
       for i in range(len(Kwargs['initiatorDistribution'])):
@@ -263,7 +273,8 @@ class RELAP7(CodeInterfaceBase):
       #assertDict['special'] = set(['assert_match'])
       #listDict.append(assertDict)
       for crowDistKey in crowDist.keys():
-        if crowDistKey not in ['type']: listDict.append({'name':['Distributions',distName], 'special':set(['assert_match']), crowDistKey:crowDist[crowDistKey]})
+        if crowDistKey not in ['type']:
+          listDict.append({'name':['Distributions',distName], 'special':set(['assert_match']), crowDistKey:crowDist[crowDistKey]})
 
       listDict.append({'name':['Distributions',distName],
                        'special':set(['assert_match']),

@@ -41,7 +41,8 @@ class csvUtilityClass(object):
     """
       Constructor
       @ In, listOfFiles, list, list of CSV files that need to be merged. If in one or more "filenames" the special symbol $*$ is present, the class will use the filename as root name and look for all the files with that root. For example:
-                                             if  listOfFiles[1] == "aPath/outputChannel$*$": the code will inquire the directory "aPath" to look for all the files starting with the name "outputChannel" => at end we will have a list of files like "outputChannel_1.csv,outputChannel_ab.csv, etc"
+                                             if  listOfFiles[1] == "aPath/outputChannel$*$":
+                                               the code will inquire the directory "aPath" to look for all the files starting with the name "outputChannel" => at end we will have a list of files like "outputChannel_1.csv,outputChannel_ab.csv, etc"
       @ In, linesToSkipAfterHeader, int, optional, the number of lines that need to be skipped after the header
       @ In, delimeter, string, optional, the delimiter of the csv
       @ In, mergeSameVariables, bool, optional, do variables with the same name need to be merged together ? (aka, take only the values of the first occurence)?
@@ -55,11 +56,14 @@ class csvUtilityClass(object):
     filePathToExpand    = []
     self.mergeSameVariables = mergeSameVariables
     for filename in listOfFiles:
-      if "$*$" in filename: filePathToExpand.append(filename)
-      else                : self.listOfFiles.append(filename)
+      if "$*$" in filename:
+        filePathToExpand.append(filename)
+      else:
+        self.listOfFiles.append(filename)
     if len(filePathToExpand) > 0:
       # we need to look for this files
-      for fileToExpand in filePathToExpand: self.listOfFiles.extend(glob(os.path.join(os.path.split(fileToExpand)[0],os.path.split(fileToExpand)[1].replace("$*$","*") + ".csv")))
+      for fileToExpand in filePathToExpand:
+        self.listOfFiles.extend(glob(os.path.join(os.path.split(fileToExpand)[0],os.path.split(fileToExpand)[1].replace("$*$","*") + ".csv")))
 
     for filename in self.listOfFiles:
       # open file
@@ -69,8 +73,10 @@ class csvUtilityClass(object):
       for _ in range(linesToSkipAfterHeader):
         myFile.readline()
       all_field_names = head.split(delimeter)
-      for index in range(len(all_field_names)): all_field_names[index] = all_field_names[index].strip()
-      if all_field_names[-1] == "": all_field_names.pop(-1) # it means there is a trailing "'" at the end of the file
+      for index in range(len(all_field_names)):
+        all_field_names[index] = all_field_names[index].strip()
+      if all_field_names[-1] == "":
+        all_field_names.pop(-1) # it means there is a trailing "'" at the end of the file
       isAlreadyIn = False
 
       # load the table data (from the csv file) into a numpy nd array
@@ -92,7 +98,8 @@ class csvUtilityClass(object):
                                                             }
       @ Out, None
     """
-    if len(outputFileName.strip()) == 0: raise IOError("MergeCSV class ERROR: the outputFileName string is empty!")
+    if len(outputFileName.strip()) == 0:
+      raise IOError("MergeCSV class ERROR: the outputFileName string is empty!")
     options['returnAsDict'] = False
     self.allHeaders, dataFinal = self.mergeCsvAndReturnOutput(options)
     np.savetxt(outputFileName,dataFinal,delimiter=",",header=",".join(self.allHeaders))
@@ -113,9 +120,12 @@ class csvUtilityClass(object):
     returnAsDict = False
     variablesToExpandFrom.append('time')
     if options:
-      if "sameKeySuffix" in options.keys()          : sameKeySuffix         = options["sameKeySuffix"]
-      if "variablesToExpandFrom" in options.keys()  : variablesToExpandFrom = options["variablesToExpandFrom"]
-      if "returnAsDict"          in options.keys()  : returnAsDict = bool(options["returnAsDict"])
+      if "sameKeySuffix" in options.keys():
+        sameKeySuffix         = options["sameKeySuffix"]
+      if "variablesToExpandFrom" in options.keys():
+        variablesToExpandFrom = options["variablesToExpandFrom"]
+      if "returnAsDict"          in options.keys():
+        returnAsDict = bool(options["returnAsDict"])
     setHeaders = list(set(self.allHeaders))
     headerCounts = {}
     headerAppender = {}
@@ -147,7 +157,8 @@ class csvUtilityClass(object):
     variablesToExpandFromValuesSet = sorted(variablesToExpandFromValuesSet, key=float)
     variablesToExpandFromValuesSet = np.array(variablesToExpandFromValuesSet)
     variablesToExpandFromValuesSet.shape = (len(variablesToExpandFromValuesSet),1)
-    if len(variablesToExpandFromValues.keys()) != len(self.dataContainer.keys()): raise Exception ("the variables "+str(variablesToExpandFrom) + " have not been found in all files!!!!")
+    if len(variablesToExpandFromValues.keys()) != len(self.dataContainer.keys()):
+      raise Exception ("the variables "+str(variablesToExpandFrom) + " have not been found in all files!!!!")
     dataFinal = np.zeros((len(variablesToExpandFromValuesSet),len(self.allHeaders)))
     # we use a neighbors.KNeighborsRegressor to merge the csvs
     nearest = neighbors.KNeighborsRegressor(n_neighbors=1)

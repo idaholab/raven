@@ -106,8 +106,10 @@ class SPSA(GradientBasedOptimizer):
       @ In, convergence, bool, optional, variable indicating whether the convergence criteria has been met.
       @ Out, ready, bool, variable indicating whether the caller is prepared for another input.
     """
-    if convergence:             ready = False
-    else:                       ready = True and ready
+    if convergence:
+      ready = False
+    else:
+      ready = True and ready
     return ready
 
   def localGenerateInput(self,model,oldInput):
@@ -119,14 +121,17 @@ class SPSA(GradientBasedOptimizer):
     """
     GradientBasedOptimizer.localGenerateInput(self,model,oldInput)
 
-    if self.counter['mdlEval'] <= len(self.optTraj): # Just started
+    if self.counter['mdlEval'] <= len(self.optTraj):
+      # Just started
       traj = self.optTrajLive.pop(0)
       self.optTrajLive.append(traj)
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
       for var in self.optVars:
         self.values[var] = self.optVarsInit['initial'][var][traj]
-        if self.values[var] >=  self.optVarsInit['upperBound'][var]: self.values[var]-= 0.01*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
-        if self.values[var] <=  self.optVarsInit['lowerBound'][var]: self.values[var]+= 0.01*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
+        if self.values[var] >=  self.optVarsInit['upperBound'][var]:
+          self.values[var]-= 0.01*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
+        if self.values[var] <=  self.optVarsInit['lowerBound'][var]:
+          self.values[var]+= 0.01*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
       data = self.normalizeData(self.values) if self.gradDict['normalize'] else self.values
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(data)
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
@@ -139,8 +144,10 @@ class SPSA(GradientBasedOptimizer):
           self.counter['perturbation'][traj] += 1
         else:
           self.readyVarsUpdate[traj] = True
-        if not self.readyVarsUpdate[traj]: # Not ready to update decision variables; continue to perturb for gradient evaluation
-          if self.counter['perturbation'][traj] == 1: # Generate all the perturbations at once
+        if not self.readyVarsUpdate[traj]:
+          # Not ready to update decision variables; continue to perturb for gradient evaluation
+          if self.counter['perturbation'][traj] == 1:
+            # Generate all the perturbations at once
             self.gradDict['pertPoints'][traj] = {}
             ck = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
             varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
@@ -164,15 +171,18 @@ class SPSA(GradientBasedOptimizer):
           # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation)
           self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],self.counter['perturbation'][traj])
           break
-        else: # Enough gradient evaluation for decision variable update
+        else:
+          # Enough gradient evaluation for decision variable update
           evalNotFinish = False
           for pertID in range(1,self.gradDict['pertNeeded']+1):
             if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:
               evalNotFinish = True
               break
-          if evalNotFinish:  # evaluation not completed for gradient evaluation
+          if evalNotFinish:
+            # evaluation not completed for gradient evaluation
             continue
-          else:  # evaluation completed for gradient evaluation
+          else:
+            # evaluation completed for gradient evaluation
             self.counter['perturbation'][traj] = 0
             self.counter['varsUpdate'][traj] += 1
 
@@ -208,14 +218,17 @@ class SPSA(GradientBasedOptimizer):
       tempVarKPlus[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
     satisfied, activeConstraints = self.checkConstraint(tempVarKPlus)
     #satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempVarKPlus))
-    if satisfied: return tempVarKPlus
+    if satisfied:
+      return tempVarKPlus
     else:
       # check if the active constraints are the boundary ones. In case, project the gradient
       if len(activeConstraints['internal']) > 0:
         projectedOnBoundary= {}
-        for activeConstraint in activeConstraints['internal']: projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
+        for activeConstraint in activeConstraints['internal']:
+          projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
         tempVarKPlus.update(self.normalizeData(projectedOnBoundary) if self.gradDict['normalize'] else projectedOnBoundary)
-      if len(activeConstraints['external']) == 0: return tempVarKPlus
+      if len(activeConstraints['external']) == 0:
+        return tempVarKPlus
 
     # Try to find varKPlus by shorten the gradient vector
     foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, gradient)
@@ -225,7 +238,8 @@ class SPSA(GradientBasedOptimizer):
     # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
     # with respect to the constraints hyper-surface
     innerLoopLimit = self.constraintHandlingPara['innerLoopLimit']
-    if innerLoopLimit < 0:   self.raiseAnError(IOError, 'Limit for internal loop for constraint handling shall be nonnegative')
+    if innerLoopLimit < 0:
+      self.raiseAnError(IOError, 'Limit for internal loop for constraint handling shall be nonnegative')
     loopCounter = 0
     foundPendVector = False
     while not foundPendVector and loopCounter < innerLoopLimit:
@@ -289,7 +303,8 @@ class SPSA(GradientBasedOptimizer):
       @ Out, _bisectionForConstrainedInput, tuple(bool,dict), (indicating whether a fraction vector is found, contains the fraction of gradient that satisfies constraint)
     """
     innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
-    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1: self.raiseAnError(ValueError, 'The innerBisectionThreshold shall be greater than 0 and less than 1')
+    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1:
+      self.raiseAnError(ValueError, 'The innerBisectionThreshold shall be greater than 0 and less than 1')
     fracLowerLimit = 1e-2
     bounds = [0, 1.0]
     tempVarNew = {}
@@ -323,8 +338,10 @@ class SPSA(GradientBasedOptimizer):
       v1[cnt], v2[cnt] = copy.deepcopy(d1[var]), copy.deepcopy(d2[var])
     angle = np.arccos(np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2))
     if np.isnan(angle):
-      if (v1 == v2).all(): angle = 0.0
-      else: angle = np.pi
+      if (v1 == v2).all():
+        angle = 0.0
+      else:
+        angle = np.pi
     angleD = np.rad2deg(angle)
     return angleD
 

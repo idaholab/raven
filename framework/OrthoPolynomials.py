@@ -71,8 +71,10 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
       @ In, var, str, optional, name of variable to be used in return (default 'x')
       @ Out, __getitem__, orthopoly1d object, requested polynomial
     """
-    if var==None: return self._poly(order,*self.params) * self.norm(order)
-    else: return self._poly(order,*self.params,variable=var) * self.norm(order)
+    if var==None:
+      return self._poly(order,*self.params) * self.norm(order)
+    else:
+      return self._poly(order,*self.params,variable=var) * self.norm(order)
 
   def __call__(self,order,pt):
     """
@@ -154,7 +156,8 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
       @ In, quad, Quadrature object, quadrature that will make coeffs for these polys
       @ Out, None
     """
-    if quad.type.startswith('CDF'): #covers CDFLegendre and CDFClenshawCurtis
+    if quad.type.startswith('CDF'):
+      #covers CDFLegendre and CDFClenshawCurtis
       self.__distr=self.makeDistribution()
       self.pointMod = self.cdfPoint
       self.quad = quad
@@ -473,5 +476,7 @@ def returnInstance(Type,caller):
     @ In, Typer, string, OrthoPoly type
     @ Out, returnInstance, OrthoPoly instance, Instance of the Specialized Filter class
   """
-  if Type in knownTypes(): return __interFaceDict[Type]()
-  else: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+  if Type in knownTypes():
+    return __interFaceDict[Type]()
+  else:
+    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)

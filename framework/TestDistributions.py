@@ -104,8 +104,10 @@ def checkIntegral(name,dist,low,high,numpts=1e4,tol=1e-3):
 #Test module methods
 print(Distributions.knownTypes())
 #Test error
-try: Distributions.returnInstance("unknown",'dud')
-except: print("error worked")
+try:
+  Distributions.returnInstance("unknown",'dud')
+except:
+  print("error worked")
 
 #Test Uniform
 

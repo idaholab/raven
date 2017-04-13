@@ -173,18 +173,23 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     for child in xmlNode:
       if child.tag == "variable":
-        if self.optVars == None: self.optVars = []
+        if self.optVars == None:
+          self.optVars = []
         varname = str(child.attrib['name'])
         self.optVars.append(varname)
         for childChild in child:
-          if   childChild.tag == "upperBound": self.optVarsInit['upperBound'][varname] = float(childChild.text)
-          elif childChild.tag == "lowerBound": self.optVarsInit['lowerBound'][varname] = float(childChild.text)
+          if   childChild.tag == "upperBound":
+            self.optVarsInit['upperBound'][varname] = float(childChild.text)
+          elif childChild.tag == "lowerBound":
+            self.optVarsInit['lowerBound'][varname] = float(childChild.text)
           elif childChild.tag == "initial"   :
             self.optVarsInit['initial'][varname] = {}
             temp = childChild.text.split(',')
             for trajInd, initVal in enumerate(temp):
-              try              : self.optVarsInit['initial'][varname][trajInd] = float(initVal)
-              except ValueError: self.raiseAnError(ValueError, "Unable to convert to float the intial value for variable "+varname+ " in trajectory "+str(trajInd))
+              try:
+                self.optVarsInit['initial'][varname][trajInd] = float(initVal)
+              except ValueError:
+                self.raiseAnError(ValueError, "Unable to convert to float the intial value for variable "+varname+ " in trajectory "+str(trajInd))
             if self.optTraj == None:
               self.optTraj = range(len(self.optVarsInit['initial'][varname].keys()))
       elif child.tag == "constant":
@@ -211,7 +216,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.initSeed = int(childChild.text)
           elif childChild.tag == 'thresholdTrajRemoval':
             self.thresholdTrajRemoval = float(childChild.text)
-          else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
+          else:
+            self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
 
       elif child.tag == "convergence":
         for childChild in child:
@@ -228,16 +234,25 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for childChild in child:
           self.paramDict[childChild.tag] = childChild.text
 
-    if self.optType == None:    self.optType = 'min'
-    if self.thresholdTrajRemoval == None: self.thresholdTrajRemoval = 0.05
-    if self.initSeed == None:   self.initSeed = Distributions.randomIntegers(0,2**31,self)
-    if self.objVar == None:     self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
-    if self.optVars == None:    self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
-    else:                       self.optVars.sort()
-    if self.optTraj == None:    self.optTraj = [0]
+    if self.optType == None:
+      self.optType = 'min'
+    if self.thresholdTrajRemoval == None:
+      self.thresholdTrajRemoval = 0.05
+    if self.initSeed == None:
+      self.initSeed = Distributions.randomIntegers(0,2**31,self)
+    if self.objVar == None:
+      self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
+    if self.optVars == None:
+      self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
+    else:
+      self.optVars.sort()
+    if self.optTraj == None:
+      self.optTraj = [0]
     for varname in self.optVars:
-      if varname not in self.optVarsInit['upperBound'].keys(): self.raiseAnError(IOError, 'Upper bound for '+varname+' is not provided' )
-      if varname not in self.optVarsInit['lowerBound'].keys(): self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
+      if varname not in self.optVarsInit['upperBound'].keys():
+        self.raiseAnError(IOError, 'Upper bound for '+varname+' is not provided' )
+      if varname not in self.optVarsInit['lowerBound'].keys():
+        self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
       if varname not in self.optVarsInit['initial'].keys():
         self.optVarsInit['initial'][varname] = {}
         for trajInd in self.optTraj:
@@ -349,11 +364,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if 'constrain' not in self.constraintFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
 
-    if self.initSeed != None: Distributions.randomSeed(self.initSeed)
+    if self.initSeed != None:
+      Distributions.randomSeed(self.initSeed)
 
     # specializing the self.localInitialize()
-    if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
-    else                      : self.localInitialize()
+    if solutionExport != None:
+      self.localInitialize(solutionExport=solutionExport)
+    else:
+      self.localInitialize()
 
   def localInitialize(self,solutionExport=None):
     """
@@ -412,14 +430,19 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
-    for key in tempDict.keys(): tempDict[key] = np.asarray(tempDict[key])
+    for key in tempDict.keys():
+      tempDict[key] = np.asarray(tempDict[key])
 
     self.objSearchingROM.train(tempDict)
-    if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
-    for key in optVars.keys(): optVars[key] = np.atleast_1d(optVars[key])
+    if self.gradDict['normalize']:
+      optVars = self.denormalizeData(optVars)
+    for key in optVars.keys():
+      optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
-    if self.optType == 'min':           return lossFunctionValue
-    else:                               return lossFunctionValue*-1.0
+    if self.optType == 'min':
+      return lossFunctionValue
+    else:
+      return lossFunctionValue*-1.0
 
   def checkConstraint(self, optVars):
     """
@@ -432,13 +455,17 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       satisfied = True
     else:
       satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
-      if not satisfied: violatedConstrains['external'].append(self.constraintFunction.name)
-    if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
+      if not satisfied:
+        violatedConstrains['external'].append(self.constraintFunction.name)
+    if self.gradDict['normalize']:
+      optVars = self.denormalizeData(optVars)
     for var in optVars:
       if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
         satisfied = False
-        if optVars[var] > self.optVarsInit['upperBound'][var]: violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
-        if optVars[var] < self.optVarsInit['lowerBound'][var]: violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
+        if optVars[var] > self.optVarsInit['upperBound'][var]:
+          violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
+        if optVars[var] < self.optVarsInit['lowerBound'][var]:
+          violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
 
     satisfied = self.localCheckConstraint(optVars, satisfied)
     satisfaction = satisfied,violatedConstrains

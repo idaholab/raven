@@ -58,8 +58,10 @@ def identifyIfExternalModelExists(caller, moduleIn, workingDir):
     @ In, workingDir, string, the path of the working directory
     @ Out, (moduleToLoad, fileName), tuple, a tuple containing the module to load (that should be used in method importFromPath) and the filename (no path)
   """
-  if moduleIn.endswith('.py') : moduleToLoadString = moduleIn[:-3]
-  else                        : moduleToLoadString = moduleIn
+  if moduleIn.endswith('.py'):
+    moduleToLoadString = moduleIn[:-3]
+  else:
+    moduleToLoadString = moduleIn
   workingDirModule = os.path.abspath(os.path.join(workingDir,moduleToLoadString))
   if os.path.exists(workingDirModule+".py"):
     moduleToLoadString = workingDirModule
@@ -69,11 +71,13 @@ def identifyIfExternalModelExists(caller, moduleIn, workingDir):
     path, filename = os.path.split(moduleToLoadString)
     if (path != ''):
       abspath = os.path.abspath(path)
-      if '~' in abspath:abspath = os.path.expanduser(abspath)
+      if '~' in abspath:
+        abspath = os.path.expanduser(abspath)
       if os.path.exists(abspath):
         caller.raiseAWarning('file '+moduleToLoadString+' should be relative to working directory. Working directory: '+workingDir+' Module expected at '+abspath)
         os.sys.path.append(abspath)
-      else: caller.raiseAnError(IOError,'The path provided for the' + caller.type + ' named '+ caller.name +' does not exist!!! Got: ' + abspath + ' and ' + workingDirModule)
+      else:
+        caller.raiseAnError(IOError,'The path provided for the' + caller.type + ' named '+ caller.name +' does not exist!!! Got: ' + abspath + ' and ' + workingDirModule)
   return moduleToLoadString, filename
 
 def checkIfUnknowElementsinList(referenceList,listToTest):
@@ -85,7 +89,8 @@ def checkIfUnknowElementsinList(referenceList,listToTest):
   """
   unknownElements = []
   for elem in listToTest:
-    if elem not in referenceList: unknownElements.append(elem)
+    if elem not in referenceList:
+      unknownElements.append(elem)
   return unknownElements
 
 def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
@@ -100,7 +105,8 @@ def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   import stat
   import time
   mode = os.stat(pathname).st_mode
-  if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)): raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  path '+pathname+ ' is neither a file nor a dir!')
+  if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)):
+    raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  path '+pathname+ ' is neither a file nor a dir!')
   boolReturn = abs(os.stat(pathname).st_mtime - time.time()) < timelapse
   return boolReturn
 
@@ -122,7 +128,8 @@ def removeFile(pathAndFileName):
     @ In, pathAndFileName, string, string containing the path and filename
     @ Out, None
   """
-  if os.path.isfile(pathAndFileName): os.remove(pathAndFileName)
+  if os.path.isfile(pathAndFileName):
+    os.remove(pathAndFileName)
 
 def returnImportModuleString(obj,moduleOnly=False):
   """
@@ -136,13 +143,18 @@ def returnImportModuleString(obj,moduleOnly=False):
   mods = []
   for key, value in dict(inspect.getmembers(obj)).items():
     if moduleOnly:
-      if not inspect.ismodule(value): continue
+      if not inspect.ismodule(value):
+        continue
     else:
-      if not (inspect.ismodule(value) or inspect.ismethod(value)): continue
+      if not (inspect.ismodule(value) or inspect.ismethod(value)):
+        continue
     if key != value.__name__:
-      if value.__name__.split(".")[-1] != key: mods.append(str('import ' + value.__name__ + ' as '+ key))
-      else                                   : mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
-    else: mods.append(str(key))
+      if value.__name__.split(".")[-1] != key:
+        mods.append(str('import ' + value.__name__ + ' as '+ key))
+      else:
+        mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
+    else:
+      mods.append(str(key))
   return mods
 
 def getPrintTagLenght():
@@ -181,12 +193,17 @@ def convertMultipleToBytes(sizeString):
     @ In, sizeString, string, string that needs to be converted in bytes
     @ Out, convertMultipleToBytes, integer, the number of bytes
   """
-  if   'mb' in sizeString: return int(sizeString.replace("mb",""))*10**6
-  elif 'kb' in sizeString: return int(sizeString.replace("kb",""))*10**3
-  elif 'gb' in sizeString: return int(sizeString.replace("gb",""))*10**9
+  if   'mb' in sizeString:
+    return int(sizeString.replace("mb",""))*10**6
+  elif 'kb' in sizeString:
+    return int(sizeString.replace("kb",""))*10**3
+  elif 'gb' in sizeString:
+    return int(sizeString.replace("gb",""))*10**9
   else:
-    try   : return int(sizeString)
-    except: raise IOError(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
+    try:
+      return int(sizeString)
+    except:
+      raise IOError(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
 
 def stringsThatMeanTrue():
   """
@@ -240,15 +257,22 @@ def interpretBoolean(inArg):
     @ In, inArg, object, object to convert
     @ Out, interpretedObject, bool, the interpreted boolean
   """
-  if type(inArg).__name__ == "bool": return inArg
+  if type(inArg).__name__ == "bool":
+    return inArg
   elif type(inArg).__name__ == "integer":
-    if inArg == 0: return False
-    else         : return True
+    if inArg == 0:
+      return False
+    else:
+      return True
   elif type(inArg).__name__ in ['str','bytes','unicode']:
-    if inArg.lower().strip() in stringsThatMeanTrue()   : return True
-    elif inArg.lower().strip() in stringsThatMeanFalse(): return False
-    else                                                : raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
-  else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inArg).__name__)
+    if inArg.lower().strip() in stringsThatMeanTrue():
+      return True
+    elif inArg.lower().strip() in stringsThatMeanFalse():
+      return False
+    else:
+      raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
+  else:
+    raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inArg).__name__)
 
 def isClose(f1, f2, relTolerance=1e-14, absTolerance=0.0):
   """
@@ -273,14 +297,16 @@ def compare(s1,s2,relTolerance = 1e-14):
     @ Out, response, bool, the boolean response (True if s1==s2, False otherwise)
   """
   w1, w2 = floatConversion(s1), floatConversion(s2)
-  if   type(w1) == type(w2) and type(w1) != float: return s1 == s2
+  if   type(w1) == type(w2) and type(w1) != float:
+    return s1 == s2
   elif type(w1) == type(w2) and type(w1) == float:
     from utils import mathUtils
     return mathUtils.compareFloats(w1,w2,relTolerance)
   elif type(w1) != type(w2) and type(w1) in [float,int] and type(w2) in [float,int]:
     w1, w2 = float(w1), float(w2)
     return compare(w1,w2)
-  else: return (w1 == w2)
+  else:
+    return (w1 == w2)
 
 def intConversion (s):
   """
@@ -289,8 +315,10 @@ def intConversion (s):
     @ In, s, string,  string to be converted
     @ Out, response, int or None, the casted value
   """
-  try              : return int(s)
-  except ValueError: return None
+  try:
+    return int(s)
+  except ValueError:
+    return None
 
 def floatConversion (s):
   """
@@ -299,8 +327,10 @@ def floatConversion (s):
     @ In, s, string,  string to be converted
     @ Out, response, float or None, the casted value
   """
-  try              : return float(s)
-  except ValueError: return None
+  try:
+    return float(s)
+  except ValueError:
+    return None
 
 def partialEval(s):
   """
@@ -311,9 +341,12 @@ def partialEval(s):
     @ Out, response, float or int or string, the casted value
   """
   evalS = intConversion(s)
-  if evalS is None: evalS = floatConversion(s)
-  if evalS is None: return s
-  else            : return evalS
+  if evalS is None:
+    evalS = floatConversion(s)
+  if evalS is None:
+    return s
+  else:
+    return evalS
 
 def toString(s):
   """
@@ -321,8 +354,10 @@ def toString(s):
     @ In, s, string,  string to be converted
     @ Out, response, string, the casted value
   """
-  if type(s) == type(""): return s
-  else                  : return s.decode()
+  if type(s) == type(""):
+    return s
+  else:
+    return s.decode()
 
 def toBytes(s):
   """
@@ -330,9 +365,12 @@ def toBytes(s):
     @ In, s, string,  string to be converted
     @ Out, response, bytes, the casted value
   """
-  if type(s) == type("")                            : return s.encode()
-  elif type(s).__name__ in ['unicode','str','bytes']: return bytes(s)
-  else                                              : return s
+  if type(s) == type(""):
+    return s.encode()
+  elif type(s).__name__ in ['unicode','str','bytes']:
+    return bytes(s)
+  else:
+    return s
 
 def toBytesIterative(s):
   """
@@ -341,13 +379,17 @@ def toBytesIterative(s):
     @ In, s, object,  object whose content needs to be converted
     @ Out, response, object, a copy of the object in which the string-compatible has been converted
   """
-  if type(s) == list: return [toBytes(x) for x in s]
+  if type(s) == list:
+    return [toBytes(x) for x in s]
   elif type(s) == dict:
-    if len(s.keys()) == 0: return None
+    if len(s.keys()) == 0:
+      return None
     tempdict = {}
-    for key,value in s.items(): tempdict[toBytes(key)] = toBytesIterative(value)
+    for key,value in s.items():
+      tempdict[toBytes(key)] = toBytesIterative(value)
     return tempdict
-  else: return toBytes(s)
+  else:
+    return toBytes(s)
 
 def toListFromNumpyOrC1array(array):
   """
@@ -369,13 +411,17 @@ def toListFromNumpyOrC1arrayIterative(array):
     @ In, array, object,  object whose content needs to be converted
     @ Out, response, object, a copy of the object in which the string-compatible has been converted
   """
-  if type(array) == list: return [toListFromNumpyOrC1array(x) for x in array]
+  if type(array) == list:
+    return [toListFromNumpyOrC1array(x) for x in array]
   elif type(array) == dict:
-    if len(array.keys()) == 0: return None
+    if len(array.keys()) == 0:
+      return None
     tempdict = {}
-    for key,value in array.items(): tempdict[toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
+    for key,value in array.items():
+      tempdict[toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
     return tempdict
-  else: return toBytes(array)
+  else:
+    return toBytes(array)
 
 def toStrish(s):
   """
@@ -395,8 +441,10 @@ def keyIn(dictionary,key):
     Method that return the key or toBytes key if in, else returns None.
     Use like
     inKey = keyIn(adict,key)
-    if inKey is not None: foo = adict[inKey]
-    else                : pass #not found
+    if inKey is not None:
+      foo = adict[inKey]
+    else:
+      pass #not found
     @ In, dictionary, dict, the dictionary whose key needs to be returned
     @ Out, response, str or bytes, the key (converted in bytes if needed)
   """
@@ -404,8 +452,10 @@ def keyIn(dictionary,key):
     return key
   else:
     bin_key = toBytes(key)
-    if bin_key in dictionary: return bin_key
-    else                    : return None
+    if bin_key in dictionary:
+      return bin_key
+    else:
+      return None
 
 def first(c):
   """
@@ -432,7 +482,8 @@ def importFromPath(filename, printImporting = True):
     @ In, printImporting, bool, True if information about the importing needs to be printed out
     @ Out, importedModule, module, the imported module
   """
-  if printImporting: print('(            ) '+UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '      -> importing module '+ filename)
+  if printImporting:
+    print('(            ) '+UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '      -> importing module '+ filename)
   import imp, os.path
   try:
     (path, name) = os.path.split(filename)
@@ -451,7 +502,8 @@ def index(a, x):
     @ Out, i, int, the index of the leftmost value exactly equal to x
   """
   i = bisect.bisect_left(a, x)
-  if i != len(a) and a[i] == x: return i
+  if i != len(a) and a[i] == x:
+    return i
   return None
 
 def find_lt(a, x):
@@ -462,7 +514,8 @@ def find_lt(a, x):
     @ Out, i, int, the index of the Find rightmost value less than x
   """
   i = bisect.bisect_left(a, x)
-  if i: return a[i-1],i-1
+  if i:
+    return a[i-1],i-1
   return None,None
 
 def find_le_index(a,x):
@@ -473,7 +526,8 @@ def find_le_index(a,x):
     @ Out, i, int, the index of the rightmost value less than or equal to x
   """
   i = bisect.bisect_right(a, x)
-  if i: return i
+  if i:
+    return i
   return None
 
 def find_le(a, x):
@@ -484,7 +538,8 @@ def find_le(a, x):
     @ Out, i, tuple, tuple[0] -> the rightmost value less than or equal to x, tuple[1] -> index
   """
   i = bisect.bisect_right(a, x)
-  if i: return a[i-1],i-1
+  if i:
+    return a[i-1],i-1
   return None,None
 
 def find_gt(a, x):
@@ -495,7 +550,8 @@ def find_gt(a, x):
     @ Out, i, tuple, tuple[0] -> the leftmost value greater than x, tuple[1] -> index
   """
   i = bisect.bisect_right(a, x)
-  if i != len(a): return a[i],i
+  if i != len(a):
+    return a[i],i
   return None,None
 
 def find_ge(a, x):
@@ -506,7 +562,8 @@ def find_ge(a, x):
     @ Out, i, tuple, tuple[0] ->leftmost item greater than or equal to x, tuple[1] -> index
   """
   i = bisect.bisect_left(a, x)
-  if i != len(a): return a[i],i
+  if i != len(a):
+    return a[i],i
   return None,None
 
 def getRelativeSortedListEntry(sortedList,value,tol=1e-15):
@@ -624,13 +681,17 @@ def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
         zi = interpolateFunction(x,y,z,options)
       else:
         raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
-    if returnCoordinate: return xig,yig,zi
-    else               : return zi
+    if returnCoordinate:
+      return xig,yig,zi
+    else:
+      return zi
   else:
     try:
       if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
-        if options['interpolationType'] != 'nearest' and y.size > 3: yi = griddata((x), y, (xi[:]), method=options['interpolationType'])
-        else: yi = griddata((x), y, (xi[:]), method='nearest')
+        if options['interpolationType'] != 'nearest' and y.size > 3:
+          yi = griddata((x), y, (xi[:]), method=options['interpolationType'])
+        else:
+          yi = griddata((x), y, (xi[:]), method='nearest')
       else:
         xig, yig = np.meshgrid(xi, yi)
         rbf = Rbf(x, y,function=str(str(options['interpolationType']).replace('Rbf', '')),epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
@@ -640,7 +701,8 @@ def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
         print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
         yi = interpolateFunction(x,y,options)
-      else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+      else:
+        raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
     if returnCoordinate:
       return xi,yi
     else:
@@ -726,7 +788,8 @@ def add_path_recursively(absoluteInitialPath):
     @ In, absoluteInitialPath, string, the absolute path to add
     @ Out, None
   """
-  for dirr,_,_ in os.walk(absoluteInitialPath): add_path(dirr)
+  for dirr,_,_ in os.walk(absoluteInitialPath):
+    add_path(dirr)
 
 def find_distribution1D():
   """
@@ -910,9 +973,11 @@ def typeMatch(var,varTypeStr):
   if not match:
     # check if the types start with the same root
     if len(typeVar.__name__) <= len(varTypeStr):
-      if varTypeStr.startswith(typeVar.__name__): match = True
+      if varTypeStr.startswith(typeVar.__name__):
+        match = True
     else:
-      if typeVar.__name__.startswith(varTypeStr): match = True
+      if typeVar.__name__.startswith(varTypeStr):
+        match = True
   return match
 
 def sizeMatch(var,sizeToCheck):
@@ -923,7 +988,8 @@ def sizeMatch(var,sizeToCheck):
     @ Out, sizeMatched, bool, is the size ok?
   """
   sizeMatched = True
-  if len(numpy.atleast_1d(var)) != sizeToCheck: sizeMatched = False
+  if len(numpy.atleast_1d(var)) != sizeToCheck:
+    sizeMatched = False
   return sizeMatched
 
 
@@ -935,12 +1001,15 @@ def isASubset(setToTest,pileList):
     @ Out, isASubset, bool, True if setToTest is a subset
   """
 
-  if len(pileList) < len(setToTest): return False
+  if len(pileList) < len(setToTest):
+    return False
 
   index = 0
   for element in setToTest:
-    try              : index = pileList.index(element, index) + 1
-    except ValueError: return False
+    try:
+      index = pileList.index(element, index) + 1
+    except ValueError:
+      return False
   else:
     return True
 
@@ -1011,7 +1080,8 @@ def checkTypeRecursively(inObject):
     for val in inObject:
       returnType = checkTypeRecursively(val)
       break
-  except: pass
+  except:
+    pass
   return returnType
 
 def returnIdSeparator():
