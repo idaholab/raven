@@ -2255,7 +2255,8 @@ class EnsembleModel(Dummy, Assembler):
               # run the model
               self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
               # wait until the model finishes, in order to get ready to run the subsequential one
-              while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier): time.sleep(1.e-3)
+              while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
+                time.sleep(1.e-3)
               nextModel, moveOn = True, True
             else:
               time.sleep(1.e-3)

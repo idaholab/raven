@@ -401,7 +401,8 @@ def randomPermutation(l,caller):
   """
   newList = []
   oldList = l[:]
-  while len(oldList) > 0: newList.append(oldList.pop(randomIntegers(0,len(oldList)-1,caller)))
+  while len(oldList) > 0:
+    newList.append(oldList.pop(randomIntegers(0,len(oldList)-1,caller)))
   return newList
 
 class BoostDistribution(Distribution):
