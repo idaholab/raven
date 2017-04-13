@@ -70,8 +70,10 @@ class IndexSet(MessageHandler.MessageUser):
       @ In, i, string/int, splice notation for array
       @ Out, points, array of tuples/tuple, requested points
     """
-    if i==None: return np.array(self.points)
-    else: return self.points[i]
+    if i==None:
+      return np.array(self.points)
+    else:
+      return self.points[i]
 
   def __repr__(self):
     """
@@ -79,9 +81,11 @@ class IndexSet(MessageHandler.MessageUser):
       @ In, None
       @ Out, msg, string, visual representation of index set
     """
-    if len(self.points)<1: return "Index set is empty!"
+    if len(self.points)<1:
+      return "Index set is empty!"
     msg='IndexSet Printout:\n'
-    if len(self.points[0])==2: #graphical block visualization
+    if len(self.points[0])==2:
+      #graphical block visualization
       left=0
       p=0
       while p<len(self.points):
@@ -92,7 +96,8 @@ class IndexSet(MessageHandler.MessageUser):
         else:
           msg+='\n'
           left+=1
-    else: #just list them
+    else:
+      #just list them
       for pt in self.points:
         msg+='  '+str(pt)+'\n'
     return msg
@@ -138,7 +143,8 @@ class IndexSet(MessageHandler.MessageUser):
       @ Out, None
     """
     self.raiseADebug('IndexSet Printout:')
-    if len(self.points[0])==2: #graphical block visualization
+    if len(self.points[0])==2:
+      #graphical block visualization
       msg=''
       left=0
       p=0
@@ -152,7 +158,8 @@ class IndexSet(MessageHandler.MessageUser):
           msg=''
           left+=1
       self.raiseADebug(msg)
-    else: #just list them
+    else:
+      #just list them
       for pt in self.points:
         self.raiseADebug('  '+str(pt))
 
@@ -193,8 +200,10 @@ class IndexSet(MessageHandler.MessageUser):
       @ In, MI, array of tuples, optional, multiindex point collection
       @ Out, MI, array of tuples, index set
     """
-    if I ==None: I =[]
-    if MI==None: MI=[]
+    if I ==None:
+      I =[]
+    if MI==None:
+      MI=[]
     if len(I)!=N:
       i=0
       while rule(I+[i]): #rule is defined by subclasses, limits number of index points by criteria
@@ -335,10 +344,12 @@ class Custom(IndexSet):
       @ Out, None
     """
     if type(points)==list:
-      for pt in points: self.points.append(pt)
+      for pt in points:
+        self.points.append(pt)
     elif type(points)==tuple and len(points)==self.N:
       self.points.append(points)
-    else: self.raiseAnError(ValueError,'Unexpected points to add to set:',points)
+    else:
+      self.raiseAnError(ValueError,'Unexpected points to add to set
     self.order()
 
 
@@ -368,7 +379,8 @@ class AdaptiveSet(IndexSet):
       for pt in list(itertools.product([0,1],repeat=self.N)):
         self.active.append(pt)
     else:
-      for i in range(self.N): #add first-order polynomial along each axis -> this isn't enough though, necessarily
+      for i in range(self.N):
+        #add first-order polynomial along each axis -> this isn't enough though, necessarily
         #adaptive sobol really needs an estimate that involves the (1,1,...,1) point
         pt = firstPoint[:]
         pt[i]+=1
@@ -430,7 +442,8 @@ class AdaptiveSet(IndexSet):
       found=True
       for j in range(self.N):
         checkpt = newpt[:]
-        if checkpt[j]==0:continue
+        if checkpt[j]==0:
+          continue
         checkpt[j] -= 1
         if tuple(checkpt) not in self.points:
           found=False
@@ -479,5 +492,7 @@ def returnInstance(Type,caller):
     @ In, caller, object, object requesting an instance
     @ Out, IndexSet object, requested object
   """
-  if Type in knownTypes(): return __interFaceDict[Type](caller.messageHandler)
-  else: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+  if Type in knownTypes():
+    return __interFaceDict[Type](caller.messageHandler)
+  else:
+    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)

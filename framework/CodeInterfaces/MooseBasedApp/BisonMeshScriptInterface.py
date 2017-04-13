@@ -47,7 +47,8 @@ class BisonMeshScript(CodeInterfaceBase):
       if inputFile.getExt() in self.getInputExtension():
         found = True
         break
-    if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if not found:
+      raise IOError('None of the input files has one of the following extensions
     outputfile = 'mesh~'+inputFiles[index].getBase()
     returnCommand = [('serial','python '+executable+ ' -i ' +inputFiles[index].getFilename()+' -o '+outputfile+'.e')], outputfile
     return returnCommand

@@ -58,8 +58,10 @@ class BisonAndMesh(CodeInterfaceBase):#MooseBasedAppInterface,BisonMeshScriptInt
       elif inFile.getType() == 'BisonMeshInput':
         foundCubitInp = True
         cubitInp = inFile
-    if not foundMooseInp: raise IOError('None of the input Files has the type "MooseInput"! BisonAndMesh interface requires one.')
-    if not foundCubitInp: raise IOError('None of the input Files has the type "BisonMeshInput"! BisonAndMesh interface requires one.')
+    if not foundMooseInp:
+      raise IOError('None of the input Files has the type "MooseInput"! BisonAndMesh interface requires one.')
+    if not foundCubitInp:
+      raise IOError('None of the input Files has the type "BisonMeshInput"! BisonAndMesh interface requires one.')
     return mooseInp,cubitInp
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
@@ -85,7 +87,8 @@ class BisonAndMesh(CodeInterfaceBase):#MooseBasedAppInterface,BisonMeshScriptInt
     #combine them
     returnCommand = cubitCommand + mooseCommand, mooseOut #can only send one...#(cubitOut,mooseOut)
     print('Execution commands from JobHandler:')
-    for r,c in returnCommand[0]: print('  in',r+':',c)
+    for r,c in returnCommand[0]:
+      print('  in',r+'
     return returnCommand
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
@@ -118,7 +121,8 @@ class BisonAndMesh(CodeInterfaceBase):#MooseBasedAppInterface,BisonMeshScriptInt
     newMooseInputs = self.MooseInterface.createNewInput([mooseInp],[origMooseInp],samplerType,**margs)
     #make carbon copy of original input files
     for f in currentInputFiles:
-      if f.isOpen(): f.close()
+      if f.isOpen():
+        f.close()
     #replace old with new perturbed files, in place
     newMooseInp,newCubitInp = self.findInps(currentInputFiles)
     newMooseInp.setAbsFile(newMooseInputs[0].getAbsFile())

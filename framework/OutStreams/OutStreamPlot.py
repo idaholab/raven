@@ -578,8 +578,10 @@ class OutStreamPlot(OutStreamManager):
             self.plt3D.set_zscale(self.options[key]['zscale'], nonposy = 'clip')
       elif key == 'addText':
         if 'position' not in self.options[key].keys():
-          if self.dim == 2 :self.options[key]['position'] = '0.0,0.0'
-          else:self.options[key]['position'] = '0.0,0.0,0.0'
+          if self.dim == 2:
+            self.options[key]['position'] = '0.0,0.0'
+          else:
+            self.options[key]['position'] = '0.0,0.0,0.0'
         if 'withdash' not in self.options[key].keys():
           self.options[key]['withdash'] = 'False'
         if 'fontdict' not in self.options[key].keys():
@@ -624,7 +626,8 @@ class OutStreamPlot(OutStreamManager):
             self.options[key]['hold'] = 'None'
           plt.axhline(y = ast.literal_eval(self.options[key]['y']), xmin = ast.literal_eval(self.options[key]['xmin']), xmax = ast.literal_eval(self.options[key]['xmax']), hold = ast.literal_eval(self.options[key]['hold']), **self.options[key].get('attributes', {}))
       elif key == 'verticalLine':
-        if self.dim == 3: self.raiseAWarning('verticalLine not available in 3-D plots!!')
+        if self.dim == 3:
+          self.raiseAWarning('verticalLine not available in 3-D plots!!')
         elif self.dim == 2:
           if 'x' not in self.options[key].keys():
             self.options[key]['x'] = '0'
@@ -636,7 +639,8 @@ class OutStreamPlot(OutStreamManager):
             self.options[key]['hold'] = 'None'
           plt.axvline(x = ast.literal_eval(self.options[key]['x']), ymin = ast.literal_eval(self.options[key]['ymin']), ymax = ast.literal_eval(self.options[key]['ymax']), hold = ast.literal_eval(self.options[key]['hold']), **self.options[key].get('attributes', {}))
       elif key == 'horizontalRectangle':
-        if self.dim == 3: self.raiseAWarning('horizontalRectangle not available in 3-D plots!!')
+        if self.dim == 3:
+          self.raiseAWarning('horizontalRectangle not available in 3-D plots!!')
         elif self.dim == 2:
           if 'ymin' not in self.options[key].keys():
             self.raiseAnError(IOError, 'ymin parameter is needed for function horizontalRectangle!!')
@@ -826,7 +830,8 @@ class OutStreamPlot(OutStreamManager):
           self.options['plotSettings']['plot'][pltindex]['interpPointsX'] = '20'
         if 'interpolationType' not in self.options['plotSettings']['plot'][pltindex].keys():
           self.options['plotSettings']['plot'][pltindex]['interpolationType'] = 'linear'
-        elif self.options['plotSettings']['plot'][pltindex]['interpolationType'] not in self.availableInterpolators: self.raiseAnError(IOError, 'surface interpolation unknown. Available are :' + str(self.availableInterpolators))
+        elif self.options['plotSettings']['plot'][pltindex]['interpolationType'] not in self.availableInterpolators:
+          self.raiseAnError(IOError, 'surface interpolation unknown. Available are
         if 'epsilon' not in self.options['plotSettings']['plot'][pltindex].keys():
           self.options['plotSettings']['plot'][pltindex]['epsilon'] = '2'
         if 'smooth' not in self.options['plotSettings']['plot'][pltindex].keys():
@@ -931,7 +936,8 @@ class OutStreamPlot(OutStreamManager):
           dim = 2
         else:
           self.raiseAnError(IOError, 'Wrong dimensionality or axis specification for plot '+self.name+'.')
-        if self.dim is not None and self.dim != dim: self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
+        if self.dim is not None and self.dim != dim:
+          self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
         self.dim = dim
         if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltindex]['type']) == 0:
           self.raiseAMessage('For plot named' + self.name + ', type ' + self.options['plotSettings']['plot'][pltindex]['type'] + ' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!', 'ExceptedError')
@@ -1033,12 +1039,15 @@ class OutStreamPlot(OutStreamManager):
             if 'ymax' in axes_range.keys():
               self.plt3D.set_ylim3d(ymax = ast.literal_eval(axes_range['ymax']))
             if 'zmin' in axes_range.options['plotSettings']['plot'][pltindex].keys():
-              if 'zmax' not in axes_range.options['plotSettings'].keys(): self.raiseAWarning('zmin inputted but not zmax. zmin ignored! ')
-              else:self.plt3D.set_zlim(ast.literal_eval(axes_range['zmin']), ast.literal_eval(self.options['plotSettings']['zmax']))
+              if 'zmax' not in axes_range.options['plotSettings'].keys():
+                self.raiseAWarning('zmin inputted but not zmax. zmin ignored! ')
+              else:
+                self.plt3D.set_zlim(ast.literal_eval(axes_range['zmin']), ast.literal_eval(self.options['plotSettings']['zmax']))
             if 'zmax' in axes_range.keys():
               if 'zmin' not in axes_range.keys():
                 self.raiseAWarning('zmax inputted but not zmin. zmax ignored! ')
-              else:self.plt3D.set_zlim(ast.literal_eval(axes_range['zmin']), ast.literal_eval(axes_range['zmax']))
+              else:
+                self.plt3D.set_zlim(ast.literal_eval(axes_range['zmin']), ast.literal_eval(axes_range['zmax']))
         if 'xlabel' not in plotSettings.keys():
           if   self.dim == 2:
             plt.xlabel('x')
@@ -1358,7 +1367,8 @@ class OutStreamPlot(OutStreamManager):
               elif self.dim == 3:
                 # it is a basic stem plot constructed using a standard line plot. For now we do not use the previous defined keywords...
                 for zIndex in range(len(self.zValues[pltindex][key])):
-                  for xx, yy, zz in zip(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex]): self.plt3D.plot([xx, xx], [yy, yy], [0, zz], '-')
+                  for xx, yy, zz in zip(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex]):
+                    self.plt3D.plot([xx, xx], [yy, yy], [0, zz], '-')
       ##################
       #    STEP PLOT   #
       ##################
@@ -1842,7 +1852,8 @@ class OutStreamPlot(OutStreamManager):
                     for k, col in zip(range(clusterDict[pltindex]['noClusters']), colors):
                       myMembers = self.clusterValues[pltindex][1][0] == k
                       self.actPlot = self.plt3D.scatter(decompositionValues[myMembers, 0], decompositionValues[myMembers, 1], decompositionValues[myMembers, 2], color = col, **dataMiningPlotOptions)
-                else:  # no ClusterLabels
+                else:
+                  # no ClusterLabels
                   if self.dim == 2:
                     self.actPlot = plt.scatter(decompositionValues[:, 0], decompositionValues[:, 1], **dataMiningPlotOptions)
                   elif self.dim == 3:

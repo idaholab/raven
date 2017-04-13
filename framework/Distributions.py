@@ -173,8 +173,10 @@ class Distribution(BaseType):
     if xmlNode.find('lowerBound') is not None:
       self.lowerBound = float(xmlNode.find('lowerBound').text)
       self.lowerBoundUsed = True
-    if xmlNode.find('adjustment') is not None: self.__adjustment = xmlNode.find('adjustment').text
-    else: self.__adjustment = 'scaling'
+    if xmlNode.find('adjustment') is not None:
+      self.__adjustment = xmlNode.find('adjustment').text
+    else:
+      self.__adjustment = 'scaling'
 
   def _handleInput(self, paramInput):
     """
@@ -279,8 +281,10 @@ class Distribution(BaseType):
       @ In, pts, array of floats, points to convert
       @ Out, cdfPoints, float/array of floats, converted points
     """
-    try: return self.cdf(pts.real)
-    except TypeError: return list(self.cdf(x) for x in pts)
+    try:
+      return self.cdf(pts.real)
+    except TypeError:
+      return list(self.cdf(x) for x in pts)
 
   def _convertCdfPointsToDistr(self,pts):
     """
@@ -288,8 +292,10 @@ class Distribution(BaseType):
       @ In, pts, array of floats, points to convert
       @ Out, dist, float/array of floats, converted points
     """
-    try: return self.ppf(pts.real)
-    except TypeError: return list(self.ppf(x) for x in pts)
+    try:
+      return self.ppf(pts.real)
+    except TypeError:
+      return list(self.ppf(x) for x in pts)
 
   def _convertCdfPointsToStd(self,pts):
     """
@@ -297,8 +303,10 @@ class Distribution(BaseType):
       @ In, pts, array of floats, points to convert
       @ Out, stds, float/array of floats, converted points
     """
-    try: return 2.0*pts.real-1.0
-    except TypeError: return list(2.0*x-1.0 for x in pts)
+    try:
+      return 2.0*pts.real-1.0
+    except TypeError:
+      return list(2.0*x-1.0 for x in pts)
 
   def _convertStdPointsToCdf(self,pts):
     """
@@ -306,8 +314,10 @@ class Distribution(BaseType):
       @ In, pts, array of floats, points to convert
       @ Out, cdfPoints, float/array of floats, converted points
     """
-    try: return 0.5*(pts.real+1.0)
-    except TypeError: return list(0.5*(x+1.0) for x in pts)
+    try:
+      return 0.5*(pts.real+1.0)
+    except TypeError:
+      return list(0.5*(x+1.0) for x in pts)
 
   def CDFconvertToQuad(self,pts):
     """
@@ -492,8 +502,10 @@ class BoostDistribution(Distribution):
       @ In, args, dict, args
       @ Out, rvsValue, float or list, requested random number or numbers
     """
-    if len(args) == 0: rvsValue = self.ppf(random())
-    else             : rvsValue = [self.rvs() for _ in range(args[0])]
+    if len(args) == 0:
+      rvsValue = self.ppf(random())
+    else:
+      rvsValue = [self.rvs() for _ in range(args[0])]
     return rvsValue
 
 class Uniform(BoostDistribution):
@@ -687,11 +699,15 @@ class Normal(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     meanFind = paramInput.findFirst('mean' )
-    if meanFind is not None: self.mean  = meanFind.value
-    else: self.raiseAnError(IOError,'mean value needed for normal distribution')
+    if meanFind is not None:
+      self.mean  = meanFind.value
+    else:
+      self.raiseAnError(IOError,'mean value needed for normal distribution')
     sigmaFind = paramInput.findFirst('sigma')
-    if sigmaFind is not None: self.sigma = sigmaFind.value
-    else: self.raiseAnError(IOError,'sigma value needed for normal distribution')
+    if sigmaFind is not None:
+      self.sigma = sigmaFind.value
+    else:
+      self.raiseAnError(IOError,'sigma value needed for normal distribution')
     self.initializeDistribution() #FIXME no other distros have this...needed?
 
   def getInitParams(self):
@@ -729,11 +745,13 @@ class Normal(BoostDistribution):
       if self.lowerBoundUsed == False:
         a = -sys.float_info.max
         self.lowerBound = a
-      else:a = self.lowerBound
+      else:
+        a = self.lowerBound
       if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
-      else:b = self.upperBound
+      else:
+        b = self.upperBound
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
                                                                   self.sigma,
                                                                   a,b)
@@ -847,12 +865,16 @@ class Gamma(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     lowFind = paramInput.findFirst('low')
-    if lowFind != None: self.low = lowFind.value
+    if lowFind != None:
+      self.low = lowFind.value
     alphaFind = paramInput.findFirst('alpha')
-    if alphaFind != None: self.alpha = alphaFind.value
-    else: self.raiseAnError(IOError,'alpha value needed for Gamma distribution')
+    if alphaFind != None:
+      self.alpha = alphaFind.value
+    else:
+      self.raiseAnError(IOError,'alpha value needed for Gamma distribution')
     betaFind = paramInput.findFirst('beta')
-    if betaFind != None: self.beta = betaFind.value
+    if betaFind != None:
+      self.beta = betaFind.value
     # check if lower bound are set, otherwise default
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
@@ -882,7 +904,8 @@ class Gamma(BoostDistribution):
     self.convertToDistrDict['Laguerre'] = self.convertLaguerreToGamma
     self.convertToQuadDict ['Laguerre'] = self.convertGammaToLaguerre
     self.measureNormDict   ['Laguerre'] = self.stdProbabilityNorm
-    if (not self.upperBoundUsed): # and (not self.lowerBoundUsed):
+    if (not self.upperBoundUsed):
+      # and (not self.lowerBoundUsed)
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
       #self.lowerBoundUsed = 0.0
       self.upperBound     = sys.float_info.max
@@ -894,11 +917,13 @@ class Gamma(BoostDistribution):
       if self.lowerBoundUsed == False:
         a = 0.0
         self.lowerBound = a
-      else:a = self.lowerBound
+      else:
+        a = self.lowerBound
       if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
-      else:b = self.upperBound
+      else:
+        b = self.upperBound
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
 
   def convertGammaToLaguerre(self,y):
@@ -1010,9 +1035,11 @@ class Beta(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     lowFind = paramInput.findFirst('low')
-    if lowFind != None: self.low = lowFind.value
+    if lowFind != None:
+      self.low = lowFind.value
     hiFind = paramInput.findFirst('high')
-    if hiFind != None: self.high = hiFind.value
+    if hiFind != None:
+      self.high = hiFind.value
     alphaFind = paramInput.findFirst('alpha')
     betaFind = paramInput.findFirst('beta')
     peakFind = paramInput.findFirst('peakFactor')
@@ -1021,11 +1048,13 @@ class Beta(BoostDistribution):
       self.beta  = betaFind.value
     elif (alphaFind == None and betaFind == None) and peakFind != None:
       peakFactor = peakFind.value
-      if not 0 <= peakFactor <= 1: self.raiseAnError(IOError,'peakFactor must be from 0 to 1, inclusive!')
+      if not 0 <= peakFactor <= 1:
+        self.raiseAnError(IOError,'peakFactor must be from 0 to 1, inclusive!')
       #this empirical formula is used to make it so factor->alpha: 0->1, 0.5~7.5, 1->99
       self.alpha = 0.5*23.818**(5.*peakFactor/3.) + 0.5
       self.beta = self.alpha
-    else: self.raiseAnError(IOError,'Either provide (alpha and beta) or peakFactor!')
+    else:
+      self.raiseAnError(IOError,'Either provide (alpha and beta) or peakFactor!')
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
@@ -1063,10 +1092,14 @@ class Beta(BoostDistribution):
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,self.low)
     else:
-      if self.lowerBoundUsed == False: a = 0.0
-      else:a = self.lowerBound
-      if self.upperBoundUsed == False: b = sys.float_info.max
-      else:b = self.upperBound
+      if self.lowerBoundUsed == False:
+        a = 0.0
+      else:
+        a = self.lowerBound
+      if self.upperBoundUsed == False:
+        b = sys.float_info.max
+      else:
+        b = self.upperBound
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,a,b,self.low)
     self.preferredPolynomials = 'Jacobi'
     self.compatibleQuadrature.append('Jacobi')
@@ -1182,14 +1215,20 @@ class Triangular(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     apexFind = paramInput.findFirst('apex')
-    if apexFind != None: self.apex = apexFind.value
-    else: self.raiseAnError(IOError,'apex value needed for normal distribution')
+    if apexFind != None:
+      self.apex = apexFind.value
+    else:
+      self.raiseAnError(IOError,'apex value needed for normal distribution')
     minFind = paramInput.findFirst('min')
-    if minFind != None: self.min = minFind.value
-    else: self.raiseAnError(IOError,'min value needed for normal distribution')
+    if minFind != None:
+      self.min = minFind.value
+    else:
+      self.raiseAnError(IOError,'min value needed for normal distribution')
     maxFind = paramInput.findFirst('max')
-    if maxFind != None: self.max = maxFind.value
-    else: self.raiseAnError(IOError,'max value needed for normal distribution')
+    if maxFind != None:
+      self.max = maxFind.value
+    else:
+      self.raiseAnError(IOError,'max value needed for normal distribution')
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
@@ -1297,8 +1336,10 @@ class Poisson(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     muFind = paramInput.findFirst('mu')
-    if muFind != None: self.mu = muFind.value
-    else: self.raiseAnError(IOError,'mu value needed for poisson distribution')
+    if muFind != None:
+      self.mu = muFind.value
+    else:
+      self.raiseAnError(IOError,'mu value needed for poisson distribution')
     self.initializeDistribution()
 
   def getInitParams(self):
@@ -1403,11 +1444,15 @@ class Binomial(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     nFind = paramInput.findFirst('n')
-    if nFind != None: self.n = nFind.value
-    else: self.raiseAnError(IOError,'n value needed for Binomial distribution')
+    if nFind != None:
+      self.n = nFind.value
+    else:
+      self.raiseAnError(IOError,'n value needed for Binomial distribution')
     pFind = paramInput.findFirst('p')
-    if pFind != None: self.p = pFind.value
-    else: self.raiseAnError(IOError,'p value needed for Binomial distribution')
+    if pFind != None:
+      self.p = pFind.value
+    else:
+      self.raiseAnError(IOError,'p value needed for Binomial distribution')
     self.initializeDistribution()
 
   def getInitParams(self):
@@ -1431,7 +1476,8 @@ class Binomial(BoostDistribution):
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicBinomialDistribution(self.n,self.p)
-    else: self.raiseAnError(IOError,'Truncated Binomial not yet implemented')
+    else:
+      self.raiseAnError(IOError,'Truncated Binomial not yet implemented')
 
 DistributionsCollection.addSub(Binomial.getInputSpecification())
 
@@ -1507,8 +1553,10 @@ class Bernoulli(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     pFind = paramInput.findFirst('p')
-    if pFind != None: self.p = pFind.value
-    else: self.raiseAnError(IOError,'p value needed for Bernoulli distribution')
+    if pFind != None:
+      self.p = pFind.value
+    else:
+      self.raiseAnError(IOError,'p value needed for Bernoulli distribution')
     self.initializeDistribution()
 
   def getInitParams(self):
@@ -1531,7 +1579,8 @@ class Bernoulli(BoostDistribution):
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
-    else:  self.raiseAnError(IOError,'Truncated Bernoulli not yet implemented')
+    else:
+      self.raiseAnError(IOError,'Truncated Bernoulli not yet implemented')
 
 DistributionsCollection.addSub(Bernoulli.getInputSpecification())
 
@@ -1628,7 +1677,8 @@ class Categorical(Distribution):
     totPsum = 0.0
     for element in self.mapping:
       totPsum += self.mapping[element]
-    if totPsum!=1.0: self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
+    if totPsum!=1.0:
+      self.raiseAnError(IOError,'Categorical distribution cannot be initialized
 
   def pdf(self,x):
     """
@@ -1636,8 +1686,10 @@ class Categorical(Distribution):
       @ In, x, float/string, value to get the pdf at
       @ Out, pdfValue, float, requested pdf
     """
-    if x in self.values: pdfValue =  self.mapping[x]
-    else: self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
+    if x in self.values:
+      pdfValue =  self.mapping[x]
+    else:
+      self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
     return pdfValue
 
   def cdf(self,x):
@@ -1653,7 +1705,8 @@ class Categorical(Distribution):
         cumulative += element[1]
         if x == float(element[0]):
           return cumulative
-    else: self.raiseAnError(IOError,'Categorical distribution cannot calculate cdf for ' + str(x))
+    else:
+      self.raiseAnError(IOError,'Categorical distribution cannot calculate cdf for ' + str(x))
 
   def ppf(self,x):
     """
@@ -1754,11 +1807,15 @@ class Logistic(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     locationFind = paramInput.findFirst('location')
-    if locationFind != None: self.location = locationFind.value
-    else: self.raiseAnError(IOError,'location value needed for Logistic distribution')
+    if locationFind != None:
+      self.location = locationFind.value
+    else:
+      self.raiseAnError(IOError,'location value needed for Logistic distribution')
     scaleFind = paramInput.findFirst('scale')
-    if scaleFind != None: self.scale = scaleFind.value
-    else: self.raiseAnError(IOError,'scale value needed for Logistic distribution')
+    if scaleFind != None:
+      self.scale = scaleFind.value
+    else:
+      self.raiseAnError(IOError,'scale value needed for Logistic distribution')
     self.initializeDistribution()
 
   def getInitParams(self):
@@ -1783,10 +1840,14 @@ class Logistic(BoostDistribution):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale)
     else:
-      if self.lowerBoundUsed == False: a = -sys.float_info.max
-      else:a = self.lowerBound
-      if self.upperBoundUsed == False: b = sys.float_info.max
-      else:b = self.upperBound
+      if self.lowerBoundUsed == False:
+        a = -sys.float_info.max
+      else:
+        a = self.lowerBound
+      if self.upperBoundUsed == False:
+        b = sys.float_info.max
+      else:
+        b = self.upperBound
       self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale,a,b)
 
 DistributionsCollection.addSub(Logistic.getInputSpecification())
@@ -1866,11 +1927,15 @@ class Exponential(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     lambdaFind = paramInput.findFirst('lambda')
-    if lambdaFind != None: self.lambdaVar = lambdaFind.value
-    else: self.raiseAnError(IOError,'lambda value needed for Exponential distribution')
+    if lambdaFind != None:
+      self.lambdaVar = lambdaFind.value
+    else:
+      self.raiseAnError(IOError,'lambda value needed for Exponential distribution')
     low  = paramInput.findFirst('low')
-    if low != None: self.low = low.value
-    else: self.low = 0.0
+    if low != None:
+      self.low = low.value
+    else:
+      self.low = 0.0
     # check if lower bound is set, otherwise default
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
@@ -1904,11 +1969,13 @@ class Exponential(BoostDistribution):
       if self.lowerBoundUsed == False:
         a = self.low
         self.lowerBound = a
-      else:a = self.lowerBound
+      else:
+        a = self.lowerBound
       if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
-      else:b = self.upperBound
+      else:
+        b = self.upperBound
       self._distribution = distribution1D.BasicExponentialDistribution(self.lambdaVar,a,b,self.low)
 
   def convertDistrPointsToStd(self,y):
@@ -1918,8 +1985,10 @@ class Exponential(BoostDistribution):
       @ Out, converted, float, the converted point
     """
     quad=self.quadratureSet()
-    if quad.type=='Laguerre': converted = (y-self.low)*(self.lambdaVar)
-    else: converted = Distribution.convertDistrPointsToStd(self,y)
+    if quad.type=='Laguerre':
+      converted = (y-self.low)*(self.lambdaVar)
+    else:
+      converted = Distribution.convertDistrPointsToStd(self,y)
     return converted
 
   def convertStdPointsToDistr(self,x):
@@ -1929,8 +1998,10 @@ class Exponential(BoostDistribution):
       @ Out, converted, float, the converted point
     """
     quad=self.quadratureSet()
-    if quad.type=='Laguerre': converted = x/self.lambdaVar+self.low
-    else: converted = Distribution.convertStdPointsToDistr(self,x)
+    if quad.type=='Laguerre':
+      converted = x/self.lambdaVar+self.low
+    else:
+      converted = Distribution.convertStdPointsToDistr(self,x)
     return converted
 
 DistributionsCollection.addSub(Exponential.getInputSpecification())
@@ -2013,14 +2084,20 @@ class LogNormal(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     meanFind = paramInput.findFirst('mean')
-    if meanFind != None: self.mean = meanFind.value
-    else: self.raiseAnError(IOError,'mean value needed for LogNormal distribution')
+    if meanFind != None:
+      self.mean = meanFind.value
+    else:
+      self.raiseAnError(IOError,'mean value needed for LogNormal distribution')
     sigmaFind = paramInput.findFirst('sigma')
-    if sigmaFind != None: self.sigma = sigmaFind.value
-    else: self.raiseAnError(IOError,'sigma value needed for LogNormal distribution')
+    if sigmaFind != None:
+      self.sigma = sigmaFind.value
+    else:
+      self.raiseAnError(IOError,'sigma value needed for LogNormal distribution')
     lowFind = paramInput.findFirst('low')
-    if lowFind != None: self.low = lowFind.value
-    else: self.low = 0.0
+    if lowFind != None:
+      self.low = lowFind.value
+    else:
+      self.low = 0.0
     self.initializeDistribution()
 
   def getInitParams(self):
@@ -2051,11 +2128,13 @@ class LogNormal(BoostDistribution):
       if self.lowerBoundUsed == False:
         a = self.low #-sys.float_info.max
         self.lowerBound = a
-      else:a = self.lowerBound
+      else:
+        a = self.lowerBound
       if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
-      else:b = self.upperBound
+      else:
+        b = self.upperBound
       self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low,a,b)
 
 DistributionsCollection.addSub(LogNormal.getInputSpecification())
@@ -2138,14 +2217,20 @@ class Weibull(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     lambdaFind = paramInput.findFirst('lambda')
-    if lambdaFind != None: self.lambdaVar = lambdaFind.value
-    else: self.raiseAnError(IOError,'lambda (scale) value needed for Weibull distribution')
+    if lambdaFind != None:
+      self.lambdaVar = lambdaFind.value
+    else:
+      self.raiseAnError(IOError,'lambda (scale) value needed for Weibull distribution')
     kFind = paramInput.findFirst('k')
-    if kFind != None: self.k = kFind.value
-    else: self.raiseAnError(IOError,'k (shape) value needed for Weibull distribution')
+    if kFind != None:
+      self.k = kFind.value
+    else:
+      self.raiseAnError(IOError,'k (shape) value needed for Weibull distribution')
     lowFind = paramInput.findFirst('low')
-    if lowFind != None: self.low = lowFind.value
-    else: self.low = 0.0
+    if lowFind != None:
+      self.low = lowFind.value
+    else:
+      self.low = 0.0
     # check if lower  bound is set, otherwise default
     #if not self.lowerBoundUsed:
     #  self.lowerBoundUsed = True
@@ -2173,17 +2258,20 @@ class Weibull(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    if (self.lowerBoundUsed == False and self.upperBoundUsed == False): # or self.lowerBound == 0.0:
+    if (self.lowerBoundUsed == False and self.upperBoundUsed == False):
+      # or self.lowerBound == 0.0
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,self.low)
     else:
       if self.lowerBoundUsed == False:
         a = self.low
         self.lowerBound = a
-      else:a = self.lowerBound
+      else:
+        a = self.lowerBound
       if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
-      else:b = self.upperBound
+      else:
+        b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,a,b,self.low)
 
 DistributionsCollection.addSub(Weibull.getInputSpecification())
@@ -2291,10 +2379,12 @@ class Custom1D(Distribution):
       self.cdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
       self.pdfFunc = self.cdfFunc.derivative()
       self.invCDF  = UnivariateSpline(self.data[:,1], self.data[:,0], k=4, s=0)
-    else:  # self.functionType == 'pdf'
+    else:
+      # self.functionType == 'pdf'
       self.pdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
       cdfValues = np.zeros(self.data[:,0].size)
-      for i in range(self.data[:,0].size):
+      for i in range(self.data[:
+        ,0].size)
         cdfValues[i] = self.pdfFunc.integral(self.data[0][0],self.data[i,0])
       self.invCDF = UnivariateSpline(cdfValues, self.data[:,0] , k=4, s=0)
 
@@ -2384,7 +2474,8 @@ class NDimensionalDistributions(Distribution):
     """
     Distribution._handleInput(self, paramInput)
     workingDir = paramInput.findFirst('workingDir')
-    if workingDir != None: self.workingDir = workingDir.value
+    if workingDir != None:
+      self.workingDir = workingDir.value
 
 
   def _readMoreXML(self,xmlNode):
@@ -2507,16 +2598,22 @@ class NDInverseWeight(NDimensionalDistributions):
     """
     NDimensionalDistributions._handleInput(self, paramInput)
     pFind = paramInput.findFirst('p')
-    if pFind != None: self.p = pFind.value
-    else: self.raiseAnError(IOError,'Minkowski distance parameter <p> not found in NDInverseWeight distribution')
+    if pFind != None:
+      self.p = pFind.value
+    else:
+      self.raiseAnError(IOError,'Minkowski distance parameter <p> not found in NDInverseWeight distribution')
 
     dataFilename = paramInput.findFirst('dataFilename')
-    if dataFilename != None: self.dataFilename = os.path.join(self.workingDir,dataFilename.value)
-    else: self.raiseAnError(IOError,'<dataFilename> parameter needed for MultiDimensional Distributions!!!!')
+    if dataFilename != None:
+      self.dataFilename = os.path.join(self.workingDir,dataFilename.value)
+    else:
+      self.raiseAnError(IOError,'<dataFilename> parameter needed for MultiDimensional Distributions!!!!')
 
     functionType = dataFilename.parameterValues['type']
-    if functionType != None: self.functionType = functionType
-    else: self.raiseAnError(IOError,'<functionType> parameter needed for MultiDimensional Distributions!!!!')
+    if functionType != None:
+      self.functionType = functionType
+    else:
+      self.raiseAnError(IOError,'<functionType> parameter needed for MultiDimensional Distributions!!!!')
 
     self.initializeDistribution()
 
@@ -2550,7 +2647,8 @@ class NDInverseWeight(NDimensionalDistributions):
       @ Out, cdfValue, float, cdf value
     """
     coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)): coordinate[i] = x[i]
+    for i in range(len(x)):
+      coordinate[i] = x[i]
     cdfValue = self._distribution.cdf(coordinate)
     return cdfValue
 
@@ -2570,7 +2668,8 @@ class NDInverseWeight(NDimensionalDistributions):
       @ Out, pdfValue, np.array, requested pdf
     """
     coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)): coordinate[i] = x[i]
+    for i in range(len(x)):
+      coordinate[i] = x[i]
     pdfValue = self._distribution.pdf(coordinate)
     return pdfValue
 
@@ -2702,12 +2801,16 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
     NDimensionalDistributions._handleInput(self, paramInput)
     dataFilename = paramInput.findFirst('dataFilename')
-    if dataFilename != None: self.dataFilename = os.path.join(self.workingDir,dataFilename.value)
-    else: self.raiseAnError(IOError,'<dataFilename> parameter needed for MultiDimensional Distributions!!!!')
+    if dataFilename != None:
+      self.dataFilename = os.path.join(self.workingDir,dataFilename.value)
+    else:
+      self.raiseAnError(IOError,'<dataFilename> parameter needed for MultiDimensional Distributions!!!!')
 
     functionType = dataFilename.parameterValues['type']
-    if functionType != None: self.functionType = functionType
-    else: self.raiseAnError(IOError,'<functionType> parameter needed for MultiDimensional Distributions!!!!')
+    if functionType != None:
+      self.functionType = functionType
+    else:
+      self.raiseAnError(IOError,'<functionType> parameter needed for MultiDimensional Distributions!!!!')
 
     self.initializeDistribution()
 
@@ -2741,7 +2844,8 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ Out, cdfValue, float, cdf value
     """
     coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)): coordinate[i] = x[i]
+    for i in range(len(x)):
+      coordinate[i] = x[i]
     cdfValue = self._distribution.cdf(coordinate)
     return cdfValue
 
@@ -2761,7 +2865,8 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ Out, pdfValue, np.array, requested pdf
     """
     coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)): coordinate[i] = x[i]
+    for i in range(len(x)):
+      coordinate[i] = x[i]
     pdfValue = self._distribution.pdf(coordinate)
     return pdfValue
 
@@ -2915,21 +3020,24 @@ class MultivariateNormal(NDimensionalDistributions):
       self.method = 'pca'
     elif paramInput.parameterValues['method'] == 'spline':
       self.method = 'spline'
-    else: self.raiseAnError(IOError,'The method attribute for the MultivariateNormal Distribution is not correct, choose "pca" or "spline"')
+    else:
+      self.raiseAnError(IOError,'The method attribute for the MultivariateNormal Distribution is not correct, choose "pca" or "spline"')
     for child in paramInput.subparts:
       if child.getName() == 'mu':
         mu = [float(value) for value in child.value.split()]
         self.dimension = len(mu)
       elif child.getName() == 'covariance':
         covariance = [float(value) for value in child.value.split()]
-        if 'type' in child.parameterValues: self.covarianceType = child.parameterValues['type']
+        if 'type' in child.parameterValues:
+          self.covarianceType = child.parameterValues['type']
       elif child.getName() == 'transformation':
         self.transformation = True
         for childChild in child.subparts:
           if childChild.getName() == 'rank':
             self.rank = childChild.value
 
-    if self.rank == None: self.rank = self.dimension
+    if self.rank == None:
+      self.rank = self.dimension
     self.mu = mu
     self.covariance = covariance
     #check square covariance
@@ -2967,7 +3075,8 @@ class MultivariateNormal(NDimensionalDistributions):
     for i in range(len(self.covariance)):
       covariance[i] = self.covariance[i]
     if self.method == 'spline':
-      if self.covarianceType != 'abs': self.raiseAnError(IOError,'covariance with type ' + self.covariance + ' is not implemented for ' + self.method + ' method')
+      if self.covarianceType != 'abs':
+        self.raiseAnError(IOError,'covariance with type ' + self.covariance + ' is not implemented for ' + self.method + ' method')
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
     elif self.method == 'pca':
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
@@ -2980,7 +3089,8 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     if self.method == 'spline':
       coordinate = distribution1D.vectord_cxx(len(x))
-      for i in range(len(x)): coordinate[i] = x[i]
+      for i in range(len(x)):
+        coordinate[i] = x[i]
       cdfValue = self._distribution.cdf(coordinate)
     else:
       self.raiseAnError(NotImplementedError,'cdf not yet implemented for ' + self.method + ' method')
@@ -3064,7 +3174,8 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, values, list, return the values of manifest variables with type of list
     """
     if self.method == 'pca':
-      if len(x) > self.rank: self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is large than the rank defined in <Distributions>')
+      if len(x) > self.rank:
+        self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is large than the rank defined in <Distributions>')
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)):
         coordinate[i] = x[i]
@@ -3147,8 +3258,10 @@ class MultivariateNormal(NDimensionalDistributions):
       coordinate[i] = x[i]
       dxs[i]=dx[i]
     if self.method == 'pca':
-      if self.transformation: self.raiseAWarning("The ProbabilityWeighted is computed on the reduced transformed space")
-      else: self.raiseAWarning("The ProbabilityWeighted is computed on the full transformed space")
+      if self.transformation:
+        self.raiseAWarning("The ProbabilityWeighted is computed on the reduced transformed space")
+      else:
+        self.raiseAWarning("The ProbabilityWeighted is computed on the full transformed space")
       integralReturn = self._distribution.cellProbabilityWeight(coordinate,dxs)
     elif self.method == 'spline':
       integralReturn = self._distribution.cellIntegral(coordinate,dxs)
@@ -3283,8 +3396,10 @@ def returnInstance(Type,caller):
     @ Out, returnInstance, instance, instance of the class
     Note: Interface function
   """
-  try: return __interFaceDict[Type]()
-  except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+  try:
+    return __interFaceDict[Type]()
+  except KeyError:
+    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
 
 def returnInputParameter():
   """

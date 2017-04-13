@@ -63,14 +63,18 @@ class MonteCarlo(ForwardSampler):
     ForwardSampler.readSamplerInit(self,xmlNode)
     if xmlNode.find('samplerInit') != None:
       if xmlNode.find('samplerInit').find('limit') is not None:
-        try              : self.limit = int(xmlNode.find('samplerInit').find('limit').text)
-        except ValueError: self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
-      else: self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
+        try:
+          self.limit = int(xmlNode.find('samplerInit').find('limit').text)
+        except ValueError:
+          self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+      else:
+        self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
       if xmlNode.find('samplerInit').find('samplingType')!= None:
         self.samplingType = xmlNode.find('samplerInit').find('samplingType').text
       else:
         self.samplingType = None
-    else: self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the samplerInit block')
+    else:
+      self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the samplerInit block')
 
   def localGenerateInput(self,model,myInput):
     """
@@ -122,7 +126,8 @@ class MonteCarlo(ForwardSampler):
               lower = self.distDict[key].returnLowerBound(i)
               upper = self.distDict[key].returnUpperBound(i)
               coordinate[i] = lower + (upper - lower) * Distributions.random()
-          if reducedDim > len(coordinate): self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
+          if reducedDim > len(coordinate):
+            self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
           probabilityValue = self.distDict[key].pdf(coordinate)
           self.inputInfo['SampledVarsPb'][key] = probabilityValue
           for var in self.distributions2variablesMapping[dist]:
@@ -147,4 +152,5 @@ class MonteCarlo(ForwardSampler):
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
       @ Out, None
     """
-    if len(failedRuns)>0: self.raiseADebug('  Continuing with reduced-size Monte-Carlo sampling.')
+    if len(failedRuns)>0:
+      self.raiseADebug('  Continuing with reduced-size Monte-Carlo sampling.')

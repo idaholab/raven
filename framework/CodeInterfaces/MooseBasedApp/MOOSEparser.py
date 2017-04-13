@@ -38,7 +38,8 @@ class MOOSEparser():
       @ Out, None
     """
     self.printTag = 'MOOSE_PARSER'
-    if not os.path.exists(inputFile): raise IOError('not found MOOSE input file')
+    if not os.path.exists(inputFile):
+      raise IOError('not found MOOSE input file')
     IOfile = open(inputFile,'rb')
     self.inputfile = inputFile
     lines = IOfile.readlines()
@@ -59,20 +60,24 @@ class MOOSEparser():
           parents.append(current)
           current      = ET.SubElement(current,name)
           current.tail = []
-          if b'#' in line[line.index(b']'):]: current.tail.append(line[line.index(b']')+1:].strip(b'\n').lstrip())
+          if b'#' in line[line.index(b']'):
+            ]
       elif len(line)!=0:
         if not line.startswith(b'#'):
           ind = line.find(b'=')
           if ind != -1:
             listLine = line.split(b'=')
             attribName = listLine[0].strip()
-            if b'#' not in listLine[1]: attribValue = listLine[1].strip()
-            else: attribValue = listLine[1][:listLine[1].index('#')]
+            if b'#' not in listLine[1]:
+              attribValue = listLine[1].strip()
+            else:
+              attribValue = listLine[1][
             current.attrib[attribName] = attribValue
           else:
             if b'#' not in line:
               attribValue = attribValue + '\n' + line
-            else: attribValue = attribValue + '\n' + line[:line.index('#')]
+            else:
+              attribValue = attribValue + '\n' + line[
             current.attrib[attribName] = attribValue
         else:
           current.tail.append(line)
@@ -90,12 +95,14 @@ class MOOSEparser():
         IOfile.write(b'    '*indentMultiplier+string+b'\n')
       for key in xmlnode.attrib.keys():
         IOfile.write(b'    '*indentMultiplier+toBytes(key)+b' = '+toBytes(toStrish(xmlnode.attrib[key]))+b'\n')
-    if outfile==None: outfile =self.inputfile
+    if outfile==None:
+      outfile =self.inputfile
     IOfile = open(outfile,'wb')
     for child in self.root:
       IOfile.write(b'['+toBytes(child.tag)+b']\n')
       if child.tail:
-        for string in child.tail:IOfile.write(b'  '+string+b'\n')
+        for string in child.tail:
+          IOfile.write(b'  '+string+b'\n')
       for key in child.attrib.keys():
         IOfile.write(b'  '+toBytes(key)+b' = '+toBytes(toStrish(child.attrib[key]))+b'\n')
       for childChild in child:
@@ -118,7 +125,8 @@ class MOOSEparser():
     returnNode = None
     self.root.find(name)
     for child in self.root:
-      if name.strip() == child.tag: returnNode = child
+      if name.strip() == child.tag:
+        returnNode = child
     return returnNode
 
 
@@ -149,11 +157,14 @@ class MOOSEparser():
       @ Out, None
     """
     for key in other:
-      if key in dictionary: dictionary[key] = other[key]
+      if key in dictionary:
+        dictionary[key] = other[key]
       else:
         binKey = toBytes(key)
-        if binKey in dictionary: dictionary[binKey] = other[key]
-        else                   : dictionary[key] = other[key]
+        if binKey in dictionary:
+          dictionary[binKey] = other[key]
+        else:
+          dictionary[key] = other[key]
 
   def __matchDict(self,dictionary,other):
     """
@@ -239,13 +250,16 @@ class MOOSEparser():
       @ In, save, bool, optional, True if the original tree needs to be saved
       @ Out, returnElement, xml.etree.ElementTree.Element, the tree that got modified
     """
-    if save: returnElement = copy.deepcopy(self.root)         #make a copy if save is requested
-    else: returnElement = self.root                           #otherwise return the original modified
+    if save:
+      returnElement = copy.deepcopy(self.root)         #make a copy if save is requested
+    else:
+      returnElement = self.root                           #otherwise return the original modified
     for i in xrange(len(modiDictionaryList)):
       name = modiDictionaryList[i]['name']
       del modiDictionaryList[i]['name']
       self.__modifyOrAdd(returnElement,name,modiDictionaryList[i])
-    if save: return returnElement
+    if save:
+      return returnElement
 
   def vectorPostProcessor(self):
     """

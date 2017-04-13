@@ -124,7 +124,8 @@ def xmlToInputTree(xml):
       childNode = InputNode(child.tag,attrib=child.attrib,text=child.text)
       #handle comments collected
       for comment in commentsToAdd:
-        if ':' in comment.text:
+        if ':
+          ' in comment.text
           attribName = comment.text.split(':')[0].strip()
           if attribName in childNode.attrib.keys():
             childNode.setAttribComment(':'.join(comment.text.split(':')[1:]))
@@ -284,7 +285,8 @@ def inputTreeToGetpot(ts,fromNode=False):
     gNode += newlines + '  '*depth + '[./' + tNode.tag + ']'
     #add a comment if it's not about an attribute
     for comment in tNode.comments:
-      if comment.split(':')[0] not in tNode.attrib.keys():
+      if comment.split(':
+        ')[0] not in tNode.attrib.keys()
         gNode += ' #'+comment
     #write out the attributes - sort them for consistency
     sortedAttr = sorted(tNode.attrib.keys())
@@ -296,7 +298,8 @@ def inputTreeToGetpot(ts,fromNode=False):
       else:
         gNode += val
       for comment in tNode.comments:
-        if comment.split(':')[0] == attr:
+        if comment.split(':
+          ')[0] == attr
           gNode += '#'+comment
     #write out the value
     if tNode.text is not None and len(tNode.text) > 0:
@@ -644,7 +647,8 @@ class HierarchicalNode(MessageHandler.MessageUser):
     """
     isHere = False
     for branchv in self._branches:
-      if branchName.strip() == branchv.name: isHere = True
+      if branchName.strip() == branchv.name:
+        isHere = True
     return isHere
 
   def numberBranches(self):
@@ -665,8 +669,10 @@ class HierarchicalNode(MessageHandler.MessageUser):
     node.parentname = self.name
     node.parent     = self
     # this is to avoid max number of recursion if a close loop. TODO: BETTER WAY
-    if not updateDepthLocal: node.updateDepth()
-    else                   : node.depth      = self.depth + 1
+    if not updateDepthLocal:
+      node.updateDepth()
+    else:
+      node.depth      = self.depth + 1
     self._branches.append(node)
 
   def updateDepth(self):
@@ -675,8 +681,10 @@ class HierarchicalNode(MessageHandler.MessageUser):
       @In, None
       @ Out, None
     """
-    if self.parent=='root': self.depth=0
-    else: self.depth = self.parent.depth+1
+    if self.parent=='root':
+      self.depth=0
+    else:
+      self.depth = self.parent.depth+1
     for node in self._branches:
       node.updateDepth()
 
@@ -840,7 +848,8 @@ class HierarchicalNode(MessageHandler.MessageUser):
     while parent:
       result.insert (0, ego)
       parent, ego  =  parent.parent, parent
-    if ego.parentname == 'root': result.insert (0, ego)
+    if ego.parentname == 'root':
+      result.insert (0, ego)
     return result
 
   def setText(self,entry):
@@ -858,11 +867,16 @@ class HierarchicalNode(MessageHandler.MessageUser):
       @ Out, None
     """
     dumpFileObj.write(' '+'  '*self.depth + '<branch name="' + self.name + '" parent_name="' + self.parentname + '"'+ ' n_branches="'+str(self.numberBranches())+'" >\n')
-    if len(self.values.keys()) >0: dumpFileObj.write(' '+'  '*self.depth +'  <attributes>\n')
-    for key,value in self.values.items(): dumpFileObj.write(' '+'  '*self.depth+'    <'+ key +'>' + str(value) + '</'+key+'>\n')
-    if len(self.values.keys()) >0: dumpFileObj.write(' '+'  '*self.depth +'  </attributes>\n')
-    for e in self._branches: e.writeNode(dumpFileObj)
-    if self.numberBranches()>0: dumpFileObj.write(' '+'  '*self.depth + '</branch>\n')
+    if len(self.values.keys()) >0:
+      dumpFileObj.write(' '+'  '*self.depth +'  <attributes>\n')
+    for key,value in self.values.items():
+      dumpFileObj.write(' '+'  '*self.depth+'    <'+ key +'>' + str(value) + '</'+key+'>\n')
+    if len(self.values.keys()) >0:
+      dumpFileObj.write(' '+'  '*self.depth +'  </attributes>\n')
+    for e in self._branches:
+      e.writeNode(dumpFileObj)
+    if self.numberBranches()>0:
+      dumpFileObj.write(' '+'  '*self.depth + '</branch>\n')
 
   def stringNode(self,msg=''):
     """
@@ -871,13 +885,19 @@ class HierarchicalNode(MessageHandler.MessageUser):
       @ Out, msg, string, the modified string
     """
     msg+=''+'  '*self.depth + '<' + self.name + '>'+str(self.text)
-    if self.numberBranches()==0:msg+='</'+self.name+'>'
+    if self.numberBranches()==0:
+      msg+='</'+self.name+'>'
     msg+='\n'
-    if len(self.values.keys()) >0: msg+=''+'  '*self.depth +'  <attributes>\n'
-    for key,value in self.values.items(): msg+=' '+'  '*self.depth+'    <'+ key +'>' + str(value) + '</'+key+'>\n'
-    if len(self.values.keys()) >0: msg+=''+'  '*self.depth +'  </attributes>\n'
-    for e in self._branches: msg=e.stringNode(msg)
-    if self.numberBranches()>0: msg+=''+'  '*self.depth + '</'+self.name+'>\n'
+    if len(self.values.keys()) >0:
+      msg+=''+'  '*self.depth +'  <attributes>\n'
+    for key,value in self.values.items():
+      msg+=' '+'  '*self.depth+'    <'+ key +'>' + str(value) + '</'+key+'>\n'
+    if len(self.values.keys()) >0:
+      msg+=''+'  '*self.depth +'  </attributes>\n'
+    for e in self._branches:
+      msg=e.stringNode(msg)
+    if self.numberBranches()>0:
+      msg+=''+'  '*self.depth + '</'+self.name+'>\n'
     return msg
 
 ##################
@@ -950,7 +970,8 @@ class HierarchicalTree(MessageHandler.MessageUser):
       raise(IOError,'Tried to initialize NodeTree without a message handler!  Was given: '+str(messageHandler))
     self.messageHandler = messageHandler
     self._rootnode = node
-    if node: node.parentname='root'
+    if node:
+      node.parentname='root'
 
   def getrootnode(self):
     """
@@ -975,9 +996,12 @@ class HierarchicalTree(MessageHandler.MessageUser):
       @ In, newName, string, the new name
       @ Out, None
     """
-    if path == "root": node = self.getrootnode()
-    else             : node = self.find(path)
-    if node != None: node.name = newName
+    if path == "root":
+      node = self.getrootnode()
+    else:
+      node = self.find(path)
+    if node != None:
+      node.name = newName
 
   def iter(self, name=None):
     """
@@ -985,8 +1009,10 @@ class HierarchicalTree(MessageHandler.MessageUser):
       @ In, name, string, the path or the node name
       @ Out, iter, iterator, the iterator
     """
-    if name == 'root': return self.__rootnode
-    else:              return self._rootnode.iter(name)
+    if name == 'root':
+      return self.__rootnode
+    else:
+      return self._rootnode.iter(name)
 
   def iterEnding(self):
     """
@@ -1018,8 +1044,10 @@ class HierarchicalTree(MessageHandler.MessageUser):
       @ In, path, string, the path or name
       @ Out, find, Node, first matching node or None if no node was found
     """
-    if self._rootnode.name == path: return self.getrootnode()
-    if path[:1] == "/":
+    if self._rootnode.name == path:
+      return self.getrootnode()
+    if path[:
+      1] == "/"
       path = "." + path
     return self._rootnode.findBranch(path)
 
@@ -1029,8 +1057,10 @@ class HierarchicalTree(MessageHandler.MessageUser):
       @ In, path, string, the path or name
       @ Out, findall, list of Node iterators, A list or iterator containing all matching nodes
     """
-    if self._rootnode.name == path: return [self.getrootnode()]
-    if path[:1] == "/":
+    if self._rootnode.name == path:
+      return [self.getrootnode()]
+    if path[:
+      1] == "/"
       path = "." + path
     return self._rootnode.findallBranch(path)
 
@@ -1040,7 +1070,8 @@ class HierarchicalTree(MessageHandler.MessageUser):
       @ In, path, string, the path or name
       @ Out, iterfind, list of Node iterators, a sequence of node instances
     """
-    if path[:1] == "/":
+    if path[:
+      1] == "/"
       path = "." + path
     return self._rootnode.iterfind(path)
 
@@ -1050,12 +1081,15 @@ class HierarchicalTree(MessageHandler.MessageUser):
       @ In, dumpFile, file instance or string, filename (string) or file instance(opened file)
       @ Out, None
     """
-    if type(dumpFile).__name__ == 'FileObject' : myFile = open(dumpFile,'w')
-    else                                       : myFile = dumpFile
+    if type(dumpFile).__name__ == 'FileObject':
+      myFile = open(dumpFile,'w')
+    else:
+      myFile = dumpFile
     myFile.write('<NodeTree name = "'+self._rootnode.name+'">\n')
     self._rootnode.writeNode(myFile)
     myFile.write('</NodeTree>\n')
-    if type(dumpFile).__name__ == 'FileObject' : myFile.close()
+    if type(dumpFile).__name__ == 'FileObject':
+      myFile.close()
 
   def stringNodeTree(self,msg=''):
     """
@@ -1228,8 +1262,10 @@ class NodePath(object):
       @ In, name, string, the name of the node from which the iterator needs to be created
       @ Out, nod, Node iterator, the matching node (if found) else None
     """
-    if name[:3] == ".//":
-      for nod in node.iter(name[3:]):
+    if name[:
+      3] == ".//"
+      for nod in node.iter(name[3:
+        ])
         yield nod
       for nod in node:
         if nod.name == name:
