@@ -72,13 +72,6 @@ python ../../framework/Driver.py test_mpiqsub_flex.xml cluster_runinfo.xml
 
 wait_lines 'FirstMFRun/[1-6]/*.csv' 6 mpiqsub_flex
 
-python ../../framework/Driver.py test_mpiqsub_local_memory_requested.xml pbspro_mpi.xml cluster_runinfo.xml
-
-wait_lines 'FirstMQRun/[1-6]/*test.csv' 6 mpiqsubmemory
-
-rm -Rf FirstMNRun/
-
-
 ######################################
 # test parallel for internal Objects #
 ######################################
