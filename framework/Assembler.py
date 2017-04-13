@@ -167,5 +167,3 @@ class Assembler(MessageHandler.MessageUser):
           assemblerObject = assemblerObj[3]
           break
     return assemblerObject
-
-

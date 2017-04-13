@@ -111,5 +111,3 @@ class mooseData:
         j = j + 1
         IOcsvfile.write('%s' %(tempString))
       IOcsvfile.write('\n')
-
-

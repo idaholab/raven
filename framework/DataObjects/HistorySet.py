@@ -229,7 +229,7 @@ class HistorySet(Data):
       @ Out, None
     """
     if not isinstance(value,(np.ndarray,c1darray)):
-        self.raiseAnError(NotConsistentData,'HistorySet Data accepts only numpy array as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
+      self.raiseAnError(NotConsistentData,'HistorySet Data accepts only numpy array as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
 
     if options and self._dataParameters['hierarchical']:
       parentID = None

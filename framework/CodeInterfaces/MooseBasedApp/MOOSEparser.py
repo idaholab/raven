@@ -269,4 +269,3 @@ class MOOSEparser():
         if 'num_steps' in child.keys():
           vectorPPDict['timeStep'] = child.attrib['num_steps'].strip("'").strip().split(' ') #TODO: define default num_steps in case it is not in moose input
     return found, vectorPPDict
-

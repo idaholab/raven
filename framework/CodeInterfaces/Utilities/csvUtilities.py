@@ -172,9 +172,3 @@ class csvUtilityClass(object):
     else:
       mergedReturn = (self.allHeaders,dataFinal)
     return mergedReturn
-
-
-
-
-
-

@@ -218,4 +218,3 @@ def returnClass(ROMclass,caller):
   """
   try: return __interfaceDict[ROMclass]
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+ROMclass)
-

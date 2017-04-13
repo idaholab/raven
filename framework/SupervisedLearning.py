@@ -1518,7 +1518,7 @@ class MSR(NDinterpolatorRom):
       @ Out, None
     """
     for key, value in newState.iteritems():
-        setattr(self, key, value)
+      setattr(self, key, value)
     self.kdTree             = None
     self.__amsc             = []
     self.__trainLocal__(self.X,self.Y)

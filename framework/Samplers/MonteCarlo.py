@@ -148,6 +148,3 @@ class MonteCarlo(ForwardSampler):
       @ Out, None
     """
     if len(failedRuns)>0: self.raiseADebug('  Continuing with reduced-size Monte-Carlo sampling.')
-
-
-

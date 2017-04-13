@@ -245,9 +245,9 @@ def interpretBoolean(inArg):
     if inArg == 0: return False
     else         : return True
   elif type(inArg).__name__ in ['str','bytes','unicode']:
-      if inArg.lower().strip() in stringsThatMeanTrue()   : return True
-      elif inArg.lower().strip() in stringsThatMeanFalse(): return False
-      else                                                : raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
+    if inArg.lower().strip() in stringsThatMeanTrue()   : return True
+    elif inArg.lower().strip() in stringsThatMeanFalse(): return False
+    else                                                : raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
   else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inArg).__name__)
 
 def isClose(f1, f2, relTolerance=1e-14, absTolerance=0.0):
@@ -530,7 +530,7 @@ def getRelativeSortedListEntry(sortedList,value,tol=1e-15):
   #if "value" is smallest value in list...
   if index == 0:
     if len(sortedList)>0:
-      #check if current first matches
+    #check if current first matches
       if compareFloats(sortedList[0], value, tol=tol):
         match = sortedList[0]
         match_index = index
@@ -779,23 +779,23 @@ def find_interpolationND():
       return interpolationNDpy2
 
 def printCsv(csv,*args):
-    """
-      Writes the values contained in args to a csv file specified by csv
-      @ In, csv, File instance, an open file object to which we will be writing
-      @ In, args, dict, an arbitrary collection of values to write to the file
-      @ Out, None
-    """
-    print(*args,file=csv,sep=',')
+  """
+    Writes the values contained in args to a csv file specified by csv
+    @ In, csv, File instance, an open file object to which we will be writing
+    @ In, args, dict, an arbitrary collection of values to write to the file
+    @ Out, None
+  """
+  print(*args,file=csv,sep=',')
 
 def printCsvPart(csv,*args):
-    """
-      Writes the values contained in args to a csv file specified by csv appending a comma
-      to the end to allow more data to be written to the line.
-      @ In, csv, File instance, an open file object to which we will be writing
-      @ In, args, dict, an arbitrary collection of values to write to the file
-      @ Out, None
-    """
-    print(*args,file=csv,sep=',',end=',')
+  """
+    Writes the values contained in args to a csv file specified by csv appending a comma
+    to the end to allow more data to be written to the line.
+    @ In, csv, File instance, an open file object to which we will be writing
+    @ In, args, dict, an arbitrary collection of values to write to the file
+    @ Out, None
+  """
+  print(*args,file=csv,sep=',',end=',')
 
 def tryParse(text):
   """
@@ -1023,4 +1023,3 @@ def returnIdSeparator():
     @ Out, __idSeparator, string, the id separator
   """
   return __idSeparator
-

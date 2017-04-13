@@ -158,7 +158,3 @@ class EnsembleForwardSampler(ForwardSampler):
     for key in self.inputInfo.keys():
       if key.startswith('ProbabilityWeight-'):self.inputInfo['ProbabilityWeight' ] *= self.inputInfo[key]
     self.inputInfo['SamplerType'] = 'EnsembleForward'
-
-
-
-

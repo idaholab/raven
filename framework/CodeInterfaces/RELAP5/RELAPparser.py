@@ -142,4 +142,3 @@ class RELAPparser():
     for i in temp: newline=newline+'  '+i
     newline=newline+'\n'
     return newline
-

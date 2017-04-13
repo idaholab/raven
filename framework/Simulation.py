@@ -717,16 +717,16 @@ class Simulation(MessageHandler.MessageUser):
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               #if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
               if Class != 'OutStreams':
-                  if name not in self.whichDict[Class].keys():
-                    if "needsRunInfo" in self.addWhatDict[Class].__dict__:
-                      self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict,self)
-                    else:
-                      self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
-                  else: self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
+                if name not in self.whichDict[Class].keys():
+                  if "needsRunInfo" in self.addWhatDict[Class].__dict__:
+                    self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict,self)
+                  else:
+                    self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
+                else: self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
               else:
-                  if name not in self.whichDict[Class][subType].keys():
-                    self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag,self)
-                  else: self.raiseAnError(IOError,'Redundant  naming in the input for class '+Class+' and sub Type'+subType+' and name '+name)
+                if name not in self.whichDict[Class][subType].keys():
+                  self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag,self)
+                else: self.raiseAnError(IOError,'Redundant  naming in the input for class '+Class+' and sub Type'+subType+' and name '+name)
               #now we can read the info for this object
               #if globalAttributes and 'verbosity' in globalAttributes.keys(): localVerbosity = globalAttributes['verbosity']
               #else                                                      : localVerbosity = self.verbosity
@@ -789,18 +789,18 @@ class Simulation(MessageHandler.MessageUser):
       if myClass!= 'Step' and myClass not in list(self.whichDict.keys()):
         self.raiseAnError(IOError,'For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
       if myClass != 'OutStreams':
-          if name not in list(self.whichDict[myClass].keys()):
-            self.raiseADebug('name:',name)
-            self.raiseADebug('myClass:',myClass)
-            self.raiseADebug('list:',list(self.whichDict[myClass].keys()))
-            self.raiseADebug('whichDict[myClass]',self.whichDict[myClass])
-            self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
+        if name not in list(self.whichDict[myClass].keys()):
+          self.raiseADebug('name:',name)
+          self.raiseADebug('myClass:',myClass)
+          self.raiseADebug('list:',list(self.whichDict[myClass].keys()))
+          self.raiseADebug('whichDict[myClass]',self.whichDict[myClass])
+          self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
       else:
-          if name not in list(self.whichDict[myClass][objectType].keys()):
-            self.raiseADebug('name: '+name)
-            self.raiseADebug('list: '+str(list(self.whichDict[myClass][objectType].keys())))
-            self.raiseADebug(str(self.whichDict[myClass][objectType]))
-            self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
+        if name not in list(self.whichDict[myClass][objectType].keys()):
+          self.raiseADebug('name: '+name)
+          self.raiseADebug('list: '+str(list(self.whichDict[myClass][objectType].keys())))
+          self.raiseADebug(str(self.whichDict[myClass][objectType]))
+          self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
 
       if myClass != 'Files':  # check if object type is consistent
         if myClass != 'OutStreams': objtype = self.whichDict[myClass][name].type
@@ -961,10 +961,10 @@ class Simulation(MessageHandler.MessageUser):
       for [key,b,c,d] in stepInstance.parList:
         #Only for input and output we allow more than one object passed to the step, so for those we build a list
         if key == 'Input' or key == 'Output':
-            if b == 'OutStreams':
-              stepInputDict[key].append(self.whichDict[b][c][d])
-            else:
-              stepInputDict[key].append(self.whichDict[b][d])
+          if b == 'OutStreams':
+            stepInputDict[key].append(self.whichDict[b][c][d])
+          else:
+            stepInputDict[key].append(self.whichDict[b][d])
         else:
           stepInputDict[key] = self.whichDict[b][d]
       #add the global objects

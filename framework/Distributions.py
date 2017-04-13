@@ -3293,4 +3293,3 @@ def returnInputParameter():
     @ Out, DistributionsCollection, DistributionsCollection, class for parsing.
   """
   return DistributionsCollection()
-

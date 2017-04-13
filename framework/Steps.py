@@ -781,4 +781,3 @@ def returnInstance(Type,caller):
   """
   return __interFaceDict[Type]()
   caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
-

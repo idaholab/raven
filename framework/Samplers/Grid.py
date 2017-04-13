@@ -153,20 +153,20 @@ class Grid(ForwardSampler):
           self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
       # compute the SampledVarsPb for N-D distribution
       else:
-          if self.variables2distributionsMapping[varName]['reducedDim']==1:    # to avoid double count;
-            distName = self.variables2distributionsMapping[varName]['name']
-            ndCoordinate=[0]*len(self.distributions2variablesMapping[distName])
-            positionList = self.distributions2variablesIndexList[distName]
-            for var in self.distributions2variablesMapping[distName]:
-              variable = utils.first(var.keys())
-              position = utils.first(var.values())
-              ndCoordinate[positionList.index(position)] = float(coordinates[variable.strip()])
-              for key in variable.strip().split(','):
-                self.inputInfo['distributionName'][key] = self.toBeSampled[variable]
-                self.inputInfo['distributionType'][key] = self.distDict[variable].type
-                self.values[key] = coordinates[variable]
-            # Based on the discussion with Diego, we will use the following to compute SampledVarsPb.
-            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
+        if self.variables2distributionsMapping[varName]['reducedDim']==1:    # to avoid double count;
+          distName = self.variables2distributionsMapping[varName]['name']
+          ndCoordinate=[0]*len(self.distributions2variablesMapping[distName])
+          positionList = self.distributions2variablesIndexList[distName]
+          for var in self.distributions2variablesMapping[distName]:
+            variable = utils.first(var.keys())
+            position = utils.first(var.values())
+            ndCoordinate[positionList.index(position)] = float(coordinates[variable.strip()])
+            for key in variable.strip().split(','):
+              self.inputInfo['distributionName'][key] = self.toBeSampled[variable]
+              self.inputInfo['distributionType'][key] = self.distDict[variable].type
+              self.values[key] = coordinates[variable]
+          # Based on the discussion with Diego, we will use the following to compute SampledVarsPb.
+          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
       # Compute the ProbabilityWeight
       if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
         if self.distDict[varName].getDisttype() == 'Discrete':

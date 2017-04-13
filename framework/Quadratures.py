@@ -828,4 +828,3 @@ def returnInstance(Type,caller,**kwargs):
     elif kwargs['Subtype']=='ClenshawCurtis': return __interFaceDict['CDFClenshawCurtis']()
   if Type in knownTypes(): return __interFaceDict[Type]()
   else: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
-

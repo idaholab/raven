@@ -219,4 +219,3 @@ class Stratified(Grid):
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'
-

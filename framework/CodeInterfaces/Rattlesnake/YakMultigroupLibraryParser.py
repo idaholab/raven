@@ -687,4 +687,3 @@ class YakMultigroupLibraryParser():
       toWrite = self._prettify(tree)
       newFile.writelines(toWrite)
       newFile.close()
-

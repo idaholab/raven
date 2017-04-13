@@ -334,8 +334,8 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       self.pointsNeededToMakeROM.add(pt) #sets won't store redundancies
       #if pt isn't already in needed, and it hasn't already been solved, add it to the queue
       if pt not in self.neededPoints and self.solns.getMatchingRealization(self._tupleToDict(pt)) is None:
-          self.newSolutionSizeShouldBe+=1
-          self.neededPoints.append(pt)
+        self.newSolutionSizeShouldBe+=1
+        self.neededPoints.append(pt)
 
   def _convergence(self,poly,rom,target):
     """

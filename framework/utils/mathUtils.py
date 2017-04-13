@@ -568,4 +568,3 @@ def numBinsDraconis(data):
   numBins = int((max(data)-min(data))/binSize)
   binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
   return numBins,binEdges
-

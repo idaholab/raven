@@ -235,4 +235,3 @@ class relapdata:
         IOcsvfile.write('%s' %(self.ravenData[self.ravenData.keys()[k]]))
         if k+1<len(self.ravenData.keys()): IOcsvfile.write(',')
       IOcsvfile.write('\n')
-

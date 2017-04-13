@@ -74,4 +74,3 @@ def returnPostProcessorInterface(Type,caller):
   if Type not in knownTypes():
     caller.raiseAnError(NameError,'"%s" type unrecognized:' %__base,Type)
   return __interFaceDict[Type](caller.messageHandler)
-

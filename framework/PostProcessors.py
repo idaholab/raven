@@ -3295,7 +3295,7 @@ class ExternalPostProcessor(BasePostProcessor):
           self.raiseAWarning(self, 'Input type ' + inType + ' not yet implemented. I am going to skip it.')
       elif inType == 'HDF5':
         # TODO
-          self.raiseAWarning(self, 'Input type ' + inType + ' not yet implemented. I am going to skip it.')
+        self.raiseAWarning(self, 'Input type ' + inType + ' not yet implemented. I am going to skip it.')
       elif inType == 'PointSet':
         for param in item.getParaKeys('input'):
           inputDict['targets'][param] = item.getParam('input', param)
@@ -3345,7 +3345,7 @@ class ExternalPostProcessor(BasePostProcessor):
     for key in self.assemblerDict.keys():
       if 'Function' in key:
         for val in self.assemblerDict[key]:
-            self.externalInterfaces.add(val[3])
+          self.externalInterfaces.add(val[3])
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -3433,12 +3433,12 @@ class ExternalPostProcessor(BasePostProcessor):
                 foundCount += 1
           else:
             for inputData in inputList:
-                if key in inputData.getParametersValues('output',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('output',nodeId = 'ending').values()[-1].keys():
-                  if inputData.type == 'PointSet':
-                    value = inputData.getParametersValues('output',nodeId = 'ending')[key]
-                  else:
-                    value = [value[key] for value in inputData.getParametersValues('output',nodeId = 'ending').values()]
-                  foundCount += 1
+              if key in inputData.getParametersValues('output',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('output',nodeId = 'ending').values()[-1].keys():
+                if inputData.type == 'PointSet':
+                  value = inputData.getParametersValues('output',nodeId = 'ending')[key]
+                else:
+                  value = [value[key] for value in inputData.getParametersValues('output',nodeId = 'ending').values()]
+                foundCount += 1
 
           if foundCount == 0:
             self.raiseAnError(IOError, key + ' not found in the input '

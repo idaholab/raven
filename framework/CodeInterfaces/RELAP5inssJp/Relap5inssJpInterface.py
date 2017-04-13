@@ -68,7 +68,3 @@ class Relap5inssJp(Relap5):
     modelparParser.modifyInternalDictionary(**Kwargs)
     modelparParser.writeNewInput([currentInputFiles[modelParIndex]],[oriInputFiles[modelParIndex]])
     return currentInputFiles
-
-
-
-

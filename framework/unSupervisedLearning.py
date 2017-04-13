@@ -1023,9 +1023,9 @@ class temporalSciKitLearn(unSupervisedLearning):
           self.outputDict['outputs']['embeddingVectors'][t] = embeddingVectors
 
         if hasattr(self.SKLEngine.Method, 'means_'):
-            self.metaDict['means'][t] = self.SKLEngine.Method.means_
+          self.metaDict['means'][t] = self.SKLEngine.Method.means_
         if hasattr(self.SKLEngine.Method, 'explained_variance_'):
-            self.metaDict['explainedVariance'][t] = self.SKLEngine.Method.explained_variance_
+          self.metaDict['explainedVariance'][t] = self.SKLEngine.Method.explained_variance_
         if hasattr(self.SKLEngine.Method, 'explained_variance_ratio_'):
           self.metaDict['explainedVarianceRatio'][t] = self.SKLEngine.Method.explained_variance_ratio_
 

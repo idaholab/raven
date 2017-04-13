@@ -595,21 +595,21 @@ class OutStreamPlot(OutStreamManager):
         elif self.dim == 3:
           self.plt3D.text(float(self.options[key]['position'].split(',')[0]), float(self.options[key]['position'].split(',')[1]), float(self.options[key]['position'].split(',')[2]), self.options[key]['text'], fontdict = ast.literal_eval(self.options[key]['fontdict']), withdash = ast.literal_eval(self.options[key]['withdash']), **self.options[key].get('attributes', {}))
       elif key == 'autoscale':
-          if 'enable' not in self.options[key].keys():
-            self.options[key]['enable'] = 'True'
-          elif self.options[key]['enable'].lower() in utils.stringsThatMeanTrue():
-            self.options[key]['enable'] = 'True'
-          elif self.options[key]['enable'].lower() in utils.stringsThatMeanFalse():
-            self.options[key]['enable'] = 'False'
-          if 'axis' not in self.options[key].keys():
-            self.options[key]['axis'] = 'both'
-          if 'tight' not in self.options[key].keys():
-            self.options[key]['tight'] = 'None'
+        if 'enable' not in self.options[key].keys():
+          self.options[key]['enable'] = 'True'
+        elif self.options[key]['enable'].lower() in utils.stringsThatMeanTrue():
+          self.options[key]['enable'] = 'True'
+        elif self.options[key]['enable'].lower() in utils.stringsThatMeanFalse():
+          self.options[key]['enable'] = 'False'
+        if 'axis' not in self.options[key].keys():
+          self.options[key]['axis'] = 'both'
+        if 'tight' not in self.options[key].keys():
+          self.options[key]['tight'] = 'None'
 
-          if self.dim == 2:
-            plt.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
-          elif self.dim == 3:
-            self.plt3D.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
+        if self.dim == 2:
+          plt.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
+        elif self.dim == 3:
+          self.plt3D.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
       elif key == 'horizontalLine':
         if self.dim == 3:
           self.raiseAWarning('horizontalLine not available in 3-D plots!!')
@@ -666,7 +666,7 @@ class OutStreamPlot(OutStreamManager):
         elif self.dim == 2:
           plt.box(self.options[key][key])
       elif key == 'axis':
-          plt.axis(self.options[key][key])
+        plt.axis(self.options[key][key])
       elif key == 'grid':
         if 'b' not in self.options[key].keys():
           self.options[key]['b'] = 'off'
@@ -1344,21 +1344,21 @@ class OutStreamPlot(OutStreamManager):
       #    STEM PLOT   #
       ##################
       elif self.outStreamTypes[pltindex] == 'stem':
-          if 'linefmt' not in plotSettings.keys():
-            plotSettings['linefmt'] = 'b-'
-          if 'markerfmt' not in plotSettings.keys():
-            plotSettings['markerfmt'] = 'bo'
-          if 'basefmt' not in plotSettings.keys():
-            plotSettings['basefmt'] = 'r-'
-          for key in self.xValues[pltindex].keys():
-            for xIndex in range(len(self.xValues[pltindex][key])):
-              for yIndex in range(len(self.yValues[pltindex][key])):
-                if self.dim == 2:
-                  self.actPlot = plt.stem(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], linefmt = plotSettings['linefmt'], markerfmt = plotSettings['markerfmt'], basefmt = plotSettings['linefmt'], **plotSettings.get('attributes', {}))
-                elif self.dim == 3:
-                  # it is a basic stem plot constructed using a standard line plot. For now we do not use the previous defined keywords...
-                  for zIndex in range(len(self.zValues[pltindex][key])):
-                    for xx, yy, zz in zip(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex]): self.plt3D.plot([xx, xx], [yy, yy], [0, zz], '-')
+        if 'linefmt' not in plotSettings.keys():
+          plotSettings['linefmt'] = 'b-'
+        if 'markerfmt' not in plotSettings.keys():
+          plotSettings['markerfmt'] = 'bo'
+        if 'basefmt' not in plotSettings.keys():
+          plotSettings['basefmt'] = 'r-'
+        for key in self.xValues[pltindex].keys():
+          for xIndex in range(len(self.xValues[pltindex][key])):
+            for yIndex in range(len(self.yValues[pltindex][key])):
+              if self.dim == 2:
+                self.actPlot = plt.stem(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], linefmt = plotSettings['linefmt'], markerfmt = plotSettings['markerfmt'], basefmt = plotSettings['linefmt'], **plotSettings.get('attributes', {}))
+              elif self.dim == 3:
+                # it is a basic stem plot constructed using a standard line plot. For now we do not use the previous defined keywords...
+                for zIndex in range(len(self.zValues[pltindex][key])):
+                  for xx, yy, zz in zip(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex]): self.plt3D.plot([xx, xx], [yy, yy], [0, zz], '-')
       ##################
       #    STEP PLOT   #
       ##################
@@ -1468,13 +1468,13 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm.draw_all()
                   else:
                     if plotSettings['cmap'] == 'None':
-                        self.actPlot = self.plt3D.plot_surface(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cstride = ast.literal_eval(plotSettings['cstride']), linewidth = ast.literal_eval(plotSettings['linewidth']), antialiased = ast.literal_eval(plotSettings['antialiased']), **plotSettings.get('attributes', {}))
-                        if 'color' in plotSettings.get('attributes', {}).keys():
-                            self.actPlot.set_color = plotSettings.get('attributes', {})['color']
-                        else:
-                            self.actPlot.set_color = 'blue'
+                      self.actPlot = self.plt3D.plot_surface(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cstride = ast.literal_eval(plotSettings['cstride']), linewidth = ast.literal_eval(plotSettings['linewidth']), antialiased = ast.literal_eval(plotSettings['antialiased']), **plotSettings.get('attributes', {}))
+                      if 'color' in plotSettings.get('attributes', {}).keys():
+                        self.actPlot.set_color = plotSettings.get('attributes', {})['color']
+                      else:
+                        self.actPlot.set_color = 'blue'
                     else:
-                        self.actPlot = self.plt3D.plot_surface(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cstride = ast.literal_eval(plotSettings['cstride']), cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap']), linewidth = ast.literal_eval(plotSettings['linewidth']), antialiased = ast.literal_eval(plotSettings['antialiased']), **plotSettings.get('attributes', {}))
+                      self.actPlot = self.plt3D.plot_surface(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cstride = ast.literal_eval(plotSettings['cstride']), cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap']), linewidth = ast.literal_eval(plotSettings['linewidth']), antialiased = ast.literal_eval(plotSettings['antialiased']), **plotSettings.get('attributes', {}))
       ########################
       #   TRI-SURFACE PLOT   #
       ########################
@@ -1584,13 +1584,13 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm.draw_all()
                   else:
                     if plotSettings['cmap'] == 'None':
-                        self.actPlot = self.plt3D.plot_wireframe(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cstride = ast.literal_eval(plotSettings['cstride']), **plotSettings.get('attributes', {}))
-                        if 'color' in plotSettings.get('attributes', {}).keys():
-                            self.actPlot.set_color = plotSettings.get('attributes', {})['color']
-                        else:
-                            self.actPlot.set_color = 'blue'
+                      self.actPlot = self.plt3D.plot_wireframe(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cstride = ast.literal_eval(plotSettings['cstride']), **plotSettings.get('attributes', {}))
+                      if 'color' in plotSettings.get('attributes', {}).keys():
+                        self.actPlot.set_color = plotSettings.get('attributes', {})['color']
+                      else:
+                        self.actPlot.set_color = 'blue'
                     else:
-                        self.actPlot = self.plt3D.plot_wireframe(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cstride = ast.literal_eval(plotSettings['cstride']), **plotSettings.get('attributes', {}))
+                      self.actPlot = self.plt3D.plot_wireframe(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cstride = ast.literal_eval(plotSettings['cstride']), **plotSettings.get('attributes', {}))
 
       ########################
       #     CONTOUR   PLOT   #
@@ -1779,7 +1779,7 @@ class OutStreamPlot(OutStreamManager):
                 # for i, (mean, covar, col) in enumerate(zip(mixtureMeans, mixtureCovars, colors)):
                 for i, col in zip(range(clusterDict[pltindex]['noMixtures']), colors):
                   if not np.any(self.mixtureValues[pltindex][1][0] == i):
-                      continue
+                    continue
                   myMembers = self.mixtureValues[pltindex][1][0] == i
                   # self.make_ellipses(mixtureCovars, mixtureMeans, i, col)
                   self.actPlot = plt.scatter(clusterDict[pltindex]['mixtureValues'][myMembers, 0], clusterDict[pltindex]['mixtureValues'][myMembers, 1], color = col, **dataMiningPlotOptions)
