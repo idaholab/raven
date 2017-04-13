@@ -67,13 +67,13 @@ class SPSA(GradientBasedOptimizer):
     self.paramDict['c']     = float(self.paramDict.get('c', 0.005))
 
     # Normalize the parameters...
-    if self.gradDict['normalize']:
-      tempMax = -1
-      for var in self.optVars:
-        if self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var] > tempMax:
-          tempMax = self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var]
-      self.paramDict['c'] = copy.deepcopy(self.paramDict['c']/tempMax)
-      self.paramDict['a'] = copy.deepcopy(self.paramDict['a']/(tempMax**2))
+    #if self.gradDict['normalize']:
+    #  tempMax = -1
+    #  for var in self.optVars:
+    #    if self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var] > tempMax:
+    #      tempMax = self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var]
+    #  self.paramDict['c'] = copy.deepcopy(self.paramDict['c']/tempMax)
+    #  self.paramDict['a'] = copy.deepcopy(self.paramDict['a']/(tempMax**2))
 
     self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
     self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
@@ -96,7 +96,7 @@ class SPSA(GradientBasedOptimizer):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    self._endJobRunnable = 1
+    self._endJobRunnable = self.gradDict['numIterForAve'] * 2
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
 
   def localLocalStillReady(self, ready, convergence = False):

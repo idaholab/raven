@@ -204,15 +204,28 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       elif child.tag == "objectVar":
         # look for optional lower and upper bound for the objective variable
         # if not found, keep the (0,1) default value
-        try:
-          self.objVar = child.attrib['name']
-        except KeyError:
-          self.raiseAnError(IOError, child.tag+' node does not have the "name" attribute')
-        bounds = [child.find("lowerBound"), child.find("upperBound")]
-        if len(set(bounds)) > 1 and any(v is None for v in bounds):
-          self.raiseAnError(IOError,"The optional lower and upper bound for the objectVar must be both present at the same time!")
-        elif not all(v is None for v in bounds):
-          self.objVarBounds = tuple(bounds)
+        self.objVar = child.text
+        #try:
+        #  self.objVar = child.attrib['name']
+        #except KeyError:
+        #  self.raiseAnError(IOError, child.tag+' node does not have the "name" attribute')
+        ##optional lower and upper for scaling objective function
+        #upper = None
+        #try: 
+        #  lower = child.find("lowerBound").text
+        #except AttributeError:
+        #  lower = None
+        #try: 
+        #  upper = child.find("upperBound").text
+        #  if lower is None: self.raiseAnError(IOError,"The optional lower and upper bound for the objectVar must be both present at the same time!")
+        #except AttributeError:
+        #  if lower is not None: self.raiseAnError(IOError,"The optional lower and upper bound for the objectVar must be both present at the same time!")
+        #bounds = (utils.floatConversion(lower), utils.floatConversion(upper))
+        #if len(set(bounds)) > 1 and any(v is None for v in bounds):
+        #  self.raiseAnError(IOError,"One of the objecive function bounds is not convertible to a float!")
+        #elif not all(v is None for v in bounds):
+        #  self.objVarBounds = bounds
+          
       elif child.tag == "initialization":
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
@@ -426,7 +439,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     search = dict(zip(prefix, objective))
     functionValue = search.get(evaluationID,None)
     return functionValue
-
+  
   def lossFunctionEval(self, optVars):
     """
       Method to evaluate the loss function based on all model evaluation.
@@ -440,7 +453,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.objSearchingROM.train(tempDict)
     for key in optVars.keys(): optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
-
     if self.optType == 'min':           return lossFunctionValue
     else:                               return lossFunctionValue*-1.0
 

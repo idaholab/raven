@@ -289,8 +289,10 @@ def intConversion (s):
     @ In, s, string,  string to be converted
     @ Out, response, int or None, the casted value
   """
-  try              : return int(s)
-  except ValueError: return None
+  try: 
+    return int(s)
+  except (ValueError,TypeError) as e: 
+    return None
 
 def floatConversion (s):
   """
@@ -299,8 +301,10 @@ def floatConversion (s):
     @ In, s, string,  string to be converted
     @ Out, response, float or None, the casted value
   """
-  try              : return float(s)
-  except ValueError: return None
+  try: 
+    return float(s)
+  except (ValueError,TypeError) as e: 
+    return None
 
 def partialEval(s):
   """

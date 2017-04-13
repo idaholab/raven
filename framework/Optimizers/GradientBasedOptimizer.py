@@ -224,19 +224,24 @@ class GradientBasedOptimizer(Optimizer):
         tempDictPerturbed = self.denormalizeData(optVarsValues[pertIndex])
       else:
         tempDictPerturbed = optVarsValues[pertIndex]
-      tempDictPerturbed['lossValue'] = copy.copy(self.lossFunctionEval(tempDictPerturbed))
-      lossDiff = tempDictPerturbed['lossValue'][0] - tempDictPerturbed['lossValue'][1]
+      lossValue = copy.copy(self.lossFunctionEval(tempDictPerturbed))
+      lossDiff = lossValue[0] - lossValue[1]
       for var in self.optVars:
-        if tempDictPerturbed[var][0] != tempDictPerturbed[var][1]:
-          gradArray[var] = np.append(gradArray[var], lossDiff/(tempDictPerturbed[var][0]-tempDictPerturbed[var][1])*1.0)
+        if optVarsValues[pertIndex][var][0] != optVarsValues[pertIndex][var][1]:
+          # even if the feature space is normalized, we compute the gradient in its space (transformed or not)
+          gradArray[var] = np.append(gradArray[var], lossDiff/(optVarsValues[pertIndex][var][0]-optVarsValues[pertIndex][var][1])*1.0)
     gradient = {}
     for var in self.optVars:
       gradient[var] = gradArray[var].mean()
+    
     gradient = self.localEvaluateGradient(optVarsValues, gradient)
-    if self.gradDict['normalize']:
-      gradientL2norm = LA.norm(gradient.values())
-      if gradientL2norm != 0.0:
-        for var in self.optVars: gradient[var] = gradient[var]/gradientL2norm
+    nor = np.linalg.norm(gradient.values())
+    for var in gradient.keys():
+      gradient[var] = gradient[var]/ nor
+    
+    
+    #gradient = gradient/np.linalg.norm(gradient.values())
+    
     self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][traj][0]
     self.counter['gradientHistory'][traj][0] = gradient
     return gradient
@@ -293,10 +298,15 @@ class GradientBasedOptimizer(Optimizer):
         oldVal             = self.getLossFunctionGivenId(oldValueId)
         if oldVal is None: self.raiseAnError(Exception,"the evaluation identified by the ID " +str(oldValueId)+ " has not been found!")
         gradNorm           = LA.norm(self.counter['gradientHistory'][traj][0].values())
+        varK               = self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
+        if self.gradDict['normalize']:
+          varK = self.denormalizeData(varK)
         absDifference      = abs(currentLossValue-oldVal)
         relativeDifference = abs(absDifference/oldVal)
         self.raiseAMessage("Trajectory: "+"%8i"% (traj)+      " | Iteration    : "+"%8i"% (varsUpdate)+ " | Loss function: "+"%8.2E"% (currentLossValue)+" |")
         self.raiseAMessage("Grad Norm : "+"%8.2E"% (gradNorm)+" | Relative Diff: "+"%8.2E"% (relativeDifference)+" | Abs Diff     : "+"%8.2E"% (absDifference)+" |")
+        self.raiseAMessage("Variables :" +str(varK))
+        
         if gradNorm <= self.gradientNormTolerance or absDifference <= self.absConvergenceTol or relativeDifference <= self.relConvergenceTol:
           self.raiseAMessage("Trajectory: "+"%8i"% (traj) +"   converged    !")
           self.raiseAMessage("Grad Norm : "+"%8.2E"% (gradNorm)+" | Relative Diff: "+"%8.2E"% (relativeDifference)+" | Abs Diff     : "+"%8.2E"% (absDifference)+" |")
