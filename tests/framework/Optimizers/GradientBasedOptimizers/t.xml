@@ -64,12 +64,10 @@
         <lowerBound>30</lowerBound>
         <initial>40</initial>
       </variable>
-      <objectVar name="r">
-          <lowerBound>0</lowerBound>
-          <upperBound>2000</upperBound>
-      </objectVar>
+      <objectVar>r</objectVar>
       <parameter>
           <normalize>true</normalize>
+          <a>0.25</a>
       </parameter>
     </SPSA>
   </Optimizers>
