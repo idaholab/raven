@@ -35,6 +35,7 @@ from numpy import linalg as LA
 #Internal Modules------------------------------------------------------------------------------------
 from .GradientBasedOptimizer import GradientBasedOptimizer
 import Distributions
+from utils import mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SPSA(GradientBasedOptimizer):
@@ -72,9 +73,7 @@ class SPSA(GradientBasedOptimizer):
     #if "a" was defaulted, use the average scale of the input space.
     #This is the suggested value from the paper, missing a 1/gradient term since we don't know it yet.
     if self.paramDict['a'] is None:
-      #minDesiredStep = min(self.optVarsInit['ranges'].values())/10.
-      #self.paramDict['a'] = minDesiredStep #*(self.paramDict['A']+1.)**self.paramDict['alpha'] <-- without G to scale, this is bad
-      self.paramDict['a'] = np.sqrt(sum(d*d for d in self.optVarsInit['ranges'].values())) #should be normalized!
+      self.paramDict['a'] = mathUtils.hyperdiagonal(self.optVarsInit['ranges'].values()) #should be normalized!
       self.raiseAMessage('Defaulting "a" gradient parameter to',self.paramDict['a'])
     else:
       self.paramDict['a'] = float(self.paramDict['a'])
@@ -252,7 +251,7 @@ class SPSA(GradientBasedOptimizer):
       expectedResponse = sum(gradVal*delta) + centralResponse
       difference = centralResponse-expectedResponse
       differences.append(difference)
-    c = np.sqrt(sum(d*d for d in differences))
+    c = mathUtils.hyperdiagonal(differences)
 
 
 

@@ -104,7 +104,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.optVarsInit['upperBound']      = {}                        # Dict containing upper bounds of each decision variables
     self.optVarsInit['lowerBound']      = {}                        # Dict containing lower bounds of each decision variables
     self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables
-    self.optVarsInit['ranges']          = {}                        # Dict containing initial values of each decision variables
+    self.optVarsInit['ranges']          = {}                        # Dict of the ranges (min and max) of each variable's domain
     self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
     self.nVar                           = 0                         # Number of decision variables
     self.objVar                         = None                      # Objective variable to be optimized
