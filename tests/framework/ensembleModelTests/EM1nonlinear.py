@@ -29,12 +29,13 @@ def initialize(self, runInfo, inputs):
   self.timeDiscretization      = np.linspace(0.0, 100.0, 11)
 
 def odeFuncion(T, t, xshape, N, h, k):
-    dTdt     = np.zeros(xshape)
-    dTdt[0]  = 0 # constant at boundary condition
-    dTdt[-1] = 0
-    # now for the internal nodes
-    for i in range(1, N-1): dTdt[i] = k * (T[i + 1] - 2*T[i] + T[i - 1]) / h**2
-    return dTdt
+  dTdt     = np.zeros(xshape)
+  dTdt[0]  = 0 # constant at boundary condition
+  dTdt[-1] = 0
+  # now for the internal nodes
+  for i in range(1, N-1):
+    dTdt[i] = k * (T[i + 1] - 2*T[i] + T[i - 1]) / h**2
+  return dTdt
 
 def run(self, Input):
   global localLock
@@ -46,4 +47,3 @@ def run(self, Input):
   self.averageTemperature = (self.leftTemperature + self.rightTemperature)/2.0
   self.linearHeat = self.k*(max(self.leftTemperature,self.rightTemperature)-min(self.leftTemperature,self.rightTemperature))
   print("mid value is "+str(self.solution))
-

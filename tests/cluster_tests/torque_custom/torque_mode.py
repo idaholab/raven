@@ -130,10 +130,12 @@ class TorqueSimulationMode(Simulation.SimulationMode):
         if not (self.__noSplitNode or self.__limitNode):
           for i in range(newBatchsize):
             nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
-            for line in lines[i*numMPI:(i+1)*numMPI]:
+            for line in lines[i*numMPI:
+              (i+1)*numMPI]:
               nodeFile.write(line)
             nodeFile.close()
-        else: #self.__noSplitNode == True or self.__limitNode == True
+        else:
+          #self.__noSplitNode == True or self.__limitNode == True
           #XXX This may be much more complicated than needed.
           # The needed functionality probably needs to be discussed.
           nodes = []

@@ -69,4 +69,3 @@ def run(self,Input):
     self.y[i] = y0 + vy0*t - 4.9*t*t
     self.r[i] = r
   self.time = ts
-

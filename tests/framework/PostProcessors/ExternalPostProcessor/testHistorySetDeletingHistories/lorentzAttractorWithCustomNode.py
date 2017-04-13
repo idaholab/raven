@@ -29,16 +29,20 @@ def _readMoreXML(self,xmlNode):
       self.customVariable2 = int(child.text)
 
 def initialize(self,runInfoDict,inputFiles):
-  if self.customNodeContent is None: raise IOError("customNode1 value not correctly transfered!")
-  if self.customVariable2 is None: raise IOError("customNode2 value not correctly transfered!")
+  if self.customNodeContent is None:
+    raise IOError("customNode1 value not correctly transfered!")
+  if self.customVariable2 is None:
+    raise IOError("customNode2 value not correctly transfered!")
   self.sigma = 10.0
   self.rho   = 28.0
   self.beta  = 8.0/3.0
   return
 
 def run(self,Input):
-  if self.customNodeContent is None: raise IOError("customNode1 value not correctly transfered!")
-  if self.customVariable2 is None  : raise IOError("customNode2 value not correctly transfered!")
+  if self.customNodeContent is None:
+    raise IOError("customNode1 value not correctly transfered!")
+  if self.customVariable2 is None:
+    raise IOError("customNode2 value not correctly transfered!")
   max_time = 0.03
   t_step = 0.01
 
@@ -63,5 +67,3 @@ def run(self,Input):
     self.x[t+1]    = self.x[t] + self.sigma*(self.y[t]-self.x[t]) * t_step
     self.y[t+1]    = self.y[t] + (self.x[t]*(self.rho-self.z[t])-self.y[t]) * t_step
     self.z[t+1]    = self.z[t] + (self.x[t]*self.y[t]-self.beta*self.z[t]) * t_step
-
-

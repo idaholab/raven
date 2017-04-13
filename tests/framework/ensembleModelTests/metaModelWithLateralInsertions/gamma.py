@@ -27,4 +27,3 @@ def initialize(self, runInfo, inputs):
 def run(self, Input):
   self.E = self.C + 1.0
   print('Gamma is finished '  +str(self.E) + ' ' +str(self.C))
-

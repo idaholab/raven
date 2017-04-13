@@ -23,9 +23,12 @@ def readInput(inFile):
   x, y, z = 0,0,0
   for line in inFile:
     var,val = line.strip().split('=')
-    if   var.strip() == 'x': x = float(val)
-    elif var.strip() == 'y': y = float(val)
-    elif var.strip() == 'z': z = float(val)
+    if   var.strip() == 'x':
+      x = float(val)
+    elif var.strip() == 'y':
+      y = float(val)
+    elif var.strip() == 'z':
+      z = float(val)
   if x is None or y is None or z is None:
     raise IOError('x,y,z were not all found in input file',inFile)
   return x,y,z

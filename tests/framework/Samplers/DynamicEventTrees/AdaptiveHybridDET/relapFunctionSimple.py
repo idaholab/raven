@@ -25,5 +25,7 @@ def __gradient(self): pass
 
 def __residuumSign(self):
   print('SYSTEM FAILURE IS ' + str(self.systemFailed))
-  if self.systemFailed == 1: return -1.0
-  else                     : return 1.0
+  if self.systemFailed == 1:
+    return -1.0
+  else:
+    return 1.0
