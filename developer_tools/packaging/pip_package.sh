@@ -1,14 +1,11 @@
 #!/bin/bash
 export https_proxy=$http_proxy
-export INSTALL_DIR=/opt/raven_libs
+export INSTALL_DIR=$HOME/raven_libs/root/opt/raven_libs
 
 rm -Rvf $INSTALL_DIR
 ./pip_ve_osx.sh
 
-#Move to temp root
-rm -Rvf $HOME/raven_libs/root
-mkdir -p $HOME/raven_libs/root/opt
-mv $INSTALL_DIR $HOME/raven_libs/root/opt
+#Create raven environment script.
 mkdir -p $HOME/raven_libs/root/opt/raven_libs/environments
 PROFILE_FILE=$HOME/raven_libs/root/opt/raven_libs/environments/raven_libs_profile
 cat - > $PROFILE_FILE << RAVEN_PROFILE
