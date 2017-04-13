@@ -261,7 +261,7 @@ def hyperdiagonal(lengths):
   """
   try:
     return np.sqrt(np.sum(lengths*lengths))
-  except ValueError:
+  except TypeError:
     lengths = np.asarray(lengths)
     return np.sqrt(np.sum(lengths*lengths))
 
