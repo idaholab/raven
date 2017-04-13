@@ -97,8 +97,10 @@ make -j${JOBS}
 make install
 
 
-#Otherwise matplotlib complains that python needs to be built as a framework
+#Defining MPLBACKEND, Otherwise matplotlib complains that python needs to be 
+# built as a framework
 #However if I build python with:
 #./configure --enable-framework=$HOME/python_framework --prefix=$HOME/python_unix
 #I instead get: "Could not find platform independent libraries"
-export MPLBACKEND="TkAgg"
+#TODO this should also be removed when deactivate is called.
+echo 'export MPLBACKEND="TkAgg"' >> $INSTALL_DIR/bin/activate
