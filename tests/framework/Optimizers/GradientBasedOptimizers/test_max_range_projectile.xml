@@ -12,12 +12,12 @@
        This example uses a projectile model and it is aimed to maximize the projectile range acting on the intial velocity and shooting angle
     </description>
   </TestInfo>
-   
+
   <!-- actual RAVEN input -->
   <RunInfo>
     <WorkingDir>maxRangeWithBoundaryConstraints</WorkingDir>
     <Sequence>optimize,print</Sequence>
-    <batchSize>12</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
@@ -27,7 +27,7 @@
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
-      
+
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">optOut</Input>
@@ -36,7 +36,7 @@
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Plot">trajectory</Output>
       <Output class="OutStreams" type="Plot">convergenceHistory</Output>
-      
+
     </IOStep>
   </Steps>
 

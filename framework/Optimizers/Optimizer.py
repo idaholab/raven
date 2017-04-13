@@ -104,6 +104,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.optVarsInit['upperBound']      = {}                        # Dict containing upper bounds of each decision variables
     self.optVarsInit['lowerBound']      = {}                        # Dict containing lower bounds of each decision variables
     self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables
+    self.optVarsInit['ranges']          = {}                        # Dict of the ranges (min and max) of each variable's domain
     self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
     self.nVar                           = 0                         # Number of decision variables
     self.objVar                         = None                      # Objective variable to be optimized
@@ -183,8 +184,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.optVarsInit['initial'][varname] = {}
             temp = childChild.text.split(',')
             for trajInd, initVal in enumerate(temp):
-              try              : self.optVarsInit['initial'][varname][trajInd] = float(initVal)
-              except ValueError: self.raiseAnError(ValueError, "Unable to convert to float the intial value for variable "+varname+ " in trajectory "+str(trajInd))
+              try:
+                self.optVarsInit['initial'][varname][trajInd] = float(initVal)
+              except ValueError:
+                self.raiseAnError(ValueError, "Unable to convert to float the intial value for variable "+varname+ " in trajectory "+str(trajInd))
             if self.optTraj == None:
               self.optTraj = range(len(self.optVarsInit['initial'][varname].keys()))
       elif child.tag == "constant":
@@ -202,7 +205,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
-            self.limit['mdlEval'] = int(childChild.text)
+            self.limit['mdlEval'] = int(childChild.text) #FIXME what's the difference between this and self.limit['varsUpdate']?
+            #the manual once claimed that "A" defaults to iterationLimit/10, but it's actually this number/10.
           elif childChild.tag == "type":
             self.optType = childChild.text
             if self.optType not in ['min', 'max']:
@@ -249,6 +253,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.raiseAnError(IOError,"The initial value for variable "+varname+" and trajectory "+str(trajInd) +" is outside the domain identified by the lower and upper bounds!")
       if len(self.optTraj) != len(self.optVarsInit['initial'][varname].keys()):
         self.raiseAnError(ValueError, 'Number of initial values does not equal to the number of parallel optimization trajectories')
+      #store ranges of variables
+      self.optVarsInit['ranges'][varname] = self.optVarsInit['upperBound'][varname] - self.optVarsInit['lowerBound'][varname]
     self.optTrajLive = copy.deepcopy(self.optTraj)
 
   def localInputAndChecks(self,xmlNode):
@@ -412,14 +418,19 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
-    for key in tempDict.keys(): tempDict[key] = np.asarray(tempDict[key])
+    for key in tempDict.keys():
+      tempDict[key] = np.asarray(tempDict[key])
 
     self.objSearchingROM.train(tempDict)
-    if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
-    for key in optVars.keys(): optVars[key] = np.atleast_1d(optVars[key])
+    if self.gradDict['normalize']:
+      optVars = self.denormalizeData(optVars)
+    for key in optVars.keys():
+      optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
-    if self.optType == 'min':           return lossFunctionValue
-    else:                               return lossFunctionValue*-1.0
+    if self.optType == 'min':
+      return lossFunctionValue
+    else:
+      return lossFunctionValue*-1.0
 
   def checkConstraint(self, optVars):
     """
@@ -491,7 +502,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, generateInput, tuple(int,dict), (1,realization dictionary)
     """
-    self.counter['mdlEval'] +=1                              #since we are creating the input for the next run we increase the counter and global counter
+    self.counter['mdlEval'] +=1 #since we are creating the input for the next run we increase the counter and global counter
     self.inputInfo['prefix'] = str(self.counter['mdlEval'])
 
     model.getAdditionalInputEdits(self.inputInfo)

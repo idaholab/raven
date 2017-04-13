@@ -4,7 +4,7 @@
     <JobName>RunDir/Stratified</JobName>
     <Sequence>sample,writeHistories</Sequence>
     <WorkingDir>RunDir/Stratified</WorkingDir>
-    <batchSize>8</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/ForwardSamplingStrategies/Stratified</name>
@@ -43,6 +43,9 @@
 
   <Samplers>
     <Stratified name="stratified">
+      <samplerInit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
       <variable name="sigma-A">
         <distribution>sigma</distribution>
         <grid construction="equal" steps="100" type="value">2 4.0</grid>
