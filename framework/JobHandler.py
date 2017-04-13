@@ -465,10 +465,17 @@ class JobHandler(MessageHandler.MessageUser):
     @ Out, availability, int the number of runs that can be added until we
       reach saturation
     """
+    ## Due to possibility of memory explosion, we should include the finished
+    ## queue when considering whether we should add a new job. There was an
+    ## issue when running on a distributed system where we saw that this list
+    ## seemed to be growing indefinitely as the main thread was unable to clear
+    ## that list within a reasonable amount of time. The issue on the main thread
+    ## should also be addressed, but at least we can prevent it on this end since
+    ## the main thread's issue may be legitimate.
     if client:
-      availability = self.maxQueueSize - len(self.__clientQueue)
+      availability = self.maxQueueSize - len(self.__clientQueue) - len(self.__finished)
     else:
-      availability = self.maxQueueSize - len(self.__queue)
+      availability = self.maxQueueSize - len(self.__queue) - len(self.__finished)
     return availability
 
   def isThisJobFinished(self, identifier):
@@ -567,29 +574,34 @@ class JobHandler(MessageHandler.MessageUser):
     finished = self.getFinished(False)
     return finished
 
-  def numFreeSpots(self, client=False):
-    """
-      Method to get the number of free spots in one of the running queues
-      @ In, client, bool, if true, then return the values for the
-        __clientRunning list, otherwise use __running
-      @ Out, cntFreeSpots, int, number of free spots
-    """
-    cntFreeSpots = 0
-    with self.__queueLock:
-      ## The process is the same for both lists, so let's establish which one
-      ## we are working on and then get to business.
-      if client:
-        runList = self.__clientRunning
-        # queue = self.__clientQueue
-      else:
-        runList = self.__running
-        # queue = self.__queue
+  ## Deprecating this function because I don't think it is doing the right thing
+  ## People using the job handler should be asking for what is available not the
+  ## number of free spots in the running block. Only the job handler should be
+  ## able to internally alter or query the running and clientRunning queues.
+  ## The outside environment can only access the queue and clientQueue variables.
+  # def numFreeSpots(self, client=False):
+  #   """
+  #     Method to get the number of free spots in one of the running queues
+  #     @ In, client, bool, if true, then return the values for the
+  #       __clientRunning list, otherwise use __running
+  #     @ Out, cntFreeSpots, int, number of free spots
+  #   """
+  #   cntFreeSpots = 0
+  #   with self.__queueLock:
+  #     ## The process is the same for both lists, so let's establish which one
+  #     ## we are working on and then get to business.
+  #     if client:
+  #       runList = self.__clientRunning
+  #       # queue = self.__clientQueue
+  #     else:
+  #       runList = self.__running
+  #       # queue = self.__queue
 
-      for run in runList:
-        if run is None:
-          cntFreeSpots += 1
+  #     for run in runList:
+  #       if run is None:
+  #         cntFreeSpots += 1
 
-    return cntFreeSpots
+  #   return cntFreeSpots
 
   def numRunning(self):
     """
@@ -597,8 +609,11 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, activeRuns, int, number of active runs
     """
-    with self.__queueLock:
-      activeRuns = sum(run is not None for run in self.__running)
+    #with self.__queueLock:
+    ## The size of the list does not change, only its contents, so I don't
+    ## think there should be any conflict if we are reading a variable from
+    ## one thread and updating it on the other thread.
+    activeRuns = sum(run is not None for run in self.__running)
     return activeRuns
 
   def numSubmitted(self):
@@ -616,40 +631,54 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
-    with self.__queueLock:
-      emptySlots = [i for i,run in enumerate(self.__running) if run is None]
-      for i in emptySlots:
-        if len(self.__queue) > 0:
-          item = self.__queue.popleft()
-          if isinstance(item, Runners.ExternalRunner):
-            command = item.command
-            command = command.replace("%INDEX%",str(i))
-            command = command.replace("%INDEX1%",str(i+1))
-            command = command.replace("%CURRENT_ID%",str(self.__nextId))
-            command = command.replace("%CURRENT_ID1%",str(self.__nextId+1))
-            command = command.replace("%SCRIPT_DIR%",self.runInfoDict['ScriptDir'])
-            command = command.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
-            command = command.replace("%WORKING_DIR%",item.getWorkingDir())
-            command = command.replace("%BASE_WORKING_DIR%",self.runInfoDict['WorkingDir'])
-            command = command.replace("%METHOD%",os.environ.get("METHOD","opt"))
-            command = command.replace("%NUM_CPUS%",str(self.runInfoDict['NumThreads']))
-            item.command = command
-          self.__running[i] = item
-          ##FIXME this call is really expensive; can it be reduced?
-          self.__running[i].start()
-          self.__nextId += 1
-        else:
-          break
 
-    with self.__queueLock:
-      emptySlots = [i for i,run in enumerate(self.__clientRunning) if run is None]
-      for i in emptySlots:
-        if len(self.__clientQueue) > 0:
-          self.__clientRunning[i] = self.__clientQueue.popleft()
-          self.__clientRunning[i].start()
-          self.__nextId += 1
-        else:
-          break
+    ## Only the jobHandler's startLoop thread should have write access to the
+    ## self.__running variable, so we should be able to safely query this outside
+    ## of the lock given that this function is called only on that thread as well.
+    emptySlots = [i for i,run in enumerate(self.__running) if run is None]
+
+    ## Don't bother acquiring the lock if there are no empty spots or nothing
+    ## in the queue (this could be simultaneously added to by the main thread,
+    ## but I will be back here after a short wait on this thread so I am not
+    ## concerned about this potential inconsistency)
+    if len(emptySlots) > 0 and len(self.__queue) > 0:
+      with self.__queueLock:
+        for i in emptySlots:
+          ## The queue could be emptied during this loop, so we will to break
+          ## out as soon as that happens so we don't hog the lock.
+          if len(self.__queue) > 0:
+            item = self.__queue.popleft()
+            if isinstance(item, Runners.ExternalRunner):
+              command = item.command
+              command = command.replace("%INDEX%",str(i))
+              command = command.replace("%INDEX1%",str(i+1))
+              command = command.replace("%CURRENT_ID%",str(self.__nextId))
+              command = command.replace("%CURRENT_ID1%",str(self.__nextId+1))
+              command = command.replace("%SCRIPT_DIR%",self.runInfoDict['ScriptDir'])
+              command = command.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
+              command = command.replace("%WORKING_DIR%",item.getWorkingDir())
+              command = command.replace("%BASE_WORKING_DIR%",self.runInfoDict['WorkingDir'])
+              command = command.replace("%METHOD%",os.environ.get("METHOD","opt"))
+              command = command.replace("%NUM_CPUS%",str(self.runInfoDict['NumThreads']))
+              item.command = command
+            self.__running[i] = item
+            ##FIXME this call is really expensive; can it be reduced?
+            self.__running[i].start()
+            self.__nextId += 1
+          else:
+            break
+
+    ## Repeat the same process above, only for the clientQueue
+    emptySlots = [i for i,run in enumerate(self.__clientRunning) if run is None]
+    if len(emptySlots) > 0 and len(self.__clientQueue) > 0:
+      with self.__queueLock:
+        for i in emptySlots:
+          if len(self.__clientQueue) > 0:
+            self.__clientRunning[i] = self.__clientQueue.popleft()
+            self.__clientRunning[i].start()
+            self.__nextId += 1
+          else:
+            break
 
   def cleanRuns(self):
     """
@@ -658,13 +687,17 @@ class JobHandler(MessageHandler.MessageUser):
     @ In, None
     @ Out, None
     """
-    with self.__queueLock:
-      ## The code handling these two lists was the exact same, I have taken the
-      ## liberty of condensing these loops into one and removing some of the
-      ## redundant checks to make this code a bit simpler.
-      for runList in [self.__running, self.__clientRunning]:
-        for i,run in enumerate(runList):
-          if run is not None and run.isDone():
+    ## The code handling these two lists was the exact same, I have taken the
+    ## liberty of condensing these loops into one and removing some of the
+    ## redundant checks to make this code a bit simpler.
+    for runList in [self.__running, self.__clientRunning]:
+      for i,run in enumerate(runList):
+        if run is not None and run.isDone():
+          ## We should only need the lock if we are touching the finished queue
+          ## which is cleared by the main thread. Again, the running queues
+          ## should not be modified by the main thread, however they may inquire
+          ## it by calling numRunning.
+          with self.__queueLock:
             self.__finished.append(run)
             runList[i] = None
 
