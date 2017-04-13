@@ -80,7 +80,7 @@ class SPSA(GradientBasedOptimizer):
 
     # Normalize the parameters...
     if self.gradDict['normalize']:
-      maxVarRange = max(self.optVarsInit['ranges'][var] for var in self.optVars)
+      maxVarRange = max(self.optVarsInit['ranges'].values())
       #tempMax = -1
       #for var in self.optVars:
       #  if self.optVarsInit['ranges'][var] > tempMax:

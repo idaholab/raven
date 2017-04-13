@@ -259,7 +259,11 @@ def hyperdiagonal(lengths):
     @ In, lengths, list(float), lengths of the sides of the ND rectangle
     @ Out, diag, float, the length of the diagonal between furthest-separated corners of the hypercube
   """
-  return np.sqrt(sum(x*x for x in lengths))
+  try:
+    return np.sqrt(np.sum(lengths*lengths))
+  except ValueError:
+    lengths = np.asarray(lengths)
+    return np.sqrt(np.sum(lengths*lengths))
 
 def historySnapShoots(valueDict, numberOfTimeStep):
   """
