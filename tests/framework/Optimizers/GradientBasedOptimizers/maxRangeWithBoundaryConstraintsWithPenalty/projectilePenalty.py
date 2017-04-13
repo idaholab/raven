@@ -38,7 +38,7 @@ def range(v,th,y0=0,g=9.8):
     @ In, y0, float, elevation
     @ In, g,  float, gravity
   """
-  return v*np.cos(th)/g * (v*np.sin(th)*np.sqrt(v*v*np.sin(th)**2+2.*g*y0))
+  return v*np.cos(th)/g * (v*np.sin(th) + np.sqrt(v*v*np.sin(th)**2+2.*g*y0))
 
 def run(self,Input):
   x0 = Input.get('x0',0.0)
@@ -56,7 +56,7 @@ def run(self,Input):
   # * the v0 should converge around 40                                        *
   # ***************************************************************************
   if v0 > 40.0:
-    r -= 100.0*(v0-40.0)**2
+    r -= 10.0*(v0-40.0)**2
   # ***************************************************************************
   # * end of penalty function                                                 *
   # ***************************************************************************

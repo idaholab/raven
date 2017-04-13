@@ -1,25 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-
-  <!-- Test info -->
-
   <TestInfo>
-    <name>framework/Optimizers/GradientBasedOptimizers.SPSABoundConstraintsMaximizationNormGradient</name>
-    <author>alfoa</author>
-    <created>2016-11-03</created>
+    <name>framework/Optimizers/GradientBasedOptimizers.parabolaDeterministic</name>
+    <author>talbpaul</author>
+    <created>2017-03-16</created>
     <classesTested>Optimizers.SPSA</classesTested>
     <description>
-       Example of usage of the GradientBased Optimizer of type SPSA within the RAVEN framework in a boundary constrained maximization problem.
-       In this test, the gradient is normalized (versor) with a L2 norm. This means that the optimization trajectory advancment is not
-       influenced by the magnitude of the gradient.
-       This example uses a projectile model and it is aimed to maximize the projectile range acting on the intial velocity and shooting angle
+       Runs optimization on an inverse parabola model.
     </description>
+    <analytic>
+      This test uses an analytic model with analytic results.  The last point in the optimization search should be near
+      to the origin in the input space, which gives a response value of 0 as well.
+    </analytic>
   </TestInfo>
 
-  <!-- actual RAVEN input -->
-
   <RunInfo>
-    <WorkingDir>maxRangeWithBoundaryConstraintsNormGradient</WorkingDir>
+    <WorkingDir>Parabolas</WorkingDir>
     <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -27,20 +23,17 @@
   <Steps>
     <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">proj</Model>
+      <Model class="Models" type="ExternalModel">parabola</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
-
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Input class="DataObjects" type="HistorySet">opt_export</Input>
       <Output class="OutStreams" type="Print">opt_dump</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
-      <Output class="OutStreams" type="Plot">trajectory</Output>
       <Output class="OutStreams" type="Plot">convergenceHistory</Output>
-
     </IOStep>
   </Steps>
 
@@ -53,43 +46,54 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <relativeThreshold>1.5e-5</relativeThreshold>
+          <relativeThreshold>1e-7</relativeThreshold>
       </convergence>
-      <variable name='v0'>
-        <upperBound>40</upperBound>
-        <lowerBound>20</lowerBound>
+      <variable name='x1'>
+        <lowerBound>-5</lowerBound>
+        <upperBound>10</upperBound>
       </variable>
-      <variable name='angle'>
-        <upperBound>50</upperBound>
-        <lowerBound>30</lowerBound>
-        <initial>40</initial>
+      <variable name='x2'>
+        <lowerBound>-5</lowerBound>
+        <upperBound>10</upperBound>
       </variable>
-      <objectVar>r</objectVar>
+      <variable name='x3'>
+        <lowerBound>-5</lowerBound>
+        <upperBound>10</upperBound>
+      </variable>
+      <variable name='x4'>
+        <lowerBound>-5</lowerBound>
+        <upperBound>10</upperBound>
+      </variable>
+      <variable name='x5'>
+        <lowerBound>-5</lowerBound>
+        <upperBound>10</upperBound>
+      </variable>
+      <objectVar>ans</objectVar>
       <parameter>
-        <normalize>true</normalize>
+        <A>0</A>
+        <a>0.2</a>
       </parameter>
     </SPSA>
   </Optimizers>
 
   <Models>
-    <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/projectile" name="proj" subType="">
-      <variables>v0,angle,r</variables>
+    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/parabolas" name="parabola" subType="">
+      <variables>x1,x2,x3,x4,x5,ans</variables>
     </ExternalModel>
   </Models>
 
   <DataObjects>
     <PointSet name="dummyIN">
-      <Input>v0,angle</Input>
+      <Input>x1,x2,x3,x4,x5</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="optOut">
-      <Input>v0,angle</Input>
-      <Output>r</Output>
+      <Input>x1,x2,x3,x4,x5</Input>
+      <Output>ans</Output>
     </PointSet>
     <HistorySet name="opt_export">
       <Input>trajID</Input>
-      <Output>v0,angle,r,varsUpdate</Output>
+      <Output>x1,x2,x3,x4,x5,ans,varsUpdate</Output>
     </HistorySet>
   </DataObjects>
 
@@ -102,34 +106,15 @@
       <type>csv</type>
       <source>opt_export</source>
     </Print>
-    <Plot  name="trajectory" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <plot>
-                <type>scatter</type>
-                <x>optOut|Input|angle</x>
-                <y>optOut|Input|v0</y>
-                <z>optOut|Output|r</z>
-            </plot>
-            <xlabel>v0</xlabel>
-            <ylabel>angle</ylabel>
-            <zlabel>r</zlabel>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
-    </Plot>
     <Plot  name="convergenceHistory" overwrite="false" verbosity="debug">
         <plotSettings>
             <plot>
                 <type>scatter</type>
                 <x>opt_export|Output|varsUpdate</x>
-                <y>opt_export|Output|r</y>
+                <y>opt_export|Output|ans</y>
             </plot>
             <xlabel>iteration</xlabel>
-            <ylabel>r</ylabel>
+            <ylabel>diagonal</ylabel>
         </plotSettings>
         <actions>
             <how>png</how>
