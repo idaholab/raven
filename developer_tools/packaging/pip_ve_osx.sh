@@ -1,9 +1,19 @@
 #!/bin/bash
+
+SCRIPT_NAME=`readlink $0`
+if test -x "$SCRIPT_NAME";
+then
+    SCRIPT_DIRNAME=`dirname $SCRIPT_NAME`
+else
+    SCRIPT_DIRNAME=`dirname $0`
+fi
+SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
+
 MACOSX_DEPLOYMENT_TARGET=10.9;
 export MACOSX_DEPLOYMENT_TARGET;
 
 BUILD_DIR="$HOME/build_raven_libs"
-INSTALL_DIR="$HOME/raven_libs"
+INSTALL_DIR=${INSTALL_DIR:=$HOME/raven_libs}
 STAGE_DIR="$BUILD_DIR/staging"
 DOWNLOAD_DIR=${DOWNLOAD_DIR:=$HOME/Downloads/raven_downloads}
 mkdir -p $BUILD_DIR
@@ -76,7 +86,9 @@ virtualenv --always-copy $INSTALL_DIR
 PATH="$OLD_PATH"
 
 source $INSTALL_DIR/bin/activate
-pip install numpy==1.11.0 h5py==2.6.0 scipy==0.17.1 scikit-learn==0.17.1 matplotlib==1.5.1
+#Call RavenUtils to return the pip install command with the qa'd versions
+`python $SCRIPT_DIR/../../scripts/TestHarness/testers/RavenUtils.py --pip-install`
+#pip install numpy==1.11.0 h5py==2.6.0 scipy==0.17.1 scikit-learn==0.17.1 matplotlib==1.5.1
 
 
 cd $BUILD_DIR
