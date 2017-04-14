@@ -30,7 +30,7 @@
   </Models>
 
   <Steps>
-    <SingleRun name="testDummyStep" re-seeding="1">
+    <SingleRun name="testDummyStep">
       <Input class="Files" type="">snc01.i</Input>
       <Input class="Files" type="">tpfh2o</Input>
       <Model class="Models" type="Code">MyRELAP</Model>
