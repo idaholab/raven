@@ -580,28 +580,6 @@ class JobHandler(MessageHandler.MessageUser):
   ## able to internally alter or query the running and clientRunning queues.
   ## The outside environment can only access the queue and clientQueue variables.
   # def numFreeSpots(self, client=False):
-  #   """
-  #     Method to get the number of free spots in one of the running queues
-  #     @ In, client, bool, if true, then return the values for the
-  #       __clientRunning list, otherwise use __running
-  #     @ Out, cntFreeSpots, int, number of free spots
-  #   """
-  #   cntFreeSpots = 0
-  #   with self.__queueLock:
-  #     ## The process is the same for both lists, so let's establish which one
-  #     ## we are working on and then get to business.
-  #     if client:
-  #       runList = self.__clientRunning
-  #       # queue = self.__clientQueue
-  #     else:
-  #       runList = self.__running
-  #       # queue = self.__queue
-
-  #     for run in runList:
-  #       if run is None:
-  #         cntFreeSpots += 1
-
-  #   return cntFreeSpots
 
   def numRunning(self):
     """
