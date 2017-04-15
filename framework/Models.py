@@ -1433,7 +1433,11 @@ class Code(Model):
     if type(returnedCommand[0]).__name__ != 'list': self.raiseAnError(IOError, "the first entry in tuple returned by generateCommand method needs to be a list of tuples!")
     executeCommand, self.outFileRoot = returnedCommand
     uniqueHandler = inputFiles[1]['uniqueHandler'] if 'uniqueHandler' in inputFiles[1].keys() else 'any'
-    identifier    = inputFiles[1]['prefix'] if 'prefix' in inputFiles[1].keys() else None
+    if 'prefix' in inputFiles[1].keys():
+      identifier    = inputFiles[1]['prefix']
+    else:
+      identifier    = None
+      inputFiles[1]['prefix'] = 'None'
     jobHandler.addExternal(executeCommand,self.outFileRoot,metaData.pop('subDirectory'),identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
@@ -1720,7 +1724,7 @@ class EnsembleModel(Dummy, Assembler):
     self.convergenceTol        = 1.e-3
     self.initialConditions     = {}
     self.ensembleModelGraph    = None
-    self.lockSystem = threading.RLock()
+    self.flushTargetEvaluation = False
 
   def localInputAndChecks(self,xmlNode):
     """
