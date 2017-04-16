@@ -139,12 +139,11 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     if isinstance(obj,h5.Group):
       self.allGroupPaths.append(name)
-      self.raiseAMessage('Accessing group named ' +name)
-      if "EndGroup" in obj.attrs:
+      try:
         self.allGroupEnds[name]  = obj.attrs["EndGroup"]
-      else:
-        self.raiseAWarning('not found attribute EndGroup in group ' + name + '.Set True.')
+      except KeyError:
         self.allGroupEnds[name]  = True
+        self.raiseAWarning('not found attribute EndGroup in group ' + name + '.Set True.')
       if "rootname" in obj.attrs: self.parentGroupName = name
     return
 

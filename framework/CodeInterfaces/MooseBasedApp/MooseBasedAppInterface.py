@@ -92,7 +92,9 @@ class MooseBasedApp(CodeInterfaceBase):
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outName = self.outputPrefix+currentInputFiles[index].getBase()
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
-    modifDict = self._samplersDictionary[samplerType](**Kwargs)
+    modifDict = {}
+    if 'None' not in str(samplerType):
+      modifDict = self._samplersDictionary[samplerType](**Kwargs)
     #set up output
     modifDict.append({'csv':'true','name':['Outputs']})
     modifDict.append({'file_base':outName,'name':['Outputs']})

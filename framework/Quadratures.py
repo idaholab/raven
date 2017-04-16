@@ -476,7 +476,7 @@ class SmolyakSparseGrid(SparseGrid):
         else:
           self.raiseAMessage('Sparse quad generation (tensor) '+job.identifier+' failed...')
       if j<numRunsNeeded-1:
-        for _ in range(min(numRunsNeeded-1-j,handler.numFreeSpots())):
+        for _ in range(min(numRunsNeeded-1-j,handler.availability())):
           j+=1
           cof=self.c[j]
           idx = self.indexSet[j]
@@ -530,7 +530,7 @@ class SmolyakSparseGrid(SparseGrid):
         else:
           self.raiseAMessage('Sparse grid index '+job.identifier+' failed...')
       if i<N-1: #load new inputs, up to 100 at a time
-        for k in range(min(handler.numFreeSpots(),N-1-i)):
+        for k in range(min(handler.availability(),N-1-i)):
           i+=1
           handler.addInternal((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i),modulesToImport = self.mods)
       else:
