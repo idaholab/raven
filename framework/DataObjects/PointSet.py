@@ -57,9 +57,11 @@ class PointSet(Data):
     """
     # if hierarchical fashion has been requested, we set the type of the reading to a Point,
     #  since a PointSet in hierarchical fashion would be a tree of Points
-    if self._dataParameters['hierarchical']: self._dataParameters['type'] = 'Point'
+    if self._dataParameters['hierarchical']:
+      self._dataParameters['type'] = 'Point'
     # store the type into the _dataParameters dictionary
-    else:                                   self._dataParameters['type'] = self.type
+    else:
+      self._dataParameters['type'] = self.type
     if hasattr(self._toLoadFromList[-1],'type'):
       sourceType = self._toLoadFromList[-1].type
     else:
@@ -118,7 +120,8 @@ class PointSet(Data):
     #acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
     unstructuredInput = False
     if isinstance(value,(np.ndarray,c1darray)):
-      if np.asarray(value).ndim > 1 and max(np.asarray(value).shape) != np.asarray(value).size: self.raiseAnError(NotConsistentData,'PointSet Data accepts only a 1 Dimensional numpy array or a single value for method <_updateSpecializedInputValue>. Array shape is ' + str(value.shape))
+      if np.asarray(value).ndim > 1 and max(np.asarray(value).shape) != np.asarray(value).size:
+        self.raiseAnError(NotConsistentData,'PointSet Data accepts only a 1 Dimensional numpy array or a single value for method <_updateSpecializedInputValue>. Array shape is ' + str(value.shape))
       #if value.size != 1 and not acceptArrayRealizations: self.raiseAnError(NotConsistentData,'PointSet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
       unstructuredInput = True if value.size > 1 else False
     if options and self._dataParameters['hierarchical']:
@@ -126,35 +129,49 @@ class PointSet(Data):
       parentID = None
       if 'metadata' in options.keys():
         prefix    = options['metadata']['prefix']
-        if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
+        if 'parentID' in options['metadata'].keys():
+          parentID = options['metadata']['parentID']
       else:
         prefix    = options['prefix']
-        if 'parentID' in options.keys(): parentID = options['parentID']
-      if parentID: tsnode = self.retrieveNodeInTreeMode(prefix,parentID)
-      else:                             tsnode = self.retrieveNodeInTreeMode(prefix)
+        if 'parentID' in options.keys():
+          parentID = options['parentID']
+      if parentID:
+        tsnode = self.retrieveNodeInTreeMode(prefix,parentID)
+      else:
+        tsnode = self.retrieveNodeInTreeMode(prefix)
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer:
         tsnode.add('dataContainer',{'inputs':{},'unstructuredInputs':{},'outputs':{}})
         self._dataContainer = tsnode.get('dataContainer')
-      if name in self._dataContainer['inputs'].keys()            : self._dataContainer['inputs'].pop(name)
-      if name in self._dataContainer['unstructuredInputs'].keys(): self._dataContainer['unstructuredInputs'].pop(name)
-      if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-      if not unstructuredInput: self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(value)[-1]))
-      else                    : self._dataContainer['unstructuredInputs'][name] = [c1darray(values=np.atleast_1d(np.ravel(value)))]
+      if name in self._dataContainer['inputs'].keys():
+        self._dataContainer['inputs'].pop(name)
+      if name in self._dataContainer['unstructuredInputs'].keys():
+        self._dataContainer['unstructuredInputs'].pop(name)
+      if name not in self._dataParameters['inParam']:
+        self._dataParameters['inParam'].append(name)
+      if not unstructuredInput:
+        self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(value)[-1]))
+      else:
+        self._dataContainer['unstructuredInputs'][name] = [c1darray(values=np.atleast_1d(np.ravel(value)))]
       #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['inputs'].keys()+self._dataContainer['unstructuredInputs'].keys():
         #popped = self._dataContainer['inputs'].pop(name)
-        if not unstructuredInput: self._dataContainer['inputs'][name].append(np.atleast_1d(np.ravel(value)[-1]))
-        else                    : self._dataContainer['unstructuredInputs'][name].append(np.atleast_1d(np.ravel(value)))
+        if not unstructuredInput:
+          self._dataContainer['inputs'][name].append(np.atleast_1d(np.ravel(value)[-1]))
+        else:
+          self._dataContainer['unstructuredInputs'][name].append(np.atleast_1d(np.ravel(value)))
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))                     copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
-        if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
+        if name not in self._dataParameters['inParam']:
+          self._dataParameters['inParam'].append(name)
         #if name not in self._dataParameters['inParam']: self.raiseAnError(NotConsistentData,'The input variable '+name+'is not among the input space of the DataObject '+self.name)
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
-        if not unstructuredInput: self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(value)[-1]))
-        else                    : self._dataContainer['unstructuredInputs'][name] = [c1darray(values=np.atleast_1d(np.ravel(value)))]
+        if not unstructuredInput:
+          self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(value)[-1]))
+        else:
+          self._dataContainer['unstructuredInputs'][name] = [c1darray(values=np.atleast_1d(np.ravel(value)))]
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
@@ -172,24 +189,30 @@ class PointSet(Data):
       parentID = None
       if 'metadata' in options.keys():
         prefix    = options['metadata']['prefix']
-        if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
+        if 'parentID' in options['metadata'].keys():
+          parentID = options['metadata']['parentID']
       else:
         prefix    = options['prefix']
-        if 'parentID' in options.keys(): parentID = options['parentID']
-      if parentID: tsnode = self.retrieveNodeInTreeMode(prefix,parentID)
+        if 'parentID' in options.keys():
+          parentID = options['parentID']
+      if parentID:
+        tsnode = self.retrieveNodeInTreeMode(prefix,parentID)
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer:
         tsnode.add('dataContainer',{'metadata':{}})
         self._dataContainer = tsnode.get('dataContainer')
       else:
-        if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
-      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
+        if 'metadata' not in self._dataContainer.keys():
+          self._dataContainer['metadata'] ={}
+      if name in self._dataContainer['metadata'].keys():
+        self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
       else:
         valueToAdd = np.array(value,dtype=valueType) if valueType is not None else np.array(value)
         self._dataContainer['metadata'][name] = c1darray(values=np.atleast_1d(valueToAdd))
       self.addNodeInTreeMode(tsnode,options)
     else:
-      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
+      if name in self._dataContainer['metadata'].keys():
+        self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
       else:
         valueToAdd = np.array(value,dtype=valueType) if valueType is not None else np.array(value)
         self._dataContainer['metadata'][name] = c1darray(values=np.atleast_1d(valueToAdd))
@@ -206,11 +229,14 @@ class PointSet(Data):
       parentID = None
       if 'metadata' in options.keys():
         prefix    = options['metadata']['prefix']
-        if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
+        if 'parentID' in options['metadata'].keys():
+          parentID = options['metadata']['parentID']
       else:
         prefix    = options['prefix']
-        if 'parentID' in options.keys(): parentID = options['parentID']
-      if parentID: tsnode = self.retrieveNodeInTreeMode(prefix,parentID)
+        if 'parentID' in options.keys():
+          parentID = options['parentID']
+      if parentID:
+        tsnode = self.retrieveNodeInTreeMode(prefix,parentID)
 
       #if 'parentID' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parentID'])
       #else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
@@ -221,7 +247,8 @@ class PointSet(Data):
         self._dataContainer = tsnode.get('dataContainer')
       if name in self._dataContainer['outputs'].keys():
         self._dataContainer['outputs'].pop(name)
-      if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
+      if name not in self._dataParameters['outParam']:
+        self._dataParameters['outParam'].append(name)
       self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(value)) #np.atleast_1d(np.atleast_1d(value)[-1])
       self.addNodeInTreeMode(tsnode,options)
     else:
@@ -229,7 +256,8 @@ class PointSet(Data):
         #popped = self._dataContainer['outputs'].pop(name)
         self._dataContainer['outputs'][name].append(np.atleast_1d(value)[-1])   #= copy.copy(np.concatenate((np.array(popped), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
-        if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
+        if name not in self._dataParameters['outParam']:
+          self._dataParameters['outParam'].append(name)
         self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) # np.atleast_1d(np.atleast_1d(value)[-1])
 
   def specializedPrintCSV(self,filenameLocal,options):
@@ -262,33 +290,40 @@ class PointSet(Data):
             if varType == 'input':
               inpKeys[-1].append(variableName)
               axa = np.zeros(len(O_o[key]))
-              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][variableName][0]
+              for index in range(len(O_o[key])):
+                axa[index] = O_o[key][index]['inputs'][variableName][0]
               inpValues[-1].append(axa)
             if varType == 'output':
               outKeys[-1].append(variableName)
               axa = np.zeros(len(O_o[key]))
-              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][variableName][0]
+              for index in range(len(O_o[key])):
+                axa[index] = O_o[key][index]['outputs'][variableName][0]
               outValues[-1].append(axa)
             if varType == 'metadata':
               inpKeys[-1].append(variableName)
               if type(O_o[key][index]['metadata'][splitted[1]]) not in self.metatype:
                 self.raiseAnError(NotConsistentData,'metadata '+variableName +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
                 axa = np.zeros(len(O_o[key]))
-                for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][variableName]))[0]
+                for index in range(len(O_o[key])):
+                  axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][variableName]))[0]
                 inpValues[-1].append(axa)
         else:
           inpKeys[-1] = O_o[key][0]['inputs'].keys()
           for var in inpKeys[-1]:
             axa = np.zeros(len(O_o[key]))
-            for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][var][0]
+            for index in range(len(O_o[key])):
+              axa[index] = O_o[key][index]['inputs'][var][0]
             inpValues[-1].append(axa)
           outKeys[-1] = O_o[key][0]['outputs'].keys()
           for var in outKeys[-1]:
             axa = np.zeros(len(O_o[key]))
-            for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][var][0]
+            for index in range(len(O_o[key])):
+              axa[index] = O_o[key][index]['outputs'][var][0]
             outValues[-1].append(axa)
-      if len(inpKeys[-1]) > 0 or len(outKeys[-1]) > 0: myFile = open(filenameLocal + '.csv', 'w')
-      else: return
+      if len(inpKeys[-1]) > 0 or len(outKeys[-1]) > 0:
+        myFile = open(filenameLocal + '.csv', 'w')
+      else:
+        return
       O_o_keys = list(O_o.keys())
       for index in range(len(O_o.keys())):
         myFile.write('Ending branch,'+O_o_keys[index]+'\n')
@@ -299,8 +334,10 @@ class PointSet(Data):
           myFile.write(',' + item)
         myFile.write('\n')
         # maljdan: Generalized except caught
-        try   : sizeLoop = outValues[index][0].size
-        except: sizeLoop = inpValues[index][0].size
+        try:
+          sizeLoop = outValues[index][0].size
+        except:
+          sizeLoop = inpValues[index][0].size
         for j in range(sizeLoop):
           myFile.write(str(j+1))
           for i in range(len(inpKeys[index])):
@@ -321,7 +358,8 @@ class PointSet(Data):
           variableName = "|".join(splitted[1:])
           varType = splitted[0]
           if varType == 'input':
-            if variableName not in self.getParaKeys('input'): self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
+            if variableName not in self.getParaKeys('input'):
+              self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
             if variableName in self._dataContainer['inputs'].keys():
               inpKeys.append(variableName)
               inpValues.append(self._dataContainer['inputs'][variableName])
@@ -329,7 +367,8 @@ class PointSet(Data):
               unstructuredInpKeys.append(variableName)
               unstructuredInpValues.append(self._dataContainer['unstructuredInputs'][variableName])
           if varType == 'output':
-            if variableName not in self.getParaKeys('output'): self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
+            if variableName not in self.getParaKeys('output'):
+              self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
             outKeys.append(variableName)
             outValues.append(self._dataContainer['outputs'][variableName])
           if varType == 'metadata':
@@ -342,8 +381,10 @@ class PointSet(Data):
         inpValues = self._dataContainer['inputs'].values()
         outKeys   = self._dataContainer['outputs'].keys()
         outValues = self._dataContainer['outputs'].values()
-      if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
-      else: return
+      if len(inpKeys) > 0 or len(outKeys) > 0:
+        myFile = open(filenameLocal + '.csv', 'w')
+      else:
+        return
       if len(unstructuredInpKeys) > 0:
         filteredUnstructuredInpKeys   = [unstructuredInpKeys]*len(unstructuredInpValues[0])
         filteredUnstructuredInpValues = [[unstructuredInpValues[cnt][histNum] for cnt in range(len(unstructuredInpValues))] for histNum in range(len(unstructuredInpValues[0])) ]

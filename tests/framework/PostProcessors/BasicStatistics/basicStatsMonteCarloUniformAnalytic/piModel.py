@@ -19,5 +19,3 @@ def run(self,Input):
     self.out = 0.0
   else:
     self.out = 1.0
-
-

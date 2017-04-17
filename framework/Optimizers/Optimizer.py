@@ -184,8 +184,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.raiseAnError(IOError, child.tag+' node does not have the "name" attribute')
         self.optVars.append(varname)
         for childChild in child:
-          if   childChild.tag == "upperBound": self.optVarsInit['upperBound'][varname] = float(childChild.text)
-          elif childChild.tag == "lowerBound": self.optVarsInit['lowerBound'][varname] = float(childChild.text)
+          if   childChild.tag == "upperBound":
+            self.optVarsInit['upperBound'][varname] = float(childChild.text)
+          elif childChild.tag == "lowerBound":
+            self.optVarsInit['lowerBound'][varname] = float(childChild.text)
           elif childChild.tag == "initial"   :
             self.optVarsInit['initial'][varname] = {}
             temp = childChild.text.split(',')
@@ -243,7 +245,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.initSeed = int(childChild.text)
           elif childChild.tag == 'thresholdTrajRemoval':
             self.thresholdTrajRemoval = float(childChild.text)
-          else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
+          else:
+            self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
 
       elif child.tag == "convergence":
         for childChild in child:
@@ -392,11 +395,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if 'constrain' not in self.constraintFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
 
-    if self.initSeed != None: Distributions.randomSeed(self.initSeed)
+    if self.initSeed != None:
+      Distributions.randomSeed(self.initSeed)
 
     # specializing the self.localInitialize()
-    if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
-    else                      : self.localInitialize()
+    if solutionExport != None:
+      self.localInitialize(solutionExport=solutionExport)
+    else:
+      self.localInitialize()
 
   def localInitialize(self,solutionExport=None):
     """
@@ -477,13 +483,17 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       satisfied = True
     else:
       satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
-      if not satisfied: violatedConstrains['external'].append(self.constraintFunction.name)
-    if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
+      if not satisfied:
+        violatedConstrains['external'].append(self.constraintFunction.name)
+    if self.gradDict['normalize']:
+      optVars = self.denormalizeData(optVars)
     for var in optVars:
       if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
         satisfied = False
-        if optVars[var] > self.optVarsInit['upperBound'][var]: violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
-        if optVars[var] < self.optVarsInit['lowerBound'][var]: violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
+        if optVars[var] > self.optVarsInit['upperBound'][var]:
+          violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
+        if optVars[var] < self.optVarsInit['lowerBound'][var]:
+          violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
 
     satisfied = self.localCheckConstraint(optVars, satisfied)
     satisfaction = satisfied,violatedConstrains

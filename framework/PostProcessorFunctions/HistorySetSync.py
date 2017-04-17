@@ -157,9 +157,3 @@ class HistorySetSync(PostProcessorInterfaceBase):
 
     newVars[self.pivotParameter] = copy.deepcopy(newTime)
     return newVars
-
-
-
-
-
-

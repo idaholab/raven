@@ -200,7 +200,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         ## later use
         self.normValues[:, cnt] = (featureValues - mu) / sigma
         self.muAndSigmaFeatures[feat] = (mu,sigma)
-    else:    # metric != None
+    else:
+      # metric != None
       ## The dictionary represents a HistorySet
       if isinstance(tdict.values()[0],dict):
         ## normalize data
@@ -223,7 +224,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
           for j in range(i+1,cardinality):
             self.normValues[i][j] = metric.distance(tdictNorm[keys[i]],tdictNorm[keys[j]])
             self.normValues[j][i] = self.normValues[i][j]
-      else:   ## PointSet
+      else:
+        ## PointSet
         normValues = np.zeros(shape = (realizationCount, featureCount))
         self.normValues = np.zeros(shape = (realizationCount, realizationCount))
         for cnt, feat in enumerate(self.features):
@@ -1023,9 +1025,9 @@ class temporalSciKitLearn(unSupervisedLearning):
           self.outputDict['outputs']['embeddingVectors'][t] = embeddingVectors
 
         if hasattr(self.SKLEngine.Method, 'means_'):
-            self.metaDict['means'][t] = self.SKLEngine.Method.means_
+          self.metaDict['means'][t] = self.SKLEngine.Method.means_
         if hasattr(self.SKLEngine.Method, 'explained_variance_'):
-            self.metaDict['explainedVariance'][t] = self.SKLEngine.Method.explained_variance_
+          self.metaDict['explainedVariance'][t] = self.SKLEngine.Method.explained_variance_
         if hasattr(self.SKLEngine.Method, 'explained_variance_ratio_'):
           self.metaDict['explainedVarianceRatio'][t] = self.SKLEngine.Method.explained_variance_ratio_
 
@@ -1054,7 +1056,8 @@ class temporalSciKitLearn(unSupervisedLearning):
     clusterCenter = np.zeros(shape=(noCluster,len(self.features)))
 
     for cnt, feat in enumerate(self.features):
-      for ind, l in enumerate(point.keys()):  clusterCenter[ind,cnt] = np.average(data[feat][point[l]])
+      for ind, l in enumerate(point.keys()):
+        clusterCenter[ind,cnt] = np.average(data[feat][point[l]])
 
     return clusterCenter
 
@@ -1100,16 +1103,20 @@ class temporalSciKitLearn(unSupervisedLearning):
       dist = np.sqrt(np.dot(x1-x2,x1-x2))
       v1 = v2 = N1 = N2 = 0
       noFeat = len(self.features)
-      for n in range(len(l1)): # compute variance of points with label l1
+      for n in range(len(l1)):
+        # compute variance of points with label l1
         if l1[n] == n1:
           x = np.zeros(shape=(noFeat,))
-          for cnt, feat in enumerate(self.features):    x[cnt] = self.inputDict[feat][n,t-1]
+          for cnt, feat in enumerate(self.features):
+            x[cnt] = self.inputDict[feat][n,t-1]
           v1 += np.sqrt(np.dot(x-x1,x-x1))**2
           N1 += 1
-      for n in range(len(l2)): # compute variance of points with label l2
+      for n in range(len(l2)):
+        # compute variance of points with label l2
         if l2[n] == n2:
           x = np.zeros(shape=(noFeat,))
-          for cnt, feat in enumerate(self.features):    x[cnt] = self.inputDict[feat][n,t]
+          for cnt, feat in enumerate(self.features):
+            x[cnt] = self.inputDict[feat][n,t]
           v2 += np.sqrt(np.dot(x-x2,x-x2))**2
           N2 += 1
       dist += np.abs(np.sqrt(v1/(N1-1)*1.0) - np.sqrt(v2/(N2-1)*1.0))
@@ -1157,7 +1164,8 @@ class temporalSciKitLearn(unSupervisedLearning):
       remap[indices2[i2]] = indices1[i1]
       f1[i1], f2[i2] = True, True
 
-    if N2 > N1: # for the case the new cluster comes up
+    if N2 > N1:
+      # for the case the new cluster comes up
       tmp = 1
       for n2 in range(N2):
         if indices2[n2] not in remap.keys():
@@ -1362,7 +1370,8 @@ def returnInstance(modelClass, caller, **kwargs):
   """
   try:
     return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
-  except KeyError as ae:  # except Exception as(ae):
+  except KeyError as ae:
+    # except Exception as(ae):
     caller.raiseAnError(NameError, 'unSupervisedLearning', 'Unknown ' + __base + ' type ' + str(modelClass)+'.Error: '+ str(ae))
 
 def returnClass(modelClass, caller):

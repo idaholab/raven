@@ -25,9 +25,12 @@ def eval(x,y):
 def run(xin):
   inx = file(xin,'r')
   for line in inx:
-    if   line.startswith('x ='      ): x=float(line.split('=')[1])
-    elif line.startswith('case ='   ): case=line.split('=')[1].strip()
-    elif line.startswith('auxfile ='): aux=line.split('=')[1].strip()
+    if   line.startswith('x ='      ):
+      x=float(line.split('=')[1])
+    elif line.startswith('case ='   ):
+      case=line.split('=')[1].strip()
+    elif line.startswith('auxfile ='):
+      aux=line.split('=')[1].strip()
   iny = file(aux,'r')
   for line in iny:
     if line.startswith('y ='):
