@@ -29,7 +29,6 @@ import threading
 lock = threading.Lock()
 #External Modules End--------------------------------------------------------------------------------
 
-
 class c1darray(object):
   """
     This class performs the caching of the numpy ndarray class
@@ -47,14 +46,19 @@ class c1darray(object):
       @ Out, None
     """
     if values is not None:
-      if shape != (100,) and values.shape != shape: raise IOError("different shape")
-      if type(values).__name__ != 'ndarray': raise IOError("Only ndarray is accepted as type.Got "+type(values).__name__)
+      if shape != (100,) and values.shape != shape:
+        raise IOError("different shape")
+      if type(values) != ndarray:
+        raise IOError("Only ndarray is accepted as type.Got "+type(values).__name__)
       self.values = values
       self.size = values.size
     else:
       self.values = ndarray(shape, dtype, buff, offset, strides, order)
       self.size = 0
-    self.capacity = self.values.shape[0]
+    try:
+      self.capacity = self.values.shape[0]
+    except IndexError:
+      self.capacity = []
     self.ndim = self.values.ndim
 
   def __iter__(self):

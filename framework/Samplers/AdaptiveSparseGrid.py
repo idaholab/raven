@@ -493,7 +493,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     """
     self.logCounter+=1
     pl = 4*len(self.features)+1
-    f = file(self.logFile,'a')
+    f = open(self.logFile,'a')
     f.writelines('===================== STEP %i =====================\n' %self.logCounter)
     f.writelines('\nNumber of Runs: %i\n' %len(self.pointsNeededToMakeROM))
     f.writelines('Error: %1.9e\n' %self.error)
@@ -589,4 +589,4 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     rom = copy.deepcopy(self.ROM)
     self._finalizeROM(rom)
     rom.train(self.solns)
-    pickle.dump(rom,file(fname+'.pk','w'))
+    pickle.dump(rom,open(fname+'.pk','w'))
