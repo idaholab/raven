@@ -130,8 +130,7 @@ class TorqueSimulationMode(Simulation.SimulationMode):
         if not (self.__noSplitNode or self.__limitNode):
           for i in range(newBatchsize):
             nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
-            for line in lines[i*numMPI:
-              (i+1)*numMPI]:
+            for line in lines[i*numMPI:(i+1)*numMPI]:
               nodeFile.write(line)
             nodeFile.close()
         else:
@@ -141,9 +140,7 @@ class TorqueSimulationMode(Simulation.SimulationMode):
           nodes = []
           for line in lines:
             nodes.append(line.strip())
-
           nodes.sort()
-
           currentNode = ""
           countOnNode = 0
           nodeUsed = False
