@@ -189,7 +189,8 @@ class SPSA(GradientBasedOptimizer):
           tempOptVars = {}
           for var in self.optVars:
             tempOptVars[var] = self.gradDict['pertPoints'][traj][loc2][var][loc1]
-          tempOptVarsDenorm = copy.deepcopy(self.denormalizeData(tempOptVars)) if self.gradDict['normalize'] else copy.deepcopy(tempOptVars)
+          #tempOptVarsDenorm = copy.deepcopy(self.denormalizeData(tempOptVars)) if self.gradDict['normalize'] else copy.deepcopy(tempOptVars)
+          tempOptVarsDenorm = copy.deepcopy(self.denormalizeData(tempOptVars))
           for var in self.optVars:
             self.values[var] = tempOptVarsDenorm[var]
           # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation)
