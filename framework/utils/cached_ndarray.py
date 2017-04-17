@@ -29,7 +29,6 @@ import threading
 lock = threading.Lock()
 #External Modules End--------------------------------------------------------------------------------
 
-
 class c1darray(object):
   """
     This class performs the caching of the numpy ndarray class
@@ -56,7 +55,10 @@ class c1darray(object):
     else:
       self.values = ndarray(shape, dtype, buff, offset, strides, order)
       self.size = 0
-    self.capacity = self.values.shape[0]
+    try:
+      self.capacity = self.values.shape[0]
+    except IndexError:
+      self.capacity = []
     self.ndim = self.values.ndim
 
   def __iter__(self):

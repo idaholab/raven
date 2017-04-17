@@ -370,6 +370,7 @@ class SingleRun(Step):
       for finishedJob in finishedJobs:
         if finishedJob.getReturnCode() == 0:
           # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
+          model.finalizeModelOutput(finishedJob)
           for output in outputs:
             #if type(output).__name__ not in ['str','bytes','unicode']:
             if output.type not in ['OutStreamPlot','OutStreamPrint']:

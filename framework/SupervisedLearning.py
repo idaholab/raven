@@ -2162,8 +2162,11 @@ class SciKitLearn(superVisedLearning):
       @ Out, returnDict, dict, dictionary with the evaluation (in this case, the constant number)
     """
     returnDict = {}
+    #get the number of inputs provided to this ROM to evaluate
+    numInputs = len(edict.values()[0])
+    #fill the target values
     for index,target in enumerate(self.target):
-      returnDict[target] = self.myNumber[index]
+      returnDict[target] = np.ones(numInputs)*self.myNumber[index]
     return returnDict
 
   def _readdressEvaluateRomResponse(self,edict):

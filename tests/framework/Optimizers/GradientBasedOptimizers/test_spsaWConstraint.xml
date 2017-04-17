@@ -27,7 +27,7 @@
     <MultiRun name="optimization" pauseAtEnd="true">
       <Input class="DataObjects" type="PointSet">optInput</Input>
       <Model class="Models" type="ExternalModel">optObjModel</Model>
-      <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>	  
+      <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">optData</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOutput</Output>
       <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
@@ -61,39 +61,39 @@
   <Optimizers>
     <SPSA name="opt_smp">
       <initialization>
-		<limit>1000</limit>
-		<type>min</type>
-		<initialSeed>30</initialSeed>
+        <limit>1000</limit>
+        <type>min</type>
+        <initialSeed>30</initialSeed>
       </initialization>
-	  <Function class="Functions" type="External">constraintFuncPositive</Function>
+      <Function class="Functions" type="External">constraintFuncPositive</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
-	  <convergence>
-		<iterationLimit>300</iterationLimit>
+      <convergence>
+        <iterationLimit>300</iterationLimit>
         <relativeThreshold>1e-5</relativeThreshold>
         <absoluteThreshold>1e-4</absoluteThreshold>
-	  </convergence>
-	  <variable name="R">
+      </convergence>
+      <variable name="R">
         <upperBound>1.0</upperBound>
-		<lowerBound>0</lowerBound>
-		<initial>0.9</initial>
+        <lowerBound>0</lowerBound>
+        <initial>0.9</initial>
       </variable>
-	  <variable name="B">
+      <variable name="B">
         <upperBound>1.0</upperBound>
-		<lowerBound>0</lowerBound>
-		<initial>0.9</initial>
+        <lowerBound>0</lowerBound>
+        <initial>0.9</initial>
       </variable>
-	  <objectVar>c</objectVar>
-	  <parameter>
-		<numGradAvgIterations>2</numGradAvgIterations>
-		<innerBisectionThreshold>0.01</innerBisectionThreshold>
-		<innerLoopLimit>1000</innerLoopLimit>
-	  </parameter>
+      <objectVar>c</objectVar>
+      <parameter>
+        <numGradAvgIterations>2</numGradAvgIterations>
+        <innerBisectionThreshold>0.01</innerBisectionThreshold>
+        <innerLoopLimit>1000</innerLoopLimit>
+      </parameter>
     </SPSA>
   </Optimizers>
 
   <Models>
-	<ExternalModel ModuleToLoad="loss_function_hybrid" name="optObjModel" subType="">
-		<variables>R,B,c</variables>
+	  <ExternalModel ModuleToLoad="loss_function_hybrid" name="optObjModel" subType="">
+		  <variables>R,B,c</variables>
     </ExternalModel>
   </Models>
 
@@ -103,7 +103,7 @@
       <variable>R</variable>
     </External>
   </Functions>
-  
+
   <OutStreams>
     <Print name="optimizationHistoryDump">
       <type>csv</type>
@@ -113,7 +113,7 @@
         <type>csv</type>
         <source>optOutput</source>
     </Print>
-	
+
     <Plot  name="optPath" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
@@ -130,7 +130,7 @@
             <zlabel>Loss Function</zlabel>
         </plotSettings>
     </Plot>
-	
+
     <Plot  name="plotIteration" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
@@ -142,27 +142,27 @@
                 <x>optData|Output|varsUpdate</x>
                 <y>optData|Output|B</y>
 				<interpPointsX>300</interpPointsX>
-				<gridLocation><x>0</x><y>0</y></gridLocation>	
-				<ylabel>B</ylabel>				
+				<gridLocation><x>0</x><y>0</y></gridLocation>
+				<ylabel>B</ylabel>
             </plot>
-			
+
 			<plot>
                 <type>line</type>
                 <x>optData|Output|varsUpdate</x>
                 <y>optData|Output|R</y>
 				<interpPointsX>300</interpPointsX>
-				<gridLocation><x>1</x><y>0</y></gridLocation>	
-				<ylabel>R</ylabel>				
+				<gridLocation><x>1</x><y>0</y></gridLocation>
+				<ylabel>R</ylabel>
             </plot>
 
-			
+
 			<plot>
                 <type>line</type>
                 <x>optData|Output|varsUpdate</x>
                 <y>optData|Output|c</y>
 				<interpPointsX>300</interpPointsX>
-				<gridLocation><x>2</x><y>0</y></gridLocation>	
-				<ylabel>c</ylabel>				
+				<gridLocation><x>2</x><y>0</y></gridLocation>
+				<ylabel>c</ylabel>
             </plot>
 
 

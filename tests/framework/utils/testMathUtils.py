@@ -297,6 +297,18 @@ checkArray('0-1 scaling sequentialList: ', factors, (0,4))
 factors = mathUtils.normalizationFactors(sequentialList, mode='none')
 checkArray('No scaling sequentialList: ', factors,(0,1))
 
+#check hyperrectangle diagonal on several dimensions
+## 2d
+sideLengths = [3,4]
+checkAnswer('2D hyperdiagonal',mathUtils.hyperdiagonal(sideLengths),5)
+## 3d
+sideLengths.append(12)
+checkAnswer('3D hyperdiagonal',mathUtils.hyperdiagonal(sideLengths),13)
+## 3d
+sideLengths.append(84)
+checkAnswer('4D hyperdiagonal',mathUtils.hyperdiagonal(sideLengths),85)
+
+
 print(results)
 
 sys.exit(results["fail"])

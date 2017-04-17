@@ -117,10 +117,15 @@ class HistorySet(Data):
     # if this flag is true, we accept realizations in the input space that are not only scalar but can be 1-D arrays!
     #acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
     unstructuredInput = False
-    if (not isinstance(value,(float,int,bool,np.ndarray,c1darray))):
+    if isinstance(value,np.ndarray):
+      if value.shape == (): #can't cast single-entry ND array into a c1darray, so make it into a single entry
+        value = value.dtype.type(value)
+      else:
+        value = c1darray(values=value)
+    if not isinstance(value,(float,int,bool,c1darray)):
       self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array  or a single value for method <_updateSpecializedInputValue>. Got type ' + str(type(value)))
-    if isinstance(value,(np.ndarray,c1darray)):
-      if np.asarray(value).ndim > 1 and max(value.shape) != np.asarray(value).size:
+    if isinstance(value,c1darray):
+      if np.asarray(value).ndim > 1 and max(value.values.shape) != np.asarray(value).size:
         self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a 1 Dimensional numpy array or a single value for method <_updateSpecializedInputValue>. Array shape is ' + str(value.shape))
       #if value.size != 1 and not acceptArrayRealizations: self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
       unstructuredInput = True if value.size > 1 else False
@@ -246,10 +251,14 @@ class HistorySet(Data):
       @ In,  name, either 1) list (size = 2), name[0] == history number(ex. 1 or 2 etc) - name[1], parameter name (ex. cladTemperature)
                        or 2) string, parameter name (ex. cladTemperature) -> in this second case,the parameter is added in the last history (if not present),
                                                                              otherwise a new history is created and the new value is inserted in it
+      @ In, value, ?, ?
       @ Out, None
     """
-    if not isinstance(value,(np.ndarray,c1darray)):
-      self.raiseAnError(NotConsistentData,'HistorySet Data accepts only numpy array as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
+    if isinstance(value,np.ndarray):
+      self.raiseADebug('FIXME: Converted np.ndarray into c1darray in HistorySet!')
+      value = c1darray(values=value)
+    if not isinstance(value,c1darray):
+      self.raiseAnError(NotConsistentData,'HistorySet Data accepts only cached_ndarray as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
 
     if options and self._dataParameters['hierarchical']:
       parentID = None
@@ -284,32 +293,28 @@ class HistorySet(Data):
       if not self._dataContainer:
         tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
         self._dataContainer = tsnode.get('dataContainer')
-      if namep in self._dataContainer['outputs'].keys():
-        self._dataContainer['outputs'].pop(namep)
-      if namep not in self._dataParameters['inParam']:
-        self._dataParameters['outParam'].append(namep)
-      self._dataContainer['outputs'][namep] = c1darray(values=np.atleast_1d(np.array(value,dtype=float))) #np.atleast_1d(np.array(value))
+      if namep in self._dataContainer['outputs'].keys(): self._dataContainer['outputs'].pop(namep)
+      if namep not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(namep)
+      self._dataContainer['outputs'][namep] = c1darray(values=np.atleast_1d(np.array(value,dtype=float)))
       self.addNodeInTreeMode(tsnode,options)
     else:
+      resultsArray = c1darray(values=np.atleast_1d(np.array(value,dtype=float)))
       if type(name) == list:
         # there are info regarding the history number
-        if name[0] in self._dataContainer['outputs'].keys():
-          #gethistory = self._dataContainer['outputs'].pop(name[0])
-          #gethistory[name[1]] = np.atleast_1d(np.array(value))
-          #self._dataContainer['outputs'][name[0]] =gethistory
-          self._dataContainer['outputs'][name[0]][name[1]] = np.atleast_1d(np.array(value))
-        else:
-          self._dataContainer['outputs'][name[0]] = {name[1]:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))} #np.atleast_1d(np.array(value))}
+        try:
+          self._dataContainer['outputs'][name[0]][name[1]] = resultsArray
+        except KeyError:
+          self._dataContainer['outputs'][name[0]] = {name[1]:resultsArray}
       else:
         # no info regarding the history number => use internal counter
-        if len(self._dataContainer['outputs'].keys()) == 0:
-          self._dataContainer['outputs'][1] = {name:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))} #np.atleast_1d(np.array(value))}
+        if len(self._dataContainer['outputs']) == 0:
+          self._dataContainer['outputs'][1] = {name:resultsArray}
         else:
           hisn = max(self._dataContainer['outputs'].keys())
           if name in list(self._dataContainer['outputs'].values())[-1]:
             hisn += 1
             self._dataContainer['outputs'][hisn] = {}
-          self._dataContainer['outputs'][hisn][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value,dtype=float)))) #np.atleast_1d(np.array(value)))
+          self._dataContainer['outputs'][hisn][name] = copy.copy(resultsArray) #FIXME why deepcopy here but not elsewhere?
 
   def specializedPrintCSV(self,filenameLocal,options):
     """

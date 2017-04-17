@@ -92,8 +92,9 @@ class RELAP7(CodeInterfaceBase):
       raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
     Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
-    modifDict = self._samplersDictionary[samplerType](**Kwargs)
-    parser.modifyOrAdd(modifDict,False)
+    if 'None' not in str(samplerType):
+      modifDict = self._samplersDictionary[samplerType](**Kwargs)
+      parser.modifyOrAdd(modifDict,False)
     #newInputFiles = copy.deepcopy(currentInputFiles)
     #if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
     #  newInputFiles[index].setBase(Kwargs['prefix']+"~"+newInputFiles[index].getBase())

@@ -37,7 +37,7 @@ from sklearn.neighbors import NearestNeighbors
 #Internal Modules------------------------------------------------------------------------------------
 from .Optimizer import Optimizer
 from Assembler import Assembler
-from utils import utils
+from utils import utils,cached_ndarray
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GradientBasedOptimizer(Optimizer):
@@ -77,16 +77,16 @@ class GradientBasedOptimizer(Optimizer):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    convergence                = xmlNode.find("convergence")
+    convergence = xmlNode.find("convergence")
     self.gradDict['normalize'] = utils.interpretBoolean(self.paramDict.get("normalize",self.gradDict['normalize']))
     if convergence is not None:
       gradientThreshold = convergence.find("gradientThreshold")
       try:
         if gradientThreshold is not None and self.gradDict['normalize']:
-          self.raiseAWarning("Conflicting inputs: gradientThreshold and normalized gradient have been inputed. These two intpus are conflicting. ")
+          self.raiseAWarning("Conflicting inputs: gradientThreshold and normalized gradient have both been input. These two intpus are conflicting. ")
         self.gradientNormTolerance = float(gradientThreshold.text) if gradientThreshold is not None else self.gradientNormTolerance
       except ValueError:
-        self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float')
+        self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float.')
 
   def localInitialize(self,solutionExport=None):
     """
@@ -225,7 +225,7 @@ class GradientBasedOptimizer(Optimizer):
     """
     gradArray = {}
     for var in self.optVars:
-      gradArray[var] = np.ndarray((0,0))
+      gradArray[var] = np.ndarray((0,0)) #why are we initializing to this?
 
     # Evaluate gradient at each point
     for pertIndex in optVarsValues.keys():
@@ -233,8 +233,8 @@ class GradientBasedOptimizer(Optimizer):
       tempDictPerturbed['lossValue'] = copy.copy(self.lossFunctionEval(tempDictPerturbed))
       lossDiff = tempDictPerturbed['lossValue'][0] - tempDictPerturbed['lossValue'][1]
       for var in self.optVars:
-        if tempDictPerturbed[var][0] != tempDictPerturbed[var][1]:
-          gradArray[var] = np.append(gradArray[var], lossDiff/(tempDictPerturbed[var][0]-tempDictPerturbed[var][1])*1.0)
+        denom = tempDictPerturbed[var][0]-tempDictPerturbed[var][1]
+        gradArray[var] = np.append(gradArray[var], lossDiff/denom*1.0)
     gradient = {}
     for var in self.optVars:
       gradient[var] = gradArray[var].mean()
@@ -317,7 +317,7 @@ class GradientBasedOptimizer(Optimizer):
   def _removeRedundantTraj(self, trajToRemove, currentInput):
     """
       Local method to remove multiple trajectory
-      @ In, traj, int, identifier of the trajector to remove
+      @ In, trajToRemove, int, identifier of the trajector to remove
       @ In, currentInput, dict, the last variable on trajectory traj
       @ Out, None
     """
@@ -325,7 +325,7 @@ class GradientBasedOptimizer(Optimizer):
     for traj in self.optTraj:
       if traj != trajToRemove:
         for updateKey in self.optVarsHist[traj].keys():
-          inp = copy.deepcopy(self.optVarsHist[traj][updateKey])
+          inp = copy.deepcopy(self.optVarsHist[traj][updateKey]) #FIXME deepcopy needed?
           removeLocalFlag = True
           for var in self.optVars:
             if abs(inp[var] - currentInput[var]) > self.thresholdTrajRemoval:
