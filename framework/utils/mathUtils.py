@@ -278,19 +278,25 @@ def historySnapShoots(valueDict, numberOfTimeStep):
   numberSteps = - 1
   # check consistency of the dictionary
   for variable, value in valueDict.items():
-    if len(value) != numberOfRealizations: return "historySnapShoots method: number of realizations are not consistent among the different parameters!!!!"
+    if len(value) != numberOfRealizations:
+      return "historySnapShoots method: number of realizations are not consistent among the different parameters!!!!"
     if type(value).__name__ in 'list':
       # check the time-step size
       outPortion[variable] = np.asarray(value)
-      if numberSteps == -1: numberSteps = reduce(lambda x, y: x*y, list(outPortion.values()[-1].shape))/numberOfRealizations
-      if len(list(outPortion[variable].shape)) != 2: return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable
-      if reduce(lambda x, y: x*y, list(outPortion.values()[-1].shape))/numberOfRealizations != numberSteps :
+      if numberSteps == -1:
+        numberSteps = reduce(lambda x, y: x*y, list(outPortion.values()[-1].shape))/numberOfRealizations
+      if len(list(outPortion[variable].shape)) != 2:
+        return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable
+      if reduce(lambda x, y:
+        x*y, list(outPortion.values()[-1].shape))/numberOfRealizations != numberSteps :
         return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable+". Expected "+str(numberSteps)+" /= "+ sum(list(outPortion[variable].shape))/numberOfRealizations
-    else                             : inPortion [variable] = np.asarray(value)
+    else:
+      inPortion [variable] = np.asarray(value)
   for ts in range(numberOfTimeStep):
     realizationSnap = {}
     realizationSnap.update(inPortion)
-    for variable in outPortion.keys(): realizationSnap[variable] = outPortion[variable][:,ts]
+    for variable in outPortion.keys():
+      realizationSnap[variable] = outPortion[variable][:,ts]
     outDict.append(realizationSnap)
   return outDict
 
@@ -427,10 +433,14 @@ def convertNumpyToLists(inputDict):
   returnDict = inputDict
   if type(inputDict) == dict:
     for key, value in inputDict.items():
-      if   type(value) == np.ndarray: returnDict[key] = value.tolist()
-      elif type(value) == dict      : returnDict[key] = (convertNumpyToLists(value))
-      else                          : returnDict[key] = value
-  elif type(inputDict) == np.ndarray: returnDict = inputDict.tolist()
+      if   type(value) == np.ndarray:
+        returnDict[key] = value.tolist()
+      elif type(value) == dict:
+        returnDict[key] = (convertNumpyToLists(value))
+      else:
+        returnDict[key] = value
+  elif type(inputDict) == np.ndarray:
+    returnDict = inputDict.tolist()
   return returnDict
 
 def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
@@ -444,16 +454,22 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
     @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
   """
   options = copy.copy(option)
-  if x.size <= 2: xi = x
-  else          : xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
+  if x.size <= 2:
+    xi = x
+  else:
+    xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
   if z is not None:
-    if y.size <= 2: yi = y
-    else          : yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
+    if y.size <= 2:
+      yi = y
+    else:
+      yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
     xig, yig = np.meshgrid(xi, yi)
     try:
       if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
-        if options['interpolationType'] != 'nearest' and z.size > 3: zi = interpolate.griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
-        else: zi = interpolate.griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
+        if options['interpolationType'] != 'nearest' and z.size > 3:
+          zi = interpolate.griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
+        else:
+          zi = interpolate.griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
       else:
         rbf = interpolate.Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
         zi  = rbf(xig, yig)
@@ -462,14 +478,19 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
         print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
         zi = interpolateFunction(x,y,z,options)
-      else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
-    if returnCoordinate: return xig,yig,zi
-    else               : return zi
+      else:
+        raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+    if returnCoordinate:
+      return xig,yig,zi
+    else:
+      return zi
   else:
     try:
       if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
-        if options['interpolationType'] != 'nearest' and y.size > 3: yi = interpolate.griddata((x), y, (xi[:]), method=options['interpolationType'])
-        else: yi = interpolate.griddata((x), y, (xi[:]), method='nearest')
+        if options['interpolationType'] != 'nearest' and y.size > 3:
+          yi = interpolate.griddata((x), y, (xi[:]), method=options['interpolationType'])
+        else:
+          yi = interpolate.griddata((x), y, (xi[:]), method='nearest')
       else:
         xig, yig = np.meshgrid(xi, yi)
         rbf = interpolate.Rbf(x, y,function=str(str(options['interpolationType']).replace('Rbf', '')),epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
@@ -479,9 +500,12 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
         print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
         yi = interpolateFunction(x,y,options)
-      else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
-    if returnCoordinate: return xi,yi
-    else               : return yi
+      else:
+        raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+    if returnCoordinate:
+      return xi,yi
+    else:
+      return yi
 
 def distance(points,pt):
   """
@@ -580,4 +604,3 @@ def numBinsDraconis(data):
   numBins = int((max(data)-min(data))/binSize)
   binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
   return numBins,binEdges
-

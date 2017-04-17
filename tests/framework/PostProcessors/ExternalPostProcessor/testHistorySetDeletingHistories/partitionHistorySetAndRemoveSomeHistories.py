@@ -69,4 +69,3 @@ def z(self):
       # just to show how to skip a history, we skip the first two ones
       newZ.append(self.z[history][ts:])
   return newZ
-

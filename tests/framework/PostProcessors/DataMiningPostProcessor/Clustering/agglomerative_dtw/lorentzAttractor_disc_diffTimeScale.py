@@ -59,5 +59,3 @@ def run(self,Input):
     self.x[t+1]    = self.x[t] + disc*self.sigma*(self.y[t]-self.x[t]) * t_step
     self.y[t+1]    = self.y[t] + disc*(self.x[t]*(self.rho-self.z[t])-self.y[t]) * t_step
     self.z[t+1]    = self.z[t] + disc*(self.x[t]*self.y[t]-self.beta*self.z[t]) * t_step
-
-

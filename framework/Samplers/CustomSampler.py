@@ -60,9 +60,12 @@ class CustomSampler(ForwardSampler):
       if child.tag == 'variable':
         self.toBeSampled[child.attrib['name']] = 'custom'
       if child.tag == 'Source'  :
-        if child.attrib['class'] not in ['Files','DataObjects']: self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
-        if child.attrib['class'] == 'DataObjects' and child.attrib['type'] != 'PointSet': self.raiseAnError(IOError, "Source type attribute must be 'PointSet' if class attribute is 'DataObjects'!!!")
-    if len(self.toBeSampled.keys()) == 0: self.raiseAnError(IOError,"no variables got inputted!!!!!!")
+        if child.attrib['class'] not in ['Files','DataObjects']:
+          self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
+        if child.attrib['class'] == 'DataObjects' and child.attrib['type'] != 'PointSet':
+          self.raiseAnError(IOError, "Source type attribute must be 'PointSet' if class attribute is 'DataObjects'!!!")
+    if len(self.toBeSampled.keys()) == 0:
+      self.raiseAnError(IOError,"no variables got inputted!!!!!!")
 
   def _localWhatDoINeed(self):
     """
@@ -84,8 +87,10 @@ class CustomSampler(ForwardSampler):
     for key, value in self.assemblerObjects.items():
       if key == 'Source':
         self.assemblerDict[key] =  []
-        for interface in value: self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
-    if len(self.assemblerDict.keys()) == 0: self.raiseAnError(IOError,"No Source object has been found!")
+        for interface in value:
+          self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
+    if len(self.assemblerDict.keys()) == 0:
+      self.raiseAnError(IOError,"No Source object has been found!")
 
   def localInitialize(self):
     """
@@ -104,20 +109,27 @@ class CustomSampler(ForwardSampler):
       data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float, delimiter=',', skiprows=1, ndmin=2)
       csvFile.close()
       for var in self.toBeSampled.keys():
-        if var not in headers: self.raiseAnError(IOError, "variable "+ var+ " not found in the file "+csvFile.getFilename())
+        if var not in headers:
+          self.raiseAnError(IOError, "variable "+ var+ " not found in the file "+csvFile.getFilename())
         self.pointsToSample[var] = data[:,headers.index(var)]
-      if 'PointProbability' in headers: self.infoFromCustom['PointProbability'] = data[:,headers.index('PointProbability')]
-      if 'ProbabilityWeight' in headers: self.infoFromCustom['ProbabilityWeight'] = data[:,headers.index('ProbabilityWeight')]
+      if 'PointProbability' in headers:
+        self.infoFromCustom['PointProbability'] = data[:,headers.index('PointProbability')]
+      if 'ProbabilityWeight' in headers:
+        self.infoFromCustom['ProbabilityWeight'] = data[:,headers.index('ProbabilityWeight')]
     else:
       dataObj = self.assemblerDict['Source'][0][3]
       for var in self.toBeSampled.keys():
-        if var not in dataObj.getParaKeys('input') + dataObj.getParaKeys('output'): self.raiseAnError(IOError,"the variable "+ var+ " not found in "+dataObj.type +" "+dataObj.name)
+        if var not in dataObj.getParaKeys('input') + dataObj.getParaKeys('output'):
+          self.raiseAnError(IOError,"the variable "+ var+ " not found in "+dataObj.type +" "+dataObj.name)
         self.pointsToSample[var] = dataObj.getParam('input', var, nodeId = 'ending') if var in dataObj.getParaKeys('input') else dataObj.getParam('output', var, nodeId = 'ending')
-      if 'PointProbability'  in dataObj.getParaKeys('metadata'): self.infoFromCustom['PointProbability'] = dataObj.getMetadata('PointProbability',nodeId='ending')
-      if 'ProbabilityWeight' in dataObj.getParaKeys('metadata'): self.infoFromCustom['ProbabilityWeight'] = dataObj.getMetadata('ProbabilityWeight',nodeId='ending')
+      if 'PointProbability'  in dataObj.getParaKeys('metadata'):
+        self.infoFromCustom['PointProbability'] = dataObj.getMetadata('PointProbability',nodeId='ending')
+      if 'ProbabilityWeight' in dataObj.getParaKeys('metadata'):
+        self.infoFromCustom['ProbabilityWeight'] = dataObj.getMetadata('ProbabilityWeight',nodeId='ending')
     self.limit = len(self.pointsToSample.values()[0])
     #TODO: add restart capability here!
-    if self.restartData: self.raiseAnError(IOError,"restart capability not implemented for CustomSampler yet!")
+    if self.restartData:
+      self.raiseAnError(IOError,"restart capability not implemented for CustomSampler yet!")
 #       self.counter+=len(self.restartData)
 #       self.raiseAMessage('Number of points from restart: %i' %self.counter)
 #       self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
@@ -133,8 +145,10 @@ class CustomSampler(ForwardSampler):
       @ Out, None
     """
     # create values dictionary
-    for var in self.toBeSampled.keys():                   self.values[var] = self.pointsToSample[var][self.counter-1]
-    if 'PointProbability' in self.infoFromCustom.keys():  self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter-1]
-    if 'ProbabilityWeight' in self.infoFromCustom.keys(): self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][self.counter-1]
+    for var in self.toBeSampled.keys():
+      self.values[var] = self.pointsToSample[var][self.counter-1]
+    if 'PointProbability' in self.infoFromCustom.keys():
+      self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter-1]
+    if 'ProbabilityWeight' in self.infoFromCustom.keys():
+      self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][self.counter-1]
     self.inputInfo['SamplerType'] = 'Custom'
-

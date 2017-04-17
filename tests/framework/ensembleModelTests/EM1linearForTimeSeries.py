@@ -40,7 +40,8 @@ def odeFuncion(u, t, xshape, N, h, k, timeFromFirstModel):
   # k and timeFromFirstModel are arrays that need to be interpolated! (interp)
 
   # now for the internal nodes
-  for i in range(1, N-1): dudt[i] = interp(t, timeFromFirstModel, k) * (u[i + 1] - 2*u[i] + u[i - 1]) / h**2
+  for i in range(1, N-1):
+    dudt[i] = interp(t, timeFromFirstModel, k) * (u[i + 1] - 2*u[i] + u[i - 1]) / h**2
   return dudt
 
 def run(self, Input):
@@ -50,4 +51,3 @@ def run(self, Input):
   with localLock:
     solution = odeint(odeFuncion, self.initialTemperatures, self.timeDiscretization, args=copy.deepcopy((self.shapeToUse,self.N,self.h,self.k,self.timeFromFirstModel)),full_output = 1)
     self.solution = solution[0][-1,5]
-

@@ -36,7 +36,8 @@ def odeFuncion(u, t, xshape, N, h, k):
   dudt[0] = 0 # constant at boundary condition
   dudt[-1] = 0
   # now for the internal nodes
-  for i in range(1, N-1): dudt[i] = k * (u[i + 1] - 2*u[i] + u[i - 1]) / h**2
+  for i in range(1, N-1):
+    dudt[i] = k * (u[i + 1] - 2*u[i] + u[i - 1]) / h**2
   return dudt
 
 def run(self, Input):
@@ -46,4 +47,3 @@ def run(self, Input):
   with localLock:
     solution = odeint(odeFuncion, self.initialTemperatures, self.timeDiscretization, args=copy.deepcopy((self.shapeToUse,self.N,self.h,self.anAliasForKInHeatTransfer)),full_output = 1)
     self.anAliasForSolutionInHeatTransfer = solution[0][-1,5]
-

@@ -196,9 +196,11 @@ class SPSA(GradientBasedOptimizer):
             if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:
               evalNotFinish = True
               break
-          if evalNotFinish:  # evaluation not completed for gradient evaluation
+          if evalNotFinish:
+            # evaluation not completed for gradient evaluation
             continue
-          else:  # evaluation completed for gradient evaluation
+          else:
+            # evaluation completed for gradient evaluation
             self.counter['perturbation'][traj] = 0
             self.counter['varsUpdate'][traj] += 1
 
@@ -281,14 +283,17 @@ class SPSA(GradientBasedOptimizer):
       tempVarKPlus[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
     satisfied, activeConstraints = self.checkConstraint(tempVarKPlus)
     #satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempVarKPlus))
-    if satisfied: return tempVarKPlus
+    if satisfied:
+      return tempVarKPlus
     else:
       # check if the active constraints are the boundary ones. In case, project the gradient
       if len(activeConstraints['internal']) > 0:
         projectedOnBoundary= {}
-        for activeConstraint in activeConstraints['internal']: projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
+        for activeConstraint in activeConstraints['internal']:
+          projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
         tempVarKPlus.update(self.normalizeData(projectedOnBoundary) if self.gradDict['normalize'] else projectedOnBoundary)
-      if len(activeConstraints['external']) == 0: return tempVarKPlus
+      if len(activeConstraints['external']) == 0:
+        return tempVarKPlus
 
     # Try to find varKPlus by shorten the gradient vector
     foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, gradient)
@@ -298,7 +303,8 @@ class SPSA(GradientBasedOptimizer):
     # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
     # with respect to the constraints hyper-surface
     innerLoopLimit = self.constraintHandlingPara['innerLoopLimit']
-    if innerLoopLimit < 0:   self.raiseAnError(IOError, 'Limit for internal loop for constraint handling shall be nonnegative')
+    if innerLoopLimit < 0:
+      self.raiseAnError(IOError, 'Limit for internal loop for constraint handling shall be nonnegative')
     loopCounter = 0
     foundPendVector = False
     while not foundPendVector and loopCounter < innerLoopLimit:
@@ -362,7 +368,8 @@ class SPSA(GradientBasedOptimizer):
       @ Out, _bisectionForConstrainedInput, tuple(bool,dict), (indicating whether a fraction vector is found, contains the fraction of gradient that satisfies constraint)
     """
     innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
-    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1: self.raiseAnError(ValueError, 'The innerBisectionThreshold shall be greater than 0 and less than 1')
+    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1:
+      self.raiseAnError(ValueError, 'The innerBisectionThreshold shall be greater than 0 and less than 1')
     fracLowerLimit = 1e-2
     bounds = [0, 1.0]
     tempVarNew = {}
@@ -396,8 +403,10 @@ class SPSA(GradientBasedOptimizer):
       v1[cnt], v2[cnt] = copy.deepcopy(d1[var]), copy.deepcopy(d2[var])
     angle = np.arccos(np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2))
     if np.isnan(angle):
-      if (v1 == v2).all(): angle = 0.0
-      else: angle = np.pi
+      if (v1 == v2).all():
+        angle = 0.0
+      else:
+        angle = np.pi
     angleD = np.rad2deg(angle)
     return angleD
 
