@@ -50,5 +50,3 @@ def run(self,Input):
     self.firstOut[t+1]    = self.firstOut[t] + self.sigma*(self.secondOut[t]-self.firstOut[t]) * t_step
     self.secondOut[t+1]    = self.secondOut[t] + (self.firstOut[t]*(self.rho-self.z[t])-self.secondOut[t]) * t_step
     self.z[t+1]    = self.z[t] + (self.firstOut[t]*self.secondOut[t]-self.beta*self.z[t]) * t_step
-
-

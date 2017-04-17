@@ -123,7 +123,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         for _ in treer.iterProvidedFunction(self._checkIfRunning):
           self.startAdaptive = False
           break
-        if not self.startAdaptive: break
+        if not self.startAdaptive:
+          break
 
   def _checkClosestBranch(self):
     """
@@ -154,12 +155,14 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       self.foundEpistemicTree, treer, compareDict = False, None, dict.fromkeys(self.epistemicVariables.keys(),False)
       for tree in self.TreeInfo.values():
         epistemicVars = tree.getrootnode().get("hybridsamplerCoordinate")[0]['SampledVars']
-        for key in self.epistemicVariables.keys(): compareDict[key] = utils.compare(epistemicVars[key],self.values[key])
+        for key in self.epistemicVariables.keys():
+          compareDict[key] = utils.compare(epistemicVars[key],self.values[key])
         if all(compareDict.values()):
           # we found the right epistemic tree
           self.foundEpistemicTree, treer = True, tree
           break
-    else: treer = self.TreeInfo.values()[0]
+    else:
+      treer = self.TreeInfo.values()[0]
 
     # check if in the adaptive points already explored (if not push into the grid)
     if not self.insertAdaptBPb:
@@ -167,18 +170,23 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       # check if adaptive point is better choice -> TODO: improve efficiency
       for invPoint in self.investigatedPoints:
         pbth = [invPoint[self.toBeSampled[key]] for key in cdfValues.keys()]
-        if all(i <= pbth[cnt] for cnt,i in enumerate(cdfValues.values())): candidatesBranch.append(invPoint)
+        if all(i <= pbth[cnt] for cnt,i in enumerate(cdfValues.values())):
+          candidatesBranch.append(invPoint)
       if len(candidatesBranch) > 0:
-        if None in lowerCdfValues.values(): lowerCdfValues = candidatesBranch[0]
+        if None in lowerCdfValues.values():
+          lowerCdfValues = candidatesBranch[0]
         for invPoint in candidatesBranch:
           pbth = [invPoint[self.toBeSampled[key]] for key in cdfValues.keys()]
-          if all(i >= pbth[cnt] for cnt,i in enumerate(lowerCdfValues.values())): lowerCdfValues = invPoint
+          if all(i >= pbth[cnt] for cnt,i in enumerate(lowerCdfValues.values())):
+            lowerCdfValues = invPoint
     # Check if The adaptive point requested is outside the so far run grid; in case return None
     # In addition, if Adaptive Hybrid DET, if treer is None, we did not find any tree
     #              in the epistemic space => we need to create another one
     if None in lowerCdfValues.values() or treer is None:
-      if self.hybridDETstrategy is not None: returnTuple = None, cdfValues, treer
-      else                                 : returnTuple = None, cdfValues
+      if self.hybridDETstrategy is not None:
+        returnTuple = None, cdfValues, treer
+      else:
+        returnTuple = None, cdfValues
       return returnTuple
 
     nntrain, mapping = None, {}
@@ -189,14 +197,17 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         if nntrain is None:
           nntrain = np.zeros((1,len(cdfValues.keys())))
           nntrain[0,:] = np.array(copy.copy(pbth))
-        else: nntrain = np.concatenate((nntrain,np.atleast_2d(np.array(copy.copy(pbth)))),axis=0)
+        else:
+          nntrain = np.concatenate((nntrain,np.atleast_2d(np.array(copy.copy(pbth)))),axis=0)
         mapping[nntrain.shape[0]] = ending
     if nntrain is not None:
       neigh = neighbors.NearestNeighbors(n_neighbors=len(mapping.keys()))
       neigh.fit(nntrain)
       valBranch = self._checkValidityOfBranch(neigh.kneighbors(lowerCdfValues.values()),mapping)
-      if self.hybridDETstrategy is not None: returnTuple = valBranch,cdfValues,treer
-      else                                 : returnTuple = valBranch,cdfValues
+      if self.hybridDETstrategy is not None:
+        returnTuple = valBranch,cdfValues,treer
+      else:
+        returnTuple = valBranch,cdfValues
       return returnTuple
     else:
       returnTuple = (None,cdfValues,treer) if self.hybridDETstrategy is not None else (None,cdfValues)
@@ -332,8 +343,10 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     # Add the new input path into the RunQueue system
     self.RunQueue['queue'].append(model.createNewInput(myInput,self.type,**self.inputInfo))
     self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
-    for key,value in self.inputInfo.items(): subGroup.add(key,value)
-    if endInfo: subGroup.add('endInfo',copy.deepcopy(endInfo))
+    for key,value in self.inputInfo.items():
+      subGroup.add(key,value)
+    if endInfo:
+      subGroup.add('endInfo',copy.deepcopy(endInfo))
 
   def localStillReady(self,ready): #, lastOutput= None
     """
@@ -342,9 +355,12 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
-    if self.counter == 0               : return     True
-    if len(self.RunQueue['queue']) != 0: detReady = True
-    else                               : detReady = False
+    if self.counter == 0:
+      return     True
+    if len(self.RunQueue['queue']) != 0:
+      detReady = True
+    else:
+      detReady = False
     # since the RunQueue is empty, let's check if there are still branches running => if not => start the adaptive search
     self._checkIfStartAdaptive()
     if self.startAdaptive:
@@ -352,7 +368,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       # retrieve the endHistory branches
       completedHistNames, finishedHistNames = [], []
       hybridTrees = self.TreeInfo.values() if self.hybridDETstrategy in [1,None] else [self.TreeInfo[self.actualHybridTree]]
-      for treer in hybridTrees: # this needs to be solved
+      for treer in hybridTrees:
+        # this needs to be solved
         for ending in treer.iterProvidedFunction(self._checkCompleteHistory):
           completedHistNames.append(self.lastOutput.getParam(typeVar='inout',keyword='none',nodeId=ending.get('name'),serialize=False))
           finishedHistNames.append(utils.first(completedHistNames[-1].keys()))
@@ -366,12 +383,17 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
           for histd in completedHistNames:
             histdict = histd.values()[-1]
             for key in histdict['inputs' ].keys():
-              if key not in lastOutDict['inputs'].keys(): lastOutDict['inputs'][key] = np.atleast_1d(histdict['inputs'][key])
-              else                                      : lastOutDict['inputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['inputs'][key]),np.atleast_1d(histdict['inputs'][key])))
+              if key not in lastOutDict['inputs'].keys():
+                lastOutDict['inputs'][key] = np.atleast_1d(histdict['inputs'][key])
+              else:
+                lastOutDict['inputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['inputs'][key]),np.atleast_1d(histdict['inputs'][key])))
             for key in histdict['outputs'].keys():
-              if key not in lastOutDict['outputs'].keys(): lastOutDict['outputs'][key] = np.atleast_1d(histdict['outputs'][key])
-              else                                       : lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),np.atleast_1d(histdict['outputs'][key])))
-        else: self.raiseAWarning('No Completed HistorySet! Not possible to start an adaptive search! Something went wrong!')
+              if key not in lastOutDict['outputs'].keys():
+                lastOutDict['outputs'][key] = np.atleast_1d(histdict['outputs'][key])
+              else:
+                lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),np.atleast_1d(histdict['outputs'][key])))
+        else:
+          self.raiseAWarning('No Completed HistorySet! Not possible to start an adaptive search! Something went wrong!')
       if len(completedHistNames) > self.completedHistCnt:
         actualLastOutput      = self.lastOutput
         self.lastOutput       = copy.deepcopy(lastOutDict)
@@ -379,10 +401,13 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         self.lastOutput       = actualLastOutput
         self.completedHistCnt = len(completedHistNames)
         self.raiseAMessage("Completed full histories are "+str(self.completedHistCnt))
-      else: ready = False
+      else:
+        ready = False
       self.adaptiveReady = ready
-      if ready or detReady: return True
-      else                : return False
+      if ready or detReady:
+        return True
+      else:
+        return False
     return detReady
 
   def localGenerateInput(self,model,myInput):
@@ -399,14 +424,18 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       LimitSurfaceSearch.localGenerateInput(self,model,myInput)
       #the adaptive sampler created the next point sampled vars
       #find the closest branch
-      if self.hybridDETstrategy is not None: closestBranch, cdfValues, treer = self._checkClosestBranch()
-      else                                 : closestBranch, cdfValues = self._checkClosestBranch()
-      if closestBranch is None: self.raiseADebug('An usable branch for next candidate has not been found => create a parallel branch!')
+      if self.hybridDETstrategy is not None:
+        closestBranch, cdfValues, treer = self._checkClosestBranch()
+      else:
+        closestBranch, cdfValues = self._checkClosestBranch()
+      if closestBranch is None:
+        self.raiseADebug('An usable branch for next candidate has not been found => create a parallel branch!')
       # add pbthresholds in the grid
       investigatedPoint = {}
       for key,value in cdfValues.items():
         ind = utils.find_le_index(self.branchProbabilities[key],value)
-        if not ind: ind = 0
+        if not ind:
+          ind = 0
         if value not in self.branchProbabilities[key]:
           self.branchProbabilities[key].insert(ind,value)
           self.branchValues[key].insert(ind,self.distDict[key].ppf(value))
@@ -430,7 +459,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         elm.add('queue',False)
         elm.add('completedHistory', False)
         branchedLevel = {}
-        for key,value in cdfValues.items(): branchedLevel[key] = utils.index(self.branchProbabilities[key],value)
+        for key,value in cdfValues.items():
+          branchedLevel[key] = utils.index(self.branchProbabilities[key],value)
         # The dictionary branchedLevel is stored in the xml tree too. That's because
         # the advancement of the thresholds must follow the tree structure
         elm.add('branchedLevel', branchedLevel)
@@ -468,36 +498,50 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       for elm in hybridNodes:
         samplType = elm.attrib['type'] if 'type' in elm.attrib.keys() else None
         if samplType == 'LimitSurface':
-          if len(hybridNodes) != 1: self.raiseAnError(IOError,'if one of the HybridSampler is of type "LimitSurface", it can not be combined with other strategies. Only one HybridSampler node can be inputted!')
+          if len(hybridNodes) != 1:
+            self.raiseAnError(IOError,'if one of the HybridSampler is of type "LimitSurface", it can not be combined with other strategies. Only one HybridSampler node can be inputted!')
           limitSurfaceHybrid = True
       if limitSurfaceHybrid == True:
         #remove the elements from original xmlNode and check if the types are compatible
-        for elm in hybridNodes: xmlNode.remove(elm)
+        for elm in hybridNodes:
+          xmlNode.remove(elm)
         self.hybridDETstrategy = 1
-      else: self.hybridDETstrategy = 2
-      if self.hybridDETstrategy == 2: self.raiseAnError(IOError, 'The sheaf of LSs for the Adaptive Hybrid DET is not yet available. Use type "LimitSurface"!')
+      else:
+        self.hybridDETstrategy = 2
+      if self.hybridDETstrategy == 2:
+        self.raiseAnError(IOError, 'The sheaf of LSs for the Adaptive Hybrid DET is not yet available. Use type "LimitSurface"!')
 
     DynamicEventTree.localInputAndChecks(self,xmlNode)
     # now we put back the nodes into the xmlNode to initialize the LimitSurfaceSearch with those variables as well
     for elm in hybridNodes:
       for child in elm:
-        if limitSurfaceHybrid == True              : xmlNode.append(child)
-        if child.tag in ['variable','Distribution']: self.epistemicVariables[child.attrib['name']] = None
+        if limitSurfaceHybrid == True:
+          xmlNode.append(child)
+        if child.tag in ['variable','Distribution']:
+          self.epistemicVariables[child.attrib['name']] = None
     LimitSurfaceSearch._readMoreXMLbase(self,xmlNode)
     LimitSurfaceSearch.localInputAndChecks(self,xmlNode)
     if 'mode' in xmlNode.attrib.keys():
-      if   xmlNode.attrib['mode'].lower() == 'online': self.detAdaptMode = 2
-      elif xmlNode.attrib['mode'].lower() == 'post'  : self.detAdaptMode = 1
-      else:  self.raiseAnError(IOError,'unknown mode ' + xmlNode.attrib['mode'] + '. Available are "online" and "post"!')
+      if   xmlNode.attrib['mode'].lower() == 'online':
+        self.detAdaptMode = 2
+      elif xmlNode.attrib['mode'].lower() == 'post':
+        self.detAdaptMode = 1
+      else:
+        self.raiseAnError(IOError,'unknown mode ' + xmlNode.attrib['mode'] + '. Available are "online" and "post"!')
     if 'noTransitionStrategy' in xmlNode.attrib.keys():
-      if xmlNode.attrib['noTransitionStrategy'].lower() == 'mc'    : self.noTransitionStrategy = 1
-      elif xmlNode.attrib['noTransitionStrategy'].lower() == 'grid': self.noTransitionStrategy = 2
-      else:  self.raiseAnError(IOError,'unknown noTransitionStrategy '+xmlNode.attrib['noTransitionStrategy']+'. Available are "mc" and "grid"!')
+      if xmlNode.attrib['noTransitionStrategy'].lower() == 'mc':
+        self.noTransitionStrategy = 1
+      elif xmlNode.attrib['noTransitionStrategy'].lower() == 'grid':
+        self.noTransitionStrategy = 2
+      else:
+        self.raiseAnError(IOError,'unknown noTransitionStrategy '+xmlNode.attrib['noTransitionStrategy']+'. Available are "mc" and "grid"!')
     if 'updateGrid' in xmlNode.attrib.keys():
-      if xmlNode.attrib['updateGrid'].lower() in utils.stringsThatMeanTrue(): self.insertAdaptBPb = True
+      if xmlNode.attrib['updateGrid'].lower() in utils.stringsThatMeanTrue():
+        self.insertAdaptBPb = True
     # we add an artificial threshold because I need to find a way to prepend a rootbranch into a Tree object
     for  val in self.branchProbabilities.values():
-      if min(val) != 1e-3: val.insert(0, 1e-3)
+      if min(val) != 1e-3:
+        val.insert(0, 1e-3)
 
 
   def _generateDistributions(self,availableDist,availableFunc):
@@ -518,7 +562,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
       @ Out, None
     """
-    if self.detAdaptMode == 2: self.startAdaptive = True
+    if self.detAdaptMode == 2:
+      self.startAdaptive = True
     # we first initialize the LimitSurfaceSearch sampler
     LimitSurfaceSearch.localInitialize(self,solutionExport=solutionExport)
     if self.hybridDETstrategy is not None:
@@ -536,9 +581,11 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
             varNode.append(ET.fromstring('<grid construction="custom" type="value">'+' '.join([str(elm) for elm in gridVector.values()[0][varName.replace('<distribution>','')]])+'</grid>'))
             xmlNode.find("HybridSampler").append(varNode)
         self._localInputAndChecksHybrid(xmlNode)
-        for hybridsampler in self.hybridStrategyToApply.values(): hybridsampler._generateDistributions(distDict, {})
+        for hybridsampler in self.hybridStrategyToApply.values():
+          hybridsampler._generateDistributions(distDict, {})
     DynamicEventTree.localInitialize(self)
-    if self.hybridDETstrategy == 2: self.actualHybridTree = utils.first(self.TreeInfo.keys())
+    if self.hybridDETstrategy == 2:
+      self.actualHybridTree = utils.first(self.TreeInfo.keys())
     self._endJobRunnable    = sys.maxsize
 
   def generateInput(self,model,oldInput):

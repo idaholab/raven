@@ -35,7 +35,8 @@ def checkSameFile(a,b):
       try:
         genB.next() #see if B is done
         return False,msg + ['file '+str(b)+' has more lines thani '+str(a)]
-      except StopIteration: #both are done
+      except StopIteration:
+        #both are done
         return same,msg
     try:
       bl = genB.next()

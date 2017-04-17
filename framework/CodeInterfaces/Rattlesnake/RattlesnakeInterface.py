@@ -70,12 +70,18 @@ class Rattlesnake(CodeInterfaceBase):
       elif inputFile.getType().strip().lower() == "instantxsinput":
         inputDict['FoundInstantXSInput'] = True
         instantInput.append(inputFile)
-    if inputDict['FoundYakXSInput']: inputDict['YakXSInput'] = yakInput
-    if inputDict['FoundInstantXSInput']: inputDict['InstantXSInput'] = instantInput
-    if inputDict['FoundRattlesnakeInput']: inputDict['RattlesnakeInput'] = rattlesnakeInput
-    if inputDict['FoundYakXSAliasInput']: inputDict['YakAliasInput'] =  aliasInput
-    if inputDict['FoundInstantXSAliasInput']: inputDict['InstantAliasInput'] =  instantAlias
-    if not inputDict['FoundRattlesnakeInput']: raise IOError('None of the input files has the type "RattlesnakeInput"! This is required by Rattlesnake interface.')
+    if inputDict['FoundYakXSInput']:
+      inputDict['YakXSInput'] = yakInput
+    if inputDict['FoundInstantXSInput']:
+      inputDict['InstantXSInput'] = instantInput
+    if inputDict['FoundRattlesnakeInput']:
+      inputDict['RattlesnakeInput'] = rattlesnakeInput
+    if inputDict['FoundYakXSAliasInput']:
+      inputDict['YakAliasInput'] =  aliasInput
+    if inputDict['FoundInstantXSAliasInput']:
+      inputDict['InstantAliasInput'] =  instantAlias
+    if not inputDict['FoundRattlesnakeInput']:
+      raise IOError('None of the input files has the type "RattlesnakeInput"! This is required by Rattlesnake interface.')
     return inputDict
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):

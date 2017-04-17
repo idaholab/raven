@@ -53,7 +53,8 @@ for moduleIndex in range(len(__moduleInterfaceList)):
     for key,modClass in inspect.getmembers(__moduleImportedList[-1], inspect.isclass):
       # in this way we can get all the class methods
       classMethods = [method for method in dir(modClass) if callable(getattr(modClass, method))]
-      if 'run' in classMethods: __interFaceDict[key] = modClass
+      if 'run' in classMethods:
+        __interFaceDict[key] = modClass
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():
@@ -74,4 +75,3 @@ def returnPostProcessorInterface(Type,caller):
   if Type not in knownTypes():
     caller.raiseAnError(NameError,'"%s" type unrecognized:' %__base,Type)
   return __interFaceDict[Type](caller.messageHandler)
-
