@@ -128,19 +128,19 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       self.raiseAnError(IOError,'"Convergence" node not found in input!')
     #self.convType      = conv.get('target',None) #TODO not implemented.  Currently only does variance.
     for child in conv:
-      if   child.tag == 'relTolerance':
-        self.convValue     = float(child.text)
+      if child.tag == 'relTolerance':
+        self.convValue = float(child.text)
       elif child.tag == 'maxRuns':
-        self.maxRuns       =   int(child.text)
+        self.maxRuns = int(child.text)
       elif child.tag == 'maxSobolOrder':
-        self.maxSobolOrder =   int(child.text)
+        self.maxSobolOrder = int(child.text)
       #elif child.tag== 'maxPolyOrder'   : self.maxPolyOrder  =   int(child.text) #TODO someday maybe.
       elif child.tag == 'progressParam':
-        self.tweakParam    = float(child.text)
+        self.tweakParam = float(child.text)
       elif child.tag == 'logFile':
-        self.statesFile    =  open(child.text,'w')
+        self.statesFile = open(child.text,'w')
       elif child.tag == 'subsetVerbosity':
-        self.subVerbosity  =       child.text.lower()
+        self.subVerbosity = child.text.lower()
     if not 0 <= self.tweakParam <= 2:
       self.raiseAnError(IOError,'progressParam must be between 0 (only add polynomials) and 2 (only add subsets) (default 1).  Input value was',self.tweakParam,'!')
     if self.subVerbosity not in ['debug','all','quiet','silent']:
@@ -188,8 +188,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       self.references[var] = dist.untruncatedMean()
     #set up first subsets, the mono-dimensionals
     self.firstCombos = list(itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in [0,1]))
-    for c in self.firstCombos[:
-      ]:
+    for c in self.firstCombos[:]:
       #already did reference case, so remove it
       if len(c)<1:
         self.firstCombos.remove(c)

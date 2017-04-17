@@ -433,8 +433,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
               if varName == realAxisNames[varIndex]:
                 if cnt == 0:
                   self.solutionExport.removeInputValue(varName)
-                for value in self.surfPoint[gridID][:
-                  ,varIndex]: self.solutionExport.updateInputValue(varName,copy.copy(value))
+                for value in self.surfPoint[gridID][:,varIndex]:
+                  self.solutionExport.updateInputValue(varName,copy.copy(value))
           # to be fixed
           if cnt == 0:
             self.solutionExport.removeOutputValue(self.goalFunction.name)
@@ -612,8 +612,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
           # candidate is the first element.
             sortedMaxima = sorted(maxIdxs, key=lambda idx: mergeSequence[idx][1], reverse=True)
           B = min(self.maxBatchSize,len(sortedMaxima))
-          for idx in sortedMaxima[0:
-            B]:
+          for idx in sortedMaxima[0:B]:
             if flattenedScores[idx] >= thresholdLevel:
               self.toProcess.append(flattenedSurfPoints[idx,:])
           if len(self.toProcess) == 0:
@@ -633,8 +632,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
           self.__scoreCandidates()
           sortedIndices = sorted(range(len(self.scores)), key=lambda k: self.scores[k],reverse=True)
           B = min(self.maxBatchSize,len(sortedIndices))
-          for idx in sortedIndices[0:
-            B]:
+          for idx in sortedIndices[0:B]:
             self.toProcess.append(self.surfPoint[idx,:])
           if len(self.toProcess) == 0:
             self.toProcess.append(self.surfPoint[np.argmax(self.scores),:])

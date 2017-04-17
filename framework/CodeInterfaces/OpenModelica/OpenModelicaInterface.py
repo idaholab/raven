@@ -117,8 +117,7 @@ An alternative would be to take the default .mat output type and use the open so
 Example of multiple parameter override (option 3 above): BouncingBall.exe -override "h=7,g=7,v=2"
 
 To use RAVEN, we need to be able to perturb the input and output files from the defaults.  The command line
-form of this is:
-  (Where the output file will be of the type originally configured)
+form of this is: (Where the output file will be of the type originally configured)
 
   <executable> -f <init file xml> -r <outputfile>
 """

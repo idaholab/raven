@@ -3146,22 +3146,22 @@ class LimitSurface(BasePostProcessor):
     """
     if "parameters" not in dictIn.keys():
       self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
-    if "name"                  in dictIn.keys():
-      self.name          = dictIn["name"]
+    if "name" in dictIn.keys():
+      self.name = dictIn["name"]
     if type(dictIn["parameters"]).__name__ == "list":
       self.parameters['targets'] = dictIn["parameters"]
     else:
       self.parameters['targets'] = dictIn["parameters"].split(",")
-    if "bounds"                in dictIn.keys():
-      self.bounds        = dictIn["bounds"]
+    if "bounds" in dictIn.keys():
+      self.bounds = dictIn["bounds"]
     if "transformationMethods" in dictIn.keys():
       self.transfMethods = dictIn["transformationMethods"]
-    if "verbosity"             in dictIn.keys():
-      self.verbosity     = dictIn['verbosity']
-    if "side"                  in dictIn.keys():
-      self.lsSide        = dictIn["side"]
-    if "tolerance"             in dictIn.keys():
-      self.tolerance     = float(dictIn["tolerance"])
+    if "verbosity" in dictIn.keys():
+      self.verbosity = dictIn['verbosity']
+    if "side" in dictIn.keys():
+      self.lsSide = dictIn["side"]
+    if "tolerance" in dictIn.keys():
+      self.tolerance = float(dictIn["tolerance"])
     if self.lsSide not in ["negative", "positive", "both"]:
       self.raiseAnError(IOError, 'Computation side can be positive, negative, both only !!!!')
 
@@ -3227,8 +3227,8 @@ class LimitSurface(BasePostProcessor):
         for varIndex in range(len(self.axisName)):
           if varName == self.axisName[varIndex]:
             output.removeInputValue(varName)
-            for value in limitSurf[0][:
-              , varIndex]: output.updateInputValue(varName, copy.copy(value))
+            for value in limitSurf[0][:,varIndex]:
+              output.updateInputValue(varName, copy.copy(value))
       output.removeOutputValue(self.externalFunction.name)
       for value in limitSurf[1]:
         output.updateOutputValue(self.externalFunction.name, copy.copy(value))
@@ -4565,8 +4565,7 @@ class DataMining(BasePostProcessor):
           ## You may also want to output the covariances of each pair of
           ## dimensions as well
           for i,row in enumerate(self.unSupervisedEngine.features.keys()):
-            for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:
-              ]):
+            for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
               j = i+joffset
               self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),mixtureCovars[index][i,j])
       elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
@@ -4746,8 +4745,7 @@ class DataMining(BasePostProcessor):
           ## dimensions as well
           if mixtureCovars is not None:
             for i,row in enumerate(self.unSupervisedEngine.features.keys()):
-              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:
-                ]):
+              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
                 j = i+joffset
                 timeSeries = np.zeros(numberOfHistoryStep)
                 for timeIdx in range(numberOfHistoryStep):

@@ -2384,8 +2384,7 @@ class Custom1D(Distribution):
       # self.functionType == 'pdf'
       self.pdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
       cdfValues = np.zeros(self.data[:,0].size)
-      for i in range(self.data[:
-        ,0].size):
+      for i in range(self.data[:,0].size):
         cdfValues[i] = self.pdfFunc.integral(self.data[0][0],self.data[i,0])
       self.invCDF = UnivariateSpline(cdfValues, self.data[:,0] , k=4, s=0)
 

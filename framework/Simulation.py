@@ -845,8 +845,8 @@ class Simulation(MessageHandler.MessageUser):
       elif element.tag == 'printInput':
         text = element.text.strip() if element.text is not None else ''
         #extension fixing
-        if len(text) >= 4 and text[-4:
-          ].lower() == '.xml': text = text[:-4]
+        if len(text) >= 4 and text[-4:].lower() == '.xml':
+          text = text[:-4]
         # if the user asked to not print input instead of leaving off tag, respect it
         if text.lower() in utils.stringsThatMeanFalse():
           self.runInfoDict['printInput'] = False

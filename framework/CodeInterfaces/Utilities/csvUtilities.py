@@ -121,10 +121,10 @@ class csvUtilityClass(object):
     variablesToExpandFrom.append('time')
     if options:
       if "sameKeySuffix" in options.keys():
-        sameKeySuffix         = options["sameKeySuffix"]
+        sameKeySuffix = options["sameKeySuffix"]
       if "variablesToExpandFrom" in options.keys():
         variablesToExpandFrom = options["variablesToExpandFrom"]
-      if "returnAsDict"          in options.keys():
+      if "returnAsDict" in options.keys():
         returnAsDict = bool(options["returnAsDict"])
     setHeaders = list(set(self.allHeaders))
     headerCounts = {}

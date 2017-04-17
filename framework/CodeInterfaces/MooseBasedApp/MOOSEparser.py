@@ -60,8 +60,8 @@ class MOOSEparser():
           parents.append(current)
           current      = ET.SubElement(current,name)
           current.tail = []
-          if b'#' in line[line.index(b']'):
-            ]: current.tail.append(line[line.index(b']')+1:].strip(b'\n').lstrip())
+          if b'#' in line[line.index(b']'):]:
+            current.tail.append(line[line.index(b']')+1:].strip(b'\n').lstrip())
       elif len(line)!=0:
         if not line.startswith(b'#'):
           ind = line.find(b'=')

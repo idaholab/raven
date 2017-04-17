@@ -112,11 +112,11 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     self.persistence  = int(convnode.attrib.get('persistence',2))
     self.maxRuns      = convnode.attrib.get('maxRuns',None)
     self.convValue    = float(convnode.text)
-    if logNode      is not None:
+    if logNode is not None:
       self.logFile = logNode.text
     if self.maxRuns is not None:
       self.maxRuns = int(self.maxRuns)
-    if studyNode    is not None:
+    if studyNode is not None:
       self.doingStudy = True
       self.studyPoints = studyNode.find('runStatePoints').text
       filebaseNode = studyNode.find('baseFilename')

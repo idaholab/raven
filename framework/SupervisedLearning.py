@@ -180,8 +180,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         valueToUse = np.asarray(valueToUse)
-        if valueToUse.size != featureValues[:
-          ,0].size:
+        if valueToUse.size != featureValues[:,0].size:
           self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
           self.raiseAWarning('target values:',valueToUse.size,tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
@@ -2188,8 +2187,7 @@ class SciKitLearn(superVisedLearning):
     if self.intrinsicMultiTarget:
       self.ROM[0].fit(featureVals,targetVals)
     else:
-      if not all([len(np.unique(targetVals[:
-        ,index]))>1 for index in range(len(self.ROM))]):
+      if not all([len(np.unique(targetVals[:,index]))>1 for index in range(len(self.ROM))]):
         self.myNumber = [np.unique(targetVals[:,index])[0] for index in range(len(self.ROM)) ]
         self.evaluate = self._readdressEvaluateConstResponse
       else:

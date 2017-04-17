@@ -334,8 +334,8 @@ class HDF5(DateBase):
         # if None...default is 0
         if pivotIndex == None:
           pivotIndex = 0
-      if inputRow > histVar[0][:
-        ,0].size-1  and inputRow != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual rows in history '+ str(attributes['history']) + '!')
+      if inputRow > histVar[0][:,0].size-1 and inputRow != -1:
+        self.raiseAnError(IOError,'inputRow is greater than number of actual rows in history '+ str(attributes['history']) + '!')
       # check metadata
       if 'metadata' in histVar[1].keys():
         metaDict[i] = histVar[1]['metadata']
@@ -355,8 +355,8 @@ class HDF5(DateBase):
             if i == 0:
               inDict[key] = np.zeros(len(histList))
             if inputPivotVal != None:
-              if float(inputPivotVal) > np.max(histVar[0][:
-                ,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
+              if float(inputPivotVal) > np.max(histVar[0][:,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]):
+                self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
               inDict[key][i] = interp1d(histVar[0][:,pivotIndex], histVar[0][:,ix], kind='linear')(float(inputPivotVal))
             else:
               inDict[key][i] = histVar[0][inputRow,ix]
@@ -369,8 +369,8 @@ class HDF5(DateBase):
             if i == 0:
               inDict[key] = np.zeros(len(histList))
             if inputPivotVal != None:
-              if float(inputPivotVal) > np.max(histVar[0][:
-                ,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
+              if float(inputPivotVal) > np.max(histVar[0][:,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]):
+                self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
               inDict[key][i] = interp1d(histVar[0][:,pivotIndex], histVar[0][:,ix], kind='linear')(float(inputPivotVal))
             else:
               inDict[key][i] = histVar[0][inputRow,ix]
@@ -536,8 +536,8 @@ class HDF5(DateBase):
         elif inOutKey != None and inInKey == None:
           ix = histVar[1]['outputSpaceHeaders'].index(inOutKey)
           if inputPivotVal != None:
-            if float(inputPivotVal) > np.max(histVar[0][:
-              ,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
+            if float(inputPivotVal) > np.max(histVar[0][:,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]):
+              self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
             inDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,ix], kind='linear')(float(inputPivotVal))))
           else:
             inDict[key] = np.atleast_1d(np.array(histVar[0][inputRow,ix]))
@@ -548,8 +548,8 @@ class HDF5(DateBase):
         if inOutKey is not None:
           ix = histVar[1]['outputSpaceHeaders'].index(inOutKey)
           if inputPivotVal != None:
-            if float(inputPivotVal) > np.max(histVar[0][:
-              ,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
+            if float(inputPivotVal) > np.max(histVar[0][:,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]):
+              self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
             inDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,ix], kind='linear')(float(inputPivotVal))))
           else:
             inDict[key] = np.atleast_1d(np.array(histVar[0][inputRow,ix]))

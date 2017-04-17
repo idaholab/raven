@@ -1043,8 +1043,7 @@ class HierarchicalTree(MessageHandler.MessageUser):
     """
     if self._rootnode.name == path:
       return self.getrootnode()
-    if path[:
-      1] == "/":
+    if path[:1] == "/":
       path = "." + path
     return self._rootnode.findBranch(path)
 
@@ -1056,8 +1055,7 @@ class HierarchicalTree(MessageHandler.MessageUser):
     """
     if self._rootnode.name == path:
       return [self.getrootnode()]
-    if path[:
-      1] == "/":
+    if path[:1] == "/":
       path = "." + path
     return self._rootnode.findallBranch(path)
 
@@ -1067,8 +1065,7 @@ class HierarchicalTree(MessageHandler.MessageUser):
       @ In, path, string, the path or name
       @ Out, iterfind, list of Node iterators, a sequence of node instances
     """
-    if path[:
-      1] == "/":
+    if path[:1] == "/":
       path = "." + path
     return self._rootnode.iterfind(path)
 
@@ -1259,10 +1256,8 @@ class NodePath(object):
       @ In, name, string, the name of the node from which the iterator needs to be created
       @ Out, nod, Node iterator, the matching node (if found) else None
     """
-    if name[:
-      3] == ".//":
-      for nod in node.iter(name[3:
-        ]):
+    if name[:3] == ".//":
+      for nod in node.iter(name[3:]):
         yield nod
       for nod in node:
         if nod.name == name:
