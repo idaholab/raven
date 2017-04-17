@@ -293,8 +293,10 @@ class HistorySet(Data):
       if not self._dataContainer:
         tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
         self._dataContainer = tsnode.get('dataContainer')
-      if namep in self._dataContainer['outputs'].keys(): self._dataContainer['outputs'].pop(namep)
-      if namep not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(namep)
+      if namep in self._dataContainer['outputs'].keys():
+        self._dataContainer['outputs'].pop(namep)
+      if namep not in self._dataParameters['inParam']:
+        self._dataParameters['outParam'].append(namep)
       self._dataContainer['outputs'][namep] = c1darray(values=np.atleast_1d(np.array(value,dtype=float)))
       self.addNodeInTreeMode(tsnode,options)
     else:
