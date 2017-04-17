@@ -485,8 +485,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
       if not satisfied:
         violatedConstrains['external'].append(self.constraintFunction.name)
-    if self.gradDict['normalize']:
-      optVars = self.denormalizeData(optVars)
+    #if self.gradDict['normalize']:
+    optVars = self.denormalizeData(optVars)
     for var in optVars:
       if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
         satisfied = False

@@ -317,11 +317,7 @@ def intConversion (s):
   """
   try:
     return int(s)
-<<<<<<< HEAD
   except (ValueError,TypeError) as e:
-=======
-  except ValueError:
->>>>>>> 57f5701cc905fe9577ba74dca3d33ee0f7ecccb9
     return None
 
 def floatConversion (s):
@@ -333,11 +329,7 @@ def floatConversion (s):
   """
   try:
     return float(s)
-<<<<<<< HEAD
   except (ValueError,TypeError) as e:
-=======
-  except ValueError:
->>>>>>> 57f5701cc905fe9577ba74dca3d33ee0f7ecccb9
     return None
 
 def partialEval(s):

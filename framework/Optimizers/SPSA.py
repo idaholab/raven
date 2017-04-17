@@ -298,7 +298,8 @@ class SPSA(GradientBasedOptimizer):
         projectedOnBoundary= {}
         for activeConstraint in activeConstraints['internal']:
           projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
-        tempVarKPlus.update(self.normalizeData(projectedOnBoundary) if self.gradDict['normalize'] else projectedOnBoundary)
+        #tempVarKPlus.update(self.normalizeData(projectedOnBoundary) if self.gradDict['normalize'] else projectedOnBoundary)
+        tempVarKPlus.update(self.normalizeData(projectedOnBoundary))
       if len(activeConstraints['external']) == 0:
         return tempVarKPlus
 

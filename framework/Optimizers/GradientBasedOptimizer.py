@@ -65,7 +65,8 @@ class GradientBasedOptimizer(Optimizer):
     self.gradDict['pertPoints']     = {}              # Dict containing normalized inputs sent to model for gradient evaluation
     self.counter['perturbation']    = {}              # Counter for the perturbation performed.
     self.readyVarsUpdate            = {}              # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
-    self.counter['gradientHistory'] = {}              # In this dict we store the gradient value for current and previous iterations {'trajectoryID':[{},{}]}
+    self.counter['gradientHistory'] = {}              # In this dict we store the gradient value (versor) for current and previous iterations {'trajectoryID':[{},{}]}
+    self.counter['gradNormHistory'] = {}              # In this dict we store the gradient norm for current and previous iterations {'trajectoryID':[float,float]}
     self.counter['varsUpdate'     ] = {}
     self.counter['solutionUpdate' ] = {}
     self.convergeTraj = {}
@@ -78,12 +79,12 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     convergence = xmlNode.find("convergence")
-    self.gradDict['normalize'] = utils.interpretBoolean(self.paramDict.get("normalize",self.gradDict['normalize']))
+    #self.gradDict['normalize'] = utils.interpretBoolean(self.paramDict.get("normalize",self.gradDict['normalize']))
     if convergence is not None:
       gradientThreshold = convergence.find("gradientThreshold")
       try:
-        if gradientThreshold is not None and self.gradDict['normalize']:
-          self.raiseAWarning("Conflicting inputs: gradientThreshold and normalized gradient have both been input. These two intpus are conflicting. ")
+        #if gradientThreshold is not None and self.gradDict['normalize']:
+        #  self.raiseAWarning("Conflicting inputs: gradientThreshold and normalized gradient have both been input. These two intpus are conflicting. ")
         self.gradientNormTolerance = float(gradientThreshold.text) if gradientThreshold is not None else self.gradientNormTolerance
       except ValueError:
         self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float.')
@@ -96,14 +97,15 @@ class GradientBasedOptimizer(Optimizer):
     """
     self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
     for traj in self.optTraj:
-      self.gradDict['pertPoints'][traj]       = {}
-      self.counter['perturbation'][traj]      = 0
-      self.counter['varsUpdate'][traj]        = 0
-      self.counter['solutionUpdate'][traj]    = 0
-      self.counter['gradientHistory'][traj]   = [{},{}]
-      self.optVarsHist[traj]                  = {}
-      self.readyVarsUpdate[traj]              = False
-      self.convergeTraj[traj]                 = False
+      self.gradDict['pertPoints'][traj]      = {}
+      self.counter['perturbation'][traj]     = 0
+      self.counter['varsUpdate'][traj]       = 0
+      self.counter['solutionUpdate'][traj]   = 0
+      self.counter['gradientHistory'][traj]  = [{},{}]
+      self.counter['gradNormHistory'][traj]  = [0.0,0.0]
+      self.optVarsHist[traj]                 = {}
+      self.readyVarsUpdate[traj]             = False
+      self.convergeTraj[traj]                = False
     for traj in self.optTraj:
       self.gradDict['pertPoints'][traj] = {}
 
@@ -228,10 +230,11 @@ class GradientBasedOptimizer(Optimizer):
       gradArray[var] = np.ndarray((0,0)) #why are we initializing to this?
     # Evaluate gradient at each point
     for pertIndex in optVarsValues.keys():
-      if self.gradDict['normalize']:
-        tempDictPerturbed = self.denormalizeData(optVarsValues[pertIndex])
-      else:
-        tempDictPerturbed = optVarsValues[pertIndex]
+      tempDictPerturbed = self.denormalizeData(optVarsValues[pertIndex])
+      #if self.gradDict['normalize']:
+      #  tempDictPerturbed = self.denormalizeData(optVarsValues[pertIndex])
+      #else:
+      #  tempDictPerturbed = optVarsValues[pertIndex]
       lossValue = copy.copy(self.lossFunctionEval(tempDictPerturbed))
       lossDiff = lossValue[0] - lossValue[1]
       for var in self.optVars:
@@ -241,11 +244,15 @@ class GradientBasedOptimizer(Optimizer):
     gradient = {}
     for var in self.optVars:
       gradient[var] = gradArray[var].mean()
-    gradient = self.localEvaluateGradient(optVarsValues, gradient)
-    for var in gradient.keys():
-      gradient[var] = gradient[var]/ np.linalg.norm(gradient.values())
+    gradient     = self.localEvaluateGradient(optVarsValues, gradient)
+    gradientNorm =  np.linalg.norm(gradient.values())
+    if gradientNorm > 0.0:
+      for var in gradient.keys():
+        gradient[var] = gradient[var]/gradientNorm
     self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][traj][0]
     self.counter['gradientHistory'][traj][0] = gradient
+    self.counter['gradNormHistory'][traj][1] = self.counter['gradNormHistory'][traj][0]
+    self.counter['gradNormHistory'][traj][0] = gradientNorm
     return gradient
 
   def _createEvaluationIdentifier(self,trajID,iterID,evalType):
@@ -300,10 +307,11 @@ class GradientBasedOptimizer(Optimizer):
         oldVal             = self.getLossFunctionGivenId(oldValueId)
         if oldVal is None:
           self.raiseAnError(Exception,"the evaluation identified by the ID " +str(oldValueId)+ " has not been found!")
-        gradNorm           = LA.norm(self.counter['gradientHistory'][traj][0].values())
+        gradNorm           = self.counter['gradNormHistory'][traj][0]
         varK               = self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
-        if self.gradDict['normalize']:
-          varK = self.denormalizeData(varK)
+        #if self.gradDict['normalize']:
+        #  varK = self.denormalizeData(varK)
+        varK = self.denormalizeData(varK)
         absDifference      = abs(currentLossValue-oldVal)
         relativeDifference = abs(absDifference/oldVal)
         self.raiseAMessage("Trajectory: "+"%8i"% (traj)+      " | Iteration    : "+"%8i"% (varsUpdate)+ " | Loss function: "+"%8.2E"% (currentLossValue)+" |")
