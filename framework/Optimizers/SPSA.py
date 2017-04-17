@@ -79,14 +79,14 @@ class SPSA(GradientBasedOptimizer):
       self.paramDict['a'] = float(self.paramDict['a'])
 
     # Normalize the parameters...
-    if self.gradDict['normalize']:
-      maxVarRange = max(self.optVarsInit['ranges'].values())
-      #tempMax = -1
-      #for var in self.optVars:
-      #  if self.optVarsInit['ranges'][var] > tempMax:
-      #    tempMax = self.optVarsInit['ranges'][var]
-      self.paramDict['c'] = copy.deepcopy(self.paramDict['c']/maxVarRange) #FIXME why are these deepcopied?
-      self.paramDict['a'] = copy.deepcopy(self.paramDict['a']/(maxVarRange**2)) #FIXME why are these deepcopied? And why is this normalized to the square?
+    #if self.gradDict['normalize']:
+    #  maxVarRange = max(self.optVarsInit['ranges'].values())
+    #  #tempMax = -1
+    #  #for var in self.optVars:
+    #  #  if self.optVarsInit['ranges'][var] > tempMax:
+    #  #    tempMax = self.optVarsInit['ranges'][var]
+    #  self.paramDict['c'] = copy.deepcopy(self.paramDict['c']/maxVarRange) #FIXME why are these deepcopied?
+    #  self.paramDict['a'] = copy.deepcopy(self.paramDict['a']/(maxVarRange**2)) #FIXME why are these deepcopied? And why is this normalized to the square?
     self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
     self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
 
@@ -163,20 +163,21 @@ class SPSA(GradientBasedOptimizer):
             self.gradDict['pertPoints'][traj] = {}
             ck = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
             varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
-            if self.gradDict['numIterForAve'] > 1:
-              samePointPerturbation = True
-            else:
-              samePointPerturbation = False
+            #if self.gradDict['numIterForAve'] > 1:
+            #  samePointPerturbation = True
+            #else:
+            #  samePointPerturbation = False
             for ind in range(self.gradDict['numIterForAve']):
               self.gradDict['pertPoints'][traj][ind] = {}
               delta = self.stochasticEngine()
               for varID, var in enumerate(self.optVars):
                 if var not in self.gradDict['pertPoints'][traj][ind].keys():
                   p1 = np.asarray([varK[var]+ck*delta[varID]*1.0]).reshape((1,))
-                  if samePointPerturbation:
-                    p2 = np.asarray(varK[var]).reshape((1,))
-                  else:
-                    p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
+                  #if samePointPerturbation:
+                  #  p2 = np.asarray(varK[var]).reshape((1,))
+                  #else:
+                  #  p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
+                  p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
                   #sanity check: p1 != p2
                   if p1 == p2:
                     self.raiseAnError(RuntimeError,'In choosing gradient evaluation points, the same point was chosen twice for variable "%s"!' %var)

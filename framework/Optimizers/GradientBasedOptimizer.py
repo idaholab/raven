@@ -235,9 +235,8 @@ class GradientBasedOptimizer(Optimizer):
       gradient[var] = gradArray[var].mean()
 
     gradient = self.localEvaluateGradient(optVarsValues, gradient)
-    nor = np.linalg.norm(gradient.values())
     for var in gradient.keys():
-      gradient[var] = gradient[var]/ nor
+      gradient[var] = gradient[var]/ np.linalg.norm(gradient.values())
 
 
     #gradient = gradient/np.linalg.norm(gradient.values())
@@ -249,9 +248,9 @@ class GradientBasedOptimizer(Optimizer):
   def _createEvaluationIdentifier(self,trajID,iterID,evalType):
     """
       Create evaluation identifier
-      @ In, trajID, int, trajectory identifier
-      @ In, iterID, int, iteration number (identifier)
-      @ In, evalType, int, evaluation type (v for variable update; otherwise id for gradient evaluation)
+      @ In, trajID, integer, trajectory identifier
+      @ In, iterID, integer, iteration number (identifier)
+      @ In, evalType, integer or string, evaluation type (v for variable update; otherwise id for gradient evaluation)
       @ Out, identifier, string, the evaluation identifier
     """
     identifier = str(trajID) + '_' + str(iterID) + '_' + str(evalType)
