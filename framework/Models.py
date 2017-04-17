@@ -1713,18 +1713,19 @@ class EnsembleModel(Dummy, Assembler):
       @ Out, None
     """
     Dummy.__init__(self,runInfoDict)
-    self.modelsDictionary         = {}           # dictionary of models that are going to be assembled {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
-    self.activatePicard           = False
-    self.printTag = 'EnsembleModel MODEL'
+    self.modelsDictionary      = {}       # dictionary of models that are going to be assembled
+                                          # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
+    self.activatePicard        = False    # is non-linear system beeing identified?
+    self.tempTargetEvaluations = {}       # temporary storage of target evaluation data objects
+    self.maxIterations         = 30       # max number of iterations (in case of non-linear system activated)
+    self.convergenceTol        = 1.e-3    # tolerance of the iteration scheme (if activated) => L2 norm
+    self.initialConditions     = {}       # dictionary of initial conditions in case non-linear system is detected
+    self.ensembleModelGraph    = None     # graph object (graphStructure.graphObject)
+    self.printTag = 'EnsembleModel MODEL' # print tag
+    # assembler objects to be requested
     self.addAssemblerObject('Model','n',True)
     self.addAssemblerObject('TargetEvaluation','n')
     self.addAssemblerObject('Input','n')
-    self.tempTargetEvaluations = {}
-    self.maxIterations         = 30
-    self.convergenceTol        = 1.e-3
-    self.initialConditions     = {}
-    self.ensembleModelGraph    = None
-    self.flushTargetEvaluation = False
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -1988,15 +1989,16 @@ class EnsembleModel(Dummy, Assembler):
     if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
     inputs, out = finishedJob.getEvaluation()[:2]
     exportDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
+    exportDictTargetEvaluation = {}
     outcomes, targetEvaluations = out
+
     for modelIn in self.modelsDictionary.keys():
-      # update TargetEvaluation
+      # collect data
       inputsValues               = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
       unstructuredInputsValues   = targetEvaluations[modelIn].getParametersValues('unstructuredInputs', nodeId = 'RecontructEnding')
       outputsValues              = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
       metadataValues             = targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
       inputsValues  = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]
-
       if len(unstructuredInputsValues.keys()) > 0:
         if targetEvaluations[modelIn].type != 'HistorySet':
           castedUnstructuredInputsValues = {}
@@ -2005,20 +2007,14 @@ class EnsembleModel(Dummy, Assembler):
         else: castedUnstructuredInputsValues  =  unstructuredInputsValues.values()[-1]
         inputsValues.update(castedUnstructuredInputsValues)
       outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1]
-      for key in targetEvaluations[modelIn].getParaKeys('inputs'):
-        if key not in inputsValues.keys(): self.raiseAnError(Exception,"the variable "+key+" is not in the input space of the model! Vars are:"+' '.join(inputsValues.keys()))
-        self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key])
-      for key in targetEvaluations[modelIn].getParaKeys('outputs'):
-        if key not in outputsValues.keys(): self.raiseAnError(Exception,"the variable "+key+" is not in the output space of the model! Vars are:"+' '.join(outputsValues.keys()))
-        self.modelsDictionary[modelIn]['TargetEvaluation'].updateOutputValue (key,outputsValues[key])
-      for key in metadataValues.keys():
-        self.modelsDictionary[modelIn]['TargetEvaluation'].updateMetadata(key,metadataValues[key])
-      # end of update of TargetEvaluation
+      exportDictTargetEvaluation[self.modelsDictionary[modelIn]['TargetEvaluation'].name] = {'inputSpaceParams':inputsValues,'outputSpaceParams':outputsValues,'metadata':metadataValues}
       for typeInfo,values in outcomes[modelIn].items():
         for key in values.keys(): exportDict[typeInfo][key] = np.asarray(values[key])
-      if output.name == self.modelsDictionary[modelIn]['TargetEvaluation'].name: self.raiseAnError(RuntimeError, "The Step output can not be one of the target evaluation outputs!")
-    if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
+    if output.type == 'HDF5':
+      output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
+      if output.name in exportDictTargetEvaluation.keys():
+        exportDict = exportDictTargetEvaluation[output.name]
       for key in exportDict['inputSpaceParams' ] :
         if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
       for key in exportDict['outputSpaceParams'] :
