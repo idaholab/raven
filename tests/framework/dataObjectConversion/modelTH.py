@@ -46,4 +46,3 @@ def run(self,Input):
       self.heatRem[t] = 150.0 * (1.0-math.exp(-(self.time[t]-self.tRec)/50.0))
 
     self.T[t+1] = self.T[t] + 1.0/mCP * dt * (self.P[t] - self.heatRem[t])
-

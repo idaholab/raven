@@ -91,7 +91,8 @@ class SparseGridCollocation(Grid):
     #Do a distributions check for ND
     #This sampler only accept ND distributions with variable transformation defined in this sampler
     for dist in self.dists.values():
-      if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Dists contain the variables in the original input space are  not supported for this sampler!')
+      if isinstance(dist,Distributions.NDimensionalDistributions):
+        self.raiseAnError(IOError,'ND Dists contain the variables in the original input space are  not supported for this sampler!')
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -215,8 +216,10 @@ class SparseGridCollocation(Grid):
         self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1'}
     #establish all the right names for the desired types
     for varName,dat in self.gridInfo.items():
-      if dat['poly'] == 'DEFAULT': dat['poly'] = self.dists[varName].preferredPolynomials
-      if dat['quad'] == 'DEFAULT': dat['quad'] = self.dists[varName].preferredQuadrature
+      if dat['poly'] == 'DEFAULT':
+        dat['poly'] = self.dists[varName].preferredPolynomials
+      if dat['quad'] == 'DEFAULT':
+        dat['quad'] = self.dists[varName].preferredQuadrature
       polyType=dat['poly']
       subType = None
       distr = self.dists[varName]
@@ -253,8 +256,10 @@ class SparseGridCollocation(Grid):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    try: pt,weight = self.sparseGrid[self.counter-1]
-    except IndexError: raise utils.NoMoreSamplesNeeded
+    try:
+      pt,weight = self.sparseGrid[self.counter-1]
+    except IndexError:
+      raise utils.NoMoreSamplesNeeded
 
     for v,varName in enumerate(self.sparseGrid.varNames):
       # compute the SampledVarsPb for 1-D distribution

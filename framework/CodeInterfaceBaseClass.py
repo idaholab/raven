@@ -58,9 +58,12 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-    if preExec is None: subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileArgs)
-    else: subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileArgs,preExec=preExec)
-    if os.environ['RAVENinterfaceCheck'].lower() in utils.stringsThatMeanTrue(): return [('parallel','')],outputfileroot
+    if preExec is None:
+      subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileArgs)
+    else:
+      subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileArgs,preExec=preExec)
+    if os.environ['RAVENinterfaceCheck'].lower() in utils.stringsThatMeanTrue():
+      return [('parallel','')],outputfileroot
     returnCommand = subcodeCommand,outputfileroot
     return returnCommand
 
@@ -135,7 +138,8 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, exts, list, list or other array containing accepted input extension (e.g.[".i",".inp"])
       @ Out, None
     """
-    for e in exts:self.inputExtensions.append(e)
+    for e in exts:
+      self.inputExtensions.append(e)
 
   def addDefaultExtension(self):
     """

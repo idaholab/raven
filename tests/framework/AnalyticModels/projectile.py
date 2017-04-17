@@ -126,6 +126,3 @@ if __name__=="__main__":
   for i in range(len(io.time)):
     outFile.writelines(inpstr+',%f,%f,%f,%f\n' %(io.r[i],io.x[i],io.y[i],io.time[i]))
   outFile.close()
-
-
-

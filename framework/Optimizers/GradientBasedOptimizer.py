@@ -85,7 +85,8 @@ class GradientBasedOptimizer(Optimizer):
         if gradientThreshold is not None and self.gradDict['normalize']:
           self.raiseAWarning("Conflicting inputs: gradientThreshold and normalized gradient have both been input. These two intpus are conflicting. ")
         self.gradientNormTolerance = float(gradientThreshold.text) if gradientThreshold is not None else self.gradientNormTolerance
-      except ValueError: self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float.')
+      except ValueError:
+        self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float.')
 
   def localInitialize(self,solutionExport=None):
     """
@@ -107,8 +108,10 @@ class GradientBasedOptimizer(Optimizer):
       self.gradDict['pertPoints'][traj] = {}
 
     #specializing the self.localLocalInitialize()
-    if solutionExport != None : self.localLocalInitialize(solutionExport=solutionExport)
-    else                      : self.localLocalInitialize()
+    if solutionExport != None:
+      self.localLocalInitialize(solutionExport=solutionExport)
+    else:
+      self.localLocalInitialize()
 
   @abc.abstractmethod
   def localLocalInitialize(self, solutionExport = None):
@@ -139,13 +142,15 @@ class GradientBasedOptimizer(Optimizer):
 
     if self.mdlEvalHist.isItEmpty():
       for traj in self.optTrajLive:
-        if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']: # Return if we just initialize
+        if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
+          # Return if we just initialize
           return ready
       ready = False # Waiting for the model output for gradient evaluation
     else:
       readyFlag = False
       for traj in self.optTrajLive:
-        if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']: # Return if we just initialize
+        if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
+          # Return if we just initialize
           readyFlag = True
           break
         else:
@@ -159,8 +164,10 @@ class GradientBasedOptimizer(Optimizer):
           else:
             readyFlag = True
             break
-      if readyFlag: ready = True
-      else:         ready = False
+      if readyFlag:
+        ready = True
+      else:
+        ready = False
 
     ready = self.localLocalStillReady(ready, convergence)
 
@@ -175,7 +182,8 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, _checkModelFinish, tuple(bool, int), (1,realization dictionary),
             (indicating whether the Model has finished the evaluation over input identified by traj+updateKey+evalID, the index of the location of the input in dataobject)
     """
-    if self.mdlEvalHist.isItEmpty():    return False
+    if self.mdlEvalHist.isItEmpty():
+      return False
 
     prefix = self.mdlEvalHist.getMetadata('prefix')
     for index, pr in enumerate(prefix):
@@ -234,7 +242,8 @@ class GradientBasedOptimizer(Optimizer):
     if self.gradDict['normalize']:
       gradientL2norm = LA.norm(gradient.values())
       if gradientL2norm != 0.0:
-        for var in self.optVars: gradient[var] = gradient[var]/gradientL2norm
+        for var in self.optVars:
+          gradient[var] = gradient[var]/gradientL2norm
     self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][traj][0]
     self.counter['gradientHistory'][traj][0] = gradient
     return gradient
@@ -289,7 +298,8 @@ class GradientBasedOptimizer(Optimizer):
       if varsUpdate > 1:
         oldValueId         = self._createEvaluationIdentifier(traj,varsUpdate-1,'v')
         oldVal             = self.getLossFunctionGivenId(oldValueId)
-        if oldVal is None: self.raiseAnError(Exception,"the evaluation identified by the ID " +str(oldValueId)+ " has not been found!")
+        if oldVal is None:
+          self.raiseAnError(Exception,"the evaluation identified by the ID " +str(oldValueId)+ " has not been found!")
         gradNorm           = LA.norm(self.counter['gradientHistory'][traj][0].values())
         absDifference      = abs(currentLossValue-oldVal)
         relativeDifference = abs(absDifference/oldVal)

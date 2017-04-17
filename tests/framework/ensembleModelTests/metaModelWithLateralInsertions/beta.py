@@ -27,4 +27,3 @@ def initialize(self, runInfo, inputs):
 def run(self, Input):
   self.D = self.C - 1.0
   print('Beta is finished '  +str(self.C) + ' ' +str(self.D))
-

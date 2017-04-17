@@ -93,7 +93,8 @@ class Sobol(SparseGridCollocation):
     self.jobHandler = initDict['internal']['jobHandler']
     self.dists = self.transformDistDict()
     for dist in self.dists.values():
-      if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Distributions containing the variables in the original input space are  not supported for this sampler!')
+      if isinstance(dist,Distributions.NDimensionalDistributions):
+        self.raiseAnError(IOError,'ND Distributions containing the variables in the original input space are  not supported for this sampler!')
 
   def localInitialize(self):
     """
@@ -152,15 +153,18 @@ class Sobol(SparseGridCollocation):
     self.pointsToRun.append(tuple(newpt))
     self.distinctPoints.add(tuple(newpt))
     #now do the rest
-    for combo,rom in self.ROMs.items(): # just for each combo
+    for combo,rom in self.ROMs.items():
+      # just for each combo
       SG = rom.sparseGrid #they all should have the same sparseGrid
       SG._remap(combo)
       for l in range(len(SG)):
         pt,wt = SG[l]
         newpt = np.zeros(len(self.features))
         for v,var in enumerate(self.features):
-          if var in combo: newpt[v] = pt[combo.index(var)]
-          else: newpt[v] = self.references[var]
+          if var in combo:
+            newpt[v] = pt[combo.index(var)]
+          else:
+            newpt[v] = self.references[var]
         newpt=tuple(newpt)
         self.distinctPoints.add(newpt)
         if newpt not in self.pointsToRun:
@@ -184,7 +188,8 @@ class Sobol(SparseGridCollocation):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    try: pt = self.pointsToRun[self.counter-1]
+    try:
+      pt = self.pointsToRun[self.counter-1]
     except IndexError:
       self.raiseADebug('All sparse grids are complete!  Moving on...')
       raise utils.NoMoreSamplesNeeded

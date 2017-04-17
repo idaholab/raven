@@ -19,7 +19,8 @@ Created on Oct 13, 2015
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__): xrange = range
+if not 'xrange' in dir(__builtins__):
+  xrange = range
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
@@ -38,8 +39,10 @@ class ravenArrayIterator(object):
      @ In, arrayIn, ndarray or cachedarray, (required if 'shape' is not provided) the array for which the iterator needs to be created
      @ Out, None
     """
-    if shape is None and arrayIn is None        : raise IOError("either shape or arrayIn need to be passed in")
-    if shape is not None and arrayIn is not None: raise IOError("both shape and arrayIn are passed in")
+    if shape is None and arrayIn is None:
+      raise IOError("either shape or arrayIn need to be passed in")
+    if shape is not None and arrayIn is not None:
+      raise IOError("both shape and arrayIn are passed in")
     self.shape     = shape if shape is not None else arrayIn.shape # array shape. tuple(stepsInDim1, stepsInDim2,....stepsInDimN)
     self.ndim      = len(self.shape)                               # number of dimension
     self.maxCnt    = np.prod(self.shape)                           # maximum number of combinations
@@ -79,7 +82,8 @@ class ravenArrayIterator(object):
     else:
       self.iterator.iternext()
       self.finished = self.iterator.finished
-      if not self.finished: self.multiIndex = self.iterator.multi_index
+      if not self.finished:
+        self.multiIndex = self.iterator.multi_index
     return self.finished
 
   def reset(self):
@@ -89,7 +93,8 @@ class ravenArrayIterator(object):
       @ Out, None
     """
     self.cnt, self.finished = 0, False
-    if type(self.iterator).__name__ == 'list': self.iterator = [0]*self.ndim
+    if type(self.iterator).__name__ == 'list':
+      self.iterator = [0]*self.ndim
     else:
       self.iterator.reset()
       self.multiIndex, self.finished = self.iterator.multi_index, self.iterator.finished
@@ -117,6 +122,9 @@ class ravenArrayIterator(object):
       @ Out, iterator, tuple, the n-d iterator
     """
     self.iternext()
-    if self.finished: raise StopIteration
-    if type(self.iterator).__name__ == 'list': return self.iterator
-    else                                     : return self.iterator.multi_index
+    if self.finished:
+      raise StopIteration
+    if type(self.iterator).__name__ == 'list':
+      return self.iterator
+    else:
+      return self.iterator.multi_index

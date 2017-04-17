@@ -48,7 +48,7 @@ class c1darray(object):
     if values is not None:
       if shape != (100,) and values.shape != shape:
         raise IOError("different shape")
-      if type(values) != ndarray:
+      if type(values).__name__ != 'ndarray':
         raise IOError("Only ndarray is accepted as type.Got "+type(values).__name__)
       self.values = values
       self.size = values.size

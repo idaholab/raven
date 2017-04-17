@@ -222,8 +222,8 @@ class ScatterView3D(BaseTopologicalView):
     or self.chkExts.checkState() == qtc.Qt.PartiallyChecked:
       minMaxPairs = self.amsc.GetSelectedSegments()
       for extPair in minMaxPairs:
-          minIdxs.append(extPair[0])
-          maxIdxs.append(extPair[1])
+        minIdxs.append(extPair[0])
+        maxIdxs.append(extPair[1])
 
       extIdxs = self.amsc.GetSelectedExtrema()
       for extIdx in extIdxs:
@@ -239,14 +239,14 @@ class ScatterView3D(BaseTopologicalView):
       if len(minIdxs) == 0 and len(maxIdxs) == 0:
         minMaxPairs = self.amsc.GetCurrentLabels()
         for extPair in minMaxPairs:
-            minIdxs.append(extPair[0])
-            maxIdxs.append(extPair[1])
+          minIdxs.append(extPair[0])
+          maxIdxs.append(extPair[1])
 
       ## Remove the extrema from the list of regular points that will be
       ## rendered
       for extIdx in minIdxs + maxIdxs:
         if extIdx in rows:
-            rows.remove(extIdx)
+          rows.remove(extIdx)
 
     specialColorKeywords = ['Segment','Minimum Flow', 'Maximum Flow']
 

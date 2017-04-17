@@ -153,5 +153,3 @@ class HS2PS(PostProcessorInterfaceBase):
       data[hist][self.pivotParameter] = self.transformationSettings['timeAxis']
 
     return data
-
-

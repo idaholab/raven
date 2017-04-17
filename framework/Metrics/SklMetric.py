@@ -89,6 +89,3 @@ class SKL(Metric):
       elif self.metricType in pairwise.distance_metrics().keys():
         value = pairwise.pairwise_distances(X=x, metric=self.metricType, **dictTemp)
       return value
-
-
-
