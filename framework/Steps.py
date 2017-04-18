@@ -379,7 +379,6 @@ class SingleRun(Step):
       for finishedJob in finishedJobs:
         if finishedJob.getReturnCode() == 0:
           # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
-          model.finalizeModelOutput(finishedJob)
           for output in outputs:
             if output.type not in ['OutStreamPlot','OutStreamPrint']:
               model.collectOutput(finishedJob,output)
@@ -492,7 +491,7 @@ class MultiRun(SingleRun):
       if inDictionary[self.samplerType].amIreadyToProvideAnInput():
         try:
           newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'])
-                    inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
+          inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
           self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')

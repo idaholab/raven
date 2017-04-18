@@ -3514,7 +3514,7 @@ class ExternalPostProcessor(BasePostProcessor):
       # #TODO This does not feel right
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably did not finish yet)')
     dataLenghtHistory = {}
-    inputList,_,outputList = finishedJob.getEvaluation()
+    inputList,_,outputDict = finishedJob.getEvaluation()
 
     if isinstance(output,Files.File):
       self.raiseAWarning('Output type File not yet implemented. I am going to skip it.')
@@ -3865,7 +3865,7 @@ class TopologicalDecomposition(BasePostProcessor):
     if finishedJob.getEvaluation() == -1:
       # TODO This does not feel right
       self.raiseAnError(RuntimeError,'No available output to collect (run probably did not finish yet)')
-    inputList,_,outputList = finishedJob.getEvaluation()
+    inputList,_,outputDict = finishedJob.getEvaluation()
 
     if output.type == 'PointSet':
       requestedInput = output.getParaKeys('input')

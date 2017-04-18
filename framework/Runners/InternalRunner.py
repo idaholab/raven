@@ -92,11 +92,6 @@ class InternalRunner(Runner):
     ## These things cannot be deep copied
     self.skipOnCopy = ['functionToRun','thread','__queueLock']
 
-    ## The Input needs to be a tuple. The first entry is the actual input (what
-    ## is going to be stored here), the others are other arg the function needs
-    if type(Input) != tuple:
-      self.raiseAnError(IOError,"The input for " + self.__class__.__name__ + " should be a tuple. Instead received " + Input.__class__.__name__)
-
   def __deepcopy__(self,memo):
     """
       This is the method called with copy.deepcopy.  Overwritten to remove some keys.

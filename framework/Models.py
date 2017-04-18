@@ -371,7 +371,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     return [(copy.copy(kwargs))]
 
-  @abc.abstractmethod
   def submit(self, myInput, samplerType, jobHandler, **kwargs):
     """
         This will submit an individual sample to be evaluated by this model to a
@@ -1633,7 +1632,7 @@ class Code(Model):
       ## If you made it here, then the run must have failed
       return None
 
-  def collectOutput(self,finishedjob,output,options=None):
+  def collectOutput(self,finishedJob,output,options=None):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, InternalRunner object, instance of the run just finished
@@ -2385,7 +2384,7 @@ class EnsembleModel(Dummy, Assembler):
           #if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
     return dependentOutputs
 
-  def _externalRun(self,inRun):
+  def _externalRun(self,inRun, jobHandler):
     """
       Method that performs the actual run of the essembled model (separated from run method for parallelization purposes)
       @ In, inRun, tuple, tuple of Inputs (inRun[0] actual input, inRun[1] jobHandler instance )
