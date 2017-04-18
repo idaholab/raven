@@ -108,7 +108,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
     self.nVar                           = 0                         # Number of decision variables
     self.objVar                         = None                      # Objective variable to be optimized
-    self.objVarBounds                   = (0.,1.)                   # Tuple of optional upper and lower bound for objective function (lower,upper)
     self.optType                        = None                      # Either maximize or minimize
     self.optTraj                        = None                      # Identifiers of parallel optimization trajectories
     self.thresholdTrajRemoval           = None                      # Threshold used to determine the convergence of parallel optimization trajectories
@@ -485,7 +484,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
       if not satisfied:
         violatedConstrains['external'].append(self.constraintFunction.name)
-    #if self.gradDict['normalize']:
     optVars = self.denormalizeData(optVars)
     for var in optVars:
       if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:

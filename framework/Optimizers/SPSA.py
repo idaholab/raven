@@ -78,15 +78,6 @@ class SPSA(GradientBasedOptimizer):
     else:
       self.paramDict['a'] = float(self.paramDict['a'])
 
-    # Normalize the parameters...
-    #if self.gradDict['normalize']:
-    #  maxVarRange = max(self.optVarsInit['ranges'].values())
-    #  #tempMax = -1
-    #  #for var in self.optVars:
-    #  #  if self.optVarsInit['ranges'][var] > tempMax:
-    #  #    tempMax = self.optVarsInit['ranges'][var]
-    #  self.paramDict['c'] = copy.deepcopy(self.paramDict['c']/maxVarRange) #FIXME why are these deepcopied?
-    #  self.paramDict['a'] = copy.deepcopy(self.paramDict['a']/(maxVarRange**2)) #FIXME why are these deepcopied? And why is this normalized to the square?
     self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
     self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
 
@@ -142,7 +133,7 @@ class SPSA(GradientBasedOptimizer):
           # self.values[var]-= 0.01*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
         if self.values[var] <= self.optVarsInit['lowerBound'][var]:
           self.values[var] = 0.01*(self.optVarsInit['ranges'][var]) + self.optVarsInit['lowerBound'][var]
-      data = self.normalizeData(self.values) #if self.gradDict['normalize'] else self.values
+      data = self.normalizeData(self.values)  
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(data)
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
       self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],'v')
@@ -192,7 +183,6 @@ class SPSA(GradientBasedOptimizer):
           tempOptVars = {}
           for var in self.optVars:
             tempOptVars[var] = self.gradDict['pertPoints'][traj][loc2][var][loc1]
-          #tempOptVarsDenorm = copy.deepcopy(self.denormalizeData(tempOptVars)) if self.gradDict['normalize'] else copy.deepcopy(tempOptVars)
           tempOptVarsDenorm = copy.deepcopy(self.denormalizeData(tempOptVars))
           for var in self.optVars:
             self.values[var] = tempOptVarsDenorm[var]
@@ -227,7 +217,7 @@ class SPSA(GradientBasedOptimizer):
             #self.estimateStochasticity(gradient,self.gradDict['pertPoints'][traj][self.counter['varsUpdate'][traj]-1],varK,centralResponseIndex) #TODO need current point too!
 
             varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
-            varKPlusDenorm = self.denormalizeData(varKPlus) #if self.gradDict['normalize'] else varKPlus
+            varKPlusDenorm = self.denormalizeData(varKPlus) 
             for var in self.optVars:
               self.values[var] = copy.deepcopy(varKPlusDenorm[var])
               self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(varKPlus[var])
@@ -304,7 +294,6 @@ class SPSA(GradientBasedOptimizer):
         projectedOnBoundary= {}
         for activeConstraint in activeConstraints['internal']:
           projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
-        #tempVarKPlus.update(self.normalizeData(projectedOnBoundary) if self.gradDict['normalize'] else projectedOnBoundary)
         tempVarKPlus.update(self.normalizeData(projectedOnBoundary))
       if len(activeConstraints['external']) == 0:
         return tempVarKPlus

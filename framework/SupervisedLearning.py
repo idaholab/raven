@@ -2030,7 +2030,7 @@ class SciKitLearn(superVisedLearning):
   availImpl['qda']                                          = {}                                                            #Quadratic Discriminant Analysis
   if int(sklearn.__version__.split(".")[1]) > 16:
     availImpl['lda']['LDA']                                 = (da.LinearDiscriminantAnalysis            , 'int'    , False) #Linear Discriminant Analysis (LDA)
-    availImpl['qda']['LDA']                                 = (da.QuadraticDiscriminantAnalysis         , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+    availImpl['qda']['QDA']                                 = (da.QuadraticDiscriminantAnalysis         , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
   else:
     availImpl['lda']['LDA']                                 = (lda.LDA                                  , 'int'    , False) #Linear Discriminant Analysis (LDA)
     availImpl['qda']['QDA']                                 = (qda.QDA                                  , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
