@@ -1314,6 +1314,9 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         %
         Currently, the  \xmlNode{EnsembleModel} accept ``DataObjects''  both of type
         ``PointSet'' and ``HistorySet''.
+        \nb The  \xmlNode{TargetEvaluation} is primary used for input-output identification. If the linked
+        DataObject is not placed as additional output of the Step where the EnsembleModel is used, it will
+        not be filled with the data coming from the calculation and it will be kept empty.
      \item \xmlNode{Input}, \xmlDesc{string, required field},
         represents the input entities that need to be passed to this sub-model
         %

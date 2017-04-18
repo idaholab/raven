@@ -32,9 +32,3 @@ def run(self,Input):
   else:
     temp = (30.0*24.0) - max(self.t1,self.t2) # Fail
     self.out = float(temp/(30.0*24.0))
-
-
-
-
-
-

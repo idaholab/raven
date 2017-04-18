@@ -171,5 +171,3 @@ if time < endTime:
   xmlFile = open(os.path.join(head,prefix+tail+"_actual_branch_info.xml"),"w")
   xmlFile.write(minidom.parseString(ET.tostring(root, 'utf-8')).toprettyxml(indent="\t"))
   xmlFile.close()
-
-

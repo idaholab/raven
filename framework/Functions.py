@@ -75,7 +75,8 @@ class Function(BaseType):
       moduleToLoadString, self.functionFile = utils.identifyIfExternalModelExists(self, self.functionFile, self.workingDir)
       # import the external function
       importedModule = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
-      if not importedModule: self.raiseAnError(IOError,'Failed to import the module '+moduleToLoadString+' supposed to contain the function: '+self.name)
+      if not importedModule:
+        self.raiseAnError(IOError,'Failed to import the module '+moduleToLoadString+' supposed to contain the function: '+self.name)
       #here the methods in the imported file are brought inside the class
       for method in importedModule.__dict__.keys():
         if method in ['__residuumSign__','__residuumSign','residuumSign',
@@ -101,15 +102,18 @@ class Function(BaseType):
           #custom
           self.__actionDictionary[method]                    = importedModule.__dict__[method]
           self.__actionImplemented[method]                   = True
-    else: self.raiseAnError(IOError,'No file name for the external function has been provided for external function '+self.name+' of type '+self.type)
+    else:
+      self.raiseAnError(IOError,'No file name for the external function has been provided for external function '+self.name+' of type '+self.type)
     cnt = 0
     for child in xmlNode:
       if child.tag=='variable':
         execCommand('self.'+child.text+' = None',self=self)
         self.__inputVariables.append(child.text)
         cnt +=1
-        if len(child.attrib.keys()) > 0: self.raiseAnError(IOError,'variable block in the definition of the function '+self.name + ' should not have any attribute!')
-    if cnt == 0: self.raiseAnError(IOError,'not variable found in the definition of the function '+self.name)
+        if len(child.attrib.keys()) > 0:
+          self.raiseAnError(IOError,'variable block in the definition of the function '+self.name + ' should not have any attribute!')
+    if cnt == 0:
+      self.raiseAnError(IOError,'not variable found in the definition of the function '+self.name)
 
   def getInitParams(self):
     """
@@ -152,8 +156,10 @@ class Function(BaseType):
       @ In, myInput, object (dataObjects,dict), object from which the data need to be imported
       @ Out, None
     """
-    if type(myInput)==dict         :self.__inputFromWhat['dict'](myInput)
-    else: self.raiseAnError(IOError,'Unknown type of input provided to the function '+str(self.name))
+    if type(myInput)==dict:
+      self.__inputFromWhat['dict'](myInput)
+    else:
+      self.raiseAnError(IOError,'Unknown type of input provided to the function '+str(self.name))
 
   def __inputFromDict(self,myInputDict):
     """
@@ -163,11 +169,15 @@ class Function(BaseType):
       @ In, myInputDict, dict, dict from which the data need to be imported
       @ Out, None
     """
-    if 'SampledVars' in myInputDict.keys(): inDict = myInputDict['SampledVars']
-    else                                  : inDict = myInputDict
+    if 'SampledVars' in myInputDict.keys():
+      inDict = myInputDict['SampledVars']
+    else:
+      inDict = myInputDict
     for name in self.__inputVariables:
-      if name in inDict.keys(): execCommand('self.'+name+'=object["'+name+'"]',self=self,object=inDict)
-      else                    : self.raiseAnError(IOError,'The input variable '+name+' in external function seems not to be passed in')
+      if name in inDict.keys():
+        execCommand('self.'+name+'=object["'+name+'"]',self=self,object=inDict)
+      else:
+        self.raiseAnError(IOError,'The input variable '+name+' in external function seems not to be passed in')
 
   def evaluate(self,what,myInput):
     """
@@ -177,7 +187,8 @@ class Function(BaseType):
       @ Out, response, object, the response of the action defined in what
     """
     self.__importValues(myInput)
-    if what not in self.__actionDictionary: self.raiseAnError(IOError,'Method ' + what + ' not defined in ' + self.name)
+    if what not in self.__actionDictionary:
+      self.raiseAnError(IOError,'Method ' + what + ' not defined in ' + self.name)
     response = self.__actionDictionary[what](self)
     return response
 
@@ -223,5 +234,7 @@ def returnInstance(Type,runInfoDict, caller):
     @ In, caller, object, requesting object
     @ Out, __interFaceDict, instance, instance of the object
   """
-  if Type in knownTypes():return __interFaceDict[Type](runInfoDict)
-  else: caller.raiseAnError(NameError,'FUNCTIONS','not known '+__base+' type '+Type)
+  if Type in knownTypes():
+    return __interFaceDict[Type](runInfoDict)
+  else:
+    caller.raiseAnError(NameError,'FUNCTIONS','not known '+__base+' type '+Type)

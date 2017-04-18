@@ -13,5 +13,3 @@
 # limitations under the License.
 def run(self, Input):
   self.sumTemperature =  self.leftTemperature + self.rightTemperature
-
-

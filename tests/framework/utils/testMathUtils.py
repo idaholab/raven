@@ -55,10 +55,12 @@ def checkAnswer(comment,value,expected,tol=1e-10,updateResults=True):
   """
   if abs(value - expected) > tol:
     print("checking answer",comment,value,"!=",expected)
-    if updateResults: results["fail"] += 1
+    if updateResults:
+      results["fail"] += 1
     return False
   else:
-    if updateResults: results["pass"] += 1
+    if updateResults:
+      results["pass"] += 1
     return True
 
 def checkArray(comment,check,expected,tol=1e-10):
@@ -95,10 +97,12 @@ def checkType(comment,value,expected,updateResults=True):
   """
   if type(value) != type(expected):
     print("checking type",comment,value,'|',type(value),"!=",expected,'|',type(expected))
-    if updateResults: results["fail"] += 1
+    if updateResults:
+      results["fail"] += 1
     return False
   else:
-    if updateResults: results["pass"] += 1
+    if updateResults:
+      results["pass"] += 1
     return True
 
 
@@ -292,6 +296,18 @@ factors = mathUtils.normalizationFactors(sequentialList, mode='scale')
 checkArray('0-1 scaling sequentialList: ', factors, (0,4))
 factors = mathUtils.normalizationFactors(sequentialList, mode='none')
 checkArray('No scaling sequentialList: ', factors,(0,1))
+
+#check hyperrectangle diagonal on several dimensions
+## 2d
+sideLengths = [3,4]
+checkAnswer('2D hyperdiagonal',mathUtils.hyperdiagonal(sideLengths),5)
+## 3d
+sideLengths.append(12)
+checkAnswer('3D hyperdiagonal',mathUtils.hyperdiagonal(sideLengths),13)
+## 3d
+sideLengths.append(84)
+checkAnswer('4D hyperdiagonal',mathUtils.hyperdiagonal(sideLengths),85)
+
 
 print(results)
 

@@ -171,7 +171,8 @@ class LimitSurfaceIntegral(BasePostProcessor):
     """
     needDict = {'Distributions':[]}
     for distName in self.variableDist.values():
-      if distName != None: needDict['Distributions'].append((None, distName))
+      if distName != None:
+        needDict['Distributions'].append((None, distName))
     return needDict
 
   def _localGenerateAssembler(self, initDict):
@@ -183,7 +184,8 @@ class LimitSurfaceIntegral(BasePostProcessor):
     """
     for varName, distName in self.variableDist.items():
       if distName != None:
-        if distName not in initDict['Distributions'].keys(): self.raiseAnError(IOError, 'distribution ' + distName + ' not found.')
+        if distName not in initDict['Distributions'].keys():
+          self.raiseAnError(IOError, 'distribution ' + distName + ' not found.')
         self.variableDist[varName] = initDict['Distributions'][distName]
         self.lowerUpperDict[varName]['lowerBound'] = self.variableDist[varName].lowerBound
         self.lowerUpperDict[varName]['upperBound'] = self.variableDist[varName].upperBound
@@ -243,7 +245,8 @@ class LimitSurfaceIntegral(BasePostProcessor):
         if self.variableDist[varName] == None:
           if 'lowerBound' not in self.lowerUpperDict[varName].keys() or 'upperBound' not in self.lowerUpperDict[varName].keys():
             self.raiseAnError(NameError, 'either a distribution name or lowerBound and upperBound need to be specified for variable ' + varName)
-    if self.target == None: self.raiseAWarning('integral target has not been provided. The postprocessor is going to take the last output it finds in the provided limitsurface!!!')
+    if self.target == None:
+      self.raiseAWarning('integral target has not been provided. The postprocessor is going to take the last output it finds in the provided limitsurface!!!')
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -273,16 +276,22 @@ class LimitSurfaceIntegral(BasePostProcessor):
     for item in currentInput:
       if item.type == 'PointSet':
         self.matrixDict = {}
-        if not set(item.getParaKeys('inputs')) == set(self.variableDist.keys()): self.raiseAnError(IOError, 'The variables inputted and the features in the input PointSet ' + item.name + 'do not match!!!')
-        if self.target == None: self.target = item.getParaKeys('outputs')[-1]
-        if self.target not in item.getParaKeys('outputs'): self.raiseAnError(IOError, 'The target ' + self.target + 'is not present among the outputs of the PointSet ' + item.name)
+        if not set(item.getParaKeys('inputs')) == set(self.variableDist.keys()):
+          self.raiseAnError(IOError, 'The variables inputted and the features in the input PointSet ' + item.name + 'do not match!!!')
+        if self.target == None:
+          self.target = item.getParaKeys('outputs')[-1]
+        if self.target not in item.getParaKeys('outputs'):
+          self.raiseAnError(IOError, 'The target ' + self.target + 'is not present among the outputs of the PointSet ' + item.name)
         # construct matrix
-        for  varName in self.variableDist.keys(): self.matrixDict[varName] = item.getParam('input', varName)
+        for  varName in self.variableDist.keys():
+          self.matrixDict[varName] = item.getParam('input', varName)
         outputarr = item.getParam('output', self.target)
-        if len(set(outputarr)) != 2: self.raiseAnError(IOError, 'The target ' + self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
+        if len(set(outputarr)) != 2:
+          self.raiseAnError(IOError, 'The target ' + self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
         outputarr[outputarr == -1] = 0.0
         self.matrixDict[self.target] = outputarr
-      else: self.raiseAnError(IOError, 'Only PointSet is accepted as input!!!!')
+      else:
+        self.raiseAnError(IOError, 'Only PointSet is accepted as input!!!!')
 
   def run(self, input):
     """
@@ -295,13 +304,15 @@ class LimitSurfaceIntegral(BasePostProcessor):
       tempDict = {}
       randomMatrix = np.random.rand(int(math.ceil(1.0 / self.tolerance**2)), len(self.variableDist.keys()))
       for index, varName in enumerate(self.variableDist.keys()):
-        if self.variableDist[varName] == None: randomMatrix[:, index] = randomMatrix[:, index] * (self.lowerUpperDict[varName]['upperBound'] - self.lowerUpperDict[varName]['lowerBound']) + self.lowerUpperDict[varName]['lowerBound']
+        if self.variableDist[varName] == None:
+          randomMatrix[:, index] = randomMatrix[:, index] * (self.lowerUpperDict[varName]['upperBound'] - self.lowerUpperDict[varName]['lowerBound']) + self.lowerUpperDict[varName]['lowerBound']
         else:
           f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float])
           randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
       pb = self.stat.run({'targets':{self.target:self.functionS.evaluate(tempDict)[self.target]}})['expectedValue'][self.target]
-    else: self.raiseAnError(NotImplemented, "quadrature not yet implemented")
+    else:
+      self.raiseAnError(NotImplemented, "quadrature not yet implemented")
     return pb
 
   def collectOutput(self, finishedJob, output):
@@ -311,24 +322,30 @@ class LimitSurfaceIntegral(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
+    if finishedJob.getEvaluation() == -1:
+      self.raiseAnError(RuntimeError, 'no available output to collect.')
     else:
       pb = finishedJob.getEvaluation()[1]
       lms = finishedJob.getEvaluation()[0][0]
       if output.type == 'PointSet':
         # we store back the limitsurface
         for key, value in lms.getParametersValues('input').items():
-          for val in value: output.updateInputValue(key, val)
+          for val in value:
+            output.updateInputValue(key, val)
         for key, value in lms.getParametersValues('output').items():
-          for val in value: output.updateOutputValue(key, val)
-        for _ in range(len(lms)): output.updateOutputValue('EventProbability', pb)
+          for val in value:
+            output.updateOutputValue(key, val)
+        for _ in range(len(lms)):
+          output.updateOutputValue('EventProbability', pb)
       elif isinstance(output,Files.File):
         headers = lms.getParaKeys('inputs') + lms.getParaKeys('outputs')
-        if 'EventProbability' not in headers: headers += ['EventProbability']
+        if 'EventProbability' not in headers:
+          headers += ['EventProbability']
         stack = [None] * len(headers)
         output.close()
         outIndex = 0
-        for key, value in lms.getParametersValues('input').items() : stack[headers.index(key)] = np.asarray(value).flatten()
+        for key, value in lms.getParametersValues('input').items():
+          stack[headers.index(key)] = np.asarray(value).flatten()
         for key, value in lms.getParametersValues('output').items():
           stack[headers.index(key)] = np.asarray(value).flatten()
           outIndex = headers.index(key)
@@ -336,7 +353,8 @@ class LimitSurfaceIntegral(BasePostProcessor):
         stacked = np.column_stack(stack)
         np.savetxt(output, stacked, delimiter = ',', header = ','.join(headers),comments='')
         #N.B. without comments='' you get a "# " at the top of the header row
-      else: self.raiseAnError(Exception, self.type + ' accepts PointSet or File type only')
+      else:
+        self.raiseAnError(Exception, self.type + ' accepts PointSet or File type only')
 #
 #
 
@@ -608,7 +626,8 @@ class SafestPoint(BasePostProcessor):
       indexList = []
       probList = []
       for index in range(len(nearestPointsInd)):
-        if self.surfPointsMatrix[np.where(np.prod(surfTree.data[nearestPointsInd[index], 0:self.surfPointsMatrix.shape[-1] - 1] == self.surfPointsMatrix[:, 0:self.surfPointsMatrix.shape[-1] - 1], axis = 1))[0][0], -1] == 1:
+        if self.surfPointsMatrix[np.where(np.prod(surfTree.data[nearestPointsInd[index], 0:
+          self.surfPointsMatrix.shape[-1] - 1] == self.surfPointsMatrix[:, 0:self.surfPointsMatrix.shape[-1] - 1], axis = 1))[0][0], -1] == 1:
           distList.append(np.sqrt(np.sum(np.power(queryPointsMatrix[index, 0:self.controllableSpace.shape[-1]] - surfTree.data[nearestPointsInd[index], 0:self.controllableSpace.shape[-1]], 2))))
           indexList.append(index)
       if distList == []:
@@ -660,10 +679,13 @@ class SafestPoint(BasePostProcessor):
           self.raiseAnError(ValueError, 'output item must be empty.')
         else:
           for key, value in dataCollector.getParametersValues('input').items():
-            for val in value: output.updateInputValue(key, val)
+            for val in value:
+              output.updateInputValue(key, val)
           for key, value in dataCollector.getParametersValues('output').items():
-            for val in value: output.updateOutputValue(key, val)
-          for key, value in dataCollector.getAllMetadata().items(): output.updateMetadata(key, value)
+            for val in value:
+              output.updateOutputValue(key, val)
+          for key, value in dataCollector.getAllMetadata().items():
+            output.updateMetadata(key, value)
 #
 #
 
@@ -825,8 +847,10 @@ class ComparisonStatistics(BasePostProcessor):
       @ Out, None
     """
     self.raiseADebug("finishedJob: " + str(finishedJob) + ", output " + str(output))
-    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
-    else: self.dataDict.update(finishedJob.getEvaluation()[1])
+    if finishedJob.getEvaluation() == -1:
+      self.raiseAnError(RuntimeError, 'no available output to collect.')
+    else:
+      self.dataDict.update(finishedJob.getEvaluation()[1])
 
     dataToProcess = []
     for compareGroup in self.compareGroups:
@@ -1066,7 +1090,8 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ Out, None
     """
     for child in xmlNode:
-      if child.tag == 'method': self.methodToRun = child.text
+      if child.tag == 'method':
+        self.methodToRun = child.text
     self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
     if not isinstance(self.postProcessor,PostProcessorInterfaceBase):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
@@ -1133,7 +1158,8 @@ class InterfacedPostProcessor(BasePostProcessor):
               output.updateOutputValue(key,exportDict['outputSpaceParams'][str(key)])
       for key in exportDict['metadata']:
         output.updateMetadata(key,exportDict['metadata'][key])
-    else:   # output.type == 'PointSet':
+    else:
+      # output.type == 'PointSet':
       for key in exportDict['inputSpaceParams']:
         if key in output.getParaKeys('inputs'):
           for value in exportDict['inputSpaceParams'][key]:
@@ -1268,7 +1294,8 @@ class ImportanceRank(BasePostProcessor):
     for child in paramInput.subparts:
       if child.getName() == 'what':
         what = child.value.strip()
-        if what.lower() == 'all': self.what = self.all
+        if what.lower() == 'all':
+          self.what = self.all
         else:
           requestMetric = list(var.strip() for var in what.split(','))
           toCalculate = []
@@ -1308,7 +1335,8 @@ class ImportanceRank(BasePostProcessor):
                 self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.getName(),'in',self.printTag)
       elif child.getName() == 'mvnDistribution':
         self.mvnDistribution = child.value.strip()
-      elif child.getName() == "pivotParameter": self.pivotParameter = child.value
+      elif child.getName() == "pivotParameter":
+        self.pivotParameter = child.value
       else:
         self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.getName() + '!')
     if not self.latentDim and len(self.latent) != 0:
@@ -1336,8 +1364,10 @@ class ImportanceRank(BasePostProcessor):
     """
     #build tree
     for what in options.keys():
-      if what.lower() in self.statAcceptedMetric: continue
-      if what == 'manifestSensitivity': continue
+      if what.lower() in self.statAcceptedMetric:
+        continue
+      if what == 'manifestSensitivity':
+        continue
       for target in options[what].keys():
         valueDict = OrderedDict()
         for var,index,dim in options[what][target]:
@@ -1401,7 +1431,8 @@ class ImportanceRank(BasePostProcessor):
       @ In, output, object, the object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
+    if finishedJob.getEvaluation() == -1:
+      self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
     outputDict = finishedJob.getEvaluation()[-1]
     # Output to file
     if isinstance(output, Files.File):
@@ -1423,8 +1454,10 @@ class ImportanceRank(BasePostProcessor):
     elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       self._writeDataObject(output,outputDict)
-    elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
-    else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+    elif output.type == 'HDF5':
+      self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
+    else:
+      self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
 
   def _writeCSV(self,output,outputDictionary):
     """
@@ -1438,7 +1471,8 @@ class ImportanceRank(BasePostProcessor):
       output.write('Importance Rank' + separator + 'Pivot Parameter' + separator + self.pivotParameter + os.linesep)
     outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
     for step, outputDict in enumerate(outputResults):
-      if self.dynamic: output.write('Pivot Value'+separator+str(outputDictionary.keys()[step])+os.linesep)
+      if self.dynamic:
+        output.write('Pivot Value'+separator+str(outputDictionary.keys()[step])+os.linesep)
       #only output 'pcaindex','transformation','inversetransformation' for the first step.
       if step == 0:
         for what in outputDict.keys():
@@ -1456,7 +1490,8 @@ class ImportanceRank(BasePostProcessor):
                 output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
               output.write(os.linesep)
       for what in outputDict.keys():
-        if what.lower() in self.statAcceptedMetric: continue
+        if what.lower() in self.statAcceptedMetric:
+          continue
         if what.lower() in self.acceptedMetric:
           self.raiseADebug('Writing parameter rank for metric ' + what)
           for target in outputDict[what].keys():
@@ -1473,7 +1508,8 @@ class ImportanceRank(BasePostProcessor):
       @ In, outputDictionary, dict, dictionary stores importance ranking outputs
       @ Out, None
     """
-    if output.isOpen(): output.close()
+    if output.isOpen():
+      output.close()
     if self.dynamic:
       outFile = Files.returnInstance('DynamicXMLOutput',self)
     else:
@@ -1511,7 +1547,8 @@ class ImportanceRank(BasePostProcessor):
               output.updateMetadata(target + '-' + what, outputDict[what][target])
       appendix = '-'+self.pivotParameter+'-'+str(outputDictionary.keys()[step]) if self.dynamic else ''
       for what in outputDict.keys():
-        if what.lower() in self.statAcceptedMetric: continue
+        if what.lower() in self.statAcceptedMetric:
+          continue
         if what.lower() in self.acceptedMetric:
           for target in outputDict[what].keys():
             self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
@@ -1533,22 +1570,28 @@ class ImportanceRank(BasePostProcessor):
       @ In, currentInput, object, an object that needs to be converted
       @ Out, inputDict, dictionary of the converted data
     """
-    if type(currentInp) == list  : currentInput = currentInp[-1]
-    else                         : currentInput = currentInp
+    if type(currentInp) == list:
+      currentInput = currentInp[-1]
+    else:
+      currentInput = currentInp
     if type(currentInput) == dict:
-      if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys(): self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
+      if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys():
+        self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
       return currentInput
 
     if hasattr(currentInput,'type'):
       inType = currentInput.type
     else:
-      if type(currentInput).__name__ == 'list'    : inType = 'list'
-      else: self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(type(currentInput)))
+      if type(currentInput).__name__ == 'list':
+        inType = 'list'
+      else:
+        self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(type(currentInput)))
     if inType not in ['HDF5', 'PointSet','HistorySet', 'list'] and not isinstance(inType,Files.File):
       self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, HistorySet, PointSet, DataObject(s) only! Got ' + str(inType) + '!!!!')
     # get input from the external csv file
     if isinstance(inType,Files.File):
-      if currentInput.subtype == 'csv': pass # to be implemented
+      if currentInput.subtype == 'csv':
+        pass # to be implemented
     # get input from PointSet DataObject
     if inType in ['PointSet']:
       inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
@@ -1565,7 +1608,8 @@ class ImportanceRank(BasePostProcessor):
       inputDict['metadata'] = currentInput.getAllMetadata()
     # get input from HistorySet DataObject
     if inType in ['HistorySet']:
-      if self.pivotParameter is None: self.raiseAnError(IOError, self, 'Time-dependent importance ranking is requested (HistorySet) but no pivotParameter got inputted!')
+      if self.pivotParameter is None:
+        self.raiseAnError(IOError, self, 'Time-dependent importance ranking is requested (HistorySet) but no pivotParameter got inputted!')
       inputs  = currentInput.getParametersValues('inputs',nodeId = 'ending')
       outputs = currentInput.getParametersValues('outputs',nodeId = 'ending')
       numSteps = len(outputs.values()[0].values()[0])
@@ -1575,7 +1619,8 @@ class ImportanceRank(BasePostProcessor):
       pivotParameter = []
       for step in range(len(outputs.values()[0][self.pivotParameter])):
         currentSnapShot = [outputs[i][self.pivotParameter][step] for i in outputs.keys()]
-        if len(set(currentSnapShot)) > 1: self.raiseAnError(IOError, self, 'Histories are not syncronized! Please, pre-process the data using Interfaced PostProcessor HistorySetSync!')
+        if len(set(currentSnapShot)) > 1:
+          self.raiseAnError(IOError, self, 'Histories are not syncronized! Please, pre-process the data using Interfaced PostProcessor HistorySetSync!')
         pivotParameter.append(currentSnapShot[-1])
       inputDict = {'timeDepData':OrderedDict.fromkeys(pivotParameter,None)}
       for step in range(numSteps):
@@ -1593,7 +1638,8 @@ class ImportanceRank(BasePostProcessor):
         inputDict['timeDepData'][pivotParameter[step]]['metadata'] = currentInput.getAllMetadata()
 
     # get input from HDF5 Database
-    if inType == 'HDF5': pass  # to be implemented
+    if inType == 'HDF5':
+      pass  # to be implemented
 
     return inputDict
 
@@ -1604,7 +1650,8 @@ class ImportanceRank(BasePostProcessor):
       @ Out, outputDict, dict, Dictionary containing the results
     """
     inputDict = self.inputToInternal(inputIn)
-    if not self.dynamic: outputDict = self.__runLocal(inputDict)
+    if not self.dynamic:
+      outputDict = self.__runLocal(inputDict)
     else:
       # time dependent (actually pivot-dependent)
       outputDict = OrderedDict()
@@ -1643,14 +1690,16 @@ class ImportanceRank(BasePostProcessor):
     for what in self.what:
       if what.lower() == 'sensitivityindex':
         what = 'sensitivityIndex'
-        if what not in outputDict.keys(): outputDict[what] = {}
+        if what not in outputDict.keys():
+          outputDict[what] = {}
         for target in self.targets:
           entries = senWeightDict[target]
           entries.sort(key=lambda x: x[1],reverse=True)
           outputDict[what][target] = entries
       if what.lower() == 'importanceindex':
         what = 'importanceIndex'
-        if what not in outputDict.keys(): outputDict[what] = {}
+        if what not in outputDict.keys():
+          outputDict[what] = {}
         for target in self.targets:
           featCoeffs = senCoeffDict[target]
           featWeights = []
@@ -1680,7 +1729,8 @@ class ImportanceRank(BasePostProcessor):
           self.raiseAWarning('pcaIndex can be not requested because no latent variable is provided!')
         else:
           what = 'pcaIndex'
-          if what not in outputDict.keys(): outputDict[what] = {}
+          if what not in outputDict.keys():
+            outputDict[what] = {}
           index = [dim-1 for dim in self.dimensions]
           singularValues = self.mvnDistribution.returnSingularValues(index)
           singularValues = list(singularValues/np.sum(singularValues))
@@ -1691,7 +1741,8 @@ class ImportanceRank(BasePostProcessor):
       if what.lower() == 'transformation':
         if self.transformation:
           what = 'transformation'
-          if what not in outputDict.keys(): outputDict[what] = {}
+          if what not in outputDict.keys():
+            outputDict[what] = {}
           index = [dim-1 for dim in self.latentDim]
           manifestIndex = [dim-1 for dim in self.manifestDim]
           transformMatrix = self.mvnDistribution.transformationMatrix(index)
@@ -1703,7 +1754,8 @@ class ImportanceRank(BasePostProcessor):
       if what.lower() == 'inversetransformation':
         if self.transformation:
           what = 'inverseTransformation'
-          if what not in outputDict.keys(): outputDict[what] = {}
+          if what not in outputDict.keys():
+            outputDict[what] = {}
           index = [dim-1 for dim in self.latentDim]
           manifestIndex = [dim-1 for dim in self.manifestDim]
           inverseTransformationMatrix = self.mvnDistribution.inverseTransformationMatrix(manifestIndex)
@@ -1716,7 +1768,8 @@ class ImportanceRank(BasePostProcessor):
       if what.lower() == 'manifestsensitivity':
         if self.reconstructSen:
           what = 'manifestSensitivity'
-          if what not in outputDict.keys(): outputDict[what] = {}
+          if what not in outputDict.keys():
+            outputDict[what] = {}
           # compute the inverse transformation matrix
           index = [dim-1 for dim in self.latentDim]
           manifestIndex = [dim-1 for dim in self.manifestDim]
@@ -1815,23 +1868,31 @@ class BasicStatistics(BasePostProcessor):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     self.dynamic = False
     currentInput = currentInp [-1] if type(currentInp) == list else currentInp
-    if len(currentInput) == 0: self.raiseAnError(IOError, "In post-processor " +self.name+" the input "+currentInput.name+" is empty.")
+    if len(currentInput) == 0:
+      self.raiseAnError(IOError, "In post-processor " +self.name+" the input "+currentInput.name+" is empty.")
 
     if type(currentInput).__name__ =='dict':
-      if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys(): self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
+      if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys():
+        self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
       return currentInput
-    if currentInput.type not in ['PointSet','HistorySet']: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
+    if currentInput.type not in ['PointSet','HistorySet']:
+      self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
     if currentInput.type in ['PointSet']:
       inputDict = {'targets':{},'metadata':currentInput.getAllMetadata()}
       for targetP in self.parameters['targets']:
-        if   targetP in currentInput.getParaKeys('input') : inputDict['targets'][targetP] = currentInput.getParam('input' , targetP, nodeId = 'ending')
-        elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output', targetP, nodeId = 'ending')
-        else: self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
+        if   targetP in currentInput.getParaKeys('input'):
+          inputDict['targets'][targetP] = currentInput.getParam('input' , targetP, nodeId = 'ending')
+        elif targetP in currentInput.getParaKeys('output'):
+          inputDict['targets'][targetP] = currentInput.getParam('output', targetP, nodeId = 'ending')
+        else:
+          self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
     else:
-      if self.pivotParameter is None: self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter got inputted!')
+      if self.pivotParameter is None:
+        self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter got inputted!')
       inputs, outputs  = currentInput.getParametersValues('inputs',nodeId = 'ending'), currentInput.getParametersValues('outputs',nodeId = 'ending')
       nTs, self.dynamic = len(outputs.values()[0].values()[0]), True
-      if self.pivotParameter not in currentInput.getParaKeys('output'): self.raiseAnError(IOError, self, 'Pivot parameter ' + self.pivotParameter + ' has not been found in output space of data object '+currentInput.name)
+      if self.pivotParameter not in currentInput.getParaKeys('output'):
+        self.raiseAnError(IOError, self, 'Pivot parameter ' + self.pivotParameter + ' has not been found in output space of data object '+currentInput.name)
       pivotParameter =  six.next(six.itervalues(outputs))[self.pivotParameter]
       self.raiseAMessage("Starting recasting data for time-dependent statistics")
       targetInput  = []
@@ -1841,19 +1902,23 @@ class BasicStatistics(BasePostProcessor):
           targetOutput.append(targetP)
         elif targetP in currentInput.getParaKeys('input'):
           targetInput.append(targetP)
-        else: self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
+        else:
+          self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
       inputDict = {}
       inputDict['timeDepData'] = OrderedDict((el,defaultdict(dict)) for el in pivotParameter)
       for targetP in targetInput:
         inputValues = np.asarray([val[targetP][-1] for val in inputs.values()])
-        for ts in range(nTs): inputDict['timeDepData'][pivotParameter[ts]]['targets'][targetP] = inputValues
+        for ts in range(nTs):
+          inputDict['timeDepData'][pivotParameter[ts]]['targets'][targetP] = inputValues
       metadata = currentInput.getAllMetadata()
       for cnt, targetP in enumerate(targetOutput):
         outputValues = np.asarray([val[targetP] for val in outputs.values()])
-        if len(outputValues.shape) != 2: self.raiseAnError(IOError, 'Histories are not syncronized! Please, pre-process the data using Interfaced PostProcessor HistorySetSync!')
+        if len(outputValues.shape) != 2:
+          self.raiseAnError(IOError, 'Histories are not syncronized! Please, pre-process the data using Interfaced PostProcessor HistorySetSync!')
         for ts in range(nTs):
           inputDict['timeDepData'][pivotParameter[ts]]['targets'][targetP] = outputValues[:,ts]
-          if cnt == 0 : inputDict['timeDepData'][pivotParameter[ts]]['metadata'] = metadata
+          if cnt == 0:
+            inputDict['timeDepData'][pivotParameter[ts]]['metadata'] = metadata
     self.raiseAMessage("Recasting performed")
     return inputDict
 
@@ -2007,11 +2072,13 @@ class BasicStatistics(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (run possibly not finished yet)')
+    if finishedJob.getEvaluation() == -1:
+      self.raiseAnError(RuntimeError, ' No available Output to collect (run possibly not finished yet)')
     outputDictionary = finishedJob.getEvaluation()[1]
     methodToTest = []
     for key in self.methodsToRun:
-      if key not in self.acceptedCalcParam: methodToTest.append(key)
+      if key not in self.acceptedCalcParam:
+        methodToTest.append(key)
     if isinstance(output,Files.File):
       availExtens = ['xml','csv']
       outputExtension = output.getExt().lower()
@@ -2045,7 +2112,8 @@ class BasicStatistics(BasePostProcessor):
             if what not in self.acceptedCalcParam:
               output.updateMetadata(what + appendix, outputDict[what])
               self.raiseADebug('Dumping External Function parameter ' + what)
-    else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+    else:
+      self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
 
   def _writeText(self,output,outputDictionary,methodToTest,separator='  '):
     """
@@ -2056,7 +2124,8 @@ class BasicStatistics(BasePostProcessor):
       @ In, separator, string, optional, separator string (e.g. for csv use ",")
       @ Out, None
     """
-    if self.dynamic: output.write('Dynamic BasicStatistics'+ separator+ 'Pivot Parameter' + separator + self.pivotParameter + separator + os.linesep)
+    if self.dynamic:
+      output.write('Dynamic BasicStatistics'+ separator+ 'Pivot Parameter' + separator + self.pivotParameter + separator + os.linesep)
     quantitiesToWrite = {}
     outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
     longestParam = max(list(len(param) for param in self.allUsedParams)+[9]) #9 is for 'Metric:'
@@ -2117,7 +2186,8 @@ class BasicStatistics(BasePostProcessor):
       @ Out, None
     """
     #create XML output with same path as original output
-    if origOutput.isOpen(): origOutput.close()
+    if origOutput.isOpen():
+      origOutput.close()
     if self.dynamic:
       output = Files.returnInstance('DynamicXMLOutput',self)
     else:
@@ -2163,7 +2233,8 @@ class BasicStatistics(BasePostProcessor):
       @ In, weightsOrN, list/numpy.array or int, if list/numpy.array -> weights else -> number of samples
       @ Out, corrFactor, float (order <=3) or tuple of floats (order ==4), the unbiased correction factor
     """
-    if order > 4: self.raiseAnError(RuntimeError,"computeUnbiasedCorrection is implemented for order <=4 only!")
+    if order > 4:
+      self.raiseAnError(RuntimeError,"computeUnbiasedCorrection is implemented for order <=4 only!")
     if type(weightsOrN).__name__ not in ['int','int8','int16','int64','int32']:
       if order == 2:
         V1, v1Square, V2 = self.__computeVp(1, weightsOrN), self.__computeVp(1, weightsOrN)**2.0, self.__computeVp(2, weightsOrN)
@@ -2180,8 +2251,10 @@ class BasicStatistics(BasePostProcessor):
     else:
       if   order == 2:
         corrFactor   = float(weightsOrN)/(float(weightsOrN)-1.0)
-      elif order == 3: corrFactor   = (float(weightsOrN)**2.0)/((float(weightsOrN)-1)*(float(weightsOrN)-2))
-      elif order == 4: corrFactor = (float(weightsOrN)*(float(weightsOrN)**2.0-2.0*float(weightsOrN)+3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3)),(3.0*float(weightsOrN)*(2.0*float(weightsOrN)-3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3))
+      elif order == 3:
+        corrFactor   = (float(weightsOrN)**2.0)/((float(weightsOrN)-1)*(float(weightsOrN)-2))
+      elif order == 4:
+        corrFactor = (float(weightsOrN)*(float(weightsOrN)**2.0-2.0*float(weightsOrN)+3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3)),(3.0*float(weightsOrN)*(2.0*float(weightsOrN)-3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3))
     return corrFactor
 
   def _computeKurtosis(self,arrayIn,expValue,variance,pbWeight=None):
@@ -2195,12 +2268,16 @@ class BasicStatistics(BasePostProcessor):
     """
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(4,pbWeight) if not self.biased else 1.0
-      if not self.biased: result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr[0]-unbiasCorr[1]*np.power(((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,2.0),pbWeight))),2.0))/np.power(variance,2.0)
-      else              : result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr)/np.power(variance,2.0)
+      if not self.biased:
+        result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr[0]-unbiasCorr[1]*np.power(((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,2.0),pbWeight))),2.0))/np.power(variance,2.0)
+      else:
+        result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr)/np.power(variance,2.0)
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(4,len(arrayIn)) if not self.biased else 1.0
-      if not self.biased: result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr[0]-unbiasCorr[1]*(np.average((arrayIn - expValue)**2))**2.0)/(variance)**2.0
-      else              : result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr)/(variance)**2.0
+      if not self.biased:
+        result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr[0]-unbiasCorr[1]*(np.average((arrayIn - expValue)**2))**2.0)/(variance)**2.0
+      else:
+        result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr)/(variance)**2.0
     return result
 
   def _computeSkewness(self,arrayIn,expValue,variance,pbWeight=None):
@@ -2281,13 +2358,17 @@ class BasicStatistics(BasePostProcessor):
         # check if "what" corresponds to an internal method
         if what in self.acceptedCalcParam:
           if what not in ['pearson', 'covariance', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
-            if type(outputDict[what]) != dict: self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a dictionary!!')
+            if type(outputDict[what]) != dict:
+              self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a dictionary!!')
           else:
-            if type(outputDict[what]) != np.ndarray: self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a numpy.ndarray!!')
-            if len(outputDict[what].shape) != 2    : self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a 2D numpy.ndarray!!')
+            if type(outputDict[what]) != np.ndarray:
+              self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a numpy.ndarray!!')
+            if len(outputDict[what].shape) != 2:
+              self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a 2D numpy.ndarray!!')
     # setting some convenience values
     parameterSet = list(self.allUsedParams)
-    if 'metadata' in input.keys(): pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
+    if 'metadata' in input.keys():
+      pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
     if not pbPresent:
       pbWeights['realization'] = None
       if 'metadata' in input.keys():
@@ -2327,9 +2408,11 @@ class BasicStatistics(BasePostProcessor):
       if metric == 'percentile':
         for pct,targets in params.items():
           needed[metric][pct] = targets
-      elif type(params) == set: #scalar parameter
+      elif type(params) == set:
+        #scalar parameter
         needed[metric].update(params)
-      elif type(params) == list and type(params[0]) == dict:  # vector parameter
+      elif type(params) == list and type(params[0]) == dict:
+        # vector parameter
         needed[metric] = {'targets':set(),'features':set()}
         for entry in params:
           needed[metric]['targets'].update(entry['targets'])
@@ -2430,7 +2513,8 @@ class BasicStatistics(BasePostProcessor):
     metric = 'sigma'
     startMetric(metric)
     for targetP in needed[metric]:
-      if calculations['variance'][targetP] == 0:#np.Infinity:
+      if calculations['variance'][targetP] == 0:
+        #np.Infinity:
         self.raiseAWarning('The variable: ' + targetP + ' has zero sigma! Please check your input in PP: ' + self.name)
         calculations[metric][targetP] = 0.0
       else:
@@ -2503,7 +2587,8 @@ class BasicStatistics(BasePostProcessor):
       label = metric+'_'+self.parameters['percentile_map'][percent]
       calculations[label] = {}
       for targetP in targets:
-        if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+        if pbPresent:
+          relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         calculations[label][targetP] = np.percentile(input['targets'][targetP], percent) if not pbPresent else self._computeWeightedPercentile(input['targets'][targetP],relWeight,percent=float(percent)/100.0)
     #################
     # VECTOR VALUES #
@@ -2701,7 +2786,8 @@ class BasicStatistics(BasePostProcessor):
     # print on screen
     methodToTest = []
     for key in self.methodsToRun:
-      if key not in self.acceptedCalcParam: methodToTest.append(key)
+      if key not in self.acceptedCalcParam:
+        methodToTest.append(key)
     self.printToScreen(outputDict)
     return outputDict
 
@@ -2732,7 +2818,8 @@ class BasicStatistics(BasePostProcessor):
       @ Out, outputDict, dict, Dictionary containing the results
     """
     input = self.inputToInternal(inputIn)
-    if not self.dynamic: outputDict = self.__runLocal(input)
+    if not self.dynamic:
+      outputDict = self.__runLocal(input)
     else:
       # time dependent (actually pivot-dependent)
       outputDict = OrderedDict()
@@ -2815,7 +2902,8 @@ class BasicStatistics(BasePostProcessor):
     try:
       d = np.diag(covM)
       corrMatrix = covM / np.sqrt(np.multiply.outer(d, d))
-    except ValueError:  # scalar covariance
+    except ValueError:
+      # scalar covariance
       # nan if incorrect value (nan, inf, 0), 1 otherwise
       corrMatrix = covM / covM
     # to prevent numerical instability
@@ -2894,10 +2982,13 @@ class LimitSurface(BasePostProcessor):
       @ Out, inputDict, dict, the resulting dictionary containing features and response
     """
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and dataobjects
-    if type(currentInp) == list: currentInput = currentInp[-1]
-    else                       : currentInput = currentInp
+    if type(currentInp) == list:
+      currentInput = currentInp[-1]
+    else:
+      currentInput = currentInp
     if type(currentInp) == dict:
-      if 'targets' in currentInput.keys(): return
+      if 'targets' in currentInput.keys():
+        return
     inputDict = {'targets':{}, 'metadata':{}}
     #FIXME I don't think this is checking for files, HDF5 and dataobjects
     if hasattr(currentInput,'type'):
@@ -2905,13 +2996,17 @@ class LimitSurface(BasePostProcessor):
     else:
       self.raiseAnError(IOError, self, 'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
     if isinstance(currentInp,Files.File):
-      if currentInput.subtype == 'csv': pass
+      if currentInput.subtype == 'csv':
+        pass
       #FIXME else?  This seems like hollow code right now.
-    if inType == 'HDF5': pass  # to be implemented
+    if inType == 'HDF5':
+      pass  # to be implemented
     if inType in ['PointSet']:
       for targetP in self.parameters['targets']:
-        if   targetP in currentInput.getParaKeys('input'): inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
-        elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
+        if   targetP in currentInput.getParaKeys('input'):
+          inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
+        elif targetP in currentInput.getParaKeys('output'):
+          inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
       inputDict['metadata'] = currentInput.getAllMetadata()
     # to be added
     return inputDict
@@ -2930,22 +3025,29 @@ class LimitSurface(BasePostProcessor):
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
       self.ROM = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':[self.externalFunction.name]})
-    else: self.ROM = self.assemblerDict['ROM'][0][3]
+    else:
+      self.ROM = self.assemblerDict['ROM'][0][3]
     self.ROM.reset()
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
-      if type(inp).__name__ in ['str', 'bytes', 'unicode']: self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs!')
-      if inp.type == 'PointSet': self.indexes = index
-    if self.indexes == -1: self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a PointSet as INPUT!!!!!!')
+      if type(inp).__name__ in ['str', 'bytes', 'unicode']:
+        self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs!')
+      if inp.type == 'PointSet':
+        self.indexes = index
+    if self.indexes == -1:
+      self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a PointSet as INPUT!!!!!!')
     else:
       # check if parameters are contained in the data
       inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
       outKeys = self.inputs[self.indexes].getParaKeys("outputs")
       self.paramType = {}
       for param in self.parameters['targets']:
-        if param not in inpKeys + outKeys: self.raiseAnError(IOError, 'LimitSurface PostProcessor: The param ' + param + ' not contained in Data ' + self.inputs[self.indexes].name + ' !')
-        if param in inpKeys: self.paramType[param] = 'inputs'
-        else:                self.paramType[param] = 'outputs'
+        if param not in inpKeys + outKeys:
+          self.raiseAnError(IOError, 'LimitSurface PostProcessor: The param ' + param + ' not contained in Data ' + self.inputs[self.indexes].name + ' !')
+        if param in inpKeys:
+          self.paramType[param] = 'inputs'
+        else:
+          self.paramType[param] = 'outputs'
     if self.bounds == None:
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
       for key in self.parameters['targets']:
@@ -2974,28 +3076,39 @@ class LimitSurface(BasePostProcessor):
       self.functionValue.update(inp.getParametersValues('inputs', nodeId = 'RecontructEnding'))
       self.functionValue.update(inp.getParametersValues('outputs', nodeId = 'RecontructEnding'))
     # recovery the index of the last function evaluation performed
-    if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name]) - 1
-    else                                                      : indexLast = -1
+    if self.externalFunction.name in self.functionValue.keys():
+      indexLast = len(self.functionValue[self.externalFunction.name]) - 1
+    else:
+      indexLast = -1
     # index of last set of point tested and ready to perform the function evaluation
     indexEnd = len(self.functionValue[self.axisName[0]]) - 1
     tempDict = {}
     if self.externalFunction.name in self.functionValue.keys():
       self.functionValue[self.externalFunction.name] = np.append(self.functionValue[self.externalFunction.name], np.zeros(indexEnd - indexLast))
-    else: self.functionValue[self.externalFunction.name] = np.zeros(indexEnd + 1)
+    else:
+      self.functionValue[self.externalFunction.name] = np.zeros(indexEnd + 1)
 
     for myIndex in range(indexLast + 1, indexEnd + 1):
-      for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
+      for key, value in self.functionValue.items():
+        tempDict[key] = value[myIndex]
       self.functionValue[self.externalFunction.name][myIndex] = self.externalFunction.evaluate('residuumSign', tempDict)
-      if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: self.raiseAnError(IOError, 'LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
+      if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0:
+        self.raiseAnError(IOError, 'LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
       if type(inp) != dict:
-        if self.externalFunction.name in inp.getParaKeys('inputs'): inp.self.updateInputValue (self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
-        if self.externalFunction.name in inp.getParaKeys('output'): inp.self.updateOutputValue(self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
+        if self.externalFunction.name in inp.getParaKeys('inputs'):
+          inp.self.updateInputValue (self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
+        if self.externalFunction.name in inp.getParaKeys('output'):
+          inp.self.updateOutputValue(self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
       else:
-        if self.externalFunction.name in inp['inputs' ].keys(): inp['inputs' ][self.externalFunction.name] = np.concatenate((inp['inputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
-        if self.externalFunction.name in inp['outputs'].keys(): inp['outputs'][self.externalFunction.name] = np.concatenate((inp['outputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
+        if self.externalFunction.name in inp['inputs' ].keys():
+          inp['inputs' ][self.externalFunction.name] = np.concatenate((inp['inputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
+        if self.externalFunction.name in inp['outputs'].keys():
+          inp['outputs'][self.externalFunction.name] = np.concatenate((inp['outputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
-      if raiseErrorIfNotFound: self.raiseAnError(ValueError, 'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
-      else                   : self.raiseAWarning('LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
+      if raiseErrorIfNotFound:
+        self.raiseAnError(ValueError, 'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
+      else:
+        self.raiseAWarning('LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
     #printing----------------------
     self.raiseADebug('LimitSurface: Mapping of the goal function evaluation performed')
     self.raiseADebug('LimitSurface: Already evaluated points and function values:')
@@ -3005,7 +3118,8 @@ class LimitSurface(BasePostProcessor):
       self.raiseADebug(','.join([str(self.functionValue[key][index]) for key in keyList]))
     #printing----------------------
     tempDict = {}
-    for name in self.axisName: tempDict[name] = np.asarray(self.functionValue[name])
+    for name in self.axisName:
+      tempDict[name] = np.asarray(self.functionValue[name])
     tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
     self.ROM.train(tempDict)
     self.raiseADebug('LimitSurface: Training performed')
@@ -3030,16 +3144,26 @@ class LimitSurface(BasePostProcessor):
       @ In, dictIn, dict, dictionary of initialization options
       @ Out, None
     """
-    if "parameters" not in dictIn.keys()             : self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
-    if "name"                  in dictIn.keys()      : self.name          = dictIn["name"]
-    if type(dictIn["parameters"]).__name__ == "list" : self.parameters['targets'] = dictIn["parameters"]
-    else                                             : self.parameters['targets'] = dictIn["parameters"].split(",")
-    if "bounds"                in dictIn.keys()      : self.bounds        = dictIn["bounds"]
-    if "transformationMethods" in dictIn.keys()      : self.transfMethods = dictIn["transformationMethods"]
-    if "verbosity"             in dictIn.keys()      : self.verbosity     = dictIn['verbosity']
-    if "side"                  in dictIn.keys()      : self.lsSide        = dictIn["side"]
-    if "tolerance"             in dictIn.keys()      : self.tolerance     = float(dictIn["tolerance"])
-    if self.lsSide not in ["negative", "positive", "both"]: self.raiseAnError(IOError, 'Computation side can be positive, negative, both only !!!!')
+    if "parameters" not in dictIn.keys():
+      self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
+    if "name" in dictIn.keys():
+      self.name = dictIn["name"]
+    if type(dictIn["parameters"]).__name__ == "list":
+      self.parameters['targets'] = dictIn["parameters"]
+    else:
+      self.parameters['targets'] = dictIn["parameters"].split(",")
+    if "bounds" in dictIn.keys():
+      self.bounds = dictIn["bounds"]
+    if "transformationMethods" in dictIn.keys():
+      self.transfMethods = dictIn["transformationMethods"]
+    if "verbosity" in dictIn.keys():
+      self.verbosity = dictIn['verbosity']
+    if "side" in dictIn.keys():
+      self.lsSide = dictIn["side"]
+    if "tolerance" in dictIn.keys():
+      self.tolerance = float(dictIn["tolerance"])
+    if self.lsSide not in ["negative", "positive", "both"]:
+      self.raiseAnError(IOError, 'Computation side can be positive, negative, both only !!!!')
 
   def getFunctionValue(self):
     """
@@ -3056,16 +3180,20 @@ class LimitSurface(BasePostProcessor):
       @ In, exceptionGrid, string, optional, which grid node should should not returned in case nodeName is "all"
       @ Out, testMatrix, numpy.ndarray or dict , self.testMatrix
     """
-    if nodeName == None  : testMatrix = self.testMatrix[self.name]
+    if nodeName == None:
+      testMatrix = self.testMatrix[self.name]
     elif nodeName =="all":
-      if exceptionGrid == None: testMatrix = self.testMatrix
+      if exceptionGrid == None:
+        testMatrix = self.testMatrix
       else:
         returnDict = OrderedDict()
         wantedKeys = list(self.testMatrix.keys())
         wantedKeys.pop(wantedKeys.index(exceptionGrid))
-        for key in wantedKeys: returnDict[key] = self.testMatrix[key]
+        for key in wantedKeys:
+          returnDict[key] = self.testMatrix[key]
         testMatrix = returnDict
-    else                 : testMatrix = self.testMatrix[nodeName]
+    else:
+      testMatrix = self.testMatrix[nodeName]
     return testMatrix
 
   def _localReadMoreXML(self, xmlNode):
@@ -3090,7 +3218,8 @@ class LimitSurface(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+    if finishedJob.getEvaluation() == -1:
+      self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
     self.raiseADebug(str(finishedJob.getEvaluation()))
     limitSurf = finishedJob.getEvaluation()[1]
     if limitSurf[0] is not None:
@@ -3098,9 +3227,11 @@ class LimitSurface(BasePostProcessor):
         for varIndex in range(len(self.axisName)):
           if varName == self.axisName[varIndex]:
             output.removeInputValue(varName)
-            for value in limitSurf[0][:, varIndex]: output.updateInputValue(varName, copy.copy(value))
+            for value in limitSurf[0][:,varIndex]:
+              output.updateInputValue(varName, copy.copy(value))
       output.removeOutputValue(self.externalFunction.name)
-      for value in limitSurf[1]: output.updateOutputValue(self.externalFunction.name, copy.copy(value))
+      for value in limitSurf[1]:
+        output.updateOutputValue(self.externalFunction.name, copy.copy(value))
 
   def refineGrid(self,refinementSteps=2):
     """
@@ -3109,11 +3240,13 @@ class LimitSurface(BasePostProcessor):
       @ Out, None
     """
     cellIds = self.gridEntity.retrieveCellIds([self.listSurfPointNegative,self.listSurfPointPositive],self.name)
-    if self.getLocalVerbosity() == 'debug': self.raiseADebug("Limit Surface cell IDs are: \n"+ " \n".join([str(cellID) for cellID in cellIds]))
+    if self.getLocalVerbosity() == 'debug':
+      self.raiseADebug("Limit Surface cell IDs are: \n"+ " \n".join([str(cellID) for cellID in cellIds]))
     self.raiseAMessage("Number of cells to be refined are "+str(len(cellIds))+". RefinementSteps = "+str(max([refinementSteps,2]))+"!")
     self.gridEntity.refineGrid({"cellIDs":cellIds,"refiningNumSteps":int(max([refinementSteps,2]))})
     for nodeName in self.gridEntity.getAllNodesNames(self.name):
-      if nodeName != self.name: self.testMatrix[nodeName] = np.zeros(self.gridEntity.returnParameter("gridShape",nodeName))
+      if nodeName != self.name:
+        self.testMatrix[nodeName] = np.zeros(self.gridEntity.returnParameter("gridShape",nodeName))
 
   def run(self, inputIn = None, returnListSurfCoord = False, exceptionGrid = None, merge = True):
     """
@@ -3128,15 +3261,18 @@ class LimitSurface(BasePostProcessor):
     """
     allGridNames = self.gridEntity.getAllNodesNames(self.name)
     if exceptionGrid != None:
-      try   : allGridNames.pop(allGridNames.index(exceptionGrid))
-      except: pass
+      try:
+        allGridNames.pop(allGridNames.index(exceptionGrid))
+      except:
+        pass
     self.surfPoint, evaluations, listSurfPoint = OrderedDict().fromkeys(allGridNames), OrderedDict().fromkeys(allGridNames) ,OrderedDict().fromkeys(allGridNames)
     for nodeName in allGridNames:
       #if skipMainGrid == True and nodeName == self.name: continue
       self.testMatrix[nodeName] = np.zeros(self.gridEntity.returnParameter("gridShape",nodeName))
       self.gridCoord[nodeName] = self.gridEntity.returnGridAsArrayOfCoordinates(nodeName=nodeName)
       tempDict ={}
-      for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[nodeName][:,varId]
+      for  varId, varName in enumerate(self.axisName):
+        tempDict[varName] = self.gridCoord[nodeName][:,varId]
       self.testMatrix[nodeName].shape     = (self.gridCoord[nodeName].shape[0])                       #rearrange the grid matrix such as is an array of values
       self.testMatrix[nodeName][:]        = self.ROM.evaluate(tempDict)[self.externalFunction.name]   #get the prediction on the testing grid
       self.testMatrix[nodeName].shape     = self.gridEntity.returnParameter("gridShape",nodeName)     #bring back the grid structure
@@ -3149,7 +3285,8 @@ class LimitSurface(BasePostProcessor):
       if self.getLocalVerbosity() == 'debug':
         for coordinate in np.rollaxis(toBeTested, 0):
           myStr = ''
-          for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
+          for iVar, varnName in enumerate(self.axisName):
+            myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
           self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[nodeName][tuple(coordinate)]))
       # printing----------------------
       # check which one of the preselected points is really on the limit surface
@@ -3167,10 +3304,12 @@ class LimitSurface(BasePostProcessor):
       listSurfPoint[nodeName] = listSurfPointNegative + listSurfPointPositive
       #printing----------------------
       if self.getLocalVerbosity() == 'debug':
-        if len(listSurfPoint[nodeName]) > 0: self.raiseADebug('LimitSurface: Limit surface points:')
+        if len(listSurfPoint[nodeName]) > 0:
+          self.raiseADebug('LimitSurface: Limit surface points:')
         for coordinate in listSurfPoint[nodeName]:
           myStr = ''
-          for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
+          for iVar, varnName in enumerate(self.axisName):
+            myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
           self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[nodeName][tuple(coordinate)]))
       # if the number of point on the limit surface is > than zero than save it
       if len(listSurfPoint[nodeName]) > 0:
@@ -3178,7 +3317,8 @@ class LimitSurface(BasePostProcessor):
         evaluations[nodeName] = np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)
         for pointID, coordinate in enumerate(listSurfPoint[nodeName]):
           self.surfPoint[nodeName][pointID, :] = self.gridCoord[nodeName][tuple(coordinate)]
-    if self.name != exceptionGrid: self.listSurfPointNegative, self.listSurfPointPositive = listSurfPoint[self.name][:nNegPoints-1],listSurfPoint[self.name][nNegPoints:]
+    if self.name != exceptionGrid:
+      self.listSurfPointNegative, self.listSurfPointPositive = listSurfPoint[self.name][:nNegPoints-1],listSurfPoint[self.name][nNegPoints:]
     if merge == True:
       evals = np.hstack(evaluations.values())
       listSurfPoints = np.hstack(listSurfPoint.values())
@@ -3295,7 +3435,7 @@ class ExternalPostProcessor(BasePostProcessor):
           self.raiseAWarning(self, 'Input type ' + inType + ' not yet implemented. I am going to skip it.')
       elif inType == 'HDF5':
         # TODO
-          self.raiseAWarning(self, 'Input type ' + inType + ' not yet implemented. I am going to skip it.')
+        self.raiseAWarning(self, 'Input type ' + inType + ' not yet implemented. I am going to skip it.')
       elif inType == 'PointSet':
         for param in item.getParaKeys('input'):
           inputDict['targets'][param] = item.getParam('input', param)
@@ -3345,7 +3485,7 @@ class ExternalPostProcessor(BasePostProcessor):
     for key in self.assemblerDict.keys():
       if 'Function' in key:
         for val in self.assemblerDict[key]:
-            self.externalInterfaces.add(val[3])
+          self.externalInterfaces.add(val[3])
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -3433,12 +3573,12 @@ class ExternalPostProcessor(BasePostProcessor):
                 foundCount += 1
           else:
             for inputData in inputList:
-                if key in inputData.getParametersValues('output',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('output',nodeId = 'ending').values()[-1].keys():
-                  if inputData.type == 'PointSet':
-                    value = inputData.getParametersValues('output',nodeId = 'ending')[key]
-                  else:
-                    value = [value[key] for value in inputData.getParametersValues('output',nodeId = 'ending').values()]
-                  foundCount += 1
+              if key in inputData.getParametersValues('output',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('output',nodeId = 'ending').values()[-1].keys():
+                if inputData.type == 'PointSet':
+                  value = inputData.getParametersValues('output',nodeId = 'ending')[key]
+                else:
+                  value = [value[key] for value in inputData.getParametersValues('output',nodeId = 'ending').values()]
+                foundCount += 1
 
           if foundCount == 0:
             self.raiseAnError(IOError, key + ' not found in the input '
@@ -3475,8 +3615,10 @@ class ExternalPostProcessor(BasePostProcessor):
             for histNum, val in enumerate(value):
               if output.type == 'HistorySet':
                 if histNum+1 in dataLenghtHistory.keys():
-                  if dataLenghtHistory[histNum+1] != len(val): self.raiseAnError(IOError, key + ' the size of the arrays for history '+str(histNum+1)+' are different!')
-                else: dataLenghtHistory[histNum+1] = len(val)
+                  if dataLenghtHistory[histNum+1] != len(val):
+                    self.raiseAnError(IOError, key + ' the size of the arrays for history '+str(histNum+1)+' are different!')
+                else:
+                  dataLenghtHistory[histNum+1] = len(val)
               param = key if output.type == 'PointSet' else [histNum+1,key]
               output.updateOutputValue(param, val)
         else:
@@ -3525,14 +3667,16 @@ class ExternalPostProcessor(BasePostProcessor):
     warningMessages = []
     for methodName, (interface, method) in methodMap.iteritems():
       outputDict[methodName] = interface.evaluate(method, input['targets'])
-      if outputDict[methodName] is None: self.raiseAnError(Exception,"the method "+methodName+" has not produced any result. It needs to return a result!")
+      if outputDict[methodName] is None:
+        self.raiseAnError(Exception,"the method "+methodName+" has not produced any result. It needs to return a result!")
       for target in input['targets']:
         if hasattr(interface, target):
           #if target not in outputDict.keys():
           if target not in methodMap.keys():
             attributeInSelf = getattr(interface, target)
             if len(np.atleast_1d(attributeInSelf)) != len(np.atleast_1d(input['targets'][target])) or (np.atleast_1d(attributeInSelf) - np.atleast_1d(input['targets'][target])).all():
-              if target in outputDict.keys(): self.raiseAWarning("In Post-Processor "+ self.name +" the modified variable "+target+
+              if target in outputDict.keys():
+                self.raiseAWarning("In Post-Processor "+ self.name +" the modified variable "+target+
                                " has the same name of a one already modified throuhg another Function method." +
                                " This method overwrites the input DataObject variable value")
               outputDict[target] = attributeInSelf
@@ -3540,7 +3684,8 @@ class ExternalPostProcessor(BasePostProcessor):
             warningMessages.append("In Post-Processor "+ self.name +" the method "+method+
                                " has the same name of a variable contained in the input DataObject." +
                                " This method overwrites the input DataObject variable value")
-    for msg in list(set(warningMessages)): self.raiseAWarning(msg)
+    for msg in list(set(warningMessages)):
+      self.raiseAWarning(msg)
 
     for target in input['targets'].keys():
       if target not in outputDict.keys() and target in input['targets'].keys():
@@ -3616,10 +3761,13 @@ class TopologicalDecomposition(BasePostProcessor):
       @ In, currentInp, list or DataObjects, The input object to process
       @ Out, inputDict, dict, the converted input
     """
-    if type(currentInp) == list  : currentInput = currentInp [-1]
-    else                         : currentInput = currentInp
+    if type(currentInp) == list:
+      currentInput = currentInp [-1]
+    else:
+      currentInput = currentInp
     if type(currentInput) == dict:
-      if 'features' in currentInput.keys(): return currentInput
+      if 'features' in currentInput.keys():
+        return currentInput
     inputDict = {'features':{}, 'targets':{}, 'metadata':{}}
     if hasattr(currentInput, 'type'):
       inType = currentInput.type
@@ -3634,9 +3782,11 @@ class TopologicalDecomposition(BasePostProcessor):
       self.raiseAnError(IOError, self, self.__class__.__name__ + ' post-processor only accepts files, HDF5, or DataObjects! Got ' + str(inType) + '!!!!')
     # FIXME: implement this feature
     if isinstance(currentInput,Files.File):
-      if currentInput.subtype == 'csv': pass
+      if currentInput.subtype == 'csv':
+        pass
     # FIXME: implement this feature
-    if inType == 'HDF5': pass  # to be implemented
+    if inType == 'HDF5':
+      pass  # to be implemented
     if inType in ['PointSet']:
       for targetP in self.parameters['features']:
         if   targetP in currentInput.getParaKeys('input'):
@@ -3650,7 +3800,8 @@ class TopologicalDecomposition(BasePostProcessor):
           inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
       inputDict['metadata'] = currentInput.getAllMetadata()
     # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
-    if 'SamplerType' in inputDict['metadata'].keys(): pass
+    if 'SamplerType' in inputDict['metadata'].keys():
+      pass
     return inputDict
 
   def _localReadMoreXML(self, xmlNode):
@@ -4033,7 +4184,8 @@ class DataMining(BasePostProcessor):
     else:
       currentInput = currentInp
 
-    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None: # for testing time dependent dm - time dependent clustering
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None:
+      # for testing time dependent dm - time dependent clustering
       inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
 
       # FIXME, this needs to be changed for asynchronous HistorySet
@@ -4064,7 +4216,8 @@ class DataMining(BasePostProcessor):
       return inputDict
 
     if type(currentInp) == dict:
-      if 'Features' in currentInput.keys(): return
+      if 'Features' in currentInput.keys():
+        return
     if isinstance(currentInp, Files.File):
       if currentInput.subtype == 'csv':
         self.raiseAnError(IOError, 'CSV File received as an input!')
@@ -4906,14 +5059,17 @@ class RavenOutput(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+    if finishedJob.getEvaluation() == -1:
+      self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
     realizations = finishedJob.getEvaluation()[1]['realizations']
     for real in realizations:
       for key in output.getParaKeys('inputs'):
-        if key not in real['inputs'].keys(): self.raiseAnError(RuntimeError, 'Requested input variable '+key+' has not been extracted. Check the consistency of your input')
+        if key not in real['inputs'].keys():
+          self.raiseAnError(RuntimeError, 'Requested input variable '+key+' has not been extracted. Check the consistency of your input')
         output.updateInputValue(key,real['inputs'][key])
       for key in output.getParaKeys('outputs'):
-        if key not in real['outputs'].keys(): self.raiseAnError(RuntimeError, 'Requested output variable '+key+' has not been extracted. Check the consistency of your input')
+        if key not in real['outputs'].keys():
+          self.raiseAnError(RuntimeError, 'Requested output variable '+key+' has not been extracted. Check the consistency of your input')
         output.updateOutputValue(key,real['outputs'][key])
       for key,val in real['metadata'].items():
         output.updateMetadata(key,val)
@@ -4977,5 +5133,7 @@ def returnInstance(Type, caller):
     @ In, Type, string, Sampler type
     @ Out, returnInstance, instance, Instance of the Specialized Sampler class
   """
-  try: return __interFaceDict[Type](caller.messageHandler)
-  except KeyError: caller.raiseAnError(NameError, 'not known ' + __base + ' type ' + Type)
+  try:
+    return __interFaceDict[Type](caller.messageHandler)
+  except KeyError:
+    caller.raiseAnError(NameError, 'not known ' + __base + ' type ' + Type)

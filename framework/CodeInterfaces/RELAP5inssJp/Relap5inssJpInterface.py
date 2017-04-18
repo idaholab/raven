@@ -57,8 +57,10 @@ class Relap5inssJp(Relap5):
         foundModelPar = True
         modelParIndex = indexModelPar
         break
-    if not foundModelPar: raise IOError('Additional input file modelpar.inp not provided!!!!!!! ')
-    if not found        : raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if not foundModelPar:
+      raise IOError('Additional input file modelpar.inp not provided!!!!!!! ')
+    if not found:
+      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = RELAPparser.RELAPparser(currentInputFiles[indexInputDeck].getAbsFile())
     modifDict = self.pointSamplerForRELAP5(**Kwargs) if not samplerType.endswith('EventTree') else self.DynamicEventTreeForRELAP5(**Kwargs)
     parser.modifyOrAdd(modifDict,True)
@@ -68,7 +70,3 @@ class Relap5inssJp(Relap5):
     modelparParser.modifyInternalDictionary(**Kwargs)
     modelparParser.writeNewInput([currentInputFiles[modelParIndex]],[oriInputFiles[modelParIndex]])
     return currentInputFiles
-
-
-
-

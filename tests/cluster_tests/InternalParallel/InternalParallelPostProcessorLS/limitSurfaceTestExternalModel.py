@@ -29,4 +29,3 @@ def initialize(self,runInfoDict,inputFiles):
 def run(self,Input):
   #self.z = Input['x0']+Input['y0']
   self.z = self.x0 + self.y0
-

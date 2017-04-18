@@ -248,12 +248,12 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
           value = inputDic['data']['output'][history][keys][idx] + (inputDic['data']['output'][history][keys][idx+1]-inputDic['data']['output'][history][keys][idx])*intervalFraction
           outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value)
     elif snapShotType == 'average':
-       for keys in outVars:
-         cumulative=0.0
-         for t in range(1,len(inputDic['data']['output'][history][tempID])):
-           cumulative += (inputDic['data']['output'][history][keys][t] + inputDic['data']['output'][history][keys][t-1]) / 2.0 * (inputDic['data']['output'][history][tempID][t] - inputDic['data']['output'][history][tempID][t-1])
-         value = cumulative / (inputDic['data']['output'][history][tempID][-1] - inputDic['data']['output'][history][tempID][0])
-         outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value)
+      for keys in outVars:
+        cumulative=0.0
+        for t in range(1,len(inputDic['data']['output'][history][tempID])):
+          cumulative += (inputDic['data']['output'][history][keys][t] + inputDic['data']['output'][history][keys][t-1]) / 2.0 * (inputDic['data']['output'][history][tempID][t] - inputDic['data']['output'][history][tempID][t-1])
+        value = cumulative / (inputDic['data']['output'][history][tempID][-1] - inputDic['data']['output'][history][tempID][0])
+        outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value)
 
   return outputDic
 
@@ -293,4 +293,3 @@ def historySetWindow(inputDic,timeStepID,pivotParameter):
       outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key],copy.deepcopy(inputDic['data']['output'][history][key][timeStepID]))
 
   return outputDic
-

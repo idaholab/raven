@@ -147,7 +147,8 @@ class Dymola(CodeInterfaceBase):
       if inputFile.getType() == "DymolaInitialisation":
         foundInit = True
         indexInit = index
-    if not foundInit: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
+    if not foundInit:
+      raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
     # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
     #   input file passed in: /path/to/file/<Base Name>.ext. 'rawout' indicates that this is the direct
     #   output from running the Dymola executable.
@@ -188,8 +189,10 @@ class Dymola(CodeInterfaceBase):
       if inputFile.getType() == "DymolaVectors":
         foundVect = True
         indexVect = index
-    if not foundInit: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
-    if not foundVect: print('Dymola INTERFACE WARNING -> None of the input files has the type "DymolaVectors"! ')
+    if not foundInit:
+      raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
+    if not foundVect:
+      print('Dymola INTERFACE WARNING -> None of the input files has the type "DymolaVectors"! ')
     # Figure out the new file name and put it into the proper place in the return list
     #newInputFiles = copy.deepcopy(currentInputFiles)
     originalPath = oriInputFiles[indexInit].getAbsFile()
@@ -214,7 +217,8 @@ class Dymola(CodeInterfaceBase):
         print("                            is supposed to go into the simulation initialisation file of type")
         print("                            'DymolaInitialisation' the array must be split into scalars.")
         print("                            => It is assumed that the array goes into the input file with type 'DymolaVectors'")
-        if not foundVect: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ')
+        if not foundVect:
+          raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ')
         # extract dict entry
         vectorsToPass[key] = varDict.pop(key)
       assert not type(value).__name__ in ['str','bytes','unicode'], ("Strings cannot be "
