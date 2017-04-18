@@ -8,7 +8,7 @@
     <description>
        Example of usage of the Ensemble Model capability in RAVEN, connecting multiple External Models.
        This test is aimed to check the functionality of assembling multiple Models, when they result in a single chain
-       of Models (linear system) and they need to transfer ``time series'' type of data (vectors). 
+       of Models (linear system) and they need to transfer ``time series'' type of data (vectors).
        This test checks the functionality of the model using a multi threading parallelization scheme.
     </description>
     <revisions>
@@ -78,6 +78,8 @@
       <Sampler class="Samplers"   type="Grid">MonteCarloTemperature</Sampler>
       <Output class="DataObjects" type="PointSet">metaModelOutputTestPointSet</Output>
       <Output class="DataObjects" type="PointSet">metaModelOutputTestHistorySet</Output>
+      <Output class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Output>
+      <Output class="DataObjects" type="PointSet">heatTransferContainer</Output>
       <Output class="Databases"   type="HDF5">testOutputDatabase</Output>
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">

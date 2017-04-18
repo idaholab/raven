@@ -51,7 +51,8 @@ class GenericParser():
     for inputFile in self.inputFiles:
       infileName = inputFile.getFilename()#os.path.basename(inputFile)
       self.segments[infileName] = []
-      if not os.path.exists(inputFile.getAbsFile()): raise IOError('Input file not found: '+inputFile)
+      if not os.path.exists(inputFile.getAbsFile()):
+        raise IOError('Input file not found: '+inputFile)
       seg = ''
       lines = inputFile.readlines()
       inputFile.close()
@@ -64,27 +65,37 @@ class GenericParser():
           if defaultDelim in var or formatDelim in var:
             optionalPos = [None]*2
             optionalPos[0], optionalPos[1] = var.find(defaultDelim), var.find(formatDelim)
-            if optionalPos[0] == -1 : optionalPos[0]  = sys.maxsize
-            if optionalPos[1] == -1 : optionalPos[1] = sys.maxsize
+            if optionalPos[0] == -1:
+              optionalPos[0]  = sys.maxsize
+            if optionalPos[1] == -1:
+              optionalPos[1] = sys.maxsize
             defval    = var[optionalPos[0]+1:min(optionalPos[1],len(var))] if optionalPos[0] < optionalPos[1] else var[min(optionalPos[0]+1,len(var)):len(var)]
             varformat = var[min(optionalPos[1]+1,len(var)):len(var)] if optionalPos[0] < optionalPos[1] else var[optionalPos[1]+1:min(optionalPos[0],len(var))]
             var = var[0:min(optionalPos)]
-            if var in self.defaults.keys() and optionalPos[0] != sys.maxsize: print('multiple default values given for variable',var)
-            if var in self.formats.keys() and optionalPos[1] != sys.maxsize: print('multiple format values given for variable',var)
+            if var in self.defaults.keys() and optionalPos[0] != sys.maxsize:
+              print('multiple default values given for variable',var)
+            if var in self.formats.keys() and optionalPos[1] != sys.maxsize:
+              print('multiple format values given for variable',var)
             #TODO allow the user to specify take-last or take-first?
-            if var not in self.defaults.keys() and optionalPos[0] != sys.maxsize : self.defaults[var] = {}
-            if var not in self.formats.keys()  and optionalPos[1] != sys.maxsize : self.formats[var ] = {}
-            if optionalPos[0] != sys.maxsize: self.defaults[var][infileName]=defval
+            if var not in self.defaults.keys() and optionalPos[0] != sys.maxsize:
+              self.defaults[var] = {}
+            if var not in self.formats.keys()  and optionalPos[1] != sys.maxsize:
+              self.formats[var ] = {}
+            if optionalPos[0] != sys.maxsize:
+              self.defaults[var][infileName]=defval
             if optionalPos[1] != sys.maxsize:
               # check if the format is valid
               if not any(formVal in varformat for formVal in self.acceptFormats.keys()):
-                try              : int(varformat)
-                except ValueError: raise ValueError("the format specified for wildcard "+ line[start+len(self.prefixKey):end] +
+                try:
+                  int(varformat)
+                except ValueError:
+                  raise ValueError("the format specified for wildcard "+ line[start+len(self.prefixKey):end] +
                                                      " is unknown. Available are either a plain integer or the following "+" ".join(self.acceptFormats.keys()))
                 self.formats[var][infileName ]=varformat,int
               else:
                 for formVal in self.acceptFormats.keys():
-                  if formVal in varformat: self.formats[var][infileName ]=varformat,self.acceptFormats[formVal]; break
+                  if formVal in varformat:
+                    self.formats[var][infileName ]=varformat,self.acceptFormats[formVal]; break
           self.segments[infileName].append(line[:start])
           self.segments[infileName].append(var)
           if var not in self.varPlaces.keys():
@@ -127,18 +138,24 @@ class GenericParser():
                 if any(formVal in self.formats[var][inputFile][0] for formVal in self.acceptFormats.keys()):
                   formatstringc = "{:"+self.formats[var][inputFile][0].strip()+"}"
                   self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](modDict[var]))
-                else: self.segments[inputFile][place] = str(modDict[var]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
-            else: self.segments[inputFile][place] = str(modDict[var])
+                else:
+                  self.segments[inputFile][place] = str(modDict[var]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
+            else:
+              self.segments[inputFile][place] = str(modDict[var])
           elif var in self.defaults.keys():
             if var in self.formats.keys():
               if inputFile in self.formats[var].keys():
                 if any(formVal in self.formats[var][inputFile][0] for formVal in self.acceptFormats.keys()):
                   formatstringc = "{:"+self.formats[var][inputFile][0].strip()+"}"
                   self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](self.defaults[var][inputFile]))
-                else: self.segments[inputFile][place] = str(self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
-            else: self.segments[inputFile][place] = self.defaults[var][inputFile]
-          elif var in ioVars: continue #this gets handled in writeNewInput
-          else: raise IOError('Generic Parser: Variable '+var+' was not sampled and no default given!')
+                else:
+                  self.segments[inputFile][place] = str(self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
+            else:
+              self.segments[inputFile][place] = self.defaults[var][inputFile]
+          elif var in ioVars:
+            continue #this gets handled in writeNewInput
+          else:
+            raise IOError('Generic Parser: Variable '+var+' was not sampled and no default given!')
 
   def writeNewInput(self,inFiles,origFiles):
     """
@@ -162,7 +179,8 @@ class GenericParser():
         if inputFile.getExt() == ext:
           found=True
           break
-      if not found: raise IOError('No InputFile with extension '+ext+' found!')
+      if not found:
+        raise IOError('No InputFile with extension '+ext+' found!')
       return index,inputFile
 
     for var in self.varPlaces.keys():

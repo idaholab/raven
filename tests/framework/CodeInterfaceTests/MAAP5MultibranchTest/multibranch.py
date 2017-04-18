@@ -50,6 +50,3 @@ def TIMELOCA(self,data):
     listDict.append(branch)
 
   return listDict
-
-
-

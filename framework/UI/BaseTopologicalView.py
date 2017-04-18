@@ -60,9 +60,9 @@ class BaseTopologicalView(QWidget):
         item = layout.takeAt(0)
         widget = item.widget()
         if widget is not None:
-            widget.deleteLater()
+          widget.deleteLater()
         else:
-            self.clearLayout(item.layout())
+          self.clearLayout(item.layout())
 
   def sizeHint(self):
     """ Specifies the default size hint for this widget

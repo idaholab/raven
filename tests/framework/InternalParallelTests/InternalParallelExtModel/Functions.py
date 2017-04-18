@@ -55,5 +55,3 @@ def run(self,Input):
     #self.ax.plot3D(self.x,self.y,self.z)
 
     #pyl.savefig('test.png')
-
-

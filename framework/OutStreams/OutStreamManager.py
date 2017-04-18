@@ -78,8 +78,10 @@ class OutStreamManager(BaseType):
       In case of a code the syntax is specified by the code interface itself
     """
     if 'overwrite' in xmlNode.attrib.keys():
-      if xmlNode.attrib['overwrite'].lower() in utils.stringsThatMeanTrue(): self.overwrite = True
-      else: self.overwrite = False
+      if xmlNode.attrib['overwrite'].lower() in utils.stringsThatMeanTrue():
+        self.overwrite = True
+      else:
+        self.overwrite = False
     self.localReadXML(xmlNode)
 
   def getInitParams(self):
@@ -146,4 +148,5 @@ class OutStreamManager(BaseType):
         if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in DataObjects.knownTypes():
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
-      if not foundData: self.raiseAnError(IOError, 'the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
+      if not foundData:
+        self.raiseAnError(IOError, 'the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')

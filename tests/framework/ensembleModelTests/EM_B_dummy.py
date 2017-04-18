@@ -12,5 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 def run(self, Input):
-    self.averageTemperature =  (self.leftTemperature + self.rightTemperature)/2.0
-
+  self.averageTemperature =  (self.leftTemperature + self.rightTemperature)/2.0

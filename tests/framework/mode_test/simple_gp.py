@@ -66,7 +66,8 @@ def get_params(line):
   params = line[equalsIndex + 1:].strip().strip('"').split()
   return name,params
 
-for name, params in [get_params(l) for l in lines[1:4]]:
+for name, params in [get_params(l) for l in lines[1:
+  4]]:
   print(name,params)
   if name == "names":
     names = ",".join(params)

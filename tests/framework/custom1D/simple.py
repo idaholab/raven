@@ -20,5 +20,3 @@ def run(self,Input):
   self.x = Input['x']
 
   self.y = self.x
-
-
