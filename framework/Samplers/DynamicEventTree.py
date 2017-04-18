@@ -394,9 +394,8 @@ class DynamicEventTree(Grid):
 
     if(self.maxSimulTime):
       self.inputInfo['endTime'] = self.maxSimulTime
-    # Call the model function "createNewInput" with the "values" dictionary just filled.
     # Add the new input path into the RunQueue system
-    newInputs = model.createNewInput(myInput,self.type,**self.inputInfo)
+    newInputs = {'args':[str(self.type)], 'kwargs':dict(self.inputInfo)}
     for key,value in self.inputInfo.items():
       rootnode.add(key,value)
     self.RunQueue['queue'].append(newInputs)
@@ -580,9 +579,9 @@ class DynamicEventTree(Grid):
           self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditionalPbr')
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
-      # Call the model function  "createNewInput" with the "values" dictionary just filled.
       # Add the new input path into the RunQueue system
-      self.RunQueue['queue'].append(model.createNewInput(myInput,self.type,**self.inputInfo))
+      newInputs = {'args': [str(self.type)], 'kwargs': self.inputInfo}
+      self.RunQueue['queue'].append(newInputs)
       self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
       for key,value in self.inputInfo.items():
         subGroup.add(key,value)

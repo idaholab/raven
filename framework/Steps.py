@@ -254,7 +254,7 @@ class SingleRun(Step):
       @ Out, None
     """
     Step.__init__(self)
-    self.splType        = 'Sampler'
+    self.samplerType    = 'Sampler'
     self.failedRuns     = []
     self.lockedFileName = "ravenLocked.raven"
     self.printTag       = 'STEP SINGLERUN'
@@ -284,7 +284,7 @@ class SingleRun(Step):
     #clarify run by roles
     roles      = set(rolesItem)
     if 'Optimizer' in roles:
-      self.splType = 'Optimizer'
+      self.samplerType = 'Optimizer'
       if 'Sampler' in roles:
         self.raiseAnError(IOError, 'Only Sampler or Optimizer is alloweed for the step named '+str(self.name))
     #if single run, make sure model is an instance of Code class
@@ -354,17 +354,26 @@ class SingleRun(Step):
     """
     jobHandler     = inDictionary['jobHandler']
     model          = inDictionary['Model'     ]
-    sampler        = inDictionary.get(self.splType,None)
+    sampler        = inDictionary.get(self.samplerType,None)
     inputs         = inDictionary['Input'     ]
     outputs        = inDictionary['Output'    ]
 
     # the input provided by a SingleRun is simply the file to be run.  model.run, however, expects stuff to perturb.
     # get an input to run -> different between SingleRun and PostProcessor runs
-    if self.type == 'SingleRun':
-      newInput = model.createNewInput(inputs,'None',**{'SampledVars':{},'additionalEdits':{}})
-    else:
-      newInput = inputs
-    model.run(newInput,jobHandler) #empty dictionary corresponds to sampling data in multirun
+    # if self.type == 'SingleRun':
+    #   newInput = model.createNewInput(inputs,'None',**{'SampledVars':{},'additionalEdits':{}})
+    # else:
+    #   newInput = inputs
+
+    ## The single run should still collect its SampledVars for the output maybe?
+    ## The problem here is when we call Code.collectOutput(), the sampledVars
+    ## is empty... The question is where do we ultimately get this information
+    ## the input object's input space or the desired output of the Output object?
+    ## I don't think all of the outputs need to specify their domain, so I suppose
+    ## this should default to all of the ones in the input? Is it possible to
+    ## get an input field in the outputs variable that is not in the inputs
+    ## variable defined above? - DPM 4/6/2017
+    model.submit(inputs, None, jobHandler, **{'SampledVars':{},'additionalEdits':{}}) #empty dictionary corresponds to sampling data in multirun
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
@@ -372,10 +381,9 @@ class SingleRun(Step):
           # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
           model.finalizeModelOutput(finishedJob)
           for output in outputs:
-            #if type(output).__name__ not in ['str','bytes','unicode']:
             if output.type not in ['OutStreamPlot','OutStreamPrint']:
               model.collectOutput(finishedJob,output)
-            elif output.type in   ['OutStreamPlot','OutStreamPrint']:
+            else:
               output.addOutput()
             #else: model.collectOutput(finishedJob,output)
         else:
@@ -388,7 +396,7 @@ class SingleRun(Step):
       sampler.handleFailedRuns(self.failedRuns)
     else:
       if len(self.failedRuns)>0:
-        self.raiseAWarning('There were %i failed runs!' %len(self.failedRuns))
+        self.raiseAWarning('There were %i failed runs!' % len(self.failedRuns))
 
   def _localGetInitParams(self):
     """
@@ -426,7 +434,7 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     SingleRun._localInputAndChecks(self,xmlNode)
-    if self.splType not in [item[0] for item in self.parList]:
+    if self.samplerType not in [item[0] for item in self.parList]:
       self.raiseAnError(IOError,'It is not possible a multi-run without a sampler or optimizer!')
 
   def _initializeSampler(self,inDictionary):
@@ -438,8 +446,8 @@ class MultiRun(SingleRun):
     if 'SolutionExport' in inDictionary.keys():
       self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
 
-    inDictionary[self.splType].initialize(**self._samplerInitDict)
-    self.raiseADebug('for the role of sampler the item of class '+inDictionary[self.splType].type+' and name '+inDictionary[self.splType].name+' has been initialized')
+    inDictionary[self.samplerType].initialize(**self._samplerInitDict)
+    self.raiseADebug('for the role of sampler the item of class '+inDictionary[self.samplerType].type+' and name '+inDictionary[self.samplerType].name+' has been initialized')
     self.raiseADebug('Sampler initialization dictionary: '+str(self._samplerInitDict))
 
   def _localInitializeStep(self,inDictionary):
@@ -481,10 +489,10 @@ class MultiRun(SingleRun):
         model.raiseAnError(RuntimeError,'ROM model "%s" has not been trained yet, so it cannot be sampled!' %model.name+\
                                         ' Use a RomTrainer step to train it.')
     for inputIndex in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
-      if inDictionary[self.splType].amIreadyToProvideAnInput():
+      if inDictionary[self.samplerType].amIreadyToProvideAnInput():
         try:
-          newinp = self._findANewInputToRun(inDictionary)
-          inDictionary["Model"].run(newinp,inDictionary['jobHandler'])
+          newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'])
+                    inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
           self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
@@ -499,7 +507,7 @@ class MultiRun(SingleRun):
     model      = inDictionary['Model'     ]
     inputs     = inDictionary['Input'     ]
     outputs    = inDictionary['Output'    ]
-    sampler    = inDictionary[self.splType]
+    sampler    = inDictionary[self.samplerType]
     # check to make sure model can be run
     ## first, if it's a ROM, check that it's trained
     if isinstance(model,Models.ROM):
@@ -513,8 +521,6 @@ class MultiRun(SingleRun):
       for finishedJob in finishedJobs:
         # update number of collected runs
         self.counter +=1
-        # clean up so RAVEN can read output
-        model.finalizeModelOutput(finishedJob)
         # collect run if it succeeded
         if finishedJob.getReturnCode() == 0:
           for myLambda, outIndex in self._outputCollectionLambda:
@@ -540,8 +546,8 @@ class MultiRun(SingleRun):
 
           if sampler.amIreadyToProvideAnInput():
             try:
-              newInput = self._findANewInputToRun(inDictionary)
-              model.run(newInput,jobHandler)
+              newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
+              model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
               break
@@ -556,10 +562,19 @@ class MultiRun(SingleRun):
     # if any new collected runs failed, let the sampler treat them appropriately
     sampler.handleFailedRuns(self.failedRuns)
 
-  def _findANewInputToRun(self,inDictionary):
+  def _findANewInputToRun(self, sampler, model, inputs, outputs):
     """
       Repeatedly calls Sampler until a new run is found or "NoMoreSamplesNeeded" is raised.
-      @ In, inDictionary, dict, dictionary of entities for this step
+      @ In, sampler, Sampler, the sampler in charge of generating the sample
+      @ In, model, Model, the model in charge of evaluating the sample
+      @ In, inputs, object, the raven object used as the input in this step
+        (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
+        inherit from some base "Data" so that we can ensure a consistent
+        interface for these?)
+      @ In, outputs, object, the raven object used as the output in this step
+        (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
+        inherit from some base "Data" so that we can ensure a consistent
+        interface for these?)
       @ Out, newInp, list, list containing the new inputs
     """
     #The value of "found" determines what the Sampler is ready to provide.
@@ -567,10 +582,10 @@ class MultiRun(SingleRun):
     #  case 1: found the input in restart, and newInp is a realization dicitonary of data to use
     found = None
     while found != 0:
-      found,newInp = inDictionary[self.splType].generateInput(inDictionary['Model'],inDictionary['Input'])
+      found,newInp = sampler.generateInput(model,inputs)
       if found == 1:
         for collector, outIndex in self._outputDictCollectionLambda:
-          collector([newInp,inDictionary['Output'][outIndex]])
+          collector([newInp,outputs[outIndex]])
     return newInp
 #
 #

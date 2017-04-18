@@ -39,11 +39,20 @@ class Runner(MessageHandler.MessageUser):
     Generic base class for running codes and models in parallel environments
     both internally (shared data) and externally.
   """
-  def __init__(self, messageHandler, command='internal', identifier = None, metadata = None, uniqueHandler = "any"):
+  def __init__(self, messageHandler, stepInput, sampledVars, identifier = None, metadata = None, uniqueHandler = "any"):
     """
       Initialize command variable
       @ In, messageHandler, MessageHandler instance, the global RAVEN message handler instance
-      @ In, command, list, list of commands that needs to be executed
+      @ In, stepInput, list, list of Inputs used by the step calling this job.
+        e.g., the objects pointed to by this block of the input file:
+         <Input></Input>
+      @ In, sampledVars, dict, a dictionary where the key is the name of the
+        perturbed variable and the value is its new perturbed value for this
+        job. This information is useful so that the job can easily report what
+        it modified. In many cases this information is redundantly held in the
+        args parameter, but we cannot guarantee that, so here we store it so the
+        job can easily identify it and does not have to parse it out. I would
+        hope we can re-evaluate this redundant encoding at some point.
       @ In, identifier, string, optional, id of this job
       @ In, metadata, dict, optional, dictionary of metadata associated with this Runner
       @ In, uniqueHandler, string, optional, it is a special keyword attached to this runner. For example, if present, to retrieve this runner using the method jobHandler.getFinished, the uniqueHandler needs to be provided.
@@ -51,7 +60,8 @@ class Runner(MessageHandler.MessageUser):
       @ Out, None
     """
     self.messageHandler = messageHandler
-    self.command        = command
+    self.stepInput      = copy.copy(stepInput)
+    self.sampledVars    = copy.copy(sampledVars)
     self.identifier     = 'generalOut'  ## Default identifier name
     self.metadata       = copy.copy(metadata)
     self.uniqueHandler  = uniqueHandler

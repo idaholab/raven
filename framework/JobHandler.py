@@ -44,6 +44,7 @@ from utils import utils
 from BaseClasses import BaseType
 import MessageHandler
 import Runners
+import Models
 # for internal parallel
 if sys.version_info.major == 2:
   import pp
@@ -150,36 +151,10 @@ class JobHandler(MessageHandler.MessageUser):
     with self.__queueLock:
       returnCode = running.getReturnCode()
       if returnCode != 0:
-        self.raiseAMessage(" Process Failed "+str(running)+' '+str(running.command)+" returnCode "+str(returnCode))
+        ## FIXME: The running.command was always internal now, so I removed it.
+        ## We should probably find a way to give more pertinent information.
+        self.raiseAMessage(" Process Failed " + str(running) + " internal returnCode " + str(returnCode))
         self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(running.getMetadata()))
-
-        if isinstance(running, Runners.ExternalRunner):
-          outputFilename = running.getOutputFilename()
-          if os.path.exists(outputFilename):
-            self.raiseAMessage(repr(open(outputFilename,"r").read()).replace("\\n","\n"))
-          else:
-            self.raiseAMessage(" No output "+outputFilename)
-      else:
-        ## The following code performs any user-specified file cleanup and only
-        ## applies to ExternalRunners, since InternalRunners do not generate
-        ## any of their own output currently (Subject to change).
-        if isinstance(running, Runners.ExternalRunner):
-          ## Check if the user specified to delete the log files of successful
-          ## runs
-          if self.runInfoDict['delSucLogFiles']:
-            self.raiseAMessage(' Run "' +running.identifier+'" ended smoothly, removing log file!')
-            if os.path.exists(running.getOutputFilename()):
-              os.remove(running.getOutputFilename())
-
-          ## Check if the user specified any file extensions for clean up
-          for fileExt in self.runInfoDict['deleteOutExtension']:
-            if not fileExt.startswith("."):
-              fileExt = "." + fileExt
-
-            fileList = [ f for f in os.listdir(running.getWorkingDir()) if f.endswith(fileExt) ]
-
-            for f in fileList:
-              os.remove(f)
 
   def __initializeParallelPython(self):
     """
@@ -306,69 +281,28 @@ class JobHandler(MessageHandler.MessageUser):
     unload finished jobs into its finished queue to be extracted by
     """
     while not self.completed:
-      self.addRuns()
-      self.cleanRuns()
+      self.fillJobQueue()
+      self.cleanJobQueue()
       ## TODO May want to revisit this:
       ## http://stackoverflow.com/questions/29082268/python-time-sleep-vs-event-wait
       time.sleep(self.sleepTime)
 
-  def addExternal(self,executeCommands,outputFile,workingDir,identifier = None, metadata=None,codePointer=None,uniqueHandler="any"):
-    """
-      Method to add an external runner (an external code) in the handler list
-      @ In, executeCommands, list of tuple(string), ('parallel'/'serial',
-        <execution command>)
-      @ In, outputFile, string, output file name
-      @ In, workingDir, string, working directory
-      @ In, identifier, string, optional, the job identifier
-      @ In, metadata, dict, optional, dictionary of metadata
-      @ In, codePointer, derived CodeInterfaceBaseClass object, optional,
-        pointer to code interface
-      @ In, uniqueHandler, string, optional, it is a special keyword attached to
-        this runner. For example, if present, to retrieve this runner using the
-        method jobHandler.getFinished, the uniqueHandler needs to be provided.
-        If uniqueHandler == 'any', every "client" can get this runner
-      @ Out, None
-    """
-    ##FIXME what uses this?  Still precommand for whole line if multiapp case?
-    precommand = self.runInfoDict['precommand']
-    ## It appears precommand is usually used for mpiexec - however, there could
-    ## be other uses....
-
-    commands=[]
-    for runtype,cmd in executeCommands:
-      newCommand=''
-      if runtype.lower() == 'parallel':
-        newCommand += precommand
-        if self.mpiCommand !='':
-          newCommand += ' '+self.mpiCommand+' '
-        ##FIXME are these two exclusive?
-        if self.threadingCommand !='':
-          newCommand += ' '+ self.threadingCommand +' '
-        newCommand += cmd+' '
-        newCommand += self.runInfoDict['postcommand']
-        commands.append(newCommand)
-      elif runtype.lower() == 'serial':
-        commands.append(cmd)
-      else:
-        self.raiseAnError(IOError,'For execution command <'+cmd+'> the run type was neither "serial" nor "parallel"!  Instead received: ',runtype,'\nPlease check the code interface.')
-
-    command = ' && '.join(commands)+' '
-
-    with self.__queueLock:
-      runner = Runners.ExternalRunner(self.messageHandler, command, workingDir,
-                                      self.runInfoDict['logfileBuffer'],
-                                      identifier, outputFile, metadata,
-                                      codePointer, uniqueHandler)
-      self.__queue.append(runner)
-      self.__submittedJobs.append(identifier)
-
-    self.raiseAMessage('Execution command submitted:',command)
-
-  def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], forceUseThreads = False, uniqueHandler="any",clientQueue = False):
+  def addJob(self, stepInput, sampledVars, args, functionToRun, identifier, metadata=None, modulesToImport = [], forceUseThreads = False, uniqueHandler="any", clientQueue = False):
     """
       Method to add an internal run (function execution)
-      @ In, Input, list, list of Inputs that are going to be passed to the
-        function to be executed as *args
+      @ In, stepInput, list, list of Inputs used by the step calling this job.
+        e.g., the objects pointed to by this block of the input file:
+         <Input></Input>
+      @ In, sampledVars, dict, a dictionary where the key is the name of the
+        perturbed variable and the value is its new perturbed value for this
+        job. This information is useful so that the job can easily report what
+        it modified. In many cases this information is redundantly held in the
+        args parameter, but we cannot guarantee that, so here we store it so the
+        job can easily identify it and does not have to parse it out. I would
+        hope we can re-evaluate this redundant encoding at some point.
+      @ In, args, dict, this is a list of arguments that will be passed as
+        function parameters into whatever method is stored in functionToRun.
+        e.g., functionToRun(*args)
       @ In, functionToRun,function or method, the function that needs to be
         executed
       @ In, identifier, string, the job identifier
@@ -392,13 +326,15 @@ class JobHandler(MessageHandler.MessageUser):
       self.__initializeParallelPython()
 
     if self.ppserver is None or forceUseThreads:
-      internalJob = Runners.SharedMemoryRunner(self.messageHandler, Input,
-                                               functionToRun, identifier,
-                                               metadata, uniqueHandler)
+      internalJob = Runners.SharedMemoryRunner(self.messageHandler, stepInput,
+                                               sampledVars, args, functionToRun,
+                                               identifier, metadata,
+                                               uniqueHandler)
     else:
       skipFunctions = [utils.metaclass_insert(abc.ABCMeta,BaseType)]
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
-                                                    self.ppserver, Input,
+                                                    self.ppserver, stepInput,
+                                                    sampledVars, args,
                                                     functionToRun,
                                                     modulesToImport, identifier,
                                                     metadata, skipFunctions,
@@ -410,13 +346,24 @@ class JobHandler(MessageHandler.MessageUser):
         self.__clientQueue.append(internalJob)
       self.__submittedJobs.append(identifier)
 
-  def addInternalClient(self,Input,functionToRun,identifier,metadata=None, uniqueHandler="any"):
+  def addClientJob(self, stepInput, sampledVars, args, functionToRun,identifier,metadata=None, uniqueHandler="any"):
     """
       Method to add an internal run (function execution), without consuming
       resources (free spots). This can be used for client handling (see
       metamodel)
-      @ In, Input, list, list of Inputs that are going to be passed to the
-        function to be executed as *args
+      @ In, stepInput, list, list of Inputs used by the step calling this job.
+        e.g., the objects pointed to by this block of the input file:
+         <Input></Input>
+      @ In, sampledVars, dict, a dictionary where the key is the name of the
+        perturbed variable and the value is its new perturbed value for this
+        job. This information is useful so that the job can easily report what
+        it modified. In many cases this information is redundantly held in the
+        args parameter, but we cannot guarantee that, so here we store it so the
+        job can easily identify it and does not have to parse it out. I would
+        hope we can re-evaluate this redundant encoding at some point.
+      @ In, args, dict, this is a list of arguments that will be passed as
+        function parameters into whatever method is stored in functionToRun.
+        e.g., functionToRun(*args)
       @ In, functionToRun,function or method, the function that needs to be
         executed
       @ In, identifier, string, the job identifier
@@ -428,9 +375,9 @@ class JobHandler(MessageHandler.MessageUser):
         If uniqueHandler == 'any', every "client" can get this runner.
       @ Out, None
     """
-    self.addInternal(Input, functionToRun, identifier, metadata,
-                     forceUseThreads = True, uniqueHandler = uniqueHandler,
-                     clientQueue = True)
+    self.addJob(stepInput, sampledVars, args, functionToRun, identifier,
+                metadata, forceUseThreads = True, uniqueHandler = uniqueHandler,
+                clientQueue = True)
 
   def isFinished(self):
     """
@@ -602,7 +549,7 @@ class JobHandler(MessageHandler.MessageUser):
     """
     return len(self.__submittedJobs)
 
-  def addRuns(self):
+  def fillJobQueue(self):
     """
       Method to start running the jobs in queue.  If there are empty slots
       takes jobs out of the queue and starts running them.
@@ -626,19 +573,28 @@ class JobHandler(MessageHandler.MessageUser):
           ## out as soon as that happens so we don't hog the lock.
           if len(self.__queue) > 0:
             item = self.__queue.popleft()
-            if isinstance(item, Runners.ExternalRunner):
-              command = item.command
-              command = command.replace("%INDEX%",str(i))
-              command = command.replace("%INDEX1%",str(i+1))
-              command = command.replace("%CURRENT_ID%",str(self.__nextId))
-              command = command.replace("%CURRENT_ID1%",str(self.__nextId+1))
-              command = command.replace("%SCRIPT_DIR%",self.runInfoDict['ScriptDir'])
-              command = command.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
-              command = command.replace("%WORKING_DIR%",item.getWorkingDir())
-              command = command.replace("%BASE_WORKING_DIR%",self.runInfoDict['WorkingDir'])
-              command = command.replace("%METHOD%",os.environ.get("METHOD","opt"))
-              command = command.replace("%NUM_CPUS%",str(self.runInfoDict['NumThreads']))
-              item.command = command
+
+            ## Okay, this is a little tricky, but hang with me here. Whenever
+            ## a code model is run, we need to replace some of its command
+            ## parameters. The way we do this is by looking at the job instance
+            ## and checking if the first argument (the self in
+            ## self.evaluateSample) is an instance of Code, if so, then we need
+            ## to replace the execution command. Is this fragile? Possibly. We may
+            ## want to revisit this on the next iteration of this code.
+            if len(item.args) > 0 and isinstance(item.args[0], Models.Code):
+              kwargs = {}
+              kwargs['INDEX'] = str(i)
+              kwargs['INDEX1'] = str(i+i)
+              kwargs['CURRENT_ID'] = str(self.__nextId)
+              kwargs['CURRENT_ID1'] = str(self.__nextId+1)
+              kwargs['SCRIPT_DIR'] = self.runInfoDict['ScriptDir']
+              kwargs['FRAMEWORK_DIR'] = self.runInfoDict['FrameworkDir']
+              kwargs['WORKING_DIR'] = item.args[0].workingDir
+              kwargs['BASE_WORKING_DIR'] = self.runInfoDict['WorkingDir']
+              kwargs['METHOD'] = os.environ.get("METHOD","opt")
+              kwargs['NUM_CPUS'] = str(self.runInfoDict['NumThreads'])
+              item.args[3].update(kwargs)
+
             self.__running[i] = item
             ##FIXME this call is really expensive; can it be reduced?
             self.__running[i].start()
@@ -658,7 +614,7 @@ class JobHandler(MessageHandler.MessageUser):
           else:
             break
 
-  def cleanRuns(self):
+  def cleanJobQueue(self):
     """
     Method that will remove finished jobs from the queue and place them into the
     finished queue to be read by some other thread.

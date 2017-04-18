@@ -43,13 +43,24 @@ class InternalRunner(Runner):
   """
     Generic base Class for running internal objects
   """
-  def __init__(self, messageHandler, Input, functionToRun, identifier=None, metadata=None, uniqueHandler = "any"):
+  def __init__(self, messageHandler, stepInput, sampledVars, args, functionToRun, identifier=None, metadata=None, uniqueHandler = "any"):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
         handler object
-      @ In, Input, list, list of inputs that are going to be passed to the
-        function as *args
+      @ In, stepInput, list, list of Inputs used by the step calling this job.
+        e.g., the objects pointed to by this block of the input file:
+         <Input></Input>
+      @ In, sampledVars, dict, a dictionary where the key is the name of the
+        perturbed variable and the value is its new perturbed value for this
+        job. This information is useful so that the job can easily report what
+        it modified. In many cases this information is redundantly held in the
+        args parameter, but we cannot guarantee that, so here we store it so the
+        job can easily identify it and does not have to parse it out. I would
+        hope we can re-evaluate this redundant encoding at some point.
+      @ In, args, dict, this is a list of arguments that will be passed as
+        function parameters into whatever method is stored in functionToRun.
+        e.g., functionToRun(*args)
       @ In, functionToRun, method or function, function that needs to be run
       @ In, identifier, string, optional, id of this job
       @ In, metadata, dict, optional, dictionary of metadata associated with
@@ -66,10 +77,10 @@ class InternalRunner(Runner):
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    super(InternalRunner, self).__init__(messageHandler, 'internal', identifier, metadata, uniqueHandler)
+    super(InternalRunner, self).__init__(messageHandler, stepInput, sampledVars, identifier, metadata, uniqueHandler)
 
     ## Other parameters passed at initialization
-    self.input          = copy.copy(Input)
+    self.args          = copy.copy(args)
     self.functionToRun  = functionToRun
 
     ## Other parameters manipulated internally
@@ -130,6 +141,6 @@ class InternalRunner(Runner):
       if self.runReturn is None:
         self.returnCode = -1
         return self.returnCode
-      return (self.input[0],self.runReturn)
+      return ([self.stepInput], self.sampledVars, self.runReturn)
     else:
       return -1 #control return code
