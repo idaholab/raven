@@ -28,14 +28,18 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import sklearn
 from sklearn import linear_model
 from sklearn import svm
 from sklearn import multiclass
 from sklearn import naive_bayes
 from sklearn import neighbors
-
-from sklearn import qda
-from sklearn import lda
+if int(sklearn.__version__.split(".")[1]) > 16:
+  # FIXME: to be removed when the supported minimum version of sklearn is moved to 0.17
+  from sklearn import discriminant_analysis as da
+else:
+  from sklearn import qda
+  from sklearn import lda
 # from sklearn import discriminant_analysis
 
 from sklearn import tree
@@ -2023,8 +2027,14 @@ class SciKitLearn(superVisedLearning):
 
   availImpl                                                 = {}                                                            # dictionary of available ROMs {mainClass:{subtype:(classPointer,Output type (float or int), boolean -> External Z-normalization needed)}
   availImpl['lda']                                          = {}                                                            #Linear Discriminant Analysis
-  availImpl['lda']['LDA']                                   = (lda.LDA                                  , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
-  # availImpl['lda']['LDA']                                   = (discriminant_analysis.LinearDiscriminantAnalysis, 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+  availImpl['qda']                                          = {}                                                            #Quadratic Discriminant Analysis
+  if int(sklearn.__version__.split(".")[1]) > 16:
+    availImpl['lda']['LDA']                                 = (da.LinearDiscriminantAnalysis            , 'int'    , False) #Linear Discriminant Analysis (LDA)
+    availImpl['qda']['LDA']                                 = (da.QuadraticDiscriminantAnalysis         , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+  else:
+    availImpl['lda']['LDA']                                 = (lda.LDA                                  , 'int'    , False) #Linear Discriminant Analysis (LDA)
+    availImpl['qda']['QDA']                                 = (qda.QDA                                  , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+
   availImpl['linear_model']                                 = {}                                                            #Generalized Linear Models
   availImpl['linear_model']['ARDRegression'               ] = (linear_model.ARDRegression               , 'float'  , False) #Bayesian ARD regression.
   availImpl['linear_model']['BayesianRidge'               ] = (linear_model.BayesianRidge               , 'float'  , False) #Bayesian ridge regression
@@ -2077,10 +2087,6 @@ class SciKitLearn(superVisedLearning):
   availImpl['neighbors']['NearestCentroid'                ] = (neighbors.NearestCentroid                , 'int'   ,  True )# Nearest centroid classifier.
   availImpl['neighbors']['BallTree'                       ] = (neighbors.BallTree                       , 'float' ,  True )# BallTree for fast generalized N-point problems
   availImpl['neighbors']['KDTree'                         ] = (neighbors.KDTree                         , 'float' ,  True )# KDTree for fast generalized N-point problems
-
-  availImpl['qda'] = {}
-  availImpl['qda']['QDA'                                  ] = (qda.QDA                                  , 'int'   ,  False) #Quadratic Discriminant Analysis (QDA)
-  # availImpl['qda']['QDA'                                  ] = (discriminant_analysis.QuadraticDiscriminantAnalysis, 'int'   ,  False) #Quadratic Discriminant Analysis (QDA)
 
   availImpl['tree'] = {}
   availImpl['tree']['DecisionTreeClassifier'              ] = (tree.DecisionTreeClassifier              , 'int'   ,  True )# A decision tree classifier.

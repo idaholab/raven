@@ -61,7 +61,7 @@ class GradientBasedOptimizer(Optimizer):
     self.gradDict                   = {}              # Dict containing information for gradient related operations
     self.gradDict['numIterForAve']  = 1               # Number of iterations for gradient estimation averaging
     self.gradDict['pertNeeded']     = 1               # Number of perturbation needed to evaluate gradient
-    self.gradDict['normalize']      = False           # use a normalized gradient or not?
+    #self.gradDict['normalize']      = False           # use a normalized gradient or not?
     self.gradDict['pertPoints']     = {}              # Dict containing normalized inputs sent to model for gradient evaluation
     self.counter['perturbation']    = {}              # Counter for the perturbation performed.
     self.readyVarsUpdate            = {}              # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
@@ -108,7 +108,8 @@ class GradientBasedOptimizer(Optimizer):
       self.convergeTraj[traj]                = False
     for traj in self.optTraj:
       self.gradDict['pertPoints'][traj] = {}
-
+    # end job runnable equal to number of trajectory
+    self._endJobRunnable = len(self.optTraj)
     #specializing the self.localLocalInitialize()
     if solutionExport != None:
       self.localLocalInitialize(solutionExport=solutionExport)
@@ -302,11 +303,20 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     if self.convergeTraj[traj] == False:
-      if varsUpdate > 1:
-        oldValueId         = self._createEvaluationIdentifier(traj,varsUpdate-1,'v')
-        oldVal             = self.getLossFunctionGivenId(oldValueId)
-        if oldVal is None:
-          self.raiseAnError(Exception,"the evaluation identified by the ID " +str(oldValueId)+ " has not been found!")
+      if varsUpdate >= 1:
+        sizeArray = 1
+        if int(self.paramDict['numGradAvgIterations']) > 1:
+          sizeArray+=int(self.paramDict['numGradAvgIterations'])
+        objectiveOutputs = np.zeros(sizeArray)
+        objectiveOutputs[0] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,'v'))
+        if sizeArray > 1:
+          for i in range(sizeArray-1):
+            identifier = (i+1)*2
+            objectiveOutputs[i+1] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,identifier))
+
+        if any(np.isnan(objectiveOutputs)):
+          self.raiseAnError(Exception,"the objective function evaluation for trajectory " +str(traj)+ "and iteration "+str(varsUpdate-1)+" has not been found!")
+        oldVal = objectiveOutputs.mean()
         gradNorm           = self.counter['gradNormHistory'][traj][0]
         varK               = self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
         #if self.gradDict['normalize']:
@@ -376,13 +386,31 @@ class GradientBasedOptimizer(Optimizer):
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
-          (solutionExportUpdatedFlag, index) = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
+          solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
+          solutionUpdateList = [solutionExportUpdatedFlag]
+          solutionIndeces    = [index]
+          sizeArray = 1
+          if int(self.paramDict['numGradAvgIterations']) > 1:
+            sizeArray+=int(self.paramDict['numGradAvgIterations'])
+            for i in range(sizeArray-1):
+              identifier = (i+1)*2
+              solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], str(identifier))
+              solutionUpdateList.append(solutionExportUpdatedFlag)
+              solutionIndeces.append(index)
+            solutionExportUpdatedFlag = all(solutionUpdateList)
+
           if solutionExportUpdatedFlag:
             inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
             outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
-
+            objectiveOutputs = np.zeros(sizeArray)
+            # get all output values
+            for cnt, index in enumerate(solutionIndeces):
+              objectiveOutputs[cnt] = outputeval[self.objVar][index]
+            currentObjectiveValue = objectiveOutputs.mean()
+            index                 = solutionIndeces[0]
             # check convergence
-            self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputeval[self.objVar][index])
+            self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], currentObjectiveValue)
+            #self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputeval[self.objVar][index])
 
             # update solution export
             if 'trajID' not in self.solutionExport.getParaKeys('inputs'):
@@ -399,7 +427,8 @@ class GradientBasedOptimizer(Optimizer):
                   self.solutionExport.updateOutputValue([trajID,var],np.append(tempTrajOutputVar,np.asarray(inputeval[var][index])))
                 elif var == self.objVar:
                   tempTrajOutputVar = copy.deepcopy(tempTrajOutput.get(var, np.asarray([])))
-                  self.solutionExport.updateOutputValue([trajID,var], np.append(tempTrajOutputVar,np.asarray(outputeval[var][index])))
+                  #self.solutionExport.updateOutputValue([trajID,var], np.append(tempTrajOutputVar,np.asarray(outputeval[var][index])))
+                  self.solutionExport.updateOutputValue([trajID,var], np.append(tempTrajOutputVar,np.asarray(currentObjectiveValue)))
               if 'varsUpdate' in self.solutionExport.getParaKeys('outputs'):
                 tempTrajOutputVar = copy.deepcopy(tempTrajOutput.get('varsUpdate', np.asarray([])))
                 self.solutionExport.updateOutputValue([trajID,'varsUpdate'], np.append(tempTrajOutputVar,np.asarray([self.counter['solutionUpdate'][traj]])))

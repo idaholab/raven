@@ -535,13 +535,10 @@ class MultiRun(SingleRun):
         ## employ a threshold on the number of jobs the jobHandler can take,
         ## in addition, we cannot provide more jobs than the sampler can provide.
         ## So, we take the minimum of these two values.
-        print("lupo2")
-        print(sampler.endJobRunnable(),jobHandler.availability())
         for _ in range(min(jobHandler.availability(),sampler.endJobRunnable())):
           self.raiseADebug('Testing the sampler if it is ready to generate a new input')
 
           if sampler.amIreadyToProvideAnInput():
-            print("lupo")
             try:
               newInput = self._findANewInputToRun(inDictionary)
               model.run(newInput,jobHandler)

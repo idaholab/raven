@@ -63,7 +63,7 @@ class SPSA(GradientBasedOptimizer):
     GradientBasedOptimizer.localInputAndChecks(self, xmlNode)
     self.paramDict['alpha'] = float(self.paramDict.get('alpha', 0.602))
     self.paramDict['gamma'] = float(self.paramDict.get('gamma', 0.101))
-    self.paramDict['A']     = float(self.paramDict.get('A', self.limit['mdlEval']/10))
+    self.paramDict['A']     = float(self.paramDict.get('A', self.limit['mdlEval']/10.))
     self.paramDict['a']     = self.paramDict.get('a', None)
     self.paramDict['c']     = float(self.paramDict.get('c', 0.005))
     #FIXME the optimization parameters should probably all operate ONLY on normalized data!
@@ -73,7 +73,7 @@ class SPSA(GradientBasedOptimizer):
     #if "a" was defaulted, use the average scale of the input space.
     #This is the suggested value from the paper, missing a 1/gradient term since we don't know it yet.
     if self.paramDict['a'] is None:
-      self.paramDict['a'] = mathUtils.hyperdiagonal(self.optVarsInit['ranges'].values()) #should be normalized!
+      self.paramDict['a'] = mathUtils.hyperdiagonal(np.ones(len(self.optVars))) # the features are always normalized
       self.raiseAMessage('Defaulting "a" gradient parameter to',self.paramDict['a'])
     else:
       self.paramDict['a'] = float(self.paramDict['a'])
@@ -108,8 +108,8 @@ class SPSA(GradientBasedOptimizer):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    self._endJobRunnable = self.gradDict['numIterForAve'] * 2
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
+    self._endJobRunnable        = (self._endJobRunnable*self.gradDict['pertNeeded'])+len(self.optTraj)
 
   def localLocalStillReady(self, ready, convergence = False):
     """
@@ -142,7 +142,7 @@ class SPSA(GradientBasedOptimizer):
           # self.values[var]-= 0.01*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
         if self.values[var] <= self.optVarsInit['lowerBound'][var]:
           self.values[var] = 0.01*(self.optVarsInit['ranges'][var]) + self.optVarsInit['lowerBound'][var]
-      data = self.normalizeData(self.values) if self.gradDict['normalize'] else self.values
+      data = self.normalizeData(self.values) #if self.gradDict['normalize'] else self.values
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(data)
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
       self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],'v')
@@ -163,21 +163,24 @@ class SPSA(GradientBasedOptimizer):
             self.gradDict['pertPoints'][traj] = {}
             ck = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
             varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
-            #if self.gradDict['numIterForAve'] > 1:
-            #  samePointPerturbation = True
-            #else:
-            #  samePointPerturbation = False
+            if self.gradDict['numIterForAve'] > 1:
+              # In order to converge on the average of the objective variable, one of the
+              # perturbation is performed on the variable at iteration i
+              # In this way, we can compute the average and denoise the signal
+              samePointPerturbation = True
+            else:
+              samePointPerturbation = False
             for ind in range(self.gradDict['numIterForAve']):
               self.gradDict['pertPoints'][traj][ind] = {}
               delta = self.stochasticEngine()
               for varID, var in enumerate(self.optVars):
                 if var not in self.gradDict['pertPoints'][traj][ind].keys():
                   p1 = np.asarray([varK[var]+ck*delta[varID]*1.0]).reshape((1,))
-                  #if samePointPerturbation:
-                  #  p2 = np.asarray(varK[var]).reshape((1,))
-                  #else:
-                  #  p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
-                  p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
+                  if samePointPerturbation:
+                    p2 = np.asarray(varK[var]).reshape((1,))
+                  else:
+                    p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
+                  #p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
                   #sanity check: p1 != p2
                   if p1 == p2:
                     self.raiseAnError(RuntimeError,'In choosing gradient evaluation points, the same point was chosen twice for variable "%s"!' %var)
@@ -196,6 +199,7 @@ class SPSA(GradientBasedOptimizer):
           # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation)
           # TODO this is common with the above if-else, for the initial settings; it should be extracted if possible
           self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],self.counter['perturbation'][traj])
+          #self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],'v')
           break
         # sufficient perturbations have been calculated for the gradient evaluation
         else:
@@ -223,7 +227,7 @@ class SPSA(GradientBasedOptimizer):
             #self.estimateStochasticity(gradient,self.gradDict['pertPoints'][traj][self.counter['varsUpdate'][traj]-1],varK,centralResponseIndex) #TODO need current point too!
 
             varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
-            varKPlusDenorm = self.denormalizeData(varKPlus) if self.gradDict['normalize'] else varKPlus
+            varKPlusDenorm = self.denormalizeData(varKPlus) #if self.gradDict['normalize'] else varKPlus
             for var in self.optVars:
               self.values[var] = copy.deepcopy(varKPlusDenorm[var])
               self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(varKPlus[var])
@@ -236,6 +240,7 @@ class SPSA(GradientBasedOptimizer):
               self._removeRedundantTraj(traj, self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
 
             break
+    #print(self.inputInfo['prefix'])
 
   def estimateStochasticity(self,gradient,perturbedPoints,centralPoint,centralResponseIndex):
     """
