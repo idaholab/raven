@@ -18,3 +18,5 @@ doxygen/latex/
 analytic_tests.pdf
 pdfs/
 raven_user_guide.pdf
+tests/regression_tests_documentation.pdf
+tests/regression_tests_documentation.tex
