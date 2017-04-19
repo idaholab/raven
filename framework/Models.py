@@ -1602,7 +1602,8 @@ class Code(Model):
         for header,data in zip(headers, csvData.T):
           returnDict[header] = data
 
-      self._replaceVariablesNamesWithAliasSystem(returnDict, 'output',True)
+      self._replaceVariablesNamesWithAliasSystem(returnDict, 'input', True)
+      self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
 
       ## The last thing before returning should be to delete the temporary log
       ## file and any other file the user requests to be cleared
@@ -1654,7 +1655,17 @@ class Code(Model):
       for key,value in outputDict.items():
         sampledVars[key] = value[-1]
 
+    ## What happens if the code modified the input parameter space? Well,
+    ## let's grab any input fields existing in the output file and to ensure
+    ## that we have the correct information that the code actually ran.
+    for key,value in outputDict.items():
+      if key in sampledVars:
+        if value[-1] != sampledVars[key]:
+          self.raiseAWarning('The code reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the code (%f).' % (value[-1], key, sampledVars[key], value[-1]))
+          sampledVars[key] = value[-1]
+
     exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputDict,'metadata':finishedJob.getMetadata(), 'prefix':finishedJob.identifier})
+
     self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
     if output.type == 'HDF5':
       optionsIn = {'group':self.name+str(finishedJob.identifier)}
