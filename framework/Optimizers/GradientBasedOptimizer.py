@@ -305,7 +305,6 @@ class GradientBasedOptimizer(Optimizer):
           for i in range(sizeArray-1):
             identifier = (i+1)*2
             objectiveOutputs[i+1] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,identifier))
-
         if any(np.isnan(objectiveOutputs)):
           self.raiseAnError(Exception,"the objective function evaluation for trajectory " +str(traj)+ "and iteration "+str(varsUpdate-1)+" has not been found!")
         oldVal = objectiveOutputs.mean()
@@ -314,12 +313,25 @@ class GradientBasedOptimizer(Optimizer):
         varK               = self.denormalizeData(varK)
         absDifference      = abs(currentLossValue-oldVal)
         relativeDifference = abs(absDifference/oldVal)
+        # checks
+        sameCoordinateCheck = set(self.optVarsHist[traj][varsUpdate].items()) == set(self.optVarsHist[traj][varsUpdate-1].items())
+        gradientNormCheck   = gradNorm <= self.gradientNormTolerance
+        absoluteTolCheck    = absDifference <= self.absConvergenceTol
+        relativeTolCheck    = relativeDifference <= self.relConvergenceTol
         self.raiseAMessage("Trajectory: "+"%8i"% (traj)+      " | Iteration    : "+"%8i"% (varsUpdate)+ " | Loss function: "+"%8.2E"% (currentLossValue)+" |")
         self.raiseAMessage("Grad Norm : "+"%8.2E"% (gradNorm)+" | Relative Diff: "+"%8.2E"% (relativeDifference)+" | Abs Diff     : "+"%8.2E"% (absDifference)+" |")
         self.raiseAMessage("Variables :" +str(varK))
 
-        if gradNorm <= self.gradientNormTolerance or absDifference <= self.absConvergenceTol or relativeDifference <= self.relConvergenceTol:
-          self.raiseAMessage("Trajectory: "+"%8i"% (traj) +"   converged    !")
+        if sameCoordinateCheck or gradientNormCheck or absoluteTolCheck or relativeTolCheck:
+          if sameCoordinateCheck: 
+            reason="same-coordinate"
+          if gradientNormCheck: 
+            reason="gradient-norm  "          
+          if absoluteTolCheck: 
+            reason="absolute-tolerance"
+          if relativeTolCheck: 
+            reason="relative-tolerance"
+          self.raiseAMessage("Trajectory: "+"%8i"% (traj) +"   converged. Reason: "+reason)
           self.raiseAMessage("Grad Norm : "+"%8.2E"% (gradNorm)+" | Relative Diff: "+"%8.2E"% (relativeDifference)+" | Abs Diff     : "+"%8.2E"% (absDifference)+" |")
           self.convergeTraj[traj] = True
           for trajInd, tr in enumerate(self.optTrajLive):
