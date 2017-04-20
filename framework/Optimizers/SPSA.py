@@ -110,6 +110,24 @@ class SPSA(GradientBasedOptimizer):
       @ Out, ready, bool, variable indicating whether the caller is prepared for another input.
     """
     return ready and (not convergence)
+  
+  def _checkBoundariesAndModify(self,upperBound,lowerBound,varRange,currentValue,pertUp,pertLow):
+    """
+      Method to check the boundaries and add a perturbation in case they are violated
+      @ In, upperBound, float, the upper bound for the variable
+      @ In, lowerBound, float, the lower bound for the variable
+      @ In, varRange, float, the variable range
+      @ In, currentValue, float, the current value
+      @ In, pertUp, float, the perturbation to apply in case the upper bound is violated
+      @ In, pertLow, float, the perturbation to apply in case the lower bound is violated
+      @ Out, convertedValue, float, the modified value in case the boundaries are violated
+    """
+    convertedValue = currentValue
+    if currentValue >= upperBound:
+      convertedValue = pertUp*varRange + lowerBound
+    if currentValue <= lowerBound:
+      convertedValue = pertLow*varRange + lowerBound
+    return convertedValue
 
   def localGenerateInput(self,model,oldInput):
     """
@@ -128,11 +146,9 @@ class SPSA(GradientBasedOptimizer):
       for var in self.optVars:
         self.values[var] = self.optVarsInit['initial'][var][traj]
         #if exceeding bounds, bring value within 1% of range
-        if self.values[var] >= self.optVarsInit['upperBound'][var]:
-          self.values[var] = 0.99*(self.optVarsInit['ranges'][var]) + self.optVarsInit['lowerBound'][var]
-          # self.values[var]-= 0.01*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
-        if self.values[var] <= self.optVarsInit['lowerBound'][var]:
-          self.values[var] = 0.01*(self.optVarsInit['ranges'][var]) + self.optVarsInit['lowerBound'][var]
+        self.values[var] = self._checkBoundariesAndModify(self.optVarsInit['upperBound'][var],
+                                                          self.optVarsInit['lowerBound'][var],
+                                                          self.optVarsInit['ranges'][var],self.values[var],0.99,0.01)
       data = self.normalizeData(self.values)  
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(data)
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
@@ -172,9 +188,16 @@ class SPSA(GradientBasedOptimizer):
                   else:
                     p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
                   #p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
+                  p1[0] = self._checkBoundariesAndModify(self.optVarsInit['upperBound'][var],
+                                                         self.optVarsInit['lowerBound'][var],
+                                                         self.optVarsInit['ranges'][var],p1[0],0.999,0.001)
+                  p2[0] = self._checkBoundariesAndModify(self.optVarsInit['upperBound'][var],
+                                                         self.optVarsInit['lowerBound'][var],
+                                                         self.optVarsInit['ranges'][var],p2[0],0.999,0.001)
                   #sanity check: p1 != p2
                   if p1 == p2:
                     self.raiseAnError(RuntimeError,'In choosing gradient evaluation points, the same point was chosen twice for variable "%s"!' %var)
+                   
                   self.gradDict['pertPoints'][traj][ind][var] = np.concatenate((p1, p2))
 
           #what are these?
