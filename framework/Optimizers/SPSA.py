@@ -188,12 +188,8 @@ class SPSA(GradientBasedOptimizer):
                   else:
                     p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
                   #p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
-                  p1[0] = self._checkBoundariesAndModify(self.optVarsInit['upperBound'][var],
-                                                         self.optVarsInit['lowerBound'][var],
-                                                         self.optVarsInit['ranges'][var],p1[0],0.999,0.001)
-                  p2[0] = self._checkBoundariesAndModify(self.optVarsInit['upperBound'][var],
-                                                         self.optVarsInit['lowerBound'][var],
-                                                         self.optVarsInit['ranges'][var],p2[0],0.999,0.001)
+                  p1[0] = self._checkBoundariesAndModify(1.0, 0.0, 1.0,p1[0],0.999,0.001)
+                  p2[0] = self._checkBoundariesAndModify(1.0, 0.0, 1.0,p2[0],0.999,0.001)
                   #sanity check: p1 != p2
                   if p1 == p2:
                     self.raiseAnError(RuntimeError,'In choosing gradient evaluation points, the same point was chosen twice for variable "%s"!' %var)
