@@ -880,9 +880,38 @@ for each sub-plot seperately.
 %
 
 One may also specify a \xmlNode{legend} tag that will place a legend on the plot.
-The legend accepts the same arguments as the matplotlib interface for creating a
-legend (refer to the \href{http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.legend}{matplotlib API} for details.
-Note, that only primitive datatypes are accepted in the raven input file so values like bbox\_transform, prop, and handler\_map are not available through the raven interface).
+The legend accepts the following sub-nodes:
+
+\begin{itemize}
+  \item \xmlNode{loc}, \xmlDesc{string, optional parameter}, the location where the legend will be placed on the plot. Valid values are:
+  \begin{itemize}
+    \item \xmlString{best}
+    \item \xmlString{upper right}
+    \item \xmlString{upper left}
+    \item \xmlString{lower left}
+    \item \xmlString{lower right}
+    \item \xmlString{right}
+    \item \xmlString{center left}
+    \item \xmlString{center right}
+    \item \xmlString{lower center}
+    \item \xmlString{upper center}
+    \item \xmlString{center}
+  \end{itemize}
+  \default{\xmlString{best}}
+  \item \xmlNode{ncol}, \xmlDesc{integer, optional parameter}, the number of columsn to include in the legend.
+  \default{1}
+  \item \xmlNode{fontsize}, \xmlDesc{string, optional parameter}, the font size of the legend. Valid values are:
+  \begin{itemize}
+    \item \xmlString{xx-small}
+    \item x-small
+    \item \xmlString{small}
+    \item \xmlString{medium}
+    \item \xmlString{large}
+    \item \xmlString{x-large}
+    \item \xmlString{xx-large}
+  \end{itemize}
+  \item \xmlNode{title}, \xmlDesc{string, optional parameter}, the title of the legend.
+\end{itemize}
 
 As already mentioned, within the \xmlNode{plotSettings} block, at least a
 \xmlNode{plot} sub-block needs to be specified.
