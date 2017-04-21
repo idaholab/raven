@@ -1900,6 +1900,9 @@ class OutStreamPlot(OutStreamManager):
         except AttributeError as ae:
           self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'plt.' + self.outStreamTypes[pltindex] + '(' + commandArgs + ')')
 
+    if 'legend' in self.options['plotSettings']:
+      plt.legend(**self.options['plotSettings']['legend'])
+
     # SHOW THE PICTURE
     plt.draw()
     # self.plt3D.draw(self.fig.canvas.renderer)
