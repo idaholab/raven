@@ -913,6 +913,39 @@ The legend accepts the following sub-nodes:
   \item \xmlNode{title}, \xmlDesc{string, optional parameter}, the title of the legend.
 \end{itemize}
 
+\nb The text associated to each \xmlNode{plot} tag in the legend is defined in the \xmlNode{kwargs} of that plot by specifying a \xmlNode{label} within the kwargs.
+An example usage is given below:
+
+\begin{lstlisting}[style=XML]
+<Plot ...>
+  ...
+  <plotSettings>
+    <plot>
+      <type>scatter</type>
+        <x>...</x>
+        <y>...</y>
+        <kwargs>
+          <label>dots</label>
+        </kwargs>
+     </plot>
+    <plot>
+      <type>line</type>
+        <x>...</x>
+        <y>...</y>
+        <kwargs>
+          <label>line</label>
+        </kwargs>
+     </plot>
+    <legend>
+      <loc>best</loc>
+      <ncol>2</ncol>
+    </legend>
+  </plotSettings>
+</Plot>
+\end{lstlisting}
+
+This will create a plot with both scattered points and a line. The plot will also have a legend specifying the labels ``dots'' and ``line'' in two columns with the best location selected by matplotlib.
+
 As already mentioned, within the \xmlNode{plotSettings} block, at least a
 \xmlNode{plot} sub-block needs to be specified.
 %
