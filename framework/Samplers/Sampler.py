@@ -322,14 +322,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
-            try: 
+            try:
               self.limit = int(childChild.text)
-            except ValueError: 
+            except ValueError:
               self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value ' + str(childChild.text))
           if childChild.tag == "initialSeed":
-            try:  
+            try:
               self.initSeed = int(childChild.text)
-            except ValueError: 
+            except ValueError:
               self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute initialSeed with value ' + str(childChild.text))
           elif childChild.tag == "reseedEachIteration":
             if childChild.text.lower() in utils.stringsThatMeanTrue():
