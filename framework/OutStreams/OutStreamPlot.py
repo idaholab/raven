@@ -1138,7 +1138,7 @@ class OutStreamPlot(OutStreamManager):
           for key in self.xValues[pltindex].keys():
             vmin = min(vmin,np.amin(self.colorMapValues[pltindex][key]))
             vmax = max(vmax,np.amax(self.colorMapValues[pltindex][key]))
-          plotSettings['norm'] = self.mpl.colors.Normalize(vmin,vmax)
+          plotSettings['norm'] = matplotlib.colors.Normalize(vmin,vmax)
         for key in self.xValues[pltindex].keys():
           for xIndex in range(len(self.xValues[pltindex][key])):
             for yIndex in range(len(self.yValues[pltindex][key])):

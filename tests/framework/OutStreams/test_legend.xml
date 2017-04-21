@@ -13,7 +13,7 @@
 
 
   <OutStreams>
-    <Plot name='test' dim='2' interactive='True' overwrite='True'>
+    <Plot name='test' interactive='True' overwrite='True'>
       <filename>legendTest</filename>
       <actions>
         <how>png</how>
