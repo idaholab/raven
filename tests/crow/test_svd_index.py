@@ -71,7 +71,7 @@ vCpp = np.asarray(vCpp)
 vCpp = np.reshape(vCpp,(dimVectorRight[0],dimVectorRight[1]))
 
 # using numpy to compute the svd
-COVn = np.asarray(cov).reshape(-1,sqrt(len(cov)))
+COVn = np.asarray(cov).reshape(-1,int(sqrt(len(cov))))
 Un,Sn,Vn = LA.svd(COVn,full_matrices=False)
 uNp = Un[:,index]
 sNp = Sn[index]

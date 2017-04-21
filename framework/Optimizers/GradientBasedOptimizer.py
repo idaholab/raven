@@ -37,7 +37,7 @@ from sklearn.neighbors import NearestNeighbors
 #Internal Modules------------------------------------------------------------------------------------
 from .Optimizer import Optimizer
 from Assembler import Assembler
-from utils import utils
+from utils import utils,cached_ndarray
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GradientBasedOptimizer(Optimizer):
@@ -77,15 +77,16 @@ class GradientBasedOptimizer(Optimizer):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    convergence                = xmlNode.find("convergence")
+    convergence = xmlNode.find("convergence")
     self.gradDict['normalize'] = utils.interpretBoolean(self.paramDict.get("normalize",self.gradDict['normalize']))
     if convergence is not None:
       gradientThreshold = convergence.find("gradientThreshold")
       try:
         if gradientThreshold is not None and self.gradDict['normalize']:
-          self.raiseAWarning("Conflicting inputs: gradientThreshold and normalized gradient have been inputed. These two intpus are conflicting. ")
+          self.raiseAWarning("Conflicting inputs: gradientThreshold and normalized gradient have both been input. These two intpus are conflicting. ")
         self.gradientNormTolerance = float(gradientThreshold.text) if gradientThreshold is not None else self.gradientNormTolerance
-      except ValueError: self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float')
+      except ValueError:
+        self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float.')
 
   def localInitialize(self,solutionExport=None):
     """
@@ -107,8 +108,10 @@ class GradientBasedOptimizer(Optimizer):
       self.gradDict['pertPoints'][traj] = {}
 
     #specializing the self.localLocalInitialize()
-    if solutionExport != None : self.localLocalInitialize(solutionExport=solutionExport)
-    else                      : self.localLocalInitialize()
+    if solutionExport != None:
+      self.localLocalInitialize(solutionExport=solutionExport)
+    else:
+      self.localLocalInitialize()
 
   @abc.abstractmethod
   def localLocalInitialize(self, solutionExport = None):
@@ -139,13 +142,15 @@ class GradientBasedOptimizer(Optimizer):
 
     if self.mdlEvalHist.isItEmpty():
       for traj in self.optTrajLive:
-        if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']: # Return if we just initialize
+        if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
+          # Return if we just initialize
           return ready
       ready = False # Waiting for the model output for gradient evaluation
     else:
       readyFlag = False
       for traj in self.optTrajLive:
-        if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']: # Return if we just initialize
+        if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
+          # Return if we just initialize
           readyFlag = True
           break
         else:
@@ -159,8 +164,10 @@ class GradientBasedOptimizer(Optimizer):
           else:
             readyFlag = True
             break
-      if readyFlag: ready = True
-      else:         ready = False
+      if readyFlag:
+        ready = True
+      else:
+        ready = False
 
     ready = self.localLocalStillReady(ready, convergence)
 
@@ -175,7 +182,8 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, _checkModelFinish, tuple(bool, int), (1,realization dictionary),
             (indicating whether the Model has finished the evaluation over input identified by traj+updateKey+evalID, the index of the location of the input in dataobject)
     """
-    if self.mdlEvalHist.isItEmpty():    return False
+    if self.mdlEvalHist.isItEmpty():
+      return False
 
     prefix = self.mdlEvalHist.getMetadata('prefix')
     for index, pr in enumerate(prefix):
@@ -216,7 +224,8 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     gradArray = {}
-    for var in self.optVars: gradArray[var] = np.ndarray((0,0))
+    for var in self.optVars:
+      gradArray[var] = np.ndarray((0,0)) #why are we initializing to this?
 
     # Evaluate gradient at each point
     for pertIndex in optVarsValues.keys():
@@ -224,8 +233,8 @@ class GradientBasedOptimizer(Optimizer):
       tempDictPerturbed['lossValue'] = copy.copy(self.lossFunctionEval(tempDictPerturbed))
       lossDiff = tempDictPerturbed['lossValue'][0] - tempDictPerturbed['lossValue'][1]
       for var in self.optVars:
-        if tempDictPerturbed[var][0] != tempDictPerturbed[var][1]:
-          gradArray[var] = np.append(gradArray[var], lossDiff/(tempDictPerturbed[var][0]-tempDictPerturbed[var][1])*1.0)
+        denom = tempDictPerturbed[var][0]-tempDictPerturbed[var][1]
+        gradArray[var] = np.append(gradArray[var], lossDiff/denom*1.0)
     gradient = {}
     for var in self.optVars:
       gradient[var] = gradArray[var].mean()
@@ -233,7 +242,8 @@ class GradientBasedOptimizer(Optimizer):
     if self.gradDict['normalize']:
       gradientL2norm = LA.norm(gradient.values())
       if gradientL2norm != 0.0:
-        for var in self.optVars: gradient[var] = gradient[var]/gradientL2norm
+        for var in self.optVars:
+          gradient[var] = gradient[var]/gradientL2norm
     self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][traj][0]
     self.counter['gradientHistory'][traj][0] = gradient
     return gradient
@@ -288,7 +298,8 @@ class GradientBasedOptimizer(Optimizer):
       if varsUpdate > 1:
         oldValueId         = self._createEvaluationIdentifier(traj,varsUpdate-1,'v')
         oldVal             = self.getLossFunctionGivenId(oldValueId)
-        if oldVal is None: self.raiseAnError(Exception,"the evaluation identified by the ID " +str(oldValueId)+ " has not been found!")
+        if oldVal is None:
+          self.raiseAnError(Exception,"the evaluation identified by the ID " +str(oldValueId)+ " has not been found!")
         gradNorm           = LA.norm(self.counter['gradientHistory'][traj][0].values())
         absDifference      = abs(currentLossValue-oldVal)
         relativeDifference = abs(absDifference/oldVal)
@@ -306,7 +317,7 @@ class GradientBasedOptimizer(Optimizer):
   def _removeRedundantTraj(self, trajToRemove, currentInput):
     """
       Local method to remove multiple trajectory
-      @ In, traj, int, identifier of the trajector to remove
+      @ In, trajToRemove, int, identifier of the trajector to remove
       @ In, currentInput, dict, the last variable on trajectory traj
       @ Out, None
     """
@@ -314,7 +325,7 @@ class GradientBasedOptimizer(Optimizer):
     for traj in self.optTraj:
       if traj != trajToRemove:
         for updateKey in self.optVarsHist[traj].keys():
-          inp = copy.deepcopy(self.optVarsHist[traj][updateKey])
+          inp = copy.deepcopy(self.optVarsHist[traj][updateKey]) #FIXME deepcopy needed?
           removeLocalFlag = True
           for var in self.optVars:
             if abs(inp[var] - currentInput[var]) > self.thresholdTrajRemoval:

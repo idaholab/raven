@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 def run(self, Input):
-    self.sumPlusAverageTemperature = self.sumTemperature + self.averageTemperature
+  self.sumPlusAverageTemperature = self.sumTemperature + self.averageTemperature

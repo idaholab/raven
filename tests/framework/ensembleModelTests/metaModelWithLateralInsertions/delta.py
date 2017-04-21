@@ -27,4 +27,3 @@ def initialize(self, runInfo, inputs):
 def run(self, Input):
   self.F = self.D + 1.0
   print('delta is finished '  +str(self.F) + ' ' +str(self.D))
-

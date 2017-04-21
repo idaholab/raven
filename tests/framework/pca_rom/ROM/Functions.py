@@ -29,6 +29,3 @@ def run(self,Input):
     inputVar.append(Input[varname])
   inputVar = np.asarray(inputVar)
   self.response = np.dot(senVec,inputVar)
-
-
-

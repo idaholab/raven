@@ -16,7 +16,7 @@ from CSVDiffer import CSVDiffer
 from UnorderedCSVDiffer import UnorderedCSVDiffer
 from XMLDiff import XMLDiff
 from TextDiff import TextDiff
-from ImageDiff import ImageDiff
+from RAVENImageDiff import ImageDiff
 import RavenUtils
 import os
 import subprocess
@@ -145,11 +145,13 @@ class RavenFramework(Tester):
     if not expectedFail:
       return self.rawProcessResults(moose_dir, retcode, options, output)
     else:
-      reason, output = self.rawProcessResults(moose_dir, retcode, options, output)
-      if reason == '':
-        return ('Unexpected success', output)
+      output = self.rawProcessResults(moose_dir, retcode, options, output)
+      if self.didPass():
+        self.setStatus('Unexpected success',self.bucket_fail)
+        return output
       else:
-        return ('', output)
+        self.setStatus(self.success_message, self.bucket_success)
+        return output
 
   def rawProcessResults(self, moose_dir, retcode, options, output):
     missing = []
@@ -158,7 +160,8 @@ class RavenFramework(Tester):
         missing.append(filename)
 
     if len(missing) > 0:
-      return ('CWD '+os.getcwd()+' METHOD '+os.environ.get("METHOD","?")+' Expected files not created '+" ".join(missing),output)
+      self.setStatus('CWD '+os.getcwd()+' METHOD '+os.environ.get("METHOD","?")+' Expected files not created '+" ".join(missing),self.bucket_fail)
+      return output
 
     #csv
     if len(self.specs["rel_err"]) > 0:
@@ -167,7 +170,8 @@ class RavenFramework(Tester):
       csv_diff = CSVDiffer(self.specs['test_dir'],self.csv_files)
     message = csv_diff.diff()
     if csv_diff.getNumErrors() > 0:
-      return (message,output)
+      self.setStatus(message,self.bucket_diff)
+      return output
 
     #unordered csv
     checkAbsoluteValue = False
@@ -179,7 +183,8 @@ class RavenFramework(Tester):
       ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],self.ucsv_files,absolute_check=checkAbsoluteValue)
     ucsv_same,ucsv_messages = ucsv_diff.diff()
     if not ucsv_same:
-      return ucsv_messages,output
+      self.setStatus(ucsv_messages, self.bucket_diff)
+      return output
 
     #xml
     xmlopts = {}
@@ -192,21 +197,24 @@ class RavenFramework(Tester):
     xml_diff = XMLDiff(self.specs['test_dir'],self.xml_files,**xmlopts)
     (xml_same,xml_messages) = xml_diff.diff()
     if not xml_same:
-      return (xml_messages,output)
+      self.setStatus(xml_messages, self.bucket_diff)
+      return output
 
     #unordered xml
     xmlopts['unordered'] = True
     uxml_diff = XMLDiff(self.specs['test_dir'],self.uxml_files,**xmlopts)
     (uxml_same,uxml_messages) = uxml_diff.diff()
     if not uxml_same:
-      return (uxml_messages,output)
+      self.setStatus(uxml_messages, self.bucket_diff)
+      return output
 
     #text
     textOpts = {'comment': self.specs['comment']}
     textDiff = TextDiff(self.specs['test_dir'],self.text_files,**textOpts)
     (textSame,textMessages) = textDiff.diff()
     if not textSame:
-      return (textMessages,output)
+      self.setStatus(textMessages, self.bucket_diff)
+      return output
 
     #image
     imageOpts = {}
@@ -215,6 +223,8 @@ class RavenFramework(Tester):
     imgDiff = ImageDiff(self.specs['test_dir'],self.img_files,**imageOpts)
     (imgSame,imgMessages) = imgDiff.diff()
     if not imgSame:
-      return (imgMessages,output)
+      self.setStatus(imgMessages, self.bucket_diff)
+      return output
 
-    return ('',output)
+    self.setStatus(self.success_message, self.bucket_success)
+    return output

@@ -147,14 +147,12 @@ class DTW(Metric):
     while ((i > 0) or (j > 0)):
       tb = np.argmin((D[i, j], D[i, j+1], D[i+1, j]))
       if (tb == 0):
-          i -= 1
-          j -= 1
+        i -= 1
+        j -= 1
       elif (tb == 1):
-          i -= 1
+        i -= 1
       else:
-          j -= 1
+        j -= 1
       p.insert(0, i)
       q.insert(0, j)
     return np.array(p), np.array(q)
-
-

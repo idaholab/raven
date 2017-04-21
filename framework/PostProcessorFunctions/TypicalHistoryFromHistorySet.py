@@ -250,4 +250,3 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       @ Out, , float, difference between x1 and x2
     """
     return np.average(np.absolute(x1-x2))
-

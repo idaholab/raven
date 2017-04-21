@@ -41,7 +41,8 @@ class graphObject(object):
       If no dictionary or None is given, an empty dictionary will be used
       @ In, graphDict, dict, the graph dictionary ({'Node':[connectedNode1,connectedNode2, etc.]}
     """
-    if graphDict == None: graphDict = {}
+    if graphDict == None:
+      graphDict = {}
     self.__graphDict = { k.strip():v for k, v in graphDict.iteritems()}
 
   def vertices(self):
@@ -71,7 +72,8 @@ class graphObject(object):
       @ In, vertex, string, the new vertex (e.g. 'a')
       @ Out, None
     """
-    if vertex not in self.__graphDict: self.__graphDict[vertex] = []
+    if vertex not in self.__graphDict:
+      self.__graphDict[vertex] = []
 
   def addEdge(self, edge):
     """
@@ -106,7 +108,8 @@ class graphObject(object):
     edges = []
     for vertex in self.__graphDict:
       for neighbour in self.__graphDict[vertex]:
-        if {neighbour, vertex} not in edges:edges.append({vertex, neighbour})
+        if {neighbour, vertex} not in edges:
+          edges.append({vertex, neighbour})
     return edges
 
 #   def __str__(self):
@@ -149,7 +152,8 @@ class graphObject(object):
       for vertex in graph[startVertex]:
         if vertex not in path:
           extendedPath = self.findPath(vertex, endVertex, path)
-          if extendedPath: return extendedPath
+          if extendedPath:
+            return extendedPath
     return extendedPath
 
   def isALoop(self):
@@ -170,7 +174,8 @@ class graphObject(object):
       """
       path.add(vertex)
       for neighbour in g.get(vertex, ()):
-        if neighbour in path or visit(neighbour): return True
+        if neighbour in path or visit(neighbour):
+          return True
       path.remove(vertex)
       return False
     return any(visit(v) for v in g)
@@ -185,13 +190,16 @@ class graphObject(object):
     """
     graph = self.__graphDict
     path = path + [startVertex]
-    if startVertex == endVertex: return [path]
-    if startVertex not in graph: return []
+    if startVertex == endVertex:
+      return [path]
+    if startVertex not in graph:
+      return []
     paths = []
     for vertex in graph[startVertex]:
       if vertex not in path:
         extendedPaths = self.findAllPaths(vertex,endVertex,path)
-        for p in extendedPaths: paths.append(p)
+        for p in extendedPaths:
+          paths.append(p)
     return paths
 
   def isConnected(self, verticesEncountered = None, startVertex=None):
@@ -201,7 +209,8 @@ class graphObject(object):
       @ In, startVertex, string, the starting vertex
       @ Out, isConnected, bool, is the graph fully connected?
     """
-    if verticesEncountered is None: verticesEncountered = set()
+    if verticesEncountered is None:
+      verticesEncountered = set()
     gdict = self.__graphDict
     vertices = list(gdict.keys())
     if not startVertex:
@@ -211,8 +220,10 @@ class graphObject(object):
     if len(verticesEncountered) != len(vertices):
       for vertex in gdict[startVertex]:
         if vertex not in verticesEncountered:
-          if self.isConnected(verticesEncountered, vertex): return True
-    else: return True
+          if self.isConnected(verticesEncountered, vertex):
+            return True
+    else:
+      return True
     return False
 
   def isConnectedNet(self, startVertex=None):
@@ -223,7 +234,8 @@ class graphObject(object):
       @ Out, graphNetConnected, bool, is the graph net fully connected?
     """
     graphNetConnected = self.isConnected()
-    if graphNetConnected: return graphNetConnected
+    if graphNetConnected:
+      return graphNetConnected
     # the graph is not connected (Graph theory)
     uniquePaths = self.findAllUniquePaths()
     # now check if there is at list a node that is common in all the paths
@@ -247,7 +259,8 @@ class graphObject(object):
     paths = []
     for vert in self.vertices():
       for vertex in self.vertices():
-        if vertex != vert: paths.extend(self.findAllPaths(vertex, vert))
+        if vertex != vert:
+          paths.extend(self.findAllPaths(vertex, vert))
     uniquePaths = list(utils.filterAllSubSets(paths))
     return uniquePaths
 
@@ -258,9 +271,11 @@ class graphObject(object):
       @ In, uniquePaths, list of list, optional, list of unique paths. If not present, the unique paths are going to be determined
       @ Out, singleList, list, list of vertices in "ascending" order
     """
-    if uniquePaths is None: uniquePaths = self.findAllUniquePaths()
+    if uniquePaths is None:
+      uniquePaths = self.findAllUniquePaths()
     singleList = []
-    for pathCnt in range(len(uniquePaths)): singleList = utils.mergeSequences(singleList,uniquePaths[pathCnt])
+    for pathCnt in range(len(uniquePaths)):
+      singleList = utils.mergeSequences(singleList,uniquePaths[pathCnt])
     return singleList
 
   def vertexDegree(self, vertex):
@@ -310,7 +325,8 @@ class graphObject(object):
     minDegree = sys.maxint
     for vertex in self.__graphDict:
       vertexDegree = self.vertexDegree(vertex)
-      if vertexDegree < minDegree: minDegree = vertexDegree
+      if vertexDegree < minDegree:
+        minDegree = vertexDegree
     return minDegree
 
   def maxDelta(self):
@@ -322,7 +338,8 @@ class graphObject(object):
     maxDegree = 0
     for vertex in self.__graphDict:
       vertexDegree = self.vertexDegree(vertex)
-      if vertexDegree > maxDegree: maxDegree = vertexDegree
+      if vertexDegree > maxDegree:
+        maxDegree = vertexDegree
     return maxDegree
 
   def density(self):
@@ -333,8 +350,10 @@ class graphObject(object):
     """
     V = len(self.__graphDict.keys())
     E = len(self.edges())
-    try   : dens = 2.0 * E / (V *(V - 1))
-    except: dens = 0
+    try:
+      dens = 2.0 * E / (V *(V - 1))
+    except:
+      dens = 0
     return dens
 
   def diameter(self):
@@ -352,7 +371,8 @@ class graphObject(object):
       paths = self.findAllPaths(s,e)
       sortedPath = sorted(paths, key=len)
       smallest = sortedPath[0] if len(sortedPath) > 0 else None
-      if smallest is not None: smallestPaths.append(smallest)
+      if smallest is not None:
+        smallestPaths.append(smallest)
     smallestPaths.sort(key=len)
     # longest path is at the end of list,
     # i.e. diameter corresponds to the length of this path

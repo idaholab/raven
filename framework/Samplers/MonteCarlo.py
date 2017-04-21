@@ -71,8 +71,9 @@ class MonteCarlo(ForwardSampler):
         if self.samplingType not in ['uniform']:
           self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+': specified type of samplingType is not recognized. Allowed type is: uniform')
       else:
-          self.samplingType = None
-    else: self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the samplerInit block')
+        self.samplingType = None
+    else:
+      self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the samplerInit block')
 
   def localGenerateInput(self,model,myInput):
     """
@@ -124,7 +125,8 @@ class MonteCarlo(ForwardSampler):
               lower = self.distDict[key].returnLowerBound(i)
               upper = self.distDict[key].returnUpperBound(i)
               coordinate[i] = lower + (upper - lower) * Distributions.random()
-          if reducedDim > len(coordinate): self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
+          if reducedDim > len(coordinate):
+            self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
           probabilityValue = self.distDict[key].pdf(coordinate)
           self.inputInfo['SampledVarsPb'][key] = probabilityValue
           for var in self.distributions2variablesMapping[dist]:
@@ -149,7 +151,5 @@ class MonteCarlo(ForwardSampler):
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
       @ Out, None
     """
-    if len(failedRuns)>0: self.raiseADebug('  Continuing with reduced-size Monte-Carlo sampling.')
-
-
-
+    if len(failedRuns)>0:
+      self.raiseADebug('  Continuing with reduced-size Monte-Carlo sampling.')

@@ -199,7 +199,8 @@ class HistorySetSampling(PostProcessorInterfaceBase):
         cumDerivative[t] = cumDerivative[t-1] + t_contrib
       cumDerivative[-1] = cumDerivative[normalizedVar[self.pivotParameter].shape[0]-2]
 
-    else:self.raiseAnError(RuntimeError,'type ' + self.samplingType + ' is not a valid type. Function: derivativeTimeValues')
+    else:
+      self.raiseAnError(RuntimeError,'type ' + self.samplingType + ' is not a valid type. Function: derivativeTimeValues')
 
     cumDamageInstant = np.linspace(cumDerivative[0],cumDerivative[-1],self.numberOfSamples)
 
