@@ -859,7 +859,6 @@ combined in the same figure.
           <y>1</y>
         </gridLocation>
       </plot>
-      </plot>
     </plotSettings>
   </Plot>
 </OutStreams>
@@ -868,7 +867,7 @@ combined in the same figure.
 The axis labels  are conditionally optional nodes
 that can be defined under the \xmlNode{plotSetting}. If the plot does not contain any sub-plots,
 i.e. \xmlNode{gridSpace} is not defined then the axis labels are global parameters for the figure
-which are deifned under \xmlNode{plotSettings}, otherwise the axis labels can be defined under \xmlNode{plot}
+which are defined under \xmlNode{plotSettings}, otherwise the axis labels can be defined under \xmlNode{plot}
 for each sub-plot seperately.
 \begin{itemize}
   \item \xmlNode{xlabel}, \xmlDesc{string, optional parameter}, the x axis
@@ -879,6 +878,11 @@ for each sub-plot seperately.
   the z axis label.
 \end{itemize}
 %
+
+One may also specify a \xmlNode{legend} tag that will place a legend on the plot.
+The legend accepts the same arguments as the matplotlib interface for creating a
+legend (refer to the \href{http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.legend}{matplotlib API} for details.
+Note, that only primitive datatypes are accepted in the raven input file so values like bbox\_transform, prop, and handler\_map are not available through the raven interface).
 
 As already mentioned, within the \xmlNode{plotSettings} block, at least a
 \xmlNode{plot} sub-block needs to be specified.
