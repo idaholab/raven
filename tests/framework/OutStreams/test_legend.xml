@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <RunInfo>
+    <WorkingDir>plot</WorkingDir>
+    <Sequence>sample,plot</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files/>
+  <ExternalXML node="Models" xmlToLoad="sharedModel.xml"/>
+  <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
+
+
+  <OutStreams>
+    <Plot name='test' interactive='True' overwrite='True'>
+      <filename>legendTest</filename>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
+      <plotSettings>
+        <plot>
+          <type>line</type>
+            <x>PointSet|Input|X</x>
+            <y>PointSet|Output|Z</y>
+         </plot>
+        <plot>
+          <type>line</type>
+            <x>PointSet|Input|Y</x>
+            <y>PointSet|Output|Z</y>
+            <kwargs>
+              <label>Y</label>
+            </kwargs>
+         </plot>
+        <xlabel>X</xlabel>
+        <ylabel>Y</ylabel>
+        <legend>
+          <loc>best</loc>
+          <ncol>2</ncol>
+        </legend>
+      </plotSettings>
+    </Plot>
+  </OutStreams>
+
+  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
+  <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
+
+</Simulation>
