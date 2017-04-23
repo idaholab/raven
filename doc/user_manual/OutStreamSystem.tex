@@ -859,7 +859,6 @@ combined in the same figure.
           <y>1</y>
         </gridLocation>
       </plot>
-      </plot>
     </plotSettings>
   </Plot>
 </OutStreams>
@@ -868,7 +867,7 @@ combined in the same figure.
 The axis labels  are conditionally optional nodes
 that can be defined under the \xmlNode{plotSetting}. If the plot does not contain any sub-plots,
 i.e. \xmlNode{gridSpace} is not defined then the axis labels are global parameters for the figure
-which are deifned under \xmlNode{plotSettings}, otherwise the axis labels can be defined under \xmlNode{plot}
+which are defined under \xmlNode{plotSettings}, otherwise the axis labels can be defined under \xmlNode{plot}
 for each sub-plot seperately.
 \begin{itemize}
   \item \xmlNode{xlabel}, \xmlDesc{string, optional parameter}, the x axis
@@ -879,6 +878,73 @@ for each sub-plot seperately.
   the z axis label.
 \end{itemize}
 %
+
+One may also specify a \xmlNode{legend} tag that will place a legend on the plot.
+The legend accepts the following sub-nodes:
+
+\begin{itemize}
+  \item \xmlNode{loc}, \xmlDesc{string, optional parameter}, the location where the legend will be placed on the plot. Valid values are:
+  \begin{itemize}
+    \item \xmlString{best}
+    \item \xmlString{upper right}
+    \item \xmlString{upper left}
+    \item \xmlString{lower left}
+    \item \xmlString{lower right}
+    \item \xmlString{right}
+    \item \xmlString{center left}
+    \item \xmlString{center right}
+    \item \xmlString{lower center}
+    \item \xmlString{upper center}
+    \item \xmlString{center}
+  \end{itemize}
+  \default{\xmlString{best}}
+  \item \xmlNode{ncol}, \xmlDesc{integer, optional parameter}, the number of columsn to include in the legend.
+  \default{1}
+  \item \xmlNode{fontsize}, \xmlDesc{string, optional parameter}, the font size of the legend. Valid values are:
+  \begin{itemize}
+    \item \xmlString{xx-small}
+    \item x-small
+    \item \xmlString{small}
+    \item \xmlString{medium}
+    \item \xmlString{large}
+    \item \xmlString{x-large}
+    \item \xmlString{xx-large}
+  \end{itemize}
+  \item \xmlNode{title}, \xmlDesc{string, optional parameter}, the title of the legend.
+\end{itemize}
+
+\nb The text associated to each \xmlNode{plot} tag in the legend is defined in the \xmlNode{kwargs} of that plot by specifying a \xmlNode{label} within the kwargs.
+An example usage is given below:
+
+\begin{lstlisting}[style=XML]
+<Plot ...>
+  ...
+  <plotSettings>
+    <plot>
+      <type>scatter</type>
+        <x>...</x>
+        <y>...</y>
+        <kwargs>
+          <label>dots</label>
+        </kwargs>
+     </plot>
+    <plot>
+      <type>line</type>
+        <x>...</x>
+        <y>...</y>
+        <kwargs>
+          <label>line</label>
+        </kwargs>
+     </plot>
+    <legend>
+      <loc>best</loc>
+      <ncol>2</ncol>
+    </legend>
+  </plotSettings>
+</Plot>
+\end{lstlisting}
+
+This will create a plot with both scattered points and a line. The plot will also have a legend specifying the labels ``dots'' and ``line'' in two columns with the best location selected by matplotlib.
 
 As already mentioned, within the \xmlNode{plotSettings} block, at least a
 \xmlNode{plot} sub-block needs to be specified.

@@ -898,6 +898,10 @@ class OutStreamPlot(OutStreamManager):
                 for sss in subsubsub:
                   tempDict['attributes'][sss.tag] = sss.text.strip()
             self.options[subnode.tag][subsub.tag].append(tempDict)
+          elif subsub.tag == 'legend':
+            self.options[subnode.tag][subsub.tag] = {}
+            for legendChild in subsub:
+              self.options[subnode.tag][subsub.tag][legendChild.tag] = utils.tryParse(legendChild.text.strip())
           else:
             self.options[subnode.tag][subsub.tag] = subsub.text.strip()
       if subnode.tag in 'title':
@@ -1104,6 +1108,12 @@ class OutStreamPlot(OutStreamManager):
         elif self.dim == 3 and self.zCoordinates:
           self.plt3D.set_zlabel('z')
 
+      if 'legend' in self.options['plotSettings']:
+        if 'label' not in plotSettings.get('attributes', {}):
+          if 'attributes' not in plotSettings:
+            plotSettings['attributes'] = {}
+          plotSettings['attributes']['label'] = self.outStreamTypes[pltindex] + ' ' + str(pltindex)
+
       # Let's start plotting
       #################
       #  SCATTER PLOT #
@@ -1120,6 +1130,15 @@ class OutStreamPlot(OutStreamManager):
           plotSettings['alpha'] = 'None'
         if 'linewidths' not in plotSettings.keys():
           plotSettings['linewidths'] = 'None'
+        if self.colorMapCoordinates[pltindex] != None:
+          #Find the max and min colormap values for the whole set.
+          firstKey = utils.first(self.xValues[pltindex].keys())
+          vmin = np.amin(self.colorMapValues[pltindex][firstKey])
+          vmax = np.amax(self.colorMapValues[pltindex][firstKey])
+          for key in self.xValues[pltindex].keys():
+            vmin = min(vmin,np.amin(self.colorMapValues[pltindex][key]))
+            vmax = max(vmax,np.amax(self.colorMapValues[pltindex][key]))
+          plotSettings['norm'] = matplotlib.colors.Normalize(vmin,vmax)
         for key in self.xValues[pltindex].keys():
           for xIndex in range(len(self.xValues[pltindex][key])):
             for yIndex in range(len(self.yValues[pltindex][key])):
@@ -1127,6 +1146,8 @@ class OutStreamPlot(OutStreamManager):
                                     'marker':(plotSettings['marker']),
                                     'alpha':ast.literal_eval(plotSettings['alpha']),
                                     'linewidths':ast.literal_eval(plotSettings['linewidths'])}
+              if self.colorMapCoordinates[pltindex] != None:
+                scatterPlotOptions['norm'] = plotSettings['norm']
               scatterPlotOptions.update(plotSettings.get('attributes', {}))
               if self.dim == 2:
                 if self.colorMapCoordinates[pltindex] != None:
@@ -1146,7 +1167,7 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
+                        #self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
                         try:
                           self.actcm.draw_all()
                         except:
@@ -1187,7 +1208,7 @@ class OutStreamPlot(OutStreamManager):
                           self.actcm = self.fig.colorbar(m)
                           self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
                         else:
-                          self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
+                          #self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
                           self.actcm.draw_all()
                     else:
                       scatterPlotOptions['cmap'] = plotSettings['cmap']
@@ -1878,6 +1899,9 @@ class OutStreamPlot(OutStreamManager):
           self.actPlot = customFunctionCall(**kwargs)
         except AttributeError as ae:
           self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'plt.' + self.outStreamTypes[pltindex] + '(' + commandArgs + ')')
+
+    if 'legend' in self.options['plotSettings']:
+      plt.legend(**self.options['plotSettings']['legend'])
 
     # SHOW THE PICTURE
     plt.draw()
