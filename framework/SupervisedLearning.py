@@ -2635,7 +2635,7 @@ class ARMA(superVisedLearning):
     Phi, Theta, Cov = self.__armaParamAssemb__(x,p,q,N)
     for n1 in range(N):
       for n2 in range(N):
-        if Cov[n1,n2] <0:
+        if Cov[n1,n2] < 0:
           lkHood = sys.float_info.max
           return lkHood
 
