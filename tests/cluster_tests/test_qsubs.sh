@@ -10,6 +10,7 @@ popd
 
 wait_lines ()
 {
+    echo Return code: $?
     LS_DATA="$1"
     COUNT="$2"
     NAME="$3"
