@@ -1442,7 +1442,6 @@ class Code(Model):
            also 'additionalEdits', similar dictionary for non-variables
       @ Out, createNewInput, tuple, return the new input in a tuple form
     """
-    kwargs['executable'] = self.executable
     found = False
     newInputSet = copy.deepcopy(currentInput)
 
@@ -1455,7 +1454,6 @@ class Code(Model):
     if not found:
       self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    kwargs['outfile'] = 'out~'+newInputSet[index].getBase()
     subDirectory = os.path.join(self.workingDir,kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
 
     if not os.path.exists(subDirectory):
@@ -1556,6 +1554,7 @@ class Code(Model):
     command = command.replace("%METHOD%",kwargs['METHOD'])
     command = command.replace("%NUM_CPUS%",kwargs['NUM_CPUS'])
 
+    self.raiseAMessage('Execution command submitted:',command)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=metaData['subDirectory'], env=localenv)
@@ -1567,27 +1566,34 @@ class Code(Model):
     returnCode = process.returncode
     # procOutput = process.communicate()[0]
 
-    if 'checkForOutputFailure' in dir(self.code):
-      returnCode = self.code.checkForOutputFailure(codeLogFile, metaData['subDirectory'])
+    ## If the returnCode is already non-zero, we should maintain our current
+    ## value as it may have some meaning that can be parsed at some point, so
+    ## only set the returnCode to -1 in here if we did not already catch the
+    ## failure.
+    if returnCode == 0 and 'checkForOutputFailure' in dir(self.code):
+      codeFailed = self.code.checkForOutputFailure(codeLogFile, metaData['subDirectory'])
+      if codeFailed:
+        returnCode = -1
+
+    ## We should try and use the output the code interface gives us first, but
+    ## in lieu of that we should fall back on the standard output of the code
+    ## (Which was deleted above in some cases, so I am not sure if this was
+    ##  an intentional design by the original developer or accidental and should
+    ##  be revised).
+    ## My guess is that every code interface implements this given that the code
+    ## below always adds .csv to the filename and the standard output file does
+    ## not have an extension. - (DPM 4/6/2017)
+    outputFile = codeLogFile
+    if 'finalizeCodeOutput' in dir(self.code):
+      finalCodeOutputFile = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
+      if finalCodeOutputFile:
+        outputFile = finalCodeOutputFile
 
     ## If the run was successful
     if returnCode == 0:
-      ## We should try and use the output the code interface gives us first, but
-      ## in lieu of that we should fall back on the standard output of the code
-      ## (Which was deleted above in some cases, so I am not sure if this was
-      ##  an intentional design by the original developer or accidental and should
-      ##  be revised).
-      ## My guess is that every code interface implements this given that the code
-      ## below always adds .csv to the filename and the standard output file does
-      ## not have an extension. - (DPM 4/6/2017)
-      if 'finalizeCodeOutput' in dir(self.code):
-        finalCodeOutputFile = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
-        if finalCodeOutputFile:
-          outputFile = finalCodeOutputFile
-        else:
-          outputFile = codeLogFile
 
       returnDict = {}
+      ## This may be a tautology at this point --DPM 4/12/17
       if outputFile is not None:
         outFile = Files.CSV()
         ## Should we be adding the file extension here?
@@ -1720,6 +1726,30 @@ class Code(Model):
     prefix = kwargs['prefix'] if 'prefix' in kwargs else None
     uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
 
+    ## These two are part of the current metadata, so they will be added before
+    ## the job is started, so that they will be captured in the metadata and match
+    ## the current behavior of the system. If these are not desired, then this
+    ## code can be moved to later.  -- DPM 4/12/17
+    kwargs['executable'] = self.executable
+    kwargs['outfile'] = None
+
+    ## These two are part of the current metadata, so they will be added before
+    ## the job is started, so that they will be captured in the metadata and match
+    ## the current behavior of the system. If these are not desired, then this
+    ## code can be moved to later.  -- DPM 4/12/17
+    kwargs['executable'] = self.executable
+    kwargs['outfile'] = None
+
+    #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
+    #  objects.  However, this might require some updating of many Code Interfaces as well.
+    for index, inputFile in enumerate(myInput):
+      if inputFile.getExt() in self.code.getInputExtension():
+        kwargs['outfile'] = 'out~'+myInput[index].getBase()
+        break
+    if kwargs['outfile'] is None:
+      self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
+                                + self.subType +': ' + ' '.join(self.code.getInputExtension()))
+
     ## These kwargs are updated by createNewInput, so the job either should not
     ## have access to the metadata, or it needs to be updated from within the
     ## evaluateSample function, which currently is not possible since that
@@ -1746,6 +1776,7 @@ class Code(Model):
     ## here: i.e., myInput[0], either this type of model should only take a
     ## single input or this job needs to be able to handle multiple inputs.
     ## -- DPM 4/11/17
+    self.raiseAMessage('job "' + str(prefix) + '" submitted!')
 
 class PostProcessor(Model, Assembler):
   """

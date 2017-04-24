@@ -183,7 +183,25 @@ class DynamicEventTree(Grid):
     # Read the branch info from the parent calculation (just ended calculation)
     # This function stores the information in the dictionary 'self.actualBranchInfo'
     # If no branch info, this history is concluded => return
-    if not self.__readBranchInfo(jobObject.output, jobObject.getWorkingDir()):
+
+    ## There are two ways to get at the working directory from the job instance
+    ## and both feel a bit hacky and fragile to changes in the Runner classes.
+    ## They are both listed below and the second inevitably stems from the first.
+    ## I am wondering if there is a reason we cannot use the model.workingDir
+    ## from above here? Granted the job instance should have a snapshot of
+    ## whatever the model's current working directory was for that evaluation,
+    ## and it could have changed in the meantime, so I will keep this as is for
+    ## now, but note this should be re-evaluated in the future. -- DPM 4/12/17
+    # codeModel = jobObject.args[0]
+    # jobWorkingDir = codeModel.workingDir
+    # jobWorkingDir = jobObject.args[3]['WORKING_DIR']
+
+    ## This appears to be the same, so I am switching to the model's workingDir
+    ## since it is more directly available and less change to how data is stored
+    ## in the args of a job instance. -- DPM 4/12/17
+    jobWorkingDir = self.workingDir
+
+    if not self.__readBranchInfo(jobObject.getMetadata()['outfile'], jobWorkingDir):
       parentNode.add('completedHistory', True)
       return False
     # Collect the branch info in a multi-level dictionary
@@ -665,7 +683,11 @@ class DynamicEventTree(Grid):
     # If no inputs are present in the queue => a branch is finished
     if not newerInput:
       self.raiseADebug('A Branch ended!')
-    return newerInput
+    ## I think the information in newerInput is stored in the inputInfo, maybe?
+    ## So all we need to return here is the input that came in?  I don't know
+    ## what I am doing, but this seems to work for other samplers. -- DPM 4/10/17
+    # return newerInput
+    return myInput
 
   def _generateDistributions(self,availableDist,availableFunc):
     """
