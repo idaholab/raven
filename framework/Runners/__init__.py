@@ -25,7 +25,7 @@ from __future__ import absolute_import
 ## 'from Runners.Runner import Runner' outside
 ## of this submodule
 from .Runner import Runner
-from .ExternalRunner import ExternalRunner
+# from .ExternalRunner import ExternalRunner
 from .InternalRunner import InternalRunner
 from .SharedMemoryRunner import SharedMemoryRunner
 from .DistributedMemoryRunner import DistributedMemoryRunner
@@ -35,4 +35,4 @@ from .DistributedMemoryRunner import DistributedMemoryRunner
 # from .Factory import returnClass
 
 # We should not really need this as we do not use wildcard imports
-__all__ = ['Runner', 'ExternalRunner', 'InternalRunner', 'SharedMemoryRunner', 'DistributedMemoryRunner']
+__all__ = ['Runner', 'InternalRunner', 'SharedMemoryRunner', 'DistributedMemoryRunner']
