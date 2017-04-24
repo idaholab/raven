@@ -27,6 +27,8 @@ with open(args.input_file) as rf:
   indata = rf.readlines()
   for line in indata:
     # parse input, assign values to variables
+    if line.strip().startswith("#"):
+      continue
     variable, value = line.split("=")
     exec('%s = %f' % (variable.strip(),float(value.strip())))
 rf.close()
