@@ -93,7 +93,7 @@ commented.
 \label{Beta}
 The \distname{Beta} distribution is parameterized by two positive shape parameters, denoted by
 $\alpha$ and $\beta$, that appear as exponents of the random variable. Its default support
-(domain) is $x \in (0, 1)$.
+(domain) is $x \in [0, 1]$.
 %
 The distribution domain can be changed, specifying new boundaries, to fit the user's needs.
 %
@@ -213,7 +213,7 @@ probability distributions.
 The common exponential distribution and $\chi$-squared distribution are special
 cases of the gamma distribution.
 %
-Its default support is $x \in (0,+\infty)$.
+Its default support is $x \in [0,+\infty]$.
 
 \specBlock{a}{Gamma}
 %
@@ -257,7 +257,7 @@ normal distribution with a CDF that is an instance of a logistic function ($Cdf(
 It resembles the normal distribution in shape but has heavier tails (higher
 kurtosis).
 %
-Its default support is $x \in (-\infty,+\infty)$.
+Its default support is $x \in [-\infty,+\infty]$.
 
 \specBlock{a}{Logistic}
 %
@@ -298,7 +298,7 @@ Example:
 The \distname{LogNormal} distribution is a distribution with the
 logarithm of the random variable being normally distributed.
 %
-Its default support is $x \in (0, +\infty)$.
+Its default support is $x \in [0, +\infty]$.
 
 \specBlock{a}{LogNormal}
 %
@@ -364,7 +364,7 @@ conditions, the mean of many random variables independently drawn from the same
 distribution is distributed approximately normally, irrespective of the form of
 the original distribution.
 %
-Its default support is $x \in (-\infty, +\infty)$.
+Its default support is $x \in [-\infty, +\infty]$.
 
 \specBlock{a}{Normal}
 %
@@ -411,7 +411,7 @@ Like the uniform distribution, upper and lower limits are ``known,'' but a
 %
 It has been recommended as a ``proxy'' for the beta distribution.
 %
-Its default support is $min \le x \le max$.
+Its default support is $x \in [min,max]$.
 
 \specBlock{a}{Triangular}
 %
@@ -457,7 +457,7 @@ rectangular-shaped PDF.
 It is often used where the distribution is only vaguely known, but upper and
 lower limits are known.
 %
-Its default support is $lower \le x \le upper$.
+Its default support is $x \in [lower,upper]$.
 
 \specBlock{a}{Uniform}
 %
