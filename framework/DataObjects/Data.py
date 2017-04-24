@@ -80,6 +80,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._dataParameters['inParam'     ] = []                         # inParam list
     self._dataParameters['outParam'    ] = []                         # outParam list
     self._dataParameters['hierarchical'] = False                      # the structure of this data is hierarchical?
+    self._dataParameters['typeMetadata'] = {}                         # store the type of the metadata in order to accellerate the collecting
     self._toLoadFromList                 = []                         # loading source
     self._dataContainer                  = {'inputs':{},'unstructuredInputs':{}, 'outputs':{}} # Dict that contains the actual data: self._dataContainer['inputs'] contains the input space in scalar form. self._dataContainer['output'] the output space
     #self._unstructuredInputContainer     = {}                         # Dict that contains the input space in unstrctured form (e.g. 1-D arrays)
@@ -904,7 +905,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, options, dict, optional, dictionary of options
       @ Out, None
     """
-    self._updateSpecializedMetadata(name,value,options)
+    dtype = self.__getMetadataType(name,value)
+    self._updateSpecializedMetadata(name,value,dtype,options)
 
   def addNodeInTreeMode(self,tsnode,options):
     """
@@ -944,7 +946,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     outputNode.text = ','.join(outKeys)
     filenameNode = ET.SubElement(root,'inputFilename')
     filenameNode.text = filenameLocal + '.csv'
-    if len(self._dataContainer['metadata'].keys()) > 0:
+    if len(self._dataContainer['metadata']) > 0:
       #write metadata as well_known_implementations
       metadataNode = ET.SubElement(root,'metadata')
       submetadataNodes = []
@@ -1146,3 +1148,18 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       self.raiseAnError(RuntimeError,'unexpected variable '+ var)
     return variablesToPrint
+
+  def __getMetadataType(self,name,value):
+    """
+      Utility method to get the metadata type. If the type is not stored in
+      the self._dataParameters['typeMetadata'] this method will add it
+      @ In, name, str, the metadata name
+      @ In, value, object, the metadata value to analyze
+      @ Out, valueType, type, the metadata type
+    """
+    try:
+      valueType = self._dataParameters['typeMetadata'][name]
+    except KeyError:
+      valueType = None if utils.checkTypeRecursively(value) not in ['str','unicode','bytes'] else object
+      self._dataParameters['typeMetadata'][name] = valueType
+    return valueType
