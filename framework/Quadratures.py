@@ -472,7 +472,7 @@ class SmolyakSparseGrid(SparseGrid):
       #finishedJobs = handler.getFinished(prefix=prefix) #FIXME this is by far the most expensive line in this method
       for job in finishedJobs:
         if job.getReturnCode() == 0:
-          new = job.getEvaluation()[2]
+          new = job.getEvaluation()[1]
           for i in range(len(new[0])):
             newpt = tuple(new[0][i])
             newwt = new[1][i]*float(str(job.identifier).replace(prefix, ""))
@@ -488,7 +488,7 @@ class SmolyakSparseGrid(SparseGrid):
           cof=self.c[j]
           idx = self.indexSet[j]
           m=self.quadRule(idx)+1
-          handler.addJob(None, None, (m,),self.tensorGrid,prefix+str(cof),modulesToImport = self.mods)
+          handler.addJob((m,),self.tensorGrid,prefix+str(cof),modulesToImport = self.mods)
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:
           break #FIXME this is significantly the second-most expensive line in this method
@@ -542,7 +542,7 @@ class SmolyakSparseGrid(SparseGrid):
         #load new inputs, up to 100 at a time
         for k in range(min(handler.availability(),N-1-i)):
           i+=1
-          handler.addJob(None, None, (N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i),modulesToImport = self.mods)
+          handler.addJob((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i),modulesToImport = self.mods)
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:
           break

@@ -44,22 +44,12 @@ class DistributedMemoryRunner(InternalRunner):
     Class for running internal objects in distributed memory fashion using
     ppserver
   """
-  def __init__(self, messageHandler, ppserver, stepInput, sampledVars, args, functionToRun, frameworkModules = [], identifier=None, metadata=None, functionToSkip = None, uniqueHandler = "any"):
+  def __init__(self, messageHandler, ppserver, args, functionToRun, frameworkModules = [], identifier=None, metadata=None, functionToSkip = None, uniqueHandler = "any"):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
         handler object
       @ In, ppserver, ppserver, instance of the ppserver object
-      @ In, stepInput, list, list of Inputs used by the step calling this job.
-        e.g., the objects pointed to by this block of the input file:
-         <Input></Input>
-      @ In, sampledVars, dict, a dictionary where the key is the name of the
-        perturbed variable and the value is its new perturbed value for this
-        job. This information is useful so that the job can easily report what
-        it modified. In many cases this information is redundantly held in the
-        args parameter, but we cannot guarantee that, so here we store it so the
-        job can easily identify it and does not have to parse it out. I would
-        hope we can re-evaluate this redundant encoding at some point.
       @ In, args, dict, this is a list of arguments that will be passed as
         function parameters into whatever method is stored in functionToRun.
         e.g., functionToRun(*args)
@@ -84,7 +74,7 @@ class DistributedMemoryRunner(InternalRunner):
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    super(DistributedMemoryRunner, self).__init__(messageHandler, stepInput, sampledVars, args, functionToRun, identifier, metadata, uniqueHandler)
+    super(DistributedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler)
 
     ## Just in case, remove duplicates before storing to save on computation
     ## later

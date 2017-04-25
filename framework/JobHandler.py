@@ -287,19 +287,9 @@ class JobHandler(MessageHandler.MessageUser):
       ## http://stackoverflow.com/questions/29082268/python-time-sleep-vs-event-wait
       time.sleep(self.sleepTime)
 
-  def addJob(self, stepInput, sampledVars, args, functionToRun, identifier, metadata=None, modulesToImport = [], forceUseThreads = False, uniqueHandler="any", clientQueue = False):
+  def addJob(self, args, functionToRun, identifier, metadata=None, modulesToImport = [], forceUseThreads = False, uniqueHandler="any", clientQueue = False):
     """
       Method to add an internal run (function execution)
-      @ In, stepInput, list, list of Inputs used by the step calling this job.
-        e.g., the objects pointed to by this block of the input file:
-         <Input></Input>
-      @ In, sampledVars, dict, a dictionary where the key is the name of the
-        perturbed variable and the value is its new perturbed value for this
-        job. This information is useful so that the job can easily report what
-        it modified. In many cases this information is redundantly held in the
-        args parameter, but we cannot guarantee that, so here we store it so the
-        job can easily identify it and does not have to parse it out. I would
-        hope we can re-evaluate this redundant encoding at some point.
       @ In, args, dict, this is a list of arguments that will be passed as
         function parameters into whatever method is stored in functionToRun.
         e.g., functionToRun(*args)
@@ -326,15 +316,14 @@ class JobHandler(MessageHandler.MessageUser):
       self.__initializeParallelPython()
 
     if self.ppserver is None or forceUseThreads:
-      internalJob = Runners.SharedMemoryRunner(self.messageHandler, stepInput,
-                                               sampledVars, args, functionToRun,
+      internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
+                                               functionToRun,
                                                identifier, metadata,
                                                uniqueHandler)
     else:
       skipFunctions = [utils.metaclass_insert(abc.ABCMeta,BaseType)]
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
-                                                    self.ppserver, stepInput,
-                                                    sampledVars, args,
+                                                    self.ppserver, args,
                                                     functionToRun,
                                                     modulesToImport, identifier,
                                                     metadata, skipFunctions,
@@ -346,21 +335,11 @@ class JobHandler(MessageHandler.MessageUser):
         self.__clientQueue.append(internalJob)
       self.__submittedJobs.append(identifier)
 
-  def addClientJob(self, stepInput, sampledVars, args, functionToRun,identifier,metadata=None, uniqueHandler="any"):
+  def addClientJob(self, args, functionToRun,identifier,metadata=None, uniqueHandler="any"):
     """
       Method to add an internal run (function execution), without consuming
       resources (free spots). This can be used for client handling (see
       metamodel)
-      @ In, stepInput, list, list of Inputs used by the step calling this job.
-        e.g., the objects pointed to by this block of the input file:
-         <Input></Input>
-      @ In, sampledVars, dict, a dictionary where the key is the name of the
-        perturbed variable and the value is its new perturbed value for this
-        job. This information is useful so that the job can easily report what
-        it modified. In many cases this information is redundantly held in the
-        args parameter, but we cannot guarantee that, so here we store it so the
-        job can easily identify it and does not have to parse it out. I would
-        hope we can re-evaluate this redundant encoding at some point.
       @ In, args, dict, this is a list of arguments that will be passed as
         function parameters into whatever method is stored in functionToRun.
         e.g., functionToRun(*args)

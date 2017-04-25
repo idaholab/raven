@@ -48,21 +48,11 @@ class SharedMemoryRunner(InternalRunner):
     Class for running internal objects in a threaded fashion using the built-in
     threading library
   """
-  def __init__(self, messageHandler, stepInput, sampledVars, args, functionToRun, identifier=None, metadata=None, uniqueHandler = "any"):
+  def __init__(self, messageHandler, args, functionToRun, identifier=None, metadata=None, uniqueHandler = "any"):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
         handler object
-      @ In, stepInput, list, list of Inputs used by the step calling this job.
-        e.g., the objects pointed to by this block of the input file:
-         <Input></Input>
-      @ In, sampledVars, dict, a dictionary where the key is the name of the
-        perturbed variable and the value is its new perturbed value for this
-        job. This information is useful so that the job can easily report what
-        it modified. In many cases this information is redundantly held in the
-        args parameter, but we cannot guarantee that, so here we store it so the
-        job can easily identify it and does not have to parse it out. I would
-        hope we can re-evaluate this redundant encoding at some point.
       @ In, args, dict, this is a list of arguments that will be passed as
         function parameters into whatever method is stored in functionToRun.
         e.g., functionToRun(*args)
@@ -80,7 +70,7 @@ class SharedMemoryRunner(InternalRunner):
     """
     ## First, allow the base class handle the commonalities
     # we keep the command here, in order to have the hook for running exec code into internal models
-    super(SharedMemoryRunner, self).__init__(messageHandler, stepInput, sampledVars, args, functionToRun, identifier, metadata, uniqueHandler)
+    super(SharedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler)
 
     ## Other parameters manipulated internally
     self.subque = collections.deque()

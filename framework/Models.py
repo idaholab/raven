@@ -396,11 +396,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addJob(myInput[0], kwargs['SampledVars'], (self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
-    ## TODO: We should really evaluate the efficacy of grabbing the first input
-    ## here: i.e., myInput[0], either this type of model should only take a
-    ## single input or this job needs to be able to handle multiple inputs.
-    ## -- DPM 4/11/17
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
 
   def collectOutput(self,collectFrom,storeTo,options=None):
     """
@@ -556,7 +552,7 @@ class Dummy(Model):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-    return {'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))}
+    return (inRun,{'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))})
 
   def collectOutput(self,finishedJob,output,options=None):
     """
@@ -569,7 +565,7 @@ class Dummy(Model):
     if finishedJob.getEvaluation() == -1:
       self.raiseAnError(AttributeError,"No available Output to collect")
 
-    _,sampledVars,outputDict = finishedJob.getEvaluation()
+    sampledVars,outputDict = finishedJob.getEvaluation()
 
     if type(outputDict).__name__ == "tuple":
       outputeval = outputDict[0]
@@ -584,6 +580,9 @@ class Dummy(Model):
       if options is not None:
         optionsIn.update(options)
       self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
+      # print('8'*80)
+      # print(exportDict)
+      # print('8'*80)
       output.addGroupDataObjects(optionsIn,exportDict,False)
     else:
       self.collectOutputFromDict(exportDict,output,options)
@@ -965,7 +964,7 @@ class ROM(Dummy):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-    return self._externalRun(inRun)
+    return inRun,self._externalRun(inRun)
 #
 #
 #
@@ -1159,7 +1158,7 @@ class ExternalModel(Dummy):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
-    return self._externalRun(inRun,Input[1],)
+    return (inRun,self._externalRun(inRun,Input[1],))
 
   def collectOutput(self,finishedJob,output,options=None):
     """
@@ -1172,7 +1171,7 @@ class ExternalModel(Dummy):
     if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError,"No available Output to collect")
 
-    _, _, evaluatedOutput = finishedJob.getEvaluation()
+    _, evaluatedOutput = finishedJob.getEvaluation()
     instanciatedSelf = evaluatedOutput[1]
     outcomes         = evaluatedOutput[0]
 
@@ -1482,7 +1481,7 @@ class Code(Model):
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
         @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+           a mandatory key is the sampledVars that contains a dictionary {'name variable':value}
         @ Out, returnValue, dict, This holds the output information of the evaluated sample.
     """
     inputFiles = self.createNewInput(myInput, samplerType, **kwargs)
@@ -1628,7 +1627,7 @@ class Code(Model):
         for f in fileList:
           os.remove(f)
 
-      return returnDict
+      return (kwargs['SampledVars'],returnDict)
     else:
       self.raiseAMessage(" Process Failed "+str(command)+" returnCode "+str(returnCode))
       if os.path.exists(outputFile):
@@ -1650,7 +1649,7 @@ class Code(Model):
     if finishedJob.getEvaluation() == -1:
       self.raiseAnError(AttributeError,"No available Output to collect")
 
-    _,sampledVars,outputDict = finishedJob.getEvaluation()
+    sampledVars,outputDict = finishedJob.getEvaluation()
 
     ## The single run does not perturb data, so we must get the input space from
     ## somewhere else, I am punting on this now and stuffing all of the output
@@ -1733,13 +1732,6 @@ class Code(Model):
     kwargs['executable'] = self.executable
     kwargs['outfile'] = None
 
-    ## These two are part of the current metadata, so they will be added before
-    ## the job is started, so that they will be captured in the metadata and match
-    ## the current behavior of the system. If these are not desired, then this
-    ## code can be moved to later.  -- DPM 4/12/17
-    kwargs['executable'] = self.executable
-    kwargs['outfile'] = None
-
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
     #  objects.  However, this might require some updating of many Code Interfaces as well.
     for index, inputFile in enumerate(myInput):
@@ -1771,11 +1763,7 @@ class Code(Model):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addJob(myInput[0], kwargs['SampledVars'], (self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
-    ## TODO: We should really evaluate the efficacy of grabbing the first input
-    ## here: i.e., myInput[0], either this type of model should only take a
-    ## single input or this job needs to be able to handle multiple inputs.
-    ## -- DPM 4/11/17
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
     self.raiseAMessage('job "' + str(prefix) + '" submitted!')
 
 class PostProcessor(Model, Assembler):
@@ -1928,11 +1916,7 @@ class PostProcessor(Model, Assembler):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addJob( myInput[0], kwargs['SampledVars'], (self, myInput, samplerType, kwargs), self.__class__.evaluateSample, str(0), modulesToImport=self.mods, forceUseThreads=True)
-    ## TODO: We should really evaluate the efficacy of grabbing the first input
-    ## here: i.e., myInput[0], either this type of model should only take a
-    ## single input or this job needs to be able to handle multiple inputs.
-    ## -- DPM 4/11/17
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, str(0), modulesToImport=self.mods, forceUseThreads=True)
 
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
@@ -1947,7 +1931,7 @@ class PostProcessor(Model, Assembler):
     Input = self.createNewInput(myInput,samplerType, **kwargs)
     if Input is not None and len(Input) == 0:
       Input = None
-    return self.interface.run(Input)
+    return (Input, self.interface.run(Input))
 
   def collectOutput(self,finishedjob,output,options=None):
     """
@@ -2311,7 +2295,7 @@ class EnsembleModel(Dummy, Assembler):
     """
     if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
-    out = finishedJob.getEvaluation()[2]
+    out = finishedJob.getEvaluation()[1]
     exportDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
     exportDictTargetEvaluation = {}
     outcomes, targetEvaluations = out
@@ -2374,7 +2358,7 @@ class EnsembleModel(Dummy, Assembler):
     Input = self.createNewInput(myInput[0], samplerType, **kwargs)
 
     ## Unpack the specifics for this class, namely just the jobHandler
-    return self._externalRun(Input,jobHandler)
+    return (Input,self._externalRun(Input,jobHandler))
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
@@ -2403,12 +2387,7 @@ class EnsembleModel(Dummy, Assembler):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addClientJob(myInput[0], kwargs['SampledVars'], (self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix)
-    # jobHandler.addClientJob(((myInput,samplerType,jobHandler,kwargs),), self.__externalRun,str(Input['prefix']))
-    ## TODO: We should really evaluate the efficacy of grabbing the first input
-    ## here: i.e., myInput[0], either this type of model should only take a
-    ## single input or this job needs to be able to handle multiple inputs.
-    ## -- DPM 4/11/17
+    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix)
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
     """
