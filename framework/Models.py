@@ -1636,7 +1636,7 @@ class Code(Model):
         self.raiseAMessage(" No output "+outputFile)
 
       ## If you made it here, then the run must have failed
-      return None
+      return (kwargs['SampledVars'],None)
 
   def collectOutput(self,finishedJob,output,options=None):
     """
