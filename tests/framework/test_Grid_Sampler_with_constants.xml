@@ -65,10 +65,10 @@
           <distribution>DistTri1</distribution>
           <grid construction="custom" type="CDF">0.5</grid>
       </variable>
-      <constant name="aConstant"> 20021986 </constant>
       <variable name="multiplyTheConstantByTwo">
           <function>multiply_the_constant</function>
       </variable>
+      <constant name="aConstant"> 20021986 </constant>
     </Grid>
   </Samplers>
 
