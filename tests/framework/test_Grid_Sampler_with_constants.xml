@@ -7,8 +7,14 @@
     <classesTested>Sampler.Grid</classesTested>
     <description>
        This test is aimed to check the capability of RAVEN to input constant variables values. This
-       test is valid to demonstrate this capability for any Sampler in RAVEN.
+       test is valid to demonstrate this capability for any Sampler in RAVEN. In addition, it shows how
+       the constant variables can be used in conjunction with a function.
     </description>
+    <revisions>
+      <revision author="alfoa" date="2017-04-24">
+        added a function to show how the constant variables can be used in conjunction with a function
+      </revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -59,17 +65,20 @@
           <distribution>DistTri1</distribution>
           <grid construction="custom" type="CDF">0.5</grid>
       </variable>
+      <variable name="multiplyTheConstantByTwo">
+          <function>multiply_the_constant</function>
+      </variable>
       <constant name="aConstant"> 20021986 </constant>
     </Grid>
   </Samplers>
 
   <DataObjects>
     <PointSet name="outGrid">
-      <Input>VarGauss1,VarGauss2,VarTri1,aConstant</Input>
+      <Input>VarGauss1,VarGauss2,VarTri1,aConstant,multiplyTheConstantByTwo</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="dummyIN">
-      <Input>VarGauss1,VarGauss2,VarTri1,aConstant</Input>
+      <Input>VarGauss1,VarGauss2,VarTri1,aConstant,multiplyTheConstantByTwo</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
   </DataObjects>
@@ -95,5 +104,12 @@
   <Databases>
     <HDF5 name="test_DummyModel_db" readMode="overwrite"/>
   </Databases>
+
+  <Functions>
+    <External file="multiply_the_constant.py" name="multiply_the_constant">
+        <variable>aConstant</variable>
+        <variable>TestOnePoint</variable>
+    </External>
+  </Functions>
 
 </Simulation>
