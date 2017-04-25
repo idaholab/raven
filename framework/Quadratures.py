@@ -535,7 +535,7 @@ class SmolyakSparseGrid(SparseGrid):
       finishedJobs = handler.getFinished(jobIdentifier=prefix)
       for job in finishedJobs:
         if job.getReturnCode() == 0:
-          self.c[int(str(job.identifier).replace(prefix, ""))]=job.getEvaluation()[2]
+          self.c[int(str(job.identifier).replace(prefix, ""))]=job.getEvaluation()[1]
         else:
           self.raiseAMessage('Sparse grid index '+job.identifier+' failed...')
       if i<N-1:

@@ -354,8 +354,8 @@ class JobHandler(MessageHandler.MessageUser):
         If uniqueHandler == 'any', every "client" can get this runner.
       @ Out, None
     """
-    self.addJob(stepInput, sampledVars, args, functionToRun, identifier,
-                metadata, forceUseThreads = True, uniqueHandler = uniqueHandler,
+    self.addJob(args, functionToRun, identifier, metadata,
+                forceUseThreads = True, uniqueHandler = uniqueHandler,
                 clientQueue = True)
 
   def isFinished(self):
