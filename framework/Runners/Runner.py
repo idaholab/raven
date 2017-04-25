@@ -50,8 +50,6 @@ class Runner(MessageHandler.MessageUser):
       @ Out, None
     """
     self.messageHandler = messageHandler
-    self.stepInput      = copy.copy(stepInput)
-    self.sampledVars    = copy.copy(sampledVars)
     self.identifier     = 'generalOut'  ## Default identifier name
     self.metadata       = copy.copy(metadata)
     self.uniqueHandler  = uniqueHandler
