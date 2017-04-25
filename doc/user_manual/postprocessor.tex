@@ -1282,7 +1282,7 @@ of equal size to \xmlNode{outputLen} might have unexpected results.  In general,
 
 \paragraph{Method: dataObjectLabelFilter}
 This Post-Processor allows to filter the portion of a dataObject, either PointSet or HistorySet, with a given clustering label.
-A clustering algorithm associate a unique cluster label to each element of the dataObject (PointSet or HistorySet). 
+A clustering algorithm associates a unique cluster label to each element of the dataObject (PointSet or HistorySet). 
 This cluster label is a natural number ranging from $0$ to $N$ where $N$ is the number of obtained clusters. 
 Recall that some clustering algorithms (e.g., K-Means) receive $N$ as input while others (e.g., Mean-Shift) determine $N$ after clustering has been performed. 
 Thus, this Post-Processor is naturally employed after a data-mining clustering techniques has been performed on a dataObject so that each clusters 
