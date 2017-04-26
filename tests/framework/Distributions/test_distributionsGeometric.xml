@@ -6,7 +6,7 @@
     <created>2017-04-26</created>
     <classesTested>Distributions.Geometric</classesTested>
     <description>
-       This test is aimed to test the capability of RAVEN to use 1D Laplace distributions.
+       This test is aimed to test the capability of RAVEN to use 1D Geometric distribution.
     </description>
   </TestInfo>
 
