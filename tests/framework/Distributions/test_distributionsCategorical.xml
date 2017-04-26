@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework.categorical</name>
+    <name>framework.Distributions.categorical</name>
     <author>mandd</author>
     <created>2016-11-02</created>
     <classesTested>Distributions.Categorical</classesTested>
@@ -15,17 +15,17 @@
 
   <RunInfo>
     <WorkingDir>test_categorical/</WorkingDir>
-    <Sequence>MCrun,PP_MC,GridRun,PP_Grid,OutStreams</Sequence> 
+    <Sequence>MCrun,PP_MC,GridRun,PP_Grid,OutStreams</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-  
+
   <Files>
     <Input name="output_basicStatistics_Grid.csv" type="">output_basicStatistics_Grid.csv</Input>
     <Input name="output_basicStatistics_MC.csv"   type="">output_basicStatistics_MC.csv</Input>
   </Files>
 
-  <Steps>   
-    <MultiRun  name="MCrun"> 
+  <Steps>
+    <MultiRun  name="MCrun">
       <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
       <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
       <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
@@ -36,7 +36,7 @@
       <Model  class="Models"       type="PostProcessor" >BS</Model>
       <Output class="Files"        type=""              >output_basicStatistics_MC.csv</Output>
     </PostProcess>
-    <MultiRun  name="GridRun"> 
+    <MultiRun  name="GridRun">
       <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
       <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
       <Sampler class="Samplers"    type="MonteCarlo"    >Grid</Sampler>
@@ -96,11 +96,11 @@
     <Print name="MC_dump">
       <type>csv</type>
       <source>PointSet_MC</source>
-    </Print>  
+    </Print>
     <Print name="Grid_dump">
       <type>csv</type>
       <source>PointSet_Grid</source>
-    </Print>      
+    </Print>
     <Plot  name="plotXMC" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
