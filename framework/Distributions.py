@@ -3599,6 +3599,8 @@ __interFaceDict['Custom1D'          ] = Custom1D
 __interFaceDict['NDInverseWeight'   ] = NDInverseWeight
 __interFaceDict['NDCartesianSpline' ] = NDCartesianSpline
 __interFaceDict['MultivariateNormal'] = MultivariateNormal
+__interFaceDict['Laplace'           ] = Laplace
+__interFaceDict['Geometric'         ] = Geometric
 __knownTypes                          = __interFaceDict.keys()
 
 def knownTypes():
