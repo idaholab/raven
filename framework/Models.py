@@ -1518,14 +1518,15 @@ class Code(Model):
 
     ## This is the preferred alternative, but we should ensure that it works
     ## on all systems
+    sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
     localenv = dict(os.environ)
-    localenv['PWD'] = os.path.join(os.getcwd(),metaData['subDirectory'])
+    localenv['PWD'] = sampleDirectory
 
     ## Goes with the push code above
     ## pop directory
     # os.chdir(oldDir)
 
-    outFileObject = open(codeLogFile, 'w', bufferSize)
+    outFileObject = open(os.path.join(sampleDirectory,codeLogFile), 'w', bufferSize)
 
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
