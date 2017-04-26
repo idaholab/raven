@@ -580,9 +580,6 @@ class Dummy(Model):
       if options is not None:
         optionsIn.update(options)
       self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
-      # print('8'*80)
-      # print(exportDict)
-      # print('8'*80)
       output.addGroupDataObjects(optionsIn,exportDict,False)
     else:
       self.collectOutputFromDict(exportDict,output,options)
@@ -1453,7 +1450,7 @@ class Code(Model):
     if not found:
       self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    subDirectory = os.path.join(self.workingDir,kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
+    subDirectory = os.path.join(self.workingDir, kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
 
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
@@ -1641,10 +1638,11 @@ class Code(Model):
       return (kwargs['SampledVars'],returnDict)
     else:
       self.raiseAMessage(" Process Failed "+str(command)+" returnCode "+str(returnCode))
-      if os.path.exists(outputFile):
-        self.raiseAMessage(repr(open(outputFile,"r").read()).replace("\\n","\n"))
+      absOutputFile = os.path.join(sampleDirectory,outputFile)
+      if os.path.exists(absOutputFile):
+        self.raiseAMessage(repr(open(absOutputFile,"r").read()).replace("\\n","\n"))
       else:
-        self.raiseAMessage(" No output "+outputFile)
+        self.raiseAMessage(" No output " + absOutputFile)
 
       ## If you made it here, then the run must have failed
       return None

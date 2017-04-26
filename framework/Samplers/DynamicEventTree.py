@@ -194,12 +194,14 @@ class DynamicEventTree(Grid):
     ## now, but note this should be re-evaluated in the future. -- DPM 4/12/17
     # codeModel = jobObject.args[0]
     # jobWorkingDir = codeModel.workingDir
-    # jobWorkingDir = jobObject.args[3]['WORKING_DIR']
+    kwargs = jobObject.args[3]
+    stepWorkingDir = kwargs['WORKING_DIR']
+    jobWorkingDir = os.path.join(stepWorkingDir,kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
 
     ## This appears to be the same, so I am switching to the model's workingDir
     ## since it is more directly available and less change to how data is stored
     ## in the args of a job instance. -- DPM 4/12/17
-    jobWorkingDir = self.workingDir
+    # jobWorkingDir = self.workingDir
 
     if not self.__readBranchInfo(jobObject.getMetadata()['outfile'], jobWorkingDir):
       parentNode.add('completedHistory', True)
@@ -319,6 +321,7 @@ class DynamicEventTree(Grid):
 
     if not os.path.isabs(filename):
       filename = os.path.join(workingDir,filename)
+
     if not os.path.exists(filename):
       self.raiseADebug('branch info file ' + os.path.basename(filename) +' has not been found. => No Branching.')
       return branchPresent
@@ -648,6 +651,7 @@ class DynamicEventTree(Grid):
         subElm.add('runEnded',False)
         subElm.add('running',True)
         subElm.add('queue',False)
+
     return jobInput
 
   def generateInput(self,model,oldInput):
@@ -683,10 +687,11 @@ class DynamicEventTree(Grid):
     # If no inputs are present in the queue => a branch is finished
     if not newerInput:
       self.raiseADebug('A Branch ended!')
-    ## I think the information in newerInput is stored in the inputInfo, maybe?
-    ## So all we need to return here is the input that came in?  I don't know
-    ## what I am doing, but this seems to work for other samplers. -- DPM 4/10/17
-    # return newerInput
+
+    ## It turns out the "newerInput" contains all of the information that should
+    ## be in inputInfo (which should actually be returned and not stored in the
+    ## sampler object, but all samplers do this for now) -- DPM 4/26/17
+    self.inputInfo = newerInput['kwargs']
     return myInput
 
   def _generateDistributions(self,availableDist,availableFunc):
