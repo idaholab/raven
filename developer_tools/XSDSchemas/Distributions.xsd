@@ -6,6 +6,8 @@
             <xsd:element name="Beta"          type="BetaDistribution"          minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Exponential"   type="ExponentialDistribution"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Gamma"         type="GammaDistribution"         minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Geometric"     type="GeometricDistribution"     minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Laplace"       type="LaplaceDistribution"       minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Logistic"      type="LogisticDistribution"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="LogNormal"     type="LogNormalDistribution"     minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Normal"        type="NormalDistribution"        minOccurs="0" maxOccurs="unbounded"/>
@@ -64,6 +66,16 @@
             <xsd:element name="beta"       type="positiveFloat" minOccurs="0"/>
             <xsd:element name="low"        type="xsd:float" minOccurs="0"/>
             <!-- low cannot be less than lowerBound -->
+        </xsd:all>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="LaplaceDistribution">
+        <xsd:all>
+            <xsd:element name="upperBound" type="xsd:decimal" minOccurs="0"/>
+            <xsd:element name="lowerBound" type="xsd:decimal" minOccurs="0"/>
+            <xsd:element name="location"   type="xsd:decimal" minOccurs="1"/>
+            <xsd:element name="scale"      type="xsd:decimal" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
@@ -140,6 +152,13 @@
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
 
+    <xsd:complexType name="GeometricDistribution">
+        <xsd:all>
+            <xsd:element name="p" type="percentFloat" minOccurs="1"/>
+        </xsd:all>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
     <xsd:complexType name="PoissonDistribution">
         <xsd:all>
             <xsd:element name="mu" type="xsd:decimal" minOccurs="1"/>
@@ -160,7 +179,7 @@
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="Custom1DDistribution">
         <xsd:all>
             <xsd:element name="dataFilename" type="xsd:string" minOccurs="1"/>
