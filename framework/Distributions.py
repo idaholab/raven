@@ -1660,7 +1660,8 @@ class Geometric(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     pFind = paramInput.findFirst('p')
-    if pFind != None: self.p = pFind.value
+    if pFind != None:
+      self.p = pFind.value
     else: self.raiseAnError(IOError,'p value needed for Geometric distribution')
     self.initializeDistribution()
 
@@ -2031,11 +2032,15 @@ class Laplace(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     locationFind = paramInput.findFirst('location')
-    if locationFind != None: self.location = locationFind.value
-    else: self.raiseAnError(IOError,'location value needed for Laplace distribution')
+    if locationFind != None:
+      self.location = locationFind.value
+    else:
+      self.raiseAnError(IOError,'location value needed for Laplace distribution')
     scaleFind = paramInput.findFirst('scale')
-    if scaleFind != None: self.scale = scaleFind.value
-    else: self.raiseAnError(IOError,'scale value needed for Laplace distribution')
+    if scaleFind != None:
+      self.scale = scaleFind.value
+    else:
+      self.raiseAnError(IOError,'scale value needed for Laplace distribution')
     self.initializeDistribution()
 
   def getInitParams(self):
@@ -2057,10 +2062,14 @@ class Laplace(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    if self.lowerBoundUsed == False: a = -sys.float_info.max
-    else:a = self.lowerBound
-    if self.upperBoundUsed == False: b = sys.float_info.max
-    else:b = self.upperBound
+    if self.lowerBoundUsed == False:
+      a = -sys.float_info.max
+    else:
+      a = self.lowerBound
+    if self.upperBoundUsed == False:
+      b = sys.float_info.max
+    else:
+      b = self.upperBound
     self._distribution = distribution1D.BasicLaplaceDistribution(self.location,self.scale,a,b)
 
 DistributionsCollection.addSub(Laplace.getInputSpecification())
