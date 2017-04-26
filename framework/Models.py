@@ -1508,10 +1508,23 @@ class Code(Model):
     if codeLogFile is None:
       codeLogFile = os.path.join(metaData['subDirectory'],'generalOut')
 
+    ## This could cause issues as the temporary changing of the directory on
+    ## this thread could affect the main thread's working directory, I would
+    ## prefer to copy the environment and then update the working directory of
+    ## the new environment, but I am not sure if this is OS agnostic? --DPM 4/25/17
     ## push directory
-    oldDir = os.getcwd()
-    os.chdir(metaData['subDirectory'])
+    # oldDir = os.getcwd()
+    # os.chdir(metaData['subDirectory'])
+
+    ## This is the preferred alternative, but we should ensure that it works
+    ## on all systems
     localenv = dict(os.environ)
+    localenv['PWD'] = os.path.join(os.getcwd(),metaData['subDirectory'])
+
+    ## Goes with the push code above
+    ## pop directory
+    # os.chdir(oldDir)
+
     outFileObject = open(codeLogFile, 'w', bufferSize)
 
     found = False
@@ -1558,9 +1571,6 @@ class Code(Model):
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=metaData['subDirectory'], env=localenv)
     process.wait()
-
-    ## pop directory
-    os.chdir(oldDir)
 
     returnCode = process.returncode
     # procOutput = process.communicate()[0]
