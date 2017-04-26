@@ -69,9 +69,9 @@ class BaseHierarchicalView(QWidget):
         item = layout.takeAt(0)
         widget = item.widget()
         if widget is not None:
-            widget.deleteLater()
+          widget.deleteLater()
         else:
-            self.clearLayout(item.layout())
+          self.clearLayout(item.layout())
 
 
   def updateScene(self):

@@ -89,6 +89,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, None
     """
+    #FIXME: Since the similarity of this class with the base sampler, we should merge this
     BaseType.__init__(self)
     Assembler.__init__(self)
     self.counter                        = {}                        # Dict containing counters used for based and derived class
@@ -103,6 +104,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.optVarsInit['upperBound']      = {}                        # Dict containing upper bounds of each decision variables
     self.optVarsInit['lowerBound']      = {}                        # Dict containing lower bounds of each decision variables
     self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables
+    self.optVarsInit['ranges']          = {}                        # Dict of the ranges (min and max) of each variable's domain
     self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
     self.nVar                           = 0                         # Number of decision variables
     self.objVar                         = None                      # Objective variable to be optimized
@@ -116,6 +118,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.values                         = {}                        # for each variable the current value {'var name':value}
     self.inputInfo                      = {}                        # depending on the optimizer several different type of keywarded information could be present only one is mandatory, see below
     self.inputInfo['SampledVars'     ]  = self.values               # this is the location where to get the values of the sampled variables
+    self.constants                      = {}                        # dictionary of constants variables
     self.FIXME                          = False                     # FIXME flag
     self.printTag                       = self.type                 # prefix for all prints (optimizer type)
 
@@ -171,21 +174,33 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     for child in xmlNode:
       if child.tag == "variable":
-        if self.optVars == None: self.optVars = []
+        if self.optVars == None:
+          self.optVars = []
         varname = str(child.attrib['name'])
         self.optVars.append(varname)
         for childChild in child:
-          if   childChild.tag == "upperBound": self.optVarsInit['upperBound'][varname] = float(childChild.text)
-          elif childChild.tag == "lowerBound": self.optVarsInit['lowerBound'][varname] = float(childChild.text)
+          if   childChild.tag == "upperBound":
+            self.optVarsInit['upperBound'][varname] = float(childChild.text)
+          elif childChild.tag == "lowerBound":
+            self.optVarsInit['lowerBound'][varname] = float(childChild.text)
           elif childChild.tag == "initial"   :
             self.optVarsInit['initial'][varname] = {}
             temp = childChild.text.split(',')
             for trajInd, initVal in enumerate(temp):
-              try              : self.optVarsInit['initial'][varname][trajInd] = float(initVal)
-              except ValueError: self.raiseAnError(ValueError, "Unable to convert to float the intial value for variable "+varname+ " in trajectory "+str(trajInd))
+              try:
+                self.optVarsInit['initial'][varname][trajInd] = float(initVal)
+              except ValueError:
+                self.raiseAnError(ValueError, "Unable to convert to float the intial value for variable "+varname+ " in trajectory "+str(trajInd))
             if self.optTraj == None:
               self.optTraj = range(len(self.optVarsInit['initial'][varname].keys()))
-
+      elif child.tag == "constant":
+        value = utils.partialEval(child.text)
+        if value is None:
+          self.raiseAnError(IOError,'The body of "constant" XML block should be a number. Got: ' +child.text)
+        try:
+          self.constants[child.attrib['name']] = value
+        except KeyError:
+          self.raiseAnError(KeyError,child.tag+' must have the attribute "name"!!!')
       elif child.tag == "objectVar":
         self.objVar = child.text
 
@@ -193,7 +208,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
-            self.limit['mdlEval'] = int(childChild.text)
+            self.limit['mdlEval'] = int(childChild.text) #FIXME what's the difference between this and self.limit['varsUpdate']?
+            #the manual once claimed that "A" defaults to iterationLimit/10, but it's actually this number/10.
           elif childChild.tag == "type":
             self.optType = childChild.text
             if self.optType not in ['min', 'max']:
@@ -202,7 +218,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.initSeed = int(childChild.text)
           elif childChild.tag == 'thresholdTrajRemoval':
             self.thresholdTrajRemoval = float(childChild.text)
-          else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
+          else:
+            self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
 
       elif child.tag == "convergence":
         for childChild in child:
@@ -219,16 +236,25 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for childChild in child:
           self.paramDict[childChild.tag] = childChild.text
 
-    if self.optType == None:    self.optType = 'min'
-    if self.thresholdTrajRemoval == None: self.thresholdTrajRemoval = 0.05
-    if self.initSeed == None:   self.initSeed = Distributions.randomIntegers(0,2**31,self)
-    if self.objVar == None:     self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
-    if self.optVars == None:    self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
-    else:                       self.optVars.sort()
-    if self.optTraj == None:    self.optTraj = [0]
+    if self.optType == None:
+      self.optType = 'min'
+    if self.thresholdTrajRemoval == None:
+      self.thresholdTrajRemoval = 0.05
+    if self.initSeed == None:
+      self.initSeed = Distributions.randomIntegers(0,2**31,self)
+    if self.objVar == None:
+      self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
+    if self.optVars == None:
+      self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
+    else:
+      self.optVars.sort()
+    if self.optTraj == None:
+      self.optTraj = [0]
     for varname in self.optVars:
-      if varname not in self.optVarsInit['upperBound'].keys(): self.raiseAnError(IOError, 'Upper bound for '+varname+' is not provided' )
-      if varname not in self.optVarsInit['lowerBound'].keys(): self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
+      if varname not in self.optVarsInit['upperBound'].keys():
+        self.raiseAnError(IOError, 'Upper bound for '+varname+' is not provided' )
+      if varname not in self.optVarsInit['lowerBound'].keys():
+        self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
       if varname not in self.optVarsInit['initial'].keys():
         self.optVarsInit['initial'][varname] = {}
         for trajInd in self.optTraj:
@@ -240,6 +266,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.raiseAnError(IOError,"The initial value for variable "+varname+" and trajectory "+str(trajInd) +" is outside the domain identified by the lower and upper bounds!")
       if len(self.optTraj) != len(self.optVarsInit['initial'][varname].keys()):
         self.raiseAnError(ValueError, 'Number of initial values does not equal to the number of parallel optimization trajectories')
+      #store ranges of variables
+      self.optVarsInit['ranges'][varname] = self.optVarsInit['upperBound'][varname] - self.optVarsInit['lowerBound'][varname]
     self.optTrajLive = copy.deepcopy(self.optTraj)
 
   def localInputAndChecks(self,xmlNode):
@@ -340,11 +368,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if 'constrain' not in self.constraintFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
 
-    if self.initSeed != None: Distributions.randomSeed(self.initSeed)
+    if self.initSeed != None:
+      Distributions.randomSeed(self.initSeed)
 
     # specializing the self.localInitialize()
-    if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
-    else                      : self.localInitialize()
+    if solutionExport != None:
+      self.localInitialize(solutionExport=solutionExport)
+    else:
+      self.localInitialize()
 
   def localInitialize(self,solutionExport=None):
     """
@@ -403,14 +434,19 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
-    for key in tempDict.keys(): tempDict[key] = np.asarray(tempDict[key])
+    for key in tempDict.keys():
+      tempDict[key] = np.asarray(tempDict[key])
 
     self.objSearchingROM.train(tempDict)
-    if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
-    for key in optVars.keys(): optVars[key] = np.atleast_1d(optVars[key])
+    if self.gradDict['normalize']:
+      optVars = self.denormalizeData(optVars)
+    for key in optVars.keys():
+      optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
-    if self.optType == 'min':           return lossFunctionValue
-    else:                               return lossFunctionValue*-1.0
+    if self.optType == 'min':
+      return lossFunctionValue
+    else:
+      return lossFunctionValue*-1.0
 
   def checkConstraint(self, optVars):
     """
@@ -423,13 +459,17 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       satisfied = True
     else:
       satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
-      if not satisfied: violatedConstrains['external'].append(self.constraintFunction.name)
-    if self.gradDict['normalize']: optVars = self.denormalizeData(optVars)
+      if not satisfied:
+        violatedConstrains['external'].append(self.constraintFunction.name)
+    if self.gradDict['normalize']:
+      optVars = self.denormalizeData(optVars)
     for var in optVars:
       if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
         satisfied = False
-        if optVars[var] > self.optVarsInit['upperBound'][var]: violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
-        if optVars[var] < self.optVarsInit['lowerBound'][var]: violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
+        if optVars[var] > self.optVarsInit['upperBound'][var]:
+          violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
+        if optVars[var] < self.optVarsInit['lowerBound'][var]:
+          violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
 
     satisfied = self.localCheckConstraint(optVars, satisfied)
     satisfaction = satisfied,violatedConstrains
@@ -482,12 +522,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, generateInput, tuple(int,dict), (1,realization dictionary)
     """
-    self.counter['mdlEval'] +=1                              #since we are creating the input for the next run we increase the counter and global counter
+    self.counter['mdlEval'] +=1 #since we are creating the input for the next run we increase the counter and global counter
     self.inputInfo['prefix'] = str(self.counter['mdlEval'])
 
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
-
+    #### CONSTANT VARIABLES ####
+    if len(self.constants) > 0:
+      self.values.update(self.constants)
     self.raiseADebug('Found new input to evaluate:',self.values)
     return 0,model.createNewInput(oldInput,self.type,**self.inputInfo)
 

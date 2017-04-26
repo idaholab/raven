@@ -13,7 +13,7 @@
 
   <xsd:complexType name="SingleRunStepType">
     <xsd:sequence minOccurs="0">
-      <xsd:element name="Input" minOccurs="1">
+      <xsd:element name="Input" minOccurs="1" maxOccurs="unbounded">
         <xsd:complexType mixed="true">
           <!-- Specific types for class based on other XSD objects -->
           <xsd:attribute name="class" type="xsd:string" use="required"/>

@@ -151,8 +151,10 @@ class MessageUser(object):
       @ In, default, string, optional, the verbosity level to return if not found
       @ Out, verbosity, string, verbosity type (e.g. 'all')
     """
-    if hasattr(self,'verbosity'): return self.verbosity
-    else: return default
+    if hasattr(self,'verbosity'):
+      return self.verbosity
+    else:
+      return default
 
 
 class MessageHandler(object):
@@ -259,7 +261,8 @@ class MessageHandler(object):
       @ In, obj, instance, preferably an object with a printTag method; otherwise, a string or an object
       @ Out, tag, string, string to print
     """
-    if type(obj).__name__ in ['str','unicode']: return obj
+    if type(obj).__name__ in ['str','unicode']:
+      return obj
     if hasattr(obj,'printTag'):
       tag = str(obj.printTag)
     else:
@@ -273,7 +276,8 @@ class MessageHandler(object):
       @ Out, desVerbosity, int, integer equivalent to verbosity level
     """
     localVerb = caller.getLocalVerbosity(default=self.verbosity)
-    if localVerb == None: localVerb = self.verbosity
+    if localVerb == None:
+      localVerb = self.verbosity
     desVerbosity = self.checkVerbosity(localVerb)
     return desVerbosity
 
@@ -300,16 +304,16 @@ class MessageHandler(object):
       @ Out, None
     """
     verbval = max(self.getDesiredVerbosity(caller),self.checkVerbosity(self.verbosity))
+    self.message(caller,message,tag,verbosity,color=color)
     if not self.suppressErrs:
       self.printWarnings()
       # debug mode gets full traceback, others quieted
-      if verbval<3: #all, quiet, silent
+      if verbval<3:
+        #all, quiet, silent
         sys.tracebacklimit=0
       raise etype(message)
-    else:
-      print('\n'+etype.__name__+':',message,file=sys.stderr)
 
-  def message(self,caller,message,tag,verbosity,color=None):
+  def message(self,caller,message,tag,verbosity,color=None,writeTo=sys.stdout):
     """
       Print a message
       @ In, caller, object, the entity desiring to print a message
@@ -324,7 +328,7 @@ class MessageHandler(object):
     if tag.lower().strip() == 'warning':
       self.addWarning(message)
     if okay:
-      print(msg)
+      print(msg,file=writeTo)
     sys.stdout.flush()
 
   def addWarning(self,msg):
@@ -354,8 +358,10 @@ class MessageHandler(object):
     #allows raising standardized messages
     shouldIPrint = False
     desired = self.getDesiredVerbosity(caller)
-    if verbval <= desired: shouldIPrint=True
-    if not shouldIPrint: return False,''
+    if verbval <= desired:
+      shouldIPrint=True
+    if not shouldIPrint:
+      return False,''
     ctag = self.getStringFromCaller(caller)
     msg=self.stdMessage(ctag,tag,message,color)
     return shouldIPrint,msg
@@ -373,10 +379,12 @@ class MessageHandler(object):
     if self.printTime:
       curtime = time.time()-self.starttime
       msg+='('+'{:8.2f}'.format(curtime)+' sec) '
-      if self.inColor: msg = self.paint(msg,'cyan')
+      if self.inColor:
+        msg = self.paint(msg,'cyan')
     msgend = pre.ljust(self.callerLength)[0:self.callerLength] + ': '+tag.ljust(self.tagLength)[0:self.tagLength]+' -> ' + post
     if self.inColor:
-      if color is not None: #overrides other options
+      if color is not None:
+        #overrides other options
         msgend = self.paint(msgend,color)
       elif tag.lower() in self.colorDict.keys():
         msgend = self.paint(msgend,self.colorDict[tag.lower()])

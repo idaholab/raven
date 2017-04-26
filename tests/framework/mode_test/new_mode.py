@@ -40,7 +40,3 @@ class NewMode(Simulation.SimulationMode):
       @ Out, None
     """
     self.__simulation.runInfoDict['precommand'] = self.__simulation.runInfoDict['precommand']+" python "
-
-
-
-

@@ -80,6 +80,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._dataParameters['inParam'     ] = []                         # inParam list
     self._dataParameters['outParam'    ] = []                         # outParam list
     self._dataParameters['hierarchical'] = False                      # the structure of this data is hierarchical?
+    self._dataParameters['typeMetadata'] = {}                         # store the type of the metadata in order to accellerate the collecting
     self._toLoadFromList                 = []                         # loading source
     self._dataContainer                  = {'inputs':{},'unstructuredInputs':{}, 'outputs':{}} # Dict that contains the actual data: self._dataContainer['inputs'] contains the input space in scalar form. self._dataContainer['output'] the output space
     #self._unstructuredInputContainer     = {}                         # Dict that contains the input space in unstrctured form (e.g. 1-D arrays)
@@ -109,8 +110,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, None
       @ Out, __len__, integer, size of first output element
     """
-    if len(self._dataParameters['outParam']) == 0: return 0
-    else                                         : return self.sizeData()
+    if len(self._dataParameters['outParam']) == 0:
+      return 0
+    else:
+      return self.sizeData()
 
   ## Public Methods
 
@@ -125,7 +128,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._toLoadFromList.append(toLoadFrom)
     self.addSpecializedReadingSettings()
     self._dataParameters['SampledVars'] = copy.deepcopy(options['metadata']['SampledVars']) if options != None and 'metadata' in options.keys() and 'SampledVars' in options['metadata'].keys() else None
-    if options is not None and 'alias' in options.keys(): self._dataParameters['alias'] = options['alias']
+    if options is not None and 'alias' in options.keys():
+      self._dataParameters['alias'] = options['alias']
     self.raiseAMessage('Object type ' + self._toLoadFromList[-1].type + ' named "' + self._toLoadFromList[-1].name+'"')
     if(self._toLoadFromList[-1].type == 'HDF5'):
       tupleVar = self._toLoadFromList[-1].retrieveData(self._dataParameters)
@@ -138,24 +142,31 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     elif (isinstance(self._toLoadFromList[-1],Files.File)):
       tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
       self.numAdditionalLoadPoints += 1
-    else: self.raiseAnError(ValueError, "Type "+self._toLoadFromList[-1].type+ "from which the DataObject "+ self.name +" should be constructed is unknown!!!")
+    else:
+      self.raiseAnError(ValueError, "Type "+self._toLoadFromList[-1].type+ "from which the DataObject "+ self.name +" should be constructed is unknown!!!")
 
     for hist in tupleVar[0].keys():
       if type(tupleVar[0][hist]) == dict:
-        for key in tupleVar[0][hist].keys(): self.updateInputValue(key, tupleVar[0][hist][key], options)
+        for key in tupleVar[0][hist].keys():
+          self.updateInputValue(key, tupleVar[0][hist][key], options)
       else:
         if self.type in ['PointSet']:
           for index in range(len(tupleVar[0][hist])):
-            if hist in self.getParaKeys('input'): self.updateInputValue(hist, tupleVar[0][hist][index], options)
-        else: self.updateInputValue(hist, tupleVar[0][hist], options)
+            if hist in self.getParaKeys('input'):
+              self.updateInputValue(hist, tupleVar[0][hist][index], options)
+        else:
+          self.updateInputValue(hist, tupleVar[0][hist], options)
     for hist in tupleVar[1].keys():
       if type(tupleVar[1][hist]) == dict:
-        for key in tupleVar[1][hist].keys(): self.updateOutputValue(key, tupleVar[1][hist][key], options)
+        for key in tupleVar[1][hist].keys():
+          self.updateOutputValue(key, tupleVar[1][hist][key], options)
       else:
         if self.type in ['PointSet']:
           for index in range(np.asarray(tupleVar[1][hist]).size):
-            if hist in self.getParaKeys('output'): self.updateOutputValue(hist, tupleVar[1][hist][index], options)
-        else: self.updateOutputValue(hist, tupleVar[1][hist], options)
+            if hist in self.getParaKeys('output'):
+              self.updateOutputValue(hist, tupleVar[1][hist][index], options)
+        else:
+          self.updateOutputValue(hist, tupleVar[1][hist], options)
     if len(tupleVar) > 2:
       #metadata
       for hist in tupleVar[2].keys():
@@ -171,10 +182,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                 if type(elem) == dict:
                   for ke ,val  in elem.items():
                     self.updateMetadata(ke, val, options)
-                else: self.raiseAnError(IOError,'unknown type for metadata adding process. Relevant type = '+ str(elem))
+                else:
+                  self.raiseAnError(IOError,'unknown type for metadata adding process. Relevant type = '+ str(elem))
 
         else:
-          if tupleVar[2][hist]: self.raiseAnError(IOError,'unknown type for metadata adding process. Relevant type = '+ str(type(tupleVar[2][hist])))
+          if tupleVar[2][hist]:
+            self.raiseAnError(IOError,'unknown type for metadata adding process. Relevant type = '+ str(type(tupleVar[2][hist])))
     self.checkConsistency()
 
   @abc.abstractmethod
@@ -203,8 +216,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, serialize, bool, optional, serialize the tree if in hierarchical mode
       @ Out, dictionary, dict, return the metadata dictionary
     """
-    if self._dataParameters['hierarchical']: return self.getHierParam('metadata',nodeId,None,serialize)
-    else                                   : return self._dataContainer['metadata']
+    if self._dataParameters['hierarchical']:
+      return self.getHierParam('metadata',nodeId,None,serialize)
+    else:
+      return self._dataContainer['metadata']
 
   def getHierParam(self,typeVar,nodeId,keyword=None,serialize=False):
     """
@@ -217,9 +232,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, nodesDict, dict, a dictionary of data (see above)
     """
     if type(keyword).__name__ in ['str','unicode','bytes']:
-      if keyword == 'none': keyword = None
+      if keyword == 'none':
+        keyword = None
     nodesDict = {}
-    if not self.TSData: return nodesDict
+    if not self.TSData:
+      return nodesDict
     if not nodeId or nodeId=='*':
       # we want all the nodes
       if serialize:
@@ -228,39 +245,66 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           for node in TSData.iterEnding():
             nodesDict[node.name] = []
             for se in list(TSData.iterWholeBackTrace(node)):
-              if typeVar   in 'inout'              and not keyword: nodesDict[node.name].append( se.get('dataContainer'))
-              elif typeVar in ['inputs','input']   and not keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
-              elif typeVar in ['unstructuredInput','unstructuredInputs'] and not keyword: nodesDict[node.name].append( se.get('dataContainer')['unstructuredInputs'  ])
-              elif typeVar in ['output','outputs'] and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
-              elif typeVar in 'metadata'           and not keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'])
-              elif typeVar in ['inputs','input']   and     keyword: nodesDict[node.name].append( np.asarray(se.get('dataContainer')['inputs'  ][keyword]))
-              elif typeVar in ['unstructuredInput','unstructuredInputs']   and     keyword: nodesDict[node.name].append( np.asarray(se.get('dataContainer')['unstructuredInputs'  ][keyword]))
-              elif typeVar in ['output','outputs'] and     keyword: nodesDict[node.name].append( np.asarray(se.get('dataContainer')['outputs' ][keyword]))
-              elif typeVar in 'metadata'           and     keyword: nodesDict[node.name].append( np.asarray(se.get('dataContainer')['metadata'][keyword]))
+              if typeVar in 'inout' and not keyword:
+                nodesDict[node.name].append(se.get('dataContainer'))
+              elif typeVar in ['inputs','input'] and not keyword:
+                nodesDict[node.name].append(se.get('dataContainer')['inputs'])
+              elif typeVar in ['unstructuredInput','unstructuredInputs'] and not keyword:
+                nodesDict[node.name].append(se.get('dataContainer')['unstructuredInputs'])
+              elif typeVar in ['output','outputs'] and not keyword:
+                nodesDict[node.name].append(se.get('dataContainer')['outputs'])
+              elif typeVar in 'metadata' and not keyword:
+                nodesDict[node.name].append(se.get('dataContainer')['metadata'])
+              elif typeVar in ['inputs','input'] and keyword:
+                nodesDict[node.name].append(np.asarray(se.get('dataContainer')['inputs'  ][keyword]))
+              elif typeVar in ['unstructuredInput','unstructuredInputs'] and keyword:
+                nodesDict[node.name].append(np.asarray(se.get('dataContainer')['unstructuredInputs'][keyword]))
+              elif typeVar in ['output','outputs'] and keyword:
+                nodesDict[node.name].append(np.asarray(se.get('dataContainer')['outputs' ][keyword]))
+              elif typeVar in 'metadata' and keyword:
+                nodesDict[node.name].append(np.asarray(se.get('dataContainer')['metadata'][keyword]))
       else:
         for TSData in self.TSData.values():
           for node in TSData.iter():
-            if typeVar   in 'inout'              and not keyword: nodesDict[node.name] = node.get('dataContainer')
-            elif typeVar in ['inputs','input']   and not keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ]
-            elif typeVar in ['unstructuredInput','unstructuredInputs']  and not keyword: nodesDict[node.name] = node.get('dataContainer')['unstructuredInputs'  ]
-            elif typeVar in ['output','outputs'] and not keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ]
-            elif typeVar in 'metadata'           and not keyword: nodesDict[node.name] = node.get('dataContainer')['metadata']
-            elif typeVar in ['inputs','input']   and     keyword: nodesDict[node.name] = np.asarray(node.get('dataContainer')['inputs'  ][keyword])
-            elif typeVar in ['unstructuredInput','unstructuredInputs']   and     keyword: nodesDict[node.name] = np.asarray(node.get('dataContainer')['unstructuredInputs'  ][keyword])
-            elif typeVar in ['output','outputs'] and     keyword: nodesDict[node.name] = np.asarray(node.get('dataContainer')['outputs' ][keyword])
-            elif typeVar in 'metadata'           and     keyword: nodesDict[node.name] = np.asarray(node.get('dataContainer')['metadata'][keyword])
+            if typeVar in 'inout' and not keyword:
+              nodesDict[node.name] = node.get('dataContainer')
+            elif typeVar in ['inputs','input'] and not keyword:
+              nodesDict[node.name] = node.get('dataContainer')['inputs']
+            elif typeVar in ['unstructuredInput','unstructuredInputs'] and not keyword:
+              nodesDict[node.name] = node.get('dataContainer')['unstructuredInputs']
+            elif typeVar in ['output','outputs'] and not keyword:
+              nodesDict[node.name] = node.get('dataContainer')['outputs']
+            elif typeVar in 'metadata' and not keyword:
+              nodesDict[node.name] = node.get('dataContainer')['metadata']
+            elif typeVar in ['inputs','input'] and keyword:
+              nodesDict[node.name] = np.asarray(node.get('dataContainer')['inputs'][keyword])
+            elif typeVar in ['unstructuredInput','unstructuredInputs'] and keyword:
+              nodesDict[node.name] = np.asarray(node.get('dataContainer')['unstructuredInputs'][keyword])
+            elif typeVar in ['output','outputs'] and keyword:
+              nodesDict[node.name] = np.asarray(node.get('dataContainer')['outputs'][keyword])
+            elif typeVar in 'metadata' and keyword:
+              nodesDict[node.name] = np.asarray(node.get('dataContainer')['metadata'][keyword])
     elif nodeId == 'ending':
       for TSDat in self.TSData.values():
         for ending in TSDat.iterEnding():
-          if typeVar   in 'inout'              and not keyword: nodesDict[ending.name] = ending.get('dataContainer')
-          elif typeVar in ['inputs','input']   and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['inputs'  ]
-          elif typeVar in ['unstructuredInput','unstructuredInputs'] and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['unstructuredInputs'  ]
-          elif typeVar in ['output','outputs'] and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['outputs' ]
-          elif typeVar in 'metadata'           and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['metadata']
-          elif typeVar in ['inputs','input']   and     keyword: nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['inputs'  ][keyword])
-          elif typeVar in ['unstructuredInput','unstructuredInputs'] and     keyword: nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['unstructuredInputs'  ][keyword])
-          elif typeVar in ['output','outputs'] and     keyword: nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['outputs' ][keyword])
-          elif typeVar in 'metadata'           and     keyword: nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['metadata'][keyword])
+          if typeVar in 'inout' and not keyword:
+            nodesDict[ending.name] = ending.get('dataContainer')
+          elif typeVar in ['inputs','input']   and not keyword:
+            nodesDict[ending.name] = ending.get('dataContainer')['inputs']
+          elif typeVar in ['unstructuredInput','unstructuredInputs'] and not keyword:
+            nodesDict[ending.name] = ending.get('dataContainer')['unstructuredInputs']
+          elif typeVar in ['output','outputs'] and not keyword:
+            nodesDict[ending.name] = ending.get('dataContainer')['outputs']
+          elif typeVar in 'metadata' and not keyword:
+            nodesDict[ending.name] = ending.get('dataContainer')['metadata']
+          elif typeVar in ['inputs','input'] and keyword:
+            nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['inputs'][keyword])
+          elif typeVar in ['unstructuredInput','unstructuredInputs'] and     keyword:
+            nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['unstructuredInputs'][keyword])
+          elif typeVar in ['output','outputs'] and keyword:
+            nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['outputs'][keyword])
+          elif typeVar in 'metadata' and keyword:
+            nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['metadata'][keyword])
     elif nodeId == 'RecontructEnding':
       # if history, reconstruct the history... if Point set take the last one (see below)
       backTrace = {}
@@ -269,59 +313,91 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           if self.type == 'HistorySet':
             backTrace[node.name] = []
             for se in list(TSData.iterWholeBackTrace(node)):
-              if typeVar   in 'inout'              and not keyword: backTrace[node.name].append( se.get('dataContainer'))
-              elif typeVar in ['inputs','input']   and not keyword: backTrace[node.name].append( se.get('dataContainer')['inputs'  ])
-              elif typeVar in ['unstructuredInput','unstructuredInputs'] and not keyword: backTrace[node.name].append( se.get('dataContainer')['unstructuredInputs'  ])
-              elif typeVar in ['output','outputs'] and not keyword: backTrace[node.name].append( se.get('dataContainer')['outputs' ])
-              elif typeVar in 'metadata'           and not keyword: backTrace[node.name].append( se.get('dataContainer')['metadata'])
-              elif typeVar in ['inputs','input']   and     keyword: backTrace[node.name].append( np.asarray(se.get('dataContainer')['inputs'  ][keyword]))
-              elif typeVar in ['unstructuredInput','unstructuredInputs']  and     keyword: backTrace[node.name].append( np.asarray(se.get('dataContainer')['unstructuredInputs'  ][keyword]))
-              elif typeVar in ['output','outputs'] and     keyword: backTrace[node.name].append( np.asarray(se.get('dataContainer')['outputs' ][keyword]))
-              elif typeVar in 'metadata'           and     keyword: backTrace[node.name].append( np.asarray(se.get('dataContainer')['metadata'][keyword]))
+              if typeVar in 'inout' and not keyword:
+                backTrace[node.name].append(se.get('dataContainer'))
+              elif typeVar in ['inputs','input'] and not keyword:
+                backTrace[node.name].append(se.get('dataContainer')['inputs'])
+              elif typeVar in ['unstructuredInput','unstructuredInputs'] and not keyword:
+                backTrace[node.name].append(se.get('dataContainer')['unstructuredInputs'])
+              elif typeVar in ['output','outputs'] and not keyword:
+                backTrace[node.name].append(se.get('dataContainer')['outputs'])
+              elif typeVar in 'metadata' and not keyword:
+                backTrace[node.name].append(se.get('dataContainer')['metadata'])
+              elif typeVar in ['inputs','input'] and keyword:
+                backTrace[node.name].append(np.asarray(se.get('dataContainer')['inputs'][keyword]))
+              elif typeVar in ['unstructuredInput','unstructuredInputs'] and keyword:
+                backTrace[node.name].append(np.asarray(se.get('dataContainer')['unstructuredInputs'][keyword]))
+              elif typeVar in ['output','outputs'] and keyword:
+                backTrace[node.name].append(np.asarray(se.get('dataContainer')['outputs' ][keyword]))
+              elif typeVar in 'metadata' and keyword:
+                backTrace[node.name].append(np.asarray(se.get('dataContainer')['metadata'][keyword]))
             #reconstruct history
             nodesDict[node.name] = None
             for element in backTrace[node.name]:
               if type(element) == dict:
-                if not nodesDict[node.name]: nodesDict[node.name] = {}
+                if not nodesDict[node.name]:
+                  nodesDict[node.name] = {}
                 for innerkey in element.keys():
                   if type(element[innerkey]) == dict:
                     #inputs outputs metadata
-                    if innerkey not in nodesDict[node.name].keys(): nodesDict[node.name][innerkey] = {}
+                    if innerkey not in nodesDict[node.name].keys():
+                      nodesDict[node.name][innerkey] = {}
                     for ininnerkey in element[innerkey].keys():
-                      if ininnerkey not in nodesDict[node.name][innerkey].keys(): nodesDict[node.name][innerkey][ininnerkey] = element[innerkey][ininnerkey]
-                      else: nodesDict[node.name][innerkey][ininnerkey] = np.concatenate((nodesDict[node.name][innerkey][ininnerkey],element[innerkey][ininnerkey]))
+                      if ininnerkey not in nodesDict[node.name][innerkey].keys():
+                        nodesDict[node.name][innerkey][ininnerkey] = element[innerkey][ininnerkey]
+                      else:
+                        nodesDict[node.name][innerkey][ininnerkey] = np.concatenate((nodesDict[node.name][innerkey][ininnerkey],element[innerkey][ininnerkey]))
                   else:
-                    if innerkey not in nodesDict[node.name].keys(): nodesDict[node.name][innerkey] = np.atleast_1d(element[innerkey])
-                    else: nodesDict[node.name][innerkey] = np.concatenate((nodesDict[node.name][innerkey],element[innerkey]))
+                    if innerkey not in nodesDict[node.name].keys():
+                      nodesDict[node.name][innerkey] = np.atleast_1d(element[innerkey])
+                    else:
+                      nodesDict[node.name][innerkey] = np.concatenate((nodesDict[node.name][innerkey],element[innerkey]))
               else:
                 # it is a value
-                if not nodesDict[node.name]: nodesDict[node.name] = element
-                else: nodesDict[node.name] = np.concatenate((nodesDict[node.name],element))
+                if not nodesDict[node.name]:
+                  nodesDict[node.name] = element
+                else:
+                  nodesDict[node.name] = np.concatenate((nodesDict[node.name],element))
           else:
             #Pointset
-            if typeVar   in 'inout'              and not keyword: backTrace[node.name] = node.get('dataContainer')
-            elif typeVar in ['inputs','input']   and not keyword: backTrace[node.name] = node.get('dataContainer')['inputs'  ]
-            elif typeVar in ['unstructuredInput','unstructuredInputs']   and not keyword: backTrace[node.name] = node.get('dataContainer')['unstructuredInputs'  ]
-            elif typeVar in ['output','outputs'] and not keyword: backTrace[node.name] = node.get('dataContainer')['outputs' ]
-            elif typeVar in 'metadata'           and not keyword: backTrace[node.name] = node.get('dataContainer')['metadata']
-            elif typeVar in ['inputs','input']   and     keyword: backTrace[node.name] = np.asarray(node.get('dataContainer')['inputs'  ][keyword])
-            elif typeVar in ['unstructuredInput','unstructuredInputs'] and     keyword: backTrace[node.name] = np.asarray(node.get('dataContainer')['unstructuredInputs'  ][keyword])
-            elif typeVar in ['output','outputs'] and     keyword: backTrace[node.name] = np.asarray(node.get('dataContainer')['outputs' ][keyword])
-            elif typeVar in 'metadata'           and     keyword: backTrace[node.name] = np.asarray(node.get('dataContainer')['metadata'][keyword])
+            if typeVar in 'inout' and not keyword:
+              backTrace[node.name] = node.get('dataContainer')
+            elif typeVar in ['inputs','input'] and not keyword:
+              backTrace[node.name] = node.get('dataContainer')['inputs']
+            elif typeVar in ['unstructuredInput','unstructuredInputs']   and not keyword:
+              backTrace[node.name] = node.get('dataContainer')['unstructuredInputs']
+            elif typeVar in ['output','outputs'] and not keyword:
+              backTrace[node.name] = node.get('dataContainer')['outputs']
+            elif typeVar in 'metadata' and not keyword:
+              backTrace[node.name] = node.get('dataContainer')['metadata']
+            elif typeVar in ['inputs','input'] and keyword:
+              backTrace[node.name] = np.asarray(node.get('dataContainer')['inputs'][keyword])
+            elif typeVar in ['unstructuredInput','unstructuredInputs'] and     keyword:
+              backTrace[node.name] = np.asarray(node.get('dataContainer')['unstructuredInputs'][keyword])
+            elif typeVar in ['output','outputs'] and keyword:
+              backTrace[node.name] = np.asarray(node.get('dataContainer')['outputs'][keyword])
+            elif typeVar in 'metadata' and keyword:
+              backTrace[node.name] = np.asarray(node.get('dataContainer')['metadata'][keyword])
             if type(backTrace[node.name]) == dict:
               for innerkey in backTrace[node.name].keys():
                 if type(backTrace[node.name][innerkey]) == dict:
                   #inputs outputs metadata
-                  if innerkey not in backTrace[node.name][innerkey].keys(): nodesDict[innerkey] = {}
+                  if innerkey not in backTrace[node.name][innerkey].keys():
+                    nodesDict[innerkey] = {}
                   for ininnerkey in backTrace[node.name][innerkey].keys():
-                    if ininnerkey not in nodesDict[innerkey].keys(): nodesDict[innerkey][ininnerkey] = backTrace[node.name][innerkey][ininnerkey]
-                    else: nodesDict[innerkey][ininnerkey] = np.concatenate((nodesDict[innerkey][ininnerkey],backTrace[node.name][innerkey][ininnerkey]))
+                    if ininnerkey not in nodesDict[innerkey].keys():
+                      nodesDict[innerkey][ininnerkey] = backTrace[node.name][innerkey][ininnerkey]
+                    else:
+                      nodesDict[innerkey][ininnerkey] = np.concatenate((nodesDict[innerkey][ininnerkey],backTrace[node.name][innerkey][ininnerkey]))
                 else:
-                  if innerkey not in nodesDict.keys(): nodesDict[innerkey] = np.atleast_1d(backTrace[node.name][innerkey])
-                  else: nodesDict[innerkey] = np.concatenate((nodesDict[innerkey],backTrace[node.name][innerkey]))
+                  if innerkey not in nodesDict.keys():
+                    nodesDict[innerkey] = np.atleast_1d(backTrace[node.name][innerkey])
+                  else:
+                    nodesDict[innerkey] = np.concatenate((nodesDict[innerkey],backTrace[node.name][innerkey]))
             else:
               #it is a value
-              if type(nodesDict) == dict: nodesDict = np.empty(0)
+              if type(nodesDict) == dict:
+                nodesDict = np.empty(0)
               nodesDict = np.concatenate((nodesDict,backTrace[node.name]))
     else:
       # we want a particular node
@@ -332,37 +408,58 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         nodelist = []
         for node in TSDat.iter(nodeId):
           if serialize:
-            for se in list(TSDat.iterWholeBackTrace(node)): nodelist.append(se)
-          else: nodelist.append(node)
+            for se in list(TSDat.iterWholeBackTrace(node)):
+              nodelist.append(se)
+          else:
+            nodelist.append(node)
           break
         #nodelist = list(TSDat.iterWholeBackTrace(TSDat.iter(nodeId)[0]))
         if len(nodelist) > 0:
           found = True
           break
-      if not found: self.raiseAnError(RuntimeError,'Starting node called '+ nodeId+ ' not found!')
+      if not found:
+        self.raiseAnError(RuntimeError,'Starting node called '+ nodeId+ ' not found!')
       if serialize:
         # we want a particular node and serialize it
         nodesDict[nodeId] = []
         for se in nodelist:
-          if typeVar   in 'inout' and not keyword             : nodesDict[node.name].append( se.get('dataContainer'))
-          elif typeVar in ['inputs','input'] and not keyword  : nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
-          elif typeVar in ['unstructuredInput','unstructuredInputs'] and not keyword  : nodesDict[node.name].append( se.get('dataContainer')['unstructuredInputs'  ])
-          elif typeVar in ['output','outputs'] and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
-          elif typeVar in 'metadata' and not keyword          : nodesDict[node.name].append( se.get('dataContainer')['metadata'])
-          elif typeVar in ['inputs','input'] and keyword      : nodesDict[node.name].append( np.asarray(se.get('dataContainer')['inputs'  ][keyword]))
-          elif typeVar in ['unstructuredInput','unstructuredInputs'] and keyword      : nodesDict[node.name].append( np.asarray(se.get('dataContainer')['unstructuredInputs'  ][keyword]))
-          elif typeVar in ['output','outputs'] and keyword    : nodesDict[node.name].append( np.asarray(se.get('dataContainer')['outputs' ][keyword]))
-          elif typeVar in 'metadata' and keyword              : nodesDict[node.name].append( np.asarray(se.get('dataContainer')['metadata'][keyword]))
+          if typeVar in 'inout' and not keyword:
+            nodesDict[node.name].append(se.get('dataContainer'))
+          elif typeVar in ['inputs','input'] and not keyword:
+            nodesDict[node.name].append(se.get('dataContainer')['inputs'])
+          elif typeVar in ['unstructuredInput','unstructuredInputs'] and not keyword:
+            nodesDict[node.name].append(se.get('dataContainer')['unstructuredInputs'])
+          elif typeVar in ['output','outputs'] and not keyword:
+            nodesDict[node.name].append(se.get('dataContainer')['outputs'])
+          elif typeVar in 'metadata' and not keyword:
+            nodesDict[node.name].append(se.get('dataContainer')['metadata'])
+          elif typeVar in ['inputs','input'] and keyword:
+            nodesDict[node.name].append(np.asarray(se.get('dataContainer')['inputs'][keyword]))
+          elif typeVar in ['unstructuredInput','unstructuredInputs'] and keyword:
+            nodesDict[node.name].append(np.asarray(se.get('dataContainer')['unstructuredInputs'][keyword]))
+          elif typeVar in ['output','outputs'] and keyword:
+            nodesDict[node.name].append(np.asarray(se.get('dataContainer')['outputs' ][keyword]))
+          elif typeVar in 'metadata' and keyword:
+            nodesDict[node.name].append(np.asarray(se.get('dataContainer')['metadata'][keyword]))
       else:
-        if typeVar   in 'inout'              and not keyword: nodesDict[nodeId] = nodelist[-1].get('dataContainer')
-        elif typeVar in ['inputs','input']   and not keyword: nodesDict[nodeId] = nodelist[-1].get('dataContainer')['inputs'  ]
-        elif typeVar in ['unstructuredInput','unstructuredInputs'] and not keyword: nodesDict[nodeId] = nodelist[-1].get('dataContainer')['unstructuredInputs'  ]
-        elif typeVar in ['output','outputs'] and not keyword: nodesDict[nodeId] = nodelist[-1].get('dataContainer')['outputs' ]
-        elif typeVar in 'metadata'           and not keyword: nodesDict[nodeId] = nodelist[-1].get('dataContainer')['metadata']
-        elif typeVar in ['inputs','input']   and     keyword: nodesDict[nodeId] = np.asarray(nodelist[-1].get('dataContainer')['inputs'  ][keyword])
-        elif typeVar in ['unstructuredInput','unstructuredInputs'] and     keyword: nodesDict[nodeId] = np.asarray(nodelist[-1].get('dataContainer')['unstructuredInputs'  ][keyword])
-        elif typeVar in ['output','outputs'] and     keyword: nodesDict[nodeId] = np.asarray(nodelist[-1].get('dataContainer')['outputs' ][keyword])
-        elif typeVar in 'metadata'           and     keyword: nodesDict[nodeId] = np.asarray(nodelist[-1].get('dataContainer')['metadata'][keyword])
+        if typeVar in 'inout' and not keyword:
+          nodesDict[nodeId] = nodelist[-1].get('dataContainer')
+        elif typeVar in ['inputs','input'] and not keyword:
+          nodesDict[nodeId] = nodelist[-1].get('dataContainer')['inputs']
+        elif typeVar in ['unstructuredInput','unstructuredInputs'] and not keyword:
+          nodesDict[nodeId] = nodelist[-1].get('dataContainer')['unstructuredInputs']
+        elif typeVar in ['output','outputs'] and not keyword:
+          nodesDict[nodeId] = nodelist[-1].get('dataContainer')['outputs']
+        elif typeVar in 'metadata' and not keyword:
+          nodesDict[nodeId] = nodelist[-1].get('dataContainer')['metadata']
+        elif typeVar in ['inputs','input'] and keyword:
+          nodesDict[nodeId] = np.asarray(nodelist[-1].get('dataContainer')['inputs'][keyword])
+        elif typeVar in ['unstructuredInput','unstructuredInputs'] and     keyword:
+          nodesDict[nodeId] = np.asarray(nodelist[-1].get('dataContainer')['unstructuredInputs'][keyword])
+        elif typeVar in ['output','outputs'] and keyword:
+          nodesDict[nodeId] = np.asarray(nodelist[-1].get('dataContainer')['outputs'][keyword])
+        elif typeVar in 'metadata' and keyword:
+          nodesDict[nodeId] = np.asarray(nodelist[-1].get('dataContainer')['metadata'][keyword])
     return nodesDict
 
   def getInitParams(self):
@@ -395,8 +492,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, unstructuredInputs, bool, optional, True if the unstructured input space needs to be returned
       @, Out, dictionary, dict, Reference to self._dataContainer['inputs'] or something else in hierarchical
     """
-    if self._dataParameters['hierarchical']: return self.getHierParam('inputs' if not unstructuredInputs else 'unstructuredInput',nodeId,serialize=serialize)
-    else:                                    return self._dataContainer['inputs'] if not unstructuredInputs else self._dataContainer['unstructuredInputs']
+    if self._dataParameters['hierarchical']:
+      return self.getHierParam('inputs' if not unstructuredInputs else 'unstructuredInput',nodeId,serialize=serialize)
+    else:
+      return self._dataContainer['inputs'] if not unstructuredInputs else self._dataContainer['unstructuredInputs']
 
   def getMatchingRealization(self,requested,tol=1e-15):
     """
@@ -469,11 +568,15 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, dictionary, dict, return the metadata dictionary
     """
     if self._dataParameters['hierarchical']:
-      if type(keyword) == int: return list(self.getHierParam('metadata',nodeId,None,serialize).values())[keyword-1]
-      else: return self.getHierParam('metadata',nodeId,keyword,serialize)
+      if type(keyword) == int:
+        return list(self.getHierParam('metadata',nodeId,None,serialize).values())[keyword-1]
+      else:
+        return self.getHierParam('metadata',nodeId,keyword,serialize)
     else:
-      if keyword in self._dataContainer['metadata'].keys(): return self._dataContainer ['metadata'][keyword]
-      else: self.raiseAnError(RuntimeError,'parameter ' + str(keyword) + ' not found in metadata dictionary. Available keys are '+str(self._dataContainer['metadata'].keys())+'.Function: Data.getMetadata')
+      if keyword in self._dataContainer['metadata'].keys():
+        return self._dataContainer ['metadata'][keyword]
+      else:
+        self.raiseAnError(RuntimeError,'parameter ' + str(keyword) + ' not found in metadata dictionary. Available keys are '+str(self._dataContainer['metadata'].keys())+'.Function: Data.getMetadata')
 
   def getOutParametersValues(self,nodeId=None,serialize=False):
     """
@@ -484,8 +587,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                                   PLEASE check explanation for getHierParam
       @, Out, dictionary, dict, Reference to self._dataContainer['outputs'] or something else in hierarchical
     """
-    if self._dataParameters['hierarchical']: return self.getHierParam('outputs',nodeId,serialize=serialize)
-    else:                                    return self._dataContainer['outputs']
+    if self._dataParameters['hierarchical']:
+      return self.getHierParam('outputs',nodeId,serialize=serialize)
+    else:
+      return self._dataContainer['outputs']
 
   def getParaKeys(self,typePara):
     """
@@ -493,7 +598,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, typePara, string, variable type (input, output or metadata)
       @ Out, keys, list, list of requested keys
     """
-    if typePara.lower() not in ['input','inputs','output','outputs','metadata']: self.raiseAnError(RuntimeError,'type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
+    if typePara.lower() not in ['input','inputs','output','outputs','metadata']:
+      self.raiseAnError(RuntimeError,'type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
     keys = self._dataParameters['inParam' ] if typePara.lower() in 'inputs' else (self._dataParameters['outParam'] if typePara.lower() in 'outputs' else self._dataContainer['metadata'].keys())
     return keys
 
@@ -516,16 +622,20 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       acceptedType = ['str','unicode','bytes']
       convertArr = lambda x: np.asarray(x)
 
-    if type(typeVar).__name__ not in ['str','unicode','bytes'] : self.raiseAnError(RuntimeError,'type of parameter typeVar needs to be a string. Function: Data.getParam')
+    if type(typeVar).__name__ not in ['str','unicode','bytes']:
+      self.raiseAnError(RuntimeError,'type of parameter typeVar needs to be a string. Function: Data.getParam')
     if type(keyword).__name__ not in acceptedType        :
       self.raiseAnError(RuntimeError,'type of parameter keyword needs to be '+str(acceptedType)+' . Function: Data.getParam')
     if nodeId:
-      if type(nodeId).__name__ not in ['str','unicode','bytes']  : self.raiseAnError(RuntimeError,'type of parameter nodeId needs to be a string. Function: Data.getParam')
-    if typeVar.lower() not in ['input','inout','inputs','unstructuredInput','output','outputs']: self.raiseAnError(RuntimeError,'type ' + typeVar + ' is not a valid type. Function: Data.getParam')
+      if type(nodeId).__name__ not in ['str','unicode','bytes']:
+        self.raiseAnError(RuntimeError,'type of parameter nodeId needs to be a string. Function: Data.getParam')
+    if typeVar.lower() not in ['input','inout','inputs','unstructuredInput','output','outputs']:
+      self.raiseAnError(RuntimeError,'type ' + typeVar + ' is not a valid type. Function: Data.getParam')
     if self._dataParameters['hierarchical']:
       if type(keyword) == int:
         return list(self.getHierParam(typeVar.lower(),nodeId,None,serialize).values())[keyword-1]
-      else: return self.getHierParam(typeVar.lower(),nodeId,keyword,serialize)
+      else:
+        return self.getHierParam(typeVar.lower(),nodeId,keyword,serialize)
     else:
       if typeVar.lower() in ['input','inputs','unstructuredInput']:
         returnDict = {}
@@ -543,8 +653,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         else:
           self.raiseAnError(RuntimeError,self.name+' : parameter ' + str(keyword) + ' not found in inpParametersValues dictionary. Available keys are '+str(self._dataContainer['inputs'].keys())+'.Function: Data.getParam')
       elif typeVar.lower() in ['output','outputs']:
-        if keyword in self._dataContainer['outputs'].keys(): return convertArr(self._dataContainer['outputs'][keyword])
-        else: self.raiseAnError(RuntimeError,self.name+' : parameter ' + str(keyword) + ' not found in outParametersValues dictionary. Available keys are '+str(self._dataContainer['outputs'].keys())+'.Function: Data.getParam')
+        if keyword in self._dataContainer['outputs'].keys():
+          return convertArr(self._dataContainer['outputs'][keyword])
+        else:
+          self.raiseAnError(RuntimeError,self.name+' : parameter ' + str(keyword) + ' not found in outParametersValues dictionary. Available keys are '+str(self._dataContainer['outputs'].keys())+'.Function: Data.getParam')
 
   def getParametersValues(self,typeVar,nodeId=None, serialize=False):
     """
@@ -554,10 +666,14 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, serialize, bool, optional, serialize the tree if in hierarchical mode
       @ Out, dictionary, dict, dictionary of parameter values
     """
-    if    typeVar.lower() in 'inputs'            : return self.getInpParametersValues(nodeId,serialize)
-    elif  typeVar.lower() in 'unstructuredinputs': return self.getInpParametersValues(nodeId,serialize,True)
-    elif  typeVar.lower() in 'outputs'           : return self.getOutParametersValues(nodeId,serialize)
-    else: self.raiseAnError(RuntimeError,'type ' + typeVar + ' is not a valid type. Function: Data.getParametersValues')
+    if typeVar.lower() in 'inputs':
+      return self.getInpParametersValues(nodeId,serialize)
+    elif typeVar.lower() in 'unstructuredinputs':
+      return self.getInpParametersValues(nodeId,serialize,True)
+    elif typeVar.lower() in 'outputs':
+      return self.getOutParametersValues(nodeId,serialize)
+    else:
+      self.raiseAnError(RuntimeError,'type ' + typeVar + ' is not a valid type. Function: Data.getParametersValues')
 
   def getRealization(self,index):
     """
@@ -565,7 +681,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, index, int, index of realization to return
       @ Out, realization, dict, {'inputs':{inName:value}, 'outputs':{outName:value}}
     """
-    if index >= len(self): self.raiseAnError(IndexError,'Requested entry %i but only entries 0 through %i exist!' %(index,len(self)-1))
+    if index >= len(self):
+      self.raiseAnError(IndexError,'Requested entry %i but only entries 0 through %i exist!' %(index,len(self)-1))
     realization = {}
     inps       = self.getParaKeys('inputs')
     outs       = self.getParaKeys('outputs')
@@ -613,8 +730,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.raiseADebug(' '*len(self.printTag)+':=============================')
     variablesToPrint = []
     if options:
-      if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
-      else: filenameLocal = self.name + '_dump'
+      if ('filenameroot' in options.keys()):
+        filenameLocal = options['filenameroot']
+      else:
+        filenameLocal = self.name + '_dump'
       if 'what' in options.keys():
         for var in options['what'].split(','):
           lvar = var.lower()
@@ -625,7 +744,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           else:
             self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. When specifying \'what\' remember to prepend parameter names with \'Input|\' or \'Output|\'')
         optionsInt['what'] = variablesToPrint
-    else: filenameLocal = self.name + '_dump'
+    else:
+      filenameLocal = self.name + '_dump'
     # this not needed since the variables are taken from inside
     #if 'what' not in optionsInt.keys():
     #  inputKeys, outputKeys = sorted(self.getParaKeys('inputs')), sorted(self.getParaKeys('outputs'))
@@ -664,11 +784,15 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if self._dataParameters['hierarchical']:
       for TSData in self.TSData.values():
         for node in list(TSData.iter('*')):
-          if name in node.get('dataContainer')['inputs'].keys()     : node.get('dataContainer')['inputs'].pop(name)
-          elif name in node.get('unstructuredInputContainer').keys(): node.get('dataContainer')['unstructuredInputs'].pop(name)
+          if name in node.get('dataContainer')['inputs'].keys():
+            node.get('dataContainer')['inputs'].pop(name)
+          elif name in node.get('unstructuredInputContainer').keys():
+            node.get('dataContainer')['unstructuredInputs'].pop(name)
     else:
-      if name in self._dataContainer['inputs'].keys()     : self._dataContainer['inputs'].pop(name)
-      elif name in self._dataContainer['unstructuredInputs'].keys(): self._dataContainer['unstructuredInputs'].pop(name)
+      if name in self._dataContainer['inputs'].keys():
+        self._dataContainer['inputs'].pop(name)
+      elif name in self._dataContainer['unstructuredInputs'].keys():
+        self._dataContainer['unstructuredInputs'].pop(name)
     self.inputKDTree = None
     self.treeScalingFactors = {}
 
@@ -681,9 +805,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if self._dataParameters['hierarchical']:
       for TSData in self.TSData.values():
         for node in list(TSData.iter('*')):
-          if name in node.get('dataContainer')['outputs'].keys(): node.get('dataContainer')['outputs'].pop(name)
+          if name in node.get('dataContainer')['outputs'].keys():
+            node.get('dataContainer')['outputs'].pop(name)
     else:
-      if name in self._dataContainer['outputs'].keys(): self._dataContainer['outputs'].pop(name)
+      if name in self._dataContainer['outputs'].keys():
+        self._dataContainer['outputs'].pop(name)
 
   def resetData(self):
     """
@@ -708,25 +834,31 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                                           With the parentName, it's possible to perform a double check
       @ Out, foundNodes, TreeStructure.Node, the found nodes
     """
-    if not self.TSData: # there is no tree yet
+    if not self.TSData:
+      # there is no tree yet
       self.TSData = {nodeName:TS.HierarchicalTree(self.messageHandler,TS.HierarchicalNode(self.messageHandler,nodeName))}
       return self.TSData[nodeName].getrootnode()
     else:
-      if nodeName in self.TSData.keys(): return self.TSData[nodeName].getrootnode()
+      if nodeName in self.TSData.keys():
+        return self.TSData[nodeName].getrootnode()
       elif parentName == 'root':
         self.TSData[nodeName] = TS.HierarchicalTree(self.messageHandler,TS.HierarchicalNode(self.messageHandler,nodeName))
         return self.TSData[nodeName].getrootnode()
       else:
         for TSDat in self.TSData.values():
           foundNodes = list(TSDat.iter(nodeName))
-          if len(foundNodes) > 0: break
-        if len(foundNodes) == 0: return TS.HierarchicalNode(self.messageHandler,nodeName)
+          if len(foundNodes) > 0:
+            break
+        if len(foundNodes) == 0:
+          return TS.HierarchicalNode(self.messageHandler,nodeName)
         else:
           if parentName:
             for node in foundNodes:
-              if node.getParentName() == parentName: return node
+              if node.getParentName() == parentName:
+                return node
             self.raiseAnError(RuntimeError,'the node ' + nodeName + 'has been found but no one has a parent named '+ parentName)
-          else: return(foundNodes[0])
+          else:
+            return(foundNodes[0])
 
   def sizeData(self):
     """
@@ -735,9 +867,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, outcome, int, number of realizations
     """
     outcome   = 0
-    if self.isItEmpty(): return outcome
-    if self.type == 'PointSet': outcome = len(self.getParam('input',self.getParaKeys('input')[-1],nodeId = 'RecontructEnding'))
-    else                      : outcome = len(self.getParametersValues('input', nodeId='RecontructEnding').keys())
+    if self.isItEmpty():
+      return outcome
+    if self.type == 'PointSet':
+      outcome = len(self.getParam('input',self.getParaKeys('input')[-1],nodeId = 'RecontructEnding'))
+    else:
+      outcome = len(self.getParametersValues('input', nodeId='RecontructEnding').keys())
     return outcome
 
   def updateInputValue(self,name,value,options=None):
@@ -770,7 +905,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, options, dict, optional, dictionary of options
       @ Out, None
     """
-    self._updateSpecializedMetadata(name,value,options)
+    dtype = self.__getMetadataType(name,value)
+    self._updateSpecializedMetadata(name,value,dtype,options)
 
   def addNodeInTreeMode(self,tsnode,options):
     """
@@ -782,10 +918,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if not tsnode.getParentName():
       parentID = None
       if 'metadata' in options.keys():
-        if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
+        if 'parentID' in options['metadata'].keys():
+          parentID = options['metadata']['parentID']
       else:
-        if 'parentID' in options.keys(): parentID = options['parentID']
-      if not parentID: self.raiseAnError(ConstructError,'the parentID must be provided if a new node needs to be appended')
+        if 'parentID' in options.keys():
+          parentID = options['parentID']
+      if not parentID:
+        self.raiseAnError(ConstructError,'the parentID must be provided if a new node needs to be appended')
       self.retrieveNodeInTreeMode(parentID).appendBranch(tsnode)
 
   ##Protected Methods
@@ -807,7 +946,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     outputNode.text = ','.join(outKeys)
     filenameNode = ET.SubElement(root,'inputFilename')
     filenameNode.text = filenameLocal + '.csv'
-    if len(self._dataContainer['metadata'].keys()) > 0:
+    if len(self._dataContainer['metadata']) > 0:
       #write metadata as well_known_implementations
       metadataNode = ET.SubElement(root,'metadata')
       submetadataNodes = []
@@ -834,9 +973,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     inputNode = root.find("input")
     outputNode = root.find("output")
     filenameNode = root.find("inputFilename")
-    if inputNode    ==  None: self.raiseAnError(RuntimeError,'input XML node not found in file ' + filenameLocal + '.xml')
-    if outputNode   ==  None: self.raiseAnError(RuntimeError,'output XML node not found in file ' + filenameLocal + '.xml')
-    if filenameNode ==  None: self.raiseAnError(RuntimeError,'inputFilename XML node not found in file ' + filenameLocal + '.xml')
+    if inputNode is None:
+      self.raiseAnError(RuntimeError,'input XML node not found in file ' + filenameLocal + '.xml')
+    if outputNode is None:
+      self.raiseAnError(RuntimeError,'output XML node not found in file ' + filenameLocal + '.xml')
+    if filenameNode is None:
+      self.raiseAnError(RuntimeError,'inputFilename XML node not found in file ' + filenameLocal + '.xml')
     retDict["inpKeys"] = inputNode.text.split(",")
     retDict["outKeys"] = outputNode.text.split(",")
     retDict["filenameCSV"] = filenameNode.text
@@ -851,8 +993,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if value.startswith('array('):
           isArray=True
           value=value.split('dtype')[0].lstrip('ary(').rstrip('),\n ')
-        else: isArray = False
-        try: value = ast.literal_eval(value)
+        else:
+          isArray = False
+        try:
+          value = ast.literal_eval(value)
         except ValueError as e:
           # these aren't real fails, they just don't actually need converting
           self.raiseAWarning('ast.literal_eval failed on "',value,'"')
@@ -876,33 +1020,48 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     # retrieve input/outputs parameters' keywords
-    if xmlNode.find('Input' ) is None and xmlNode.find('Output' ) is None: self.raiseAnError(IOError,"At least one of the Input or Output XML block needs to be inputted!")
+    if xmlNode.find('Input' ) is None and xmlNode.find('Output' ) is None:
+      self.raiseAnError(IOError,"At least one of the Input or Output XML block needs to be inputted!")
     # we allow to avoid to have an <Input> block if not needed (InputPlaceHolder) or a <Output> block if not needed (OutputPlaceHolder)
     self._dataParameters['inParam']  = list(inp.strip() for inp in xmlNode.find('Input' ).text.strip().split(',')) if xmlNode.find('Input' ) is not None else ['InputPlaceHolder']
     self._dataParameters['outParam'] = list(out.strip() for out in xmlNode.find('Output').text.strip().split(',')) if xmlNode.find('Output') is not None else ['OutputPlaceHolder']
-    if '' in self._dataParameters['inParam'] : self.raiseAnError(IOError, 'In DataObject  ' +self.name+' there is a trailing comma in the "Input" XML block!')
-    if '' in self._dataParameters['outParam']: self.raiseAnError(IOError, 'In DataObject  ' +self.name+' there is a trailing comma in the "Output" XML block!')
+    if '' in self._dataParameters['inParam']:
+      self.raiseAnError(IOError, 'In DataObject  ' +self.name+' there is a trailing comma in the "Input" XML block!')
+    if '' in self._dataParameters['outParam']:
+      self.raiseAnError(IOError, 'In DataObject  ' +self.name+' there is a trailing comma in the "Output" XML block!')
     #test for keywords not allowed
-    if len(set(self._dataParameters['inParam'])&set(self.notAllowedInputs))!=0  : self.raiseAnError(IOError,'the keyword '+str(set(self._dataParameters['inParam'])&set(self.notAllowedInputs))+' is not allowed among inputs')
-    if len(set(self._dataParameters['outParam'])&set(self.notAllowedOutputs))!=0: self.raiseAnError(IOError,'the keyword '+str(set(self._dataParameters['outParam'])&set(self.notAllowedOutputs))+' is not allowed among inputs')
+    if len(set(self._dataParameters['inParam'])&set(self.notAllowedInputs))!=0:
+      self.raiseAnError(IOError,'the keyword '+str(set(self._dataParameters['inParam'])&set(self.notAllowedInputs))+' is not allowed among inputs')
+    if len(set(self._dataParameters['outParam'])&set(self.notAllowedOutputs))!=0:
+      self.raiseAnError(IOError,'the keyword '+str(set(self._dataParameters['outParam'])&set(self.notAllowedOutputs))+' is not allowed among inputs')
     # test if some parameters are repeated
     for inp in self._dataParameters['inParam']:
-      if self._dataParameters['inParam'].count(inp) > 1: self.raiseAnError(IOError,'the keyword '+inp+' is listed, in <Input> block, more then once!')
+      if self._dataParameters['inParam'].count(inp) > 1:
+        self.raiseAnError(IOError,'the keyword '+inp+' is listed, in <Input> block, more then once!')
     for out in self._dataParameters['outParam']:
-      if self._dataParameters['outParam'].count(out) > 1: self.raiseAnError(IOError,'the keyword '+out+' is listed, in <Output> block, more then once!')
+      if self._dataParameters['outParam'].count(out) > 1:
+        self.raiseAnError(IOError,'the keyword '+out+' is listed, in <Output> block, more then once!')
     #test for same input/output variables name
-    if len(set(self._dataParameters['inParam'])&set(self._dataParameters['outParam']))!=0: self.raiseAnError(IOError,'It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
+    if len(set(self._dataParameters['inParam'])&set(self._dataParameters['outParam']))!=0:
+      self.raiseAnError(IOError,'It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
     optionsData = xmlNode.find('options')
     if optionsData != None:
-      for child in optionsData: self._dataParameters[child.tag] = child.text
-    if set(self._dataParameters.keys()).issubset(['inputRow','inputPivotValue'])             : self.raiseAnError(IOError,'It is not allowed to simultaneously specify the nodes: inputRow and inputPivotValue!')
-    if set(self._dataParameters.keys()).issubset(['outputRow','outputPivotValue','operator']): self.raiseAnError(IOError,'It is not allowed to simultaneously specify the nodes: outputRow, outputPivotValue and operator!')
+      for child in optionsData:
+        self._dataParameters[child.tag] = child.text
+    if set(self._dataParameters.keys()).issubset(['inputRow','inputPivotValue']):
+      self.raiseAnError(IOError,'It is not allowed to simultaneously specify the nodes: inputRow and inputPivotValue!')
+    if set(self._dataParameters.keys()).issubset(['outputRow','outputPivotValue','operator']):
+      self.raiseAnError(IOError,'It is not allowed to simultaneously specify the nodes: outputRow, outputPivotValue and operator!')
     self._specializedInputCheck(xmlNode)
     if 'hierarchical' in xmlNode.attrib.keys():
-      if xmlNode.attrib['hierarchical'].lower() in utils.stringsThatMeanTrue(): self._dataParameters['hierarchical'] = True
-      else                                                                    : self._dataParameters['hierarchical'] = False
-      if self._dataParameters['hierarchical']: self.TSData, self.rootToBranch = None, {}
-    else: self._dataParameters['hierarchical'] = False
+      if xmlNode.attrib['hierarchical'].lower() in utils.stringsThatMeanTrue():
+        self._dataParameters['hierarchical'] = True
+      else:
+        self._dataParameters['hierarchical'] = False
+      if self._dataParameters['hierarchical']:
+        self.TSData, self.rootToBranch = None, {}
+    else:
+      self._dataParameters['hierarchical'] = False
 
   def _specializedInputCheck(self,xmlNode):
     """
@@ -960,9 +1119,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     lvar = var.lower()
     inOrOuts = inOrOut + 's'
     if lvar == inOrOut:
-      if type(list(self._dataContainer[inOrOuts].values())[0]) == dict: varKeys = list(self._dataContainer[inOrOuts].values())[0].keys()
-      else: varKeys = self._dataContainer[inOrOuts].keys()
-      for invar in varKeys: variablesToPrint.append(inOrOut+'|'+str(invar))
+      if type(list(self._dataContainer[inOrOuts].values())[0]) == dict:
+        varKeys = list(self._dataContainer[inOrOuts].values())[0].keys()
+      else:
+        varKeys = self._dataContainer[inOrOuts].keys()
+      for invar in varKeys:
+        variablesToPrint.append(inOrOut+'|'+str(invar))
     elif '|' in var and lvar.startswith(inOrOut+'|'):
       varName = var.split('|')[1]
       # get the variables from the metadata if the variables are in the list metaAdditionalInOrOut
@@ -986,3 +1148,18 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       self.raiseAnError(RuntimeError,'unexpected variable '+ var)
     return variablesToPrint
+
+  def __getMetadataType(self,name,value):
+    """
+      Utility method to get the metadata type. If the type is not stored in
+      the self._dataParameters['typeMetadata'] this method will add it
+      @ In, name, str, the metadata name
+      @ In, value, object, the metadata value to analyze
+      @ Out, valueType, type, the metadata type
+    """
+    try:
+      valueType = self._dataParameters['typeMetadata'][name]
+    except KeyError:
+      valueType = None if utils.checkTypeRecursively(value) not in ['str','unicode','bytes'] else object
+      self._dataParameters['typeMetadata'][name] = valueType
+    return valueType

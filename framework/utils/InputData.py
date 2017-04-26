@@ -430,5 +430,3 @@ def createXSD(outerElement):
                                          'type':outerElement.getName()+'_type'})
   outerElement.generateXSD(outside, {})
   return outside
-
-

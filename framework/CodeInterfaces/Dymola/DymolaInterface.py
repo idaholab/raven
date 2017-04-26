@@ -147,7 +147,8 @@ class Dymola(CodeInterfaceBase):
       if inputFile.getType() == "DymolaInitialisation":
         foundInit = True
         indexInit = index
-    if not foundInit: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
+    if not foundInit:
+      raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
     # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
     #   input file passed in: /path/to/file/<Base Name>.ext. 'rawout' indicates that this is the direct
     #   output from running the Dymola executable.
@@ -188,8 +189,10 @@ class Dymola(CodeInterfaceBase):
       if inputFile.getType() == "DymolaVectors":
         foundVect = True
         indexVect = index
-    if not foundInit: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
-    if not foundVect: print('Dymola INTERFACE WARNING -> None of the input files has the type "DymolaVectors"! ')
+    if not foundInit:
+      raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
+    if not foundVect:
+      print('Dymola INTERFACE WARNING -> None of the input files has the type "DymolaVectors"! ')
     # Figure out the new file name and put it into the proper place in the return list
     #newInputFiles = copy.deepcopy(currentInputFiles)
     originalPath = oriInputFiles[indexInit].getAbsFile()
@@ -214,7 +217,8 @@ class Dymola(CodeInterfaceBase):
         print("                            is supposed to go into the simulation initialisation file of type")
         print("                            'DymolaInitialisation' the array must be split into scalars.")
         print("                            => It is assumed that the array goes into the input file with type 'DymolaVectors'")
-        if not foundVect: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ')
+        if not foundVect:
+          raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ')
         # extract dict entry
         vectorsToPass[key] = varDict.pop(key)
       assert not type(value).__name__ in ['str','bytes','unicode'], ("Strings cannot be "
@@ -322,7 +326,12 @@ class Dymola(CodeInterfaceBase):
     #   store the data in this file to variable 'mat'.
     matSourceFileName = os.path.join(workingDir, output)
     matSourceFileName += '.mat'
+    ###################################################################
+    #FIXME: LOADMAT HAS A DIFFERENT BEHAVIOR IN SCIPY VERSION >= 0.18 #
+    if int(scipy.__version__.split(".")[1])>17:
+      warnings.warn("SCIPY version >0.17.xx has a different behavior in reading .mat files!")
     mat = scipy.io.loadmat(matSourceFileName, chars_as_strings=False)
+    ###################################################################
 
     # Define the functions that extract strings from the matrix:
     #  - strMatNormal: for parallel string
@@ -351,7 +360,7 @@ class Dymola(CodeInterfaceBase):
         c = abs(x)-1  # column (reduced)
         s = sign(x)   # sign
         if c:
-          self._vars[names[i]] = (descr[i], d, c, s)
+          self._vars[names[i]] = (descr[i], d, c, float(s))
           if not d in self._blocks:
             self._blocks.append(d)
         else:
@@ -374,7 +383,7 @@ class Dymola(CodeInterfaceBase):
       for (k,v) in self._vars.items():
         dataValue = mat['data_%d' % (v[1])][v[2]]
         if v[3] < 0:
-          dataValue = dataValue * -1
+          dataValue = dataValue * -1.0
         if v[1] == 1:
           self._namesData1.append(k)
           self._timeSeriesData1.append(dataValue)

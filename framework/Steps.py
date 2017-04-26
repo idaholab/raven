@@ -19,7 +19,8 @@ Step is called by simulation
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__): xrange = range
+if not 'xrange' in dir(__builtins__):
+  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -109,25 +110,35 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       self.raiseAnError(IOError,'In step of type {0:15} and name {1:15} there are unknown attributes {2:100}'.format(self.type,self.name,str(xmlNode.attrib.keys())))
     if 're-seeding' in xmlNode.attrib.keys():
       self.initSeed=xmlNode.attrib['re-seeding']
-      if self.initSeed.lower()   == "continue": self.initSeed  = "continue"
+      if self.initSeed.lower()   == "continue":
+        self.initSeed  = "continue"
       else:
-        try   : self.initSeed  = int(self.initSeed)
-        except: self.raiseAnError(IOError,printString.format(self.type,self.name,self.initSeed,'re-seeding'))
+        try:
+          self.initSeed  = int(self.initSeed)
+        except:
+          self.raiseAnError(IOError,printString.format(self.type,self.name,self.initSeed,'re-seeding'))
     if 'sleepTime' in xmlNode.attrib.keys():
-      try: self.sleepTime = float(xmlNode.attrib['sleepTime'])
-      except: self.raiseAnError(IOError,printString.format(self.type,self.name,xmlNode.attrib['sleepTime'],'sleepTime'))
+      try:
+        self.sleepTime = float(xmlNode.attrib['sleepTime'])
+      except:
+        self.raiseAnError(IOError,printString.format(self.type,self.name,xmlNode.attrib['sleepTime'],'sleepTime'))
     for child in xmlNode:
       classType, classSubType = child.attrib.get('class'), child.attrib.get('type')
-      if None in [classType,classSubType]: self.raiseAnError(IOError,"In Step named "+self.name+", subnode "+ child.tag + ", and body content = "+ child.text +" the attribute class and/or type has not been found!")
+      if None in [classType,classSubType]:
+        self.raiseAnError(IOError,"In Step named "+self.name+", subnode "+ child.tag + ", and body content = "+ child.text +" the attribute class and/or type has not been found!")
       self.parList.append([child.tag,child.attrib.get('class'),child.attrib.get('type'),child.text])
 
     self.pauseEndStep = False
     if 'pauseAtEnd' in xmlNode.attrib.keys():
-      if   xmlNode.attrib['pauseAtEnd'].lower() in utils.stringsThatMeanTrue(): self.pauseEndStep = True
-      elif xmlNode.attrib['pauseAtEnd'].lower() in utils.stringsThatMeanFalse(): self.pauseEndStep = False
-      else: self.raiseAnError(IOError,printString.format(self.type,self.name,xmlNode.attrib['pauseAtEnd'],'pauseAtEnd'))
+      if   xmlNode.attrib['pauseAtEnd'].lower() in utils.stringsThatMeanTrue():
+        self.pauseEndStep = True
+      elif xmlNode.attrib['pauseAtEnd'].lower() in utils.stringsThatMeanFalse():
+        self.pauseEndStep = False
+      else:
+        self.raiseAnError(IOError,printString.format(self.type,self.name,xmlNode.attrib['pauseAtEnd'],'pauseAtEnd'))
     self._localInputAndChecks(xmlNode)
-    if None in self.parList: self.raiseAnError(IOError,'A problem was found in  the definition of the step '+str(self.name))
+    if None in self.parList:
+      self.raiseAnError(IOError,'A problem was found in  the definition of the step '+str(self.name))
 
   @abc.abstractmethod
   def _localInputAndChecks(self,xmlNode):
@@ -210,7 +221,8 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if self.pauseEndStep:
       for i in range(len(inDictionary['Output'])):
         #if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
-        if inDictionary['Output'][i].type in ['OutStreamPlot']: inDictionary['Output'][i].endInstructions('interactive')
+        if inDictionary['Output'][i].type in ['OutStreamPlot']:
+          inDictionary['Output'][i].endInstructions('interactive')
 
   def takeAstep(self,inDictionary):
     """
@@ -262,7 +274,8 @@ class SingleRun(Step):
       if parameter[0]=='Model':
         found +=1
         modelIndex = index
-      else: rolesItem.append(parameter[0])
+      else:
+        rolesItem.append(parameter[0])
     #test the presence of one and only one model
     if found > 1:
       self.raiseAnError(IOError,'Only one model is allowed for the step named '+str(self.name))
@@ -280,15 +293,18 @@ class SingleRun(Step):
         self.raiseAnError(IOError,'<SingleRun> steps only support running "Code" model types!  Consider using a <MultiRun> step using a "Custom" sampler for other models.')
     #build entry list for verification of correct input types
     toBeTested = {}
-    for role in roles: toBeTested[role]=[]
+    for role in roles:
+      toBeTested[role]=[]
     for  myInput in self.parList:
-      if myInput[0] in rolesItem: toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
+      if myInput[0] in rolesItem:
+        toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
     #use the models static testing of roles compatibility
     for role in roles:
       if role not in self._excludeFromModelValidation:
         Models.validate(self.parList[modelIndex][2], role, toBeTested[role],self)
     self.raiseADebug('reactivate check on Input as soon as loadCsv gets out from the PostProcessor models!')
-    if 'Output' not in roles: self.raiseAnError(IOError,'It is not possible a run without an Output!')
+    if 'Output' not in roles:
+      self.raiseAnError(IOError,'It is not possible a run without an Output!')
 
   def _localInitializeStep(self,inDictionary):
     """
@@ -306,10 +322,12 @@ class SingleRun(Step):
       modelInitDict['SolutionExport'] = inDictionary['SolutionExport']
     if inDictionary['Model'].createWorkingDir:
       currentWorkingDirectory = os.path.join(inDictionary['jobHandler'].runInfoDict['WorkingDir'],inDictionary['jobHandler'].runInfoDict['stepName'])
-      try: os.mkdir(currentWorkingDirectory)
+      try:
+        os.mkdir(currentWorkingDirectory)
       except OSError:
         self.raiseAWarning('current working dir '+currentWorkingDirectory+' already exists, this might imply deletion of present files')
-        if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0): self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
+        if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0):
+          self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
         if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
           self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ currentWorkingDirectory+". Please check your input!")
         # register function to remove the locked file at the end of execution
@@ -352,19 +370,25 @@ class SingleRun(Step):
       for finishedJob in finishedJobs:
         if finishedJob.getReturnCode() == 0:
           # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
+          model.finalizeModelOutput(finishedJob)
           for output in outputs:
             #if type(output).__name__ not in ['str','bytes','unicode']:
-            if output.type not in ['OutStreamPlot','OutStreamPrint']: model.collectOutput(finishedJob,output)
-            elif output.type in   ['OutStreamPlot','OutStreamPrint']: output.addOutput()
+            if output.type not in ['OutStreamPlot','OutStreamPrint']:
+              model.collectOutput(finishedJob,output)
+            elif output.type in   ['OutStreamPlot','OutStreamPrint']:
+              output.addOutput()
             #else: model.collectOutput(finishedJob,output)
         else:
           self.raiseADebug('the failed jobs are tracked in the JobHandler... we can retrieve and treat them separately. Andrea')
           self.raiseADebug('a job failed... call the handler for this situation')
-      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
+      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
+        break
       time.sleep(self.sleepTime)
-    if sampler is not None: sampler.handleFailedRuns(self.failedRuns)
+    if sampler is not None:
+      sampler.handleFailedRuns(self.failedRuns)
     else:
-      if len(self.failedRuns)>0: self.raiseAWarning('There were %i failed runs!' %len(self.failedRuns))
+      if len(self.failedRuns)>0:
+        self.raiseAWarning('There were %i failed runs!' %len(self.failedRuns))
 
   def _localGetInitParams(self):
     """
@@ -402,7 +426,8 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     SingleRun._localInputAndChecks(self,xmlNode)
-    if self.splType not in [item[0] for item in self.parList]: self.raiseAnError(IOError,'It is not possible a multi-run without a sampler or optimizer!')
+    if self.splType not in [item[0] for item in self.parList]:
+      self.raiseAnError(IOError,'It is not possible a multi-run without a sampler or optimizer!')
 
   def _initializeSampler(self,inDictionary):
     """
@@ -410,7 +435,8 @@ class MultiRun(SingleRun):
       @ In, inDictionary, dict, contains the list of instances (see Simulation)
       @ Out, None
     """
-    if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
+    if 'SolutionExport' in inDictionary.keys():
+      self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
 
     inDictionary[self.splType].initialize(**self._samplerInitDict)
     self.raiseADebug('for the role of sampler the item of class '+inDictionary[self.splType].type+' and name '+inDictionary[self.splType].name+' has been initialized')
@@ -433,6 +459,7 @@ class MultiRun(SingleRun):
     #generate lambda function list to collect the output without checking the type
     self._outputCollectionLambda = []
     self._outputDictCollectionLambda = []
+    # set up output collection lambdas
     for outIndex, output in enumerate(inDictionary['Output']):
       if output.type not in ['OutStreamPlot','OutStreamPrint']:
         if 'SolutionExport' in inDictionary.keys() and output.name == inDictionary['SolutionExport'].name:
@@ -445,6 +472,14 @@ class MultiRun(SingleRun):
         self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
         self._outputDictCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
     self.raiseADebug('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
+    # set up and run the first batch of samples
+    # FIXME this duplicates a lot of code from _locatTakeAstepRun, which should be consolidated
+    # first, check and make sure the model is ready
+    model = inDictionary['Model']
+    if isinstance(model,Models.ROM):
+      if not model.amITrained:
+        model.raiseAnError(RuntimeError,'ROM model "%s" has not been trained yet, so it cannot be sampled!' %model.name+\
+                                        ' Use a RomTrainer step to train it.')
     for inputIndex in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
       if inDictionary[self.splType].amIreadyToProvideAnInput():
         try:
@@ -465,20 +500,31 @@ class MultiRun(SingleRun):
     inputs     = inDictionary['Input'     ]
     outputs    = inDictionary['Output'    ]
     sampler    = inDictionary[self.splType]
+    # check to make sure model can be run
+    ## first, if it's a ROM, check that it's trained
+    if isinstance(model,Models.ROM):
+      if not model.amITrained:
+        model.raiseAnError(RuntimeError,'ROM model "%s" has not been trained yet, so it cannot be sampled!' %model.name+\
+                                        ' Use a RomTrainer step to train it.')
+    # run step loop
     while True:
+      # collect finished jobs
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
+        # update number of collected runs
         self.counter +=1
+        # clean up so RAVEN can read output
         model.finalizeModelOutput(finishedJob)
+        # collect run if it succeeded
         if finishedJob.getReturnCode() == 0:
           for myLambda, outIndex in self._outputCollectionLambda:
             myLambda([finishedJob,outputs[outIndex]])
             self.raiseADebug('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
+        # pool it if it failed, before we loop back to "while True" we'll check for these again
         else:
           #add run to a pool that can be sent to the sampler later
           self.failedRuns.append(copy.copy(finishedJob))
           self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
-          self.raiseADebug('the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
 
         # finalize actual sampler
         sampler.finalizeActualSampling(finishedJob,model,inputs)
@@ -507,6 +553,7 @@ class MultiRun(SingleRun):
         self.raiseADebug('Finished with %d runs submitted, %d jobs running and %d jobs finished.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
       time.sleep(self.sleepTime)
+    # if any new collected runs failed, let the sampler treat them appropriately
     sampler.handleFailedRuns(self.failedRuns)
 
   def _findANewInputToRun(self,inDictionary):
@@ -552,8 +599,10 @@ class RomTrainer(Step):
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this Step class
       @ Out, None
     """
-    if [item[0] for item in self.parList].count('Input')!=1: self.raiseAnError(IOError,'Only one Input and only one is allowed for a training step. Step name: '+str(self.name))
-    if [item[0] for item in self.parList].count('Output')<1: self.raiseAnError(IOError,'At least one Output is need in a training step. Step name: '+str(self.name))
+    if [item[0] for item in self.parList].count('Input')!=1:
+      self.raiseAnError(IOError,'Only one Input and only one is allowed for a training step. Step name: '+str(self.name))
+    if [item[0] for item in self.parList].count('Output')<1:
+      self.raiseAnError(IOError,'At least one Output is need in a training step. Step name: '+str(self.name))
     for item in self.parList:
       if item[0]=='Output' and item[2] not in ['ROM']:
         self.raiseAnError(IOError,'Only ROM output class are allowed in a training step. Step name: '+str(self.name))
@@ -587,66 +636,8 @@ class RomTrainer(Step):
       @ Out, None
     """
     #Train the ROM... It is not needed to add the trainingSet since it's already been added in the initialization method
-    for ROM in inDictionary['Output']: ROM.train(inDictionary['Input'][0])
-#
-#
-#
-# class PostProcess(SingleRun):
-#   """this class implements a PostProcessing (PP) strategy. The driver of this PP action is the model that MUST be of type FILTER"""
-#   def __init__(self):
-#     SingleRun.__init__(self)
-#     self.foundFunction   = False
-#     self.functionCounter = 0
-#     self.ROMCounter      = 0
-#     self.foundROM        = False
-#     self.printTag = utils.returnPrintTag('STEP POSTPROCESS')
-#
-#   def _localInputAndChecks(self,xmlNode):
-#     found     = 0
-#     rolesItem = []
-#     for index, parameter in enumerate(self.parList):
-#       if parameter[0]=='Model':
-#         found +=1
-#         modelIndex = index
-#       else: rolesItem.append(parameter[0])
-#     #test the presence of one and only one model
-#     if found > 1: risea IOError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Only one model is allowed for the step named '+str(self.name))
-#     elif found == 0: risea IOError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> No model has been found for the step named '+str(self.name))
-#     roles      = set(rolesItem)
-#     toBeTested = {}
-#     for role in roles: toBeTested[role]=[]
-#     for  myInput in self.parList:
-#       if myInput[0] in rolesItem: toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
-#     #use the models static testing of roles compatibility
-#     for role in roles: Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
-#     #SingleRun._localInputAndChecks(self,xmlNode)
-#     for role in self.parList:
-#       if role[0] == 'Function':
-#         self.functionCounter+=1
-#         self.foundFunction   = True
-#         if role[1]!='Functions': risea IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The optional function must be of class "Functions", in step ' + self.name)
-#       elif role[0] == 'Model' and role[1] == 'Models':
-#         if role[2] != 'PostProcessor' : risea IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The required model in "PostProcess" step must be of type PostProcessor, in step ' + self.name)
-#       elif role[0] == 'ROM' and role[1] == 'Models':
-#         self.ROMCounter+=1
-#         self.foundROM   = True
-#         if role[2] != 'ROM' : risea IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The optional ROM in "PostProcess" step must be of type ROM, in step ' + self.name)
-#
-#   def _localInitializeStep(self,inDictionary):
-#     functionExt = None
-#     ROMExt      = None
-#     if self.foundFunction: functionExt = inDictionary['Function']
-#     if self.foundROM: ROMExt = inDictionary['ROM']
-#     initDict = {'externalFunction':functionExt,'ROM':ROMExt}
-#     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],initDict)
-#     #HDF5 initialization
-#     for i in range(len(inDictionary['Output'])):
-#       if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
-#         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
-#         elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
-#
-#   def _localTakeAstepRun(self,inDictionary):
-#     SingleRun._localTakeAstepRun(self, inDictionary)
+    for ROM in inDictionary['Output']:
+      ROM.train(inDictionary['Input'][0])
 #
 #
 #
@@ -673,7 +664,8 @@ class IOStep(Step):
     """
     outputs         = []
     for out in inDictionary['Output']:
-      if not isinstance(out,OutStreamManager): outputs.append(out)
+      if not isinstance(out,OutStreamManager):
+        outputs.append(out)
     return outputs
 
   def _localInitializeStep(self,inDictionary):
@@ -699,20 +691,31 @@ class IOStep(Step):
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
       if inDictionary['Input'][i].type == 'HDF5':
-        if isinstance(outputs[i],Data): self.actionType.append('HDF5-dataObjects')
-        else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
+        if isinstance(outputs[i],Data):
+          self.actionType.append('HDF5-dataObjects')
+        else:
+          self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
       elif  isinstance(inDictionary['Input'][i],Data):
-        if outputs[i].type == 'HDF5': self.actionType.append('dataObjects-HDF5')
-        else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a DataObjects. Got ' + inDictionary['Output'][i].type)
+        if outputs[i].type == 'HDF5':
+          self.actionType.append('dataObjects-HDF5')
+        else:
+          self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a DataObjects. Got ' + inDictionary['Output'][i].type)
       elif isinstance(inDictionary['Input'][i],Models.ROM):
-        if isinstance(outputs[i],Files.File): self.actionType.append('ROM-FILES')
-        else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A Files as Output only, when the Input is a ROM. Got ' + inDictionary['Output'][i].type)
+        if isinstance(outputs[i],Files.File):
+          self.actionType.append('ROM-FILES')
+        else:
+          self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A Files as Output only, when the Input is a ROM. Got ' + inDictionary['Output'][i].type)
       elif isinstance(inDictionary['Input'][i],Files.File):
-        if   isinstance(outputs[i],Models.ROM): self.actionType.append('FILES-ROM')
-        elif isinstance(outputs[i],Data): self.actionType.append('FILES-dataObjects')
-        else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
-      else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
-    if self.fromDirectory and len(self.actionType) == 0: self.raiseAnError(IOError,'In Step named ' + self.name + '. "fromDirectory" attribute provided but not conversion action is found (remove this atttribute for OutStream actions only"')
+        if   isinstance(outputs[i],Models.ROM):
+          self.actionType.append('FILES-ROM')
+        elif isinstance(outputs[i],Data):
+          self.actionType.append('FILES-dataObjects')
+        else:
+          self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
+      else:
+        self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
+    if self.fromDirectory and len(self.actionType) == 0:
+      self.raiseAnError(IOError,'In Step named ' + self.name + '. "fromDirectory" attribute provided but not conversion action is found (remove this atttribute for OutStream actions only"')
     #Initialize all the HDF5 outputs.
     for i in range(len(outputs)):
       #if type(outputs[i]).__name__ not in ['str','bytes','unicode']:
@@ -751,6 +754,9 @@ class IOStep(Step):
         outputs[i].addGroupDataObjects({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
+        #check the ROM is trained first
+        if not inDictionary['Input'][i].amITrained:
+          self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %inDictionary['Input'][i].name)
         fileobj = outputs[i]
         fileobj.open(mode='wb+')
         cloudpickle.dump(inDictionary['Input'][i],fileobj)
@@ -759,7 +765,11 @@ class IOStep(Step):
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
         fileobj = inDictionary['Input'][i]
-        unpickledObj = pickle.load(file(fileobj.getAbsFile(),'rb+'))
+        unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))
+        if not isinstance(unpickledObj,Models.ROM):
+          self.raiseAnError(RuntimeError,'Pickled object in "%s" is not a ROM.  Exiting ...' %str(fileobj))
+        if not unpickledObj.amITrained:
+          self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %unpickledObj.name)
         outputs[i].train(unpickledObj)
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
@@ -769,7 +779,8 @@ class IOStep(Step):
       else:
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
     for output in inDictionary['Output']:
-      if output.type in ['OutStreamPrint','OutStreamPlot']: output.addOutput()
+      if output.type in ['OutStreamPrint','OutStreamPlot']:
+        output.addOutput()
 
   def _localGetInitParams(self):
     """
@@ -812,4 +823,3 @@ def returnInstance(Type,caller):
   """
   return __interFaceDict[Type]()
   caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
-

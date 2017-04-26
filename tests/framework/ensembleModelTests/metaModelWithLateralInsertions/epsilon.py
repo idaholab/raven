@@ -26,4 +26,3 @@ def initialize(self, runInfo, inputs):
 
 def run(self, Input):
   self.G = self.E - self.F
-

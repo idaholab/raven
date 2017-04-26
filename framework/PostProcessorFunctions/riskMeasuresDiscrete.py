@@ -222,5 +222,3 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     # outputDic['data']['input'] = {} # {'dummy' : np.asanyarray(0)}
 
     return outputDic
-
-

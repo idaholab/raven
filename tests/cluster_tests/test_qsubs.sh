@@ -7,9 +7,9 @@ pushd ../../framework
 RAVEN_FRAMEWORK_DIR=$(pwd)
 popd
 
-
 wait_lines ()
 {
+    echo Return code: $?
     LS_DATA="$1"
     COUNT="$2"
     NAME="$3"
@@ -18,6 +18,11 @@ wait_lines ()
     if test $lines -ne $COUNT; then
         echo Lines not here yet, waiting longer.
         sleep 20 #Sleep in case this is just disk propagation
+        lines=`ls $LS_DATA | wc -l`
+    fi
+    if test $lines -ne $COUNT; then
+        echo Lines not here yet, waiting even longer.
+        sleep 60 #Sleep in case this is just disk propagation
         lines=`ls $LS_DATA | wc -l`
     fi
     if test $lines -eq $COUNT; then

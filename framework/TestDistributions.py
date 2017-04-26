@@ -104,8 +104,10 @@ def checkIntegral(name,dist,low,high,numpts=1e4,tol=1e-3):
 #Test module methods
 print(Distributions.knownTypes())
 #Test error
-try: Distributions.returnInstance("unknown",'dud')
-except: print("error worked")
+try:
+  Distributions.returnInstance("unknown",'dud')
+except:
+  print("error worked")
 
 #Test Uniform
 
@@ -121,8 +123,8 @@ uniform.initializeDistribution()
 uniform.setMessageHandler(mh)
 
 #check pickled version as well
-pk.dump(uniform,file('testDistrDump.pk','wb'))
-puniform=pk.load(file('testDistrDump.pk','rb'))
+pk.dump(uniform,open('testDistrDump.pk','wb'))
+puniform=pk.load(open('testDistrDump.pk','rb'))
 
 checkCrowDist("uniform",uniform,{'xMin': 1.0, 'type': 'UniformDistribution', 'xMax': 3.0})
 checkCrowDist("puniform",puniform,{'xMin': 1.0, 'type': 'UniformDistribution', 'xMax': 3.0})
@@ -174,8 +176,8 @@ normal._readMoreXML(normalElement)
 normal.initializeDistribution()
 
 #check pickled version as well
-pk.dump(normal,file('testDistrDump.pk','wb'))
-pnormal=pk.load(file('testDistrDump.pk','rb'))
+pk.dump(normal,open('testDistrDump.pk','wb'))
+pnormal=pk.load(open('testDistrDump.pk','rb'))
 
 checkCrowDist("normal",normal,{'mu': 1.0, 'sigma': 2.0, 'type': 'NormalDistribution'})
 checkCrowDist("pnormal",pnormal,{'mu': 1.0, 'sigma': 2.0, 'type': 'NormalDistribution'})
@@ -221,8 +223,8 @@ truncNormal._readMoreXML(truncNormalElement)
 truncNormal.initializeDistribution()
 
 #check pickled version as well
-pk.dump(truncNormal,file('testDistrDump.pk','wb'))
-ptruncNormal=pk.load(file('testDistrDump.pk','rb'))
+pk.dump(truncNormal,open('testDistrDump.pk','wb'))
+ptruncNormal=pk.load(open('testDistrDump.pk','rb'))
 
 checkCrowDist("truncNormal",truncNormal,{'xMin': -1.0, 'mu': 1.0, 'type': 'NormalDistribution', 'sigma': 2.0, 'xMax': 3.0})
 checkCrowDist("ptruncNormal",ptruncNormal,{'xMin': -1.0, 'mu': 1.0, 'type': 'NormalDistribution', 'sigma': 2.0, 'xMax': 3.0})
@@ -275,8 +277,8 @@ gamma.initializeDistribution()
 initParams = gamma.getInitParams()
 
 #check pickled version as well
-pk.dump(gamma,file('testDistrDump.pk','wb'))
-pgamma=pk.load(file('testDistrDump.pk','rb'))
+pk.dump(gamma,open('testDistrDump.pk','wb'))
+pgamma=pk.load(open('testDistrDump.pk','rb'))
 
 checkCrowDist("gamma",gamma,{'xMin': 0.0, 'theta': 2.0, 'k': 1.0, 'type': 'GammaDistribution', 'low': 0.0})
 checkCrowDist("pgamma",pgamma,{'xMin': 0.0, 'theta': 2.0, 'k': 1.0, 'type': 'GammaDistribution', 'low': 0.0})
@@ -348,8 +350,8 @@ beta._readMoreXML(betaElement)
 beta.initializeDistribution()
 
 #check pickled version as well
-pk.dump(beta,file('testDistrDump.pk','wb'))
-pbeta=pk.load(file('testDistrDump.pk','rb'))
+pk.dump(beta,open('testDistrDump.pk','wb'))
+pbeta=pk.load(open('testDistrDump.pk','rb'))
 
 checkCrowDist("beta",beta,{'scale': 1.0, 'beta': 2.0, 'low':0.0, 'xMax': 1.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
 checkCrowDist("pbeta",pbeta,{'scale': 1.0, 'beta': 2.0, 'low':0.0, 'xMax': 1.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
@@ -479,8 +481,8 @@ triangular._readMoreXML(triangularElement)
 triangular.initializeDistribution()
 
 #check pickled version as well
-pk.dump(triangular,file('testDistrDump.pk','wb'))
-ptriangular=pk.load(file('testDistrDump.pk','rb'))
+pk.dump(triangular,open('testDistrDump.pk','wb'))
+ptriangular=pk.load(open('testDistrDump.pk','rb'))
 
 checkCrowDist("triangular",triangular,{'lowerBound': 0.0, 'type': 'TriangularDistribution', 'upperBound': 4.0, 'xMax': 4.0, 'xMin': 0.0, 'xPeak': 3.0})
 checkCrowDist("ptriangular",ptriangular,{'lowerBound': 0.0, 'type': 'TriangularDistribution', 'upperBound': 4.0, 'xMax': 4.0, 'xMin': 0.0, 'xPeak': 3.0})
@@ -542,8 +544,8 @@ poisson.initializeDistribution()
 initParams = poisson.getInitParams()
 
 #check pickled version as well
-pk.dump(poisson,file('testDistrDump.pk','wb'))
-ppoisson=pk.load(file('testDistrDump.pk','rb'))
+pk.dump(poisson,open('testDistrDump.pk','wb'))
+ppoisson=pk.load(open('testDistrDump.pk','rb'))
 
 checkCrowDist("poisson",poisson,{'mu': 4.0, 'type': 'PoissonDistribution'})
 checkCrowDist("ppoisson",ppoisson,{'mu': 4.0, 'type': 'PoissonDistribution'})
@@ -583,8 +585,8 @@ binomial.initializeDistribution()
 initParams = binomial.getInitParams()
 
 #check picklling
-pk.dump(binomial,file('testDistrDump.pk','wb'))
-pbinomial=pk.load(file('testDistrDump.pk','rb'))
+pk.dump(binomial,open('testDistrDump.pk','wb'))
+pbinomial=pk.load(open('testDistrDump.pk','rb'))
 
 checkCrowDist("binomial",binomial,{'p': 0.25, 'type': 'BinomialDistribution', 'n': 10.0})
 checkCrowDist("pbinomial",pbinomial,{'p': 0.25, 'type': 'BinomialDistribution', 'n': 10.0})
@@ -621,8 +623,8 @@ bernoulli.initializeDistribution()
 initParams = bernoulli.getInitParams()
 
 #check picklling
-pk.dump(bernoulli,file('testDistrDump.pk','wb'))
-pbernoulli=pk.load(file('testDistrDump.pk','rb'))
+pk.dump(bernoulli,open('testDistrDump.pk','wb'))
+pbernoulli=pk.load(open('testDistrDump.pk','rb'))
 
 checkCrowDist("bernoulli",bernoulli,{'p': 0.4, 'type': 'BernoulliDistribution'})
 checkCrowDist("pbernoulli",pbernoulli,{'p': 0.4, 'type': 'BernoulliDistribution'})
@@ -659,8 +661,8 @@ logistic.initializeDistribution()
 initParams = logistic.getInitParams()
 
 #check picklling
-pk.dump(logistic,file('testDistrDump.pk','wb'))
-plogistic=pk.load(file('testDistrDump.pk','rb'))
+pk.dump(logistic,open('testDistrDump.pk','wb'))
+plogistic=pk.load(open('testDistrDump.pk','rb'))
 
 checkCrowDist("logistic",logistic,{'scale': 1.0, 'type': 'LogisticDistribution', 'location': 4.0})
 checkCrowDist("plogistic",plogistic,{'scale': 1.0, 'type': 'LogisticDistribution', 'location': 4.0})
@@ -710,8 +712,8 @@ exponential._readMoreXML(exponentialElement)
 exponential.initializeDistribution()
 
 #check picklling
-pk.dump(exponential,file('testDistrDump.pk','wb'))
-pexponential=pk.load(file('testDistrDump.pk','rb'))
+pk.dump(exponential,open('testDistrDump.pk','wb'))
+pexponential=pk.load(open('testDistrDump.pk','rb'))
 
 checkCrowDist("exponential",exponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'lambda': 5.0, 'low':0.0})
 checkCrowDist("pexponential",pexponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'lambda': 5.0, 'low':0.0})
@@ -807,8 +809,8 @@ logNormal.initializeDistribution()
 initParams = logNormal.getInitParams()
 
 #check picklling
-pk.dump(logNormal,file('testDistrDump.pk','wb'))
-plogNormal=pk.load(file('testDistrDump.pk','rb'))
+pk.dump(logNormal,open('testDistrDump.pk','wb'))
+plogNormal=pk.load(open('testDistrDump.pk','rb'))
 
 checkCrowDist("logNormal",logNormal,{'mu': 3.0, 'sigma': 2.0, 'type': 'LogNormalDistribution', 'low': 0.0})
 checkCrowDist("plogNormal",plogNormal,{'mu': 3.0, 'sigma': 2.0, 'type': 'LogNormalDistribution', 'low': 0.0})
@@ -909,8 +911,8 @@ weibull.initializeDistribution()
 initParams = weibull.getInitParams()
 
 #check picklling
-pk.dump(weibull,file('testDistrDump.pk','wb'))
-pweibull=pk.load(file('testDistrDump.pk','rb'))
+pk.dump(weibull,open('testDistrDump.pk','wb'))
+pweibull=pk.load(open('testDistrDump.pk','rb'))
 
 checkCrowDist("weibull",weibull,{'k': 1.5, 'type': 'WeibullDistribution', 'lambda': 1.0, 'low': 0.0})
 checkCrowDist("pweibull",pweibull,{'k': 1.5, 'type': 'WeibullDistribution', 'lambda': 1.0, 'low': 0.0})

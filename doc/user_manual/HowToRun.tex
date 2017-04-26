@@ -9,17 +9,17 @@ resides on the Python side and is accessible via a command line interface.
 After following the instructions in the previous Section, RAVEN is ready to be
 used.
 %
-The RAVEN driver is contained in the folder ``\texttt{raven/framework}.''
+The \texttt{raven\_framework} script is in the raven folder.
 %
 To run RAVEN, open a terminal and use the following command (replace \texttt{<inputFileName.xml>} with your RAVEN input file):
 
 \begin{lstlisting}[language=bash]
-python raven/framework/Driver.py <inputFileName.xml>
+raven_framework <inputFileName.xml>
 \end{lstlisting}
 
-Alternatively, the \texttt{raven\_framework} script can be used.  In this case, the command is:
+Alternatively, the \texttt{Driver.py} script can be directly used.  The RAVEN driver is contained in the folder ``\texttt{raven/framework}.'' In this case, the command is:
 
 \begin{lstlisting}[language=bash]
-raven_framework <inputFileName.xml>
+python raven/framework/Driver.py <inputFileName.xml>
 \end{lstlisting}
 

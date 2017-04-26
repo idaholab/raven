@@ -292,6 +292,7 @@
           <xsd:element name="xlabel"    type="xsd:string" minOccurs="0"/>
           <xsd:element name="ylabel"    type="xsd:string" minOccurs="0"/>
           <xsd:element name="zlabel"    type="xsd:string" minOccurs="0"/>
+          <xsd:element name="legend"    type="kwargsType" minOccurs="0"/>
       </xsd:sequence>
   </xsd:complexType>
 
