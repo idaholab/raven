@@ -1260,7 +1260,6 @@ FS_x &= \frac{1}{N}\sum_{n=1}^N\delta_n
 \end{align*}
 where $N$ is the number of value reading in the empirical CDF and $\delta_n$ is the absolute difference between the long term CDF and the subsequential CDF at value $x_n$. The subsequence $H_i^1$ with minimal FS statistics will be selected as the typical subsequence for the interval window $j=1$. Such process repeats for $j=2,3,\dots$ until all subsequences have been processed. Then all the typical subsequences will be concatenated to form a complete history.
 
-
 In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
 independent of the \xmlAttr{subType} specified:
 
@@ -1280,6 +1279,22 @@ in a year), while the parameter \xmlNode{subseqLen} should be \texttt{2592000} (
 month).  Using a value for \xmlNode{subseqLen} that is either much, much smaller than \xmlNode{outputLen} or
 of equal size to \xmlNode{outputLen} might have unexpected results.  In general, we recommend using a
 \xmlNode{subseqLen} that is roughly an order of magnitude smaller than \xmlNode{outputLen}.
+
+\paragraph{Method: dataObjectLabelFilter}
+This Post-Processor allows to filter the portion of a dataObject, either PointSet or HistorySet, with a given clustering label.
+A clustering algorithm associates a unique cluster label to each element of the dataObject (PointSet or HistorySet). 
+This cluster label is a natural number ranging from $0$ (or $1$ depending on the algorithm) to $N$ where $N$ is the number of obtained clusters. 
+Recall that some clustering algorithms (e.g., K-Means) receive $N$ as input while others (e.g., Mean-Shift) determine $N$ after clustering has been performed. 
+Thus, this Post-Processor is naturally employed after a data-mining clustering techniques has been performed on a dataObject so that each clusters 
+can be analyzed separately.
+
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
+independently of the \xmlAttr{subType} specified:
+
+\begin{itemize}
+   \item \xmlNode{label}, \xmlDesc{string, required field}, name of the clustering label
+   \item \xmlNode{clusterIDs}, \xmlDesc{integers, required field}, ID of the selected clusters. Note that more than one ID can be provided as input
+\end{itemize}
 
 \paragraph{Method: Discrete Risk Measures}
 This Post-Processor calculates a series of risk importance measures from a PointSet. This calculation if performed for a set of input paramteres given an output target.

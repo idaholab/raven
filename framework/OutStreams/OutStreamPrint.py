@@ -100,6 +100,8 @@ class OutStreamPrint(OutStreamManager):
     """
     self.type = 'OutStreamPrint'
     for subnode in xmlNode:
+      if subnode.tag not in ['type','source','what','filename','target']:
+        self.raiseAnError(IOError, ' Print Outstream object ' + str(self.name) + ' contains the following unknown node: ' + str(subnode.tag))
       if subnode.tag == 'source':
         self.sourceName = subnode.text.split(',')
       elif subnode.tag == 'filename':

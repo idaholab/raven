@@ -322,14 +322,18 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
-            self.limit = childChild.text
-          elif childChild.tag == "initialSeed":
-            self.initSeed = int(childChild.text)
+            try:
+              self.limit = int(childChild.text)
+            except ValueError:
+              self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value ' + str(childChild.text))
+          if childChild.tag == "initialSeed":
+            try:
+              self.initSeed = int(childChild.text)
+            except ValueError:
+              self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute initialSeed with value ' + str(childChild.text))
           elif childChild.tag == "reseedEachIteration":
             if childChild.text.lower() in utils.stringsThatMeanTrue():
               self.reseedAtEachIteration = True
-          elif childChild.tag == "samplingType":
-            self.samplingType = childChild.text
           elif childChild.tag == "distInit":
             for childChildChild in childChild:
               NDdistData = {}
@@ -341,8 +345,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                 else:
                   self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
               self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
-          else:
-            self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initialSeed, samplingType, reseedEachIteration and distInit!')
 
   def endJobRunnable(self):
     """

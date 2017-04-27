@@ -535,6 +535,7 @@ class OutStreamPlot(OutStreamManager):
             self.plt3D.set_zlim3d(bottom = ast.literal_eval(self.options[key]['zmin']))
           if 'zmax' in self.options[key].keys():
             self.plt3D.set_zlim3d(top = ast.literal_eval(self.options[key]['zmax']))
+
       elif key == 'labelFormat':
         if 'style' not in self.options[key].keys():
           self.options[key]['style'] = 'sci'
@@ -971,8 +972,6 @@ class OutStreamPlot(OutStreamManager):
     if self.counter > 1:
       self.fig.clear()
       self.actcm = None
-    # execute the actions again (we just cleared the figure)
-    self.__executeActions()
     # start plotting.... we are here fort that...aren't we?
     # loop over the plots that need to be included in this figure
     from copy import deepcopy
@@ -1904,6 +1903,7 @@ class OutStreamPlot(OutStreamManager):
       plt.legend(**self.options['plotSettings']['legend'])
 
     # SHOW THE PICTURE
+    self.__executeActions()
     plt.draw()
     # self.plt3D.draw(self.fig.canvas.renderer)
 
@@ -1951,6 +1951,5 @@ class OutStreamPlot(OutStreamManager):
         name = prefix + self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "")
 
       plt.savefig(name + '.' + fileType, format = fileType)
-
     if 'screen' not in self.destinations:
       plt.close()
