@@ -601,7 +601,7 @@ class DynamicEventTree(Grid):
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditionalPbr')
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
       # Add the new input path into the RunQueue system
-      newInputs = {'args': [str(self.type)], 'kwargs': self.inputInfo}
+      newInputs = {'args': [str(self.type)], 'kwargs': dict(self.inputInfo)}
       self.RunQueue['queue'].append(newInputs)
       self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
       for key,value in self.inputInfo.items():

@@ -340,7 +340,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     # add additional edits if needed
     model.getAdditionalInputEdits(self.inputInfo)
     # Add the new input path into the RunQueue system
-    newInputs = {'args':[str(self.type)], 'kwargs': self.inputInfo['prefix']}
+    newInputs = {'args':[str(self.type)], 'kwargs': dict(self.inputInfo)}
     self.RunQueue['queue'].append(newInputs)
     self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
     for key,value in self.inputInfo.items():
