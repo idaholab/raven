@@ -492,9 +492,14 @@ class hdf5Database(MessageHandler.MessageUser):
               groups[run].attrs[utils.toBytes(attr)]=converted
           for attr in metadata.keys():
             if len(metadata[attr]) == nruns:
-              objectToConvert = mathUtils.convertNumpyToLists(metadata[attr][run])
+              toProcess = metadata[attr][run]
             else:
-              objectToConvert = mathUtils.convertNumpyToLists(metadata[attr])
+              toProcess = metadata[attr]
+            if attr == 'inputFile' and isinstance(toProcess[0],Files.File):
+              objectToConvert = list(a.__getstate__() for a in toProcess)
+            else:
+              objectToConvert = mathUtils.convertNumpyToLists(toProcess)
+              
             converted = json.dumps(objectToConvert)
             if converted and attr != 'name':
               groups[run].attrs[utils.toBytes(attr)]=converted
