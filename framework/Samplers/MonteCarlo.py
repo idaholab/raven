@@ -53,6 +53,8 @@ class MonteCarlo(ForwardSampler):
     """
     ForwardSampler.__init__(self)
     self.printTag = 'SAMPLER MONTECARLO'
+    self.samplingType = None
+    self.limit = None
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -62,15 +64,12 @@ class MonteCarlo(ForwardSampler):
     """
     ForwardSampler.readSamplerInit(self,xmlNode)
     if xmlNode.find('samplerInit') != None:
-      if xmlNode.find('samplerInit').find('limit') is not None:
-        try:
-          self.limit = int(xmlNode.find('samplerInit').find('limit').text)
-        except ValueError:
-          self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
-      else:
+      if self.limit is None:
         self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
       if xmlNode.find('samplerInit').find('samplingType')!= None:
         self.samplingType = xmlNode.find('samplerInit').find('samplingType').text
+        if self.samplingType not in ['uniform']:
+          self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+': specified type of samplingType is not recognized. Allowed type is: uniform')
       else:
         self.samplingType = None
     else:
