@@ -46,7 +46,6 @@ git checkout $RAVEN_REV -- crow
 git checkout $RAVEN_REV -- moose
 git checkout $RAVEN_REV -- .gitmodules
 
-CROW_REV=`git submodule status crow | tr -d - | cut -d ' ' -f 1`
 MOOSE_REV=`git submodule status moose | tr -d - | cut -d ' ' -f 1`
 
 #fix version tex file.
@@ -56,28 +55,26 @@ make ../version.tex
 cd $MAIN_DIR/raven/
 echo RAVEN revision `git describe` > Version.txt
 echo RAVEN id `git rev-parse HEAD` >> Version.txt
-echo CROW id $CROW_REV >> Version.txt
 echo MOOSE id $MOOSE_REV >> Version.txt
-git clone --shared --no-checkout $PULL_DIRECTORY/crow
-cd crow
-git checkout $CROW_REV -- .
 
 cd $MAIN_DIR/raven/
-# Copy these because run_tests sometimes finds the crow tests.
-cp crow/scripts/TestHarness/testers/* scripts/TestHarness/testers/
 
-git clone --shared --no-checkout $PULL_DIRECTORY/moose
+git clone --shared --no-checkout $PULL_DIRECTORY/raven/moose
 cd moose
-git checkout $MOOSE_REV -- framework/scripts
-git checkout $MOOSE_REV -- framework/Makefile
-git checkout $MOOSE_REV -- python
-git checkout $MOOSE_REV -- framework/build.mk
-git checkout $MOOSE_REV -- framework/moose.mk
-git checkout $MOOSE_REV -- framework/app.mk
-git checkout $MOOSE_REV -- modules/modules.mk
+git checkout $MOOSE_REV -- framework/scripts/find_dep_apps.py
+git checkout $MOOSE_REV -- framework/Makefile #Can be removed in future
+git checkout $MOOSE_REV -- python/path_tool.py
+git checkout $MOOSE_REV -- python/FactorySystem
+git checkout $MOOSE_REV -- python/run_tests
+git checkout $MOOSE_REV -- python/mooseutils/*.py
+git checkout $MOOSE_REV -- python/TestHarness
+git checkout $MOOSE_REV -- python/argparse
 git checkout $MOOSE_REV -- COPYRIGHT
 git checkout $MOOSE_REV -- COPYING
 git checkout $MOOSE_REV -- LICENSE
 git checkout $MOOSE_REV -- README.md
+# Remove these because run_tests finds TestHarness tests and they fail
+# without the rest of moose
+rm -Rf python/TestHarness/tests
 
-echo using revisions MOOSE: $MOOSE_REV RAVEN: $RAVEN_REV CROW: $CROW_REV
+echo using revisions MOOSE: $MOOSE_REV RAVEN: $RAVEN_REV

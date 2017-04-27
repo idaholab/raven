@@ -10,7 +10,7 @@ app_name = 'RAVEN'
 
 MOOSE_DIR = os.path.abspath(os.path.join('..', 'moose'))
 #### See if a submodule is available
-if os.path.exists(os.path.abspath(os.path.join('moose', 'framework', 'Makefile'))):
+if os.path.exists(os.path.abspath(os.path.join('moose', 'python'))):
   MOOSE_DIR = os.path.abspath('moose')
 #### See if MOOSE_DIR is already in the environment instead
 if "MOOSE_DIR" in os.environ:
