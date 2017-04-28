@@ -323,13 +323,13 @@ class GradientBasedOptimizer(Optimizer):
         self.raiseAMessage("Variables :" +str(varK))
 
         if sameCoordinateCheck or gradientNormCheck or absoluteTolCheck or relativeTolCheck:
-          if sameCoordinateCheck: 
+          if sameCoordinateCheck:
             reason="same-coordinate"
-          if gradientNormCheck: 
-            reason="gradient-norm  "          
-          if absoluteTolCheck: 
+          if gradientNormCheck:
+            reason="gradient-norm  "
+          if absoluteTolCheck:
             reason="absolute-tolerance"
-          if relativeTolCheck: 
+          if relativeTolCheck:
             reason="relative-tolerance"
           self.raiseAMessage("Trajectory: "+"%8i"% (traj) +"   converged. Reason: "+reason)
           self.raiseAMessage("Grad Norm : "+"%8.2E"% (gradNorm)+" | Relative Diff: "+"%8.2E"% (relativeDifference)+" | Abs Diff     : "+"%8.2E"% (absDifference)+" |")

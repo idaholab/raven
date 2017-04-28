@@ -523,7 +523,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     optVarsNorm = {}
     for var in optVars.keys():
-      optVarsNorm[var] = (optVars[var]-self.optVarsInit['lowerBound'][var])/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
+      try:
+        optVarsNorm[var] = (optVars[var]-self.optVarsInit['lowerBound'][var])/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
+      except KeyError:
+        optVarsNorm[var] = optVars[var]
     return optVarsNorm
 
   def denormalizeData(self, optVars):
@@ -534,7 +537,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     optVarsDenorm = {}
     for var in optVars.keys():
-      optVarsDenorm[var] = optVars[var]*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])+self.optVarsInit['lowerBound'][var]
+      try:
+        optVarsDenorm[var] = optVars[var]*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])+self.optVarsInit['lowerBound'][var]
+      except KeyError:
+        optVarsDenorm[var] = optVars[var]
     return optVarsDenorm
 
   def generateInput(self,model,oldInput):

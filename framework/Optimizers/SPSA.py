@@ -110,7 +110,7 @@ class SPSA(GradientBasedOptimizer):
       @ Out, ready, bool, variable indicating whether the caller is prepared for another input.
     """
     return ready and (not convergence)
-  
+
   def _checkBoundariesAndModify(self,upperBound,lowerBound,varRange,currentValue,pertUp,pertLow):
     """
       Method to check the boundaries and add a perturbation in case they are violated
@@ -149,7 +149,7 @@ class SPSA(GradientBasedOptimizer):
         self.values[var] = self._checkBoundariesAndModify(self.optVarsInit['upperBound'][var],
                                                           self.optVarsInit['lowerBound'][var],
                                                           self.optVarsInit['ranges'][var],self.values[var],0.99,0.01)
-      data = self.normalizeData(self.values)  
+      data = self.normalizeData(self.values)
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(data)
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
       self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],'v')
@@ -193,7 +193,7 @@ class SPSA(GradientBasedOptimizer):
                   #sanity check: p1 != p2
                   if p1 == p2:
                     self.raiseAnError(RuntimeError,'In choosing gradient evaluation points, the same point was chosen twice for variable "%s"!' %var)
-                   
+
                   self.gradDict['pertPoints'][traj][ind][var] = np.concatenate((p1, p2))
 
           #what are these?
@@ -236,7 +236,7 @@ class SPSA(GradientBasedOptimizer):
             #self.estimateStochasticity(gradient,self.gradDict['pertPoints'][traj][self.counter['varsUpdate'][traj]-1],varK,centralResponseIndex) #TODO need current point too!
 
             varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
-            varKPlusDenorm = self.denormalizeData(varKPlus) 
+            varKPlusDenorm = self.denormalizeData(varKPlus)
             for var in self.optVars:
               self.values[var] = copy.deepcopy(varKPlusDenorm[var])
               self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(varKPlus[var])
