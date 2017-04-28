@@ -647,6 +647,28 @@ checkAnswer("pbernoulli ppf(0.3)",pbernoulli.ppf(0.3),0.0)
 checkAnswer("pbernoulli ppf(0.8)",pbernoulli.ppf(0.8),1.0)
 checkAnswer("pbernoulli ppf(0.9)",pbernoulli.ppf(0.9),1.0)
 
+#Test Geometric
+
+geometricElement = ET.Element("Geometric")
+geometricElement.append(createElement("p",text="0.25"))
+
+geometric = Distributions.Geometric()
+geometric._readMoreXML(geometricElement)
+geometric.initializeDistribution()
+
+checkCrowDist("geometric",geometric,{'p': 0.25, 'type': 'GeometricDistribution'})
+
+checkAnswer("geometric cdf(0)",geometric.cdf(0),0.25)
+checkAnswer("geometric cdf(1)",geometric.cdf(1),0.4375)
+checkAnswer("geometric mean",geometric.untruncatedMean(),3.0)
+checkAnswer("geometric stddev",geometric.untruncatedStdDev(),3.46410161514)
+
+checkAnswer("geometric ppf(0.1)",geometric.ppf(0.1),0.0)
+checkAnswer("geometric ppf(0.3)",geometric.ppf(0.3),0.239823326142)
+checkAnswer("geometric ppf(0.8)",geometric.ppf(0.8),4.59450194)
+checkAnswer("geometric ppf(0.9)",geometric.ppf(0.9),7.00392277965)
+
+
 #Test Logistic
 
 logisticElement = ET.Element("Logistic")
@@ -700,6 +722,33 @@ upLogisticElement.append(createElement("upperBound",text="5.0"))
 upLogistic = Distributions.Logistic()
 upLogistic._readMoreXML(upLogisticElement)
 upLogistic.initializeDistribution()
+
+#Test Laplace
+
+laplaceElement = ET.Element("Laplace")
+laplaceElement.append(createElement("location",text="0.0"))
+laplaceElement.append(createElement("scale",text="2.0"))
+
+laplace = Distributions.Laplace()
+laplace._readMoreXML(laplaceElement)
+laplace.initializeDistribution()
+
+## Should these be checked?
+initParams = laplace.getInitParams()
+
+checkCrowDist("laplace",laplace,{'scale': 2.0, 'type': 'LaplaceDistribution', 'location': 0.0})
+
+checkIntegral("laplace",laplace,-20.0,20.0)
+
+checkAnswer("laplace cdf(0)",laplace.cdf(0.0),0.5)
+checkAnswer("laplace cdf(4)",laplace.cdf(1.0),0.696734670144)
+checkAnswer("laplace cdf(8)",laplace.cdf(2.0),0.816060279414)
+checkAnswer("laplace mean",laplace.untruncatedMean(),0.0)
+checkAnswer("laplace stddev",laplace.untruncatedStdDev(), 2.82842712475)
+
+checkAnswer("laplace ppf(0.25)",laplace.ppf(0.25),-1.38629436112)
+checkAnswer("laplace ppf(0.50)",laplace.ppf(0.50),0.0)
+checkAnswer("laplace ppf(0.75)",laplace.ppf(0.75),1.38629436112)
 
 
 #Test Exponential

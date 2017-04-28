@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 def evaluate(self):
-  return self.a * self.c
+  return self.TestOnePoint*self.aConstant

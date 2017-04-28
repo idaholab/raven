@@ -72,7 +72,10 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'Weibull':'WeibullDistribution',
                               'NDInverseWeight': 'NDInverseWeightDistribution',
                               'NDCartesianSpline': 'NDCartesianSplineDistribution',
-                              'MultivariateNormal' : 'MultivariateNormalDistribution'}
+                              'MultivariateNormal' : 'MultivariateNormalDistribution',
+                              'Laplace' : 'LaplaceDistribution',
+                              'Geometric' : 'GeometricDistribution',
+}
 
 class DistributionsCollection(InputData.ParameterInput):
   """
@@ -1585,6 +1588,107 @@ class Bernoulli(BoostDistribution):
 
 DistributionsCollection.addSub(Bernoulli.getInputSpecification())
 
+class Geometric(BoostDistribution):
+  """
+    Geometric univariate distribution
+  """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Geometric, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
+
+    return inputSpecification
+
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    BoostDistribution.__init__(self)
+    self.p        = 0.0
+    self.type     = 'Geometric'
+    self.disttype = 'Discrete'
+    self.lowerBound = 0.0
+    self.upperBound = 1.0
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature  = 'CDF'
+    self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    self.p = pdict.pop('p')
+
+  def getCrowDistDict(self):
+    """
+      Returns a dictionary of the keys and values that would be
+      used to create the distribution for a Crow input file.
+      @ In, None
+      @ Out, retDict, dict, the dictionary of crow distributions
+    """
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['p'] = self.p
+    return retDict
+
+  def _readMoreXML(self,xmlNode):
+    """
+      Read the the xml node of the MultivariateNormal distribution
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ Out, None
+    """
+    paramInput = Geometric.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    BoostDistribution._handleInput(self, paramInput)
+    pFind = paramInput.findFirst('p')
+    if pFind != None:
+      self.p = pFind.value
+    else: self.raiseAnError(IOError,'p value needed for Geometric distribution')
+    self.initializeDistribution()
+
+  def getInitParams(self):
+    """
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['p'] = self.p
+    return paramDict
+
+  def initializeDistribution(self):
+    """
+      Method to initialize the distribution
+      @ In, None
+      @ Out, None
+    """
+    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
+      self._distribution = distribution1D.BasicGeometricDistribution(self.p)
+    else:  self.raiseAnError(IOError,'Truncated Geometric not yet implemented')
+
+DistributionsCollection.addSub(Geometric.getInputSpecification())
+
 class Categorical(Distribution):
   """
     Class for the categorical distribution also called " generalized Bernoulli distribution"
@@ -1852,6 +1956,123 @@ class Logistic(BoostDistribution):
       self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale,a,b)
 
 DistributionsCollection.addSub(Logistic.getInputSpecification())
+
+class Laplace(BoostDistribution):
+  """
+    Laplace univariate distribution
+  """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Laplace, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("location", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("scale", contentType=InputData.FloatType))
+
+    return inputSpecification
+
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    BoostDistribution.__init__(self)
+    self.location  = 0.0
+    self.scale = 1.0
+    self.type = 'Laplace'
+    self.disttype = 'Continuous'
+    self.hasInfiniteBound = True
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature  = 'CDF'
+    self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    self.location = pdict.pop('location')
+    self.scale    = pdict.pop('scale'   )
+
+  def getCrowDistDict(self):
+    """
+      Returns a dictionary of the keys and values that would be
+      used to create the distribution for a Crow input file.
+      @ In, None
+      @ Out, retDict, dict, the dictionary of crow distributions
+    """
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['scale'] = self.scale
+    retDict['location'] = self.location
+    return retDict
+
+  def _readMoreXML(self,xmlNode):
+    """
+      Read the the xml node of the MultivariateNormal distribution
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ Out, None
+    """
+    paramInput = Laplace.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    BoostDistribution._handleInput(self, paramInput)
+    locationFind = paramInput.findFirst('location')
+    if locationFind != None:
+      self.location = locationFind.value
+    else:
+      self.raiseAnError(IOError,'location value needed for Laplace distribution')
+    scaleFind = paramInput.findFirst('scale')
+    if scaleFind != None:
+      self.scale = scaleFind.value
+    else:
+      self.raiseAnError(IOError,'scale value needed for Laplace distribution')
+    self.initializeDistribution()
+
+  def getInitParams(self):
+    """
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['location'] = self.location
+    paramDict['scale'   ] = self.scale
+    return paramDict
+
+  def initializeDistribution(self):
+    """
+      Method to initialize the distribution
+      @ In, None
+      @ Out, None
+    """
+    if self.lowerBoundUsed == False:
+      a = -sys.float_info.max
+    else:
+      a = self.lowerBound
+    if self.upperBoundUsed == False:
+      b = sys.float_info.max
+    else:
+      b = self.upperBound
+    self._distribution = distribution1D.BasicLaplaceDistribution(self.location,self.scale,a,b)
+
+DistributionsCollection.addSub(Laplace.getInputSpecification())
 
 class Exponential(BoostDistribution):
   """
@@ -3378,6 +3599,8 @@ __interFaceDict['Custom1D'          ] = Custom1D
 __interFaceDict['NDInverseWeight'   ] = NDInverseWeight
 __interFaceDict['NDCartesianSpline' ] = NDCartesianSpline
 __interFaceDict['MultivariateNormal'] = MultivariateNormal
+__interFaceDict['Laplace'           ] = Laplace
+__interFaceDict['Geometric'         ] = Geometric
 __knownTypes                          = __interFaceDict.keys()
 
 def knownTypes():

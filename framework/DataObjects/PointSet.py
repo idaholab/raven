@@ -174,16 +174,15 @@ class PointSet(Data):
           self._dataContainer['unstructuredInputs'][name] = [c1darray(values=np.atleast_1d(np.ravel(value)))]
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
 
-  def _updateSpecializedMetadata(self,name,value,options=None):
+  def _updateSpecializedMetadata(self,name,value,valueType,options=None):
     """
       This function performs the updating of the values (metadata) into this Data
-      @ In,  name, string, parameter name (ex. probability)
-      @ In,  value, whatever type, newer value
+      @ In, name, string, parameter name (ex. probability)
+      @ In, value, object, newer value
+      @ In, valueType, dtype, the value type
       @ Out, None
       NB. This method, if the metadata name is already present, replaces it with the new value. No appending here, since the metadata are dishomogenius and a common updating strategy is not feasable.
     """
-    valueType = None if utils.checkTypeRecursively(value) not in ['str','unicode','bytes'] else object
-
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'Point' has been stored
       parentID = None

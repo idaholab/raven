@@ -53,4 +53,10 @@
   output = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
   csv = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
  [../]
+
+ [./legend]
+  type = 'RavenFramework'
+  input = 'test_legend.xml'
+  output = 'plot/legendTest.png'
+ [../]
 []

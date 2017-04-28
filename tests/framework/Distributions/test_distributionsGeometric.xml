@@ -1,0 +1,74 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.Distributions.geometric</name>
+    <author>cogljj</author>
+    <created>2017-04-26</created>
+    <classesTested>Distributions.Geometric</classesTested>
+    <description>
+       This test is aimed to test the capability of RAVEN to use 1D Geometric distribution.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>test_geometric/</WorkingDir>
+    <Sequence>MCrun,OutStreams</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun  name="MCrun">
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
+    </MultiRun>
+    <IOStep name="OutStreams" pauseAtEnd="false">
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
+      <Output class="OutStreams"   type="Print"         >MC_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../test_common/simple" name="PythonModule" subType="">
+      <variables>x,y</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Geometric name="x_dist">
+      <p>0.25</p>
+    </Geometric>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>1234</initialSeed>
+      </samplerInit>
+      <variable name="x">
+        <distribution>x_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="MC_dump">
+      <type>csv</type>
+      <source>PointSet_MC</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="PointSet_MC">
+      <Input>x</Input>
+      <Output>y</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
