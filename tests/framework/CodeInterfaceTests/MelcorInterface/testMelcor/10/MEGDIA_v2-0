@@ -1,0 +1,70 @@
+ COMMAND-LINE:   /home/calcoli/Scrivania/MELCOR_2.2/bin/melgen test.i
+ COMMAND-LINE ARGUMENTS:
+ 
+ MELGEN diagnostic output   ZQDQAKE    4/26/17  16:04:24 
+ test_1                                                                
+ This is an official build.
+ MELGEN 2.2.9541
+ Executing on: Intel(R) Core(TM) i7 CPU         870  @ 2.93GHz
+ Configuration information:
+ Configuration RL_NL_CHECKALL
+ Subversion revision: 9541
+ 
+ Build Processor: Intel(R) Xeon(R) CPU E5-2643 v2 @ 3.50GHz
+ 
+ Compiler: Intel(R) Visual Fortran Compiler Professional for applications runnin
+ g on IA-32, Version 11.1    Build 20101201
+ 
+ Compiler settings:
+ /fpp /nologo /O2 /Oy- /DNIGHTLY_TESTING /DLICENSING_INACTIVE /DWINDOWS /DARCH_I
+ NT /DSNAP  /DGET_CPU_INFO /DINTEROP /DNIGHTLY_TESTING /I..\compiled_modules /ch
+ eck:all /check:uninit /check:noarg_temp_created /check:nooutput_conversion /ass
+ ume:nocc_omp  /assume:protect-parens /noaltparam /error_limit:25 /warn:errors /
+ real_size:64  /Qauto /Qprec-div /Qprec-sqrt  /libs:static /threads /iface:cvf /
+ align:rec8byte /align:dcommons /align:records  /traceback /fp:source /module:..
+ \compiled_modules /warn:noalign /debug:all /Z7  /Qdiag-disable:8291 /F20000000 
+ /Qmkl:sequential
+ 
+ Linker settings:
+ /NODEFAULTLIB:LIBCMT /verbose:lib /LIBPATH:..\RL_NL_CHECKALL_Library /LIBPATH:C
+ :\Program Files\Microsoft SDKs\Windows\v7.1\Lib  /LIBPATH:C:\Program Files (x86
+ )\Intel\Compiler\11.1\072\lib\ia32 /LIBPATH:..\lib
+ 
+ !!!LICENSING HAS BEEN DISABLED!!!
+ 
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during input processing EXEC package:
+No errors during input processing EXEC package
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during input processing CVH package:
+NO Errors during input processing CVH package
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during input processing FL package:
+ The input flowpaths are sorted by ID number
+NO Errors during input processing FL package
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during input processing TF package:
+NO errors during input processing TF package
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during input processing ESF package:
+NO Errors during input processing ESF package
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during PASS2 input processing CF package:
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during PASS2 input processing NCG package:
+NO Errors during PASS2 input processing NCG package
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during PASS2 input processing CVH package:
+*****USING MELCOR STANDARD EOS !*****
+NO Errors during PASS2 input processing CVH package
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during PASS2 input processing FL package:
+NO Errors during PASS2 input processing FL package
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during PASS2 input processing ESF package:
+NO Errors during PASS2 input processing ESF package
+ ***********************************************
+ ***********************************************
+ ****  NO ERRORS IN USER INPUT   ***************
+ ***********************************************
+ ***********************************************
