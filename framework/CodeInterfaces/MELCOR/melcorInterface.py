@@ -49,7 +49,7 @@ class MelcorApp(MelgenApp):
     return returnCommand
 
   def finalizeCodeOutput(self,command,output,workingDir):
-    """ 
+    """
       This method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
       In this method the MELCOR outputfile is parsed and a CSV is created
       @ In, command, string, the command used to run the just ended job

@@ -627,7 +627,7 @@ class Simulation(MessageHandler.MessageUser):
       @ In, inputFileName, string, optional, the raven input file name
       @ Out, None
     """
-    self.verbosity = node.attrib.get('verbosity','all')
+    self.verbosity = node.attrib.get('verbosity','all').lower()
     for element in node.iter():
       for subElement in element:
         if subElement.tag == 'ExternalXML':
@@ -654,7 +654,7 @@ class Simulation(MessageHandler.MessageUser):
       for element in unknownAttribs:
         errorMsg += ' ' + element
       self.raiseAnError(IOError,errorMsg)
-    self.verbosity = xmlNode.attrib.get('verbosity','all')
+    self.verbosity = xmlNode.attrib.get('verbosity','all').lower()
     if 'printTimeStamps' in xmlNode.attrib.keys():
       self.raiseADebug('Setting "printTimeStamps" to',xmlNode.attrib['printTimeStamps'])
       self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
