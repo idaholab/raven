@@ -294,7 +294,7 @@
    rel_err = 0.0001
  [../]
 
- [./MelcorInterfaceForwardSampling]
+ [./melcorInterfaceForwardSamplingNoExe]
    type = 'RavenFramework'
    input = 'test_melcor_interface.xml'
    output = 'MelcorInterface/dumpMelcorPointSet.csv MelcorInterface/dumpMelcorHistorySet_2.csv MelcorInterface/dumpMelcorHistorySet.csv'

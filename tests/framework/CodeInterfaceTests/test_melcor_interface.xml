@@ -1,4 +1,21 @@
-<Simulation verbosity='Debug'>
+<Simulation verbosity='debug'>
+  <!-- test info block -->
+  
+  <TestInfo>
+      <name>framework/CodeInterfaceTests.melcorInterfaceForwardSamplingNoExe</name>
+      <author>alfoa</author>
+      <created>2017-04-27</created>
+      <classesTested>Models.Code.Melcor</classesTested>
+      <description>
+          An example of using the Melcor 2.1/2.2 code interface. This test is aimed to test the mechanics of the interface (no executable).
+      </description>
+      <revisions>
+          <revision author="alfoa" date="2017-04-27">Adding this test description.</revision>
+      </revisions>
+  </TestInfo>
+  
+  <!-- test info block end -->
+
   <RunInfo>
     <WorkingDir>MelcorInterface</WorkingDir>
     <Sequence>testMelcor,dumpResults</Sequence>
