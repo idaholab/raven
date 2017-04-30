@@ -13,8 +13,8 @@
 # limitations under the License.
 """
   Created on April 18, 2017
-  @author: Matteo Donorio (University of Rome La Sapienza), 
-           Fabio Gianneti (University of Rome La Sapienza), 
+  @author: Matteo Donorio (University of Rome La Sapienza),
+           Fabio Gianneti (University of Rome La Sapienza),
            Andrea Alfonsi (INL)
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -24,8 +24,8 @@ import re
 import copy
 
 class MELCORdata:
-  """   
-    class that parses output of MELCOR 2.1 output file and reads in trip, minor block and write a csv file 
+  """
+    class that parses output of MELCOR 2.1 output file and reads in trip, minor block and write a csv file
     For now, Onlt the data associated to control volumes are parsed and output
   """
   def __init__(self,filen):
@@ -49,8 +49,8 @@ class MELCORdata:
     lineNum = []
     timeBlock = {}
     for lineNumber, line in enumerate(self.lines):
-      if line.strip().startswith("1*"): 
-        lineNum.append([lineNumber,self.lines[lineNumber+1].split("=")[1].split( )[0]])      
+      if line.strip().startswith("1*"):
+        lineNum.append([lineNumber,self.lines[lineNumber+1].split("=")[1].split( )[0]])
     for cnt,info in enumerate(lineNum):
       endLineCnt = lineNum[cnt+1][0]-1 if cnt < len(lineNum)-1 else len(self.lines)-1
       timeBlock[info[1]] = self.lines[info[0]+1:endLineCnt]
@@ -68,11 +68,11 @@ class MELCORdata:
         if line.strip().startswith("VOLUME"):
           headers  = line.strip().split()[1:len(line.strip().split())-1]
           for lineLine in listOfLines[cnt + 2:]:
-            if len(lineLine.strip()) < 1: 
+            if len(lineLine.strip()) < 1:
               break
             valueSplit   = lineLine.strip().split()
             volumeNumber = lineLine.strip().split()[0]
-            if not volumeNumber.isdigit(): 
+            if not volumeNumber.isdigit():
               break
             valueSplit = valueSplit[1:len(valueSplit)]
             for paramCnt,header in enumerate(headers):
@@ -80,7 +80,7 @@ class MELCORdata:
               try:
                 testFloat = float(valueSplit[paramCnt])
                 results[parameter] = valueSplit[paramCnt]
-              except: 
+              except:
                 # in this way, the "strings" are not placed in the resulting csv
                 pass
       volForEachTime[time] = copy.deepcopy(results)
@@ -90,7 +90,7 @@ class MELCORdata:
     """
       Output the parsed results into a CSV file
       @ In, filen, str, the file name of the CSV file
-      @ Out, None 
+      @ Out, None
     """
     IOcsvfile=open(filen,'w+')
     getHeaders = self.timeParams.values()[0].keys()

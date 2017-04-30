@@ -293,4 +293,16 @@
    test_interface_only = True
    rel_err = 0.0001
  [../]
+
+ [./MelcorInterfaceForwardSampling]
+   type = 'RavenFramework'
+   input = 'test_melcor_interface.xml'
+   output = 'MelcorInterface/dumpMelcorPointSet.csv MelcorInterface/dumpMelcorHistorySet_2.csv MelcorInterface/dumpMelcorHistorySet.csv'
+   csv = 'MelcorInterface/dumpMelcorPointSet.csv'
+   text = 'MelcorInterface/testMelcor/1/test.i'
+   test_interface_only = True
+   rel_err = 0.0001
+ [../]
+
+
 []

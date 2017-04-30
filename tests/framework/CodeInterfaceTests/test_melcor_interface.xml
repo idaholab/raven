@@ -1,7 +1,8 @@
 <Simulation verbosity='Debug'>
   <RunInfo>
     <WorkingDir>MelcorInterface</WorkingDir>
-    <Sequence>testMelcor</Sequence>
+    <Sequence>testMelcor,dumpResults</Sequence>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -10,9 +11,8 @@
 
   <Models>
 	<Code name="MELGEN" subType="Melcor">
-	<executable>MELCOR_2.2/bin/melcor</executable>
-	<preexec>MELCOR_2.2/bin/melgen</preexec>
-	<clargs arg="" extension=".i" type="input"/>
+	  <executable>MELCOR_2.2/bin/melcor</executable>
+	  <preexec>MELCOR_2.2/bin/melgen</preexec>
     </Code>
   </Models>
 
@@ -28,21 +28,51 @@
   <Samplers>
     <MonteCarlo  name="MC_samp">
       <samplerInit>
-        <limit>10</limit>
+        <limit>3</limit>
       </samplerInit>
       <variable name='%PRE%'>
         <distribution>temper</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
+  
+  <DataObjects>
+    <PointSet name="MelcorPointSet">
+      <Input>%PRE%</Input>
+      <Output>time,volume_2_CVVELO(1),volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP</Output>
+    </PointSet>
+    <HistorySet name="MelcorHistorySet">
+      <Input>%PRE%</Input>
+      <Output>time,volume_2_CVVELO(1),volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="dumpMelcorHistorySet">
+      <type>csv</type>
+      <source>MelcorHistorySet</source>
+    </Print>
+    <Print name="dumpMelcorPointSet">
+      <type>csv</type>
+      <source>MelcorPointSet</source>
+    </Print>
+  </OutStreams>
 
   <Steps>
 	<MultiRun name="testMelcor">
-        <Input   class="Files"     type="input">melcorinput</Input>
-        <Model   class="Models"    type="Code">MELGEN</Model>
-        <Sampler class="Samplers"  type="MonteCarlo">MC_samp</Sampler>
-        <Output  class="Databases" type="HDF5">DataMELCOR</Output>
+        <Input   class="Files"       type="input">melcorinput</Input>
+        <Model   class="Models"      type="Code">MELGEN</Model>
+        <Sampler class="Samplers"    type="MonteCarlo">MC_samp</Sampler>
+        <Output  class="Databases"   type="HDF5">DataMELCOR</Output>
+        <Output  class="DataObjects" type="HistorySet">MelcorHistorySet</Output>
+        <Output  class="DataObjects" type="PointSet">MelcorPointSet</Output>
     </MultiRun>
+    <IOStep name="dumpResults" >
+        <Input   class="DataObjects" type="HistorySet">MelcorHistorySet</Input>
+        <Input   class="DataObjects" type="PointSet">MelcorPointSet</Input>
+        <Output class="OutStreams"   type="Print">dumpMelcorHistorySet</Output>
+        <Output class="OutStreams"   type="Print">dumpMelcorPointSet</Output>
+    </IOStep>
   </Steps>
 
   <Databases>

@@ -13,8 +13,8 @@
 # limitations under the License.
 """
   Created on April 18, 2017
-  @author: Matteo Donorio (University of Rome La Sapienza), 
-           Fabio Gianneti (University of Rome La Sapienza), 
+  @author: Matteo Donorio (University of Rome La Sapienza),
+           Fabio Gianneti (University of Rome La Sapienza),
            Andrea Alfonsi (INL)
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -52,10 +52,10 @@ class Melcor(CodeInterfaceBase):
         foundMelcorInp = True
         melgIn = inputFiles[index]
         melcIn = inputFiles[index]
-    if not foundMelcorInp: 
+    if not foundMelcorInp:
       raise IOError("Unknown input extensions. Expected input file extensions are "+ ",".join(self.getInputExtension())+" No input file has been found!")
     return melgIn,melcIn
-  
+
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       Generate a command to run MELCOR (combined MELGEN AND MELCOR)
@@ -72,14 +72,14 @@ class Melcor(CodeInterfaceBase):
     if preExec is None:
       raise IOError('No preExec listed in input! Exiting...')
     melcin,melgin = self.findInps(inputFiles)
-    #get the melgen part    
+    #get the melgen part
     melgCommand,melgOut = self.melcorInterface.generateCommand([melgin],preExec,clargs,fargs)
     #get the melcor part
     melcCommand,melcOut = self.melgenInterface.generateCommand([melcin],executable,clargs,fargs)
     #combine them
     returnCommand = melgCommand + melcCommand, melcOut
     return returnCommand
- 
+
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
     """
       This generates a new input file depending on which sampler has been chosen
@@ -93,7 +93,7 @@ class Melcor(CodeInterfaceBase):
     return self.melcorInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**Kwargs)
 
   def finalizeCodeOutput(self, command, output, workingDir):
-    """ 
+    """
       This method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
       In this method the MELCOR outputfile is parsed and a CSV is created
       @ In, command, string, the command used to run the just ended job

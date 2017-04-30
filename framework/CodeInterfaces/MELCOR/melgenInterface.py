@@ -30,6 +30,15 @@ class MelgenApp(CodeInterfaceBase):
   """
     This class is the CodeInterface for MELGEN (a sub-module of Melcor)
   """
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    CodeInterfaceBase.__init__(self)
+    self.inputExtensions = ['i','inp']
+
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
       Generate a command to run MELGEN (a sub-module of Melcor)
@@ -45,14 +54,14 @@ class MelgenApp(CodeInterfaceBase):
     """
     outputfile = 'OUTPUT_MELCOR'
     found = False
-    
+
     for index, inputFile in enumerate(inputFiles):
       if inputFile.getExt() in self.getInputExtension():
         found = True
         break
-    if not found: 
+    if not found:
       raise IOError("Unknown input extension. Expected input file extensions are "+ ",".join(self.getInputExtension()))
-    if clargs: 
+    if clargs:
       precommand = executable + clargs['text']
     else     :
       precommand = executable
@@ -70,7 +79,7 @@ class MelgenApp(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    if "dynamicevent" in samplerType.lower(): 
+    if "dynamicevent" in samplerType.lower():
       raise IOError("Dynamic Event Tree-based samplers not implemented for MELCOR yet!")
     indexes  = []
     inFiles  = []
