@@ -73,13 +73,13 @@ class RavenFramework(Tester):
 
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
-    self.check_files = self.specs['output'     ].split(" ") if len(self.specs['output'         ]) > 0 else []
-    self.csv_files  = self.specs['csv'         ].split(" ") if len(self.specs['csv'         ]) > 0 else []
-    self.xml_files  = self.specs['xml'         ].split(" ") if len(self.specs['xml'         ]) > 0 else []
-    self.ucsv_files = self.specs['UnorderedCsv'].split(" ") if len(self.specs['UnorderedCsv']) > 0 else []
-    self.uxml_files = self.specs['UnorderedXml'].split(" ") if len(self.specs['UnorderedXml']) > 0 else []
-    self.text_files = self.specs['text'        ].split(" ") if len(self.specs['text'        ]) > 0 else []
-    self.img_files  = self.specs['image'       ].split(" ") if len(self.specs['image'       ]) > 0 else []
+    self.check_files = self.specs['output'      ].split(" ") if len(self.specs['output'      ]) > 0 else []
+    self.csv_files   = self.specs['csv'         ].split(" ") if len(self.specs['csv'         ]) > 0 else []
+    self.xml_files   = self.specs['xml'         ].split(" ") if len(self.specs['xml'         ]) > 0 else []
+    self.ucsv_files  = self.specs['UnorderedCsv'].split(" ") if len(self.specs['UnorderedCsv']) > 0 else []
+    self.uxml_files  = self.specs['UnorderedXml'].split(" ") if len(self.specs['UnorderedXml']) > 0 else []
+    self.text_files  = self.specs['text'        ].split(" ") if len(self.specs['text'        ]) > 0 else []
+    self.img_files   = self.specs['image'       ].split(" ") if len(self.specs['image'       ]) > 0 else []
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.minimum_libraries = self.specs['minimum_library_versions'].split(' ')  if len(self.specs['minimum_library_versions']) > 0 else []
