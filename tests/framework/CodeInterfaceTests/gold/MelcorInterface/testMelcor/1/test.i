@@ -141,12 +141,12 @@ Program MELCOR
 EXEC_INPUT
 EXEC_TITLE test_1        ! Title of the calculation
 EXEC_TEND 10.0E+03                                                   !*  ! End of calculation time
-EXEC_TIME 2 !*NUMBER   TIME		    DTMAX		DTMIN		DTEDT		DTPLT		DTRST		  DCRST
-	           1	   0.00		    0.1000E+00	0.10000E-06	0.10000E+03	0.10000E+01	0.10000E+03  0.10000000E+11
-	           2	   1.50000E+02	0.2000E+00	0.10000E-09	0.10000E+03	0.10000E+01	0.1000E+03	 0.10000000E+11
+EXEC_TIME 2 !*NUMBER   TIME            DTMAX        DTMIN        DTEDT        DTPLT        DTRST          DCRST
+               1       0.00            0.1000E+00    0.10000E-06    0.10000E+03    0.10000E+01    0.10000E+03  0.10000000E+11
+               2       1.50000E+02    0.2000E+00    0.10000E-09    0.10000E+03    0.10000E+01    0.1000E+03     0.10000000E+11
 
-EXEC_CPULEFT 1000.	                                                ! cpu sec left at end of calculation
-EXEC_CPULIM 4000000.    	                                    	! Maximum number of CPU seconds allowed for this execution
+EXEC_CPULEFT 1000.                                                    ! cpu sec left at end of calculation
+EXEC_CPULIM 4000000.                                                ! Maximum number of CPU seconds allowed for this execution
 EXEC_NOFLUSH                                                        ! Suppress Explicit Buffer Flushing
 !* END MEX (Exec) ******************************
 !
