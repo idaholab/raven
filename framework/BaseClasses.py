@@ -127,7 +127,7 @@ class BaseType(MessageHandler.MessageUser):
     if self.globalAttributes!= None:
       self.globalAttributes = globalAttributes
     if 'verbosity' in paramInput.parameterValues:
-      self.verbosity = paramInput.parameterValues['verbosity'],lower()
+      self.verbosity = paramInput.parameterValues['verbosity'].lower()
       self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
     #TODO fix replacing Variable Groups.
     #search and replace variableGroups where found in texts

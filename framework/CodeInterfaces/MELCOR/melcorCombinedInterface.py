@@ -1,4 +1,4 @@
-# Copyright 2017 Battelle Energy Alliance, LLC
+# Copyright 2017 University of Rome La Sapienza and Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -103,3 +103,19 @@ class Melcor(CodeInterfaceBase):
     """
     output = self.melcorInterface.finalizeCodeOutput(command,output, workingDir)
     return output
+
+  def checkForOutputFailure(self,output,workingDir):
+    """
+      This method is called by the RAVEN code at the end of each run  if the return code is == 0.
+      This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
+      This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
+      This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
+      (e.g. in MELCOR would be the expression "Normal termination")
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, failure, bool, True if the job is failed, False otherwise
+    """
+    failure = self.melcorInterface.checkForOutputFailure(output, workingDir)
+    return failure
+
+

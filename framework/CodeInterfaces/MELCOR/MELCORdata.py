@@ -1,4 +1,4 @@
-# Copyright 2017 Battelle Energy Alliance, LLC
+# Copyright 2017 University of Rome La Sapienza and Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import copy
 class MELCORdata:
   """
     class that parses output of MELCOR 2.1 output file and reads in trip, minor block and write a csv file
-    For now, Onlt the data associated to control volumes are parsed and output
+    For now, Only the data associated to control volumes are parsed and output
   """
   def __init__(self,filen):
     """
@@ -80,7 +80,7 @@ class MELCORdata:
               try:
                 testFloat = float(valueSplit[paramCnt])
                 results[parameter] = valueSplit[paramCnt]
-              except:
+              except ValueError:
                 # in this way, the "strings" are not placed in the resulting csv
                 pass
       volForEachTime[time] = copy.deepcopy(results)
