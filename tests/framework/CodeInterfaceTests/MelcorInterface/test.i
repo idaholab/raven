@@ -9,7 +9,7 @@ MEL_OUTPUTFILE 'OUTPUT_MELCOR.out'
 !MEG_RESTARTFILE 'MELRST.RST'
 !PLOTFILE 'MELPTF.PTF'
 !MESSAGEFILE 'MELMES.TXT'
-!EXTDIAGFILE 'EXTDIAG.TXT'	
+!EXTDIAGFILE 'EXTDIAG.TXT'
 !
 !*************************************************
 !'test_1'
@@ -31,7 +31,7 @@ TF_INPUT
 !
 !
 !cc: 1
-!                 tfname        tfscal        
+!                 tfname        tfscal
 TF_ID             'P_in'           1.0
 !      size
 TF_TAB    2 !n             x             y
@@ -40,14 +40,14 @@ TF_TAB    2 !n             x             y
 !
 !
 !cc: 2
-!                 tfname        tfscal        
+!                 tfname        tfscal
 TF_ID             'T_in'           1.0
 !      size
 TF_TAB    2 !n             x             y
              1           0.0         400
              2         100.0         400
 !cc: 3
-!                 tfname        tfscal        
+!                 tfname        tfscal
 TF_ID             'M_in'           1.0
 !      size
 TF_TAB    2 !n             x             y
@@ -62,10 +62,10 @@ CVH_INPUT
 CV_ID                'IN'             1
 !             icvthr         ipfsw         icvact
 CV_THR      NONEQUIL           FOG PROP-SPECIFIED
-!              itypth         ipora         water              
-CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED              
-!             keyword          flag          pvol              
-CV_PTD           PVOL            TF        'P_in'              
+!              itypth         ipora         water
+CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED
+!             keyword          flag          pvol
+CV_PTD           PVOL            TF        'P_in'
 !      size
 CV_VAT    2 !n           cvz         cvvol
              1          10.0           0.0
@@ -76,8 +76,8 @@ CV_VAT    2 !n           cvz         cvvol
 CV_ID             'CENTR'             2
 !             icvthr         ipfsw         icvact
 CV_THR      NONEQUIL           FOG         ACTIVE
-!              itypth         ipora         water              
-CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED              
+!              itypth         ipora         water
+CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED
 !               ptdit          pvol
 CV_PTD           PVOL         1.0E7
 !               tpol
@@ -92,8 +92,8 @@ CV_VAT    2 !n           cvz         cvvol
 CV_ID               'OUT'             3
 !             icvthr         ipfsw         icvact
 CV_THR      NONEQUIL           FOG     TIME-INDEP
-!              itypth         ipora         water              
-CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED              
+!              itypth         ipora         water
+CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED
 !               ptdit          pvol
 CV_PTD           PVOL         1.0E7
 !               tpol
@@ -115,24 +115,24 @@ FL_INPUT
 FL_ID         'FP1_2'            11
 !               kcvfm         kcvto           zfm           zto
 FL_FT            'IN'       'CENTR'          10.5          10.5
-!               flara         fllen         flopo                            
-FL_GEO            1.0          10.0           1.0                            
+!               flara         fllen         flopo
+FL_GEO            1.0          10.0           1.0
 !      size
 FL_SEG    1 !n sarea slen shyd srgh lamflg slam
-             1   1.0 10.0  1.0     
+             1   1.0 10.0  1.0
 FL_VTM  1
-                    1   'FP1_2' 1 'M_in'  
+                    1   'FP1_2' 1 'M_in'
 !
 !
 !              fpname        ifpnum
 FL_ID         'FP2_3'            12
 !               kcvfm         kcvto           zfm           zto
 FL_FT         'CENTR'         'OUT'          10.5          10.5
-!               flara         fllen         flopo                            
-FL_GEO            1.0          10.0           1.0                            
+!               flara         fllen         flopo
+FL_GEO            1.0          10.0           1.0
 !      size
 FL_SEG    1 !n sarea slen shyd srgh lamflg slam
-             1   1.0 10.0  1.0                 
+             1   1.0 10.0  1.0
 !
 END PROGRAM MELGEN
 Program MELCOR
