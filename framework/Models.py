@@ -50,6 +50,7 @@ from Csv_loader import CsvLoader
 import Files
 import PostProcessors
 import LearningGate
+from DataObjects import Data
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -1610,8 +1611,9 @@ class Code(Model):
         csvData = csvLoader.loadCsvFile(outFile)
         headers = csvLoader.getAllFieldNames()
 
-        ## Numpy by default iterates over rows, thus we transpose the data and zip
-        ## it with the headers in order to do this very cleanly
+        ## Numpy by default iterates over rows, thus we transpose the data and
+        ## zip it with the headers in order to do store it very cleanly into a
+        ## dictionary.
         for header,data in zip(headers, csvData.T):
           returnDict[header] = data
 
@@ -1672,21 +1674,53 @@ class Code(Model):
     ## What happens if the code modified the input parameter space? Well,
     ## let's grab any input fields existing in the output file and to ensure
     ## that we have the correct information that the code actually ran.
+
+    ## First, if the output is a data object, let's see what inputs it requests
+    if isinstance(output,Data):
+      inputParams = output.getParaKeys('input')
+    else:
+      inputParams = []
+
     for key,value in outputDict.items():
       if key in sampledVars:
-        if value[-1] != sampledVars[key]:
-          self.raiseAWarning('The code reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the code (%f).' % (value[-1], key, sampledVars[key], value[-1]))
-          sampledVars[key] = value[-1]
+        ## This will change with the reworking of the data objects, but for now
+        ## inputs can only be scalar, so we should only be grabbing the first
+        ## item (at this point the values should not change, but I did observe
+        ## a RELAP7 case where it did, but the gold file uses the first value)
+        ## -- DPM 5/2/17
+        if value[0] != sampledVars[key]:
+          self.raiseAWarning('The code reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the code (%f).' % (value[0], key, sampledVars[key], value[0]))
+          sampledVars[key] = value[0]
+      ## If the key value is not one of the sampled variables listed in sampledVars,
+      ## then double check that it was not one of the user-requested variables
+      ## that just so happened to be placed in the output file. This can happen
+      ## with interfaces like RELAP7 where the sampledVars can contain other
+      ## information. This may need reworked at some point to be more consisent
+      ## with how data is handled by the rest of RAVEN -- DPM 5/1/17
+      elif key in inputParams:
+        # self.raiseAWarning('Input data found in the output.')
+        sampledVars[key] = value[0]
 
-    exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputDict,'metadata':finishedJob.getMetadata(), 'prefix':finishedJob.identifier})
+
+    if options is None:
+      options = {}
+    options['alias'] = self.alias
+
+    metadata = finishedJob.getMetadata()
+    if metadata:
+      options['metadata'] = metadata
+
+    exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputDict,'metadata':metadata, 'prefix':finishedJob.identifier})
 
     self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
     if output.type == 'HDF5':
       optionsIn = {'group':self.name+str(finishedJob.identifier)}
-      if options is not None: optionsIn.update(options)
-      self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
+      if options is not None:
+        optionsIn.update(options)
       output.addGroupDataObjects(optionsIn,exportDict,False)
+      # output.addGroup(optionsIn,optionsIn)
     else:
+      options["inputFile"] = self.currentInputFiles
       self.collectOutputFromDict(exportDict,output,options)
 
   def collectOutputFromDict(self,exportDict,output,options=None):
@@ -1714,9 +1748,9 @@ class Code(Model):
           output.updateInputValue(key,exportDict['inputSpaceParams'][key],options)
       for key in exportDict['outputSpaceParams']:
         if key in output.getParaKeys('outputs'):
-          output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
+          output.updateOutputValue(key,exportDict['outputSpaceParams'][key], options)
       for key in exportDict['metadata']:
-        output.updateMetadata(key,exportDict['metadata'][key])
+        output.updateMetadata(key,exportDict['metadata'][key], options)
       output.numAdditionalLoadPoints += 1 #prevents consistency problems for entries from restart
 
   def submit(self, myInput, samplerType, jobHandler, **kwargs):
@@ -1742,7 +1776,7 @@ class Code(Model):
     kwargs['outfile'] = None
 
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
-    #  objects.  However, this might require some updating of many Code Interfaces as well.
+    #  objects.  However, this might require some updating of many CodeInterfaces``````           1  Interfaces as well.
     for index, inputFile in enumerate(myInput):
       if inputFile.getExt() in self.code.getInputExtension():
         kwargs['outfile'] = 'out~'+myInput[index].getBase()
