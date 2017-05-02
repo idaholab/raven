@@ -10,7 +10,6 @@
  [./MVNAbs]
   type = 'RavenFramework'
   input = 'test_MVN_abs.xml'
-  output = ''
   csv = 'MVNAbs/testPrintPointSetAbs_dump.csv'
   xml = 'MVNAbs/testPrintPointSetAbs_dump.xml'
  [../]
@@ -18,7 +17,6 @@
  [./MVNRel]
   type = 'RavenFramework'
   input = 'test_MVN_rel.xml'
-  output = ''
   csv = 'MVNRel/testPrintPointSetRel_dump.csv'
   xml = 'MVNRel/testPrintPointSetRel_dump.xml'
  [../]
@@ -26,7 +24,6 @@
  [./ROM]
   type = 'RavenFramework'
   input = 'test_rom.xml'
-  output = ''
   csv = 'ROM/testPrintPointSet_dump.csv'
  [../]
 

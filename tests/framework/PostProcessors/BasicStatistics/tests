@@ -31,7 +31,6 @@
     input = 'mc_float_percentile.xml'
     UnorderedCsv = 'basicStatsMonteCarloPercentileFloat/output_basicStatistics_PP1mc.csv'
     UnorderedXml = 'basicStatsMonteCarloPercentileFloat/output_basicStatistics_PP1mc.xml'
-    output = ''
     rel_err = 1e-6
   [../]
   [./stratified]

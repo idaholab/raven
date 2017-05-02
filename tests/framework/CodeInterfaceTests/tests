@@ -260,7 +260,6 @@
  [./MAAP5interfaceADETSampling]
    type = 'RavenFramework'
    input = 'test_maap5_code_interface_adaptive_det.xml'
-   output = ''
    UnorderedCsv = 'MAAP5_adaptiveDET_test/limitSurfDump.csv'
    UnorderedXml = 'MAAP5_adaptiveDET_test/limitSurfDump.xml'
    test_interface_only = True
@@ -269,7 +268,6 @@
  [./MAAP5interfaceAHDETSampling]
    type = 'RavenFramework'
    input = 'test_maap5_code_interface_adaptive_hybrid_det.xml'
-   output = ''
    UnorderedCsv = 'MAAP5_adaptiveHybridDET_test/limitSurfDump.csv'
    UnorderedXml = 'MAAP5_adaptiveHybridDET_test/limitSurfDump.xml'
    test_interface_only = True
