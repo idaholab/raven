@@ -252,8 +252,10 @@ class relapdata:
         IOcsvfile.write(',')
     IOcsvfile.write('\n')
     for i in range(len(self.minordata.get(self.minordata.keys()[0]))):
-      IOcsvfile.write(','.join(self.minordata.get(self.minordata.keys()[j])[i] for j in range(len(self.minordata.keys()))))
+      for j in range(len(self.minordata.keys())):
+        IOcsvfile.write('%s,' %(self.minordata.get(self.minordata.keys()[j])[i]))
       if len(self.ravenData)>0:
         IOcsvfile.write(',')
-      IOcsvfile.write(','.join(self.ravenData[self.ravenData.keys()[k]] for k in range(len(self.ravenData.keys()))))
+      for k in range(len(self.ravenData.keys())):
+        IOcsvfile.write('%s' %(self.ravenData[self.ravenData.keys()[k]]))
       IOcsvfile.write('\n')
