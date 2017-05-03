@@ -135,15 +135,15 @@ class relapdata:
           #if takeIt:
           #  for k in range(len(tempArray)): tempArray[k].append(tempData[k])
           # Here I check that none of the keywords contained in errorKeywords are contained in tempData
-          if self.checkLine(tempData) and (len(tempArray)==len(tempData)):  
-            for k in range(len(tempArray)): 
+          if self.checkLine(tempData) and (len(tempArray)==len(tempData)):
+            for k in range(len(tempArray)):
               tempArray[k].append(tempData[k])
           i=i+1
           if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]) or re.match('^\s*0Final time',lines[i]) or re.match('^\s*Final time',lines[i]):
             break
-        for l in range(len(tempkeys)): 
+        for l in range(len(tempkeys)):
           minorDict.update({tempkeys[l]:tempArray[l]})
-        if re.match('^\s*1\s*R5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]): 
+        if re.match('^\s*1\s*R5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]):
           #or i+1 > len(lines) -1:
           flagg2=1
           flagg1=1
@@ -157,7 +157,7 @@ class relapdata:
           flagg1=1
           flagg2=1
     return minorDict
-  
+
   def checkLine(self,list):
     outcome = True
     for element in list:
@@ -165,7 +165,7 @@ class relapdata:
         float(element)
       except ValueError:
         outcome = outcome and False
-    return outcome  
+    return outcome
 
   def getMinor(self,lines):
     """
@@ -218,7 +218,7 @@ class relapdata:
         deckNum = None
         i=i+1
         while flagg==0:
-          if re.search('RAVEN',self.lines[i]): 
+          if re.search('RAVEN',self.lines[i]):
             flagg=1
           else:
             splitted = self.lines[i].split()
