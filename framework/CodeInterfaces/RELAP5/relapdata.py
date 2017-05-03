@@ -13,7 +13,6 @@
 # limitations under the License.
 import re
 import xml.etree.ElementTree as ET
-#from Carbon.Aliases import false ????????
 """
 Created on May 5, 2016
 
@@ -243,12 +242,14 @@ class relapdata:
     #TODO this should be further reworked and optimized probably, but it is patched to work for now.
     IOcsvfile=open(filen,'w')
     if self.minordata != None:
-      IOcsvfile.write(','.join(s.strip().replace("1 time_(sec)","time").replace(' ', '_') for s in self.minordata.keys()))
+      for i in range(len(self.minordata.keys())):
+        IOcsvfile.write('%s,' %(self.minordata.keys()[i].strip().replace("1 time_(sec)","time").replace(' ', '_')))
     if len(self.ravenData) > 0:
       IOcsvfile.write(',')
     for j in range(len(self.ravenData.keys())):
       IOcsvfile.write('%s' %(self.ravenData.keys()[j]))
-      if j+1<len(self.ravenData.keys()): IOcsvfile.write(',')
+      if j+1<len(self.ravenData.keys()):
+        IOcsvfile.write(',')
     IOcsvfile.write('\n')
     for i in range(len(self.minordata.get(self.minordata.keys()[0]))):
       IOcsvfile.write(','.join(self.minordata.get(self.minordata.keys()[j])[i] for j in range(len(self.minordata.keys()))))
@@ -256,4 +257,3 @@ class relapdata:
         IOcsvfile.write(',')
       IOcsvfile.write(','.join(self.ravenData[self.ravenData.keys()[k]] for k in range(len(self.ravenData.keys()))))
       IOcsvfile.write('\n')
-
