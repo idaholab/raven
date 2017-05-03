@@ -108,10 +108,6 @@ class relapdata:
     flagg2 = 0
     block_count=0
 
-    # The following object is a list of keywords that RELAP5 might generate in the minor edits which would
-    # corrupt the .csv files. If more keywords are discovered add them here in the list
-    errorKeywords = ['Reducing','Thermodynamic','ncount','0$$$$$$$$','written','block']
-
     while(flagg1==0 & flagg2==0):
       if flagg1==0:
         tempkeys=[]
@@ -158,6 +154,11 @@ class relapdata:
     return minorDict
 
   def checkLine(self,list):
+    """
+      Method that check the content of a list (i.e., a line); a list must contain only numbers
+      @ In, list, list, list that contained values located in a single line
+      @ Out, outcome, bool, boolean variable which is True if the list contains only numbers, False if the contains at list a string
+    """
     outcome = True
     for element in list:
       try:
@@ -192,9 +193,6 @@ class relapdata:
               minorDict[k].extend(tempdict.get(k))
             else:
               minorDict[k] =  tempdict[k]
-#             for k in minorDict.keys():
-#               if k in tempdict.keys():
-#                 minorDict[k].extend(tempdict.get(k))
     timeBlock = []
     for tBlock in timeList:
       timeBlock.extend(tBlock)
@@ -253,9 +251,9 @@ class relapdata:
     IOcsvfile.write('\n')
     for i in range(len(self.minordata.get(self.minordata.keys()[0]))):
       for j in range(len(self.minordata.keys())):
-        IOcsvfile.write('%s,' %(self.minordata.get(self.minordata.keys()[j])[i]))
+        IOcsvfile.write(','.join(self.minordata.get(self.minordata.keys()[j])[i]))
       if len(self.ravenData)>0:
         IOcsvfile.write(',')
       for k in range(len(self.ravenData.keys())):
-        IOcsvfile.write('%s' %(self.ravenData[self.ravenData.keys()[k]]))
+        IOcsvfile.write(','.join(self.ravenData[self.ravenData.keys()[k]]))
       IOcsvfile.write('\n')
