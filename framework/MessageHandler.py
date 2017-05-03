@@ -194,7 +194,7 @@ class MessageHandler(object):
       @ In, initDict, dict, dictionary of global options
       @ Out, None
     """
-    self.verbosity     = initDict.get('verbosity','all')
+    self.verbosity     = initDict.get('verbosity','all').lower()
     self.callerLength  = initDict.get('callerLength',40)
     self.tagLength     = initDict.get('tagLength',30)
     self.suppressErrs  = initDict['suppressErrs'] in utils.stringsThatMeanTrue() if 'suppressErrs' in initDict.keys() else False
