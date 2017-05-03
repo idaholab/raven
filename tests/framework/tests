@@ -53,7 +53,7 @@
   #REQUIREMENT_TEST R-RA-3
   type = 'RavenFramework'
   input = 'test_output.xml'
-  output = 'output_check/1-plot7_stem.png output_check/1-2DHistoryPlot_histogram.png output_check/1-test_line-line.png output_check/1-plot2_line-line.png output_check/1-plot4_scatter-scatter.png output_check/1-plot3_scatter-scatter.png output_check/1-plot9_stem.png output_check/1-plot8_stem.png output_check/1-plot7_stem.png output_check/1-plot6_histogram.png output_check/1-plot5_histogram.png output_check/1-plot11_step.png output_check/1-plot10_stem.png output_check/1-plot14_tri-surface-tri-surface.png output_check/1-plot13_surface-surface.png output_check/1-plot12_pseudocolor.png output_check/1-plot17_contour3D-filledContour3D.png output_check/1-plot16_contour-filledContour.png output_check/1-plot15_wireframe-wireframe.png output_check/1-plot18_scatter.png output_check/1-plot19_scatter.png output_check/fullprint_Pointset.csv'
+  output = 'output_check/1-plot7_stem.png output_check/1-2DHistoryPlot_histogram.png output_check/1-test_line-line.png output_check/1-plot2_line-line.png output_check/1-plot4_scatter-scatter.png output_check/1-plot3_scatter-scatter.png output_check/1-plot9_stem.png output_check/1-plot8_stem.png output_check/1-plot6_histogram.png output_check/1-plot5_histogram.png output_check/1-plot11_step.png output_check/1-plot10_stem.png output_check/1-plot14_tri-surface-tri-surface.png output_check/1-plot13_surface-surface.png output_check/1-plot12_pseudocolor.png output_check/1-plot17_contour3D-filledContour3D.png output_check/1-plot16_contour-filledContour.png output_check/1-plot15_wireframe-wireframe.png output_check/1-plot18_scatter.png output_check/1-plot19_scatter.png output_check/fullprint_Pointset.csv'
   csv = 'output_check/fullprint_HistorySet_2.csv output_check/test_4.csv output_check/testprint_selective_hist1_4.csv output_check/testprint_selective_hist2_4.csv output_check/testprint_selective_hist3_4.csv output_check/testprint_selective_Pointset.csv'
   xml = 'output_check/fullprint_HistorySet.xml output_check/fullprint_Pointset.xml'
   remove_unicode_identifier = true
@@ -91,7 +91,6 @@
   type = 'RavenFramework'
   input = 'test_rom_trainer.xml'
   #skip = 'working in progress'
-  output = ''
   UnorderedCsv = 'test_rom_trainer/outputMontecarloRom_dump.csv test_rom_trainer/outputMontecarloRomND_dump.csv'
   max_time = 1500
   rel_err = 0.001
@@ -100,7 +99,6 @@
  [./test_multi_target_rom]
   type = 'RavenFramework'
   input = 'test_multi_target_rom.xml'
-  output = ''
   csv = 'test_rom_trainer/outputMontecarloMultiTargetRom_dump.csv test_rom_trainer/outputMontecarloMultiTargetRomND_dump.csv'
   max_time = 1500
   rel_err = 0.001
@@ -121,7 +119,6 @@
  [./testFactorials]
   type = 'RavenFramework'
   input = 'test_FullFactorial_Sampler.xml'
-  output = 'Factorial/2levelFact_dump.csv Factorial/fullFact_dump.csv Factorial/pb_dump.csv'
   csv = 'Factorial/2levelFact_dump.csv Factorial/fullFact_dump.csv Factorial/pb_dump.csv'
   max_time = 500
   rel_err = 0.001
@@ -130,7 +127,6 @@
  [./testResponseSurfaceDesigns]
   type = 'RavenFramework'
   input = 'test_ResponseSurfaceDesign_Sampler.xml'
-  output = 'ResponseDesign/BoxBehnkenRespDesign_dump.csv ResponseDesign/CentralCompositeRespDesign_dump.csv'
   csv = 'ResponseDesign/BoxBehnkenRespDesign_dump.csv ResponseDesign/CentralCompositeRespDesign_dump.csv'
   max_time = 500
   rel_err = 0.001
@@ -140,7 +136,6 @@
   #REQUIREMENT_TEST R-RE-3
   type = 'RavenFramework'
   input = 'test_Grid_Sampler.xml'
-  output = 'GridTest/outGrid_dump.csv'
   csv = 'GridTest/outGrid_dump.csv'
   max_time = 500
   rel_err = 0.001
@@ -149,7 +144,6 @@
  [./testGridWithConstants]
   type = 'RavenFramework'
   input = 'test_Grid_Sampler_with_constants.xml'
-  output = 'GridTestWithConstants/outGrid_dump.csv'
   csv = 'GridTestWithConstants/outGrid_dump.csv'
   max_time = 500
   rel_err = 0.001
@@ -158,7 +152,6 @@
  [./testGrid_GetPot]
   type = 'RavenFramework'
   input = 'test_Grid_Sampler.i'
-  output = 'GridTest_GetPot/outGrid_dump.csv'
   csv = 'GridTest_GetPot/outGrid_dump.csv'
   max_time = 500
   rel_err = 0.001
@@ -167,7 +160,6 @@
  [./testRandom]
   type = 'RavenFramework'
   input = 'test_random.xml'
-  output = 'RandomTest/outSet_dump.csv'
   csv = 'RandomTest/outSet_dump.csv'
   max_time = 500
   rel_err = 0.001
@@ -176,7 +168,6 @@
  [./testLHS]
   type = 'RavenFramework'
   input = 'test_LHS_Sampler.xml'
-  output = 'LHStest/outLHS_dump.csv LHStest/samples1D.csv'
   csv = 'LHStest/outLHS_dump.csv LHStest/samples1D.csv'
   xml = 'LHStest/outLHS_dump.xml LHStest/samples1D.xml'
   max_time = 500
@@ -224,7 +215,6 @@
   #REQUIREMENT_TEST R-RA-1
   type = 'RavenFramework'
   input = 'test_LimitSurface.xml'
-  output = 'limitSurface/LimitSurfaceNegative_dump.csv limitSurface/LimitSurfacePositiveNegative_dump.csv limitSurface/LimitSurfacePositive_dump.csv'
   csv = 'limitSurface/LimitSurfaceNegative_dump.csv limitSurface/LimitSurfacePositiveNegative_dump.csv limitSurface/LimitSurfacePositive_dump.csv'
   max_time = 300
   rel_err = 0.0001
@@ -234,7 +224,7 @@
  [./testLimitSurfaceIntegralPP]
   type = 'RavenFramework'
   input = 'test_LimitSurface_and_integral.xml'
-  output = 'limitSurface_integral/LimitSurfaceWeightedPb_FileObj.csv limitSurface_integral/LimitSurfaceUnWeightedPb_FileObj.csv limitSurface_integral/LimitSurfaceUnWeightedPb_dump.xml limitSurface_integral/LimitSurfaceWeightedPb_dump.xml limitSurface_integral/LimitSurfaceWeightedPb_dump.csv limitSurface_integral/LimitSurfaceUnWeightedPb_dump.csv'
+  output = 'limitSurface_integral/LimitSurfaceUnWeightedPb_dump.xml limitSurface_integral/LimitSurfaceWeightedPb_dump.xml'
   csv = 'limitSurface_integral/LimitSurfaceWeightedPb_FileObj.csv limitSurface_integral/LimitSurfaceUnWeightedPb_FileObj.csv limitSurface_integral/LimitSurfaceWeightedPb_dump.csv limitSurface_integral/LimitSurfaceUnWeightedPb_dump.csv'
   max_time = 300
   rel_err = 0.0001
@@ -244,7 +234,6 @@
  [./testLimitSurfaceMultiGridSampling]
   type = 'RavenFramework'
   input = 'test_limitSurfaceMultiGridMethod.xml'
-  output = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
   csv = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
   max_time = 300
   rel_err = 0.0001
@@ -315,14 +304,12 @@
  [./adaptive_sampler_ext_model]
   type = 'RavenFramework'
   input = 'test_adaptive_sampler.xml'
-  output = 'Adapt/limitSurfaceDump.csv'
   csv = 'Adapt/limitSurfaceDump.csv'
  [../]
 
  [./safest_point_pp]
   type = 'RavenFramework'
   input = 'test_safest_point.xml'
-  output = 'SafestPointPP/sfs_pnt_dmp.csv SafestPointPP/lmt_srf_dmp.csv'
   csv = 'SafestPointPP/sfs_pnt_dmp.csv SafestPointPP/lmt_srf_dmp.csv'
  [../]
 
@@ -330,7 +317,6 @@
  [./safest_point_cdf_pp]
   type = 'RavenFramework'
   input = 'test_safest_point_cdf.xml'
-  output = 'SafestPointPP_cdf/sfs_pnt_cdf_dmp.csv SafestPointPP_cdf/lmt_srf_dmp.csv'
   csv = 'SafestPointPP_cdf/sfs_pnt_cdf_dmp.csv SafestPointPP_cdf/lmt_srf_dmp.csv'
  [../]
 
@@ -338,8 +324,7 @@
   #REQUIREMENT_TEST R-RE-2
   type = 'RavenFramework'
   input = 'test_simple_ND_external_MC.xml'
-  output = 'ND_test_MC/testPrintPointSet_dump.csv ND_test_MC/testPrintPointSet_dump.csv'
-  csv = 'ND_test_MC/testPrintPointSet_dump.csv ND_test_MC/testPrintPointSet_dump.csv'
+  csv = 'ND_test_MC/testPrintPointSet_dump.csv'
  [../]
 
  [./stochPolyInterpTest]
@@ -352,31 +337,27 @@
  [./ND_external_LHS]
   type = 'RavenFramework'
   input = 'test_simple_ND_external_LHS.xml'
-  output = 'ND_test_LHS/testPrintPointSet_dump.csv ND_test_LHS/testPrintPointSet_dump.csv'
-  csv = 'ND_test_LHS/testPrintPointSet_dump.csv ND_test_LHS/testPrintPointSet_dump.csv'
-  xml = 'ND_test_LHS/testPrintPointSet_dump.xml ND_test_LHS/testPrintPointSet_dump.xml'
+  csv = 'ND_test_LHS/testPrintPointSet_dump.csv'
+  xml = 'ND_test_LHS/testPrintPointSet_dump.xml'
   remove_unicode_identifier = true
  [../]
 
  [./ND_external_grid_value]
   type = 'RavenFramework'
   input = 'test_simple_ND_external_grid_value.xml'
-  output = 'ND_test_Grid_value/testPrintPointSet_dump.csv ND_test_Grid_value/testPrintPointSet_dump.csv'
-  csv = 'ND_test_Grid_value/testPrintPointSet_dump.csv ND_test_Grid_value/testPrintPointSet_dump.csv'
+  csv = 'ND_test_Grid_value/testPrintPointSet_dump.csv'
  [../]
 
  [./ND_external_grid_cdf]
   type = 'RavenFramework'
   input = 'test_simple_ND_external_grid_cdf.xml'
-  output = 'ND_test_Grid_cdf/testPrintPointSet_dump.csv ND_test_Grid_cdf/testPrintPointSet_dump.csv'
-  csv = 'ND_test_Grid_cdf/testPrintPointSet_dump.csv ND_test_Grid_cdf/testPrintPointSet_dump.csv'
+  csv = 'ND_test_Grid_cdf/testPrintPointSet_dump.csv'
  [../]
 
  [./ND_test_MC_MVN]
   type = 'RavenFramework'
   input = 'test_simple_ND_external_MC_MVN.xml'
-  output = 'ND_test_MC_MVN/testPrintPointSet_dump.csv ND_test_MC_MVN/testPrintPointSet_dump.csv'
-  csv = 'ND_test_MC_MVN/testPrintPointSet_dump.csv ND_test_MC_MVN/testPrintPointSet_dump.csv'
+  csv = 'ND_test_MC_MVN/testPrintPointSet_dump.csv'
  [../]
 
  [./test_comparison_statistics]
@@ -389,7 +370,6 @@
  [./dists_vars]
    type = 'RavenFramework'
    input = 'test_distribution_combination.xml'
-   output = 'dists_vars/PrintPointSet_dump.csv'
    csv = 'dists_vars/PrintPointSet_dump.csv'
  [../]
 
@@ -423,21 +403,18 @@
  [./NDGridProbabilityWeightCDF]
   type = 'RavenFramework'
   input = 'test_simple_ND_grid_probabilityWeight_cdf.xml'
-  output = 'NDGridPWcdf/testPrintPointSet_dump.csv'
   csv = 'NDGridPWcdf/testPrintPointSet_dump.csv'
  [../]
 
  [./NDGridProbabilityWeightValue]
   type = 'RavenFramework'
   input = 'test_simple_ND_grid_probabilityWeight_value.xml'
-  output = 'NDGridPWvalue/testPrintPointSet_dump.csv'
   csv = 'NDGridPWvalue/testPrintPointSet_dump.csv'
  [../]
 
  [./LHSVariables]
   type = 'RavenFramework'
   input = 'test_LHS_variables.xml'
-  output = 'LHStestVariables/outLHS_dump.csv'
   csv = 'LHStestVariables/outLHS_dump.csv'
   xml = 'LHStestVariables/outLHS_dump.xml'
   remove_unicode_identifier = true
@@ -479,7 +456,7 @@
  [./custom1D]
    type   = 'RavenFramework'
    input  = 'test_distributionCustom1D.xml'
-   output = 'custom1D/PointSet2_dump.csv custom1D/PointSet2_dump.xml custom1D/PointSet3_dump.csv custom1D/PointSet3_dump.xml'
+   output = 'custom1D/PointSet2_dump.xml custom1D/PointSet3_dump.xml'
    csv    = 'custom1D/PointSet2_dump.csv custom1D/PointSet3_dump.csv'
  [../]
 
