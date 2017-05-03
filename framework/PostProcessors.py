@@ -3912,11 +3912,12 @@ class TopologicalDecomposition(BasePostProcessor):
 
         # Append the min/max labels to the data whether the user wants them or
         # not, and place the hierarchy information into the metadata
-        for key, value in outputDict.iteritems():
+        for key, values in outputDict.iteritems():
           if key in ['minLabel', 'maxLabel']:
-            output.updateOutputValue(key, [value])
+            for value in values:
+              output.updateOutputValue(key, [value])
           elif key in ['hierarchy']:
-            output.updateMetadata(key, [value])
+            output.updateMetadata(key, [values])
     else:
       self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
                          + ' yet implemented. I am going to skip it.')
