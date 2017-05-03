@@ -72,7 +72,8 @@ class relapdata:
         startLineNumber = endLineNumber
         endLineNumber   = cnt+1
         times[deckNum] = {'time':line.split()[2],'sliceCoordinates':(startLineNumber,endLineNumber)}
-    if deckNum < deckNumber: raise IOError("the deck number requested is greater than the number found in the outputfiles! Found "+ str(deckNum) + " decks and requested are "+str(deckNumber))
+    if deckNum < deckNumber:
+      raise IOError("the deck number requested is greater than the number found in the outputfiles! Found "+ str(deckNum) + " decks and requested are "+str(deckNumber))
     self.totNumberOfDecks = deckNum
     return times
 
@@ -138,9 +139,12 @@ class relapdata:
             for k in range(len(tempArray)): 
               tempArray[k].append(tempData[k])
           i=i+1
-          if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]) or re.match('^\s*0Final time',lines[i]) or re.match('^\s*Final time',lines[i]): break
-        for l in range(len(tempkeys)): minorDict.update({tempkeys[l]:tempArray[l]})
-        if re.match('^\s*1\s*R5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]): #or i+1 > len(lines) -1:
+          if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]) or re.match('^\s*0Final time',lines[i]) or re.match('^\s*Final time',lines[i]):
+            break
+        for l in range(len(tempkeys)): 
+          minorDict.update({tempkeys[l]:tempArray[l]})
+        if re.match('^\s*1\s*R5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]): 
+          #or i+1 > len(lines) -1:
           flagg2=1
           flagg1=1
         elif re.match('^\s*1 time',lines[i]):
@@ -193,7 +197,8 @@ class relapdata:
 #               if k in tempdict.keys():
 #                 minorDict[k].extend(tempdict.get(k))
     timeBlock = []
-    for tBlock in timeList: timeBlock.extend(tBlock)
+    for tBlock in timeList:
+      timeBlock.extend(tBlock)
     minorDict['1 time_(sec)'] = timeBlock
     return minorDict
 
@@ -213,14 +218,16 @@ class relapdata:
         deckNum = None
         i=i+1
         while flagg==0:
-          if re.search('RAVEN',self.lines[i]): flagg=1
+          if re.search('RAVEN',self.lines[i]): 
+            flagg=1
           else:
             splitted = self.lines[i].split()
             if   'deckNum:' in splitted: deckNum = splitted[-1].strip()
             elif 'card:'    in splitted:
               sampleVar = splitted[splitted.index('card:')+1].strip()+(":"+splitted[splitted.index('word:')+1].strip() if splitted[splitted.index('word:')+1].strip() != '0' else '')
               value     = splitted[splitted.index('value:')+1].strip()
-              if deckNum is not None: sampleVar = str(deckNum)+'|'+sampleVar
+              if deckNum is not None:
+                sampleVar = str(deckNum)+'|'+sampleVar
               self.ravenData[sampleVar]=value
           i=i+1
         deckCounter+=1
