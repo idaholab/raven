@@ -1662,14 +1662,13 @@ class Code(Model):
 
     sampledVars,outputDict = finishedJob.getEvaluation()
 
-    ## The single run does not perturb data, so we must get the input space from
-    ## somewhere else, I am punting on this now and stuffing all of the output
-    ## parameters into the input space, hopefully the object requesting this
-    ## information  will ignore whatever it does not need - DPM 4/6/2017
+    ## The single run does not perturb data, however RAVEN expects something in 
+    ## the input space, so let's just put a 0 entry for the inputPlaceHolder
+    ## - DPM 5/4/2017
     if len(sampledVars) == 0:
-      sampledVars = {}
-      for key,value in outputDict.items():
-        sampledVars[key] = value[-1]
+      sampledVars = {'InputPlaceHolder': 0.}
+      # for key,value in outputDict.items():
+      #   sampledVars[key] = value[0]
 
     ## What happens if the code modified the input parameter space? Well,
     ## let's grab any input fields existing in the output file and to ensure
@@ -1711,6 +1710,10 @@ class Code(Model):
       options['metadata'] = metadata
 
     exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputDict,'metadata':metadata, 'prefix':finishedJob.identifier})
+
+    print('*'*80)
+    print(exportDict)
+    print('*'*80)
 
     self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
     if output.type == 'HDF5':
