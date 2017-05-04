@@ -1518,7 +1518,7 @@ class Code(Model):
     ## on all systems
     sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
     localenv = dict(os.environ)
-    localenv['PWD'] = sampleDirectory
+    localenv['PWD'] = str(sampleDirectory)
 
     ## Goes with the push code above
     ## pop directory
