@@ -1662,7 +1662,7 @@ class Code(Model):
 
     sampledVars,outputDict = finishedJob.getEvaluation()
 
-    ## The single run does not perturb data, however RAVEN expects something in 
+    ## The single run does not perturb data, however RAVEN expects something in
     ## the input space, so let's just put a 0 entry for the inputPlaceHolder
     ## - DPM 5/4/2017
     if len(sampledVars) == 0:
