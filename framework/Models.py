@@ -1711,10 +1711,6 @@ class Code(Model):
 
     exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputDict,'metadata':metadata, 'prefix':finishedJob.identifier})
 
-    print('*'*80)
-    print(exportDict)
-    print('*'*80)
-
     self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
     if output.type == 'HDF5':
       optionsIn = {'group':self.name+str(finishedJob.identifier)}
