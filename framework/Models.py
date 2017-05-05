@@ -1525,23 +1525,12 @@ class Code(Model):
     if codeLogFile is None:
       codeLogFile = os.path.join(metaData['subDirectory'],'generalOut')
 
-    ## This could cause issues as the temporary changing of the directory on
-    ## this thread could affect the main thread's working directory, I would
-    ## prefer to copy the environment and then update the working directory of
-    ## the new environment, but I am not sure if this is OS agnostic? --DPM 4/25/17
-    ## push directory
-    # oldDir = os.getcwd()
-    # os.chdir(metaData['subDirectory'])
-
-    ## This is the preferred alternative, but we should ensure that it works
-    ## on all systems
+    ## Before we were temporarily changing directories in order to copy the
+    ## correct directory to the subprocess. Instead, we can just set the
+    ## directory after we copy it over. -- DPM 5/5/2017
     sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
     localenv = dict(os.environ)
     localenv['PWD'] = str(sampleDirectory)
-
-    ## Goes with the push code above
-    ## pop directory
-    # os.chdir(oldDir)
 
     outFileObject = open(os.path.join(sampleDirectory,codeLogFile), 'w', bufferSize)
 
@@ -2023,9 +2012,8 @@ class PostProcessor(Model, Assembler):
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-      @ Out, createNewInput, tuple, return the new input in a tuple form
+      @ Out, myInput, list, the inputs (list) to start from to generate the new one
     """
-    # return self.interface.inputToInternal(myInput)
     return myInput
 
 class EnsembleModel(Dummy, Assembler):
