@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnalyticalBateman>
+  <totalTime>10</totalTime>
+  <powerHistory>1 1 1</powerHistory>
+  <flux>10000 10000 10000</flux>
+  <stepDays>0 100 200 300</stepDays>
+  <timeSteps>10 10 10</timeSteps>`
+  <nuclides>
+    <A>
+        <equationType>N1</equationType>
+        <initialMass>1.0</initialMass>
+        <decayConstant>$RAVEN-AdecayConstant:0.0$</decayConstant>
+        <sigma>$RAVEN-Asigma:1$</sigma>
+        <ANumber>230</ANumber>
+    </A>
+    <B>
+        <equationType>N2</equationType>
+        <initialMass>1.0</initialMass>
+        <decayConstant>$RAVEN-BdecayConstant:0.00008$</decayConstant>
+        <sigma>$RAVEN-Bsigma:1$</sigma>
+        <ANumber>200</ANumber>
+    </B>
+    <C>
+        <equationType>N3</equationType>
+        <initialMass>1.0</initialMass>
+        <decayConstant>0.000000005</decayConstant>
+        <sigma>45</sigma>
+        <ANumber>150</ANumber>
+    </C>
+    <D>
+        <equationType>N4</equationType>
+        <initialMass>1.0</initialMass>
+        <decayConstant>0.00000008</decayConstant>
+        <sigma>3</sigma>
+        <ANumber>100</ANumber>
+    </D>
+  </nuclides>
+</AnalyticalBateman>

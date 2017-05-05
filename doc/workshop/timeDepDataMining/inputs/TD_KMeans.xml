@@ -1,0 +1,513 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+
+  <RunInfo>
+    <WorkingDir>resultsKMEANS</WorkingDir>
+    <Sequence>FirstMRun,pp1,plotAllHists,filter0,filter1</Sequence>
+    <batchSize>100</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="FirstMRun" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="PointSet"        >inputPlaceHolder</Input>
+      <Model    class="Models"        type="ExternalModel"   >PythonModule</Model>
+      <Sampler  class="Samplers"      type="MonteCarlo"      >MC_external</Sampler>
+      <Output   class="DataObjects"   type="HistorySet"      >outMC</Output>
+    </MultiRun>
+    <IOStep name="plotAllHists" pauseAtEnd="false">
+      <Input    class="DataObjects"   type="HistorySet"      >outMC</Input>
+      <Output   class="OutStreams"    type="Plot"            >plot1</Output>
+    </IOStep>
+    <PostProcess name="pp1" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="HistorySet"      >outMC</Input>
+      <Model    class="Models"        type="PostProcessor"   >KMeans1</Model>
+      <SolutionExport class="DataObjects" type="HistorySet"  >clusterInfo</SolutionExport>
+      <Output   class="DataObjects"   type="HistorySet"      >outMC</Output>
+      <Output   class="OutStreams"    type="Plot"            >clusterCenters</Output>
+      <Output   class="OutStreams"    type="Plot"            >plot3</Output>
+      <Output   class="OutStreams"    type="Plot"            >Clustered_HS</Output>
+      <Output   class="OutStreams"    type="Plot"            >plot5</Output>
+      <Output   class="OutStreams"    type="Plot"            >plot6</Output>
+      <Output   class="OutStreams"    type="Plot"            >plot7</Output>
+    </PostProcess>
+    <PostProcess name="filter0" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="HistorySet"      >outMC</Input>
+      <Model    class="Models"        type="PostProcessor"   >filter0</Model>
+      <Output   class="DataObjects"   type="HistorySet"      >outMC0</Output>
+      <Output   class="OutStreams"    type="Plot"            >Cluster_0</Output>
+      <Output   class="OutStreams"    type="Plot"            >hist0x</Output>
+      <Output   class="OutStreams"    type="Plot"            >hist0y</Output>
+      <Output   class="OutStreams"    type="Plot"            >hist0z</Output>
+    </PostProcess>
+    <PostProcess name="filter1" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="HistorySet"      >outMC</Input>
+      <Model    class="Models"        type="PostProcessor"   >filter1</Model>
+      <Output   class="DataObjects"   type="HistorySet"      >outMC1</Output>
+      <Output   class="OutStreams"    type="Plot"            >Cluster_1</Output>
+      <Output   class="OutStreams"    type="Plot"            >hist1x</Output>
+      <Output   class="OutStreams"    type="Plot"            >hist1y</Output>
+      <Output   class="OutStreams"    type="Plot"            >hist1z</Output>
+    </PostProcess>
+  </Steps>
+
+  <Distributions>
+    <Normal name="distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>1000</limit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <PostProcessor name="KMeans1" subType="DataMining">
+      <PreProcessor class="Models" type="PostProcessor">dataPreProc</PreProcessor>
+      <KDD lib="SciKitLearn">
+        <SKLtype>cluster|KMeans</SKLtype>
+        <Features>output</Features>
+        <n_clusters>2</n_clusters>
+        <tol>1E-10</tol>
+        <random_state>1</random_state>
+        <init>k-means++</init>
+        <precompute_distances>True</precompute_distances>
+      </KDD>
+    </PostProcessor>
+    <PostProcessor name="dataPreProc" subType="InterfacedPostProcessor">
+       <method>HS2PS</method>
+       <pivotParameter>time</pivotParameter>
+    </PostProcessor>
+    <ExternalModel ModuleToLoad="lorentzAttractor_disc" name="PythonModule" subType="">
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+    </ExternalModel>
+    <PostProcessor name="filter0" subType="InterfacedPostProcessor">
+      <method>dataObjectLabelFilter</method>
+      <dataType>HistorySet</dataType>
+      <label>KMeans1Labels</label>
+      <clusterIDs>0</clusterIDs>
+    </PostProcessor>
+    <PostProcessor name="filter1" subType="InterfacedPostProcessor">
+      <method>dataObjectLabelFilter</method>
+      <dataType>HistorySet</dataType>
+      <label>KMeans1Labels</label>
+      <clusterIDs>1</clusterIDs>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="outMC">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="outMC0">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="outMC1">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="outMC2">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="outMC3">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="clusterInfo">
+      <Input>labels</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Plot   name="plot1" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>100</interpPointsX>
+          <x>outMC|Output|time</x>
+          <y>outMC|Output|y</y>
+          <z>outMC|Output|z</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>    
+    <Plot   name="clusterCenters" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>1000</interpPointsX>
+          <x>clusterInfo|Output|time</x>
+          <y>clusterInfo|Output|y</y>
+          <z>clusterInfo|Output|z</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+        <zlabel>y</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>	  
+    <Plot  name="plot3" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>100</interpPointsX>
+          <x>outMC|Output|time</x>
+          <y>outMC|Output|y</y>
+          <colorMap>outMC|Output|KMeans1Labels</colorMap>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot   name="Clustered_HS" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>1000</interpPointsX>
+          <x>outMC|Output|time</x>
+          <y>outMC|Output|y</y>
+          <z>outMC|Output|z</z>
+          <colorMap>outMC|Output|KMeans1Labels</colorMap>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+        <zlabel>y</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <range>
+          <xmin>0.0</xmin>
+          <xmax>0.5</xmax>
+          <ymin>-15.0</ymin>
+          <ymax>30.0</ymax>
+          <zmin>0.0</zmin>
+          <zmax>60.0</zmax>
+        </range>
+      </actions>
+    </Plot>
+    <Plot   name="Cluster_0" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>1000</interpPointsX>
+          <x>outMC0|Output|time</x>
+          <y>outMC0|Output|y</y>
+          <z>outMC0|Output|z</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+        <zlabel>y</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <range>
+          <xmin>0.0</xmin>
+          <xmax>0.5</xmax>
+          <ymin>-15.0</ymin>
+          <ymax>30.0</ymax>
+          <zmin>0.0</zmin>
+          <zmax>60.0</zmax>
+        </range>
+      </actions>
+    </Plot>
+    <Plot   name="Cluster_1" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>1000</interpPointsX>
+          <x>outMC1|Output|time</x>
+          <y>outMC1|Output|y</y>
+          <z>outMC1|Output|z</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+        <zlabel>y</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <range>
+          <xmin>0.0</xmin>
+          <xmax>0.5</xmax>
+          <ymin>-15.0</ymin>
+          <ymax>30.0</ymax>
+          <zmin>0.0</zmin>
+          <zmax>60.0</zmax>
+        </range>
+      </actions>
+    </Plot>
+   
+    <Plot   name="Cluster_2" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>1000</interpPointsX>
+          <x>outMC2|Output|time</x>
+          <y>outMC2|Output|y</y>
+          <z>outMC2|Output|z</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+        <zlabel>y</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <range>
+          <xmin>0.0</xmin>
+          <xmax>0.5</xmax>
+          <ymin>-15.0</ymin>
+          <ymax>30.0</ymax>
+          <zmin>0.0</zmin>
+          <zmax>60.0</zmax>
+        </range>
+      </actions>
+    </Plot>   
+    <Plot   name="Cluster_3" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>1000</interpPointsX>
+          <x>outMC3|Output|time</x>
+          <y>outMC3|Output|y</y>
+          <z>outMC3|Output|z</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+        <zlabel>y</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <range>
+          <xmin>0.0</xmin>
+          <xmax>0.5</xmax>
+          <ymin>-15.0</ymin>
+          <ymax>30.0</ymax>
+          <zmin>0.0</zmin>
+          <zmax>60.0</zmax>
+        </range>
+      </actions>
+    </Plot>      
+		<Plot  name="hist0x" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC0|Input|x0</x>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>   
+    <Plot  name="hist0y" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC0|Input|y0</x>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot  name="hist0z" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC0|Input|z0</x>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>    
+    <Plot  name="hist1x" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC1|Input|x0</x>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>    
+    <Plot  name="hist1y" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC1|Input|y0</x>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot  name="hist1z" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC1|Input|z0</x>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>   
+    <Plot  name="hist2x" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC2|Input|x0</x>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>   
+    <Plot  name="hist2y" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC2|Input|y0</x>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot> 
+    <Plot  name="hist2z" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC2|Input|z0</x>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot  name="hist3x" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC3|Input|x0</x>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>    
+    <Plot  name="hist3y" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC3|Input|y0</x>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot> 
+    <Plot  name="hist3z" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC3|Input|z0</x>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>       
+    <Plot   name="plot5" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC|Input|y0</x>
+          <y>outMC|Input|z0</y>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot  name="plot6" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC|Input|y0</x>
+          <normed>True</normed>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>   
+    <Plot   name="plot7" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC|Output|y</x>
+          <y>outMC|Output|z</y>
+          <normed>True</normed>
+          <bins>6</bins>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

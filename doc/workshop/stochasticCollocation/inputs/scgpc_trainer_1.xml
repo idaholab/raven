@@ -1,0 +1,93 @@
+<Simulation color="true" verbosity="debug">
+  <RunInfo>
+    <WorkingDir>run</WorkingDir>
+    <Sequence>make,train,serialize,print</Sequence>
+    <batchSize>8</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="ballistic_in">projectile_input.i</Input>
+    <Input name="pkfile">scgpc_1.pk</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="make">
+      <Input class="Files" type="">ballistic_in</Input>
+      <Model class="Models" type="ExternalModel">ballistic</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">sg_samp</Sampler>
+      <Output class="DataObjects" type="PointSet">training_data</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">training_data</Input>
+      <Output class="Models" type="ROM">scgpc_rom</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">training_data</Input>
+      <Output class="OutStreams" type="Print">training_data</Output>
+      <Input class="Models" type="ROM">scgpc_rom</Input>
+      <Output class="OutStreams" type="Print">rom_stats_1</Output>
+    </IOStep>
+    <IOStep name="serialize">
+      <Input class="Models" type="ROM">scgpc_rom</Input>
+      <Output class="Files" type="">pkfile</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="angle_dist">
+      <lowerBound>25</lowerBound>
+      <upperBound>65</upperBound>
+    </Uniform>
+    <Uniform name="velocity_dist">
+      <lowerBound>15</lowerBound>
+      <upperBound>40</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <SparseGridCollocation name="sg_samp">
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+      <variable name="velocity">
+        <distribution>velocity_dist</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">scgpc_rom</ROM>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <Models>
+    <Code name="ballistic" subType="GenericCode">
+      <executable>./projectile.py</executable>
+      <clargs arg="python" type="prepend"></clargs>
+      <clargs arg="-i" extension=".i" type="input"></clargs>
+      <clargs arg="-o" type="output"></clargs>
+    </Code>
+    <ROM name="scgpc_rom" subType="GaussPolynomialRom">
+      <Target>r,x,y</Target>
+      <Features>velocity,angle</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>1</PolynomialOrder>
+    </ROM>
+  </Models>
+
+  <DataObjects>
+    <HistorySet name="training_data">
+      <Input>velocity,angle</Input>
+      <Output>r,x,y,time</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="training_data">
+      <type>csv</type>
+      <source>training_data</source>
+    </Print>
+    <Print name="rom_stats_1">
+      <type>xml</type>
+      <source>scgpc_rom</source>
+      <what>mean,variance,sobolIndices</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
