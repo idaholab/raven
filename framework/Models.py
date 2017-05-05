@@ -306,7 +306,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         are needed by createNewInput and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, returnValue, tuple(input,dict), This holds the output information of the evaluated sample.
     """
@@ -552,7 +552,7 @@ class Dummy(Model):
         are needed by createNewInput and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, returnValue, tuple, This will hold two pieces of information,
           the first item will be the input data used to generate this sample,
@@ -561,7 +561,8 @@ class Dummy(Model):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-    return (inRun,{'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))})
+    returnValue = (inRun,{'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))})
+    return returnValue
 
   def collectOutput(self,finishedJob,output,options=None):
     """
@@ -964,7 +965,7 @@ class ROM(Dummy):
         are needed by createNewInput and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, returnValue, tuple, This will hold two pieces of information,
           the first item will be the input data used to generate this sample,
@@ -973,7 +974,8 @@ class ROM(Dummy):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-    return inRun,self._externalRun(inRun)
+    returnValue = inRun,self._externalRun(inRun)
+    return returnValue
 #
 #
 #
@@ -1062,7 +1064,6 @@ class ExternalModel(Dummy):
       if 'SampledVars' in kwargs.keys() and len(self.alias['input'].keys()) != 0:
         kwargs['SampledVars'] = sampledVars
       newInput = ([(extCreateNewInput)],copy.deepcopy(kwargs))
-      #return ([(extCreateNewInput)],copy.deepcopy(kwargs)),copy.copy(modelVariableValues)
     else:
       newInput =  Dummy.createNewInput(self, myInput,samplerType,**kwargs)
     for key in kwargs['SampledVars'].keys():
@@ -1161,7 +1162,7 @@ class ExternalModel(Dummy):
         are needed by createNewInput and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, returnValue, tuple, This will hold two pieces of information,
           the first item will be the input data used to generate this sample,
@@ -1170,7 +1171,8 @@ class ExternalModel(Dummy):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
-    return (inRun,self._externalRun(inRun,Input[1],))
+    returnValue = (inRun,self._externalRun(inRun,Input[1],))
+    return returnValue
 
   def collectOutput(self,finishedJob,output,options=None):
     """
@@ -1492,7 +1494,7 @@ class Code(Model):
         are needed by createNewInput and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars that contains a dictionary {'name variable':value}
         @ Out, returnValue, tuple, This will hold two pieces of information,
           the first item will be the input data used to generate this sample,
@@ -1658,7 +1660,8 @@ class Code(Model):
         for f in fileList:
           os.remove(f)
 
-      return (kwargs['SampledVars'],returnDict)
+      returnValue = (kwargs['SampledVars'],returnDict)
+      return returnValue
     else:
       self.raiseAMessage(" Process Failed "+str(command)+" returnCode "+str(returnCode))
       absOutputFile = os.path.join(sampleDirectory,outputFile)
@@ -1987,7 +1990,7 @@ class PostProcessor(Model, Assembler):
         are needed by createNewInput and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, returnValue, tuple, This will hold two pieces of information,
           the first item will be the input data used to generate this sample,
@@ -1997,7 +2000,8 @@ class PostProcessor(Model, Assembler):
     Input = self.createNewInput(myInput,samplerType, **kwargs)
     if Input is not None and len(Input) == 0:
       Input = None
-    return (Input, self.interface.run(Input))
+    returnValue = (Input, self.interface.run(Input))
+    return returnValue
 
   def collectOutput(self,finishedjob,output,options=None):
     """
@@ -2416,7 +2420,7 @@ class EnsembleModel(Dummy, Assembler):
         are needed by createNewInput and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, returnValue, dict, This holds the output information of the evaluated sample.
     """
@@ -2424,7 +2428,8 @@ class EnsembleModel(Dummy, Assembler):
     Input = self.createNewInput(myInput[0], samplerType, **kwargs)
 
     ## Unpack the specifics for this class, namely just the jobHandler
-    return (Input,self._externalRun(Input,jobHandler))
+    returnValue = (Input,self._externalRun(Input,jobHandler))
+    return returnValue
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
