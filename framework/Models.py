@@ -308,7 +308,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
         @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, returnValue, dict, This holds the output information of the evaluated sample.
+        @ Out, returnValue, tuple(input,dict), This holds the output information of the evaluated sample.
     """
     pass
 
@@ -554,7 +554,10 @@ class Dummy(Model):
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
         @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, returnValue, dict, This holds the output information of the evaluated sample.
+        @ Out, returnValue, tuple, This will hold two pieces of information,
+          the first item will be the input data used to generate this sample,
+          the second item will be the output of this model given the specified
+          inputs
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
@@ -574,11 +577,11 @@ class Dummy(Model):
     sampledVars,outputDict = finishedJob.getEvaluation()
 
     if type(outputDict).__name__ == "tuple":
-      outputeval = outputDict[0]
+      outputEval = outputDict[0]
     else:
-      outputeval = outputDict
+      outputEval = outputDict
 
-    exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputeval,'metadata':finishedJob.getMetadata()})
+    exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputEval,'metadata':finishedJob.getMetadata()})
     self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
 
     if output.type == 'HDF5':
@@ -963,7 +966,10 @@ class ROM(Dummy):
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
         @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, returnValue, dict, This holds the output information of the evaluated sample.
+        @ Out, returnValue, tuple, This will hold two pieces of information,
+          the first item will be the input data used to generate this sample,
+          the second item will be the output of this model given the specified
+          inputs
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
@@ -1157,7 +1163,10 @@ class ExternalModel(Dummy):
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
         @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, returnValue, dict, This holds the output information of the evaluated sample.
+        @ Out, returnValue, tuple, This will hold two pieces of information,
+          the first item will be the input data used to generate this sample,
+          the second item will be the output of this model given the specified
+          inputs
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
@@ -1485,7 +1494,10 @@ class Code(Model):
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
         @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars that contains a dictionary {'name variable':value}
-        @ Out, returnValue, dict, This holds the output information of the evaluated sample.
+        @ Out, returnValue, tuple, This will hold two pieces of information,
+          the first item will be the input data used to generate this sample,
+          the second item will be the output of this model given the specified
+          inputs
     """
     inputFiles = self.createNewInput(myInput, samplerType, **kwargs)
     self.currentInputFiles, metaData = (copy.deepcopy(inputFiles[0]),inputFiles[1]) if type(inputFiles).__name__ == 'tuple' else (inputFiles, None)
@@ -1977,7 +1989,10 @@ class PostProcessor(Model, Assembler):
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
         @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, returnValue, dict, This holds the output information of the evaluated sample.
+        @ Out, returnValue, tuple, This will hold two pieces of information,
+          the first item will be the input data used to generate this sample,
+          the second item will be the output of this model given the specified
+          inputs
     """
     Input = self.createNewInput(myInput,samplerType, **kwargs)
     if Input is not None and len(Input) == 0:
