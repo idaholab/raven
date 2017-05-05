@@ -32,6 +32,7 @@ import copy
 from utils import utils
 from BaseClasses import BaseType
 import MessageHandler
+from .Error import Error
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Runner(MessageHandler.MessageUser):
@@ -87,7 +88,7 @@ class Runner(MessageHandler.MessageUser):
       @ In, None
       @ Out, evaluation, tuple, the evaluation or None if run failed
     """
-    return -1
+    return Error()
 
   def getMetadata(self):
     """

@@ -50,6 +50,7 @@ from Csv_loader import CsvLoader
 import Files
 import PostProcessors
 import LearningGate
+import Runners
 from DataObjects import Data
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -572,10 +573,11 @@ class Dummy(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
       self.raiseAnError(AttributeError,"No available Output to collect")
 
-    sampledVars,outputDict = finishedJob.getEvaluation()
+    sampledVars,outputDict = evaluation
 
     if type(outputDict).__name__ == "tuple":
       outputEval = outputDict[0]
@@ -1182,10 +1184,11 @@ class ExternalModel(Dummy):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"No available Output to collect")
 
-    _, evaluatedOutput = finishedJob.getEvaluation()
+    _, evaluatedOutput = evaluation
     instanciatedSelf = evaluatedOutput[1]
     outcomes         = evaluatedOutput[0]
 

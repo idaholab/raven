@@ -37,6 +37,7 @@ from utils import utils
 from BaseClasses import BaseType
 import MessageHandler
 from .Runner import Runner
+from .Error import Error
 #Internal Modules End--------------------------------------------------------------------------------
 
 class InternalRunner(Runner):
@@ -125,7 +126,7 @@ class InternalRunner(Runner):
       self._collectRunnerResponse()
       if self.runReturn is None:
         self.returnCode = -1
-        return self.returnCode
+        return Error()
       return self.runReturn
     else:
-      return -1 #control return code
+      return Error()
