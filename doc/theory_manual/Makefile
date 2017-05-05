@@ -1,9 +1,9 @@
-SRCFILE = raven_user_guide
+SRCFILE = raven_theory_manual
 LATEX_FLAGS=-shell-escape
-GUIDE_FILES = raven_user_guide.tex statisticalAnalysisExample.tex forwardSamplingExample.tex singleRunAndPlot.tex adaptiveSamplingExample.tex dataMiningExample.tex reducedOrderModelingExample.tex ravenStructure.tex ravenOverview.tex introduction.tex manualStructure.tex manualFormats.tex HowToRun.tex ../version.tex
+GUIDE_FILES = raven_theory_manual.tex statisticalAnalysis.tex forwardSampling.tex adaptiveSampling.tex dataMining.tex reducedOrderModeling.tex ravenStructure.tex introduction.tex ../version.tex
 MAKE_DIR = $(shell pwd)
 
-#all: raven_user_guide.pdf
+#all: raven_theory_manual.pdf
 all: tidy
 
 tidy: $(GUIDE_FILES)

@@ -15,7 +15,7 @@
 % Please send corrections and suggestions for improvements to
 % Rolf Riesen, Org. 9223, MS 1110, rolf@cs.sandia.gov
 %
-\documentclass[pdf,12pt]{report}
+\documentclass[pdf,12pt]{INLreport}
 % pslatex is really old (1994).  It attempts to merge the times and mathptm packages.
 % My opinion is that it produces a really bad looking math font.  So why are we using it?
 % If you just want to change the text font, you should just \usepackage{times}.
@@ -24,33 +24,71 @@
 \usepackage[FIGBOTCAP,normal,bf,tight]{subfigure}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{soul}
 \usepackage{pifont}
 \usepackage{enumerate}
-\usepackage{listings, color}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{xcolor}          % Using xcolor for more robust color specification
+\usepackage{ifthen}          % For simple checking in newcommand blocks
+\usepackage{textcomp}
+\usepackage{mathtools}
+\usepackage{relsize}
+\usepackage{lscape}
+\usepackage[toc,page]{appendix}
+\usepackage{RAVEN}
+
+\newtheorem{mydef}{Definition}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+%\usepackage[table,xcdraw]{xcolor}
+%\usepackage{authblk}         % For making the author list look prettier
+%\renewcommand\Authsep{,~\,}
+
+% Custom colors
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
 \definecolor{forestgreen}{RGB}{34,139,34}
 \definecolor{orangered}{RGB}{239,134,64}
 \definecolor{darkblue}{rgb}{0.0,0.0,0.6}
 \definecolor{gray}{rgb}{0.4,0.4,0.4}
+
+\lstset {
+  basicstyle=\ttfamily,
+  frame=single
+}
+
+
 \setcounter{secnumdepth}{5}
 \lstdefinestyle{XML} {
     language=XML,
     extendedchars=true,
     breaklines=true,
     breakatwhitespace=true,
-    emph={name,dim,interactive,overwrite},
+%    emph={name,dim,interactive,overwrite},
     emphstyle=\color{red},
     basicstyle=\ttfamily,
-    columns=fullflexible,
+%    columns=fullflexible,
     commentstyle=\color{gray}\upshape,
     morestring=[b]",
     morecomment=[s]{<?}{?>},
     morecomment=[s][\color{forestgreen}]{<!--}{-->},
     keywordstyle=\color{cyan},
-    stringstyle=\ttfamily\color{black}\normalfont,
-    tagstyle=\color{darkblue}\bf,
-    morekeywords={attribute,source,variables,version,type,release,x,z,y,xlabel,ylabel,how,text,param1,param2,color,label},
+    stringstyle=\ttfamily\color{black},
+    tagstyle=\color{darkblue}\bf\ttfamily,
+    morekeywords={name,type},
+%    morekeywords={name,attribute,source,variables,version,type,release,x,z,y,xlabel,ylabel,how,text,param1,param2,color,label},
 }
+\lstset{language=python,upquote=true}
 
+\usepackage{titlesec}
+\newcommand{\sectionbreak}{\clearpage}
+\setcounter{secnumdepth}{4}
+
+%\titleformat{\paragraph}
+%{\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+%\titlespacing*{\paragraph}
+%{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
 
 %%%%%%%% Begin comands definition to input python code into document
 \usepackage[utf8]{inputenc}
@@ -58,12 +96,6 @@
 % Default fixed font does not support bold face
 \DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{9} % for bold
 \DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{9}  % for normal
-
-% Custom colors
-\usepackage{color}
-\definecolor{deepblue}{rgb}{0,0,0.5}
-\definecolor{deepred}{rgb}{0.6,0,0}
-\definecolor{deepgreen}{rgb}{0,0.5,0}
 
 \usepackage{listings}
 
@@ -94,8 +126,54 @@ showstringspaces=false            %
 \pythonstyle
 \lstinputlisting[#1]{#2}}}
 
+\lstnewenvironment{xml}
+{}
+{}
+
 % Python for inline
 \newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+% Named Colors for the comments below (Attempted to match git symbol colors)
+\definecolor{RScolor}{HTML}{8EB361}  % Sonat (adjusted for clarity)
+\definecolor{DPMcolor}{HTML}{E28B8D} % Dan
+\definecolor{JCcolor}{HTML}{82A8D9}  % Josh (adjusted for clarity)
+\definecolor{AAcolor}{HTML}{8D7F44}  % Andrea
+\definecolor{CRcolor}{HTML}{AC39CE}  % Cristian
+\definecolor{RKcolor}{HTML}{3ECC8D}  % Bob (adjusted for clarity)
+\definecolor{DMcolor}{HTML}{276605}  % Diego (adjusted for clarity)
+\definecolor{PTcolor}{HTML}{990000}  % Paul
+
+\def\DRAFT{} % Uncomment this if you want to see the notes people have been adding
+% Comment command for developers (Should only be used under active development)
+\ifdefined\DRAFT
+  \newcommand{\nameLabeler}[3]{\textcolor{#2}{[[#1: #3]]}}
+\else
+  \newcommand{\nameLabeler}[3]{}
+\fi
+\newcommand{\alfoa}[1] {\nameLabeler{Andrea}{AAcolor}{#1}}
+\newcommand{\cristr}[1] {\nameLabeler{Cristian}{CRcolor}{#1}}
+\newcommand{\mandd}[1] {\nameLabeler{Diego}{DMcolor}{#1}}
+\newcommand{\maljdan}[1] {\nameLabeler{Dan}{DPMcolor}{#1}}
+\newcommand{\cogljj}[1] {\nameLabeler{Josh}{JCcolor}{#1}}
+\newcommand{\bobk}[1] {\nameLabeler{Bob}{RKcolor}{#1}}
+\newcommand{\senrs}[1] {\nameLabeler{Sonat}{RScolor}{#1}}
+\newcommand{\talbpaul}[1] {\nameLabeler{Paul}{PTcolor}{#1}}
+% Commands for making the LaTeX a bit more uniform and cleaner
+\newcommand{\TODO}[1]    {\textcolor{red}{\textit{(#1)}}}
+\newcommand{\xmlAttrRequired}[1] {\textcolor{red}{\textbf{\texttt{#1}}}}
+\newcommand{\xmlAttr}[1] {\textcolor{cyan}{\textbf{\texttt{#1}}}}
+\newcommand{\xmlNodeRequired}[1] {\textcolor{deepblue}{\textbf{\texttt{<#1>}}}}
+\newcommand{\xmlNode}[1] {\textcolor{darkblue}{\textbf{\texttt{<#1>}}}}
+\newcommand{\xmlString}[1] {\textcolor{black}{\textbf{\texttt{'#1'}}}}
+\newcommand{\xmlDesc}[1] {\textbf{\textit{#1}}} % Maybe a misnomer, but I am
+                                                % using this to detail the data
+                                                % type and necessity of an XML
+                                                % node or attribute,
+                                                % xmlDesc = XML description
+\newcommand{\default}[1]{~\\*\textit{Default: #1}}
+\newcommand{\nb} {\textcolor{deepgreen}{\textbf{~Note:}}~}
+
+
 %%%%%%%% End comands definition to input python code into document
 
 %\usepackage[dvips,light,first,bottomafter]{draftcopy}
@@ -107,6 +185,7 @@ showstringspaces=false            %
 % obsolete.  Also, \boldsymbol doesn't even seem to work with
 % the fonts used in this particular document...
 \usepackage{bm}
+
 
 % Define tensors to be in bold math font.
 \newcommand{\tensor}[1]{{\bm{#1}}}
@@ -167,35 +246,43 @@ showstringspaces=false            %
 %
 % Set the title, author, and date
 %
-    \title{RAVEN User Manual}
+\title{RAVEN Theory Manual and User Guide}
+%\author{%
+%\begin{tabular}{c} Author 1 \\ University1 \\ Mail1 \\ \\
+%Author 3 \\ University3 \\ Mail3 \end{tabular} \and
+%\begin{tabular}{c} Author 2 \\ University2 \\ Mail2 \\ \\
+%Author 4 \\ University4 \\ Mail4\\
+%\end{tabular} }
 
-    \author{%
-      \\ \textit{The RAVEN team:}
-       \\
-      \\\ \underline{\textit{\textbf{Principal Investigator}}:}
-       \\
-      \\  \textbf{Cristian Rabiti}, \textit{the Boss}
-      \\
-      \\\underline{\textit{\textbf{Developers}}:}
-       \\
-      \\\textbf{Andrea Alfonsi},   \textit{the funny guy}
-      \\\textbf{Joshua Cogliati},   \textit{the computer ace}
-      \\\textbf{Diego Mandelli},   \textit{born old}
-      \\\textbf{Robert Kinoshita}, \textit{he is not Japanese}
-    }
 
-    % There is a "Printed" date on the title page of a SAND report, so
-    % the generic \date should [WorkingDir:]generally be empty.
-    \date{}
+\author{
+\\Andrea Alfonsi
+\\Cristian Rabiti
+\\Diego Mandelli
+\\Joshua Cogliati
+\\Congjian Wang
+\\Paul W. Talbot
+\\Daniel P. Maljovec
+\\Curtis Smith
+}
+% \\James B. Tompkins}   Just people who actually ``developed'' a significant capability in the code should be placed here. Andrea
+%\author{\textbf{\textit{Main Developers:}}  \\Andrea Alfonsi}
+%\affil{Idaho National Laboratory, Idaho Falls, ID 83402}
+%\\\{cristian.rabiti, andrea.alfonsi, joshua.cogliati, diego.mandelli, robert.kinoshita, ramazan.sen\}@inl.gov}
+
+% There is a "Printed" date on the title page of a SAND report, so
+% the generic \date should [WorkingDir:]generally be empty.
+\date{}
 
 
 % ---------------------------------------------------------------------------- %
 % Set some things we need for SAND reports. These are mandatory
 %
-%\SANDnum{INL/EXT-14-xxxxx}
-%\SANDprintDate{August 2014}
-%\SANDauthor{ }
-%\SANDreleaseType{Draft Release}
+\SANDnum{INL/EXT-16-38178}
+\SANDprintDate{March 2017}
+\SANDauthor{Andrea Alfonsi, Cristian Rabiti, Diego Mandelli, Joshua Cogliati, Congjian Wang, Paul W. Talbot, Daniel P. Maljovec, Curtis Smith}
+\SANDreleaseType{Revision 2 draft}
+
 
 % ---------------------------------------------------------------------------- %
 % Include the markings required for your SAND report. The default is "Unlimited
@@ -209,12 +296,23 @@ showstringspaces=false            %
 % ---------------------------------------------------------------------------- %
 \newcommand{\systemtau}{\tensor{\tau}_{\!\text{SUPG}}}
 
+% Added by Sonat
+\usepackage{placeins}
+\usepackage{array}
+
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+% end added by Sonat
 % ---------------------------------------------------------------------------- %
 %
 % Start the document
 %
+
 \begin{document}
-    \maketitle[Title]
+
+    \maketitle
 
     % ------------------------------------------------------------------------ %
     % An Abstract is required for SAND reports
@@ -231,9 +329,9 @@ showstringspaces=false            %
     %
 %    \clearpage
 %    \section*{Acknowledgment}
-%	Thanks to Ron Weasly for valuable discussions and helping
-%	us finding new uses of magic.
-%
+
+
+
 %	The format of this report is based on information found
 %	in~\cite{Sand98-0730}.
 
@@ -245,8 +343,8 @@ showstringspaces=false            %
     %
     \cleardoublepage		% TOC needs to start on an odd page
     \tableofcontents
-    \listoffigures
-    \listoftables
+    %\listoffigures
+    %\listoftables
 
 
     % ---------------------------------------------------------------------- %
@@ -261,12 +359,15 @@ showstringspaces=false            %
 
     % ---------------------------------------------------------------------- %
     % An optional executive summary
-    \clearpage
-    \section*{Summary}
-    \addcontentsline{toc}{section}{Summary}
-    \input{Summary.tex}
+    %\clearpage
+    %\section*{Summary}
+    %\addcontentsline{toc}{section}{Summary}
+    %\input{Summary.tex}
 %	Once a certain level of mistrust and skepticism has
 %	been overcome, magic finds many uses in todays science
+
+
+
 %	and engineering. In this report we explain some of the
 %	fundamental spells and instruments of magic and wizardry. We
 %	then conclude with a few examples on how they can be used
@@ -279,33 +380,36 @@ showstringspaces=false            %
 %    \section*{Nomenclature}
 %    \addcontentsline{toc}{section}{Nomenclature}
 %    \begin{description}
-%	   \item[alohomoral]
-%	    spell to open locked doors and containers
-%	   \item[leviosa]
-%	    spell to levitate objects
+%          \item[alohomoral]
+%           spell to open locked doors and containers
+%          \item[leviosa]
+%           spell to levitate objects
 %    \item[remembrall]
-%	    device to alert you that you have forgotten something
+%           device to alert you that you have forgotten something
 %    \item[wand]
-%	    device to execute spells
+%           device to execute spells
 %    \end{description}
 
 
     % ---------------------------------------------------------------------- %
     % This is where the body of the report begins; usually with an Introduction
     %
-    %\SANDmain		% Start the main part of the report
+    \SANDmain		% Start the main part of the report
 
 \input{introduction.tex}
 \input{ravenStructure.tex}
-\input{runInfo.tex}
-\input{ProbabilityDistributions.tex}
-\input{sampler.tex}
-\input{functions.tex}
-\input{model.tex}
-\input{step.tex}
-\input{database_data.tex}
-\input{OutStreamSystem.tex}
-\input{existing_interfaces.tex}
+\input{forwardSampling.tex}
+\input{adaptiveSampling.tex}
+\input{reducedOrderModeling.tex}
+\input{statisticalAnalysis.tex}
+\input{dataMining.tex}
+\clearpage
+\begin{appendices}
+  \section{Document Version Information}
+  \input{../version.tex}
+\end{appendices}
+%\input{examplesPrimer.tex}
+
 
     % ---------------------------------------------------------------------- %
     % References
@@ -317,7 +421,7 @@ showstringspaces=false            %
     \phantomsection
     \addcontentsline{toc}{section}{References}
     \bibliographystyle{ieeetr}
-    \bibliography{raven_user_manual.bib}
+    \bibliography{raven_theory_manual}
 
 
     % ---------------------------------------------------------------------- %
