@@ -585,15 +585,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if len(failedRuns)>0:
       self.raiseAWarning('There were %i failed runs!  Run with verbosity = debug for more details.' %(len(failedRuns)))
       for run in failedRuns:
+        metadata = run.getMetadata()
         ## FIXME: run.command no longer exists, so I am only outputting the
-        ## run's identifier, also taking out the metadata info for now.
+        ## run's identifier.
         self.raiseADebug('  Run number %s FAILED:' %run.identifier)
         self.raiseADebug('      return code :',run.getReturnCode())
-        # metadata = run.getMetadata()
-        # if metadata is not None:
-        #   self.raiseADebug('      sampled vars:')
-        #   for v,k in metadata['SampledVars'].items():
-        #     self.raiseADebug('         ',v,':',k)
+        if metadata is not None:
+          self.raiseADebug('      sampled vars:')
+          for v,k in metadata['SampledVars'].items():
+            self.raiseADebug('         ',v,':',k)
     else:
       self.raiseADebug('All runs completed without returning errors.')
     self._localHandleFailedRuns(failedRuns)
