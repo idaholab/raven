@@ -568,7 +568,11 @@ class JobHandler(MessageHandler.MessageUser):
               kwargs['CURRENT_ID1'] = str(self.__nextId+1)
               kwargs['SCRIPT_DIR'] = self.runInfoDict['ScriptDir']
               kwargs['FRAMEWORK_DIR'] = self.runInfoDict['FrameworkDir']
-              kwargs['WORKING_DIR'] = item.args[0].workingDir
+              ## This will not be used since the Code will create a new
+              ## directory for its specific files and will spawn a process there
+              ## so we will let the Code fill that in. Note, the line below
+              ## represents the WRONG directory! -- DPM 5/4/17
+              #kwargs['WORKING_DIR'] = item.args[0].workingDir
               kwargs['BASE_WORKING_DIR'] = self.runInfoDict['WorkingDir']
               kwargs['METHOD'] = os.environ.get("METHOD","opt")
               kwargs['NUM_CPUS'] = str(self.runInfoDict['NumThreads'])

@@ -1560,7 +1560,11 @@ class Code(Model):
     command = command.replace("%CURRENT_ID1%",kwargs['CURRENT_ID1'])
     command = command.replace("%SCRIPT_DIR%",kwargs['SCRIPT_DIR'])
     command = command.replace("%FRAMEWORK_DIR%",kwargs['FRAMEWORK_DIR'])
-    command = command.replace("%WORKING_DIR%",kwargs['WORKING_DIR'])
+    ## Note this is the working directory that the subprocess will use, it is
+    ## not the directory I am currently working. This bit me as I moved the code
+    ## from the old ExternalRunner because in that case this was filled in after
+    ## the process was submitted by the process itself. -- DPM 5/4/17
+    command = command.replace("%WORKING_DIR%",sampleDirectory)
     command = command.replace("%BASE_WORKING_DIR%",kwargs['BASE_WORKING_DIR'])
     command = command.replace("%METHOD%",kwargs['METHOD'])
     command = command.replace("%NUM_CPUS%",kwargs['NUM_CPUS'])
