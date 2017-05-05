@@ -86,7 +86,9 @@ class Runner(MessageHandler.MessageUser):
     """
       Function to return the External runner evaluation (outcome/s). Since in process, return None
       @ In, None
-      @ Out, evaluation, tuple, the evaluation or None if run failed
+      @ Out, returnValue, object or Error, whatever the method that this
+        instance is executing returns, or if the job failed, will return an
+        Error
     """
     return Error()
 

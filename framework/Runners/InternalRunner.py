@@ -119,8 +119,9 @@ class InternalRunner(Runner):
       Method to return the results of the function evaluation associated with
       this Runner
       @ In, None
-      @ Out, (Input,response), tuple, tuple containing the results of the
-        evaluation (list of Inputs, function return value)
+      @ Out, returnValue, object or Error, whatever the method that this
+        instance is executing returns, or if the job failed, will return an
+        Error
     """
     if self.isDone():
       self._collectRunnerResponse()
