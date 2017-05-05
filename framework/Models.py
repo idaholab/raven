@@ -310,8 +310,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, returnValue, dict, This holds the output information of the evaluated sample.
     """
-    # inRun = self.createNewInput(myInput, samplerType, **kwargs)
-    # output = self.run(inRun)
     pass
 
   def localInputAndChecks(self,xmlNode):
@@ -537,8 +535,15 @@ class Dummy(Model):
         self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found a None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
-    if 'SampledVars' in kwargs.keys() and len(self.alias['input'].keys()) != 0:
-      kwargs['SampledVars'] = sampledVars
+
+    ## SampledVars should almost always be in the kwargs, but in the off chance
+    ## it is not, we want to continue as normal. Rather than use an if, we do
+    ## it this way, since the kwargs can have an arbitrary size of keys in it.
+    try:
+      if len(self.alias['input'].keys()) != 0:
+        kwargs['SampledVars'] = sampledVars
+    except KeyError:
+      pass
     return [(inputDict)],copy.deepcopy(kwargs)
 
   def evaluateSample(self, myInput, samplerType, kwargs):
