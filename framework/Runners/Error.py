@@ -18,5 +18,5 @@ Created on Mar 5, 2013
 """
 
 class Error(Exception):
-	""" An exception for modeling failed runs within this module """
-    pass
+  """ An exception for modeling failed runs within this module """
+  pass
