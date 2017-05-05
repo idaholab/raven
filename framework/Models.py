@@ -1572,7 +1572,7 @@ class Code(Model):
     self.raiseAMessage('Execution command submitted:',command)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
-    process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=metaData['subDirectory'], env=localenv)
+    process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
     process.wait()
 
     returnCode = process.returncode
