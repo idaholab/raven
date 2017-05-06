@@ -1,4 +1,4 @@
-<data name="test_dataobject" type="HistorySet"><input>TIMELOCA</input><output>PPS,PSGGEN(1),ZWDC2SG(1),WWTOTFW(1),TIME</output><inputFilename>test_dataobject.csv</inputFilename><metadata><PbThreshold>array([ 0.27777778,  0.4       ,  0.5       ,  0.5       ,  0.4       ,
+<data name="test_dataobject" type="HistorySet"><input>TIMELOCA</input><output>PPS,PSGGEN(1),WWTOTFW(1),ZWDC2SG(1),TIME</output><inputFilename>test_dataobject.csv</inputFilename><metadata><PbThreshold>array([ 0.27777778,  0.4       ,  0.5       ,  0.5       ,  0.4       ,
         0.27777778,  0.27777778,  0.4       ,  0.4       ,  0.5       ,
         0.4       ,  0.4       ,  0.27777778,  0.4       ,  0.5       ,
         0.5       ,  0.4       ])</PbThreshold><ValueThreshold>array([ 500.,  720.,  900.,  900.,  720.,  500.,  500.,  720.,  720.,

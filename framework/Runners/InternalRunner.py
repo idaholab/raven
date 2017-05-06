@@ -37,19 +37,21 @@ from utils import utils
 from BaseClasses import BaseType
 import MessageHandler
 from .Runner import Runner
+from .Error import Error
 #Internal Modules End--------------------------------------------------------------------------------
 
 class InternalRunner(Runner):
   """
     Generic base Class for running internal objects
   """
-  def __init__(self, messageHandler, Input, functionToRun, identifier=None, metadata=None, uniqueHandler = "any"):
+  def __init__(self, messageHandler, args, functionToRun, identifier=None, metadata=None, uniqueHandler = "any"):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
         handler object
-      @ In, Input, list, list of inputs that are going to be passed to the
-        function as *args
+      @ In, args, dict, this is a list of arguments that will be passed as
+        function parameters into whatever method is stored in functionToRun.
+        e.g., functionToRun(*args)
       @ In, functionToRun, method or function, function that needs to be run
       @ In, identifier, string, optional, id of this job
       @ In, metadata, dict, optional, dictionary of metadata associated with
@@ -66,10 +68,10 @@ class InternalRunner(Runner):
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    super(InternalRunner, self).__init__(messageHandler, 'internal', identifier, metadata, uniqueHandler)
+    super(InternalRunner, self).__init__(messageHandler, identifier, metadata, uniqueHandler)
 
     ## Other parameters passed at initialization
-    self.input          = copy.copy(Input)
+    self.args          = copy.copy(args)
     self.functionToRun  = functionToRun
 
     ## Other parameters manipulated internally
@@ -80,11 +82,6 @@ class InternalRunner(Runner):
 
     ## These things cannot be deep copied
     self.skipOnCopy = ['functionToRun','thread','__queueLock']
-
-    ## The Input needs to be a tuple. The first entry is the actual input (what
-    ## is going to be stored here), the others are other arg the function needs
-    if type(Input) != tuple:
-      self.raiseAnError(IOError,"The input for " + self.__class__.__name__ + " should be a tuple. Instead received " + Input.__class__.__name__)
 
   def __deepcopy__(self,memo):
     """
@@ -122,14 +119,15 @@ class InternalRunner(Runner):
       Method to return the results of the function evaluation associated with
       this Runner
       @ In, None
-      @ Out, (Input,response), tuple, tuple containing the results of the
-        evaluation (list of Inputs, function return value)
+      @ Out, returnValue, object or Error, whatever the method that this
+        instance is executing returns, or if the job failed, will return an
+        Error
     """
     if self.isDone():
       self._collectRunnerResponse()
       if self.runReturn is None:
         self.returnCode = -1
-        return self.returnCode
-      return (self.input[0],self.runReturn)
+        return Error()
+      return self.runReturn
     else:
-      return -1 #control return code
+      return Error()

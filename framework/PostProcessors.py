@@ -3514,8 +3514,7 @@ class ExternalPostProcessor(BasePostProcessor):
       # #TODO This does not feel right
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably did not finish yet)')
     dataLenghtHistory = {}
-    inputList = finishedJob.getEvaluation()[0]
-    outputDict = finishedJob.getEvaluation()[1]
+    inputList,outputDict = finishedJob.getEvaluation()
 
     if isinstance(output,Files.File):
       self.raiseAWarning('Output type File not yet implemented. I am going to skip it.')
@@ -3866,19 +3865,9 @@ class TopologicalDecomposition(BasePostProcessor):
     if finishedJob.getEvaluation() == -1:
       # TODO This does not feel right
       self.raiseAnError(RuntimeError,'No available output to collect (run probably did not finish yet)')
-    inputList = finishedJob.getEvaluation()[0]
-    outputDict = finishedJob.getEvaluation()[1]
+    inputList,outputDict = finishedJob.getEvaluation()
 
-    if type(output).__name__ in ["str", "unicode", "bytes"]:
-      self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
-                         + ' yet implemented. I am going to skip it.')
-    elif output.type == 'Datas':
-      self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
-                         + ' yet implemented. I am going to skip it.')
-    elif output.type == 'HDF5':
-      self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
-                         + ' yet implemented. I am going to skip it.')
-    elif output.type == 'PointSet':
+    if output.type == 'PointSet':
       requestedInput = output.getParaKeys('input')
       requestedOutput = output.getParaKeys('output')
       dataLength = None
@@ -3923,13 +3912,15 @@ class TopologicalDecomposition(BasePostProcessor):
 
         # Append the min/max labels to the data whether the user wants them or
         # not, and place the hierarchy information into the metadata
-        for key, value in outputDict.iteritems():
+        for key, values in outputDict.iteritems():
           if key in ['minLabel', 'maxLabel']:
-            output.updateOutputValue(key, [value])
+            for value in values:
+              output.updateOutputValue(key, [value])
           elif key in ['hierarchy']:
-            output.updateMetadata(key, [value])
+            output.updateMetadata(key, [values])
     else:
-      self.raiseAnError(IOError,'Unknown output type:',output.type)
+      self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
+                         + ' yet implemented. I am going to skip it.')
 
   def userInteraction(self):
     """

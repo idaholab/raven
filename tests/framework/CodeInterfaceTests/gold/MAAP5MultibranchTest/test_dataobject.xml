@@ -1,4 +1,4 @@
-<data name="test_dataobject" type="HistorySet"><input>TIMELOCA</input><output>PSGGEN(1),WWBBN(1),ZWDC2SG(1),PPS,WWTOTFW(1),TIME</output><inputFilename>test_dataobject.csv</inputFilename><metadata><PbThreshold>array([ 0.11111111,  0.16666667,  0.16666667,  0.11111111,  0.11111111,
+<data name="test_dataobject" type="HistorySet"><input>TIMELOCA</input><output>PSGGEN(1),WWBBN(1),WWTOTFW(1),PPS,ZWDC2SG(1),TIME</output><inputFilename>test_dataobject.csv</inputFilename><metadata><PbThreshold>array([ 0.11111111,  0.16666667,  0.16666667,  0.11111111,  0.11111111,
         0.11111111,  0.11111111,  0.11111111,  0.11111111,  0.16666667,
         0.16666667,  0.16666667,  0.16666667,  0.16666667,  0.16666667])</PbThreshold><ValueThreshold>array([200, 300, 300, 200, 200, 200, 200, 200, 200, 300, 300, 300, 300,
        300, 300])</ValueThreshold><crowDist>array([ {u'TIMELOCA': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1800.0}'}], dtype=object)</crowDist><SampledVars>array([{'TIMELOCA': 200}, {'TIMELOCA': 300}, {'TIMELOCA': 200},

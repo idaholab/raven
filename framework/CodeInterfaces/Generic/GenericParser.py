@@ -52,7 +52,8 @@ class GenericParser():
       infileName = inputFile.getFilename()#os.path.basename(inputFile)
       self.segments[infileName] = []
       if not os.path.exists(inputFile.getAbsFile()):
-        raise IOError('Input file not found: '+inputFile)
+        ## Make sure to cast the inputFile to a string as it may be File object.
+        raise IOError('Input file not found: ' + str(inputFile))
       seg = ''
       lines = inputFile.readlines()
       inputFile.close()
