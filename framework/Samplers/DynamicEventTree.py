@@ -183,7 +183,27 @@ class DynamicEventTree(Grid):
     # Read the branch info from the parent calculation (just ended calculation)
     # This function stores the information in the dictionary 'self.actualBranchInfo'
     # If no branch info, this history is concluded => return
-    if not self.__readBranchInfo(jobObject.output, jobObject.getWorkingDir()):
+
+    ## There are two ways to get at the working directory from the job instance
+    ## and both feel a bit hacky and fragile to changes in the Runner classes.
+    ## They are both listed below and the second inevitably stems from the first.
+    ## I am wondering if there is a reason we cannot use the model.workingDir
+    ## from above here? Granted the job instance should have a snapshot of
+    ## whatever the model's current working directory was for that evaluation,
+    ## and it could have changed in the meantime, so I will keep this as is for
+    ## now, but note this should be re-evaluated in the future. -- DPM 4/12/17
+    # codeModel = jobObject.args[0]
+    # jobWorkingDir = codeModel.workingDir
+    kwargs = jobObject.args[3]
+    stepWorkingDir = kwargs['WORKING_DIR']
+    jobWorkingDir = os.path.join(stepWorkingDir,kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
+
+    ## This appears to be the same, so I am switching to the model's workingDir
+    ## since it is more directly available and less change to how data is stored
+    ## in the args of a job instance. -- DPM 4/12/17
+    # jobWorkingDir = self.workingDir
+
+    if not self.__readBranchInfo(jobObject.getMetadata()['outfile'], jobWorkingDir):
       parentNode.add('completedHistory', True)
       return False
     # Collect the branch info in a multi-level dictionary
@@ -301,6 +321,7 @@ class DynamicEventTree(Grid):
 
     if not os.path.isabs(filename):
       filename = os.path.join(workingDir,filename)
+
     if not os.path.exists(filename):
       self.raiseADebug('branch info file ' + os.path.basename(filename) +' has not been found. => No Branching.')
       return branchPresent
@@ -394,9 +415,8 @@ class DynamicEventTree(Grid):
 
     if(self.maxSimulTime):
       self.inputInfo['endTime'] = self.maxSimulTime
-    # Call the model function "createNewInput" with the "values" dictionary just filled.
     # Add the new input path into the RunQueue system
-    newInputs = model.createNewInput(myInput,self.type,**self.inputInfo)
+    newInputs = {'args':[str(self.type)], 'kwargs':dict(self.inputInfo)}
     for key,value in self.inputInfo.items():
       rootnode.add(key,value)
     self.RunQueue['queue'].append(newInputs)
@@ -580,9 +600,9 @@ class DynamicEventTree(Grid):
           self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditionalPbr')
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
-      # Call the model function  "createNewInput" with the "values" dictionary just filled.
       # Add the new input path into the RunQueue system
-      self.RunQueue['queue'].append(model.createNewInput(myInput,self.type,**self.inputInfo))
+      newInputs = {'args': [str(self.type)], 'kwargs': dict(self.inputInfo)}
+      self.RunQueue['queue'].append(newInputs)
       self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
       for key,value in self.inputInfo.items():
         subGroup.add(key,value)
@@ -631,6 +651,7 @@ class DynamicEventTree(Grid):
         subElm.add('runEnded',False)
         subElm.add('running',True)
         subElm.add('queue',False)
+
     return jobInput
 
   def generateInput(self,model,oldInput):
@@ -666,7 +687,12 @@ class DynamicEventTree(Grid):
     # If no inputs are present in the queue => a branch is finished
     if not newerInput:
       self.raiseADebug('A Branch ended!')
-    return newerInput
+
+    ## It turns out the "newerInput" contains all of the information that should
+    ## be in inputInfo (which should actually be returned and not stored in the
+    ## sampler object, but all samplers do this for now) -- DPM 4/26/17
+    self.inputInfo = newerInput['kwargs']
+    return myInput
 
   def _generateDistributions(self,availableDist,availableFunc):
     """

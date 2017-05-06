@@ -32,6 +32,7 @@ import copy
 from utils import utils
 from BaseClasses import BaseType
 import MessageHandler
+from .Error import Error
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Runner(MessageHandler.MessageUser):
@@ -39,11 +40,10 @@ class Runner(MessageHandler.MessageUser):
     Generic base class for running codes and models in parallel environments
     both internally (shared data) and externally.
   """
-  def __init__(self, messageHandler, command='internal', identifier = None, metadata = None, uniqueHandler = "any"):
+  def __init__(self, messageHandler, identifier = None, metadata = None, uniqueHandler = "any"):
     """
       Initialize command variable
       @ In, messageHandler, MessageHandler instance, the global RAVEN message handler instance
-      @ In, command, list, list of commands that needs to be executed
       @ In, identifier, string, optional, id of this job
       @ In, metadata, dict, optional, dictionary of metadata associated with this Runner
       @ In, uniqueHandler, string, optional, it is a special keyword attached to this runner. For example, if present, to retrieve this runner using the method jobHandler.getFinished, the uniqueHandler needs to be provided.
@@ -51,7 +51,6 @@ class Runner(MessageHandler.MessageUser):
       @ Out, None
     """
     self.messageHandler = messageHandler
-    self.command        = command
     self.identifier     = 'generalOut'  ## Default identifier name
     self.metadata       = copy.copy(metadata)
     self.uniqueHandler  = uniqueHandler
@@ -87,9 +86,11 @@ class Runner(MessageHandler.MessageUser):
     """
       Function to return the External runner evaluation (outcome/s). Since in process, return None
       @ In, None
-      @ Out, evaluation, tuple, the evaluation or None if run failed
+      @ Out, returnValue, object or Error, whatever the method that this
+        instance is executing returns, or if the job failed, will return an
+        Error
     """
-    return -1
+    return Error()
 
   def getMetadata(self):
     """

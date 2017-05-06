@@ -339,9 +339,9 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
     # add additional edits if needed
     model.getAdditionalInputEdits(self.inputInfo)
-    # Call the model function "createNewInput" with the "values" dictionary just filled.
     # Add the new input path into the RunQueue system
-    self.RunQueue['queue'].append(model.createNewInput(myInput,self.type,**self.inputInfo))
+    newInputs = {'args':[str(self.type)], 'kwargs': dict(self.inputInfo)}
+    self.RunQueue['queue'].append(newInputs)
     self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
     for key,value in self.inputInfo.items():
       subGroup.add(key,value)
