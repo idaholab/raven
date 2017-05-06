@@ -224,11 +224,12 @@ class SPSA(GradientBasedOptimizer):
             # evaluation completed for gradient evaluation
             self.counter['perturbation'][traj] = 0
             self.counter['varsUpdate'][traj] += 1
-
+            varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
             ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj]) # Compute the new ak
+            
             gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
-            varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
+            
             # FIXME here is where adjustments to the step size should happen
             #TODO this is part of a future request.  Commented for now.
             #get central response for this trajectory: how?? TODO FIXME
@@ -451,15 +452,17 @@ class SPSA(GradientBasedOptimizer):
       @ Out, ak, float, current value for gain ak
     """
     #  This block is going to be used and formalized in the future
-    #  if iterNum > 1:
-    #    traj = 0
-    #    gradK     = self.counter['gradientHistory'][traj][0].values()
-    #    gradPrevK = self.counter['gradientHistory'][traj][1].values()
-    #    xK        =
-    #    xPrevK    =
-    #    deltaX    = np.asarray(xK) - np.asarray(xPrevK)
-    #    gX        = gradK - gradPrevK
-    #    ak        = (np.asarray(gX).T * np.asarray(deltaX))/(np.asarray(gX)*np.asarray(gX).T)
+    if iterNum > 1:
+      traj = 0
+      gradK     = self.counter['gradientHistory'][traj][0].values()
+      gradPrevK = self.counter['gradientHistory'][traj][1].values()
+      xK        =
+      xPrevK    =
+      deltaX    = np.asarray(xK) - np.asarray(xPrevK)
+      gX        = gradK - gradPrevK
+      ak        = (np.asarray(gX).T * np.asarray(deltaX))/(np.asarray(gX)*np.asarray(gX).T)
+    
+    
     a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
     ak = a / (iterNum + A) ** alpha *1.0
     return ak
