@@ -25,6 +25,7 @@
 #include <string>
 #include <sstream>
 #include <cmath>
+#include <iso646.h>
 
 #include "MDreader.h"
 

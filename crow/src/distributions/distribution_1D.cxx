@@ -33,6 +33,7 @@
 //#include "InterpolationFunctions.h"
 #include <string>
 #include <limits>
+#include <iso646.h>
 #include <boost/math/distributions/uniform.hpp>
 #include <boost/math/distributions/normal.hpp>
 #include <boost/math/distributions/lognormal.hpp>
