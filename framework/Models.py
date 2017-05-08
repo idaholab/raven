@@ -2087,7 +2087,7 @@ class EnsembleModel(Dummy, Assembler):
         # get model name
         modelName = child.text.strip()
         # create space of the allowed entries
-        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[]}
+        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':False,'metadataToTransfer':[]}
         # number of allower entries
         allowedEntriesLen = len(self.modelsDictionary[modelName].keys())
         for childChild in child:
@@ -2207,7 +2207,7 @@ class EnsembleModel(Dummy, Assembler):
         inputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Input',input))
       self.modelsDictionary[modelIn[2]]['InputObject'] = inputInstancesForModel
 
-      if 'Output' in self.modelsDictionary[modelIn[2]]:
+      if self.modelsDictionary[modelIn[2]]['Output'] is not False:
         outputInstancesForModel = []
         for output in self.modelsDictionary[modelIn[2]]['Output']:
           outputObject = self.retrieveObjectFromAssemblerDict('Output',output)
@@ -2220,7 +2220,6 @@ class EnsembleModel(Dummy, Assembler):
         class byPass(object):
           def resetData(self): pass
         self.tempOutputs[modelIn[2]] = [byPass()]
-
       self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
       for mm in self.modelsDictionary[modelIn[2]]['Instance'].mods:
         if mm not in self.mods:
