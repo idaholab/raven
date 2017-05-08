@@ -2087,7 +2087,7 @@ class EnsembleModel(Dummy, Assembler):
         # get model name
         modelName = child.text.strip()
         # create space of the allowed entries
-        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':False,'metadataToTransfer':[]}
+        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[]}
         # number of allower entries
         allowedEntriesLen = len(self.modelsDictionary[modelName].keys())
         for childChild in child:
@@ -2114,6 +2114,9 @@ class EnsembleModel(Dummy, Assembler):
         self.__readSettings(child)
     if len(self.modelsDictionary.keys()) < 2:
       self.raiseAnError(IOError, "The EnsembleModel needs at least 2 models to be constructed!")
+    for modelName in self.modelsDictionary.keys():
+      if len(self.modelsDictionary[modelName]['Output']) == 0:
+        self.modelsDictionary[modelName]['Output'] = None
 
   def __readSettings(self, xmlNode):
     """
@@ -2207,7 +2210,7 @@ class EnsembleModel(Dummy, Assembler):
         inputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Input',input))
       self.modelsDictionary[modelIn[2]]['InputObject'] = inputInstancesForModel
 
-      if self.modelsDictionary[modelIn[2]]['Output'] is not False:
+      if self.modelsDictionary[modelIn[2]]['Output'] is not None:
         outputInstancesForModel = []
         for output in self.modelsDictionary[modelIn[2]]['Output']:
           outputObject = self.retrieveObjectFromAssemblerDict('Output',output)
