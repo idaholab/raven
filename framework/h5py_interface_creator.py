@@ -500,7 +500,7 @@ class hdf5Database(MessageHandler.MessageUser):
             elif isinstance(toProcess,Files.File):
               objectToConvert =toProcess.__getstate__()
             else:
-              objectToConvert = mathUtils.convertNumpyToLists(toProcess) 
+              objectToConvert = mathUtils.convertNumpyToLists(toProcess)
             converted = json.dumps(objectToConvert)
             if converted and attr != 'name':
               groups[run].attrs[utils.toBytes(attr)]=converted
