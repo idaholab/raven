@@ -74,7 +74,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     for child in xmlNode:
       if child.tag == 'measures':
         self.measures = set(child.text.split(','))
-    
+
         if not self.measures.issubset(self.availableMeasures()):
           unrecognizedMeasures  = self.measures.difference(self.availableMeasures())
           self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : measures '
