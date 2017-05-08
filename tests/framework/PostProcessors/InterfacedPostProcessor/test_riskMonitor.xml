@@ -6,7 +6,8 @@
     <created>2017-02-23</created>
     <classesTested>InterfacedPostProcessor</classesTested>
     <description>
-      Tests of the four risk importance measures for time dependent data: Risk Achievement Worth (RAW), Risk Reduction Worth (RRW), Birnbaum (B) and Fussell-Vesely (FV)
+      Tests of the four risk importance measures for time dependent data: Risk Achievement Worth (RAW), 
+      Risk Reduction Worth (RRW), Birnbaum (B) and Fussell-Vesely (FV)
     </description>
   </TestInfo>
   
@@ -118,10 +119,6 @@
         </plot>
         <xlabel>time</xlabel>
         <ylabel>comp. status</ylabel>
-	      <range>
-	        <ymin>0.0</ymin>
-	        <ymax>1.5</ymax>
-	      </range>
       </plotSettings>
       <actions>
         <how>pdf</how>
