@@ -1410,7 +1410,8 @@ This can be performed by:
 
 This post-processor can be made time dependendent if a single HistorySet is provided among the other data objects.
 The HistorySet contains the temporal profiles of a subset of the input variables. This temporal profile can be only 
-boolean, i.e., 0 (component offline) or 1 (component online).
+boolean, i.e., 0 (component offline) or 1 (component online). 
+Note that the provided history set must contains a single History; multiple Histories are not allowed.
 When this post-processor is in a dynamic configuration (i.e., time-dependent), the user is required to specify an xml
 node \xmlNode{temporalID} that indicates the ID of the temporal variable.
 For each time instant, this post-processor determines the temporal profiles of the desired risk importance measures.

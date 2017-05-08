@@ -27,7 +27,6 @@ if not 'xrange' in dir(__builtins__):
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import copy
-from sets import Set
 #External Modules End--------------------------------------------------------------------------------
 
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
@@ -39,7 +38,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       - run
       - readMoreXML
   """
-  _availableMeasures = Set(['B','FV','RAW','RRW','R0'])
+  _availableMeasures = set(['B','FV','RAW','RRW','R0'])
 
   def availableMeasures(cls):
     """
@@ -74,7 +73,12 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
 
     for child in xmlNode:
       if child.tag == 'measures':
-        self.measures = child.text.split(',')
+        self.measures = set(child.text.split(','))
+    
+        if not self.measures.issubset(self.availableMeasures()):
+          unrecognizedMeasures  = self.measures.difference(self.availableMeasures())
+          self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : measures '
+                            + str(list(unrecognizedMeasures)) + ' are not recognized')
 
       elif child.tag == 'variable':
         variableID = child.text
@@ -138,11 +142,6 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                           ' : XML node ' + str(child) + ' is not recognized')
 
-    if not set(self.measures).issubset(self.availableMeasures()):
-      unrecognizedMeasures  = set(self.measures).difference(self.availableMeasures())
-      self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : measures '
-                        + str(list(unrecognizedMeasures)) + ' are not recognized')
-
 
   def run(self,inputDic):
     """
@@ -167,7 +166,8 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       outputDic = self.runDynamic(inputDic,timeDepData)
       for var in timeDepData['data']['output'][1]:
         if var != self.temporalID:
-          if not np.array_equal( np.union1d( np.unique(timeDepData['data']['output'][1][var]) , np.array([0,1])) , np.array([0,1]) ):
+          ## Are there any values in timeDepData['data']['output'][1][var] that are not 0 or 1?
+          if len(np.setdiff1d(timeDepData['data']['output'][1][var], [0,1])):
             self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                               ' : the provided HistorySet contains the variable ' + str(var) + ' which has elements different than 0 or 1')
       outputDic['data']['output'][1][self.temporalID] = copy.deepcopy(timeDepData['data']['output'][1][self.temporalID])
@@ -283,20 +283,6 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
             R0     = np.sum(pbWeights[indexSystemFailure])
             Rminus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
             Rplus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
-            '''## Rminus = pb of system failure given component reliability is 1;
-            if indexFailureMinus.size: # if not empty
-              Rminus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
-            else:
-              print('indexFailureMinus')
-              print(variable)
-              Rminus = R0
-            ## Rplus  = pb of system failure given component reliability is 0
-            if indexComponentPlus.size: # if not empty
-              Rplus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
-            else:
-              Rplus = R0
-              print('indexComponentPlus')
-              print(variable)'''
           else:
             # Coordinate BE3
             R0 = np.sum(pbWeights[indexSystemFailure])
