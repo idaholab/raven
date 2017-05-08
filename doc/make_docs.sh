@@ -38,7 +38,7 @@ then
     fi
 fi
 
-for DIR in  user_manual user_guide qa_docs tests; do
+for DIR in  user_manual user_guide theory_manual qa_docs tests; do
     cd $DIR
     echo Building in $DIR...
     if [[ 1 -eq $VERB ]]
@@ -57,7 +57,7 @@ for DIR in  user_manual user_guide qa_docs tests; do
 done
 
 mkdir pdfs
-for DOC in user_guide/raven_user_guide.pdf qa_docs/raven_sdd.pdf qa_docs/test_plan.pdf qa_docs/requirements.pdf  user_manual/raven_user_manual.pdf tests/analytic_tests.pdf; do
+for DOC in user_guide/raven_user_guide.pdf theory_manual/raven_theory_manual.pdf qa_docs/raven_sdd.pdf qa_docs/test_plan.pdf qa_docs/requirements.pdf  user_manual/raven_user_manual.pdf tests/analytic_tests.pdf; do
     cp $DOC pdfs/
 done
 
