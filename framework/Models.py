@@ -2058,6 +2058,7 @@ class EnsembleModel(Dummy, Assembler):
                                           # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
     self.activatePicard        = False    # is non-linear system beeing identified?
     self.tempTargetEvaluations = {}       # temporary storage of target evaluation data objects
+    self.tempOutputs           = {}       # temporary storage of optional output data objects
     self.maxIterations         = 30       # max number of iterations (in case of non-linear system activated)
     self.convergenceTol        = 1.e-3    # tolerance of the iteration scheme (if activated) => L2 norm
     self.initialConditions     = {}       # dictionary of initial conditions in case non-linear system is detected
@@ -2067,6 +2068,7 @@ class EnsembleModel(Dummy, Assembler):
     self.addAssemblerObject('Model','n',True)
     self.addAssemblerObject('TargetEvaluation','n')
     self.addAssemblerObject('Input','n')
+    self.addAssemblerObject('Output','-n')
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -2085,7 +2087,7 @@ class EnsembleModel(Dummy, Assembler):
         # get model name
         modelName = child.text.strip()
         # create space of the allowed entries
-        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'metadataToTransfer':[]}
+        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[]}
         # number of allower entries
         allowedEntriesLen = len(self.modelsDictionary[modelName].keys())
         for childChild in child:
@@ -2196,20 +2198,37 @@ class EnsembleModel(Dummy, Assembler):
       @ In, initDict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
+    # in here we store the job ids for which we did not collected the optional output yet
+    self.tempOutputs['uncollectedJobIds'] = []
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
       inputInstancesForModel = []
       for input in self.modelsDictionary[modelIn[2]]['Input']:
         inputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Input',input))
       self.modelsDictionary[modelIn[2]]['InputObject'] = inputInstancesForModel
+
+      if 'Output' in self.modelsDictionary[modelIn[2]]:
+        outputInstancesForModel = []
+        for output in self.modelsDictionary[modelIn[2]]['Output']:
+          outputObject = self.retrieveObjectFromAssemblerDict('Output',output)
+          if type(outputObject).__name__ == 'HDF5':
+            self.raiseAnError(IOError, "Only DataObjects are allowed as optional Outputs. Got HDF5!")
+          outputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Output',output))
+        self.modelsDictionary[modelIn[2]]['OutputObject'] = outputInstancesForModel
+        self.tempOutputs[modelIn[2]] = copy.deepcopy(outputInstancesForModel)
+      else:
+        class byPass(object):
+          def resetData(self): pass
+        self.tempOutputs[modelIn[2]] = [byPass()]
+
       self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
       for mm in self.modelsDictionary[modelIn[2]]['Instance'].mods:
         if mm not in self.mods:
           self.mods.append(mm)
       self.modelsDictionary[modelIn[2]]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
-      self.tempTargetEvaluations[modelIn[2]]                 = copy.deepcopy(self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
-      self.modelsDictionary[modelIn[2]]['Input' ] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
-      self.modelsDictionary[modelIn[2]]['Output'] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
+      self.tempTargetEvaluations[modelIn[2]]                = copy.deepcopy(self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
+      self.modelsDictionary[modelIn[2]]['Input' ]           = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
+      self.modelsDictionary[modelIn[2]]['Output']           = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
     # construct chain connections
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
     # find matching models
@@ -2359,8 +2378,11 @@ class EnsembleModel(Dummy, Assembler):
     out = finishedJob.getEvaluation()[1]
     exportDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
     exportDictTargetEvaluation = {}
-    outcomes, targetEvaluations = out
-
+    outcomes, targetEvaluations, optionalOutputs = out
+    try:
+      jobIndex = self.tempOutputs['uncollectedJobIds'].index(finishedJob.identifier)
+    except ValueError:
+      jobIndex = None
     for modelIn in self.modelsDictionary.keys():
       # collect data
       inputsValues               = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
@@ -2381,6 +2403,27 @@ class EnsembleModel(Dummy, Assembler):
       for typeInfo,values in outcomes[modelIn].items():
         for key in values.keys():
           exportDict[typeInfo][key] = np.asarray(values[key])
+      # collect optional output if present and not already collected
+      if type(optionalOutputs[modelIn][0]).__name__ != "byPass" and jobIndex is not None:
+        # collect optional data
+        for index, optionalOut in enumerate(optionalOutputs[modelIn]):
+          inputsValuesOptionalOut    = optionalOut.getParametersValues('inputs', nodeId = 'RecontructEnding')
+          outputsValuesOptionalOut   = optionalOut.getParametersValues('outputs', nodeId = 'RecontructEnding')
+          metadataValuesOptionalOut  = optionalOut.getAllMetadata(nodeId = 'RecontructEnding')
+          inputsValuesOptionalOut    = inputsValuesOptionalOut if optionalOut.type != 'HistorySet' else inputsValuesOptionalOut.values()[-1]
+          for key in self.modelsDictionary[modelIn]['OutputObject'][index].getParaKeys('inputs'):#  inputsValuesOptionalOut.items():
+            if key in inputsValuesOptionalOut:
+              self.modelsDictionary[modelIn]['OutputObject'][index].updateInputValue (key,inputsValuesOptionalOut[key])
+            else:
+              self.raiseAWarning('Input key "'+key+'" is not contained in output '+self.modelsDictionary[modelIn]['OutputObject'][index].name)
+          for key in self.modelsDictionary[modelIn]['OutputObject'][index].getParaKeys('outputs'):#  inputsValuesOptionalOut.items():
+            if key in outputsValuesOptionalOut:
+              self.modelsDictionary[modelIn]['OutputObject'][index].updateOutputValue (key,outputsValuesOptionalOut[key])
+            else:
+              self.raiseAWarning('Output key "'+key+'" is not contained in output '+self.modelsDictionary[modelIn]['OutputObject'][index].name)
+          for key,value in metadataValuesOptionalOut.items():
+            self.modelsDictionary[modelIn]['OutputObject'][index].updateMetadata(key,value[-1])
+
     if output.type == 'HDF5':
       output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
@@ -2439,6 +2482,7 @@ class EnsembleModel(Dummy, Assembler):
         self.mods.append(mm)
 
     prefix = kwargs['prefix']
+    self.tempOutputs['uncollectedJobIds'].append(prefix)
 
     ## Ensemble models need access to the job handler, so let's stuff it in our
     ## catch all kwargs where evaluateSample can pick it up, not great, but
@@ -2482,8 +2526,10 @@ class EnsembleModel(Dummy, Assembler):
 
     for modelIn in self.orderList:
       self.tempTargetEvaluations[modelIn].resetData()
-
+      for i in range(len(self.tempOutputs[modelIn])):
+        self.tempOutputs[modelIn][i].resetData()
     tempTargetEvaluations = copy.deepcopy(self.tempTargetEvaluations)
+    tempOutputs           = copy.deepcopy(self.tempOutputs)
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
 
     gotOutputs       = [{}]*len(self.orderList)
@@ -2509,6 +2555,8 @@ class EnsembleModel(Dummy, Assembler):
 
       for modelCnt, modelIn in enumerate(self.orderList):
         tempTargetEvaluations[modelIn].resetData()
+        for i in range(len(tempOutputs[modelIn])):
+          tempOutputs[modelIn][i].resetData()
         # in case there are metadataToTransfer, let's collect them from the source
         metadataToTransfer = None
         if self.modelsDictionary[modelIn]['metadataToTransfer']:
@@ -2517,7 +2565,6 @@ class EnsembleModel(Dummy, Assembler):
         for metadataToGet, source, alias in self.modelsDictionary[modelIn]['metadataToTransfer']:
           if metadataToGet not in returnDict[source]['metadata'].keys():
             self.raiseAnError(RuntimeError,'metadata "'+metadataToGet+'" is not present among the ones available in source "'+source+'"!')
-
           metadataToTransfer[metadataToGet if alias is None else alias] = returnDict[source]['metadata'][metadataToGet][-1]
 
         # get dependent outputs
@@ -2569,11 +2616,9 @@ class EnsembleModel(Dummy, Assembler):
                 self.modelsDictionary[modelIn]['Instance'].submit([inputKwargs], samplerType, jobHandler, **copy.deepcopy(inputKwargs[modelIn]))
               ## TODO: Can originalInput ever be a list already?
               ## -- DPM 4/11/17
-
               # wait until the model finishes, in order to get ready to run the subsequential one
               while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
                 time.sleep(1.e-3)
-
               nextModel = moveOn = True
             else:
               time.sleep(1.e-3)
@@ -2588,7 +2633,9 @@ class EnsembleModel(Dummy, Assembler):
 
           # collect output in the temporary data object
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
-
+          if type(tempOutputs[modelIn][0]).__name__ != 'byPass':
+            for index in range(len(tempOutputs[modelIn])):
+              self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempOutputs[modelIn][index])
           # store the results in the working dictionaries
           returnDict[modelIn]   = {}
           responseSpace         = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
@@ -2625,7 +2672,7 @@ class EnsembleModel(Dummy, Assembler):
           self.raiseAMessage("Picard's Iteration converged. Norm: "+ str(residueContainer['TotalResidue']))
           break
 
-    returnEvaluation = returnDict, tempTargetEvaluations
+    returnEvaluation = returnDict, tempTargetEvaluations, tempOutputs
     return returnEvaluation
 
 """
