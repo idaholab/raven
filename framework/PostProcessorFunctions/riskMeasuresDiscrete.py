@@ -74,7 +74,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     for child in xmlNode:
       if child.tag == 'measures':
         self.measures = set(child.text.split(','))
-    
+
         if not self.measures.issubset(self.availableMeasures()):
           unrecognizedMeasures  = self.measures.difference(self.availableMeasures())
           self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : measures '
@@ -342,7 +342,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     """
      This method performs the dynamic calculation of the risk measures
      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
-     @ In, timeHistory, dict, dictionary containing  boolean temporal profiles (0 or 1) of a sub set of the input variables. Note that this 
+     @ In, timeHistory, dict, dictionary containing  boolean temporal profiles (0 or 1) of a sub set of the input variables. Note that this
                               history must contain a single history
      @ Out, outputDic, dict, dictionary which contains the risk measures
     """
