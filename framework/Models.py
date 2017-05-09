@@ -1639,15 +1639,16 @@ class Code(Model):
       ## file and any other file the user requests to be cleared
       if deleteSuccessfulLogFiles:
         self.raiseAMessage(' Run "' +kwargs['prefix']+'" ended smoothly, removing log file!')
-        if os.path.exists(codeLogFile):
-          os.remove(codeLogFile)
+        codeLofFileFullPath = os.path.join(metaData['subDirectory'],codeLogFile)
+        if os.path.exists(codeLofFileFullPath):
+          os.remove(codeLofFileFullPath)
 
       ## Check if the user specified any file extensions for clean up
       for fileExt in fileExtensionsToDelete:
         if not fileExt.startswith("."):
           fileExt = "." + fileExt
 
-        fileList = [ f for f in os.listdir(metaData['subDirectory']) if f.endswith(fileExt) ]
+        fileList = [ os.path.join(metaData['subDirectory'],f) for f in os.listdir(metaData['subDirectory']) if f.endswith(fileExt) ]
 
         for f in fileList:
           os.remove(f)

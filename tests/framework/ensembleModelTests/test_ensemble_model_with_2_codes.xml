@@ -19,6 +19,7 @@
     <WorkingDir>metaModelWith2Codes</WorkingDir>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
+    <delSucLogFiles>True</delSucLogFiles>
   </RunInfo>
 
   <Files>
