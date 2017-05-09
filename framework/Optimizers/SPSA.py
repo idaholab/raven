@@ -134,12 +134,10 @@ class SPSA(GradientBasedOptimizer):
       #see if trajectory needs starting
       if self.counter['varsUpdate'][traj] not in self.optVarsHist[traj].keys():
         self.nextActionNeeded = ('start new trajectory',traj)
-        self.raiseADebug('Next action needed: "%s" on trajectory "%i"' %self.nextActionNeeded)
         break #return True
       # see if there are points needed for evaluating a gradient, pick one
       elif self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
         self.nextActionNeeded = ('add new grad evaluation point',traj)
-        self.raiseADebug('Next action needed: "%s" on trajectory "%i"' %self.nextActionNeeded)
         break #return True
       else:
         # since all evaluation points submitted, check if we have enough collected to evaluate a gradient
@@ -154,7 +152,7 @@ class SPSA(GradientBasedOptimizer):
           self.nextActionNeeded = ('evaluate gradient',traj)
           break #return True
     # if we did not find an action, we're not ready to provide an input
-    if self.nextActionNeeded is None:
+    if self.nextActionNeeded[0] is None:
       self.raiseADebug('Not ready to provide a sample yet.')
       return False
     else:
