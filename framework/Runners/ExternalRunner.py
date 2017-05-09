@@ -186,7 +186,8 @@ class ExternalRunner(Runner):
     """
     if origCommand.strip() == '':
       return origCommand
-    commandSplit = shlex.split(origCommand)
+    # In Windows Python, you can get some backslashes in your paths
+    commandSplit = shlex.split(origCommand.replace("\\","/"))
     executable = commandSplit[0]
 
     if os.path.exists(executable):
