@@ -30,7 +30,6 @@ import os
 import copy
 import numpy as np
 from numpy import linalg as LA
-from itertools import cycle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------

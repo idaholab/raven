@@ -131,49 +131,6 @@ class GradientBasedOptimizer(Optimizer):
     """
     #let this be handled at the local subclass level for now
     return ready
-    #if ready == False:
-    #  return ready # Return if we exceed the max iterations or converges...
-
-    #readyFlag = False
-    #for traj in self.optTrajLive:
-    #  if self.counter['varsUpdate'][traj] < self.limit['varsUpdate']:
-    #    readyFlag = True
-    #if readyFlag == False:
-    #  ready = False
-    #  return ready # Return False if all trajectories has more them permitted variable updates.
-
-    #if self.mdlEvalHist.isItEmpty():
-    #  for traj in self.optTrajLive:
-    #    if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
-    #      # Return if we just initialize
-    #      return ready
-    #  ready = False # Waiting for the model output for gradient evaluation
-    #else:
-    #  readyFlag = False
-    #  for traj in self.optTrajLive:
-    #    if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
-    #      # Return if we just initialize
-    #      readyFlag = True
-    #      break
-    #    else:
-    #      evalNotFinish = False
-    #      for pertID in range(1,self.gradDict['pertNeeded']+1):
-    #        if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:
-    #          evalNotFinish = True
-    #          break
-    #      if evalNotFinish:
-    #        pass
-    #      else:
-    #        readyFlag = True
-    #        break
-    #  if readyFlag:
-    #    ready = True
-    #  else:
-    #    ready = False
-
-    #ready = self.localLocalStillReady(ready, convergence)
-
-    #return ready
 
   def _checkModelFinish(self, traj, updateKey, evalID):
     """
