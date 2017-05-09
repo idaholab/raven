@@ -1,0 +1,236 @@
+\section{Statistical Analysis}
+\label{sec:statisticalAnalysis}
+One of the most assessed ways to investigate the impact of the intrinsic variation of the input space is through the computation of
+statistical moments and linear correlation among variables/parameters/FOMs.
+
+As shown in Section~\ref{sec:forwardSamplingStrategies}, RAVEN employs several different sampling methodologies to explore the response of a model subject to uncertainties. In order to correctly compute the statistical moments a weight-based approach is used. Each \textit{Sampler} in RAVEN associate to each ``sample'' (i.e.
+realization in the input/uncertain space) a \textbf{weight}  to represent the \textit{importance} of the particular
+combination of input values from a statistical point of view (e.g., reliability weights). These weights are used in subsequential
+steps in order to compute the previously listed statistical moments and correlation metrics.
+\\In the following subsections, the formulation of these statistical moments is reported.
+\subsection{Expected Value}
+The expected value represents one of the most fundamental metrics in probability theory: it represents a measurement of the center of the distribution (mean) of the random variable.
+From a practical point of view, the expected value of a discrete random variable is the probability-weighted average of all possible values of the subjected variable. Formally, the expected value of a random variable $X$:
+\begin{equation}
+\begin{matrix}
+\mathbb{E}(X) = \mu = \sum_{x \in \chi} x  pdf_{X}(x) & \text{if  $X$  discrete} \\
+\\
+\mathbb{E}(X) = \mu = \int_{x \in \chi} x pdf_{X}(x) & \, \text{if $X$ continuous}
+\end{matrix}
+\end{equation}
+In RAVEN, the expected value (i.e. first central moment) is computed as follows:
+\begin{equation}
+\begin{matrix}
+\mathbb{E}(X) = \mu \approx \overline{x} = \frac{1}{n} \sum_{i=1}^{n}  x_{i} & \text{if  random sampling} \\
+\\
+\mathbb{E}(X) = \mu \approx \overline{x} = \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i}  x_{i}  & \, \text{otherwise}
+\end{matrix}
+\end{equation}
+where:
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
+\end{itemize}
+\subsection{Standard Deviation and Variance}
+The variance ($\sigma^{2}$) and standard deviation ($\sigma$) of $X$ are both measures of the spread of the distribution of the random variable about the
+mean. Simplistically, the variance measures how far a set of realizations of a random variable are spread out.
+The standard deviation is the square root of the variance. The standard deviation has the same unit of the original data, and hence is comparable to deviations from the mean.
+\\Formally:
+\begin{equation}
+  \begin{matrix}
+  \sigma^{2}(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right) = \int_{x \in \chi} (x - \mu)^2 pdf(x) dx  & \,\text{if $X$ continuous} \\
+  \sigma^{2}(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  = \sum_{x \in \chi} (x - \mu)^2 pdf(x)  & \text{if  $X$ discrete}
+  \\
+  \\
+  \sigma(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]\right)  = \sqrt{\sigma^{2}(X)}
+  \end{matrix}
+\end{equation}
+In RAVEN, variance (i.e., second central moment) and standard deviation are computed as follows:
+\begin{equation}
+\begin{matrix}
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx  m_{2} = \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} & \text{if  random sampling} \\
+\\
+\\
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx m_{2}  = \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i}  (x_{i} - \overline{x})^{2}  & \, \text{otherwise}
+\\
+\\
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx s  =  \sqrt{m_{2}}
+\end{matrix}
+\end{equation}
+where:
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
+\end{itemize}
+RAVEN performs an additional correction of variance to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
+\begin{equation}
+\begin{matrix}
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx M_{2} = \displaystyle \frac{n}{n-1}m_{2} & & \text{if random sampling}
+\\
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx M_{2} = \frac{V_{1}^{2}}{V_{1}^{2} - V_{2}}m_{2} &  text{otherwise}
+\end{matrix}
+\end{equation}
+\begin{equation}
+S = \sqrt{M_{2}}
+\end{equation}
+where:
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}^{2}$.
+\end{itemize}
+It is important to notice that $S$ is not an unbiased estimator.
+
+\subsection{Skewness}
+The Skewness is a measure of the asymmetry of the distribution of a
+real-valued random variable about its mean. Negative skewness
+indicates that the tail on the left side of the distribution is longer or fatter
+than the right side.  Positive skewness indicates that the tail on the right
+side is longer or fatter than the left side. From a practical point of view, the
+skewness is useful to identify distortion  of the random variable with respect to
+the Normal distribution function.
+\\Formally,
+\begin{equation}
+\gamma_{1} = \mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ] = \frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{3} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{3/2}}
+\end{equation}
+In RAVEN, the skewness is computed as follows:
+\begin{equation}
+\begin{matrix}
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{m_{3}}{m_{2}^{3/2}} = \frac{  \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{3} }{\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{3/2}} & \text{if random sampling}
+\\
+\\
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{m_{3}}{m_{2}^{3/2}} = \frac{  \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{3} }{\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{3/2}} &  \, \text{otherwise}
+\end{matrix}
+\end{equation}
+where:
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
+\end{itemize}
+RAVEN performs an additional correction of skewness to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
+\begin{equation}
+\begin{matrix}
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{M_{3}}{M_{2}^{3/2}}  = \displaystyle \frac{n^{2}}{(n-1)(n-2)}m_{3}\times \frac{1}{\left ( \displaystyle \frac{n}{n-1}m_{2}  \right )^{3/2}} & \text{if random sampling}
+\\
+\\
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{M_{3}}{M_{2}^{3/2}}  = \displaystyle \frac{V_{1}^{3}}{V_{1}^{3}-3V_{1}V_{2}+2V_{3}}m_{3} \times \frac{1}{\left ( \displaystyle \frac{V_{1}^{2}}{V_{1}^{2}-V_{2}}m_{2}  \right )^{3/2}} &  \,  \text{otherwise}
+\end{matrix}
+\end{equation}
+where:
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}^{2}$
+  \item $V_{2} = \sum_{i=1}^{n} w_{i}^{2}$
+  \item $V_{3} = \sum_{i=1}^{n} w_{i}^{3}$.
+\end{itemize}
+
+\subsection{Excess Kurtosis}
+The  Kurtosis~\cite{Abramowitz}  is the degree of peakedness of a distribution of a real-valued random variable. In a similar way to the concept of skewness, kurtosis describes the shape of the distribution. The Kurtosis is defined in order to
+obtain a value of $0$ for a Normal distribution. If it is greater than zero, it indicates that the distribution is high peaked; If it is smaller
+that zero, it testifies that the distribution is flat-topped.
+\\Formally, the Kurtosis can be expressed as follows:
+\begin{equation}
+\gamma_{2} = \frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}
+\end{equation}
+In RAVEN, the kurtosis (excess) is computed as follows:
+\begin{equation}
+\begin{matrix}
+\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{m_{4}-3m_{2}^{2}}{m_{2}^{2}} = \displaystyle  \frac{  \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{4} -3\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{2}}{\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{2}} & \text{if random sampling}
+\\
+\\
+\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{m_{4}-3m_{2}^{2}}{m_{2}^{2}} = \displaystyle  \frac{  \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{4} -3\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{2}}{\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{2}} &   \text{otherwise}
+\end{matrix}
+\end{equation}
+where:
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
+\end{itemize}
+RAVEN performs an additional correction of kurtosis (excess) to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
+\begin{equation}
+\begin{split}
+\begin{matrix}
+\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{M_{4}-3M_{2}^{2}}{M_{2}^{2}}  = \displaystyle \frac{n^{2}(n+1)}{(n-1)(n-2)(n-3)}m_{4}-\frac{3n^{2}}{(n-2)(n-3)}m_{2}^{2} & \text{if random sampling}
+\\
+\\
+\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}    \approx \frac{M_{4}-3M_{2}^{2}}{M_{2}^{2}}  = \displaystyle  \frac{V_{1}^{2}(V_{1}^{4}-4V_{1}V_{3}+3V_{2}^{2})}{(V_{1}^{2}-V_{2})(V_{1}^{4}-6V_{1}^{2}V_{2}+8V_{1}V_{3}+3V_{2}^{2}-6V_{4})}m_{4}
+- \\
+\displaystyle \frac{3V_{1}^{2}(V_{1}^{4}-2V_{1}^{2}V_{2}+4V_{1}V_{3}-3V_{2}^{2})}{(V_{1}^{2}-V_{2})(V_{1}^{4}-6V_{1}^{2}V_{2}+8V_{1}V_{3}+3V_{2}^{2}-6V_{4})}m_{2}^{2} & \text{otherwise}
+\end{matrix}
+\end{split}
+\end{equation}
+where:
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}^{2}$
+  \item $V_{2} = \sum_{i=1}^{n} w_{i}^{2}$
+  \item $V_{3} = \sum_{i=1}^{n} w_{i}^{3}$
+  \item $V_{4} = \sum_{i=1}^{n} w_{i}^{4}$.
+\end{itemize}
+
+\subsection{Median}
+The median of the distribution of a real-valued random variable is the number separating the higher half from the lower half of all
+the possible values. The median of a finite list of numbers can be found by arranging all the observations from lowest value to highest value and picking the middle value.
+\\Formally, the median $m$ can be cast as the number that satisfy the following relation:
+\begin{equation}
+  P(X\leq m) = P(X \geq m) = \int_{-\infty}^{m} pdf(x) dx=\frac{1}{2}
+\end{equation}
+
+\subsection{Percentile}
+A percentile (or a centile) is a measure indicating the value below which a given percentage of observations in a group of observations fall.
+
+\subsection{Covariance and Correlation Matrices}
+Simplistically, the Covariance is a measure of how much two random variables variate together. In other words, It represents a
+measurement of the correlation, in terms of variance,  among different variables. If the greater values of one variable mainly
+correspond with the greater values of the other variable, and the same holds for the lesser values (i.e., the variables tend to show
+similar behavior) the covariance is positive. In the opposite case, when the greater values of one variable mainly correspond to the
+lesser values of the other (i.e., the variables tend to show opposite behavior) the covariance is negative.
+Formally, the Covariance can be expressed as
+\begin{equation}
+ \boldsymbol{\Sigma}(\boldsymbol{X},\boldsymbol{Y})  = \mathbb{E} \left [ \left ( \boldsymbol{X}- \mathbb{E}\left [ \boldsymbol{X} \right ] \right ) \left ( \boldsymbol{Y}- \mathbb{E}\left [ \boldsymbol{Y} \right ] \right )^{T}\right ]
+\end{equation}
+Based on the previous equation, in RAVEN each entry of the Covariance matrix is computed as follows:
+\begin{equation}
+\begin{matrix}
+ \mathbb{E} \left [ \left ( X- \mathbb{E}\left [ X \right ] \right ) \left ( Y- \mathbb{E}\left [ Y \right ] \right )\right ] \approx
+ \frac{1}{n}\sum_{i=1}^{n} (x_{i} - \mu_{x})(y_{i} -  \mu_{y})  & \text{if random sampling}
+\\
+\\
+ \mathbb{E} \left [ \left ( X- \mathbb{E}\left [ X \right ] \right ) \left ( Y- \mathbb{E}\left [ Y \right ] \right )\right ] \approx
+\frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} -  \mu_{x})(y_{i} -  \mu_{y}) &   \text{otherwise}
+\end{matrix}
+\end{equation}
+where:
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
+\end{itemize}
+The correlation matrix (Pearson product-moment correlation coefficient matrix) can be obtained through the Covariance matrix, as follows:
+\begin{equation}
+\boldsymbol{\Gamma}(\boldsymbol{X},\boldsymbol{Y}) = \frac{\boldsymbol{\Sigma}(\boldsymbol{X},\boldsymbol{Y})}{\sigma_{x} \sigma_{y}}
+\end{equation}
+As it can be seen, The correlation between $X$ and $Y$ is the
+covariance of the corresponding standard scores.
+
+\subsection{Variance-Dependent Sensitivity Matrix}
+The variance dependent sensitivity matrix is the matrix of the sensitivity
+coefficients that show the relationship of the individual uncertainty
+component to the standard deviation of the reported value for a test
+item.
+\\ Formally:
+\begin{equation}
+\boldsymbol{\Lambda}= \boldsymbol{\Sigma}(\boldsymbol{X},\boldsymbol{Y})  vc^{-1}(\boldsymbol{Y})
+\end{equation}
+where:
+\begin{itemize}
+  \item $vc^{-1}(\boldsymbol{Y})$ is the inverse of the covariance of the
+  input space.
+\end{itemize}
+

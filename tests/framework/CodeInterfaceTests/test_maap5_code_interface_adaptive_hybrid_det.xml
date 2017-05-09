@@ -14,10 +14,11 @@
       <revision author="alfoa" date="2016-07-21">Fixed XSD</revision>
       <revision author="alfoa" date="2016-07-27">Modified xml input tests for MAAP5</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="maljdan" date="2017-05-03">Reducing batch size to ensure consistent execution path</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
-    <batchSize>8</batchSize>
+    <batchSize>1</batchSize>
     <WorkingDir>MAAP5_adaptiveHybridDET_test</WorkingDir>
     <Sequence>AdaptiveDETrunTest</Sequence>
   </RunInfo>

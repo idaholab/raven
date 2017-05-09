@@ -24,7 +24,7 @@
  [./SPSABoundConstraintsMaximization]
   type = 'RavenFramework'
   input = 'test_max_range_projectile.xml'
-  output = 'maxRangeWithBoundaryConstraints/opt_export_0.csv maxRangeWithBoundaryConstraints/opt_dump.csv maxRangeWithBoundaryConstraints/1-trajectory_scatter.png maxRangeWithBoundaryConstraints/1-convergenceHistory_scatter.png'
+  output = 'maxRangeWithBoundaryConstraints/opt_dump.csv maxRangeWithBoundaryConstraints/1-trajectory_scatter.png maxRangeWithBoundaryConstraints/1-convergenceHistory_scatter.png'
   csv = 'maxRangeWithBoundaryConstraints/opt_export_0.csv'
   rel_err = 1.e-4
  [../]
@@ -37,7 +37,7 @@
  [./SPSABoundConstraintsMaximizationNormGradient]
   type = 'RavenFramework'
   input = 'test_max_range_projectile_norm_grad.xml'
-  output = 'maxRangeWithBoundaryConstraintsNormGradient/opt_export_0.csv maxRangeWithBoundaryConstraintsNormGradient/opt_dump.csv maxRangeWithBoundaryConstraintsNormGradient/1-trajectory_scatter.png maxRangeWithBoundaryConstraintsNormGradient/1-convergenceHistory_scatter.png'
+  output = 'maxRangeWithBoundaryConstraintsNormGradient/opt_dump.csv maxRangeWithBoundaryConstraintsNormGradient/1-trajectory_scatter.png maxRangeWithBoundaryConstraintsNormGradient/1-convergenceHistory_scatter.png'
   csv = 'maxRangeWithBoundaryConstraintsNormGradient/opt_export_0.csv'
   rel_err = 1.e-4
  [../]
@@ -51,7 +51,7 @@
  [./parabolaDeterministic]
   type = 'RavenFramework'
   input = 'parabola_spsa_determ.xml'
-  output = 'Parabolas/opt_export_0.csv Parabolas/opt_dump.csv Parabolas/1-convergenceHistory_scatter.png'
+  output = 'Parabolas/opt_dump.csv Parabolas/1-convergenceHistory_scatter.png'
   csv = 'Parabolas/opt_export_0.csv'
   rel_err = 1.e-4
  [../]

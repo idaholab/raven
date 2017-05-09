@@ -118,7 +118,7 @@ class Assembler(MessageHandler.MessageUser):
       self.name = xmlNode.attrib['name']
     self.printTag = self.type
     if 'verbosity' in xmlNode.attrib.keys():
-      self.verbosity = xmlNode.attrib['verbosity']
+      self.verbosity = xmlNode.attrib['verbosity'].lower()
     if self.requiredAssObject[0]:
       testObjects = {}
       for token in self.requiredAssObject[1][0]:

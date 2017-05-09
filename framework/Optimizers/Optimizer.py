@@ -531,7 +531,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if len(self.constants) > 0:
       self.values.update(self.constants)
     self.raiseADebug('Found new input to evaluate:',self.values)
-    return 0,model.createNewInput(oldInput,self.type,**self.inputInfo)
+    ## Do not call createNewInput from the samplers. This will now be handled
+    ## on parallel jobs, so we only want to modify this sampler's inputInfo, and
+    ## use it to generate the perturbed point that will be used when the model
+    ## calls submit().
+    # return 0,model.createNewInput(oldInput,self.type,**self.inputInfo)
+    return 0,oldInput
 
   @abc.abstractmethod
   def localGenerateInput(self,model,oldInput):
@@ -581,7 +586,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseAWarning('There were %i failed runs!  Run with verbosity = debug for more details.' %(len(failedRuns)))
       for run in failedRuns:
         metadata = run.getMetadata()
-        self.raiseADebug('  Run number %s FAILED:' %run.identifier,run.command)
+        ## FIXME: run.command no longer exists, so I am only outputting the
+        ## run's identifier.
+        self.raiseADebug('  Run number %s FAILED:' %run.identifier)
         self.raiseADebug('      return code :',run.getReturnCode())
         if metadata is not None:
           self.raiseADebug('      sampled vars:')
