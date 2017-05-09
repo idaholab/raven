@@ -1597,7 +1597,8 @@ class Code(Model):
       codeFailed = self.code.checkForOutputFailure(codeLogFile, metaData['subDirectory'])
       if codeFailed:
         returnCode = -1
-
+    # close the log file
+    outFileObject.close()
     ## We should try and use the output the code interface gives us first, but
     ## in lieu of that we should fall back on the standard output of the code
     ## (Which was deleted above in some cases, so I am not sure if this was
