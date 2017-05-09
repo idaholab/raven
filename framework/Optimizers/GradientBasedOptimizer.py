@@ -297,8 +297,8 @@ class GradientBasedOptimizer(Optimizer):
     if self.convergeTraj[traj] == False:
       if varsUpdate >= 1:
         sizeArray = 1
-        if int(self.paramDict['numGradAvgIterations']) > 1:
-          sizeArray+=int(self.paramDict['numGradAvgIterations'])
+        if self.gradDict['numIterForAve'] > 1:
+          sizeArray+=self.gradDict['numIterForAve']
         objectiveOutputs = np.zeros(sizeArray)
         objectiveOutputs[0] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,'v'))
         if sizeArray > 1:
@@ -392,8 +392,8 @@ class GradientBasedOptimizer(Optimizer):
           solutionUpdateList = [solutionExportUpdatedFlag]
           solutionIndeces    = [index]
           sizeArray = 1
-          if int(self.paramDict['numGradAvgIterations']) > 1:
-            sizeArray+=int(self.paramDict['numGradAvgIterations'])
+          if self.gradDict['numIterForAve'] > 1:
+            sizeArray+=self.gradDict['numIterForAve']
             for i in range(sizeArray-1):
               identifier = (i+1)*2
               solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], str(identifier))
