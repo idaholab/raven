@@ -341,7 +341,6 @@ class ScatterView3D(BaseTopologicalView):
             else:
               lineColors.append('#CCCCCC')
 
-      print(list(set(lineIdxs)))
       lc = mpl_toolkits.mplot3d.art3d.Line3DCollection(lines,colors=lineColors,linewidths=1)
       self.mplCanvas.axes.add_collection(lc)
       self.mplCanvas.axes.hold(True)
@@ -435,3 +434,40 @@ class ScatterView3D(BaseTopologicalView):
 
     self.mplCanvas.axes.hold(False)
     self.mplCanvas.draw()
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations.
+    """
+    self.amsc.ClearSelection()
+
+    self.axesLabelAction.setChecked(True)
+    self.chkExts.setCheckState(qtc.Qt.Checked)
+    self.chkEdges.setChecked(True)
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-5)
+    self.updateScene()
+
+    self.axesLabelAction.setChecked(False)
+    self.chkExts.setCheckState(qtc.Qt.Unchecked)
+    self.chkEdges.setChecked(True)
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-4)
+    self.updateScene()
+
+    self.chkExts.setCheckState(qtc.Qt.PartiallyChecked)
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-3)
+    self.updateScene()
+
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-2)
+    self.updateScene()
+
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-1)
+    self.updateScene()
+
+    self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
+    pair = self.amsc.GetCurrentLabels()[0]
+    self.amsc.SetSelection([pair,pair[0],pair[1]])
+    self.updateScene()
+
+    super(ScatterView3D, self).test()

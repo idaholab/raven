@@ -256,3 +256,21 @@ class ScatterView(BaseHierarchicalView):
 
     self.mplCanvas.axes.hold(False)
     self.mplCanvas.draw()
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations.
+    """
+    self.cmbVars['Z'].setCurrentIndex(self.cmbVars['Z'].count()-1)
+    self.cmbVars['Color'].setCurrentIndex(0)
+    self.updateScene()
+    self.axesLabelAction.setChecked(True)
+    self.updateScene()
+    self.axesLabelAction.setChecked(False)
+    self.updateScene()
+
+
+    super(ScatterView, self).test()
+    BaseHierarchicalView.test(self)

@@ -139,34 +139,38 @@ class SensitivityView(BaseTopologicalView):
     layout.addWidget(self.gView)
     self.updateScene()
 
-  def saveImage(self):
+  def saveImage(self, filename=None):
     """ Saves the current display of this view to a static image by loading a
         file dialog box.
     """
-    dialog = qtg.QFileDialog(self)
-    dialog.setFileMode(qtg.QFileDialog.AnyFile)
-    dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
-    dialog.exec_()
-    if dialog.result() == qtg.QFileDialog.Accepted:
-      myFile = dialog.selectedFiles()[0]
-      self.scene.clearSelection()
-      self.scene.setSceneRect(self.scene.itemsBoundingRect())
-      if myFile.endswith('.svg'):
-        svgGen = qts.QSvgGenerator()
-        svgGen.setFileName(myFile)
-        svgGen.setSize(self.scene.sceneRect().size().toSize())
-        svgGen.setViewBox(self.scene.sceneRect())
-        svgGen.setTitle("Screen capture of " + self.__class__.__name__)
-        svgGen.setDescription("Generated from RAVEN.")
-        painter = qtg.QPainter (svgGen)
+    if filename is None:
+      dialog = qtg.QFileDialog(self)
+      dialog.setFileMode(qtg.QFileDialog.AnyFile)
+      dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
+      dialog.exec_()
+      if dialog.result() == qtg.QFileDialog.Accepted:
+        filename = dialog.selectedFiles()[0]
       else:
-        image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
-        image.fill(qtc.Qt.transparent)
-        painter = qtg.QPainter(image)
-      self.scene.render(painter)
-      if not myFile.endswith('.svg'):
-        image.save(myFile,quality=100)
-      del painter
+        return
+
+    self.scene.clearSelection()
+    self.scene.setSceneRect(self.scene.itemsBoundingRect())
+    if filename.endswith('.svg'):
+      svgGen = qts.QSvgGenerator()
+      svgGen.setFileName(filename)
+      svgGen.setSize(self.scene.sceneRect().size().toSize())
+      svgGen.setViewBox(self.scene.sceneRect())
+      svgGen.setTitle("Screen capture of " + self.__class__.__name__)
+      svgGen.setDescription("Generated from RAVEN.")
+      painter = qtg.QPainter (svgGen)
+    else:
+      image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
+      image.fill(qtc.Qt.transparent)
+      painter = qtg.QPainter(image)
+    self.scene.render(painter)
+    if not filename.endswith('.svg'):
+      image.save(filename,quality=100)
+    del painter
 
   def contextMenuEvent(self,event):
     """ An event handler triggered when the user right-clicks on this view that
@@ -485,3 +489,35 @@ class SensitivityView(BaseTopologicalView):
         self.layoutBarScene()
     self.gView.fitInView(self.scene.sceneRect(),qtc.Qt.KeepAspectRatio)
     self.scene.changed.connect(self.scene.invalidate)
+
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations.
+    """
+    self.amsc.BuildModels()
+    for action in self.shapeGroup.actions():
+      action.setChecked(True)
+      for value in self.valueGroup.actions():
+        value.setChecked(True)
+        self.amsc.ClearSelection()
+
+        self.signedAction.setChecked(True)
+        self.bundledAction.setChecked(True)
+        self.fillAction.setChecked(True)
+        self.updateScene()
+        self.signedAction.setChecked(False)
+        self.bundledAction.setChecked(False)
+        self.fillAction.setChecked(False)
+        self.updateScene()
+        pair = self.amsc.GetCurrentLabels()[0]
+        self.amsc.SetSelection([pair,pair[0],pair[1]])
+        self.updateScene()
+
+    self.saveImage(self.windowTitle()+'.svg')
+    self.saveImage(self.windowTitle()+'.png')
+    self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
+
+    super(SensitivityView, self).test()

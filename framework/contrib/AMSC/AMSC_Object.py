@@ -257,6 +257,10 @@ class AMSC_Object(object):
 
     self.names = names
     self.normalization = normalization
+    self.graph = graph
+    self.gradient = gradient
+    self.knn = knn
+    self.beta = beta
 
     if self.X is None or self.Y is None:
       print('There is no data to process, what would the Maker have me do?')
@@ -330,9 +334,10 @@ class AMSC_Object(object):
 
     self.__amsc = amsc.AMSCFloat(amsc.vectorFloat(self.Xnorm.flatten()),
                                  amsc.vectorFloat(self.Y),
-                                 amsc.vectorString(self.names), str(graph),
-                                 str(gradient), int(knn), float(beta),
-                                 str(persistence), amsc.vectorFloat(self.w),
+                                 amsc.vectorString(self.names), str(self.graph),
+                                 str(self.gradient), int(self.knn),
+                                 float(self.beta), str(persistence),
+                                 amsc.vectorFloat(self.w),
                                  amsc.vectorInt(edgesToPrune), debug)
 
     if debug:

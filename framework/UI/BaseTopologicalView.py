@@ -101,3 +101,17 @@ class BaseTopologicalView(QWidget):
     """ Fired when the data weights are changed
     """
     pass
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations.
+    """
+    BaseTopologicalView.Reinitialize(self)
+    BaseTopologicalView.dataChanged(self)
+    BaseTopologicalView.filterChanged(self)
+    BaseTopologicalView.selectionChanged(self)
+    BaseTopologicalView.persistenceChanged(self)
+    BaseTopologicalView.modelsChanged(self)
+    BaseTopologicalView.weightsChanged(self)

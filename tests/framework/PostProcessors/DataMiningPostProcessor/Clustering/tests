@@ -103,4 +103,12 @@
     input  = 'test_dataMiningHierarchical_SKL_Pairwise.xml'
     csv    = 'Hierarchical/dummy_SKL_1.csv Hierarchical/dummy_SKL_2.csv Hierarchical/dummy_SKL_3.csv'
   [../]
+  [./interactive_UI]
+    type = 'RavenFramework'
+    input = 'hierarchical_ui.xml'
+    csv = 'Hierarchical/ui_data.csv'
+    output = 'Hierarchical/ui_data.xml'
+    required_libraries = 'AMSC PySide'
+    interactive = 'true'
+  [../]
 []
