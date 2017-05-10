@@ -89,10 +89,7 @@ try:
 
       except ImportError as e:
 
-        message = 'The requested interactive UI is unavailable. '
-        message += 'RAVEN will continue in non-interactive mode for this step. '
-        message += 'Please file an issue on gitlab with the following debug '
-        message += 'information:\n\t' + str(e) + '\n'
+        message = 'The requested interactive UI is unavailable. RAVEN will continue in non-interactive mode for this step. Please file an issue on gitlab with the following debug information:\n\t' + str(e) + '\n'
 
         ## This will ensure that the waiting threads are released.
         self.windowClosed.emit(uiID)
@@ -116,4 +113,3 @@ try:
   __PySideAvailable = True
 except ImportError as e:
   __PySideAvailable = False
-  pass
