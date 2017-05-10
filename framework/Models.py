@@ -48,7 +48,7 @@ from utils import InputData
 from utils.cached_ndarray import c1darray
 from Csv_loader import CsvLoader
 import Files
-import PostProcessors
+import Processors
 import LearningGate
 import Runners
 from DataObjects import Data
@@ -1930,7 +1930,7 @@ class PostProcessor(Model, Assembler):
       @ Out, None
     """
     Model._readMoreXML(self, xmlNode)
-    self.interface = PostProcessors.returnInstance(self.subType,self)
+    self.interface = Processors.returnInstance(self.subType,self)
     self.interface._readMoreXML(xmlNode)
 
   def getInitParams(self):
@@ -1955,7 +1955,7 @@ class PostProcessor(Model, Assembler):
     """
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)) - set(self.mods))
+    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(Processors),True)) - set(self.mods))
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
