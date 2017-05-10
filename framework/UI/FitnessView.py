@@ -96,8 +96,13 @@ class FitnessView(BaseTopologicalView):
     self.updateScene()
 
   def saveImage(self, filename=None):
-    """ Saves the current display of this view to a static image by loading a
+    """
+        Saves the current display of this view to a static image by loading a
         file dialog box.
+        @ In, filename, string, optional parameter specifying where this image
+        will be saved. If None, then a dialog box will prompt the user for a
+        name and location.
+        @ Out, None
     """
     if filename is None:
       dialog = qtg.QFileDialog(self)
@@ -286,7 +291,12 @@ class FitnessView(BaseTopologicalView):
     """
         A test function for performing operations on this class that need to be
         automatically tested such as simulating mouse and keyboard events, and
-        other internal operations.
+        other internal operations. For this class in particular, we will test:
+        - Building the models (which allows the actual plot to be displayed)
+        - Saving the view buffer in svg and png formats.
+        - Triggering the resize event.
+        @ In, None
+        @ Out, None
     """
     self.amsc.BuildModels()
     self.amsc.ClearSelection()

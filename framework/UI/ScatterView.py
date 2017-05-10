@@ -261,7 +261,12 @@ class ScatterView(BaseHierarchicalView):
     """
         A test function for performing operations on this class that need to be
         automatically tested such as simulating mouse and keyboard events, and
-        other internal operations.
+        other internal operations.  For this class in particular, we will test:
+        - Switching from 2D to a 3D projection
+        - Changing from a color map to the cluster colors.
+        - Toggling the axes labels on and off and displaying both.
+        @ In, None
+        @ Out, None
     """
     self.cmbVars['Z'].setCurrentIndex(self.cmbVars['Z'].count()-1)
     self.cmbVars['Color'].setCurrentIndex(0)

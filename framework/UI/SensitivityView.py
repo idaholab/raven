@@ -140,8 +140,13 @@ class SensitivityView(BaseTopologicalView):
     self.updateScene()
 
   def saveImage(self, filename=None):
-    """ Saves the current display of this view to a static image by loading a
+    """
+        Saves the current display of this view to a static image by loading a
         file dialog box.
+        @ In, filename, string, optional parameter specifying where this image
+        will be saved. If None, then a dialog box will prompt the user for a
+        name and location.
+        @ Out, None
     """
     if filename is None:
       dialog = qtg.QFileDialog(self)
@@ -495,7 +500,18 @@ class SensitivityView(BaseTopologicalView):
     """
         A test function for performing operations on this class that need to be
         automatically tested such as simulating mouse and keyboard events, and
-        other internal operations.
+        other internal operations. For this class in particular, we will test:
+        - Building of the models (which allows for the actual display of
+          information on this view)
+        - Cylcing through all permutations of the display features which
+         includes the radial/bar layouts, the bundling of dimensions or segments
+         of data, the display of signed or unsigned information, and whether
+         the plot fills the viewport or maintains a square aspect ratio.
+        - Setting the selection of data and ensuring this view updates.
+        - Saving buffer of this view in both svg and png formats.
+        - Triggering of the resize event.
+        @ In, None
+        @ Out, None
     """
     self.amsc.BuildModels()
     for action in self.shapeGroup.actions():

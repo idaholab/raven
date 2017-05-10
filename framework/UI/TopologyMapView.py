@@ -452,8 +452,13 @@ class TopologyMapView(BaseTopologicalView):
     self.updateScene()
 
   def saveImage(self, filename=None):
-    """ Saves the current display of this view to a static image by loading a
+    """
+        Saves the current display of this view to a static image by loading a
         file dialog box.
+        @ In, filename, string, optional parameter specifying where this image
+        will be saved. If None, then a dialog box will prompt the user for a
+        name and location.
+        @ Out, None
     """
     if filename is None:
       dialog = qtg.QFileDialog(self)
@@ -894,7 +899,18 @@ class TopologyMapView(BaseTopologicalView):
     """
         A test function for performing operations on this class that need to be
         automatically tested such as simulating mouse and keyboard events, and
-        other internal operations.
+        other internal operations. For this class in particular, we will test:
+        - Saving the view buffer in both svg and png formats.
+        - Triggering of the resize event.
+        - Subselecting data and updating this view to reflect those changes.
+        - Toggling the color of the extrema.
+        - Toggling the fill viewport action.
+        - Increasing, decreasing, and explicitly setting the persistence level.
+        - Changing the shape of the extremum glyphs
+        - Triggering the mouse move, press, and release events.
+        - Triggering the right-click context menu
+        @ In, None
+        @ Out, None
     """
     self.amsc.ClearSelection()
 

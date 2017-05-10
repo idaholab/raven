@@ -114,7 +114,12 @@ class BaseHierarchicalView(QWidget):
     """
         A test function for performing operations on this class that need to be
         automatically tested such as simulating mouse and keyboard events, and
-        other internal operations.
+        other internal operations.  For this class in particular, we will test:
+        - Retrieving the size hint of this view.
+        - A generic update
+        - Clearing the layout of this view.
+        @ In, None
+        @ Out, None
     """
     sizeHint = BaseHierarchicalView.sizeHint(self)
     BaseHierarchicalView.updateScene(self)

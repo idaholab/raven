@@ -176,7 +176,9 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
   def saveImage(self, filename=None):
     """
       Method for saving the contents of this view to an image file.
-      @ In, None
+      @ In, filename, string, optional parameter specifying where this image
+        will be saved. If None, then a dialog box will prompt the user for a
+        name and location.
       @ Out, None
     """
     if filename is None:
@@ -316,7 +318,13 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
     """
         A test function for performing operations on this class that need to be
         automatically tested such as simulating mouse and keyboard events, and
-        other internal operations.
+        other internal operations. For this class in particular, we will test:
+         - The mouse wheel events to ensure that zooming is appropriately
+           handled and ignored in the case where the user is in pan mode.
+         - Toggling the mouse mode between zooming and panning.
+         - Saving the view buffer to both an svg and png format.
+        @ In, None
+        @ Out, None
     """
     zoom = ZoomableGraphicsView.zoomFactor(self)
     ZoomableGraphicsView.resetView(self)

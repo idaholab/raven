@@ -708,7 +708,17 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     """
         A test function for performing operations on this class that need to be
         automatically tested such as simulating mouse and keyboard events, and
-        other internal operations.
+        other internal operations. For this class in particular, we will test:
+        - Setting the color of one of the nodes by its key value
+        - Increasing and decreasing the assigned level of the hierarchy
+        - Toggling the edge display and updating the scene after each
+        - Triggering the dialog box that allows setting of the truncation size
+        - Triggering the dialog box that adjusts the scaling the glyphs
+        - Triggering the right-click context menu
+        - Triggering the setting of a new level
+        - Triggering the selecting of a subset of data
+        @ In, None
+        @ Out, None
     """
     self.setColor(0,qtg.QColor(255,0,0))
     self.increaseLevel()

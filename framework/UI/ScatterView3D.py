@@ -439,7 +439,16 @@ class ScatterView3D(BaseTopologicalView):
     """
         A test function for performing operations on this class that need to be
         automatically tested such as simulating mouse and keyboard events, and
-        other internal operations.
+        other internal operations.  For this class in particular, we will test:
+        - Toggling the edges on and off and updating the display in both cases.
+        - Toggling all three states of the extrema display.
+        - Changing the color attribute to cycle through each of the labeled
+          variables: Segment, Minimum Flow, Maximum Flow, Local fit value, and
+          local fit error/residual.
+        - Resizing the display
+        - Subselecting the data that is displayed.
+        @ In, None
+        @ Out, None
     """
     self.amsc.ClearSelection()
 
