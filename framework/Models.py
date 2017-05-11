@@ -33,6 +33,7 @@ import inspect
 import time
 import threading
 import platform
+import shlex
 from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
@@ -1637,7 +1638,7 @@ class Code(Model):
 
     self.raiseAMessage('Execution command submitted:',command)
     if platform.system() == 'Windows':
-      command = self.__expandForWindows(self.command)
+      command = self.__expandForWindows(command)
       self.raiseAMessage("modified command to" + repr(command))
 
     ## This code should be evaluated by the job handler, so it is fine to wait
