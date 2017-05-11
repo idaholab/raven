@@ -411,18 +411,19 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       @ In, None
       @ Out, None
     """
-    ## Disable the communication so we don't end up in infinite callbacks
-    self.scene().selectionChanged.disconnect(self.select)
+    # ## Disable the communication so we don't end up in infinite callbacks
+    # self.scene().selectionChanged.disconnect(self.select)
 
-    selectedKeys = self.segmentation.selectedSegments
-    for key,graphic in self.nodes.iteritems():
-      if key in selectedKeys:
-        graphic.setSelected(True)
-      else:
-        graphic.setSelected(False)
+    # selectedKeys = self.segmentation.selectedSegments
+    # for key,graphic in self.nodes.iteritems():
+    #   if key in selectedKeys:
+    #     graphic.setSelected(True)
+    #   else:
+    #     graphic.setSelected(False)
 
-    ## Re-enable the communication
-    self.scene().selectionChanged.connect(self.select)
+    # ## Re-enable the communication
+    # self.scene().selectionChanged.connect(self.select)
+    pass
 
   def updateScene(self):
     """
@@ -701,3 +702,42 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     self.updateActiveLine()
 
     self.fitInView(scene.sceneRect(),qtc.Qt.KeepAspectRatio)
+
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations. For this class in particular, we will test:
+        - Setting the color of one of the nodes by its key value
+        - Increasing and decreasing the assigned level of the hierarchy
+        - Toggling the edge display and updating the scene after each
+        - Triggering the dialog box that allows setting of the truncation size
+        - Triggering the dialog box that adjusts the scaling the glyphs
+        - Triggering the right-click context menu
+        - Triggering the setting of a new level
+        - Triggering the selecting of a subset of data
+        @ In, None
+        @ Out, None
+    """
+    self.setColor(0,qtg.QColor(255,0,0))
+    self.increaseLevel()
+    self.decreaseLevel()
+
+    self.edgeAction.setChecked(True)
+    self.updateScene()
+
+    self.edgeAction.setChecked(False)
+    self.updateScene()
+
+    levels = self.getLevels()
+    self.setTruncation()
+    self.setDiameterMultiplier()
+
+    genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(0,0), qtc.Qt.MiddleButton, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    self.contextMenuEvent(genericMouseEvent)
+    self.setLevel()
+    self.select()
+
+    super(DendrogramView, self).test()
+    BaseHierarchicalView.test(self)
