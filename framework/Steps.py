@@ -460,7 +460,7 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     SingleRun._localInitializeStep(self,inDictionary)
-    self.conter = 0
+    self.counter = 0
     self._samplerInitDict['externalSeeding'] = self.initSeed
     self._initializeSampler(inDictionary)
     #generate lambda function list to collect the output without checking the type

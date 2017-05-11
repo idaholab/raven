@@ -1517,8 +1517,6 @@ class Code(Model):
     executeCommand, self.outFileRoot = returnedCommand
 
     precommand = kwargs['precommand']
-    mpiCommand = kwargs['mpiCommand']
-    threadingCommand = kwargs['threadingCommand']
     postcommand = kwargs['postcommand']
     bufferSize = kwargs['bufferSize']
     fileExtensionsToDelete = kwargs['deleteOutExtension']
@@ -1550,11 +1548,6 @@ class Code(Model):
       newCommand=''
       if runtype.lower() == 'parallel':
         newCommand += precommand
-        if mpiCommand != '':
-          newCommand += ' ' + mpiCommand + ' '
-        ##FIXME are these two exclusive?
-        if threadingCommand !='':
-          newCommand += ' ' + threadingCommand + ' '
         newCommand += cmd+' '
         newCommand += postcommand
         commands.append(newCommand)
@@ -1811,8 +1804,6 @@ class Code(Model):
     ## -- DPM 4/11/17
     kwargs['bufferSize'] = jobHandler.runInfoDict['logfileBuffer']
     kwargs['precommand'] = jobHandler.runInfoDict['precommand']
-    kwargs['mpiCommand'] = jobHandler.mpiCommand
-    kwargs['threadingCommand'] = jobHandler.threadingCommand
     kwargs['postcommand'] = jobHandler.runInfoDict['postcommand']
     kwargs['delSucLogFiles'] = jobHandler.runInfoDict['delSucLogFiles']
     kwargs['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
