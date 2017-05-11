@@ -243,7 +243,7 @@ class SPSA(GradientBasedOptimizer):
       self.counter['perturbation'][traj] = 0
       self.counter['varsUpdate'][traj] += 1
 
-      ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj]) # Compute the new ak
+      ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
       gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
       varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
@@ -254,7 +254,7 @@ class SPSA(GradientBasedOptimizer):
       #self.estimateStochasticity(gradient,self.gradDict['pertPoints'][traj][self.counter['varsUpdate'][traj]-1],varK,centralResponseIndex) #TODO need current point too!
 
       varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
-      varKPlusDenorm = self.denormalizeData(varKPlus) if self.gradDict['normalize'] else varKPlus
+      varKPlusDenorm = self.denormalizeData(varKPlus)
       for var in self.optVars:
         self.values[var] = copy.deepcopy(varKPlusDenorm[var])
         self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(varKPlus[var])
@@ -472,9 +472,8 @@ class SPSA(GradientBasedOptimizer):
       traj = 0
       gradK     = np.asarray(self.counter['gradientHistory'][traj][0].values())/self.counter['gradNormHistory'][traj][0]
       gradPrevK = np.asarray(self.counter['gradientHistory'][traj][1].values())/self.counter['gradNormHistory'][traj][1]
-      self.denormalizeData(optVars)
-      xK        = np.asarray(self.optVarsHist[traj][iterNum-1].values())
-      xPrevK    = np.asarray(self.optVarsHist[traj][iterNum-2].values())
+      xK        = np.asarray(self.denormalizeData(self.optVarsHist[traj][iterNum-1]).values())
+      xPrevK    = np.asarray(self.denormalizeData(self.optVarsHist[traj][iterNum-2]).values())
       deltaX    = np.asarray(xK) - np.asarray(xPrevK)
       gX        = gradK - gradPrevK
       aaa       =  np.asarray(deltaX)*np.asarray(gX).T
