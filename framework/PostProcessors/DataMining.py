@@ -27,13 +27,13 @@ import time
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .Processor import Processor
+from .PostProcessor import PostProcessor
 from utils import utils
 import Files
 import unSupervisedLearning
 #Internal Modules End-----------------------------------------------------------
 
-class DataMining(Processor):
+class DataMining(PostProcessor):
   """
     DataMiningPostProcessor class. It will apply the specified KDD algorithms in
     the models to a dataset, each specified algorithm's output can be loaded to
@@ -62,7 +62,7 @@ class DataMining(Processor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    Processor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
 
     self.requiredAssObject = (True, (['PreProcessor','Metric'], ['-1','-1']))
@@ -264,7 +264,7 @@ class DataMining(Processor):
       @ Out, None
     """
 
-    Processor.initialize(self, runInfo, inputs, initDict)
+    PostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
 
     if "SolutionExport" in initDict:

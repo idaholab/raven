@@ -26,7 +26,7 @@ import math
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Processor import Processor
+from .PostProcessor import PostProcessor
 from .BasicStatistics import BasicStatistics
 from utils import InputData
 import LearningGate
@@ -34,7 +34,7 @@ import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class LimitSurfaceIntegral(Processor):
+class LimitSurfaceIntegral(PostProcessor):
   """
     This post-processor computes the n-dimensional integral of a Limit Surface
   """
@@ -81,7 +81,7 @@ class LimitSurfaceIntegral(Processor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    Processor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, messageHandler)
     self.variableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
     self.target = None  # target that defines the f(x1,x2,...,xn)
     self.tolerance = 0.0001  # integration tolerance

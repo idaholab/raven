@@ -36,7 +36,7 @@ from math import ceil
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from Processors import LimitSurface
+from PostProcessors import LimitSurface
 from .AdaptiveSampler import AdaptiveSampler
 import Distributions
 from AMSC_Object import AMSC_Object

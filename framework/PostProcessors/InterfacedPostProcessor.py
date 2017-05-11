@@ -36,7 +36,7 @@ import six
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Processor import Processor
+from .PostProcessor import PostProcessor
 from utils import utils
 from utils import mathUtils
 from utils import xmlUtils
@@ -52,12 +52,12 @@ import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 #Internal Modules End--------------------------------------------------------------------------------
 
-class InterfacedProcessor(Processor):
+class InterfacedPostProcessor(PostProcessor):
   """
     This class allows to interface a general-purpose post-processor created ad-hoc by the user.
-    While the ExternalProcessor is designed for analysis-dependent cases, the InterfacedProcessor is designed more generic cases
-    The InterfacedProcessor parses (see PostProcessorInterfaces.py) and uses only the functions contained in the raven/framework/PostProcessorFunctions folder
-    The base class for the InterfacedProcessor that the user has to inherit to develop its own InterfacedProcessor is specified
+    While the ExternalPostProcessor is designed for analysis-dependent cases, the InterfacedPostProcessor is designed more generic cases
+    The InterfacedPostProcessor parses (see PostProcessorInterfaces.py) and uses only the functions contained in the raven/framework/PostProcessorFunctions folder
+    The base class for the InterfacedPostProcessor that the user has to inherit to develop its own InterfacedPostProcessor is specified
     in PostProcessorInterfaceBase.py
   """
 
@@ -85,7 +85,7 @@ class InterfacedProcessor(Processor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    Processor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, messageHandler)
     self.methodToRun = None
 
   def initialize(self, runInfo, inputs, initDict):
@@ -96,7 +96,7 @@ class InterfacedProcessor(Processor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    Processor.initialize(self, runInfo, inputs, initDict)
+    PostProcessor.initialize(self, runInfo, inputs, initDict)
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -106,22 +106,22 @@ class InterfacedProcessor(Processor):
       @ Out, None
     """
 
-    # paramInput = InterfacedProcessor.getInputSpecification()()
+    # paramInput = InterfacedPostProcessor.getInputSpecification()()
     # paramInput.parseNode(xmlNode)
 
     for child in xmlNode:
       if child.tag == 'method':
         self.methodToRun = child.text
-    self.postProcessor = InterfacedProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
+    self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
     if not isinstance(self.postProcessor,PostProcessorInterfaceBase):
-      self.raiseAnError(IOError, 'InterfacedProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
+      self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
 
     self.postProcessor.initialize()
     self.postProcessor.readMoreXML(xmlNode)
     if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
-      self.raiseAnError(IOError,'InterfacedProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
     if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
-      self.raiseAnError(IOError,'InterfacedProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
 
 
   def run(self, inputIn):
@@ -131,16 +131,16 @@ class InterfacedProcessor(Processor):
       @ Out, outputDic, dict, dict containing the post-processed results
     """
     if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
-      self.raiseAnError(IOError,'InterfacedProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
     if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
-      self.raiseAnError(IOError,'InterfacedProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
     inputDic= self.inputToInternal(inputIn)
 
     outputDic = self.postProcessor.run(inputDic)
     if self.postProcessor.checkGeneratedDicts(outputDic):
       return outputDic
     else:
-      self.raiseAnError(RuntimeError,'InterfacedProcessor Post-Processor '+ self.name +' : function has generated a not valid output dictionary')
+      self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor '+ self.name +' : function has generated a not valid output dictionary')
 
   def _inverse(self, inputIn):
     outputDic = self.postProcessor._inverse(inputIn)

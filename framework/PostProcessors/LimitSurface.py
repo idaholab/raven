@@ -27,7 +27,7 @@ from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Processor import Processor
+from .PostProcessor import PostProcessor
 from utils import InputData
 from utils import utils
 import LearningGate
@@ -35,7 +35,7 @@ import GridEntities
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
-class LimitSurface(Processor):
+class LimitSurface(PostProcessor):
   """
     LimitSurface filter class. It computes the limit surface associated to a dataset
   """
@@ -69,7 +69,7 @@ class LimitSurface(Processor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    Processor.__init__(self,messageHandler)
+    PostProcessor.__init__(self,messageHandler)
     self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.testMatrix        = OrderedDict()    #This is the n-dimensional matrix representing the testing grid
@@ -151,7 +151,7 @@ class LimitSurface(Processor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    Processor.initialize(self, runInfo, inputs, initDict)
+    PostProcessor.initialize(self, runInfo, inputs, initDict)
     self.gridEntity = GridEntities.returnInstance("MultiGridEntity",self,self.messageHandler)
     self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]

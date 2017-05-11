@@ -27,14 +27,14 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Processor import Processor
+from .PostProcessor import PostProcessor
 from .BasicStatistics import BasicStatistics
 from utils import InputData
 from utils.RAVENiterators import ravenArrayIterator
 import DataObjects
 #Internal Modules End--------------------------------------------------------------------------------
 
-class SafestPoint(Processor):
+class SafestPoint(PostProcessor):
   """
     It searches for the probability-weighted safest point inside the space of the system controllable variables
   """
@@ -79,7 +79,7 @@ class SafestPoint(Processor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    Processor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, messageHandler)
     self.controllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each controllable variable.
     self.nonControllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each non-controllable variable.
     self.controllableGrid = {}  # dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.

@@ -22,14 +22,14 @@
 from __future__ import absolute_import
 
 ## These lines ensure that we do not have to do something like:
-## 'from Processors.Processor import Processor' outside
+## 'from PostProcessors.PostProcessor import PostProcessor' outside
 ## of this submodule
-from .Processor import Processor
+from .PostProcessor import PostProcessor
 from .BasicStatistics import BasicStatistics
 from .ComparisonStatistics import ComparisonStatistics
-from .ExternalProcessor import ExternalProcessor
+from .ExternalPostProcessor import ExternalPostProcessor
 from .ImportanceRank import ImportanceRank
-from .InterfacedProcessor import InterfacedProcessor
+from .InterfacedPostProcessor import InterfacedPostProcessor
 from .LimitSurface import LimitSurface
 from .LimitSurfaceIntegral import LimitSurfaceIntegral
 from .RavenOutput import RavenOutput
@@ -38,9 +38,14 @@ from .SafestPoint import SafestPoint
 from .TopologicalDecomposition import TopologicalDecomposition
 from .DataMining import DataMining
 
+additionalModules = []
+## These utilize the optional prequisite library PySide, so don't error if they
+## do not import appropriately.
 try:
   from .TopologicalDecomposition import QTopologicalDecomposition
   from .DataMining import QDataMining
+  additionalModules.append(QTopologicalDecomposition)
+  additionalModules.append(QDataMining)
 except ImportError:
   ## User most likely does not have PySide installed and working
   pass
@@ -50,17 +55,15 @@ from .Factory import returnInstance
 from .Factory import returnClass
 
 # We should not really need this as we do not use wildcard imports
-__all__ = ['BasicStatistics',
+__all__ = ['PostProcessor',
+           'BasicStatistics',
            'ComparisonStatistics',
-           'ExternalProcessor',
+           'ExternalPostProcessor',
            'ImportanceRank',
-           'InterfacedProcessor',
+           'InterfacedPostProcessor',
            'LimitSurface',
            'LimitSurfaceIntegral',
            'RavenOutput',
            'SafestPoint',
            'TopologicalDecomposition',
-           'DataMining',
-           'QTopologicalDecomposition',
-           'QDataMining'
-           ]
+           'DataMining'] + additionalModules

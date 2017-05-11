@@ -25,12 +25,12 @@ import numpy as np
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .Processor import Processor
+from .PostProcessor import PostProcessor
 from utils import InputData
 import Files
 #Internal Modules End-----------------------------------------------------------
 
-class ExternalProcessor(Processor):
+class ExternalPostProcessor(PostProcessor):
   """
     ExternalPostProcessor class. It will apply an arbitrary python function to
     a dataset and append each specified function's output to the output data
@@ -43,7 +43,7 @@ class ExternalProcessor(Processor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    Processor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, messageHandler)
     self.methodsToRun = []              # A list of strings specifying what
                                         # methods the user wants to compute from
                                         # the external interfaces
@@ -65,7 +65,7 @@ class ExternalProcessor(Processor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(ExternalProcessor, cls).getInputSpecification()
+    inputSpecification = super(ExternalPostProcessor, cls).getInputSpecification()
 
     EMethodInput = InputData.parameterInputFactory("method")
     inputSpecification.addSub(EMethodInput)
@@ -151,7 +151,7 @@ class ExternalProcessor(Processor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    Processor.initialize(self, runInfo, inputs, initDict)
+    PostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
     for key in self.assemblerDict.keys():
       if 'Function' in key:
@@ -165,7 +165,7 @@ class ExternalProcessor(Processor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    paramInput = ExternalProcessor.getInputSpecification()()
+    paramInput = ExternalPostProcessor.getInputSpecification()()
     paramInput.parseNode(xmlNode)
     for child in paramInput.subparts:
       if child.getName() == 'method':

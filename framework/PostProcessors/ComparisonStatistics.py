@@ -26,14 +26,14 @@ import math
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Processor import Processor
+from .PostProcessor import PostProcessor
 from utils import utils
 from utils import mathUtils
 from utils import InputData
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
-class ComparisonStatistics(Processor):
+class ComparisonStatistics(PostProcessor):
   """
     ComparisonStatistics is to calculate statistics that compare
     two different codes or code to experimental data.
@@ -97,7 +97,7 @@ class ComparisonStatistics(Processor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    Processor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, messageHandler)
     self.dataDict = {}  # Dictionary of all the input data, keyed by the name
     self.compareGroups = []  # List of each of the groups that will be compared
     # self.dataPulls = [] #List of data references that will be used
@@ -125,7 +125,7 @@ class ComparisonStatistics(Processor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    Processor.initialize(self, runInfo, inputs, initDict)
+    PostProcessor.initialize(self, runInfo, inputs, initDict)
 
   def _localReadMoreXML(self, xmlNode):
     """

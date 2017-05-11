@@ -31,7 +31,7 @@ from Assembler import Assembler
 import MessageHandler
 #Internal Modules End-----------------------------------------------------------
 
-class Processor(Assembler):
+class PostProcessor(Assembler):
   """
     This is the base class for postprocessors
   """
@@ -61,7 +61,7 @@ class Processor(Assembler):
     ######## End Temporary until this class inherits from the BaseType
 
     ## This will replace the lines above
-    # inputSpecification = super(Processor, cls).getInputSpecification()
+    # inputSpecification = super(PostProcessor, cls).getInputSpecification()
     inputSpecification.addParam("subType", InputData.StringType, True)
 
     return inputSpecification

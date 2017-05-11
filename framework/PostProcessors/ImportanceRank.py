@@ -28,13 +28,13 @@ from sklearn.linear_model import LinearRegression
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Processor import Processor
+from .PostProcessor import PostProcessor
 from utils import InputData
 import Files
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 #Internal Modules End--------------------------------------------------------------------------------
 
-class ImportanceRank(Processor):
+class ImportanceRank(PostProcessor):
   """
     ImportantRank class. It computes the important rank for given input parameters
     1. The importance of input parameters can be ranked via their sensitivies (SI: sensitivity index)
@@ -92,7 +92,7 @@ class ImportanceRank(Processor):
       @ In, messageHandler, message handler object
       @ Out, None
     """
-    Processor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, messageHandler)
     self.targets = []
     self.features = []
     self.latent = []
@@ -412,7 +412,7 @@ class ImportanceRank(Processor):
       @ In, inputs, list, list of inputs
       @ In, initDict, dict, dictionary with initialization options
     """
-    Processor.initialize(self, runInfo, inputs, initDict)
+    PostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
 
   def inputToInternal(self, currentInp):

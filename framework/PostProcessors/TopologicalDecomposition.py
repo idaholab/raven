@@ -26,12 +26,12 @@ import time
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Processor import Processor
+from .PostProcessor import PostProcessor
 from utils import InputData
 import Files
 #Internal Modules End-----------------------------------------------------------
 
-class TopologicalDecomposition(Processor):
+class TopologicalDecomposition(PostProcessor):
   """
     TopologicalDecomposition class - Computes an approximated hierarchical
     Morse-Smale decomposition from an input point cloud consisting of an
@@ -88,7 +88,7 @@ class TopologicalDecomposition(Processor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    Processor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, messageHandler)
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
     self.acceptedPersistenceParam = ['difference','probability','count']#,'area']

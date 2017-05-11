@@ -24,13 +24,13 @@ warnings.simplefilter('default', DeprecationWarning)
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .Processor import Processor
+from .PostProcessor import PostProcessor
 from utils import utils
 from utils import xmlUtils
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
-class RavenOutput(Processor):
+class RavenOutput(PostProcessor):
   """
     This postprocessor collects the outputs of RAVEN runs (XML format) and turns entries into a PointSet
     Someday maybe it should do history sets too.
@@ -59,7 +59,7 @@ class RavenOutput(Processor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    Processor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR RAVENOUTPUT'
     self.IDType = 'int'
     self.files = {}
@@ -77,7 +77,7 @@ class RavenOutput(Processor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    Processor.initialize(self, runInfo, inputs, initDict)
+    PostProcessor.initialize(self, runInfo, inputs, initDict)
     #assign File objects to their proper place
     for id,fileDict in self.files.items():
       found = False

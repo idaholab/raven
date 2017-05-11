@@ -30,7 +30,7 @@ import six
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .Processor import Processor
+from .PostProcessor import PostProcessor
 from utils import utils
 import Files
 #Internal Modules End-----------------------------------------------------------
@@ -55,7 +55,7 @@ import Files
 #BasicStatisticsInput.addSub(PivotParameterInput)
 
 #
-class BasicStatistics(Processor):
+class BasicStatistics(PostProcessor):
   """
     BasicStatistics filter class. It computes all the most popular statistics
   """
@@ -94,7 +94,7 @@ class BasicStatistics(Processor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    Processor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, messageHandler)
     self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.scalarVals = ['expectedValue',
                        'minimum',
@@ -214,7 +214,7 @@ class BasicStatistics(Processor):
           self.allUsedParams.update(entry['features'])
     #for backward compatibility, compile the full list of parameters used in Basic Statistics calculations
     self.parameters['targets'] = list(self.allUsedParams)
-    Processor.initialize(self, runInfo, inputs, initDict)
+    PostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
 
   def _localReadMoreXML(self, xmlNode):

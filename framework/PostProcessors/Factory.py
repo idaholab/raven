@@ -26,12 +26,12 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
-from .Processor import Processor
+from .PostProcessor import PostProcessor
 from .BasicStatistics import BasicStatistics
 from .ComparisonStatistics import ComparisonStatistics
-from .ExternalProcessor import ExternalProcessor
+from .ExternalPostProcessor import ExternalPostProcessor
 from .ImportanceRank import ImportanceRank
-from .InterfacedProcessor import InterfacedProcessor
+from .InterfacedPostProcessor import InterfacedPostProcessor
 from .LimitSurface import LimitSurface
 from .LimitSurfaceIntegral import LimitSurfaceIntegral
 from .RavenOutput import RavenOutput
@@ -40,15 +40,19 @@ from .SafestPoint import SafestPoint
 from .TopologicalDecomposition import TopologicalDecomposition
 from .DataMining import DataMining
 
+## These utilize the optional prequisite library PySide, so don't error if they
+## do not import appropriately.
 try:
   from .TopologicalDecomposition import QTopologicalDecomposition
   from .DataMining import QDataMining
 except ImportError:
   pass
+
 ## [ Add new class here ]
+
 ################################################################################
 ## Alternatively, to fully automate this file:
-# from Processors import *
+# from PostProcessors import *
 ################################################################################
 
 
@@ -58,7 +62,7 @@ except ImportError:
 
 # This machinery will automatically populate the "knownTypes" given the
 # imports defined above.
-__base = 'Processor'
+__base = 'PostProcessor'
 __interFaceDict = {}
 
 for classObj in eval(__base).__subclasses__():
@@ -66,8 +70,7 @@ for classObj in eval(__base).__subclasses__():
   __interFaceDict[key] = classObj
 
 ## Adding aliases for certain classes that are exposed to the user.
-__interFaceDict['InterfacedPostProcessor'] = InterfacedProcessor
-__interFaceDict['External'] = ExternalProcessor
+__interFaceDict['External'] = ExternalPostProcessor
 
 def knownTypes():
   """
@@ -84,7 +87,7 @@ def returnInstance(Type,caller):
     available to this factory.
     @ In, Type, string, string should be one of the knownTypes.
     @ In, caller, instance, the object requesting the instance (used for error/debug messaging).
-    @ Out, returnInstance, instance, instance of Processor subclass, a subclass object constructed with no arguments
+    @ Out, returnInstance, instance, instance of PostProcessor subclass, a subclass object constructed with no arguments
   """
   try:
     return __interFaceDict[Type](caller.messageHandler)
