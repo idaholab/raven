@@ -2219,18 +2219,7 @@ class EnsembleModel(Dummy, Assembler):
         self.modelsDictionary[modelIn[2]]['OutputObject'] = outputInstancesForModel
         self.tempOutputs[modelIn[2]] = copy.deepcopy(outputInstancesForModel)
       else:
-        class byPass(object):
-          """
-            This is dummy class that is needed to emulate the "dataObject" resetData method
-          """
-          def resetData(self):
-            """
-              This is dummy method that is needed to emulate the "dataObject" resetData method
-              @ In, None
-              @ Out, None
-            """
-            pass
-        self.tempOutputs[modelIn[2]] = [byPass()]
+        self.tempOutputs[modelIn[2]] = [utils.byPass()]
       self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
       for mm in self.modelsDictionary[modelIn[2]]['Instance'].mods:
         if mm not in self.mods:
