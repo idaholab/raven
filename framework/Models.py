@@ -1474,7 +1474,7 @@ class Code(Model):
 
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
-
+    print(self.oriInputFiles)
     for index in range(len(newInputSet)):
       newInputSet[index].setPath(subDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
@@ -2196,11 +2196,17 @@ class EnsembleModel(Dummy, Assembler):
     """
     # in here we store the job ids for which we did not collected the optional output yet
     self.tempOutputs['uncollectedJobIds'] = []
+    # here we check if all the inputs inputted in the Step containing the EnsembleModel are acttualy used
+    checkDictInputsUsage = {}
+    for input in inputs:
+      checkDictInputsUsage[input] = False
+
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
       inputInstancesForModel = []
       for input in self.modelsDictionary[modelIn[2]]['Input']:
         inputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Input',input))
+        checkDictInputsUsage[inputInstancesForModel[-1]] = True
       self.modelsDictionary[modelIn[2]]['InputObject'] = inputInstancesForModel
 
       if self.modelsDictionary[modelIn[2]]['Output'] is not None:
@@ -2233,6 +2239,13 @@ class EnsembleModel(Dummy, Assembler):
       self.tempTargetEvaluations[modelIn[2]]                = copy.deepcopy(self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
       self.modelsDictionary[modelIn[2]]['Input' ]           = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
       self.modelsDictionary[modelIn[2]]['Output']           = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
+    # check if all the inputs passed in the step are linked with at least a model
+    if not all(checkDictInputsUsage.values()):
+      unusedFiles = ""
+      for inFile, used in checkDictInputsUsage.items():
+        if not used:
+          unusedFiles+= " "+inFile.name
+      self.raiseAnError(IOError, "The following inputs specified in the Step are not used in the EnsembleModel: "+unusedFiles)
     # construct chain connections
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
     # find matching models
