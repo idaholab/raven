@@ -84,6 +84,31 @@ class HierarchyWindow(qtg.QMainWindow):
       action = newMenu.addAction(subclass.__name__)
       action.triggered.connect(functools.partial(self.addNewView,action.text()))
 
+  def test(self):
+    """
+        Method for testing this UI. It will generate one of each of the
+        subclass views of the BaseHierarchicalView and call each of the signaled
+        events on each view.
+        @ In, None
+        @ Out, None
+    """
+    for viewClass in BaseHierarchicalView.__subclasses__():
+      self.addNewView(viewClass.__name__)
+
+    labels = self.getLabels()
+    self.decreaseLevel()
+    self.increaseLevel()
+    self.setColor(0,qtg.QColor(255,0,0))
+
+    for view in self.views:
+      view.updateScene()
+      view.colorChanged()
+      view.levelChanged()
+      view.selectionChanged()
+
+      view.test()
+
+
   def createDockWidget(self,view):
     """
       Method to create a new child dock widget of a specified type.

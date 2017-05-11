@@ -60,11 +60,17 @@ class RavenFramework(Tester):
     params.addParam('remove_whitespace','False','Removes whitespace before comparing xml node text if True')
     params.addParam('expected_fail', 'False', 'if true, then the test should fails, and if it passes, it fails.')
     params.addParam('remove_unicode_identifier', 'False', 'if true, then remove u infront of a single quote')
+    params.addParam('interactive', 'False', 'if true, then RAVEN will be run with interactivity enabled.')
     return params
 
   def getCommand(self, options):
     ravenflag = ''
-    if self.specs['test_interface_only'].lower() == 'true': ravenflag = 'interfaceCheck '
+    if self.specs['test_interface_only'].lower() == 'true':
+      ravenflag += ' interfaceCheck '
+
+    if self.specs['interactive'].lower() == 'true':
+      ravenflag += ' interactiveCheck '
+
     if RavenUtils.inPython3():
       return "python3 " + self.driver + " " + ravenflag + self.specs["input"]
     else:
