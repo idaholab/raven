@@ -46,9 +46,12 @@ from utils import TreeStructure
 from utils import graphStructure
 from utils import InputData
 from utils.cached_ndarray import c1darray
+from Csv_loader import CsvLoader
 import Files
 import PostProcessors
 import LearningGate
+import Runners
+from DataObjects import Data
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -297,6 +300,19 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
 
+  @abc.abstractmethod
+  def evaluateSample(self, myInput, samplerType, kwargs):
+    """
+        This will evaluate an individual sample on this model. Note, parameters
+        are needed by createNewInput and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new one
+        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ Out, returnValue, tuple(input,dict), This holds the output information of the evaluated sample.
+    """
+    pass
+
   def localInputAndChecks(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -323,14 +339,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       paramDict['The model output variable '+str(value)+' is filled using the framework variable '] = key
     return paramDict
 
-  def finalizeModelOutput(self,finishedJob):
-    """
-      Method that is aimed to finalize (preprocess) the output of a model before the results get collected
-      @ In, finishedJob, InternalRunner object, instance of the run just finished
-      @ Out, None
-    """
-    pass
-
   def localGetInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
@@ -351,36 +359,44 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
-  def updateInputFromOutside(self, Input, externalDict):
-    """
-      Method to update an input from outside
-      @ In, Input, list, list of inputs that needs to be updated
-      @ In, externalDict, dict, dictionary of new values that need to be added or updated
-      @ Out, inputOut, list, updated list of inputs
-    """
-    pass
-
   @abc.abstractmethod
-  def createNewInput(self,myInput,samplerType,**Kwargs):
+  def createNewInput(self,myInput,samplerType,**kwargs):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-      @ Out, [(Kwargs)], list, return the new input in a list form
+      @ Out, [(kwargs)], list, return the new input in a list form
     """
-    return [(copy.copy(Kwargs))]
+    return [(copy.copy(kwargs))]
 
-  @abc.abstractmethod
-  def run(self,Input,jobHandler):
+  def submit(self, myInput, samplerType, jobHandler, **kwargs):
     """
-      Method that performs the actual run of the Code model
-      @ In,  Input, object, object contained the data to process. (inputToInternal output)
-      @ In,  jobHandler, JobHandler instance, the global job handler instance
-      @ Out, None
+        This will submit an individual sample to be evaluated by this model to a
+        specified jobHandler. Note, some parameters are needed by createNewInput
+        and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new one
+        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In,  jobHandler, JobHandler instance, the global job handler instance
+        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ Out, None
     """
-    pass
+    prefix = kwargs['prefix'] if 'prefix' in kwargs else None
+    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
+
+    ## These kwargs are updated by createNewInput, so the job either should not
+    ## have access to the metadata, or it needs to be updated from within the
+    ## evaluateSample function, which currently is not possible since that
+    ## function does not know about the job instance.
+    metadata = kwargs
+
+    ## This may look a little weird, but due to how the parallel python library
+    ## works, we are unable to pass a member function as a job because the
+    ## pp library loses track of what self is, so instead we call it from the
+    ## class and pass self in as the first parameter
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
 
   def collectOutput(self,collectFrom,storeTo,options=None):
     """
@@ -492,7 +508,7 @@ class Dummy(Model):
       localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
     return localInput
 
-  def createNewInput(self,myInput,samplerType,**Kwargs):
+  def createNewInput(self,myInput,samplerType,**kwargs):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       here only a PointSet is accepted a local copy of the values is performed.
@@ -500,9 +516,9 @@ class Dummy(Model):
       The copied values are returned as a dictionary back
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-      @ Out, ([(inputDict)],copy.deepcopy(Kwargs)), tuple, return the new input in a tuple form
+      @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
     if len(myInput)>1:
       self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
@@ -510,57 +526,44 @@ class Dummy(Model):
     inputDict   = self._inputToInternal(myInput[0])
     self._replaceVariablesNamesWithAliasSystem(inputDict,'input',False)
 
-    if 'SampledVars' in Kwargs.keys():
-      sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'],'input',False)
+    if 'SampledVars' in kwargs.keys():
+      sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
 
-    for key in Kwargs['SampledVars'].keys():
-      inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
+    for key in kwargs['SampledVars'].keys():
+      inputDict[key] = np.atleast_1d(kwargs['SampledVars'][key])
     for val in inputDict.values():
       if val is None:
         self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found a None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
-    if 'SampledVars' in Kwargs.keys() and len(self.alias['input'].keys()) != 0:
-      Kwargs['SampledVars'] = sampledVars
-    return [(inputDict)],copy.deepcopy(Kwargs)
 
-  def updateInputFromOutside(self, Input, externalDict):
-    """
-      Method to update an input from outside
-      @ In, Input, list, list of inputs that needs to be updated
-      @ In, externalDict, dict, dictionary of new values that need to be added or updated
-      @ Out, inputOut, list, updated list of inputs
-    """
-    inputOut = Input
-    for key, value in externalDict.items():
-      inputOut[0][0][key] =  externalDict[key]
-      inputOut[1]["SampledVars"  ][key] =  externalDict[key]
-      inputOut[1]["SampledVarsPb"][key] =  1.0    #FIXME it is a mistake (Andrea). The SampledVarsPb for this variable should be transfred from outside
-      self._replaceVariablesNamesWithAliasSystem(inputOut[1]["SampledVars"  ],'input',False)
-      self._replaceVariablesNamesWithAliasSystem(inputOut[1]["SampledVarsPb"],'input',False)
-    return inputOut
+    ## SampledVars should almost always be in the kwargs, but in the off chance
+    ## it is not, we want to continue as normal. Rather than use an if, we do
+    ## it this way, since the kwargs can have an arbitrary size of keys in it.
+    try:
+      if len(self.alias['input'].keys()) != 0:
+        kwargs['SampledVars'] = sampledVars
+    except KeyError:
+      pass
+    return [(inputDict)],copy.deepcopy(kwargs)
 
-  def run(self,Input,jobHandler):
+  def evaluateSample(self, myInput, samplerType, kwargs):
     """
-      This method executes the model .
-      @ In,  Input, object, object contained the data to process. (inputToInternal output)
-      @ In,  jobHandler, JobHandler instance, the global job handler instance
-      @ Out, None
+        This will evaluate an individual sample on this model. Note, parameters
+        are needed by createNewInput and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new one
+        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ Out, returnValue, tuple, This will hold two pieces of information,
+          the first item will be the input data used to generate this sample,
+          the second item will be the output of this model given the specified
+          inputs
     """
-    #this set of test is performed to avoid that if used in a single run we come in with the wrong input structure since the self.createNewInput is not called
+    Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-
-    def lambdaReturnOut(inRun,prefix):
-      """
-        This method is the one is going to be submitted through the jobHandler
-        @ In, inRun, dict, the input
-        @ In, prefix, string, the string identifying this job
-        @ Out, lambdaReturnOut, dict, the return dictionary
-      """
-      return {'OutputPlaceHolder':np.atleast_1d(np.float(prefix))}
-
-    uniqueHandler = Input[1]['uniqueHandler'] if 'uniqueHandler' in Input[1].keys() else 'any'
-    jobHandler.addInternal((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods, uniqueHandler=uniqueHandler)
+    returnValue = (inRun,{'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))})
+    return returnValue
 
   def collectOutput(self,finishedJob,output,options=None):
     """
@@ -570,15 +573,20 @@ class Dummy(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(AttributeError,"No available Output to collect")
     evaluation = finishedJob.getEvaluation()
-    if type(evaluation[1]).__name__ == "tuple":
-      outputeval = evaluation[1][0]
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(AttributeError,"No available Output to collect")
+
+    sampledVars,outputDict = evaluation
+
+    if type(outputDict).__name__ == "tuple":
+      outputEval = outputDict[0]
     else:
-      outputeval = evaluation[1]
-    exportDict = copy.deepcopy({'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.getMetadata()})
+      outputEval = outputDict
+
+    exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputEval,'metadata':finishedJob.getMetadata()})
     self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
+
     if output.type == 'HDF5':
       optionsIn = {'group':self.name+str(finishedJob.identifier)}
       if options is not None:
@@ -783,15 +791,6 @@ class ROM(Dummy):
     self.supervisedEngine          = None       # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
 
-  def updateInputFromOutside(self, Input, externalDict):
-    """
-      Method to update an input from outside
-      @ In, Input, list, list of inputs that needs to be updated
-      @ In, externalDict, dict, dictionary of new values that need to be added or updated
-      @ Out, inputOut, list, updated list of inputs
-    """
-    return Dummy.updateInputFromOutside(self, Input, externalDict)
-
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -951,27 +950,34 @@ class ROM(Dummy):
     outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
     return outputEvaluation
 
-  def __externalRun(self,inRun):
+  def _externalRun(self,inRun):
     """
       Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
       @ In, inRun, datatype, feature coordinates
       @ Out, returnDict, dict, the return dictionary containing the results
     """
     returnDict = self.evaluate(inRun)
-    self._replaceVariablesNamesWithAliasSystem(returnDict, 'output',True)
-    self._replaceVariablesNamesWithAliasSystem(inRun, 'input',True)
+    self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
+    self._replaceVariablesNamesWithAliasSystem(inRun, 'input', True)
     return returnDict
 
-  def run(self,Input,jobHandler):
+  def evaluateSample(self, myInput, samplerType, kwargs):
     """
-      This method executes the model ROM.
-      @ In,  Input, object, object contained the data to process. (inputToInternal output)
-      @ In,  jobHandler, JobHandler instance, the global job handler instance
-      @ Out, None
+        This will evaluate an individual sample on this model. Note, parameters
+        are needed by createNewInput and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new one
+        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ Out, returnValue, tuple, This will hold two pieces of information,
+          the first item will be the input data used to generate this sample,
+          the second item will be the output of this model given the specified
+          inputs
     """
+    Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-    uniqueHandler = Input[1]['uniqueHandler'] if 'uniqueHandler' in Input[1].keys() else 'any'
-    jobHandler.addInternal((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+    returnValue = inRun,self._externalRun(inRun)
+    return returnValue
 #
 #
 #
@@ -1041,46 +1047,30 @@ class ExternalModel(Dummy):
     Dummy.initialize(self, runInfo, inputs)
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.sim)))
 
-  def createNewInput(self,myInput,samplerType,**Kwargs):
+  def createNewInput(self,myInput,samplerType,**kwargs):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-      @ Out, ([(inputDict)],copy.deepcopy(Kwargs)), tuple, return the new input in a tuple form
+      @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
     modelVariableValues ={}
     if 'createNewInput' in dir(self.sim):
-      if 'SampledVars' in Kwargs.keys():
-        sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'],'input',False)
-      extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
+      if 'SampledVars' in kwargs.keys():
+        sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
+      extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**kwargs)
       if extCreateNewInput== None:
         self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
-      if 'SampledVars' in Kwargs.keys() and len(self.alias['input'].keys()) != 0:
-        Kwargs['SampledVars'] = sampledVars
-      newInput = ([(extCreateNewInput)],copy.deepcopy(Kwargs))
-      #return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.copy(modelVariableValues)
+      if 'SampledVars' in kwargs.keys() and len(self.alias['input'].keys()) != 0:
+        kwargs['SampledVars'] = sampledVars
+      newInput = ([(extCreateNewInput)],copy.deepcopy(kwargs))
     else:
-      newInput =  Dummy.createNewInput(self, myInput,samplerType,**Kwargs)
-    for key in Kwargs['SampledVars'].keys():
-      modelVariableValues[key] = Kwargs['SampledVars'][key]
+      newInput =  Dummy.createNewInput(self, myInput,samplerType,**kwargs)
+    for key in kwargs['SampledVars'].keys():
+      modelVariableValues[key] = kwargs['SampledVars'][key]
     return newInput, copy.copy(modelVariableValues)
-
-  def updateInputFromOutside(self, Input, externalDict):
-    """
-      Method to update an input from outside
-      @ In, Input, list, list of inputs that needs to be updated
-      @ In, externalDict, dict, dictionary of new values that need to be added or updated
-      @ Out, inputOut, list, updated list of inputs
-    """
-    dummyReturn =  Dummy.updateInputFromOutside(self,Input[0], externalDict)
-    self._replaceVariablesNamesWithAliasSystem(dummyReturn[0][0],'input',False)
-    inputOut = (dummyReturn,Input[1])
-    for key, value in externalDict.items():
-      inputOut[1][key] =  externalDict[key]
-    self._replaceVariablesNamesWithAliasSystem(inputOut[1],'input',False)
-    return inputOut
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -1115,7 +1105,7 @@ class ExternalModel(Dummy):
     if '_readMoreXML' in dir(self.sim):
       self.sim._readMoreXML(self.initExtSelf,xmlNode)
 
-  def __externalRun(self, Input, modelVariables):
+  def _externalRun(self, Input, modelVariables):
     """
       Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
       @ In, Input, list, list of the inputs needed for running the model
@@ -1168,16 +1158,23 @@ class ExternalModel(Dummy):
     self._replaceVariablesNamesWithAliasSystem(outcomes,'inout',True)
     return outcomes,self
 
-  def run(self,Input,jobHandler):
+  def evaluateSample(self, myInput, samplerType, kwargs):
     """
-       Method that performs the actual run of the imported external model
-       @ In,  Input, object, object contained the data to process. (inputToInternal output)
-       @ In,  jobHandler, JobHandler instance, the global job handler instance
-       @ Out, None
+        This will evaluate an individual sample on this model. Note, parameters
+        are needed by createNewInput and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new one
+        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ Out, returnValue, tuple, This will hold two pieces of information,
+          the first item will be the input data used to generate this sample,
+          the second item will be the output of this model given the specified
+          inputs
     """
+    Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
-    uniqueHandler = Input[0][1]['uniqueHandler'] if 'uniqueHandler' in Input[0][1].keys() else 'any'
-    jobHandler.addInternal((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods,uniqueHandler=uniqueHandler)
+    returnValue = (inRun,self._externalRun(inRun,Input[1],))
+    return returnValue
 
   def collectOutput(self,finishedJob,output,options=None):
     """
@@ -1187,10 +1184,14 @@ class ExternalModel(Dummy):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"No available Output to collect")
-    instanciatedSelf = finishedJob.getEvaluation()[1][1]
-    outcomes         = finishedJob.getEvaluation()[1][0]
+
+    _, evaluatedOutput = evaluation
+    instanciatedSelf = evaluatedOutput[1]
+    outcomes         = evaluatedOutput[0]
+
     if output.type in ['HistorySet']:
       outputSize = -1
       for key in output.getParaKeys('outputs'):
@@ -1199,6 +1200,7 @@ class ExternalModel(Dummy):
             outputSize = len(np.atleast_1d(outcomes[key]))
           if not utils.sizeMatch(outcomes[key],outputSize):
             self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(len(np.atleast_1d(outcomes[key]))))
+
     Dummy.collectOutput(self, finishedJob, output, options)
 #
 #
@@ -1443,7 +1445,7 @@ class Code(Model):
     self.currentInputFiles        = None
     self.outFileRoot              = None
 
-  def createNewInput(self,currentInput,samplerType,**Kwargs):
+  def createNewInput(self,currentInput,samplerType,**kwargs):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       here only a PointSet is accepted a local copy of the values is performed.
@@ -1451,14 +1453,14 @@ class Code(Model):
       The copied values are returned as a dictionary back
       @ In, currentInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the SampledVars'that contains a dictionary {'name variable':value}
            also 'additionalEdits', similar dictionary for non-variables
       @ Out, createNewInput, tuple, return the new input in a tuple form
     """
-    Kwargs['executable'] = self.executable
     found = False
     newInputSet = copy.deepcopy(currentInput)
+
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
     #  objects.  However, this might require some updating of many Code Interfaces as well.
     for index, inputFile in enumerate(newInputSet):
@@ -1468,59 +1470,73 @@ class Code(Model):
     if not found:
       self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    Kwargs['outfile'] = 'out~'+newInputSet[index].getBase()
-    subDirectory = os.path.join(self.workingDir,Kwargs['prefix'] if 'prefix' in Kwargs.keys() else '1')
+    subDirectory = os.path.join(self.workingDir, kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
 
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
+
     for index in range(len(newInputSet)):
       newInputSet[index].setPath(subDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
-    Kwargs['subDirectory'] = subDirectory
-    if 'SampledVars' in Kwargs.keys():
-      sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'],'input',False)
-    newInput    = self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(Kwargs))
-    if 'SampledVars' in Kwargs.keys() and len(self.alias['input'].keys()) != 0:
-      Kwargs['SampledVars'] = sampledVars
-    return (newInput,Kwargs)
 
-  def updateInputFromOutside(self, Input, externalDict):
-    """
-      Method to update an input from outside
-      @ In, Input, list, list of inputs that needs to be updated
-      @ In, externalDict, dict, dictionary of new values that need to be added or updated
-      @ Out, inputOut, list, updated list of inputs
-    """
-    newKwargs = Input[1]
-    newKwargs['SampledVars'].update(externalDict)
-    # the following update should be done with the Pb value coming from the previous (in the model chain) model
-    newKwargs['SampledVarsPb'].update(dict.fromkeys(externalDict.keys(),1.0))
-    self._replaceVariablesNamesWithAliasSystem(newKwargs['SampledVars'  ],'input',False)
-    self._replaceVariablesNamesWithAliasSystem(newKwargs['SampledVarsPb'],'input',False)
-    inputOut = self.createNewInput(Input[1]['originalInput'], Input[1]['SamplerType'], **newKwargs)
-    return inputOut
+    kwargs['subDirectory'] = subDirectory
 
-  def run(self,inputFiles,jobHandler):
+    if 'SampledVars' in kwargs.keys():
+      sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
+
+    newInput    = self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(kwargs))
+
+    if 'SampledVars' in kwargs.keys() and len(self.alias['input'].keys()) != 0:
+      kwargs['SampledVars'] = sampledVars
+
+    return (newInput,kwargs)
+
+  def evaluateSample(self, myInput, samplerType, kwargs):
     """
-      Method that performs the actual run of the Code model
-      @ In,  Input, object, object contained the data to process. (inputToInternal output)
-      @ In,  jobHandler, JobHandler instance, the global job handler instance
-      @ Out, None
+        This will evaluate an individual sample on this model. Note, parameters
+        are needed by createNewInput and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new one
+        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars that contains a dictionary {'name variable':value}
+        @ Out, returnValue, tuple, This will hold two pieces of information,
+          the first item will be the input data used to generate this sample,
+          the second item will be the output of this model given the specified
+          inputs
     """
+    inputFiles = self.createNewInput(myInput, samplerType, **kwargs)
     self.currentInputFiles, metaData = (copy.deepcopy(inputFiles[0]),inputFiles[1]) if type(inputFiles).__name__ == 'tuple' else (inputFiles, None)
     returnedCommand = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileArgs=self.fargs, preExec=self.preExec)
-    if type(returnedCommand).__name__ != 'tuple':
-      self.raiseAnError(IOError, "the generateCommand method in code interface must return a tuple")
-    if type(returnedCommand[0]).__name__ != 'list':
-      self.raiseAnError(IOError, "the first entry in tuple returned by generateCommand method needs to be a list of tuples!")
+
+    ## Given that createNewInput can only return a tuple, I don't think these
+    ## checks are necessary (keeping commented out until someone else can verify):
+    # if type(returnedCommand).__name__ != 'tuple':
+    #   self.raiseAnError(IOError, "the generateCommand method in code interface must return a tuple")
+    # if type(returnedCommand[0]).__name__ != 'list':
+    #   self.raiseAnError(IOError, "the first entry in tuple returned by generateCommand method needs to be a list of tuples!")
     executeCommand, self.outFileRoot = returnedCommand
-    uniqueHandler = inputFiles[1]['uniqueHandler'] if 'uniqueHandler' in inputFiles[1].keys() else 'any'
-    if 'prefix' in inputFiles[1].keys():
-      identifier    = inputFiles[1]['prefix']
-    else:
-      identifier    = None
-      inputFiles[1]['prefix'] = 'None'
-    jobHandler.addExternal(executeCommand,self.outFileRoot,metaData.pop('subDirectory'),identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
+
+    precommand = kwargs['precommand']
+    mpiCommand = kwargs['mpiCommand']
+    threadingCommand = kwargs['threadingCommand']
+    postcommand = kwargs['postcommand']
+    bufferSize = kwargs['bufferSize']
+    fileExtensionsToDelete = kwargs['deleteOutExtension']
+    deleteSuccessfulLogFiles = kwargs['delSucLogFiles']
+
+    codeLogFile = self.outFileRoot
+    if codeLogFile is None:
+      codeLogFile = os.path.join(metaData['subDirectory'],'generalOut')
+
+    ## Before we were temporarily changing directories in order to copy the
+    ## correct directory to the subprocess. Instead, we can just set the
+    ## directory after we copy it over. -- DPM 5/5/2017
+    sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
+    localenv = dict(os.environ)
+    localenv['PWD'] = str(sampleDirectory)
+
+    outFileObject = open(os.path.join(sampleDirectory,codeLogFile), 'w', bufferSize)
+
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
       if inputFile.getExt() in self.code.getInputExtension():
@@ -1529,20 +1545,127 @@ class Code(Model):
     if not found:
       self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
-    self.raiseAMessage('job "'+ str(identifier)  +'" submitted!')
+    commands=[]
+    for runtype,cmd in executeCommand:
+      newCommand=''
+      if runtype.lower() == 'parallel':
+        newCommand += precommand
+        if mpiCommand != '':
+          newCommand += ' ' + mpiCommand + ' '
+        ##FIXME are these two exclusive?
+        if threadingCommand !='':
+          newCommand += ' ' + threadingCommand + ' '
+        newCommand += cmd+' '
+        newCommand += postcommand
+        commands.append(newCommand)
+      elif runtype.lower() == 'serial':
+        commands.append(cmd)
+      else:
+        self.raiseAnError(IOError,'For execution command <'+cmd+'> the run type was neither "serial" nor "parallel"!  Instead received: ',runtype,'\nPlease check the code interface.')
 
-  def finalizeModelOutput(self,finishedJob):
-    """
-      Method that is aimed to finalize (preprocess) the output of a model before the results get collected
-      @ In, finishedJob, InternalRunner object, instance of the run just finished
-      @ Out, None
-    """
+    command = ' && '.join(commands)+' '
+
+    command = command.replace("%INDEX%",kwargs['INDEX'])
+    command = command.replace("%INDEX1%",kwargs['INDEX1'])
+    command = command.replace("%CURRENT_ID%",kwargs['CURRENT_ID'])
+    command = command.replace("%CURRENT_ID1%",kwargs['CURRENT_ID1'])
+    command = command.replace("%SCRIPT_DIR%",kwargs['SCRIPT_DIR'])
+    command = command.replace("%FRAMEWORK_DIR%",kwargs['FRAMEWORK_DIR'])
+    ## Note this is the working directory that the subprocess will use, it is
+    ## not the directory I am currently working. This bit me as I moved the code
+    ## from the old ExternalRunner because in that case this was filled in after
+    ## the process was submitted by the process itself. -- DPM 5/4/17
+    command = command.replace("%WORKING_DIR%",sampleDirectory)
+    command = command.replace("%BASE_WORKING_DIR%",kwargs['BASE_WORKING_DIR'])
+    command = command.replace("%METHOD%",kwargs['METHOD'])
+    command = command.replace("%NUM_CPUS%",kwargs['NUM_CPUS'])
+
+    self.raiseAMessage('Execution command submitted:',command)
+    ## This code should be evaluated by the job handler, so it is fine to wait
+    ## until the execution of the external subprocess completes.
+    process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
+    process.wait()
+
+    returnCode = process.returncode
+    # procOutput = process.communicate()[0]
+
+    ## If the returnCode is already non-zero, we should maintain our current
+    ## value as it may have some meaning that can be parsed at some point, so
+    ## only set the returnCode to -1 in here if we did not already catch the
+    ## failure.
+    if returnCode == 0 and 'checkForOutputFailure' in dir(self.code):
+      codeFailed = self.code.checkForOutputFailure(codeLogFile, metaData['subDirectory'])
+      if codeFailed:
+        returnCode = -1
+
+    ## We should try and use the output the code interface gives us first, but
+    ## in lieu of that we should fall back on the standard output of the code
+    ## (Which was deleted above in some cases, so I am not sure if this was
+    ##  an intentional design by the original developer or accidental and should
+    ##  be revised).
+    ## My guess is that every code interface implements this given that the code
+    ## below always adds .csv to the filename and the standard output file does
+    ## not have an extension. - (DPM 4/6/2017)
+    outputFile = codeLogFile
     if 'finalizeCodeOutput' in dir(self.code):
-      out = self.code.finalizeCodeOutput(finishedJob.command,finishedJob.output,finishedJob.getWorkingDir())
-      if out:
-        finishedJob.output = out
+      finalCodeOutputFile = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
+      if finalCodeOutputFile:
+        outputFile = finalCodeOutputFile
 
-  def collectOutput(self,finishedjob,output,options=None):
+    ## If the run was successful
+    if returnCode == 0:
+
+      returnDict = {}
+      ## This may be a tautology at this point --DPM 4/12/17
+      if outputFile is not None:
+        outFile = Files.CSV()
+        ## Should we be adding the file extension here?
+        outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])
+
+        csvLoader = CsvLoader(self.messageHandler)
+        csvData = csvLoader.loadCsvFile(outFile)
+        headers = csvLoader.getAllFieldNames()
+
+        ## Numpy by default iterates over rows, thus we transpose the data and
+        ## zip it with the headers in order to do store it very cleanly into a
+        ## dictionary.
+        for header,data in zip(headers, csvData.T):
+          returnDict[header] = data
+
+      self._replaceVariablesNamesWithAliasSystem(returnDict, 'input', True)
+      self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
+
+      ## The last thing before returning should be to delete the temporary log
+      ## file and any other file the user requests to be cleared
+      if deleteSuccessfulLogFiles:
+        self.raiseAMessage(' Run "' +kwargs['prefix']+'" ended smoothly, removing log file!')
+        if os.path.exists(codeLogFile):
+          os.remove(codeLogFile)
+
+      ## Check if the user specified any file extensions for clean up
+      for fileExt in fileExtensionsToDelete:
+        if not fileExt.startswith("."):
+          fileExt = "." + fileExt
+
+        fileList = [ f for f in os.listdir(metaData['subDirectory']) if f.endswith(fileExt) ]
+
+        for f in fileList:
+          os.remove(f)
+
+      returnValue = (kwargs['SampledVars'],returnDict)
+      return returnValue
+    else:
+      self.raiseAMessage(" Process Failed "+str(command)+" returnCode "+str(returnCode))
+      absOutputFile = os.path.join(sampleDirectory,outputFile)
+      if os.path.exists(absOutputFile):
+        self.raiseAMessage(repr(open(absOutputFile,"r").read()).replace("\\n","\n"))
+      else:
+        self.raiseAMessage(" No output " + absOutputFile)
+
+      ## If you made it here, then the run must have failed
+      return None
+
+  def collectOutput(self,finishedJob,output,options=None):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, InternalRunner object, instance of the run just finished
@@ -1550,23 +1673,70 @@ class Code(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    outputFilelocation = finishedjob.getWorkingDir()
-    attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}
-    attributes['alias'] = self.alias
-    metadata = finishedjob.getMetadata()
-    if metadata:
-      attributes['metadata'] = metadata
-    if output.type == "HDF5":
-      output.addGroup(attributes,attributes)
-    elif output.type in ['PointSet','HistorySet']:
-      outfile = Files.returnInstance('CSV',self)
-      outfile.initialize(finishedjob.output+'.csv',self.messageHandler,path=outputFilelocation)
-      output.addOutput(outfile,attributes)
-      if metadata:
-        for key,value in metadata.items():
-          output.updateMetadata(key,value,attributes)
+    if finishedJob.getEvaluation() == -1:
+      self.raiseAnError(AttributeError,"No available Output to collect")
+
+    sampledVars,outputDict = finishedJob.getEvaluation()
+
+    ## The single run does not perturb data, however RAVEN expects something in
+    ## the input space, so let's just put a 0 entry for the inputPlaceHolder
+    ## - DPM 5/4/2017
+    if len(sampledVars) == 0:
+      sampledVars = {'InputPlaceHolder': 0.}
+      # for key,value in outputDict.items():
+      #   sampledVars[key] = value[0]
+
+    ## What happens if the code modified the input parameter space? Well,
+    ## let's grab any input fields existing in the output file and to ensure
+    ## that we have the correct information that the code actually ran.
+
+    ## First, if the output is a data object, let's see what inputs it requests
+    if isinstance(output,Data):
+      inputParams = output.getParaKeys('input')
     else:
-      self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
+      inputParams = []
+
+    for key,value in outputDict.items():
+      if key in sampledVars:
+        ## This will change with the reworking of the data objects, but for now
+        ## inputs can only be scalar, so we should only be grabbing the first
+        ## item (at this point the values should not change, but I did observe
+        ## a RELAP7 case where it did, but the gold file uses the first value)
+        ## -- DPM 5/2/17
+        if value[0] != sampledVars[key]:
+          self.raiseAWarning('The code reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the code (%f).' % (value[0], key, sampledVars[key], value[0]))
+          sampledVars[key] = value[0]
+      ## If the key value is not one of the sampled variables listed in sampledVars,
+      ## then double check that it was not one of the user-requested variables
+      ## that just so happened to be placed in the output file. This can happen
+      ## with interfaces like RELAP7 where the sampledVars can contain other
+      ## information. This may need reworked at some point to be more consisent
+      ## with how data is handled by the rest of RAVEN -- DPM 5/1/17
+      elif key in inputParams:
+        # self.raiseAWarning('Input data found in the output.')
+        sampledVars[key] = value[0]
+
+
+    if options is None:
+      options = {}
+    options['alias'] = self.alias
+
+    metadata = finishedJob.getMetadata()
+    if metadata:
+      options['metadata'] = metadata
+
+    exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputDict,'metadata':metadata, 'prefix':finishedJob.identifier})
+
+    self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
+    if output.type == 'HDF5':
+      optionsIn = {'group':self.name+str(finishedJob.identifier)}
+      if options is not None:
+        optionsIn.update(options)
+      output.addGroupDataObjects(optionsIn,exportDict,False)
+      # output.addGroup(optionsIn,optionsIn)
+    else:
+      options["inputFile"] = self.currentInputFiles
+      self.collectOutputFromDict(exportDict,output,options)
 
   def collectOutputFromDict(self,exportDict,output,options=None):
     """
@@ -1593,10 +1763,66 @@ class Code(Model):
           output.updateInputValue(key,exportDict['inputSpaceParams'][key],options)
       for key in exportDict['outputSpaceParams']:
         if key in output.getParaKeys('outputs'):
-          output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
+          output.updateOutputValue(key,exportDict['outputSpaceParams'][key], options)
       for key in exportDict['metadata']:
-        output.updateMetadata(key,exportDict['metadata'][key])
+        output.updateMetadata(key,exportDict['metadata'][key], options)
       output.numAdditionalLoadPoints += 1 #prevents consistency problems for entries from restart
+
+  def submit(self, myInput, samplerType, jobHandler, **kwargs):
+    """
+        This will submit an individual sample to be evaluated by this model to a
+        specified jobHandler. Note, some parameters are needed by createNewInput
+        and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new one
+        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In,  jobHandler, JobHandler instance, the global job handler instance
+        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ Out, None
+    """
+    prefix = kwargs['prefix'] if 'prefix' in kwargs else None
+    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
+
+    ## These two are part of the current metadata, so they will be added before
+    ## the job is started, so that they will be captured in the metadata and match
+    ## the current behavior of the system. If these are not desired, then this
+    ## code can be moved to later.  -- DPM 4/12/17
+    kwargs['executable'] = self.executable
+    kwargs['outfile'] = None
+
+    #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
+    #  objects.  However, this might require some updating of many CodeInterfaces``````           1  Interfaces as well.
+    for index, inputFile in enumerate(myInput):
+      if inputFile.getExt() in self.code.getInputExtension():
+        kwargs['outfile'] = 'out~'+myInput[index].getBase()
+        break
+    if kwargs['outfile'] is None:
+      self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
+                                + self.subType +': ' + ' '.join(self.code.getInputExtension()))
+
+    ## These kwargs are updated by createNewInput, so the job either should not
+    ## have access to the metadata, or it needs to be updated from within the
+    ## evaluateSample function, which currently is not possible since that
+    ## function does not know about the job instance.
+    metadata = copy.copy(kwargs)
+
+    ## These variables should not be part of the metadata, so add them after
+    ## we copy this dictionary (Caught this when running an ensemble model)
+    ## -- DPM 4/11/17
+    kwargs['bufferSize'] = jobHandler.runInfoDict['logfileBuffer']
+    kwargs['precommand'] = jobHandler.runInfoDict['precommand']
+    kwargs['mpiCommand'] = jobHandler.mpiCommand
+    kwargs['threadingCommand'] = jobHandler.threadingCommand
+    kwargs['postcommand'] = jobHandler.runInfoDict['postcommand']
+    kwargs['delSucLogFiles'] = jobHandler.runInfoDict['delSucLogFiles']
+    kwargs['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
+
+    ## This may look a little weird, but due to how the parallel python library
+    ## works, we are unable to pass a member function as a job because the
+    ## pp library loses track of what self is, so instead we call it from the
+    ## class and pass self in as the first parameter
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+    self.raiseAMessage('job "' + str(prefix) + '" submitted!')
 
 class PostProcessor(Model, Assembler):
   """
@@ -1731,17 +1957,43 @@ class PostProcessor(Model, Assembler):
     self.interface.initialize(runInfo, inputs, initDict)
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)) - set(self.mods))
 
-  def run(self,Input,jobHandler):
+  def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
-      Method that performs the actual run of the Post-Processor model
-      @ In,  Input, object, object contained the data to process. (inputToInternal output)
-      @ In,  jobHandler, JobHandler instance, the global job handler instance
-      @ Out, None
+        This will submit an individual sample to be evaluated by this model to a
+        specified jobHandler. Note, some parameters are needed by createNewInput
+        and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new one
+        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In,  jobHandler, JobHandler instance, the global job handler instance
+        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ Out, None
     """
-    if len(Input) > 0:
-      jobHandler.addInternal((Input,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
-    else:
-      jobHandler.addInternal((None,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
+
+    ## This may look a little weird, but due to how the parallel python library
+    ## works, we are unable to pass a member function as a job because the
+    ## pp library loses track of what self is, so instead we call it from the
+    ## class and pass self in as the first parameter
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, str(0), modulesToImport=self.mods, forceUseThreads=True)
+
+  def evaluateSample(self, myInput, samplerType, kwargs):
+    """
+        This will evaluate an individual sample on this model. Note, parameters
+        are needed by createNewInput and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new one
+        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ Out, returnValue, tuple, This will hold two pieces of information,
+          the first item will be the input data used to generate this sample,
+          the second item will be the output of this model given the specified
+          inputs
+    """
+    Input = self.createNewInput(myInput,samplerType, **kwargs)
+    if Input is not None and len(Input) == 0:
+      Input = None
+    returnValue = (Input, self.interface.run(Input))
+    return returnValue
 
   def collectOutput(self,finishedjob,output,options=None):
     """
@@ -1753,7 +2005,7 @@ class PostProcessor(Model, Assembler):
     """
     self.interface.collectOutput(finishedjob,output)
 
-  def createNewInput(self,myInput,samplerType,**Kwargs):
+  def createNewInput(self,myInput,samplerType,**kwargs):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       here only a PointSet is accepted a local copy of the values is performed.
@@ -1761,11 +2013,11 @@ class PostProcessor(Model, Assembler):
       The copied values are returned as a dictionary back
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-      @ Out, createNewInput, tuple, return the new input in a tuple form
+      @ Out, myInput, list, the inputs (list) to start from to generate the new one
     """
-    return self.interface.inputToInternal(myInput)
+    return myInput
 
 class EnsembleModel(Dummy, Assembler):
   """
@@ -1898,41 +2150,43 @@ class EnsembleModel(Dummy, Assembler):
       models = None
     return models
 
-#######################################################################################
-#  To be uncommented when the execution list can be handled
-#  def __getExecutionList(self, orderedNodes, allPath):
-#    """
-#      Method to get the execution list
-#      @ In, orderedNodes, list, list of models ordered based
-#                       on the input/output relationships
-#      @ In, allPath, list, list of lists containing all the
-#                       path from orderedNodes[0] to orderedNodes[-1]
-#      @ Out, executionList, list, list of lists with the execution
-#                       order ([[model1],[model2.1,model2.2],[model3], etc.]
-#    """
-#    numberPath    = len(allPath)
-#    maxComponents = max([len(path) for path in allPath])
-#
-#    executionList = [ [] for _ in range(maxComponents)]
-#    executionCounter = -1
-#    for node in orderedNodes:
-#      nodeCtn = 0
-#      for path in allPath:
-#        if node in path: nodeCtn +=1
-#      if nodeCtn == numberPath:
-#        executionCounter+=1
-#        executionList[executionCounter] = [node]
-#      else:
-#        previousNodesInPath = []
-#        for path in allPath:
-#          if path.count(node) > 0: previousNodesInPath.append(path[path.index(node)-1])
-#        for previousNode in previousNodesInPath:
-#          if previousNode in executionList[executionCounter]:
-#            executionCounter+=1
-#            break
-#        executionList[executionCounter].append(node)
-#    return executionList
-#######################################################################################
+  ##############################################################################
+  # #To be uncommented when the execution list can be handled
+  # def __getExecutionList(self, orderedNodes, allPath):
+  #   """
+  #    Method to get the execution list
+  #    @ In, orderedNodes, list, list of models ordered based
+  #                     on the input/output relationships
+  #    @ In, allPath, list, list of lists containing all the
+  #                     path from orderedNodes[0] to orderedNodes[-1]
+  #    @ Out, executionList, list, list of lists with the execution
+  #                     order ([[model1],[model2.1,model2.2],[model3], etc.]
+  #   """
+  #   numberPath    = len(allPath)
+  #   maxComponents = max([len(path) for path in allPath])
+
+  #   executionList = [ [] for _ in range(maxComponents)]
+  #   executionCounter = -1
+  #   for node in orderedNodes:
+  #     nodeCtn = 0
+  #   for path in allPath:
+  #     if node in path:
+  #       nodeCtn +=1
+  #   if nodeCtn == numberPath:
+  #     executionCounter+=1
+  #     executionList[executionCounter] = [node]
+  #   else:
+  #     previousNodesInPath = []
+  #     for path in allPath:
+  #       if path.count(node) > 0:
+  #         previousNodesInPath.append(path[path.index(node)-1])
+  #     for previousNode in previousNodesInPath:
+  #       if previousNode in executionList[executionCounter]:
+  #         executionCounter+=1
+  #         break
+  #     executionList[executionCounter].append(node)
+  #   return executionList
+  ##############################################################################
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -2039,59 +2293,59 @@ class EnsembleModel(Dummy, Assembler):
       Method aimed to select the input subset for a certain model
       @ In, modelName, string, the model name
       @ In, kwargs , dict, the kwarded dictionary where the sampled vars are stored
-      @ Out, selectedKwargs , dict, the subset of variables (in a swallow copy of the kwargs  dict)
+      @ Out, selectedkwargs , dict, the subset of variables (in a swallow copy of the kwargs  dict)
     """
-    selectedKwargs = copy.copy(kwargs)
-    selectedKwargs['SampledVars'], selectedKwargs['SampledVarsPb'] = {}, {}
+    selectedkwargs = copy.copy(kwargs)
+    selectedkwargs['SampledVars'], selectedkwargs['SampledVarsPb'] = {}, {}
     for key in kwargs["SampledVars"].keys():
       if key in self.modelsDictionary[modelName]['Input']:
-        selectedKwargs['SampledVars'][key], selectedKwargs['SampledVarsPb'][key] =  kwargs["SampledVars"][key],  kwargs["SampledVarsPb"][key] if 'SampledVarsPb' in kwargs.keys() else 1.0
-    return copy.deepcopy(selectedKwargs)
+        selectedkwargs['SampledVars'][key], selectedkwargs['SampledVarsPb'][key] =  kwargs["SampledVars"][key],  kwargs["SampledVarsPb"][key] if 'SampledVarsPb' in kwargs.keys() else 1.0
+    return copy.deepcopy(selectedkwargs)
 
-  def _inputToInternal(self, myInput, sampledVarsKeys, full=False):
-    """
-      Transform it in the internal format the provided input. myInput could be either a dictionary (then nothing to do) or one of the admitted data
-      This method is used only for the sub-models that are INTERNAL (not for Code models)
-      @ In, myInput, object, the object that needs to be manipulated
-      @ In, sampledVarsKeys, list, list of variables that partecipate to the sampling
-      @ In, full, bool, optional, does the full input needs to be retrieved or just the last element?
-      @ Out, initialConversion, dict, the manipulated input
-    """
-    initialConversion = Dummy._inputToInternal(self, myInput, full)
-    for key in initialConversion.keys():
-      if key not in sampledVarsKeys:
-        initialConversion.pop(key)
-    return initialConversion
-
-  def createNewInput(self,myInput,samplerType,**Kwargs):
+  def createNewInput(self,myInput,samplerType,**kwargs):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
     # check if all the inputs of the submodule are covered by the sampled vars and Outputs of the other sub-models
     if self.needToCheckInputs:
-      allCoveredVariables = list(set(self.allOutputs + Kwargs['SampledVars'].keys()))
-    identifier                    = Kwargs['prefix']
+      allCoveredVariables = list(set(self.allOutputs + kwargs['SampledVars'].keys()))
+
+    identifier = kwargs['prefix']
     # global prefix
-    newInputs                     = {'prefix':identifier}
-    for modelIn, specs in self.modelsDictionary.items():
-      if self.needToCheckInputs:
+    newKwargs = {'prefix':identifier}
+
+    newInputs = {}
+
+    ## First check the inputs if they need to be checked
+    if self.needToCheckInputs:
+      for modelIn, specs in self.modelsDictionary.items():
         for inp in specs['Input']:
           if inp not in allCoveredVariables:
             self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inp+" has not been found among other models' outputs and sampled variables!")
-      newKwargs = self.__selectInputSubset(modelIn,Kwargs)
-      inputDict = [self._inputToInternal(self.modelsDictionary[modelIn]['InputObject'][0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  self.modelsDictionary[modelIn]['InputObject']
+
+    ## Now prepare the new inputs for each model
+    for modelIn, specs in self.modelsDictionary.items():
+      newKwargs[modelIn] = self.__selectInputSubset(modelIn,kwargs)
+
+      # if specs['Instance'].type != 'Code':
+      #   inputDict = [self._inputToInternal(self.modelsDictionary[modelIn]['InputObject'][0],newKwargs['SampledVars'].keys())]
+      # else:
+      #   inputDict = self.modelsDictionary[modelIn]['InputObject']
+
       # local prefix
-      newKwargs['prefix'] = modelIn+utils.returnIdSeparator()+identifier
-      newInputs[modelIn]  = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
-      if specs['Instance'].type == 'Code':
-        newInputs[modelIn][1]['originalInput'] = inputDict
+      newKwargs[modelIn]['prefix'] = modelIn+utils.returnIdSeparator()+identifier
+      newInputs[modelIn]  = self.modelsDictionary[modelIn]['InputObject']
+
+      # if specs['Instance'].type == 'Code':
+      #   newInputs[modelIn][1]['originalInput'] = inputDict
+
     self.needToCheckInputs = False
-    return copy.deepcopy(newInputs)
+    return (newInputs, samplerType, newKwargs)
 
   def collectOutput(self,finishedJob,output):
     """
@@ -2102,7 +2356,7 @@ class EnsembleModel(Dummy, Assembler):
     """
     if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
-    inputs, out = finishedJob.getEvaluation()[:2]
+    out = finishedJob.getEvaluation()[1]
     exportDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
     exportDictTargetEvaluation = {}
     outcomes, targetEvaluations = out
@@ -2151,17 +2405,51 @@ class EnsembleModel(Dummy, Assembler):
     for modelIn in self.modelsDictionary.keys():
       self.modelsDictionary[modelIn]['Instance'].getAdditionalInputEdits(inputInfo)
 
-  def run(self,Input,jobHandler):
+  def evaluateSample(self, myInput, samplerType, kwargs):
     """
-      Method to run the essembled model
-      @ In, Input, object, object contained the data to process. (inputToInternal output)
-      @ In, jobHandler, JobHandler instance, the global job handler instance
-      @ Out, None
+        This will evaluate an individual sample on this model. Note, parameters
+        are needed by createNewInput and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new one
+        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ Out, returnValue, dict, This holds the output information of the evaluated sample.
+    """
+    jobHandler = kwargs.pop('jobHandler')
+    Input = self.createNewInput(myInput[0], samplerType, **kwargs)
+
+    ## Unpack the specifics for this class, namely just the jobHandler
+    returnValue = (Input,self._externalRun(Input,jobHandler))
+    return returnValue
+
+  def submit(self,myInput,samplerType,jobHandler,**kwargs):
+    """
+        This will submit an individual sample to be evaluated by this model to a
+        specified jobHandler. Note, some parameters are needed by createNewInput
+        and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new one
+        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In,  jobHandler, JobHandler instance, the global job handler instance
+        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ Out, None
     """
     for mm in utils.returnImportModuleString(jobHandler):
       if mm not in self.mods:
         self.mods.append(mm)
-    jobHandler.addInternalClient(((copy.deepcopy(Input),jobHandler),), self.__externalRun,str(Input['prefix']))
+
+    prefix = kwargs['prefix']
+
+    ## Ensemble models need access to the job handler, so let's stuff it in our
+    ## catch all kwargs where evaluateSample can pick it up, not great, but
+    ## will suffice until we can better redesign this whole process.
+    kwargs['jobHandler'] = jobHandler
+
+    ## This may look a little weird, but due to how the parallel python library
+    ## works, we are unable to pass a member function as a job because the
+    ## pp library loses track of what self is, so instead we call it from the
+    ## class and pass self in as the first parameter
+    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix)
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
     """
@@ -2179,7 +2467,7 @@ class EnsembleModel(Dummy, Assembler):
           #if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
     return dependentOutputs
 
-  def __externalRun(self,inRun):
+  def _externalRun(self,inRun, jobHandler):
     """
       Method that performs the actual run of the essembled model (separated from run method for parallelization purposes)
       @ In, inRun, tuple, tuple of Inputs (inRun[0] actual input, inRun[1] jobHandler instance )
@@ -2187,73 +2475,106 @@ class EnsembleModel(Dummy, Assembler):
                                - returnEvaluation[0] dict of results from each sub-model,
                                - returnEvaluation[1] the dataObjects where the projection of each model is stored
     """
-    Input, jobHandler = inRun[0], inRun[1]
-    identifier = Input.pop('prefix')
+    originalInput = inRun[0]
+    samplerType = inRun[1]
+    inputKwargs = inRun[2]
+    identifier = inputKwargs.pop('prefix')
+
     for modelIn in self.orderList:
       self.tempTargetEvaluations[modelIn].resetData()
+
     tempTargetEvaluations = copy.deepcopy(self.tempTargetEvaluations)
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
+
     gotOutputs       = [{}]*len(self.orderList)
     typeOutputs      = ['']*len(self.orderList)
+
     # if nonlinear system, initialize residue container
     if self.activatePicard:
       for modelIn in self.orderList:
         residueContainer[modelIn] = {'residue':{},'iterValues':[{}]*2}
         for out in self.modelsDictionary[modelIn]['Output']:
-          residueContainer[modelIn]['residue'][out], residueContainer[modelIn]['iterValues'][0][out], residueContainer[modelIn]['iterValues'][1][out] = np.zeros(1), np.zeros(1), np.zeros(1)
-    maxIterations, iterationCount = (self.maxIterations, 0) if self.activatePicard else (1 , 0)
+          residueContainer[modelIn]['residue'][out] = np.zeros(1)
+          residueContainer[modelIn]['iterValues'][0][out] = np.zeros(1)
+          residueContainer[modelIn]['iterValues'][1][out] = np.zeros(1)
+
+    maxIterations = self.maxIterations if self.activatePicard else 1
+    iterationCount = 0
     while iterationCount < maxIterations:
       returnDict     = {}
       iterationCount += 1
+
       if self.activatePicard:
         self.raiseAMessage("Picard's Iteration "+ str(iterationCount))
+
       for modelCnt, modelIn in enumerate(self.orderList):
         tempTargetEvaluations[modelIn].resetData()
         # in case there are metadataToTransfer, let's collect them from the source
         metadataToTransfer = None
         if self.modelsDictionary[modelIn]['metadataToTransfer']:
           metadataToTransfer = {}
+
         for metadataToGet, source, alias in self.modelsDictionary[modelIn]['metadataToTransfer']:
           if metadataToGet not in returnDict[source]['metadata'].keys():
             self.raiseAnError(RuntimeError,'metadata "'+metadataToGet+'" is not present among the ones available in source "'+source+'"!')
+
           metadataToTransfer[metadataToGet if alias is None else alias] = returnDict[source]['metadata'][metadataToGet][-1]
+
         # get dependent outputs
         dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
         # if nonlinear system, check for initial coditions
         if iterationCount == 1  and self.activatePicard:
-          try:
-            sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
-          except (IndexError,TypeError):
-            sampledVars = Input[modelIn][1]['SampledVars'].keys()
-          for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
-            if initCondToSet in self.initialConditions.keys():
-              dependentOutput[initCondToSet] = self.initialConditions[initCondToSet]
+          sampledVars = inputKwargs[modelIn]['SampledVars'].keys()
+
+          conditionsToCheck = set(self.modelsDictionary[modelIn]['Input']) - set(dependentOutput.keys()+sampledVars)
+          for initialConditionToSet in conditionsToCheck:
+            if initialConditionToSet in self.initialConditions.keys():
+              dependentOutput[initialConditionToSet] = self.initialConditions[initialConditionToSet]
             else:
-              self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
+              self.raiseAnError(IOError,"No initial conditions provided for variable "+ initialConditionToSet)
+
+          ## Does the same as above, probably should see if either of these is faster,
+          ## otherwise I would recommend the block above for its clarity.
+          # for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
+          #   if initCondToSet in self.initialConditions.keys():
+          #     dependentOutput[initCondToSet] = self.initialConditions[initCondToSet]
+          #   else:
+          #     self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
+
         # set new identifiers
-        try:
-          Input[modelIn][0][1]['prefix']        = modelIn+utils.returnIdSeparator()+identifier
-          Input[modelIn][0][1]['uniqueHandler'] = self.name+identifier
-          if metadataToTransfer is not None:
-            Input[modelIn][0][1]['metadataToTransfer'] = metadataToTransfer
-        except (IndexError,TypeError):
-          Input[modelIn][1]['prefix']           = modelIn+utils.returnIdSeparator()+identifier
-          Input[modelIn][1]['uniqueHandler']    = self.name+identifier
-          if metadataToTransfer is not None:
-            Input[modelIn][1]['metadataToTransfer'] = metadataToTransfer
-        # update input with dependent outputs
-        Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
+        inputKwargs[modelIn]['prefix']        = modelIn+utils.returnIdSeparator()+identifier
+        inputKwargs[modelIn]['uniqueHandler'] = self.name+identifier
+        if metadataToTransfer is not None:
+          inputKwargs[modelIn]['metadataToTransfer'] = metadataToTransfer
+
+        for key, value in dependentOutput.items():
+          inputKwargs[modelIn]["SampledVars"  ][key] =  dependentOutput[key]
+          ## FIXME it is a mistake (Andrea). The SampledVarsPb for this variable should be transferred from outside
+          ## Who has this information? -- DPM 4/11/17
+          inputKwargs[modelIn]["SampledVarsPb"][key] =  1.0
+        self._replaceVariablesNamesWithAliasSystem(inputKwargs[modelIn]["SampledVars"  ],'input',False)
+        self._replaceVariablesNamesWithAliasSystem(inputKwargs[modelIn]["SampledVarsPb"],'input',False)
+
         nextModel = False
         while not nextModel:
           moveOn = False
           while not moveOn:
             if jobHandler.availability() > 0:
               # run the model
-              self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
+              # self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
+              # self.modelsDictionary[modelIn]['Instance'].submit([originalInput[modelIn]], samplerType, jobHandler, **copy.deepcopy(inputKwargs[modelIn]))
+              if self.modelsDictionary[modelIn]['Instance'].type == 'Code':
+                self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **copy.deepcopy(inputKwargs[modelIn]))
+              else:
+                self.modelsDictionary[modelIn]['Instance'].submit([inputKwargs], samplerType, jobHandler, **copy.deepcopy(inputKwargs[modelIn]))
+              ## TODO: Can originalInput ever be a list already?
+              ## -- DPM 4/11/17
+
               # wait until the model finishes, in order to get ready to run the subsequential one
               while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
                 time.sleep(1.e-3)
-              nextModel, moveOn = True, True
+
+              nextModel = moveOn = True
             else:
               time.sleep(1.e-3)
           # get job that just finished to gather the results
@@ -2264,21 +2585,22 @@ class EnsembleModel(Dummy, Assembler):
               if modelToRemove != modelIn:
                 jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
-          # get back the output in a general format
-          # finalize the model (e.g. convert the output into a RAVEN understandable one)
-          self.modelsDictionary[modelIn]['Instance'].finalizeModelOutput(finishedRun[0])
+
           # collect output in the temporary data object
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
+
           # store the results in the working dictionaries
           returnDict[modelIn]   = {}
           responseSpace         = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
           inputSpace            = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
           typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
           gotOutputs[modelCnt]  = responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
+
           #store the results in return dictionary
           returnDict[modelIn]['outputSpaceParams'] = gotOutputs[modelCnt]
           returnDict[modelIn]['inputSpaceParams' ] = inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
           returnDict[modelIn]['metadata'         ] = tempTargetEvaluations[modelIn].getAllMetadata()
+
           # if nonlinear system, compute the residue
           if self.activatePicard:
             residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
@@ -2289,9 +2611,11 @@ class EnsembleModel(Dummy, Assembler):
             for out in gotOutputs[modelCnt].keys():
               residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
             residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(residueContainer[modelIn]['iterValues'][1].values())-np.asarray(residueContainer[modelIn]['iterValues'][0].values()))
+
       # if nonlinear system, check the total residue and convergence
       if self.activatePicard:
-        iterZero, iterOne = [],[]
+        iterZero = []
+        iterOne = []
         for modelIn in self.orderList:
           iterZero += residueContainer[modelIn]['iterValues'][0].values()
           iterOne  += residueContainer[modelIn]['iterValues'][1].values()
@@ -2300,6 +2624,7 @@ class EnsembleModel(Dummy, Assembler):
         if residueContainer['TotalResidue'] <= self.convergenceTol:
           self.raiseAMessage("Picard's Iteration converged. Norm: "+ str(residueContainer['TotalResidue']))
           break
+
     returnEvaluation = returnDict, tempTargetEvaluations
     return returnEvaluation
 
