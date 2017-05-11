@@ -62,4 +62,13 @@
     output = 'data/segRBS.xml'
     required_libraries = 'AMSC'
   [../]
+
+  [./interactive_UI]
+    type = 'RavenFramework'
+    input = 'test_topology_ui.xml'
+    csv = 'data/interactive.csv'
+    output = 'data/interactive.xml'
+    required_libraries = 'AMSC PySide'
+    interactive = 'true'
+  [../]
 []
