@@ -193,6 +193,7 @@ field}, specifies, if a run of an external model has not failed, which output
 files should be deleted by their extension (e.g.,
 \xmlNode{deleteOutExtension}\texttt{txt,pdf}\xmlNode{/deleteOutExtension} will
 delete all generated txt and pdf files).
+\nb This flag is only active for Models of type ``Code''.
 %
 \default{None}
 
@@ -200,6 +201,7 @@ delete all generated txt and pdf files).
 \item \xmlNode{delSucLogFiles}, \xmlDesc{boolean, optional field}, when True and
 the run of an external model has not failed (return code = 0), deletes
 the associated log files.
+\nb This flag is only active for Models of type ``Code''.
 %
 \default{False}
 \end{itemize}

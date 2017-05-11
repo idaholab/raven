@@ -1,25 +1,23 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ensembleModelTests.testEnsembleModelWith2CodesAndAlias</name>
+    <name>framework/ensembleModelTests.testEnsembleModelWith2CodesAndAliasAndOptionalOutputs</name>
     <author>alfoa</author>
-    <created>2017-02-16</created>
+    <created>2017-05-17</created>
     <classesTested>Models.Code, JobHandler.Thread</classesTested>
     <description>
-       Example of usage of the Ensemble Model capability in RAVEN, connecting multiple multiple Codes together, with same output variable names.
-       This means that the alias system has been used and this test is aimed to show how to use it in these kinds of situations.
+       The main goal of this test is to show how to specify optional output in the Ensemle Model object.
     </description>
   </TestInfo>
   
   <RunInfo>
-    <JobName>testEnsembleModelWith2CodesAndAlias</JobName>
+    <JobName>testEnsembleModelWith2CodesAndAliasAndSelectiveOutputs</JobName>
     <Sequence>
-        sampleMC,dumpResults
+        sampleMC,storeSelectiveResultsToHDF5,dumpResults
     </Sequence>
-    <WorkingDir>metaModelWith2Codes</WorkingDir>
+    <WorkingDir>metaModelWith2CodesAndSelectiveOutputs</WorkingDir>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
-    <delSucLogFiles>True</delSucLogFiles>
   </RunInfo>
 
   <Files>
@@ -55,11 +53,16 @@
         testModel2
         <Input class="Files" type="">referenceInput2.xml</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">sumData</TargetEvaluation>
+        <Output class="DataObjects" type="PointSet">responseModel2</Output>
+        
+        
       </Model>
       <Model class="Models" type="Code">
           testModel
         <Input class="Files" type="">referenceInput.xml</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">samplesMC</TargetEvaluation>
+        <Output class="DataObjects" type="PointSet">responseModel1</Output>
+        
       </Model>
     </EnsembleModel>
   </Models>
@@ -105,14 +108,37 @@
     </MultiRun>
     <IOStep name="dumpResults">
         <Input class="DataObjects" type="PointSet">finalResponses</Input>
+        <Input class="DataObjects" type="PointSet">responseModel1</Input>
+        <Input class="DataObjects" type="PointSet">responseModel2</Input>
         <Output class="OutStreams" type="Print">printFinalResults</Output>
+        <Output class="OutStreams" type="Print">printResponseModel1</Output>
+        <Output class="OutStreams" type="Print">printResponseModel2</Output>
+    </IOStep>
+    <IOStep name="storeSelectiveResultsToHDF5">
+        <Input class="DataObjects" type="PointSet">responseModel1</Input>
+        <Input class="DataObjects" type="PointSet">responseModel2</Input>
+        <Output class="Databases"  type="HDF5">database_Model1</Output>
+        <Output class="Databases"  type="HDF5">database_Model2</Output>
     </IOStep>
   </Steps>
+
+  <Databases>
+    <HDF5 name="database_Model1" readMode="overwrite"/>
+    <HDF5 name="database_Model2" readMode="overwrite"/>
+  </Databases>
 
   <OutStreams>
     <Print name="printFinalResults">
       <type>csv</type>
       <source>finalResponses</source>
+    </Print>
+    <Print name="printResponseModel1">
+        <type>csv</type>
+        <source>responseModel1</source>
+    </Print>
+    <Print name="printResponseModel2">
+        <type>csv</type>
+        <source>responseModel2</source>
     </Print>
   </OutStreams>
 
@@ -128,6 +154,14 @@
     <PointSet name="finalResponses">
       <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
       <Output>AtestModel1,BtestModel1,C,D,AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
+    </PointSet>
+    <PointSet name="responseModel1">
+        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+        <Output>AtestModel1,BtestModel1,C,D</Output>
+    </PointSet>
+    <PointSet name="responseModel2">
+        <Input>AtestModel1,BtestModel1</Input>
+        <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
     </PointSet>
   </DataObjects>
 
