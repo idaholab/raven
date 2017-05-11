@@ -428,7 +428,10 @@ try:
                              'w':self.weights, 'names':self.names,
                              'graph':self.graph, 'gradient': self.gradient,
                              'knn':self.knn, 'beta':self.beta,
-                             'normalization':self.normalization, 'debug':False})
+                             'normalization':self.normalization,
+                             'views': ['TopologyMapView', 'SensitivityView',
+                                       'FitnessView', 'ScatterView2D',
+                                       'ScatterView3D']})
 
         ## Spinlock will wait until this instance's window has been closed
         while(not self.uiDone):

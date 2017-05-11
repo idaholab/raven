@@ -100,3 +100,27 @@ class BaseHierarchicalView(QWidget):
       @ Out, None
     """
     self.updateScene()
+
+  def selectionChanged(self):
+    """
+      This callback will ensure the UI is appropriately updated when a user
+      triggers a change to the selected data of the hierarchy
+      @ In, None
+      @ Out, None
+    """
+    self.updateScene()
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations.  For this class in particular, we will test:
+        - Retrieving the size hint of this view.
+        - A generic update
+        - Clearing the layout of this view.
+        @ In, None
+        @ Out, None
+    """
+    sizeHint = BaseHierarchicalView.sizeHint(self)
+    BaseHierarchicalView.updateScene(self)
+    BaseHierarchicalView.clearLayout(self, self.layout())
