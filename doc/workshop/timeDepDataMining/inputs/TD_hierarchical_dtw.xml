@@ -1,0 +1,220 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+
+  <RunInfo>
+    <WorkingDir>resultsHierarchicalDTW</WorkingDir>
+    <Sequence>FirstMRun,plotAllHists,clustering,filter0,filter1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="lorentzAttractor_disc_diffTimeScale" name="PythonModule" subType="">
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+    </ExternalModel>
+    <PostProcessor name="hierarchical" subType="DataMining">
+      <Metric class="Metrics" type="DTW">example</Metric>
+      <KDD lib="Scipy" labelFeature='labels'>
+        <Features>output</Features>
+        <SCIPYtype>cluster|Hierarchical</SCIPYtype>
+        <method>single</method>
+        <metric>euclidean</metric>
+        <level>2</level>
+        <criterion>distance</criterion>
+        <dendrogram>true</dendrogram>
+        <truncationMode>lastp</truncationMode>
+        <p>20</p>
+        <leafCounts>True</leafCounts>
+        <showContracted>True</showContracted>
+        <annotatedAbove>10</annotatedAbove>
+      </KDD>
+    </PostProcessor>
+    <PostProcessor name="filter0" subType="InterfacedPostProcessor">
+       <method>dataObjectLabelFilter</method>
+       <dataType>HistorySet</dataType>
+       <label>labels</label>
+       <clusterIDs>2</clusterIDs>
+    </PostProcessor>
+    <PostProcessor name="filter1" subType="InterfacedPostProcessor">
+       <method>dataObjectLabelFilter</method>
+       <dataType>HistorySet</dataType>
+       <label>labels</label>
+       <clusterIDs>1</clusterIDs>
+    </PostProcessor>
+  </Models>
+
+  <Metrics>
+    <DTW name="example">
+      <order>0</order>
+      <pivotParameter>time</pivotParameter>
+      <localDistance>euclidean</localDistance>
+    </DTW>
+  </Metrics>
+
+  <Steps>
+    <MultiRun name="FirstMRun">
+      <Input     class="DataObjects"      type="PointSet"       >inputPlaceHolder</Input>
+      <Model     class="Models"           type="ExternalModel"  >PythonModule</Model>
+      <Sampler   class="Samplers"         type="MonteCarlo"     >MC_external</Sampler>
+      <Output    class="DataObjects"      type="HistorySet"     >outMC</Output>
+    </MultiRun>
+    <IOStep name="plotAllHists">
+      <Input     class="DataObjects"      type="HistorySet"     >outMC</Input>
+      <Output    class="OutStreams"       type="Plot"           >plot1</Output>
+    </IOStep>
+    <PostProcess name="clustering">
+      <Input     class="DataObjects"      type="HistorySet"     >outMC</Input>
+      <Model     class="Models"           type="PostProcessor"  >hierarchical</Model>
+      <Output    class="DataObjects"      type="HistorySet"     >outMC</Output>
+    </PostProcess>
+    <PostProcess name="filter0">
+      <Input     class="DataObjects"      type="HistorySet"     >outMC</Input>
+      <Model     class="Models"           type="PostProcessor"  >filter0</Model>
+      <Output    class="DataObjects"      type="HistorySet"     >outMC0</Output>
+      <Output    class="OutStreams"       type="Plot"           >Cluster_0</Output>
+    </PostProcess>
+    <PostProcess name="filter1">
+      <Input     class="DataObjects"      type="HistorySet"     >outMC</Input>
+      <Model     class="Models"           type="PostProcessor"  >filter1</Model>
+      <Output    class="DataObjects"      type="HistorySet"     >outMC1</Output>
+      <Output    class="OutStreams"       type="Plot"           >Cluster_1</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Plot name="plot1" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>100</interpPointsX>
+          <x>outMC|Output|time</x>
+          <y>outMC|Output|y</y>
+          <z>outMC|Output|z</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
+    <Plot name="Clustered_HS" overwrite="false" >
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>1000</interpPointsX>
+          <x>outMC|Output|time</x>
+          <y>outMC|Output|y</y>
+          <z>outMC|Output|z</z>
+          <colorMap>outMC|Output|labels</colorMap>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+        <zlabel>y</zlabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+        <range>
+          <xmax>0.5</xmax>
+          <xmin>0.0</xmin>
+          <ymax>30.0</ymax>
+          <ymin>-15.0</ymin>
+          <zmax>60.0</zmax>
+          <zmin>0.0</zmin>
+        </range>
+      </actions>
+    </Plot>
+    <Plot name="Cluster_0" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>1000</interpPointsX>
+          <x>outMC0|Output|time</x>
+          <y>outMC0|Output|y</y>
+          <z>outMC0|Output|z</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+        <zlabel>y</zlabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
+
+    <Plot name="Cluster_1" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>1000</interpPointsX>
+          <x>outMC1|Output|time</x>
+          <y>outMC1|Output|y</y>
+          <z>outMC1|Output|z</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+        <zlabel>y</zlabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
+
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="outMC">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="outMC0">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="outMC1">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+</Simulation>

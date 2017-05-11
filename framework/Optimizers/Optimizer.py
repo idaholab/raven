@@ -128,6 +128,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.mdlEvalHist                    = None                      # Containing information of all model evaluation
     self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
 
+    self.nextActionNeeded               = (None,None)               # tool for localStillReady to inform localGenerateInput on the next action needed
+
     self.addAssemblerObject('Restart' ,'-n',True)
     self.addAssemblerObject('TargetEvaluation','1')
     self.addAssemblerObject('Function','-1')
@@ -407,7 +409,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, ready, bool, variable indicating whether the caller is prepared for another input.
     """
     return ready # To be overwritten by subclass
-
 
   def getLossFunctionGivenId(self, evaluationID):
     """

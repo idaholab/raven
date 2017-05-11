@@ -47,6 +47,7 @@ utils.add_path(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
 from Simulation import Simulation
 from Application import __PySideAvailable
+from Interaction import Interaction
 #Internal Modules
 
 #------------------------------------------------------------- Driver
@@ -81,12 +82,12 @@ def printLogo():
   print("""
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .---.        .------######       #####     ###   ###  ########  ###    ##
-     /     \  __  /    --###  ###    ###  ###   ###   ###  ###       #####  ##
-    / /     \(  )/    --###  ###    ###   ###  ###   ###  ######    ### #####
-   //////   ' \/ `   --#######     #########  ###   ###  ###       ###  ####
-  //// / // :    :   -###   ###   ###   ###    ######   ####      ###   ###
- // /   /  /`    '---###     ### ###   ###      ##     ########  ###    ##
+      .---.        .------######       #####     ###   ###  ########  ###    ###
+     /     \  __  /    --###  ###    ###  ###   ###   ###  ###       #####  ###
+    / /     \(  )/    --###  ###    ###   ###  ###   ###  ######    ### ######
+   //////   ' \/ `   --#######     #########  ###   ###  ###       ###  #####
+  //// / // :    :   -###   ###   ###   ###    ######   ####      ###   ####
+ // /   /  /`    '---###    ###  ###   ###      ###    ########  ###    ###
 //          //..\\
 ===========UU====UU=============================================================
            '//||\\`
@@ -126,7 +127,7 @@ if __name__ == '__main__':
 
   verbosity      = 'all'
   interfaceCheck = False
-  interactive = False
+  interactive = Interaction.No
   workingDir = os.getcwd()
 
   ## Remove duplicate command line options and preserve order so if they try
@@ -143,9 +144,15 @@ if __name__ == '__main__':
       itemsToRemove.append(item)
     elif item.lower() == 'interactive':
       if __PySideAvailable:
-        interactive = True
+        interactive = Interaction.Yes
       else:
         print('\nPySide is not installed, disabling interactive mode.\n')
+      itemsToRemove.append(item)
+    elif item.lower() == 'interactivecheck':
+      if __PySideAvailable:
+        interactive = Interaction.Test
+      else:
+        print('\nPySide is not installed, disabling interactive check.\n')
       itemsToRemove.append(item)
 
   ## Now outside of the loop iterating on the object we want to modify, we are

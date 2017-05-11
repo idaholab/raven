@@ -1189,6 +1189,7 @@ class InterfacedPostProcessor(BasePostProcessor):
         inputDictTemp['data']['output'] = copy.deepcopy(inp.getOutParametersValues())
         inputDictTemp['metadata']       = copy.deepcopy(inp.getAllMetadata())
         inputDictTemp['name'] = inp.whoAreYou()['Name']
+        inputDictTemp['type'] = str(inp.type)
         inputDict.append(inputDictTemp)
     return inputDict
 
@@ -4076,7 +4077,10 @@ try:
                              'w':self.weights, 'names':self.names,
                              'graph':self.graph, 'gradient': self.gradient,
                              'knn':self.knn, 'beta':self.beta,
-                             'normalization':self.normalization, 'debug':False})
+                             'normalization':self.normalization,
+                             'views': ['TopologyMapView', 'SensitivityView',
+                                       'FitnessView', 'ScatterView2D',
+                                       'ScatterView3D']})
 
         ## Spinlock will wait until this instance's window has been closed
         while(not self.uiDone):
@@ -4867,7 +4871,6 @@ try:
         ## Send the request for a UI thread to the main application
         self.requestUI.emit('HierarchyWindow', uiID,
                             {'views': ['DendrogramView','ScatterView'],
-                             'debug': False,
                              'engine': self.unSupervisedEngine})
 
         ## Spinlock will wait until this instance's window has been closed

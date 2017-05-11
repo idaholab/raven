@@ -451,34 +451,46 @@ class TopologyMapView(BaseTopologicalView):
 
     self.updateScene()
 
-  def saveImage(self):
-    """ Saves the current display of this view to a static image by loading a
-        file dialog box.
+  def saveImage(self, filename=None):
     """
-    dialog = qtg.QFileDialog(self)
-    dialog.setFileMode(qtg.QFileDialog.AnyFile)
-    dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
-    dialog.exec_()
-    if dialog.result() == qtg.QFileDialog.Accepted:
-      myFile = dialog.selectedFiles()[0]
-      self.scene.clearSelection()
-      self.scene.setSceneRect(self.scene.itemsBoundingRect())
-      if myFile.endswith('.svg'):
-        svgGen = qts.QSvgGenerator()
-        svgGen.setFileName(myFile)
-        svgGen.setSize(self.scene.sceneRect().size().toSize())
-        svgGen.setViewBox(self.scene.sceneRect())
-        svgGen.setTitle("Screen capture of " + self.__class__.__name__)
-        svgGen.setDescription("Generated from RAVEN.")
-        painter = qtg.QPainter (svgGen)
+        Saves the current display of this view to a static image by loading a
+        file dialog box.
+        @ In, filename, string, optional parameter specifying where this image
+        will be saved. If None, then a dialog box will prompt the user for a
+        name and location.
+        @ Out, None
+    """
+    if filename is None:
+      dialog = qtg.QFileDialog(self)
+      dialog.setFileMode(qtg.QFileDialog.AnyFile)
+      dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
+      dialog.exec_()
+      if dialog.result() == qtg.QFileDialog.Accepted:
+        filename = dialog.selectedFiles()[0]
       else:
-        image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
-        image.fill(qtc.Qt.transparent)
-        painter = qtg.QPainter(image)
-      self.scene.render(painter)
-      if not myFile.endswith('.svg'):
-        image.save(myFile,quality=100)
-      del painter
+        return
+
+    self.scene.clearSelection()
+    self.scene.setSceneRect(self.scene.itemsBoundingRect())
+    if filename.endswith('.svg'):
+      svgGen = qts.QSvgGenerator()
+      svgGen.setFileName(filename)
+      svgGen.setSize(self.scene.sceneRect().size().toSize())
+      svgGen.setViewBox(self.scene.sceneRect())
+      svgGen.setTitle("Screen capture of " + self.__class__.__name__)
+      svgGen.setDescription("Generated from RAVEN.")
+      painter = qtg.QPainter (svgGen)
+    else:
+      image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
+      image.fill(qtc.Qt.transparent)
+      painter = qtg.QPainter(image)
+
+    self.scene.render(painter)
+
+    if not filename.endswith('.svg'):
+      image.save(filename, quality=100)
+
+    del painter
 
   def resizeEvent(self,event):
     """ An event handler triggered when the user resizes this view.
@@ -882,3 +894,58 @@ class TopologyMapView(BaseTopologicalView):
     self.gView.scale(self.gView.width()/self.scene.width(),
                      self.gView.height()/self.scene.height())
     self.gView.fitInView(self.scene.sceneRect(),qtc.Qt.KeepAspectRatio)
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations. For this class in particular, we will test:
+        - Saving the view buffer in both svg and png formats.
+        - Triggering of the resize event.
+        - Subselecting data and updating this view to reflect those changes.
+        - Toggling the color of the extrema.
+        - Toggling the fill viewport action.
+        - Increasing, decreasing, and explicitly setting the persistence level.
+        - Changing the shape of the extremum glyphs
+        - Triggering the mouse move, press, and release events.
+        - Triggering the right-click context menu
+        @ In, None
+        @ Out, None
+    """
+    self.amsc.ClearSelection()
+
+    self.saveImage(self.windowTitle()+'.svg')
+    self.saveImage(self.windowTitle()+'.png')
+
+    self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
+    pair = self.amsc.GetCurrentLabels()[0]
+    self.amsc.SetSelection([pair,pair[0],pair[1]])
+    self.colorAction.setChecked(True)
+    self.fillAction.setChecked(True)
+    self.updateScene()
+
+    self.increasePersistence()
+    self.decreasePersistence()
+    self.colorAction.setChecked(False)
+    self.fillAction.setChecked(False)
+    for action in self.glyphGroup.actions():
+      action.setChecked(True)
+      self.updateScene()
+
+    pair = self.amsc.GetCurrentLabels()[0]
+    self.amsc.SetSelection([pair,pair[0],pair[1]])
+
+    genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(0,0), qtc.Qt.MiddleButton, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    self.setPersistence()
+    self.mouseReleaseEvent(genericMouseEvent, True)
+    self.mouseReleaseEvent(genericMouseEvent, False)
+    self.mousePressEvent(genericMouseEvent, True)
+    self.mousePressEvent(genericMouseEvent, False)
+    self.mouseMoveEvent(genericMouseEvent, True)
+    self.mouseMoveEvent(genericMouseEvent, False)
+    self.contextMenuEvent(genericMouseEvent)
+
+    # self.mouseMoveEvent(qtg.QMouseEvent(qtc.Qt.MouseButton), qtc.QPoint(0,0), None, qtc.QEvent.Type, qtc.QPoint(0,0), qtc.Qt.)
+    self.updateScene()
+
+    super(TopologyMapView, self).test()
