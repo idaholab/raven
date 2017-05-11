@@ -1,0 +1,233 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all" color='true'>
+  <RunInfo>
+    <Sequence>
+      sampleMC,   sampleGrid,   sampleLHS,
+      statsMC, statsGrid, statsLHS,
+      readStats, plot
+    </Sequence>
+    <WorkingDir>comparingSamplers</WorkingDir>
+    <batchSize>8</batchSize>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/user_guide/StatisticalAnalysis/comparingStatistics</name>
+    <author>talbpw</author>
+    <created>2017-05-11</created>
+    <classesTested>PostProcessors.BasicStatistics,PostProcessors.RavenOutput</classesTested>
+    <description>
+      This test is an example for the user guide to draw from.
+      It compares the basic statistics from three sampling strategies in a plot.
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
+    <Input name="statsfileMC"   type="">output_stat_analysis_mc.xml</Input>
+    <Input name="statsfileGrid" type="">output_stat_analysis_grid.xml</Input>
+    <Input name="statsfileLHS"  type="">output_stat_analysis_lhs.xml</Input>
+  </Files>
+
+  <Models>
+    <Code name="bateman" subType="GenericCode">
+      <executable>../physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg=" " extension=".csv" type="output"/>
+    </Code>
+    <PostProcessor name="statsPP" subType="BasicStatistics">
+      <expectedValue>A,B,C,D</expectedValue>
+      <variance>A,B,C,D</variance>
+      <samples>A,B,C,D</samples>
+    </PostProcessor>
+    <PostProcessor name="statsReader" subType="RavenOutput">
+      <File name='statsfileMC' ID='1'>
+        <output name="mean">C|expectedValue</output>
+        <output name="variance">C|variance</output>
+      </File>
+      <File name='statsfileGrid' ID='2'>
+        <output name="mean">C|expectedValue</output>
+        <output name="variance">C|variance</output>
+      </File>
+      <File name='statsfileLHS' ID='3'>
+        <output name="mean">C|expectedValue</output>
+        <output name="variance">C|variance</output>
+      </File>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+      <Uniform name="sigma">
+          <lowerBound>0</lowerBound>
+          <upperBound>1000</upperBound>
+      </Uniform>
+      <Uniform name="decayConstant">
+          <lowerBound>0.00000001</lowerBound>
+          <upperBound>0.0000001</upperBound>
+      </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>1296</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="sigma-A">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay-A">
+        <distribution>decayConstant</distribution>
+      </variable>
+      <variable name="sigma-B">
+          <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay-B">
+          <distribution>decayConstant</distribution>
+      </variable>
+    </MonteCarlo>
+    <Grid name="grid">
+      <variable name="sigma-A">
+        <distribution>sigma</distribution>
+        <grid type='CDF' construction='equal' steps='5'>0 1</grid>
+      </variable>
+      <variable name="decay-A">
+        <distribution>decayConstant</distribution>
+        <grid type='CDF' construction='equal' steps='5'>0 1</grid>
+      </variable>
+      <variable name="sigma-B">
+        <distribution>sigma</distribution>
+        <grid type='CDF' construction='equal' steps='5'>0 1</grid>
+      </variable>
+      <variable name="decay-B">
+        <distribution>decayConstant</distribution>
+        <grid type='CDF' construction='equal' steps='5'>0 1</grid>
+      </variable>
+    </Grid>
+    <Stratified name="lhs">
+      <samplerInit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="sigma-A">
+        <distribution>sigma</distribution>
+        <grid type='CDF' construction='equal' steps='1295'>0 1</grid>
+      </variable>
+      <variable name="decay-A">
+        <distribution>decayConstant</distribution>
+        <grid type='CDF' construction='equal' steps='1295'>0 1</grid>
+      </variable>
+      <variable name="sigma-B">
+        <distribution>sigma</distribution>
+        <grid type='CDF' construction='equal' steps='1295'>0 1</grid>
+      </variable>
+      <variable name="decay-B">
+        <distribution>decayConstant</distribution>
+        <grid type='CDF' construction='equal' steps='1295'>0 1</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sampleMC">
+      <Input   class="Files"       type="input">referenceInput.xml</Input>
+      <Model   class="Models"      type="Code">bateman</Model>
+      <Sampler class="Samplers"    type="MonteCarlo">mc</Sampler>
+      <Output  class="DataObjects" type="PointSet">samplesMC</Output>
+    </MultiRun>
+    <MultiRun name="sampleGrid">
+      <Input   class="Files"       type="input">referenceInput.xml</Input>
+      <Model   class="Models"      type="Code">bateman</Model>
+      <Sampler class="Samplers"    type="Grid">grid</Sampler>
+      <Output  class="DataObjects" type="PointSet">samplesGrid</Output>
+    </MultiRun>
+    <MultiRun name="sampleLHS">
+      <Input   class="Files"       type="input">referenceInput.xml</Input>
+      <Model   class="Models"      type="Code">bateman</Model>
+      <Sampler class="Samplers"    type="Stratified">lhs</Sampler>
+      <Output  class="DataObjects" type="PointSet">samplesLHS</Output>
+    </MultiRun>
+    <PostProcess name="statsMC">
+      <Input  class="DataObjects" type="PointSet">samplesMC</Input>
+      <Model  class="Models"      type="PostProcessor">statsPP</Model>
+      <Output class="Files"       type="">statsfileMC</Output>
+    </PostProcess>
+    <PostProcess name="statsGrid">
+      <Input  class="DataObjects" type="PointSet">samplesGrid</Input>
+      <Model  class="Models"      type="PostProcessor">statsPP</Model>
+      <Output class="Files"       type="">statsfileGrid</Output>
+    </PostProcess>
+    <PostProcess name="statsLHS">
+      <Input  class="DataObjects" type="PointSet">samplesLHS</Input>
+      <Model  class="Models"      type="PostProcessor">statsPP</Model>
+      <Output class="Files"       type="">statsfileLHS</Output>
+    </PostProcess>
+    <PostProcess name="readStats">
+      <Input  class="Files"       type="">statsfileMC</Input>
+      <Input  class="Files"       type="">statsfileGrid</Input>
+      <Input  class="Files"       type="">statsfileLHS</Input>
+      <Model  class="Models"      type="PostProcessor">statsReader</Model>
+      <Output class="DataObjects" type="PointSet">all_stats</Output>
+    </PostProcess>
+    <IOStep name="plot" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">all_stats</Input>
+      <Output class="OutStreams" type="Plot">meanPlotter</Output>
+      <Output class="OutStreams" type="Plot">varPlotter</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="samplesMC">
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>A,B,C,D</Output>
+    </PointSet>
+    <PointSet name="samplesGrid">
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>A,B,C,D</Output>
+    </PointSet>
+    <PointSet name="samplesLHS">
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>A,B,C,D</Output>
+    </PointSet>
+    <PointSet name="all_stats">
+      <Input>ID</Input>
+      <Output>mean,variance</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Plot name="meanPlotter">
+      <actions>
+        <how>screen,pdf</how>
+        <title>
+          <text>Means</text>
+        </title>
+      </actions>
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>all_stats|Input|ID</x>
+          <y>all_stats|Output|mean</y>
+        </plot>
+        <xlabel>Sampler Number</xlabel>
+        <ylabel>Value</ylabel>
+      </plotSettings>
+    </Plot>
+    <Plot name="varPlotter">
+      <actions>
+        <how>screen,pdf</how>
+        <title>
+          <text>Variances</text>
+        </title>
+      </actions>
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>all_stats|Input|ID</x>
+          <y>all_stats|Output|variance</y>
+        </plot>
+        <xlabel>Sampler Number</xlabel>
+        <ylabel>Value</ylabel>
+      </plotSettings>
+    </Plot>
+  </OutStreams>
+
+</Simulation>
