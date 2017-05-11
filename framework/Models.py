@@ -1474,7 +1474,6 @@ class Code(Model):
 
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
-    print(self.oriInputFiles)
     for index in range(len(newInputSet)):
       newInputSet[index].setPath(subDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
