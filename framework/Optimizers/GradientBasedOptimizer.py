@@ -141,7 +141,7 @@ class GradientBasedOptimizer(Optimizer):
             (indicating whether the Model has finished the evaluation over input identified by traj+updateKey+evalID, the index of the location of the input in dataobject)
     """
     if self.mdlEvalHist.isItEmpty():
-      return False
+      return (False,-1)
 
     prefix = self.mdlEvalHist.getMetadata('prefix')
     for index, pr in enumerate(prefix):

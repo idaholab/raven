@@ -132,7 +132,7 @@ class SPSA(GradientBasedOptimizer):
         # since all evaluation points submitted, check if we have enough collected to evaluate a gradient
         evalNotFinish = False
         for pertID in range(1,self.gradDict['pertNeeded']+1):
-          if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID):#[0]:
+          if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:#[0]:
             evalNotFinish = True
             break
         if not evalNotFinish:
@@ -312,14 +312,18 @@ class SPSA(GradientBasedOptimizer):
   def _generateVarsUpdateConstrained(self,ak,gradient,varK):
     """
       Method to generate input for model to run, considering also that the input satisfies the constraint
-      @ In, ak, float, it is gain for variable update
+      @ In, ak, float or array, it is gain for variable update (if array, different gain for each variable)
       @ In, gradient, dictionary, contains the gradient information for variable update
       @ In, varK, dictionary, current variable values
       @ Out, tempVarKPlus, dictionary, variable values for next iteration.
     """
     tempVarKPlus = {}
-    for var in self.optVars:
-      tempVarKPlus[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
+    try:
+      gain = ak[:]
+    except (TypeError,IndexError):
+      gain = [ak]*len(self.optVars)
+    for index,var in enumerate(self.optVars):
+      tempVarKPlus[var] = copy.copy(varK[var]-gain[index]*gradient[var]*1.0)
     satisfied, activeConstraints = self.checkConstraint(tempVarKPlus)
     #satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempVarKPlus))
     if satisfied:
@@ -363,8 +367,8 @@ class SPSA(GradientBasedOptimizer):
         pendVector[var] = copy.deepcopy(pendVector[var])*r
 
       tempVarKPlus = {}
-      for var in self.optVars:
-        tempVarKPlus[var] = copy.copy(varK[var]-ak*pendVector[var]*1.0)
+      for index, var in enumerate(self.optVars):
+        tempVarKPlus[var] = copy.copy(varK[var]-gain[index]*pendVector[var]*1.0)
       foundPendVector, activeConstraints = self.checkConstraint(tempVarKPlus)
       if not foundPendVector:
         foundPendVector, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, pendVector)
@@ -383,29 +387,32 @@ class SPSA(GradientBasedOptimizer):
           lenSumVector += sumVector[var]**2
 
         tempTempVarKPlus = {}
-        for var in self.optVars:
+        for index, var in enumerate(self.optVars):
           sumVector[var] = copy.deepcopy(sumVector[var]/np.sqrt(lenSumVector)*lenPendVector)
-          tempTempVarKPlus[var] = copy.copy(varK[var]-ak*sumVector[var]*1.0)
+          tempTempVarKPlus[var] = copy.copy(varK[var]-gain[index]*sumVector[var]*1.0)
         satisfied, activeConstraints = self.checkConstraint(tempTempVarKPlus)
         if satisfied:
           tempVarKPlus = copy.deepcopy(tempTempVarKPlus)
           pendVector = copy.deepcopy(sumVector)
         else:
           gradient = copy.deepcopy(sumVector)
-
       return tempVarKPlus
-
     tempVarKPlus = varK
     return tempVarKPlus
 
-  def _bisectionForConstrainedInput(self,varK,gain,vector):
+  def _bisectionForConstrainedInput(self,varK,ak,vector):
     """
       Method to find the maximum fraction of 'vector' that, when using as gradient, the input can satisfy the constraint
       @ In, varK, dictionary, current variable values
-      @ In, gain, float, it is gain for variable update
+      @ In, ak, float or array, it is gain for variable update (if array, different gain for each variable)
       @ In, vector, dictionary, contains the gradient information for variable update
       @ Out, _bisectionForConstrainedInput, tuple(bool,dict), (indicating whether a fraction vector is found, contains the fraction of gradient that satisfies constraint)
     """
+    try:
+      gain = ak[:]
+    except (TypeError,IndexError):
+      gain = [ak]*len(self.optVars)
+      
     innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
     if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1:
       self.raiseAnError(ValueError, 'The innerBisectionThreshold shall be greater than 0 and less than 1')
@@ -414,8 +421,8 @@ class SPSA(GradientBasedOptimizer):
     tempVarNew = {}
     frac = 0.5
     while np.absolute(bounds[1]-bounds[0]) >= innerBisectionThreshold:
-      for var in self.optVars:
-        tempVarNew[var] = copy.copy(varK[var]-gain*vector[var]*1.0*frac)
+      for index, var in enumerate(self.optVars):
+        tempVarNew[var] = copy.copy(varK[var]-gain[index]*vector[var]*1.0*frac)
       satisfied, activeConstraints = self.checkConstraint(tempVarNew)
       if satisfied:
         bounds[0] = copy.deepcopy(frac)
@@ -467,21 +474,18 @@ class SPSA(GradientBasedOptimizer):
       @ In, iterNum, int, current iteration index
       @ Out, ak, float, current value for gain ak
     """
+    
     #  This block is going to be used and formalized in the future
     if iterNum > 2:
-      traj = 0
-      gradK     = np.asarray(self.counter['gradientHistory'][traj][0].values())/self.counter['gradNormHistory'][traj][0]
-      gradPrevK = np.asarray(self.counter['gradientHistory'][traj][1].values())/self.counter['gradNormHistory'][traj][1]
-      xK        = np.asarray(self.denormalizeData(self.optVarsHist[traj][iterNum-1]).values())
-      xPrevK    = np.asarray(self.denormalizeData(self.optVarsHist[traj][iterNum-2]).values())
-      deltaX    = np.asarray(xK) - np.asarray(xPrevK)
-      gX        = gradK - gradPrevK
-      aaa       =  np.asarray(deltaX)*np.asarray(gX).T
-      bbb       = np.linalg.norm(gX)
-      lupo = aaa/bbb
-      ak        = (np.asarray(gX).T * np.asarray(deltaX))/(np.asarray(gX)*np.asarray(gX).T)
-
-
-    a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
-    ak = a / (iterNum + A) ** alpha *1.0
+      gradK        = np.asarray([self.counter['gradientHistory'][traj][0][key] for key in self.optVars])/self.counter['gradNormHistory'][traj][0]
+      gradPrevK    = np.asarray([self.counter['gradientHistory'][traj][1][key] for key in self.optVars])/self.counter['gradNormHistory'][traj][1]
+      xKdenorm     = self.denormalizeData(self.optVarsHist[traj][iterNum-1])
+      xPrevKdenorm = self.denormalizeData(self.optVarsHist[traj][iterNum-2])
+      xK           = np.asarray([xKdenorm[key] for key in self.optVars])
+      xPrevK       = np.asarray([xPrevKdenorm[key] for key in self.optVars])
+      gX           = gradK - gradPrevK
+      ak           = np.absolute(np.asarray(np.asarray(xK) - np.asarray(xPrevK))*np.asarray(gX).T/np.linalg.norm(gX))
+    else:  
+      a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
+      ak = a / (iterNum + A) ** alpha
     return ak
