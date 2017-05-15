@@ -72,6 +72,13 @@ for classObj in utils.getAllSubclasses(eval(__base)):
 
 ## Adding aliases for certain classes that are exposed to the user.
 __interFaceDict['External'] = ExternalPostProcessor
+try:
+  __interFaceDict['TopologicalDecomposition' ] = QTopologicalDecomposition
+  __interFaceDict['DataMining'               ] = QDataMining
+except NameError:
+  ## The correct names should already be used for these classes otherwise
+  pass
+
 
 def knownTypes():
   """
