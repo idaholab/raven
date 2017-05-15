@@ -150,6 +150,13 @@ class TopologyWindow(qtg.QMainWindow):
 
       view.test()
 
+    ## Reset the persistence level to the value used by our test case.
+    ## Note, if we require multiple test cases, we could remember this state
+    ## from before, but as this function should capture all of the functionality
+    ## this is a low priority fix and might require persistent storage of this
+    ## value on the object.
+    self.amsc.Persistence(1.0)
+
   def BuildAMSC(self, X=None, Y=None, w=None, names=None, graph='beta skeleton',
                 gradient='steepest', knn=-1, beta=1.0, normalization=None):
     """ Initialization method that can optionally specify all of the parameters
