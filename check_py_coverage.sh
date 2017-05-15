@@ -94,5 +94,6 @@ coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveChec
 
 ## Go to the final directory and generate the html documents
 cd $SCRIPT_DIR/tests/framework
+pwd
 coverage html
 
