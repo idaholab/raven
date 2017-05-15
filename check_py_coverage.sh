@@ -91,7 +91,8 @@ cd ../PostProcessors/TopologicalPostProcessor
 coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
 cd ../DataMiningPostProcessor/Clustering/
 coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck
-cd ../../../../../
 
+## Go to the final directory and generate the html documents
+cd $SCRIPT_DIR/tests/framework
 coverage html
 
