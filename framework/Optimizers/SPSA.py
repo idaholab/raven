@@ -242,9 +242,8 @@ class SPSA(GradientBasedOptimizer):
       # evaluation completed for gradient evaluation
       self.counter['perturbation'][traj] = 0
       self.counter['varsUpdate'][traj] += 1
-
-      ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
       gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
+      ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
       varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
       # FIXME here is where adjustments to the step size should happen
@@ -322,6 +321,7 @@ class SPSA(GradientBasedOptimizer):
       gain = ak[:]
     except (TypeError,IndexError):
       gain = [ak]*len(self.optVars)
+    gain = np.asarray(gain)
     for index,var in enumerate(self.optVars):
       tempVarKPlus[var] = copy.copy(varK[var]-gain[index]*gradient[var]*1.0)
     satisfied, activeConstraints = self.checkConstraint(tempVarKPlus)
@@ -371,8 +371,9 @@ class SPSA(GradientBasedOptimizer):
         tempVarKPlus[var] = copy.copy(varK[var]-gain[index]*pendVector[var]*1.0)
       foundPendVector, activeConstraints = self.checkConstraint(tempVarKPlus)
       if not foundPendVector:
-        foundPendVector, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, pendVector)
-
+        foundPendVector, tempVarKPlus = self._bisectionForConstrainedInput(varK, gain, pendVector)
+      gain = gain/2.
+      
     if foundPendVector:
       lenPendVector = 0
       for var in self.optVars:
@@ -476,15 +477,22 @@ class SPSA(GradientBasedOptimizer):
     """
     
     #  This block is going to be used and formalized in the future
-    if iterNum > 2:
-      gradK        = np.asarray([self.counter['gradientHistory'][traj][0][key] for key in self.optVars])/self.counter['gradNormHistory'][traj][0]
-      gradPrevK    = np.asarray([self.counter['gradientHistory'][traj][1][key] for key in self.optVars])/self.counter['gradNormHistory'][traj][1]
+    if iterNum > 1:      
+      #gradK        = np.asarray([self.counter['gradientHistory'][traj][0][key] for key in self.optVars])/self.counter['gradNormHistory'][traj][0]
+      #gradPrevK    = np.asarray([self.counter['gradientHistory'][traj][1][key] for key in self.optVars])/self.counter['gradNormHistory'][traj][1]
+      gradK        = np.asarray([self.counter['gradientHistory'][traj][0][key] for key in self.optVars])
+      gradPrevK    = np.asarray([self.counter['gradientHistory'][traj][1][key] for key in self.optVars])
       xKdenorm     = self.denormalizeData(self.optVarsHist[traj][iterNum-1])
       xPrevKdenorm = self.denormalizeData(self.optVarsHist[traj][iterNum-2])
+      #xKdenorm     = self.optVarsHist[traj][iterNum-1]
+      #xPrevKdenorm = self.optVarsHist[traj][iterNum-2]
       xK           = np.asarray([xKdenorm[key] for key in self.optVars])
       xPrevK       = np.asarray([xPrevKdenorm[key] for key in self.optVars])
       gX           = gradK - gradPrevK
-      ak           = np.absolute(np.asarray(np.asarray(xK) - np.asarray(xPrevK))*np.asarray(gX).T/np.linalg.norm(gX))
+    #  #ak           = np.absolute(np.asarray(np.asarray(xK) - np.asarray(xPrevK))*np.asarray(gX).T/np.linalg.norm(gX))
+      ak           = np.absolute(np.linalg.norm(np.asarray(xK) - np.asarray(xPrevK))/(gX*np.asarray(np.asarray(xK) - np.asarray(xPrevK)).T))
+    #  #ak           = np.asarray(np.asarray(xK) - np.asarray(xPrevK))*np.asarray(gX).T/np.linalg.norm(gX)
+      print(ak)
     else:  
       a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
       ak = a / (iterNum + A) ** alpha

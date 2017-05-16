@@ -295,7 +295,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if len(self.optTraj) != len(self.optVarsInit['initial'][varname].keys()):
         self.raiseAnError(ValueError, 'Number of initial values does not equal to the number of parallel optimization trajectories')
       #store ranges of variables
-      self.optVarsInit['ranges'][varname] = self.optVarsInit['upperBound'][varname] - self.optVarsInit['lowerBound'][varname]
+      self.optVarsInit['ranges'][varname] = self.optVarsInit['upperBound'][varname] - self.optVarsInit['lowerBound'][varname]          
     self.optTrajLive = copy.deepcopy(self.optTraj)
 
   def localInputAndChecks(self,xmlNode):
@@ -395,6 +395,25 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.constraintFunction = self.assemblerDict['Function'][0][3]
       if 'constrain' not in self.constraintFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
+
+    # check the constraint here to check if the initial values violate it
+    varK = {}
+    for trajInd in self.optTraj:
+      for varname in self.optVars:
+        varK[varname] = self.optVarsInit['initial'][varname][trajInd]
+      satisfied, _ = self.checkConstraint(varK)
+      if not satisfied: 
+        # get a random value between the the lower and upper bounds
+        self.raiseAWarning("the initial values specified for trajectory "+str(trajInd)+" do not satify the contraints. Picking random ones!")
+        randomGuessesCnt = 0
+        while not satisfied and randomGuessesCnt < self.constraintHandlingPara['innerLoopLimit']:
+          for varname in self.optVars:
+            varK[varname] = self.optVarsInit['lowerBound'][varname]+Distributions.random()*self.optVarsInit['ranges'][varname]
+            self.optVarsInit['initial'][varname][trajInd] = varK[varname]
+          satisfied, _ = self.checkConstraint(varK)
+        if not satisfied:
+          self.raiseAnError(Exception,"It was not possible to find any initial values that could satisfy the constraints for trajectory "+str(trajInd))
+              
 
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
