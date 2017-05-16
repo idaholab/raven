@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <JobName>singleRun</JobName>
+    <Sequence>single</Sequence>
+    <WorkingDir>singleRunAnalysis</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+      <Input name="referenceInput.xml" type="input">
+          ../commonFiles/referenceInput.xml
+      </Input>
+  </Files>
+
+  <Models>
+    <Code name="testModel" subType="GenericCode">
+      <executable>
+         ../physicalCode/analyticalbateman/AnalyticalDplMain.py
+      </executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg=" " extension=".csv" type="output"/>
+    </Code>
+  </Models>
+
+  <Steps>
+    <SingleRun name="single">
+      <Input class="Files" type="input">referenceInput.xml</Input>
+      <Model class="Models" type="Code">testModel</Model>
+      <Output class="DataObjects" type="HistorySet">history</Output>
+    </SingleRun>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="history">
+        <Input>InputPlaceHolder</Input>
+        <Output>A,B,C,D,time</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

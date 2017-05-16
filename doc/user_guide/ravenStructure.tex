@@ -163,7 +163,6 @@ it gets associated with a \textit{Model}, that is the internal representation of
   RAVEN supports:
       \begin{itemize}
        \item \textit{1-Dimensional} continuous and discrete distributions, such as Normal, Weibull, Binomial, etc.
-         Fig.~\ref{fig:commonDist} shows the most common used 1D distributions.
        \item \textit{N-Dimensional} distributions, such as Multivariate Normal, user-inputted N-Dimensional distributions.
       \end{itemize}
   \item \textit{\xmlNode{Models}}:
@@ -225,11 +224,6 @@ it gets associated with a \textit{Model}, that is the internal representation of
       \item Minkowski
     \end{itemize}
 \end{itemize}
-\begin{figure}[h!]
-  \includegraphics[width=\textwidth]{pics/common1DDistribution.png}
-  \caption{Most common 1D distributions}
-  \label{fig:commonDist}
-\end{figure}
 All these action-objects are combined together to create a peculiar analysis flow, which is specified
 by the user in an additional \textbf{Entity} named \textit{\xmlNode{Steps}} (see Fig.~\ref{fig:ravenStructure}).
 This \textbf{Entity} represents the core of the analysis, since it is the location where the multiple objects get
