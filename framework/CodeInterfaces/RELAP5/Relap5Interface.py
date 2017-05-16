@@ -132,18 +132,11 @@ class Relap5(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     import RELAPparser
-    self._samplersDictionary                          = {}
-    self._samplersDictionary['MonteCarlo'           ] = self.pointSamplerForRELAP5
-    self._samplersDictionary['Grid'                 ] = self.pointSamplerForRELAP5
-    self._samplersDictionary['Stratified'           ] = self.pointSamplerForRELAP5
-    self._samplersDictionary['Adaptive'             ] = self.pointSamplerForRELAP5
-    self._samplersDictionary['FactorialDesign'      ] = self.pointSamplerForRELAP5
-    self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForRELAP5
-    self._samplersDictionary['DynamicEventTree'     ] = self.DynamicEventTreeForRELAP5
-    self._samplersDictionary['BnBDynamicEventTree'  ] = self.DynamicEventTreeForRELAP5
-    self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
-    self._samplersDictionary['EnsembleForward'      ] = self.pointSamplerForRELAP5
-    self._samplersDictionary['CustomSampler'        ] = self.pointSamplerForRELAP5
+    self._samplersDictionary                = {}
+    if 'dynamiceventtree' in samplerType.lower():
+      self._samplersDictionary[samplerType] = self.DynamicEventTreeForRELAP5
+    else:
+      self._samplersDictionary[samplerType] = self.pointSamplerForRELAP5
 
     found = False
     for index, inputFile in enumerate(currentInputFiles):
