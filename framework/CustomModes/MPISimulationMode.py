@@ -30,15 +30,14 @@ class MPISimulationMode(Simulation.SimulationMode):
     MPISimulationMode is a specialized class of SimulationMode.
     It is aimed to distribute the runs using the MPI protocol
   """
-  def __init__(self,simulation):
+  def __init__(self,messageHandler):
     """
       Constructor
       @ In, simulation, instance, instance of the simulation class
       @ Out, None
     """
-    Simulation.SimulationMode.__init__(self,simulation)
-    self.__simulation = simulation
-    self.messageHandler = simulation.messageHandler
+    Simulation.SimulationMode.__init__(self,messageHandler)
+    self.messageHandler = messageHandler
     #Figure out if we are in PBS
     self.__inPbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False
@@ -51,7 +50,7 @@ class MPISimulationMode(Simulation.SimulationMode):
     # don't put more than that on on single shared memory node
     self.printTag = 'MPI SIMULATION MODE'
 
-  def modifySimulation(self):
+  def modifySimulation(self, runInfoDict):
     """
       This method is aimed to modify the Simulation instance in
       order to distribute the jobs using the MPI protocol
@@ -65,20 +64,22 @@ class MPISimulationMode(Simulation.SimulationMode):
       else:
         nodefile = self.__nodefile
       lines = open(nodefile,"r").readlines()
-      self.__simulation.runInfoDict['Nodes'] = list(lines)
-      numMPI = self.__simulation.runInfoDict['NumMPI']
-      oldBatchsize = self.__simulation.runInfoDict['batchSize']
+      #XXX
+      runInfoDict['Nodes'] = list(lines)
+      numMPI = runInfoDict['NumMPI']
+      oldBatchsize = runInfoDict['batchSize']
       #the batchsize is just the number of nodes of which there is one
       # per line in the nodefile divided by the numMPI (which is per run)
       # and the floor and int and max make sure that the numbers are reasonable
       maxBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
       if maxBatchsize < oldBatchsize:
-        self.__simulation.runInfoDict['batchSize'] = maxBatchsize
+        #XXX
+        runInfoDict['batchSize'] = maxBatchsize
         self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
-      newBatchsize = self.__simulation.runInfoDict['batchSize']
+      newBatchsize = runInfoDict['batchSize']
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
-        workingDir = self.__simulation.runInfoDict['WorkingDir']
+        workingDir = runInfoDict['WorkingDir']
         if not (self.__noSplitNode or self.__limitNode):
           for i in range(newBatchsize):
             nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
@@ -132,19 +133,20 @@ class MPISimulationMode(Simulation.SimulationMode):
               fullGroupCount += 1
           if fullGroupCount == 0:
             self.raiseAnError(IOError, "Cannot run with given parameters because no nodes have numMPI "+str(numMPI)+" available and NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode))
-          if fullGroupCount != self.__simulation.runInfoDict['batchSize']:
+          if fullGroupCount != runInfoDict['batchSize']:
             self.raiseAWarning("changing batchsize to "+str(fullGroupCount)+" because NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode)+" and some nodes could not be used.")
-            self.__simulation.runInfoDict['batchSize'] = fullGroupCount
+            #XXX
+            runInfoDict['batchSize'] = fullGroupCount
 
         #then give each index a separate file.
-        nodeCommand = self.__simulation.runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
+        nodeCommand = runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
       else:
         #If only one batch just use original node file
-        nodeCommand = self.__simulation.runInfoDict["NodeParameter"]+" "+nodefile
+        nodeCommand = runInfoDict["NodeParameter"]+" "+nodefile
     else:
       #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
-      newBatchsize = self.__simulation.runInfoDict['batchSize']
-      numMPI = self.__simulation.runInfoDict['NumMPI']
+      newBatchsize = runInfoDict['batchSize']
+      numMPI = runInfoDict['NumMPI']
       #TODO, we don't have a way to know which machines it can run on
       # when not in PBS so just distribute it over the local machine:
       nodeCommand = " "
@@ -155,18 +157,20 @@ class MPISimulationMode(Simulation.SimulationMode):
 
     # Create the mpiexec pre command
     # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
-    self.__simulation.runInfoDict['precommand'] = self.__simulation.runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+self.__simulation.runInfoDict['precommand']
-    if(self.__simulation.runInfoDict['NumThreads'] > 1):
+    #XXX
+    runInfoDict['precommand'] = runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
+    if(runInfoDict['NumThreads'] > 1):
       #add number of threads to the post command.
-      self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
-    self.raiseAMessage("precommand: "+self.__simulation.runInfoDict['precommand']+", postcommand: "+self.__simulation.runInfoDict['postcommand'])
+      #XXX
+      runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+runInfoDict['postcommand']
+    self.raiseAMessage("precommand: "+runInfoDict['precommand']+", postcommand: "+runInfoDict['postcommand'])
 
-  def doOverrideRun(self):
+  def doOverrideRun(self, runInfoDict):
     """
       If doOverrideRun is true, then use runOverride instead of
       running the simulation normally.  This method should call
       simulation.run
-      @ In, None
+      @ In, runInfoDict, dict, the run info dict
       @ Out, doOverrRun, bool, does the override?
     """
     # Check if the simulation has been run in PBS mode and if run QSUB
@@ -174,15 +178,15 @@ class MPISimulationMode(Simulation.SimulationMode):
     doOverrRun = (not self.__inPbs) and self.__runQsub
     return doOverrRun
 
-  def runOverride(self):
+  def runOverride(self, runInfoDict):
     """
       This  method completely overrides the Simulation's run method
-      @ In, None
+      @ In, runInfoDict, dict, the run information
       @ Out, None
     """
     #Check and see if this is being accidently run
     assert self.__runQsub and not self.__inPbs
-    Simulation.createAndRunQSUB(self.__simulation.runInfoDict)
+    Simulation.createAndRunQSUB(runInfoDict)
 
   def XMLread(self, xmlNode):
     """

@@ -63,47 +63,46 @@ class SimulationMode(MessageHandler.MessageUser):
     and other parameters.  runOverride lets the mode do the running instead
     of simulation.
   """
-  def __init__(self,simulation):
+  def __init__(self,messageHandler):
     """
       Constructor
-      @ In, simulation, instance, instance of the simulation class
+      @ In, messageHandler, instance, instance of the MessageHandler class
       @ Out, None
     """
-    self.__simulation = simulation
-    self.messageHandler = simulation.messageHandler
+    self.messageHandler = messageHandler
     self.printTag = 'SIMULATION MODE'
 
-  def doOverrideRun(self):
+  def doOverrideRun(self, runInfoDict):
     """
       If doOverrideRun is true, then use runOverride instead of
       running the simulation normally.  This method should call
       simulation.run somehow
-      @ In, None
+      @ In, runInfoDict, dict, the run info.
       @ Out, doOverrideRun, bool, does the override?
     """
     return False
 
-  def runOverride(self):
+  def runOverride(self, runInfoDict):
     """
       This  method can completely override the Simulation's run method
-      @ In, None
+      @ In, runInfoDict, dict, the run info
       @ Out, None
     """
     pass
 
-  def modifySimulation(self):
+  def modifySimulation(self, runInfoDict):
     """
       modifySimulation is called after the runInfoDict has been setup.
       This allows the mode to change any parameters that need changing.
       This typically modifies the precommand and the postcommand that
       are put infront of the command and after the command.
-      @ In, None
+      @ In, runInfoDict, dict, the run info
       @ Out, None
     """
     import multiprocessing
     try:
-      if multiprocessing.cpu_count() < self.__simulation.runInfoDict['batchSize']:
-        self.raiseAWarning("cpu_count",multiprocessing.cpu_count(),"< batchSize",self.__simulation.runInfoDict['batchSize'])
+      if multiprocessing.cpu_count() < runInfoDict['batchSize']:
+        self.raiseAWarning("cpu_count",multiprocessing.cpu_count(),"< batchSize",runInfoDict['batchSize'])
     except NotImplementedError:
       pass
 
@@ -367,7 +366,7 @@ class Simulation(MessageHandler.MessageUser):
     #the handler of the runs within each step
     self.jobHandler    = JobHandler()
     #handle the setting of how the jobHandler act
-    self.__modeHandler = SimulationMode(self)
+    self.__modeHandler = SimulationMode(self.messageHandler)
     self.printTag = 'SIMULATION'
     self.raiseAMessage('Simulation started at',readtime,verbosity='silent')
 
@@ -603,7 +602,7 @@ class Simulation(MessageHandler.MessageUser):
     for key in self.filesDict.keys():
       self.__createAbsPath(key)
     #Let the mode handler do any modification here
-    self.__modeHandler.modifySimulation()
+    self.__modeHandler.modifySimulation(self.runInfoDict)
     self.jobHandler.initialize(self.runInfoDict,self.messageHandler)
     # only print the dictionaries when the verbosity is set to debug
     #if self.verbosity == 'debug': self.printDicts()
@@ -738,7 +737,7 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment
         if self.runInfoDict['mode'] in self.__modeHandlerDict:
-          self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self)
+          self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self.messageHandler)
           self.__modeHandler.XMLread(element)
         else:
           self.raiseAnError(IOError,"Unknown mode "+self.runInfoDict['mode'])
@@ -808,8 +807,8 @@ class Simulation(MessageHandler.MessageUser):
     #can we remove the check on the esistence of the file, it might make more sense just to check in case they are input and before the step they are used
     self.raiseADebug('entering the run')
     #controlling the PBS environment
-    if self.__modeHandler.doOverrideRun():
-      self.__modeHandler.runOverride()
+    if self.__modeHandler.doOverrideRun(self.runInfoDict):
+      self.__modeHandler.runOverride(self.runInfoDict)
       return
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:
