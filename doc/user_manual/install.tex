@@ -50,6 +50,7 @@ which must  be installed before it will function properly:
     \hline scipy &  Scientific computing package for Python \\
     \hline scikit-learn & Machine learning library for Python \\
     \hline matplotlib & Plotting library for Python \\
+    \hline xarray & High-dimension field data containers for Python \\
     \hline
     \end{tabular}
 \end{center}
@@ -97,12 +98,15 @@ sudo apt-get install texlive-latex-base texlive-extra-utils \
 \subsubsection{Fedora}
 
 When using the Fedora Linux distribution, use the RPM package manager to
-install needed dependencies:
+install most of the needed dependencies, then \texttt{pip} for the remainder:
 
 \begin{lstlisting}[language=bash]
 dnf install swig libtool gcc-c++ redhat-rpm-config python-devel \
   python3-devel numpy h5py scipy python-scikit-learn \
   python-matplotlib-qt4
+\end{lstlisting}
+\begin{lstlisting}[language=bash]
+pip install pandas xarray
 \end{lstlisting}
 
 In addition, if you would like to be able to build the documentation
