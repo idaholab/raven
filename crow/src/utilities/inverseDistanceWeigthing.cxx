@@ -17,6 +17,7 @@
 #include <cmath>
 #include "MDreader.h"
 #include <iostream>
+#include <iso646.h>
 
 
 InverseDistanceWeighting::InverseDistanceWeighting(std::string filename, double p){

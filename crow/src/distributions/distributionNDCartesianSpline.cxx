@@ -23,6 +23,7 @@
 #include <iostream>
 #include <fstream>
 #include "distributionNDCartesianSpline.h"
+#include <iso646.h>
 
 
 #define throwError(msg) { std::cerr << "\n\n" << msg << "\n\n"; throw std::runtime_error("Error"); }
