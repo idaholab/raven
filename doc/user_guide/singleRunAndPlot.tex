@@ -1,58 +1,56 @@
-\section{Run a Single Instance of a Code and Load the Outputs}
-The simplest exercise that can be performed is to run the driven code (\textbf{AnalyticBateman}  in our example), loading the results of a single run into RAVEN, printing and plotting some variables.
-\\ As detailed in the RAVEN user manual (~\cite{RAVENuserManual}-Chapters ``DataObjects''  and ``Databases'') and in Chapter~\ref{sub:EntitiesAndFlow} RAVEN uses two classes of objects to store the data coming from a driven code (outputs):
-\begin{itemize}
-  \item \textbf{DataObjects}: The DataObjects represent the preferred way to transfer the information coming from a
-   Model (the driven code, in this case) to all the other RAVEN systems (e.g. Out-Stream system, Reduced Order Modeling
-   component, etc.).
-  \item \textbf{Databases}.
-\end{itemize}
-
-As inferable from the user manual (~\cite{RAVENuserManual}-Chapter ``OutStream''), the DataObjects can be exported into a CSV file and plotted (2-D and 3-D plots) linking them into the OutStream system.
-\\ The following subsections report examples on how to use these systems running a single instance of the driven code.
-\subsection{Single Run using the OutStream system for printing and create basic plots}
-\label{sub:SingleRunBasicPlots}
- In this Section, the user can learn how to use RAVEN to run a single instance of a driven code, plotting and printing the
- results.
- \\ The goal of this Section is to learn how to:
- \begin{enumerate}
-   \item Set up a simple RAVEN input for running a driven code;
-   \item Load the output of the code into the RAVEN DataObjects system;
-   \item Print out what contained in the DataObjects;
-   \item Generate basic plots of the code results.
+\subsection{Build RAVEN input: \xmlNode{SingleRun}}
+In this section, we will show the user how to use RAVEN to run a single instance of a driven code, plotting and
+printing some variables.. 
+\subsubsection{Set up a simple RAVEN input}
+We will start to build a very simple RAVEN input. From this process, we hope the user can get a better idea about
+RAVEN \textbf{Entities} and learn how to build their own RAVEN inputs for their applications.
+In order to accomplish these tasks, the following steps are needed:
+\begin{enumerate}
+   \item \textbf{Set up the running environment}: \xmlNode{RunInfo}
+   \item \textbf{Provide the required files}: \xmlNode{Files}
+   \item \textbf{Link between RAVEN and driven code}: \xmlNode{Models}
+   \item \textbf{Container of input and output data}: \xmlNode{DataObjects}
+   \item \textbf{Control of executions}: \xmlNode{Steps}
 \end{enumerate}
-In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) are needed:
- \begin{enumerate}
-   \item \textbf{\textit{RunInfo}}:
-     \xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint-VI.I.xml}{RunInfo}
-   As given in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis
-   that the user wants to perform. In this specific case, two steps (\xmlNode{Sequence}) are going to be sequentially run
-   using a single processor (\xmlNode{batchSize}).
+The RAVEN input file will look like:
+\xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{Simulation}
+In this specific case, as shown in \xmlNode{RunInfo}, only one step named \xmlString{singleRun} is going to be
+sequentially run using a single processor as defined by \xmlNode{BatchSize}. All the output files and temporary
+files will be dumped in the folder \xmlString{singleRunAnalysis}.The \xmlNode{Steps} will be used to
+link the rest of \textbf{Entities} to perform a single run, i.e. load the input file \xmlString{referenceInput.xml} as defined in
+\xmlNode{Files} via \xmlNode{Input}, run the code using the commands defined in \xmlNode{Models}, and collect the
+input and output data into the data objects \xmlString{history} which is defined as \xmlNode{HistorySet} to store
+the time-dependent data..
+The subnodes defined for \xmlNode{Code} is equivalent to:
+\begin{lstlisting}[language=bash]
+python ../physicalCode/analyticalbateman/AnalyticalDplMain.py
+\end{lstlisting}
+with the requirement of extensions of input and output files, as defined via \xmlNode{clargs}, to be \xmlString{.xml} and \xmlString{.csv},
+respectively.
+In addition, the \xmlString{GenericCode} interface is used for this case since the driven code already dumps its
+outputs in CSV format. In general, the users need to create an ad-hoc code interface for their applications. More
+detailed information can be found in ~\cite{RAVENuserManual}. 
 
-   \item \textbf{\textit{Files}}:
-     \xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint-VI.I.xml}{Files}
-   Since the driven code uses a single input file, in this Section the original input is placed. As described in the user manual~\cite{}
-   the attribute  \xmlAttr{name} represents the alias that is going to be used in all the other input blocks in order to
-   refer to this file.
-   \item \textbf{\textit{Models}}:
-     \xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint-VI.I.xml}{Models}
-  Since the driven code already dumps its outputs in CSV format, there is no need to create
-  an ad-hoc code interface and the GenericCode interface can be directly used. In additiom, since the \textbf{AnalyticBateman} code
-  is written in \texttt{Python}, it is necessary to specify that the code needs to be run pre-pending the expression ``\texttt{Python}''.
-   \item \textbf{\textit{DataObjects}}:
-     \xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint-VI.I.xml}{DataObjects}
-  Int this block, two \textit{DataObjects} are defined: 1) PointSet named ``pointValues'', 2) HistorySet named ``history''.
-  Note that a special keyword is inputted in the \xmlNode{Input} node. This keyword is used when a \textit{DataObjects}  \textbf{Entity} needs to be constructed without any linking with respect to the input space. Indeed, in
-  this case, the model input space is not perturbed though a sampling strategies; the code is executed through the original
-   input file   (``referenceInput.xml''). In the \xmlNode{Output} node all the requested variables are inputted.
+\subsubsection{Output: print and plot using \xmlNode{OutStreams}}
+\xmlNode{OutStreams} can be used to visualize and dump out the data that is generated, imported or post-processed during
+the analysis. It supports two actions:
+\begin{enumerate}
+  \item \textbf{Print}: module that lets the user dump the data contained in the internal objects;
+  \item \textbf{Plot}: module based on MatPLotLib~\cite{MatPlotLib}, aimed to provide advanced plotting capabilities.
+\end{enumerate}
+Both actions listed above accept a \xmlString{DataObject} as an \xmlNode{Input}. The printing system has been created
+in order to let he user dump the data, contained in the internal data objects, out at anytime during the calculation.
+The plotting system provides all the capabilities to visualize the analysis outcomes, in real-time or as a post-processing
+stage.
+
+\begin{enumerate}
    \item \textbf{\textit{OutStreams}}:
-     \xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint-VI.I.xml}{OutStreams}
+     \xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint.xml}{OutStreams}
   In this block, both the Out-Stream types are constructed:
   \begin{itemize}
     \item \textit{Print}:
      \begin{itemize}
-       \item named ``pointValues'' connected with the \textit{DataObjects} \textbf{Entity} ``pointValues''
-                (\xmlNode{source})
+       \item named "pointValues" connected with the \textit{DataObjects} \textbf{Entity} ``pointValues'' (\xmlNode{source})
        \item named ``history'' connected with the \textit{DataObjects} \textbf{Entity} ``history'' (\xmlNode{source})
      \end{itemize}
       When this objects get used, all the information contained in the linked  \textit{DataObjects} are going
@@ -61,35 +59,35 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     ($A,B,C,D$) in the same figure. This object is going to generate a PNG file and an interactive Plot on
     the screen.
   \end{itemize}
-   \item \textbf{\textit{Steps}}:
-     \xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint-VI.I.xml}{Steps}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure history
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{../../tests/framework/user_guide/SingleRuns/gold/sectionVI.I/1-historyPlot_line-line-line-line.png}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/SingleRuns/gold/singleRunPlot/1-historyPlot_line-line-line-line.png}
   \caption{Plot of the history for variables $A,B,C,D$.}
   \label{fig:historyPlotLine}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   Finally, all the previously defined \textbf{Entities} can be combined in the \xmlNode{Steps} block. Thus,
-   two \xmlNode{Steps} have been inputted:
-   \begin{itemize}
-     \item \xmlNode{SingleRun} named ``Single'', used to run the single instance of the driven code and collect
-     the outputs in the two \textit{DataObjects}. In addition, it can be seen that an additional object has been
-     placed among the \xmlNode{Output}(s). Indeed, an  \textit{OutStreams} can be an \xmlNode{Output} in
-     any Step type (as long as the linked \textit{DataObjects} plays a whatever role in the Step)
-     \item  \xmlNode{IOStep} named ``writeHistory'', used to 1) dump the ``history'' \textit{DataObjects}
-     \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and on the screen.
-   \end{itemize}
 \end{enumerate}
-For examples of the numerical data produced by the OutStreams \textit{Print}, see \texttt{history\_0.csv} and
-\texttt{pointValues.csv} in the directory
- \texttt{raven/tests/framework/user\_guide/SingleRuns/gold/sectionVI.I/}
+
+\subsubsection{IOStep: perform input/output operations}
+The \xmlNode{IOStep} acts as a "transfer network" among different RAVEN storing or streaming objects. The number
+of \xmlNode{Input} and \xmlNode{Output} is unlimited. This \xmlNode{IOStep} assumes one-to-one maping, i.e. the first
+\xmlNode{Input} is going to be used for the first \xmlNode{Output}, etc. \nb If the \xmlNode{Output} nodes are class
+\xmlString{OutStreams}, the user does not need to follow this assumption, since \textbf{OutStreams} objects are already
+lined to \textbf{DataObjects} in the relative RAVEN input block.
+
+\begin{enumerate}
+   \item \textbf{\textit{IOStep}}:
+     \xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint.xml}{Steps}
+\end{enumerate}
+
+For examples of the numerical data produced by the OutStreams \textit{Print}, see \texttt{history\_0.csv} in the directory
+ \texttt{raven/tests/framework/user\_guide/SingleRuns/gold/singleRunPlot/}
  As previously mentioned, Figure~\ref{fig:historyPlotLine} reports the four plots (four variables) drawn in the same picture.
 
 %\FloatBarrier
-\subsection{Single Run using the OutStream System to Sub-plot and Selectively print.}
+\subsubsection{OutStream System: Sub-plot and Selectively print.}
 This Section shows how to use RAVEN to create sub-plots (multiple plots in the same figure) and
 how to select only some variable from the \textit{DataObjects} in the \textit{Print} OutStream.
  \\ The goals of this Section are about learning how to:
@@ -98,11 +96,11 @@ how to select only some variable from the \textit{DataObjects} in the \textit{Pr
    \item Generate sub-plots (multiple plots in the same figure) of the code results
 \end{enumerate}
 
-To accomplish these tasks, the \textit{OutStreams} \textbf{Entity} in the input defined in the previous Section (~\ref{sub:SingleRunBasicPlots}) needs to be modified as follows:
-\xmlExample{framework/user_guide/SingleRuns/singleRunSubPlotsAndSelectivePrint-VI.II.xml}{OutStreams}
+To accomplish these tasks, the \textit{OutStreams} \textbf{Entity} in the input defined in the previous section needs to be modified as follows:
+\xmlExample{framework/user_guide/SingleRuns/singleRunSubPlotsAndSelectivePrint.xml}{OutStreams}
 \begin{enumerate}
    \item \textbf{\textit{Print}}:
-   With respect to the \textit{Print} nodes defined in the previous Section (~\ref{sub:SingleRunBasicPlots}), it can
+   With respect to the \textit{Print} nodes defined in the previous section, it can
    be noticed that an additional node has been added: \xmlNode{what}. The \textit{Print} \textbf{Entity}
    ``pointValues'' is going to extract and dump only the variables that are part of the Output space
    ($A,B,C,D$ and not $InputPlaceHolder$).  The \textit{Print} \textbf{Entity} ``history'' is instead going to print
@@ -110,7 +108,7 @@ To accomplish these tasks, the \textit{OutStreams} \textbf{Entity} in the input 
 
    \item \textbf{\textit{Plot}}:
  Note that the  \textit{Plot} \textbf{Entity} does not differ much with respect to the one in
- Section~\ref{sub:SingleRunBasicPlots}: 1) the additional sub-node \xmlNode{gridSpace}  has been added.
+ previous section: 1) the additional sub-node \xmlNode{gridSpace}  has been added.
  This node is needed to define how the figure needs to be partitioned (discretization of the grid). In this case
  a 2 by 2 grid is requested. 2) in each \xmlNode{plot} the node \xmlNode{gridLocation} is placed in
  order to specify in which position the relative plot needs to be placed. For example, in the following grid
@@ -128,7 +126,7 @@ dumped out.
  %figure history sublots
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{../../tests/framework/user_guide/SingleRuns/gold/sectionVI.II/1-historyPlot_line-line-line-line.png}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/SingleRuns/gold/subPlot/1-historyPlot_line-line-line-line.png}
   \caption{Subplot of the history for variables $A,B,C,D$.}
   \label{fig:historySubPlotLine}
  \end{figure}
