@@ -26,7 +26,7 @@ warnings.simplefilter('default',DeprecationWarning)
 from matplotlib import cm, colors
 import numpy as np
 import itertools
-from PySide.QtGui import QColor
+from qtpy.QtGui import QColor
 
 minPenColor = QColor(33,102,172) #QColor(57,94,150)
 minBrushColor = QColor(67,147,195) #QColor(114,143,184)

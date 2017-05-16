@@ -23,9 +23,10 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-from PySide import QtCore as qtc
-from PySide import QtGui as qtg
-from PySide import QtSvg as qts
+from qtpy import QtCore as qtc
+from qtpy import QtGui as qtg
+from qtpy import QtWidgets as qtw
+from qtpy import QtSvg as qts
 
 from .BaseTopologicalView import BaseTopologicalView
 
@@ -61,16 +62,16 @@ class SensitivityView(BaseTopologicalView):
     """
     # Try to apply a new layout, if one already exists then make sure to grab
     # it for updating
-    self.setLayout(qtg.QVBoxLayout())
+    self.setLayout(qtw.QVBoxLayout())
     layout = self.layout()
     self.clearLayout(layout)
 
     self.padding = 2
 
     ## General Graphics View/Scene setup
-    self.scene = qtg.QGraphicsScene()
+    self.scene = qtw.QGraphicsScene()
     self.scene.setSceneRect(0,0,100,100)
-    self.gView = qtg.QGraphicsView(self.scene)
+    self.gView = qtw.QGraphicsView(self.scene)
     self.gView.setRenderHints(qtg.QPainter.Antialiasing |
                               qtg.QPainter.SmoothPixmapTransform)
     self.gView.setHorizontalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
@@ -78,9 +79,9 @@ class SensitivityView(BaseTopologicalView):
     self.font = qtg.QFont('sans-serif', 12)
 
     ## Defining the right click menu
-    self.rightClickMenu = qtg.QMenu()
-    self.shapeMenu = qtg.QMenu('Layout')
-    self.shapeGroup = qtg.QActionGroup(self.shapeMenu)
+    self.rightClickMenu = qtw.QMenu()
+    self.shapeMenu = qtw.QMenu('Layout')
+    self.shapeGroup = qtw.QActionGroup(self.shapeMenu)
     self.rightClickMenu.addMenu(self.shapeMenu)
     shapeActions = []
     shapeActions.append(self.shapeMenu.addAction('Horizontal Bar'))
@@ -92,8 +93,8 @@ class SensitivityView(BaseTopologicalView):
     self.shapeGroup.triggered.connect(self.updateScene)
 
     ## Ba da ba ba ba I'm lovin' it
-    self.valueMenu = qtg.QMenu('Value to Display')
-    self.valueGroup = qtg.QActionGroup(self.valueMenu)
+    self.valueMenu = qtw.QMenu('Value to Display')
+    self.valueGroup = qtw.QActionGroup(self.valueMenu)
     self.rightClickMenu.addMenu(self.valueMenu)
     valueActions = []
     valueActions.append(self.valueMenu.addAction('Linear coefficients'))
@@ -149,11 +150,11 @@ class SensitivityView(BaseTopologicalView):
         @ Out, None
     """
     if filename is None:
-      dialog = qtg.QFileDialog(self)
-      dialog.setFileMode(qtg.QFileDialog.AnyFile)
-      dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
+      dialog = qtw.QFileDialog(self)
+      dialog.setFileMode(qtw.QFileDialog.AnyFile)
+      dialog.setAcceptMode(qtw.QFileDialog.AcceptSave)
       dialog.exec_()
-      if dialog.result() == qtg.QFileDialog.Accepted:
+      if dialog.result() == qtw.QFileDialog.Accepted:
         filename = dialog.selectedFiles()[0]
       else:
         return
@@ -241,9 +242,9 @@ class SensitivityView(BaseTopologicalView):
       if self.showLabelsAction.isChecked():
         txtItem = self.scene.addSimpleText(name,self.font)
         txtItem.setPos(endX,endY)
-        txtItem.setFlag(qtg.QGraphicsItem.ItemIsMovable)
-        txtItem.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
-        txtItem.setFlag(qtg.QGraphicsItem.ItemIgnoresTransformations)
+        txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
+        txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
+        txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
 
     selection = self.amsc.GetSelectedSegments()
     colorMap = self.amsc.GetColors()
@@ -369,12 +370,12 @@ class SensitivityView(BaseTopologicalView):
           h = -axisHeight / float(len(selection))
           if self.showNumberAction.isChecked():
             numTxtItem = self.scene.addSimpleText('%.3g' % val, self.font)
-            numTxtItem.setFlag(qtg.QGraphicsItem.ItemIgnoresTransformations)
+            numTxtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
             fm = qtg.QFontMetrics(numTxtItem.font())
             fontWidth = fm.width(numTxtItem.text())
             numTxtItem.setPos(self.padding+maxExtent-fontWidth,y+h)
-            numTxtItem.setFlag(qtg.QGraphicsItem.ItemIsMovable)
-            numTxtItem.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+            numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
+            numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
             numTxtItem.setZValue(2)
           myRect = self.scene.addRect(x,y,w,h,myPen,myBrush)
           myRect.setToolTip(str(val))
@@ -386,13 +387,13 @@ class SensitivityView(BaseTopologicalView):
         h = -axisHeight
         if self.showLabelsAction.isChecked():
           txtItem = self.scene.addSimpleText(name,self.font)
-          txtItem.setFlag(qtg.QGraphicsItem.ItemIgnoresTransformations)
+          txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
           fm = qtg.QFontMetrics(txtItem.font())
           fontHeight = fm.height()
           fontWidth = fm.width(txtItem.text())
           txtItem.setPos(self.padding-fontWidth,y+h + (axisHeight-fontHeight)/2.)
-          txtItem.setFlag(qtg.QGraphicsItem.ItemIsMovable)
-          txtItem.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+          txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
+          txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
           txtItem.setZValue(2)
         myRect = self.scene.addRect(x,y,w,h,axisPen)
         myRect.setZValue(2) # Any value greater than 1 should work to draw on top
@@ -428,23 +429,23 @@ class SensitivityView(BaseTopologicalView):
 
           if self.showLabelsAction.isChecked():
             txtItem = self.scene.addSimpleText(name,self.font)
-            # txtItem.setFlag(qtg.QGraphicsItem.ItemIgnoresTransformations)
+            # txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
             fm = qtg.QFontMetrics(txtItem.font())
             fontHeight = fm.boundingRect(txtItem.text()).height()
             fontWidth = fm.boundingRect(txtItem.text()).width()
             txtItem.setPos(self.padding,y+0.5*(h-fontHeight))
-            txtItem.setFlag(qtg.QGraphicsItem.ItemIsMovable)
-            txtItem.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+            txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
+            txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
             txtItem.setZValue(2)
           if self.showNumberAction.isChecked():
             numTxtItem = self.scene.addSimpleText('%.3g' % val, self.font)
-            # numTxtItem.setFlag(qtg.QGraphicsItem.ItemIgnoresTransformations)
+            # numTxtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
             fm = qtg.QFontMetrics(numTxtItem.font())
             fontWidth = fm.boundingRect(numTxtItem.text()).width()
             fontHeight = fm.boundingRect(numTxtItem.text()).height()
             numTxtItem.setPos(self.padding+maxExtent-fontWidth,y+0.5*(h-fontHeight))
-            numTxtItem.setFlag(qtg.QGraphicsItem.ItemIsMovable)
-            numTxtItem.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+            numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
+            numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
             numTxtItem.setZValue(2)
           myRect = self.scene.addRect(x,y,w,h,myPen,myBrush)
           myRect.setToolTip(str(val))
@@ -473,7 +474,7 @@ class SensitivityView(BaseTopologicalView):
       self.scene.clear()
       txtItem = self.scene.addSimpleText('Rebuild Local Models',self.font)
       txtItem.setPos(self.padding,self.padding)
-      txtItem.setFlag(qtg.QGraphicsItem.ItemIgnoresTransformations)
+      txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
     else:
       if self.fillAction.isChecked():
         self.scene.setSceneRect(0,0,100*float(self.gView.width())/float(self.gView.height()),100)

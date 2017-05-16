@@ -23,8 +23,9 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-from PySide import QtCore as qtc
-from PySide import QtGui as qtg
+from qtpy import QtCore as qtc
+from qtpy import QtGui as qtg
+from qtpy import QtWidgets as qtw
 
 from sys import path
 
@@ -40,7 +41,7 @@ import re
 import random
 import numpy as np
 
-class HierarchyWindow(qtg.QMainWindow):
+class HierarchyWindow(qtw.QMainWindow):
   """
     A UI for visualizing hierarchical objects, specifically the hierarchical
     clustering made available from scipy.
@@ -62,7 +63,7 @@ class HierarchyWindow(qtg.QMainWindow):
     self.views = []
     self.resize(800,600)
     self.setCentralWidget(None)
-    self.setDockOptions(qtg.QMainWindow.AllowNestedDocks)
+    self.setDockOptions(qtw.QMainWindow.AllowNestedDocks)
 
     self.debug = debug
     self.engine = engine
@@ -116,11 +117,11 @@ class HierarchyWindow(qtg.QMainWindow):
         that will be added to this window.
       @ Out, None
     """
-    dockWidget = qtg.QDockWidget()
+    dockWidget = qtw.QDockWidget()
     dockWidget.setWindowTitle(view.windowTitle())
 
     if view.scrollable:
-      scroller = qtg.QScrollArea()
+      scroller = qtw.QScrollArea()
       scroller.setWidget(view)
       scroller.setWidgetResizable(True)
       dockWidget.setWidget(scroller)
