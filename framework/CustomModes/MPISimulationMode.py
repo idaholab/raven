@@ -182,7 +182,7 @@ class MPISimulationMode(Simulation.SimulationMode):
     """
     #Check and see if this is being accidently run
     assert self.__runQsub and not self.__inPbs
-    Simulation.createAndRunQSUB(self.__simulation)
+    Simulation.createAndRunQSUB(self.__simulation.runInfoDict)
 
   def XMLread(self, xmlNode):
     """

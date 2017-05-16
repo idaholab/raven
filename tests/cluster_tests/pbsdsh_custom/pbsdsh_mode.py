@@ -41,7 +41,7 @@ class PBSDSHSimulationMode(Simulation.SimulationMode):
     """ If not in pbs mode, qsub needs to be called. """
     #Check and see if this is being accidently run
     assert self.__simulation.runInfoDict['mode'] == 'pbsdsh' and not self.__in_pbs
-    Simulation.createAndRunQSUB(self.__simulation)
+    Simulation.createAndRunQSUB(self.__simulation.runInfoDict)
 
   def modifySimulation(self):
     """ Change the simulation to use pbsdsh as the precommand so that

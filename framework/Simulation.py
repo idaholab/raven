@@ -152,7 +152,7 @@ def splitCommand(s):
     retList.append(buffer)
   return retList
 
-def createAndRunQSUB(simulation):
+def createAndRunQSUB(runInfoDict):
   """
     Generates a PBS qsub command to run the simulation
     @ In, simulation, instance, instance of the simulation class
@@ -160,32 +160,32 @@ def createAndRunQSUB(simulation):
   """
   # Check if the simulation has been run in PBS mode and, in case, construct the proper command
   #while true, this is not the number that we want to select
-  coresNeeded = simulation.runInfoDict['batchSize']*simulation.runInfoDict['NumMPI']
-  #batchSize = simulation.runInfoDict['batchSize']
-  frameworkDir = simulation.runInfoDict["FrameworkDir"]
-  ncpus = simulation.runInfoDict['NumThreads']
-  jobName = simulation.runInfoDict['JobName'] if 'JobName' in simulation.runInfoDict.keys() else 'raven_qsub'
+  coresNeeded = runInfoDict['batchSize']*runInfoDict['NumMPI']
+  #batchSize = runInfoDict['batchSize']
+  frameworkDir = runInfoDict["FrameworkDir"]
+  ncpus = runInfoDict['NumThreads']
+  jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
   #check invalid characters
   validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
   if any(char not in validChars for char in jobName):
-    simulation.raiseAnError(IOError,'JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
+    raise IOError('JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
   #check jobName for length
   if len(jobName) > 15:
     jobName = jobName[:10]+'-'+jobName[-4:]
-    simulation.raiseAMessage('JobName is limited to 15 characters; truncating to '+jobName)
+    print('JobName is limited to 15 characters; truncating to '+jobName)
   #Generate the qsub command needed to run input
   command = ["qsub","-N",jobName]+\
-            simulation.runInfoDict["clusterParameters"]+\
+            runInfoDict["clusterParameters"]+\
             ["-l",
              "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1",
-             "-l","walltime="+simulation.runInfoDict["expectedTime"],
+             "-l","walltime="+runInfoDict["expectedTime"],
              "-l","place=free","-v",
              'COMMAND="python Driver.py '+
-             " ".join(simulation.runInfoDict["SimulationFiles"])+'"',
-             simulation.runInfoDict['RemoteRunCommand']]
+             " ".join(runInfoDict["SimulationFiles"])+'"',
+             runInfoDict['RemoteRunCommand']]
   #Change to frameworkDir so we find raven_qsub_command.sh
   os.chdir(frameworkDir)
-  simulation.raiseAMessage(os.getcwd()+' '+str(command))
+  print(os.getcwd()+' '+str(command))
   subprocess.call(command)
 
 
