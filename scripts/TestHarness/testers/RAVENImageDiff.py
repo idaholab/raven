@@ -74,7 +74,7 @@ class ImageDiff:
       try:
         # RAK - The original line...
         # testImage = imread(open(testFilename,'r'))
-        # ...didn't work on Windows Python because it couldn't sense the file type 
+        # ...didn't work on Windows Python because it couldn't sense the file type
         testImage = imread(testFilename)
       except IOError as e:
         self.__messages += 'Unrecognized file type for test image in scipy.imread: '+testFilename
@@ -82,7 +82,7 @@ class ImageDiff:
       try:
         # RAK - The original line...
         # goldImage = imread(open(goldFilename,'r'))
-        # ...didn't work on Windows Python because it couldn't sense the file type 
+        # ...didn't work on Windows Python because it couldn't sense the file type
         goldImage = imread(goldFilename)
       except IOError as e:
         filesRead = False
