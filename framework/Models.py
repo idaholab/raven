@@ -32,6 +32,8 @@ import inspect
 #import atexit
 import time
 import threading
+import platform
+import shlex
 from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
@@ -1490,6 +1492,60 @@ class Code(Model):
 
     return (newInput,kwargs)
 
+  def __expandForWindows(self, origCommand):
+    """
+      Function to expand a command that has a #! to a windows runnable command
+      @ In, origCommand, string, The command to check for expantion
+      @ Out, commandSplit, string or String List, the expanded command or the original if not expanded.
+    """
+    if origCommand.strip() == '':
+      return origCommand
+    # In Windows Python, you can get some backslashes in your paths
+    commandSplit = shlex.split(origCommand.replace("\\","/"))
+    executable = commandSplit[0]
+
+    if os.path.exists(executable):
+      executableFile = open(executable, "r")
+
+      firstTwoChars = executableFile.read(2)
+
+      if firstTwoChars == "#!":
+        realExecutable = shlex.split(executableFile.readline())
+        self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
+        # The below code should work, and would be better than findMsys,
+        # but it doesn't work.
+        # winExecutable = subprocess.check_output(['cygpath','-w',realExecutable[0]],shell=True).rstrip()
+        # print("winExecutable",winExecutable)
+        # realExecutable[0] = winExecutable
+        def findMsys():
+          """
+            Function to try and figure out where the MSYS64 is.
+            @ In, None
+            @ Out, dir, String, If not None, the directory where msys is.
+          """
+          dir = os.getcwd()
+          head, tail = os.path.split(dir)
+          while True:
+            if tail.lower().startswith("msys"):
+              return dir
+            dir = head
+            head, tail = os.path.split(dir)
+          return None
+        msysDir = findMsys()
+        if msysDir is not None:
+          beginExecutable = realExecutable[0]
+          if beginExecutable.startswith("/"):
+            beginExecutable = beginExecutable.lstrip("/")
+          winExecutable = os.path.join(msysDir, beginExecutable)
+          self.raiseAMessage("winExecutable" + winExecutable)
+          realExecutable[0] = winExecutable
+        else:
+          self.raiseAWarning("Could not find msys in "+os.getcwd())
+        commandSplit = realExecutable + [executable] + commandSplit[1:]
+        return commandSplit
+    return origCommand
+
+
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
@@ -1573,6 +1629,10 @@ class Code(Model):
     command = command.replace("%NUM_CPUS%",kwargs['NUM_CPUS'])
 
     self.raiseAMessage('Execution command submitted:',command)
+    if platform.system() == 'Windows':
+      command = self.__expandForWindows(command)
+      self.raiseAMessage("modified command to" + repr(command))
+
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
