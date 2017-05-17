@@ -72,19 +72,12 @@ class MooseBasedApp(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     import MOOSEparser
-    self._samplersDictionary                          = {}
-    self._samplersDictionary['MonteCarlo'           ] = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['Grid'                 ] = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['Stratified'           ] = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['DynamicEventTree'     ] = self.dynamicEventTreeForMooseBasedApp
-    self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['FactorialDesign'      ] = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['LimitSurfaceSearch'   ] = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['SparseGridCollocation'] = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['EnsembleForward'      ] = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['CustomSampler'        ] = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['None'                 ] = self.pointSamplerForMooseBasedApp #for SingleRun case
+    self._samplersDictionary                = {}
+    if 'dynamiceventtree' in str(samplerType).lower():
+      self._samplersDictionary[samplerType] = self.dynamicEventTreeForMooseBasedApp
+    else:
+      self._samplersDictionary[samplerType] = self.pointSamplerForMooseBasedApp
+
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       inputFile = inputFile.getAbsFile()
