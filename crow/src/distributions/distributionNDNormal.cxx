@@ -991,7 +991,7 @@ std::vector<std::vector<double> > BasicMultivariateNormal::choleskyDecomposition
  std::vector<std::vector<double> > cholesky_C;
 
  int dimensions = matrix.size();
- double m1[dimensions*dimensions];
+ double * m1 = new double[dimensions*dimensions];
 
  for (int r=0; r<dimensions; r++)
   for (int c=0; c<dimensions; c++)
@@ -1007,6 +1007,7 @@ std::vector<std::vector<double> > BasicMultivariateNormal::choleskyDecomposition
    temp.push_back(c1[r*dimensions+c]);
   cholesky_C.push_back(temp);
  }
+ delete m1;
  return cholesky_C;
 }
 
