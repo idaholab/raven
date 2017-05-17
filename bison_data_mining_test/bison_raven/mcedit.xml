@@ -1,0 +1,237 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <JobName>rodlet_mc</JobName>
+    <WorkingDir>./sample</WorkingDir>
+    <batchSize>24</batchSize>
+    <!-- <mode>mpi<runQSUB/></mode>
+    <NumMPI>24</NumMPI>
+    <expectedTime>1:0:0</expectedTime> -->
+    <Sequence>sample,write1, write2</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="bison_inp" type="MooseInput">../refcase/inputs/input_PK6-3.i</Input>
+    <Input name="power_hist">../refcase/inputs/PK6-3_power_history.csv</Input>
+    <Input name="cubit_inp" type="BisonMeshInput">../refcase/inputs/mesh_script_input.py</Input>
+    <Input name="clad_temp">../refcase/inputs/PK6-3_clad_out_temp.csv</Input>
+    <Input name="ax_t_facts">../refcase/inputs/PK6-3_axial_temp_factors.csv</Input>
+    <Input name="fast_flux">../refcase/inputs/PK6-3_fast_flux.csv</Input>
+    <Input name="cool_press">../refcase/inputs/PK6-3_coolant_pressure.csv</Input>
+    <Input name="ax_p_facts">../refcase/inputs/PK6-3_axial_power_factors.csv</Input>
+    <Input name="pk6-3_smeared">../refcase/inputs/pk6-3_smeared.e</Input>
+  </Files>
+
+  <Databases>
+    <HDF5 name="rodlet" readMode="overwrite"/>
+  </Databases>
+
+  <DataObjects>
+    <PointSet name="collset">
+      <Input>gap_width,clad_rough,grain_diffCoeff,fuel_rough,power,clad_width,dens,fuel_reloc,grain_radius,fuel_thC,clad_ox,clad_thC,fuel_thE,clad_creeprate,gas_thC,clad_thE,fuel_swell,grain_res_param</Input>
+      <Output>nonlinear_its,max_contact_pressure,_dt,max_clad_temp,fis_gas_released,max_fuel_temp,midplane_radial_disp,midplane_contact_pressure,midplane_vonmises_stress,avg_gap_conductance,gas_volume,ave_temp_interior,max_oxide_thickness,centerline_temp,fis_gas_generated,avg_clad_temp,midplane_hoop_strain,max_radial_disp,midplane_clad_temp,max_hoop_strain,midplane_hoop_stress,max_hoop_stress,midplane_oxide_thickness,average_burnup,max_vonmises_stress</Output>
+      <operator>max</operator>
+    </PointSet>
+    <HistorySet name="hists">
+      <Input>gap_width,clad_rough,grain_diffCoeff,fuel_rough,power,clad_width,dens,fuel_reloc,grain_radius,fuel_thC,clad_ox,clad_thC,fuel_thE,clad_creeprate,gas_thC,clad_thE,fuel_swell,grain_res_param</Input>
+      <Output>nonlinear_its,max_contact_pressure,_dt,max_clad_temp,fis_gas_released,max_fuel_temp,midplane_radial_disp,midplane_contact_pressure,midplane_vonmises_stress,avg_gap_conductance,gas_volume,ave_temp_interior,max_oxide_thickness,centerline_temp,fis_gas_generated,avg_clad_temp,midplane_hoop_strain,max_radial_disp,midplane_clad_temp,max_hoop_strain,midplane_hoop_stress,max_hoop_stress,midplane_oxide_thickness,average_burnup,max_vonmises_stress</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <Distributions>
+    <Uniform name="five_pct">
+      <lowerBound>0.95</lowerBound>
+      <upperBound>1.05</upperBound>
+    </Uniform>
+    <Uniform name="gap_width">
+      <lowerBound>6.55e-05</lowerBound>
+      <upperBound>8.05e-05</upperBound>
+    </Uniform>
+    <Uniform name="clad_rough">
+      <lowerBound>2e-07</lowerBound>
+      <upperBound>7e-07</upperBound>
+    </Uniform>
+    <Uniform name="grain_diffCoeff">
+      <lowerBound>0.1</lowerBound>
+      <upperBound>10.0</upperBound>
+    </Uniform>
+    <Uniform name="fuel_rough">
+      <lowerBound>1.5e-06</lowerBound>
+      <upperBound>2.5e-06</upperBound>
+    </Uniform>
+    <Uniform name="clad_width">
+      <lowerBound>0.00072</lowerBound>
+      <upperBound>0.00074</upperBound>
+    </Uniform>
+    <Uniform name="dens">
+      <lowerBound>0.008</lowerBound>
+      <upperBound>0.012</upperBound>
+    </Uniform>
+    <Uniform name="twenty_pct">
+      <lowerBound>0.8</lowerBound>
+      <upperBound>1.2</upperBound>
+    </Uniform>
+    <Uniform name="clad_thC">
+      <lowerBound>14.4</lowerBound>
+      <upperBound>17.6</upperBound>
+    </Uniform>
+    <Uniform name="fuel_thE">
+      <lowerBound>8.5e-06</lowerBound>
+      <upperBound>1.15e-05</upperBound>
+    </Uniform>
+    <Uniform name="thirty_pct">
+      <lowerBound>0.7</lowerBound>
+      <upperBound>1.3</upperBound>
+    </Uniform>
+    <Uniform name="grain_res_param">
+      <lowerBound>0.1</lowerBound>
+      <upperBound>10.0</upperBound>
+    </Uniform>
+    <Uniform name="grain_radius">
+      <lowerBound>0.4</lowerBound>
+      <upperBound>1.6</upperBound>
+    </Uniform>
+    <Uniform name="clad_thE">
+      <lowerBound>3.5e-06</lowerBound>
+      <upperBound>6.5e-06</upperBound>
+    </Uniform>
+    <Uniform name="fifteen_pct">
+      <lowerBound>0.85</lowerBound>
+      <upperBound>1.15</upperBound>
+    </Uniform>
+    <Uniform name="forty_pct">
+      <lowerBound>0.6</lowerBound>
+      <upperBound>1.4</upperBound>
+    </Uniform>
+    <Uniform name="ten_pct">
+      <lowerBound>0.9</lowerBound>
+      <upperBound>1.1</upperBound>
+    </Uniform>
+    <Uniform name="fuel_swell">
+      <lowerBound>4.616e-05</lowerBound>
+      <upperBound>6.924e-05</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="sc">
+      <samplerInit>
+        <limit>1000</limit>
+        <!-- <limit>7000</limit> -->
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="gap_width">
+        <distribution>gap_width</distribution>
+      </variable>
+      <variable name="clad_rough">
+        <distribution>clad_rough</distribution>
+      </variable>
+      <variable name="grain_diffCoeff">
+        <distribution>grain_diffCoeff</distribution>
+      </variable>
+      <variable name="fuel_rough">
+        <distribution>fuel_rough</distribution>
+      </variable>
+      <variable name="power">
+        <distribution>five_pct</distribution>
+      </variable>
+      <variable name="clad_width">
+        <distribution>clad_width</distribution>
+      </variable>
+      <variable name="dens">
+        <distribution>dens</distribution>
+      </variable>
+      <variable name="fuel_reloc">
+        <distribution>twenty_pct</distribution>
+      </variable>
+      <variable name="grain_radius">
+        <distribution>grain_radius</distribution>
+      </variable>
+      <variable name="fuel_thC">
+        <distribution>ten_pct</distribution>
+      </variable>
+      <variable name="clad_ox">
+        <distribution>forty_pct</distribution>
+      </variable>
+      <variable name="clad_thC">
+        <distribution>clad_thC</distribution>
+      </variable>
+      <variable name="fuel_thE">
+        <distribution>fuel_thE</distribution>
+      </variable>
+      <variable name="clad_creeprate">
+        <distribution>thirty_pct</distribution>
+      </variable>
+      <variable name="gas_thC">
+        <distribution>ten_pct</distribution>
+      </variable>
+      <variable name="clad_thE">
+        <distribution>clad_thE</distribution>
+      </variable>
+      <variable name="fuel_swell">
+        <distribution>fuel_swell</distribution>
+      </variable>
+      <variable name="grain_res_param">
+        <distribution>grain_res_param</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <Code name="Bison-opt" subType="MooseBasedApp">
+      <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
+      <alias variable="clad_rough">ThermalContact|thermal_contact|roughness_clad</alias>
+      <alias variable="grain_diffCoeff">Materials|fission_gas_release_and_swelling|igdiffcoeff_scalef</alias>
+      <alias variable="fuel_rough">ThermalContact|thermal_contact|roughness_fuel</alias>
+      <alias variable="power">Functions|power_history|scale_factor</alias>
+      <alias variable="dens">Materials|fuel_solid_mechanics_swelling|total_densification</alias>
+      <alias variable="fuel_reloc">Materials|fuel_relocation|relocation_scalef</alias>
+      <alias variable="grain_radius">Materials|fission_gas_release_and_swelling|grainradius_scalef</alias>
+      <alias variable="fuel_thC">Materials|fuel_thermal|thcond_scalef</alias>
+      <alias variable="clad_ox">Materials|clad_oxidation|oxidation_scalef</alias>
+      <alias variable="clad_thC">Materials|clad_thermal|thermal_conductivity</alias>
+      <alias variable="fuel_thE">Materials|fuel_elastic|thermal_expansion</alias>
+      <alias variable="clad_creeprate">Materials|clad_solid_mechanics|creeprate_scalef</alias>
+      <alias variable="gas_thC">ThermalContact|thermal_contact|gascond_scalef</alias>
+      <alias variable="clad_thE">Materials|clad_solid_mechanics|thermal_expansion</alias>
+      <alias variable="fuel_swell">Materials|fuel_solid_mechanics_swelling|solid_factor</alias>
+      <alias variable="grain_res_param">Materials|fission_gas_release_and_swelling|resolutionp_scalef</alias>
+    </Code>
+  </Models>
+
+  <Steps>
+    <IOStep name="write1">
+      <Input class="DataObjects" type="PointSet">collset</Input>
+      <Output class="OutStreams" type="Print">mc_database</Output>
+    </IOStep>
+
+    <IOStep name="write2">
+      <Input class="DataObjects" type="HistorySet">hists</Input>
+      <Output class="Databases" type="HDF5">rodlet</Output>
+    </IOStep>
+
+    <MultiRun name="sample">
+      <Input class="Files" type="">bison_inp</Input>
+      <Input class="Files" type="">power_hist</Input>
+      <Input class="Files" type="">cubit_inp</Input>
+      <Input class="Files" type="">clad_temp</Input>
+      <Input class="Files" type="">ax_t_facts</Input>
+      <Input class="Files" type="">fast_flux</Input>
+      <Input class="Files" type="">cool_press</Input>
+      <Input class="Files" type="">ax_p_facts</Input>
+      <Input class="Files" type="">pk6-3_smeared</Input>
+      <Sampler class="Samplers" type="MonteCarlo">sc</Sampler>
+      <Model class="Models" type="Code">Bison-opt</Model>
+      <Output class="DataObjects" type="PointSet">collset</Output>
+      <Output class="DataObjects" type="HistorySet">hists</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="mc_database">
+      <type>csv</type>
+      <source>collset</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

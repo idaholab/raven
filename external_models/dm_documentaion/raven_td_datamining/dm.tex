@@ -1,0 +1,298 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{lipsum}
+\usepackage{amsmath, amssymb, amsfonts, amsthm, fouriernc, mathtools}
+\usepackage{microtype}
+\usepackage{graphicx}
+\graphicspath{ {./pics/} {./eps/}}
+\usepackage{epsfig}
+\usepackage{epstopdf}
+
+
+\begin{document}
+
+\begin{center}
+\begin{Huge}
+
+Time-Dependent Post-Processing in RAVEN
+
+\end{Huge}
+\end{center}
+
+\section{Introduction}
+
+RAVEN is a multi-purpose physics-agnostic software framework designed to perform parametric and stochastic analysis based on the response of system codes. It is not only capable of performing dynamic probabilistic risk analysis for INL based thermal-hydraulics code - RELAP-7 but also provides stochastic uncertainty quantification, and advanced post processing capabilities to any code that is able to communicate with RAVEN using our Application Programming Interfaces (APIs). RAVEN can investigate system response as well as input spaces using advanced sampling schemes such as Monte-Carlo, Latin Hyper Cube, Grid etc. RAVEN's strength lies in it system feature discovery capabilities. The RAVEN user guide (Alfonsi et al., 2016) may be consulted for further information on this.
+
+In this section, we will go over the time dependent post processing algorithms that have been implemented in RAVEN. We will describe the theory behind each algorithm in steady state first and then demonstrate how we extend it to incorporate time dependence. First we will look at Bayes statistics, then we look at the clustering algorithms that have been incorporated into RAVEN, then after we go over dimension reduction algorithms, and then towards the end of this section, we will describe how we extend our steady state algorithms in order to incorporate time dependence.  
+
+\subsection{Bayes Statistics}
+
+\subsection{Data Mining - Clustering}
+
+Data mining is the computational process of discovering patterns in large data sets that involves methods from artificial intelligence, machine learning, statistics, and database systems. The overall goal of data mining is to extract information from a data set and transform it into understandable structure. In this section we will discuss clustering algorithms in RAVEN. 
+
+A loose definition of clustering is the grouping. Objects with similar properties are grouped into clusters. Closeness according to some predefined metric is the main property we look at in order to define clusters. Several closeness metrics exist in literature (Alfonsi et al., 2016). These different metrics lead to different clustering algorithms. In this section, we will discuss several such clustering algorithms.
+
+\subsubsection{K-Means}
+
+Given an data set, $D$ of size $N$, the k-means algorithm separates $D$ into $K$ clusters, $C_k$ where $k = 1,2,3...K$ such that all $K$ clusters have equal variance. Here, $K$ must be specified beforehand. This k-means algorithm is also known Lloyd's algorithm. The main aim of this algorithm is to choose centroids such that the inertia or within-cluster sum of squares criteria:
+
+\begin{equation}
+\label{criteria}
+\sum_{i=0}^{K} \left(|| x_k - \mu_i||^2 \right),
+\end{equation} 
+
+is minimized. Here $\mu_i$ is the mean value of samples (centroid) within respective clusters, and $x_k$ is the sample value in a particular cluster $C_k$.
+
+The algorithm is as follows:
+
+\begin{enumerate}
+
+\item Choose the initial $K$ centroids (within-cluster mean value).
+
+\item Assign the sample to the nearest centroid. Often, Euclidean distance is used to determine the nearest centroid. 
+
+\item Upon assignment of each sample to its respective centroid, new centroids are calculated for each cluster. The means of the clusters are often chosen to be the new centroids. 
+  
+\item Upon assignment of new centroids, we check for convergence. In other words, we check and see if the centroids are still moving by checking if the difference between the new and the old centroids is below a predefined tolerance. 
+
+\end{enumerate}
+
+This algorithm essentially has two drawbacks:
+
+\begin{itemize}
+\item The minimization criteria makes an assumption that clusters are convex and isotropic. This is not always true.
+\item The minimization criteria is not normalized. Thus with increasing dimension, where the Euclidean distances become inflated, this is not a criteria. 
+\end{itemize}
+
+In order to mitigate the above drawbacks, the dimensions of data set $D$ are reduced using principal component analysis and then k-means algorithm is applied to the data. One may consult (Macqueen, 1967), and (Ding et al., 2004) for mathematical analysis of this method. 
+
+In RAVEN, all data-mining methods are available through scikits-learn (Pderogosa et al., 2011). The k-means method can be accessed in RAVEN through the "KMeans" post-processor. 
+
+Another way to access the k-means algorithm is through "MiniBatchKMeans". This uses subsets of original input data, randomly sampled in each training iteration. The aim is to reduce the computational time taken by the k-means algorithm while still optimizing the same function. Just like the original k-means algorithm, the mini-batch k-means algorithm following steps:
+
+\begin{enumerate}
+
+\item Form mini-batches by randomly choosing n samples. 
+
+\item Assign these samples to the nearest centroid. 
+
+\item Update centroids by taking streaming average of sample and all previous samples assigned to the centroid. 
+
+\item Check for convergence by seeing if the centroids are still moving. Iterate until convergence. 
+
+\end{enumerate}
+
+This method decreases the rate of change of centroid over time which helps accelerate convergence (for that given convergence criteria). However this is not a true acceleration scheme since the results or the original method are not necessarily reproduced. It has been observed that this method produces different, less accurate results that the standard k-means algorithm (Pderogosa et al., 2011). 
+
+Here, we will give an example of how to implement this method using RAVEN using the following example:
+
+
+
+\subsubsection{Affinity Propagation}
+
+Affinity propagation is an examplar-based clustering algorithm. Examplars are a set of samples that represent other samples the best based on a given criteria. This method simultaneously considers all samples as examplars. It sends messages between pairs of samples that eventually determine the clustering pattern. Two kinds of messages are primarily sent in order to determine the suitability of a given sample to be the examplar of the other (Pderogosa et al., 2011):
+
+\begin{enumerate}
+
+\item Responsibility $R(i, k)$ - accumulated evidence that a sample $k$ should be the examplar for sample $i$. Responsibility function, $R(i, k)$ is:
+
+\begin{center}
+
+$R(i, k) \leftarrow S(i, k) - max\left(A(i, \tilde{k}) + S(i, \tilde{k}, \forall \tilde{k} \neq k \right).$
+
+\end{center}
+
+Where $S(i, k)$ is pairwise similarity function that defines how well sample $k$ represents sample $i$.
+
+\item Availability $A(i, k)$ - accumulated evidence that sample $i$ should choose sample $k$ to be its examplar. Availability function, $A(i, k)$ is:
+
+\begin{center}
+$A(i, k) \leftarrow min \left(0, R(k, k) + \sum_{\tilde{i} | \tilde{i}  \notin {i, k}} R(\tilde{i}, k) \right).$
+\end{center}
+
+
+\end{enumerate}
+
+Therefore, examplars must be similar to several samples and must be chosen by several samples to represent them. Roughly, the affinity propagation algorithm can be summarized as follows (Dueck, 2009):
+
+\begin{enumerate}
+
+\item Define a set of pairwise similarity functions, $S(i, k)$. This function can be user defined. In general squared Euclidean distance is chosen to be the similarity function. Choose all samples as examplars to initially.
+
+\item Set all availabilities to zero. 
+
+\item Calculate response and availability function for all samples. 
+
+\item Calculate $\tilde{C}_i = max_k\left(A(i, k) + R(i, k) \right)$ where $i = 1, 2, ... N$. This is where we assign an examplar to sample i. In other words, if for a sample $i$, sample $k$ has the maximum availability-plus-responsibility value, then sample $k$ will be the examplar of sample $i$. 
+
+\end{enumerate}
+
+In case there are contradictory results, one k-medoids (k-means but with medoids instead of means) run might be necessary. An in-depth presentation of this algorithm is present in (Dueck, 2009). In RAVEN, this algorithm is accessible through "AffinityPropagation" post processor. 
+
+The following input file will demonstrate how to access this algorithm:
+
+
+
+\subsubsection{Density Based Spatial Clustering of Applications with Noise (DBSCAN)}
+
+Clusters are formed by identifying high sample density areas separated from low sample density areas. The DBSCAN clusters can be of any arbitrary shape (Pderogosa et al., 2011). The main concept behing this algorithm is that of core samples. Core samples are the areas of high sample density. These are defined using two parameters - cardinality, $d$ and distance $\epsilon$. Higher cardinality and lower distance indicate higher sample density required to form clusters.
+
+Formally, a core sample is a sample in the dataset with cardinality greater than or equal to $d$ with distance $\epsilon$. The samples inside distance $\epsilon$ are called neighbors. A cluster is then built from core samples recursively by taking core samples, finding all neighbors that are core samples, finding their neighbors that are core samples and so on. The cluster also incorporates samples that are not core samples themselves but are neighbors of core samples. 
+
+The DBSCAN algorithm may be summarized as follows:
+
+\begin{enumerate}
+
+\item Input d and $\epsilon$.
+
+\item For a given dataset, determine core samples $C_i$ and neighbors.  
+
+\item Take union of core samples $C_i$ and $C_j$ if $C_i \cap C_j \neq \phi$ over all core samples. 
+
+
+\end{enumerate}
+
+Step 3 of the above algorithm will return separated clusters. In RAVEN this algorithm can be accessed using the "DBSCAN" post processor. 
+
+\subsubsection{Mean-Shift} 
+
+This clustering algorithm is a nonparametric algorithm that does not require number of clusters as an input. It automatically selects the number of clusters based on the bandwidth - the size of regions to search through and number of local minima that result from the bandwidth specification. It is a centroid-based algorithm that works by updating centroids to be the mean of points within a given region.  
+
+Assuming the bandwidth returns a neighborhood $N(x_i)$ around centroid $x_i$ , the mean shift vector, $s(x_i)$, is defined as follows:
+
+\begin{equation}
+\label{ms_vec}
+s(x_i) = \frac{\sum_{x_j \in N(x_i)} K(x_j - x_i) x_j}{\sum_{x_j \in N(x_i)} K(x_j - x_i) },
+\end{equation}
+
+where, $K(x_j - x_i)$ represents the kernel function used for the weighted mean. This mean shift vector is computed for each centroid that points towards the region of maximum increase in the density of points. Now given a centroid $x_i$ for iteration, $k$, the updates are given using the following equation: 
+
+\begin{equation}
+x_{i, k+1} = x_{i, k} + s(x_{i, k}).
+\end{equation}
+
+The mean shift algorithm can be summarized as follows:
+
+\begin{enumerate}
+
+\item Initialize with a random centroid. 
+
+\item Assign members to this centroid based on bandwidth. 
+
+\item For points unassigned, choose other centroids at random until each point is assigned to a centroid. 
+
+\item Now calculate the mean if each neighborhoods $x_i)$ 
+
+\item Shift it by mean shift vector $s(x_i)$. 
+
+\item Calculate the members in the new neighborhoods. 
+
+\item Check for convergence. When centroids move less than specified tolerance, the method is converged. 
+ 
+\end{enumerate}
+
+Detailed explanation of theory and and applications can be found in (Wu et al., 2007), and (Comaniciu et al., 2002). In RAVEN, this functionality is provided using "MeanShift" post-processor. We will demonstrate how to exactly do this in RAVEN using the following example input file: 
+
+
+\subsubsection{Gaussian Mixture Model}
+
+For a given dataset, $D$, Gaussian Mixture Model (GMM) assumes that all the samples in $D$ can be generated from the linear combination of a finite number of Gaussian distributions of unknown parameters. According to (Pderogosa et al., 2011), this model may be thought of as a generalization of k-means clustering to incorporate information about the covariance of $D$ as well as centers of hidden (or latent) Gaussians. 
+
+These Gaussians of unknown parameters can be estimated using different methods - Expectation Maximization (EM), Variational Bayesian, and Dirichelet Process (DP). A detailed explanation of GMM algorithm with EM can be found in (Russel et al., 2003). We will provide a brief summary their presentation.  
+
+Let the mixture distribution that presumably generates the dataset be $D$. Distribution $D$ has $n$ Gaussian components. A data point may be generated by choosing a component Gaussian and sampling from that component. If a $C_i$ is a component of $D$, where $i = 1, 2,...N$, then the mixture distribution is given by the following linear combination:
+
+\begin{equation}
+\label{D}
+D(\mathbf{x}) = \sum_{i = 1}^{N} w_i C_i.
+\end{equation}
+
+where, the $i_{th}$ Gaussian component, $C_i$ of mixture Distribution $D$ has parameters $\mu_i$ and covariance $\Sigma_i$. Now, given a dataset, the clustering problem is to recover a GMM from a given dataset. It is not known beforehand what component of the GMM produces which sample from the dataset. The parameters for constituent components of GMM are also unknown. Thus the must be a method to estimate these. This is where the different estimation methods come in. First we look at Expectation Maximization. \\
+
+\begin{large}
+\textbf{Expectation Maximization}:
+\end{large} \\
+
+First, we assume that we know the components of the GMM (generated at random - they may be centered on a sample or learned using k-means), then for each sample in the dataset, we find the probability that the sample belongs to each component. After that, each component is fitted to the entire dataset and each sample is weighted by the probability that it belongs to that component. We iterate on this process until convergence (that is parameters of components no longer change). This algorithm may be summarized as follows (Russel et al., 2003):
+
+\begin{enumerate}
+
+\item Initialize the GMM parameters.
+
+\item Compute probability, $p_{i,j}$ that a sample $x_j$ was generated using component $C_i$.
+
+\item Compute effective number of data points currently assigned to $C_i$, $n_i = \sum_j p_{i,j}.$
+
+\item Compute new mean, covariance, and component weights:
+
+\begin{center}
+
+$\mu_i \leftarrow \sum_{j} \frac{p_{i, j} x_j}{n_i}$ \\
+
+$\Sigma_i \leftarrow \sum_j \frac{p_{i, j}(x_j - \mu_i)(x_j - \mu_i)^T}{n_i}$ \\
+
+$ w_i \leftarrow \frac{n_i}{N}$
+
+\end{center}
+
+\item Check for convergence of parameters and repeat the above three steps until convergence. 
+
+\end{enumerate}   
+
+Each component returns a cluster. This functionality can be accessed in RAVEN through the "GMM" post processor. The following input file will describe how to access this functionality in more detail: \\
+
+
+\begin{large}
+\textbf{Dirichelet Process}:
+\end{large} \\
+
+Dirichelet process does not require number of clusters as an input. It is a prior probability distribution on clustering with infinite number of components. A classic way of explaining how this works is by using the analogy of a Chinese restaurant process (Pderogosa et al., 2011). Think of a Chinese restaurant with infinite number of empty tables initially. The first customer takes the first table. After that as the customers arrive, they either join the preoccupied table with a probability proportional to the occupancy of that table or they sit on a new table with a probability proportional to the concentration parameter $\alpha$. After a known number of customers sit, we see that only a finite number of tables have been occupied. Higher the $\alpha$ value, higher the number of tables occupied. Here, for the Dirichelet process GMM, each component of the mixture is analogous to the table and each sample is analogous to the customer. 
+
+Variational inference techniques for Dirichelet processes woek with finite approximations. Inference using Gibbs sampling is a common way of inferring mixture components. For exact algorithm and mathematical derivation, please refer to (Gorur, 2010). 
+
+This functionality is available in RAVEN through the "DPGMM" post processor. 
+
+\begin{large}
+\textbf{Variable Bayesian}:
+\end{large} \\
+
+The GMM may be implemented with variational inference algorithms. Variational Inference GMM chooses Gaussians with an randon initial parameters and minimizes the lower bound of model evidence instead of data likelihood. Model evidence incorporates prior guesses (Pderogosa et al., 2011). Just like with expectation minimization, the algorithm altrenates between finding probability for each point to be generated bt each mixture component and fitting the mixtures to these assigned points. Variational methods add regularization by integrating information from prior distributions. Roughly, this algorithm can be summarized as follows (Blei, 2011):
+
+\begin{enumerate}
+
+\item Given a data set, initialize parameters and define number of clusters. 
+
+\item Define variational distributions: variational multinomials, variational Gaussians.
+
+\item Update variational multinomial. 
+
+\item Update mean and variance of variational Gaussian. 
+
+\item Check for convergence of evidence lower bound. 
+
+\end{enumerate}
+
+For a detailed mathematical derivation of the algorithm, please refer to (Blei, 2011) and (Bishop, 2006). 
+
+This functionality is available in RAVEN through the "VBGMM" post processor. 
+
+
+\subsection{Data Mining - Dimension Reduction}
+
+The rest of the report has been organized as follows. In the following section, we will look at the theoretical benchmarks for each algorithm. The the section after, we will demonstrate how RAVEN seamlessly communicates with BISON.  
+
+\section{Time-Dependent Data Mining}
+
+In this section we will discuss the problems we will use to test RAVEN. 
+
+\section{Post-Processing for BISON}
+
+
+
+\section{Conclusions}
+
+\end{document}
+

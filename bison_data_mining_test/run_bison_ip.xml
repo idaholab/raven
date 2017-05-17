@@ -1,0 +1,301 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <JobName>rodlet_mc</JobName>
+    <WorkingDir>./sample</WorkingDir>
+    <batchSize>6</batchSize>
+    <!-- <mode>mpi<runQSUB/></mode>
+    <NumMPI>24</NumMPI>
+    <expectedTime>1:0:0</expectedTime> -->
+    <Sequence>sample,write1, write2</Sequence>
+  </RunInfo>
+
+  <!--
+   This file takes BISON generates bison input files by perturbing parameters
+   and stores them.
+   -->
+
+   <Files>
+     <Input name="bison_inp" type="MooseInput"> ../refcase/inputs/input_PK6-3.i </Input>
+     <Input name="power_hist">../refcase/inputs/PK6-3_power_history.csv</Input>
+     <Input name="cubit_inp" type="BisonMeshInput">../refcase/inputs/mesh_script_input.py</Input>
+     <Input name="clad_temp">../refcase/inputs/PK6-3_clad_out_temp.csv</Input>
+     <Input name="ax_t_facts">../refcase/inputs/PK6-3_axial_temp_factors.csv</Input>
+     <Input name="fast_flux">../refcase/inputs/PK6-3_fast_flux.csv</Input>
+     <Input name="cool_press">../refcase/inputs/PK6-3_coolant_pressure.csv</Input>
+     <Input name="ax_p_facts">../refcase/inputs/PK6-3_axial_power_factors.csv</Input>
+     <Input name="pk6-3_smeared">../refcase/inputs/mesh_pk63.e</Input>
+   </Files>
+
+   <!--
+    In the above block we are specifying:
+
+    - BISON input file
+    - PowerHistory profile
+    - MeshScript
+    - Cladding outer surface temperature
+    - Axial temperature factors
+    - Fast flux
+    - Coolant pressure
+    - Axial power factors
+    - mesh_pk63.e is an exodus mesh file
+   -->
+
+   <Databases>
+     <HDF5 name="rodlet" readMode="overwrite"/>
+   </Databases>
+
+   <!--
+    The above block declares the database to write the relevant data to.
+
+    We modify the  old input file from Paul here. We only perturb the following:
+
+    power - scale_factor
+    gas_thC - ThermalContact|thermal_contact|gascond_scalef
+    fuel_thC - Materials|fuel_thermal|thcond_scalef
+    fuel_reloc - Materials|fuel_relocation|relocation_scalef
+    grain_diffCoeff - Materials|fuel_gas_release_and_swelling|igdiffcoeff_scalef
+    grain_res_param - Materials|fuel_gas_release_and_swelling|resolutionp_scalef
+    grain_radius - Materials|fuel_gas_release_and_swelling|grainradius_scalef
+    clad_creeprate - Materials|clas_solid_mechanics|creeprate_scalef
+    clad_ox - Materials|clad_oxidation|oxidation_scalef
+
+   -->
+
+   <DataObjects>
+     <PointSet name="collset">
+       <Input>power, gas_thC, fuel_thC, fuel_reloc, grain_diffCoeff, grain_res_param, grain_radius, clad_creeprate, clad_ox</Input>
+       <Output>nonlinear_its,_dt,max_clad_temp,fis_gas_released,max_fuel_temp,midplane_contact_pressure,avg_gap_conductance,gas_volume,ave_temp_interior,average_burnup</Output>
+       <operator>max</operator>
+     </PointSet>
+     <HistorySet name="hists">
+       <Input>power, gas_thC, fuel_thC, fuel_reloc, grain_diffCoeff, grain_res_param, grain_radius, clad_creeprate, clad_ox</Input>
+       <Output>nonlinear_its,_dt,max_clad_temp,fis_gas_released,max_fuel_temp,midplane_contact_pressure,avg_gap_conductance,gas_volume,ave_temp_interior,average_burnup</Output>
+     </HistorySet>
+   </DataObjects>
+
+   <!--
+    In the above block, we are declaring input and output variables.
+
+    PointSet has the following inputs and corresponding variables in BISON input file:
+
+    power - scale_factor
+    gas_thC - ThermalContact|thermal_contact|gascond_scalef
+    fuel_thC - Materials|fuel_thermal|thcond_scalef
+    fuel_reloc - Materials|fuel_relocation|relocation_scalef
+    grain_diffCoeff - Materials|fission_gas_release_and_swelling|igdiffcoeff_scalef
+    grain_res_param - Materials|fission_gas_release_and_swelling|resolutionp_scalef
+    grain_radius - Materials|fission_gas_release_and_swelling|grainradius_scalef
+    clad_creeprate - Materials|clas_solid_mechanics|creeprate_scalef
+    clad_ox - Materials|clad_oxidation|oxidation_scalef
+
+    PointSet has the following inputs:
+
+    nonlinear_its,
+    _dt,
+    max_clad_temp,
+    fis_gas_released,
+    max_fuel_temp,
+    midplane_contact_pressure,
+    avg_gap_conductance,
+    gas_volume,ave_temp_interior,
+    fis_gas_generated,
+    average_burnup,
+
+
+    "max" operator is used with the pointset in order to perform max operation on the dataset to be stored.
+
+    HistorySet has the same options except "max". Question is how does the history
+    Note that scalars are being sampled not vectors. HistorySet stores these scalars as vector?
+
+   -->
+
+   <Distributions>
+     <Uniform name="five_pct">
+       <lowerBound>0.95</lowerBound>
+       <upperBound>1.05</upperBound>
+     </Uniform>
+     <Uniform name="grain_diffCoeff">
+       <lowerBound>0.1</lowerBound>
+       <upperBound>10.0</upperBound>
+     </Uniform>
+     <Uniform name="twenty_pct">
+       <lowerBound>0.8</lowerBound>
+       <upperBound>1.2</upperBound>
+     </Uniform>
+     <Uniform name="thirty_pct">
+       <lowerBound>0.7</lowerBound>
+       <upperBound>1.3</upperBound>
+     </Uniform>
+     <Uniform name="grain_res_param">
+       <lowerBound>0.1</lowerBound>
+       <upperBound>10.0</upperBound>
+     </Uniform>
+     <Uniform name="grain_radius">
+       <lowerBound>0.4</lowerBound>
+       <upperBound>1.6</upperBound>
+     </Uniform>
+     <Uniform name="forty_pct">
+       <lowerBound>0.6</lowerBound>
+       <upperBound>1.4</upperBound>
+     </Uniform>
+     <Uniform name="ten_pct">
+       <lowerBound>0.9</lowerBound>
+       <upperBound>1.1</upperBound>
+     </Uniform>
+   </Distributions>
+
+   <!--
+
+   This comment block is for both Distributions and Sample block
+
+   In the above block, we define the distributions from which
+   input variables must be sampled.
+
+   We are perturbing -
+
+   DistributionName - Variable that Distribution Applies - DistributionType, SamplingType
+
+   five_pct - power - Uniform,
+   grain_diffCoeff - grain_diffCoeff - igdiffcoeff_scalef   - Uniform, MC
+   twenty_pct - fuel_reloc - relocation_scalef   - Uniform, MC
+   thirty_pct - clad_creeprate - creeprate_scalef   - Uniform, MC
+   grain_res_param -  grain_res_param - resolutionp_scalef   - Uniform, MC
+   grain_radius -  grain_radius - grainradius_scalef  - Uniform, MC
+   forty_pct -  clad_ox - oxidation_scalef   - Uniform, MC
+   ten_pct - gas_thC - gascond_scalef, fuel_thC - thcond_scalef - Uniform, MC
+
+   -->
+
+   <Samplers>
+     <MonteCarlo name="sc">
+       <samplerInit>
+         <limit>100</limit>
+         <!-- <limit>7000</limit> -->
+         <initialSeed>42</initialSeed>
+       </samplerInit>
+       <variable name="grain_diffCoeff">
+         <distribution>grain_diffCoeff</distribution>
+       </variable>
+       <variable name="power">
+         <distribution>five_pct</distribution>
+       </variable>
+       <variable name="fuel_reloc">
+         <distribution>twenty_pct</distribution>
+       </variable>
+       <variable name="grain_radius">
+         <distribution>grain_radius</distribution>
+       </variable>
+       <variable name="fuel_thC">
+         <distribution>ten_pct</distribution>
+       </variable>
+       <variable name="clad_ox">
+         <distribution>forty_pct</distribution>
+       </variable>
+       <variable name="clad_creeprate">
+         <distribution>thirty_pct</distribution>
+       </variable>
+       <variable name="gas_thC">
+         <distribution>ten_pct</distribution>
+       </variable>
+       <variable name="grain_res_param">
+         <distribution>grain_res_param</distribution>
+       </variable>
+     </MonteCarlo>
+   </Samplers>
+
+   <!--
+
+   The next block is the Models block. Here we will declare which code we will use.
+
+   First we declare the "Code" to be used. Here it will be BISON with subtype MooseBasedApp.
+   Then under the code node, we declare where the bison executable is located.
+   Then we will declare which variable from the RAVEN input corresponds to which
+   variable to be perturbed and overwritten in the BISON input. Here we have the following:
+
+   Structure is:
+
+   <alias variable="RAVENvarName"> Node|SubNode|BISONvarName </alias>
+
+   power - scale_factor
+   gas_thC - ThermalContact|thermal_contact|gascond_scalef
+   fuel_thC - Materials|fuel_thermal|thcond_scalef
+   fuel_reloc - Materials|fuel_relocation|relocation_scalef
+   grain_diffCoeff - Materials|fission_gas_release_and_swelling|igdiffcoeff_scalef
+   grain_res_param - Materials|fission_gas_release_and_swelling|resolutionp_scalef
+   grain_radius - Materials|fission_gas_release_and_swelling|grainradius_scalef
+   clad_creeprate - Materials|clas_solid_mechanics|creeprate_scalef
+   clad_ox - Materials|clad_oxidation|oxidation_scalef
+
+   -->
+
+   <Models>
+     <Code name="Bison-opt" subType="MooseBasedApp">
+       <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
+       <alias variable="grain_diffCoeff">Materials|fission_gas_release_and_swelling|igdiffcoeff_scalef</alias>
+       <alias variable="power">Functions|power_history|scale_factor</alias>
+       <alias variable="fuel_reloc">Materials|fuel_relocation|relocation_scalef</alias>
+       <alias variable="grain_radius">Materials|fission_gas_release_and_swelling|grainradius_scalef</alias>
+       <alias variable="fuel_thC">Materials|fuel_thermal|thcond_scalef</alias>
+       <alias variable="clad_ox">Materials|clad_oxidation|oxidation_scalef</alias>
+       <alias variable="clad_creeprate">Materials|clad_solid_mechanics|creeprate_scalef</alias>
+       <alias variable="gas_thC">ThermalContact|thermal_contact|gascond_scalef</alias>
+       <alias variable="grain_res_param">Materials|fission_gas_release_and_swelling|resolutionp_scalef</alias>
+     </Code>
+   </Models>
+
+   <!--
+
+   The next block is the Steps block.
+
+   We have three steps as declared in RunInfo|Sequence:
+
+   sample - where we sample input variables for BISON file using RAVEN.
+   write1 - where we write the PointSet, collset, to mc_database
+   write2 - where we write the HistorySet, hists, to rodlet
+
+ -->
+
+ <Steps>
+   <IOStep name="write1">
+     <Input class="DataObjects" type="PointSet">collset</Input>
+     <Output class="OutStreams" type="Print">mc_database</Output>
+   </IOStep>
+
+   <IOStep name="write2">
+     <Input class="DataObjects" type="HistorySet">hists</Input>
+     <Output class="Databases" type="HDF5">rodlet</Output>
+   </IOStep>
+
+   <MultiRun name="sample">
+     <Input class="Files" type="">bison_inp</Input>
+     <Input class="Files" type="">power_hist</Input>
+     <Input class="Files" type="">cubit_inp</Input>
+     <Input class="Files" type="">clad_temp</Input>
+     <Input class="Files" type="">ax_t_facts</Input>
+     <Input class="Files" type="">fast_flux</Input>
+     <Input class="Files" type="">cool_press</Input>
+     <Input class="Files" type="">ax_p_facts</Input>
+     <Input class="Files" type="">pk6-3_smeared</Input>
+     <Sampler class="Samplers" type="MonteCarlo">sc</Sampler>
+     <Model class="Models" type="Code">Bison-opt</Model>
+     <Output class="DataObjects" type="PointSet">collset</Output>
+     <Output class="DataObjects" type="HistorySet">hists</Output>
+   </MultiRun>
+ </Steps>
+
+ <!--
+
+  Next block is the OutStreams block
+
+  Here we specify what format we want out database to be written in.
+ -->
+
+ <OutStreams>
+  <Print name="mc_database">
+    <type>csv</type>
+    <source>collset</source>
+  </Print>
+</OutStreams>
+
+</Simulation>

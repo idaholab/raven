@@ -1,0 +1,240 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+
+  <!--
+
+  Define RunInfo so we describe where the input file is and what kind of problem
+  problem to run. Here we run an external python file from raven input file and
+  run basic statistics on the output flux.
+
+-->
+
+
+  <RunInfo>
+
+    <WorkingDir> extmod </WorkingDir>
+    <Sequence> FirstSRun, PP1, plot </Sequence>
+    <batchSize> 1 </batchSize>
+
+  </RunInfo>
+
+
+  <!--
+
+  Next we define the input files. We have one input file and one output file.
+
+-->
+
+  <Files>
+
+      <Input name="SnSlabRavenInput.py" type=""> SnSlabRavenInput.py </Input>
+      <Input name="output_flux_pp1.csv" type=""> output_flux_pp1.csv </Input>
+
+  </Files>
+
+  <!--
+
+  Next we have the Models block.  ExternalModel allows user to use external model
+  that can be seen as an internal raven object. Here, we are essentially telling
+  where python file that defines the object is defined.
+
+  Variables defines which variables are being used inside the external module.
+
+  Basic Statistics is a container of algorithms to compute many of the most
+  important statistical quantities. In order to use it there are the following
+  subnodes:
+
+  what - list of quantities to be computed - see what all on page 235-236
+  Here we say all so all the quantities will be calculated.
+
+  biased - True or false depending on whether biased quantities must be calculated or unbiased
+
+  parameters - list of parameters to which the list of operations in what and biased need to be applied to
+
+-->
+
+  <Models>
+
+       <ExternalModel ModuleToLoad="SnSlabRavenInput" name="PythonModule" subType="">
+         <variables> flux, c, c0, sigma_s, x </variables>
+       </ExternalModel>
+
+       <PostProcessor name="base_stats" subType="BasicStatistics" verbosity="debug">
+         <what> all </what>
+         <biased> true </biased>
+         <parameters> sigma_s, flux </parameters>
+       </PostProcessor>
+
+  </Models>
+
+  <!--
+
+  Next we define the distribution for c0.
+  We have a normal distribution with center at 0.5 and std 0.3
+
+  -->
+
+  <Distributions>
+
+    <Normal name="c0_distrib">
+      <mean> 0.5 </mean>
+      <sigma> 0.3 </sigma>
+    </Normal>
+
+  </Distributions>
+
+  <!--
+
+  Next we define the sampler type for c0.
+  We use MC sampler.
+
+  -->
+
+  <Samplers>
+
+        <MonteCarlo name="MC_external">
+          <samplerInit>
+            <limit> 5 </limit>
+          </samplerInit>
+          <variable name="c0">
+            <distribution> c0_distrib </distribution>
+          </variable>
+
+        </MonteCarlo>
+
+  </Samplers>
+
+  <!--
+
+  Now we have the steps block where we will define which steps are done.
+
+  We use multirun since we are generating several samples of c0. 
+
+  WE USE HISTORY SET FOR OUTPUT. THIS IS BECAUSE OUR DATA CHANGES
+  ALONG X. SO WE HAVE AN ARRAY. DOING A POINTSET WILL RETURN STATISTICS ON A
+  THE LAST POINT OF THE ARRAY. Also, basicstatistics has not been implemented
+  on history sets yet so if we get rid of the pointset part, we will not get
+  any output_flux_pp1.csv
+
+
+  -->
+
+  <Steps>
+
+      <MultiRun name="FirstSRun" re-seeding="25061978">
+
+        <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+        <Model class="Models" type="ExternalModel"> PythonModule </Model>
+        <Sampler class="Samplers" type="MonteCarlo"> MC_external </Sampler>
+        <Output class="DataObjects" type="PointSet"> PointSetPostProcTest </Output>
+        <Output class="DataObjects" type="HistorySet"> HistorySetPostProcTest </Output>
+        <Output class="OutStreams" type="Print"> PointSetPostProcTest_dump </Output>
+        <Output class="OutStreams" type="Print"> HistorySetPostProcTest_dump </Output>
+
+      </MultiRun>
+
+      <PostProcess name="PP1">
+
+        <Input class="DataObjects" type="PointSet"> PointSetPostProcTest </Input>
+        <Model class="Models" type="PostProcessor"> base_stats </Model>
+        <Output class="Files" type=""> output_flux_pp1.csv </Output>
+
+      </PostProcess>
+
+      <IOStep name="plot">
+
+        <Input class="DataObjects" type="HistorySet"> HistorySetPostProcTest </Input>
+        <Output class="OutStreams" type="Plot"> test </Output>
+
+      </IOStep>
+
+  </Steps>
+
+  <!--
+
+  OutStreams node must be used to generate dump out the data that is generated.
+  There are two different outstream types available - print and plot. They must
+  be specified using a subnode as above.
+
+  Manual has a good description on page 137.
+
+  We will now plot flux for each realization of c. Regular use of matplotlib
+  in the python module raises errors. This means plotting must be done from
+  within this input file. This is done using OutStreams. The manual has a
+  lot of options that can be used. Here we only have a regular 2D plot.
+
+  -->
+
+  <OutStreams>
+
+    <Print name="PointSetPostProcTest_dump">
+      <type> csv </type>
+      <source> PointSetPostProcTest </source>
+    </Print>
+    <Print name="HistorySetPostProcTest_dump">
+      <type> csv </type>
+      <source> HistorySetPostProcTest </source>
+    </Print>
+
+    <Plot dim="2" name="test" overwrite="true">
+      <plotSettings>
+        <plot>
+          <type> line </type>
+          <x> HistorySetPostProcTest|Output|x </x>
+          <y> HistorySetPostProcTest|Output|flux </y>
+          <xlabel> x </xlabel>
+          <ylabel> flux </ylabel>
+          <range>
+            <xmin>0.0</xmin>
+            <xmax>1.0</xmax>
+            <ymin>0.0</ymin>
+            <ymax>4.0</ymax>
+          </range>
+        </plot>
+      </plotSettings>
+      <kwargs><linewidths>0</linewidths></kwargs>
+      <actions>
+        <how> png </how>
+      </actions>
+    </Plot>
+
+  </OutStreams>
+
+  <!--
+
+  DataObjects node is a container of dataobjects of various types that can be
+  constructed during the execution of a particular calculation flow. These data
+  objects can be either input or output of a model. They are instantiated inside the
+  node as shown above.
+
+  PointSet - It is sort of like a vector. According to the manual, it is a
+  collection of individual objects each describing the state of the system
+  at a certain point (e.g. in time). It can be considered a mapping between
+  multiple sets of parameters in input space and the resulting sets of outcomes
+  in the output space at a particular point.
+
+  HistorySet - collection of individual objects each describing temporal evolution
+  of the state of the sustem within input domain.
+
+  Here we only have PointSets. We must tell which pointsets (I'm just going to call them vectors cuz thats what they are)
+  are input and which ones are output. This is done as above.
+
+  -->
+
+  <DataObjects>
+      <PointSet name="PointSetPostProcTest">
+        <Input> c0 </Input>
+        <Output> c, flux, sigma_s, x </Output>
+      </PointSet>
+      <HistorySet name="HistorySetPostProcTest">
+        <Input> c0 </Input>
+        <Output> c, flux, sigma_s, x </Output>
+      </HistorySet>
+      <PointSet name="inputPlaceHolder">
+        <Input>c0</Input>
+        <Output> outputPlaceHolder </Output>
+      </PointSet>
+  </DataObjects>
+
+
+</Simulation>
