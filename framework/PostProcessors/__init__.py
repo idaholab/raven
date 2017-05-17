@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  The Runners module includes the different ways of parallelizing the MultiRuns
-  of RAVEN.
+  The PostProcessors module includes the different ways of manipulating data in
+  RAVEN.
 
   Created on May 9, 2017
   @author: maljdp
