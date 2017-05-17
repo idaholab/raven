@@ -60,8 +60,8 @@ class SimulationMode(MessageHandler.MessageUser):
   """
     SimulationMode allows changes to the how the simulation
     runs are done.  modifySimulation lets the mode change runInfoDict
-    and other parameters.  runOverride lets the mode do the running instead
-    of simulation.
+    and other parameters.  remoteRunCommand lets a command to run RAVEN
+    remotely be specified.
   """
   def __init__(self,messageHandler):
     """
@@ -72,23 +72,17 @@ class SimulationMode(MessageHandler.MessageUser):
     self.messageHandler = messageHandler
     self.printTag = 'SIMULATION MODE'
 
-  def doOverrideRun(self, runInfoDict):
+  def remoteRunCommand(self, runInfoDict):
     """
-      If doOverrideRun is true, then use runOverride instead of
-      running the simulation normally.  This method should call
-      simulation.run somehow
-      @ In, runInfoDict, dict, the run info.
-      @ Out, doOverrideRun, bool, does the override?
-    """
-    return False
-
-  def runOverride(self, runInfoDict):
-    """
-      This  method can completely override the Simulation's run method
+      If this returns None, do nothing. If it returns a dictionary, 
+      use the dictionary to run raven remotely.
       @ In, runInfoDict, dict, the run info
-      @ Out, None
+      @ Out, remoteRunCommand, dict, the information for the remote command.
+      The dictionary should have a "args" key that is used as a command to 
+      a subprocess.call.  It optionally can have a "cwd" for the current 
+      working directory and a "env" for the environment to use for the command.
     """
-    pass
+    return None
 
   def modifySimulation(self, runInfoDict):
     """
@@ -183,9 +177,11 @@ def createAndRunQSUB(runInfoDict):
              " ".join(runInfoDict["SimulationFiles"])+'"',
              runInfoDict['RemoteRunCommand']]
   #Change to frameworkDir so we find raven_qsub_command.sh
-  os.chdir(frameworkDir)
-  print(os.getcwd()+' '+str(command))
-  subprocess.call(command)
+  remoteRunCommand = {}
+  remoteRunCommand["cwd"] = frameworkDir
+  remoteRunCommand["args"] = command
+  print("remoteRunCommand",remoteRunCommand)
+  return remoteRunCommand
 
 
 #----------------------------------------------------------------------
@@ -807,8 +803,11 @@ class Simulation(MessageHandler.MessageUser):
     #can we remove the check on the esistence of the file, it might make more sense just to check in case they are input and before the step they are used
     self.raiseADebug('entering the run')
     #controlling the PBS environment
-    if self.__modeHandler.doOverrideRun(self.runInfoDict):
-      self.__modeHandler.runOverride(self.runInfoDict)
+    remoteRunCommand = self.__modeHandler.remoteRunCommand(self.runInfoDict)
+    if remoteRunCommand is not None:
+      subprocess.call(args=remoteRunCommand["args"],
+                      cwd=remoteRunCommand.get("cwd", None),
+                      env=remoteRunCommand.get("env", None))
       return
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:

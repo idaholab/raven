@@ -165,29 +165,18 @@ class MPISimulationMode(Simulation.SimulationMode):
       runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+runInfoDict['postcommand']
     self.raiseAMessage("precommand: "+runInfoDict['precommand']+", postcommand: "+runInfoDict['postcommand'])
 
-  def doOverrideRun(self, runInfoDict):
+  def remoteRunCommand(self, runInfoDict):
     """
-      If doOverrideRun is true, then use runOverride instead of
-      running the simulation normally.  This method should call
-      simulation.run
-      @ In, runInfoDict, dict, the run info dict
-      @ Out, doOverrRun, bool, does the override?
+      If this returns None, don't do anything.  If it returns a 
+      dictionary, then run the command in the dictionary.
+      @ In, runInfoDict, dict, the run info dictionary
+      @ Out, remoteRunCommand, dict, a dictionary with information for running.
     """
-    # Check if the simulation has been run in PBS mode and if run QSUB
-    # has been requested, in case, construct the proper command
-    doOverrRun = (not self.__inPbs) and self.__runQsub
-    return doOverrRun
-
-  def runOverride(self, runInfoDict):
-    """
-      This  method completely overrides the Simulation's run method
-      @ In, runInfoDict, dict, the run information
-      @ Out, None
-    """
-    #Check and see if this is being accidently run
+    if not self.__runQsub or self.__inPbs:
+      return None
     assert self.__runQsub and not self.__inPbs
-    Simulation.createAndRunQSUB(runInfoDict)
-
+    return Simulation.createAndRunQSUB(runInfoDict)
+    
   def XMLread(self, xmlNode):
     """
       XMLread is called with the mode node, and is used here to

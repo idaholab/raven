@@ -31,17 +31,13 @@ class PBSDSHSimulationMode(Simulation.SimulationMode):
     self.__in_pbs = "PBS_NODEFILE" in os.environ
     #self.printTag = returnPrintTag('PBSDSH SIMULATION MODE')
 
-  def doOverrideRun(self, runInfoDict):
-    """ Check if the simulation has been run in PBS mode and
-    if not the run needs to be overridden so qsub can be called.
+  def remoteRunCommand(self, runInfoDict):
     """
-    return not self.__in_pbs
-
-  def runOverride(self, runInfoDict):
-    """ If not in pbs mode, qsub needs to be called. """
-    #Check and see if this is being accidently run
-    assert runInfoDict['mode'] == 'pbsdsh' and not self.__in_pbs
-    Simulation.createAndRunQSUB(runInfoDict)
+      return a command to run remotely or not.
+    """
+    if self.__in_pbs:
+      return None
+    return Simulation.createAndRunQSUB(runInfoDict)
 
   def modifySimulation(self, runInfoDict):
     """ Change the simulation to use pbsdsh as the precommand so that
