@@ -73,7 +73,7 @@ class MooseBasedApp(CodeInterfaceBase):
     """
     import MOOSEparser
     self._samplersDictionary                = {}
-    if 'dynamiceventtree' in samplerType.lower():
+    if 'dynamiceventtree' in str(samplerType).lower():
       self._samplersDictionary[samplerType] = self.dynamicEventTreeForMooseBasedApp
     else:
       self._samplersDictionary[samplerType] = self.pointSamplerForMooseBasedApp

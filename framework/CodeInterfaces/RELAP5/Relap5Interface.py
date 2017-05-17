@@ -133,7 +133,7 @@ class Relap5(CodeInterfaceBase):
     """
     import RELAPparser
     self._samplersDictionary                = {}
-    if 'dynamiceventtree' in samplerType.lower():
+    if 'dynamiceventtree' in str(samplerType).lower():
       self._samplersDictionary[samplerType] = self.DynamicEventTreeForRELAP5
     else:
       self._samplersDictionary[samplerType] = self.pointSamplerForRELAP5
