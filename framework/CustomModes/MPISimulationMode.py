@@ -50,13 +50,15 @@ class MPISimulationMode(Simulation.SimulationMode):
     # don't put more than that on on single shared memory node
     self.printTag = 'MPI SIMULATION MODE'
 
-  def modifySimulation(self, runInfoDict):
+  def modifyInfo(self, runInfoDict):
     """
       This method is aimed to modify the Simulation instance in
       order to distribute the jobs using the MPI protocol
-      @ In, None
-      @ Out, None
+      @ In, runInfoDict, dict, the original runInfo
+      @ Out, newRunInfo, dict, of modified values
     """
+    newRunInfo = {}
+    newRunInfo['batchSize'] = runInfoDict['batchSize']
     if self.__nodefile or self.__inPbs:
       if not self.__nodefile:
         #Figure out number of nodes and use for batchsize
@@ -64,8 +66,8 @@ class MPISimulationMode(Simulation.SimulationMode):
       else:
         nodefile = self.__nodefile
       lines = open(nodefile,"r").readlines()
-      #XXX
-      runInfoDict['Nodes'] = list(lines)
+      #XXX This is an undocumented way to pass information back
+      newRunInfo['Nodes'] = list(lines)
       numMPI = runInfoDict['NumMPI']
       oldBatchsize = runInfoDict['batchSize']
       #the batchsize is just the number of nodes of which there is one
@@ -73,10 +75,9 @@ class MPISimulationMode(Simulation.SimulationMode):
       # and the floor and int and max make sure that the numbers are reasonable
       maxBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
       if maxBatchsize < oldBatchsize:
-        #XXX
-        runInfoDict['batchSize'] = maxBatchsize
+        newRunInfo['batchSize'] = maxBatchsize
         self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
-      newBatchsize = runInfoDict['batchSize']
+      newBatchsize = newRunInfo['batchSize']
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = runInfoDict['WorkingDir']
@@ -133,10 +134,9 @@ class MPISimulationMode(Simulation.SimulationMode):
               fullGroupCount += 1
           if fullGroupCount == 0:
             self.raiseAnError(IOError, "Cannot run with given parameters because no nodes have numMPI "+str(numMPI)+" available and NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode))
-          if fullGroupCount != runInfoDict['batchSize']:
+          if fullGroupCount != newRunInfo['batchSize']:
             self.raiseAWarning("changing batchsize to "+str(fullGroupCount)+" because NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode)+" and some nodes could not be used.")
-            #XXX
-            runInfoDict['batchSize'] = fullGroupCount
+            newRunInfo['batchSize'] = fullGroupCount
 
         #then give each index a separate file.
         nodeCommand = runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
@@ -145,7 +145,7 @@ class MPISimulationMode(Simulation.SimulationMode):
         nodeCommand = runInfoDict["NodeParameter"]+" "+nodefile
     else:
       #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
-      newBatchsize = runInfoDict['batchSize']
+      newBatchsize = newRunInfo['batchSize']
       numMPI = runInfoDict['NumMPI']
       #TODO, we don't have a way to know which machines it can run on
       # when not in PBS so just distribute it over the local machine:
@@ -157,13 +157,12 @@ class MPISimulationMode(Simulation.SimulationMode):
 
     # Create the mpiexec pre command
     # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
-    #XXX
-    runInfoDict['precommand'] = runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
+    newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
     if(runInfoDict['NumThreads'] > 1):
       #add number of threads to the post command.
-      #XXX
-      runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+runInfoDict['postcommand']
-    self.raiseAMessage("precommand: "+runInfoDict['precommand']+", postcommand: "+runInfoDict['postcommand'])
+      newRunInfo['postcommand'] = " --n-threads=%NUM_CPUS% "+runInfoDict['postcommand']
+    self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
+    return newRunInfo
 
   def remoteRunCommand(self, runInfoDict):
     """

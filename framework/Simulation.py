@@ -84,14 +84,14 @@ class SimulationMode(MessageHandler.MessageUser):
     """
     return None
 
-  def modifySimulation(self, runInfoDict):
+  def modifyInfo(self, runInfoDict):
     """
       modifySimulation is called after the runInfoDict has been setup.
       This allows the mode to change any parameters that need changing.
       This typically modifies the precommand and the postcommand that
       are put infront of the command and after the command.
       @ In, runInfoDict, dict, the run info
-      @ Out, None
+      @ Out, dictionary to use for modifications.  If empty, no changes
     """
     import multiprocessing
     try:
@@ -99,6 +99,7 @@ class SimulationMode(MessageHandler.MessageUser):
         self.raiseAWarning("cpu_count",multiprocessing.cpu_count(),"< batchSize",runInfoDict['batchSize'])
     except NotImplementedError:
       pass
+    return {}
 
   def XMLread(self,xmlNode):
     """
@@ -598,7 +599,10 @@ class Simulation(MessageHandler.MessageUser):
     for key in self.filesDict.keys():
       self.__createAbsPath(key)
     #Let the mode handler do any modification here
-    self.__modeHandler.modifySimulation(self.runInfoDict)
+    newRunInfo = self.__modeHandler.modifyInfo(dict(self.runInfoDict))
+    for key in newRunInfo:
+      #Copy in all the new keys
+      self.runInfoDict[key] = newRunInfo[key]
     self.jobHandler.initialize(self.runInfoDict,self.messageHandler)
     # only print the dictionaries when the verbosity is set to debug
     #if self.verbosity == 'debug': self.printDicts()
