@@ -1,9 +1,9 @@
 
 #from setup.py
-DISTRIBUTION_SOURCE=$(CROW_DIR)/src/distributions/distribution.C $(CROW_DIR)/src/utilities/MDreader.C $(CROW_DIR)/src/utilities/inverseDistanceWeigthing.C $(CROW_DIR)/src/utilities/microSphere.C $(CROW_DIR)/src/utilities/NDspline.C $(CROW_DIR)/src/utilities/ND_Interpolation_Functions.C  $(CROW_DIR)/src/distributions/distributionNDBase.C $(CROW_DIR)/src/distributions/distributionNDNormal.C $(CROW_DIR)/src/distributions/distributionFunctions.C $(CROW_DIR)/src/distributions/DistributionContainer.C $(CROW_DIR)/src/distributions/distribution_1D.C
+DISTRIBUTION_SOURCE=$(CROW_DIR)/src/distributions/distribution.cxx $(CROW_DIR)/src/utilities/MDreader.cxx $(CROW_DIR)/src/utilities/inverseDistanceWeigthing.cxx $(CROW_DIR)/src/utilities/microSphere.cxx $(CROW_DIR)/src/utilities/NDspline.cxx $(CROW_DIR)/src/utilities/ND_Interpolation_Functions.cxx  $(CROW_DIR)/src/distributions/distributionNDBase.cxx $(CROW_DIR)/src/distributions/distributionNDNormal.cxx $(CROW_DIR)/src/distributions/distributionFunctions.cxx $(CROW_DIR)/src/distributions/DistributionContainer.cxx $(CROW_DIR)/src/distributions/distribution_1D.cxx
 
 #from setup.py
-INTERPOLATION_SOURCE=$(CROW_DIR)/src/utilities/ND_Interpolation_Functions.C $(CROW_DIR)/src/utilities/NDspline.C $(CROW_DIR)/src/utilities/microSphere.C $(CROW_DIR)/src/utilities/inverseDistanceWeigthing.C $(CROW_DIR)/src/utilities/MDreader.C
+INTERPOLATION_SOURCE=$(CROW_DIR)/src/utilities/ND_Interpolation_Functions.cxx $(CROW_DIR)/src/utilities/NDspline.cxx $(CROW_DIR)/src/utilities/microSphere.cxx $(CROW_DIR)/src/utilities/inverseDistanceWeigthing.cxx $(CROW_DIR)/src/utilities/MDreader.cxx
 
 
 

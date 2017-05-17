@@ -17,6 +17,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
+#include <iso646.h>
 #include "MDreader.h"
 
 MicroSphere::MicroSphere(std::string filename, double p, int precision){
