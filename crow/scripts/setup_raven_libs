@@ -3,9 +3,15 @@
 #Tries to load raven's package, and activate raven_libraries
 try_use_raven_environment ()
 {
-    if test -e /opt/raven_libs/environments/raven_libs_profile;
+    #First check home directory for a script, then /opt/raven_libs
+    if test -e $HOME/.raven/environments/raven_libs_profile;
     then
-	source /opt/raven_libs/environments/raven_libs_profile
+	source $HOME/.raven/environments/raven_libs_profile
+    else
+	if test -e /opt/raven_libs/environments/raven_libs_profile;
+	then
+	    source /opt/raven_libs/environments/raven_libs_profile
+	fi
     fi
 }
 
