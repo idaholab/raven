@@ -149,8 +149,8 @@ def splitCommand(s):
 def createAndRunQSUB(runInfoDict):
   """
     Generates a PBS qsub command to run the simulation
-    @ In, simulation, instance, instance of the simulation class
-    @ Out, None
+    @ In, runInfoDict, dict, dictionary of run info.
+    @ Out, remoteRunCommand, dict, dictionary of command.
   """
   # Check if the simulation has been run in PBS mode and, in case, construct the proper command
   #while true, this is not the number that we want to select

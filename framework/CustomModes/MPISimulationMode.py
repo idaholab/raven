@@ -33,7 +33,7 @@ class MPISimulationMode(Simulation.SimulationMode):
   def __init__(self,messageHandler):
     """
       Constructor
-      @ In, simulation, instance, instance of the simulation class
+      @ In, messageHandler, instance, instance of the messageHandler class
       @ Out, None
     """
     Simulation.SimulationMode.__init__(self,messageHandler)
@@ -84,8 +84,7 @@ class MPISimulationMode(Simulation.SimulationMode):
         if not (self.__noSplitNode or self.__limitNode):
           for i in range(newBatchsize):
             nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
-            for line in lines[i*numMPI:
-              (i+1)*numMPI]:
+            for line in lines[i*numMPI:(i+1)*numMPI]:
               nodeFile.write(line)
             nodeFile.close()
         else:
