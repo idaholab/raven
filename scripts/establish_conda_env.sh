@@ -16,13 +16,18 @@ conda_install_or_create ()
   fi
 }
 
-try_using_raven_conda ()
+try_using_raven_environment ()
 {
-  if test -e /opt/raven_libs/bin/conda;
+    #First check home directory for a script, then /opt/raven_libs
+    if test -e $HOME/.raven/environments/raven_libs_profile;
+    then
+  source $HOME/.raven/environments/raven_libs_profile
+    else
+  if test -e /opt/raven_libs/environments/raven_libs_profile;
   then
-    export PATH="/opt/raven_libs/bin:$PATH"
-    source activate raven_libraries
+      source /opt/raven_libs/environments/raven_libs_profile
   fi
+    fi
 }
 
 if which conda 2> /dev/null;
