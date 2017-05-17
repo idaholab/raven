@@ -36,7 +36,7 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <simplification>0.2</simplification>
+      <simplification>1.0</simplification>
       <persistence>difference</persistence>
       <interactive />
     </PostProcessor>
