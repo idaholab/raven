@@ -165,7 +165,7 @@ class MPISimulationMode(Simulation.SimulationMode):
 
   def remoteRunCommand(self, runInfoDict):
     """
-      If this returns None, don't do anything.  If it returns a 
+      If this returns None, don't do anything.  If it returns a
       dictionary, then run the command in the dictionary.
       @ In, runInfoDict, dict, the run info dictionary
       @ Out, remoteRunCommand, dict, a dictionary with information for running.
@@ -174,7 +174,7 @@ class MPISimulationMode(Simulation.SimulationMode):
       return None
     assert self.__runQsub and not self.__inPbs
     return Simulation.createAndRunQSUB(runInfoDict)
-    
+
   def XMLread(self, xmlNode):
     """
       XMLread is called with the mode node, and is used here to

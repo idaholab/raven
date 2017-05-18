@@ -198,7 +198,7 @@ class TorqueSimulationMode(Simulation.SimulationMode):
 
   def remoteRunCommand(self, runInfoDict):
     """
-      If this returns None, don't do anything.  If it returns a 
+      If this returns None, don't do anything.  If it returns a
       dictionary, then run the command in the dictionary.
       @ In, runInfoDict, dict, the run info dictionary
       @ Out, remoteRunCommand, dict, a dictionary with information for running.

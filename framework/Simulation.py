@@ -74,12 +74,12 @@ class SimulationMode(MessageHandler.MessageUser):
 
   def remoteRunCommand(self, runInfoDict):
     """
-      If this returns None, do nothing. If it returns a dictionary, 
+      If this returns None, do nothing. If it returns a dictionary,
       use the dictionary to run raven remotely.
       @ In, runInfoDict, dict, the run info
       @ Out, remoteRunCommand, dict, the information for the remote command.
-      The dictionary should have a "args" key that is used as a command to 
-      a subprocess.call.  It optionally can have a "cwd" for the current 
+      The dictionary should have a "args" key that is used as a command to
+      a subprocess.call.  It optionally can have a "cwd" for the current
       working directory and a "env" for the environment to use for the command.
     """
     return None
