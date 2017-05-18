@@ -11,6 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+Module to wrap XArray entities with caching utility.
+Created on May 22, 2017
+
+@author: talbpaul
+"""
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
 
 import xarray as xr
 
