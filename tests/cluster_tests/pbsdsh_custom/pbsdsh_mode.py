@@ -15,6 +15,45 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 import Simulation
+import string
+
+def createAndRunQSUB(runInfoDict):
+  """
+    Generates a PBS qsub command to run the simulation
+    @ In, runInfoDict, dict, dictionary of run info.
+    @ Out, remoteRunCommand, dict, dictionary of command.
+  """
+  # Check if the simulation has been run in PBS mode and, in case, construct the proper command
+  #while true, this is not the number that we want to select
+  coresNeeded = runInfoDict['batchSize']*runInfoDict['NumMPI']
+  #batchSize = runInfoDict['batchSize']
+  frameworkDir = runInfoDict["FrameworkDir"]
+  ncpus = runInfoDict['NumThreads']
+  jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
+  #check invalid characters
+  validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
+  if any(char not in validChars for char in jobName):
+    raise IOError('JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
+  #check jobName for length
+  if len(jobName) > 15:
+    jobName = jobName[:10]+'-'+jobName[-4:]
+    print('JobName is limited to 15 characters; truncating to '+jobName)
+  #Generate the qsub command needed to run input
+  command = ["qsub","-N",jobName]+\
+            runInfoDict["clusterParameters"]+\
+            ["-l",
+             "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1",
+             "-l","walltime="+runInfoDict["expectedTime"],
+             "-l","place=free","-v",
+             'COMMAND="python Driver.py '+
+             " ".join(runInfoDict["SimulationFiles"])+'"',
+             runInfoDict['RemoteRunCommand']]
+  #Change to frameworkDir so we find raven_qsub_command.sh
+  remoteRunCommand = {}
+  remoteRunCommand["cwd"] = frameworkDir
+  remoteRunCommand["args"] = command
+  print("remoteRunCommand",remoteRunCommand)
+  return remoteRunCommand
 
 
 class PBSDSHSimulationMode(Simulation.SimulationMode):
@@ -37,7 +76,7 @@ class PBSDSHSimulationMode(Simulation.SimulationMode):
     """
     if self.__in_pbs:
       return None
-    return Simulation.createAndRunQSUB(runInfoDict)
+    return createAndRunQSUB(runInfoDict)
 
   def modifyInfo(self, runInfoDict):
     """ Change the simulation to use pbsdsh as the precommand so that
