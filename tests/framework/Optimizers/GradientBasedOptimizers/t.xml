@@ -1,172 +1,136 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <!-- Test info -->
   <TestInfo>
-    <name>framework/Optimizers/GradientBasedOptimizers.SPSAwConstraint</name>
-    <author>chenj</author>
-    <created>2016-09-01</created>
-    <classesTested>Optimizers.SPSA</classesTested>
+    <name>framework/Optimizers/GradientBasedOptimizers.SPSAWithConstants</name>
+    <author>alfoa</author>
+    <created>2017-04-05</created>
+    <classesTested>Sampler.Grid</classesTested>
     <description>
-       Example of usage of the GradientBased Optimizer of type SPSA within the RAVEN framework in a constrained problem,
-       with a single evaluation of the gradient per iteration.
+        This test is aimed to check the capability of RAVEN to input constant variables values. This
+        test is valid to demonstrate this capability for any Optimizer in RAVEN.
     </description>
-    <revisions>
-      <revision author="chenj" date="2016-09-07">Added Constraint</revision>
-      <revision author="alfoa" date="2016-10-20">Modified XSD and removed dim attribute from all the tests</revision>
-      <revision author="chenj" date="2016-10-31">Regold since change in the algorithm</revision>
-      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
-      <revision author="alfoa" date="2017-02-09">Modified in order to add new tolerance parameters</revision>
-    </revisions>
   </TestInfo>
+
+  <!-- actual RAVEN input -->
   <RunInfo>
-	<WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/Optimizers/GradientBasedOptimizers/SPSAwConstraint</WorkingDir>
-    <Sequence>optimization,optimizationdump</Sequence>
+    <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/Optimizers/GradientBasedOptimizers/maxRangeWithBoundaryConstraintsAndConstants</WorkingDir>
+    <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimization" pauseAtEnd="true">
-      <Input class="DataObjects" type="PointSet">optInput</Input>
-      <Model class="Models" type="ExternalModel">optObjModel</Model>
-      <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>
-      <SolutionExport class="DataObjects" type="HistorySet">optData</SolutionExport>
-      <Output class="DataObjects" type="PointSet">optOutput</Output>
-      <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
-      <Output class="OutStreams" type="Print">mdlDataDump</Output>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">proj</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+
     </MultiRun>
-    <IOStep name="optimizationdump" pauseAtEnd="true">
-      <Input class="DataObjects" type="HistorySet">optData</Input>
-      <Input class="DataObjects" type="PointSet">optOutput</Input>
-      <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
-      <Output class="OutStreams" type="Print">mdlDataDump</Output>
-      <Output class="OutStreams" type="Plot">optPath</Output>
-	  <Output class="OutStreams" type="Plot">plotIteration</Output>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Input class="DataObjects" type="HistorySet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_dump</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Plot">trajectory</Output>
+      <Output class="OutStreams" type="Plot">convergenceHistory</Output>
+
     </IOStep>
   </Steps>
 
-  <DataObjects>
-    <PointSet name="optOutput">
-      <Input>R,B</Input>
-      <Output>c</Output>
-    </PointSet>
-    <PointSet name="optInput">
-      <Input>R,B</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
-    <HistorySet name="optData">
-      <Input>trajID</Input>
-      <Output>c,R,B,varsUpdate</Output>
-    </HistorySet>
-  </DataObjects>
-
   <Optimizers>
-    <SPSA name="opt_smp">
+    <SPSA name="opter">
       <initialization>
-        <limit>1000</limit>
-        <type>min</type>
-        <initialSeed>30</initialSeed>
+        <limit>2000</limit>
+        <type>max</type>
+        <initialSeed>42</initialSeed>
       </initialization>
-      <Function class="Functions" type="External">constraintFuncPositive</Function>
-      <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <iterationLimit>300</iterationLimit>
-        <relativeThreshold>1e-6</relativeThreshold>
-        <absoluteThreshold>1e-5</absoluteThreshold>
+          <relativeThreshold>1.5e-3</relativeThreshold>
       </convergence>
-      <variable name="R">
-        <upperBound>1.0</upperBound>
-        <lowerBound>0</lowerBound>
-        <initial>0.23785609600154062</initial>
+      <variable name='v0'>
+        <upperBound>40</upperBound>
+        <lowerBound>20</lowerBound>
       </variable>
-      <variable name="B">
-        <upperBound>1.0</upperBound>
-        <lowerBound>0</lowerBound>
-        <initial>0.23785609600154062</initial>
+      <variable name='angle'>
+        <upperBound>50</upperBound>
+        <lowerBound>30</lowerBound>
+        <initial>40</initial>
       </variable>
-      <objectVar>c</objectVar>
-      <parameter>
-        <numGradAvgIterations>1</numGradAvgIterations>
-        <innerBisectionThreshold>0.01</innerBisectionThreshold>
-        <innerLoopLimit>1000</innerLoopLimit>
-      </parameter>
+      <constant name="y0"> 0.000001 </constant>
+
+      <objectVar>r</objectVar>
     </SPSA>
   </Optimizers>
 
   <Models>
-	  <ExternalModel ModuleToLoad="loss_function_hybrid" name="optObjModel" subType="">
-		  <variables>R,B,c</variables>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/projectile" name="proj" subType="">
+      <variables>v0,angle,r,y0</variables>
     </ExternalModel>
   </Models>
 
-  <Functions>
-	<External file="constrain_function" name="constraintFuncPositive">
-      <variable>B</variable>
-      <variable>R</variable>
-    </External>
-  </Functions>
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>v0,angle,y0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="optOut">
+      <Input>v0,angle,y0</Input>
+      <Output>r</Output>
+    </PointSet>
+    <HistorySet name="opt_export">
+      <Input>trajID</Input>
+      <Output>v0,angle,r,varsUpdate</Output>
+    </HistorySet>
+  </DataObjects>
 
   <OutStreams>
-    <Print name="optimizationHistoryDump">
+    <Print name="opt_dump">
       <type>csv</type>
-      <source>optData</source>
+      <source>optOut</source>
     </Print>
-    <Print name="mdlDataDump">
-        <type>csv</type>
-        <source>optOutput</source>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
     </Print>
-
-    <Plot  name="optPath" overwrite="false" verbosity="debug">
-        <actions>
-            <how>pdf</how>
-        </actions>
+    <Plot  name="trajectory" overwrite="false" verbosity="debug">
         <plotSettings>
             <plot>
                 <type>scatter</type>
-                <x>optData|Output|B</x>
-                <y>optData|Output|R</y>
-                <z>optData|Output|c</z>
+                <x>optOut|Input|angle</x>
+                <y>optOut|Input|v0</y>
+                <z>optOut|Output|r</z>
             </plot>
-            <xlabel>B</xlabel>
-            <ylabel>R</ylabel>
-            <zlabel>Loss Function</zlabel>
+            <xlabel>v0</xlabel>
+            <ylabel>angle</ylabel>
+            <zlabel>r</zlabel>
         </plotSettings>
-    </Plot>
-
-    <Plot  name="plotIteration" overwrite="false" verbosity="debug">
         <actions>
-            <how>pdf</how>
+            <how>png</how>
+            <title>
+                <text> </text>
+            </title>
         </actions>
+    </Plot>
+    <Plot  name="convergenceHistory" overwrite="false" verbosity="debug">
         <plotSettings>
-			<gridSpace>3 1</gridSpace>
             <plot>
-                <type>line</type>
-                <x>optData|Output|varsUpdate</x>
-                <y>optData|Output|B</y>
-				<interpPointsX>300</interpPointsX>
-				<gridLocation><x>0</x><y>0</y></gridLocation>
-				<ylabel>B</ylabel>
+                <type>scatter</type>
+                <x>opt_export|Output|varsUpdate</x>
+                <y>opt_export|Output|r</y>
             </plot>
-
-			<plot>
-                <type>line</type>
-                <x>optData|Output|varsUpdate</x>
-                <y>optData|Output|R</y>
-				<interpPointsX>300</interpPointsX>
-				<gridLocation><x>1</x><y>0</y></gridLocation>
-				<ylabel>R</ylabel>
-            </plot>
-
-
-			<plot>
-                <type>line</type>
-                <x>optData|Output|varsUpdate</x>
-                <y>optData|Output|c</y>
-				<interpPointsX>300</interpPointsX>
-				<gridLocation><x>2</x><y>0</y></gridLocation>
-				<ylabel>c</ylabel>
-            </plot>
-
-
+            <xlabel>iteration</xlabel>
+            <ylabel>r</ylabel>
         </plotSettings>
+        <actions>
+            <how>png</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
     </Plot>
   </OutStreams>
 

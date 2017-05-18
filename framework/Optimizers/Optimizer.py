@@ -96,8 +96,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.limit                          = {}                        # Dict containing limits for each counter
-    self.limit['mdlEval']               = sys.maxsize               # Maximum number of the loss function evaluation
-    self.limit['varsUpdate']            = sys.maxsize               # Maximum number of the optimization iteration.
+    self.limit['mdlEval']               = 2000                      # Maximum number of the loss function evaluation
+    self.limit['varsUpdate']            = 650                       # Maximum number of the optimization iteration.
     self.initSeed                       = None                      # Seed for random number generators
     self.optVars                        = None                      # Decision variables for optimization
     self.optVarsInit                    = {}                        # Dict containing upper/lower bounds and initial of each decision variables
@@ -295,7 +295,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if len(self.optTraj) != len(self.optVarsInit['initial'][varname].keys()):
         self.raiseAnError(ValueError, 'Number of initial values does not equal to the number of parallel optimization trajectories')
       #store ranges of variables
-      self.optVarsInit['ranges'][varname] = self.optVarsInit['upperBound'][varname] - self.optVarsInit['lowerBound'][varname]          
+      self.optVarsInit['ranges'][varname] = self.optVarsInit['upperBound'][varname] - self.optVarsInit['lowerBound'][varname]
     self.optTrajLive = copy.deepcopy(self.optTraj)
 
   def localInputAndChecks(self,xmlNode):
@@ -395,14 +395,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.constraintFunction = self.assemblerDict['Function'][0][3]
       if 'constrain' not in self.constraintFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
-
     # check the constraint here to check if the initial values violate it
     varK = {}
     for trajInd in self.optTraj:
       for varname in self.optVars:
         varK[varname] = self.optVarsInit['initial'][varname][trajInd]
-      satisfied, _ = self.checkConstraint(varK)
-      if not satisfied: 
+      satisfied, _ = self.checkConstraint(self.normalizeData(varK))
+      if not satisfied:
         # get a random value between the the lower and upper bounds
         self.raiseAWarning("the initial values specified for trajectory "+str(trajInd)+" do not satify the contraints. Picking random ones!")
         randomGuessesCnt = 0
@@ -413,7 +412,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           satisfied, _ = self.checkConstraint(varK)
         if not satisfied:
           self.raiseAnError(Exception,"It was not possible to find any initial values that could satisfy the constraints for trajectory "+str(trajInd))
-              
+
 
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)

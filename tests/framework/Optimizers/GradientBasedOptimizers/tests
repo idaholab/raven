@@ -34,13 +34,6 @@
   csv = 'maxRangeWithBoundaryConstraintsAndConstants/opt_dump.csv'
   rel_err = 1.e-4
  [../]
- [./SPSABoundConstraintsMaximizationNormGradient]
-  type = 'RavenFramework'
-  input = 'test_max_range_projectile_norm_grad.xml'
-  output = 'maxRangeWithBoundaryConstraintsNormGradient/opt_dump.csv maxRangeWithBoundaryConstraintsNormGradient/1-trajectory_scatter.png maxRangeWithBoundaryConstraintsNormGradient/1-convergenceHistory_scatter.png'
-  csv = 'maxRangeWithBoundaryConstraintsNormGradient/opt_export_0.csv'
-  rel_err = 1.e-4
- [../]
  [./SPSAMaximizationPenalty]
   type = 'RavenFramework'
   input = 'test_max_range_projectile_with_penalty.xml'

@@ -88,7 +88,10 @@ through bisection methods, until constraints can no longer be satisfied;
 terminate.
 \end{itemize}
 
-
+It is important to notice that the gradient and the feature space is always normalized. This means that the gradient is going to be 
+normalized with respect to its norm (versor of the gradient); hence, the optimization advancement is not going to be influenced by the 
+magnitude of the gradient, but just on its ``direction'' information content. All the following parameters that can be optionally be inputted  
+should be calibrated with this information in mind.
 %
 
 \specBlock{a}{SPSA}
@@ -110,7 +113,7 @@ optimization can be specified in the \xmlNode{initialization} and \xmlNode{param
 specified:
   \begin{itemize}
     \item \xmlNode{limit}, \xmlDesc{integer,optional field}, number of samples to be generated, which is same as the number of
-    model evaluation;
+    model evaluation. \default{2000}.
     \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator for stochastic
     perturbations;
     \item \xmlNode{type},  \xmlDesc{string (case insensitive), optional field}, specifies whether this optimizer performs maximization
@@ -158,7 +161,7 @@ output of the DataObject specified in \xmlNode{TargetEvaluation}.
 \item \xmlNode{convergence}, \xmlDesc{XML node, optional parameter} will specify parameters associated with optimization
 convergence. This node accepts the following sub-nodes:
   \begin{itemize}
-  \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations.
+  \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations. \default{650}.
   \item \xmlNode{relativeThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality
   in a ``relative'' sense: when the relative change of the objective variable in two successive model evaluations is smaller than
   this specified threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
@@ -173,13 +176,10 @@ convergence. This node accepts the following sub-nodes:
   \end{itemize}
 \item \xmlNode{parameter}, \xmlDesc{XML node, optional parameter} will accepts the following sub-nodes:
   \begin{itemize}
-    \item \xmlNode{normalize}, \xmlDesc{bool, optional field} this is the parameter that controls how the gradient information
-    content should be used. If \textbf{True}, the gradient is going to be normalized with respect to its norm (versor of the gradient);
-    this means that the optimization advancement is not going to be influenced by the magnitude of the gradient, but just on its
-    ``direction'' information content. If \textbf{False}, the gradient magnitude is going to be actively part of the advancement of the
-    optimization search.
-        \default{False}
-  \item \xmlNode{numGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation.
+  \item \xmlNode{numGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation. When this
+        parameter is $>1$, multiple gradient evaluations are going to be performed. Since the main goal for this parameter is to 
+        get a better gradient estimation (performing a denoising), the current point $x_k$ is evaluated multiple times in order to be able to 
+        converge in average.
         \default{1}
 
   \item Optimizer Gradient Evaluation parameters:

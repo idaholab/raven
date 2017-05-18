@@ -92,32 +92,32 @@
   <Optimizers>
     <SPSA name="opt_smp">
       <initialization>
-		<limit>300</limit>
+		<limit>2000</limit>
 		<type>min</type>
 		<initialSeed>30</initialSeed>
 		<!-- <thresholdTrajRemoval>0.05</thresholdTrajRemoval> -->
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
 	  <convergence>
-		<iterationLimit>50</iterationLimit>
-        <relativeThreshold>1e-5</relativeThreshold>
-        <absoluteThreshold>1e-7</absoluteThreshold>
-        <gradientThreshold>1e-6</gradientThreshold>
+          <iterationLimit>1000</iterationLimit>
+          <relativeThreshold>1e-3</relativeThreshold>
+          <absoluteThreshold>1e-3</absoluteThreshold>
+          <gradientThreshold>1e-3</gradientThreshold>
 	  </convergence>
 	  <variable name="x1">
         <upperBound>1</upperBound>
 		<lowerBound>-1</lowerBound>
-		<initial>-1,0,1</initial>
+		<initial>-1,0.1,1</initial>
       </variable>
 	  <variable name="x2">
         <upperBound>1</upperBound>
 		<lowerBound>-1</lowerBound>
-		<initial>0,0,0</initial>
+		<initial>0.1,0,0</initial>
       </variable>
 	  <objectVar>c</objectVar>
 	  <parameter>
 		<numGradAvgIterations>4</numGradAvgIterations>
-		<a>0.1</a>
+		<a>0.2</a>
 	  </parameter>
     </SPSA>
   </Optimizers>

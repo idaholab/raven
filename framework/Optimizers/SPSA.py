@@ -30,12 +30,14 @@ import os
 import copy
 import numpy as np
 from numpy import linalg as LA
+import scipy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .GradientBasedOptimizer import GradientBasedOptimizer
 import Distributions
 from utils import mathUtils
+import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SPSA(GradientBasedOptimizer):
@@ -251,7 +253,6 @@ class SPSA(GradientBasedOptimizer):
       #get central response for this trajectory: how?? TODO FIXME
       #centralResponseIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj]-1,'v')[1]
       #self.estimateStochasticity(gradient,self.gradDict['pertPoints'][traj][self.counter['varsUpdate'][traj]-1],varK,centralResponseIndex) #TODO need current point too!
-
       varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
       varKPlusDenorm = self.denormalizeData(varKPlus)
       for var in self.optVars:
@@ -373,7 +374,7 @@ class SPSA(GradientBasedOptimizer):
       if not foundPendVector:
         foundPendVector, tempVarKPlus = self._bisectionForConstrainedInput(varK, gain, pendVector)
       gain = gain/2.
-      
+
     if foundPendVector:
       lenPendVector = 0
       for var in self.optVars:
@@ -413,11 +414,10 @@ class SPSA(GradientBasedOptimizer):
       gain = ak[:]
     except (TypeError,IndexError):
       gain = [ak]*len(self.optVars)
-      
+
     innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
     if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1:
       self.raiseAnError(ValueError, 'The innerBisectionThreshold shall be greater than 0 and less than 1')
-    fracLowerLimit = 1e-2
     bounds = [0, 1.0]
     tempVarNew = {}
     frac = 0.5
@@ -427,11 +427,9 @@ class SPSA(GradientBasedOptimizer):
       satisfied, activeConstraints = self.checkConstraint(tempVarNew)
       if satisfied:
         bounds[0] = copy.deepcopy(frac)
-        if np.absolute(bounds[1]-bounds[0]) < innerBisectionThreshold:
-          if frac >= fracLowerLimit:
-            varKPlus = copy.deepcopy(tempVarNew)
-            return True, varKPlus
-          break
+        if np.absolute(bounds[1]-bounds[0]) >= innerBisectionThreshold:
+          varKPlus = copy.deepcopy(tempVarNew)
+          return True, varKPlus
         frac = copy.deepcopy(bounds[1]+bounds[0])/2.0
       else:
         bounds[1] = copy.deepcopy(frac)
@@ -475,25 +473,54 @@ class SPSA(GradientBasedOptimizer):
       @ In, iterNum, int, current iteration index
       @ Out, ak, float, current value for gain ak
     """
-    
-    #  This block is going to be used and formalized in the future
-    if iterNum > 1:      
-      #gradK        = np.asarray([self.counter['gradientHistory'][traj][0][key] for key in self.optVars])/self.counter['gradNormHistory'][traj][0]
-      #gradPrevK    = np.asarray([self.counter['gradientHistory'][traj][1][key] for key in self.optVars])/self.counter['gradNormHistory'][traj][1]
-      gradK        = np.asarray([self.counter['gradientHistory'][traj][0][key] for key in self.optVars])
-      gradPrevK    = np.asarray([self.counter['gradientHistory'][traj][1][key] for key in self.optVars])
-      xKdenorm     = self.denormalizeData(self.optVarsHist[traj][iterNum-1])
-      xPrevKdenorm = self.denormalizeData(self.optVarsHist[traj][iterNum-2])
-      #xKdenorm     = self.optVarsHist[traj][iterNum-1]
-      #xPrevKdenorm = self.optVarsHist[traj][iterNum-2]
-      xK           = np.asarray([xKdenorm[key] for key in self.optVars])
-      xPrevK       = np.asarray([xPrevKdenorm[key] for key in self.optVars])
-      gX           = gradK - gradPrevK
-    #  #ak           = np.absolute(np.asarray(np.asarray(xK) - np.asarray(xPrevK))*np.asarray(gX).T/np.linalg.norm(gX))
-      ak           = np.absolute(np.linalg.norm(np.asarray(xK) - np.asarray(xPrevK))/(gX*np.asarray(np.asarray(xK) - np.asarray(xPrevK)).T))
-    #  #ak           = np.asarray(np.asarray(xK) - np.asarray(xPrevK))*np.asarray(gX).T/np.linalg.norm(gX)
-      print(ak)
-    else:  
-      a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
-      ak = a / (iterNum + A) ** alpha
+    a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
+    ak = a / (iterNum + A) ** alpha
+    # the line search with surrogate unfortunately does not work very well (we use it just at the begin of the search and after that
+    # we switch to a decay constant strategy (above)). Another strategy needs to be find.
+    if iterNum > 1 and iterNum <= int(self.limit['mdlEval']/50.0):
+      # we use a line search algorithm for finding the best learning rate (using a surrogate)
+      # if it fails, we use a decay rate (ak = a / (iterNum + A) ** alpha)
+      objEvaluateROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.optVars)), 'Target':self.objVar, 'n_neighbors':5,'weights':'distance'})
+      tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
+      tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
+      for key in tempDict.keys():
+        tempDict[key] = np.asarray(tempDict[key])
+      objEvaluateROM.train(tempDict)
+
+      def f(x):
+        """
+          Method that just interface the evaluate method for the surrogate
+          @ In, x, numpy.array, coordinate where to evaluate f
+          @ Out, f, float, result
+        """
+        features = {}
+        for cnt, value in enumerate(x):
+          features[self.optVars[cnt]] = np.asarray(value)
+        return objEvaluateROM.evaluate(features)[self.objVar]
+
+      def fprime(x):
+        """
+          Method that just interface the computes the approximate derivatives using the surrogate
+          @ In, x, numpy.array, coordinate where to evaluate f'
+          @ Out, f, numpy.array, partial derivatives
+        """
+        return scipy.optimize.approx_fprime(x, f, self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1))
+
+      xK             = np.asarray([self.optVarsHist[traj][iterNum-1][key] for key in self.optVars])
+      xKPrevious     = np.asarray([self.optVarsHist[traj][iterNum-2][key] for key in self.optVars])
+      #xK             = np.asarray([self.denormalizeData(self.optVarsHist[traj][iterNum-1])[key] for key in self.optVars])
+      #xKPrevious     = np.asarray([self.denormalizeData(self.optVarsHist[traj][iterNum-2])[key] for key in self.optVars])
+      gradxK         = np.asarray([self.counter['gradientHistory'][traj][0][key] for key in self.optVars])#/self.counter['gradNormHistory'][traj][0]
+      gradxKPrevious = np.asarray([self.counter['gradientHistory'][traj][1][key] for key in self.optVars])#/self.counter['gradNormHistory'][traj][1]
+      alphaLineSearchCurrent  = scipy.optimize.line_search(f, fprime, xK, gradxK, amax=10.0)
+      alphaLineSearchPrevious = scipy.optimize.line_search(f, fprime, xKPrevious, gradxKPrevious, amax=10.0)
+      akCurrent, akPrevious = 0.0, 0.0
+      if alphaLineSearchCurrent[-1] is not None:
+        akCurrent = min(float(alphaLineSearchCurrent[0]),a)
+      if alphaLineSearchPrevious[-1] is not None:
+        akPrevious = min(float(alphaLineSearchPrevious[0]),a)
+      newAk = (akCurrent+akPrevious)/2.
+      print(ak,newAk)
+      if newAk != 0.0:
+        ak = newAk
     return ak

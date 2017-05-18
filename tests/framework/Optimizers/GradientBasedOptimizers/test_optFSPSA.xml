@@ -61,7 +61,7 @@
   <Optimizers>
     <SPSA name="opt_smp">
       <initialization>
-        <limit>5000</limit>
+        <limit>1000</limit>
         <type>min</type>
         <initialSeed>30</initialSeed>
       </initialization>
@@ -69,7 +69,7 @@
 	  <convergence>
 		<iterationLimit>1000</iterationLimit>
         <relativeThreshold>1e-5</relativeThreshold>
-        <absoluteThreshold>1e-7</absoluteThreshold>
+        <absoluteThreshold>1e-4</absoluteThreshold>
         <gradientThreshold>1e-6</gradientThreshold>
 	  </convergence>
 	  <variable name="x1">
@@ -85,6 +85,7 @@
       <objectVar>c</objectVar>
       <parameter>
         <numGradAvgIterations>3</numGradAvgIterations>
+        <a>0.2</a>
       </parameter>
     </SPSA>
   </Optimizers>
