@@ -129,7 +129,8 @@ class File(BaseType):
       @ In, None
       @ Out, __file, object, file object
     """
-    self.__file.open(self.getAbsFile())
+    if not self.isOpen():
+      self.open()
     return self.__file
 
   def __exit__(self,*args):
