@@ -807,7 +807,7 @@ class Simulation(MessageHandler.MessageUser):
     #can we remove the check on the esistence of the file, it might make more sense just to check in case they are input and before the step they are used
     self.raiseADebug('entering the run')
     #controlling the PBS environment
-    remoteRunCommand = self.__modeHandler.remoteRunCommand(self.runInfoDict)
+    remoteRunCommand = self.__modeHandler.remoteRunCommand(dict(self.runInfoDict))
     if remoteRunCommand is not None:
       subprocess.call(args=remoteRunCommand["args"],
                       cwd=remoteRunCommand.get("cwd", None),
