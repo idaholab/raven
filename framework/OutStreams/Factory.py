@@ -25,6 +25,7 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
+from utils import utils
 from .OutStreamManager import OutStreamManager
 from .OutStreamPlot import OutStreamPlot
 from .OutStreamPrint import OutStreamPrint
@@ -42,7 +43,7 @@ from .OutStreamPrint import OutStreamPrint
 __base = 'OutStreamManager'
 __interFaceDict = {}
 
-for classObj in eval(__base).__subclasses__():
+for classObj in utils.getAllSubclasses(eval(__base)):
   ## As long as these subclasses follow the pattern of starting with OutStream
   ## this will appropriately key them to a more user-friendly name without the
   ## need for them to redudantly prepend "X" as "OutStreamX"

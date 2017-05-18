@@ -26,6 +26,7 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
+from utils import utils
 from .PostProcessor import PostProcessor
 from .BasicStatistics import BasicStatistics
 from .ComparisonStatistics import ComparisonStatistics
@@ -65,7 +66,7 @@ except ImportError:
 __base = 'PostProcessor'
 __interFaceDict = {}
 
-for classObj in eval(__base).__subclasses__():
+for classObj in utils.getAllSubclasses(eval(__base)):
   key = classObj.__name__
   __interFaceDict[key] = classObj
 

@@ -17,6 +17,7 @@
 #include <vector>
 #include <iostream>
 #include <limits>
+#include <iso646.h>
 #include "MDreader.h"
 
 
