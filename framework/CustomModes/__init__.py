@@ -22,3 +22,4 @@ from __future__ import absolute_import
 # These lines ensure that we do not have to do something like:
 # 'from DataObjects.Data import Data' outside of this submodule
 from .MPISimulationMode import MPISimulationMode
+from .MPILegacySimulationMode import MPILegacySimulationMode

@@ -315,6 +315,7 @@ class Simulation(MessageHandler.MessageUser):
     #Dictionary of mode handlers for the
     self.__modeHandlerDict           = {}
     self.__modeHandlerDict['mpi']    = CustomModes.MPISimulationMode
+    self.__modeHandlerDict['mpilegacy'] = CustomModes.MPILegacySimulationMode
 
     #this dictionary contain the static factory that return the instance of one of the allowed entities in the simulation
     #the keywords are the name of the module that contains the specialization of that specific entity
