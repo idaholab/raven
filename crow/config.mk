@@ -1,9 +1,9 @@
 CROW_DIR ?= $(ROOT_DIR)/crow
 
 SWIG_VERSION := $(shell swig -version 2>/dev/null)
-PYTHON_CONFIG_WHICH := $(shell which python-config 2>/dev/null)
+PYTHON_WHICH := $(shell which python 2>/dev/null)
 ifeq ($(CROW_USE_PYTHON3),TRUE)
-	PYTHON3_CONFIG_WHICH := $(shell which python3-config 2>/dev/null)
+	PYTHON3_WHICH := $(shell which python3 2>/dev/null)
 endif
 
 ifneq ($(findstring SWIG Version 2,$(SWIG_VERSION)),)
@@ -20,34 +20,19 @@ endif
 
 UNAME := $(shell uname)
 
-ifneq ($(PYTHON_CONFIG_WHICH),)
-	PYTHON2_INCLUDE=$(shell python-config --includes)
-	PYTHON2_LIB=$(shell python-config --ldflags)
-endif
-
-ifneq ($(PYTHON3_CONFIG_WHICH),)
-	PYTHON3_INCLUDE = $(shell python3-config --includes) #-DPy_LIMITED_API
-	PYTHON3_LIB = $(shell python3-config --ldflags) #-DPy_LIMITED_API
-endif
-
-ifneq ($(PYTHON3_CONFIG_WHICH),)
+ifneq ($(PYTHON3_WHICH),)
 	SWIG_PY_FLAGS=-py3
 	PYTHON_MODULES = $(CROW_DIR)/install/crow_modules/_distribution1Dpy2.so $(CROW_DIR)/install/crow_modules/_interpolationNDpy2.so $(CROW_DIR)/install/crow_modules/_distribution1Dpy3.so $(CROW_DIR)/install/crow_modules/_interpolationNDpy3.so
-	PYTHON_INCLUDE=$(PYTHON3_INCLUDE)
-	PYTHON_LIB=$(PYTHON3_LIB)
 
 else #no Python3
 
-ifneq ($(PYTHON_CONFIG_WHICH),)
-#Python 2 config found but not Python 3
-	PYTHON_INCLUDE=$(PYTHON2_INCLUDE)
-	PYTHON_LIB=$(PYTHON2_LIB)
+ifneq ($(PYTHON_WHICH),)
+#Python 2 found but not Python 3
 	SWIG_PY_FLAGS=
 	PYTHON_MODULES = $(CROW_DIR)/install/crow_modules/_distribution1Dpy2.so $(CROW_DIR)/install/crow_modules/_interpolationNDpy2.so
 else #No python3 config or python2 config
-	PYTHON_INCLUDE = -DNO_PYTHON_FOR_YOU
-	PYTHON_LIB = -DNO_PYTHON_FOR_YOU
 	PYTHON_MODULES =
+$(warning python not found)
 endif
 
 endif
@@ -63,8 +48,6 @@ else
         COVERAGE_COMPILE_EXTRA =
         COVERAGE_LINK_EXTRA =
 endif
-PYTHON_INCLUDE += $(COVERAGE_COMPILE_EXTRA)
-PYTHON_LIB += $(COVERAGE_LINK_EXTRA)
 
 CROW_LIB_INCLUDE_DIR := $(CROW_DIR)/contrib/include
 EIGEN_INCLUDE := $(shell $(CROW_DIR)/scripts/find_eigen.py)

@@ -9,7 +9,10 @@ crow_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 eigen_cflags = ""
 
-has_pkg_eigen = subprocess.call(["pkg-config","--exists","eigen3"]) == 0
+try:
+  has_pkg_eigen = subprocess.call(["pkg-config","--exists","eigen3"]) == 0
+except:
+  has_pkg_eigen = False
 
 if has_pkg_eigen:
   eigen_cflags = subprocess.check_output(["pkg-config","eigen3","--cflags"])
