@@ -43,4 +43,4 @@ def execCommand(commandString,self=None,object=None):
     @ In, object, instance, optional, object instance
     @ Out, None
   """
-  execCommandReturn(commandString,self,object)
+  exec(commandString)
