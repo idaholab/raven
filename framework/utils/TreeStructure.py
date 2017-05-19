@@ -321,30 +321,34 @@ def inputTreeToGetpot(ts,fromNode=False):
 ###########
 # PARSERS #
 ###########
-class XMLCommentParser(ET.XMLTreeBuilder):
-  """
-    An XML parser that expands on the default to preserves comments
-  """
-  def __init__(self):
+if sys.version_info.major > 2:
+  #In Python3, XMLParser is a C implementation, and can't be modified.
+  XMLCommentParser = ET.XMLParser
+else:
+  class XMLCommentParser(ET.XMLParser):
     """
-      Constructor.
-      @ In, None
-      @ Out, None
+      An XML parser that expands on the default to preserves comments
     """
-    ET.XMLTreeBuilder.__init__(self)
-    self._parser.CommentHandler = self.handleComment
+    def __init__(self):
+      """
+        Constructor.
+        @ In, None
+        @ Out, None
+      """
+      ET.XMLParser.__init__(self)
+      self._parser.CommentHandler = self.handleComment
 
-  def handleComment(self,data):
-    """
-      Constructor.
-      @ In, data, string object to parse into comment
-      @ Out, None
-    """
-    self._target.start(ET.Comment,{})
-    self._target.data(data)
-    self._target.end(ET.Comment)
+    def handleComment(self,data):
+      """
+        Constructor.
+        @ In, data, string object to parse into comment
+        @ Out, None
+      """
+      self._target.start(ET.Comment,{})
+      self._target.data(data)
+      self._target.end(ET.Comment)
 
-#set up a parser for this module
+  #set up a parser for this module
 parser = XMLCommentParser()
 
 
