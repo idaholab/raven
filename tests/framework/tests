@@ -460,6 +460,12 @@
    csv    = 'custom1D/PointSet2_dump.csv custom1D/PointSet3_dump.csv'
  [../]
 
+ [./newerDatabaseWithFilename]
+   type   = 'RavenFramework'
+   input  = 'test_new_database_with_filename.xml'
+   output = 'GridTestHDF5WithFileName/DatabaseStorage/userSpecifiedFileName.h5'
+ [../]
+
 []
 
 

@@ -160,7 +160,6 @@ class HDF5(DateBase):
     # if yes, we assume the user wants to load the data from there
     # or update it
     #try:
-    #if 'filename' in xmlNode.attrib.keys():
     self.filename = xmlNode.attrib.get('filename',self.name+'.h5')
     if 'readMode' not in xmlNode.attrib.keys():
       self.raiseAnError(IOError,'No "readMode" attribute was specified for hdf5 database',self.name)
@@ -173,16 +172,15 @@ class HDF5(DateBase):
     if os.path.isfile(fullpath):
       if self.readMode == 'read':
         self.exist = True
-        self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename)
       elif self.readMode == 'overwrite':
         self.exist = False
-        self.database = h5Data(self.name,self.databaseDir,self.messageHandler)
+      self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist)
     else:
       #file does not exist in path
       if self.readMode == 'read':
         self.raiseAWarning('Requested to read from database, but it does not exist:',fullpath,'so continuing without reading...')
       self.exist = False
-      self.database  = h5Data(self.name,self.databaseDir,self.messageHandler)
+      self.database  = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist)
 
   def getInitParams(self):
     """
