@@ -31,6 +31,7 @@ from collections import OrderedDict
 from .Dummy import Dummy
 from utils import utils
 from utils import graphStructure
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class EnsembleModel(Dummy):
@@ -400,9 +401,11 @@ class EnsembleModel(Dummy):
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
-    out = finishedJob.getEvaluation()[1]
+
+    out = evaluation[1]
     exportDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
     exportDictTargetEvaluation = {}
     outcomes, targetEvaluations, optionalOutputs = out
@@ -651,12 +654,13 @@ class EnsembleModel(Dummy):
               time.sleep(1.e-3)
           # get job that just finished to gather the results
           finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
-          if finishedRun[0].getEvaluation() == -1:
+          evaluation = finishedRun[0].getEvaluation()
+          if isinstance(evaluation, Runners.Error):
             # the model failed
             for modelToRemove in self.orderList:
               if modelToRemove != modelIn:
                 jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
-            self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
+            self.raiseAnError(RuntimeError,"The Model  " + modelIn + " identified by " + finishedRun[0].identifier +" failed!")
 
           # collect output in the temporary data object
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
