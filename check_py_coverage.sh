@@ -49,7 +49,7 @@ cd tests/framework
 #coverage help run
 FRAMEWORK_DIR=`(cd ../../framework && pwd)`
 
-EXTRA="--rcfile=.coveragerc --source=$FRAMEWORK_DIR -a --omit=$FRAMEWORK_DIR/contrib/*"
+EXTRA="--rcfile=$FRAMEWORK_DIR/../tests/framework/.coveragerc --source=$FRAMEWORK_DIR -a --omit=$FRAMEWORK_DIR/contrib/*"
 export COVERAGE_FILE=`pwd`/.coverage
 
 coverage erase
@@ -65,6 +65,35 @@ do
     coverage run $EXTRA $DRIVER $I
 done
 coverage run $EXTRA ../../framework/TestDistributions.py
-coverage run $EXTRA ../../framework/Driver.py test_relap5_code_interface.xml interfacecheck
+
+# code interface tests START
+cd CodeInterfaceTests
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_interface.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_perturb_mammoth_bison_relap7.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_mammoth_r7_bison_no_exe_hdf5_restart.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_perturb_all_rattlesnake_bison.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_perturb_mammoth_rattlesnake_bison.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_interface_alias.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_interface_multideck.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_interface_multideck_choosing_deck_output.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_OpenModelica_code_interface.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_Dymola_code_interface.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_Dymola_code_interface_timedep.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_forward.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_det.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_hybrid_det.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_adaptive_det.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_adaptive_hybrid_det.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_det_multibranch.xml interfaceCheck
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_inss.xml interfaceCheck
+# code interface tests END
+cd ../PostProcessors/TopologicalPostProcessor
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
+cd ../DataMiningPostProcessor/Clustering/
+coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck
+
+## Go to the final directory and generate the html documents
+cd $SCRIPT_DIR/tests/framework
+pwd
 coverage html
 

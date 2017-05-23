@@ -104,7 +104,8 @@
 //
 // check for exception handling support:
 #if !defined(_CPPUNWIND) && !defined(BOOST_NO_EXCEPTIONS)
-#  define BOOST_NO_EXCEPTIONS
+// RAK - When included with Crow, this line will fire which requires the user to provide an external exception handler
+// #  define BOOST_NO_EXCEPTIONS
 #endif
 
 //

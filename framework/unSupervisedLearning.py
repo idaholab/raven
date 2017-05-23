@@ -42,7 +42,6 @@ import copy
 from utils import utils
 from utils import mathUtils
 import MessageHandler
-import PostProcessors #import returnFilterInterface
 import DataObjects
 #Internal Modules End-----------------------------------------------------------
 

@@ -72,19 +72,28 @@ class ImageDiff:
         self.__same = False
         return(self.__same,self.__messages)
       try:
-        testImage = imread(open(testFilename,'r'))
+        # RAK - The original line...
+        # testImage = imread(open(testFilename,'r'))
+        # ...didn't work on Windows Python because it couldn't sense the file type
+        testImage = imread(testFilename)
       except IOError as e:
         self.__messages += 'Unrecognized file type for test image in scipy.imread: '+testFilename
         filesRead = False
+        return (False, self.__messages)
       try:
-        goldImage = imread(open(goldFilename,'r'))
+        # RAK - The original line...
+        # goldImage = imread(open(goldFilename,'r'))
+        # ...didn't work on Windows Python because it couldn't sense the file type
+        goldImage = imread(goldFilename)
       except IOError as e:
         filesRead = False
         self.__messages += 'Unrecognized file type for test image in scipy.imread: '+goldFilename
+        return (False, self.__messages)
       #first check dimensionality
       if goldImage.shape != testImage.shape:
-        self.__messages += 'Gold and test image are not the same shape: '+str(goldImage.shape)+', '+testImage.shape
+        self.__messages += 'Gold and test image are not the same shape: '+str(goldImage.shape)+', '+str(testImage.shape)
         self.__same = False
+        return (self.__same, self.__messages)
       #set default options
       DU.setDefaultOptions(self.__options)
       #pixelwise comparison

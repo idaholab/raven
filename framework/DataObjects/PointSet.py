@@ -28,6 +28,7 @@ if not 'xrange' in dir(__builtins__):
 import itertools
 import numpy as np
 import os
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -223,6 +224,42 @@ class PointSet(Data):
       @ In,  value, float, newer value (single value)
       @ Out, None
     """
+    ## So, you are trying to update a single data point, but you passed in
+    ## more information, this means we need to reduce it down using one of our
+    ## recipes.
+    value = np.atleast_1d(value).flatten()
+    if len(value) > 1:
+
+      if options is None:
+        outputRow = -1
+        outputPivotVal = None
+        operator = None
+      else:
+        ## Not sure if any of these are necessary, but I am trying to replicate
+        ## the magic that takes place in the Csv_loader -- DPM 5/3/2017
+        outputRow = copy.deepcopy(options.get('outputRow',-1))
+        outputPivotVal = options.get('outputPivotValue',None)
+        operator = options.get('operator',None)
+
+      if outputRow is None:
+        if outputPivotVal is not None and 'end' in outputPivotVal:
+          outputRow = -1
+        # elif outputPivotVal != None:
+        #   outputPivotVal = float(outputPivotVal)
+
+      if operator == 'max':
+        value = np.max(value)
+      elif operator == 'min':
+        value = np.min(value)
+      elif operator == 'average':
+        value = np.average(value)
+      else: #elif outputRow is not None:
+        value = value[outputRow]
+      ## We don't have access to the pivot parameter's information at this
+      ## point, so I will forego this implementation for now -- DPM 5/3/2017
+      #else:
+      #  value = interp1d(data[:,pivotIndex], value, kind='linear')(outputPivotVal)
+
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'Point' has been stored
       parentID = None

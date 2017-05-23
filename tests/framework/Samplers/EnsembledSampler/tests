@@ -2,13 +2,13 @@
  [./EnsembleSamplerDummy]
   type = 'RavenFramework'
   input = 'test_EnsembleSamplerDummy.xml'
-  output = 'EnsembleForwardTest/PointsetEnsembleForward.xml EnsembleForwardTest/PointsetEnsembleForward.csv'
+  output = 'EnsembleForwardTest/PointsetEnsembleForward.xml'
   csv = 'EnsembleForwardTest/PointsetEnsembleForward.csv'
  [../]
  [./EnsembleSamplerExtModel]
   type = 'RavenFramework'
   input = 'test_EnsembleSamplerExtModel.xml'
-  output = 'EnsembleForwardTestExt/PointsetEnsembleForwardExtModel.csv EnsembleForwardTestExt/PointsetEnsembleForwardExtModel.xml'
+  output = 'EnsembleForwardTestExt/PointsetEnsembleForwardExtModel.xml'
   csv = 'EnsembleForwardTestExt/PointsetEnsembleForwardExtModel.csv'
  [../]
 []

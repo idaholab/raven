@@ -30,6 +30,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
+#include <iso646.h>
 
 #define throwError(msg) { std::cerr << "\n\n" << msg << "\n\n"; throw std::runtime_error("Error"); }
 

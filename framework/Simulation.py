@@ -51,6 +51,7 @@ import VariableGroups
 from utils import utils
 from utils import TreeStructure
 from Application import __PySideAvailable
+from Interaction import Interaction
 if __PySideAvailable:
   from Application import InteractiveApplication
 #Internal Modules End--------------------------------------------------------------------------------
@@ -427,13 +428,13 @@ class Simulation(MessageHandler.MessageUser):
     Using the attribute in the xml node <MyType> type discouraged to avoid confusion
   """
 
-  def __init__(self,frameworkDir,verbosity='all',interactive=False):
+  def __init__(self,frameworkDir,verbosity='all',interactive=Interaction.No):
     """
       Constructor
       @ In, frameworkDir, string, absolute path to framework directory
       @ In, verbosity, string, optional, general verbosity level
-      @ In, interactive, boolean, optional, toggles the ability to provide an
-        interactive UI or to run to completion without human interaction
+      @ In, interactive, Interaction, optional, toggles the ability to provide
+        an interactive UI or to run to completion without human interaction
       @ Out, None
     """
     self.FIXME          = False
@@ -543,8 +544,11 @@ class Simulation(MessageHandler.MessageUser):
     self.whichDict['OutStreams']['Print'] = self.OutStreamManagerPrintDict
 
     # The QApplication
+    ## The benefit of this enumerated type is that anything other than
+    ## Interaction.No will evaluate to true here and correctly make the
+    ## interactive app.
     if interactive:
-      self.app = InteractiveApplication([],self.messageHandler)
+      self.app = InteractiveApplication([],self.messageHandler, interactive)
     else:
       self.app = None
 
@@ -627,7 +631,7 @@ class Simulation(MessageHandler.MessageUser):
       @ In, inputFileName, string, optional, the raven input file name
       @ Out, None
     """
-    self.verbosity = node.attrib.get('verbosity','all')
+    self.verbosity = node.attrib.get('verbosity','all').lower()
     for element in node.iter():
       for subElement in element:
         if subElement.tag == 'ExternalXML':
@@ -654,7 +658,7 @@ class Simulation(MessageHandler.MessageUser):
       for element in unknownAttribs:
         errorMsg += ' ' + element
       self.raiseAnError(IOError,errorMsg)
-    self.verbosity = xmlNode.attrib.get('verbosity','all')
+    self.verbosity = xmlNode.attrib.get('verbosity','all').lower()
     if 'printTimeStamps' in xmlNode.attrib.keys():
       self.raiseADebug('Setting "printTimeStamps" to',xmlNode.attrib['printTimeStamps'])
       self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])

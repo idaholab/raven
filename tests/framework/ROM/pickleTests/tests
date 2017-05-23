@@ -2,7 +2,6 @@
   [./stochPolyPickleTest]
     type  = 'RavenFramework'
     input = 'stochpoly_pickle.xml'
-    output = 'StochasticPolyPickleTest/Udump.xml StochasticPolyPickleTest/pdump.xml'
     xml = 'StochasticPolyPickleTest/Udump.xml StochasticPolyPickleTest/pdump.xml'
     csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
     remove_unicode_identifier = true

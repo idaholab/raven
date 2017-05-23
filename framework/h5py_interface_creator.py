@@ -52,13 +52,15 @@ class hdf5Database(MessageHandler.MessageUser):
   """
     class to create a h5py (hdf5) database
   """
-  def __init__(self,name, databaseDir, messageHandler,filename=None):
+  def __init__(self,name, databaseDir, messageHandler,filename,exist):
     """
       Constructor
       @ In, name, string, name of this database
       @ In, databaseDir, string, database directory (full path)
       @ In, messageHandler, MessageHandler, global message handler
-      @ In, filename, string, optional, the existing database filename
+      @ In, filename, string, the database filename
+      @ In, exist, bool, does it exist?
+      @ Out, None
     """
     # database name (i.e. arbitrary name).
     # It is the database name that has been found in the xml input
@@ -71,15 +73,11 @@ class hdf5Database(MessageHandler.MessageUser):
     # specialize printTag (THIS IS THE CORRECT WAY TO DO THIS)
     self.printTag = 'DATABASE HDF5'
     self.messageHandler = messageHandler
+    # does it exist?
+    self.fileExist = exist
     # .H5 file name (to be created or read)
-    if filename:
-      # File name on disk (file exists => fileExist flag is True)
-      self.onDiskFile = filename
-      self.fileExist  = True
-    else:
-      # File name on disk (file does not exist => it will create => fileExist flag is False)
-      self.onDiskFile = name + ".h5"
-      self.fileExist  = False
+    # File name on disk
+    self.onDiskFile = filename
     # Database directory
     self.databaseDir =  databaseDir
     # Create file name and path
@@ -492,9 +490,15 @@ class hdf5Database(MessageHandler.MessageUser):
               groups[run].attrs[utils.toBytes(attr)]=converted
           for attr in metadata.keys():
             if len(metadata[attr]) == nruns:
-              objectToConvert = mathUtils.convertNumpyToLists(metadata[attr][run])
+              toProcess = metadata[attr][run]
             else:
-              objectToConvert = mathUtils.convertNumpyToLists(metadata[attr])
+              toProcess = metadata[attr]
+            if type(toProcess).__name__ == 'list' and 'input' in attr.lower() and isinstance(toProcess[0],Files.File):
+              objectToConvert = list(a.__getstate__() for a in toProcess)
+            elif isinstance(toProcess,Files.File):
+              objectToConvert =toProcess.__getstate__()
+            else:
+              objectToConvert = mathUtils.convertNumpyToLists(toProcess)
             converted = json.dumps(objectToConvert)
             if converted and attr != 'name':
               groups[run].attrs[utils.toBytes(attr)]=converted

@@ -173,35 +173,43 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
   #     self.centerOn(rect.center())
   #     self._zoom = 0
 
-  def saveImage(self):
+  def saveImage(self, filename=None):
     """
       Method for saving the contents of this view to an image file.
-      @ In, None
+      @ In, filename, string, optional parameter specifying where this image
+        will be saved. If None, then a dialog box will prompt the user for a
+        name and location.
       @ Out, None
     """
-    dialog = qtg.QFileDialog(self)
-    dialog.setFileMode(qtg.QFileDialog.AnyFile)
-    dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
-    dialog.exec_()
-    if dialog.result() == qtg.QFileDialog.Accepted:
-      myFile = dialog.selectedFiles()[0]
-      self.scene().clearSelection()
-      if myFile.endswith('.svg'):
-        svgGen = qts.QSvgGenerator()
-        svgGen.setFileName(myFile)
-        svgGen.setSize(self.sceneRect().size().toSize())
-        svgGen.setViewBox(self.sceneRect())
-        svgGen.setTitle("Screen capture of " + self.__class__.__name__)
-        svgGen.setDescription("Generated from RAVEN.")
-        painter = qtg.QPainter(svgGen)
+    if filename is None:
+      dialog = qtg.QFileDialog(self)
+      dialog.setFileMode(qtg.QFileDialog.AnyFile)
+      dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
+      dialog.exec_()
+      if dialog.result() == qtg.QFileDialog.Accepted:
+        myFile = dialog.selectedFiles()[0]
       else:
-        image = qtg.QImage(self.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
-        image.fill(qtc.Qt.transparent)
-        painter = qtg.QPainter(image)
-      self.scene().render(painter)
-      if not myFile.endswith('.svg'):
-        image.save(myFile,quality=100)
-      del painter
+        return
+
+    self.scene().clearSelection()
+    if filename.endswith('.svg'):
+      svgGen = qts.QSvgGenerator()
+      svgGen.setFileName(filename)
+      svgGen.setSize(self.sceneRect().size().toSize())
+      svgGen.setViewBox(self.sceneRect())
+      svgGen.setTitle("Screen capture of " + self.__class__.__name__)
+      svgGen.setDescription("Generated from RAVEN.")
+      painter = qtg.QPainter(svgGen)
+    else:
+      image = qtg.QImage(self.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
+      image.fill(qtc.Qt.transparent)
+      painter = qtg.QPainter(image)
+
+    self.scene().render(painter)
+    if not filename.endswith('.svg'):
+      image.save(filename, quality=100)
+
+    del painter
 
   def placeButtons(self):
     """
@@ -304,3 +312,34 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
     #   pass
     # else:
     self.rightClickMenu.popup(event.globalPos())
+
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations. For this class in particular, we will test:
+         - The mouse wheel events to ensure that zooming is appropriately
+           handled and ignored in the case where the user is in pan mode.
+         - Toggling the mouse mode between zooming and panning.
+         - Saving the view buffer to both an svg and png format.
+        @ In, None
+        @ Out, None
+    """
+    zoom = ZoomableGraphicsView.zoomFactor(self)
+    ZoomableGraphicsView.resetView(self)
+    ZoomableGraphicsView.toggleMouseMode(self)
+    ZoomableGraphicsView.toggleMouseMode(self)
+    ZoomableGraphicsView.saveImage(self, self.windowTitle()+'.svg')
+    ZoomableGraphicsView.saveImage(self, self.windowTitle()+'.png')
+
+    genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(0,0), qtc.Qt.MiddleButton, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    ZoomableGraphicsView.contextMenuEvent(self, genericMouseEvent)
+    genericMouseEvent = qtg.QWheelEvent(qtc.QPoint(0,0), 1, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    ZoomableGraphicsView.wheelEvent(self, genericMouseEvent)
+    genericMouseEvent = qtg.QWheelEvent(qtc.QPoint(0,0), -1, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    ZoomableGraphicsView.wheelEvent(self, genericMouseEvent)
+    genericMouseEvent = qtg.QWheelEvent(qtc.QPoint(0,0), -1, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    ZoomableGraphicsView.wheelEvent(self, genericMouseEvent)
+    ZoomableGraphicsView.toggleMouseMode(self)
+    ZoomableGraphicsView.wheelEvent(self, genericMouseEvent)
