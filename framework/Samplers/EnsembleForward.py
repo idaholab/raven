@@ -53,6 +53,7 @@ class EnsembleForwardSampler(ForwardSampler):
     self.printTag             = 'SAMPLER EnsembleForward'
     self.instanciatedSamplers = {}
     self.samplersCombinations = {}
+    self.functionVars         = {}
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -68,10 +69,17 @@ class EnsembleForwardSampler(ForwardSampler):
         self.instanciatedSamplers[child.tag] = returnInstance(child.tag,self)
         #FIXME the variableGroups needs to be fixed
         self.instanciatedSamplers[child.tag].readXML(child,self.messageHandler,variableGroups={},globalAttributes=self.globalAttributes)
+      elif child.tag=='variable':
+        for childChild in child:
+          if childChild.tag == 'function':
+            self.functionVars[child.attrib['name']] = childChild.text
+          else:
+            self.raiseAnError(IOError,"Error")
       #elif child.tag in knownTypes():
       #  self.raiseAnError(IOError,"Sampling strategy "+child.tag+" is not usable in "+self.type+" Sampler. Available are "+",".join(self.acceptableSamplers))
       #else:
       #  self.raiseAnError(IOError,"XML node "+ child.tag + " unknown. Check the Manual!")
+    print(self.functionVars)
 
   def _localWhatDoINeed(self):
     """
@@ -96,6 +104,7 @@ class EnsembleForwardSampler(ForwardSampler):
       @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
       @ Out, None
     """
+    print(initDict['Functions'])
     availableDist = initDict['Distributions']
     availableFunc = initDict['Functions']
     for combSampler in self.instanciatedSamplers.values():
@@ -150,6 +159,7 @@ class EnsembleForwardSampler(ForwardSampler):
     coordinate = []
     for samplingStrategy in self.instanciatedSamplers.keys():
       coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
+    print(coordinate[0])
     for combination in coordinate:
       for key in combination.keys():
         if key not in self.inputInfo.keys():
