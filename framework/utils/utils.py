@@ -385,6 +385,14 @@ def toBytes(s):
   else:
     return s
 
+def isString(s):
+  """
+    Method to figure out if a variable is a string.
+    @ In, s, object, variable to be tested.
+    @ Out, isString, bool, true if variable is a str or unicode.
+  """
+  return type(s).__name__ in ['unicode','str']
+
 def toBytesIterative(s):
   """
     Method aimed to convert all the string-compatible content of
