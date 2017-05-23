@@ -153,14 +153,14 @@ class relapdata:
           flagg2=1
     return minorDict
 
-  def checkLine(self,list):
+  def checkLine(self,lineList):
     """
-      Method that check the content of a list (i.e., a line); a list must contain only numbers
-      @ In, list, list, list that contained values located in a single line
+      Method that checks the content of a list (i.e., a line); a list must contain only numbers
+      @ In, list, lineList, list that contained values located in a single line
       @ Out, outcome, bool, boolean variable which is True if the list contains only numbers, False if the contains at list a string
     """
     outcome = True
-    for element in list:
+    for element in lineList:
       try:
         float(element)
       except ValueError:
