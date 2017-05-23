@@ -68,10 +68,10 @@ class EnsembleForwardSampler(ForwardSampler):
         self.instanciatedSamplers[child.tag] = returnInstance(child.tag,self)
         #FIXME the variableGroups needs to be fixed
         self.instanciatedSamplers[child.tag].readXML(child,self.messageHandler,variableGroups={},globalAttributes=self.globalAttributes)
-      elif child.tag in knownTypes():
-        self.raiseAnError(IOError,"Sampling strategy "+child.tag+" is not usable in "+self.type+" Sampler. Available are "+",".join(self.acceptableSamplers))
-      else:
-        self.raiseAnError(IOError,"XML node "+ child.tag + " unknown. Check the Manual!")
+      #elif child.tag in knownTypes():
+      #  self.raiseAnError(IOError,"Sampling strategy "+child.tag+" is not usable in "+self.type+" Sampler. Available are "+",".join(self.acceptableSamplers))
+      #else:
+      #  self.raiseAnError(IOError,"XML node "+ child.tag + " unknown. Check the Manual!")
 
   def _localWhatDoINeed(self):
     """
