@@ -90,8 +90,11 @@ class SPSA(GradientBasedOptimizer):
       self.stochasticDistribution.p = 0.5
       self.stochasticDistribution.initializeDistribution()
       # Initialize bernoulli distribution for random perturbation. Add artificial noise to avoid that specular loss functions get false positive convergence
-      self.stochasticEngine = lambda: [1.0+(Distributions.random()/1000.0)*Distributions.randomIntegers(-1, 1, self) if self.stochasticDistribution.rvs() == 1 else
-                                      -1.0+(Distributions.random()/1000.0)*Distributions.randomIntegers(-1, 1, self) for _ in range(self.nVar)]
+      # FIXME there has to be a better way to get two random numbers
+      self.stochasticEngine = lambda: [(0.5+Distributions.random()*(1.+Distributions.random()/1000.*Distributions.randomIntegers(-1, 1, self))) if self.stochasticDistribution.rvs() == 1 else
+                                   -1.*(0.5+Distributions.random()*(1.+Distributions.random()/1000.*Distributions.randomIntegers(-1, 1, self))) for _ in range(self.nVar)]
+      #self.stochasticEngine = lambda: [1.0+(Distributions.random()/1000.0)*Distributions.randomIntegers(-1, 1, self) if self.stochasticDistribution.rvs() == 1 else
+      #                                -1.0+(Distributions.random()/1000.0)*Distributions.randomIntegers(-1, 1, self) for _ in range(self.nVar)]
     else:
       self.raiseAnError(IOError, self.paramDict['stochasticEngine']+'is currently not supported for SPSA')
 
@@ -253,8 +256,14 @@ class SPSA(GradientBasedOptimizer):
       #get central response for this trajectory: how?? TODO FIXME
       #centralResponseIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj]-1,'v')[1]
       #self.estimateStochasticity(gradient,self.gradDict['pertPoints'][traj][self.counter['varsUpdate'][traj]-1],varK,centralResponseIndex) #TODO need current point too!
-      varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
+      varKPlus,modded = self._generateVarsUpdateConstrained(ak,gradient,varK)
+      #if the new point was modified by the constraint, reset the step size
+      print('DEBUGG modded:',modded)
+      if modded:
+        del self.counter['lastStepSize'][traj]
+        print('DEBUGG resetting step size for trajectory',traj)
       varKPlusDenorm = self.denormalizeData(varKPlus)
+      print('DEBUGG varKPlusDenorm:',varKPlusDenorm)
       for var in self.optVars:
         self.values[var] = copy.deepcopy(varKPlusDenorm[var])
         self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(varKPlus[var])
@@ -316,6 +325,7 @@ class SPSA(GradientBasedOptimizer):
       @ In, gradient, dictionary, contains the gradient information for variable update
       @ In, varK, dictionary, current variable values
       @ Out, tempVarKPlus, dictionary, variable values for next iteration.
+      @ Out, modded, bool, if True the point was modified by the constraint
     """
     tempVarKPlus = {}
     try:
@@ -328,21 +338,26 @@ class SPSA(GradientBasedOptimizer):
     satisfied, activeConstraints = self.checkConstraint(tempVarKPlus)
     #satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempVarKPlus))
     if satisfied:
-      return tempVarKPlus
-    else:
-      # check if the active constraints are the boundary ones. In case, project the gradient
-      if len(activeConstraints['internal']) > 0:
-        projectedOnBoundary= {}
-        for activeConstraint in activeConstraints['internal']:
-          projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
-        tempVarKPlus.update(self.normalizeData(projectedOnBoundary))
-      if len(activeConstraints['external']) == 0:
-        return tempVarKPlus
+      print('DEBUGG no need to mod.')
+      return tempVarKPlus, False
+    # else if not satisfied ...
+    # check if the active constraints are the boundary ones. In case, project the gradient
+    modded = False
+    if len(activeConstraints['internal']) > 0:
+      print('DEBUGG constraints violated.')
+      projectedOnBoundary= {}
+      for activeConstraint in activeConstraints['internal']:
+        projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
+      tempVarKPlus.update(self.normalizeData(projectedOnBoundary))
+      modded = True
+    if len(activeConstraints['external']) == 0:
+      return tempVarKPlus, modded
 
+    print('DEBUGG ongoing constraints checks.')
     # Try to find varKPlus by shorten the gradient vector
     foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, gradient)
     if foundVarsUpdate:
-      return tempVarKPlus
+      return tempVarKPlus, True
 
     # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
     # with respect to the constraints hyper-surface
@@ -398,9 +413,9 @@ class SPSA(GradientBasedOptimizer):
           pendVector = copy.deepcopy(sumVector)
         else:
           gradient = copy.deepcopy(sumVector)
-      return tempVarKPlus
+      return tempVarKPlus, True
     tempVarKPlus = varK
-    return tempVarKPlus
+    return tempVarKPlus, True
 
   def _bisectionForConstrainedInput(self,varK,ak,vector):
     """
@@ -473,10 +488,21 @@ class SPSA(GradientBasedOptimizer):
       @ In, iterNum, int, current iteration index
       @ Out, ak, float, current value for gain ak
     """
-    a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
-    ak = a / (iterNum + A) ** alpha
+    #TODO FIXME is this a good idea?
+    try:
+      ak = self.counter['lastStepSize'][traj]
+    except KeyError:
+      a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
+      ak = a / (iterNum + A) ** alpha
+    # modify step size based on the history of the gradients used
+    frac = self.fractionalStepChangeFromGradHistory(traj)
+    ak *= frac
+    print('DEBUGG step gain size for traj "{}" iternum "{}": {}'.format(traj,iterNum,ak))
+    self.counter['lastStepSize'][traj] = ak
+    return ak
     # the line search with surrogate unfortunately does not work very well (we use it just at the begin of the search and after that
     # we switch to a decay constant strategy (above)). Another strategy needs to be find.
+    #### OLD ### skip the line check for now
     if iterNum > 1 and iterNum <= int(self.limit['mdlEval']/50.0):
       # we use a line search algorithm for finding the best learning rate (using a surrogate)
       # if it fails, we use a decay rate (ak = a / (iterNum + A) ** alpha)

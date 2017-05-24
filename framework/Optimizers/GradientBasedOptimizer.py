@@ -68,6 +68,7 @@ class GradientBasedOptimizer(Optimizer):
     self.counter['gradNormHistory'] = {}              # In this dict we store the gradient norm for current and previous iterations {'trajectoryID':[float,float]}
     self.counter['varsUpdate'     ] = {}
     self.counter['solutionUpdate' ] = {}
+    self.counter['lastStepSize'   ] = {}              # counter to track the last step size taken, by trajectory
     self.convergeTraj = {}
 
   def localInputAndChecks(self, xmlNode):
@@ -187,6 +188,7 @@ class GradientBasedOptimizer(Optimizer):
     for var in self.optVars:
       gradient[var] = gradArray[var].mean()
     gradient     = self.localEvaluateGradient(optVarsValues, gradient)
+    print('DEBUGG gradient before norm:',gradient)
     gradientNorm =  np.linalg.norm(gradient.values())
     if gradientNorm > 0.0:
       for var in gradient.keys():
@@ -298,6 +300,7 @@ class GradientBasedOptimizer(Optimizer):
     removeFlag = False
     for traj in self.optTraj:
       if traj != trajToRemove:
+        #FIXME this can be quite an expensive operation, looping through each other trajectory
         for updateKey in self.optVarsHist[traj].keys():
           inp = copy.deepcopy(self.optVarsHist[traj][updateKey]) #FIXME deepcopy needed?
           removeLocalFlag = True
@@ -387,3 +390,27 @@ class GradientBasedOptimizer(Optimizer):
               self.counter['solutionUpdate'][traj] += 1
           else:
             break
+
+  def fractionalStepChangeFromGradHistory(self,traj):
+    """
+      Uses the dot product between two successive gradients to determine a fractional multiplier for the step size.
+      For instance, if the dot product is 1.0, we're consistently moving in a straight line, so increase step size.
+      If the dot product is -1.0, we've gone forward and then backward again, so cut the step size down before moving again.
+      If the dot product is 0.0, we're moving orthogonally, so don't change step size just yet.
+      @ In, traj, int, the trajectory for whom we are creating a fractional step size
+      @ Out, frac, float, the fraction by which to multiply the existing step size
+    """
+    #TODO FIXME someday, let user determine growth factor
+    growthFactor = 2.0
+    #if we don't have two evaluated gradients, just return 1.0
+    grad0 = self.counter['gradientHistory'][traj][0]
+    grad1 = self.counter['gradientHistory'][traj][1]
+    if len(grad1) < 1:
+      return 1.0
+    #otherwise, do the dot product between the last two gradients
+    prod = np.sum(list(grad0[key]*grad1[key] for key in grad0.keys()))
+    #rescale from [-1, 1] to [1/g, g]
+    frac = growthFactor**prod
+    print('DEBUGG product:',prod)
+    print('DEBUGG frac:',frac)
+    return frac
