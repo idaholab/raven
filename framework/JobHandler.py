@@ -375,11 +375,11 @@ class JobHandler(MessageHandler.MessageUser):
 
   def availability(self, client=False):
     """
-    Returns the number of runs that can be added until we consider our queue
-    saturated
-    @ In, client, bool, if true, then return the values for the
-    __clientQueue, otherwise use __queue
-    @ Out, availability, int the number of runs that can be added until we
+      Returns the number of runs that can be added until we consider our queue
+      saturated
+      @ In, client, bool, if true, then return the values for the
+      __clientQueue, otherwise use __queue
+      @ Out, availability, int the number of runs that can be added until we
       reach saturation
     """
     ## Due to possibility of memory explosion, we should include the finished
