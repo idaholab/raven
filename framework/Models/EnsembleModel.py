@@ -404,8 +404,11 @@ class EnsembleModel(Dummy):
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
-
+    print("collecting from "+finishedJob.identifier)
+    #print(evaluation)
     out = evaluation[1]
+    print(out)
+
     exportDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
     exportDictTargetEvaluation = {}
     outcomes, targetEvaluations, optionalOutputs = out
@@ -437,9 +440,13 @@ class EnsembleModel(Dummy):
       if type(optionalOutputs[modelIn][0]).__name__ != "byPass" and jobIndex is not None:
         # collect optional data
         for index, optionalOut in enumerate(optionalOutputs[modelIn]):
+          #print(type(optionalOut).__name__)
+          print(optionalOut.name)
+          print(modelIn)
           inputsValuesOptionalOut    = optionalOut.getParametersValues('inputs', nodeId = 'RecontructEnding')
           outputsValuesOptionalOut   = optionalOut.getParametersValues('outputs', nodeId = 'RecontructEnding')
           metadataValuesOptionalOut  = optionalOut.getAllMetadata(nodeId = 'RecontructEnding')
+          print(inputsValuesOptionalOut)
           inputsValuesOptionalOut    = inputsValuesOptionalOut if optionalOut.type != 'HistorySet' else inputsValuesOptionalOut.values()[-1]
           for key in self.modelsDictionary[modelIn]['OutputObject'][index].getParaKeys('inputs'):#  inputsValuesOptionalOut.items():
             if key in inputsValuesOptionalOut:
@@ -666,7 +673,16 @@ class EnsembleModel(Dummy):
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
           if type(tempOutputs[modelIn][0]).__name__ != 'byPass':
             for index in range(len(tempOutputs[modelIn])):
+              print(tempOutputs[modelIn][index])
+              
+              
               self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempOutputs[modelIn][index])
+              print("^^^^^^^^^ "+modelIn+" self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempOutputs[modelIn][index])")
+              print(len(tempOutputs['PWR1']))
+              print(tempOutputs['PWR1'][0].getParametersValues('inputs', nodeId = 'RecontructEnding'))              
+              #print(modelIn+" "+str(tempOutputs[modelIn][index].getParametersValues('inputs', nodeId = 'RecontructEnding')))
+              #print(modelIn+" "+str(tempOutputs[modelIn][index]))
+
           # store the results in the working dictionaries
           returnDict[modelIn]   = {}
           responseSpace         = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
@@ -702,6 +718,7 @@ class EnsembleModel(Dummy):
         if residueContainer['TotalResidue'] <= self.convergenceTol:
           self.raiseAMessage("Picard's Iteration converged. Norm: "+ str(residueContainer['TotalResidue']))
           break
-
+    print("tempOutputs['PWR1'][0].getParametersValues('inputs', nodeId = 'RecontructEnding')")    
+    print(tempOutputs['PWR1'][0].getParametersValues('inputs', nodeId = 'RecontructEnding'))
     returnEvaluation = returnDict, tempTargetEvaluations, tempOutputs
     return returnEvaluation

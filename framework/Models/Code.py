@@ -36,6 +36,7 @@ from utils import InputData
 from Csv_loader import CsvLoader
 import Files
 from DataObjects import Data
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Code(Model):
@@ -556,10 +557,11 @@ class Code(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):    
       self.raiseAnError(AttributeError,"No available Output to collect")
 
-    sampledVars,outputDict = finishedJob.getEvaluation()
+    sampledVars,outputDict = evaluation
 
     ## The single run does not perturb data, however RAVEN expects something in
     ## the input space, so let's just put a 0 entry for the inputPlaceHolder
@@ -609,7 +611,9 @@ class Code(Model):
       options['metadata'] = metadata
 
     exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputDict,'metadata':metadata, 'prefix':finishedJob.identifier})
-
+    print("aaaaaaaaaaaaaaaaaaaaa")
+    print(exportDict)
+    print("aaaaaaaaaaaaaaaaaaaaa")
     self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
     if output.type == 'HDF5':
       optionsIn = {'group':self.name+str(finishedJob.identifier)}
@@ -630,6 +634,8 @@ class Code(Model):
       @ Out, None
     """
     prefix = exportDict.pop('prefix')
+    print(exportDict['inputSpaceParams'])
+    print(prefix)
     #convert to *spaceParams instead of inputs,outputs
     if 'inputs' in exportDict.keys():
       inp = exportDict.pop('inputs')
