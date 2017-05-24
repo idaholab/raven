@@ -645,14 +645,7 @@ class EnsembleModel(Dummy):
           while not moveOn:
             if jobHandler.availability() > 0:
               # run the model
-              # self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
-              # self.modelsDictionary[modelIn]['Instance'].submit([originalInput[modelIn]], samplerType, jobHandler, **copy.deepcopy(inputKwargs[modelIn]))
-              if self.modelsDictionary[modelIn]['Instance'].type == 'Code':
-                self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **copy.deepcopy(inputKwargs[modelIn]))
-              else:
-                self.modelsDictionary[modelIn]['Instance'].submit([inputKwargs], samplerType, jobHandler, **copy.deepcopy(inputKwargs[modelIn]))
-              ## TODO: Can originalInput ever be a list already?
-              ## -- DPM 4/11/17
+              self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **copy.deepcopy(inputKwargs[modelIn]))
               # wait until the model finishes, in order to get ready to run the subsequential one
               while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
                 time.sleep(1.e-3)
