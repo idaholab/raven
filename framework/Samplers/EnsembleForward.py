@@ -53,7 +53,7 @@ class EnsembleForwardSampler(ForwardSampler):
     self.printTag             = 'SAMPLER EnsembleForward'
     self.instanciatedSamplers = {}
     self.samplersCombinations = {}
-    self.functionVars         = {}
+    self.dependentSample      = {}
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -72,14 +72,13 @@ class EnsembleForwardSampler(ForwardSampler):
       elif child.tag=='variable':
         for childChild in child:
           if childChild.tag == 'function':
-            self.functionVars[child.attrib['name']] = childChild.text
+            self.dependentSample[child.attrib['name']] = childChild.text
           else:
             self.raiseAnError(IOError,"Error")
       #elif child.tag in knownTypes():
       #  self.raiseAnError(IOError,"Sampling strategy "+child.tag+" is not usable in "+self.type+" Sampler. Available are "+",".join(self.acceptableSamplers))
       #else:
       #  self.raiseAnError(IOError,"XML node "+ child.tag + " unknown. Check the Manual!")
-    print(self.functionVars)
 
   def _localWhatDoINeed(self):
     """
@@ -104,7 +103,6 @@ class EnsembleForwardSampler(ForwardSampler):
       @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
       @ Out, None
     """
-    print(initDict['Functions'])
     availableDist = initDict['Distributions']
     availableFunc = initDict['Functions']
     for combSampler in self.instanciatedSamplers.values():
@@ -112,6 +110,15 @@ class EnsembleForwardSampler(ForwardSampler):
         combSampler._generateDistributions(availableDist,availableFunc)
       combSampler._localGenerateAssembler(initDict)
     self.raiseADebug("Distributions initialized!")
+
+    for key,val in self.dependentSample.items():
+      if val not in availableFunc.keys():
+        self.raiseAnError('Function',val,'was not found among the available functions:',availableFunc.keys())
+      self.funcDict[key] = availableFunc[val]
+      # check if the correct method is present
+      if "evaluate" not in self.funcDict[key].availableMethods():
+        self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+
 
   def localInitialize(self):
     """
@@ -144,6 +151,7 @@ class EnsembleForwardSampler(ForwardSampler):
                 'constructTensor':False,
                 'excludeBounds':{'lowerBounds':False,'upperBounds':True}}
     self.gridEnsemble.initialize(initDict)
+    
 
   def localGenerateInput(self,model,myInput):
     """
@@ -159,11 +167,11 @@ class EnsembleForwardSampler(ForwardSampler):
     coordinate = []
     for samplingStrategy in self.instanciatedSamplers.keys():
       coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
-    print(coordinate[0])
     for combination in coordinate:
       for key in combination.keys():
         if key not in self.inputInfo.keys():
           self.inputInfo[key] = combination[key]
+          
         else:
           if type(self.inputInfo[key]).__name__ == 'dict':
             self.inputInfo[key].update(combination[key])
@@ -172,4 +180,17 @@ class EnsembleForwardSampler(ForwardSampler):
     for key in self.inputInfo.keys():
       if key.startswith('ProbabilityWeight-'):
         self.inputInfo['ProbabilityWeight' ] *= self.inputInfo[key]
-    self.inputInfo['SamplerType'] = 'EnsembleForward'
+    self.inputInfo['SamplerType'] = 'EnsembleForward' 
+    
+    # Update dependent variables  
+    for var in self.dependentSample.keys():
+      test=self.funcDict[var].evaluate("evaluate",self.inputInfo['SampledVars'])
+      for corrVar in var.split(","):
+        self.values[corrVar.strip()] = test
+        self.inputInfo['SampledVars'][corrVar.strip()] = test
+    
+    #print(self.inputInfo['SampledVars'])
+    
+    
+    
+    

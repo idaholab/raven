@@ -594,6 +594,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.inputInfo['prefix'] = str(self.counter)
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
+
     ##### TRANSFORMATION #####
     # add latent variables and original variables to self.inputInfo
     if self.variablesTransformationDict:
