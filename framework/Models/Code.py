@@ -558,7 +558,7 @@ class Code(Model):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):    
+    if isinstance(evaluation, Runners.Error):
       self.raiseAnError(AttributeError,"No available Output to collect")
 
     sampledVars,outputDict = evaluation
@@ -611,9 +611,6 @@ class Code(Model):
       options['metadata'] = metadata
 
     exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputDict,'metadata':metadata, 'prefix':finishedJob.identifier})
-    print("aaaaaaaaaaaaaaaaaaaaa")
-    print(exportDict)
-    print("aaaaaaaaaaaaaaaaaaaaa")
     self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
     if output.type == 'HDF5':
       optionsIn = {'group':self.name+str(finishedJob.identifier)}
@@ -634,8 +631,6 @@ class Code(Model):
       @ Out, None
     """
     prefix = exportDict.pop('prefix')
-    print(exportDict['inputSpaceParams'])
-    print(prefix)
     #convert to *spaceParams instead of inputs,outputs
     if 'inputs' in exportDict.keys():
       inp = exportDict.pop('inputs')
@@ -647,12 +642,18 @@ class Code(Model):
       output.addGroupDataObjects({'group':self.name+str(prefix)},exportDict,False)
     else:
       #point set
-      for key in exportDict['inputSpaceParams']:
-        if key in output.getParaKeys('inputs'):
+      for key in output.getParaKeys('inputs'):
+        if key in exportDict['inputSpaceParams']:
           output.updateInputValue(key,exportDict['inputSpaceParams'][key],options)
-      for key in exportDict['outputSpaceParams']:
-        if key in output.getParaKeys('outputs'):
-          output.updateOutputValue(key,exportDict['outputSpaceParams'][key], options)
+        else:
+          self.raiseAnError(Exception, "the input parameter "+key+" requested in the DataObject "+output.name+
+                                       " has not been found among the Model input paramters ("+",".join(exportDict['inputSpaceParams'].keys())+"). Check your input!")
+      for key in output.getParaKeys('outputs'):
+        if key in exportDict['outputSpaceParams']:
+          output.updateOutputValue(key,exportDict['outputSpaceParams'][key],options)
+        else:
+          self.raiseAnError(Exception, "the output parameter "+key+" requested in the DataObject "+output.name+
+                                       " has not been found among the Model output paramters ("+",".join(exportDict['outputSpaceParams'].keys())+"). Check your input!")
       for key in exportDict['metadata']:
         output.updateMetadata(key,exportDict['metadata'][key], options)
       output.numAdditionalLoadPoints += 1 #prevents consistency problems for entries from restart
