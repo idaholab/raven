@@ -375,16 +375,19 @@ class GradientBasedOptimizer(Optimizer):
 
               tempTrajOutput = tempOutput.get(trajID, {})
               for var in self.solutionExport.getParaKeys('outputs'):
+                old = copy.deepcopy(tempTrajOutput.get(var, np.asarray([])))
                 if var in self.optVars:
-                  tempTrajOutputVar = copy.deepcopy(tempTrajOutput.get(var, np.asarray([])))
-                  self.solutionExport.updateOutputValue([trajID,var],np.append(tempTrajOutputVar,np.asarray(inputeval[var][index])))
+                  new = inputeval[var][index]
                 elif var == self.objVar:
-                  tempTrajOutputVar = copy.deepcopy(tempTrajOutput.get(var, np.asarray([])))
-                  #self.solutionExport.updateOutputValue([trajID,var], np.append(tempTrajOutputVar,np.asarray(outputeval[var][index])))
-                  self.solutionExport.updateOutputValue([trajID,var], np.append(tempTrajOutputVar,np.asarray(currentObjectiveValue)))
-              if 'varsUpdate' in self.solutionExport.getParaKeys('outputs'):
-                tempTrajOutputVar = copy.deepcopy(tempTrajOutput.get('varsUpdate', np.asarray([])))
-                self.solutionExport.updateOutputValue([trajID,'varsUpdate'], np.append(tempTrajOutputVar,np.asarray([self.counter['solutionUpdate'][traj]])))
+                  new = currentObjectiveValue
+                elif var == 'varsUpdate':
+                  new = [self.counter['solutionUpdate'][traj]]
+                elif var == '_stepSize':
+                  new = [self.counter['lastStepSize'][traj]]
+                elif var == '_gradient':
+                  new = np.array(self.counter['gradientHistory'][traj][0]*self.counter['gradNorm'][traj][0])
+                new = np.asarray(new)
+                self.solutionExport.updateOutputValue([trajID,var],np.append(old,new))
 
               self.counter['solutionUpdate'][traj] += 1
           else:
