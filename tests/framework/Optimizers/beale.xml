@@ -10,6 +10,10 @@
       This test runs the optimization on Beale's function.  It tests analytic optimization values
       as well as the mechanical operation of the test.
     </description>
+    <analytic>
+      This test uses Beale's function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
   </TestInfo>
 
   <!-- actual RAVEN input -->
@@ -76,7 +80,7 @@
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale2" name="beale" subType="">
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
     <PostProcessor name="snapshot" subType="InterfacedPostProcessor">

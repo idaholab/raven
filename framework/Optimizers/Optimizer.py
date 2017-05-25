@@ -208,29 +208,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         except KeyError:
           self.raiseAnError(KeyError,child.tag+' must have the attribute "name"!!!')
       elif child.tag == "objectVar":
-        # look for optional lower and upper bound for the objective variable
-        # if not found, keep the (0,1) default value
         self.objVar = child.text
-        #try:
-        #  self.objVar = child.attrib['name']
-        #except KeyError:
-        #  self.raiseAnError(IOError, child.tag+' node does not have the "name" attribute')
-        ##optional lower and upper for scaling objective function
-        #upper = None
-        #try:
-        #  lower = child.find("lowerBound").text
-        #except AttributeError:
-        #  lower = None
-        #try:
-        #  upper = child.find("upperBound").text
-        #  if lower is None: self.raiseAnError(IOError,"The optional lower and upper bound for the objectVar must be both present at the same time!")
-        #except AttributeError:
-        #  if lower is not None: self.raiseAnError(IOError,"The optional lower and upper bound for the objectVar must be both present at the same time!")
-        #bounds = (utils.floatConversion(lower), utils.floatConversion(upper))
-        #if len(set(bounds)) > 1 and any(v is None for v in bounds):
-        #  self.raiseAnError(IOError,"One of the objecive function bounds is not convertible to a float!")
-        #elif not all(v is None for v in bounds):
-        #  self.objVarBounds = bounds
 
       elif child.tag == "initialization":
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
