@@ -90,12 +90,12 @@ class Code(Model):
       @ Out, None
     """
     #FIXME think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][1]['class'       ] = 'Files'
+    cls.validateDict['Input'] = [cls.testDict.copy()]
+    cls.validateDict['Input'  ][0]['class'       ] = 'Files'
     # FIXME there's lots of types that Files can be, so until XSD replaces this, commenting this out
     #validateDict['Input'  ][1]['type'        ] = ['']
-    cls.validateDict['Input'  ][1]['required'    ] = False
-    cls.validateDict['Input'  ][1]['multiplicity'] = 'n'
+    cls.validateDict['Input'  ][0]['required'    ] = False
+    cls.validateDict['Input'  ][0]['multiplicity'] = 'n'
 
   def __init__(self,runInfoDict):
     """
