@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests/DymolaInterfaceTestTimeDepNoExecutable</name>
+    <name>framework/CodeInterfaceTests/DymolaTestTimeDepNoExecutableEnsembleModel</name>
     <author>alfoa</author>
     <created>2016-11-11</created>
     <revisions>

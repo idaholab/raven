@@ -30,12 +30,12 @@
     <EnsembleModel name="heatTransferEnsembleModel" subType="">
       <Model class="Models" type="ExternalModel">
         thermalConductivityComputation
-        <Input class="DataObjects" type="PointSet">inputHolder</Input>
+        <Input class="DataObjects" type="PointSet">inputThermalConductivity</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
       </Model>
       <Model class="Models"  type="ExternalModel">
           heatTransfer
-          <Input class="DataObjects" type="PointSet">inputHolder</Input>
+          <Input class="DataObjects" type="PointSet">inputHeatTransfer</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
       </Model>
     </EnsembleModel>
@@ -56,7 +56,8 @@
 
   <Steps>
     <MultiRun name="testMetamodelHeatTransfer">
-      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputThermalConductivity</Input>
+      <Input class="DataObjects" type="PointSet">inputHeatTransfer</Input>
       <Model class="Models" type="EnsembleModel">heatTransferEnsembleModel</Model>
       <Sampler class="Samplers" type="Grid">MonteCarloTemperature</Sampler>
       <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
@@ -145,7 +146,11 @@
   </OutStreams>
 
   <DataObjects>
-    <PointSet name="inputHolder">
+    <PointSet name="inputHeatTransfer">
+      <Input>leftTemperature,rightTemperature,k</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputThermalConductivity">
       <Input>leftTemperature,rightTemperature</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>

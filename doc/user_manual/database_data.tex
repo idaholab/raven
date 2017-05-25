@@ -263,10 +263,7 @@ XML block \xmlNode{HDF5}, that recognizes the following attributes:
   \default{workingDir/framework/DatabaseStorage}.  The \xmlNode{workingDir} is
    the one defined within the \xmlNode{RunInfo} XML block (see Section~\ref{sec:RunInfo}).
   \item \xmlAttr{filename}, \xmlDesc{optional string attribute}, specifies the
-  filename of an HDF5 that already exists in the \xmlAttr{directory}.
-  %
-  This is the only way to let RAVEN know that an HDF5 should be opened and not
-  overwritten.
+  filename of the HDF5 that will be created in the  \xmlAttr{directory}.
   %
   \nb When this attribute is not specified, the newer database filename will be
   named \texttt{name}.h5, where \textit{name} corresponds to the \xmlAttr{name}

@@ -253,3 +253,4 @@ class relapdata:
         IOcsvfile.write(',')
       IOcsvfile.write(','.join(self.ravenData[self.ravenData.keys()[k]] for k in range(len(self.ravenData.keys()))))
       IOcsvfile.write('\n')
+    IOcsvfile.close()
