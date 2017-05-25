@@ -78,7 +78,6 @@ doing so for two popular Linux distributions, Ubuntu and Fedora.
 \subsubsection{Ubuntu}
 
 \paragraph{Advanced Package Tool (APT)}
-
 The Ubuntu distribution of Linux makes use of the Advanced Package
 Tool (APT) to automate the installation of pre-configured software.
 Ubuntu 16.4 or newer provide all the packages needed for RAVEN.  The
@@ -90,15 +89,8 @@ needed dependencies not already on the system:
  python3-dev python-numpy python-sklearn python-h5py
 \end{lstlisting}
 
-Optionally, if you want to be able to edit and rebuild the manual, you can
-install \TeX~Live and its related packages:
-\begin{lstlisting}[language=bash]
-  sudo apt-get install texlive-latex-base \
-  texlive-extra-utils texlive-latex-extra texlive-math-extra
-\end{lstlisting}
 
 \paragraph{Miniconda}
-
 The Minoconda package manager is a cross platform installation package specifically 
 used for Python dependencies installation.
 The package manager can be downloaded and installed from \url{https://conda.io/miniconda.html}.
@@ -111,6 +103,7 @@ the needed packages and any needed dependencies not already on the system:
   matplotlib=1.5.1 python=2.7 hdf5 swig pylint lxml
 \end{lstlisting}
 
+\paragraph{Optional LateX installation}
 Optionally, if you want to be able to edit and rebuild the manual, you can
 install \TeX~Live and its related packages:
 \begin{lstlisting}[language=bash]
@@ -122,8 +115,11 @@ install \TeX~Live and its related packages:
 
 \subsubsection{Fedora}
 
-When using the Fedora Linux distribution, use the RPM package manager to
-install needed dependencies:
+\paragraph{Red Hat Package Manager (RPM)}
+The Fedora distribution of Linux makes use of the ARed Hat Package Manager (RPM)
+to automate the installation of pre-configured software. The
+following command uses the RPM to add the needed packages and any
+needed dependencies not already on the system:
 
 \begin{lstlisting}[language=bash]
 dnf install swig libtool gcc-c++ redhat-rpm-config python-devel \
@@ -131,6 +127,23 @@ dnf install swig libtool gcc-c++ redhat-rpm-config python-devel \
   python-matplotlib-qt4
 \end{lstlisting}
 
+Note: The 'dnf' command replaces 'yum' used on older versions of
+Fedora Linux.
+
+\paragraph{Miniconda}
+The Minoconda package manager is a cross platform installation package specifically 
+used for Python dependencies installation.
+The package manager can be downloaded and installed from \url{https://conda.io/miniconda.html}.
+After the installation of Minconda, the following command needs to be executed for the installation of
+the needed packages and any needed dependencies not already on the system:
+
+\begin{lstlisting}[language=bash]
+ conda create --name raven_libraries -y numpy=1.11.0 \
+  h5py=2.6.0 scipy=0.17.1 scikit-learn=0.17.1 \
+  matplotlib=1.5.1 python=2.7 hdf5 swig pylint lxml
+\end{lstlisting}
+
+\paragraph{Optional LateX installation}
 In addition, if you would like to be able to build the documentation
 included in the RAVEN software distribution it is necessary to install
 \TeX~Live and its related packages:
@@ -139,9 +152,6 @@ dnf install texlive texlive-subfigure texlive-stmaryrd \
   texlive-titlesec texlive-preprint texlive-placeins \
   texlive-bigints texlive-relsize texlive-appendix
 \end{lstlisting}
-
-Note: The 'dnf' command replaces 'yum' used on older versions of
-Fedora Linux.
 
 \goToRavenInstallation
 
@@ -157,68 +167,38 @@ package system to add the rest of the dependencies.
 
 The XCode command line tools package from Apple Computer provides the C++
 compilers and git source code control tools needed to obtain and build RAVEN.
-It is freely available from the Apple developer site (download and install the appropriate link
-for your version of OSX):
-\begin{itemize}
-    \item For El Capitan download and install: \url{https://developer.apple.com/downloads/index.action?name=for%20Xcode}
-    \item For Yosemite download and install:  \url{https://developer.apple.com/downloads/index.action?name=for%20Xcode%20-}
-\end{itemize}
+It is freely available from the Apple store. In order to obtain it the following command should be launched in an open terminal:
+\begin{lstlisting}[language=bash]
+ xcode-select --install
+\end{lstlisting}
 
 \subsubsection{Installing XQuartz}
-XQuartz is an implementation of the X Server for the Mac OSX operating system.  It is required
-becuase RAVEN is often used with applications developed with the Multiphysics
-Object-Oriented Simulation Environment (MOOSE).
-\begin{itemize}
-    \item Download and install: \url{https://dl.bintray.com/xquartz/downloads/XQuartz-2.7.9.dmg}
-\end{itemize}
+XQuartz is an implementation of the X Server for the Mac OSX operating system.
+XQuartz is freely available on the web and can be downloaded from the link 
+ \url{https://dl.bintray.com/xquartz/downloads/XQuartz-2.7.9.dmg}.
+ \\After downloaded, install the package.
 
-\subsubsection{Installing Miniconda and Packages}
+
+\subsubsection{Install RAVEN libraries}
 \label{miniconda}
 
 For OSX, the simplest and most robust way to install the RAVEN
 dependencies is with Miniconda.  Miniconda is a package manager for
 python packages and can be used to install the third party packages
-that RAVEN depends on.
+that RAVEN depends on. Minconda can be downloaded and installed from
+the following link \url{https://conda.io/miniconda.html}.
+\\Once installed, open a Terminal and launch the following command:
+\begin{lstlisting}[language=bash]
+conda create --name raven_libraries -y numpy=1.11.0 \
+ h5py=2.6.0 scipy=0.17.1 scikit-learn=0.17.1 \
+ matplotlib=1.5.1 python=2.7 hdf5 swig pylint lxml
+\end{lstlisting}
 
-For OSX Yosemite and OSX El Capitan there is a package called
-raven\_miniconda.pkg available.  The package includes both miniconda
-and the dependencies RAVEN needs. If you get an error that the package
-is not signed, then Control click the package, and choose ``Open
-With'' and then Installer.  The file can be gotten from the RAVEN wiki
-from a link on the page:
-\url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/installationMAC}
+This command will install all the libraries and dependencies needed for executing RAVEN 
+in a Miniconda enviroment called ``raven\_libraries''.
 
-The files will be installed into \texttt{/opt/raven\_libs}.  RAVEN
-will look at this directory during both compiling and running to get
-the RAVEN libraries from.
+\goToRavenInstallation
 
-%% Your \texttt{.bash\_profile} will be modified to source
-%% the\\ \texttt{/opt/raven\_libs/environments/raven\_libs\_profile}
-%% file.  This needs to be sourced either with the command:
-%% \begin{lstlisting}[language=bash]
-%% source $HOME/.bash_profile
-%% \end{lstlisting}
-%% or by reopening the terminal will put the correct Miniconda python in
-%% the path.
-
-Once this is installed you can go on to Section \ref{raven_installation} and install RAVEN.
-
-Advanced note: This creates a conda environment called
-\texttt{raven\_libraries} and the command used to create this the \texttt{raven\_libraries} environment can be found by by running:
-\texttt{python scripts/TestHarness/testers/RavenUtils.py --conda-create}
-
-\label{miniconda_direct}
-
-Alternatively, Miniconda can be obtained and installed directly. See
-\url{http://conda.pydata.org/miniconda.html} for more information and
-installation files to download.  If your system already has Miniconda,
-you may use that installation to load these packages.
-
-After Miniconda has been installed, it may then be used to install the
-rest of the packages needed to run RAVEN (this command also creates a
-separate environment for the RAVEN libraries):
-
-\lstinputlisting[language=bash]{conda_command.txt}
 
 \subsection{Preparing a Windows System for RAVEN}
 \label{sysprep_windows}
@@ -511,30 +491,6 @@ usually work):
 \end{enumerate}
 
 \goToRavenInstallation
-
-\subsubsection{PIP Install}
-
-
-PIP (Pip Installs Packages) is a package management system that can be
-used to install Python packages.  It cannot be used to install swig or
-hdf5, so those may need to be manually installed.  In general, PIP
-cannot be used with MSYS on Windows.  Using a virtual environment with
-PIP is recommended (without the virtual environment, only the
-\texttt{pip install} command is needed):
-
-\lstinputlisting[language=bash]{pip_commands.txt}
-
-Note that the \texttt{source} command will need to be run to use the
-environment in the future when the shell is restarted since the
-virtual environment is only available after switching to it.
-
-The following command can be used to find out the pip install command
-for the RAVEN dependencies:
-
-\texttt{python scripts/TestHarness/testers/RavenUtils.py --pip-install}
-
-\goToRavenInstallation
-
 
 \section{RAVEN Installation}
 \label{raven_installation}
