@@ -258,12 +258,10 @@ class SPSA(GradientBasedOptimizer):
       #self.estimateStochasticity(gradient,self.gradDict['pertPoints'][traj][self.counter['varsUpdate'][traj]-1],varK,centralResponseIndex) #TODO need current point too!
       varKPlus,modded = self._generateVarsUpdateConstrained(ak,gradient,varK)
       #if the new point was modified by the constraint, reset the step size
-      print('DEBUGG modded:',modded)
       if modded:
         del self.counter['lastStepSize'][traj]
-        print('DEBUGG resetting step size for trajectory',traj)
+        self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
       varKPlusDenorm = self.denormalizeData(varKPlus)
-      print('DEBUGG varKPlusDenorm:',varKPlusDenorm)
       for var in self.optVars:
         self.values[var] = copy.deepcopy(varKPlusDenorm[var])
         self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(varKPlus[var])
@@ -338,13 +336,11 @@ class SPSA(GradientBasedOptimizer):
     satisfied, activeConstraints = self.checkConstraint(tempVarKPlus)
     #satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempVarKPlus))
     if satisfied:
-      print('DEBUGG no need to mod.')
       return tempVarKPlus, False
     # else if not satisfied ...
     # check if the active constraints are the boundary ones. In case, project the gradient
     modded = False
     if len(activeConstraints['internal']) > 0:
-      print('DEBUGG constraints violated.')
       projectedOnBoundary= {}
       for activeConstraint in activeConstraints['internal']:
         projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
@@ -353,7 +349,6 @@ class SPSA(GradientBasedOptimizer):
     if len(activeConstraints['external']) == 0:
       return tempVarKPlus, modded
 
-    print('DEBUGG ongoing constraints checks.')
     # Try to find varKPlus by shorten the gradient vector
     foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, gradient)
     if foundVarsUpdate:
@@ -497,7 +492,7 @@ class SPSA(GradientBasedOptimizer):
     # modify step size based on the history of the gradients used
     frac = self.fractionalStepChangeFromGradHistory(traj)
     ak *= frac
-    print('DEBUGG step gain size for traj "{}" iternum "{}": {}'.format(traj,iterNum,ak))
+    self.raiseADebug('step gain size for traj "{}" iternum "{}": {}'.format(traj,iterNum,ak))
     self.counter['lastStepSize'][traj] = ak
     return ak
     # the line search with surrogate unfortunately does not work very well (we use it just at the begin of the search and after that

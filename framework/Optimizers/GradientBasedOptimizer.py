@@ -188,7 +188,6 @@ class GradientBasedOptimizer(Optimizer):
     for var in self.optVars:
       gradient[var] = gradArray[var].mean()
     gradient     = self.localEvaluateGradient(optVarsValues, gradient)
-    print('DEBUGG gradient before norm:',gradient)
     gradientNorm =  np.linalg.norm(gradient.values())
     if gradientNorm > 0.0:
       for var in gradient.keys():
@@ -411,6 +410,5 @@ class GradientBasedOptimizer(Optimizer):
     prod = np.sum(list(grad0[key]*grad1[key] for key in grad0.keys()))
     #rescale from [-1, 1] to [1/g, g]
     frac = growthFactor**prod
-    print('DEBUGG product:',prod)
-    print('DEBUGG frac:',frac)
+    self.raiseADebug('Modifying step size due to gradient history by factor:',frac)
     return frac

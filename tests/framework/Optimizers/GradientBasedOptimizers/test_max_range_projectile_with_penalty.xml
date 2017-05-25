@@ -66,7 +66,7 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <relativeThreshold>5e-2</relativeThreshold>
+          <relativeThreshold>1e-2</relativeThreshold>
       </convergence>
       <variable name='v0'>
         <upperBound>1000</upperBound>
@@ -107,7 +107,7 @@
     </PointSet>
     <PointSet name="opt_soln">
       <Input>trajID</Input>
-      <Output>v0,r</Output>
+      <Output>v0,ang,r,varsUpdate</Output>
     </PointSet>
     <HistorySet name="opt_export">
       <Input>trajID</Input>
