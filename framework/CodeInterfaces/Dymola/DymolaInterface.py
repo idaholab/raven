@@ -232,7 +232,7 @@ class Dymola(CodeInterfaceBase):
           inc = 0
           Fvect.write("double %s(%s,2) #Comments here\n" %(key, len(value)))
           for val in value:
-            Fvect.write("%s\t%s\n" %(inc,val[0]))
+            Fvect.write("%s\t%s\n" %(inc,val))
             inc += 1
 
     # Do the search and replace in input file "DymolaInitialisation"
