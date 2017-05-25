@@ -497,51 +497,52 @@ class SPSA(GradientBasedOptimizer):
     return ak
     # the line search with surrogate unfortunately does not work very well (we use it just at the begin of the search and after that
     # we switch to a decay constant strategy (above)). Another strategy needs to be find.
-    #### OLD ### skip the line check for now
-    if iterNum > 1 and iterNum <= int(self.limit['mdlEval']/50.0):
-      # we use a line search algorithm for finding the best learning rate (using a surrogate)
-      # if it fails, we use a decay rate (ak = a / (iterNum + A) ** alpha)
-      objEvaluateROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.optVars)), 'Target':self.objVar, 'n_neighbors':5,'weights':'distance'})
-      tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
-      tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
-      for key in tempDict.keys():
-        tempDict[key] = np.asarray(tempDict[key])
-      objEvaluateROM.train(tempDict)
+    #### OLD ###
+    ## below is the line search methodology, which didn't prove as effective as we originally hoped.
+    #if iterNum > 1 and iterNum <= int(self.limit['mdlEval']/50.0):
+    #  # we use a line search algorithm for finding the best learning rate (using a surrogate)
+    #  # if it fails, we use a decay rate (ak = a / (iterNum + A) ** alpha)
+    #  objEvaluateROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.optVars)), 'Target':self.objVar, 'n_neighbors':5,'weights':'distance'})
+    #  tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
+    #  tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
+    #  for key in tempDict.keys():
+    #    tempDict[key] = np.asarray(tempDict[key])
+    #  objEvaluateROM.train(tempDict)
 
-      def f(x):
-        """
-          Method that just interface the evaluate method for the surrogate
-          @ In, x, numpy.array, coordinate where to evaluate f
-          @ Out, f, float, result
-        """
-        features = {}
-        for cnt, value in enumerate(x):
-          features[self.optVars[cnt]] = np.asarray(value)
-        return objEvaluateROM.evaluate(features)[self.objVar]
+    #  def f(x):
+    #    """
+    #      Method that just interface the evaluate method for the surrogate
+    #      @ In, x, numpy.array, coordinate where to evaluate f
+    #      @ Out, f, float, result
+    #    """
+    #    features = {}
+    #    for cnt, value in enumerate(x):
+    #      features[self.optVars[cnt]] = np.asarray(value)
+    #    return objEvaluateROM.evaluate(features)[self.objVar]
 
-      def fprime(x):
-        """
-          Method that just interface the computes the approximate derivatives using the surrogate
-          @ In, x, numpy.array, coordinate where to evaluate f'
-          @ Out, f, numpy.array, partial derivatives
-        """
-        return scipy.optimize.approx_fprime(x, f, self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1))
+    #  def fprime(x):
+    #    """
+    #      Method that just interface the computes the approximate derivatives using the surrogate
+    #      @ In, x, numpy.array, coordinate where to evaluate f'
+    #      @ Out, f, numpy.array, partial derivatives
+    #    """
+    #    return scipy.optimize.approx_fprime(x, f, self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1))
 
-      xK             = np.asarray([self.optVarsHist[traj][iterNum-1][key] for key in self.optVars])
-      xKPrevious     = np.asarray([self.optVarsHist[traj][iterNum-2][key] for key in self.optVars])
-      #xK             = np.asarray([self.denormalizeData(self.optVarsHist[traj][iterNum-1])[key] for key in self.optVars])
-      #xKPrevious     = np.asarray([self.denormalizeData(self.optVarsHist[traj][iterNum-2])[key] for key in self.optVars])
-      gradxK         = np.asarray([self.counter['gradientHistory'][traj][0][key] for key in self.optVars])#/self.counter['gradNormHistory'][traj][0]
-      gradxKPrevious = np.asarray([self.counter['gradientHistory'][traj][1][key] for key in self.optVars])#/self.counter['gradNormHistory'][traj][1]
-      alphaLineSearchCurrent  = scipy.optimize.line_search(f, fprime, xK, gradxK, amax=10.0)
-      alphaLineSearchPrevious = scipy.optimize.line_search(f, fprime, xKPrevious, gradxKPrevious, amax=10.0)
-      akCurrent, akPrevious = 0.0, 0.0
-      if alphaLineSearchCurrent[-1] is not None:
-        akCurrent = min(float(alphaLineSearchCurrent[0]),a)
-      if alphaLineSearchPrevious[-1] is not None:
-        akPrevious = min(float(alphaLineSearchPrevious[0]),a)
-      newAk = (akCurrent+akPrevious)/2.
-      print(ak,newAk)
-      if newAk != 0.0:
-        ak = newAk
-    return ak
+    #  xK             = np.asarray([self.optVarsHist[traj][iterNum-1][key] for key in self.optVars])
+    #  xKPrevious     = np.asarray([self.optVarsHist[traj][iterNum-2][key] for key in self.optVars])
+    #  #xK             = np.asarray([self.denormalizeData(self.optVarsHist[traj][iterNum-1])[key] for key in self.optVars])
+    #  #xKPrevious     = np.asarray([self.denormalizeData(self.optVarsHist[traj][iterNum-2])[key] for key in self.optVars])
+    #  gradxK         = np.asarray([self.counter['gradientHistory'][traj][0][key] for key in self.optVars])#/self.counter['gradNormHistory'][traj][0]
+    #  gradxKPrevious = np.asarray([self.counter['gradientHistory'][traj][1][key] for key in self.optVars])#/self.counter['gradNormHistory'][traj][1]
+    #  alphaLineSearchCurrent  = scipy.optimize.line_search(f, fprime, xK, gradxK, amax=10.0)
+    #  alphaLineSearchPrevious = scipy.optimize.line_search(f, fprime, xKPrevious, gradxKPrevious, amax=10.0)
+    #  akCurrent, akPrevious = 0.0, 0.0
+    #  if alphaLineSearchCurrent[-1] is not None:
+    #    akCurrent = min(float(alphaLineSearchCurrent[0]),a)
+    #  if alphaLineSearchPrevious[-1] is not None:
+    #    akPrevious = min(float(alphaLineSearchPrevious[0]),a)
+    #  newAk = (akCurrent+akPrevious)/2.
+    #  print(ak,newAk)
+    #  if newAk != 0.0:
+    #    ak = newAk
+    #return ak
