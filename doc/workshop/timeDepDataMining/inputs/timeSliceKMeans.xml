@@ -1,0 +1,172 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>timeSliceKMeans</WorkingDir>
+    <Sequence>MCrun,clustering,plot</Sequence>
+    <batchSize>100</batchSize>
+  </RunInfo>
+  
+  <Files>
+    <Input name="rawDataFile">../SKLearnData/BB_dump.csv</Input>
+  </Files>
+  
+  <Distributions>
+    <Normal name="distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+  
+  <Models>
+    <PostProcessor name="KMeans1" subType="DataMining">
+      <KDD lib="SciKitLearn"  labelFeature="labels">
+        <SKLtype>cluster|KMeans</SKLtype>
+        <Features>x,y,z</Features>
+        <n_clusters>2</n_clusters>
+        <max_iter>1000</max_iter>
+        <random_state>1</random_state>
+        <init>k-means++</init>
+      </KDD>
+      <pivotParameter>time</pivotParameter>
+    </PostProcessor>
+    <ExternalModel ModuleToLoad="lorentzAttractor_disc" name="PythonModule" subType="">
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+    </ExternalModel>
+  </Models>
+
+  <Steps>
+    <MultiRun name="MCrun" pauseAtEnd="True">
+      <Input          class="DataObjects"   type="PointSet"        >inputPlaceHolder</Input>
+      <Model          class="Models"        type="ExternalModel"   >PythonModule</Model>
+      <Sampler        class="Samplers"      type="MonteCarlo"      >MC_external</Sampler>
+      <Output         class="DataObjects"   type="HistorySet"      >outMC</Output>
+    </MultiRun>
+    <PostProcess name="clustering" pauseAtEnd = "True">
+      <Input          class="DataObjects"   type="HistorySet"      >outMC</Input>
+      <Model          class="Models"        type="PostProcessor"   >KMeans1</Model>
+      <SolutionExport class="DataObjects"   type="HistorySet"      >clusterInfo</SolutionExport>
+      <Output         class="DataObjects"   type="HistorySet"      >outMC</Output>
+    </PostProcess>
+    <IOStep name="plot" pauseAtEnd = "True">
+      <Input          class="DataObjects"   type="HistorySet"      >outMC</Input>
+      <Input          class="DataObjects"   type="HistorySet"      >clusterInfo</Input>
+      <Output         class='OutStreams'    type='Print'           >centroid</Output>
+      <Output         class="OutStreams"    type="Plot"            >plotRawData</Output>
+      <Output         class="OutStreams"    type="Plot"            >plotPPDataCentroid</Output>
+      <Output         class="OutStreams"    type="Plot"            >plotRawDataWithLabels</Output>
+    </IOStep>
+  </Steps>
+  
+  <OutStreams>
+    <Print name='print_outMC'>
+      <type>csv</type>
+      <source>outMC</source>
+    </Print>
+    <Print name='centroid'>
+      <type>csv</type>
+      <source>clusterInfo</source>
+    </Print>
+    <Plot  name="plotRawData" overwrite="True" >
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>outMC|Output|time</x>
+          <y>outMC|Output|x</y>
+          <z>outMC|Output|y</z>
+          <interpPointsX>300</interpPointsX>
+          <xlabel>time</xlabel>
+          <ylabel>x</ylabel>
+          <zlabel>y</zlabel>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot  name="plotPPDataLabel" overwrite="True" >
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>outMC|Output|time</x>
+          <y>outMC|Output|labels</y>
+          <interpPointsX>300</interpPointsX>
+          <xlabel>time</xlabel>
+          <ylabel>label</ylabel>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot  name="plotPPDataCentroid" overwrite="True" >
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>clusterInfo|Output|time</x>
+          <y>clusterInfo|Output|x</y>
+          <z>clusterInfo|Output|y</z>
+          <colorMap>clusterInfo|Input|labels</colorMap>
+          <interpPointsX>300</interpPointsX>
+          <xlabel>time</xlabel>
+          <ylabel>x</ylabel>
+          <zlabel>y</zlabel>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot  name="plotRawDataWithLabels" overwrite="True" >
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>outMC|Output|time</x>
+          <y>outMC|Output|x</y>
+          <z>outMC|Output|y</z>
+          <colorMap>outMC|Output|labels</colorMap>
+          <interpPointsX>300</interpPointsX>
+          <xlabel>time</xlabel>
+          <ylabel>x</ylabel>
+          <zlabel>y</zlabel>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="clusterInfo">
+      <Input>labels</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="outMC">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

@@ -54,7 +54,7 @@ class TopologyWindow(qtg.QMainWindow):
   closed = qtc.Signal(qtc.QObject)
   def __init__(self, X=None, Y=None, w=None, names=None, graph='beta skeleton',
                gradient='steepest', knn=-1, beta=1.0, normalization=None,
-               debug=False):
+               debug=False, views=None):
     """ Initialization method that can optionally specify all of the parameters
         needed for building an underlying AMSC_Object to be used internally by
         this window and its child views.
@@ -90,6 +90,9 @@ class TopologyWindow(qtg.QMainWindow):
           unit hypercube.
         @ In, debug, an optional boolean flag for whether debugging output
           should be enabled.
+        @ In, views, list of strings, represents views to be added to this main
+          window.  Valid values include a string representation of any of the
+          subclasses of the BaseTopologicalView.
     """
     super(TopologyWindow,self).__init__()
     self.resize(800,600)
@@ -102,14 +105,15 @@ class TopologyWindow(qtg.QMainWindow):
       self.BuildAMSC(X, Y, w, names, graph, gradient, knn, beta, normalization)
     else:
       self.BuildAMSC(None, None, None, None, None, None, None, None, None)
-      self.loadData()
 
     self.fileMenu = self.menuBar().addMenu('File')
     self.optionsMenu = self.menuBar().addMenu('Options')
     self.viewMenu = self.menuBar().addMenu('View')
     newMenu = self.viewMenu.addMenu('New...')
-    self.addNewView('TopologyMapView')
-    # self.addNewView('ProjectionView')
+
+    if views is not None:
+      for view in views:
+        self.addNewView(view)
 
     for subclass in BaseTopologicalView.__subclasses__():
       action = newMenu.addAction(subclass.__name__)
@@ -117,6 +121,41 @@ class TopologyWindow(qtg.QMainWindow):
 
     buildModels = self.optionsMenu.addAction('Build Local Models')
     buildModels.triggered.connect(self.buildModels)
+
+  def test(self):
+    """
+        Method for testing this UI. It will generate one of each of the
+        subclass views of the BaseTopologicalView and call each of the signaled
+        events on each view.
+        @ In, None
+        @ Out, None
+    """
+    for viewClass in BaseTopologicalView.__subclasses__():
+      self.addNewView(viewClass.__name__)
+
+    ## Rebuild the AMSC after all of the views have been added
+    self.BuildAMSC(self.amsc.X, self.amsc.Y, self.amsc.w, self.amsc.names,
+                   self.amsc.graph, self.amsc.gradient, self.amsc.knn,
+                   self.amsc.beta, self.amsc.normalization)
+
+    self.buildModels()
+
+    for view in self.views:
+      view.dataChanged()
+      view.filterChanged()
+      view.selectionChanged()
+      view.persistenceChanged()
+      view.modelsChanged()
+      view.weightsChanged()
+
+      view.test()
+
+    ## Reset the persistence level to the value used by our test case.
+    ## Note, if we require multiple test cases, we could remember this state
+    ## from before, but as this function should capture all of the functionality
+    ## this is a low priority fix and might require persistent storage of this
+    ## value on the object.
+    self.amsc.Persistence(1.0)
 
   def BuildAMSC(self, X=None, Y=None, w=None, names=None, graph='beta skeleton',
                 gradient='steepest', knn=-1, beta=1.0, normalization=None):
@@ -196,14 +235,7 @@ class TopologyWindow(qtg.QMainWindow):
       dockWidget.setWidget(view)
 
     #Placement was arbitrarily selected
-    if view.windowTitle() in ['ScatterView']:
-      self.addDockWidget(qtc.Qt.RightDockWidgetArea,dockWidget)
-    elif view.windowTitle() in ['ParameterView','SensitivityView','FitnessView']:
-      self.addDockWidget(qtc.Qt.BottomDockWidgetArea,dockWidget)
-    elif view.windowTitle() in ['SkeletonView','PersistenceChartView']:
-      self.addDockWidget(qtc.Qt.LeftDockWidgetArea,dockWidget)
-    else:
-      self.addDockWidget(qtc.Qt.TopDockWidgetArea,dockWidget)
+    self.addDockWidget(qtc.Qt.TopDockWidgetArea,dockWidget)
 
     self.viewMenu.addAction(dockWidget.toggleViewAction())
 

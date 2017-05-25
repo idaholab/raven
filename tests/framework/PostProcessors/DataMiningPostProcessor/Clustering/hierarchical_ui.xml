@@ -1,5 +1,17 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation>
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/Clustering.interactive_UI</name>
+    <author>maljdan</author>
+    <created>2016-05-09</created>
+    <classesTested>PostProcessors.DataMining</classesTested>
+    <description>
+       This test exercises the user interface coupled with the Hierarchical
+       Clustering available in RAVEN. This test is very similar to
+       HierarchicalScipy except this adds the ability to test the loading,
+       running, and tear down of the UI associated to that class.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>Hierarchical</WorkingDir>
     <Sequence>readIn,Hierarchical</Sequence>

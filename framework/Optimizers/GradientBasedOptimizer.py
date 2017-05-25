@@ -129,48 +129,7 @@ class GradientBasedOptimizer(Optimizer):
       @ In, convergence, bool, optional, variable indicating whether the convergence criteria has been met.
       @ Out, ready, bool, boolean variable indicating whether the caller is prepared for another input.
     """
-    if ready == False:
-      return ready # Return if we exceed the max iterations or converges...
-
-    readyFlag = False
-    for traj in self.optTrajLive:
-      if self.counter['varsUpdate'][traj] < self.limit['varsUpdate']:
-        readyFlag = True
-    if readyFlag == False:
-      ready = False
-      return ready # Return False if all trajectories has more them permitted variable updates.
-
-    if self.mdlEvalHist.isItEmpty():
-      for traj in self.optTrajLive:
-        if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
-          # Return if we just initialize
-          return ready
-      ready = False # Waiting for the model output for gradient evaluation
-    else:
-      readyFlag = False
-      for traj in self.optTrajLive:
-        if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
-          # Return if we just initialize
-          readyFlag = True
-          break
-        else:
-          evalNotFinish = False
-          for pertID in range(1,self.gradDict['pertNeeded']+1):
-            if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:
-              evalNotFinish = True
-              break
-          if evalNotFinish:
-            pass
-          else:
-            readyFlag = True
-            break
-      if readyFlag:
-        ready = True
-      else:
-        ready = False
-
-    ready = self.localLocalStillReady(ready, convergence)
-
+    #let this be handled at the local subclass level for now
     return ready
 
   def _checkModelFinish(self, traj, updateKey, evalID):
@@ -192,16 +151,6 @@ class GradientBasedOptimizer(Optimizer):
       if pr[0] == str(traj) and pr[1] == str(updateKey) and pr[2] == str(evalID):
         return (True, index)
     return (False, -1)
-
-  @abc.abstractmethod
-  def localLocalStillReady(self, ready, convergence = False):
-    """
-      Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
-      @ In, ready, bool, variable indicating whether the caller is prepared for another input.
-      @ In, convergence, bool, optional, variable indicating whether the convergence criteria has been met.
-      @ Out, ready, bool, boolean variable indicating whether the caller is prepared for another input.
-    """
-    pass
 
   def localGenerateInput(self,model,oldInput):
     """

@@ -36,9 +36,9 @@ from math import ceil
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from PostProcessors import LimitSurface
 from .AdaptiveSampler import AdaptiveSampler
 import Distributions
-import PostProcessors
 from AMSC_Object import AMSC_Object
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -289,7 +289,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       @ Out, None
     """
     self.converged        = False
-    self.limitSurfacePP   = PostProcessors.returnInstance("LimitSurface",self)
+    self.limitSurfacePP   = LimitSurface(self.messageHandler)
     if 'Function' in self.assemblerDict.keys():
       self.goalFunction = self.assemblerDict['Function'][0][3]
     if 'TargetEvaluation' in self.assemblerDict.keys():

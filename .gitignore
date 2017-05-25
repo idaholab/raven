@@ -42,6 +42,8 @@ tests/framework/revirD_tset/FirstMRun/
 tests/framework/test_extract_data_s_from_hdf5/MonteCarlo/
 tests/framework/test_rom_trainer/MC_for_rom_trainer/
 tests/framework/mpi_driver_test/FirstMRun/
+tests/framework/CodeInterfaceTests/MelcorInterface/testMelcor/*
+tests/framework/CodeInterfaceTests/RELAP5interfaceTestSingleRun/*
 work_in_progress/remote_tools/remote_tools
 work_in_progress/remote_tools/remote_tools.py
 work_in_progress/remote_tools/remote_tools_wrap.cxx

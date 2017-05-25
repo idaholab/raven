@@ -45,6 +45,19 @@ class NoMoreSamplesNeeded(GeneratorExit):
     Custom RAVEN error available for use in the framework.
   """
   pass
+
+class byPass(object):
+  """
+    This is dummy class that is needed to emulate the "dataObject" resetData method
+  """
+  def resetData(self):
+    """
+      This is dummy method that is needed to emulate the "dataObject" resetData method
+      @ In, None
+      @ Out, None
+    """
+    pass
+
 # ID separator that should be used cross the code when combined ids need to be assembled.
 # For example, when the "EnsembleModel" creates new  ``prefix`` ids for sub-models
 __idSeparator = "++"
@@ -1093,3 +1106,11 @@ def returnIdSeparator():
     @ Out, __idSeparator, string, the id separator
   """
   return __idSeparator
+
+def getAllSubclasses(cls):
+  """
+    Recursively collect all of the classes that are a subclass of cls
+    @ In, cls, the class to retrieve sub-classes.
+    @ Out, getAllSubclasses, list of class objects for each subclass of cls.
+  """
+  return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in getAllSubclasses(s)]

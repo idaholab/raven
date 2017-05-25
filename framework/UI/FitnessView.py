@@ -95,34 +95,43 @@ class FitnessView(BaseTopologicalView):
     layout.addWidget(self.gView)
     self.updateScene()
 
-  def saveImage(self):
-    """ Saves the current display of this view to a static image by loading a
-        file dialog box.
+  def saveImage(self, filename=None):
     """
-    dialog = qtg.QFileDialog(self)
-    dialog.setFileMode(qtg.QFileDialog.AnyFile)
-    dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
-    dialog.exec_()
-    if dialog.result() == qtg.QFileDialog.Accepted:
-      myFile = dialog.selectedFiles()[0]
-      self.scene.clearSelection()
-      self.scene.setSceneRect(self.scene.itemsBoundingRect())
-      if myFile.endswith('.svg'):
-        svgGen = qts.QSvgGenerator()
-        svgGen.setFileName(myFile)
-        svgGen.setSize(self.scene.sceneRect().size().toSize())
-        svgGen.setViewBox(self.scene.sceneRect())
-        svgGen.setTitle("Screen capture of " + self.__class__.__name__)
-        svgGen.setDescription("Generated from RAVEN.")
-        painter = qtg.QPainter(svgGen)
+        Saves the current display of this view to a static image by loading a
+        file dialog box.
+        @ In, filename, string, optional parameter specifying where this image
+        will be saved. If None, then a dialog box will prompt the user for a
+        name and location.
+        @ Out, None
+    """
+    if filename is None:
+      dialog = qtg.QFileDialog(self)
+      dialog.setFileMode(qtg.QFileDialog.AnyFile)
+      dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
+      dialog.exec_()
+      if dialog.result() == qtg.QFileDialog.Accepted:
+        filename = dialog.selectedFiles()[0]
       else:
-        image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
-        image.fill(qtc.Qt.transparent)
-        painter = qtg.QPainter(image)
-      self.scene.render(painter)
-      if not myFile.endswith('.svg'):
-        image.save(myFile,quality=100)
-      del painter
+        return
+
+    self.scene.clearSelection()
+    self.scene.setSceneRect(self.scene.itemsBoundingRect())
+    if filename.endswith('.svg'):
+      svgGen = qts.QSvgGenerator()
+      svgGen.setFileName(filename)
+      svgGen.setSize(self.scene.sceneRect().size().toSize())
+      svgGen.setViewBox(self.scene.sceneRect())
+      svgGen.setTitle("Screen capture of " + self.__class__.__name__)
+      svgGen.setDescription("Generated from RAVEN.")
+      painter = qtg.QPainter(svgGen)
+    else:
+      image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
+      image.fill(qtc.Qt.transparent)
+      painter = qtg.QPainter(image)
+    self.scene.render(painter)
+    if not filename.endswith('.svg'):
+      image.save(filename,quality=100)
+    del painter
 
   def contextMenuEvent(self,event):
     """ An event handler triggered when the user right-clicks on this view that
@@ -277,3 +286,21 @@ class FitnessView(BaseTopologicalView):
 
       self.scene.changed.connect(self.scene.invalidate)
       self.gView.fitInView(self.scene.sceneRect(),qtc.Qt.KeepAspectRatio)
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations. For this class in particular, we will test:
+        - Building the models (which allows the actual plot to be displayed)
+        - Saving the view buffer in svg and png formats.
+        - Triggering the resize event.
+        @ In, None
+        @ Out, None
+    """
+    self.amsc.BuildModels()
+    self.amsc.ClearSelection()
+    self.saveImage(self.windowTitle()+'.svg')
+    self.saveImage(self.windowTitle()+'.png')
+    self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
+    super(FitnessView, self).test()

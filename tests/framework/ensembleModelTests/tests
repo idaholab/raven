@@ -2,14 +2,14 @@
  [./testEnsembleModelLinearParallel]
    type = 'RavenFramework'
    input = 'test_ensemble_model_linear_internal_parallel.xml'
-   output = 'metaModelLinearParallel/1-metaModelOutputTestK_scatter.png metaModelLinearParallel/1-metaModelOutputTestSolution_scatter.png metaModelLinearParallel/heatTransferContainerDump.csv metaModelLinearParallel/heatTransferContainerDump.xml metaModelLinearParallel/metaModelOutputTestDump.csv metaModelLinearParallel/metaModelOutputTestDump.xml metaModelLinearParallel/thermalConductivityComputationContainerDump.csv metaModelLinearParallel/thermalConductivityComputationContainerDump.xml'
+   output = 'metaModelLinearParallel/1-metaModelOutputTestK_scatter.png metaModelLinearParallel/1-metaModelOutputTestSolution_scatter.png metaModelLinearParallel/heatTransferContainerDump.xml metaModelLinearParallel/metaModelOutputTestDump.xml metaModelLinearParallel/thermalConductivityComputationContainerDump.xml'
    UnorderedCsv = 'metaModelLinearParallel/heatTransferContainerDump.csv metaModelLinearParallel/metaModelOutputTestDump.csv metaModelLinearParallel/thermalConductivityComputationContainerDump.csv'
    rel_err=1.e-4
  [../]
  [./testEnsembleModelLinearThread]
    type = 'RavenFramework'
    input = 'test_ensemble_model_linear_threading.xml'
-   output = 'metaModelLinearThread/1-metaModelOutputTestK_scatter.png metaModelLinearThread/1-metaModelOutputTestSolution_scatter.png metaModelLinearThread/heatTransferContainerDump.csv metaModelLinearThread/heatTransferContainerDump.xml metaModelLinearThread/metaModelOutputTestDump.csv metaModelLinearThread/metaModelOutputTestDump.xml metaModelLinearThread/thermalConductivityComputationContainerDump.csv metaModelLinearThread/thermalConductivityComputationContainerDump.xml'
+   output = 'metaModelLinearThread/1-metaModelOutputTestK_scatter.png metaModelLinearThread/1-metaModelOutputTestSolution_scatter.png metaModelLinearThread/heatTransferContainerDump.xml metaModelLinearThread/metaModelOutputTestDump.xml metaModelLinearThread/thermalConductivityComputationContainerDump.xml'
    UnorderedCsv = 'metaModelLinearThread/heatTransferContainerDump.csv metaModelLinearThread/metaModelOutputTestDump.csv metaModelLinearThread/thermalConductivityComputationContainerDump.csv'
    rel_err=1.e-4
  [../]
@@ -17,7 +17,7 @@
  [./testEnsembleModelLinearThreadWithTimeSeries]
    type = 'RavenFramework'
    input = 'test_ensemble_model_linear_threading_with_time_series.xml'
-   output = 'metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestPointSetSolution_scatter.png metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestPointSetK_scatter.png metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestPointSetSolution_scatter.png metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestPointSetK_scatter.png metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestHistorySetk_scatter.png metaModelLinearThreadWithTimeSeries/heatTransferContainerDump.csv metaModelLinearThreadWithTimeSeries/heatTransferContainerDump.xml metaModelLinearThreadWithTimeSeries/metaModelOutputTestPointSetDump.csv metaModelLinearThreadWithTimeSeries/metaModelOutputTestPointSetDump.xml metaModelLinearThreadWithTimeSeries/thermalConductivityComputationContainerDump.csv metaModelLinearThreadWithTimeSeries/thermalConductivityComputationContainerDump.xml'
+   output = 'metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestPointSetSolution_scatter.png metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestPointSetK_scatter.png metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestHistorySetk_scatter.png metaModelLinearThreadWithTimeSeries/heatTransferContainerDump.xml metaModelLinearThreadWithTimeSeries/metaModelOutputTestPointSetDump.xml metaModelLinearThreadWithTimeSeries/thermalConductivityComputationContainerDump.xml'
    UnorderedCsv = 'metaModelLinearThreadWithTimeSeries/heatTransferContainerDump.csv metaModelLinearThreadWithTimeSeries/metaModelOutputTestPointSetDump.csv metaModelLinearThreadWithTimeSeries/thermalConductivityComputationContainerDump.csv'
    xml = 'metaModelLinearThreadWithTimeSeries/heatTransferContainerDump_unstructured_inputs.xml'
    rel_err=1.e-4
@@ -26,21 +26,21 @@
  [./testEnsembleModelNonLinearParallel]
    type = 'RavenFramework'
    input = 'test_ensemble_model_picard_parallel.xml'
-   output = 'metaModelNonLinearParallel/1-metaModelOutputTestK_scatter.png metaModelNonLinearParallel/1-metaModelOutputTestSolution_scatter.png metaModelNonLinearParallel/heatTransferContainerDump.csv metaModelNonLinearParallel/heatTransferContainerDump.xml metaModelNonLinearParallel/metaModelOutputTestDump.csv metaModelNonLinearParallel/metaModelOutputTestDump.xml metaModelNonLinearParallel/thermalConductivityComputationContainerDump.csv metaModelNonLinearParallel/thermalConductivityComputationContainerDump.xml'
+   output = 'metaModelNonLinearParallel/1-metaModelOutputTestK_scatter.png metaModelNonLinearParallel/1-metaModelOutputTestSolution_scatter.png metaModelNonLinearParallel/heatTransferContainerDump.xml metaModelNonLinearParallel/metaModelOutputTestDump.xml metaModelNonLinearParallel/thermalConductivityComputationContainerDump.xml'
    UnorderedCsv = 'metaModelNonLinearParallel/heatTransferContainerDump.csv metaModelNonLinearParallel/metaModelOutputTestDump.csv metaModelNonLinearParallel/thermalConductivityComputationContainerDump.csv'
    rel_err=1.e-4
  [../]
  [./testEnsembleModelNonLinearThread]
    type = 'RavenFramework'
    input = 'test_ensemble_model_picard_thread.xml'
-   output = 'metaModelNonLinearThread/1-metaModelOutputTestK_scatter.png metaModelNonLinearThread/1-metaModelOutputTestSolution_scatter.png metaModelNonLinearThread/heatTransferContainerDump.csv metaModelNonLinearThread/heatTransferContainerDump.xml metaModelNonLinearThread/metaModelOutputTestDump.csv metaModelNonLinearThread/metaModelOutputTestDump.xml metaModelNonLinearThread/thermalConductivityComputationContainerDump.csv metaModelNonLinearThread/thermalConductivityComputationContainerDump.xml'
+   output = 'metaModelNonLinearThread/1-metaModelOutputTestK_scatter.png metaModelNonLinearThread/1-metaModelOutputTestSolution_scatter.png metaModelNonLinearThread/heatTransferContainerDump.xml metaModelNonLinearThread/metaModelOutputTestDump.xml metaModelNonLinearThread/thermalConductivityComputationContainerDump.xml'
    UnorderedCsv = 'metaModelNonLinearThread/heatTransferContainerDump.csv metaModelNonLinearThread/metaModelOutputTestDump.csv metaModelNonLinearThread/thermalConductivityComputationContainerDump.csv'
    rel_err=1.e-4
  [../]
  [./testEnsembleModelWithCode]
    type = 'RavenFramework'
    input = 'test_ensemble_model_linear_threading_with_code.xml'
-   output = 'metaModelWithCode/sampleMC/testModel++71/out~referenceInput.csv metaModelWithCode/printFinalResults.csv metaModelWithCode/printFinalResults.xml'
+   output = 'metaModelWithCode/sampleMC/testModel++71/out~referenceInput.csv metaModelWithCode/printFinalResults.xml'
    UnorderedCsv = 'metaModelWithCode/printFinalResults.csv'
    rel_err=1.e-4
  [../]
@@ -60,8 +60,16 @@
  [./testEnsembleModelWith2CodesAndAlias]
    type = 'RavenFramework'
    input = 'test_ensemble_model_with_2_codes.xml'
-   output = 'metaModelWith2Codes/printFinalResults.csv metaModelWith2Codes/printFinalResults.xml'
+   output = 'metaModelWith2Codes/printFinalResults.xml'
    UnorderedCsv = 'metaModelWith2Codes/printFinalResults.csv'
+   rel_err=1.e-4
+ [../]
+
+ [./testEnsembleModelWith2CodesAndAliasAndOptionalOutputs]
+   type = 'RavenFramework'
+   input = 'test_ensemble_model_2_codes_optional_output.xml'
+   output = 'metaModelWith2CodesAndSelectiveOutputs/printResponseModel2.csv'
+   UnorderedCsv = 'metaModelWith2CodesAndSelectiveOutputs/printResponseModel1.csv'
    rel_err=1.e-4
  [../]
 

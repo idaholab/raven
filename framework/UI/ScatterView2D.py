@@ -398,3 +398,49 @@ class ScatterView2D(BaseTopologicalView):
 
     self.mplCanvas.axes.hold(False)
     self.mplCanvas.draw()
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations. For this class in particular, we will test:
+        - Toggling the edges on and off and updating the display in both cases.
+        - Toggling all three states of the extrema display.
+        - Changing the color attribute to cycle through each of the labeled
+          variables: Segment, Minimum Flow, Maximum Flow, Local fit value, and
+          local fit error/residual.
+        - Resizing the display
+        - Subselecting the data that is displayed.
+        @ In, None
+        @ Out, None
+    """
+    self.amsc.ClearSelection()
+
+    self.axesLabelAction.setChecked(True)
+    self.chkExts.setCheckState(qtc.Qt.Checked)
+    self.chkEdges.setChecked(True)
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-5)
+    self.updateScene()
+
+    self.axesLabelAction.setChecked(False)
+    self.chkExts.setCheckState(qtc.Qt.Unchecked)
+    self.chkEdges.setChecked(True)
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-4)
+    self.updateScene()
+
+    self.chkExts.setCheckState(qtc.Qt.PartiallyChecked)
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-3)
+    self.updateScene()
+
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-2)
+    self.updateScene()
+
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-1)
+    self.updateScene()
+
+    self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
+    pair = self.amsc.GetCurrentLabels()[0]
+    self.amsc.SetSelection([pair,pair[0],pair[1]])
+    self.updateScene()
+
+    super(ScatterView2D, self).test()

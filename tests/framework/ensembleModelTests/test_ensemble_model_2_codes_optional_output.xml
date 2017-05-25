@@ -1,0 +1,168 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ensembleModelTests.testEnsembleModelWith2CodesAndAliasAndOptionalOutputs</name>
+    <author>alfoa</author>
+    <created>2017-05-17</created>
+    <classesTested>Models.Code, JobHandler.Thread</classesTested>
+    <description>
+       The main goal of this test is to show how to specify optional output in the Ensemle Model object.
+    </description>
+  </TestInfo>
+  
+  <RunInfo>
+    <JobName>testEnsembleModelWith2CodesAndAliasAndSelectiveOutputs</JobName>
+    <Sequence>
+        sampleMC,storeSelectiveResultsToHDF5,dumpResults
+    </Sequence>
+    <WorkingDir>metaModelWith2CodesAndSelectiveOutputs</WorkingDir>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Files>
+    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
+    <Input name="referenceInput2.xml" type="input">referenceInput2.xml</Input>
+  </Files>
+
+  <Models>
+    <Code name="testModel" subType="GenericCode">
+      <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg=" " extension=".csv" type="output"/>
+      <prepend>python</prepend>
+      <alias variable="AtestModel1"           type="output">A</alias>
+      <alias variable="BtestModel1"           type="output">B</alias>
+    </Code>
+    <Code name="testModel2" subType="GenericCode">
+        <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+        <clargs arg="python" type="prepend"/>
+        <clargs arg="" extension=".xml" type="input"/>
+        <clargs arg=" " extension=".csv" type="output"/>
+        <prepend>python</prepend>
+        <alias variable="AtestModel1"           type="input">init-A</alias>
+        <alias variable="BtestModel1"           type="input">init-B</alias>
+        <alias variable="AtestModel2"           type="output">A</alias>
+        <alias variable="BtestModel2"           type="output">B</alias>
+        <alias variable="CtestModel2"           type="output">C</alias>
+        <alias variable="DtestModel2"           type="output">D</alias>
+    </Code>
+    <EnsembleModel name="codeAndExtModel" subType="">
+      <Model class="Models" type="Code">
+        testModel2
+        <Input class="Files" type="">referenceInput2.xml</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">sumData</TargetEvaluation>
+        <Output class="DataObjects" type="PointSet">responseModel2</Output>
+        
+        
+      </Model>
+      <Model class="Models" type="Code">
+          testModel
+        <Input class="Files" type="">referenceInput.xml</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">samplesMC</TargetEvaluation>
+        <Output class="DataObjects" type="PointSet">responseModel1</Output>
+        
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="sigma">
+      <lowerBound>0</lowerBound>
+      <upperBound>1000</upperBound>
+    </Uniform>
+    <Uniform name="decayConstant">
+      <lowerBound>0.00000001</lowerBound>
+      <upperBound>0.0000001</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>3</limit>
+      </samplerInit>
+      <variable name="sigma-A">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay-A">
+        <distribution>decayConstant</distribution>
+      </variable>
+      <variable name="sigma-B">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay-B">
+        <distribution>decayConstant</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sampleMC">
+      <Input class="Files" type="">referenceInput.xml</Input>
+      <Input class="Files" type="">referenceInput2.xml</Input>
+      <Model class="Models" type="EnsembleModel">codeAndExtModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">finalResponses</Output>
+    </MultiRun>
+    <IOStep name="dumpResults">
+        <Input class="DataObjects" type="PointSet">finalResponses</Input>
+        <Input class="DataObjects" type="PointSet">responseModel1</Input>
+        <Input class="DataObjects" type="PointSet">responseModel2</Input>
+        <Output class="OutStreams" type="Print">printFinalResults</Output>
+        <Output class="OutStreams" type="Print">printResponseModel1</Output>
+        <Output class="OutStreams" type="Print">printResponseModel2</Output>
+    </IOStep>
+    <IOStep name="storeSelectiveResultsToHDF5">
+        <Input class="DataObjects" type="PointSet">responseModel1</Input>
+        <Input class="DataObjects" type="PointSet">responseModel2</Input>
+        <Output class="Databases"  type="HDF5">database_Model1</Output>
+        <Output class="Databases"  type="HDF5">database_Model2</Output>
+    </IOStep>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="database_Model1" readMode="overwrite"/>
+    <HDF5 name="database_Model2" readMode="overwrite"/>
+  </Databases>
+
+  <OutStreams>
+    <Print name="printFinalResults">
+      <type>csv</type>
+      <source>finalResponses</source>
+    </Print>
+    <Print name="printResponseModel1">
+        <type>csv</type>
+        <source>responseModel1</source>
+    </Print>
+    <Print name="printResponseModel2">
+        <type>csv</type>
+        <source>responseModel2</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="samplesMC">
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>AtestModel1,BtestModel1,C,D</Output>
+    </PointSet>
+    <PointSet name="sumData">
+      <Input>AtestModel1,BtestModel1</Input>
+      <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
+    </PointSet>
+    <PointSet name="finalResponses">
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>AtestModel1,BtestModel1,C,D,AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
+    </PointSet>
+    <PointSet name="responseModel1">
+        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+        <Output>AtestModel1,BtestModel1,C,D</Output>
+    </PointSet>
+    <PointSet name="responseModel2">
+        <Input>AtestModel1,BtestModel1</Input>
+        <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

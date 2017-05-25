@@ -60,11 +60,17 @@ class RavenFramework(Tester):
     params.addParam('remove_whitespace','False','Removes whitespace before comparing xml node text if True')
     params.addParam('expected_fail', 'False', 'if true, then the test should fails, and if it passes, it fails.')
     params.addParam('remove_unicode_identifier', 'False', 'if true, then remove u infront of a single quote')
+    params.addParam('interactive', 'False', 'if true, then RAVEN will be run with interactivity enabled.')
     return params
 
   def getCommand(self, options):
     ravenflag = ''
-    if self.specs['test_interface_only'].lower() == 'true': ravenflag = 'interfaceCheck '
+    if self.specs['test_interface_only'].lower() == 'true':
+      ravenflag += ' interfaceCheck '
+
+    if self.specs['interactive'].lower() == 'true':
+      ravenflag += ' interactiveCheck '
+
     if RavenUtils.inPython3():
       return "python3 " + self.driver + " " + ravenflag + self.specs["input"]
     else:
@@ -73,12 +79,13 @@ class RavenFramework(Tester):
 
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
-    self.csv_files  = self.specs['csv'         ].split(" ") if len(self.specs['csv'         ]) > 0 else []
-    self.xml_files  = self.specs['xml'         ].split(" ") if len(self.specs['xml'         ]) > 0 else []
-    self.ucsv_files = self.specs['UnorderedCsv'].split(" ") if len(self.specs['UnorderedCsv']) > 0 else []
-    self.uxml_files = self.specs['UnorderedXml'].split(" ") if len(self.specs['UnorderedXml']) > 0 else []
-    self.text_files = self.specs['text'        ].split(" ") if len(self.specs['text'        ]) > 0 else []
-    self.img_files  = self.specs['image'       ].split(" ") if len(self.specs['image'       ]) > 0 else []
+    self.check_files = self.specs['output'      ].split(" ") if len(self.specs['output'      ]) > 0 else []
+    self.csv_files   = self.specs['csv'         ].split(" ") if len(self.specs['csv'         ]) > 0 else []
+    self.xml_files   = self.specs['xml'         ].split(" ") if len(self.specs['xml'         ]) > 0 else []
+    self.ucsv_files  = self.specs['UnorderedCsv'].split(" ") if len(self.specs['UnorderedCsv']) > 0 else []
+    self.uxml_files  = self.specs['UnorderedXml'].split(" ") if len(self.specs['UnorderedXml']) > 0 else []
+    self.text_files  = self.specs['text'        ].split(" ") if len(self.specs['text'        ]) > 0 else []
+    self.img_files   = self.specs['image'       ].split(" ") if len(self.specs['image'       ]) > 0 else []
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.minimum_libraries = self.specs['minimum_library_versions'].split(' ')  if len(self.specs['minimum_library_versions']) > 0 else []
@@ -92,51 +99,88 @@ class RavenFramework(Tester):
   def checkRunnable(self, option):
     missing,too_old = _missing_modules, _too_old_modules
     if len(missing) > 0:
-      return (False,'skipped (Missing python modules: '+" ".join(missing)+
-              " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+      self.setStatus('skipped (Missing python modules: '+" ".join(missing)+
+                     " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')',
+                     self.bucket_skip)
+      return False
     if len(too_old) > 0  and RavenUtils.checkVersions():
-      return (False,'skipped (Old version python modules: '+" ".join(too_old)+
-              " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+      self.setStatus('skipped (Old version python modules: '+" ".join(too_old)+
+                     " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')',
+                     self.bucket_skip)
+      return False
     if len(self.specs['skip_if_env']) > 0:
       env_var = self.specs['skip_if_env']
       if env_var in os.environ:
-        return (False,'skipped (found environmental variable "'+env_var+'")')
+        self.setStatus('skipped (found environmental variable "'+env_var+'")',
+                       self.bucket_skip)
+        return False
     for lib in self.required_libraries:
       found, message, version =  RavenUtils.moduleReport(lib,'')
       if not found:
-        return (False,'skipped (Unable to import library: "'+lib+'")')
+        self.setStatus('skipped (Unable to import library: "'+lib+'")',
+                       self.bucket_skip)
+        return False
 
     i = 0
     if len(self.minimum_libraries) % 2:
-      return (False,'skipped (libraries are not matched to versions numbers: '+str(self.minimum_libraries)+')')
+      self.setStatus('skipped (libraries are not matched to versions numbers: '+str(self.minimum_libraries)+')',
+                     self.bucket_skip)
+      return False
     while i < len(self.minimum_libraries):
       libraryName = self.minimum_libraries[i]
       libraryVersion = self.minimum_libraries[i+1]
       found, message, actualVersion = RavenUtils.moduleReport(libraryName,libraryName+'.__version__')
       if not found:
-        return (False,'skipped (Unable to import library: "'+libraryName+'")')
+        self.setStatus('skipped (Unable to import library: "'+libraryName+'")',
+                       self.bucket_skip)
+        return False
       if distutils.version.LooseVersion(actualVersion) < distutils.version.LooseVersion(libraryVersion):
-        return (False,'skipped (Outdated library: "'+libraryName+'")')
+        self.setStatus('skipped (Outdated library: "'+libraryName+'")',
+                       self.bucket_skip)
+        return False
       i+=2
 
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
-      return (False,'skipped (Missing executable: "'+self.required_executable+'")')
+      self.setStatus('skipped (Missing executable: "'+self.required_executable+'")',
+                     self.bucket_skip)
+      return False
     try:
       if len(self.required_executable) > 0 and \
          subprocess.call([self.required_executable],stdout=subprocess.PIPE) != 0:
-        return (False,'skipped (Failing executable: "'+self.required_executable+'")')
+        self.setStatus('skipped (Failing executable: "'+self.required_executable+'")',
+                      self.bucket_skip)
+        return False
     except:
-      return (False,'skipped (Error when trying executable: "'+self.required_executable+'")')
-    return (True, '')
+      self.setStatus('skipped (Error when trying executable: "'+self.required_executable+'")',
+                     self.bucket_skip)
+      return False
+    filenameSet = set()
+    duplicateFiles = []
+    for filename in self.__getCreatedFiles():
+      if filename not in filenameSet:
+        filenameSet.add(filename)
+      else:
+        duplicateFiles.append(filename)
+    if len(duplicateFiles) > 0:
+      self.setStatus('[incorrect test] duplicated files specified: '+
+                     " ".join(duplicateFiles),
+                     self.bucket_skip)
+      return False
+    return True
+
+  def __getCreatedFiles(self):
+    """
+      Returns all the files used by this test that need to be created
+      by the test.  Note that they will be deleted at the start of running
+      the test.
+      @ Out, createdFiles, [str], list of files created by the test.
+    """
+    return self.check_files + self.csv_files+self.xml_files+self.ucsv_files+self.uxml_files+self.img_files
 
   def prepare(self, options = None):
-    if self.specs['output'].strip() != '':
-      self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
-    else:
-      self.check_files = []
-    #self.check_files += self.csv_files+self.xml_files+self.ucsv_files+self.uxml_files+self.img_files
-    for filename in self.check_files + self.csv_files+self.xml_files+self.ucsv_files+self.uxml_files+self.img_files:
+    self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.check_files]
+    for filename in self.__getCreatedFiles():
       if os.path.exists(filename):
         os.remove(filename)
 
