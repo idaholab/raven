@@ -16,7 +16,7 @@ the raven installation paths needs to be taken.
 For macOS (OSX) it is recommended that the dependencies be installed with
 Miniconda (Section \ref{miniconda}).  For Linux, it is recommended
 that the distribution package manager be used if possible (Section
-\ref{sysprep_linux}).
+\ref{sysprep_linux}) or Miniconda (Section \ref{miniconda}).
 
 There are several different ways of getting RAVEN as described in
 Section \ref{raven_installation}.  They vary depending on how easy
@@ -63,33 +63,59 @@ to run RAVEN varies.
 \subsection{Preparing a Linux System for RAVEN}
 \label{sysprep_linux}
 
-When installing RAVEN on a Linux system, it is recommended that the
-distribution's package manager be used to install the dependencies.
-Doing so automates the process and automatically includes any needed
+The installation of RAVEN dependencies on a Linux system  can be performed
+using two alternative methods: 
+
+\begin{itemize}
+    \item Native distribution's package manager
+    \item Miniconda package manager
+\end{itemize}
+
+Using one of the above automates the process and automatically includes any needed
 dependencies of the requested packages.  Below are instructions for
-doing so for two popular Linux distributions, Ubuntu and Fedora.  If
-the distribution's packages are not available or too old, either a
-direct Miniconda (See Section \ref{miniconda_direct}) or a manual
-dependency install (See Section \ref{sysprep_manual}) can be used.
+doing so for two popular Linux distributions, Ubuntu and Fedora.  
 
 \subsubsection{Ubuntu}
 
+\paragraph{Advanced Package Tool (APT)}
+
 The Ubuntu distribution of Linux makes use of the Advanced Package
-Tool (APT) to automate the installation of preconfigured software.
+Tool (APT) to automate the installation of pre-configured software.
 Ubuntu 16.4 or newer provide all the packages needed for RAVEN.  The
 following command uses the APT to add the needed packages and any
 needed dependencies not already on the system:
 
 \begin{lstlisting}[language=bash]
-sudo apt-get install libtool git python-dev swig g++ \
-  python3-dev python-numpy python-sklearn python-h5py
+ sudo apt-get install libtool git python-dev swig g++ \
+ python3-dev python-numpy python-sklearn python-h5py
 \end{lstlisting}
 
 Optionally, if you want to be able to edit and rebuild the manual, you can
 install \TeX~Live and its related packages:
 \begin{lstlisting}[language=bash]
-sudo apt-get install texlive-latex-base texlive-extra-utils \
-  texlive-latex-extra texlive-math-extra
+  sudo apt-get install texlive-latex-base \
+  texlive-extra-utils texlive-latex-extra texlive-math-extra
+\end{lstlisting}
+
+\paragraph{Miniconda}
+
+The Minoconda package manager is a cross platform installation package specifically 
+used for Python dependencies installation.
+The package manager can be downloaded and installed from \url{https://conda.io/miniconda.html}.
+After the installation of Minconda, the following command needs to be executed for the installation of
+the needed packages and any needed dependencies not already on the system:
+
+\begin{lstlisting}[language=bash]
+ conda create --name raven_libraries -y numpy=1.11.0 \
+  h5py=2.6.0 scipy=0.17.1 scikit-learn=0.17.1 \
+  matplotlib=1.5.1 python=2.7 hdf5 swig pylint lxml
+\end{lstlisting}
+
+Optionally, if you want to be able to edit and rebuild the manual, you can
+install \TeX~Live and its related packages:
+\begin{lstlisting}[language=bash]
+  sudo apt-get install texlive-latex-base \
+  texlive-extra-utils texlive-latex-extra texlive-math-extra
 \end{lstlisting}
 
 \goToRavenInstallation
