@@ -25,6 +25,7 @@ import xml.etree.ElementTree as ET
 import xml.dom.minidom as pxml
 import re
 import os
+from .utils import isString
 
 #define type checking
 def isComment(node):
@@ -206,7 +207,7 @@ def fixXmlText(msg):
     @ Out, msg, string, fixed string
   """
   #if not a string, pass it back through
-  if not type(msg).__name__ in ['unicode','str']:
+  if not isString(msg):
     return msg
   #otherwise, replace illegal characters with "?"
   # from http://boodebr.org/main/python/all-about-python-and-unicode#UNI_XML
@@ -226,7 +227,7 @@ def fixXmlTag(msg):
     @ Out, msg, string, fixed string
   """
   #if not a string, pass it back through
-  if not type(msg).__name__ in ['unicode','str']:
+  if not isString(msg):
     return msg
   #define some presets
   letters = u'([a-zA-Z])'
