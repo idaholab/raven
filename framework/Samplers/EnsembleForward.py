@@ -74,11 +74,11 @@ class EnsembleForwardSampler(ForwardSampler):
           if childChild.tag == 'function':
             self.dependentSample[child.attrib['name']] = childChild.text
           else:
-            self.raiseAnError(IOError,"Error")
-      #elif child.tag in knownTypes():
-      #  self.raiseAnError(IOError,"Sampling strategy "+child.tag+" is not usable in "+self.type+" Sampler. Available are "+",".join(self.acceptableSamplers))
-      #else:
-      #  self.raiseAnError(IOError,"XML node "+ child.tag + " unknown. Check the Manual!")
+            self.raiseAnError(IOError,"Variable " + str(child.attrib['name']) + " must be defined by a function since it is located outside the samplers block")
+      elif child.tag in knownTypes():
+        self.raiseAnError(IOError,"Sampling strategy "+child.tag+" is not usable in "+self.type+" Sampler. Available are "+",".join(self.acceptableSamplers))
+      else:
+        self.raiseAnError(IOError,"XML node "+ child.tag + " unknown. Check the Manual!")
 
   def _localWhatDoINeed(self):
     """
@@ -113,7 +113,7 @@ class EnsembleForwardSampler(ForwardSampler):
 
     for key,val in self.dependentSample.items():
       if val not in availableFunc.keys():
-        self.raiseAnError('Function',val,'was not found among the available functions:',availableFunc.keys())
+        self.raiseAnError(IOError, 'Function ',val,' was not found among the available functions:',availableFunc.keys())
       self.funcDict[key] = availableFunc[val]
       # check if the correct method is present
       if "evaluate" not in self.funcDict[key].availableMethods():
@@ -151,7 +151,7 @@ class EnsembleForwardSampler(ForwardSampler):
                 'constructTensor':False,
                 'excludeBounds':{'lowerBounds':False,'upperBounds':True}}
     self.gridEnsemble.initialize(initDict)
-    
+
 
   def localGenerateInput(self,model,myInput):
     """
@@ -171,7 +171,7 @@ class EnsembleForwardSampler(ForwardSampler):
       for key in combination.keys():
         if key not in self.inputInfo.keys():
           self.inputInfo[key] = combination[key]
-          
+
         else:
           if type(self.inputInfo[key]).__name__ == 'dict':
             self.inputInfo[key].update(combination[key])
@@ -180,17 +180,12 @@ class EnsembleForwardSampler(ForwardSampler):
     for key in self.inputInfo.keys():
       if key.startswith('ProbabilityWeight-'):
         self.inputInfo['ProbabilityWeight' ] *= self.inputInfo[key]
-    self.inputInfo['SamplerType'] = 'EnsembleForward' 
-    
-    # Update dependent variables  
+    self.inputInfo['SamplerType'] = 'EnsembleForward'
+
+    # Update dependent variables
     for var in self.dependentSample.keys():
       test=self.funcDict[var].evaluate("evaluate",self.inputInfo['SampledVars'])
       for corrVar in var.split(","):
         self.values[corrVar.strip()] = test
         self.inputInfo['SampledVars'][corrVar.strip()] = test
-    
-    #print(self.inputInfo['SampledVars'])
-    
-    
-    
-    
+
