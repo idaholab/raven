@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 import matplotlib.colors as colors
+import cPickle as pk
 
 samps = 500
 
@@ -30,19 +31,21 @@ def plotFunction(title,method,low,high,log=True):
 # Beale
 from beale import evaluate as beale
 x,y,z = plotFunction('Beale',beale,-4.5,4.5)
-import cPickle as pk
 pk.dump((x,y,z),file('beale_plotdata.pk','w'))
 
 # Rosenbrock
 from rosenbrock import evaluate2d as rosenbrock
-plotFunction('Rosenbrock',rosenbrock,-2,2)
+x,y,z = plotFunction('Rosenbrock',rosenbrock,-2,2)
+pk.dump((x,y,z),file('rosenbrock_plotdata.pk','w'))
 
 # Goldstein-Price
 from goldstein_price import evaluate as goldstein_price
-plotFunction('Goldstein-Price',goldstein_price,-2,2)
+x,y,z = plotFunction('Goldstein-Price',goldstein_price,-2,2)
+pk.dump((x,y,z),file('goldsteinprice_plotdata.pk','w'))
 
 # McCormick
 from mccormick import evaluate as mccormick
-plotFunction('McCormick',mccormick,-3,4,log=False)
+x,y,z = plotFunction('McCormick',mccormick,-3,4,log=False)
+pk.dump((x,y,z),file('mccormick_plotdata.pk','w'))
 
 plt.show()

@@ -37,7 +37,7 @@ from sklearn.neighbors import NearestNeighbors
 #Internal Modules------------------------------------------------------------------------------------
 from .Optimizer import Optimizer
 from Assembler import Assembler
-from utils import utils,cached_ndarray
+from utils import utils,cached_ndarray,mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GradientBasedOptimizer(Optimizer):
@@ -187,8 +187,8 @@ class GradientBasedOptimizer(Optimizer):
     gradient = {}
     for var in self.optVars:
       gradient[var] = gradArray[var].mean()
-    gradient     = self.localEvaluateGradient(optVarsValues, gradient)
-    gradientNorm =  np.linalg.norm(gradient.values())
+    gradient = self.localEvaluateGradient(optVarsValues, gradient)
+    gradientNorm = np.linalg.norm(gradient.values())
     if gradientNorm > 0.0:
       for var in gradient.keys():
         gradient[var] = gradient[var]/gradientNorm
@@ -262,7 +262,7 @@ class GradientBasedOptimizer(Optimizer):
         varK               = self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
         varK               = self.denormalizeData(varK)
         absDifference      = abs(currentLossValue-oldVal)
-        relativeDifference = abs(absDifference/oldVal)
+        relativeDifference = mathUtils.relativeDiff(currentLossValue,oldVal)
         # checks
         sameCoordinateCheck = set(self.optVarsHist[traj][varsUpdate].items()) == set(self.optVarsHist[traj][varsUpdate-1].items())
         gradientNormCheck   = gradNorm <= self.gradientNormTolerance

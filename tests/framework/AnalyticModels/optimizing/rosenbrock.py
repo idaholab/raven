@@ -8,12 +8,12 @@
 
 import numpy as np
 
-def evaluate2d(x,y):
+def evaluate2d(X,Y):
   return 100*(Y-X*X)**2 + (X-1)**2
 
 def evaluate(*args):#xs):
-  xs = np.array(xs)
-  return np.sum( 100*(xs[1:] - xs[:-1]**2)**2 + (xs[:-1] - 1)**2 )
+  xs = np.array(args)
+  return np.sum( 100.*(xs[1:] - xs[:-1]**2)**2 + (xs[:-1] - 1.)**2 )
 
 def run(self,Inputs):
   self.ans = evaluate(Inputs.values())
