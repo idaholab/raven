@@ -17,7 +17,7 @@
 
   <RunInfo>
     <WorkingDir>Beale</WorkingDir>
-    <Sequence>optimize,print,getOptPoint</Sequence>
+    <Sequence>optimize,getOptPoint,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -30,12 +30,8 @@
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">optOut</Input>
       <Input class="DataObjects" type="HistorySet">opt_export</Input>
-      <Output class="OutStreams" type="Print">opt_dump</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
-      <Output class="OutStreams" type="Plot">trajectory</Output>
-      <Output class="OutStreams" type="Plot">convergenceHistory</Output>
     </IOStep>
     <PostProcess name="getOptPoint">
       <Input class="DataObjects" type="HistorySet">opt_export</Input>
@@ -90,21 +86,17 @@
       <Input>x,y</Input>
       <Output>ans</Output>
     </PointSet>
-    <HistorySet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
-    </HistorySet>
     <PointSet name="opt_soln">
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate</Output>
     </PointSet>
+    <HistorySet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </HistorySet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="opt_dump">
-      <type>csv</type>
-      <source>optOut</source>
-    </Print>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
@@ -113,42 +105,6 @@
       <type>csv</type>
       <source>opt_soln</source>
     </Print>
-    <Plot  name="trajectory" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <plot>
-                <type>scatter</type>
-                <x>optOut|Input|x</x>
-                <y>optOut|Input|y</y>
-                <z>optOut|Output|ans</z>
-            </plot>
-            <xlabel>x</xlabel>
-            <ylabel>y</ylabel>
-            <zlabel>ans</zlabel>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
-    </Plot>
-    <Plot  name="convergenceHistory" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <plot>
-                <type>scatter</type>
-                <x>opt_export|Output|varsUpdate</x>
-                <y>opt_export|Output|ans</y>
-            </plot>
-            <xlabel>iteration</xlabel>
-            <ylabel>ans</ylabel>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
-    </Plot>
   </OutStreams>
 
 </Simulation>
