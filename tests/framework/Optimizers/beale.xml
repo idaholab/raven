@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <!-- Test info -->
   <TestInfo>
     <name>framework/Optimizers/Beale</name>
     <author>talbpaul</author>
@@ -16,7 +15,6 @@
     </analytic>
   </TestInfo>
 
-  <!-- actual RAVEN input -->
   <RunInfo>
     <WorkingDir>Beale</WorkingDir>
     <Sequence>optimize,print,getOptPoint</Sequence>
@@ -62,19 +60,12 @@
       <variable name='x'>
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
-        <!--initial>0,-2,-2,2,2</initial-->
       </variable>
       <variable name='y'>
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
-        <!--initial>0,-3,3,-3,3</initial-->
       </variable>
       <objectVar>ans</objectVar>
-      <!--multilevel>
-        <subspace name='first'>x</subspace>
-        <subspace name='second'>y</subspace>
-        <sequence>first,second</sequence>
-      </multilevel-->
     </SPSA>
   </Optimizers>
 
