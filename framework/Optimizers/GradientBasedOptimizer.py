@@ -69,6 +69,7 @@ class GradientBasedOptimizer(Optimizer):
     self.counter['varsUpdate'     ] = {}
     self.counter['solutionUpdate' ] = {}
     self.counter['lastStepSize'   ] = {}              # counter to track the last step size taken, by trajectory
+    self.convergenceProgress        = {}              # dict by trajectory of the convergence of each criteria (relative/absolute loss value, gradient magnitude)
     self.convergeTraj = {}
 
   def localInputAndChecks(self, xmlNode):
@@ -263,6 +264,7 @@ class GradientBasedOptimizer(Optimizer):
         varK               = self.denormalizeData(varK)
         absDifference      = abs(currentLossValue-oldVal)
         relativeDifference = mathUtils.relativeDiff(currentLossValue,oldVal)
+        self.convergenceProgress[traj] = {'abs':absDifference,'rel':relativeDifference,'grad':gradNorm}
         # checks
         sameCoordinateCheck = set(self.optVarsHist[traj][varsUpdate].items()) == set(self.optVarsHist[traj][varsUpdate-1].items())
         gradientNormCheck   = gradNorm <= self.gradientNormTolerance
@@ -375,16 +377,42 @@ class GradientBasedOptimizer(Optimizer):
 
               tempTrajOutput = tempOutput.get(trajID, {})
               for var in self.solutionExport.getParaKeys('outputs'):
+                old = copy.deepcopy(tempTrajOutput.get(var, np.asarray([])))
+                new = None #prevents accidental data copying
                 if var in self.optVars:
-                  tempTrajOutputVar = copy.deepcopy(tempTrajOutput.get(var, np.asarray([])))
-                  self.solutionExport.updateOutputValue([trajID,var],np.append(tempTrajOutputVar,np.asarray(inputeval[var][index])))
+                  new = inputeval[var][index]
                 elif var == self.objVar:
-                  tempTrajOutputVar = copy.deepcopy(tempTrajOutput.get(var, np.asarray([])))
-                  #self.solutionExport.updateOutputValue([trajID,var], np.append(tempTrajOutputVar,np.asarray(outputeval[var][index])))
-                  self.solutionExport.updateOutputValue([trajID,var], np.append(tempTrajOutputVar,np.asarray(currentObjectiveValue)))
-              if 'varsUpdate' in self.solutionExport.getParaKeys('outputs'):
-                tempTrajOutputVar = copy.deepcopy(tempTrajOutput.get('varsUpdate', np.asarray([])))
-                self.solutionExport.updateOutputValue([trajID,'varsUpdate'], np.append(tempTrajOutputVar,np.asarray([self.counter['solutionUpdate'][traj]])))
+                  new = currentObjectiveValue
+                elif var == 'varsUpdate':
+                  new = [self.counter['solutionUpdate'][traj]]
+                elif var == '_stepSize':
+                  try:
+                    new = [self.counter['lastStepSize'][traj]]
+                  except KeyError:
+                    new = np.nan
+                elif var.startswith( '_gradient_'):
+                  varName = var[10:]
+                  vec = self.counter['gradientHistory'][traj][0].get(varName,np.nan)
+                  new = vec*self.counter['gradNormHistory'][traj][0]
+                elif var.startswith( '_convergence_abs'):
+                  try:
+                    new = self.convergenceProgress[traj].get('abs',np.nan)
+                  except KeyError:
+                    new = np.nan
+                elif var.startswith( '_convergence_rel'):
+                  try:
+                    new = self.convergenceProgress[traj].get('rel',np.nan)
+                  except KeyError:
+                    new = np.nan
+                elif var.startswith( '_convergence_grad'):
+                  try:
+                    new = self.convergenceProgress[traj].get('grad',np.nan)
+                  except KeyError:
+                    new = np.nan
+                else:
+                  self.raiseAnError(IOError,'Unrecognized output request:',var)
+                new = np.asarray(new)
+                self.solutionExport.updateOutputValue([trajID,var],np.append(old,new))
 
               self.counter['solutionUpdate'][traj] += 1
           else:
