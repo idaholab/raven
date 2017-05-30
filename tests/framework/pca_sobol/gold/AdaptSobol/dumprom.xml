@@ -1,33 +1,4 @@
-<?xml version="1.0" ?>
 <ROM type="Static">
-  <ans2>
-    <mean>0.981905773532</mean>
-    <expectedValue>0.981905773532</expectedValue>
-    <variance>0.0800718010664</variance>
-    <samples>49</samples>
-    <partialVariance>
-      <y1>0.0569618562754</y1>
-      <y3>0.0166831995066</y3>
-      <y2>0.00568025665382</y2>
-      <y4>0.000397467469312</y4>
-      <y5>0.000349021161192</y5>
-    </partialVariance>
-    <sobolIndices>
-      <y1>0.711384726168</y1>
-      <y3>0.208352994243</y3>
-      <y2>0.070939538991</y2>
-      <y4>0.00496388821056</y4>
-      <y5>0.00435885238678</y5>
-    </sobolIndices>
-    <sobolTotalIndices>
-      <y1>0.711384726168</y1>
-      <y3>0.208352994243</y3>
-      <y2>0.070939538991</y2>
-      <y4>0.00496388821056</y4>
-      <y5>0.00435885238678</y5>
-    </sobolTotalIndices>
-  </ans2>
-
   <ans>
     <mean>1.35589720456</mean>
     <expectedValue>1.35589720456</expectedValue>
@@ -56,4 +27,31 @@
     </sobolTotalIndices>
   </ans>
 
+  <ans2>
+    <mean>0.981905773532</mean>
+    <expectedValue>0.981905773532</expectedValue>
+    <variance>0.0800718010664</variance>
+    <samples>49</samples>
+    <partialVariance>
+      <y1>0.0569618562754</y1>
+      <y3>0.0166831995066</y3>
+      <y2>0.00568025665382</y2>
+      <y4>0.000397467469312</y4>
+      <y5>0.000349021161192</y5>
+    </partialVariance>
+    <sobolIndices>
+      <y1>0.711384726168</y1>
+      <y3>0.208352994243</y3>
+      <y2>0.070939538991</y2>
+      <y4>0.00496388821056</y4>
+      <y5>0.00435885238678</y5>
+    </sobolIndices>
+    <sobolTotalIndices>
+      <y1>0.711384726168</y1>
+      <y3>0.208352994243</y3>
+      <y2>0.070939538991</y2>
+      <y4>0.00496388821056</y4>
+      <y5>0.00435885238678</y5>
+    </sobolTotalIndices>
+  </ans2>
 </ROM>

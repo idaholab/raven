@@ -255,7 +255,7 @@ class HistorySet(Data):
       @ Out, None
     """
     if isinstance(value,np.ndarray):
-      self.raiseADebug('FIXME: Converted np.ndarray into c1darray in HistorySet!')
+      #self.raiseADebug('FIXME: Converted np.ndarray into c1darray in HistorySet!')
       value = c1darray(values=value)
     if not isinstance(value,c1darray):
       self.raiseAnError(NotConsistentData,'HistorySet Data accepts only cached_ndarray as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
