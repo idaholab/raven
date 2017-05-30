@@ -25,7 +25,6 @@ import copy
 import relapdata
 import shutil
 import re
-from  __builtin__ import any as bAny
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class Relap5(CodeInterfaceBase):
@@ -107,7 +106,6 @@ class Relap5(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
-    from  __builtin__ import any as bAny
     failure = True
     errorWord = ["Transient terminated by end of time step cards","Transient terminated by trip"]
     try:
@@ -116,7 +114,7 @@ class Relap5(CodeInterfaceBase):
       return failure
     readLines = outputToRead.readlines()
     for goodMsg in errorWord:
-      if bAny(goodMsg in x for x in readLines):
+      if any(goodMsg in x for x in readLines):
         failure = False
         break
     return failure

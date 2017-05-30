@@ -748,7 +748,7 @@ class BasicStatistics(PostProcessor):
     metric = 'samples'
     startMetric(metric)
     for targetP in needed[metric]:
-      calculations[metric][targetP] = len(input['targets'].values()[0])
+      calculations[metric][targetP] = len(utils.first(input['targets'].values()))
     #
     # expected value
     #
