@@ -218,6 +218,11 @@ class EnsembleModel(Dummy):
     """
     # in here we store the job ids for which we did not collected the optional output yet
     self.tempOutputs['uncollectedJobIds'] = []
+    # collect name of all the outputs in the Step
+    outputsNames = []
+    if initDict is not None:
+      outputsNames = [output.name for output in initDict['Output']]
+
     # here we check if all the inputs inputted in the Step containing the EnsembleModel are acttualy used
     checkDictInputsUsage = {}
     for input in inputs:
@@ -237,6 +242,8 @@ class EnsembleModel(Dummy):
           outputObject = self.retrieveObjectFromAssemblerDict('Output',output)
           if type(outputObject).__name__ == 'HDF5':
             self.raiseAnError(IOError, "Only DataObjects are allowed as optional Outputs. Got HDF5!")
+          if outputObject.name not in outputsNames:
+            self.raiseAnError(IOError, "The optional Output "+outputObject.name+" listed for Model "+modelIn[2]+" is not present among the Step outputs!!!")
           outputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Output',output))
         self.modelsDictionary[modelIn[2]]['OutputObject'] = outputInstancesForModel
         self.tempOutputs[modelIn[2]] = copy.deepcopy(outputInstancesForModel)
@@ -404,7 +411,6 @@ class EnsembleModel(Dummy):
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
-
     out = evaluation[1]
     exportDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
     exportDictTargetEvaluation = {}
@@ -438,15 +444,16 @@ class EnsembleModel(Dummy):
         # collect optional data
         for index, optionalOut in enumerate(optionalOutputs[modelIn]):
           inputsValuesOptionalOut    = optionalOut.getParametersValues('inputs', nodeId = 'RecontructEnding')
-          outputsValuesOptionalOut   = optionalOut.getParametersValues('outputs', nodeId = 'RecontructEnding')
-          metadataValuesOptionalOut  = optionalOut.getAllMetadata(nodeId = 'RecontructEnding')
           inputsValuesOptionalOut    = inputsValuesOptionalOut if optionalOut.type != 'HistorySet' else inputsValuesOptionalOut.values()[-1]
-          for key in self.modelsDictionary[modelIn]['OutputObject'][index].getParaKeys('inputs'):#  inputsValuesOptionalOut.items():
+          outputsValuesOptionalOut   = optionalOut.getParametersValues('outputs', nodeId = 'RecontructEnding')
+          outputsValuesOptionalOut   = outputsValuesOptionalOut if optionalOut.type != 'HistorySet' else outputsValuesOptionalOut.values()[-1]
+          metadataValuesOptionalOut  = optionalOut.getAllMetadata(nodeId = 'RecontructEnding')
+          for key in self.modelsDictionary[modelIn]['OutputObject'][index].getParaKeys('inputs'):
             if key in inputsValuesOptionalOut:
               self.modelsDictionary[modelIn]['OutputObject'][index].updateInputValue (key,inputsValuesOptionalOut[key])
             else:
               self.raiseAWarning('Input key "'+key+'" is not contained in output '+self.modelsDictionary[modelIn]['OutputObject'][index].name)
-          for key in self.modelsDictionary[modelIn]['OutputObject'][index].getParaKeys('outputs'):#  inputsValuesOptionalOut.items():
+          for key in self.modelsDictionary[modelIn]['OutputObject'][index].getParaKeys('outputs'):
             if key in outputsValuesOptionalOut:
               self.modelsDictionary[modelIn]['OutputObject'][index].updateOutputValue (key,outputsValuesOptionalOut[key])
             else:
@@ -454,19 +461,24 @@ class EnsembleModel(Dummy):
           for key,value in metadataValuesOptionalOut.items():
             self.modelsDictionary[modelIn]['OutputObject'][index].updateMetadata(key,value[-1])
 
+    # collect the output of the STEP
     if output.type == 'HDF5':
       output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
-      if output.name in exportDictTargetEvaluation.keys():
-        exportDict = exportDictTargetEvaluation[output.name]
-      for key in exportDict['inputSpaceParams' ] :
-        if key in output.getParaKeys('inputs'):
-          output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
-      for key in exportDict['outputSpaceParams'] :
-        if key in output.getParaKeys('outputs'):
-          output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
-      for key in exportDict['metadata']:
-        output.updateMetadata(key,exportDict['metadata'][key][-1])
+      optionalOutputNames = []
+      for value in optionalOutputs.values():
+        optionalOutputNames+=[obj.name for obj in value]
+      if output.name not in optionalOutputNames:
+        if output.name in exportDictTargetEvaluation.keys():
+          exportDict = exportDictTargetEvaluation[output.name]
+        for key in exportDict['inputSpaceParams' ] :
+          if key in output.getParaKeys('inputs'):
+            output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
+        for key in exportDict['outputSpaceParams'] :
+          if key in output.getParaKeys('outputs'):
+            output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
+        for key in exportDict['metadata']:
+          output.updateMetadata(key,exportDict['metadata'][key][-1])
 
   def getAdditionalInputEdits(self,inputInfo):
     """
@@ -553,15 +565,15 @@ class EnsembleModel(Dummy):
     samplerType = inRun[1]
     inputKwargs = inRun[2]
     identifier = inputKwargs.pop('prefix')
-
+    tempOutputs = {}
+    tempTargetEvaluations = {}
     for modelIn in self.orderList:
       self.tempTargetEvaluations[modelIn].resetData()
+      tempTargetEvaluations[modelIn] = copy.deepcopy(self.tempTargetEvaluations[modelIn])
       for i in range(len(self.tempOutputs[modelIn])):
         self.tempOutputs[modelIn][i].resetData()
-    tempTargetEvaluations = copy.deepcopy(self.tempTargetEvaluations)
-    tempOutputs           = copy.deepcopy(self.tempOutputs)
+      tempOutputs[modelIn] = copy.deepcopy(self.tempOutputs[modelIn])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
-
     gotOutputs       = [{}]*len(self.orderList)
     typeOutputs      = ['']*len(self.orderList)
 
