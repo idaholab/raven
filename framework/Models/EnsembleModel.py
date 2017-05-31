@@ -117,6 +117,8 @@ class EnsembleModel(Dummy):
               self.modelsDictionary[modelName][childChild.tag].append(childChild.text.strip())
             except AttributeError:
               self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
+            except KeyError:
+              self.raiseAnError(IOError, 'The role '+str(childChild.tag) +" can not be used in the EnsebleModel. Check the manual for allowable nodes!")
         if self.modelsDictionary[modelName].values().count(None) != 1:
           self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
         if len(self.modelsDictionary[modelName]['Input']) == 0:
@@ -254,6 +256,8 @@ class EnsembleModel(Dummy):
         if mm not in self.mods:
           self.mods.append(mm)
       self.modelsDictionary[modelIn[2]]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
+      if self.modelsDictionary[modelIn[2]]['TargetEvaluation'].type not in ['PointSet','HistorySet']:
+        self.raiseAnError(IOError, "Only DataObjects are allowed as TargetEvaluation object. Got "+ str(self.modelsDictionary[modelIn[2]]['TargetEvaluation'].type)+"!")
       self.tempTargetEvaluations[modelIn[2]]                = copy.deepcopy(self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
       self.modelsDictionary[modelIn[2]]['Input' ]           = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
       self.modelsDictionary[modelIn[2]]['Output']           = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
