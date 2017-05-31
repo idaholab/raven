@@ -417,6 +417,7 @@ class EnsembleModel(Dummy):
     outcomes, targetEvaluations, optionalOutputs = out
     try:
       jobIndex = self.tempOutputs['uncollectedJobIds'].index(finishedJob.identifier)
+      self.tempOutputs['uncollectedJobIds'].pop(jobIndex)
     except ValueError:
       jobIndex = None
     for modelIn in self.modelsDictionary.keys():
@@ -466,8 +467,9 @@ class EnsembleModel(Dummy):
       output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       optionalOutputNames = []
-      for value in optionalOutputs.values():
-        optionalOutputNames+=[obj.name for obj in value]
+      for key, value in optionalOutputs.items():
+        if key != 'uncollectedJobIds':
+          optionalOutputNames+=[obj.name for obj in value]
       if output.name not in optionalOutputNames:
         if output.name in exportDictTargetEvaluation.keys():
           exportDict = exportDictTargetEvaluation[output.name]
