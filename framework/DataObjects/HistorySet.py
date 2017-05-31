@@ -255,7 +255,7 @@ class HistorySet(Data):
       @ Out, None
     """
     if isinstance(value,np.ndarray):
-      self.raiseADebug('FIXME: Converted np.ndarray into c1darray in HistorySet!')
+      #self.raiseADebug('FIXME: Converted np.ndarray into c1darray in HistorySet!')
       value = c1darray(values=value)
     if not isinstance(value,c1darray):
       self.raiseAnError(NotConsistentData,'HistorySet Data accepts only cached_ndarray as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
@@ -295,7 +295,7 @@ class HistorySet(Data):
         self._dataContainer = tsnode.get('dataContainer')
       if namep in self._dataContainer['outputs'].keys():
         self._dataContainer['outputs'].pop(namep)
-      if namep not in self._dataParameters['inParam']:
+      if namep not in self._dataParameters['outParam']:
         self._dataParameters['outParam'].append(namep)
       self._dataContainer['outputs'][namep] = c1darray(values=np.atleast_1d(np.array(value,dtype=float)))
       self.addNodeInTreeMode(tsnode,options)

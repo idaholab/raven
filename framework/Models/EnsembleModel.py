@@ -404,7 +404,6 @@ class EnsembleModel(Dummy):
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
-
     out = evaluation[1]
     exportDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
     exportDictTargetEvaluation = {}
@@ -695,6 +694,5 @@ class EnsembleModel(Dummy):
         if residueContainer['TotalResidue'] <= self.convergenceTol:
           self.raiseAMessage("Picard's Iteration converged. Norm: "+ str(residueContainer['TotalResidue']))
           break
-
     returnEvaluation = returnDict, tempTargetEvaluations, tempOutputs
     return returnEvaluation
