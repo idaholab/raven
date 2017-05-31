@@ -36,6 +36,7 @@ from utils import InputData
 from Csv_loader import CsvLoader
 import Files
 from DataObjects import Data
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Code(Model):
@@ -89,12 +90,12 @@ class Code(Model):
       @ Out, None
     """
     #FIXME think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][1]['class'       ] = 'Files'
+    cls.validateDict['Input'] = [cls.testDict.copy()]
+    cls.validateDict['Input'  ][0]['class'       ] = 'Files'
     # FIXME there's lots of types that Files can be, so until XSD replaces this, commenting this out
     #validateDict['Input'  ][1]['type'        ] = ['']
-    cls.validateDict['Input'  ][1]['required'    ] = False
-    cls.validateDict['Input'  ][1]['multiplicity'] = 'n'
+    cls.validateDict['Input'  ][0]['required'    ] = False
+    cls.validateDict['Input'  ][0]['multiplicity'] = 'n'
 
   def __init__(self,runInfoDict):
     """
@@ -556,10 +557,11 @@ class Code(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
       self.raiseAnError(AttributeError,"No available Output to collect")
 
-    sampledVars,outputDict = finishedJob.getEvaluation()
+    sampledVars,outputDict = evaluation
 
     ## The single run does not perturb data, however RAVEN expects something in
     ## the input space, so let's just put a 0 entry for the inputPlaceHolder
@@ -609,7 +611,6 @@ class Code(Model):
       options['metadata'] = metadata
 
     exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputDict,'metadata':metadata, 'prefix':finishedJob.identifier})
-
     self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
     if output.type == 'HDF5':
       optionsIn = {'group':self.name+str(finishedJob.identifier)}
@@ -641,12 +642,18 @@ class Code(Model):
       output.addGroupDataObjects({'group':self.name+str(prefix)},exportDict,False)
     else:
       #point set
-      for key in exportDict['inputSpaceParams']:
-        if key in output.getParaKeys('inputs'):
+      for key in output.getParaKeys('inputs'):
+        if key in exportDict['inputSpaceParams']:
           output.updateInputValue(key,exportDict['inputSpaceParams'][key],options)
-      for key in exportDict['outputSpaceParams']:
-        if key in output.getParaKeys('outputs'):
-          output.updateOutputValue(key,exportDict['outputSpaceParams'][key], options)
+        else:
+          self.raiseAnError(Exception, "the input parameter "+key+" requested in the DataObject "+output.name+
+                                       " has not been found among the Model input paramters ("+",".join(exportDict['inputSpaceParams'].keys())+"). Check your input!")
+      for key in output.getParaKeys('outputs'):
+        if key in exportDict['outputSpaceParams']:
+          output.updateOutputValue(key,exportDict['outputSpaceParams'][key],options)
+        else:
+          self.raiseAnError(Exception, "the output parameter "+key+" requested in the DataObject "+output.name+
+                                       " has not been found among the Model output paramters ("+",".join(exportDict['outputSpaceParams'].keys())+"). Check your input!")
       for key in exportDict['metadata']:
         output.updateMetadata(key,exportDict['metadata'][key], options)
       output.numAdditionalLoadPoints += 1 #prevents consistency problems for entries from restart

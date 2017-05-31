@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <ROM type="Static">
   <ans>
     <mean>0.981601145476</mean>
@@ -27,5 +26,4 @@
       <y5>0.00459687437257</y5>
     </sobolTotalIndices>
   </ans>
-
 </ROM>

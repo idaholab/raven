@@ -229,11 +229,18 @@ class Dummy(Model):
     if not set(output.getParaKeys('inputs') + output.getParaKeys('outputs')).issubset(set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))):
       missingParameters = set(output.getParaKeys('inputs') + output.getParaKeys('outputs')) - set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))
       self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")
-    for key in exportDict[inKey ]:
-      if key in output.getParaKeys('inputs'):
-        output.updateInputValue (key,exportDict[inKey][key],options)
-    for key in exportDict[outKey]:
-      if key in output.getParaKeys('outputs'):
-        output.updateOutputValue(key,exportDict[outKey][key])
+
+    for key in output.getParaKeys('inputs'):
+      if key in exportDict[inKey ]:
+        output.updateInputValue(key,exportDict[inKey ][key],options)
+      else:
+        self.raiseAnError(Exception, "the input parameter "+key+" requested in the DataObject "+output.name+
+                                  " has not been found among the Model input paramters ("+",".join(exportDict[inKey ].keys())+"). Check your input!")
+    for key in output.getParaKeys('outputs'):
+      if key in exportDict[outKey]:
+        output.updateOutputValue(key,exportDict[outKey][key],options)
+      else:
+        self.raiseAnError(Exception, "the output parameter "+key+" requested in the DataObject "+output.name+
+                                  " has not been found among the Model output paramters ("+",".join(exportDict[outKey].keys())+"). Check your input!")
     for key in exportDict['metadata']:
       output.updateMetadata(key,exportDict['metadata'][key])

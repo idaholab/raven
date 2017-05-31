@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <ROM type="Static">
   <ans>
     <mean>1.0296</mean>
@@ -42,5 +41,4 @@
       <y1.y3>0.0178341497857</y1.y3>
     </sobolTotalIndices>
   </ans>
-
 </ROM>
