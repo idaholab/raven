@@ -125,15 +125,18 @@ class SPSA(GradientBasedOptimizer):
       #   trajectory gets even treatment.
       traj = self.optTrajLive.pop(0)
       self.optTrajLive.append(traj)
+      print('DEBUGG trajectory status:',self.status[traj])
       #see if trajectory needs starting
-      if self.counter['varsUpdate'][traj] not in self.optVarsHist[traj].keys():
+      #if self.counter['varsUpdate'][traj] not in self.optVarsHist[traj].keys():
+      if self.status[traj][0] == 'not started':
         self.nextActionNeeded = ('start new trajectory',traj)
-        break #return True
+        break
       # see if there are points needed for evaluating a gradient, pick one
-      elif self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
+      #elif self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
+      elif self.status[traj][0] == 'submitting grad eval points':
         self.nextActionNeeded = ('add new grad evaluation point',traj)
-        break #return True
-      else:
+        break
+      elif self.status[traj][0] == 'collecting grad eval points':
         # since all evaluation points submitted, check if we have enough collected to evaluate a gradient
         evalNotFinish = False
         for pertID in range(1,self.gradDict['pertNeeded']+1):
@@ -141,12 +144,14 @@ class SPSA(GradientBasedOptimizer):
             evalNotFinish = True
             break
         if not evalNotFinish:
+          self.status[traj] = ('evaluate gradient',self.counter['varsUpdate'][traj])
           # enough evaluations are done to calculate this trajectory's gradient
           #evaluate the gradient TODO don't actually evaluate it, until we get Andrea's branch merged in
           self.nextActionNeeded = ('evaluate gradient',traj)
-          break #return True
+          break
     # if we did not find an action, we're not ready to provide an input
     if self.nextActionNeeded[0] is None:
+      print('DEBUGG statuses:',self.status)
       self.raiseADebug('Not ready to provide a sample yet.')
       return False
     else:
@@ -196,6 +201,7 @@ class SPSA(GradientBasedOptimizer):
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(data)
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
       self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],'v')
+      self.status[traj] = ('collecting new opt point',self.counter['varsUpdate'][traj])
 
     elif action == 'add new grad evaluation point':
       self.counter['perturbation'][traj] += 1
@@ -232,6 +238,7 @@ class SPSA(GradientBasedOptimizer):
 
 
       # get one of the perturbations to run
+      # TODO rename loc1, loc2
       loc1 = self.counter['perturbation'][traj] % 2
       loc2 = np.floor(self.counter['perturbation'][traj] / 2) if loc1 == 1 else np.floor(self.counter['perturbation'][traj] / 2) - 1
       tempOptVars = {}
@@ -242,6 +249,10 @@ class SPSA(GradientBasedOptimizer):
         self.values[var] = tempOptVarsDenorm[var]
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation)
       self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],self.counter['perturbation'][traj])
+      # if all required points are submitted, switch into collection mode
+      print('DEBUGG swapping to collect mode?:',self.counter)
+      if self.counter['perturbation'][traj] == self.gradDict['pertNeeded']:
+        self.status[traj] = ('collecting grad eval points',self.counter['varsUpdate'][traj])
 
     elif action == 'evaluate gradient':
       # evaluation completed for gradient evaluation
@@ -272,6 +283,7 @@ class SPSA(GradientBasedOptimizer):
       # remove redundant trajectory
       if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
         self._removeRedundantTraj(traj, self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
+      self.status[traj] = ('collecting new opt point',self.counter['varsUpdate'])
 
     #unrecognized action
     else:

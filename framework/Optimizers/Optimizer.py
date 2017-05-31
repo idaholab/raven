@@ -99,6 +99,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.limit['mdlEval']               = 2000                      # Maximum number of the loss function evaluation
     self.limit['varsUpdate']            = 650                       # Maximum number of the optimization iteration.
     self.initSeed                       = None                      # Seed for random number generators
+    self.status                         = {}                        # by trajectory, ("string-based status", arbitrary, other, entries)
     self.optVars                        = None                      # Decision variables for optimization
     self.optVarsInit                    = {}                        # Dict containing upper/lower bounds and initial of each decision variables
     self.optVarsInit['upperBound']      = {}                        # Dict containing upper bounds of each decision variables

@@ -104,6 +104,7 @@ class GradientBasedOptimizer(Optimizer):
       self.optVarsHist[traj]                 = {}
       self.readyVarsUpdate[traj]             = False
       self.convergeTraj[traj]                = False
+      self.status[traj]                      = ('not started',-1)
     for traj in self.optTraj:
       self.gradDict['pertPoints'][traj] = {}
     # end job runnable equal to number of trajectory
@@ -365,7 +366,10 @@ class GradientBasedOptimizer(Optimizer):
             index                 = solutionIndeces[0]
             # check convergence
             self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], currentObjectiveValue)
-            #self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputeval[self.objVar][index])
+            if self.convergeTraj[traj]:
+              self.status[traj] = ('converged',self.counter['varsUpdate'][traj])
+            else:
+              self.status[traj] = ('submitting grad eval points',self.counter['varsUpdate'][traj])
 
             # update solution export
             if 'trajID' not in self.solutionExport.getParaKeys('inputs'):
