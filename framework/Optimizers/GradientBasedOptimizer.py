@@ -359,18 +359,18 @@ class GradientBasedOptimizer(Optimizer):
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
-          solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
-          solutionUpdateList = [solutionExportUpdatedFlag]
-          solutionIndeces    = [index]
+          solutionExportUpdatedFlag, index = self.getJobsByID(traj) #self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
+          #solutionUpdateList = [solutionExportUpdatedFlag]
+          #solutionIndeces    = [index]
           sizeArray = 1
           if self.gradDict['numIterForAve'] > 1:
             sizeArray+=self.gradDict['numIterForAve']
-            for i in range(sizeArray-1):
-              identifier = (i+1)*2
-              solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], str(identifier))
-              solutionUpdateList.append(solutionExportUpdatedFlag)
-              solutionIndeces.append(index)
-            solutionExportUpdatedFlag = all(solutionUpdateList)
+          #  for i in range(sizeArray-1):
+          #    identifier = (i+1)*2
+          #    solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], str(identifier))
+          #    solutionUpdateList.append(solutionExportUpdatedFlag)
+          #    solutionIndeces.append(index)
+          #  solutionExportUpdatedFlag = all(solutionUpdateList)
 
           if solutionExportUpdatedFlag:
             inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
@@ -382,6 +382,7 @@ class GradientBasedOptimizer(Optimizer):
             currentObjectiveValue = objectiveOutputs.mean()
             index                 = solutionIndeces[0]
             # check convergence
+            # TODO move this? I did in the old multilevel
             self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], currentObjectiveValue)
             if self.convergeTraj[traj]:
               self.status[traj] = ('converged',self.counter['varsUpdate'][traj])
@@ -403,9 +404,7 @@ class GradientBasedOptimizer(Optimizer):
               self.raiseAnError(ValueError, 'trajID is not in the input space of solutionExport')
             trajID = traj+1 # This is needed to be compatible with historySet object
             self.solutionExport.updateInputValue([trajID,'trajID'], traj)
-            output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding')
-
-            output = output.get(trajID, {})
+            output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding').get(trajID,{})
             for var in self.solutionExport.getParaKeys('outputs'):
               old = copy.deepcopy(output.get(var, np.asarray([])))
               new = None #prevents accidental data copying
