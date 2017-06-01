@@ -50,6 +50,9 @@ class byPass(object):
   """
     This is dummy class that is needed to emulate the "dataObject" resetData method
   """
+  def __init__(self):
+    self.name = ""
+
   def resetData(self):
     """
       This is dummy method that is needed to emulate the "dataObject" resetData method

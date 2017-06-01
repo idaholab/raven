@@ -317,7 +317,7 @@ class SingleRun(Step):
       @ Out, None
     """
     #Model initialization
-    modelInitDict = {}
+    modelInitDict = {'Output':inDictionary['Output']}
     if 'SolutionExport' in inDictionary.keys():
       modelInitDict['SolutionExport'] = inDictionary['SolutionExport']
     if inDictionary['Model'].createWorkingDir:
