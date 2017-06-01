@@ -62,16 +62,17 @@ class GradientBasedOptimizer(Optimizer):
     self.gradDict['numIterForAve']  = 1               # Number of iterations for gradient estimation averaging
     self.gradDict['pertNeeded']     = 1               # Number of perturbation needed to evaluate gradient
     self.gradDict['pertPoints']     = {}              # Dict containing normalized inputs sent to model for gradient evaluation
-    self.counter['perturbation']    = {}              # Counter for the perturbation performed.
     self.readyVarsUpdate            = {}              # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
+    self.counter['perturbation']    = {}              # Counter for the perturbation performed.
     self.counter['gradientHistory'] = {}              # In this dict we store the gradient value (versor) for current and previous iterations {'trajectoryID':[{},{}]}
     self.counter['gradNormHistory'] = {}              # In this dict we store the gradient norm for current and previous iterations {'trajectoryID':[float,float]}
     self.counter['varsUpdate'     ] = {}
     self.counter['solutionUpdate' ] = {}
     self.counter['lastStepSize'   ] = {}              # counter to track the last step size taken, by trajectory
-    self.convergenceProgress        = {}              # dict by trajectory of the convergence of each criteria (relative/absolute loss value, gradient magnitude)
     self.convergeTraj = {}
-    self.recommendToGain            = {}              # by traj, give an override action to the step gain operation (cut, grow)
+    self.convergenceProgress        = {}              #tracks the convergence progress, by trajectory
+
+    self.recommendToGain            = {}              # recommended action to take in next step, by trajectory
 
   def localInputAndChecks(self, xmlNode):
     """
@@ -196,9 +197,9 @@ class GradientBasedOptimizer(Optimizer):
     if gradientNorm > 0.0:
       for var in gradient.keys():
         gradient[var] = gradient[var]/gradientNorm
-    self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][traj][0]
+    self.counter['gradientHistory'][traj][1] = copy.deepcopy(self.counter['gradientHistory'][traj][0])
     self.counter['gradientHistory'][traj][0] = gradient
-    self.counter['gradNormHistory'][traj][1] = self.counter['gradNormHistory'][traj][0]
+    self.counter['gradNormHistory'][traj][1] = copy.deepcopy(self.counter['gradNormHistory'][traj][0])
     self.counter['gradNormHistory'][traj][0] = gradientNorm
     return gradient
 
@@ -230,7 +231,7 @@ class GradientBasedOptimizer(Optimizer):
   def checkConvergence(self):
     """
       Method to check whether the convergence criteria has been met.
-      @ In, none,
+      @ In, None
       @ Out, convergence, list, list of bool variable indicating whether the convergence criteria has been met for each trajectory.
     """
     convergence = True
@@ -248,8 +249,9 @@ class GradientBasedOptimizer(Optimizer):
       @ In, currentLossValue, float, current loss function value
       @ Out, None
     """
-    if self.convergeTraj[traj] == False:
-      if varsUpdate >= 1:
+    if not self.convergeTraj[traj]:
+      #if varsUpdate >= 1: multilevel can't rely on the varsUpdate number
+      if len(self.counter['gradientHistory'][traj][1]) > 0: #should be > 1?
         sizeArray = 1
         if self.gradDict['numIterForAve'] > 1:
           sizeArray+=self.gradDict['numIterForAve']
@@ -261,7 +263,7 @@ class GradientBasedOptimizer(Optimizer):
             objectiveOutputs[i+1] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,identifier))
         if any(np.isnan(objectiveOutputs)):
           self.raiseAnError(Exception,"the objective function evaluation for trajectory " +str(traj)+ "and iteration "+str(varsUpdate-1)+" has not been found!")
-        oldVal = objectiveOutputs.mean()
+        oldVal = objectiveOutputs.mean() # TODO should this be from counter[recentOptPoints][traj]?
         gradNorm           = self.counter['gradNormHistory'][traj][0]
         varK               = self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
         varK               = self.denormalizeData(varK)
@@ -293,7 +295,7 @@ class GradientBasedOptimizer(Optimizer):
           reasons = []
           if sameCoordinateCheck:
             reasons.append("same coordinate")
-          elif gradientNormCheck:
+          if gradientNormCheck:
             reasons.append("gradient norm")
           if absoluteTolCheck:
             reasons.append("absolute tolerance")
@@ -302,10 +304,11 @@ class GradientBasedOptimizer(Optimizer):
           self.raiseAMessage("Trajectory: "+"%8i"% (traj) +"   converged. Reasons: "+','.join(reasons))
           self.raiseAMessage("Grad Norm : "+"%8.2E"% (gradNorm)+" | Relative Diff: "+"%8.2E"% (relativeDifference)+" | Abs Diff     : "+"%8.2E"% (absDifference)+" |")
           self.convergeTraj[traj] = True
-          for trajInd, tr in enumerate(self.optTrajLive):
-            if tr == traj:
-              self.optTrajLive.pop(trajInd)
-              break
+          self.removeConvergedTrajectory(traj)
+          #for trajInd, tr in enumerate(self.optTrajLive):
+          #  if tr == traj:
+          #    self.optTrajLive.pop(trajInd)
+          #    break
 
   def _removeRedundantTraj(self, trajToRemove, currentInput):
     """
@@ -348,6 +351,28 @@ class GradientBasedOptimizer(Optimizer):
     """
     return satisfaction
 
+  def _getJobsByID(self,traj):
+    """
+      Overwrite only if you need something special at the end of each run....
+      This function is used by optimizers that need to collect information from the just ended run
+      @ In, traj, int, ID of the trajectory for whom we collect jobs
+      @ Out, solutionExportUpdatedFlag, bool, True if the solutionExport needs updating
+      @ Out, solutionIndeces, list(int), location of updates within the full targetEvaluation data object
+    """
+    solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
+    solutionUpdateList = [solutionExportUpdatedFlag]
+    solutionIndeces = [index]
+    #sizeArray = 1
+    if self.gradDict['numIterForAve'] > 1:
+      #sizeArray+=self.gradDict['numIterForAve']
+      for i in range(sizeArray-1):
+        identifier = (i+1)*2
+        solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], str(identifier))
+        solutionUpdateList.append(solutionExportUpdatedFlag)
+        solutionIndeces.append(index)
+      solutionExportUpdatedFlag = all(solutionUpdateList)
+    return solutionExportUpdatedFlag,solutionIndeces
+
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     """
       Overwrite only if you need something special at the end of each run....
@@ -359,7 +384,7 @@ class GradientBasedOptimizer(Optimizer):
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
-          solutionExportUpdatedFlag, index = self.getJobsByID(traj) #self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
+          solutionExportUpdatedFlag, indices = self._getJobsByID(traj) #self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
           #solutionUpdateList = [solutionExportUpdatedFlag]
           #solutionIndeces    = [index]
           sizeArray = 1
@@ -377,10 +402,10 @@ class GradientBasedOptimizer(Optimizer):
             outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
             objectiveOutputs = np.zeros(sizeArray)
             # get all output values
-            for cnt, index in enumerate(solutionIndeces):
+            for cnt, index in enumerate(indices):
               objectiveOutputs[cnt] = outputeval[self.objVar][index]
             currentObjectiveValue = objectiveOutputs.mean()
-            index                 = solutionIndeces[0]
+            index                 = indices[0]
             # check convergence
             # TODO move this? I did in the old multilevel
             self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], currentObjectiveValue)

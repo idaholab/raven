@@ -102,13 +102,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.initSeed                       = None                      # Seed for random number generators
     self.status                         = {}                        # by trajectory, ("string-based status", arbitrary, other, entries)
     self.optVars                        = None                      # Decision variables for optimization
+    self.fullOptVars                    = None                      # Decision variables for optimization, full space
     self.optVarsInit                    = {}                        # Dict containing upper/lower bounds and initial of each decision variables
     self.optVarsInit['upperBound']      = {}                        # Dict containing upper bounds of each decision variables
     self.optVarsInit['lowerBound']      = {}                        # Dict containing lower bounds of each decision variables
     self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables
     self.optVarsInit['ranges']          = {}                        # Dict of the ranges (min and max) of each variable's domain
     self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
-    self.nVar                           = 0                         # Number of decision variables
+    #self.nVar                           = 0                         # Number of decision variables
     self.objVar                         = None                      # Objective variable to be optimized
     self.optType                        = None                      # Either maximize or minimize
     self.optTraj                        = None                      # Identifiers of parallel optimization trajectories
@@ -131,6 +132,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
 
     self.nextActionNeeded               = (None,None)               # tool for localStillReady to inform localGenerateInput on the next action needed
+
+    self.multilevel                     = False                     # indicates if operating in multilevel mode
+    self.mlBatches                      = {}                        # dict of {batchName:[list,of,vars]} that defines input subspaces
+    self.mlTolerances                   = {}                        # dict of {batchName:float} that gives convergence tolerance for each subspace
+    self.mlSequence                     = []                        # list of batch names that determines the order of convergence.  Last entry is converged most often and fastest (innermost loop).
+    self.mlDepth                        = None                      # index of current recursion depth within self.mlSequence
+    self.mlStaticValues                 = {}                        # dictionary of static values for variables in fullOptVars but not in optVars due to multilevel
+    self.mlActiveSpaceSteps             = 0                         # integer to track iterations performed in optimizing the current, active subspace
 
     self.addAssemblerObject('Restart' ,'-n',True)
     self.addAssemblerObject('TargetEvaluation','1')
@@ -244,6 +253,24 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for childChild in child:
           self.paramDict[childChild.tag] = childChild.text
 
+      elif child.tag == 'multilevel':
+        self.multilevel = True
+        for subnode in child:
+          if subnode.tag == 'subspace':
+            attribs = {}
+            try:
+              name = subnode.attrib['name']
+            except KeyError:
+              self.raiseAnError(IOError, 'A multilevel subspace is missing the "name" attribute!')
+            if name in self.mlBatches.keys():
+              self.raiseAnError(IOError,'Multilevel subspace "{}" has a duplicate name!'.format(name))
+            subspaceVars = list(x.strip() for x in subnode.text.split(','))
+            if len(subspaceVars)<1:
+              self.raiseAnError(IOError,'Multilevel subspace "{}" has no variables specified!'.format(name))
+            self.mlBatches[name] = subspaceVars
+          elif subnode.tag == 'sequence':
+            self.mlSequence = list(x.strip() for x in subnode.text.split(','))
+
     if self.optType is None:
       self.optType = 'min'
     if self.thresholdTrajRemoval is None:
@@ -277,6 +304,25 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       #store ranges of variables
       self.optVarsInit['ranges'][varname] = self.optVarsInit['upperBound'][varname] - self.optVarsInit['lowerBound'][varname]
     self.optTrajLive = copy.deepcopy(self.optTraj)
+    self.fullOptVars = copy.deepcopy(self.optVars)
+    if self.multilevel:
+      if len(self.mlSequence) < 1:
+        self.raiseAnError(IOError,'No "sequence" was specified for multilevel optimization!')
+      if set(self.mlSequence) != set(self.mlBatches.keys()):
+        self.raiseAWarning('There is a mismatch between the multilevel batches defined and batches used in the sequence!  Some variables may not be optimized correctly ...')
+      if len(self.optTraj) > 1:
+        self.raiseAnError(NotImplementedError,'Multilevel with multiple trajectories is not ready yet; use single trajectory.')
+
+  def getOptVars(self,full=False):
+    """
+      Returns the variables in the active optimization space
+      @ In, full, bool, optional, if True will always give ALL the opt variables
+      @ Out, optVars, list(string), variables in the current optimization space
+    """
+    if full or not self.multilevel:
+      return self.fullOptVars
+    else:
+      return self.optVars
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -362,10 +408,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     self.counter['mdlEval'] = 0
     self.counter['varsUpdate'] = [0]*len(self.optTraj)
-    self.nVar = len(self.optVars)
+    #self.nVar = len(self.optVars)
 
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
-    self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.optVars)), 'Target':self.objVar, 'n_neighbors':1,'weights':'distance'})
+    self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.fullOptVars)), 'Target':self.objVar, 'n_neighbors':1,'weights':'distance'})
     self.solutionExport = solutionExport
 
     if solutionExport != None and type(solutionExport).__name__ != "HistorySet":
@@ -412,7 +458,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass # To be overwritten by subclass
 
-  def amIreadyToProvideAnInput(self): #inLastOutput=None):
+  def amIreadyToProvideAnInput(self):
     """
       This is a method that should be called from any user of the optimizer before requiring the generation of a new input.
       This method act as a "traffic light" for generating a new input.
@@ -422,10 +468,128 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     ready = True if self.counter['mdlEval'] < self.limit['mdlEval'] else False
     convergence = self.checkConvergence()
-    ready = self.localStillReady(ready, convergence)
+    ready = self.localStillReady(ready)
+    #if converged and not ready, the optimizer believes it is done; check multilevel
+    # TODO add status changes to this multilevel block
+    if self.multilevel:
+      print('DEBUGG ------------ MULTILEVEL CHECK ---------------')
+      print('DEBUGG ... ready and converged:',ready,convergence)
+      traj = 0 #FIXME for multiple trajectories
+      # make sure we have optimization history points; otherwise, there's nothing to be done
+      if len(self.optVarsHist[traj])>0:
+        # get the latset optimization point (normalized)
+        latest_point = self.latestPoint[traj]['inputs']#self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
+        # is this the first optimization point we've received?
+        if self.mlDepth is None:
+          # if so, then initialize multilevel
+          print('DEBUGG ... first opt point')
+          self.updateMultilevelDepth(traj, len(self.mlSequence)-1, latest_point, setAll=True)
+          # now we need to optimize the innermost space, so we are ready to provide samples
+          return True
+        # else ... get the current batch since we'll use that a lot going forward ...
+        currentBatch = self.mlSequence[self.mlDepth]
+        # are we in the innermost loop?
+        if self.mlDepth == len(self.mlSequence)-1:
+          print('DEBUGG ... in innermost loop ...')
+          # then, are we converged?
+          if convergence:
+            print('DEBUGG ... converged ...')
+            # then, move out one subspace in our loop
+            self.updateMultilevelDepth(traj,self.mlDepth-1,latest_point)
+            ready = True #FIXME needed? --> yes, because "ready" is false, but we know that we just changed levels and need to keep the sampling going
+          # else if not converged ...
+          else:
+            # ... then we're ready to perturb (or wait for the return of) the active (innermost) space
+            print('DEBUGG ... not converged ...')
+            return ready
+        # else if we're not in the innermost space ...
+        else:
+          # has the active space been perturbed since last convergence?
+          if self.mlActiveSpaceSteps >= 1: #TODO someday this could be a user setting; for now, we only take one step in the outer loops at a time
+            # are we in the outermost loop?
+            if self.mlDepth == 0:
+              # are we converged:
+              if convergence:
+                # we're done!
+                self.raiseADebug('Outermost subspace converged!')
+                return False #ready
+              # else if not converged ...
+              else:
+                # set the active space to be the innermost loop so it can converge for the new outer loop value
+                self.updateMultilevelDepth(traj,len(self.mlSequence)-1,latest_point)
+                #return True
+            # else if not in the outermost loop ...
+            else:
+              # set the active space to the innermost loop so it can converge for the outer loop value
+              self.raiseADebug('Converging outer loop "{}" by returning to innermost loop ...'.format(currentBatch))
+              self.updateMultilevelDepth(traj,len(self.mlSequence)-1,latest_point)
+          # else we haven't sampled a perturbed point yet for the active subspace ...
+          else:
+            # allow the current subspace to be perturbed
+            self.raiseADebug('Perturbing subspace "{}" ...'.format(currentBatch))
+            return ready
+      print('DEBUGG ################# amiready repinging lsr #################')
+      ready = self.localStillReady(True)
+    print('DEBUGG amiready returning',ready)
     return ready
 
-  def localStillReady(self,ready, convergence = False): #,lastOutput=None
+  def updateMultilevelDepth(self, traj, depth, optPoint, setAll=False):
+    """
+      Updates the multilevel depth with static values for inactive subspaces
+      @ In, traj, the trajectory whose multilevel depth needs updating
+      @ In, depth, int, recursion depth in subspace loops, which ranges between 0 and the last index of self.multilevelSequence
+      @ In, optPoint, dict, dictionary point of latest optimization as {var:#, var:#} (normalized)
+      @ In, setAll, bool, optional, if True then we set ALL the static variables, not just the old active space
+      @ Out, None
+    """
+    #retain the old batch so we know which static values to set
+    if self.mlDepth is not None:
+      oldDepth = self.mlDepth
+      oldBatch = self.mlSequence[oldDepth]
+      firstTime = False
+    else:
+      firstTime = True
+      oldBatch = 'pre-initialize'
+    # set the new active space
+    self.mlDepth = depth
+    newBatch = self.mlSequence[self.mlDepth]
+    self.raiseADebug('Transitioning multilevel subspace from "{}" to "{}" ...'.format(oldBatch,newBatch))
+    # reset the number of iterations in each subspace
+    self.mlActiveSpaceSteps = 0
+    # set the active space to include only the desired batch
+    self.optVars = self.mlBatches[newBatch]
+    # set the remainder to static variables
+    if setAll:
+      toMakeStatic = set(self.fullOptVars)-set(self.mlBatches[newBatch])
+    else:
+      toMakeStatic = self.mlBatches[oldBatch]
+    for var in toMakeStatic:
+      self.mlStaticValues[var] = optPoint[var]
+    # remove newBatch static values
+    for var in self.mlBatches[newBatch]:
+      try:
+        del self.mlStaticValues[var]
+      except KeyError:
+        #it wasn't static before, so no problem
+        pass
+    # clear existing gradient determination data
+    if not firstTime:
+      self.clearCurrentOptimizationEffort(traj)
+    #self.mlReinitialize = True #FIXME Needed?
+
+  @abc.abstractmethod
+  def clearCurrentOptimizationEffort(self):
+    """
+      Used to inform the subclass optimization effor that it needs to forget whatever opt data it is using
+      for the current point (for example, gradient determination points) so that we can start new.
+      @ In, None
+      @ Out, None
+    """
+    # README: this method is necessary because the base class optimizer doesn't know what needs to be reset in the
+    #         subclass, but the subclass doesn't know when it needs to call this method.
+    pass
+
+  def localStillReady(self,ready, convergence = False):
     """
       Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
       @ In, ready, bool, variable indicating whether the caller is prepared for another input.
@@ -462,9 +626,23 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for key in tempDict.keys():
       tempDict[key] = np.asarray(tempDict[key])
     self.objSearchingROM.train(tempDict)
+    # extend optVars to include static values
+    numGradPts = len(optVars.values()[0])
+    #print('DEBUGG optVars:',optVars)
+    #print('DEBUGG in static:',self.mlStaticValues)
+    for key,val in self.mlStaticValues.items():
+      val = self.denormalizeData({key:val})[key]
+      optVars[key] = np.array([val]*numGradPts)
+    # denormalize the data # TODO right? since we train ROM on unnormalized data
+    #print('DEBUGG optVars:',optVars)
+    #optVars = self.denormalizeData(optVars)
+    #print('DEBUGG optVars:',optVars)
+    # fix data type
     for key in optVars.keys():
       optVars[key] = np.atleast_1d(optVars[key])
+    # use KNN ROM to evaluate the loss function
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
+    #flip the solution around origin if performing maximization search
     if self.optType == 'min':
       return lossFunctionValue
     else:
@@ -554,15 +732,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
+    ####   UPDATE STATICS   ####
+    self.values.update(self.denormalizeData(self.mlStaticValues))
     #### CONSTANT VARIABLES ####
     if len(self.constants) > 0:
       self.values.update(self.constants)
     self.raiseADebug('Found new input to evaluate:',self.values)
-    ## Do not call createNewInput from the samplers. This will now be handled
-    ## on parallel jobs, so we only want to modify this sampler's inputInfo, and
-    ## use it to generate the perturbed point that will be used when the model
-    ## calls submit().
-    # return 0,model.createNewInput(oldInput,self.type,**self.inputInfo)
+    # "0" means a new sample is found, oldInput is the input that should be perturbed
     return 0,oldInput
 
   @abc.abstractmethod
@@ -575,6 +751,36 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     pass
+
+  def updateVariableHistory(self,data,traj):
+    """
+      Stores new historical points into the optimization history.
+      @ In, data, dict, UNNORMALIZED new input space entries as {var:#, var:#}
+      @ In, traj, int, integer label of the current trajectory of interest
+      @ Out, None
+    """
+    # collect static vars, values
+    allData = {}
+    allData.update(self.mlStaticValues) # these are normalized
+    allData.update(self.normalizeData(data)) # data point not normalized a priori
+    self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(allData)
+    self.mlActiveSpaceSteps += 1
+
+  def removeConvergedTrajectory(self,convergedTraj):
+    """
+      Appropriate process for clearing out converged histories.  This lets the multilevel process intercede
+      when a trajectory is flagged for removal, in the event it is part of an inner loop.
+      @ In, convergedTraj, int, trajectory that has converged and might need to be removed
+      @ Out, None
+    """
+    if self.multilevel:
+      #FIXME when we work on multiple traj and multileve, figure out what to do here
+      pass
+    else:
+      for t,traj in enumerate(self.optTrajLive):
+        if traj == convergedTraj:
+          self.optTrajLive.pop(t)
+          break
 
   def finalizeActualSampling(self,jobObject,model,myInput):
     """
@@ -597,6 +803,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, jobObject, instance, an instance of a JobHandler
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, myInput, list, the generating input
+    """
+    pass
+
+  @abc.abstractmethod
+  def _getJobsByID(self):
+    """
+      Overwritten by the base class; obtains new solution export values
+      @ In, None
+      @ Out, None
     """
     pass
 
@@ -636,3 +851,4 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     if len(failedRuns)>0:
       self.raiseAnError(IOError,'There were failed runs; aborting RAVEN.')
+

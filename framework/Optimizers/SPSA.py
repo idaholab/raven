@@ -92,7 +92,7 @@ class SPSA(GradientBasedOptimizer):
       # Initialize bernoulli distribution for random perturbation. Add artificial noise to avoid that specular loss functions get false positive convergence
       # FIXME there has to be a better way to get two random numbers
       self.stochasticEngine = lambda: [(0.5+Distributions.random()*(1.+Distributions.random()/1000.*Distributions.randomIntegers(-1, 1, self))) if self.stochasticDistribution.rvs() == 1 else
-                                   -1.*(0.5+Distributions.random()*(1.+Distributions.random()/1000.*Distributions.randomIntegers(-1, 1, self))) for _ in range(self.nVar)]
+                                   -1.*(0.5+Distributions.random()*(1.+Distributions.random()/1000.*Distributions.randomIntegers(-1, 1, self))) for _ in range(len(self.optVars))]
       #self.stochasticEngine = lambda: [1.0+(Distributions.random()/1000.0)*Distributions.randomIntegers(-1, 1, self) if self.stochasticDistribution.rvs() == 1 else
       #                                -1.0+(Distributions.random()/1000.0)*Distributions.randomIntegers(-1, 1, self) for _ in range(self.nVar)]
     else:
@@ -135,10 +135,11 @@ class SPSA(GradientBasedOptimizer):
       elif self.status[traj][0] == 'submitting grad eval points':
         self.nextActionNeeded = ('add new grad evaluation point',traj)
         break
-      elif self.status[traj][0] == 'collecting grad eval points':
+      elif self.status[traj][0] == 'collecting grad eval points': #TODO ELSE status
         # since all evaluation points submitted, check if we have enough collected to evaluate a gradient
         evalNotFinish = False
         for pertID in range(1,self.gradDict['pertNeeded']+1):
+          # TODO FIXME this is giving false positives for multilevel!  Check something better?
           if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:#[0]:
             evalNotFinish = True
             break
@@ -173,6 +174,23 @@ class SPSA(GradientBasedOptimizer):
     if currentValue <= lowerBound:
       convertedValue = pertLow*varRange + lowerBound
     return convertedValue
+
+  def clearCurrentOptimizationEffort(self,traj):
+    """
+      See base class.  Used to clear out current optimization information and start clean.
+      For the SPSA, this means clearing out the perturbation points
+      @ In, traj, int, index of trajectory being cleared
+      @ Out, None
+    """
+    self.raiseADebug('Clearing current optimization efforts ...')
+    self.counter ['perturbation'   ][traj] = 0
+    self.counter ['gradientHistory'][traj] = [{},{}]
+    self.counter ['gradNormHistory'][traj] = [{},{}]
+    self.counter ['varsUpdate'     ][traj] += 1 #I don't like doing this, but only way to assure a new point is considered
+    del self.counter['lastStepSize'][traj]
+    self.gradDict['pertPoints'     ][traj] = []
+    self.convergeTraj               [traj] = False
+    # FIXME clear self.counter[recentOptPoints][traj] as well!
 
   def localGenerateInput(self,model,oldInput):
     """
@@ -272,7 +290,8 @@ class SPSA(GradientBasedOptimizer):
       varKPlusDenorm = self.denormalizeData(varKPlus)
       for var in self.optVars:
         self.values[var] = copy.deepcopy(varKPlusDenorm[var])
-        self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(varKPlus[var])
+        #self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(varKPlus[var])
+      self.updateVariableHistory(self.values,traj)
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
       #again, this is a copied line of code, so we should extract it if possible
       self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],'v')
