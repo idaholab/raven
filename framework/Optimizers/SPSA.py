@@ -209,7 +209,7 @@ class SPSA(GradientBasedOptimizer):
         # Generate all the perturbations at once, then we can submit them one at a time
         self.gradDict['pertPoints'][traj] = {}
         ck = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
-        varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
+        varK = self.counter['recentOptHist'][traj][0]['inputs'] #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
 
         if self.gradDict['numIterForAve'] > 1:
           # In order to converge on the average of the objective variable, one of the
@@ -261,7 +261,7 @@ class SPSA(GradientBasedOptimizer):
       gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
       ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
-      varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
+      varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs']) #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
       # FIXME here is where adjustments to the step size should happen
       #TODO this is part of a future request.  Commented for now.
       #get central response for this trajectory: how?? TODO FIXME

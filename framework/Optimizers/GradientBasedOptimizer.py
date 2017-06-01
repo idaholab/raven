@@ -106,6 +106,7 @@ class GradientBasedOptimizer(Optimizer):
       self.readyVarsUpdate[traj]             = False
       self.convergeTraj[traj]                = False
       self.status[traj]                      = ('not started',-1)
+      self.counter['recentOptHist'][traj]    = [{},{}]
     for traj in self.optTraj:
       self.gradDict['pertPoints'][traj] = {}
     # end job runnable equal to number of trajectory
@@ -271,7 +272,7 @@ class GradientBasedOptimizer(Optimizer):
         newerIsBetter = currentLossValue < oldVal #FIXME does this need to consider min/max?
 
         # checks
-        sameCoordinateCheck = set(self.optVarsHist[traj][varsUpdate].items()) == set(self.optVarsHist[traj][varsUpdate-1].items())
+        sameCoordinateCheck = set(self.optVarsHist[traj][varsUpdate].items()) == set(self.counter['recentOptHist'][traj][0]['inputs'].items()) #set(self.optVarsHist[traj][varsUpdate-1].items())
         gradientNormCheck   = gradNorm <= self.gradientNormTolerance
         absoluteTolCheck    = absDifference <= self.absConvergenceTol
         relativeTolCheck    = relativeDifference <= self.relConvergenceTol
@@ -284,6 +285,9 @@ class GradientBasedOptimizer(Optimizer):
         # if newer point is not better, we're keeping the old point, and sameCoordinate, absoluteTol, and relativeTol aren't applicable
         else:
           # TODO flag to keep the old point instead of the new one
+          self.status[traj] = ('rejecting bad opt point',self.counter['varsUpdate'])
+          # cut the next step size to hopefully stay in the valley instead of climb up the other side
+          self.recommendToGain[traj] = 'cut'
           converged = gradientNormCheck
         if converged:
           reasons = []
@@ -314,6 +318,8 @@ class GradientBasedOptimizer(Optimizer):
     for traj in self.optTraj:
       if traj != trajToRemove:
         #FIXME this can be quite an expensive operation, looping through each other trajectory
+        # FIXME this might not be as robust as before we rejected new opt points that are worse than the last
+        # this is because optVarsHist includes points in it we don't actually accept in our opt history
         for updateKey in self.optVarsHist[traj].keys():
           inp = copy.deepcopy(self.optVarsHist[traj][updateKey]) #FIXME deepcopy needed?
           removeLocalFlag = True
@@ -380,56 +386,67 @@ class GradientBasedOptimizer(Optimizer):
             if self.convergeTraj[traj]:
               self.status[traj] = ('converged',self.counter['varsUpdate'][traj])
             else:
+              # if rejecting bad point, keep the old point as the new point
+              if self.status[traj][0] != 'rejecting bad opt point':
+                try:
+                  self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
+                except KeyError:
+                  # this means we don't have an entry for this trajectory yet, so don't copy anything
+                  pass
+                print('DEBUGG self.optVarsHist',self.optVarsHist[traj])
+                print('DEBUGG self.counter',self.counter['varsUpdate'][traj])
+                self.counter['recentOptHist'][traj][0] = {'inputs':self.optVarsHist[traj][self.counter['varsUpdate'][traj]],
+                                                          'outputs':currentObjectiveValue}
+              # update status to submitting grad eval points
               self.status[traj] = ('submitting grad eval points',self.counter['varsUpdate'][traj])
 
             # update solution export
             if 'trajID' not in self.solutionExport.getParaKeys('inputs'):
               self.raiseAnError(ValueError, 'trajID is not in the input space of solutionExport')
-            else:
-              trajID = traj+1 # This is needed to be compatible with historySet object
-              self.solutionExport.updateInputValue([trajID,'trajID'], traj)
-              tempOutput = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding')
+            trajID = traj+1 # This is needed to be compatible with historySet object
+            self.solutionExport.updateInputValue([trajID,'trajID'], traj)
+            output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding')
 
-              tempTrajOutput = tempOutput.get(trajID, {})
-              for var in self.solutionExport.getParaKeys('outputs'):
-                old = copy.deepcopy(tempTrajOutput.get(var, np.asarray([])))
-                new = None #prevents accidental data copying
-                if var in self.optVars:
-                  new = inputeval[var][index]
-                elif var == self.objVar:
-                  new = currentObjectiveValue
-                elif var == 'varsUpdate':
-                  new = [self.counter['solutionUpdate'][traj]]
-                elif var == '_stepSize':
-                  try:
-                    new = [self.counter['lastStepSize'][traj]]
-                  except KeyError:
-                    new = np.nan
-                elif var.startswith( '_gradient_'):
-                  varName = var[10:]
-                  vec = self.counter['gradientHistory'][traj][0].get(varName,np.nan)
-                  new = vec*self.counter['gradNormHistory'][traj][0]
-                elif var.startswith( '_convergence_abs'):
-                  try:
-                    new = self.convergenceProgress[traj].get('abs',np.nan)
-                  except KeyError:
-                    new = np.nan
-                elif var.startswith( '_convergence_rel'):
-                  try:
-                    new = self.convergenceProgress[traj].get('rel',np.nan)
-                  except KeyError:
-                    new = np.nan
-                elif var.startswith( '_convergence_grad'):
-                  try:
-                    new = self.convergenceProgress[traj].get('grad',np.nan)
-                  except KeyError:
-                    new = np.nan
-                else:
-                  self.raiseAnError(IOError,'Unrecognized output request:',var)
-                new = np.asarray(new)
-                self.solutionExport.updateOutputValue([trajID,var],np.append(old,new))
+            output = output.get(trajID, {})
+            for var in self.solutionExport.getParaKeys('outputs'):
+              old = copy.deepcopy(output.get(var, np.asarray([])))
+              new = None #prevents accidental data copying
+              if var in self.optVars:
+                new = self.counter['recentOptHist'][traj][0]['inputs'][var] #inputeval[var][index]
+              elif var == self.objVar:
+                new = self.counter['recentOptHist'][traj][0]['output'] #currentObjectiveValue
+              elif var == 'varsUpdate':
+                new = [self.counter['solutionUpdate'][traj]]
+              elif var == '_stepSize':
+                try:
+                  new = [self.counter['lastStepSize'][traj]]
+                except KeyError:
+                  new = np.nan
+              elif var.startswith( '_gradient_'):
+                varName = var[10:]
+                vec = self.counter['gradientHistory'][traj][0].get(varName,np.nan)
+                new = vec*self.counter['gradNormHistory'][traj][0]
+              elif var.startswith( '_convergence_abs'):
+                try:
+                  new = self.convergenceProgress[traj].get('abs',np.nan)
+                except KeyError:
+                  new = np.nan
+              elif var.startswith( '_convergence_rel'):
+                try:
+                  new = self.convergenceProgress[traj].get('rel',np.nan)
+                except KeyError:
+                  new = np.nan
+              elif var.startswith( '_convergence_grad'):
+                try:
+                  new = self.convergenceProgress[traj].get('grad',np.nan)
+                except KeyError:
+                  new = np.nan
+              else:
+                self.raiseAnError(IOError,'Unrecognized output request:',var)
+              new = np.asarray(new)
+              self.solutionExport.updateOutputValue([trajID,var],np.append(old,new))
 
-              self.counter['solutionUpdate'][traj] += 1
+            self.counter['solutionUpdate'][traj] += 1
           else:
             break
 
