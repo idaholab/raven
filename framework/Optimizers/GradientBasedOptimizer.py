@@ -393,10 +393,8 @@ class GradientBasedOptimizer(Optimizer):
                 except KeyError:
                   # this means we don't have an entry for this trajectory yet, so don't copy anything
                   pass
-                print('DEBUGG self.optVarsHist',self.optVarsHist[traj])
-                print('DEBUGG self.counter',self.counter['varsUpdate'][traj])
                 self.counter['recentOptHist'][traj][0] = {'inputs':self.optVarsHist[traj][self.counter['varsUpdate'][traj]],
-                                                          'outputs':currentObjectiveValue}
+                                                          'output':currentObjectiveValue}
               # update status to submitting grad eval points
               self.status[traj] = ('submitting grad eval points',self.counter['varsUpdate'][traj])
 
@@ -412,7 +410,7 @@ class GradientBasedOptimizer(Optimizer):
               old = copy.deepcopy(output.get(var, np.asarray([])))
               new = None #prevents accidental data copying
               if var in self.optVars:
-                new = self.counter['recentOptHist'][traj][0]['inputs'][var] #inputeval[var][index]
+                new = self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs'])[var] #inputeval[var][index]
               elif var == self.objVar:
                 new = self.counter['recentOptHist'][traj][0]['output'] #currentObjectiveValue
               elif var == 'varsUpdate':
