@@ -71,6 +71,7 @@ class GradientBasedOptimizer(Optimizer):
     self.counter['lastStepSize'   ] = {}              # counter to track the last step size taken, by trajectory
     self.convergenceProgress        = {}              # dict by trajectory of the convergence of each criteria (relative/absolute loss value, gradient magnitude)
     self.convergeTraj = {}
+    self.recommendToGain            = {}              # by traj, give an override action to the step gain operation (cut, grow)
 
   def localInputAndChecks(self, xmlNode):
     """
@@ -266,6 +267,9 @@ class GradientBasedOptimizer(Optimizer):
         absDifference      = abs(currentLossValue-oldVal)
         relativeDifference = mathUtils.relativeDiff(currentLossValue,oldVal)
         self.convergenceProgress[traj] = {'abs':absDifference,'rel':relativeDifference,'grad':gradNorm}
+        # see if new point is better than old point
+        newerIsBetter = currentLossValue < oldVal #FIXME does this need to consider min/max?
+
         # checks
         sameCoordinateCheck = set(self.optVarsHist[traj][varsUpdate].items()) == set(self.optVarsHist[traj][varsUpdate-1].items())
         gradientNormCheck   = gradNorm <= self.gradientNormTolerance
@@ -275,16 +279,23 @@ class GradientBasedOptimizer(Optimizer):
         self.raiseAMessage("Grad Norm : "+"%8.2E"% (gradNorm)+" | Relative Diff: "+"%8.2E"% (relativeDifference)+" | Abs Diff     : "+"%8.2E"% (absDifference)+" |")
         self.raiseAMessage("Variables :" +str(varK))
 
-        if sameCoordinateCheck or gradientNormCheck or absoluteTolCheck or relativeTolCheck:
+        if newerIsBetter:
+          converged = sameCoordinateCheck or gradientNormCheck or absoluteTolCheck or relativeTolCheck
+        # if newer point is not better, we're keeping the old point, and sameCoordinate, absoluteTol, and relativeTol aren't applicable
+        else:
+          # TODO flag to keep the old point instead of the new one
+          converged = gradientNormCheck
+        if converged:
+          reasons = []
           if sameCoordinateCheck:
-            reason="same-coordinate"
-          if gradientNormCheck:
-            reason="gradient-norm  "
+            reasons.append("same coordinate")
+          elif gradientNormCheck:
+            reasons.append("gradient norm")
           if absoluteTolCheck:
-            reason="absolute-tolerance"
+            reasons.append("absolute tolerance")
           if relativeTolCheck:
-            reason="relative-tolerance"
-          self.raiseAMessage("Trajectory: "+"%8i"% (traj) +"   converged. Reason: "+reason)
+            reasons.append("relative tolerance")
+          self.raiseAMessage("Trajectory: "+"%8i"% (traj) +"   converged. Reasons: "+','.join(reasons))
           self.raiseAMessage("Grad Norm : "+"%8.2E"% (gradNorm)+" | Relative Diff: "+"%8.2E"% (relativeDifference)+" | Abs Diff     : "+"%8.2E"% (absDifference)+" |")
           self.convergeTraj[traj] = True
           for trajInd, tr in enumerate(self.optTrajLive):
@@ -433,14 +444,24 @@ class GradientBasedOptimizer(Optimizer):
     """
     #TODO FIXME someday, let user determine growth factor
     growthFactor = 2.0
+    # if we have a recommendation from elsewhere, take that first
+    if traj in self.recommendToGain.keys():
+      recommend = self.recommendToGain.pop(traj)
+      if recommend == 'cut':
+        frac = 1./growthFactor
+      elif recommend == 'grow':
+        frac = growthFactor
+      self.raiseADebug('Based on recommendation, step size multiplier is:',frac)
+      return frac
+    # otherwise, no recommendation for this trajectory, so move on
     #if we don't have two evaluated gradients, just return 1.0
-    grad0 = self.counter['gradientHistory'][traj][0]
     grad1 = self.counter['gradientHistory'][traj][1]
     if len(grad1) < 1:
       return 1.0
     #otherwise, do the dot product between the last two gradients
+    grad0 = self.counter['gradientHistory'][traj][0]
     prod = np.sum(list(grad0[key]*grad1[key] for key in grad0.keys()))
     #rescale from [-1, 1] to [1/g, g]
     frac = growthFactor**prod
-    self.raiseADebug('Modifying step size due to gradient history by factor:',frac)
+    self.raiseADebug('Based on gradient history, step size multiplier is:',frac)
     return frac
