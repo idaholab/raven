@@ -466,6 +466,14 @@
    output = 'GridTestHDF5WithFileName/DatabaseStorage/userSpecifiedFileName.h5'
  [../]
 
+ [./testLimitSurfacePostProcessorWithRegressor]
+  type = 'RavenFramework'
+  input = 'test_LimitSurface_regressor_inverseWeight.xml'
+  csv = 'limitSurfaceWithRegressor/LimitSurfaceNegative_dump.csv limitSurfaceWithRegressor/LimitSurfacePositiveNegative_dump.csv limitSurfaceWithRegressor/LimitSurfacePositive_dump.csv'
+  max_time = 300
+  rel_err = 0.0001
+ [../]
+
 []
 
 
