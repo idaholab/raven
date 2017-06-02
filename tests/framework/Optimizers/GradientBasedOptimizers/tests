@@ -13,6 +13,7 @@
   output = 'SPSAwConstraint/optimizationHistoryDump.csv'
   csv = 'SPSAwConstraint/mdlDataDump.csv SPSAwConstraint/optimizationHistoryDump_0.csv'
   rel_err = 1.e-4
+  skip = 'constraints under rework'
  [../]
  [./SPSAParallel]
   type = 'RavenFramework'
@@ -32,13 +33,6 @@
   type = 'RavenFramework'
   input = 'test_max_range_projectile_with_constants.xml'
   csv = 'maxRangeWithBoundaryConstraintsAndConstants/opt_dump.csv'
-  rel_err = 1.e-4
- [../]
- [./SPSABoundConstraintsMaximizationNormGradient]
-  type = 'RavenFramework'
-  input = 'test_max_range_projectile_norm_grad.xml'
-  output = 'maxRangeWithBoundaryConstraintsNormGradient/opt_dump.csv maxRangeWithBoundaryConstraintsNormGradient/1-trajectory_scatter.png maxRangeWithBoundaryConstraintsNormGradient/1-convergenceHistory_scatter.png'
-  csv = 'maxRangeWithBoundaryConstraintsNormGradient/opt_export_0.csv'
   rel_err = 1.e-4
  [../]
  [./SPSAMaximizationPenalty]

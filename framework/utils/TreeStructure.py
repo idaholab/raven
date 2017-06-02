@@ -406,7 +406,7 @@ class InputNode:
       @ In, None
       @ Out, hash, tuple, name and values and text
     """
-    return hash(tuple(self.tag,tuple(sorted(self.attrib.items())),self.texxt))
+    return hash(tuple(self.tag,tuple(sorted(self.attrib.items())),self.text))
 
   def __iter__(self):
     """

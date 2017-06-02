@@ -40,13 +40,14 @@
   <Optimizers>
     <SPSA name="opter">
       <initialization>
-        <limit>2000</limit>
+        <limit>1000</limit>
         <type>max</type>
         <initialSeed>42</initialSeed>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
           <relativeThreshold>1e-7</relativeThreshold>
+          <absoluteThreshold>5e-5</absoluteThreshold>
       </convergence>
       <variable name='x1'>
         <lowerBound>-5</lowerBound>
@@ -70,8 +71,8 @@
       </variable>
       <objectVar>ans</objectVar>
       <parameter>
-        <A>0</A>
-        <a>0.2</a>
+        <A>10</A>
+        <a>0.1</a>
       </parameter>
     </SPSA>
   </Optimizers>
