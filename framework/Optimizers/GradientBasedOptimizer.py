@@ -106,7 +106,7 @@ class GradientBasedOptimizer(Optimizer):
       self.optVarsHist[traj]                 = {}
       self.readyVarsUpdate[traj]             = False
       self.convergeTraj[traj]                = False
-      self.status[traj]                      = ('not started',-1)
+      self.status[traj]                      = {'process':'submitting grad eval points', 'reason':'just started'}
       self.counter['recentOptHist'][traj]    = [{},{}]
     for traj in self.optTraj:
       self.gradDict['pertPoints'][traj] = {}
@@ -253,8 +253,11 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     if not self.convergeTraj[traj]:
+      if len(self.counter['gradientHistory'][traj][1]) < 1:
+          self.status[traj]['reason'] = 'found new opt point'
       #if varsUpdate >= 1: multilevel can't rely on the varsUpdate number
-      if len(self.counter['gradientHistory'][traj][1]) > 0: #should be > 1?
+      #if len(self.counter['gradientHistory'][traj][1]) > 0: #should be > 1?
+      else:
         sizeArray = 1
         if self.gradDict['numIterForAve'] > 1:
           sizeArray+=self.gradDict['numIterForAve']
@@ -286,11 +289,13 @@ class GradientBasedOptimizer(Optimizer):
         self.raiseAMessage("Variables :" +str(varK))
 
         if newerIsBetter:
+          self.status[traj]['reason'] = 'found new opt point'
+          self.raiseADebug('Accepting potential opt point for improved loss value')
           converged = sameCoordinateCheck or gradientNormCheck or absoluteTolCheck or relativeTolCheck
         # if newer point is not better, we're keeping the old point, and sameCoordinate, absoluteTol, and relativeTol aren't applicable
         else:
+          self.status[traj]['reason'] = 'rejecting bad opt point'
           self.raiseADebug('Rejecting potential opt point for worse loss value')
-          self.status[traj] = ('rejecting bad opt point',self.counter['varsUpdate'])
           # cut the next step size to hopefully stay in the valley instead of climb up the other side
           self.recommendToGain[traj] = 'cut'
           converged = gradientNormCheck
@@ -418,10 +423,10 @@ class GradientBasedOptimizer(Optimizer):
             print('DEBUGG collecting solution export entry, output:',currentObjectiveValue)
             self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], currentObjectiveValue)
             if self.convergeTraj[traj]:
-              self.status[traj] = ('converged',self.counter['varsUpdate'][traj])
+              self.status[traj] = {'process':None, 'reason':'converged'}
             else:
               # if rejecting bad point, keep the old point as the new point
-              if self.status[traj][0] != 'rejecting bad opt point':
+              if self.status[traj]['reason'] != 'rejecting bad opt point':
                 try:
                   self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
                 except KeyError:
@@ -430,7 +435,7 @@ class GradientBasedOptimizer(Optimizer):
                 self.counter['recentOptHist'][traj][0] = {'inputs':self.optVarsHist[traj][self.counter['varsUpdate'][traj]],
                                                           'output':currentObjectiveValue}
               # update status to submitting grad eval points
-              self.status[traj] = ('submitting grad eval points',self.counter['varsUpdate'][traj])
+              self.status[traj]['process'] = 'submitting grad eval points'
 
             # update solution export
             if 'trajID' not in self.solutionExport.getParaKeys('inputs'):

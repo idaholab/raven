@@ -146,6 +146,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # Due to the complicated nature of adaptive sampling in a forward-sampling approach, we keep track
     # of the current "process" and "reason" for each trajectory.  These processes and reasons are set by the
     # individual optimizers for their own use in checking readiness, convergence, etc.
+    # They are stored as self.status[traj] = {'process':'','reason':''}
     # Common processes to all optimizers:
     # TODO these are the ones for SPSA, this should get moved or something when we rework this module
     # Processes:
@@ -158,7 +159,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #   "just started"            - the optimizer has only just begun operation, and doesn't know what it's doing yet
     #   "found new opt point"     - the last hypothetical optimal point has been accepted, so we need to move forward
     #   "rejecting bad opt point" - the last hypothetical optimal point was rejected, so we need to reconsider
+    #   "seeking new opt point"   - the process of looking for a new opt point has started
     #   "converged"               - the trajectory is in convergence
+    # example usage:
+    #   self.status[traj]['process'] == 'submitting grad eval points' and self.status[traj]['reason'] == 'rejecting bad opt point'
+    #
+    ### END explanation
     self.addAssemblerObject('Restart' ,'-n',True)
     self.addAssemblerObject('TargetEvaluation','1')
     self.addAssemblerObject('Function','-1')
@@ -491,7 +497,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #if converged and not ready, the optimizer believes it is done; check multilevel
     # -> however, if we're waiting on point collection, don't do multilevel check; only when we want to submit a new point.
     traj = 0 #FIXME for multiple trajectories
-    if self.multilevel and self.status[traj][0].startswith('collecting'):
+    if self.multilevel and self.status[traj]['reason'] in ['found new opt point']:
       print('DEBUGG ------------ MULTILEVEL CHECK ---------------')
       print('DEBUGG ... ready and converged:',ready,convergence)
       # make sure we have optimization history points; otherwise, there's nothing to be done
