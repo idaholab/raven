@@ -186,11 +186,12 @@ class SPSA(GradientBasedOptimizer):
     self.counter ['perturbation'   ][traj] = 0
     self.counter ['gradientHistory'][traj] = [{},{}]
     self.counter ['gradNormHistory'][traj] = [{},{}]
-    self.counter ['varsUpdate'     ][traj] += 1 #I don't like doing this, but only way to assure a new point is considered
+    #self.counter ['recentOptHist'  ][traj] = [{},{}]
+    #self.counter ['varsUpdate'     ][traj] += 1 #I don't like doing this, but only way to assure a new point is considered
     del self.counter['lastStepSize'][traj]
     self.gradDict['pertPoints'     ][traj] = []
     self.convergeTraj               [traj] = False
-    # FIXME clear self.counter[recentOptPoints][traj] as well!
+    self.status                     [traj] = ('submitting grad eval points',self.counter['varsUpdate'][traj])
 
   def localGenerateInput(self,model,oldInput):
     """
@@ -201,6 +202,7 @@ class SPSA(GradientBasedOptimizer):
     """
     GradientBasedOptimizer.localGenerateInput(self,model,oldInput)
     action, traj = self.nextActionNeeded
+    print('DEBUGG LGI action is "{}" on traj "{}":'.format(action,traj))
     #"action" and "traj" are set in localStillReady
     #"action" is a string of the next action needed by the optimizer in order to move forward
     #"traj" is the trajectory that is in need of the action
@@ -220,6 +222,7 @@ class SPSA(GradientBasedOptimizer):
       self.status[traj] = ('collecting new opt point',self.counter['varsUpdate'][traj])
 
     elif action == 'add new grad evaluation point':
+      print('DEBUGG adding new grad eval, counter:',self.counter['perturbation'])
       self.counter['perturbation'][traj] += 1
       if self.counter['perturbation'][traj] == 1:
         # Generate all the perturbations at once, then we can submit them one at a time
@@ -254,11 +257,14 @@ class SPSA(GradientBasedOptimizer):
 
 
       # get one of the perturbations to run
-      # TODO rename loc1, loc2
-      loc1 = self.counter['perturbation'][traj] % 2
+      # TODO rename loc1, loc2, or make this whole storage mess make sense
+      loc1 = self.counter['perturbation'][traj] % 2 #1 if odd, 0 if even
       loc2 = np.floor(self.counter['perturbation'][traj] / 2) if loc1 == 1 else np.floor(self.counter['perturbation'][traj] / 2) - 1
       tempOptVars = {}
       for var in self.optVars:
+        print('DEBUGG keys:',traj,loc2,var,loc1)
+        print('DEBUGG avail:',self.gradDict['pertPoints'][traj])
+        print('DEBUGG counter perturb:',self.counter['perturbation'])
         tempOptVars[var] = self.gradDict['pertPoints'][traj][loc2][var][loc1]
       tempOptVarsDenorm = copy.deepcopy(self.denormalizeData(tempOptVars))
       for var in self.optVars:
@@ -299,11 +305,12 @@ class SPSA(GradientBasedOptimizer):
       # remove redundant trajectory
       if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
         self._removeRedundantTraj(traj, self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
-      self.status[traj] = ('collecting new opt point',self.counter['varsUpdate'])
+      self.status[traj] = ('collecting new opt point',self.counter['varsUpdate'][traj])
 
     #unrecognized action
     else:
       self.raiseAnError(RuntimeError,'Unrecognized "action" in localGenerateInput:',action)
+    self.raiseADebug('Queuing run "{}"'.format(self.inputInfo['prefix']))
 
   def estimateStochasticity(self,gradient,perturbedPoints,centralPoint,centralResponseIndex):
     """

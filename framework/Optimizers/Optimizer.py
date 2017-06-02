@@ -100,7 +100,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.limit['mdlEval']               = 2000                      # Maximum number of the loss function evaluation
     self.limit['varsUpdate']            = 650                       # Maximum number of the optimization iteration.
     self.initSeed                       = None                      # Seed for random number generators
-    self.status                         = {}                        # by trajectory, ("string-based status", arbitrary, other, entries)
     self.optVars                        = None                      # Decision variables for optimization
     self.fullOptVars                    = None                      # Decision variables for optimization, full space
     self.optVarsInit                    = {}                        # Dict containing upper/lower bounds and initial of each decision variables
@@ -141,6 +140,25 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.mlStaticValues                 = {}                        # dictionary of static values for variables in fullOptVars but not in optVars due to multilevel
     self.mlActiveSpaceSteps             = 0                         # integer to track iterations performed in optimizing the current, active subspace
 
+    self.status                         = {}                        # by trajectory, ("string-based status", arbitrary, other, entries)
+    ### EXPLANATION OF STATUS SYSTEM
+    #
+    # Due to the complicated nature of adaptive sampling in a forward-sampling approach, we keep track
+    # of the current "process" and "reason" for each trajectory.  These processes and reasons are set by the
+    # individual optimizers for their own use in checking readiness, convergence, etc.
+    # Common processes to all optimizers:
+    # TODO these are the ones for SPSA, this should get moved or something when we rework this module
+    # Processes:
+    #   "submitting grad eval points" - submitting new points so later we can evaluate a gradient and take an opt step
+    #   "collecting grad eval points" - all the required gradient evaluation points are submitted, so we're just waiting to collect them
+    #   "submitting new opt point"    - a new optimal point has been postulated, and is being submitted for evaluationa (not actually used)
+    #   "collecting new opt point"    - the new  hypothetical optimal point has been submitted, and we're waiting on it to finish
+    #   "evaluate gradient"           - localStillReady notes we have all the new grad eval points, and has flagged for gradient to be evaluated in localGenerateInput
+    # Reasons:
+    #   "just started"            - the optimizer has only just begun operation, and doesn't know what it's doing yet
+    #   "found new opt point"     - the last hypothetical optimal point has been accepted, so we need to move forward
+    #   "rejecting bad opt point" - the last hypothetical optimal point was rejected, so we need to reconsider
+    #   "converged"               - the trajectory is in convergence
     self.addAssemblerObject('Restart' ,'-n',True)
     self.addAssemblerObject('TargetEvaluation','1')
     self.addAssemblerObject('Function','-1')
@@ -466,33 +484,34 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, ready, bool, indicating the readiness of the optimizer to generate a new input.
     """
+    print('DEBUGG AIR status:',self.status)
     ready = True if self.counter['mdlEval'] < self.limit['mdlEval'] else False
     convergence = self.checkConvergence()
     ready = self.localStillReady(ready)
     #if converged and not ready, the optimizer believes it is done; check multilevel
-    # TODO add status changes to this multilevel block
-    if self.multilevel:
+    # -> however, if we're waiting on point collection, don't do multilevel check; only when we want to submit a new point.
+    traj = 0 #FIXME for multiple trajectories
+    if self.multilevel and self.status[traj][0].startswith('collecting'):
       print('DEBUGG ------------ MULTILEVEL CHECK ---------------')
       print('DEBUGG ... ready and converged:',ready,convergence)
-      traj = 0 #FIXME for multiple trajectories
       # make sure we have optimization history points; otherwise, there's nothing to be done
-      if len(self.optVarsHist[traj])>0:
+      if len(self.counter['recentOptHist'][traj][0]) > 0: #len(self.optVarsHist[traj])>0:
         # get the latset optimization point (normalized)
-        latest_point = self.latestPoint[traj]['inputs']#self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
+        latest_point = self.counter['recentOptHist'][traj][0]['inputs'] #self.latestPoint[traj]['inputs']#self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
         # is this the first optimization point we've received?
         if self.mlDepth is None:
-          # if so, then initialize multilevel
+          # if so, then initialize multilevel, and no status change needed
           print('DEBUGG ... first opt point')
           self.updateMultilevelDepth(traj, len(self.mlSequence)-1, latest_point, setAll=True)
           # now we need to optimize the innermost space, so we are ready to provide samples
           return True
-        # else ... get the current batch since we'll use that a lot going forward ...
+        # else if not the first opt point ... get the current batch since we'll use that going forward ...
         currentBatch = self.mlSequence[self.mlDepth]
         # are we in the innermost loop?
         if self.mlDepth == len(self.mlSequence)-1:
           print('DEBUGG ... in innermost loop ...')
           # then, are we converged?
-          if convergence:
+          if convergence: #FIXME could be checked through self.status?
             print('DEBUGG ... converged ...')
             # then, move out one subspace in our loop
             self.updateMultilevelDepth(traj,self.mlDepth-1,latest_point)
@@ -516,6 +535,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
               # else if not converged ...
               else:
                 # set the active space to be the innermost loop so it can converge for the new outer loop value
+                self.raiseADebug('Having perturbed outer space "{}", we now return to the innermost space ...'.format(currentBatch))
                 self.updateMultilevelDepth(traj,len(self.mlSequence)-1,latest_point)
                 #return True
             # else if not in the outermost loop ...
@@ -765,6 +785,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     allData.update(self.normalizeData(data)) # data point not normalized a priori
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(allData)
     self.mlActiveSpaceSteps += 1
+
 
   def removeConvergedTrajectory(self,convergedTraj):
     """

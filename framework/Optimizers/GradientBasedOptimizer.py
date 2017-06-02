@@ -148,8 +148,11 @@ class GradientBasedOptimizer(Optimizer):
     """
     if self.mdlEvalHist.isItEmpty():
       return (False,-1)
-
+    print('DEBUGG looking for:',traj,updateKey,evalID)
     prefix = self.mdlEvalHist.getMetadata('prefix')
+    print('DEBUGG looking in:')
+    for entry in prefix:
+      print('DEBUGG    ',entry)
     for index, pr in enumerate(prefix):
       pr = pr.split(utils.returnIdSeparator())[-1].split('_')
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
@@ -286,7 +289,7 @@ class GradientBasedOptimizer(Optimizer):
           converged = sameCoordinateCheck or gradientNormCheck or absoluteTolCheck or relativeTolCheck
         # if newer point is not better, we're keeping the old point, and sameCoordinate, absoluteTol, and relativeTol aren't applicable
         else:
-          # TODO flag to keep the old point instead of the new one
+          self.raiseADebug('Rejecting potential opt point for worse loss value')
           self.status[traj] = ('rejecting bad opt point',self.counter['varsUpdate'])
           # cut the next step size to hopefully stay in the valley instead of climb up the other side
           self.recommendToGain[traj] = 'cut'
@@ -381,9 +384,13 @@ class GradientBasedOptimizer(Optimizer):
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, myInput, list, the generating input
     """
+    self.raiseADebug('Collected sample "{}"'.format(jobObject.getMetadata()['prefix']))
+    # TODO move this whole piece to Optimizer base class as much as possible
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
+        print('DEBUGG finalizing sampling for traj:',traj)
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
+          print('DEBUGG in finalizing loop')
           solutionExportUpdatedFlag, indices = self._getJobsByID(traj) #self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
           #solutionUpdateList = [solutionExportUpdatedFlag]
           #solutionIndeces    = [index]
@@ -408,6 +415,7 @@ class GradientBasedOptimizer(Optimizer):
             index                 = indices[0]
             # check convergence
             # TODO move this? I did in the old multilevel
+            print('DEBUGG collecting solution export entry, output:',currentObjectiveValue)
             self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], currentObjectiveValue)
             if self.convergeTraj[traj]:
               self.status[traj] = ('converged',self.counter['varsUpdate'][traj])
@@ -433,7 +441,7 @@ class GradientBasedOptimizer(Optimizer):
             for var in self.solutionExport.getParaKeys('outputs'):
               old = copy.deepcopy(output.get(var, np.asarray([])))
               new = None #prevents accidental data copying
-              if var in self.optVars:
+              if var in self.fullOptVars: #TODO FIXME this should be in the base class!
                 new = self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs'])[var] #inputeval[var][index]
               elif var == self.objVar:
                 new = self.counter['recentOptHist'][traj][0]['output'] #currentObjectiveValue

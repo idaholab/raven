@@ -515,9 +515,13 @@ class MultiRun(SingleRun):
                                         ' Use a RomTrainer step to train it.')
     # run step loop
     while True:
+      print('DEBUGG #------------------------------------#')
+      print('DEBUGG #              LOOP STEP             #')
+      print('DEBUGG #------------------------------------#')
       # collect finished jobs
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
+        print('DEBUGG --- looping through finished jobs ---')
         # update number of collected runs
         self.counter +=1
         # collect run if it succeeded
@@ -554,6 +558,8 @@ class MultiRun(SingleRun):
             break
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
+      print('DEBUGG ------------ STEP checking if jobs, sampler are done --------------')
+      print('DEBUGG jobhandler finished?:',jobHandler.isFinished())
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
         self.raiseADebug('Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
