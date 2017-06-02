@@ -65,6 +65,52 @@ From a practical point of view, these optimization strategies represent differen
 from previously performed model evaluation. In the following paragraphs, the input requirements and a small explanation of the
 different sampling methodologies are reported.
 
+Note that in addition to the input variables and response variable, several other parameters are available to
+request for the output of a Gradient-Based Optimizer run.  Note that each starts with an underscore.  They include the following:
+\begin{itemize}
+  \item \xmlString{\_stepSize}, is the step size used to go from the previous optimal point to the current step;
+  \item \xmlString{\_gradient\_var}, where \emph{var} is replaced by an input variable name, provides the
+    gradient in the \emph{var} direction followed to arrive at the current optimal point (evaluated at the
+    previous optimal point);
+  \item \xmlString{\_convergence\_rel}, the last-calculated relative convergence of the loss function value
+    (see the description of the \xmlNode{convergence} node for more details);
+  \item \xmlString{\_convergence\_abs}, the last-calculated absolute convergence of the loss function value
+    (see the description of the \xmlNode{convergence} node for more details);
+  \item \xmlString{\_convergence\_grad}, the last-calculated norm of the gradient used to arrive at the
+    current point (see the description of the \xmlNode{convergence} node for more details).
+\end{itemize}
+Note that none of these additional parameters will be provided to the output DataObject by default; they must
+be specifically requested by listing them in the output space when defining the optimizing step's output data
+object.
+
+Example:
+\begin{lstlisting}[style=XML]
+<Optimizers>
+  ...
+  <AnyGradientBasedOptimizer name="anyname">
+    <initialization>
+      <limit>300</limit>
+    </initialization>
+    <TargetEvaluation class="DataObjects" type="PointSet">TEdataObjectName</TargetEvaluation>
+    <convergence>
+      <iterationLimit>50</iterationLimit>
+      <relativeThreshold>1e-3</relativeThreshold>
+      <absoluteThreshold>1e-1</absoluteThreshold>
+      <gradientThreshold>1e-5</gradientThreshold>
+    </convergence>
+    <parameter>
+      <numGradAvgIterations>3</numGradAvgIterations>
+      <normalize>False</normalize>
+    </parameter>
+    <variable name="var1">
+      <upperBound>100</upperBound>
+      <lowerBound>-100</lowerBound>
+      <initial>0</initial>
+    </variable>
+    <objectVar>c</objectVar>
+  </SPSA>
+  ...
+</Optimizers>
 
 %%% Gradient Based Optimizers: SPSA
 \subsubsection{Simultaneous Perturbation Stochastic Approximation (SPSA)}
@@ -88,7 +134,10 @@ through bisection methods, until constraints can no longer be satisfied;
 terminate.
 \end{itemize}
 
-
+It is important to notice that the gradient and the feature space is always normalized. This means that the gradient is going to be
+normalized with respect to its norm (versor of the gradient); hence, the optimization advancement is not going to be influenced by the
+magnitude of the gradient, but just on its ``direction'' information content. All the following parameters that can be optionally be inputted
+should be calibrated with this information in mind.
 %
 
 \specBlock{a}{SPSA}
@@ -110,7 +159,7 @@ optimization can be specified in the \xmlNode{initialization} and \xmlNode{param
 specified:
   \begin{itemize}
     \item \xmlNode{limit}, \xmlDesc{integer,optional field}, number of samples to be generated, which is same as the number of
-    model evaluation;
+    model evaluation. \default{2000}.
     \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator for stochastic
     perturbations;
     \item \xmlNode{type},  \xmlDesc{string (case insensitive), optional field}, specifies whether this optimizer performs maximization
@@ -158,7 +207,7 @@ output of the DataObject specified in \xmlNode{TargetEvaluation}.
 \item \xmlNode{convergence}, \xmlDesc{XML node, optional parameter} will specify parameters associated with optimization
 convergence. This node accepts the following sub-nodes:
   \begin{itemize}
-  \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations.
+  \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations. \default{650}.
   \item \xmlNode{relativeThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality
   in a ``relative'' sense: when the relative change of the objective variable in two successive model evaluations is smaller than
   this specified threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
@@ -173,13 +222,10 @@ convergence. This node accepts the following sub-nodes:
   \end{itemize}
 \item \xmlNode{parameter}, \xmlDesc{XML node, optional parameter} will accepts the following sub-nodes:
   \begin{itemize}
-    \item \xmlNode{normalize}, \xmlDesc{bool, optional field} this is the parameter that controls how the gradient information
-    content should be used. If \textbf{True}, the gradient is going to be normalized with respect to its norm (versor of the gradient);
-    this means that the optimization advancement is not going to be influenced by the magnitude of the gradient, but just on its
-    ``direction'' information content. If \textbf{False}, the gradient magnitude is going to be actively part of the advancement of the
-    optimization search.
-        \default{False}
-  \item \xmlNode{numGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation.
+  \item \xmlNode{numGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation. When this
+        parameter is $>1$, multiple gradient evaluations are going to be performed. Since the main goal for this parameter is to
+        get a better gradient estimation (performing a denoising), the current point $x_k$ is evaluated multiple times in order to be able to
+        converge in average.
         \default{1}
 
   \item Optimizer Gradient Evaluation parameters:

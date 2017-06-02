@@ -66,11 +66,12 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <relativeThreshold>1.5e-5</relativeThreshold>
+          <relativeThreshold>1e-2</relativeThreshold>
       </convergence>
       <variable name='v0'>
         <upperBound>1000</upperBound>
         <lowerBound>20</lowerBound>
+        <initial>30</initial>
       </variable>
       <variable name='angle'>
         <upperBound>50</upperBound>
@@ -79,7 +80,7 @@
       </variable>
       <objectVar>r</objectVar>
       <parameter>
-        <a>10</a>
+        <a>0.05</a>
       </parameter>
     </SPSA>
   </Optimizers>
@@ -106,7 +107,7 @@
     </PointSet>
     <PointSet name="opt_soln">
       <Input>trajID</Input>
-      <Output>v0,r</Output>
+      <Output>v0,ang,r,varsUpdate</Output>
     </PointSet>
     <HistorySet name="opt_export">
       <Input>trajID</Input>

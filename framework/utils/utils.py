@@ -333,7 +333,7 @@ def intConversion (s):
   """
   try:
     return int(s)
-  except ValueError:
+  except (ValueError,TypeError) as e:
     return None
 
 def floatConversion (s):
@@ -345,7 +345,7 @@ def floatConversion (s):
   """
   try:
     return float(s)
-  except ValueError:
+  except (ValueError,TypeError) as e:
     return None
 
 def partialEval(s):

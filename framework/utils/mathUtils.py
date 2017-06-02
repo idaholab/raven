@@ -206,7 +206,6 @@ def getGraphs(functions, fZStats = False):
     retDict['variance_function_diff'] = varianceFunctionDiff
   return retDict
 
-
 def countBins(sortedData, binBoundaries):
   """
     This method counts the number of data items in the sorted_data
@@ -365,8 +364,6 @@ def normalizationFactors(values, mode='z'):
     scale = 1.0
 
   return (offset, scale)
-
-
 
 #
 # I need to convert it in multi-dimensional
@@ -529,13 +526,12 @@ def numpyNearestMatch(findIn,val):
   returnMatch = idx,findIn[idx]
   return returnMatch
 
-def compareFloats(f1,f2,tol=1e-6):
+def relativeDiff(f1,f2):
   """
-    Given two floats, safely compares them to determine equality to provided relative tolerance.
+    Given two floats, safely compares them to determine relative difference.
     @ In, f1, float, first value (the value to compare to f2, "measured")
     @ In, f2, float, second value (the value being compared to, "actual")
-    @ In, tol, float, optional, relative tolerance to determine match
-    @ Out, compareFloats, bool, True if floats close enough else False
+    @ Out, relativeDiff, float, (safe) relative difference
   """
   if not isinstance(f1,float):
     try:
@@ -558,7 +554,18 @@ def compareFloats(f1,f2,tol=1e-6):
     #at this point, they're both equal to zero, so just divide by 1.0
     else:
       scale = 1.0
-  return diff/abs(scale) < tol
+  return diff/abs(scale)
+
+def compareFloats(f1,f2,tol=1e-6):
+  """
+    Given two floats, safely compares them to determine equality to provided relative tolerance.
+    @ In, f1, float, first value (the value to compare to f2, "measured")
+    @ In, f2, float, second value (the value being compared to, "actual")
+    @ In, tol, float, optional, relative tolerance to determine match
+    @ Out, compareFloats, bool, True if floats close enough else False
+  """
+  diff = relativeDiff(f1,f2)
+  return diff < tol
 
 def NDInArray(findIn,val,tol=1e-12):
   """

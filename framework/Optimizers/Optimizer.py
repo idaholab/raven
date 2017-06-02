@@ -96,8 +96,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.limit                          = {}                        # Dict containing limits for each counter
-    self.limit['mdlEval']               = sys.maxsize               # Maximum number of the loss function evaluation
-    self.limit['varsUpdate']            = sys.maxsize               # Maximum number of the optimization iteration.
+    self.limit['mdlEval']               = 2000                      # Maximum number of the loss function evaluation
+    self.limit['varsUpdate']            = 650                       # Maximum number of the optimization iteration.
     self.initSeed                       = None                      # Seed for random number generators
     self.optVars                        = None                      # Decision variables for optimization
     self.optVarsInit                    = {}                        # Dict containing upper/lower bounds and initial of each decision variables
@@ -175,10 +175,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     for child in xmlNode:
+      #FIXME: the common variable reading should be wrapped up in a method to reduce the code redondancy
       if child.tag == "variable":
-        if self.optVars == None:
+        if self.optVars is None:
           self.optVars = []
-        varname = str(child.attrib['name'])
+        try:
+          varname = child.attrib['name']
+        except KeyError:
+          self.raiseAnError(IOError, child.tag+' node does not have the "name" attribute')
         self.optVars.append(varname)
         for childChild in child:
           if   childChild.tag == "upperBound":
@@ -238,19 +242,19 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for childChild in child:
           self.paramDict[childChild.tag] = childChild.text
 
-    if self.optType == None:
+    if self.optType is None:
       self.optType = 'min'
-    if self.thresholdTrajRemoval == None:
+    if self.thresholdTrajRemoval is None:
       self.thresholdTrajRemoval = 0.05
-    if self.initSeed == None:
+    if self.initSeed is None:
       self.initSeed = Distributions.randomIntegers(0,2**31,self)
-    if self.objVar == None:
+    if self.objVar is None:
       self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
-    if self.optVars == None:
+    if self.optVars is None:
       self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
     else:
       self.optVars.sort()
-    if self.optTraj == None:
+    if self.optTraj is None:
       self.optTraj = [0]
     for varname in self.optVars:
       if varname not in self.optVarsInit['upperBound'].keys():
@@ -369,6 +373,24 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.constraintFunction = self.assemblerDict['Function'][0][3]
       if 'constrain' not in self.constraintFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
+    # check the constraint here to check if the initial values violate it
+    varK = {}
+    for trajInd in self.optTraj:
+      for varname in self.optVars:
+        varK[varname] = self.optVarsInit['initial'][varname][trajInd]
+      satisfied, _ = self.checkConstraint(self.normalizeData(varK))
+      if not satisfied:
+        # get a random value between the the lower and upper bounds
+        self.raiseAWarning("the initial values specified for trajectory "+str(trajInd)+" do not satify the contraints. Picking random ones!")
+        randomGuessesCnt = 0
+        while not satisfied and randomGuessesCnt < self.constraintHandlingPara['innerLoopLimit']:
+          for varname in self.optVars:
+            varK[varname] = self.optVarsInit['lowerBound'][varname]+Distributions.random()*self.optVarsInit['ranges'][varname]
+            self.optVarsInit['initial'][varname][trajInd] = varK[varname]
+          satisfied, _ = self.checkConstraint(varK)
+        if not satisfied:
+          self.raiseAnError(Exception,"It was not possible to find any initial values that could satisfy the constraints for trajectory "+str(trajInd))
+
 
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
@@ -437,10 +459,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
     for key in tempDict.keys():
       tempDict[key] = np.asarray(tempDict[key])
-
     self.objSearchingROM.train(tempDict)
-    if self.gradDict['normalize']:
-      optVars = self.denormalizeData(optVars)
     for key in optVars.keys():
       optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
@@ -462,8 +481,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
       if not satisfied:
         violatedConstrains['external'].append(self.constraintFunction.name)
-    if self.gradDict['normalize']:
-      optVars = self.denormalizeData(optVars)
+    optVars = self.denormalizeData(optVars)
     for var in optVars:
       if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
         satisfied = False
@@ -502,7 +520,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     optVarsNorm = {}
     for var in optVars.keys():
-      optVarsNorm[var] = (optVars[var]-self.optVarsInit['lowerBound'][var])/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
+      try:
+        optVarsNorm[var] = (optVars[var]-self.optVarsInit['lowerBound'][var])/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
+      except KeyError:
+        optVarsNorm[var] = optVars[var]
     return optVarsNorm
 
   def denormalizeData(self, optVars):
@@ -513,7 +534,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     optVarsDenorm = {}
     for var in optVars.keys():
-      optVarsDenorm[var] = optVars[var]*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])+self.optVarsInit['lowerBound'][var]
+      try:
+        optVarsDenorm[var] = optVars[var]*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])+self.optVarsInit['lowerBound'][var]
+      except KeyError:
+        optVarsDenorm[var] = optVars[var]
     return optVarsDenorm
 
   def generateInput(self,model,oldInput):

@@ -25,13 +25,13 @@
     <MultiRun name="optimization" pauseAtEnd="true">
       <Input class="DataObjects" type="PointSet">optInput</Input>
       <Model class="Models" type="ExternalModel">optObjModel</Model>
-      <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>	  
+      <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">optData</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOutput</Output>
       <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
       <Output class="OutStreams" type="Print">mdlDataDump</Output>
     </MultiRun>
-	
+
     <IOStep name="optimizationdump" pauseAtEnd="true">
       <Input class="DataObjects" type="HistorySet">optData</Input>
       <Input class="DataObjects" type="PointSet">optOutput</Input>
@@ -88,37 +88,36 @@
       </variable>
     </Grid>
   </Samplers>
-  
+
   <Optimizers>
     <SPSA name="opt_smp">
       <initialization>
-		<limit>300</limit>
-		<type>min</type>
-		<initialSeed>30</initialSeed>
-		<!-- <thresholdTrajRemoval>0.05</thresholdTrajRemoval> -->
+		    <limit>2000</limit>
+		    <type>min</type>
+		    <initialSeed>30</initialSeed>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
-	  <convergence>
-		<iterationLimit>50</iterationLimit>
-        <relativeThreshold>1e-5</relativeThreshold>
-        <absoluteThreshold>1e-7</absoluteThreshold>
-        <gradientThreshold>1e-6</gradientThreshold>
-	  </convergence>
-	  <variable name="x1">
+	    <convergence>
+        <iterationLimit>1000</iterationLimit>
+        <relativeThreshold>1e-3</relativeThreshold>
+        <absoluteThreshold>1e-3</absoluteThreshold>
+        <gradientThreshold>1e-3</gradientThreshold>
+	    </convergence>
+  	  <variable name="x1">
         <upperBound>1</upperBound>
-		<lowerBound>-1</lowerBound>
-		<initial>-1,0,1</initial>
+	  	  <lowerBound>-1</lowerBound>
+		    <initial>-1,0.1,1</initial>
       </variable>
-	  <variable name="x2">
+	    <variable name="x2">
         <upperBound>1</upperBound>
-		<lowerBound>-1</lowerBound>
-		<initial>0,0,0</initial>
+		    <lowerBound>-1</lowerBound>
+		    <initial>0.1,0,0</initial>
       </variable>
-	  <objectVar>c</objectVar>
-	  <parameter>
-		<numGradAvgIterations>4</numGradAvgIterations>
-		<a>0.1</a>
-	  </parameter>
+	    <objectVar>c</objectVar>
+	    <parameter>
+		    <numGradAvgIterations>4</numGradAvgIterations>
+		    <a>0.2</a>
+	    </parameter>
     </SPSA>
   </Optimizers>
 
@@ -141,7 +140,7 @@
         <type>csv</type>
         <source>gridOutput</source>
     </Print>
-	
+
     <Plot name="optPath" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
@@ -158,7 +157,7 @@
             <zlabel>Loss Function</zlabel>
         </plotSettings>
     </Plot>
-	
+
     <Plot name="optVars" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
@@ -174,7 +173,7 @@
             <ylabel>x2</ylabel>
         </plotSettings>
     </Plot>
-	
+
     <Plot name="plotIteration" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
@@ -186,27 +185,27 @@
                 <x>optData|Output|varsUpdate</x>
                 <y>optData|Output|x1</y>
 				<interpPointsX>300</interpPointsX>
-				<gridLocation><x>0</x><y>0</y></gridLocation>	
-				<ylabel>x1</ylabel>				
+				<gridLocation><x>0</x><y>0</y></gridLocation>
+				<ylabel>x1</ylabel>
             </plot>
-			
+
 			<plot>
                 <type>line</type>
                 <x>optData|Output|varsUpdate</x>
                 <y>optData|Output|x2</y>
 				<interpPointsX>300</interpPointsX>
-				<gridLocation><x>1</x><y>0</y></gridLocation>	
-				<ylabel>x2</ylabel>				
+				<gridLocation><x>1</x><y>0</y></gridLocation>
+				<ylabel>x2</ylabel>
             </plot>
 
-			
+
 			<plot>
                 <type>line</type>
                 <x>optData|Output|varsUpdate</x>
                 <y>optData|Output|c</y>
 				<interpPointsX>300</interpPointsX>
-				<gridLocation><x>2</x><y>0</y></gridLocation>	
-				<ylabel>c</ylabel>				
+				<gridLocation><x>2</x><y>0</y></gridLocation>
+				<ylabel>c</ylabel>
             </plot>
 
 

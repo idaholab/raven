@@ -14,9 +14,10 @@
             <xsd:element name="limit"       type="xsd:integer"       minOccurs="0"/>
             <xsd:element name="initialSeed" type="xsd:integer"       minOccurs="0"/>
             <xsd:element name="type"        type="xsd:string"        minOccurs="0"/>
+            <xsd:element name="thresholdTrajRemoval" type="xsd:float" minOccurs="0"/>
         </xsd:all>
     </xsd:complexType>
- 
+
     <xsd:complexType name="optVarType">
         <xsd:all>
           <xsd:element name="upperBound"   type="xsd:float"    minOccurs="0"/>
@@ -24,8 +25,8 @@
           <xsd:element name="initial"      type="xsd:string"   minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
-    </xsd:complexType> 
-    
+    </xsd:complexType>
+
     <xsd:complexType name="optConvergenceType">
         <xsd:all>
             <xsd:element name="iterationLimit"    type="xsd:integer" minOccurs="0" maxOccurs="1"/>
@@ -62,9 +63,9 @@
                  <xsd:element name="innerLoopLimit"          type="xsd:float"   minOccurs="0" maxOccurs="1"/>
                </xsd:sequence>
              </xsd:complexType>
-            </xsd:element>    
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="name"      type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr"/>
-    </xsd:complexType>   
+    </xsd:complexType>
 </xsd:schema>
