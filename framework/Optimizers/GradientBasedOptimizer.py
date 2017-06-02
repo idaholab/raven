@@ -148,9 +148,9 @@ class GradientBasedOptimizer(Optimizer):
     """
     if self.mdlEvalHist.isItEmpty():
       return (False,-1)
-    print('DEBUGG looking for:',traj,updateKey,evalID)
+    #print('DEBUGG looking for:',traj,updateKey,evalID)
     prefix = self.mdlEvalHist.getMetadata('prefix')
-    print('DEBUGG looking in:')
+    #print('DEBUGG looking in:')
     for entry in prefix:
       print('DEBUGG    ',entry)
     for index, pr in enumerate(prefix):
@@ -254,7 +254,8 @@ class GradientBasedOptimizer(Optimizer):
     """
     if not self.convergeTraj[traj]:
       if len(self.counter['gradientHistory'][traj][1]) < 1:
-          self.status[traj]['reason'] = 'found new opt point'
+        print('DEBUGG not enough entries, so accepting point blindly')
+        self.status[traj]['reason'] = 'found new opt point'
       #if varsUpdate >= 1: multilevel can't rely on the varsUpdate number
       #if len(self.counter['gradientHistory'][traj][1]) > 0: #should be > 1?
       else:
@@ -291,6 +292,8 @@ class GradientBasedOptimizer(Optimizer):
         if newerIsBetter:
           self.status[traj]['reason'] = 'found new opt point'
           self.raiseADebug('Accepting potential opt point for improved loss value')
+          #TODO this belongs in the base class optimizer; grad shouldn't know about multilevel!!
+          self.mlActiveSpaceSteps += 1
           converged = sameCoordinateCheck or gradientNormCheck or absoluteTolCheck or relativeTolCheck
         # if newer point is not better, we're keeping the old point, and sameCoordinate, absoluteTol, and relativeTol aren't applicable
         else:
@@ -503,6 +506,8 @@ class GradientBasedOptimizer(Optimizer):
         frac = 1./growthFactor
       elif recommend == 'grow':
         frac = growthFactor
+      else:
+        self.raiseAnError(RuntimeError,'unrecognized gain recommendation:',recommend)
       self.raiseADebug('Based on recommendation, step size multiplier is:',frac)
       return frac
     # otherwise, no recommendation for this trajectory, so move on

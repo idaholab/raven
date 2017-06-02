@@ -150,6 +150,8 @@ class SPSA(GradientBasedOptimizer):
       elif self.status[traj]['process'] == 'collecting new opt point':
         self.raiseADebug('Waiting on collection of new optimization point.')
         continue
+      elif self.status[traj]['reason'] == 'converged':
+        self.raiseADebug('Trajectory is marked as converged.')
       else:
         self.raiseAnError(RuntimeError,'Unrecognized status:',self.status[traj])
     # if we did not find an action, we're not ready to provide an input
@@ -191,10 +193,14 @@ class SPSA(GradientBasedOptimizer):
     self.counter ['gradNormHistory'][traj] = [{},{}]
     #self.counter ['recentOptHist'  ][traj] = [{},{}]
     #self.counter ['varsUpdate'     ][traj] += 1 #I don't like doing this, but only way to assure a new point is considered
-    del self.counter['lastStepSize'][traj]
     self.gradDict['pertPoints'     ][traj] = []
     self.convergeTraj               [traj] = False
     self.status                     [traj] = {'process':'submitting grad eval points','reason':'found new opt point'}
+    del self.counter['lastStepSize'][traj]
+    try:
+      del self.recommendToGain        [traj]
+    except KeyError:
+      pass
 
   def localGenerateInput(self,model,oldInput):
     """
@@ -534,9 +540,9 @@ class SPSA(GradientBasedOptimizer):
     self.raiseADebug('step gain size for traj "{}" iternum "{}": {}'.format(traj,iterNum,ak))
     self.counter['lastStepSize'][traj] = ak
     return ak
+    #### OLD ###
     # the line search with surrogate unfortunately does not work very well (we use it just at the begin of the search and after that
     # we switch to a decay constant strategy (above)). Another strategy needs to be find.
-    #### OLD ###
     ## below is the line search methodology, which didn't prove as effective as we originally hoped.
     #if iterNum > 1 and iterNum <= int(self.limit['mdlEval']/50.0):
     #  # we use a line search algorithm for finding the best learning rate (using a surrogate)

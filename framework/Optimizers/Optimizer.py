@@ -496,8 +496,62 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ready = self.localStillReady(ready)
     #if converged and not ready, the optimizer believes it is done; check multilevel
     # -> however, if we're waiting on point collection, don't do multilevel check; only when we want to submit a new point.
+    # REASONS TO INTERCEDE in multilevel:
+    #   1.) We're at the beginning so we need to initialize multilevel subspace distinction,
+    #   2.) We're in the outermost subspace, and have perturbed and converged, so we're completely converged
+    #   3.) We've converged the innermost subspace so we need to move to one subspace higher
+    #   4.) We're in a non-innermost subspace, and have perturbed but not converged, so we need to move back to innermost again
+    #   5.) We're in an intermediate subspace, and have perturbed and converged, so we need to move to one subspace higher
+    mlIntervene = False #will be True if we changed the state of the optimizer
     traj = 0 #FIXME for multiple trajectories
-    if self.multilevel and self.status[traj]['reason'] in ['found new opt point']:
+    print('DEBUGG check multilevel?',self.status[traj]['reason'])
+    if self.multilevel and self.status[traj]['reason'] in ['found new opt point','converged'] :
+      # do we have any opt points yet?
+      if len(self.counter['recentOptHist'][traj][0]) > 0:
+        # get the latset optimization point (normalized)
+        latest_point = self.counter['recentOptHist'][traj][0]['inputs'] #self.latestPoint[traj]['inputs']#self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
+        #some flags for clarity of checking
+        justStarted = self.mlDepth is None
+        inInnermost = self.mlDepth is not None and self.mlDepth == len(self.mlSequence)-1
+        inOutermost = self.mlDepth is not None and self.mlDepth == 0
+        trajConverged = self.status[traj]['reason'] == 'converged'
+        # if we only have evaluated the initial point, set the depth to innermost and start grad sampling
+        print('DEBUGG ML just started?:',justStarted)
+        print('DEBUGG ML converged?:',trajConverged)
+        print('DEBUGG ML innermost?:',inInnermost)
+        print('DEBUGG ML stepped?:',self.mlActiveSpaceSteps)
+        if justStarted:
+          self.raiseADebug('Multilevel: initializing')
+          self.updateMultilevelDepth(traj, len(self.mlSequence)-1, latest_point, setAll=True)
+          mlIntervene = True
+        # if we haven't taken (and accepted) a new opt step, don't change anything
+        # otherwise, if we're in the outermost subspace AND we're converged, we're done!
+        # otherwise, if we're in the innermost subspace AND we're converged, then move to a higher subspace
+        elif trajConverged:#inOutermost and trajConverged:
+          if inOutermost:
+            self.raiseADebug('Multilevel: outermost subspace converged!')
+          else:
+            self.raiseADebug('Multilevel: moving from converged subspace to higher subspace')
+            self.updateMultilevelDepth(traj,self.mlDepth-1,latest_point)
+            mlIntervene = True
+        # otherwise, if we're not in innermost and not converged, move to innermost subspace
+        else: #aka not converged
+          #if self.mlActiveSpaceSteps >= 1: #TODO someday this could be a user setting; for now, we only take one step in the outer loops at a time
+          if not inInnermost and self.mlActiveSpaceSteps >= 1:
+            self.raiseADebug('Multilevel: moving from perturbed higher subspace back to innermost subspace')
+            self.updateMultilevelDepth(traj, len(self.mlSequence)-1, latest_point, setAll=True)
+            mlIntervene = True
+        #otherwise, we don't interfere with existing readiness
+    #if multilevel intervened, recheck readiness (should always result in ready=True???)
+    if mlIntervene:
+      self.raiseADebug('Because multilevel intervened, rechecking readiness of optimizer')
+      ready = self.localStillReady(True)
+    print('DEBUGG amiready returning',ready)
+    return ready
+
+
+    ##### OLD #####
+    if self.multilevel and self.status[traj]['reason'] in ['found new opt point','converged']:
       print('DEBUGG ------------ MULTILEVEL CHECK ---------------')
       print('DEBUGG ... ready and converged:',ready,convergence)
       # make sure we have optimization history points; otherwise, there's nothing to be done
@@ -790,7 +844,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     allData.update(self.mlStaticValues) # these are normalized
     allData.update(self.normalizeData(data)) # data point not normalized a priori
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(allData)
-    self.mlActiveSpaceSteps += 1
+    #self.mlActiveSpaceSteps += 1
 
 
   def removeConvergedTrajectory(self,convergedTraj):
