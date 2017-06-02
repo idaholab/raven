@@ -211,6 +211,8 @@ class SPSA(GradientBasedOptimizer):
     """
     GradientBasedOptimizer.localGenerateInput(self,model,oldInput)
     action, traj = self.nextActionNeeded
+    #store traj as active for sampling
+    self.inputInfo['trajectory'] = traj
     print('DEBUGG LGI action is "{}" on traj "{}":'.format(action,traj))
     #"action" and "traj" are set in localStillReady
     #"action" is a string of the next action needed by the optimizer in order to move forward

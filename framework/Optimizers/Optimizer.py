@@ -134,11 +134,11 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     self.multilevel                     = False                     # indicates if operating in multilevel mode
     self.mlBatches                      = {}                        # dict of {batchName:[list,of,vars]} that defines input subspaces
-    self.mlTolerances                   = {}                        # dict of {batchName:float} that gives convergence tolerance for each subspace
+    self.mlTolerances                   = {}                        # dict of {batchName:float} that gives convergence tolerance for each subspace #TODO not yet implemented
     self.mlSequence                     = []                        # list of batch names that determines the order of convergence.  Last entry is converged most often and fastest (innermost loop).
-    self.mlDepth                        = None                      # index of current recursion depth within self.mlSequence
-    self.mlStaticValues                 = {}                        # dictionary of static values for variables in fullOptVars but not in optVars due to multilevel
-    self.mlActiveSpaceSteps             = 0                         # integer to track iterations performed in optimizing the current, active subspace
+    self.mlDepth                        = {}                        # {traj: #} index of current recursion depth within self.mlSequence, must be initialized to None
+    self.mlStaticValues                 = {}                        # by traj, dictionary of static values for variables in fullOptVars but not in optVars due to multilevel
+    self.mlActiveSpaceSteps             = {}                        # by traj, integer to track iterations performed in optimizing the current, active subspace
 
     self.status                         = {}                        # by trajectory, ("string-based status", arbitrary, other, entries)
     ### EXPLANATION OF STATUS SYSTEM
@@ -463,9 +463,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         if not satisfied:
           self.raiseAnError(Exception,"It was not possible to find any initial values that could satisfy the constraints for trajectory "+str(trajInd))
 
-
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
+
+    # initialize multilevel trajectory-based structures
+    # TODO a bunch of the gradient-level trajectory initializations should be moved here.
+    for traj in self.optTraj:
+      self.mlDepth[traj]            = None
+      self.mlStaticValues[traj]     = {}
+      self.mlActiveSpaceSteps[traj] = 0
 
     # specializing the self.localInitialize()
     if solutionExport != None:
@@ -503,23 +509,24 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #   4.) We're in a non-innermost subspace, and have perturbed but not converged, so we need to move back to innermost again
     #   5.) We're in an intermediate subspace, and have perturbed and converged, so we need to move to one subspace higher
     mlIntervene = False #will be True if we changed the state of the optimizer
-    traj = 0 #FIXME for multiple trajectories
-    print('DEBUGG check multilevel?',self.status[traj]['reason'])
-    if self.multilevel and self.status[traj]['reason'] in ['found new opt point','converged'] :
+    #get the trajectory from the list of "next action needed", TODO also get the ones who think they're converged?
+    traj = self.nextActionNeeded[1]
+    print('DEBUGG check multilevel?',self.status.get(traj,{'reason':None})['reason'])
+    if traj is not None and self.multilevel and self.status[traj]['reason'] in ['found new opt point','converged'] :
       # do we have any opt points yet?
       if len(self.counter['recentOptHist'][traj][0]) > 0:
         # get the latset optimization point (normalized)
         latest_point = self.counter['recentOptHist'][traj][0]['inputs'] #self.latestPoint[traj]['inputs']#self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
         #some flags for clarity of checking
-        justStarted = self.mlDepth is None
-        inInnermost = self.mlDepth is not None and self.mlDepth == len(self.mlSequence)-1
-        inOutermost = self.mlDepth is not None and self.mlDepth == 0
+        justStarted = self.mlDepthi[traj] is None
+        inInnermost = self.mlDepth[traj] is not None and self.mlDepth[traj] == len(self.mlSequence)-1
+        inOutermost = self.mlDepth[traj] is not None and self.mlDepth[traj] == 0
         trajConverged = self.status[traj]['reason'] == 'converged'
         # if we only have evaluated the initial point, set the depth to innermost and start grad sampling
         print('DEBUGG ML just started?:',justStarted)
         print('DEBUGG ML converged?:',trajConverged)
         print('DEBUGG ML innermost?:',inInnermost)
-        print('DEBUGG ML stepped?:',self.mlActiveSpaceSteps)
+        print('DEBUGG ML stepped?:',self.mlActiveSpaceSteps[traj])
         if justStarted:
           self.raiseADebug('Multilevel: initializing')
           self.updateMultilevelDepth(traj, len(self.mlSequence)-1, latest_point, setAll=True)
@@ -532,12 +539,11 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.raiseADebug('Multilevel: outermost subspace converged!')
           else:
             self.raiseADebug('Multilevel: moving from converged subspace to higher subspace')
-            self.updateMultilevelDepth(traj,self.mlDepth-1,latest_point)
+            self.updateMultilevelDepth(traj,self.mlDepth[traj]-1,latest_point)
             mlIntervene = True
         # otherwise, if we're not in innermost and not converged, move to innermost subspace
         else: #aka not converged
-          #if self.mlActiveSpaceSteps >= 1: #TODO someday this could be a user setting; for now, we only take one step in the outer loops at a time
-          if not inInnermost and self.mlActiveSpaceSteps >= 1:
+          if not inInnermost and self.mlActiveSpaceSteps[traj] >= 1:
             self.raiseADebug('Multilevel: moving from perturbed higher subspace back to innermost subspace')
             self.updateMultilevelDepth(traj, len(self.mlSequence)-1, latest_point, setAll=True)
             mlIntervene = True
@@ -545,70 +551,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #if multilevel intervened, recheck readiness (should always result in ready=True???)
     if mlIntervene:
       self.raiseADebug('Because multilevel intervened, rechecking readiness of optimizer')
-      ready = self.localStillReady(True)
-    print('DEBUGG amiready returning',ready)
-    return ready
-
-
-    ##### OLD #####
-    if self.multilevel and self.status[traj]['reason'] in ['found new opt point','converged']:
-      print('DEBUGG ------------ MULTILEVEL CHECK ---------------')
-      print('DEBUGG ... ready and converged:',ready,convergence)
-      # make sure we have optimization history points; otherwise, there's nothing to be done
-      if len(self.counter['recentOptHist'][traj][0]) > 0: #len(self.optVarsHist[traj])>0:
-        # get the latset optimization point (normalized)
-        latest_point = self.counter['recentOptHist'][traj][0]['inputs'] #self.latestPoint[traj]['inputs']#self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
-        # is this the first optimization point we've received?
-        if self.mlDepth is None:
-          # if so, then initialize multilevel, and no status change needed
-          print('DEBUGG ... first opt point')
-          self.updateMultilevelDepth(traj, len(self.mlSequence)-1, latest_point, setAll=True)
-          # now we need to optimize the innermost space, so we are ready to provide samples
-          return True
-        # else if not the first opt point ... get the current batch since we'll use that going forward ...
-        currentBatch = self.mlSequence[self.mlDepth]
-        # are we in the innermost loop?
-        if self.mlDepth == len(self.mlSequence)-1:
-          print('DEBUGG ... in innermost loop ...')
-          # then, are we converged?
-          if convergence: #FIXME could be checked through self.status?
-            print('DEBUGG ... converged ...')
-            # then, move out one subspace in our loop
-            self.updateMultilevelDepth(traj,self.mlDepth-1,latest_point)
-            ready = True #FIXME needed? --> yes, because "ready" is false, but we know that we just changed levels and need to keep the sampling going
-          # else if not converged ...
-          else:
-            # ... then we're ready to perturb (or wait for the return of) the active (innermost) space
-            print('DEBUGG ... not converged ...')
-            return ready
-        # else if we're not in the innermost space ...
-        else:
-          # has the active space been perturbed since last convergence?
-          if self.mlActiveSpaceSteps >= 1: #TODO someday this could be a user setting; for now, we only take one step in the outer loops at a time
-            # are we in the outermost loop?
-            if self.mlDepth == 0:
-              # are we converged:
-              if convergence:
-                # we're done!
-                self.raiseADebug('Outermost subspace converged!')
-                return False #ready
-              # else if not converged ...
-              else:
-                # set the active space to be the innermost loop so it can converge for the new outer loop value
-                self.raiseADebug('Having perturbed outer space "{}", we now return to the innermost space ...'.format(currentBatch))
-                self.updateMultilevelDepth(traj,len(self.mlSequence)-1,latest_point)
-                #return True
-            # else if not in the outermost loop ...
-            else:
-              # set the active space to the innermost loop so it can converge for the outer loop value
-              self.raiseADebug('Converging outer loop "{}" by returning to innermost loop ...'.format(currentBatch))
-              self.updateMultilevelDepth(traj,len(self.mlSequence)-1,latest_point)
-          # else we haven't sampled a perturbed point yet for the active subspace ...
-          else:
-            # allow the current subspace to be perturbed
-            self.raiseADebug('Perturbing subspace "{}" ...'.format(currentBatch))
-            return ready
-      print('DEBUGG ################# amiready repinging lsr #################')
       ready = self.localStillReady(True)
     print('DEBUGG amiready returning',ready)
     return ready
@@ -623,19 +565,19 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     #retain the old batch so we know which static values to set
-    if self.mlDepth is not None:
-      oldDepth = self.mlDepth
+    if self.mlDepth[traj] is not None:
+      oldDepth = self.mlDepth[traj]
       oldBatch = self.mlSequence[oldDepth]
       firstTime = False
     else:
       firstTime = True
       oldBatch = 'pre-initialize'
     # set the new active space
-    self.mlDepth = depth
-    newBatch = self.mlSequence[self.mlDepth]
+    self.mlDepth[traj] = depth
+    newBatch = self.mlSequence[self.mlDepth[traj]]
     self.raiseADebug('Transitioning multilevel subspace from "{}" to "{}" ...'.format(oldBatch,newBatch))
     # reset the number of iterations in each subspace
-    self.mlActiveSpaceSteps = 0
+    self.mlActiveSpaceSteps[traj] = 0
     # set the active space to include only the desired batch
     self.optVars = self.mlBatches[newBatch]
     # set the remainder to static variables
@@ -644,11 +586,11 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       toMakeStatic = self.mlBatches[oldBatch]
     for var in toMakeStatic:
-      self.mlStaticValues[var] = optPoint[var]
+      self.mlStaticValues[traj][var] = optPoint[var]
     # remove newBatch static values
     for var in self.mlBatches[newBatch]:
       try:
-        del self.mlStaticValues[var]
+        del self.mlStaticValues[traj][var]
       except KeyError:
         #it wasn't static before, so no problem
         pass
@@ -694,9 +636,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     functionValue = search.get(evaluationID,None)
     return functionValue
 
-  def lossFunctionEval(self, optVars):
+  def lossFunctionEval(self, traj, optVars):
     """
       Method to evaluate the loss function based on all model evaluation.
+      @ In, traj, int, trajectory to evaluate on
       @ In, optVars, dict, dictionary containing the values of decision variables to be evaluated
                            optVars should have the form {varName1:[value11, value12,...value1n], varName2:[value21, value22,...value2n]...}
       @ Out, lossFunctionValue, numpy array, loss function values corresponding to each point in optVars
@@ -708,9 +651,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.objSearchingROM.train(tempDict)
     # extend optVars to include static values
     numGradPts = len(optVars.values()[0])
-    #print('DEBUGG optVars:',optVars)
-    #print('DEBUGG in static:',self.mlStaticValues)
-    for key,val in self.mlStaticValues.items():
+    for key,val in self.mlStaticValues[traj].items():
       val = self.denormalizeData({key:val})[key]
       optVars[key] = np.array([val]*numGradPts)
     # denormalize the data # TODO right? since we train ROM on unnormalized data
@@ -813,7 +754,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     ####   UPDATE STATICS   ####
-    self.values.update(self.denormalizeData(self.mlStaticValues))
+    # get trajectory asking for eval from LGI variable set
+    traj = self.inputInfo['trajectory']
+    self.values.update(self.denormalizeData(self.mlStaticValues[traj]))
     #### CONSTANT VARIABLES ####
     if len(self.constants) > 0:
       self.values.update(self.constants)
@@ -841,10 +784,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     # collect static vars, values
     allData = {}
-    allData.update(self.mlStaticValues) # these are normalized
+    allData.update(self.mlStaticValues[traj]) # these are normalized
     allData.update(self.normalizeData(data)) # data point not normalized a priori
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(allData)
-    #self.mlActiveSpaceSteps += 1
 
 
   def removeConvergedTrajectory(self,convergedTraj):

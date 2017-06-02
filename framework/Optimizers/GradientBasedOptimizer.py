@@ -151,8 +151,8 @@ class GradientBasedOptimizer(Optimizer):
     #print('DEBUGG looking for:',traj,updateKey,evalID)
     prefix = self.mdlEvalHist.getMetadata('prefix')
     #print('DEBUGG looking in:')
-    for entry in prefix:
-      print('DEBUGG    ',entry)
+    #for entry in prefix:
+    #  print('DEBUGG    ',entry)
     for index, pr in enumerate(prefix):
       pr = pr.split(utils.returnIdSeparator())[-1].split('_')
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
@@ -186,7 +186,7 @@ class GradientBasedOptimizer(Optimizer):
     # Evaluate gradient at each point
     for pertIndex in optVarsValues.keys():
       tempDictPerturbed = self.denormalizeData(optVarsValues[pertIndex])
-      lossValue = copy.copy(self.lossFunctionEval(tempDictPerturbed))
+      lossValue = copy.copy(self.lossFunctionEval(traj,tempDictPerturbed))
       lossDiff = lossValue[0] - lossValue[1]
       for var in self.optVars:
         if optVarsValues[pertIndex][var][0] != optVarsValues[pertIndex][var][1]:
@@ -293,7 +293,7 @@ class GradientBasedOptimizer(Optimizer):
           self.status[traj]['reason'] = 'found new opt point'
           self.raiseADebug('Accepting potential opt point for improved loss value')
           #TODO this belongs in the base class optimizer; grad shouldn't know about multilevel!!
-          self.mlActiveSpaceSteps += 1
+          self.mlActiveSpaceSteps[traj] += 1
           converged = sameCoordinateCheck or gradientNormCheck or absoluteTolCheck or relativeTolCheck
         # if newer point is not better, we're keeping the old point, and sameCoordinate, absoluteTol, and relativeTol aren't applicable
         else:
