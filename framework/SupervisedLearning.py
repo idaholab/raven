@@ -1995,8 +1995,7 @@ class NDinvDistWeight(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    for index in range(len(self.target)):
-      self.interpolator[index].reset(float(self.initOptionDict['p']))
+    self.__initLocal__()
 #
 #
 #
