@@ -398,7 +398,7 @@ class Dymola(CodeInterfaceBase):
       # The csv writer places quotes arround variables that contain a ',' in the name, i.e.
       # a, "b,c", d would represent 3 variables 1) a 2) b,c 3) d. The csv reader in RAVEN does not
       # suport this convention.
-      # => replace ',' in variable names with '@', i.e. 
+      # => replace ',' in variable names with '@', i.e.
       # a, "b,c", d will become a, b@c, d
       for mylist in [self._namesData1, self._namesData2]:
         for i in range(len(mylist)):
