@@ -1,20 +1,32 @@
 [Tests]
- [./Beale]
-  type = 'RavenFramework'
-  input = 'beale.xml'
-  csv = 'Beale/opt_soln.csv'
-  rel_err = 1.e-3
- [../]
- [./GoldsteinPrice]
-  type = 'RavenFramework'
-  input = 'goldsteinprice.xml'
-  csv = 'GoldsteinPrice/opt_soln.csv'
-  rel_err = 1.e-3
- [../]
- [./McCormick]
-  type = 'RavenFramework'
-  input = 'mccormick.xml'
-  csv = 'McCormick/opt_soln.csv'
-  rel_err = 1.e-3
- [../]
+  [./Verbose]
+    type = 'RavenFramework'
+    input = 'beale_verbose.xml'
+    csv = 'Beale/opt_export_0.csv'
+    rel_err = 1.e-3
+  [../]
+  [./Beale]
+    type = 'RavenFramework'
+    input = 'beale.xml'
+    csv = 'Beale/opt_soln.csv'
+    rel_err = 1.e-3
+  [../]
+  [./GoldsteinPrice]
+    type = 'RavenFramework'
+    input = 'goldsteinprice.xml'
+    csv = 'GoldsteinPrice/opt_soln.csv'
+    rel_err = 1.e-3
+  [../]
+  [./McCormick]
+    type = 'RavenFramework'
+    input = 'mccormick.xml'
+    csv = 'McCormick/opt_soln.csv'
+    rel_err = 1.e-3
+  [../]
+  [./BealeLevelsAndTrajs]
+    type = 'RavenFramework'
+    input = 'multitrajlevel_beale.xml'
+    csv = 'BealeMTML/opt_soln.csv'
+    rel_err = 1.e-3
+  [../]
 []
