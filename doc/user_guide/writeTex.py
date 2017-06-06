@@ -15,8 +15,8 @@ from __future__ import print_function
 import sys, os, time
 import xml.etree.ElementTree as ET
 #load XML navigation tools
-sys.path.append(os.path.join(os.getcwd(),'..','..','framework','utils'))
-import xmlUtils
+sys.path.append(os.path.join(os.getcwd(),'..','..','framework'))
+from utils import xmlUtils
 
 def getNode(fname,nodepath):
   """

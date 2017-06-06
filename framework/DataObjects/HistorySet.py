@@ -295,7 +295,7 @@ class HistorySet(Data):
         self._dataContainer = tsnode.get('dataContainer')
       if namep in self._dataContainer['outputs'].keys():
         self._dataContainer['outputs'].pop(namep)
-      if namep not in self._dataParameters['inParam']:
+      if namep not in self._dataParameters['outParam']:
         self._dataParameters['outParam'].append(namep)
       self._dataContainer['outputs'][namep] = c1darray(values=np.atleast_1d(np.array(value,dtype=float)))
       self.addNodeInTreeMode(tsnode,options)
@@ -531,18 +531,18 @@ class HistorySet(Data):
       inpValues.append(inpValues_h)
       dataFilename = mainLineList[-1]
       subCSVFilename = os.path.join(filenameRoot,dataFilename)
-      myDataFile = open(subCSVFilename, "rU")
       subCSVFile = Files.returnInstance("CSV", self)
       subCSVFile.setFilename(subCSVFilename)
       self._toLoadFromList.append(subCSVFile)
-      header = myDataFile.readline().rstrip()
-      outKeys_h = header.split(",")
-      outValues_h = [[] for a in range(len(outKeys_h))]
-      for line in myDataFile.readlines():
-        lineList = line.rstrip().split(",")
-        for i in range(len(outKeys_h)):
-          outValues_h[i].append(utils.partialEval(lineList[i]))
-      myDataFile.close()
+      with open(subCSVFilename, "rU") as myDataFile:
+        header = myDataFile.readline().rstrip()
+        outKeys_h = header.split(",")
+        outValues_h = [[] for a in range(len(outKeys_h))]
+        for line in myDataFile.readlines():
+          lineList = line.rstrip().split(",")
+          for i in range(len(outKeys_h)):
+            outValues_h[i].append(utils.partialEval(lineList[i]))
+        myDataFile.close()
       outKeys.append(outKeys_h)
       outValues.append(outValues_h)
     self._dataContainer['inputs'] = {} #XXX these are indexed by 1,2,...

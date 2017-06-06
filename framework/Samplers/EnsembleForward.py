@@ -53,6 +53,7 @@ class EnsembleForwardSampler(ForwardSampler):
     self.printTag             = 'SAMPLER EnsembleForward'
     self.instanciatedSamplers = {}
     self.samplersCombinations = {}
+    self.dependentSample      = {}
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -68,6 +69,12 @@ class EnsembleForwardSampler(ForwardSampler):
         self.instanciatedSamplers[child.tag] = returnInstance(child.tag,self)
         #FIXME the variableGroups needs to be fixed
         self.instanciatedSamplers[child.tag].readXML(child,self.messageHandler,variableGroups={},globalAttributes=self.globalAttributes)
+      elif child.tag=='variable':
+        for childChild in child:
+          if childChild.tag == 'function':
+            self.dependentSample[child.attrib['name']] = childChild.text
+          else:
+            self.raiseAnError(IOError,"Variable " + str(child.attrib['name']) + " must be defined by a function since it is located outside the samplers block")
       elif child.tag in knownTypes():
         self.raiseAnError(IOError,"Sampling strategy "+child.tag+" is not usable in "+self.type+" Sampler. Available are "+",".join(self.acceptableSamplers))
       else:
@@ -104,6 +111,15 @@ class EnsembleForwardSampler(ForwardSampler):
       combSampler._localGenerateAssembler(initDict)
     self.raiseADebug("Distributions initialized!")
 
+    for key,val in self.dependentSample.items():
+      if val not in availableFunc.keys():
+        self.raiseAnError(IOError, 'Function ',val,' was not found among the available functions:',availableFunc.keys())
+      self.funcDict[key] = availableFunc[val]
+      # check if the correct method is present
+      if "evaluate" not in self.funcDict[key].availableMethods():
+        self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+
+
   def localInitialize(self):
     """
       Initialize the EnsembleForwardSampler sampler. It calls the localInitialize method of all the Samplers defined in this input
@@ -136,6 +152,7 @@ class EnsembleForwardSampler(ForwardSampler):
                 'excludeBounds':{'lowerBounds':False,'upperBounds':True}}
     self.gridEnsemble.initialize(initDict)
 
+
   def localGenerateInput(self,model,myInput):
     """
       Function to select the next most informative point for refining the limit
@@ -154,6 +171,7 @@ class EnsembleForwardSampler(ForwardSampler):
       for key in combination.keys():
         if key not in self.inputInfo.keys():
           self.inputInfo[key] = combination[key]
+
         else:
           if type(self.inputInfo[key]).__name__ == 'dict':
             self.inputInfo[key].update(combination[key])
@@ -163,3 +181,11 @@ class EnsembleForwardSampler(ForwardSampler):
       if key.startswith('ProbabilityWeight-'):
         self.inputInfo['ProbabilityWeight' ] *= self.inputInfo[key]
     self.inputInfo['SamplerType'] = 'EnsembleForward'
+
+    # Update dependent variables
+    for var in self.dependentSample.keys():
+      test=self.funcDict[var].evaluate("evaluate",self.inputInfo['SampledVars'])
+      for corrVar in var.split(","):
+        self.values[corrVar.strip()] = test
+        self.inputInfo['SampledVars'][corrVar.strip()] = test
+

@@ -1327,8 +1327,11 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         of the determination of the EnsembleModel execution but represent an additional storage of results from the
         sub-models. For example, if the \xmlNode{TargetEvaluation} is of type PointSet (since just scalar data needs to be transferred to other 
         models) and the sub-model is able to also output history-type data, this Output can be of type HistorySet.
+        Note that the structure of each Output dataObject must include only variables (either input or output) that are defined among the model.
+        As an example, the Output dataObjects cannot contained variables that are defined at the Ensemble model level.
         %
-        The user can specify as many \xmlNode{Output} as needed.
+        The user can specify as many \xmlNode{Output} (s) as needed. 
+        \nb \textbf{The \xmlNode{Output} (s) here specified MUST be listed in the Step in which the EnsembleModel is used.}
     \end{itemize}
   %
 \end{itemize}

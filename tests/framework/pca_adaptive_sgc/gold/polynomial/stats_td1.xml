@@ -1,8 +1,6 @@
-<?xml version="1.0" ?>
 <ROM type="Static">
   <ans>
     <mean>1.0296</mean>
     <variance>4.0470856</variance>
   </ans>
-
 </ROM>

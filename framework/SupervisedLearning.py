@@ -22,10 +22,15 @@
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-from numpy import average
-from crow_modules.distribution1Dpy2 import CDF
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
+
+from numpy import average
+import sys
+if sys.version_info.major > 2:
+  from crow_modules.distribution1Dpy3 import CDF
+else:
+  from crow_modules.distribution1Dpy2 import CDF
 
 #External Modules------------------------------------------------------------------------------------
 import sklearn
@@ -1990,8 +1995,7 @@ class NDinvDistWeight(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    for index in range(len(self.target)):
-      self.interpolator[index].reset(float(self.initOptionDict['p']))
+    self.__initLocal__()
 #
 #
 #

@@ -11,4 +11,10 @@
   output = 'EnsembleForwardTestExt/PointsetEnsembleForwardExtModel.xml'
   csv = 'EnsembleForwardTestExt/PointsetEnsembleForwardExtModel.csv'
  [../]
+ [./EnsembleSamplerFunction]
+  type =   'RavenFramework'
+  input =  'test_EnsembleSamplerFunctions.xml'
+  output = 'EnsembleForwardTestFunction/PointsetEnsembleForward.xml'
+  csv =    'EnsembleForwardTestFunction/PointsetEnsembleForward.csv'
+ [../]
 []
