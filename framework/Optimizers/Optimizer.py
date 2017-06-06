@@ -155,8 +155,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # Processes:
     #   "submitting grad eval points" - submitting new points so later we can evaluate a gradient and take an opt step
     #   "collecting grad eval points" - all the required gradient evaluation points are submitted, so we're just waiting to collect them
-    #   "submitting new opt point"    - a new optimal point has been postulated, and is being submitted for evaluationa (not actually used)
-    #   "collecting new opt point"    - the new  hypothetical optimal point has been submitted, and we're waiting on it to finish
+    #   "submitting new opt points"    - a new optimal point has been postulated, and is being submitted for evaluationa (not actually used)
+    #   "collecting new opt points"    - the new  hypothetical optimal point has been submitted, and we're waiting on it to finish
     #   "evaluate gradient"           - localStillReady notes we have all the new grad eval points, and has flagged for gradient to be evaluated in localGenerateInput
     # Reasons:
     #   "just started"            - the optimizer has only just begun operation, and doesn't know what it's doing yet

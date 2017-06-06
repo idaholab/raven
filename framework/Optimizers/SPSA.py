@@ -122,16 +122,9 @@ class SPSA(GradientBasedOptimizer):
     if not ready:
       return ready
     iterLen = len(self.optTrajLive)
-    #if a particular trajectory was specified, make sure we loop around far enough to hit all trajectories
-    #if useTraj is not None:
-    #  iterLen += 1
     for _ in range(iterLen):
       # despite several attempts, this is the most elegant solution I've found to assure each
       #   trajectory gets even treatment.
-      #if useTraj is not None:
-      #  traj = useTraj
-      #  useTraj = None
-      #else:
       traj = self.optTrajLive.pop(0)
       self.optTrajLive.append(traj)
       if self.status[traj]['process'] == 'submitting grad eval points':
@@ -159,7 +152,7 @@ class SPSA(GradientBasedOptimizer):
         else:
           self.raiseADebug('Traj "{}": Waiting on collection of gradient evaluation points.'.format(traj))
           continue
-      elif self.status[traj]['process'] == 'collecting new opt point':
+      elif self.status[traj]['process'] == 'collecting new opt points':
         self.raiseADebug('Traj "{}": Waiting on collection of new optimization point.'.format(traj))
         continue
       elif self.status[traj]['reason'] == 'converged':
@@ -245,7 +238,7 @@ class SPSA(GradientBasedOptimizer):
       self.updateVariableHistory(self.values,traj)
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
       self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],'v')
-      self.status[traj]['process'] = 'collecting new opt point'
+      self.status[traj]['process'] = 'collecting new opt points'
 
     elif action == 'add new grad evaluation point':
       self.counter['perturbation'][traj] += 1
@@ -294,7 +287,8 @@ class SPSA(GradientBasedOptimizer):
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation)
       self.inputInfo['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],self.counter['perturbation'][traj])
       # if all required points are submitted, switch into collection mode
-      if self.counter['perturbation'][traj] == self.gradDict['pertNeeded']:
+      # FIXME TODO WORKING the below is only true for SINGLE opt evals; we need condition for many.
+      if self.counter['perturbation'][traj] == self.gradDict['pertNeeded']
         self.status[traj]['process'] = 'collecting grad eval points'
 
     elif action == 'evaluate gradient':
@@ -327,7 +321,7 @@ class SPSA(GradientBasedOptimizer):
       # remove redundant trajectory
       if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
         self._removeRedundantTraj(traj, self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
-      #update status #TODO what if it's been removed by redundancy?  Should mark it as 'redundant' status.
+      # update status
       self.status[traj]['process'] = 'collecting new opt point'
 
     #unrecognized action

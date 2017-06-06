@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="all">
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Optimizers/GradientBasedOptimizers.SPSA</name>
     <author>chenj</author>
@@ -29,7 +29,7 @@
     <MultiRun name="optimization" pauseAtEnd="true">
       <Input class="DataObjects" type="PointSet">optInput</Input>
       <Model class="Models" type="ExternalModel">optObjModel</Model>
-      <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>	  
+      <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">optData</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOutput</Output>
     </MultiRun>
@@ -105,7 +105,7 @@
       <type>csv</type>
       <source>optOutput</source>
     </Print>
-	
+
     <Plot   name="optPath" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
@@ -122,7 +122,7 @@
             <zlabel>Loss Function</zlabel>
         </plotSettings>
     </Plot>
-	
+
     <Plot  name="plotIteration" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
@@ -134,27 +134,27 @@
                 <x>optData|Output|varsUpdate</x>
                 <y>optData|Output|x1</y>
 				<interpPointsX>300</interpPointsX>
-				<gridLocation><x>0</x><y>0</y></gridLocation>	
-				<ylabel>x1</ylabel>				
+				<gridLocation><x>0</x><y>0</y></gridLocation>
+				<ylabel>x1</ylabel>
             </plot>
-			
+
 			<plot>
                 <type>line</type>
                 <x>optData|Output|varsUpdate</x>
                 <y>optData|Output|x2</y>
 				<interpPointsX>300</interpPointsX>
-				<gridLocation><x>1</x><y>0</y></gridLocation>	
-				<ylabel>2</ylabel>				
+				<gridLocation><x>1</x><y>0</y></gridLocation>
+				<ylabel>2</ylabel>
             </plot>
 
-			
+
 			<plot>
                 <type>line</type>
                 <x>optData|Output|varsUpdate</x>
                 <y>optData|Output|c</y>
 				<interpPointsX>300</interpPointsX>
-				<gridLocation><x>2</x><y>0</y></gridLocation>	
-				<ylabel>c</ylabel>				
+				<gridLocation><x>2</x><y>0</y></gridLocation>
+				<ylabel>c</ylabel>
             </plot>
 
 

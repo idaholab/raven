@@ -148,13 +148,20 @@ class GradientBasedOptimizer(Optimizer):
             (indicating whether the Model has finished the evaluation over input identified by traj+updateKey+evalID, the index of the location of the input in dataobject)
     """
     if self.mdlEvalHist.isItEmpty():
+      print('DEBUGG empty mdl!')
       return (False,-1)
     prefix = self.mdlEvalHist.getMetadata('prefix')
+    print('DEBUGG looking for',traj,updateKey,evalID)
+    print('DEBUGG looking in:')
+    for entry in prefix:
+      print('DEBUGG    ',entry)
     for index, pr in enumerate(prefix):
       pr = pr.split(utils.returnIdSeparator())[-1].split('_')
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
       if pr[0] == str(traj) and pr[1] == str(updateKey) and pr[2] == str(evalID):
+        print('DEBUGG    found')
         return (True, index)
+    print('DEBUGG    not found')
     return (False, -1)
 
   def localGenerateInput(self,model,oldInput):
@@ -389,9 +396,10 @@ class GradientBasedOptimizer(Optimizer):
     solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
     solutionUpdateList = [solutionExportUpdatedFlag]
     solutionIndeces = [index]
-    #sizeArray = 1
+    sizeArray = 1
+    # FIXME why do we look for more perturbation points here??
     if self.gradDict['numIterForAve'] > 1:
-      #sizeArray+=self.gradDict['numIterForAve']
+      sizeArray+=self.gradDict['numIterForAve']
       for i in range(sizeArray-1):
         identifier = (i+1)*2
         solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], str(identifier))
@@ -427,7 +435,9 @@ class GradientBasedOptimizer(Optimizer):
           #    solutionIndeces.append(index)
           #  solutionExportUpdatedFlag = all(solutionUpdateList)
 
+          print('DEBUGG check soln export:',solutionExportUpdatedFlag,indices)
           if solutionExportUpdatedFlag:
+            print('DEBUGG updating soln export')
             inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
             outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
             objectiveOutputs = np.zeros(sizeArray)

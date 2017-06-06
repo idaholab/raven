@@ -517,6 +517,7 @@ class MultiRun(SingleRun):
     while True:
       # collect finished jobs
       finishedJobs = jobHandler.getFinished()
+      print('DEBUGG finishedJobs:',finishedJobs)
       for finishedJob in finishedJobs:
         # update number of collected runs
         self.counter +=1
