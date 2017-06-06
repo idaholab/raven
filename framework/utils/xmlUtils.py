@@ -150,15 +150,22 @@ def findPath(root,path):
     @ Out, findPath, None or xml.etree.ElementTree.Element, None if not found or element if found
   """
   path = path.split("|")
+  print('DEBUGG looking for path',path)
   if len(path)>1:
     oneUp = findPath(root,'|'.join(path[:-1]))
+    print('DEBUGG  oneUp is:',oneUp)
     if oneUp is not None:
       toSearch = fixXmlTag(path[-1])
+      print('DEBUGG now searching for:',toSearch,list(c for c in oneUp))
       return oneUp.find(toSearch)
     else:
+      raise RuntimeError
       return None
   else:
     toSearch = fixXmlTag(path[-1])
+    print('DEBUGG options for "{}":'.format(toSearch))
+    for child in root:
+      print('DEBUGG    "{}"'.format(child.tag),child.tag == toSearch,root.find(toSearch))
     return root.find(toSearch)
 
 def findPathEllipsesParents(root,path,docLevel=0):

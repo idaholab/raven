@@ -116,6 +116,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
     self.absConvergenceTol              = 0.0                       # Convergence threshold (absolute value)
     self.relConvergenceTol              = 1.e-3                     # Convergence threshold (relative value)
+    self.minStepSize                    = 1e-9
     self.solutionExport                 = None                      #This is the data used to export the solution (it could also not be present)
     self.values                         = {}                        # for each variable the current value {'var name':value}
     self.inputInfo                      = {}                        # depending on the optimizer several different type of keywarded information could be present only one is mandatory, see below
@@ -272,6 +273,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.absConvergenceTol = float(childChild.text)
           if childChild.tag == "relativeThreshold":
             self.relConvergenceTol = float(childChild.text)
+          if childChild.tag == "minStepSize":
+            self.minStepSize = float(childChild.text)
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
 
@@ -805,14 +808,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, convergedTraj, int, trajectory that has converged and might need to be removed
       @ Out, None
     """
-    if self.multilevel:
-      #FIXME when we work on multiple traj and multileve, figure out what to do here
-      pass
-    else:
-      for t,traj in enumerate(self.optTrajLive):
-        if traj == convergedTraj:
-          self.optTrajLive.pop(t)
-          break
+    #if self.multilevel:
+    #  #FIXME when we work on multiple traj and multileve, figure out what to do here
+    #  pass
+    #else:
+    for t,traj in enumerate(self.optTrajLive):
+      if traj == convergedTraj:
+        self.optTrajLive.pop(t)
+        break
 
   def finalizeActualSampling(self,jobObject,model,myInput):
     """

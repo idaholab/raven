@@ -208,9 +208,12 @@ class SPSA(GradientBasedOptimizer):
     self.gradDict['pertPoints'     ][traj] = []
     self.convergeTraj               [traj] = False
     self.status                     [traj] = {'process':'submitting grad eval points','reason':'found new opt point'}
-    del self.counter['lastStepSize'][traj]
     try:
-      del self.recommendToGain        [traj]
+      del self.counter['lastStepSize'][traj]
+    except KeyError:
+      pass
+    try:
+      del self.recommendToGain[traj]
     except KeyError:
       pass
 
@@ -565,6 +568,7 @@ class SPSA(GradientBasedOptimizer):
     state['lastStepSize']    = copy.deepcopy(self.counter['lastStepSize'   ].get(traj,None))
     state['gradientHistory'] = copy.deepcopy(self.counter['gradientHistory'].get(traj,None))
     state['recommendToGain'] = copy.deepcopy(self.recommendToGain           .get(traj,None))
+    print('DEBUGG getting state for traj "{}":'.format(traj),state)
     return state
 
   def _setAlgorithmState(self,traj,state):
@@ -582,4 +586,5 @@ class SPSA(GradientBasedOptimizer):
       self.counter['gradientHistory'][traj] = state['gradientHistory']
     if state['recommendToGain'] is not None:
       self.recommendToGain[traj] = state['recommendToGain']
+    print('DEBUGG setting state for traj "{}":'.format(traj),state)
 
