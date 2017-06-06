@@ -148,11 +148,7 @@ class GradientBasedOptimizer(Optimizer):
     """
     if self.mdlEvalHist.isItEmpty():
       return (False,-1)
-    #print('DEBUGG looking for:',traj,updateKey,evalID)
     prefix = self.mdlEvalHist.getMetadata('prefix')
-    #print('DEBUGG looking in:')
-    #for entry in prefix:
-    #  print('DEBUGG    ',entry)
     for index, pr in enumerate(prefix):
       pr = pr.split(utils.returnIdSeparator())[-1].split('_')
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
@@ -181,19 +177,19 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     gradArray = {}
-    for var in self.optVars:
+    for var in self.getOptVars(traj=traj):
       gradArray[var] = np.ndarray((0,0)) #why are we initializing to this?
     # Evaluate gradient at each point
     for pertIndex in optVarsValues.keys():
       tempDictPerturbed = self.denormalizeData(optVarsValues[pertIndex])
       lossValue = copy.copy(self.lossFunctionEval(traj,tempDictPerturbed))
       lossDiff = lossValue[0] - lossValue[1]
-      for var in self.optVars:
+      for var in self.getOptVars(traj=traj):
         if optVarsValues[pertIndex][var][0] != optVarsValues[pertIndex][var][1]:
           # even if the feature space is normalized, we compute the gradient in its space (transformed or not)
           gradArray[var] = np.append(gradArray[var], lossDiff/(optVarsValues[pertIndex][var][0]-optVarsValues[pertIndex][var][1])*1.0)
     gradient = {}
-    for var in self.optVars:
+    for var in self.getOptVars(traj=traj):
       gradient[var] = gradArray[var].mean()
     gradient = self.localEvaluateGradient(optVarsValues, gradient)
     gradientNorm = np.linalg.norm(gradient.values())
@@ -337,11 +333,12 @@ class GradientBasedOptimizer(Optimizer):
         for updateKey in self.optVarsHist[traj].keys():
           inp = copy.deepcopy(self.optVarsHist[traj][updateKey]) #FIXME deepcopy needed?
           removeLocalFlag = True
-          for var in self.optVars:
+          for var in self.getOptVars(): #need to compare all vars, so no traj == traj
             if abs(inp[var] - currentInput[var]) > self.thresholdTrajRemoval:
               removeLocalFlag = False
               break
           if removeLocalFlag:
+            self.raiseADebug('Halting trajectory "{}" because it is following trajectory "{}"'.format(trajToRemove,traj))
             removeFlag = True
             break
         if removeFlag:
@@ -393,12 +390,15 @@ class GradientBasedOptimizer(Optimizer):
       @ In, myInput, list, the generating input
     """
     self.raiseADebug('Collected sample "{}"'.format(jobObject.getMetadata()['prefix']))
+    inp,outp = jobObject.getEvaluation()
+    print('DEBUGG -- input: ',inp)
+    print('DEBUGG -- output: ',outp)
     # TODO move this whole piece to Optimizer base class as much as possible
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
         print('DEBUGG finalizing sampling for traj:',traj)
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
-          print('DEBUGG in finalizing loop')
+          print('DEBUGG   in finalizing loop')
           solutionExportUpdatedFlag, indices = self._getJobsByID(traj) #self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
           #solutionUpdateList = [solutionExportUpdatedFlag]
           #solutionIndeces    = [index]
@@ -413,6 +413,7 @@ class GradientBasedOptimizer(Optimizer):
           #  solutionExportUpdatedFlag = all(solutionUpdateList)
 
           if solutionExportUpdatedFlag:
+            print('DEBUGG   updating solutionExport')
             inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
             outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
             objectiveOutputs = np.zeros(sizeArray)
@@ -446,6 +447,10 @@ class GradientBasedOptimizer(Optimizer):
             trajID = traj+1 # This is needed to be compatible with historySet object
             self.solutionExport.updateInputValue([trajID,'trajID'], traj)
             output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding').get(trajID,{})
+            print('DEBUGG solnexp traj:',traj)
+            print('DEBUGG solnexp existing:',output)
+            print('DEBUGG solnexp output:',output)
+            print('DEBUGG solnexp input:',self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs']))
             for var in self.solutionExport.getParaKeys('outputs'):
               old = copy.deepcopy(output.get(var, np.asarray([])))
               new = None #prevents accidental data copying
@@ -486,6 +491,7 @@ class GradientBasedOptimizer(Optimizer):
 
             self.counter['solutionUpdate'][traj] += 1
           else:
+            print('DEBUGG   no update for solutionExport')
             break
 
   def fractionalStepChangeFromGradHistory(self,traj):
