@@ -139,6 +139,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.mlDepth                        = {}                        # {traj: #} index of current recursion depth within self.mlSequence, must be initialized to None
     self.mlStaticValues                 = {}                        # by traj, dictionary of static values for variables in fullOptVars but not in optVars due to multilevel
     self.mlActiveSpaceSteps             = {}                        # by traj, integer to track iterations performed in optimizing the current, active subspace
+    # TODO the base class shouldn't know about stuff in BatchInfo, so there should be a method call! #REWORK
+    self.mlBatchInfo                    = {}                        # by batch, by traj, info includes 'lastStepSize','gradientHistory','recommendToGain'
 
     self.status                         = {}                        # by trajectory, ("string-based status", arbitrary, other, entries)
     ### EXPLANATION OF STATUS SYSTEM
@@ -473,6 +475,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.mlDepth[traj]            = None
       self.mlStaticValues[traj]     = {}
       self.mlActiveSpaceSteps[traj] = 0
+    for batch in self.mlBatches.keys():
+      self.mlBatchInfo[batch]       = {}
 
     # specializing the self.localInitialize()
     if solutionExport != None:
@@ -497,10 +501,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, ready, bool, indicating the readiness of the optimizer to generate a new input.
     """
-    print('DEBUGG AIR status:')#,self.status)
-    for traj,stat in self.status.items():
-      print('DEBUGG    ',traj,stat)
     ready = True if self.counter['mdlEval'] < self.limit['mdlEval'] else False
+    if not ready:
+      self.raiseAMessage('Reached limit for number of model evaluations!')
     convergence = self.checkConvergence()
     ready = self.localStillReady(ready)
     #if converged and not ready, the optimizer believes it is done; check multilevel
@@ -522,25 +525,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           checkMLTrajs.append(traj)
     for traj in checkMLTrajs:
       if self.multilevel and self.status[traj]['reason'] in ['found new opt point','converged'] :
-        print('DEBUGG ML check traj:',traj)
-        print('DEBUGG   status',self.status[traj])
-        print('DEBUGG   next action:',self.nextActionNeeded)
-        print('DEBUGG   check multilevel?',self.status.get(traj,{}))
         # do we have any opt points yet?
         if len(self.counter['recentOptHist'][traj][0]) > 0:
           # get the latset optimization point (normalized)
           latestPoint = self.counter['recentOptHist'][traj][0]['inputs'] #self.latestPoint[traj]['inputs']#self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
-          print('DEBUGG ML   latest point:',latestPoint,self.denormalizeData(latestPoint))
           #some flags for clarity of checking
           justStarted = self.mlDepth[traj] is None
           inInnermost = self.mlDepth[traj] is not None and self.mlDepth[traj] == len(self.mlSequence)-1
           inOutermost = self.mlDepth[traj] is not None and self.mlDepth[traj] == 0
           trajConverged = self.status[traj]['reason'] == 'converged'
           # if we only have evaluated the initial point, set the depth to innermost and start grad sampling
-          print('DEBUGG ML just started?:',justStarted)
-          print('DEBUGG ML converged?:',trajConverged)
-          print('DEBUGG ML innermost?:',inInnermost)
-          print('DEBUGG ML stepped?:',self.mlActiveSpaceSteps[traj])
           if justStarted:
             self.raiseADebug('Multilevel: initializing for trajectory "{}"'.format(traj))
             self.updateMultilevelDepth(traj, len(self.mlSequence)-1, latestPoint, setAll=True)
@@ -567,7 +561,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseADebug('Because multilevel intervened, rechecking readiness of optimizer for trajectory "{}"'.format(traj))
       # TODO this might mess with the order of what trajectory gets treated when
       ready = self.localStillReady(True)#,useTraj = self.nextActionNeeded[1])
-    print('DEBUGG amiready returning',ready)
     return ready
 
   def updateMultilevelDepth(self, traj, depth, optPoint, setAll=False):
@@ -584,6 +577,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       oldDepth = self.mlDepth[traj]
       oldBatch = self.mlSequence[oldDepth]
       firstTime = False
+      # retain th current state of the algorithm so we can set it later when we return to this batch
+      self.mlBatchInfo[oldBatch][traj] = self._getAlgorithmState(traj)
     else:
       firstTime = True
       oldBatch = 'pre-initialize'
@@ -612,6 +607,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # clear existing gradient determination data
     if not firstTime:
       self.clearCurrentOptimizationEffort(traj)
+    # if there's batch info about the new batch, set it
+    self._setAlgorithmState(traj,self.mlBatchInfo[newBatch].get(traj,None))
     #make sure trajectory is live
     if traj not in self.optTrajLive:
       self.optTrajLive.append(traj)
@@ -769,11 +766,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ####   UPDATE STATICS   ####
     # get trajectory asking for eval from LGI variable set
     traj = self.inputInfo['trajectory']
-    print('DEBUGG generateInput trajectory:',traj)
-    print('DEBUGG generateInput statics:',self.mlStaticValues)
-    print('DEBUGG generatInput UNfilled values:',self.values)
     self.values.update(self.denormalizeData(self.mlStaticValues[traj]))
-    print('DEBUGG generatInput   filled values:',self.values)
     #### CONSTANT VARIABLES ####
     if len(self.constants) > 0:
       self.values.update(self.constants)

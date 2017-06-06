@@ -250,7 +250,6 @@ class GradientBasedOptimizer(Optimizer):
     """
     if not self.convergeTraj[traj]:
       if len(self.counter['gradientHistory'][traj][1]) < 1:
-        print('DEBUGG not enough entries, so accepting point blindly')
         self.status[traj]['reason'] = 'found new opt point'
       #if varsUpdate >= 1: multilevel can't rely on the varsUpdate number
       #if len(self.counter['gradientHistory'][traj][1]) > 0: #should be > 1?
@@ -333,7 +332,7 @@ class GradientBasedOptimizer(Optimizer):
         for updateKey in self.optVarsHist[traj].keys():
           inp = copy.deepcopy(self.optVarsHist[traj][updateKey]) #FIXME deepcopy needed?
           removeLocalFlag = True
-          for var in self.getOptVars(): #need to compare all vars, so no traj == traj
+          for var in self.getOptVars(): #need to compare all vars, so no traj = traj
             if abs(inp[var] - currentInput[var]) > self.thresholdTrajRemoval:
               removeLocalFlag = False
               break
@@ -391,14 +390,10 @@ class GradientBasedOptimizer(Optimizer):
     """
     self.raiseADebug('Collected sample "{}"'.format(jobObject.getMetadata()['prefix']))
     inp,outp = jobObject.getEvaluation()
-    print('DEBUGG -- input: ',inp)
-    print('DEBUGG -- output: ',outp)
     # TODO move this whole piece to Optimizer base class as much as possible
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
-        print('DEBUGG finalizing sampling for traj:',traj)
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
-          print('DEBUGG   in finalizing loop')
           solutionExportUpdatedFlag, indices = self._getJobsByID(traj) #self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
           #solutionUpdateList = [solutionExportUpdatedFlag]
           #solutionIndeces    = [index]
@@ -413,7 +408,6 @@ class GradientBasedOptimizer(Optimizer):
           #  solutionExportUpdatedFlag = all(solutionUpdateList)
 
           if solutionExportUpdatedFlag:
-            print('DEBUGG   updating solutionExport')
             inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
             outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
             objectiveOutputs = np.zeros(sizeArray)
@@ -424,7 +418,6 @@ class GradientBasedOptimizer(Optimizer):
             index                 = indices[0]
             # check convergence
             # TODO move this? I did in the old multilevel
-            print('DEBUGG collecting solution export entry, output:',currentObjectiveValue)
             self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], currentObjectiveValue)
             if self.convergeTraj[traj]:
               self.status[traj] = {'process':None, 'reason':'converged'}
@@ -447,10 +440,6 @@ class GradientBasedOptimizer(Optimizer):
             trajID = traj+1 # This is needed to be compatible with historySet object
             self.solutionExport.updateInputValue([trajID,'trajID'], traj)
             output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding').get(trajID,{})
-            print('DEBUGG solnexp traj:',traj)
-            print('DEBUGG solnexp existing:',output)
-            print('DEBUGG solnexp output:',output)
-            print('DEBUGG solnexp input:',self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs']))
             for var in self.solutionExport.getParaKeys('outputs'):
               old = copy.deepcopy(output.get(var, np.asarray([])))
               new = None #prevents accidental data copying
@@ -491,7 +480,6 @@ class GradientBasedOptimizer(Optimizer):
 
             self.counter['solutionUpdate'][traj] += 1
           else:
-            print('DEBUGG   no update for solutionExport')
             break
 
   def fractionalStepChangeFromGradHistory(self,traj):

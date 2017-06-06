@@ -132,11 +132,8 @@ class SPSA(GradientBasedOptimizer):
       #  traj = useTraj
       #  useTraj = None
       #else:
-      print('DEBUGG opttrajlive beforepop:',self.optTrajLive)
       traj = self.optTrajLive.pop(0)
       self.optTrajLive.append(traj)
-      print('DEBUGG opttrajlive afterpop :',self.optTrajLive)
-      print('DEBUGG stillready considering traj',traj)
       if self.status[traj]['process'] == 'submitting grad eval points':
         # we're ready to submit points, but let's find out why ..
         if self.status[traj]['reason'] == 'just started':
@@ -228,7 +225,6 @@ class SPSA(GradientBasedOptimizer):
     action, traj = self.nextActionNeeded
     #store traj as active for sampling
     self.inputInfo['trajectory'] = traj
-    print('DEBUGG LGI action is "{}" on traj "{}":'.format(action,traj))
     #"action" and "traj" are set in localStillReady
     #"action" is a string of the next action needed by the optimizer in order to move forward
     #"traj" is the trajectory that is in need of the action
@@ -249,7 +245,6 @@ class SPSA(GradientBasedOptimizer):
       self.status[traj]['process'] = 'collecting new opt point'
 
     elif action == 'add new grad evaluation point':
-      print('DEBUGG adding new grad eval, counter:',self.counter['perturbation'])
       self.counter['perturbation'][traj] += 1
       if self.counter['perturbation'][traj] == 1:
         # Generate all the perturbations at once, then we can submit them one at a time
@@ -558,3 +553,33 @@ class SPSA(GradientBasedOptimizer):
     self.raiseADebug('step gain size for traj "{}" iternum "{}": {}'.format(traj,iterNum,ak))
     self.counter['lastStepSize'][traj] = ak
     return ak
+
+  def _getAlgorithmState(self,traj):
+    """
+      Returns values specific to this algorithm such that it could pick up again relatively easily from here.
+      #REWORK functionally a getstate/setstate for multilevel
+      @ In, traj, int, the trajectory being saved
+      @ Out, state, dict, keys:values this algorithm cares about saving for this trajectory
+    """
+    state = {}
+    state['lastStepSize']    = copy.deepcopy(self.counter['lastStepSize'   ].get(traj,None))
+    state['gradientHistory'] = copy.deepcopy(self.counter['gradientHistory'].get(traj,None))
+    state['recommendToGain'] = copy.deepcopy(self.recommendToGain           .get(traj,None))
+    return state
+
+  def _setAlgorithmState(self,traj,state):
+    """
+      #REWORK functionally a getstate/setstate for multilevel
+      @ In, traj, int, the trajectory being saved
+      @ In, state, dict, keys:values this algorithm cares about saving for this trajectory
+      @ Out, None
+    """
+    if state is None:
+      return
+    if state['lastStepSize'] is not None:
+      self.counter['lastStepSize'][traj] = state['lastStepSize']
+    if state['gradientHistory'] is not None:
+      self.counter['gradientHistory'][traj] = state['gradientHistory']
+    if state['recommendToGain'] is not None:
+      self.recommendToGain[traj] = state['recommendToGain']
+
