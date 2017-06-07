@@ -423,17 +423,9 @@ class GradientBasedOptimizer(Optimizer):
       for traj in self.optTraj:
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
           solutionExportUpdatedFlag, indices = self._getJobsByID(traj) #self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
-          #solutionUpdateList = [solutionExportUpdatedFlag]
-          #solutionIndeces    = [index]
           sizeArray = 1
           if self.gradDict['numIterForAve'] > 1:
             sizeArray+=self.gradDict['numIterForAve']
-          #  for i in range(sizeArray-1):
-          #    identifier = (i+1)*2
-          #    solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], str(identifier))
-          #    solutionUpdateList.append(solutionExportUpdatedFlag)
-          #    solutionIndeces.append(index)
-          #  solutionExportUpdatedFlag = all(solutionUpdateList)
 
           print('DEBUGG check soln export:',solutionExportUpdatedFlag,indices)
           if solutionExportUpdatedFlag:
@@ -509,7 +501,7 @@ class GradientBasedOptimizer(Optimizer):
               self.solutionExport.updateOutputValue([trajID,var],np.append(old,new))
 
             self.counter['solutionUpdate'][traj] += 1
-          else:
+          else: #not ready to update solutionExport
             break
 
   def fractionalStepChangeFromGradHistory(self,traj):
