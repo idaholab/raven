@@ -146,13 +146,13 @@ class GradientBasedOptimizer(Optimizer):
             (indicating whether the Model has finished the evaluation over input identified by traj+updateKey+evalID, the index of the location of the input in dataobject)
     """
     if self.mdlEvalHist.isItEmpty():
-      print('DEBUGG empty mdl!')
+      #print('DEBUGG empty mdl!')
       return (False,-1)
     prefix = self.mdlEvalHist.getMetadata('prefix')
     print('DEBUGG looking for',traj,updateKey,evalID)
-    print('DEBUGG looking in:')
-    for entry in prefix:
-      print('DEBUGG    ',entry)
+    #print('DEBUGG looking in:')
+    #for entry in prefix:
+    #  print('DEBUGG    ',entry)
     for index, pr in enumerate(prefix):
       pr = pr.split(utils.returnIdSeparator())[-1].split('_')
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
@@ -190,16 +190,20 @@ class GradientBasedOptimizer(Optimizer):
     for i in range(self.gradDict['numIterForAve']):
       opt  = optVarsValues[i*2]      #the latest opt point
       pert = optVarsValues[i*2 + 1] #the perturbed point
+      print('DEBUGG opt,pert:')
+      print('DEBUGG          ',opt)
+      print('DEBUGG          ',pert)
       #tempDictPerturbed = self.denormalizeData(optVarsValues[pertIndex])
       #lossValue = [opt['output'],pert['output']]#copy.copy(self.lossFunctionEval(traj,tempDictPerturbed))
       #calculate grad(F) wrt each input variable
-      lossDiff = opt['output'] - pert['output']
+      lossDiff = pert['output'] - opt['output']
       for var in self.getOptVars(traj=traj):
         #if optVarsValues[pertIndex][var][0] != optVarsValues[pertIndex][var][1]:
         # even if the feature space is normalized, we compute the gradient in its space (transformed or not)
-        if abs(opt['inputs'][var] - pert['inputs'][var]) < 1e-15:
+        dh = pert['inputs'][var] - opt['inputs'][var]
+        if abs(dh) < 1e-15:
           self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
-        gradArray[var] = np.append(gradArray[var], lossDiff/(opt['inputs'][var] - pert['inputs'][var]))
+        gradArray[var] = np.append(gradArray[var], lossDiff/dh)
     gradient = {}
     for var in self.getOptVars(traj=traj):
       gradient[var] = gradArray[var].mean()
@@ -269,9 +273,11 @@ class GradientBasedOptimizer(Optimizer):
         #sizeArray = 1
         #if self.gradDict['numIterForAve'] > 1:
         #  sizeArray+=self.gradDict['numIterForAve']
-        objectiveOutputs = np.zeros(self.gradDict['numIterForAve']*2)
-        for i in range(0,self.gradDict['numIterForAve']*2,2): #evens are opt point evaluations
-          objectiveOutputs[i] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,i))
+        objectiveOutputs = np.zeros(self.gradDict['numIterForAve'])
+        for i in range(self.gradDict['numIterForAve']): #evens are opt point evaluations
+          index = i*2
+          objectiveOutputs[i] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,index))
+        print('DEBUGG convergence check objective outputs:',objectiveOutputs)
         #if sizeArray > 1:
         #  for i in range(sizeArray-1):
         #    identifier = (i+1)*2
@@ -319,7 +325,7 @@ class GradientBasedOptimizer(Optimizer):
         # if newer point is not better, we're keeping the old point, and sameCoordinate, absoluteTol, and relativeTol aren't applicable
         else:
           self.status[traj]['reason'] = 'rejecting bad opt point'
-          self.raiseADebug('Rejecting potential opt point for worse loss value')
+          self.raiseADebug('Rejecting potential opt point for worse loss value: "{}" vs "{}"'.format(oldVal,currentLossValue))
           # cut the next step size to hopefully stay in the valley instead of climb up the other side
           self.recommendToGain[traj] = 'cut'
           converged = gradientNormCheck or minStepSizeCheck
@@ -401,9 +407,8 @@ class GradientBasedOptimizer(Optimizer):
     solutionUpdateList = []
     solutionIndeces = []
     # get all the even-valued results (these are the multiple evaluations of the opt point)
-    for i in range(2*(self.gradDict['numIterForAve']-1)):
+    for i in range(self.gradDict['numIterForAve']):
       identifier = i*2
-      print('DEBUGG looking for job',identifier,i)
       solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], str(identifier))
       solutionUpdateList.append(solutionExportUpdatedFlag)
       solutionIndeces.append(index)
@@ -435,10 +440,10 @@ class GradientBasedOptimizer(Optimizer):
             # get output values corresponding to evaluations of the opt point
             # also add opt points to the grad perturbation list
             self.gradDict['pertPoints'][traj] = np.zeros(2*self.gradDict['numIterForAve'],dtype=dict)
-            # TODO how does the odd numbers get filled?
+            print('DEBUGG indices:',indices)
             for i, index in enumerate(indices):
               objectiveOutputs[i] = outputeval[self.objVar][index]
-              self.gradDict['pertPoints'][traj][i*2] = {'inputs':self.normalizeData(dict((k,v[i]) for k,v in inputeval.items())),
+              self.gradDict['pertPoints'][traj][i*2] = {'inputs':self.normalizeData(dict((k,v[index]) for k,v in inputeval.items())),
                                                         'output':objectiveOutputs[i]}
             # assumed output value is the mean of sampled values
             currentObjectiveValue = objectiveOutputs.mean()

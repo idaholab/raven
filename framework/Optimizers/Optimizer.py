@@ -491,6 +491,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       checkMLTrajs = []
       for traj in self.status.keys():
+        print('DEBUGG',self.status[traj])
         if self.status[traj]['reason'] == 'converged':
           checkMLTrajs.append(traj)
     for traj in checkMLTrajs:
@@ -610,14 +611,25 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, evaluationID, string, the evaluation identifier (prefix)
       @ Out, functionValue, float, the loss function value
     """
+    print('DEBUGG requested:',evaluationID)
     objective  = self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')[self.objVar]
+    inx = self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')['x'] #DEBUGG
+    iny = self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')['y'] #DEBUGG
     prefix = self.mdlEvalHist.getMetadata('prefix',nodeId='RecontructEnding')
     if len(prefix) > 0 and utils.returnIdSeparator() in prefix[0]:
       # ensemble model id modification
       # FIXME: Need to find a better way to handle this case
       prefix = [key.split(utils.returnIdSeparator())[-1] for key in prefix]
     search = dict(zip(prefix, objective))
+    searchx = dict(zip(prefix,inx)) #DEBUGG
+    searchy = dict(zip(prefix,iny)) #DEBUGG
     functionValue = search.get(evaluationID,None)
+    x = searchx.get(evaluationID,None) #DEBUGG
+    y = searchy.get(evaluationID,None) #DEBUGG
+    print('DEBUGG found match:')
+    print('DEBUGG    out:',functionValue)
+    print('DEBUGG      x:',x)
+    print('DEBUGG      y:',y)
     return functionValue
 
   def lossFunctionEval(self, traj, optVars):
