@@ -29,6 +29,7 @@ import sys
 import copy
 import abc
 import numpy as np
+from collections import deque
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -42,46 +43,9 @@ import Distributions
 class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   """
     This is the base class for optimizers
-    Optimizer is a special type of "samplers" that own the optimization strategy (Type) and they generate the
-    input values to optimize a loss function. They do not have distributions inside!!!!
-
-    --Instance--
-    myInstance = Optimizer()
-    myInstance.XMLread(xml.etree.ElementTree.Element)  This method generates all the information that will be permanent for the object during the simulation
-
-    --usage--
-    myInstance = Optimizer()
-    myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object from <Simulation>
-    myInstance.whatDoINeed()                           -see Assembler class-
-    myInstance.initialize()                            This method is called from the <Step> before the Step process start.
-    myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the optimizer is available to generate a new input for the model
-    myInstance.generateInput(self,model,oldInput)      Requested from <Step> to generate a new input. Generate the new values and request to model to modify according the input and returning it back
-
-    --Other inherited methods--
-    myInstance.whoAreYou()                            -see BaseType class-
-    myInstance.myCurrentSetting()                     -see BaseType class-
-
-    --Adding a new Optimizer subclass--
-    <MyClass> should inherit at least from Optimizer or from another derived class already presents
-
-    DO NOT OVERRIDE any of the class method that are not starting with self.local*
-
-    ADD your class to the dictionary __InterfaceDict in the Factory submodule
-
-    The following method overriding is MANDATORY:
-    self.localGenerateInput(model,oldInput)  : this is where the step happens, after this call the output is ready
-    self._localGenerateAssembler(initDict)
-    self._localWhatDoINeed()
-
-    the following methods could be overrode:
-    self.localInputAndChecks(xmlNode)
-    self.localGetInitParams()
-    self.localGetCurrentSetting()
-    self.localInitialize()
-    self.localStillReady(ready)
-    self.localFinalizeActualSampling(jobObject,model,myInput)
+    Optimizer is a special type of "samplers" that own the optimization strategy (Type) and they generate the input values to optimize a loss function.
+    The most significant deviation from the Samplers is that they do not use distributions.
   """
-
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -92,47 +56,49 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #FIXME: Since the similarity of this class with the base sampler, we should merge this
     BaseType.__init__(self)
     Assembler.__init__(self)
+    #counters
     self.counter                        = {}                        # Dict containing counters used for based and derived class
     self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.counter['recentOptHist']       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
+    #limits
     self.limit                          = {}                        # Dict containing limits for each counter
     self.limit['mdlEval']               = 2000                      # Maximum number of the loss function evaluation
     self.limit['varsUpdate']            = 650                       # Maximum number of the optimization iteration.
-    self.initSeed                       = None                      # Seed for random number generators
+    self._endJobRunnable                = sys.maxsize               # max number of inputs creatable by the optimizer right after a job ends
+    #variable lists
+    self.objVar                         = None                      # Objective variable to be optimized
     self.optVars                        = {}                        # By trajectory, current decision variables for optimization
     self.fullOptVars                    = None                      # Decision variables for optimization, full space
+    self.optTraj                        = None                      # Identifiers of parallel optimization trajectories
+    #initialization parameters
     self.optVarsInit                    = {}                        # Dict containing upper/lower bounds and initial of each decision variables
     self.optVarsInit['upperBound']      = {}                        # Dict containing upper bounds of each decision variables
     self.optVarsInit['lowerBound']      = {}                        # Dict containing lower bounds of each decision variables
     self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables
     self.optVarsInit['ranges']          = {}                        # Dict of the ranges (min and max) of each variable's domain
-    self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
-    #self.nVar                           = 0                         # Number of decision variables
-    self.objVar                         = None                      # Objective variable to be optimized
+    self.initSeed                       = None                      # Seed for random number generators
     self.optType                        = None                      # Either maximize or minimize
-    self.optTraj                        = None                      # Identifiers of parallel optimization trajectories
-    self.thresholdTrajRemoval           = None                      # Threshold used to determine the convergence of parallel optimization trajectories
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
+    #convergence tools
+    self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
+    self.thresholdTrajRemoval           = None                      # Threshold used to determine the convergence of parallel optimization trajectories
     self.absConvergenceTol              = 0.0                       # Convergence threshold (absolute value)
     self.relConvergenceTol              = 1.e-3                     # Convergence threshold (relative value)
-    self.minStepSize                    = 1e-9
-    self.solutionExport                 = None                      #This is the data used to export the solution (it could also not be present)
+    self.minStepSize                    = 1e-9                      # minimum allowable step size (in abs. distance, in input space)
+    #sampler-step communication
     self.values                         = {}                        # for each variable the current value {'var name':value}
     self.inputInfo                      = {}                        # depending on the optimizer several different type of keywarded information could be present only one is mandatory, see below
-    self.inputInfo['SampledVars'     ]  = self.values               # this is the location where to get the values of the sampled variables
+    self.inputInfo['SampledVars']       = self.values               # this is the location where to get the values of the sampled variables
     self.constants                      = {}                        # dictionary of constants variables
-    self.FIXME                          = False                     # FIXME flag
     self.printTag                       = self.type                 # prefix for all prints (optimizer type)
-
-    self._endJobRunnable                = sys.maxsize               # max number of inputs creatable by the optimizer right after a job ends
-
+    self.submissionQueue                = {}                        # by traj, a place (deque) to store points that should be submitted some time after they are discovered
+    #functions and dataojbects
     self.constraintFunction             = None                      # External constraint function, could be not present
+    self.solutionExport                 = None                      #This is the data used to export the solution (it could also not be present)
     self.mdlEvalHist                    = None                      # Containing information of all model evaluation
     self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
-
-    self.nextActionNeeded               = (None,None)               # tool for localStillReady to inform localGenerateInput on the next action needed
-
+    #multilevel
     self.multilevel                     = False                     # indicates if operating in multilevel mode
     self.mlBatches                      = {}                        # dict of {batchName:[list,of,vars]} that defines input subspaces
     self.mlTolerances                   = {}                        # dict of {batchName:float} that gives convergence tolerance for each subspace #TODO not yet implemented
@@ -140,9 +106,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.mlDepth                        = {}                        # {traj: #} index of current recursion depth within self.mlSequence, must be initialized to None
     self.mlStaticValues                 = {}                        # by traj, dictionary of static values for variables in fullOptVars but not in optVars due to multilevel
     self.mlActiveSpaceSteps             = {}                        # by traj, integer to track iterations performed in optimizing the current, active subspace
-    # TODO the base class shouldn't know about stuff in BatchInfo, so there should be a method call! #REWORK
     self.mlBatchInfo                    = {}                        # by batch, by traj, info includes 'lastStepSize','gradientHistory','recommendToGain'
-
+    #stateful tracking
+    self.nextActionNeeded               = (None,None)               # tool for localStillReady to inform localGenerateInput on the next action needed
     self.status                         = {}                        # by trajectory, ("string-based status", arbitrary, other, entries)
     ### EXPLANATION OF STATUS SYSTEM
     #
@@ -478,6 +444,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.mlDepth[traj]            = None
       self.mlStaticValues[traj]     = {}
       self.mlActiveSpaceSteps[traj] = 0
+      self.submissionQueue[traj]    = deque()
     for batch in self.mlBatches.keys():
       self.mlBatchInfo[batch]       = {}
 

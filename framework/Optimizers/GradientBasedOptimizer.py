@@ -106,11 +106,9 @@ class GradientBasedOptimizer(Optimizer):
       self.optVarsHist[traj]                 = {}
       self.readyVarsUpdate[traj]             = False
       self.convergeTraj[traj]                = False
-      self.status[traj]                      = {'process':'submitting grad eval points', 'reason':'just started'}
+      self.status[traj]                      = {'process':'submitting new opt points', 'reason':'just started'}
       self.counter['recentOptHist'][traj]    = [{},{}]
       self.trajectoriesKilled[traj]          = []
-    for traj in self.optTraj:
-      self.gradDict['pertPoints'][traj] = {}
     # end job runnable equal to number of trajectory
     self._endJobRunnable = len(self.optTraj)
     #specializing the self.localLocalInitialize()
@@ -186,16 +184,22 @@ class GradientBasedOptimizer(Optimizer):
     """
     gradArray = {}
     for var in self.getOptVars(traj=traj):
-      gradArray[var] = np.ndarray((0,0)) #why are we initializing to this?
+      gradArray[var] = np.zeros(2) #why are we initializing to this?
     # Evaluate gradient at each point
-    for pertIndex in optVarsValues.keys():
-      tempDictPerturbed = self.denormalizeData(optVarsValues[pertIndex])
-      lossValue = copy.copy(self.lossFunctionEval(traj,tempDictPerturbed))
-      lossDiff = lossValue[0] - lossValue[1]
+    #for pertIndex in optVarsValues.keys():
+    for i in range(self.gradDict['numIterForAve']):
+      opt  = optVarsValues[i*2]      #the latest opt point
+      pert = optVarsValues[i*2 + 1] #the perturbed point
+      #tempDictPerturbed = self.denormalizeData(optVarsValues[pertIndex])
+      #lossValue = [opt['output'],pert['output']]#copy.copy(self.lossFunctionEval(traj,tempDictPerturbed))
+      #calculate grad(F) wrt each input variable
+      lossDiff = opt['output'] - pert['output']
       for var in self.getOptVars(traj=traj):
-        if optVarsValues[pertIndex][var][0] != optVarsValues[pertIndex][var][1]:
-          # even if the feature space is normalized, we compute the gradient in its space (transformed or not)
-          gradArray[var] = np.append(gradArray[var], lossDiff/(optVarsValues[pertIndex][var][0]-optVarsValues[pertIndex][var][1])*1.0)
+        #if optVarsValues[pertIndex][var][0] != optVarsValues[pertIndex][var][1]:
+        # even if the feature space is normalized, we compute the gradient in its space (transformed or not)
+        if abs(opt['inputs'][var] - pert['inputs'][var]) < 1e-15:
+          self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
+        gradArray[var] = np.append(gradArray[var], lossDiff/(opt['inputs'][var] - pert['inputs'][var]))
     gradient = {}
     for var in self.getOptVars(traj=traj):
       gradient[var] = gradArray[var].mean()
@@ -262,15 +266,16 @@ class GradientBasedOptimizer(Optimizer):
       #if varsUpdate >= 1: multilevel can't rely on the varsUpdate number
       #if len(self.counter['gradientHistory'][traj][1]) > 0: #should be > 1?
       else:
-        sizeArray = 1
-        if self.gradDict['numIterForAve'] > 1:
-          sizeArray+=self.gradDict['numIterForAve']
-        objectiveOutputs = np.zeros(sizeArray)
-        objectiveOutputs[0] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,'v'))
-        if sizeArray > 1:
-          for i in range(sizeArray-1):
-            identifier = (i+1)*2
-            objectiveOutputs[i+1] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,identifier))
+        #sizeArray = 1
+        #if self.gradDict['numIterForAve'] > 1:
+        #  sizeArray+=self.gradDict['numIterForAve']
+        objectiveOutputs = np.zeros(self.gradDict['numIterForAve']*2)
+        for i in range(0,self.gradDict['numIterForAve']*2,2): #evens are opt point evaluations
+          objectiveOutputs[i] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,i))
+        #if sizeArray > 1:
+        #  for i in range(sizeArray-1):
+        #    identifier = (i+1)*2
+        #    objectiveOutputs[i+1] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,identifier))
         if any(np.isnan(objectiveOutputs)):
           self.raiseAnError(Exception,"the objective function evaluation for trajectory " +str(traj)+ "and iteration "+str(varsUpdate-1)+" has not been found!")
         oldVal = objectiveOutputs.mean() # TODO should this be from counter[recentOptPoints][traj]?
@@ -393,19 +398,16 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, solutionExportUpdatedFlag, bool, True if the solutionExport needs updating
       @ Out, solutionIndeces, list(int), location of updates within the full targetEvaluation data object
     """
-    solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
-    solutionUpdateList = [solutionExportUpdatedFlag]
-    solutionIndeces = [index]
-    sizeArray = 1
-    # FIXME why do we look for more perturbation points here??
-    if self.gradDict['numIterForAve'] > 1:
-      sizeArray+=self.gradDict['numIterForAve']
-      for i in range(sizeArray-1):
-        identifier = (i+1)*2
-        solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], str(identifier))
-        solutionUpdateList.append(solutionExportUpdatedFlag)
-        solutionIndeces.append(index)
-      solutionExportUpdatedFlag = all(solutionUpdateList)
+    solutionUpdateList = []
+    solutionIndeces = []
+    # get all the even-valued results (these are the multiple evaluations of the opt point)
+    for i in range(2*(self.gradDict['numIterForAve']-1)):
+      identifier = i*2
+      print('DEBUGG looking for job',identifier,i)
+      solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], str(identifier))
+      solutionUpdateList.append(solutionExportUpdatedFlag)
+      solutionIndeces.append(index)
+    solutionExportUpdatedFlag = all(solutionUpdateList)
     return solutionExportUpdatedFlag,solutionIndeces
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
@@ -417,29 +419,31 @@ class GradientBasedOptimizer(Optimizer):
       @ In, myInput, list, the generating input
     """
     self.raiseADebug('Collected sample "{}"'.format(jobObject.getMetadata()['prefix']))
-    inp,outp = jobObject.getEvaluation()
-    # TODO move this whole piece to Optimizer base class as much as possible
+    # TODO REWORK move this whole piece to Optimizer base class as much as possible
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
-          solutionExportUpdatedFlag, indices = self._getJobsByID(traj) #self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
-          sizeArray = 1
-          if self.gradDict['numIterForAve'] > 1:
-            sizeArray+=self.gradDict['numIterForAve']
+          solutionExportUpdatedFlag, indices = self._getJobsByID(traj)
 
-          print('DEBUGG check soln export:',solutionExportUpdatedFlag,indices)
           if solutionExportUpdatedFlag:
-            print('DEBUGG updating soln export')
+            #get evaluations (input,output) from the collection of all evaluations
             inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
             outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
-            objectiveOutputs = np.zeros(sizeArray)
-            # get all output values
-            for cnt, index in enumerate(indices):
-              objectiveOutputs[cnt] = outputeval[self.objVar][index]
+            #TODO this might be faster for non-stochastic if we do an "if" here on gradDict['numIterForAve']
+            #make a place to store distinct evaluation values
+            objectiveOutputs = np.zeros(self.gradDict['numIterForAve'])
+            # get output values corresponding to evaluations of the opt point
+            # also add opt points to the grad perturbation list
+            self.gradDict['pertPoints'][traj] = np.zeros(2*self.gradDict['numIterForAve'],dtype=dict)
+            # TODO how does the odd numbers get filled?
+            for i, index in enumerate(indices):
+              objectiveOutputs[i] = outputeval[self.objVar][index]
+              self.gradDict['pertPoints'][traj][i*2] = {'inputs':self.normalizeData(dict((k,v[i]) for k,v in inputeval.items())),
+                                                        'output':objectiveOutputs[i]}
+            # assumed output value is the mean of sampled values
             currentObjectiveValue = objectiveOutputs.mean()
-            index                 = indices[0]
             # check convergence
-            # TODO move this? I did in the old multilevel
+            # TODO REWORK move this to localStillReady, along with the gradient evaluation
             self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], currentObjectiveValue)
             if self.convergeTraj[traj]:
               self.status[traj] = {'process':None, 'reason':'converged'}
@@ -458,14 +462,14 @@ class GradientBasedOptimizer(Optimizer):
 
             # update solution export
             if 'trajID' not in self.solutionExport.getParaKeys('inputs'):
-              self.raiseAnError(ValueError, 'trajID is not in the input space of solutionExport')
+              self.raiseAnError(IOError, 'trajID is not in the <inputs> space of the solutionExport data object specified for this optimization step!  Please add it.')
             trajID = traj+1 # This is needed to be compatible with historySet object
             self.solutionExport.updateInputValue([trajID,'trajID'], traj)
             output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding').get(trajID,{})
             for var in self.solutionExport.getParaKeys('outputs'):
               old = copy.deepcopy(output.get(var, np.asarray([])))
               new = None #prevents accidental data copying
-              if var in self.fullOptVars: #TODO FIXME this should be in the base class!
+              if var in self.getOptVars(): #TODO FIXME this should be in the base class!
                 new = self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs'])[var] #inputeval[var][index]
               elif var == self.objVar:
                 new = self.counter['recentOptHist'][traj][0]['output'] #currentObjectiveValue
@@ -538,3 +542,38 @@ class GradientBasedOptimizer(Optimizer):
     frac = growthFactor**prod
     self.raiseADebug('Based on gradient history, step size multiplier is:',frac)
     return frac
+
+  def queueUpOptPointRuns(self,traj,point):
+    """
+      Establishes a queue of runs, all on the point currently stored in "point", to satisfy stochastic denoising.
+      @ In, traj, int, the trajectory who needs the queue
+      @ In, point, dict, input space as {var:val} NORMALIZED
+      @ Out, None
+    """
+    # TODO sanity check, this could be removed for efficiency later
+    if len(self.submissionQueue[traj]) > 0:
+      self.raiseAnError(RuntimeError,'Preparing to add opt evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
+    for i in range(self.gradDict['numIterForAve']):
+      #entries into the queue are as {'inputs':{var:val}, 'prefix':runid} where runid is <traj>_<varUpdate>_<evalNumber> as 0_0_2
+      nPoint = {'inputs':copy.deepcopy(point)} #deepcopy to prevent simultaneous alteration
+      nPoint['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i*2) # evens (including 0) are opt point evals
+      self.submissionQueue[traj].append(nPoint)
+
+  def getQueuedPoint(self,traj,denorm=True):
+    """
+      Pops the first point off the submission queue (or errors if empty).  By default denormalized the point before returning.
+      @ In, traj, int, the trajectory from whose queue we should obtain an entry
+      @ In, denorm, bool, optional, if True the input data will be denormalized before returning
+      @ Out, prefix, #_#_#
+      @ Out, point, dict, {var:val}
+    """
+    try:
+      entry = self.submissionQueue[traj].popleft()
+    except IndexError:
+      self.raiseAnError(RuntimeError,'Tried to get a point from submission queue of trajectory "{}" but it is empty!'.format(traj))
+    prefix = entry['prefix']
+    point = entry['inputs']
+    if denorm:
+      point = self.denormalizeData(point)
+    return prefix,point
+
