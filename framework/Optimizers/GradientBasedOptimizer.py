@@ -146,20 +146,13 @@ class GradientBasedOptimizer(Optimizer):
             (indicating whether the Model has finished the evaluation over input identified by traj+updateKey+evalID, the index of the location of the input in dataobject)
     """
     if self.mdlEvalHist.isItEmpty():
-      #print('DEBUGG empty mdl!')
       return (False,-1)
     prefix = self.mdlEvalHist.getMetadata('prefix')
-    print('DEBUGG looking for',traj,updateKey,evalID)
-    #print('DEBUGG looking in:')
-    #for entry in prefix:
-    #  print('DEBUGG    ',entry)
     for index, pr in enumerate(prefix):
       pr = pr.split(utils.returnIdSeparator())[-1].split('_')
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
       if pr[0] == str(traj) and pr[1] == str(updateKey) and pr[2] == str(evalID):
-        print('DEBUGG    found')
         return (True, index)
-    print('DEBUGG    not found')
     return (False, -1)
 
   def localGenerateInput(self,model,oldInput):
@@ -190,9 +183,6 @@ class GradientBasedOptimizer(Optimizer):
     for i in range(self.gradDict['numIterForAve']):
       opt  = optVarsValues[i*2]      #the latest opt point
       pert = optVarsValues[i*2 + 1] #the perturbed point
-      print('DEBUGG opt,pert:')
-      print('DEBUGG          ',opt)
-      print('DEBUGG          ',pert)
       #tempDictPerturbed = self.denormalizeData(optVarsValues[pertIndex])
       #lossValue = [opt['output'],pert['output']]#copy.copy(self.lossFunctionEval(traj,tempDictPerturbed))
       #calculate grad(F) wrt each input variable
@@ -277,7 +267,6 @@ class GradientBasedOptimizer(Optimizer):
         for i in range(self.gradDict['numIterForAve']): #evens are opt point evaluations
           index = i*2
           objectiveOutputs[i] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,index))
-        print('DEBUGG convergence check objective outputs:',objectiveOutputs)
         #if sizeArray > 1:
         #  for i in range(sizeArray-1):
         #    identifier = (i+1)*2
@@ -440,7 +429,6 @@ class GradientBasedOptimizer(Optimizer):
             # get output values corresponding to evaluations of the opt point
             # also add opt points to the grad perturbation list
             self.gradDict['pertPoints'][traj] = np.zeros(2*self.gradDict['numIterForAve'],dtype=dict)
-            print('DEBUGG indices:',indices)
             for i, index in enumerate(indices):
               objectiveOutputs[i] = outputeval[self.objVar][index]
               self.gradDict['pertPoints'][traj][i*2] = {'inputs':self.normalizeData(dict((k,v[index]) for k,v in inputeval.items())),

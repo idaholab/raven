@@ -115,7 +115,6 @@ class SPSA(GradientBasedOptimizer):
       @ In, useTraj, int, optional, if specified indicates a particular trajectory should be considered first
       @ Out, ready, bool, variable indicating whether the caller is prepared for another input.
     """
-    print('DEBUGG starting localStillReady')
     self.nextActionNeeded = (None,None) #prevents carrying over from previous run
     #get readiness from parent
     ready = ready and GradientBasedOptimizer.localStillReady(self,ready,convergence)
@@ -170,8 +169,6 @@ class SPSA(GradientBasedOptimizer):
           self.counter['perturbation'][traj] = 0
           self.counter['varsUpdate'][traj] += 1
           # evaluate the gradient
-          print('DEBUGG preparing to eval gradient, gradDict pertPoints traj are:')
-          print('DEBUGG    ',self.gradDict['pertPoints'][traj])
           gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj],traj)
           self.nextActionNeeded = ('add more opt point evaluations',traj)
           self.status[traj]['process'] = 'submitting new opt points'
@@ -268,7 +265,6 @@ class SPSA(GradientBasedOptimizer):
           #create identifier
           prefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i)
           #queue it up
-          print('DEBUGG grad eval queueing',prefix,point)
           self.submissionQueue[traj].append({'inputs':point,'prefix':prefix})
       #end if-first-time conditional
       #get a queued entry to run
@@ -301,13 +297,12 @@ class SPSA(GradientBasedOptimizer):
           del self.counter['lastStepSize'][traj]
           self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
         #varKPlusDenorm = self.denormalizeData(varKPlus)
-        print('DEBUGG queueing up new opt point:',varKPlus)
         self.queueUpOptPointRuns(traj,varKPlus)
       #take a sample from the queue
       prefix,point = self.getQueuedPoint(traj)
       #check for redundant paths
       if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
-        self._removeRedundantTraj(traj, self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
+        self._removeRedundantTraj(traj, self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
       for var in self.getOptVars(traj=traj):
         self.values[var] = point[var]
       self.updateVariableHistory(self.values,traj)
@@ -422,12 +417,7 @@ class SPSA(GradientBasedOptimizer):
       gain = [ak]*len(self.getOptVars(traj=traj))
     gain = np.asarray(gain)
     for index,var in enumerate(self.getOptVars(traj=traj)):
-      print('DEBUGG for var:',var)
-      print('DEBUGG   gradient is:',gradient[var])
-      print('DEBUGG   gain     is:',gain[index])
-      print('DEBUGG   orig var is:',varK[var])
       tempVarKPlus[var] = copy.copy(varK[var]-gain[index]*gradient[var]*1.0)
-      print('DEBUGG   new var  is:',tempVarKPlus[var])
     satisfied, activeConstraints = self.checkConstraint(tempVarKPlus)
     #satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempVarKPlus))
     if satisfied:
