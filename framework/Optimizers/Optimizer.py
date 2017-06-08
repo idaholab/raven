@@ -85,6 +85,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.thresholdTrajRemoval           = None                      # Threshold used to determine the convergence of parallel optimization trajectories
     self.absConvergenceTol              = 0.0                       # Convergence threshold (absolute value)
     self.relConvergenceTol              = 1.e-3                     # Convergence threshold (relative value)
+    # TODO REWORK minStepSize is for gradient-based specifically
     self.minStepSize                    = 1e-9                      # minimum allowable step size (in abs. distance, in input space)
     #sampler-step communication
     self.values                         = {}                        # for each variable the current value {'var name':value}

@@ -66,8 +66,9 @@ from previously performed model evaluation. In the following paragraphs, the inp
 different sampling methodologies are reported.
 
 Note that in addition to the input variables and response variable, several other parameters are available to
-request for the output of a Gradient-Based Optimizer run.  Note that each starts with an underscore.  They include the following:
+request for the output of a Gradient-Based Optimizer run.  Note that many starts with an underscore.  They include the following:
 \begin{itemize}
+  \item \xmlString{varsUpdate}, is the iteration number for each new optimal point;
   \item \xmlString{\_stepSize}, is the step size used to go from the previous optimal point to the current step;
   \item \xmlString{\_gradient\_var}, where \emph{var} is replaced by an input variable name, provides the
     gradient in the \emph{var} direction followed to arrive at the current optimal point (evaluated at the
@@ -111,6 +112,24 @@ Example:
   </SPSA>
   ...
 </Optimizers>
+..
+<DataObjects>
+  ...
+  <PointSet name='optOut'>
+    <Input>x,y</Input>
+    <Output>z</Output>
+  </PointSet>
+  <HistorySet name='opt_export'>
+    <Input>trajID</Input>
+    <Output>
+      x,y,z,varsUpdate,_stepSize,
+      _gradient_x,gradient_y,
+      _convergence_abs,_convergence_rel,_convergence_grad
+    </Output>
+  </HistorySet>
+  ...
+</DataObjects>
+\end{lstlisting}
 
 %%% Gradient Based Optimizers: SPSA
 \subsubsection{Simultaneous Perturbation Stochastic Approximation (SPSA)}
@@ -152,7 +171,7 @@ the name that can be used to refer to this specific entity from other input bloc
 \vspace{-5mm}
 
 In the \xmlNode{SPSA} input block, the user needs to specify the objective variable to be optimized, the decision variables, the
-DataObject storing previously performed model evaluation, as well as convergence criteira. In addition, the settings for this
+DataObject storing previously performed model evaluation, as well as convergence criteria. In addition, the settings for this
 optimization can be specified in the \xmlNode{initialization} and \xmlNode{parameter} XML blocks:
 \begin{itemize}
 \item \xmlNode{initialization},  \xmlDesc{XML node, optional parameter}. In this xml-node,the following xml sub-nodes can be
@@ -216,9 +235,22 @@ convergence. This node accepts the following sub-nodes:
   in an ``absolute'' sense: when the absolute change of objective variable in two successive model evaluations is smaller
   than this specified threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
       \default{0.0}
-   \item \xmlNode{gradientThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality,
+  \item \xmlNode{gradientThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality,
    as function of the L2 norm of the gradient (useful for unconstrained problems): when the L2 norm od the gradient falls below this threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
       \default{1e-3}
+  \item \xmlNode{minStepSize}, \xmlDesc{float, optional field}, specifies the minimum allowable step size in
+    the normalized input space, ranging from 0 (no movement) to 1 (spans any dimension).
+      \default{1e-9}
+  \item \xmlNode{gainGrowthSize}, \xmlDesc{float, optional field}, specifies the rate at which the step size
+    should grow when it does grow, for instance when multiple steps are in the same direction.  Increasing
+    this will increase the likelihood that an optimization path travels quickly across the domain along a
+    consistent gradient.
+      \default{2}
+  \item \xmlNode{gainShrinkSize}, \xmlDesc{float, optional field}, specifies the rate at which the step size
+    should shrink when it does shrink, for instance when switching directions on successive steps.  Increasing
+    this will slow convergence, but decrease the likelihood of achieving false convergence due to small step
+    sizes.
+      \default{same value as grainGrowthSize}
   \end{itemize}
 \item \xmlNode{parameter}, \xmlDesc{XML node, optional parameter} will accepts the following sub-nodes:
   \begin{itemize}
@@ -227,6 +259,15 @@ convergence. This node accepts the following sub-nodes:
         get a better gradient estimation (performing a denoising), the current point $x_k$ is evaluated multiple times in order to be able to
         converge in average.
         \default{1}
+
+  \item \xmlNode{stochasticDistribution}, \xmlDesc{string, optional field} determines the process used to find
+        gradient evaluation perturbation points as part of SPSA. Choice include the following:
+        \begin{itemize}
+          \item \xmlString{Hypersphere}, which chooses from all possible directions with equal probability,
+          \item \xmlString{Bernoulli}, which limits directions closely to the diagonal directions (corners of
+                                       a hypercube).
+        \end{itemize}
+        \default{Hypersphere}
 
   \item Optimizer Gradient Evaluation parameters:
     \begin{itemize}

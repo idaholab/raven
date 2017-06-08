@@ -348,9 +348,9 @@ class SPSA(GradientBasedOptimizer):
     self.counter ['perturbation'   ][traj] = 0
     self.counter ['gradientHistory'][traj] = [{},{}]
     self.counter ['gradNormHistory'][traj] = [{},{}]
-    #self.counter ['recentOptHist'  ][traj] = [{},{}]
-    #self.counter ['varsUpdate'     ][traj] += 1 #I don't like doing this, but only way to assure a new point is considered
-    self.gradDict['pertPoints'     ][traj] = []
+    #only clear non-opt points from pertPoints
+    for i in range(self.gradDict['numIterForAve']):
+      self.gradDict['pertPoints'][traj][i*2+1] = 0
     self.convergeTraj               [traj] = False
     self.status                     [traj] = {'process':'submitting grad eval points','reason':'found new opt point'}
     try:

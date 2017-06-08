@@ -83,11 +83,26 @@ class GradientBasedOptimizer(Optimizer):
     """
     convergence = xmlNode.find("convergence")
     if convergence is not None:
+      #convergence criteria, the gradient threshold
       gradientThreshold = convergence.find("gradientThreshold")
       try:
         self.gradientNormTolerance = float(gradientThreshold.text) if gradientThreshold is not None else self.gradientNormTolerance
       except ValueError:
         self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float.')
+      #grain growth factor, the multiplier for going in the same direction
+      gainGrowthFactor = convergence.find('gainGrowthFactor')
+      try:
+        self.gainGrowthFactor = float(gainGrowthFactor.text) if gainGrowthFactor is not None else 2.0
+      except ValueError:
+        self.raiseAnError(ValueError, 'Not able to convert <gainGrowthFactor> into a float.')
+      #grain shrink factor, the multiplier for going in the opposite direction
+      gainShrinkFactor = convergence.find('gainShrinkFactor')
+      try:
+        self.gainShrinkFactor = float(gainShrinkFactor.text) if gainShrinkFactor is not None else 2.0
+      except ValueError:
+        self.raiseAnError(ValueError, 'Not able to convert <gainShrinkFactor> into a float.')
+      self.raiseADebug('Gain growth factor is set at',self.gainGrowthFactor)
+      self.raiseADebug('Gain shrink factor is set at',self.gainShrinkFactor)
 
   def localInitialize(self,solutionExport=None):
     """
@@ -511,15 +526,15 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, frac, float, the fraction by which to multiply the existing step size
     """
     #TODO FIXME someday, let user determine growth factor
-    growthFactor = 2.0
-    shrinkFactor = 1.25
+    #growthFactor = 2.0
+    #shrinkFactor = 1.25
     # if we have a recommendation from elsewhere, take that first
     if traj in self.recommendToGain.keys():
       recommend = self.recommendToGain.pop(traj)
       if recommend == 'cut':
-        frac = 1./shrinkFactor#growthFactor
+        frac = 1./self.gainShrinkFactor
       elif recommend == 'grow':
-        frac = growthFactor
+        frac = self.gainGrowthFactor
       else:
         self.raiseAnError(RuntimeError,'unrecognized gain recommendation:',recommend)
       self.raiseADebug('Based on recommendation, step size multiplier is:',frac)
@@ -533,7 +548,10 @@ class GradientBasedOptimizer(Optimizer):
     grad0 = self.counter['gradientHistory'][traj][0]
     prod = np.sum(list(grad0[key]*grad1[key] for key in grad0.keys()))
     #rescale from [-1, 1] to [1/g, g]
-    frac = growthFactor**prod
+    if prod > 0:
+      frac = self.gainGrowthFactor**prod
+    else:
+      frac = self.gainShrinkFactor**prod
     self.raiseADebug('Based on gradient history, step size multiplier is:',frac)
     return frac
 
