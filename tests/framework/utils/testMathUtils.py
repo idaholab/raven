@@ -325,6 +325,57 @@ checkAnswer('3D hyperdiagonal',mathUtils.hyperdiagonal(sideLengths),13)
 sideLengths.append(84)
 checkAnswer('4D hyperdiagonal',mathUtils.hyperdiagonal(sideLengths),85)
 
+#check hypersphere surface sampling
+## check the radius is always 1 (if not specified)
+for i in range(1,6):
+  pt = mathUtils.randPointsOnHypersphere(i)
+  checkAnswer('Random {}D hypersphere interior'.format(i),np.sum(pt*pt),1.0)
+## check the sum of the squares is always the square of the radius
+for i in [0.2,0.7,1.5,10.0, 100.0]:
+  pt = mathUtils.randPointsOnHypersphere(4,r=i)
+  checkAnswer('Random 4D hypersphere surface with {} radius'.format(i),np.sum(pt*pt),i*i)
+## check multiple sampling simultaneously
+samps = mathUtils.randPointsOnHypersphere(5,samples=100)
+checkAnswer('Simultaneous random 5D on hypersphere, 0 axis',samps.shape[0],5)
+checkAnswer('Simultaneous random 5D on hypersphere, 1 axis',samps.shape[1],100)
+for i in range(samps.shape[1]):
+  s = samps[:,i]
+  checkAnswer('Entry {}, simultaneous random 5D hypersphere'.format(i),np.sum(s*s),1.0)
+## visual check; skipped generally but left for debugging
+if False:
+  import matplotlib.pyplot as plt
+  samps = mathUtils.randPointsOnHypersphere(2,samples=1000)
+  x = samps[0,:]
+  y = samps[1,:]
+  plt.plot(x,y,'.')
+  plt.show()
+
+#check hypersphere interior sampling
+## check the radius is always 1 (if not specified)
+for i in range(1,6):
+  pt = mathUtils.randPointsInHypersphere(i)
+  checkTrue('Random {}D hypersphere interior'.format(i),np.sum(pt*pt)<=1.0,True)
+## check the sum of the squares is always the square of the radius
+for i in [0.2,0.7,1.5,10.0, 100.0]:
+  pt = mathUtils.randPointsInHypersphere(4,r=i)
+  checkTrue('Random 4D hypersphere surface with {} radius'.format(i),np.sum(pt*pt)<=i*i,True)
+## check multiple sampling simultaneously
+samps = mathUtils.randPointsInHypersphere(5,samples=100)
+checkAnswer('Simultaneous random 5D in hypersphere, 0 axis',samps.shape[0],5)
+checkAnswer('Simultaneous random 5D in hypersphere, 1 axis',samps.shape[1],100)
+for i in range(samps.shape[1]):
+  s = samps[:,i]
+  checkTrue('Entry {}, simultaneous random 5D hypersphere'.format(i),np.sum(s*s)<=1.0,True)
+## visual check; skipped generally but left for debugging
+if False:
+  import matplotlib.pyplot as plt
+  samps = mathUtils.randPointsInHypersphere(2,samples=1000)
+  x = samps[0,:]
+  y = samps[1,:]
+  plt.plot(x,y,'.')
+  plt.show()
+
+
 
 print(results)
 

@@ -8,7 +8,7 @@ import numpy as np
 bX,bY,bZ = pk.load(file('beale_plotdata.pk','r'))
 fig = plt.figure()
 ax = fig.add_subplot(111)
-norm = colors.LogNorm(vmin=np.min(bZ),vmax=np.max(bZ))
+norm = colors.LogNorm(vmin=1e-2,vmax=1e3)
 im = ax.pcolormesh(bX,bY,bZ,norm=norm)
 ax.set_xlabel('x')
 ax.set_ylabel('y')

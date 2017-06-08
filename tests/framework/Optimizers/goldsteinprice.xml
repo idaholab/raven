@@ -46,7 +46,7 @@
       <initialization>
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
-        <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
+        <thresholdTrajRemoval>1e-3</thresholdTrajRemoval>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
@@ -63,6 +63,9 @@
         <lowerBound>-1.5</lowerBound>
         <initial>1,-1,0,1,-1</initial>
       </variable>
+      <parameter>
+        <numGradAvgIterations>2</numGradAvgIterations>
+      </parameter>
       <objectVar>ans</objectVar>
     </SPSA>
   </Optimizers>

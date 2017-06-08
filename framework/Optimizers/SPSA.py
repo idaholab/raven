@@ -85,7 +85,8 @@ class SPSA(GradientBasedOptimizer):
 
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
 
-    if self.paramDict.get('stochasticDistribution', 'Bernoulli') == 'Bernoulli':
+    stochDist = self.paramDict.get('stochasticDistribution', 'Hypersphere')
+    if stochDist == 'Bernoulli':
       self.stochasticDistribution = Distributions.returnInstance('Bernoulli',self)
       self.stochasticDistribution.p = 0.5
       self.stochasticDistribution.initializeDistribution()
@@ -93,8 +94,8 @@ class SPSA(GradientBasedOptimizer):
       # FIXME there has to be a better way to get two random numbers
       self.stochasticEngine = lambda: [(0.5+Distributions.random()*(1.+Distributions.random()/1000.*Distributions.randomIntegers(-1, 1, self))) if self.stochasticDistribution.rvs() == 1 else
                                    -1.*(0.5+Distributions.random()*(1.+Distributions.random()/1000.*Distributions.randomIntegers(-1, 1, self))) for _ in range(len(self.getOptVars()))]
-      #self.stochasticEngine = lambda: [1.0+(Distributions.random()/1000.0)*Distributions.randomIntegers(-1, 1, self) if self.stochasticDistribution.rvs() == 1 else
-      #                                -1.0+(Distributions.random()/1000.0)*Distributions.randomIntegers(-1, 1, self) for _ in range(self.nVar)]
+    elif stochDist == 'Hypersphere':
+      self.stochasticEngine = lambda: mathUtils.randPointsOnHypersphere(len(self.getOptVars()))
     else:
       self.raiseAnError(IOError, self.paramDict['stochasticEngine']+'is currently not supported for SPSA')
 
@@ -257,9 +258,9 @@ class SPSA(GradientBasedOptimizer):
         for i in range(1,2*self.gradDict['numIterForAve'],2): #perturbation points are odd, not even
           #self.gradDict['pertPoints'][traj][ind] = {} #already initialized in finalizeActualSampling when the last opt point was sampled up
           point = {}
-          delta = self.stochasticEngine()
+          direction = self.stochasticEngine() #the deltas for each dimension
           for varID, var in enumerate(self.getOptVars(traj=traj)):
-            val = varK[var] + ck*delta[varID]
+            val = varK[var] + ck*direction[varID]
             val = self._checkBoundariesAndModify(1.0, 0.0, 1.0, val, 0.9999, 0.0001)
             point[var] = val
           #create identifier

@@ -512,11 +512,12 @@ class GradientBasedOptimizer(Optimizer):
     """
     #TODO FIXME someday, let user determine growth factor
     growthFactor = 2.0
+    shrinkFactor = 1.25
     # if we have a recommendation from elsewhere, take that first
     if traj in self.recommendToGain.keys():
       recommend = self.recommendToGain.pop(traj)
       if recommend == 'cut':
-        frac = 1./growthFactor
+        frac = 1./shrinkFactor#growthFactor
       elif recommend == 'grow':
         frac = growthFactor
       else:

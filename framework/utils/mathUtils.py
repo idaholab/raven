@@ -611,3 +611,35 @@ def numBinsDraconis(data):
   numBins = int((max(data)-min(data))/binSize)
   binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
   return numBins,binEdges
+
+def randPointsOnHypersphere(n,samples=1,r=1):
+  """
+    obtains random points on the surface of a hypersphere of dimension "n" with radius "r".
+    see http://www.sciencedirect.com/science/article/pii/S0047259X10001211
+    "On decompositional algorithms for uniform sampling from n-spheres and n-balls", Harman and Lacko, 2010, J. Multivariate Analysis
+    @ In, n, int, the dimensionality of the hypersphere
+    @ In, samples, int, optional, the number of samples desired
+    @ In, r, float, optional, the radius of the hypersphere
+    @ Out, pts, np.array(np.array(float)), random points on the surface of the hypersphere
+  """
+  # generate n Gaussian-distributed random numbers
+  pts = np.random.randn(n,samples)
+  pts *= float(r)/np.linalg.norm(pts,axis=0)
+  #TODO if all are 0, unphysical result, so resample; however, this probability is miniscule and the speed benefits of skipping check worth it.
+  return pts
+
+def randPointsInHypersphere(n,samples=1,r=1):
+  """
+    obtains a random point internal to a hypersphere of dimension "n" with radius "r"
+    see http://www.sciencedirect.com/science/article/pii/S0047259X10001211
+    "On decompositional algorithms for uniform sampling from n-spheres and n-balls", Harman and Lacko, 2010, J. Multivariate Analysis
+    @ In, n, int, the dimensionality of the hypersphere
+    @ In, r, float, the radius of the hypersphere
+    @ Out, pt, np.array(float), a random point on the surface of the hypersphere
+  """
+  #sample on surface of n+2-sphere and discard the last two dimensions
+  pts = randPointsOnHypersphere(n+2,samples=samples,r=r)[:-2]
+  return pts
+
+
+
