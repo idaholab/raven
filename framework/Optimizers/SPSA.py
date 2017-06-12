@@ -124,12 +124,15 @@ class SPSA(GradientBasedOptimizer):
       return ready
     # loop over live trajectories and look for any actions that are ready to proceed
     # -> indicate the first ready action through the self.nextActionNeeded mechanic
+    self.raiseADebug('Reviewing status of trajectories:')
+    for traj in self.optTraj:
+      self.raiseADebug('   Traj: "{:^n}": Process: "{:^30.30}", Reason: "{:^30.30}"'.format(traj,self.status[traj].get('process','None'),self.status[traj].get('reason','None'),n=len(str(max(self.optTraj)))))
     for _ in range(len(self.optTrajLive)):
       # despite several attempts, this is the most elegant solution I've found to assure each
       #   trajectory gets even treatment.
       traj = self.optTrajLive.pop(0)
       self.optTrajLive.append(traj)
-      self.raiseADebug('Checking readiness for traj "{}"; status is'.format(traj),self.status[traj])
+      self.raiseADebug('Checking readiness for traj "{}" ...'.format(traj))
       process = self.status[traj]['process']
       reason = self.status[traj]['reason']
 
@@ -145,6 +148,7 @@ class SPSA(GradientBasedOptimizer):
           break
         elif reason in ['seeking new opt point']:
           self.nextActionNeeded = ('add more opt point evaluations',traj)
+          break
         else:
           self.raiseAnError(RuntimeError,'unexpected reason for submitting new opt points:',reason)
 
@@ -177,18 +181,23 @@ class SPSA(GradientBasedOptimizer):
           break
         # otherwise, we're not ready to sample yet
         else:
-          self.raiseADebug('Traj "{}": Waiting on collection of gradient evaluation points.'.format(traj))
+          self.raiseADebug('    Traj "{}": Waiting on collection of gradient evaluation points.'.format(traj))
           continue
 
       # all opt point evaluations have been submitted, but waiting for them to be collected
       elif process == 'collecting new opt points':
-        self.raiseADebug('Traj "{}": Waiting on collection of new optimization point.'.format(traj))
+        self.raiseADebug('    Traj "{}": Waiting on collection of new optimization point.'.format(traj))
         continue
 
       # trajectory has already converged, so there's no work to do for it.
       elif reason == 'converged':
-        self.raiseADebug('Traj "{}": Trajectory is marked as converged.'.format(traj))
+        self.raiseADebug('    Traj "{}": Trajectory is marked as converged.'.format(traj))
+        continue
 
+      # trajectory didn't converge, but was killed because of redundancy
+      elif reason == 'removed as redundant':
+        self.raiseADebug('    Traj "{}": Trajectory is removed for redundancy.'.format(traj))
+        continue
       # unknown status
       else:
         self.raiseAnError(RuntimeError,'Unrecognized status:'.format(traj),self.status[traj])
@@ -301,7 +310,7 @@ class SPSA(GradientBasedOptimizer):
         self.queueUpOptPointRuns(traj,varKPlus)
       #take a sample from the queue
       prefix,point = self.getQueuedPoint(traj)
-      #check for redundant paths
+      #check for redundant paths -> is this a smart place to do this?? We've already claimed we're ready!
       if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
         self._removeRedundantTraj(traj, self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
       for var in self.getOptVars(traj=traj):

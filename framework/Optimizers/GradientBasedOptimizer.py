@@ -389,6 +389,7 @@ class GradientBasedOptimizer(Optimizer):
       for trajInd, tr in enumerate(self.optTrajLive):
         if tr == trajToRemove:
           self.optTrajLive.pop(trajInd)
+          self.status[trajToRemove] = {'process':'following traj '+str(traj),'reason':'removed as redundant'}
           break
 
   def localCheckConstraint(self, optVars, satisfaction = True):
