@@ -361,6 +361,7 @@ class GradientBasedOptimizer(Optimizer):
       @ In, currentInput, dict, the last variable on trajectory traj
       @ Out, None
     """
+    # TODO replace this with a kdtree search
     removeFlag = False
     for traj in self.optTraj:
       #don't consider removal if comparing against itself, or a trajectory removed by this one
@@ -371,12 +372,12 @@ class GradientBasedOptimizer(Optimizer):
         # this is because optVarsHist includes points in it we don't actually accept in our opt history
         for updateKey in self.optVarsHist[traj].keys():
           inp = copy.deepcopy(self.optVarsHist[traj][updateKey]) #FIXME deepcopy needed?
+          if len(inp) < 1: #empty
+            continue
           removeLocalFlag = True
-          for var in self.getOptVars(): #need to compare all vars, so no traj = traj
-            if abs(inp[var] - currentInput[var]) > self.thresholdTrajRemoval:
-              removeLocalFlag = False
-              break
-          if removeLocalFlag:
+          #for var in self.getOptVars(): #need to compare all vars, so no getOptVars(traj = traj)
+          dist = np.sqrt(np.sum(list((inp[var] - currentInput[var])**2 for var in self.getOptVars())))
+          if dist < self.thresholdTrajRemoval:
             self.raiseADebug('Halting trajectory "{}" because it is following trajectory "{}"'.format(trajToRemove,traj))
             self.trajectoriesKilled[traj].append(trajToRemove)
             #TODO the trajectory to die should be chosen more carefull someday, for example, the one that has the smallest steps or lower loss value currently

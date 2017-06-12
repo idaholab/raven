@@ -162,9 +162,6 @@ class SPSA(GradientBasedOptimizer):
             break
         # if grad eval pts are finished, then evaluate the gradient
         if evalsFinished:
-          #self.status[traj] = ('evaluate gradient',self.counter['varsUpdate'][traj])
-          # TODO in rework, we should evaluate the gradient HERE to check convergence instead of waiting until later
-          #  -> alternatively, this could be done in finalizeActualSampling maybe?
           # collect output values for perturbed points
           for i in range(1,self.gradDict['numIterForAve']*2,2):
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
@@ -175,6 +172,25 @@ class SPSA(GradientBasedOptimizer):
           self.counter['varsUpdate'][traj] += 1
           # evaluate the gradient
           gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj],traj)
+          # establish a new point, if found; FIXME otherwise?
+          if len(self.submissionQueue[traj]) == 0:
+            #gradient = self.counter['gradientHistory'][traj][0] #self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
+            ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
+            self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
+            varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs']) #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
+            varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
+            #check for redundant paths -> # TODO does this work correctly in multilevel?  is varKPlus full or partial?
+            if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
+              self._removeRedundantTraj(traj, varKPlus)
+            # if trajectory was killed for redundancy, continue on to check next trajectory for readiness
+            if self.status[traj]['reason'] == 'removed as redundant':
+              continue # loops back to the next opt traj
+            #if the new point was modified by the constraint, reset the step size
+            if modded:
+              del self.counter['lastStepSize'][traj]
+              self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
+            #varKPlusDenorm = self.denormalizeData(varKPlus)
+            self.queueUpOptPointRuns(traj,varKPlus)
           self.nextActionNeeded = ('add more opt point evaluations',traj)
           self.status[traj]['process'] = 'submitting new opt points'
           self.status[traj]['reason'] = 'seeking new opt point'
@@ -293,26 +309,24 @@ class SPSA(GradientBasedOptimizer):
 
     elif action == 'add more opt point evaluations':
       # evaluation completed for gradient evaluation
-      #self.counter['perturbation'][traj] = 0
-      #self.counter['varsUpdate'][traj] += 1
-      #establish all the requested evaluations
-      if len(self.submissionQueue[traj]) == 0:
-        gradient = self.counter['gradientHistory'][traj][0] #self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
-        ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
-        self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
-        varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs']) #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
-        varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
-        #if the new point was modified by the constraint, reset the step size
-        if modded:
-          del self.counter['lastStepSize'][traj]
-          self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
-        #varKPlusDenorm = self.denormalizeData(varKPlus)
-        self.queueUpOptPointRuns(traj,varKPlus)
+      # establish all the requested evaluations
+      #if len(self.submissionQueue[traj]) == 0:
+      #  gradient = self.counter['gradientHistory'][traj][0] #self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
+      #  ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
+      #  self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
+      #  varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs']) #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
+      #  varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
+      #  #if the new point was modified by the constraint, reset the step size
+      #  if modded:
+      #    del self.counter['lastStepSize'][traj]
+      #    self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
+      #  #varKPlusDenorm = self.denormalizeData(varKPlus)
+      #  self.queueUpOptPointRuns(traj,varKPlus)
       #take a sample from the queue
       prefix,point = self.getQueuedPoint(traj)
       #check for redundant paths -> is this a smart place to do this?? We've already claimed we're ready!
-      if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
-        self._removeRedundantTraj(traj, self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
+      #if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
+      #  self._removeRedundantTraj(traj, self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
       for var in self.getOptVars(traj=traj):
         self.values[var] = point[var]
       self.updateVariableHistory(self.values,traj)
@@ -424,10 +438,10 @@ class SPSA(GradientBasedOptimizer):
     try:
       gain = ak[:]
     except (TypeError,IndexError):
-      gain = [ak]*len(self.getOptVars(traj=traj))
+      gain = [ak]*len(self.getOptVars()) #technically incorrect, but missing ones will be *0 anyway just below here
     gain = np.asarray(gain)
-    for index,var in enumerate(self.getOptVars(traj=traj)):
-      tempVarKPlus[var] = copy.copy(varK[var]-gain[index]*gradient[var]*1.0)
+    for index,var in enumerate(self.getOptVars()): #get full opt vars so all variables carried through
+      tempVarKPlus[var] = varK[var]-gain[index]*gradient.get(var,0.0)*1.0
     satisfied, activeConstraints = self.checkConstraint(tempVarKPlus)
     #satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempVarKPlus))
     if satisfied:
