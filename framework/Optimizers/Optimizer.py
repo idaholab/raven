@@ -78,7 +78,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables
     self.optVarsInit['ranges']          = {}                        # Dict of the ranges (min and max) of each variable's domain
     self.initSeed                       = None                      # Seed for random number generators
-    self.optType                        = None                      # Either maximize or minimize
+    self.optType                        = None                      # Either max or min
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
     #convergence tools
     self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
@@ -102,7 +102,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #multilevel
     self.multilevel                     = False                     # indicates if operating in multilevel mode
     self.mlBatches                      = {}                        # dict of {batchName:[list,of,vars]} that defines input subspaces
-    self.mlTolerances                   = {}                        # dict of {batchName:float} that gives convergence tolerance for each subspace #TODO not yet implemented
     self.mlSequence                     = []                        # list of batch names that determines the order of convergence.  Last entry is converged most often and fastest (innermost loop).
     self.mlDepth                        = {}                        # {traj: #} index of current recursion depth within self.mlSequence, must be initialized to None
     self.mlStaticValues                 = {}                        # by traj, dictionary of static values for variables in fullOptVars but not in optVars due to multilevel
@@ -224,7 +223,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           elif childChild.tag == "type":
             self.optType = childChild.text
             if self.optType not in ['min', 'max']:
-              self.raiseAnError(IOError, 'Unknown optimization type '+childChild.text+'. Available: mix or max')
+              self.raiseAnError(IOError, 'Unknown optimization type '+childChild.text+'. Available: "min" or "max"')
           elif childChild.tag == "initialSeed":
             self.initSeed = int(childChild.text)
           elif childChild.tag == 'thresholdTrajRemoval':
@@ -486,7 +485,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #   4.) We're in a non-innermost subspace, and have perturbed but not converged, so we need to move back to innermost again
     #   5.) We're in an intermediate subspace, and have perturbed and converged, so we need to move to one subspace higher
     mlIntervene = False #will be True if we changed the state of the optimizer
-    #get the trajectory from the list of "next action needed", TODO also get the ones who think they're converged?
+    #get the trajectory from the list of "next action needed"
     if self.nextActionNeeded[1] is not None:
       checkMLTrajs = [self.nextActionNeeded[1]]
     else:
@@ -530,8 +529,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #if multilevel intervened, recheck readiness (should always result in ready=True???)
     if mlIntervene:
       self.raiseADebug('Because multilevel intervened, rechecking readiness of optimizer for trajectory "{}"'.format(traj))
-      # TODO this might mess with the order of what trajectory gets treated when
-      ready = self.localStillReady(True)#,useTraj = self.nextActionNeeded[1])
+      ready = self.localStillReady(True)
     return ready
 
   def updateMultilevelDepth(self, traj, depth, optPoint, setAll=False):
@@ -624,6 +622,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def lossFunctionEval(self, traj, optVars):
     """
       Method to evaluate the loss function based on all model evaluation.
+      TODO currently unused; it's only real function was to reverse the sign if optType was max
       @ In, traj, int, trajectory to evaluate on
       @ In, optVars, dict, dictionary containing the values of decision variables to be evaluated
                            optVars should have the form {varName1:[value11, value12,...value1n], varName2:[value21, value22,...value2n]...}
@@ -855,3 +854,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if len(failedRuns)>0:
       self.raiseAnError(IOError,'There were failed runs; aborting RAVEN.')
 
+  def checkIfBetter(self,a,b):
+    """
+      Checks if a is preferable to b for this optimization problem.  Helps mitigate needing to keep
+      track of whether a minimization or maximation problem is being run.
+      @ In, a, float, value to be compared
+      @ In, b, float, value to be compared against
+      @ Out, checkIfBetter, bool, True if a is preferable to b for this optimization
+    """
+    if self.optType == 'min':
+      return a < b
+    elif self.optType == 'max':
+      return a > b

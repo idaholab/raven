@@ -202,6 +202,11 @@ class GradientBasedOptimizer(Optimizer):
       #lossValue = [opt['output'],pert['output']]#copy.copy(self.lossFunctionEval(traj,tempDictPerturbed))
       #calculate grad(F) wrt each input variable
       lossDiff = pert['output'] - opt['output']
+      #cover max problems
+      # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
+      #   sign flipping was only called when evaluating the gradient.
+      if self.optType == 'max':
+        lossDiff *= -1.0
       for var in self.getOptVars(traj=traj):
         #if optVarsValues[pertIndex][var][0] != optVarsValues[pertIndex][var][1]:
         # even if the feature space is normalized, we compute the gradient in its space (transformed or not)
@@ -290,7 +295,9 @@ class GradientBasedOptimizer(Optimizer):
           self.raiseAnError(Exception,"the objective function evaluation for trajectory " +str(traj)+ "and iteration "+str(varsUpdate-1)+" has not been found!")
         oldVal = objectiveOutputs.mean() # TODO should this be from counter[recentOptPoints][traj]?
         # see if new point is better than old point
-        newerIsBetter = currentLossValue < oldVal #FIXME does this need to consider min/max?
+        print('DEBUGG new val:',currentLossValue)
+        print('DEBUGG old val:',oldVal)
+        newerIsBetter = self.checkIfBetter(currentLossValue,oldVal)
         varK = self.denormalizeData(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
         #converging values
         gradNorm  = self.counter['gradNormHistory'][traj][0]
@@ -363,10 +370,27 @@ class GradientBasedOptimizer(Optimizer):
     """
     # TODO replace this with a kdtree search
     removeFlag = False
+    def getRemoved(trajThatSurvived, fullList=None):
+      """
+        Collect list of all the trajectories removed by this one, or removed by trajectories removed by this one, and etc
+        @ In, trajThatSurvived, int, surviving trajectory that has potentially removed others
+        @ In, fullList, list, optional, if included is the partial list to add to
+        @ Out, fullList, list, list of all traj removed (explicitly or implicitly) by this one
+      """
+      if fullList is None:
+        fullList = []
+      removed = self.trajectoriesKilled[trajThatSurvived]
+      fullList += removed
+      for rm in removed:
+        fullList = getRemoved(rm, fullList)
+      return fullList
+      #end function definition
+    notEligibleToRemove = [trajToRemove] + getRemoved(trajToRemove)
     for traj in self.optTraj:
-      #don't consider removal if comparing against itself, or a trajectory removed by this one
+      #don't consider removal if comparing against itself,
+      #  or a trajectory removed by this one, or a trajectory removed by a trajectory removed by this one (recursive)
       #  -> this prevents mutual destruction cases
-      if traj not in [trajToRemove] + self.trajectoriesKilled[trajToRemove]:
+      if traj not in notEligibleToRemove: #[trajToRemove] + self.trajectoriesKilled[trajToRemove]:
         #FIXME this can be quite an expensive operation, looping through each other trajectory
         # FIXME this might not be as robust as before we rejected new opt points that are worse than the last
         # this is because optVarsHist includes points in it we don't actually accept in our opt history
@@ -429,7 +453,14 @@ class GradientBasedOptimizer(Optimizer):
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, myInput, list, the generating input
     """
-    self.raiseADebug('Collected sample "{}"'.format(jobObject.getMetadata()['prefix']))
+    # for some reason, Ensemble Model doesn't preserve this information, so wrap this debug in a try:
+    try:
+      prefix = jobObject.getMetadata()['prefix']
+      self.raiseADebug('Collected sample "{}"'.format(prefix))
+    except TypeError:
+      prefix = ''
+    self.raiseADebug('Collected sample "{}"'.format(prefix))
+
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:

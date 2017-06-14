@@ -37,6 +37,12 @@ from beale import evaluate as beale
 x,y,z = plotFunction('Beale',beale,-4.5,4.5,cscale=(1e-1,1e3))
 pk.dump((x,y,z),file('beale_plotdata.pk','w'))
 
+# Beale (Flipped)
+from beale_flipped import evaluate as bealef
+x,y,z = plotFunction('Beale Flipped',bealef,-4.5,4.5,cscale=(2e6-5e2,2e6))
+print 'max min:',np.min(z),np.max(z)
+pk.dump((x,y,z),file('beale_flip_plotdata.pk','w'))
+
 # Rosenbrock
 from rosenbrock import evaluate2d as rosenbrock
 x,y,z = plotFunction('Rosenbrock',rosenbrock,-2,2,cscale=(1e-1,1e3))

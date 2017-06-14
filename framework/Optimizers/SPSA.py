@@ -172,6 +172,7 @@ class SPSA(GradientBasedOptimizer):
           self.counter['varsUpdate'][traj] += 1
           # evaluate the gradient
           gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj],traj)
+          print('DEBUGG gradient is',gradient)
           # establish a new point, if found; FIXME otherwise?
           if len(self.submissionQueue[traj]) == 0:
             #gradient = self.counter['gradientHistory'][traj][0] #self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
@@ -179,7 +180,9 @@ class SPSA(GradientBasedOptimizer):
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
             varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs']) #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
             varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
-            #check for redundant paths -> # TODO does this work correctly in multilevel?  is varKPlus full or partial?
+            print('DEBUGG ... started at:',varK)
+            print('DEBUGG ... moving to:',varKPlus)
+            #check for redundant paths
             if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
               self._removeRedundantTraj(traj, varKPlus)
             # if trajectory was killed for redundancy, continue on to check next trajectory for readiness
