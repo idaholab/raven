@@ -33,11 +33,10 @@ from collections import deque
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
+from utils import utils,randomUtils
 from BaseClasses import BaseType
 from Assembler import Assembler
 import SupervisedLearning
-import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
@@ -215,7 +214,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.objVar = child.text
 
       elif child.tag == "initialization":
-        self.initSeed = Distributions.randomIntegers(0,2**31,self)
+        self.initSeed = randomUtils.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
             self.limit['mdlEval'] = int(childChild.text) #FIXME what's the difference between this and self.limit['varsUpdate']?
@@ -271,7 +270,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if self.thresholdTrajRemoval is None:
       self.thresholdTrajRemoval = 0.05
     if self.initSeed is None:
-      self.initSeed = Distributions.randomIntegers(0,2**31,self)
+      self.initSeed = randomUtils.randomIntegers(0,2**31,self)
     if self.objVar is None:
       self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
     if self.fullOptVars is None:
@@ -428,14 +427,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         randomGuessesCnt = 0
         while not satisfied and randomGuessesCnt < self.constraintHandlingPara['innerLoopLimit']:
           for varname in self.getOptVars():
-            varK[varname] = self.optVarsInit['lowerBound'][varname]+Distributions.random()*self.optVarsInit['ranges'][varname]
+            varK[varname] = self.optVarsInit['lowerBound'][varname]+randomUtils.random()*self.optVarsInit['ranges'][varname]
             self.optVarsInit['initial'][varname][trajInd] = varK[varname]
           satisfied, _ = self.checkConstraint(varK)
         if not satisfied:
           self.raiseAnError(Exception,"It was not possible to find any initial values that could satisfy the constraints for trajectory "+str(trajInd))
 
     if self.initSeed != None:
-      Distributions.randomSeed(self.initSeed)
+      randomUtils.randomSeed(self.initSeed)
 
     # initialize multilevel trajectory-based structures
     # TODO a bunch of the gradient-level trajectory initializations should be moved here.
@@ -863,6 +862,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, checkIfBetter, bool, True if a is preferable to b for this optimization
     """
     if self.optType == 'min':
-      return a < b
+      return a <= b
     elif self.optType == 'max':
-      return a > b
+      return a >= b

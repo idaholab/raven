@@ -36,7 +36,7 @@ import scipy
 #Internal Modules------------------------------------------------------------------------------------
 from .GradientBasedOptimizer import GradientBasedOptimizer
 import Distributions
-from utils import mathUtils
+from utils import mathUtils,randomUtils
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -95,7 +95,7 @@ class SPSA(GradientBasedOptimizer):
       self.stochasticEngine = lambda: [(0.5+Distributions.random()*(1.+Distributions.random()/1000.*Distributions.randomIntegers(-1, 1, self))) if self.stochasticDistribution.rvs() == 1 else
                                    -1.*(0.5+Distributions.random()*(1.+Distributions.random()/1000.*Distributions.randomIntegers(-1, 1, self))) for _ in range(len(self.getOptVars()))]
     elif stochDist == 'Hypersphere':
-      self.stochasticEngine = lambda: mathUtils.randPointsOnHypersphere(len(self.getOptVars()))
+      self.stochasticEngine = lambda: randomUtils.randPointsOnHypersphere(len(self.getOptVars()))
     else:
       self.raiseAnError(IOError, self.paramDict['stochasticEngine']+'is currently not supported for SPSA')
 

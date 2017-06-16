@@ -1,24 +1,23 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers/Stochastic</name>
+    <name>framework/Optimizers/Boundary</name>
     <author>talbpaul</author>
-    <created>2017-06-14</created>
+    <created>2017-06-15</created>
     <classesTested>Optimizer</classesTested>
     <description>
-      This test runs the optimization on the McCormick function modified by the addition of stochastic noise.
-      The noise is additive and can be scaled by the "stochScale" parameter, which defaults to [0,1].
-      It tests stochastic optimization mechanics as well as having "constant" optimization parameters.
+      This test runs optimization where the preferred solution is past the limits of the input variable.
+      The model is an upside-down parabola y=-x^2 with the input constrained to [1,2].
+      This test checks opearation of solutions on a boundary.
     </description>
     <analytic>
-      This test uses the McCormick function, which is documented in the analytic tests documentation under
-      the Optimizer functions section.  The analytic solution will be obscured by the noise of the
-      stochastic part of the model.
+      This test uses an inverse parabola, whose minimum is outside the domain and expected solution is
+      at the lowest possible input value (1.0).
     </analytic>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>Stochastic</WorkingDir>
+    <WorkingDir>Boundary</WorkingDir>
     <Sequence>optimize,getOptPoint,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -26,16 +25,14 @@
   <Steps>
     <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">mc_stoch</Model>
+      <Model class="Models" type="ExternalModel">parabola</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">optOut</Input>
       <Input class="DataObjects" type="HistorySet">opt_export</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
-      <Output class="OutStreams" type="Print">opt_dump</Output>
     </IOStep>
     <PostProcess name="getOptPoint">
       <Input class="DataObjects" type="HistorySet">opt_export</Input>
@@ -50,35 +47,26 @@
       <initialization>
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
+        <type>max</type>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <gradientThreshold>1e-2</gradientThreshold>
+          <gradientThreshold>1e-1</gradientThreshold>
           <gainGrowthFactor>1.5</gainGrowthFactor>
           <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
       <variable name='x'>
-        <upperBound>3</upperBound>
-        <lowerBound>-2</lowerBound>
-        <initial>-2</initial>
+        <upperBound>2</upperBound>
+        <lowerBound>1</lowerBound>
       </variable>
-      <variable name='y'>
-        <upperBound>3</upperBound>
-        <lowerBound>-2</lowerBound>
-        <initial>2</initial>
-      </variable>
-      <constant name="stochScale">10</constant>
-      <parameter>
-        <numGradAvgIterations>10</numGradAvgIterations>
-      </parameter>
       <objectVar>ans</objectVar>
     </SPSA>
   </Optimizers>
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/mccormick_stoch" name="mc_stoch" subType="">
-      <variables>x,y,stochScale,ans,stoch,base</variables>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/parabolas" name="parabola" subType="">
+      <variables>x,ans</variables>
     </ExternalModel>
     <PostProcessor name="snapshot" subType="InterfacedPostProcessor">
       <method>HistorySetSnapShot</method>
@@ -89,28 +77,24 @@
 
   <DataObjects>
     <PointSet name="dummyIN">
-      <Input>x,y</Input>
+      <Input>x</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="optOut">
-      <Input>x,y</Input>
-      <Output>ans,stoch,base</Output>
+      <Input>x</Input>
+      <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_soln">
       <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
+      <Output>x,ans,varsUpdate</Output>
     </PointSet>
     <HistorySet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
+      <Output>x,ans,varsUpdate</Output>
     </HistorySet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="opt_dump">
-      <type>csv</type>
-      <source>optOut</source>
-    </Print>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>

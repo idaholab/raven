@@ -159,11 +159,6 @@ initParams = uniform.getInitParams()
 ## Should these be checked?
 initParams = puniform.getInitParams()
 
-for _ in range(10):
-  Distributions.randomIntegers(0,1,uniform)
-
-Distributions.randomIntegers(2,1,uniform)
-
 #Test Normal
 mean=1.0
 sigma=2.0

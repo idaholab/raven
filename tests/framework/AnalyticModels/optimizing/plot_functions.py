@@ -8,13 +8,14 @@ import cPickle as pk
 samps = 500
 
 def plotFunction(title,method,low,high,cscale=None,log=True):
-  print 'plotting',title
+  print 'plotting',title,
   fig = plt.figure(title)
   ax = fig.add_subplot(111)#,projection='3d')
   xs = np.linspace(low,high,samps)
   ys = np.linspace(low,high,samps)
   X,Y = np.meshgrid(xs,ys)
   Z = method(X,Y)
+  print 'min: {}, max:{}'.format(np.min(Z),np.max(Z))
   if log:
     if cscale is None:
       vmin,vmax = np.min(Z),np.max(Z)
@@ -36,12 +37,6 @@ def plotFunction(title,method,low,high,cscale=None,log=True):
 from beale import evaluate as beale
 x,y,z = plotFunction('Beale',beale,-4.5,4.5,cscale=(1e-1,1e3))
 pk.dump((x,y,z),file('beale_plotdata.pk','w'))
-
-# Beale (Flipped)
-from beale_flipped import evaluate as bealef
-x,y,z = plotFunction('Beale Flipped',bealef,-4.5,4.5,cscale=(2e6-5e2,2e6))
-print 'max min:',np.min(z),np.max(z)
-pk.dump((x,y,z),file('beale_flip_plotdata.pk','w'))
 
 # Rosenbrock
 from rosenbrock import evaluate2d as rosenbrock
