@@ -27,12 +27,23 @@
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
 
+    <xsd:complexType name="optSubspaceType">
+      <xsd:simpleContent>
+        <xsd:extension base="xsd:string">
+          <xsd:attribute name="name" type="xsd:string" use="required"/>
+        </xsd:extension>
+      </xsd:simpleContent>
+    </xsd:complexType>
+
     <xsd:complexType name="optConvergenceType">
         <xsd:all>
             <xsd:element name="iterationLimit"    type="xsd:integer" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="relativeThreshold" type="xsd:float"   minOccurs="0" maxOccurs="1"/>
             <xsd:element name="absoluteThreshold" type="xsd:float"   minOccurs="0" maxOccurs="1"/>
             <xsd:element name="gradientThreshold" type="xsd:float"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="gainGrowthFactor"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="gainShrinkFactor"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="minStepSize"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
          </xsd:all>
     </xsd:complexType>
 
@@ -61,6 +72,15 @@
                  <xsd:element name="normalize"               type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
                  <xsd:element name="innerBisectionThreshold" type="xsd:float"   minOccurs="0" maxOccurs="1"/>
                  <xsd:element name="innerLoopLimit"          type="xsd:float"   minOccurs="0" maxOccurs="1"/>
+                 <xsd:element name="stochasticDistribution"  type="xsd:string"  minOccurs="0" maxOccurs="1"/>
+               </xsd:sequence>
+             </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="multilevel"  minOccurs="0" maxOccurs="1">
+              <xsd:complexType mixed="true">
+                <xsd:sequence>
+                 <xsd:element name="subspace"    type="optSubspaceType" minOccurs="1" maxOccurs="unbounded"/>
+                 <xsd:element name="sequence"    type="xsd:string" minOccurs="1" maxOccurs="1"/>
                </xsd:sequence>
              </xsd:complexType>
             </xsd:element>

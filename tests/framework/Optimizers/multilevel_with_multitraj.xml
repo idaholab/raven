@@ -95,14 +95,14 @@
       <Input>x,y</Input>
       <Output>ans</Output>
     </PointSet>
-    <HistorySet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate,_stepSize,_convergence_abs,_convergence_rel,_convergence_grad</Output>
-    </HistorySet>
     <PointSet name="opt_soln">
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate</Output>
     </PointSet>
+    <HistorySet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate,_stepSize,_convergence_abs,_convergence_rel,_convergence_grad</Output>
+    </HistorySet>
   </DataObjects>
 
   <OutStreams>

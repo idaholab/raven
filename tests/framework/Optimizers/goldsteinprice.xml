@@ -67,11 +67,11 @@
         <lowerBound>-1.5</lowerBound>
         <initial>1,-1,0,1,-1</initial>
       </variable>
+      <objectVar>ans</objectVar>
       <parameter>
         <numGradAvgIterations>2</numGradAvgIterations>
         <stochasticDistribution>Bernoulli</stochasticDistribution>
       </parameter>
-      <objectVar>ans</objectVar>
     </SPSA>
   </Optimizers>
 

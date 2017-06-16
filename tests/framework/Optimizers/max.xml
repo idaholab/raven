@@ -54,7 +54,7 @@
           <gradientThreshold>1e-4</gradientThreshold>
           <gainGrowthFactor>1.5</gainGrowthFactor>
           <gainShrinkFactor>1.25</gainShrinkFactor>
-          <relativeTolerance>1e-8</relativeTolerance>
+          <relativeThreshold>1e-8</relativeThreshold>
       </convergence>
       <variable name='x'>
         <upperBound>4.5</upperBound>

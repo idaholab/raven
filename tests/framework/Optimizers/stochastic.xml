@@ -68,10 +68,10 @@
         <initial>2</initial>
       </variable>
       <constant name="stochScale">10</constant>
+      <objectVar>ans</objectVar>
       <parameter>
         <numGradAvgIterations>10</numGradAvgIterations>
       </parameter>
-      <objectVar>ans</objectVar>
     </SPSA>
   </Optimizers>
 
