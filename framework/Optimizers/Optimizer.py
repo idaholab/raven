@@ -618,35 +618,35 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     functionValue = search.get(evaluationID,None)
     return functionValue
 
-  def lossFunctionEval(self, traj, optVars):
-    """
-      Method to evaluate the loss function based on all model evaluation.
-      TODO currently unused; it's only real function was to reverse the sign if optType was max
-      @ In, traj, int, trajectory to evaluate on
-      @ In, optVars, dict, dictionary containing the values of decision variables to be evaluated
-                           optVars should have the form {varName1:[value11, value12,...value1n], varName2:[value21, value22,...value2n]...}
-      @ Out, lossFunctionValue, numpy array, loss function values corresponding to each point in optVars
-    """
-    tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
-    tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
-    for key in tempDict.keys():
-      tempDict[key] = np.asarray(tempDict[key])
-    self.objSearchingROM.train(tempDict)
-    # extend optVars to include static values
-    numGradPts = len(optVars.values()[0])
-    for key,val in self.mlStaticValues[traj].items():
-      val = self.denormalizeData({key:val})[key]
-      optVars[key] = np.array([val]*numGradPts)
-    # fix data type
-    for key in optVars.keys():
-      optVars[key] = np.atleast_1d(optVars[key])
-    # use KNN ROM to evaluate the loss function
-    lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
-    #flip the solution around origin if performing maximization search
-    if self.optType == 'min':
-      return lossFunctionValue
-    else:
-      return lossFunctionValue*-1.0
+  #def lossFunctionEval(self, traj, optVars):
+  #  """
+  #    TODO currently unused; it's only real function was to reverse the sign if optType was max
+  #    Method to evaluate the loss function based on all model evaluation.
+  #    @ In, traj, int, trajectory to evaluate on
+  #    @ In, optVars, dict, dictionary containing the values of decision variables to be evaluated
+  #                         optVars should have the form {varName1:[value11, value12,...value1n], varName2:[value21, value22,...value2n]...}
+  #    @ Out, lossFunctionValue, numpy array, loss function values corresponding to each point in optVars
+  #  """
+  #  tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
+  #  tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
+  #  for key in tempDict.keys():
+  #    tempDict[key] = np.asarray(tempDict[key])
+  #  self.objSearchingROM.train(tempDict)
+  #  # extend optVars to include static values
+  #  numGradPts = len(optVars.values()[0])
+  #  for key,val in self.mlStaticValues[traj].items():
+  #    val = self.denormalizeData({key:val})[key]
+  #    optVars[key] = np.array([val]*numGradPts)
+  #  # fix data type
+  #  for key in optVars.keys():
+  #    optVars[key] = np.atleast_1d(optVars[key])
+  #  # use KNN ROM to evaluate the loss function
+  #  lossFunctionValue = self.objSearchingROM.evaluate(optVars)[self.objVar]
+  #  #flip the solution around origin if performing maximization search
+  #  if self.optType == 'min':
+  #    return lossFunctionValue
+  #  else:
+  #    return lossFunctionValue*-1.0
 
   def checkConstraint(self, optVars):
     """

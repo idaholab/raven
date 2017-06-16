@@ -232,8 +232,6 @@ class RavenOutput(PostProcessor):
     #improve path format
     path = '|'.join(c.strip() for c in inpPath.strip().split('|'))
     desiredNode = xmlUtils.findPath(root,path)
-    print('DEBUGG ')
-    print('DEBUGG ')
     if desiredNode is None:
       self.raiseAnError(RuntimeError,'Did not find "%s|%s" in file "%s"' %(root.tag,path,fileName))
     return desiredNode

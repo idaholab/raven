@@ -15,7 +15,7 @@
 
   <!-- actual RAVEN input -->
   <RunInfo>
-    <WorkingDir>BealeMTML</WorkingDir>
+    <WorkingDir>MTML</WorkingDir>
     <Sequence>optimize,print,getOptPoint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -29,8 +29,8 @@
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
-      <Input class="DataObjects" type="HistorySet">opt_export</Input>
-      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Input class="DataObjects" type="PointSet">opt_soln</Input>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
     </IOStep>
     <PostProcess name="getOptPoint">
       <Input class="DataObjects" type="HistorySet">opt_export</Input>
@@ -43,12 +43,12 @@
   <Optimizers>
     <SPSA name="opter">
       <initialization>
-        <limit>5000</limit>
+        <limit>1000</limit>
         <initialSeed>42</initialSeed>
-        <!--<thresholdTrajRemoval>1e-3</thresholdTrajRemoval>-->
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
+          <iterationLimit>100</iterationLimit>
           <gradientThreshold>1e-2</gradientThreshold>
           <relativeThreshold>1e-5</relativeThreshold>
       </convergence>

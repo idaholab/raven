@@ -92,8 +92,8 @@ class SPSA(GradientBasedOptimizer):
       self.stochasticDistribution.initializeDistribution()
       # Initialize bernoulli distribution for random perturbation. Add artificial noise to avoid that specular loss functions get false positive convergence
       # FIXME there has to be a better way to get two random numbers
-      self.stochasticEngine = lambda: [(0.5+Distributions.random()*(1.+Distributions.random()/1000.*Distributions.randomIntegers(-1, 1, self))) if self.stochasticDistribution.rvs() == 1 else
-                                   -1.*(0.5+Distributions.random()*(1.+Distributions.random()/1000.*Distributions.randomIntegers(-1, 1, self))) for _ in range(len(self.getOptVars()))]
+      self.stochasticEngine = lambda: [(0.5+randomUtils.random()*(1.+randomUtils.random()/1000.*randomUtils.randomIntegers(-1, 1, self))) if self.stochasticDistribution.rvs() == 1 else
+                                   -1.*(0.5+randomUtils.random()*(1.+randomUtils.random()/1000.*randomUtils.randomIntegers(-1, 1, self))) for _ in range(len(self.getOptVars()))]
     elif stochDist == 'Hypersphere':
       self.stochasticEngine = lambda: randomUtils.randPointsOnHypersphere(len(self.getOptVars()))
     else:
@@ -172,7 +172,6 @@ class SPSA(GradientBasedOptimizer):
           self.counter['varsUpdate'][traj] += 1
           # evaluate the gradient
           gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj],traj)
-          print('DEBUGG gradient is',gradient)
           # establish a new point, if found; FIXME otherwise?
           if len(self.submissionQueue[traj]) == 0:
             #gradient = self.counter['gradientHistory'][traj][0] #self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
@@ -180,8 +179,6 @@ class SPSA(GradientBasedOptimizer):
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
             varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs']) #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
             varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
-            print('DEBUGG ... started at:',varK)
-            print('DEBUGG ... moving to:',varKPlus)
             #check for redundant paths
             if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
               self._removeRedundantTraj(traj, varKPlus)
@@ -288,7 +285,10 @@ class SPSA(GradientBasedOptimizer):
           point = {}
           direction = self.stochasticEngine() #the deltas for each dimension
           for varID, var in enumerate(self.getOptVars(traj=traj)):
-            val = varK[var] + ck*direction[varID]
+            try:
+              val = varK[var] + ck*direction[varID]
+            except IndexError: #only occurs when dimensionality is 1
+              val = varK[var] + ck*direction
             val = self._checkBoundariesAndModify(1.0, 0.0, 1.0, val, 0.9999, 0.0001)
             point[var] = val
           #create identifier
@@ -388,31 +388,32 @@ class SPSA(GradientBasedOptimizer):
     except KeyError:
       pass
 
-  def estimateStochasticity(self,gradient,perturbedPoints,centralPoint,centralResponseIndex):
-    """
-      Uses the gradient and central point to estimate the expected values of the reponse
-      at each of the perturbed points.  The difference between actual and expected will
-      give a low-order estimate of the standard deviation of the system noise (aka "c").
-      @ In, gradient, dict, {var:value} for each input, the estimated gradient
-      @ In, perturbedPoints, dict, {var:[values], var:[values], response:[values]}
-      @ In, centralPoint, dict, the central point in the optimize search (but not the response!! we need the response!
-      @ In, centralResponseIndex, int, index at which central evaluation can be found
-      @ Out, c, float, estimate of standard deviation
-    """
-    centralResponse = self.mdlEvalHist.getRealization(centralResponseIndex)['outputs'][self.objVar]
-    numPerturbed = len(perturbedPoints.values()[0])
-    inVars = gradient.keys()
-    origin = np.array(centralPoint.values())
-    gradVal = gradient.values()
-    #calculate the differences between gradient-based estimates and actual evaluations
-    differences = []
-    for n in range(numPerturbed):
-      newPoint = np.array(list(perturbedPoints[var][n] for var in inVars))
-      delta = newPoint - origin
-      expectedResponse = sum(gradVal*delta) + centralResponse
-      difference = centralResponse-expectedResponse
-      differences.append(difference)
-    c = mathUtils.hyperdiagonal(differences)
+  #def estimateStochasticity(self,gradient,perturbedPoints,centralPoint,centralResponseIndex):
+  #  """
+  #    TODO current unused, so commented, but will be used in future patch.
+  #    Uses the gradient and central point to estimate the expected values of the reponse
+  #    at each of the perturbed points.  The difference between actual and expected will
+  #    give a low-order estimate of the standard deviation of the system noise (aka "c").
+  #    @ In, gradient, dict, {var:value} for each input, the estimated gradient
+  #    @ In, perturbedPoints, dict, {var:[values], var:[values], response:[values]}
+  #    @ In, centralPoint, dict, the central point in the optimize search (but not the response!! we need the response!
+  #    @ In, centralResponseIndex, int, index at which central evaluation can be found
+  #    @ Out, c, float, estimate of standard deviation
+  #  """
+  #  centralResponse = self.mdlEvalHist.getRealization(centralResponseIndex)['outputs'][self.objVar]
+  #  numPerturbed = len(perturbedPoints.values()[0])
+  #  inVars = gradient.keys()
+  #  origin = np.array(centralPoint.values())
+  #  gradVal = gradient.values()
+  #  #calculate the differences between gradient-based estimates and actual evaluations
+  #  differences = []
+  #  for n in range(numPerturbed):
+  #    newPoint = np.array(list(perturbedPoints[var][n] for var in inVars))
+  #    delta = newPoint - origin
+  #    expectedResponse = sum(gradVal*delta) + centralResponse
+  #    difference = centralResponse-expectedResponse
+  #    differences.append(difference)
+  #  c = mathUtils.hyperdiagonal(differences)
 
   def _updateParameters(self):
     """

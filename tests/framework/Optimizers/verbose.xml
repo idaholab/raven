@@ -13,7 +13,7 @@
 
   <!-- actual RAVEN input -->
   <RunInfo>
-    <WorkingDir>BealeVerbose</WorkingDir>
+    <WorkingDir>Verbose</WorkingDir>
     <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>

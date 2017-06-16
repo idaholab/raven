@@ -36,6 +36,7 @@
     input = 'stochastic.xml'
     csv = 'Stochastic/opt_soln.csv'
     rel_err = 1.e-3
+    heavy = true
   [../]
   [./Boundary]
     type = 'RavenFramework'
@@ -48,7 +49,7 @@
   [./MultiLevelWithMultiTrajectory]
     type = 'RavenFramework'
     input = 'multilevel_with_multitraj.xml'
-    csv = 'MultiLevelWithMultiTrajectory/opt_soln.csv'
+    csv = 'MTML/opt_soln.csv'
     rel_err = 1.e-3
   [../]
 []

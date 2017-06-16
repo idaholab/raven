@@ -32,10 +32,10 @@
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Input class="DataObjects" type="PointSet">opt_soln</Input>
       <Input class="DataObjects" type="HistorySet">opt_export</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
-      <Output class="OutStreams" type="Print">opt_dump</Output>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
     </IOStep>
     <PostProcess name="getOptPoint">
       <Input class="DataObjects" type="HistorySet">opt_export</Input>
@@ -107,10 +107,6 @@
   </DataObjects>
 
   <OutStreams>
-    <Print name="opt_dump">
-      <type>csv</type>
-      <source>optOut</source>
-    </Print>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>

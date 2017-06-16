@@ -295,8 +295,6 @@ class GradientBasedOptimizer(Optimizer):
           self.raiseAnError(Exception,"the objective function evaluation for trajectory " +str(traj)+ "and iteration "+str(varsUpdate-1)+" has not been found!")
         oldVal = objectiveOutputs.mean() # TODO should this be from counter[recentOptPoints][traj]?
         # see if new point is better than old point
-        print('DEBUGG new val:',currentLossValue)
-        print('DEBUGG old val:',oldVal)
         newerIsBetter = self.checkIfBetter(currentLossValue,oldVal)
         varK = self.denormalizeData(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
         #converging values
