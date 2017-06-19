@@ -489,6 +489,7 @@ class GradientBasedOptimizer(Optimizer):
             trajID = traj+1 # This is needed to be compatible with historySet object
             self.solutionExport.updateInputValue([trajID,'trajID'], traj)
             output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding').get(trajID,{})
+            badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
             for var in self.solutionExport.getParaKeys('outputs'):
               old = copy.deepcopy(output.get(var, np.asarray([])))
               new = None #prevents accidental data copying
@@ -502,26 +503,29 @@ class GradientBasedOptimizer(Optimizer):
                 try:
                   new = [self.counter['lastStepSize'][traj]]
                 except KeyError:
-                  new = np.nan
+                  new = badValue
               elif var.startswith( '_gradient_'):
                 varName = var[10:]
-                vec = self.counter['gradientHistory'][traj][0].get(varName,np.nan)
-                new = vec*self.counter['gradNormHistory'][traj][0]
+                vec = self.counter['gradientHistory'][traj][0].get(varName,None)
+                if vec is not None:
+                  new = vec*self.counter['gradNormHistory'][traj][0]
+                else:
+                  new = badValue
               elif var.startswith( '_convergence_abs'):
                 try:
-                  new = self.convergenceProgress[traj].get('abs',np.nan)
+                  new = self.convergenceProgress[traj].get('abs',badValue)
                 except KeyError:
-                  new = np.nan
+                  new = badValue
               elif var.startswith( '_convergence_rel'):
                 try:
-                  new = self.convergenceProgress[traj].get('rel',np.nan)
+                  new = self.convergenceProgress[traj].get('rel',badValue)
                 except KeyError:
-                  new = np.nan
+                  new = badValue
               elif var.startswith( '_convergence_grad'):
                 try:
-                  new = self.convergenceProgress[traj].get('grad',np.nan)
+                  new = self.convergenceProgress[traj].get('grad',badValue)
                 except KeyError:
-                  new = np.nan
+                  new = badValue
               else:
                 self.raiseAnError(IOError,'Unrecognized output request:',var)
               new = np.asarray(new)

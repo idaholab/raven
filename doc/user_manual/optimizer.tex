@@ -82,7 +82,8 @@ request for the output of a Gradient-Based Optimizer run.  Note that many start 
 \end{itemize}
 Note that none of these additional parameters will be provided to the output DataObject by default; they must
 be specifically requested by listing them in the output space when defining the optimizing step's output data
-object.
+object.  Also note that if any of these parameters are not available (for instance, on the first iteration),
+their output value will be set to -1, as this value is nonsensical for the step size and convergence values.
 
 Example:
 \begin{lstlisting}[style=XML]
