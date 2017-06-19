@@ -157,11 +157,9 @@ def findPath(root,path):
       toSearch = fixXmlTag(path[-1])
       return oneUp.find(toSearch)
     else:
-      raise RuntimeError
       return None
   else:
     toSearch = fixXmlTag(path[-1])
-    for child in root:
     return root.find(toSearch)
 
 def findPathEllipsesParents(root,path,docLevel=0):

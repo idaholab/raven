@@ -108,12 +108,11 @@ class SPSA(GradientBasedOptimizer):
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
     self._endJobRunnable        = (self._endJobRunnable*self.gradDict['pertNeeded'])+len(self.optTraj)
 
-  def localStillReady(self, ready, convergence = False, useTraj = None):
+  def localStillReady(self, ready, convergence = False):
     """
       Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
       @ In, ready, bool, variable indicating whether the caller is prepared for another input.
       @ In, convergence, bool, optional, variable indicating whether the convergence criteria has been met.
-      @ In, useTraj, int, optional, if specified indicates a particular trajectory should be considered first
       @ Out, ready, bool, variable indicating whether the caller is prepared for another input.
     """
     self.nextActionNeeded = (None,None) #prevents carrying over from previous run
@@ -174,7 +173,6 @@ class SPSA(GradientBasedOptimizer):
           gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj],traj)
           # establish a new point, if found; FIXME otherwise?
           if len(self.submissionQueue[traj]) == 0:
-            #gradient = self.counter['gradientHistory'][traj][0] #self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
             ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
             varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs']) #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
@@ -189,7 +187,6 @@ class SPSA(GradientBasedOptimizer):
             if modded:
               del self.counter['lastStepSize'][traj]
               self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
-            #varKPlusDenorm = self.denormalizeData(varKPlus)
             self.queueUpOptPointRuns(traj,varKPlus)
           self.nextActionNeeded = ('add more opt point evaluations',traj)
           self.status[traj]['process'] = 'submitting new opt points'
@@ -275,13 +272,12 @@ class SPSA(GradientBasedOptimizer):
       if self.counter['perturbation'][traj] == 1:
         # Generate all the perturbations at once, then we can submit them one at a time
         ck = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
-        varK = self.counter['recentOptHist'][traj][0]['inputs'] #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
+        varK = self.counter['recentOptHist'][traj][0]['inputs']
         #check the submission queue is empty; otherwise something went wrong # TODO this is a sanity check, might be removed for efficiency
         #TODO this same check is in GradientBasedOptimizer.queueUpOptPointRuns, they might benefit from abstracting
         if len(self.submissionQueue[traj]) > 0:
           self.raiseAnError(RuntimeError,'Preparing to add grad evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
         for i in range(1,2*self.gradDict['numIterForAve'],2): #perturbation points are odd, not even
-          #self.gradDict['pertPoints'][traj][ind] = {} #already initialized in finalizeActualSampling when the last opt point was sampled up
           point = {}
           direction = self.stochasticEngine() #the deltas for each dimension
           for varID, var in enumerate(self.getOptVars(traj=traj)):
@@ -311,34 +307,17 @@ class SPSA(GradientBasedOptimizer):
         self.status[traj]['process'] = 'collecting grad eval points'
 
     elif action == 'add more opt point evaluations':
-      # evaluation completed for gradient evaluation
-      # establish all the requested evaluations
-      #if len(self.submissionQueue[traj]) == 0:
-      #  gradient = self.counter['gradientHistory'][traj][0] #self.evaluateGradient(self.gradDict['pertPoints'][traj], traj)
-      #  ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
-      #  self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
-      #  varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs']) #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
-      #  varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
-      #  #if the new point was modified by the constraint, reset the step size
-      #  if modded:
-      #    del self.counter['lastStepSize'][traj]
-      #    self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
-      #  #varKPlusDenorm = self.denormalizeData(varKPlus)
-      #  self.queueUpOptPointRuns(traj,varKPlus)
       #take a sample from the queue
       prefix,point = self.getQueuedPoint(traj)
-      #check for redundant paths -> is this a smart place to do this?? We've already claimed we're ready!
-      #if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
-      #  self._removeRedundantTraj(traj, self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
+      #prep the point for running
       for var in self.getOptVars(traj=traj):
         self.values[var] = point[var]
       self.updateVariableHistory(self.values,traj)
       # use 'prefix' to locate the input sent out
       self.inputInfo['prefix'] = prefix
-      # if all points submitted, switch to collection mode
+      # if all points submitted (after current one gets submitted), switch to collection mode
       if len(self.submissionQueue[traj]) == 0:
         self.status[traj]['process'] = 'collecting new opt points'
-
 
     #unrecognized action
     else:
@@ -377,8 +356,8 @@ class SPSA(GradientBasedOptimizer):
     #only clear non-opt points from pertPoints
     for i in range(self.gradDict['numIterForAve']):
       self.gradDict['pertPoints'][traj][i*2+1] = 0
-    self.convergeTraj               [traj] = False
-    self.status                     [traj] = {'process':'submitting grad eval points','reason':'found new opt point'}
+    self.convergeTraj[traj] = False
+    self.status[traj] = {'process':'submitting grad eval points','reason':'found new opt point'}
     try:
       del self.counter['lastStepSize'][traj]
     except KeyError:

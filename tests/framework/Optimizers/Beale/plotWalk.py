@@ -1,3 +1,9 @@
+"""
+  Module for producing an animation of optimization histories
+  for 2D problems given pickled mesh grid data.  For examples
+  of the mesh grid data, see raven/tests/framework/AnalyticModels/optimizing/plot_functions.py.
+"""
+
 import cPickle as pk
 import matplotlib.pyplot as plt
 from matplotlib import colors
@@ -45,6 +51,14 @@ for case in cases:
   trails.append(trail)
 
 def update_point(n,data,points,trails):
+  """
+    Function to be called to update the animation points, one iteration at a time.
+    @ In, n, int, the iteration to use
+    @ In, data, dict, all the data collected from the RAVEN output
+    @ In, points, list, plotted points in the animation
+    @ In, trails, list, currently unused, finite number of trailing points to track in animation
+    @ Out, point, matplotlib.pyplot line, last plotted point object
+  """
   for c,case in enumerate(cases):
     point = points[c]
     trail = trails[c]
@@ -57,10 +71,7 @@ def update_point(n,data,points,trails):
   ax.set_title('iteration {}'.format(n))
   return point
 
-#ani=animation.FuncAnimation(fig,update_point,5,fargs=(data,points,trails),interval=100,repeat_delay=3000)
 ani=animation.FuncAnimation(fig,update_point,max(len(data[case]['x']) for case in cases),fargs=(data,points,trails),interval=100,repeat_delay=3000)
 Writer = animation.writers['ffmpeg']
 writer = Writer(fps=15,bitrate=1800)
 ani.save('path.mp4',writer=writer)
-
-#plt.show()
