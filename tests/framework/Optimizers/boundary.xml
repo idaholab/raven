@@ -7,7 +7,7 @@
     <classesTested>Optimizer</classesTested>
     <description>
       This test runs optimization where the preferred solution is past the limits of the input variable.
-      The model is an upside-down parabola y=-x^2 with the input constrained to [1,2].
+      The model is an upside-down parabola $y=-x^2$ with the input constrained to [1,2].
       This test checks opearation of solutions on a boundary.
     </description>
     <analytic>
