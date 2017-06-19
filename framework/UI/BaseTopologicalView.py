@@ -23,8 +23,8 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
 
-from PySide.QtCore import QSize
-from PySide.QtGui import QWidget
+from qtpy.QtCore import QSize
+from qtpy.QtWidgets import QWidget
 
 class BaseTopologicalView(QWidget):
   """

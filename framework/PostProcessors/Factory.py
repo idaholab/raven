@@ -79,7 +79,6 @@ except NameError:
   ## The correct names should already be used for these classes otherwise
   pass
 
-
 def knownTypes():
   """
     Returns a list of strings that define the types of instantiable objects for
