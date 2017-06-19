@@ -41,7 +41,7 @@ try:
       communication
     """
     windowClosed = qtc.Signal(str)
-    def __init__(self, arg__1, messageHandler, interactionType=Interaction.Yes):
+    def __init__(self, arg1, messageHandler, interactionType=Interaction.Yes):
       """
         A default constructor which will initialize an empty dictionary of user
         interfaces that will be managed by this instance.
@@ -49,7 +49,7 @@ try:
       self.printTag = 'RAVEN Application'
       self.UIs = {}
       self.interactionType = interactionType
-      qtw.QApplication.__init__(self,arg__1)
+      qtw.QApplication.__init__(self, arg1)
       self.messageHandler = messageHandler
       self.setQuitOnLastWindowClosed(False)
 

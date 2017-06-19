@@ -308,10 +308,6 @@ class ZoomableGraphicsView(qtw.QGraphicsView):
       right mouse button click.
       @ In, event, PySide.QtGui.QContextMenuEvent, the triggering event
     """
-    # if self.dragMode() == qtw.QGraphicsView.ScrollHandDrag:
-    #   ## Do something else with the right clicks
-    #   pass
-    # else:
     self.rightClickMenu.popup(event.globalPos())
 
 

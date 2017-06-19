@@ -429,6 +429,8 @@ class SensitivityView(BaseTopologicalView):
 
           if self.showLabelsAction.isChecked():
             txtItem = self.scene.addSimpleText(name,self.font)
+            ## this line can be useful for text sizing, although we cannot
+            ## rotate the text if we ignore the transformations.
             # txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
             fm = qtg.QFontMetrics(txtItem.font())
             fontHeight = fm.boundingRect(txtItem.text()).height()
@@ -439,6 +441,8 @@ class SensitivityView(BaseTopologicalView):
             txtItem.setZValue(2)
           if self.showNumberAction.isChecked():
             numTxtItem = self.scene.addSimpleText('%.3g' % val, self.font)
+            ## this line can be useful for text sizing, although we cannot
+            ## rotate the text if we ignore the transformations.
             # numTxtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
             fm = qtg.QFontMetrics(numTxtItem.font())
             fontWidth = fm.boundingRect(numTxtItem.text()).width()

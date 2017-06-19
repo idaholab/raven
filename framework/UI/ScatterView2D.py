@@ -24,7 +24,6 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import qtpy
 import matplotlib
-#matplotlib.rcParams['backend.qt4']=qtpy.API
 
 from qtpy import QtCore as qtc
 from qtpy import QtGui as qtg
