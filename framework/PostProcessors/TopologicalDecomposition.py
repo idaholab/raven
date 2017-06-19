@@ -349,7 +349,7 @@ class TopologicalDecomposition(PostProcessor):
     return outputDict
 
 try:
-  import PySide.QtCore as qtc
+  import qtpy.QtCore as qtc
   class QTopologicalDecomposition(TopologicalDecomposition,qtc.QObject):
     """
       TopologicalDecomposition class - Computes an approximated hierarchical
