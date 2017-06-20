@@ -538,10 +538,13 @@ class HistorySet(Data):
         header = myDataFile.readline().rstrip()
         outKeys_h = header.split(",")
         outValues_h = [[] for a in range(len(outKeys_h))]
-        for line in myDataFile.readlines():
+        for lineNumber,line in enumerate(myDataFile.readlines(),2):
           lineList = line.rstrip().split(",")
           for i in range(len(outKeys_h)):
-            outValues_h[i].append(utils.partialEval(lineList[i]))
+            datum = utils.partialEval(lineList[i])
+            if datum == '':
+              self.raiseAnError(IOError, 'Invalid data in input file: {} at line {}: "{}"'.format(subCSVFilename,lineNumber,line.rstrip()))
+            outValues_h[i].append(datum)
         myDataFile.close()
       outKeys.append(outKeys_h)
       outValues.append(outValues_h)
