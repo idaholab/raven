@@ -499,29 +499,29 @@ class GradientBasedOptimizer(Optimizer):
                 new = self.counter['recentOptHist'][traj][0]['output'] #currentObjectiveValue
               elif var == 'varsUpdate':
                 new = [self.counter['solutionUpdate'][traj]]
-              elif var == '_stepSize':
+              elif var == 'stepSize':
                 try:
                   new = [self.counter['lastStepSize'][traj]]
                 except KeyError:
                   new = badValue
-              elif var.startswith( '_gradient_'):
+              elif var.startswith( 'gradient_'):
                 varName = var[10:]
                 vec = self.counter['gradientHistory'][traj][0].get(varName,None)
                 if vec is not None:
                   new = vec*self.counter['gradNormHistory'][traj][0]
                 else:
                   new = badValue
-              elif var.startswith( '_convergence_abs'):
+              elif var.startswith( 'convergenceAbs'):
                 try:
                   new = self.convergenceProgress[traj].get('abs',badValue)
                 except KeyError:
                   new = badValue
-              elif var.startswith( '_convergence_rel'):
+              elif var.startswith( 'convergenceRel'):
                 try:
                   new = self.convergenceProgress[traj].get('rel',badValue)
                 except KeyError:
                   new = badValue
-              elif var.startswith( '_convergence_grad'):
+              elif var.startswith( 'convergenceGrad'):
                 try:
                   new = self.convergenceProgress[traj].get('grad',badValue)
                 except KeyError:

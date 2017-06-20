@@ -76,7 +76,7 @@
     </PointSet>
     <HistorySet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate,_stepSize,_gradient_x,_gradient_y,_convergence_abs,_convergence_rel,_convergence_grad</Output>
+      <Output>x,y,ans,varsUpdate,stepSize,gradient_x,gradient_y,convergenceAbs,convergenceRel,convergenceGrad</Output>
     </HistorySet>
   </DataObjects>
 

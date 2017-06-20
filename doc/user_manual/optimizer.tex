@@ -66,18 +66,18 @@ from previously performed model evaluation. In the following paragraphs, the inp
 different sampling methodologies are reported.
 
 Note that in addition to the input variables and response variable, several other parameters are available to
-request for the output of a Gradient-Based Optimizer run.  Note that many start with an underscore.  They include the following:
+request for the output of a Gradient-Based Optimizer run.  They include the following:
 \begin{itemize}
   \item \xmlString{varsUpdate}, is the iteration number for each new optimal point;
-  \item \xmlString{\_stepSize}, is the step size used to go from the previous optimal point to the current step;
-  \item \xmlString{\_gradient\_var}, where \emph{var} is replaced by an input variable name, provides the
+  \item \xmlString{stepSize}, is the step size used to go from the previous optimal point to the current step;
+  \item \xmlString{gradient\_var}, where \emph{var} is replaced by an input variable name, provides the
     gradient in the \emph{var} direction followed to arrive at the current optimal point (evaluated at the
     previous optimal point);
-  \item \xmlString{\_convergence\_rel}, the last-calculated relative convergence of the loss function value
+  \item \xmlString{convergenceRel}, the last-calculated relative convergence of the loss function value
     (see the description of the \xmlNode{convergence} node for more details);
-  \item \xmlString{\_convergence\_abs}, the last-calculated absolute convergence of the loss function value
+  \item \xmlString{convergenceAbs}, the last-calculated absolute convergence of the loss function value
     (see the description of the \xmlNode{convergence} node for more details);
-  \item \xmlString{\_convergence\_grad}, the last-calculated norm of the gradient used to arrive at the
+  \item \xmlString{convergenceGrad}, the last-calculated norm of the gradient used to arrive at the
     current point (see the description of the \xmlNode{convergence} node for more details).
 \end{itemize}
 Note that none of these additional parameters will be provided to the output DataObject by default; they must
