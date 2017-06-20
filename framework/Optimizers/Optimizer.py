@@ -95,6 +95,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.submissionQueue                = {}                        # by traj, a place (deque) to store points that should be submitted some time after they are discovered
     #functions and dataojbects
     self.constraintFunction             = None                      # External constraint function, could be not present
+    self.preconditioners                = {}                        # by name, Models that might be used as preconditioners
     self.solutionExport                 = None                      #This is the data used to export the solution (it could also not be present)
     self.mdlEvalHist                    = None                      # Containing information of all model evaluation
     self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
@@ -106,6 +107,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.mlStaticValues                 = {}                        # by traj, dictionary of static values for variables in fullOptVars but not in optVars due to multilevel
     self.mlActiveSpaceSteps             = {}                        # by traj, integer to track iterations performed in optimizing the current, active subspace
     self.mlBatchInfo                    = {}                        # by batch, by traj, info includes 'lastStepSize','gradientHistory','recommendToGain'
+    self.mlPreconditioners              = {}                        # by batch, the preconditioner models to use when transitioning subspaces
     #stateful tracking
     self.nextActionNeeded               = (None,None)               # tool for localStillReady to inform localGenerateInput on the next action needed
     self.status                         = {}                        # by trajectory, ("string-based status", arbitrary, other, entries)
@@ -136,6 +138,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.addAssemblerObject('Restart' ,'-n',True)
     self.addAssemblerObject('TargetEvaluation','1')
     self.addAssemblerObject('Function','-1')
+    self.addAssemblerObject('Preconditioner','-n')
 
   def _localGenerateAssembler(self,initDict):
     """
@@ -251,17 +254,22 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.multilevel = True
         for subnode in child:
           if subnode.tag == 'subspace':
-            attribs = {}
+            #subspace name
             try:
               name = subnode.attrib['name']
             except KeyError:
               self.raiseAnError(IOError, 'A multilevel subspace is missing the "name" attribute!')
             if name in self.mlBatches.keys():
               self.raiseAnError(IOError,'Multilevel subspace "{}" has a duplicate name!'.format(name))
+            #subspace text
             subspaceVars = list(x.strip() for x in subnode.text.split(','))
             if len(subspaceVars)<1:
               self.raiseAnError(IOError,'Multilevel subspace "{}" has no variables specified!'.format(name))
             self.mlBatches[name] = subspaceVars
+            #subspace preconditioner
+            precond = subnode.attrib.get('precond')
+            if precond is not None:
+              self.mlPreconditioners[name] = precond
           elif subnode.tag == 'sequence':
             self.mlSequence = list(x.strip() for x in subnode.text.split(','))
 
@@ -400,6 +408,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.counter['mdlEval'] = 0
     self.counter['varsUpdate'] = [0]*len(self.optTraj)
 
+    for entry in self.assemblerDict.get('Preconditioner',[]):
+      cls,typ,name,model = entry
+      if cls != 'Models' or typ != 'ExternalModel':
+        self.raiseAnError(IOError,'Currently only "ExternalModel" models can be used as preconditioners! Got "{}.{}" for "{}".'.format(cls,typ,name))
+      self.preconditioners[name] = model
+
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
     self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.fullOptVars)), 'Target':self.objVar, 'n_neighbors':1,'weights':'distance'})
     self.solutionExport = solutionExport
@@ -442,6 +456,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.submissionQueue[traj]    = deque()
     for batch in self.mlBatches.keys():
       self.mlBatchInfo[batch]       = {}
+    # line up preconditioners with their batches
+    for batch,precondName in self.mlPreconditioners.items():
+      try:
+        self.mlPreconditioners[batch] = self.preconditioners[precondName]
+      except IndexError:
+        self.raiseAnError(IOError,'Could not find preconditioner "{}" in <Preconditioner> nodes!'.format(precondName))
+
+    print('DEBUGG preconditioners:',self.mlPreconditioners)
 
     # specializing the self.localInitialize()
     if solutionExport != None:
@@ -546,6 +568,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       firstTime = True
       oldBatch = 'pre-initialize'
+      oldDepth = depth
     # set the new active space
     self.mlDepth[traj] = depth
     newBatch = self.mlSequence[self.mlDepth[traj]]
@@ -561,6 +584,21 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       toMakeStatic = self.mlBatches[oldBatch]
     for var in toMakeStatic:
       self.mlStaticValues[traj][var] = copy.deepcopy(optPoint[var])
+    # TODO FIXME WORKING apply preconditioner IFF we're going towards INNER loops
+    if depth < oldDepth:
+      #apply changes all the way down
+      for d in range(depth,oldDepth+1):
+        precond_batch = self.mlSequence[d]
+        precond = self.mlPreconditioners.get(precond_batch,None)
+        if precond is not None:
+          print('DEBUGG running preconditioner on depth,batch:',d,precond_batch)
+          self.raiseADebug('Running preconditioner on batch',precond_batch)
+          allVarVals = {}
+          allVarVals.update()
+          # TODO figure out myInput, samplerType, kwargs
+          rv = precond.evaluateSample(None,'Optimizer',{'sampledVars':allVarVals})
+          # TODO collect data that might be needed, call the run command
+      import sys; sys.exit()
     # remove newBatch static values
     for var in self.mlBatches[newBatch]:
       try:
