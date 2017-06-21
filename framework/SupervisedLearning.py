@@ -66,8 +66,7 @@ from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from utils import mathUtils
+from utils import utils,mathUtils
 import sys
 import MessageHandler
 import Distributions
