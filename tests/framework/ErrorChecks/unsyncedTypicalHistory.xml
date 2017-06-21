@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>badData</WorkingDir>
+    <Sequence>readData,prepData</Sequence> 
+  </RunInfo>
+
+  <Files>
+    <Input name="rawDataFile">unsynchronizedHistorySet.csv</Input>
+  </Files>
+
+  <Models>
+   <PostProcessor name = 'TypicalHistory' subType = 'InterfacedPostProcessor'>
+      <method>TypicalHistoryFromHistorySet</method>
+      <subseqLen>3600</subseqLen>
+      <outputLen>32400</outputLen>
+      <pivotParameter>seconds</pivotParameter>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <HistorySet name="data">
+      <Input>index,scaling</Input>
+      <Output>seconds,number</Output>
+    </HistorySet>
+    <HistorySet name="typicalData">
+      <Input>index,scaling</Input>
+       <Output>seconds,number</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <Steps>
+    <IOStep name='readData'>
+      <Input  class='Files'       type=''          >rawDataFile</Input>
+      <Output class='DataObjects' type='HistorySet'>data</Output>          
+    </IOStep>
+    <PostProcess name='prepData'>
+      <Input  class='DataObjects' type='HistorySet'   >data</Input>
+      <Model  class='Models'      type='PostProcessor'>TypicalHistory</Model>
+      <Output class='DataObjects' type='HistorySet'   >typicalData</Output>
+    </PostProcess>
+  </Steps>
+</Simulation>
