@@ -145,7 +145,7 @@ class SPSA(GradientBasedOptimizer):
         if reason == 'just started':
           self.nextActionNeeded = ('start new trajectory',traj)
           break
-        elif reason in ['seeking new opt point']:
+        elif reason in ['seeking new opt point','received recommended point']:
           self.nextActionNeeded = ('add more opt point evaluations',traj)
           break
         else:
@@ -352,7 +352,7 @@ class SPSA(GradientBasedOptimizer):
     self.raiseADebug('Clearing current optimization efforts ...')
     self.counter ['perturbation'   ][traj] = 0
     self.counter ['gradientHistory'][traj] = [{},{}]
-    self.counter ['gradNormHistory'][traj] = [{},{}]
+    self.counter ['gradNormHistory'][traj] = [0,0]
     #only clear non-opt points from pertPoints
     for i in range(self.gradDict['numIterForAve']):
       self.gradDict['pertPoints'][traj][i*2+1] = 0

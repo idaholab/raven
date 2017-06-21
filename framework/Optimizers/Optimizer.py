@@ -109,6 +109,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.mlBatchInfo                    = {}                        # by batch, by traj, info includes 'lastStepSize','gradientHistory','recommendToGain'
     self.mlPreconditioners              = {}                        # by batch, the preconditioner models to use when transitioning subspaces
     #stateful tracking
+    self.recommendedOptPoint            = {}                        # by traj, the next recommended point (as a dict) in the input space to move to
     self.nextActionNeeded               = (None,None)               # tool for localStillReady to inform localGenerateInput on the next action needed
     self.status                         = {}                        # by trajectory, ("string-based status", arbitrary, other, entries)
     ### EXPLANATION OF STATUS SYSTEM
@@ -122,15 +123,18 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # Processes:
     #   "submitting grad eval points" - submitting new points so later we can evaluate a gradient and take an opt step
     #   "collecting grad eval points" - all the required gradient evaluation points are submitted, so we're just waiting to collect them
-    #   "submitting new opt points"    - a new optimal point has been postulated, and is being submitted for evaluationa (not actually used)
-    #   "collecting new opt points"    - the new  hypothetical optimal point has been submitted, and we're waiting on it to finish
+    #   "submitting new opt points"   - a new optimal point has been postulated, and is being submitted for evaluationa (not actually used)
+    #   "collecting new opt points"   - the new  hypothetical optimal point has been submitted, and we're waiting on it to finish
     #   "evaluate gradient"           - localStillReady notes we have all the new grad eval points, and has flagged for gradient to be evaluated in localGenerateInput
+    #   "following traj <#>"          - trajectory is following another one, given by the last word
     # Reasons:
-    #   "just started"            - the optimizer has only just begun operation, and doesn't know what it's doing yet
-    #   "found new opt point"     - the last hypothetical optimal point has been accepted, so we need to move forward
-    #   "rejecting bad opt point" - the last hypothetical optimal point was rejected, so we need to reconsider
-    #   "seeking new opt point"   - the process of looking for a new opt point has started
-    #   "converged"               - the trajectory is in convergence
+    #   "just started"                - the optimizer has only just begun operation, and doesn't know what it's doing yet
+    #   "found new opt point"         - the last hypothetical optimal point has been accepted, so we need to move forward
+    #   "rejecting bad opt point"     - the last hypothetical optimal point was rejected, so we need to reconsider
+    #   "seeking new opt point"       - the process of looking for a new opt point has started
+    #   "converged"                   - the trajectory is in convergence
+    #   "removed as redundant"        - the trajectory has ended because it follows another one
+    #   "received recommended point"  - something other than the normal algorithm (such as a preconditioner) suggested a point
     # example usage:
     #   self.status[traj]['process'] == 'submitting grad eval points' and self.status[traj]['reason'] == 'rejecting bad opt point'
     #
@@ -584,21 +588,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       toMakeStatic = self.mlBatches[oldBatch]
     for var in toMakeStatic:
       self.mlStaticValues[traj][var] = copy.deepcopy(optPoint[var])
-    # TODO FIXME WORKING apply preconditioner IFF we're going towards INNER loops
-    if depth < oldDepth:
-      #apply changes all the way down
-      for d in range(depth,oldDepth+1):
-        precond_batch = self.mlSequence[d]
-        precond = self.mlPreconditioners.get(precond_batch,None)
-        if precond is not None:
-          print('DEBUGG running preconditioner on depth,batch:',d,precond_batch)
-          self.raiseADebug('Running preconditioner on batch',precond_batch)
-          allVarVals = {}
-          allVarVals.update()
-          # TODO figure out myInput, samplerType, kwargs
-          rv = precond.evaluateSample(None,'Optimizer',{'sampledVars':allVarVals})
-          # TODO collect data that might be needed, call the run command
-      import sys; sys.exit()
     # remove newBatch static values
     for var in self.mlBatches[newBatch]:
       try:
@@ -609,11 +598,40 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # clear existing gradient determination data
     if not firstTime:
       self.clearCurrentOptimizationEffort(traj)
+    # TODO FIXME WORKING apply preconditioner IFF we're going towards INNER loops
+    if depth > oldDepth:
+      self.raiseADebug('Preconditioning subsets below',oldDepth,range(oldDepth+1,depth+1))
+      #apply changes all the way down
+      for d in range(oldDepth+1,depth+1):
+        precondBatch = self.mlSequence[d]
+        precond = self.mlPreconditioners.get(precondBatch,None)
+        if precond is not None:
+          self.raiseADebug('Running preconditioner on batch "{}"'.format(precondBatch))
+          infoDict = {'SampledVars':self.denormalizeData(optPoint)}
+          print('DEBUGG original point:',infoDict)
+          _,(results,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
+          # flatten results #TODO breaks for multi-entry arrays
+          for key,val in results.items():
+            results[key] = float(val)
+          print('DEBUGG results:',results)
+          self.proposeNewPoint(traj,self.normalizeData(results))
+          self.status[traj]['process'] = 'submitting new opt points'
+          self.status[traj]['reason'] = 'received recommended point'
+          print('DEBUGG status:',self.status[traj])
     # if there's batch info about the new batch, set it
     self._setAlgorithmState(traj,self.mlBatchInfo[newBatch].get(traj,None))
     #make sure trajectory is live
     if traj not in self.optTrajLive:
       self.optTrajLive.append(traj)
+
+  def proposeNewPoint(self,traj,point):
+    """
+      Sets a proposed point for the next in the opt chain.  Recommended to be overwritten in subclasses.
+      @ In, traj, int, trajectory who is getting proposed point
+      @ In, point, dict, new input space point as {var:val}
+      @ Out, None
+    """
+    self.recommendedOptPoint[traj] = copy.deepcopy(point)
 
   @abc.abstractmethod
   def clearCurrentOptimizationEffort(self):

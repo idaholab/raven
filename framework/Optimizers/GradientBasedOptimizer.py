@@ -274,9 +274,12 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     if not self.convergeTraj[traj]:
+      print('DEBUGG status:',self.status[traj])
       if len(self.counter['gradientHistory'][traj][1]) < 1:
+        # we don't have enough points to analyze a gradient history, so we accept this point as is and move forward
         self.status[traj]['reason'] = 'found new opt point'
       else:
+        ###### TODO move to before "if"
         objectiveOutputs = np.zeros(self.gradDict['numIterForAve'])
         for i in range(self.gradDict['numIterForAve']): #evens are opt point evaluations
           index = i*2
@@ -287,6 +290,7 @@ class GradientBasedOptimizer(Optimizer):
         # see if new point is better than old point
         newerIsBetter = self.checkIfBetter(currentLossValue,oldVal)
         varK = self.denormalizeData(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
+        ###### END TODO
         ## convergence values
         # gradient norm
         gradNorm  = self.counter['gradNormHistory'][traj][0]
@@ -311,11 +315,17 @@ class GradientBasedOptimizer(Optimizer):
           minStepSizeCheck = False
         # screen outputs
         self.raiseAMessage("Trajectory: "+"%8i"% (traj)+      " | Iteration    : "+"%8i"% (varsUpdate)+ " | Loss function: "+"%8.2E"% (currentLossValue)+" |")
+        print('DEBUGG gradNorm',gradNorm)
+        print('DEBUGG relDiff',relativeDifference)
+        print('DEBUGG absDiff',absDifference)
         self.raiseAMessage("Grad Norm : "+"%8.2E"% (gradNorm)+" | Relative Diff: "+"%8.2E"% (relativeDifference)+" | Abs Diff     : "+"%8.2E"% (absDifference)+" |")
         self.raiseAMessage("Step Size : "+"%8.2E"% (lastStep))
         self.raiseAMessage("Input Location :" +str(varK))
         ## set up status going forward
         # if new point is better, accept it and move forward
+        ###### TODO move to before "if"
+        # move newerIsBetter, but keep convergence check separate
+        ###### END TODO
         if newerIsBetter:
           self.status[traj]['reason'] = 'found new opt point'
           self.raiseADebug('Accepting potential opt point for improved loss value')
@@ -326,7 +336,7 @@ class GradientBasedOptimizer(Optimizer):
         # if newer point is not better, we're keeping the old point, and sameCoordinate, absoluteTol, and relativeTol aren't applicable
         else:
           self.status[traj]['reason'] = 'rejecting bad opt point'
-          self.raiseADebug('Rejecting potential opt point for worse loss value: "{}" vs "{}"'.format(oldVal,currentLossValue))
+          self.raiseADebug('Rejecting potential opt point for worse loss value. old: "{}", new: "{}"'.format(oldVal,currentLossValue))
           # cut the next step size to hopefully stay in the valley instead of climb up the other side
           self.recommendToGain[traj] = 'cut'
           converged = gradientNormCheck or minStepSizeCheck
@@ -438,12 +448,12 @@ class GradientBasedOptimizer(Optimizer):
     # for some reason, Ensemble Model doesn't preserve this information, so wrap this debug in a try:
     try:
       prefix = jobObject.getMetadata()['prefix']
-      self.raiseADebug('Collected sample "{}"'.format(prefix))
     except TypeError:
       prefix = ''
     self.raiseADebug('Collected sample "{}"'.format(prefix))
 
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
+    # TODO what if there's no solution export?  Our "status" and like fail badly!
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
@@ -605,3 +615,13 @@ class GradientBasedOptimizer(Optimizer):
       point = self.denormalizeData(point)
     return prefix,point
 
+  def proposeNewPoint(self,traj,point):
+    """
+      See base class.  Used to set next recommended point to use for algorithm, overriding the gradient descent.
+      @ In, traj, int, trajectory who gets proposed point
+      @ In, point, dict, input space as dictionary {var:val}
+      @ Out, None
+    """
+    Optimizer.proposeNewPoint(self,traj,point)
+    self.counter['varsUpdate'][traj] += 1 #usually done when evaluating gradient, but we're bypassing that
+    self.queueUpOptPointRuns(traj,self.recommendedOptPoint[traj])
