@@ -7,7 +7,8 @@
     <classesTested>Optimizer</classesTested>
     <description>
       This test runs the optimization on the Goldstein-Price function.  It tests analytic optimization values
-      as well as the mechanical operation of the test.
+      as well as the mechanical operation of the test.  Also covers the Bernoulli stochastic distribution, and
+      convergence nodes iterationLimit, absoluteThreshold, and minStepSize.
     </description>
     <analytic>
       This test uses the Goldstein-Price function, which is documented in the analytic tests documentation under
@@ -46,12 +47,15 @@
       <initialization>
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
-        <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
+        <thresholdTrajRemoval>1e-3</thresholdTrajRemoval>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
+          <iterationLimit>100</iterationLimit>
           <relativeThreshold>1e-6</relativeThreshold>
+          <absoluteThreshold>1e-6</absoluteThreshold>
           <gradientThreshold>1e-2</gradientThreshold>
+          <minStepSize>1e-7</minStepSize>
       </convergence>
       <variable name='x'>
         <upperBound>1.5</upperBound>
@@ -64,6 +68,10 @@
         <initial>1,-1,0,1,-1</initial>
       </variable>
       <objectVar>ans</objectVar>
+      <parameter>
+        <numGradAvgIterations>2</numGradAvgIterations>
+        <stochasticDistribution>Bernoulli</stochasticDistribution>
+      </parameter>
     </SPSA>
   </Optimizers>
 
