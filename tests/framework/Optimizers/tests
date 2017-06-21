@@ -1,6 +1,7 @@
 [Tests]
   # Nominal Analytic Tests
   [./Beale]
+    #REQUIREMENT_TEST R-RM-1
     type = 'RavenFramework'
     input = 'beale.xml'
     csv = 'Beale/opt_soln.csv'
