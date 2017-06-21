@@ -7,11 +7,11 @@
   </RunInfo>
 
   <Files>
-    <Input name="loadRawDataFile">badHistory.csv</Input>
+    <Input name="rawDataFile">badHistory.csv</Input>
   </Files>
 
   <DataObjects>
-    <PointSet name="loadData">
+    <PointSet name="data">
       <Input>year,scaling_load</Input>
       <Output>seconds,load</Output>
     </PointSet>
@@ -19,8 +19,8 @@
 
   <Steps>
     <IOStep name='readData' pauseAtEnd = 'True'>
-      <Input  class='Files'       type=''>loadRawDataFile</Input>
-      <Output class='DataObjects' type='PointSet'>loadData</Output>          
+      <Input  class='Files'       type=''>rawDataFile</Input>
+      <Output class='DataObjects' type='PointSet'>data</Output>          
     </IOStep>
   </Steps>
 
