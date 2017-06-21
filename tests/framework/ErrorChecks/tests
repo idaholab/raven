@@ -14,4 +14,14 @@
         input = 'test_MVN_bad_dims.xml'
         expect_err = 'IOError: Invalid dimensions! Covariance'
  [../]
+ [./badHistory]
+        type = 'RavenErrors'
+        input = 'loadBadHistory.xml'
+        expect_err = 'IOError: Invalid data in input file:'
+ [../]
+ [./badPointSet]
+        type = 'RavenErrors'
+        input = 'loadBadPointSet.xml'
+        expect_err = 'IOError: Invalid data in input file:'
+ [../]
 []

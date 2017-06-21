@@ -479,7 +479,7 @@ class PointSet(Data):
       for i in range(len(inoutKeys)):
         datum = utils.partialEval(lineList[i])
         if datum == '':
-          self.raiseAnError(IOError, 'Invalid data in input file: {} at line {}: "{}"'.format(subCSVFilename,lineNumber, line.rstrip()))
+          self.raiseAnError(IOError, 'Invalid data in input file: {} at line {}: "{}"'.format(filenameLocal, lineNumber, line.rstrip()))
         inoutValues[i].append(utils.partialEval(lineList[i]))
 
     #extend the expected size of this point set
