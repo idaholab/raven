@@ -821,7 +821,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if self._dataParameters['hierarchical']:
       self.TSData, self.rootToBranch = None, {}
     else:
-      self._dataContainer                  = {'inputs':{},'unstructuredInputs':{},'outputs':{}}
+      # we get the type of the metadata
+      typeMetadata = self._dataParameters.get("typeMetadata",{})
+      self._dataContainer                  = {'inputs':{},'unstructuredInputs':{},'outputs':{},'typeMetadata':typeMetadata}
       self._dataContainer['metadata'     ] = {}
     self.inputKDTree = None
     self.treeScalingFactors = {}
