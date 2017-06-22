@@ -358,7 +358,7 @@ class EnsembleModel(Dummy):
     for key in kwargs["SampledVars"].keys():
       if key in self.modelsDictionary[modelName]['Input']:
         selectedkwargs['SampledVars'][key], selectedkwargs['SampledVarsPb'][key] =  kwargs["SampledVars"][key],  kwargs["SampledVarsPb"][key] if 'SampledVarsPb' in kwargs.keys() else 1.0
-    return copy.deepcopy(selectedkwargs)
+    return selectedkwargs
 
   def createNewInput(self,myInput,samplerType,**kwargs):
     """
@@ -435,7 +435,7 @@ class EnsembleModel(Dummy):
         if targetEvaluations[modelIn].type != 'HistorySet':
           castedUnstructuredInputsValues = {}
           for key in unstructuredInputsValues.keys():
-            castedUnstructuredInputsValues[key] = copy.copy(unstructuredInputsValues[key][-1])
+            castedUnstructuredInputsValues[key] = unstructuredInputsValues[key][-1]
         else:
           castedUnstructuredInputsValues  =  unstructuredInputsValues.values()[-1]
         inputsValues.update(castedUnstructuredInputsValues)
@@ -575,10 +575,10 @@ class EnsembleModel(Dummy):
     tempTargetEvaluations = {}
     for modelIn in self.orderList:
       self.tempTargetEvaluations[modelIn].resetData()
-      tempTargetEvaluations[modelIn] = copy.deepcopy(self.tempTargetEvaluations[modelIn])
+      tempTargetEvaluations[modelIn] = copy.copy(self.tempTargetEvaluations[modelIn])
       for i in range(len(self.tempOutputs[modelIn])):
         self.tempOutputs[modelIn][i].resetData()
-      tempOutputs[modelIn] = copy.deepcopy(self.tempOutputs[modelIn])
+      tempOutputs[modelIn] = copy.copy(self.tempOutputs[modelIn])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
     gotOutputs       = [{}]*len(self.orderList)
     typeOutputs      = ['']*len(self.orderList)
@@ -656,7 +656,7 @@ class EnsembleModel(Dummy):
           while not moveOn:
             if jobHandler.availability() > 0:
               # run the model
-              self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **copy.deepcopy(inputKwargs[modelIn]))
+              self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
               # wait until the model finishes, in order to get ready to run the subsequential one
               while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
                 time.sleep(1.e-3)

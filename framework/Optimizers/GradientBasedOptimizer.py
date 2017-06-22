@@ -384,7 +384,6 @@ class GradientBasedOptimizer(Optimizer):
     else:
       self.raiseAMessage(' ... continuing trajectory "{}".'.format(traj))
 
-
   def _removeRedundantTraj(self, trajToRemove, currentInput):
     """
       Local method to remove multiple trajectory

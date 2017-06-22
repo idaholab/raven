@@ -43,8 +43,8 @@ def plotFunction(title,method,low,high,cscale=None,log=True):
   else:
     norm = colors.Normalize()
   ax.pcolormesh(X,Y,Z,norm=norm)
-  ax.plot([-4.5,4.5],[-4.5,4.5],'k:')
-  ax.contour(X,Y,Z,colors='k',levels=[1e-5,1e-1,5e-1,1e0,5e0,1e1])
+  #ax.plot([-4.5,4.5],[-4.5,4.5],'k:')
+  #ax.contour(X,Y,Z,colors='k',levels=[1e-5,1e-1,5e-1,1e0,5e0,1e1])
   plt.title(title)
   return X,Y,Z
 

@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+
+  <RunInfo>
+    <WorkingDir>badData</WorkingDir>
+    <Sequence>readData</Sequence> 
+  </RunInfo>
+
+  <Files>
+    <Input name="rawDataFile">badHistorySet.csv</Input>
+  </Files>
+
+  <DataObjects>
+    <HistorySet name="data">
+      <Input>year,scaling_load</Input>
+      <Output>seconds,load</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <Steps>
+    <IOStep name='readData' pauseAtEnd = 'True'>
+      <Input  class='Files'       type=''>rawDataFile</Input>
+      <Output class='DataObjects' type='HistorySet'>data</Output>          
+    </IOStep>
+  </Steps>
+  
+</Simulation>

@@ -474,9 +474,12 @@ class PointSet(Data):
     inoutKeys = header.split(",")
     inoutValues = [[] for _ in range(len(inoutKeys))]
 
-    for line in myFile.readlines():
+    for lineNumber,line in enumerate(myFile.readlines(),2):
       lineList = line.rstrip().split(",")
       for i in range(len(inoutKeys)):
+        datum = utils.partialEval(lineList[i])
+        if datum == '':
+          self.raiseAnError(IOError, 'Invalid data in input file: {} at line {}: "{}"'.format(filenameLocal, lineNumber, line.rstrip()))
         inoutValues[i].append(utils.partialEval(lineList[i]))
 
     #extend the expected size of this point set
