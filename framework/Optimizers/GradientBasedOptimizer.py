@@ -265,96 +265,125 @@ class GradientBasedOptimizer(Optimizer):
         break
     return convergence
 
-  def _updateConvergenceVector(self, traj, varsUpdate, currentLossValue):
+  def _updateConvergenceVector(self, traj, varsUpdate, currentLossVal):
     """
       Local method to update convergence vector.
       @ In, traj, int, identifier of the trajector to update
       @ In, varsUpdate, int, current variables update iteration number
-      @ In, currentLossValue, float, current loss function value
+      @ In, currentLossVal, float, current loss function value
       @ Out, None
     """
-    if not self.convergeTraj[traj]:
-      print('DEBUGG status:',self.status[traj])
-      if len(self.counter['gradientHistory'][traj][1]) < 1:
-        # we don't have enough points to analyze a gradient history, so we accept this point as is and move forward
-        self.status[traj]['reason'] = 'found new opt point'
-      else:
-        ###### TODO move to before "if"
-        objectiveOutputs = np.zeros(self.gradDict['numIterForAve'])
-        for i in range(self.gradDict['numIterForAve']): #evens are opt point evaluations
-          index = i*2
-          objectiveOutputs[i] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,index))
-        if any(np.isnan(objectiveOutputs)):
-          self.raiseAnError(Exception,"the objective function evaluation for trajectory " +str(traj)+ "and iteration "+str(varsUpdate-1)+" has not been found!")
-        oldVal = objectiveOutputs.mean() # TODO should this be from counter[recentOptPoints][traj]?
-        # see if new point is better than old point
-        newerIsBetter = self.checkIfBetter(currentLossValue,oldVal)
-        varK = self.denormalizeData(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
-        ###### END TODO
-        ## convergence values
-        # gradient norm
-        gradNorm  = self.counter['gradNormHistory'][traj][0]
+    # if trajectory is already converged, no need to update. #FIXME then why was this method called?
+    if self.convergeTraj[traj]:
+      return
+
+    # first, check if we're at varsUpdate 0 (first entry); if so, we are at our first point
+    if varsUpdate == 0:
+      # we don't have enough points to decide to accept or reject the new point, so accept it as the initial point
+      self.raiseADebug('Accepting first point, since we have no rejection criteria.')
+      self.status[traj]['reason'] = 'found new opt point'
+      return
+
+    #otherwise, we need to accept/reject point and check convergence
+    currentInputDenorm = self.denormalizeData(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
+
+    ## first, determine if we want to keep the new point
+    # obtain the old loss value
+    oldLossVal = self.counter['recentOptHist'][traj][0]['output']
+    # see if new point is better than old point
+    newerIsBetter = self.checkIfBetter(currentLossVal,oldLossVal)
+    # if this was a recommended preconditioning point, we should not be converged.
+    pointFromRecommendation = self.status[traj]['reason'] == 'received recommended point'
+    # if improved, keep it and move forward; otherwise, reject it and recommend cutting step size
+    if newerIsBetter:
+      self.status[traj]['reason'] = 'found new opt point'
+      self.raiseADebug('Accepting potential opt point for improved loss value')
+      #TODO REWORK this belongs in the base class optimizer; grad shouldn't know about multilevel!!
+      #  -> this parameter is how multilevel knows that a successful perturbation of an outer loop has been performed
+      #  maybe implement a "acceptPoint" method in base class?
+      self.mlActiveSpaceSteps[traj] += 1
+    else:
+      self.status[traj]['reason'] = 'rejecting bad opt point'
+      self.raiseADebug('Rejecting potential opt point for worse loss value. old: "{}", new: "{}"'.format(oldLossVal,currentLossVal))
+      # cut the next step size to hopefully stay in the valley instead of climb up the other side
+      self.recommendToGain[traj] = 'cut'
+
+    ## determine convergence
+    if pointFromRecommendation:
+      self.raiseAMessage('Setting convergence for Trajectory "{}" to "False" because of preconditioning.'.format(traj))
+      converged = False
+    else:
+      self.raiseAMessage('Checking convergence for Trajectory "{}":'.format(traj))
+      self.convergenceProgress[traj] = {} # tracks progress for grad norm, abs, rel tolerances
+      converged = False                   # updated for each individual criterion using "or" (pass one, pass all)
+      #printing utility
+      printString = '    {:<21}: {:<5}'
+      printVals = printString + ' (check: {:>+9.2e} < {:>+9.2e}, diff: {:>9.2e})'
+      def printProgress(name,boolCheck,test,gold):
+        """
+          Consolidates a commonly-used print statement to prevent errors and improve readability.
+          @ In, name, str, printed name of convergence check
+          @ In, boolCheck, bool, boolean convergence results for this check
+          @ In, test, float, value of check at current opt point
+          @ In, gold, float, convergence threshold value
+          @ Out, None
+        """
+        self.raiseAMessage(printVals.format(name,str(boolCheck),test,gold,abs(test-gold)))
+
+      # "min step size" and "gradient norm" are both always valid checks, whether rejecting or accepting new point
+
+      # min step size check
+      try:
+        lastStep = self.counter['lastStepSize'][traj]
+        minStepSizeCheck = lastStep <= self.minStepSize
+      except KeyError:
+        #we reset the step size, so we don't have a value anymore
+        lastStep = np.nan
+        minStepSizeCheck = False
+      printProgress('Min step size',minStepSizeCheck,lastStep,self.minStepSize)
+      converged = converged or minStepSizeCheck
+
+      # gradient norm
+      if len(self.counter['gradientHistory'][traj][0]) > 0: # that is, if we have gradient evaluations available ...
+        gradNorm = self.counter['gradNormHistory'][traj][0] # TODO the check used to be for len(...[1])>0
+        self.convergenceProgress[traj]['grad'] = gradNorm
         gradientNormCheck = gradNorm <= self.gradientNormTolerance
-        # absolute loss value difference
-        absDifference = abs(currentLossValue-oldVal)
-        absoluteTolCheck = absDifference <= self.absConvergenceTol
-        # relative loss value difference
-        relativeDifference = mathUtils.relativeDiff(currentLossValue,oldVal)
-        relativeTolCheck = relativeDifference <= self.relConvergenceTol
-        # store progress for verbosity options
-        self.convergenceProgress[traj] = {'abs':absDifference,'rel':relativeDifference,'grad':gradNorm}
-        # safety check against multiple evaluations on the same point
-        sameCoordinateCheck = set(self.optVarsHist[traj][varsUpdate].items()) == set(self.counter['recentOptHist'][traj][0]['inputs'].items()) #set(self.optVarsHist[traj][varsUpdate-1].items())
-        # min step size check
-        try:
-          lastStep = self.counter['lastStepSize'][traj]
-          minStepSizeCheck = lastStep <= self.minStepSize
-        except KeyError:
-          #we reset the step size, so we don't have a value anymore
-          lastStep = np.nan
-          minStepSizeCheck = False
-        # screen outputs
-        self.raiseAMessage("Trajectory: "+"%8i"% (traj)+      " | Iteration    : "+"%8i"% (varsUpdate)+ " | Loss function: "+"%8.2E"% (currentLossValue)+" |")
-        print('DEBUGG gradNorm',gradNorm)
-        print('DEBUGG relDiff',relativeDifference)
-        print('DEBUGG absDiff',absDifference)
-        self.raiseAMessage("Grad Norm : "+"%8.2E"% (gradNorm)+" | Relative Diff: "+"%8.2E"% (relativeDifference)+" | Abs Diff     : "+"%8.2E"% (absDifference)+" |")
-        self.raiseAMessage("Step Size : "+"%8.2E"% (lastStep))
-        self.raiseAMessage("Input Location :" +str(varK))
-        ## set up status going forward
-        # if new point is better, accept it and move forward
-        ###### TODO move to before "if"
-        # move newerIsBetter, but keep convergence check separate
-        ###### END TODO
-        if newerIsBetter:
-          self.status[traj]['reason'] = 'found new opt point'
-          self.raiseADebug('Accepting potential opt point for improved loss value')
-          #TODO REWORK this belongs in the base class optimizer; grad shouldn't know about multilevel!!
-          #  -> this parameter is how multilevel knows that a successful perturbation of an outer loop has been performed
-          self.mlActiveSpaceSteps[traj] += 1
-          converged = minStepSizeCheck or sameCoordinateCheck or gradientNormCheck or absoluteTolCheck or relativeTolCheck
-        # if newer point is not better, we're keeping the old point, and sameCoordinate, absoluteTol, and relativeTol aren't applicable
-        else:
-          self.status[traj]['reason'] = 'rejecting bad opt point'
-          self.raiseADebug('Rejecting potential opt point for worse loss value. old: "{}", new: "{}"'.format(oldVal,currentLossValue))
-          # cut the next step size to hopefully stay in the valley instead of climb up the other side
-          self.recommendToGain[traj] = 'cut'
-          converged = gradientNormCheck or minStepSizeCheck
-        if converged:
-          reasons = []
-          if sameCoordinateCheck:
-            reasons.append("same coordinate")
-          if gradientNormCheck:
-            reasons.append("gradient norm")
-          if absoluteTolCheck:
-            reasons.append("absolute tolerance")
-          if relativeTolCheck:
-            reasons.append("relative tolerance")
-          if minStepSizeCheck:
-            reasons.append("minimum step size")
-          self.raiseAMessage("Trajectory: "+"%8i"% (traj) +"   converged. Reasons: "+', '.join(reasons))
-          self.convergeTraj[traj] = True
-          self.removeConvergedTrajectory(traj)
+      else:
+        gradNorm = np.nan
+        gradientNormCheck = False
+      printProgress('Gradient magnitude',gradientNormCheck,gradNorm,self.gradientNormTolerance)
+      converged = converged or gradientNormCheck
+
+      # if accepting new point, then "same coordinate" and "abs" and "rel" checks are also valid reasons to converge
+      if newerIsBetter:
+        #absolute tolerance
+        absLossDiff = abs(currentLossVal-oldLossVal)
+        self.convergenceProgress[traj]['abs'] = absLossDiff
+        absTolCheck = absLossDiff <= self.absConvergenceTol
+        printProgress('Absolute Loss Diff',absTolCheck,absLossDiff,self.absConvergenceTol)
+        converged = converged or absTolCheck
+
+        #relative tolerance
+        relLossDiff = mathUtils.relativeDiff(currentLossVal,oldLossVal)
+        self.convergenceProgress[traj]['rel'] = relLossDiff
+        relTolCheck = relLossDiff <= self.relConvergenceTol
+        printProgress('Relative Loss Diff',relTolCheck,relLossDiff,self.relConvergenceTol)
+        converged = converged or relTolCheck
+
+        #same coordinate check
+        oldInputSpace = set(self.optVarsHist[traj][varsUpdate].items())
+        curInputSpace = set(self.counter['recentOptHist'][traj][0]['inputs'].items())
+        sameCoordinateCheck = oldInputSpace == curInputSpace
+        self.raiseAMessage(printString.format('Same coordinate check',str(minStepSizeCheck)))
+        converged = converged or sameCoordinateCheck
+
+    if converged:
+      self.raiseAMessage(' ... Trajectory "{}" converged!'.format(traj))
+      self.convergeTraj[traj] = True
+      self.removeConvergedTrajectory(traj)
+    else:
+      self.raiseAMessage(' ... continuing trajectory "{}".'.format(traj))
+
 
   def _removeRedundantTraj(self, trajToRemove, currentInput):
     """
@@ -453,12 +482,13 @@ class GradientBasedOptimizer(Optimizer):
     self.raiseADebug('Collected sample "{}"'.format(prefix))
 
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
-    # TODO what if there's no solution export?  Our "status" and like fail badly!
+    # TODO what if there's no solution export?  Our "status" and etc fail badly!
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
-        while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
+        #does this need to be a while loop?  We can't get behind by 2 points...
+        #while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
+        if self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
           solutionExportUpdatedFlag, indices = self._getJobsByID(traj)
-
           if solutionExportUpdatedFlag:
             #get evaluations (input,output) from the collection of all evaluations
             inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
@@ -481,17 +511,17 @@ class GradientBasedOptimizer(Optimizer):
             if self.convergeTraj[traj]:
               self.status[traj] = {'process':None, 'reason':'converged'}
             else:
-              # if rejecting bad point, keep the old point as the new point
-              if self.status[traj]['reason'] != 'rejecting bad opt point':
-                try:
-                  self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
-                except KeyError:
-                  # this means we don't have an entry for this trajectory yet, so don't copy anything
-                  pass
-                self.counter['recentOptHist'][traj][0] = {'inputs':self.optVarsHist[traj][self.counter['varsUpdate'][traj]],
-                                                          'output':currentObjectiveValue}
               # update status to submitting grad eval points
               self.status[traj]['process'] = 'submitting grad eval points'
+            # if rejecting bad point, keep the old point as the new point; otherwise, add the new one
+            if self.status[traj]['reason'] != 'rejecting bad opt point':
+              try:
+                self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
+              except KeyError:
+                # this means we don't have an entry for this trajectory yet, so don't copy anything
+                pass
+              self.counter['recentOptHist'][traj][0] = {'inputs':self.optVarsHist[traj][self.counter['varsUpdate'][traj]],
+                                                        'output':currentObjectiveValue}
 
             # update solution export
             if 'trajID' not in self.solutionExport.getParaKeys('inputs'):

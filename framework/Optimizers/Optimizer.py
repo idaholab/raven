@@ -467,8 +467,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       except IndexError:
         self.raiseAnError(IOError,'Could not find preconditioner "{}" in <Preconditioner> nodes!'.format(precondName))
 
-    print('DEBUGG preconditioners:',self.mlPreconditioners)
-
     # specializing the self.localInitialize()
     if solutionExport != None:
       self.localInitialize(solutionExport=solutionExport)
@@ -598,7 +596,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # clear existing gradient determination data
     if not firstTime:
       self.clearCurrentOptimizationEffort(traj)
-    # TODO FIXME WORKING apply preconditioner IFF we're going towards INNER loops
+    # apply preconditioner IFF we're going towards INNER loops
     if depth > oldDepth:
       self.raiseADebug('Preconditioning subsets below',oldDepth,range(oldDepth+1,depth+1))
       #apply changes all the way down
@@ -608,16 +606,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         if precond is not None:
           self.raiseADebug('Running preconditioner on batch "{}"'.format(precondBatch))
           infoDict = {'SampledVars':self.denormalizeData(optPoint)}
-          print('DEBUGG original point:',infoDict)
           _,(results,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
           # flatten results #TODO breaks for multi-entry arrays
           for key,val in results.items():
             results[key] = float(val)
-          print('DEBUGG results:',results)
           self.proposeNewPoint(traj,self.normalizeData(results))
           self.status[traj]['process'] = 'submitting new opt points'
           self.status[traj]['reason'] = 'received recommended point'
-          print('DEBUGG status:',self.status[traj])
     # if there's batch info about the new batch, set it
     self._setAlgorithmState(traj,self.mlBatchInfo[newBatch].get(traj,None))
     #make sure trajectory is live
@@ -631,7 +626,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, point, dict, new input space point as {var:val}
       @ Out, None
     """
-    self.recommendedOptPoint[traj] = copy.deepcopy(point)
+    point = copy.deepcopy(point)
+    self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = point
+    self.recommendedOptPoint[traj] = point
 
   @abc.abstractmethod
   def clearCurrentOptimizationEffort(self):

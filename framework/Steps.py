@@ -515,6 +515,7 @@ class MultiRun(SingleRun):
                                         ' Use a RomTrainer step to train it.')
     # run step loop
     while True:
+      print('') #visual separator
       # collect finished jobs
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
