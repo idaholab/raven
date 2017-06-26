@@ -176,7 +176,7 @@ class SPSA(GradientBasedOptimizer):
             ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
             varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs']) #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
-            varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
+            varKPlus,mod)ded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
             #check for redundant paths
             if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
               self._removeRedundantTraj(traj, varKPlus)
@@ -417,11 +417,6 @@ class SPSA(GradientBasedOptimizer):
       @ Out, varKPlus, dictionary, variable values for next iteration.
       @ Out, modded, bool, if True the point was modified by the constraint
     """
-    print('DEBUGG start of genVarsUpdateConstrained:')
-    print('DEBUGG   traj    :',traj)
-    print('DEBUGG   ak      :',ak)
-    print('DEBUGG   gradient:',gradient)
-    print('DEBUGG   vark    :',varK)
     varKPlus = {}
     try:
       gain = ak[:]
@@ -430,7 +425,6 @@ class SPSA(GradientBasedOptimizer):
     gain = np.asarray(gain)
     for index,var in enumerate(self.getOptVars()): #get full opt vars so all variables carried through
       varKPlus[var] = varK[var]-gain[index]*gradient.get(var,0.0)*1.0
-    print('DEBUGG checking shortened step to',gain,',',varKPlus)
     #satisfied, activeConstraints = self.checkConstraint(varKPlus)
     satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(varKPlus))
     if satisfied:
@@ -514,7 +508,6 @@ class SPSA(GradientBasedOptimizer):
       return varKPlus, True
     varKPlus = varK
     self.raiseADebug('   ... did not successfully find new point.')
-    print('DEBUGG varKPlus return:',varKPlus)
     return varKPlus, False
 
   def _bisectionForConstrainedInput(self,traj,varK,ak,vector):
