@@ -95,6 +95,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.submissionQueue                = {}                        # by traj, a place (deque) to store points that should be submitted some time after they are discovered
     #functions and dataojbects
     self.constraintFunction             = None                      # External constraint function, could be not present
+    self.preconditioners                = {}                        # by name, Models that might be used as preconditioners
     self.solutionExport                 = None                      #This is the data used to export the solution (it could also not be present)
     self.mdlEvalHist                    = None                      # Containing information of all model evaluation
     self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
@@ -106,7 +107,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.mlStaticValues                 = {}                        # by traj, dictionary of static values for variables in fullOptVars but not in optVars due to multilevel
     self.mlActiveSpaceSteps             = {}                        # by traj, integer to track iterations performed in optimizing the current, active subspace
     self.mlBatchInfo                    = {}                        # by batch, by traj, info includes 'lastStepSize','gradientHistory','recommendToGain'
+    self.mlPreconditioners              = {}                        # by batch, the preconditioner models to use when transitioning subspaces
     #stateful tracking
+    self.recommendedOptPoint            = {}                        # by traj, the next recommended point (as a dict) in the input space to move to
     self.nextActionNeeded               = (None,None)               # tool for localStillReady to inform localGenerateInput on the next action needed
     self.status                         = {}                        # by trajectory, ("string-based status", arbitrary, other, entries)
     ### EXPLANATION OF STATUS SYSTEM
@@ -120,15 +123,18 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # Processes:
     #   "submitting grad eval points" - submitting new points so later we can evaluate a gradient and take an opt step
     #   "collecting grad eval points" - all the required gradient evaluation points are submitted, so we're just waiting to collect them
-    #   "submitting new opt points"    - a new optimal point has been postulated, and is being submitted for evaluationa (not actually used)
-    #   "collecting new opt points"    - the new  hypothetical optimal point has been submitted, and we're waiting on it to finish
+    #   "submitting new opt points"   - a new optimal point has been postulated, and is being submitted for evaluationa (not actually used)
+    #   "collecting new opt points"   - the new  hypothetical optimal point has been submitted, and we're waiting on it to finish
     #   "evaluate gradient"           - localStillReady notes we have all the new grad eval points, and has flagged for gradient to be evaluated in localGenerateInput
+    #   "following traj <#>"          - trajectory is following another one, given by the last word
     # Reasons:
-    #   "just started"            - the optimizer has only just begun operation, and doesn't know what it's doing yet
-    #   "found new opt point"     - the last hypothetical optimal point has been accepted, so we need to move forward
-    #   "rejecting bad opt point" - the last hypothetical optimal point was rejected, so we need to reconsider
-    #   "seeking new opt point"   - the process of looking for a new opt point has started
-    #   "converged"               - the trajectory is in convergence
+    #   "just started"                - the optimizer has only just begun operation, and doesn't know what it's doing yet
+    #   "found new opt point"         - the last hypothetical optimal point has been accepted, so we need to move forward
+    #   "rejecting bad opt point"     - the last hypothetical optimal point was rejected, so we need to reconsider
+    #   "seeking new opt point"       - the process of looking for a new opt point has started
+    #   "converged"                   - the trajectory is in convergence
+    #   "removed as redundant"        - the trajectory has ended because it follows another one
+    #   "received recommended point"  - something other than the normal algorithm (such as a preconditioner) suggested a point
     # example usage:
     #   self.status[traj]['process'] == 'submitting grad eval points' and self.status[traj]['reason'] == 'rejecting bad opt point'
     #
@@ -136,6 +142,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.addAssemblerObject('Restart' ,'-n',True)
     self.addAssemblerObject('TargetEvaluation','1')
     self.addAssemblerObject('Function','-1')
+    self.addAssemblerObject('Preconditioner','-n')
 
   def _localGenerateAssembler(self,initDict):
     """
@@ -251,17 +258,22 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.multilevel = True
         for subnode in child:
           if subnode.tag == 'subspace':
-            attribs = {}
+            #subspace name
             try:
               name = subnode.attrib['name']
             except KeyError:
               self.raiseAnError(IOError, 'A multilevel subspace is missing the "name" attribute!')
             if name in self.mlBatches.keys():
               self.raiseAnError(IOError,'Multilevel subspace "{}" has a duplicate name!'.format(name))
+            #subspace text
             subspaceVars = list(x.strip() for x in subnode.text.split(','))
             if len(subspaceVars)<1:
               self.raiseAnError(IOError,'Multilevel subspace "{}" has no variables specified!'.format(name))
             self.mlBatches[name] = subspaceVars
+            #subspace preconditioner
+            precond = subnode.attrib.get('precond')
+            if precond is not None:
+              self.mlPreconditioners[name] = precond
           elif subnode.tag == 'sequence':
             self.mlSequence = list(x.strip() for x in subnode.text.split(','))
 
@@ -400,6 +412,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.counter['mdlEval'] = 0
     self.counter['varsUpdate'] = [0]*len(self.optTraj)
 
+    for entry in self.assemblerDict.get('Preconditioner',[]):
+      cls,typ,name,model = entry
+      if cls != 'Models' or typ != 'ExternalModel':
+        self.raiseAnError(IOError,'Currently only "ExternalModel" models can be used as preconditioners! Got "{}.{}" for "{}".'.format(cls,typ,name))
+      self.preconditioners[name] = model
+
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
     self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.fullOptVars)), 'Target':self.objVar, 'n_neighbors':1,'weights':'distance'})
     self.solutionExport = solutionExport
@@ -442,6 +460,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.submissionQueue[traj]    = deque()
     for batch in self.mlBatches.keys():
       self.mlBatchInfo[batch]       = {}
+    # line up preconditioners with their batches
+    for batch,precondName in self.mlPreconditioners.items():
+      try:
+        self.mlPreconditioners[batch] = self.preconditioners[precondName]
+      except IndexError:
+        self.raiseAnError(IOError,'Could not find preconditioner "{}" in <Preconditioner> nodes!'.format(precondName))
 
     # specializing the self.localInitialize()
     if solutionExport != None:
@@ -546,6 +570,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       firstTime = True
       oldBatch = 'pre-initialize'
+      oldDepth = depth
     # set the new active space
     self.mlDepth[traj] = depth
     newBatch = self.mlSequence[self.mlDepth[traj]]
@@ -571,11 +596,39 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # clear existing gradient determination data
     if not firstTime:
       self.clearCurrentOptimizationEffort(traj)
+    # apply preconditioner IFF we're going towards INNER loops
+    if depth > oldDepth:
+      self.raiseADebug('Preconditioning subsets below',oldDepth,range(oldDepth+1,depth+1))
+      #apply changes all the way down
+      for d in range(oldDepth+1,depth+1):
+        precondBatch = self.mlSequence[d]
+        precond = self.mlPreconditioners.get(precondBatch,None)
+        if precond is not None:
+          self.raiseADebug('Running preconditioner on batch "{}"'.format(precondBatch))
+          infoDict = {'SampledVars':self.denormalizeData(optPoint)}
+          _,(results,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
+          # flatten results #TODO breaks for multi-entry arrays
+          for key,val in results.items():
+            results[key] = float(val)
+          self.proposeNewPoint(traj,self.normalizeData(results))
+          self.status[traj]['process'] = 'submitting new opt points'
+          self.status[traj]['reason'] = 'received recommended point'
     # if there's batch info about the new batch, set it
     self._setAlgorithmState(traj,self.mlBatchInfo[newBatch].get(traj,None))
     #make sure trajectory is live
     if traj not in self.optTrajLive:
       self.optTrajLive.append(traj)
+
+  def proposeNewPoint(self,traj,point):
+    """
+      Sets a proposed point for the next in the opt chain.  Recommended to be overwritten in subclasses.
+      @ In, traj, int, trajectory who is getting proposed point
+      @ In, point, dict, new input space point as {var:val}
+      @ Out, None
+    """
+    point = copy.deepcopy(point)
+    self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = point
+    self.recommendedOptPoint[traj] = point
 
   @abc.abstractmethod
   def clearCurrentOptimizationEffort(self):

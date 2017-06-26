@@ -194,12 +194,6 @@ specified:
   \end{itemize}
 \end{itemize}
 \begin{itemize}
-\item \xmlNode{Function}, \xmlDesc{XML node, optional parameter},
-        indicates the external function where the constraints are stored. From a practical point of view, this XML node must contain the
-        name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}). This external function must
-        contain a method called ``constrain'', which returns 1 for inputs satisfying the constraints and 0 otherwise. When this block is
-        absent and all the \xmlNode{upperBound} blocks of \xmlNode{variable} are absent (see below), then \xmlNode{SPSA} considers
-        it as an unconstrained optimization problem;
 \item \xmlNode{TargetEvaluation}, \xmlDesc{XML node, required parameter},
         represents the container where the model evaluations are stored.
         %
@@ -209,8 +203,78 @@ specified:
         input as  \xmlNode{Output} in the Steps that employ this optimization strategy.
         %
         The \xmlNode{SPSA} optimizer accepts ``DataObjects'' of type ``PointSet'' only;
-\item \xmlNode{objectVar}, \xmlDesc{XML node, required parameter}. The objective variable to be optimized. This variable must be
-output of the DataObject specified in \xmlNode{TargetEvaluation}.
+        \item \xmlNode{objectVar}, \xmlDesc{XML node, required parameter}. The objective variable to be optimized. This variable must be
+          output of the DataObject specified in \xmlNode{TargetEvaluation}.
+\item \xmlNode{Function}, \xmlDesc{XML node, optional parameter},
+        indicates the external function where the constraints are stored. From a practical point of view, this XML node must contain the
+        name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}). This external function must
+        contain a method called ``constrain'', which returns 1 for inputs satisfying the constraints and 0 otherwise. When this block is
+        absent and all the \xmlNode{upperBound} blocks of \xmlNode{variable} are absent (see below), then \xmlNode{SPSA} considers
+        it as an unconstrained optimization problem;
+\item \xmlNode{Preconditioner}, \xmlDesc{XML node, optional parameter},
+        provides a model that can be used as a preconditioner in Multilevel optimization calculations.  Only
+        affects optimizers with a \xmlNode{multilevel} node.  As many preconditioners as desired can be added
+        to the optimizer, each defined with a \xmlNode{Preconditioner} node.
+        %
+        From a practical point of view, this XML node must contain the name of
+        an \xmlNode{ExternalModel} defined in the \xmlNode{Models} block (see
+        Section~\ref{subsec:models_externalModel}).
+        %
+        In multilevel optimization, the preconditioner is attached to a particular subspace.  Whenever
+        subspaces that are ``higher'' (early in \xmlNode{sequence}) are perturbed, before moving to a lower
+        subspace, the preconditioner will be called to provide a new value for each variable in the lower
+        subspace.
+        %
+        For example, if an input space is divided into one subspace \xmlString{subx} with the input variable $x$ and
+        another subspace \xmlString{suby} with input variable $y$, and if the sequence is specified as
+        \xmlString{subx,suby}, and a preconditioner is attached to subspace \xmlString{suby}, then when a step
+        is taken for subspace \xmlString{subx}, the preconditioner will provide a new value for $y$ before
+        starting a convergence search for $y$.
+\item \xmlNode{multilevel}, \xmlDesc{XML node, optional node}, engages the optimizer in \emph{multilevel}
+        mode.  When in multilevel mode, the input space is divided into multiple subspaces.  The subspaces are
+        then aligned in a sequence, and optimizing follows the following procedure:
+        \begin{enumerate}
+          \item Hold all variable values in all subspaces constant EXCEPT the last subspace in the sequence.
+          \item Converge the optimizer considering only input variables in the last listed subspace.
+          \item Hold all variables in the last subspace constant, and take a single optimizing step in the
+            second-to-last subspace.
+          \item If the second to last subspace is converged, go up one more subspace and take a step, then
+            repeat the process thus far.
+          \item If the second to last subspace is not converged, go back to the last subspace and converge it
+            again.
+          \item Et cetera.
+        \end{enumerate}
+        Once the outermost subspace is converged, the entire space is considered converged.
+        %
+        Note that multilevel optimization is not in general better than not using it.  Multilevel works
+        especially well when some variables in the input space are connected and have relatively
+        difficult-to-converge optimization, while other variables in the input space are easily converged.  In
+        this case, the difficult-to-converge variables should make up the last subspace in the sequence, while
+        the easily-converging variables should make up the outer subspace.
+        %
+        RAVEN places no limit on the
+        number of subspaces that are defined, but each variable should only exist in a single subspace.
+        %
+        The \xmlNode{multilevel} node requires the definition of subspaces and the sequence as follows:
+        \begin{itemize}
+          \item \xmlNode{sequence}, \xmlDesc{comma-separated string, required parameter}, lists the order in
+            which subspaces should be converged.  Each subspace is listed as identified by its \xmlAttr{name}
+            parameter in the \xmlNode{subspace} definition.  Note that the first subspace listed will be the
+            slowest to converge and converge only once, and the last subspace listed will be converged
+            frequently and quickly.
+          \item \xmlNode{subspace}, \xmlDesc{comma-separated string, required parameter}, lists the variables
+            included in this subspace.  This node additionally has the following attributes:
+            \begin{itemize}
+              \item \xmlAttr{name}, \xmlDesc{string, require parameter}, provides the identifier that RAVEN
+                will use for this subspace group, both in the \xmlNode{sequence} node as well as in log
+                prints.
+              \item \xmlAttr{precond}, \xmlDesc{model name, optional parameter}, provides the option to attach
+                a preconditioner to this subset, chosen from the \xmlNode{Preconditioner} nodes defined within
+                the optimzer, and identified by the text of those nodes.  See the documentation for the
+                preconditioner node above for details on how they affect the calculation flow.
+            \end{itemize}
+        \end{itemize}
+
 \end{itemize}
 \begin{itemize}
 \item \variableDescription

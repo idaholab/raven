@@ -43,8 +43,18 @@ def plotFunction(title,method,low,high,cscale=None,log=True):
   else:
     norm = colors.Normalize()
   ax.pcolormesh(X,Y,Z,norm=norm)
+  #ax.plot([-4.5,4.5],[-4.5,4.5],'k:')
+  #ax.contour(X,Y,Z,colors='k',levels=[1e-5,1e-1,5e-1,1e0,5e0,1e1])
   plt.title(title)
   return X,Y,Z
+
+from maljovech import evaluate as malj
+x,y,z = plotFunction('Malj',malj,-4.5,4.5,cscale=(1e-2,1e1))
+pk.dump((x,y,z),file('malj_plotdata.pk','w'))
+
+plt.axes().set_aspect('equal')
+plt.show()
+import sys;sys.exit()
 
 # Beale
 from beale import evaluate as beale
