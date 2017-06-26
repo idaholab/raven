@@ -629,7 +629,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     point = copy.deepcopy(point)
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = point
     self.recommendedOptPoint[traj] = point
-    
+
   @abc.abstractmethod
   def clearCurrentOptimizationEffort(self):
     """
