@@ -483,7 +483,7 @@ class PointSet(Data):
         inoutValues[i].append(utils.partialEval(lineList[i]))
 
     #extend the expected size of this point set
-    self.numAdditionalLoadPoints = len(inoutValues[0]) #used in checkConsistency
+    self.numAdditionalLoadPoints += len(inoutValues[0]) #used in checkConsistency
 
     ## Do not reset these containers because it will wipe whatever information
     ## already exists in this PointSet. This is not one of the use cases for our
