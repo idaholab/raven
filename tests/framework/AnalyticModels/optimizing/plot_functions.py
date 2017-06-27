@@ -48,18 +48,16 @@ def plotFunction(title,method,low,high,cscale=None,log=True):
   plt.title(title)
   return X,Y,Z
 
-from maljovech import evaluate as malj
+from maljovec import evaluate as malj
 x,y,z = plotFunction('Malj',malj,-4.5,4.5,cscale=(1e-2,1e1))
 pk.dump((x,y,z),file('malj_plotdata.pk','w'))
-
 plt.axes().set_aspect('equal')
-plt.show()
-import sys;sys.exit()
 
 # Beale
 from beale import evaluate as beale
 x,y,z = plotFunction('Beale',beale,-4.5,4.5,cscale=(1e-1,1e3))
 pk.dump((x,y,z),file('beale_plotdata.pk','w'))
+plt.savefig('Beale_grid.png')
 
 # Rosenbrock
 from rosenbrock import evaluate2d as rosenbrock

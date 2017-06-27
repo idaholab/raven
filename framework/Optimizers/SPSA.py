@@ -176,7 +176,7 @@ class SPSA(GradientBasedOptimizer):
             ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
             varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs']) #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
-            varKPlus,mod)ded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
+            varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
             #check for redundant paths
             if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
               self._removeRedundantTraj(traj, varKPlus)
