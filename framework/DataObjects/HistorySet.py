@@ -548,10 +548,17 @@ class HistorySet(Data):
         myDataFile.close()
       outKeys.append(outKeys_h)
       outValues.append(outValues_h)
-    self._dataContainer['inputs'] = {} #XXX these are indexed by 1,2,...
-    self._dataContainer['outputs'] = {} #XXX these are indexed by 1,2,...
+
+
+    ## Do not reset these containers because it will wipe whatever information
+    ## already exists in this HistorySet. This is not one of the use cases for
+    ## our data objects. We claim in the manual to construct or update
+    ## information. These should be non-destructive operations. -- DPM 6/26/17
+    # self._dataContainer['inputs'] = {} #XXX these are indexed by 1,2,...
+    # self._dataContainer['outputs'] = {} #XXX these are indexed by 1,2,...
+    startKey = len(self._dataContainer['inputs'].keys())
     for i in range(len(inpValues)):
-      mainKey = i + 1
+      mainKey = startKey + i + 1
       subInput = {}
       subOutput = {}
       for key,value in zip(inpKeys,inpValues[i]):
@@ -561,10 +568,12 @@ class HistorySet(Data):
       for key,value in zip(outKeys[i],outValues[i]):
         if key in self.getParaKeys('outputs'):
           subOutput[key] = c1darray(values=np.array(value))
+
       self._dataContainer['inputs'][mainKey] = subInput
       self._dataContainer['outputs'][mainKey] = subOutput
+
     #extend the expected size of this point set
-    self.numAdditionalLoadPoints = len(allLines) #used in checkConsistency
+    self.numAdditionalLoadPoints += len(allLines) #used in checkConsistency
 
     self.checkConsistency()
 

@@ -483,18 +483,35 @@ class PointSet(Data):
         inoutValues[i].append(utils.partialEval(lineList[i]))
 
     #extend the expected size of this point set
-    self.numAdditionalLoadPoints = len(inoutValues[0]) #used in checkConsistency
-    self._dataContainer['inputs'] = {}
-    self._dataContainer['outputs'] = {}
+    self.numAdditionalLoadPoints += len(inoutValues[0]) #used in checkConsistency
+
+    ## Do not reset these containers because it will wipe whatever information
+    ## already exists in this PointSet. This is not one of the use cases for our
+    ## data objects. We claim in the manual to construct or update information.
+    ## These should be non-destructive operations. -- DPM 6/26/17
+    # self._dataContainer['inputs'] = {}
+    # self._dataContainer['outputs'] = {}
     inoutDict = {}
     for key,value in zip(inoutKeys,inoutValues):
       inoutDict[key] = value
 
     for key in self.getParaKeys('inputs'):
-      self._dataContainer["inputs"][key] = c1darray(values=np.array(inoutDict[key]))
+      ## Again, in order to be non-destructive we should only initialize on the
+      ## first go-around, subsequent loads should append to the existing list.
+      ## -- DPM 6/26/17
+      if key not in self._dataContainer["inputs"]:
+        self._dataContainer["inputs"][key] = c1darray(values=np.array(inoutDict[key]))
+      else:
+        self._dataContainer["inputs"][key].append(c1darray(values=np.array(inoutDict[key])))
 
     for key in self.getParaKeys('outputs'):
-      self._dataContainer["outputs"][key] = c1darray(values=np.array(inoutDict[key]))
+      ## Again, in order to be non-destructive we should only initialize on the
+      ## first go-around, subsequent loads should append to the existing list.
+      ## -- DPM 6/26/17
+      if key not in self._dataContainer["outputs"]:
+        self._dataContainer["outputs"][key] = c1darray(values=np.array(inoutDict[key]))
+      else:
+        self._dataContainer["outputs"][key].append(c1darray(values=np.array(inoutDict[key])))
 
 #   COMMENTED BECUASE NOT USED. NEED TO BE REMOVED IN THE FUTURE
 #   def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
