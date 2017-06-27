@@ -578,7 +578,7 @@ class EnsembleModel(Dummy):
       tempTargetEvaluations[modelIn] = copy.copy(self.tempTargetEvaluations[modelIn])
       for i in range(len(self.tempOutputs[modelIn])):
         self.tempOutputs[modelIn][i].resetData()
-      tempOutputs[modelIn] = copy.copy(self.tempOutputs[modelIn])
+      tempOutputs[modelIn] = copy.deepcopy(self.tempOutputs[modelIn])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
     gotOutputs       = [{}]*len(self.orderList)
     typeOutputs      = ['']*len(self.orderList)
