@@ -73,6 +73,8 @@ class GradientBasedOptimizer(Optimizer):
     self.convergenceProgress        = {}              #tracks the convergence progress, by trajectory
     self.trajectoriesKilled         = {}              # by traj, store traj killed, so that there's no mutual destruction
     self.recommendToGain            = {}              # recommended action to take in next step, by trajectory
+    self.gainGrowthFactor           = 2.              # max step growth factor
+    self.gainShrinkFactor           = 2.              # max step shrinking factor
 
   def localInputAndChecks(self, xmlNode):
     """
