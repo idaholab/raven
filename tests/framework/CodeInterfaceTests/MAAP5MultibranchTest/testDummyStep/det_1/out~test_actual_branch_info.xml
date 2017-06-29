@@ -1,8 +1,0 @@
-<?xml version="1.0" ?>
-<Branch_info end_time="200.10001">
-	<Distribution_trigger name="TIMELOCA">
-		<Variable actual_value="3.8E-004 2.2E-004 9.5E-004" old_value="0.000114" probability="0.1 0.5 0.4" type="auxiliary">ABBN(1)</Variable>
-		<Variable actual_value="3.8E-004 2.2E-004 9.5E-004" old_value="0.000114" probability="0.1 0.5 0.4" type="auxiliary">ABBN(2)</Variable>
-		<Variable actual_value="3.8E-004 2.2E-004 9.5E-004" old_value="0.000114" probability="0.1 0.5 0.4" type="auxiliary">ABBN(3)</Variable>
-	</Distribution_trigger>
-</Branch_info>

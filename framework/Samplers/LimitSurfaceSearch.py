@@ -40,6 +40,7 @@ from PostProcessors import LimitSurface
 from .AdaptiveSampler import AdaptiveSampler
 import Distributions
 from AMSC_Object import AMSC_Object
+from utils import randomUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class LimitSurfaceSearch(AdaptiveSampler):
@@ -648,9 +649,9 @@ class LimitSurfaceSearch(AdaptiveSampler):
       #here we are still generating the batch
       for key in self.distDict.keys():
         if self.toleranceWeight=='cdf':
-          self.values[key]                       = self.distDict[key].ppf(float(Distributions.random()))
+          self.values[key]                       = self.distDict[key].ppf(float(randomUtils.random()))
         else:
-          self.values[key]                       = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
+          self.values[key]                       = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(randomUtils.random())
         self.inputInfo['distributionName'][key]  = self.toBeSampled[key]
         self.inputInfo['distributionType'][key]  = self.distDict[key].type
         self.inputInfo['SampledVarsPb'   ][key]  = self.distDict[key].pdf(self.values[key])

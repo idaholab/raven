@@ -50,6 +50,9 @@ class byPass(object):
   """
     This is dummy class that is needed to emulate the "dataObject" resetData method
   """
+  def __init__(self):
+    self.name = ""
+
   def resetData(self):
     """
       This is dummy method that is needed to emulate the "dataObject" resetData method
@@ -330,7 +333,7 @@ def intConversion (s):
   """
   try:
     return int(s)
-  except ValueError:
+  except (ValueError,TypeError) as e:
     return None
 
 def floatConversion (s):
@@ -342,7 +345,7 @@ def floatConversion (s):
   """
   try:
     return float(s)
-  except ValueError:
+  except (ValueError,TypeError) as e:
     return None
 
 def partialEval(s):
@@ -384,6 +387,14 @@ def toBytes(s):
     return bytes(s)
   else:
     return s
+
+def isString(s):
+  """
+    Method to figure out if a variable is a string.
+    @ In, s, object, variable to be tested.
+    @ Out, isString, bool, true if variable is a str or unicode.
+  """
+  return type(s).__name__ in ['unicode','str']
 
 def toBytesIterative(s):
   """
@@ -1106,3 +1117,11 @@ def returnIdSeparator():
     @ Out, __idSeparator, string, the id separator
   """
   return __idSeparator
+
+def getAllSubclasses(cls):
+  """
+    Recursively collect all of the classes that are a subclass of cls
+    @ In, cls, the class to retrieve sub-classes.
+    @ Out, getAllSubclasses, list of class objects for each subclass of cls.
+  """
+  return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in getAllSubclasses(s)]

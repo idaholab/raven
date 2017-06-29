@@ -157,7 +157,7 @@ class PointSet(Data):
       #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:
-      if name in self._dataContainer['inputs'].keys()+self._dataContainer['unstructuredInputs'].keys():
+      if name in itertools.chain(self._dataContainer['inputs'].keys(),self._dataContainer['unstructuredInputs'].keys()):
         #popped = self._dataContainer['inputs'].pop(name)
         if not unstructuredInput:
           self._dataContainer['inputs'][name].append(np.atleast_1d(np.ravel(value)[-1]))
@@ -474,9 +474,12 @@ class PointSet(Data):
     inoutKeys = header.split(",")
     inoutValues = [[] for _ in range(len(inoutKeys))]
 
-    for line in myFile.readlines():
+    for lineNumber,line in enumerate(myFile.readlines(),2):
       lineList = line.rstrip().split(",")
       for i in range(len(inoutKeys)):
+        datum = utils.partialEval(lineList[i])
+        if datum == '':
+          self.raiseAnError(IOError, 'Invalid data in input file: {} at line {}: "{}"'.format(filenameLocal, lineNumber, line.rstrip()))
         inoutValues[i].append(utils.partialEval(lineList[i]))
 
     #extend the expected size of this point set

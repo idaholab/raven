@@ -22,20 +22,29 @@
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-from numpy import average
-from crow_modules.distribution1Dpy2 import CDF
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
+from numpy import average
+import sys
+if sys.version_info.major > 2:
+  from crow_modules.distribution1Dpy3 import CDF
+else:
+  from crow_modules.distribution1Dpy2 import CDF
+
 #External Modules------------------------------------------------------------------------------------
+import sklearn
 from sklearn import linear_model
 from sklearn import svm
 from sklearn import multiclass
 from sklearn import naive_bayes
 from sklearn import neighbors
-
-from sklearn import qda
-from sklearn import lda
+if int(sklearn.__version__.split(".")[1]) > 16:
+  # FIXME: to be removed when the supported minimum version of sklearn is moved to 0.17
+  from sklearn import discriminant_analysis as da
+else:
+  from sklearn import qda
+  from sklearn import lda
 # from sklearn import discriminant_analysis
 
 from sklearn import tree
@@ -57,8 +66,7 @@ from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from utils import mathUtils
+from utils import utils,mathUtils
 import sys
 import MessageHandler
 import Distributions
@@ -1986,8 +1994,7 @@ class NDinvDistWeight(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    for index in range(len(self.target)):
-      self.interpolator[index].reset(float(self.initOptionDict['p']))
+    self.__initLocal__()
 #
 #
 #
@@ -2023,8 +2030,14 @@ class SciKitLearn(superVisedLearning):
 
   availImpl                                                 = {}                                                            # dictionary of available ROMs {mainClass:{subtype:(classPointer,Output type (float or int), boolean -> External Z-normalization needed)}
   availImpl['lda']                                          = {}                                                            #Linear Discriminant Analysis
-  availImpl['lda']['LDA']                                   = (lda.LDA                                  , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
-  # availImpl['lda']['LDA']                                   = (discriminant_analysis.LinearDiscriminantAnalysis, 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+  availImpl['qda']                                          = {}                                                            #Quadratic Discriminant Analysis
+  if int(sklearn.__version__.split(".")[1]) > 16:
+    availImpl['lda']['LDA']                                 = (da.LinearDiscriminantAnalysis            , 'int'    , False) #Linear Discriminant Analysis (LDA)
+    availImpl['qda']['QDA']                                 = (da.QuadraticDiscriminantAnalysis         , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+  else:
+    availImpl['lda']['LDA']                                 = (lda.LDA                                  , 'int'    , False) #Linear Discriminant Analysis (LDA)
+    availImpl['qda']['QDA']                                 = (qda.QDA                                  , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+
   availImpl['linear_model']                                 = {}                                                            #Generalized Linear Models
   availImpl['linear_model']['ARDRegression'               ] = (linear_model.ARDRegression               , 'float'  , False) #Bayesian ARD regression.
   availImpl['linear_model']['BayesianRidge'               ] = (linear_model.BayesianRidge               , 'float'  , False) #Bayesian ridge regression
@@ -2077,10 +2090,6 @@ class SciKitLearn(superVisedLearning):
   availImpl['neighbors']['NearestCentroid'                ] = (neighbors.NearestCentroid                , 'int'   ,  True )# Nearest centroid classifier.
   availImpl['neighbors']['BallTree'                       ] = (neighbors.BallTree                       , 'float' ,  True )# BallTree for fast generalized N-point problems
   availImpl['neighbors']['KDTree'                         ] = (neighbors.KDTree                         , 'float' ,  True )# KDTree for fast generalized N-point problems
-
-  availImpl['qda'] = {}
-  availImpl['qda']['QDA'                                  ] = (qda.QDA                                  , 'int'   ,  False) #Quadratic Discriminant Analysis (QDA)
-  # availImpl['qda']['QDA'                                  ] = (discriminant_analysis.QuadraticDiscriminantAnalysis, 'int'   ,  False) #Quadratic Discriminant Analysis (QDA)
 
   availImpl['tree'] = {}
   availImpl['tree']['DecisionTreeClassifier'              ] = (tree.DecisionTreeClassifier              , 'int'   ,  True )# A decision tree classifier.
@@ -2629,7 +2638,7 @@ class ARMA(superVisedLearning):
     Phi, Theta, Cov = self.__armaParamAssemb__(x,p,q,N)
     for n1 in range(N):
       for n2 in range(N):
-        if Cov[n1,n2] <0:
+        if Cov[n1,n2] < 0:
           lkHood = sys.float_info.max
           return lkHood
 

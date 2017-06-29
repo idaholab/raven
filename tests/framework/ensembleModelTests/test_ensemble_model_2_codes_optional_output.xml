@@ -54,7 +54,7 @@
         <Input class="Files" type="">referenceInput2.xml</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">sumData</TargetEvaluation>
         <Output class="DataObjects" type="PointSet">responseModel2</Output>
-        
+        <Output class="DataObjects" type="HistorySet">responseModel2HS</Output>
         
       </Model>
       <Model class="Models" type="Code">
@@ -62,7 +62,7 @@
         <Input class="Files" type="">referenceInput.xml</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">samplesMC</TargetEvaluation>
         <Output class="DataObjects" type="PointSet">responseModel1</Output>
-        
+        <Output class="DataObjects" type="HistorySet">responseModel1HS</Output>
       </Model>
     </EnsembleModel>
   </Models>
@@ -105,14 +105,22 @@
       <Model class="Models" type="EnsembleModel">codeAndExtModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="PointSet">finalResponses</Output>
+      <Output class="DataObjects" type="PointSet">responseModel2</Output>
+      <Output class="DataObjects" type="HistorySet">responseModel2HS</Output>
+      <Output class="DataObjects" type="PointSet">responseModel1</Output>
+      <Output class="DataObjects" type="HistorySet">responseModel1HS</Output>
     </MultiRun>
     <IOStep name="dumpResults">
         <Input class="DataObjects" type="PointSet">finalResponses</Input>
         <Input class="DataObjects" type="PointSet">responseModel1</Input>
         <Input class="DataObjects" type="PointSet">responseModel2</Input>
+        <Input class="DataObjects" type="HistorySet">responseModel1HS</Input>
+        <Input class="DataObjects" type="HistorySet">responseModel2HS</Input>
         <Output class="OutStreams" type="Print">printFinalResults</Output>
         <Output class="OutStreams" type="Print">printResponseModel1</Output>
         <Output class="OutStreams" type="Print">printResponseModel2</Output>
+        <Output class="OutStreams" type="Print">printResponseModel1HS</Output>
+        <Output class="OutStreams" type="Print">printResponseModel2HS</Output>
     </IOStep>
     <IOStep name="storeSelectiveResultsToHDF5">
         <Input class="DataObjects" type="PointSet">responseModel1</Input>
@@ -140,6 +148,14 @@
         <type>csv</type>
         <source>responseModel2</source>
     </Print>
+    <Print name="printResponseModel1HS">
+        <type>csv</type>
+        <source>responseModel1HS</source>
+    </Print>
+    <Print name="printResponseModel2HS">
+        <type>csv</type>
+        <source>responseModel2HS</source>
+    </Print>
   </OutStreams>
 
   <DataObjects>
@@ -163,6 +179,14 @@
         <Input>AtestModel1,BtestModel1</Input>
         <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
     </PointSet>
+    <HistorySet name="responseModel1HS">
+        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+        <Output>AtestModel1,BtestModel1,C,D</Output>
+    </HistorySet>
+    <HistorySet name="responseModel2HS">
+        <Input>AtestModel1,BtestModel1</Input>
+        <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
+    </HistorySet>
   </DataObjects>
 
 </Simulation>

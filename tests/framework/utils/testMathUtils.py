@@ -241,6 +241,23 @@ for i,f in enumerate(find):
   checkAnswer('numpyNearersMatch %s' %str(f),idx,idcs[i],1e-5)
   checkArray('numpyNearersMatch %s' %str(f),ary,correct[i],1e-5)
 
+
+### check relative differences
+# similar order magnitude
+checkAnswer('relativeDiff O(1)',mathUtils.relativeDiff(1.234,1.233),0.00081103000811)
+# large order magnitude
+checkAnswer('relativeDiff O(1e10)',mathUtils.relativeDiff(1.234e10,1.233e10),0.00081103000811)
+# small order magnitude
+checkAnswer('relativeDiff O(1e-10)',mathUtils.relativeDiff(1.234e-10,1.233e-10),0.00081103000811)
+# different magnitudes
+checkAnswer('relativeDiff different magnitudes',mathUtils.relativeDiff(1.234e10,1.233e-10),1.00081103000811e20,tol=1e6)
+# measured is 0
+checkAnswer('relativeDiff first is zero',mathUtils.relativeDiff(0,1.234),1.0)
+# expected is 0
+checkAnswer('relativeDiff second is zero',mathUtils.relativeDiff(1.234,0),1.0)
+# both are 0
+checkAnswer('relativeDiff both are zero',mathUtils.relativeDiff(0,0),0.0)
+
 ### check float comparison
 #moderate order of magnitude
 checkTrue('compareFloats moderate OoM match',mathUtils.compareFloats(3.141592,3.141593,tol=1e-6),True)

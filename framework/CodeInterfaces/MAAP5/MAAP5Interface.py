@@ -81,7 +81,7 @@ class MAAP5(GenericCode):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     self.samplerType=samplerType
-    if 'DynamicEventTree' in samplerType:
+    if 'dynamiceventtree' in str(samplerType).lower():
       if Kwargs['parentID'] == 'root':
         self.oriInput(oriInputFiles) #original input files are checked only the first time
       self.stopSimulation(currentInputFiles, Kwargs)
@@ -456,7 +456,7 @@ class MAAP5(GenericCode):
       key2 = timerActivated.split('TIM')[-1]
       d2 = dict((v, k) for k, v in self.timer.iteritems())
       varActivated = d2[key2]
-      currentFolder=workingDir.split('/')[-1]
+      currentFolder = os.path.split(workingDir)[-1]
       for key, value in self.values[currentFolder].items():
         if key == varActivated:
           self.branch[currentFolder]=(key,value)
@@ -510,7 +510,7 @@ class MAAP5(GenericCode):
     stopInfo={'end_time':tilast}
     listDict=[]
     variableBranch=''
-    branchName=path.split('/')[-1]
+    branchName = os.path.split(path)[-1]
     variableBranch=self.branch[str(branchName)][0]
 
     if variableBranch in self.DETsampledVars and variableBranch not in self.multiBranch:
@@ -622,7 +622,7 @@ class MAAP5(GenericCode):
     fileobject.close()
 
     currentFolder=os.path.dirname(inp)
-    currentFolder=currentFolder.split('/')[-1]
+    currentFolder = os.path.split(currentFolder)[-1]
     parents=[]
     self.values[currentFolder]=Kwargs['SampledVars']
     lineStop = int(lines.index(str('C Stop Simulation condition\n')))+1

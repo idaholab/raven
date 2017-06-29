@@ -317,7 +317,7 @@ class SingleRun(Step):
       @ Out, None
     """
     #Model initialization
-    modelInitDict = {}
+    modelInitDict = {'Output':inDictionary['Output']}
     if 'SolutionExport' in inDictionary.keys():
       modelInitDict['SolutionExport'] = inDictionary['SolutionExport']
     if inDictionary['Model'].createWorkingDir:
@@ -541,7 +541,7 @@ class MultiRun(SingleRun):
         ## in addition, we cannot provide more jobs than the sampler can provide.
         ## So, we take the minimum of these two values.
         for _ in range(min(jobHandler.availability(),sampler.endJobRunnable())):
-          self.raiseADebug('Testing the sampler if it is ready to generate a new input')
+          self.raiseADebug('Testing if the sampler is ready to generate a new input')
 
           if sampler.amIreadyToProvideAnInput():
             try:

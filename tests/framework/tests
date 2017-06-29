@@ -460,6 +460,20 @@
    csv    = 'custom1D/PointSet2_dump.csv custom1D/PointSet3_dump.csv'
  [../]
 
+ [./newerDatabaseWithFilename]
+   type   = 'RavenFramework'
+   input  = 'test_new_database_with_filename.xml'
+   output = 'GridTestHDF5WithFileName/DatabaseStorage/userSpecifiedFileName.h5'
+ [../]
+
+ [./testLimitSurfacePostProcessorWithRegressor]
+  type = 'RavenFramework'
+  input = 'test_LimitSurface_regressor_inverseWeight.xml'
+  csv = 'limitSurfaceWithRegressor/LimitSurfaceNegative_dump.csv limitSurfaceWithRegressor/LimitSurfacePositiveNegative_dump.csv limitSurfaceWithRegressor/LimitSurfacePositive_dump.csv'
+  max_time = 300
+  rel_err = 0.0001
+ [../]
+
 []
 
 

@@ -108,10 +108,6 @@ class relapdata:
     flagg2 = 0
     block_count=0
 
-    # The following object is a list of keywords that RELAP5 might generate in the minor edits which would
-    # corrupt the .csv files. If more keywords are discovered add them here in the list
-    errorKeywords = ['Reducing','Thermodynamic','ncount','0$$$$$$$$','written','block']
-
     while(flagg1==0 & flagg2==0):
       if flagg1==0:
         tempkeys=[]
@@ -134,7 +130,7 @@ class relapdata:
           #if takeIt:
           #  for k in range(len(tempArray)): tempArray[k].append(tempData[k])
           # Here I check that none of the keywords contained in errorKeywords are contained in tempData
-          if (not list(set(tempData) & set(errorKeywords))) and (len(tempArray)==len(tempData)):
+          if self.checkLine(tempData) and (len(tempArray)==len(tempData)):
             for k in range(len(tempArray)):
               tempArray[k].append(tempData[k])
           i=i+1
@@ -156,6 +152,20 @@ class relapdata:
           flagg1=1
           flagg2=1
     return minorDict
+
+  def checkLine(self,lineList):
+    """
+      Method that checks the content of a list (i.e., a line); a list must contain only numbers
+      @ In, list, lineList, list that contained values located in a single line
+      @ Out, outcome, bool, boolean variable which is True if the list contains only numbers, False if the contains at list a string
+    """
+    outcome = True
+    for element in lineList:
+      try:
+        float(element)
+      except ValueError:
+        outcome = outcome and False
+    return outcome
 
   def getMinor(self,lines):
     """
@@ -183,9 +193,6 @@ class relapdata:
               minorDict[k].extend(tempdict.get(k))
             else:
               minorDict[k] =  tempdict[k]
-#             for k in minorDict.keys():
-#               if k in tempdict.keys():
-#                 minorDict[k].extend(tempdict.get(k))
     timeBlock = []
     for tBlock in timeList:
       timeBlock.extend(tBlock)
@@ -230,20 +237,20 @@ class relapdata:
       @ In, filen, string, input file name
       @ Out, None
     """
+    #TODO this should be further reworked and optimized probably, but it is patched to work for now.
     IOcsvfile=open(filen,'w')
     if self.minordata != None:
-      for i in range(len(self.minordata.keys())):
-        IOcsvfile.write('%s,' %(self.minordata.keys()[i].strip().replace("1 time_(sec)","time").replace(' ', '_')))
+      IOcsvfile.write(','.join(s.strip().replace("1 time_(sec)","time").replace(' ', '_') for s in self.minordata.keys()))
+    if len(self.ravenData) > 0:
+      IOcsvfile.write(',')
     for j in range(len(self.ravenData.keys())):
       IOcsvfile.write('%s' %(self.ravenData.keys()[j]))
-      if j+1<len(self.ravenData.keys()):
-        IOcsvfile.write(',')
+      if j+1<len(self.ravenData.keys()): IOcsvfile.write(',')
     IOcsvfile.write('\n')
     for i in range(len(self.minordata.get(self.minordata.keys()[0]))):
-      for j in range(len(self.minordata.keys())):
-        IOcsvfile.write('%s,' %(self.minordata.get(self.minordata.keys()[j])[i]))
-      for k in range(len(self.ravenData.keys())):
-        IOcsvfile.write('%s' %(self.ravenData[self.ravenData.keys()[k]]))
-        if k+1<len(self.ravenData.keys()):
-          IOcsvfile.write(',')
+      IOcsvfile.write(','.join(self.minordata.get(self.minordata.keys()[j])[i] for j in range(len(self.minordata.keys()))))
+      if len(self.ravenData)>0:
+        IOcsvfile.write(',')
+      IOcsvfile.write(','.join(self.ravenData[self.ravenData.keys()[k]] for k in range(len(self.ravenData.keys()))))
       IOcsvfile.write('\n')
+    IOcsvfile.close()
