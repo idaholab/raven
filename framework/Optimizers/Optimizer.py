@@ -421,8 +421,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
     self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.fullOptVars)), 'Target':self.objVar, 'n_neighbors':1,'weights':'distance'})
     self.solutionExport = solutionExport
+    if self.solutionExport is None:
+      self.raiseAnError(IOError,'The results of optimization cannot be obtained with a SolutionExport in the Step!')
 
-    if solutionExport != None and type(solutionExport).__name__ != "HistorySet":
+    if type(solutionExport).__name__ != "HistorySet":
       self.raiseAnError(IOError,'solutionExport type is not a HistorySet. Got '+ type(solutionExport).__name__+ '!')
 
     if 'Function' in self.assemblerDict.keys():
@@ -467,17 +469,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       except IndexError:
         self.raiseAnError(IOError,'Could not find preconditioner "{}" in <Preconditioner> nodes!'.format(precondName))
 
-    # specializing the self.localInitialize()
-    if solutionExport != None:
-      self.localInitialize(solutionExport=solutionExport)
-    else:
-      self.localInitialize()
+    self.localInitialize(solutionExport=solutionExport)
 
-  def localInitialize(self,solutionExport=None):
+  def localInitialize(self,solutionExport):
     """
       Use this function to add initialization features to the derived class
       it is call at the beginning of each step
-      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      @ In, solutionExport, DataObject, a PointSet to hold the solution
       @ Out, None
     """
     pass # To be overwritten by subclass

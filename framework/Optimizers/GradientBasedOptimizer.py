@@ -44,7 +44,7 @@ class GradientBasedOptimizer(Optimizer):
   """
     This is the base class for gradient based optimizer. The following methods need to be overridden by all derived class
     self.localLocalInputAndChecks(self, xmlNode)
-    self.localLocalInitialize(self, solutionExport = None)
+    self.localLocalInitialize(self, solutionExport)
     self.localLocalGenerateInput(self,model,oldInput)
     self.localEvaluateGradient(self, optVarsValues, gradient = None)
   """
@@ -106,10 +106,10 @@ class GradientBasedOptimizer(Optimizer):
       self.raiseADebug('Gain growth factor is set at',self.gainGrowthFactor)
       self.raiseADebug('Gain shrink factor is set at',self.gainShrinkFactor)
 
-  def localInitialize(self,solutionExport=None):
+  def localInitialize(self,solutionExport):
     """
       Method to initialize settings that belongs to all gradient based optimizer
-      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      @ In, solutionExport, DataObject, a PointSet to hold the solution
       @ Out, None
     """
     self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
@@ -129,16 +129,13 @@ class GradientBasedOptimizer(Optimizer):
     # end job runnable equal to number of trajectory
     self._endJobRunnable = len(self.optTraj)
     #specializing the self.localLocalInitialize()
-    if solutionExport != None:
-      self.localLocalInitialize(solutionExport=solutionExport)
-    else:
-      self.localLocalInitialize()
+    self.localLocalInitialize(solutionExport=solutionExport)
 
   @abc.abstractmethod
-  def localLocalInitialize(self, solutionExport = None):
+  def localLocalInitialize(self, solutionExport):
     """
       Method to initialize local settings.
-      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      @ In, solutionExport, DataObject, a PointSet to hold the solution
       @ Out, None
     """
     pass
@@ -275,10 +272,6 @@ class GradientBasedOptimizer(Optimizer):
       @ In, currentLossVal, float, current loss function value
       @ Out, None
     """
-    # if trajectory is already converged, no need to update. #FIXME then why was this method called?
-    if self.convergeTraj[traj]:
-      return
-
     # first, check if we're at varsUpdate 0 (first entry); if so, we are at our first point
     if varsUpdate == 0:
       # we don't have enough points to decide to accept or reject the new point, so accept it as the initial point
@@ -346,8 +339,8 @@ class GradientBasedOptimizer(Optimizer):
       converged = converged or minStepSizeCheck
 
       # gradient norm
-      if len(self.counter['gradientHistory'][traj][0]) > 0: # that is, if we have gradient evaluations available ...
-        gradNorm = self.counter['gradNormHistory'][traj][0] # TODO the check used to be for len(...[1])>0
+      if len(self.counter['gradientHistory'][traj][0]) > 0:
+        gradNorm = self.counter['gradNormHistory'][traj][0]
         self.convergenceProgress[traj]['grad'] = gradNorm
         gradientNormCheck = gradNorm <= self.gradientNormTolerance
       else:
@@ -484,7 +477,7 @@ class GradientBasedOptimizer(Optimizer):
 
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
     # TODO what if there's no solution export?  Our "status" and etc fail badly!
-    if self.solutionExport != None and len(self.mdlEvalHist) > 0:
+    if len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
         #does this need to be a while loop?  We can't get behind by 2 points...
         #while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
