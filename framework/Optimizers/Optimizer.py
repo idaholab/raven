@@ -436,7 +436,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for trajInd in self.optTraj:
       for varname in self.getOptVars():
         varK[varname] = self.optVarsInit['initial'][varname][trajInd]
-      satisfied, _ = self.checkConstraint(varK)#self.normalizeData(varK))
+      satisfied, _ = self.checkConstraint(varK)
       if not satisfied:
         # get a random value between the the lower and upper bounds
         self.raiseAWarning("the initial values specified for trajectory "+str(trajInd)+" do not satify the contraints. Picking random ones!")
@@ -678,9 +678,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
       if not satisfied:
         violatedConstrains['external'].append(self.constraintFunction.name)
-    #optVars = self.denormalizeData(optVars)
     for var in optVars:
-      #if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
       if optVars[var] > self.optVarsInit['upperBound'][var]:
         violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
         satisfied = False

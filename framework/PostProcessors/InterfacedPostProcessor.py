@@ -167,8 +167,6 @@ class InterfacedPostProcessor(PostProcessor):
         if type(exportDict['inputSpaceParams'].values()[0]).__name__ == "dict":
           for key in listInputParms:
             output.updateInputValue(key,exportDict['inputSpaceParams'][hist][str(key)])
-          print('DEBUGG DO  keys:',output.getParaKeys('output'))
-          print('DEBUGG exp keys:',exportDict['outputSpaceParams'][hist].keys())#.getParaKeys('output'))
           for key in listOutputParams:
             output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][str(key)])
         else:

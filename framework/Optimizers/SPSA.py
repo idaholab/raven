@@ -425,12 +425,11 @@ class SPSA(GradientBasedOptimizer):
     gain = np.asarray(gain)
     for index,var in enumerate(self.getOptVars()): #get full opt vars so all variables carried through
       varKPlus[var] = varK[var]-gain[index]*gradient.get(var,0.0)*1.0
-    #satisfied, activeConstraints = self.checkConstraint(varKPlus)
     satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(varKPlus))
     if satisfied:
       return varKPlus, False
     # else if not satisfied ...
-    # check if the active constraints are the boundary ones. In case, project the gradient
+    # check if the active constraints are the boundary ones. In this case, try to project the gradient at an angle
     modded = False
     if len(activeConstraints['internal']) > 0:
       projectedOnBoundary= {}
@@ -526,7 +525,7 @@ class SPSA(GradientBasedOptimizer):
       gain = [ak]*len(self.getOptVars(traj=traj))
 
     innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
-    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1: #FIXME this is an input check, not a runtime check
+    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1: #FIXME REWORK this is an input check, not a runtime check
       self.raiseAnError(ValueError, 'The innerBisectionThreshold shall be greater than 0 and less than 1')
     bounds = [0, 1.0]
     tempVarNew = {}
