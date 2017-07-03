@@ -56,8 +56,8 @@
       <initialization>
         <initialSeed>42</initialSeed>
       </initialization>
+      <Function class="Functions" type="External">mishra</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-      <Function         class="Functions"   type="External">mishra</Function>
       <convergence>
           <gradientThreshold>1e-2</gradientThreshold>
           <gainGrowthFactor>2</gainGrowthFactor>

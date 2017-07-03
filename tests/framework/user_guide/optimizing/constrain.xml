@@ -31,8 +31,8 @@
       <initialization>
         <initialSeed>1234</initialSeed>
       </initialization>
-      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Function class="Functions" type="External">constraint</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
         <gainGrowthFactor>1.5</gainGrowthFactor>
         <gainShrinkFactor>1.25</gainShrinkFactor>
