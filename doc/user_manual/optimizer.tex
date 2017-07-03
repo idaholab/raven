@@ -211,9 +211,7 @@ specified:
 \item \xmlNode{Function}, \xmlDesc{XML node, optional parameter},
         indicates the external function where the constraints are stored. From a practical point of view, this XML node must contain the
         name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}). This external function must
-        contain a method called ``constrain'', which returns 1 for inputs satisfying the constraints and 0 otherwise. When this block is
-        absent and all the \xmlNode{upperBound} blocks of \xmlNode{variable} are absent (see below), then \xmlNode{SPSA} considers
-        it as an unconstrained optimization problem;
+        contain a method called ``constrain'', which returns 1 for inputs satisfying the constraints and 0 otherwise.
 \item \xmlNode{Preconditioner}, \xmlDesc{XML node, optional parameter},
         provides a model that can be used as a preconditioner in Multilevel optimization calculations.  Only
         affects optimizers with a \xmlNode{multilevel} node.  As many preconditioners as desired can be added

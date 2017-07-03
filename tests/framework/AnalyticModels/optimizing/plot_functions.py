@@ -49,15 +49,13 @@ def plotFunction(title,method,low,high,cscale=None,log=True):
 from sine_valley import evaluate as sine
 x,y,z = plotFunction('Sine',sine,-4.5,4.5,cscale=(1e-2,1e1))
 pk.dump((x,y,z),file('sine_plotdata.pk','w'))
-
 plt.axes().set_aspect('equal')
-plt.show()
-import sys;sys.exit()
 
 # Beale
 from beale import evaluate as beale
 x,y,z = plotFunction('Beale',beale,-4.5,4.5,cscale=(1e-1,1e3))
 pk.dump((x,y,z),file('beale_plotdata.pk','w'))
+plt.savefig('Beale_grid.png')
 
 # Rosenbrock
 from rosenbrock import evaluate2d as rosenbrock
