@@ -413,41 +413,44 @@ class SPSA(GradientBasedOptimizer):
       @ In, traj, int, trajectory label for whom we are generating variables with constraint consideration
       @ In, ak, float or array, it is gain for variable update (if array, different gain for each variable)
       @ In, gradient, dictionary, contains the gradient information for variable update
-      @ In, varK, dictionary, current variable values
-      @ Out, tempVarKPlus, dictionary, variable values for next iteration.
+      @ In, varK, dictionary, current variable values (normalized)
+      @ Out, varKPlus, dictionary, variable values for next iteration.
       @ Out, modded, bool, if True the point was modified by the constraint
     """
-    tempVarKPlus = {}
+    varKPlus = {}
     try:
       gain = ak[:]
     except (TypeError,IndexError):
       gain = [ak]*len(self.getOptVars()) #technically incorrect, but missing ones will be *0 anyway just below here
     gain = np.asarray(gain)
     for index,var in enumerate(self.getOptVars()): #get full opt vars so all variables carried through
-      tempVarKPlus[var] = varK[var]-gain[index]*gradient.get(var,0.0)*1.0
-    satisfied, activeConstraints = self.checkConstraint(tempVarKPlus)
-    #satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempVarKPlus))
+      varKPlus[var] = varK[var]-gain[index]*gradient.get(var,0.0)*1.0
+    satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(varKPlus))
     if satisfied:
-      return tempVarKPlus, False
+      return varKPlus, False
     # else if not satisfied ...
-    # check if the active constraints are the boundary ones. In case, project the gradient
+    # check if the active constraints are the boundary ones. In this case, try to project the gradient at an angle
     modded = False
     if len(activeConstraints['internal']) > 0:
       projectedOnBoundary= {}
       for activeConstraint in activeConstraints['internal']:
         projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
-      tempVarKPlus.update(self.normalizeData(projectedOnBoundary))
+      varKPlus.update(self.normalizeData(projectedOnBoundary))
       modded = True
     if len(activeConstraints['external']) == 0:
-      return tempVarKPlus, modded
+      return varKPlus, modded
 
     # Try to find varKPlus by shorten the gradient vector
-    foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(traj,varK, ak, gradient)
+    self.raiseADebug('Trajectory "{}" hit constraints ...'.format(traj))
+    self.raiseADebug('  Attempting to shorten step length ...')
+    foundVarsUpdate, varKPlus = self._bisectionForConstrainedInput(traj,varK, ak, gradient)
     if foundVarsUpdate:
-      return tempVarKPlus, True
+      self.raiseADebug('   ... successfully found new point by shortening length.')
+      return varKPlus, True
 
     # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
     # with respect to the constraints hyper-surface
+    self.raiseADebug('  Attempting instead to rotate trajectory ...')
     innerLoopLimit = self.constraintHandlingPara['innerLoopLimit']
     if innerLoopLimit < 0:
       self.raiseAnError(IOError, 'Limit for internal loop for constraint handling shall be nonnegative')
@@ -455,7 +458,7 @@ class SPSA(GradientBasedOptimizer):
     foundPendVector = False
     while not foundPendVector and loopCounter < innerLoopLimit:
       loopCounter += 1
-      depVarPos = Distributions.randomIntegers(0,self.nVar-1,self)
+      depVarPos = randomUtils.randomIntegers(0,len(self.getOptVars(traj=traj))-1,self)
       pendVector = {}
       npDot = 0
       for varID, var in enumerate(self.getOptVars(traj=traj)):
@@ -465,16 +468,16 @@ class SPSA(GradientBasedOptimizer):
         if varID == depVarPos:
           pendVector[var] = -npDot/gradient[var]
 
-      r = LA.norm(np.asarray([gradient[var] for var in self.optVars]))/LA.norm(np.asarray([pendVector[var] for var in self.getOptVars(traj=traj)]))
+      r = LA.norm(np.asarray([gradient[var] for var in self.getOptVars(traj=traj)]))/LA.norm(np.asarray([pendVector[var] for var in self.getOptVars(traj=traj)]))
       for var in self.getOptVars(traj=traj):
         pendVector[var] = copy.deepcopy(pendVector[var])*r
 
-      tempVarKPlus = {}
+      varKPlus = {}
       for index, var in enumerate(self.getOptVars(traj=traj)):
-        tempVarKPlus[var] = copy.copy(varK[var]-gain[index]*pendVector[var]*1.0)
-      foundPendVector, activeConstraints = self.checkConstraint(tempVarKPlus)
+        varKPlus[var] = copy.copy(varK[var]-gain[index]*pendVector[var]*1.0)
+      foundPendVector, activeConstraints = self.checkConstraint(self.denormalizeData(varKPlus))
       if not foundPendVector:
-        foundPendVector, tempVarKPlus = self._bisectionForConstrainedInput(traj,varK, gain, pendVector)
+        foundPendVector, varKPlus = self._bisectionForConstrainedInput(traj,varK, gain, pendVector)
       gain = gain/2.
 
     if foundPendVector:
@@ -494,24 +497,27 @@ class SPSA(GradientBasedOptimizer):
         for index, var in enumerate(self.getOptVars(traj=traj)):
           sumVector[var] = copy.deepcopy(sumVector[var]/np.sqrt(lenSumVector)*lenPendVector)
           tempTempVarKPlus[var] = copy.copy(varK[var]-gain[index]*sumVector[var]*1.0)
-        satisfied, activeConstraints = self.checkConstraint(tempTempVarKPlus)
+        satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempTempVarKPlus))
         if satisfied:
-          tempVarKPlus = copy.deepcopy(tempTempVarKPlus)
+          varKPlus = copy.deepcopy(tempTempVarKPlus)
           pendVector = copy.deepcopy(sumVector)
         else:
           gradient = copy.deepcopy(sumVector)
-      return tempVarKPlus, True
-    tempVarKPlus = varK
-    return tempVarKPlus, True
+      self.raiseADebug('   ... successfully found new point by rotating trajectory.')
+      return varKPlus, True
+    varKPlus = varK
+    self.raiseADebug('   ... did not successfully find new point.')
+    return varKPlus, False
 
   def _bisectionForConstrainedInput(self,traj,varK,ak,vector):
     """
-      Method to find the maximum fraction of 'vector' that, when using as gradient, the input can satisfy the constraint
+      Method to find the maximum fraction of the step size "ak" such that taking a step of size "ak" in
+      the direction of "vector" starting from current input point "varK" will not violate the constraint function.
       @ In, traj, int, trajectory label for whom we are working
       @ In, varK, dictionary, current variable values
-      @ In, ak, float or array, it is gain for variable update (if array, different gain for each variable)
-      @ In, vector, dictionary, contains the gradient information for variable update
-      @ Out, _bisectionForConstrainedInput, tuple(bool,dict), (indicating whether a fraction vector is found, contains the fraction of gradient that satisfies constraint)
+      @ In, ak, float or array, it is step size (gain) for variable update (if array, different gain for each variable)
+      @ In, vector, dictionary, contains the gradient information as a unit vector
+      @ Out, _bisectionForConstrainedInput, tuple(bool,dict), (indicating whether a fractional step is found, contains the fraction of step that satisfies constraint)
     """
     try:
       gain = ak[:]
@@ -519,7 +525,7 @@ class SPSA(GradientBasedOptimizer):
       gain = [ak]*len(self.getOptVars(traj=traj))
 
     innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
-    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1:
+    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1: #FIXME REWORK this is an input check, not a runtime check
       self.raiseAnError(ValueError, 'The innerBisectionThreshold shall be greater than 0 and less than 1')
     bounds = [0, 1.0]
     tempVarNew = {}
@@ -547,7 +553,8 @@ class SPSA(GradientBasedOptimizer):
       @ In, d2, dict, second vector
       @ Out, angleD, float, angle between d1 and d2 with unit of degree
     """
-    v1, v2 = np.zeros(shape=[self.nVar,]), np.zeros(shape=[self.nVar,])
+    nVar = len(self.getOptVars())
+    v1, v2 = np.zeros(shape=[nVar,]), np.zeros(shape=[nVar,])
     for cnt, var in enumerate(self.getOptVars(traj=traj)):
       v1[cnt], v2[cnt] = copy.deepcopy(d1[var]), copy.deepcopy(d2[var])
     angle = np.arccos(np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2))

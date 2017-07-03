@@ -436,7 +436,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for trajInd in self.optTraj:
       for varname in self.getOptVars():
         varK[varname] = self.optVarsInit['initial'][varname][trajInd]
-      satisfied, _ = self.checkConstraint(self.normalizeData(varK))
+      satisfied, _ = self.checkConstraint(varK)
       if not satisfied:
         # get a random value between the the lower and upper bounds
         self.raiseAWarning("the initial values specified for trajectory "+str(trajInd)+" do not satify the contraints. Picking random ones!")
@@ -667,7 +667,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def checkConstraint(self, optVars):
     """
-      Method to check whether a set of decision variables satisfy the constraint or not
+      Method to check whether a set of decision variables satisfy the constraint or not in UNNORMALIZED input space
       @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
       @ Out, satisfaction, tuple, (bool,list) => (variable indicating the satisfaction of constraints at the point optVars, list of the violated constrains)
     """
@@ -678,14 +678,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
       if not satisfied:
         violatedConstrains['external'].append(self.constraintFunction.name)
-    optVars = self.denormalizeData(optVars)
     for var in optVars:
-      if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
+      if optVars[var] > self.optVarsInit['upperBound'][var]:
+        violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
         satisfied = False
-        if optVars[var] > self.optVarsInit['upperBound'][var]:
-          violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
-        if optVars[var] < self.optVarsInit['lowerBound'][var]:
-          violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
+      elif optVars[var] < self.optVarsInit['lowerBound'][var]:
+        violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
+        satisfied = False
 
     satisfied = self.localCheckConstraint(optVars, satisfied)
     satisfaction = satisfied,violatedConstrains
