@@ -24,7 +24,7 @@
   <Steps>
     <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">malj</Model>
+      <Model class="Models" type="ExternalModel">sine</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
@@ -77,10 +77,10 @@
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/maljovec.py" name="malj" subType="">
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/sine_valley.py" name="sine" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/maljovec_precond.py" name="precond" subType="">
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/diagonal.py" name="precond" subType="">
       <variables>x,y</variables>
     </ExternalModel>
     <PostProcessor name="snapshot" subType="InterfacedPostProcessor">

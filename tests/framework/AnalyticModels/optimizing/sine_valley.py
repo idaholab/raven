@@ -1,4 +1,4 @@
-# Function designed by D. Maljovech to have sinusoidal minimum
+# Function designed by D. Maljovec to have sinusoidally-shaped minimum region
 #
 # takes input parameters x,y
 # returns value in "ans"

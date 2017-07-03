@@ -99,10 +99,10 @@ class SPSA(GradientBasedOptimizer):
     else:
       self.raiseAnError(IOError, self.paramDict['stochasticEngine']+'is currently not supported for SPSA')
 
-  def localLocalInitialize(self, solutionExport = None):
+  def localLocalInitialize(self, solutionExport):
     """
       Method to initialize local settings.
-      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      @ In, solutionExport, DataObject, a PointSet to hold the solution
       @ Out, None
     """
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
