@@ -131,3 +131,11 @@ PostProcessors/InterfacedPostProcessor/metadataUsageInInterfacePP/testDummyStep/
 SingleRuns/run/sample/
 utils/parse/fromGetpotToGetpot.i
 utils/parse/fromXmltoGetpot.i
+ensembleModelTests/metaModelWith2Codes/sampleMC/
+ensembleModelTests/metaModelWithCode/sampleMC/
+user_guide/ForwardSamplingStrategies/RunDir/Grid/sample/
+user_guide/ForwardSamplingStrategies/RunDir/MonteCarlo/sample/
+user_guide/ForwardSamplingStrategies/RunDir/Stratified/sample/
+user_guide/SingleRuns/sectionVI.I/single/
+user_guide/SingleRuns/sectionVI.II/single/
+GridTestSameHDF5/MonteCarloRestarted/

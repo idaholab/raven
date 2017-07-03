@@ -24,8 +24,8 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-from PySide import QtCore as qtc
-from PySide import QtGui as qtg
+from qtpy import QtCore as qtc
+from qtpy import QtWidgets as qtw
 
 from sys import path
 
@@ -44,7 +44,7 @@ import re
 import random
 import numpy as np
 
-class TopologyWindow(qtg.QMainWindow):
+class TopologyWindow(qtw.QMainWindow):
   """
       A Main Window container for holding various subwindows related to the
       visualization and analysis of a dataset according to the approximate
@@ -54,7 +54,7 @@ class TopologyWindow(qtg.QMainWindow):
   closed = qtc.Signal(qtc.QObject)
   def __init__(self, X=None, Y=None, w=None, names=None, graph='beta skeleton',
                gradient='steepest', knn=-1, beta=1.0, normalization=None,
-               debug=False):
+               debug=False, views=None):
     """ Initialization method that can optionally specify all of the parameters
         needed for building an underlying AMSC_Object to be used internally by
         this window and its child views.
@@ -90,11 +90,14 @@ class TopologyWindow(qtg.QMainWindow):
           unit hypercube.
         @ In, debug, an optional boolean flag for whether debugging output
           should be enabled.
+        @ In, views, list of strings, represents views to be added to this main
+          window.  Valid values include a string representation of any of the
+          subclasses of the BaseTopologicalView.
     """
     super(TopologyWindow,self).__init__()
     self.resize(800,600)
     self.setCentralWidget(None)
-    self.setDockOptions(qtg.QMainWindow.AllowNestedDocks)
+    self.setDockOptions(qtw.QMainWindow.AllowNestedDocks)
     self.debug = debug
     self.amsc = None
 
@@ -102,14 +105,15 @@ class TopologyWindow(qtg.QMainWindow):
       self.BuildAMSC(X, Y, w, names, graph, gradient, knn, beta, normalization)
     else:
       self.BuildAMSC(None, None, None, None, None, None, None, None, None)
-      self.loadData()
 
     self.fileMenu = self.menuBar().addMenu('File')
     self.optionsMenu = self.menuBar().addMenu('Options')
     self.viewMenu = self.menuBar().addMenu('View')
     newMenu = self.viewMenu.addMenu('New...')
-    self.addNewView('TopologyMapView')
-    # self.addNewView('ProjectionView')
+
+    if views is not None:
+      for view in views:
+        self.addNewView(view)
 
     for subclass in BaseTopologicalView.__subclasses__():
       action = newMenu.addAction(subclass.__name__)
@@ -117,6 +121,41 @@ class TopologyWindow(qtg.QMainWindow):
 
     buildModels = self.optionsMenu.addAction('Build Local Models')
     buildModels.triggered.connect(self.buildModels)
+
+  def test(self):
+    """
+        Method for testing this UI. It will generate one of each of the
+        subclass views of the BaseTopologicalView and call each of the signaled
+        events on each view.
+        @ In, None
+        @ Out, None
+    """
+    for viewClass in BaseTopologicalView.__subclasses__():
+      self.addNewView(viewClass.__name__)
+
+    ## Rebuild the AMSC after all of the views have been added
+    self.BuildAMSC(self.amsc.X, self.amsc.Y, self.amsc.w, self.amsc.names,
+                   self.amsc.graph, self.amsc.gradient, self.amsc.knn,
+                   self.amsc.beta, self.amsc.normalization)
+
+    self.buildModels()
+
+    for view in self.views:
+      view.dataChanged()
+      view.filterChanged()
+      view.selectionChanged()
+      view.persistenceChanged()
+      view.modelsChanged()
+      view.weightsChanged()
+
+      view.test()
+
+    ## Reset the persistence level to the value used by our test case.
+    ## Note, if we require multiple test cases, we could remember this state
+    ## from before, but as this function should capture all of the functionality
+    ## this is a low priority fix and might require persistent storage of this
+    ## value on the object.
+    self.amsc.Persistence(1.0)
 
   def BuildAMSC(self, X=None, Y=None, w=None, names=None, graph='beta skeleton',
                 gradient='steepest', knn=-1, beta=1.0, normalization=None):
@@ -184,11 +223,11 @@ class TopologyWindow(qtg.QMainWindow):
         @ In, view, an object belonging to a subclass of BaseTopologicalView
           that will be added to this window.
     """
-    dockWidget = qtg.QDockWidget()
+    dockWidget = qtw.QDockWidget()
     dockWidget.setWindowTitle(view.windowTitle())
 
     if view.scrollable:
-      scroller = qtg.QScrollArea()
+      scroller = qtw.QScrollArea()
       scroller.setWidget(view)
       scroller.setWidgetResizable(True)
       dockWidget.setWidget(scroller)
@@ -196,14 +235,7 @@ class TopologyWindow(qtg.QMainWindow):
       dockWidget.setWidget(view)
 
     #Placement was arbitrarily selected
-    if view.windowTitle() in ['ScatterView']:
-      self.addDockWidget(qtc.Qt.RightDockWidgetArea,dockWidget)
-    elif view.windowTitle() in ['ParameterView','SensitivityView','FitnessView']:
-      self.addDockWidget(qtc.Qt.BottomDockWidgetArea,dockWidget)
-    elif view.windowTitle() in ['SkeletonView','PersistenceChartView']:
-      self.addDockWidget(qtc.Qt.LeftDockWidgetArea,dockWidget)
-    else:
-      self.addDockWidget(qtc.Qt.TopDockWidgetArea,dockWidget)
+    self.addDockWidget(qtc.Qt.TopDockWidgetArea,dockWidget)
 
     self.viewMenu.addAction(dockWidget.toggleViewAction())
 
@@ -242,16 +274,3 @@ class TopologyWindow(qtg.QMainWindow):
     """
     self.closed.emit(self)
     return super(TopologyWindow,self).closeEvent(event)
-
-## We will not support external running of this UI, it shall be run from RAVEN
-# if __name__ == '__main__':
-#   app = qtg.QApplication(sys.argv)
-
-#   X = None
-#   Y = None
-#   if len(sys.argv) > 1:
-#     print('\tYou probably want me to load a file...')
-#     print('\tThe Maker has not included this in my programming.')
-#   main = TopologyWindow(X,Y)
-#   main.show()
-#   sys.exit(app.exec_())

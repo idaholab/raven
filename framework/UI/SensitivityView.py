@@ -23,9 +23,10 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-from PySide import QtCore as qtc
-from PySide import QtGui as qtg
-from PySide import QtSvg as qts
+from qtpy import QtCore as qtc
+from qtpy import QtGui as qtg
+from qtpy import QtWidgets as qtw
+from qtpy import QtSvg as qts
 
 from .BaseTopologicalView import BaseTopologicalView
 
@@ -61,16 +62,16 @@ class SensitivityView(BaseTopologicalView):
     """
     # Try to apply a new layout, if one already exists then make sure to grab
     # it for updating
-    self.setLayout(qtg.QVBoxLayout())
+    self.setLayout(qtw.QVBoxLayout())
     layout = self.layout()
     self.clearLayout(layout)
 
     self.padding = 2
 
     ## General Graphics View/Scene setup
-    self.scene = qtg.QGraphicsScene()
+    self.scene = qtw.QGraphicsScene()
     self.scene.setSceneRect(0,0,100,100)
-    self.gView = qtg.QGraphicsView(self.scene)
+    self.gView = qtw.QGraphicsView(self.scene)
     self.gView.setRenderHints(qtg.QPainter.Antialiasing |
                               qtg.QPainter.SmoothPixmapTransform)
     self.gView.setHorizontalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
@@ -78,9 +79,9 @@ class SensitivityView(BaseTopologicalView):
     self.font = qtg.QFont('sans-serif', 12)
 
     ## Defining the right click menu
-    self.rightClickMenu = qtg.QMenu()
-    self.shapeMenu = qtg.QMenu('Layout')
-    self.shapeGroup = qtg.QActionGroup(self.shapeMenu)
+    self.rightClickMenu = qtw.QMenu()
+    self.shapeMenu = qtw.QMenu('Layout')
+    self.shapeGroup = qtw.QActionGroup(self.shapeMenu)
     self.rightClickMenu.addMenu(self.shapeMenu)
     shapeActions = []
     shapeActions.append(self.shapeMenu.addAction('Horizontal Bar'))
@@ -92,8 +93,8 @@ class SensitivityView(BaseTopologicalView):
     self.shapeGroup.triggered.connect(self.updateScene)
 
     ## Ba da ba ba ba I'm lovin' it
-    self.valueMenu = qtg.QMenu('Value to Display')
-    self.valueGroup = qtg.QActionGroup(self.valueMenu)
+    self.valueMenu = qtw.QMenu('Value to Display')
+    self.valueGroup = qtw.QActionGroup(self.valueMenu)
     self.rightClickMenu.addMenu(self.valueMenu)
     valueActions = []
     valueActions.append(self.valueMenu.addAction('Linear coefficients'))
@@ -139,34 +140,43 @@ class SensitivityView(BaseTopologicalView):
     layout.addWidget(self.gView)
     self.updateScene()
 
-  def saveImage(self):
-    """ Saves the current display of this view to a static image by loading a
-        file dialog box.
+  def saveImage(self, filename=None):
     """
-    dialog = qtg.QFileDialog(self)
-    dialog.setFileMode(qtg.QFileDialog.AnyFile)
-    dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
-    dialog.exec_()
-    if dialog.result() == qtg.QFileDialog.Accepted:
-      myFile = dialog.selectedFiles()[0]
-      self.scene.clearSelection()
-      self.scene.setSceneRect(self.scene.itemsBoundingRect())
-      if myFile.endswith('.svg'):
-        svgGen = qts.QSvgGenerator()
-        svgGen.setFileName(myFile)
-        svgGen.setSize(self.scene.sceneRect().size().toSize())
-        svgGen.setViewBox(self.scene.sceneRect())
-        svgGen.setTitle("Screen capture of " + self.__class__.__name__)
-        svgGen.setDescription("Generated from RAVEN.")
-        painter = qtg.QPainter (svgGen)
+        Saves the current display of this view to a static image by loading a
+        file dialog box.
+        @ In, filename, string, optional parameter specifying where this image
+        will be saved. If None, then a dialog box will prompt the user for a
+        name and location.
+        @ Out, None
+    """
+    if filename is None:
+      dialog = qtw.QFileDialog(self)
+      dialog.setFileMode(qtw.QFileDialog.AnyFile)
+      dialog.setAcceptMode(qtw.QFileDialog.AcceptSave)
+      dialog.exec_()
+      if dialog.result() == qtw.QFileDialog.Accepted:
+        filename = dialog.selectedFiles()[0]
       else:
-        image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
-        image.fill(qtc.Qt.transparent)
-        painter = qtg.QPainter(image)
-      self.scene.render(painter)
-      if not myFile.endswith('.svg'):
-        image.save(myFile,quality=100)
-      del painter
+        return
+
+    self.scene.clearSelection()
+    self.scene.setSceneRect(self.scene.itemsBoundingRect())
+    if filename.endswith('.svg'):
+      svgGen = qts.QSvgGenerator()
+      svgGen.setFileName(filename)
+      svgGen.setSize(self.scene.sceneRect().size().toSize())
+      svgGen.setViewBox(self.scene.sceneRect())
+      svgGen.setTitle("Screen capture of " + self.__class__.__name__)
+      svgGen.setDescription("Generated from RAVEN.")
+      painter = qtg.QPainter (svgGen)
+    else:
+      image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
+      image.fill(qtc.Qt.transparent)
+      painter = qtg.QPainter(image)
+    self.scene.render(painter)
+    if not filename.endswith('.svg'):
+      image.save(filename,quality=100)
+    del painter
 
   def contextMenuEvent(self,event):
     """ An event handler triggered when the user right-clicks on this view that
@@ -232,9 +242,9 @@ class SensitivityView(BaseTopologicalView):
       if self.showLabelsAction.isChecked():
         txtItem = self.scene.addSimpleText(name,self.font)
         txtItem.setPos(endX,endY)
-        txtItem.setFlag(qtg.QGraphicsItem.ItemIsMovable)
-        txtItem.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
-        txtItem.setFlag(qtg.QGraphicsItem.ItemIgnoresTransformations)
+        txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
+        txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
+        txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
 
     selection = self.amsc.GetSelectedSegments()
     colorMap = self.amsc.GetColors()
@@ -360,12 +370,12 @@ class SensitivityView(BaseTopologicalView):
           h = -axisHeight / float(len(selection))
           if self.showNumberAction.isChecked():
             numTxtItem = self.scene.addSimpleText('%.3g' % val, self.font)
-            numTxtItem.setFlag(qtg.QGraphicsItem.ItemIgnoresTransformations)
+            numTxtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
             fm = qtg.QFontMetrics(numTxtItem.font())
             fontWidth = fm.width(numTxtItem.text())
             numTxtItem.setPos(self.padding+maxExtent-fontWidth,y+h)
-            numTxtItem.setFlag(qtg.QGraphicsItem.ItemIsMovable)
-            numTxtItem.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+            numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
+            numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
             numTxtItem.setZValue(2)
           myRect = self.scene.addRect(x,y,w,h,myPen,myBrush)
           myRect.setToolTip(str(val))
@@ -377,13 +387,13 @@ class SensitivityView(BaseTopologicalView):
         h = -axisHeight
         if self.showLabelsAction.isChecked():
           txtItem = self.scene.addSimpleText(name,self.font)
-          txtItem.setFlag(qtg.QGraphicsItem.ItemIgnoresTransformations)
+          txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
           fm = qtg.QFontMetrics(txtItem.font())
           fontHeight = fm.height()
           fontWidth = fm.width(txtItem.text())
           txtItem.setPos(self.padding-fontWidth,y+h + (axisHeight-fontHeight)/2.)
-          txtItem.setFlag(qtg.QGraphicsItem.ItemIsMovable)
-          txtItem.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+          txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
+          txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
           txtItem.setZValue(2)
         myRect = self.scene.addRect(x,y,w,h,axisPen)
         myRect.setZValue(2) # Any value greater than 1 should work to draw on top
@@ -419,23 +429,27 @@ class SensitivityView(BaseTopologicalView):
 
           if self.showLabelsAction.isChecked():
             txtItem = self.scene.addSimpleText(name,self.font)
-            # txtItem.setFlag(qtg.QGraphicsItem.ItemIgnoresTransformations)
+            ## this line can be useful for text sizing, although we cannot
+            ## rotate the text if we ignore the transformations.
+            # txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
             fm = qtg.QFontMetrics(txtItem.font())
             fontHeight = fm.boundingRect(txtItem.text()).height()
             fontWidth = fm.boundingRect(txtItem.text()).width()
             txtItem.setPos(self.padding,y+0.5*(h-fontHeight))
-            txtItem.setFlag(qtg.QGraphicsItem.ItemIsMovable)
-            txtItem.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+            txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
+            txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
             txtItem.setZValue(2)
           if self.showNumberAction.isChecked():
             numTxtItem = self.scene.addSimpleText('%.3g' % val, self.font)
-            # numTxtItem.setFlag(qtg.QGraphicsItem.ItemIgnoresTransformations)
+            ## this line can be useful for text sizing, although we cannot
+            ## rotate the text if we ignore the transformations.
+            # numTxtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
             fm = qtg.QFontMetrics(numTxtItem.font())
             fontWidth = fm.boundingRect(numTxtItem.text()).width()
             fontHeight = fm.boundingRect(numTxtItem.text()).height()
             numTxtItem.setPos(self.padding+maxExtent-fontWidth,y+0.5*(h-fontHeight))
-            numTxtItem.setFlag(qtg.QGraphicsItem.ItemIsMovable)
-            numTxtItem.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+            numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
+            numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
             numTxtItem.setZValue(2)
           myRect = self.scene.addRect(x,y,w,h,myPen,myBrush)
           myRect.setToolTip(str(val))
@@ -464,7 +478,7 @@ class SensitivityView(BaseTopologicalView):
       self.scene.clear()
       txtItem = self.scene.addSimpleText('Rebuild Local Models',self.font)
       txtItem.setPos(self.padding,self.padding)
-      txtItem.setFlag(qtg.QGraphicsItem.ItemIgnoresTransformations)
+      txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
     else:
       if self.fillAction.isChecked():
         self.scene.setSceneRect(0,0,100*float(self.gView.width())/float(self.gView.height()),100)
@@ -485,3 +499,46 @@ class SensitivityView(BaseTopologicalView):
         self.layoutBarScene()
     self.gView.fitInView(self.scene.sceneRect(),qtc.Qt.KeepAspectRatio)
     self.scene.changed.connect(self.scene.invalidate)
+
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations. For this class in particular, we will test:
+        - Building of the models (which allows for the actual display of
+          information on this view)
+        - Cylcing through all permutations of the display features which
+         includes the radial/bar layouts, the bundling of dimensions or segments
+         of data, the display of signed or unsigned information, and whether
+         the plot fills the viewport or maintains a square aspect ratio.
+        - Setting the selection of data and ensuring this view updates.
+        - Saving buffer of this view in both svg and png formats.
+        - Triggering of the resize event.
+        @ In, None
+        @ Out, None
+    """
+    self.amsc.BuildModels()
+    for action in self.shapeGroup.actions():
+      action.setChecked(True)
+      for value in self.valueGroup.actions():
+        value.setChecked(True)
+        self.amsc.ClearSelection()
+
+        self.signedAction.setChecked(True)
+        self.bundledAction.setChecked(True)
+        self.fillAction.setChecked(True)
+        self.updateScene()
+        self.signedAction.setChecked(False)
+        self.bundledAction.setChecked(False)
+        self.fillAction.setChecked(False)
+        self.updateScene()
+        pair = self.amsc.GetCurrentLabels()[0]
+        self.amsc.SetSelection([pair,pair[0],pair[1]])
+        self.updateScene()
+
+    self.saveImage(self.windowTitle()+'.svg')
+    self.saveImage(self.windowTitle()+'.png')
+    self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
+
+    super(SensitivityView, self).test()

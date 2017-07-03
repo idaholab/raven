@@ -59,6 +59,8 @@ class BaseType(MessageHandler.MessageUser):
     self.messageHandler   = None                                                        # message handling object
     self.variableGroups   = {}                                                          # the variables this class needs to be aware of
     self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
+    for baseClass in self.__class__.__mro__:
+      self.mods.extend(utils.returnImportModuleString(inspect.getmodule(baseClass),True))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self),True))
 
   def readXML(self,xmlNode,messageHandler,variableGroups={},globalAttributes=None):
@@ -74,12 +76,15 @@ class BaseType(MessageHandler.MessageUser):
     """
     self.setMessageHandler(messageHandler)
     self.variableGroups = variableGroups
-    if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
-    else: self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
+    if 'name' in xmlNode.attrib.keys():
+      self.name = xmlNode.attrib['name']
+    else:
+      self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
     self.type     = xmlNode.tag
-    if self.globalAttributes!= None: self.globalAttributes = globalAttributes
+    if self.globalAttributes!= None:
+      self.globalAttributes = globalAttributes
     if 'verbosity' in xmlNode.attrib.keys():
-      self.verbosity = xmlNode.attrib['verbosity']
+      self.verbosity = xmlNode.attrib['verbosity'].lower()
       self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
     #search and replace variableGroups where found in texts
     def replaceVariableGroups(node):
@@ -121,9 +126,10 @@ class BaseType(MessageHandler.MessageUser):
     else:
       self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
     self.type     = paramInput.getName()
-    if self.globalAttributes!= None: self.globalAttributes = globalAttributes
+    if self.globalAttributes!= None:
+      self.globalAttributes = globalAttributes
     if 'verbosity' in paramInput.parameterValues:
-      self.verbosity = paramInput.parameterValues['verbosity']
+      self.verbosity = paramInput.parameterValues['verbosity'].lower()
       self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
     #TODO fix replacing Variable Groups.
     #search and replace variableGroups where found in texts
@@ -224,10 +230,13 @@ class BaseType(MessageHandler.MessageUser):
       @ Out, None
     """
     tempDict = self.whoAreYou()
-    for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
+    for key in tempDict.keys():
+      self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.getInitParams()
     self.raiseADebug('       Initialization Parameters:')
-    for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
+    for key in tempDict.keys():
+      self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myCurrentSetting()
     self.raiseADebug('       Current Setting:')
-    for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
+    for key in tempDict.keys():
+      self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))

@@ -22,11 +22,12 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
+import qtpy
 import matplotlib
-matplotlib.rcParams['backend.qt4']='PySide'
 
-from PySide import QtCore as qtc
-from PySide import QtGui as qtg
+from qtpy import QtCore as qtc
+from qtpy import QtGui as qtg
+from qtpy import QtWidgets as qtw
 
 from .BaseTopologicalView import BaseTopologicalView
 
@@ -65,11 +66,11 @@ class ScatterView2D(BaseTopologicalView):
     """
     # Try to apply a new layout, if one already exists then make sure to grab
     # it for updating
-    self.setLayout(qtg.QVBoxLayout())
+    self.setLayout(qtw.QVBoxLayout())
     layout = self.layout()
     self.clearLayout(layout)
 
-    mySplitter = qtg.QSplitter()
+    mySplitter = qtw.QSplitter()
     mySplitter.setOrientation(qtc.Qt.Vertical)
     layout.addWidget(mySplitter)
 
@@ -82,19 +83,19 @@ class ScatterView2D(BaseTopologicalView):
 
     mySplitter.addWidget(self.mplCanvas)
 
-    controls = qtg.QGroupBox()
-    controls.setLayout(qtg.QGridLayout())
+    controls = qtw.QGroupBox()
+    controls.setLayout(qtw.QGridLayout())
     subLayout = controls.layout()
     row = 0
     col = 0
 
-    self.rightClickMenu = qtg.QMenu()
+    self.rightClickMenu = qtw.QMenu()
     self.axesLabelAction = self.rightClickMenu.addAction('Show Axis Labels')
     self.axesLabelAction.setCheckable(True)
     self.axesLabelAction.setChecked(True)
     self.axesLabelAction.triggered.connect(self.updateScene)
 
-    self.chkExts = qtg.QCheckBox('Show Extrema')
+    self.chkExts = qtw.QCheckBox('Show Extrema')
     self.chkExts.setTristate(True)
     self.chkExts.setCheckState(qtc.Qt.PartiallyChecked)
     self.chkExts.stateChanged.connect(self.updateScene)
@@ -102,7 +103,7 @@ class ScatterView2D(BaseTopologicalView):
     row += 1
     col = 0
 
-    self.chkEdges = qtg.QCheckBox('Show Edges')
+    self.chkEdges = qtw.QCheckBox('Show Edges')
     self.chkEdges.setChecked(False)
     self.chkEdges.stateChanged.connect(self.updateScene)
     subLayout.addWidget(self.chkEdges,row,col)
@@ -112,7 +113,7 @@ class ScatterView2D(BaseTopologicalView):
     self.cmbVars = {}
     for i,name in enumerate(['X','Y','Color']):
       varLabel = name + ' variable:'
-      self.cmbVars[name] = qtg.QComboBox()
+      self.cmbVars[name] = qtw.QComboBox()
       dimNames = self.amsc.GetNames()
       self.cmbVars[name].addItems(dimNames)
       if name == 'Color':
@@ -129,16 +130,16 @@ class ScatterView2D(BaseTopologicalView):
 
       self.cmbVars[name].currentIndexChanged.connect(self.updateScene)
 
-      subLayout.addWidget(qtg.QLabel(varLabel),row,col)
+      subLayout.addWidget(qtw.QLabel(varLabel),row,col)
       col += 1
       subLayout.addWidget(self.cmbVars[name],row,col)
       row += 1
       col = 0
-    self.cmbColorMaps = qtg.QComboBox()
+    self.cmbColorMaps = qtw.QComboBox()
     self.cmbColorMaps.addItems(matplotlib.pyplot.colormaps())
     self.cmbColorMaps.setCurrentIndex(self.cmbColorMaps.findText('coolwarm'))
     self.cmbColorMaps.currentIndexChanged.connect(self.updateScene)
-    subLayout.addWidget(qtg.QLabel('Colormap'),row,col)
+    subLayout.addWidget(qtw.QLabel('Colormap'),row,col)
     col += 1
     subLayout.addWidget(self.cmbColorMaps,row,col)
     mySplitter.addWidget(controls)
@@ -220,8 +221,8 @@ class ScatterView2D(BaseTopologicalView):
     or self.chkExts.checkState() == qtc.Qt.PartiallyChecked:
       minMaxPairs = self.amsc.GetSelectedSegments()
       for extPair in minMaxPairs:
-          minIdxs.append(extPair[0])
-          maxIdxs.append(extPair[1])
+        minIdxs.append(extPair[0])
+        maxIdxs.append(extPair[1])
 
       extIdxs = self.amsc.GetSelectedExtrema()
       for extIdx in extIdxs:
@@ -237,14 +238,14 @@ class ScatterView2D(BaseTopologicalView):
       if len(minIdxs) == 0 and len(maxIdxs) == 0:
         minMaxPairs = self.amsc.GetCurrentLabels()
         for extPair in minMaxPairs:
-            minIdxs.append(extPair[0])
-            maxIdxs.append(extPair[1])
+          minIdxs.append(extPair[0])
+          maxIdxs.append(extPair[1])
 
       ## Remove the extrema from the list of regular points that will be
       ## rendered
       for extIdx in minIdxs + maxIdxs:
         if extIdx in rows:
-            rows.remove(extIdx)
+          rows.remove(extIdx)
 
     specialColorKeywords = ['Segment','Minimum Flow', 'Maximum Flow']
 
@@ -398,3 +399,49 @@ class ScatterView2D(BaseTopologicalView):
 
     self.mplCanvas.axes.hold(False)
     self.mplCanvas.draw()
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations. For this class in particular, we will test:
+        - Toggling the edges on and off and updating the display in both cases.
+        - Toggling all three states of the extrema display.
+        - Changing the color attribute to cycle through each of the labeled
+          variables: Segment, Minimum Flow, Maximum Flow, Local fit value, and
+          local fit error/residual.
+        - Resizing the display
+        - Subselecting the data that is displayed.
+        @ In, None
+        @ Out, None
+    """
+    self.amsc.ClearSelection()
+
+    self.axesLabelAction.setChecked(True)
+    self.chkExts.setCheckState(qtc.Qt.Checked)
+    self.chkEdges.setChecked(True)
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-5)
+    self.updateScene()
+
+    self.axesLabelAction.setChecked(False)
+    self.chkExts.setCheckState(qtc.Qt.Unchecked)
+    self.chkEdges.setChecked(True)
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-4)
+    self.updateScene()
+
+    self.chkExts.setCheckState(qtc.Qt.PartiallyChecked)
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-3)
+    self.updateScene()
+
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-2)
+    self.updateScene()
+
+    self.cmbVars['Color'].setCurrentIndex(self.cmbVars['Color'].count()-1)
+    self.updateScene()
+
+    self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
+    pair = self.amsc.GetCurrentLabels()[0]
+    self.amsc.SetSelection([pair,pair[0],pair[1]])
+    self.updateScene()
+
+    super(ScatterView2D, self).test()

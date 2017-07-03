@@ -1,0 +1,147 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.Distributions.categorical</name>
+    <author>mandd</author>
+    <created>2016-11-02</created>
+    <classesTested>Distributions.Categorical</classesTested>
+    <description>
+       This test is aimed to test the capability of RAVEN to use 1D Categorical distributions.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>test_categorical/</WorkingDir>
+    <Sequence>MCrun,PP_MC,GridRun,PP_Grid,OutStreams</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="output_basicStatistics_Grid.csv" type="">output_basicStatistics_Grid.csv</Input>
+    <Input name="output_basicStatistics_MC.csv"   type="">output_basicStatistics_MC.csv</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun  name="MCrun">
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
+    </MultiRun>
+    <PostProcess name="PP_MC">
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
+      <Model  class="Models"       type="PostProcessor" >BS</Model>
+      <Output class="Files"        type=""              >output_basicStatistics_MC.csv</Output>
+    </PostProcess>
+    <MultiRun  name="GridRun">
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >Grid</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_Grid</Output>
+    </MultiRun>
+    <PostProcess name="PP_Grid">
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_Grid</Input>
+      <Model  class="Models"       type="PostProcessor" >BS</Model>
+      <Output class="Files"        type=""              >output_basicStatistics_Grid.csv</Output>
+    </PostProcess>
+    <IOStep name="OutStreams" pauseAtEnd="false">
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_Grid</Input>
+      <Output class="OutStreams"   type="Print"         >MC_dump</Output>
+      <Output class="OutStreams"   type="Print"         >Grid_dump</Output>
+      <Output class="OutStreams"   type="Plot"          >plotXMC</Output>
+      <Output class="OutStreams"   type="Plot"          >plotYMC</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="simple" name="PythonModule" subType="">
+      <variables>x,y</variables>
+    </ExternalModel>
+    <PostProcessor name="BS" subType="BasicStatistics" verbosity="debug">
+      <expectedValue>x,y</expectedValue>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Categorical name="x_dist">
+      <state outcome='1'   >0.2</state>
+      <state outcome='2.0' >0.3</state>
+      <state outcome='2.5' >0.5</state>
+    </Categorical>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>1234</initialSeed>
+      </samplerInit>
+      <variable name="x">
+        <distribution>x_dist</distribution>
+      </variable>
+    </MonteCarlo>
+    <Grid name="Grid">
+      <variable name="x">
+        <distribution>x_dist</distribution>
+        <grid construction="custom" type="value">1.0 2.0 2.5</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="MC_dump">
+      <type>csv</type>
+      <source>PointSet_MC</source>
+    </Print>
+    <Print name="Grid_dump">
+      <type>csv</type>
+      <source>PointSet_Grid</source>
+    </Print>
+    <Plot  name="plotXMC" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>PointSet_MC|Input|x</x>
+          <bins>30</bins>
+        </plot>
+        <xlabel>x</xlabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
+    <Plot  name="plotYMC" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>PointSet_MC|Output|y</x>
+          <bins>30</bins>
+        </plot>
+        <xlabel>x</xlabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="PointSet_MC">
+      <Input>x</Input>
+      <Output>y</Output>
+    </PointSet>
+    <PointSet name="PointSet_Grid">
+      <Input>x</Input>
+      <Output>y</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 num_fails=0
-failed_runs="FAILED: "
+fails=''
 
 pushd ../../framework
 RAVEN_FRAMEWORK_DIR=$(pwd)
@@ -9,6 +9,7 @@ popd
 
 wait_lines ()
 {
+    echo Return code: $?
     LS_DATA="$1"
     COUNT="$2"
     NAME="$3"
@@ -19,12 +20,17 @@ wait_lines ()
         sleep 20 #Sleep in case this is just disk propagation
         lines=`ls $LS_DATA | wc -l`
     fi
+    if test $lines -ne $COUNT; then
+        echo Lines not here yet, waiting even longer.
+        sleep 60 #Sleep in case this is just disk propagation
+        lines=`ls $LS_DATA | wc -l`
+    fi
     if test $lines -eq $COUNT; then
         echo PASS $NAME
     else
         echo FAIL $NAME
+        fails=$fails', '$NAME
         num_fails=$(($num_fails+1))
-        failed_runs="$failed_runs $NAME"
         printf '\n\nStandard Error:\n'
         cat $RAVEN_FRAMEWORK_DIR/test_qsub.e*
         printf '\n\nStandard Output:\n'
@@ -159,7 +165,6 @@ cd ..
 if test $num_fails -eq 0; then
     echo ALL PASSED
 else
-    echo $failed_runs
-    echo FAILED: $num_fails
+    echo FAILED: $num_fails $fails
 fi
 exit $num_fails

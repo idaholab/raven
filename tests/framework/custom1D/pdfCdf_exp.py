@@ -21,5 +21,3 @@ def run(self,Input):
 
   self.pdf = expon.pdf(self.x)
   self.cdf = expon.cdf(self.x)
-
-

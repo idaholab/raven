@@ -36,7 +36,7 @@ def prange(v,th,y0=0,g=9.8):
     @ In, g, float, optional, gravitational constant (m/s/s)
     @ Out, prange, float, range
   """
-  return v*np.cos(th)/g * (v*np.sin(th)*np.sqrt(v*v*np.sin(th)**2+2.*g*y0))
+  return v*np.cos(th)/g * (v*np.sin(th) + np.sqrt(v*v*np.sin(th)**2+2.*g*y0))
 
 def time_to_ground(v,th,y0=0,g=9.8):
   """
@@ -126,6 +126,3 @@ if __name__=="__main__":
   for i in range(len(io.time)):
     outFile.writelines(inpstr+',%f,%f,%f,%f\n' %(io.r[i],io.x[i],io.y[i],io.time[i]))
   outFile.close()
-
-
-

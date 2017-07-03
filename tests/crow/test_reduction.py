@@ -68,7 +68,7 @@ vCpp = np.asarray(vCpp)
 vCpp = np.reshape(vCpp,(dimVectorRight[0],dimVectorRight[1]))
 
 # using numpy to compute the svd
-covNp = np.asarray(cov).reshape(-1,sqrt(len(cov)))
+covNp = np.asarray(cov).reshape(-1,int(sqrt(len(cov))))
 uNp,sNp,vNp = LA.svd(covNp,full_matrices=False)
 
 # reconstruct the matrix using A = U*S*V.T using the results from crow

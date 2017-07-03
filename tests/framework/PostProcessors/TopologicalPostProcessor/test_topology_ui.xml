@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation>
   <TestInfo>
-    <name>undefined</name>
+    <name>framework/PostProcessors/TopologicalPostProcessor.interactive_UI</name>
     <author>maljdan</author>
     <created>2016-03-23</created>
     <classesTested>PostProcessors.QTopologicalDecomposition</classesTested>
     <description>
-       This test is not part of the automated test system as it exercises the
-       user interface coupled with the Morse-Smale topology code. As such,
-       anytime the AMSC or TopologicalDecomposition code is modified, this test
-       should be run on the developer's machine using:
-       "Driver.py interactive test_topology_ui.xml"
-       In order to ensure that the UI still functions as expected. This test is
-       basically a copy of test_graph_knn.xml and as such does itself not need
-       to be included in the automated system.
+       This test exercises the user interface coupled with the Morse-Smale
+       topology code. This test is basically a copy of test_graph_knn.xml, but
+       it exercises our ability to load, run, and tear down a Pyside UI.
     </description>
     <revisions>
       <revision author="maljdan" date="2016-07-17">Working on updating the syntax of test_topology_ui to match current devel.</revision>
       <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
+      <revision author="maljdan" date="2017-05-09">Adding this test to the automated system.</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -40,7 +36,7 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <simplification>0.2</simplification>
+      <simplification>1.0</simplification>
       <persistence>difference</persistence>
       <interactive />
     </PostProcessor>
@@ -88,6 +84,7 @@
   <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="segNN">
+      <filename>interactive</filename>
       <type>csv</type>
       <source>outNN</source>
     </Print>

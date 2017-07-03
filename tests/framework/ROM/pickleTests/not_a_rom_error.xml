@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='all'>
+  <RunInfo>
+    <WorkingDir>UntrainedError</WorkingDir>
+    <Sequence>pkLoad</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/ROM/pickleTests/loadNorROMError</name>
+    <author>talbpaul</author>
+    <created>2015-07-07</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>
+      This test checks that a reasonable error is given to the user if they attempt to unpickle
+      a pickled object that isn't a ROM.
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="ROMpk" type="">notROM.pk</Input>
+  </Files>
+
+  <Models>
+    <ROM name="pROM" subType="pickledROM"/>
+  </Models>
+
+  <Steps>
+    <IOStep name="pkLoad">
+      <Input class="Files" type="">ROMpk</Input>
+      <Output class="Models" type="ROM">pROM</Output>
+    </IOStep>
+  </Steps>
+
+</Simulation>

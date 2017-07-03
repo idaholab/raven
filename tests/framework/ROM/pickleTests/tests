@@ -2,7 +2,6 @@
   [./stochPolyPickleTest]
     type  = 'RavenFramework'
     input = 'stochpoly_pickle.xml'
-    output = 'StochasticPolyPickleTest/Udump.xml StochasticPolyPickleTest/pdump.xml'
     xml = 'StochasticPolyPickleTest/Udump.xml StochasticPolyPickleTest/pdump.xml'
     csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
     remove_unicode_identifier = true
@@ -12,5 +11,15 @@
     input = 'restart_stochpoly_rom.xml'
     csv = 'ColdRestart/solns.csv'
     prereq = stochPolyPickleTest
+  [../]
+  [./loadUntrainedError]
+    type = 'RavenErrors'
+    input = 'untrained_error.xml'
+    expect_err = 'RuntimeError: Pickled rom "UROM" was not trained!'
+  [../]
+  [./loadNotROMError]
+    type = 'RavenErrors'
+    input = 'not_a_rom_error.xml'
+    expect_err = 'RuntimeError: Pickled object in'
   [../]
 []

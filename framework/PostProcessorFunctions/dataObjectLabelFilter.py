@@ -94,7 +94,8 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
             outputDic['data']['input'][hist]  = copy.deepcopy(inputDic['data']['input'][hist])
             outputDic['data']['output'][hist] = copy.deepcopy(inputDic['data']['output'][hist])
 
-      else:   # self.outFormat == 'PointSet'
+      else:
+        # self.outFormat == 'PointSet'
         for key in inputDic['data']['input']:
           outputDic['data']['input'][key] = np.zeros(0)
         for key in inputDic['data']['output']:

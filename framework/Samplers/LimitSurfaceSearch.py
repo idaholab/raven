@@ -36,10 +36,11 @@ from math import ceil
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from PostProcessors import LimitSurface
 from .AdaptiveSampler import AdaptiveSampler
 import Distributions
-import PostProcessors
 from AMSC_Object import AMSC_Object
+from utils import randomUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class LimitSurfaceSearch(AdaptiveSampler):
@@ -132,7 +133,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.jobHandler = initDict['internal']['jobHandler']
     #do a distributions check for ND
     for dist in self.distDict.values():
-      if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Dists not supported for this sampler (yet)!')
+      if isinstance(dist,Distributions.NDimensionalDistributions):
+        self.raiseAnError(IOError,'ND Dists not supported for this sampler (yet)!')
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -141,44 +143,64 @@ class LimitSurfaceSearch(AdaptiveSampler):
       @ Out, None
     """
     if 'limit' in xmlNode.attrib.keys():
-      try: self.limit = int(xmlNode.attrib['limit'])
-      except ValueError: self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+      try:
+        self.limit = int(xmlNode.attrib['limit'])
+      except ValueError:
+        self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
     # convergence Node
     convergenceNode = xmlNode.find('Convergence')
-    if convergenceNode==None:self.raiseAnError(IOError,'the node Convergence was missed in the definition of the adaptive sampler '+self.name)
-    try   : self.tolerance=float(convergenceNode.text)
-    except: self.raiseAnError(IOError,'Failed to convert '+convergenceNode.text+' to a meaningful number for the convergence')
+    if convergenceNode==None:
+      self.raiseAnError(IOError,'the node Convergence was missed in the definition of the adaptive sampler '+self.name)
+    try:
+      self.tolerance=float(convergenceNode.text)
+    except:
+      self.raiseAnError(IOError,'Failed to convert '+convergenceNode.text+' to a meaningful number for the convergence')
     attribList = list(convergenceNode.attrib.keys())
     if 'limit'          in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('limit'))
-      try   : self.limit = int (convergenceNode.attrib['limit'])
-      except: self.raiseAnError(IOError,'Failed to convert the limit value '+convergenceNode.attrib['limit']+' to a meaningful number for the convergence')
+      try:
+        self.limit = int (convergenceNode.attrib['limit'])
+      except:
+        self.raiseAnError(IOError,'Failed to convert the limit value '+convergenceNode.attrib['limit']+' to a meaningful number for the convergence')
     if 'persistence'    in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('persistence'))
-      try   : self.persistence = int (convergenceNode.attrib['persistence'])
-      except: self.raiseAnError(IOError,'Failed to convert the persistence value '+convergenceNode.attrib['persistence']+' to a meaningful number for the convergence')
+      try:
+        self.persistence = int (convergenceNode.attrib['persistence'])
+      except:
+        self.raiseAnError(IOError,'Failed to convert the persistence value '+convergenceNode.attrib['persistence']+' to a meaningful number for the convergence')
     if 'weight'         in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('weight'))
-      try   : self.toleranceWeight = str(convergenceNode.attrib['weight']).lower()
-      except: self.raiseAnError(IOError,'Failed to convert the weight type '+convergenceNode.attrib['weight']+' to a meaningful string for the convergence')
+      try:
+        self.toleranceWeight = str(convergenceNode.attrib['weight']).lower()
+      except:
+        self.raiseAnError(IOError,'Failed to convert the weight type '+convergenceNode.attrib['weight']+' to a meaningful string for the convergence')
     if 'subGridTol'    in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('subGridTol'))
-      try   : self.subGridTol = float (convergenceNode.attrib['subGridTol'])
-      except: self.raiseAnError(IOError,'Failed to convert the subGridTol '+convergenceNode.attrib['subGridTol']+' to a meaningful float for the convergence')
+      try:
+        self.subGridTol = float (convergenceNode.attrib['subGridTol'])
+      except:
+        self.raiseAnError(IOError,'Failed to convert the subGridTol '+convergenceNode.attrib['subGridTol']+' to a meaningful float for the convergence')
     if 'forceIteration' in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('forceIteration'))
-      if   convergenceNode.attrib['forceIteration']=='True' : self.forceIteration   = True
-      elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
-      else: self.raiseAnError(RuntimeError,'Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
+      if   convergenceNode.attrib['forceIteration']=='True':
+        self.forceIteration   = True
+      elif convergenceNode.attrib['forceIteration']=='False':
+        self.forceIteration   = False
+      else:
+        self.raiseAnError(RuntimeError,'Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
     #assembler node: Hidden from User
     # set subgrid
-    if self.subGridTol == None: self.subGridTol = self.tolerance
-    if self.subGridTol > self.tolerance: self.raiseAnError(IOError,'The sub grid tolerance '+str(self.subGridTol)+' must be smaller than the tolerance: '+str(self.tolerance))
-    if len(attribList)>0: self.raiseAnError(IOError,'There are unknown keywords in the convergence specifications: '+str(attribList))
+    if self.subGridTol == None:
+      self.subGridTol = self.tolerance
+    if self.subGridTol > self.tolerance:
+      self.raiseAnError(IOError,'The sub grid tolerance '+str(self.subGridTol)+' must be smaller than the tolerance: '+str(self.tolerance))
+    if len(attribList)>0:
+      self.raiseAnError(IOError,'There are unknown keywords in the convergence specifications: '+str(attribList))
 
     # Batch parameters
     for child in xmlNode:
-      if child.tag == "generateCSVs" : self.generateCSVs = True
+      if child.tag == "generateCSVs":
+        self.generateCSVs = True
       if child.tag == "batchStrategy":
         self.batchStrategy = child.text.encode('ascii')
         if self.batchStrategy not in self.acceptedBatchParam:
@@ -186,8 +208,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
                             self.batchStrategy, '. Available options: ',
                             self.acceptedBatchParam)
       if child.tag == "maxBatchSize":
-        try   : self.maxBatchSize = int(child.text)
-        except: self.raiseAnError(IOError, 'Failed to convert the maxBatchSize value: ' + child.text + ' into a meaningful integer')
+        try:
+          self.maxBatchSize = int(child.text)
+        except:
+          self.raiseAnError(IOError, 'Failed to convert the maxBatchSize value: ' + child.text + ' into a meaningful integer')
         if self.maxBatchSize < 0:
           self.raiseAWarning(IOError,'Requested an invalid maximum batch size: ', self.maxBatchSize, '. This should be a non-negative integer value. Defaulting to 1.')
           self.maxBatchSize = 1
@@ -196,19 +220,25 @@ class LimitSurfaceSearch(AdaptiveSampler):
         if self.scoringMethod not in self.acceptedScoringParam:
           self.raiseAnError(IOError, 'Requested unknown scoring type: ', self.scoringMethod, '. Available options: ', self.acceptedScoringParam)
       if child.tag == 'simplification':
-        try   : self.simplification = float(child.text)
-        except: self.raiseAnError(IOError, 'Failed to convert the simplification value: ' + child.text + ' into a meaningful number')
+        try:
+          self.simplification = float(child.text)
+        except:
+          self.raiseAnError(IOError, 'Failed to convert the simplification value: ' + child.text + ' into a meaningful number')
         if self.simplification < 0 or self.simplification > 1:
           self.raiseAWarning('Requested an invalid simplification level: ', self.simplification, '. Defaulting to 0.')
           self.simplification = 0
       if child.tag == 'thickness':
-        try   : self.thickness = int(child.text)
-        except: self.raiseAnError(IOError, 'Failed to convert the thickness value: ' + child.text +' into a meaningful integer')
+        try:
+          self.thickness = int(child.text)
+        except:
+          self.raiseAnError(IOError, 'Failed to convert the thickness value: ' + child.text +' into a meaningful integer')
         if self.thickness < 0:
           self.raiseAWarning('Requested an invalid thickness size: ', self.thickness, '. Defaulting to 0.')
       if child.tag == 'threshold':
-        try   : self.threshold = float(child.text)
-        except: self.raiseAnError(IOError, 'Failed to convert the threshold value: ' + child.text + ' into a meaningful number')
+        try:
+          self.threshold = float(child.text)
+        except:
+          self.raiseAnError(IOError, 'Failed to convert the threshold value: ' + child.text + ' into a meaningful number')
         if self.threshold < 0 or self.threshold > 1:
           self.raiseAWarning('Requested an invalid threshold level: ', self.threshold, '. Defaulting to 0.')
           self.threshold = 0
@@ -260,17 +290,21 @@ class LimitSurfaceSearch(AdaptiveSampler):
       @ Out, None
     """
     self.converged        = False
-    self.limitSurfacePP   = PostProcessors.returnInstance("LimitSurface",self)
-    if 'Function' in self.assemblerDict.keys(): self.goalFunction = self.assemblerDict['Function'][0][3]
-    if 'TargetEvaluation' in self.assemblerDict.keys(): self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
+    self.limitSurfacePP   = LimitSurface(self.messageHandler)
+    if 'Function' in self.assemblerDict.keys():
+      self.goalFunction = self.assemblerDict['Function'][0][3]
+    if 'TargetEvaluation' in self.assemblerDict.keys():
+      self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
     #self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
     # check if solutionExport is actually a "DataObjects" type "PointSet"
-    if type(solutionExport).__name__ != "PointSet": self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ type(solutionExport).__name__+'!')
+    if type(solutionExport).__name__ != "PointSet":
+      self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ type(solutionExport).__name__+'!')
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.oldTestMatrix     = OrderedDict()    #This is the test matrix to use to store the old evaluation of the function
     self.persistenceMatrix = OrderedDict()    #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
-    if self.goalFunction.name not in self.solutionExport.getParaKeys('output'): self.raiseAnError(IOError,'Goal function name does not match solution export data output.')
+    if self.goalFunction.name not in self.solutionExport.getParaKeys('output'):
+      self.raiseAnError(IOError,'Goal function name does not match solution export data output.')
     # set number of job request-able after a new evaluation
     self._endJobRunnable   = 1
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
@@ -278,15 +312,18 @@ class LimitSurfaceSearch(AdaptiveSampler):
       for varName in self.distDict.keys():
         if not(self.distDict[varName].upperBoundUsed and self.distDict[varName].lowerBoundUsed):
           self.raiseAnError(TypeError,'It is impossible to converge on an unbounded domain (variable '+varName+' with distribution '+self.distDict[varName].name+') as requested to the sampler '+self.name)
-    elif self.toleranceWeight=='cdf': pass
-    else: self.raiseAnError(IOError,'Unknown weight string descriptor: '+self.toleranceWeight)
+    elif self.toleranceWeight=='cdf':
+      pass
+    else:
+      self.raiseAnError(IOError,'Unknown weight string descriptor: '+self.toleranceWeight)
     #setup the grid. The grid is build such as each element has a volume equal to the sub grid tolerance
     #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
     self.nVar         = len(self.distDict.keys())              # Total number of variables
     bounds          = {"lowerBounds":{},"upperBounds":{}}
     transformMethod = {}
     for varName in self.distDict.keys():
-      if self.toleranceWeight!='cdf': bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = self.distDict[varName].lowerBound, self.distDict[varName].upperBound
+      if self.toleranceWeight!='cdf':
+        bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = self.distDict[varName].lowerBound, self.distDict[varName].upperBound
       else:
         bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = 0.0, 1.0
         transformMethod[varName.replace('<distribution>','')] = [self.distDict[varName].ppf]
@@ -315,32 +352,42 @@ class LimitSurfaceSearch(AdaptiveSampler):
     """
     self.raiseADebug('From method localStillReady...')
     # if the limit surface search has converged, we return False
-    if self.converged: return False
+    if self.converged:
+      return False
     #test on what to do
-    if ready      == False: return ready #if we exceeded the limit just return that we are done
+    if ready      == False:
+      return ready #if we exceeded the limit just return that we are done
     if type(self.lastOutput) == dict:
-      if self.lastOutput == None and self.limitSurfacePP.ROM.amITrained==False: return ready
+      if self.lastOutput == None and self.limitSurfacePP.ROM.amITrained==False:
+        return ready
     else:
       #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
-      if self.lastOutput.isItEmpty() and self.limitSurfacePP.ROM.amITrained==False: return ready
+      if self.lastOutput.isItEmpty() and self.limitSurfacePP.ROM.amITrained==False:
+        return ready
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
-    if type(self.lastOutput) == dict: self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
+    if type(self.lastOutput) == dict:
+      self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     else:
-      if not self.lastOutput.isItEmpty(): self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
+      if not self.lastOutput.isItEmpty():
+        self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     self.raiseADebug('Classifier ' +self.name+' has been trained!')
     self.oldTestMatrix = copy.deepcopy(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid))    #copy the old solution (contained in the limit surface PP) for convergence check
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
     self.surfPoint, evaluations, self.listSurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True, exceptionGrid=self.exceptionGrid, merge=False)
     self.raiseADebug('Limit Surface has been computed!')
     # check hanging points
-    if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
-    else                                                                      : indexLast = -1
+    if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys():
+      indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
+    else:
+      indexLast = -1
     #index of last set of point tested and ready to perform the function evaluation
     indexEnd  = len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])-1
     tempDict  = {}
     for myIndex in range(indexLast+1,indexEnd+1):
-      for key, value in self.limitSurfacePP.getFunctionValue().items(): tempDict[key] = value[myIndex]
-      if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
+      for key, value in self.limitSurfacePP.getFunctionValue().items():
+        tempDict[key] = value[myIndex]
+      if len(self.hangingPoints) > 0:
+        self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
     for key,value in self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).items():
       self.persistenceMatrix[key] += value
     # get the test matrices' dictionaries to test the error
@@ -349,9 +396,12 @@ class LimitSurfaceSearch(AdaptiveSampler):
     coarseGridTestMatix, coarseGridOldTestMatix = testMatrixDict.pop(0), oldTestMatrixDict.pop(0)
     # compute the Linf norm with respect the location of the LS
     testError = np.sum(np.abs(np.subtract(coarseGridTestMatix,coarseGridOldTestMatix)))
-    if len(testMatrixDict) > 0: testError += np.sum(np.abs(np.subtract(testMatrixDict,oldTestMatrixDict))) # compute the error
-    if (testError > self.errorTolerance): ready, self.repetition = True, 0                                 # we still have error
-    else                                : self.repetition +=1                                              # we are increasing persistence
+    if len(testMatrixDict) > 0:
+      testError += np.sum(np.abs(np.subtract(testMatrixDict,oldTestMatrixDict))) # compute the error
+    if (testError > self.errorTolerance):
+      ready, self.repetition = True, 0                                 # we still have error
+    else:
+      self.repetition +=1                                              # we are increasing persistence
     if self.persistence<self.repetition:
       ready =  False
       if self.subGridTol != self.tolerance and evaluations is not None and self.refinedPerformed != True:
@@ -371,18 +421,24 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if len(listsurfPoint)>0:
         self.invPointPersistence[gridID] = np.ones(len(listsurfPoint))
         if self.firstSurface == False:
-          for pointID, coordinate in enumerate(listsurfPoint): self.invPointPersistence[gridID][pointID]=abs(self.persistenceMatrix[gridID][tuple(coordinate)])
+          for pointID, coordinate in enumerate(listsurfPoint):
+            self.invPointPersistence[gridID][pointID]=abs(self.persistenceMatrix[gridID][tuple(coordinate)])
           maxPers = np.max(self.invPointPersistence[gridID])
-          if maxPers != 0: self.invPointPersistence[gridID] = (maxPers-self.invPointPersistence[gridID])/maxPers
-        else: self.firstSurface = False
+          if maxPers != 0:
+            self.invPointPersistence[gridID] = (maxPers-self.invPointPersistence[gridID])/maxPers
+        else:
+          self.firstSurface = False
         if self.solutionExport!=None:
           for varName in self.solutionExport.getParaKeys('inputs'):
             for varIndex in range(len(self.axisName)):
               if varName == realAxisNames[varIndex]:
-                if cnt == 0: self.solutionExport.removeInputValue(varName)
-                for value in self.surfPoint[gridID][:,varIndex]: self.solutionExport.updateInputValue(varName,copy.copy(value))
+                if cnt == 0:
+                  self.solutionExport.removeInputValue(varName)
+                for value in self.surfPoint[gridID][:,varIndex]:
+                  self.solutionExport.updateInputValue(varName,copy.copy(value))
           # to be fixed
-          if cnt == 0: self.solutionExport.removeOutputValue(self.goalFunction.name)
+          if cnt == 0:
+            self.solutionExport.removeOutputValue(self.goalFunction.name)
           for index in range(len(evaluations[gridID])):
             self.solutionExport.updateOutputValue(self.goalFunction.name,copy.copy(evaluations[gridID][index]))
         cnt+=1
@@ -393,7 +449,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
     for gridID,points in self.listSurfPoint.items():
       setSurfPoint = set()
       self.bandIndices[gridID] = set()
-      for surfPoint in points: setSurfPoint.add(tuple(surfPoint))
+      for surfPoint in points:
+        setSurfPoint.add(tuple(surfPoint))
       newIndices = set(setSurfPoint)
       for step in xrange(1,self.thickness):
         prevPoints = set(newIndices)
@@ -402,13 +459,17 @@ class LimitSurfaceSearch(AdaptiveSampler):
           for d in xrange(len(iCoords)):
             offset = np.zeros(len(iCoords),dtype=int)
             offset[d] = 1
-            if iCoords[d] - offset[d] > 0: newIndices.add(tuple(iCoords - offset))
-            if iCoords[d] + offset[d] < self.oldTestMatrix[gridID].shape[d]-1: newIndices.add(tuple(iCoords + offset))
+            if iCoords[d] - offset[d] > 0:
+              newIndices.add(tuple(iCoords - offset))
+            if iCoords[d] + offset[d] < self.oldTestMatrix[gridID].shape[d]-1:
+              newIndices.add(tuple(iCoords + offset))
         self.bandIndices[gridID].update(newIndices)
       self.bandIndices[gridID] = self.bandIndices[gridID].difference(setSurfPoint)
       self.bandIndices[gridID] = list(self.bandIndices[gridID])
-      for coordinate in self.bandIndices[gridID]: self.surfPoint[gridID] = np.vstack((self.surfPoint[gridID],self.limitSurfacePP.gridCoord[gridID][coordinate]))
-    if self.converged: self.raiseAMessage(self.name + " converged!")
+      for coordinate in self.bandIndices[gridID]:
+        self.surfPoint[gridID] = np.vstack((self.surfPoint[gridID],self.limitSurfacePP.gridCoord[gridID][coordinate]))
+    if self.converged:
+      self.raiseAMessage(self.name + " converged!")
     return ready
 
   def __scoreCandidates(self):
@@ -456,7 +517,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
       self.scores = OrderedDict()
       for key, value in self.invPointPersistence.items():
         self.scores[key] = np.zeros(len(self.surfPoint[key]))
-        for i in xrange(len(self.listsurfPoint)): self.scores[key][i] = 1
+        for i in xrange(len(self.listsurfPoint)):
+          self.scores[key][i] = 1
     else:
       self.raiseAnError(NotImplementedError,self.scoringMethod + ' scoring method is not implemented yet')
 
@@ -587,9 +649,9 @@ class LimitSurfaceSearch(AdaptiveSampler):
       #here we are still generating the batch
       for key in self.distDict.keys():
         if self.toleranceWeight=='cdf':
-          self.values[key]                       = self.distDict[key].ppf(float(Distributions.random()))
+          self.values[key]                       = self.distDict[key].ppf(float(randomUtils.random()))
         else:
-          self.values[key]                       = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
+          self.values[key]                       = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(randomUtils.random())
         self.inputInfo['distributionName'][key]  = self.toBeSampled[key]
         self.inputInfo['distributionType'][key]  = self.distDict[key].type
         self.inputInfo['SampledVarsPb'   ][key]  = self.distDict[key].pdf(self.values[key])

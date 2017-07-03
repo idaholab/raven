@@ -168,8 +168,10 @@ class SparseGrid(MessageHandler.MessageUser):
       @ In, other, object, object to compare to
       @ Out, __eq__, bool, equivalency
     """
-    if not isinstance(other,self.__class__): return False
-    if len(self.SG)!=len(other.SG):return False
+    if not isinstance(other,self.__class__):
+      return False
+    if len(self.SG)!=len(other.SG):
+      return False
     for pt,wt in self.SG.items():
       if wt != other.SG[pt]:
         return False
@@ -220,9 +222,11 @@ class SparseGrid(MessageHandler.MessageUser):
     self.raiseADebug('REMAPPING SPARSE GRID from '+str(oldNames)+' to '+str(newNames))
     #check consistency
     self.raiseADebug('old: '+str(oldNames)+' | new: '+str(newNames))
-    if len(oldNames)!=len(newNames): self.raiseAnError(KeyError,'Remap mismatch! Dimensions are not the same!')
+    if len(oldNames)!=len(newNames):
+      self.raiseAnError(KeyError,'Remap mismatch! Dimensions are not the same!')
     for name in oldNames:
-      if name not in newNames: self.raiseAnError(KeyError,'Remap mismatch! '+name+' not found in original variables!')
+      if name not in newNames:
+        self.raiseAnError(KeyError,'Remap mismatch! '+name+' not found in original variables!')
     wts = list(self.weights())
     #split by columns (dim) instead of rows (points)
     oldlists = list(self._xy())
@@ -326,8 +330,10 @@ class SparseGrid(MessageHandler.MessageUser):
     if n==None:
       return self.SG.values()
     else:
-      try: return self.SG[tuple(n)]
-      except TypeError:  return list(self.SG.values())[n]
+      try:
+        return self.SG[tuple(n)]
+      except TypeError:
+        return list(self.SG.values())[n]
 
   def tensorGrid(self, m):
     """
@@ -437,7 +443,8 @@ class SmolyakSparseGrid(SparseGrid):
       survive = np.nonzero(self.c!=0)
       self.c=self.c[survive]
       self.indexSet=self.indexSet[survive]
-    if handler!=None: self.parallelSparseQuadGen(handler)
+    if handler!=None:
+      self.parallelSparseQuadGen(handler)
     else:
       for j,cof in enumerate(self.c):
         idx = self.indexSet[j]
@@ -465,7 +472,7 @@ class SmolyakSparseGrid(SparseGrid):
       #finishedJobs = handler.getFinished(prefix=prefix) #FIXME this is by far the most expensive line in this method
       for job in finishedJobs:
         if job.getReturnCode() == 0:
-          new = job.getEvaluation()[1]
+          new = job.getEvaluation()
           for i in range(len(new[0])):
             newpt = tuple(new[0][i])
             newwt = new[1][i]*float(str(job.identifier).replace(prefix, ""))
@@ -476,14 +483,15 @@ class SmolyakSparseGrid(SparseGrid):
         else:
           self.raiseAMessage('Sparse quad generation (tensor) '+job.identifier+' failed...')
       if j<numRunsNeeded-1:
-        for _ in range(min(numRunsNeeded-1-j,handler.numFreeSpots())):
+        for _ in range(min(numRunsNeeded-1-j,handler.availability())):
           j+=1
           cof=self.c[j]
           idx = self.indexSet[j]
           m=self.quadRule(idx)+1
-          handler.addInternal((m,),self.tensorGrid,prefix+str(cof),modulesToImport = self.mods)
+          handler.addJob((m,),self.tensorGrid,prefix+str(cof),modulesToImport = self.mods)
       else:
-        if handler.isFinished() and len(handler.getFinishedNoPop())==0:break #FIXME this is significantly the second-most expensive line in this method
+        if handler.isFinished() and len(handler.getFinishedNoPop())==0:
+          break #FIXME this is significantly the second-most expensive line in this method
       import time
       time.sleep(0.005)
 
@@ -498,7 +506,8 @@ class SmolyakSparseGrid(SparseGrid):
     N=len(self.indexSet)
     iSet = self.indexSet[:]
     self.c=np.ones(N)
-    for i in range(N): #could be parallelized from here
+    for i in range(N):
+      #could be parallelized from here
       idx = iSet[i]
       for j in range(i+1,N):
         jdx = iSet[j]
@@ -526,15 +535,17 @@ class SmolyakSparseGrid(SparseGrid):
       finishedJobs = handler.getFinished(jobIdentifier=prefix)
       for job in finishedJobs:
         if job.getReturnCode() == 0:
-          self.c[int(str(job.identifier).replace(prefix, ""))]=job.getEvaluation()[1]
+          self.c[int(str(job.identifier).replace(prefix, ""))]=job.getEvaluation()
         else:
           self.raiseAMessage('Sparse grid index '+job.identifier+' failed...')
-      if i<N-1: #load new inputs, up to 100 at a time
-        for k in range(min(handler.numFreeSpots(),N-1-i)):
+      if i<N-1:
+        #load new inputs, up to 100 at a time
+        for k in range(min(handler.availability(),N-1-i)):
           i+=1
-          handler.addInternal((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i),modulesToImport = self.mods)
+          handler.addJob((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i),modulesToImport = self.mods)
       else:
-        if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
+        if handler.isFinished() and len(handler.getFinishedNoPop())==0:
+          break
       #TODO optimize this with a sleep time
 
   def makeSingleCoeff(self,N,i,idx,iSet):
@@ -757,8 +768,10 @@ def CCQuadRule(i):
     @ In, i, int, level desired
     @ Out, CCQuadRule, int, desired quad order
   """
-  try: return np.array(list((0 if p==0 else 2**p) for p in i))
-  except TypeError: return 0 if i==0 else 2**i
+  try:
+    return np.array(list((0 if p==0 else 2**p) for p in i))
+  except TypeError:
+    return 0 if i==0 else 2**i
 
 
 def GaussQuadRule(i):
@@ -824,8 +837,11 @@ def returnInstance(Type,caller,**kwargs):
   """
   # some modification necessary to distinguish CDF on Legendre versus CDF on ClenshawCurtis
   if Type=='CDF':
-    if   kwargs['Subtype']=='Legendre'      : return __interFaceDict['CDFLegendre']()
-    elif kwargs['Subtype']=='ClenshawCurtis': return __interFaceDict['CDFClenshawCurtis']()
-  if Type in knownTypes(): return __interFaceDict[Type]()
-  else: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
-
+    if   kwargs['Subtype']=='Legendre':
+      return __interFaceDict['CDFLegendre']()
+    elif kwargs['Subtype']=='ClenshawCurtis':
+      return __interFaceDict['CDFClenshawCurtis']()
+  if Type in knownTypes():
+    return __interFaceDict[Type]()
+  else:
+    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)

@@ -22,11 +22,11 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
+import qtpy
 import matplotlib
-matplotlib.rcParams['backend.qt4']='PySide'
 
-from PySide import QtCore as qtc
-from PySide import QtGui as qtg
+from qtpy import QtCore as qtc
+from qtpy import QtWidgets as qtw
 
 from .BaseHierarchicalView import BaseHierarchicalView
 
@@ -54,11 +54,11 @@ class ScatterView(BaseHierarchicalView):
     """
     BaseHierarchicalView.__init__(self, mainWindow)
 
-    self.setLayout(qtg.QVBoxLayout())
+    self.setLayout(qtw.QVBoxLayout())
     layout = self.layout()
     self.clearLayout(layout)
 
-    mySplitter = qtg.QSplitter()
+    mySplitter = qtw.QSplitter()
     mySplitter.setOrientation(qtc.Qt.Vertical)
     layout.addWidget(mySplitter)
 
@@ -72,13 +72,13 @@ class ScatterView(BaseHierarchicalView):
 
     mySplitter.addWidget(self.mplCanvas)
 
-    controls = qtg.QGroupBox()
-    controls.setLayout(qtg.QGridLayout())
+    controls = qtw.QGroupBox()
+    controls.setLayout(qtw.QGridLayout())
     subLayout = controls.layout()
     row = 0
     col = 0
 
-    self.rightClickMenu = qtg.QMenu()
+    self.rightClickMenu = qtw.QMenu()
     self.axesLabelAction = self.rightClickMenu.addAction('Show Axis Labels')
     self.axesLabelAction.setCheckable(True)
     self.axesLabelAction.setChecked(True)
@@ -88,7 +88,7 @@ class ScatterView(BaseHierarchicalView):
 
     for i,name in enumerate(['X','Y','Z','Color']):
       varLabel = name + ' variable:'
-      self.cmbVars[name] = qtg.QComboBox()
+      self.cmbVars[name] = qtw.QComboBox()
 
       if name == 'Z':
         self.cmbVars[name].addItem('Off')
@@ -105,14 +105,14 @@ class ScatterView(BaseHierarchicalView):
 
       self.cmbVars[name].currentIndexChanged.connect(self.updateScene)
 
-      subLayout.addWidget(qtg.QLabel(varLabel),row,col)
+      subLayout.addWidget(qtw.QLabel(varLabel),row,col)
       col += 1
       subLayout.addWidget(self.cmbVars[name],row,col)
       row += 1
       col = 0
 
-    self.lblColorMaps = qtg.QLabel('Colormap')
-    self.cmbColorMaps = qtg.QComboBox()
+    self.lblColorMaps = qtw.QLabel('Colormap')
+    self.cmbColorMaps = qtw.QComboBox()
     self.cmbColorMaps.addItems(matplotlib.pyplot.colormaps())
     self.cmbColorMaps.setCurrentIndex(self.cmbColorMaps.findText('coolwarm'))
     self.cmbColorMaps.currentIndexChanged.connect(self.updateScene)
@@ -256,3 +256,26 @@ class ScatterView(BaseHierarchicalView):
 
     self.mplCanvas.axes.hold(False)
     self.mplCanvas.draw()
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations.  For this class in particular, we will test:
+        - Switching from 2D to a 3D projection
+        - Changing from a color map to the cluster colors.
+        - Toggling the axes labels on and off and displaying both.
+        @ In, None
+        @ Out, None
+    """
+    self.cmbVars['Z'].setCurrentIndex(self.cmbVars['Z'].count()-1)
+    self.cmbVars['Color'].setCurrentIndex(0)
+    self.updateScene()
+    self.axesLabelAction.setChecked(True)
+    self.updateScene()
+    self.axesLabelAction.setChecked(False)
+    self.updateScene()
+
+
+    super(ScatterView, self).test()
+    BaseHierarchicalView.test(self)

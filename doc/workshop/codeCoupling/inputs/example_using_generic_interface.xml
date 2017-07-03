@@ -1,0 +1,108 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>exampleGenericInterface</WorkingDir>
+    <Sequence>runGrid,outputResults</Sequence>
+    <batchSize>4</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="originalInput" type="">batemanWorkshopInput.xml</Input>
+  </Files>
+
+  <Models>
+    <Code name="myWorkshopCode" subType="GenericCode">
+      <executable>simpleCode/AnalyticalDplMain.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg=" " extension=".csv" type="output"/>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="sigmaDist">
+      <mean>10</mean>
+      <sigma>3</sigma>
+      <lowerBound>0.0</lowerBound>
+      <upperBound>40</upperBound>
+    </Normal>
+    <Uniform name="decayDist">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>0.0000001</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="myGrid">
+      <variable name="Asigma">
+        <distribution>sigmaDist</distribution>
+        <grid construction="equal" steps="3" type="CDF">0.1 0.8</grid>
+      </variable>
+      <variable name="AdecayConstant">
+        <distribution>decayDist</distribution>
+        <grid construction="equal" steps="4" type="CDF">0.1 0.8</grid>
+      </variable>
+      <variable name="Bsigma">
+          <distribution>sigmaDist</distribution>
+          <grid construction="equal" steps="3" type="CDF">0.1 0.8</grid>
+      </variable>
+      <variable name="BdecayConstant">
+          <distribution>decayDist</distribution>
+          <grid construction="equal" steps="4" type="CDF">0.1 0.8</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="runGrid">
+      <Input   class="Files"       type=""          >originalInput</Input>
+      <Model   class="Models"      type="Code"      >myWorkshopCode</Model>
+      <Sampler class="Samplers"    type="Grid"      >myGrid</Sampler>
+      <Output  class="DataObjects" type="HistorySet">outputHistories</Output>
+      <Output  class="DataObjects" type="PointSet"  >outPointSet</Output>
+      <Output  class="DataObjects" type="PointSet"  >outPointSetAverage</Output>
+    </MultiRun>
+    <IOStep name="outputResults">
+      <Input  class="DataObjects" type="HistorySet" >outputHistories</Input>
+      <Input  class="DataObjects" type="PointSet"   >outPointSet</Input>
+      <Input  class="DataObjects" type="PointSet"   >outPointSetAverage</Input>
+      <Output  class="OutStreams"  type="Print"     >outPointSet_dump</Output>
+      <Output  class="OutStreams"  type="Print"     >outPointSetAverage_dump</Output>
+      <Output  class="OutStreams"  type="Print"     >outputHistories_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="outPointSet_dump">
+      <type>csv</type>
+      <source>outPointSet</source>
+    </Print>
+    <Print name="outPointSetAverage_dump">
+      <type>csv</type>
+      <source>outPointSetAverage</source>
+    </Print>
+    <Print name="outputHistories_dump">
+        <type>csv</type>
+        <source>outputHistories</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="outPointSet">
+      <Input>Asigma,AdecayConstant,Bsigma,BdecayConstant</Input>
+      <Output>A,B,C,D</Output>
+    </PointSet>
+    <PointSet name="outPointSetAverage">
+      <Input>Asigma,AdecayConstant,Bsigma,BdecayConstant</Input>
+      <Output>A,B,C,D</Output>
+      <options>
+        <operator>average</operator>
+      </options>
+    </PointSet>
+    <HistorySet name="outputHistories">
+      <Input>Asigma,AdecayConstant,Bsigma,BdecayConstant</Input>
+      <Output>A,B,C,D</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

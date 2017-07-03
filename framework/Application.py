@@ -27,27 +27,29 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #Internal Modules---------------------------------------------------------------
 import MessageHandler
+from Interaction import Interaction
 #Internal Modules End-----------------------------------------------------------
 
 try:
-  import PySide.QtGui as qtg
-  import PySide.QtCore as qtc
+  import qtpy.QtWidgets as qtw
+  import qtpy.QtCore as qtc
 
-  class InteractiveApplication(qtg.QApplication,MessageHandler.MessageUser):
+  class InteractiveApplication(qtw.QApplication, MessageHandler.MessageUser):
     """
       Application - A subclass of the base QApplication where we can instantiate
       our own signals and slots, create UI elements, and manage inter-thread
       communication
     """
     windowClosed = qtc.Signal(str)
-    def __init__(self,arg__1,messageHandler):
+    def __init__(self, arg1, messageHandler, interactionType=Interaction.Yes):
       """
         A default constructor which will initialize an empty dictionary of user
         interfaces that will be managed by this instance.
       """
       self.printTag = 'RAVEN Application'
       self.UIs = {}
-      qtg.QApplication.__init__(self,arg__1)
+      self.interactionType = interactionType
+      qtw.QApplication.__init__(self, arg1)
       self.messageHandler = messageHandler
       self.setQuitOnLastWindowClosed(False)
 
@@ -67,15 +69,27 @@ try:
       ## this line of code should change to accommodate whatever standard is used.
       # self.UIs[uiID] = getattr(__import__(uiType),uiType)(**params)
       try:
+        ## We are going to add the debug parameter based on what the user
+        ## requested from the RAVEN command line.
+        params['debug'] = (self.interactionType in [Interaction.Debug, Interaction.Test])
+
         self.UIs[uiID] = getattr(__import__('UI.'+uiType),uiType)(**params)
-        self.UIs[uiID].show()
         self.UIs[uiID].closed.connect(self.closeEvent)
+        self.UIs[uiID].show()
+
+        if self.interactionType == Interaction.Test:
+          message = 'Test mode: the UI will be closed auotmatically.'
+          self.raiseAWarning(message, verbosity='silent')
+          self.UIs[uiID].test()
+          ## We may want to come up with a way of ensuring that each signal has
+          ## been fully processed by the UI, maybe it handles it internally or
+          ## maybe we query it here before calling close() -- DPM 5/9/2017
+          # time.sleep(10)
+          self.UIs[uiID].close()
+
       except ImportError as e:
 
-        message = 'The requested interactive UI is unavailable. '
-        message += 'RAVEN will continue in non-interactive mode for this step. '
-        message += 'Please file an issue on gitlab with the following debug '
-        message += 'information:\n\t' + str(e) + '\n'
+        message = 'The requested interactive UI is unavailable. RAVEN will continue in non-interactive mode for this step. Please file an issue on gitlab with the following debug information:\n\t' + str(e) + '\n'
 
         ## This will ensure that the waiting threads are released.
         self.windowClosed.emit(uiID)
@@ -96,7 +110,6 @@ try:
         if value == window:
           self.windowClosed.emit(key)
 
-  __PySideAvailable = True
+  __QtAvailable = True
 except ImportError as e:
-  __PySideAvailable = False
-  pass
+  __QtAvailable = False

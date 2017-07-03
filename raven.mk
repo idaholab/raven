@@ -1,5 +1,6 @@
 RAVEN_DIR := $(CURR_DIR)
-
+#Conda doesn't work with anything but bash and zsh
+SHELL := /bin/bash
 
 
 

@@ -1,0 +1,98 @@
+<Simulation verbosity='debug'>
+  <!-- test info block -->
+  
+  <TestInfo>
+      <name>framework/CodeInterfaceTests.melcorInterfaceForwardSamplingNoExe</name>
+      <author>alfoa</author>
+      <created>2017-04-27</created>
+      <classesTested>Models.Code.Melcor</classesTested>
+      <description>
+          An example of using the Melcor 2.1/2.2 code interface. This test is aimed to test the mechanics of the interface (no executable).
+      </description>
+      <revisions>
+          <revision author="alfoa" date="2017-04-27">Adding this test description.</revision>
+      </revisions>
+  </TestInfo>
+  
+  <!-- test info block end -->
+
+  <RunInfo>
+    <WorkingDir>MelcorInterface</WorkingDir>
+    <Sequence>testMelcor,dumpResults</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="melcorinput" type="input">test.i</Input>
+  </Files>
+
+  <Models>
+	<Code name="MELGEN" subType="Melcor">
+	  <executable>MELCOR_2.2/bin/melcor</executable>
+	  <preexec>MELCOR_2.2/bin/melgen</preexec>
+    </Code>
+  </Models>
+
+  <Distributions>
+	<Normal name="temper">
+      <mean>1.E+7</mean>
+      <sigma>1.5</sigma>
+      <upperBound>9.E+6</upperBound>
+      <lowerBound>1.1E+7</lowerBound>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo  name="MC_samp">
+      <samplerInit>
+        <limit>3</limit>
+      </samplerInit>
+      <variable name='%PRE%'>
+        <distribution>temper</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+  
+  <DataObjects>
+    <PointSet name="MelcorPointSet">
+      <Input>%PRE%</Input>
+      <Output>time,volume_2_CVVELO(1),volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP</Output>
+    </PointSet>
+    <HistorySet name="MelcorHistorySet">
+      <Input>%PRE%</Input>
+      <Output>time,volume_2_CVVELO(1),volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="dumpMelcorHistorySet">
+      <type>csv</type>
+      <source>MelcorHistorySet</source>
+    </Print>
+    <Print name="dumpMelcorPointSet">
+      <type>csv</type>
+      <source>MelcorPointSet</source>
+    </Print>
+  </OutStreams>
+
+  <Steps>
+	<MultiRun name="testMelcor">
+        <Input   class="Files"       type="input">melcorinput</Input>
+        <Model   class="Models"      type="Code">MELGEN</Model>
+        <Sampler class="Samplers"    type="MonteCarlo">MC_samp</Sampler>
+        <Output  class="Databases"   type="HDF5">DataMELCOR</Output>
+        <Output  class="DataObjects" type="HistorySet">MelcorHistorySet</Output>
+        <Output  class="DataObjects" type="PointSet">MelcorPointSet</Output>
+    </MultiRun>
+    <IOStep name="dumpResults" >
+        <Input   class="DataObjects" type="HistorySet">MelcorHistorySet</Input>
+        <Input   class="DataObjects" type="PointSet">MelcorPointSet</Input>
+        <Output class="OutStreams"   type="Print">dumpMelcorHistorySet</Output>
+        <Output class="OutStreams"   type="Print">dumpMelcorPointSet</Output>
+    </IOStep>
+  </Steps>
+
+  <Databases>
+	<HDF5 name="DataMELCOR" readMode='overwrite' />
+  </Databases>
+</Simulation>

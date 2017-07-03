@@ -73,5 +73,3 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, value, float, distance between x and y
     """
     pass
-
-

@@ -22,8 +22,10 @@ def evaluate(inp):
   return np.prod(list(1.+n for n in inp))
 
 def evaluate2(inp):
-  if len(inp)>0: return np.exp(-sum(inp)/len(inp))
-  else: return 1.0
+  if len(inp)>0:
+    return np.exp(-sum(inp)/len(inp))
+  else:
+    return 1.0
 
 def run(self,Input):
   self.ans  = evaluate (Input.values())

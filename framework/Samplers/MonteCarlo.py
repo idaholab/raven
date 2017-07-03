@@ -33,8 +33,7 @@ from functools import reduce
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import utils
-import Distributions
+from utils import utils,randomUtils
 distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -53,6 +52,8 @@ class MonteCarlo(ForwardSampler):
     """
     ForwardSampler.__init__(self)
     self.printTag = 'SAMPLER MONTECARLO'
+    self.samplingType = None
+    self.limit = None
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -62,15 +63,16 @@ class MonteCarlo(ForwardSampler):
     """
     ForwardSampler.readSamplerInit(self,xmlNode)
     if xmlNode.find('samplerInit') != None:
-      if xmlNode.find('samplerInit').find('limit') is not None:
-        try              : self.limit = int(xmlNode.find('samplerInit').find('limit').text)
-        except ValueError: self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
-      else: self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
+      if self.limit is None:
+        self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
       if xmlNode.find('samplerInit').find('samplingType')!= None:
         self.samplingType = xmlNode.find('samplerInit').find('samplingType').text
+        if self.samplingType not in ['uniform']:
+          self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+': specified type of samplingType is not recognized. Allowed type is: uniform')
       else:
         self.samplingType = None
-    else: self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the samplerInit block')
+    else:
+      self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the samplerInit block')
 
   def localGenerateInput(self,model,myInput):
     """
@@ -101,7 +103,7 @@ class MonteCarlo(ForwardSampler):
               self.raiseAnError(IOError,"In the Monte-Carlo sampler a uniform sampling type has been chosen; however, one or more distributions have not specified either the lowerBound or the upperBound")
             lower = distData['xMin']
             upper = distData['xMax']
-            rvsnum = lower + (upper - lower) * Distributions.random()
+            rvsnum = lower + (upper - lower) * randomUtils.random()
             epsilon = (upper-lower)/self.limit
             midPlusCDF  = self.distDict[key].cdf(rvsnum + epsilon)
             midMinusCDF = self.distDict[key].cdf(rvsnum - epsilon)
@@ -121,8 +123,9 @@ class MonteCarlo(ForwardSampler):
             for i in range(totDim):
               lower = self.distDict[key].returnLowerBound(i)
               upper = self.distDict[key].returnUpperBound(i)
-              coordinate[i] = lower + (upper - lower) * Distributions.random()
-          if reducedDim > len(coordinate): self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
+              coordinate[i] = lower + (upper - lower) * randomUtils.random()
+          if reducedDim > len(coordinate):
+            self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
           probabilityValue = self.distDict[key].pdf(coordinate)
           self.inputInfo['SampledVarsPb'][key] = probabilityValue
           for var in self.distributions2variablesMapping[dist]:
@@ -147,7 +150,5 @@ class MonteCarlo(ForwardSampler):
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
       @ Out, None
     """
-    if len(failedRuns)>0: self.raiseADebug('  Continuing with reduced-size Monte-Carlo sampling.')
-
-
-
+    if len(failedRuns)>0:
+      self.raiseADebug('  Continuing with reduced-size Monte-Carlo sampling.')

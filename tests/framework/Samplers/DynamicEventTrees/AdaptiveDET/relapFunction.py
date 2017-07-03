@@ -33,5 +33,7 @@ def __supportBoundingTest__(self):
 
 def __residuumSign(self):
   print('CLAD DAMAGED IS ' + str(self.CladDamaged))
-  if self.CladDamaged == 1: return -1.0
-  else: return 1.0
+  if self.CladDamaged == 1:
+    return -1.0
+  else:
+    return 1.0

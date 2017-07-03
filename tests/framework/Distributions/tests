@@ -1,0 +1,21 @@
+[Tests]
+ [./categorical]
+   type   = 'RavenFramework'
+   input  = 'test_distributionsCategorical.xml'
+   output = 'test_categorical/output_basicStatistics_Grid.csv test_categorical/output_basicStatistics_MC.csv'
+   csv    = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv'
+ [../]
+
+ [./laplace]
+   type   = 'RavenFramework'
+   input  = 'test_distributionsLaplace.xml'
+   csv    = 'test_laplace/MC_dump.csv'
+ [../]
+
+ [./geometric]
+   type   = 'RavenFramework'
+   input  = 'test_distributionsGeometric.xml'
+   csv    = 'test_geometric/MC_dump.csv'
+ [../]
+
+[]

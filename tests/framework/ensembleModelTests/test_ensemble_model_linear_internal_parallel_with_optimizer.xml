@@ -8,8 +8,8 @@
     <description>
        Example of usage of the Ensemble Model capability in RAVEN, connecting multiple External Models.
        This test is aimed to check the functionality of assembling multiple Models, when they result in a single chain
-       of Models (linear system) and they are sampled with an Optimization scheme.  
-       This test checks the functionality of the model using 
+       of Models (linear system) and they are sampled with an Optimization scheme.
+       This test checks the functionality of the model using
        a multi processor (ParallelPython) parallelization scheme.
     </description>
     <revisions>
@@ -61,24 +61,24 @@
   <Optimizers>
     <SPSA name="opt_smp">
         <initialization>
-            <limit>100</limit>
-            <type>min</type>
-            <initialSeed>30</initialSeed>
+          <limit>100</limit>
+          <type>min</type>
+          <initialSeed>30</initialSeed>
         </initialization>
         <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
         <convergence>
-            <iterationLimit>100</iterationLimit>
-            <relativeThreshold>1e-6</relativeThreshold>
+          <iterationLimit>100</iterationLimit>
+          <relativeThreshold>1e-6</relativeThreshold>
         </convergence>
         <variable name="leftTemperature">
-			<upperBound>250</upperBound>
-			<lowerBound>249</lowerBound>
-            <initial>250</initial>
+			    <upperBound>250</upperBound>
+			    <lowerBound>249</lowerBound>
+          <initial>250</initial>
         </variable>
         <variable name="rightTemperature">
-			<upperBound>250</upperBound>
-			<lowerBound>249</lowerBound>
-            <initial>250</initial>
+			    <upperBound>250</upperBound>
+			    <lowerBound>249</lowerBound>
+          <initial>250</initial>
         </variable>
         <objectVar>solution</objectVar>
         <parameter>
@@ -95,6 +95,8 @@
       <SolutionExport class="DataObjects" type="HistorySet">optData</SolutionExport>
       <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
       <Output class="DataObjects" type="PointSet">optOutput</Output>
+      <Output class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Output>
+      <Output class="DataObjects" type="PointSet">heatTransferContainer</Output>
       <Output class="OutStreams" type="Print">metaModelOutputTestDump</Output>
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
@@ -135,7 +137,7 @@
       <type>csv</type>
       <source>optOutput</source>
     </Print>
-    
+
     <Plot  name="optPath" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
@@ -152,7 +154,7 @@
             <zlabel>Loss Function</zlabel>
         </plotSettings>
     </Plot>
-    
+
     <Plot  name="plotIteration" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
@@ -167,7 +169,7 @@
                 <gridLocation><x>0</x><y>0</y></gridLocation>
                 <ylabel>x1</ylabel>
             </plot>
-            
+
             <plot>
                 <type>line</type>
                 <x>optData|Output|varsUpdate</x>
@@ -176,18 +178,18 @@
                 <gridLocation><x>1</x><y>0</y></gridLocation>
                 <ylabel>2</ylabel>
             </plot>
-            
-            
+
+
             <plot>
                 <type>line</type>
                 <x>optData|Output|varsUpdate</x>
                 <y>optData|Output|solution</y>
                 <interpPointsX>300</interpPointsX>
-                <gridLocation><x>2</x><y>0</y></gridLocation>	
-                <ylabel>c</ylabel>				
+                <gridLocation><x>2</x><y>0</y></gridLocation>
+                <ylabel>c</ylabel>
             </plot>
-            
-            
+
+
         </plotSettings>
     </Plot>
     <Plot  name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">

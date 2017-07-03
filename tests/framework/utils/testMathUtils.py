@@ -55,10 +55,12 @@ def checkAnswer(comment,value,expected,tol=1e-10,updateResults=True):
   """
   if abs(value - expected) > tol:
     print("checking answer",comment,value,"!=",expected)
-    if updateResults: results["fail"] += 1
+    if updateResults:
+      results["fail"] += 1
     return False
   else:
-    if updateResults: results["pass"] += 1
+    if updateResults:
+      results["pass"] += 1
     return True
 
 def checkArray(comment,check,expected,tol=1e-10):
@@ -95,10 +97,12 @@ def checkType(comment,value,expected,updateResults=True):
   """
   if type(value) != type(expected):
     print("checking type",comment,value,'|',type(value),"!=",expected,'|',type(expected))
-    if updateResults: results["fail"] += 1
+    if updateResults:
+      results["fail"] += 1
     return False
   else:
-    if updateResults: results["pass"] += 1
+    if updateResults:
+      results["pass"] += 1
     return True
 
 
@@ -237,6 +241,23 @@ for i,f in enumerate(find):
   checkAnswer('numpyNearersMatch %s' %str(f),idx,idcs[i],1e-5)
   checkArray('numpyNearersMatch %s' %str(f),ary,correct[i],1e-5)
 
+
+### check relative differences
+# similar order magnitude
+checkAnswer('relativeDiff O(1)',mathUtils.relativeDiff(1.234,1.233),0.00081103000811)
+# large order magnitude
+checkAnswer('relativeDiff O(1e10)',mathUtils.relativeDiff(1.234e10,1.233e10),0.00081103000811)
+# small order magnitude
+checkAnswer('relativeDiff O(1e-10)',mathUtils.relativeDiff(1.234e-10,1.233e-10),0.00081103000811)
+# different magnitudes
+checkAnswer('relativeDiff different magnitudes',mathUtils.relativeDiff(1.234e10,1.233e-10),1.00081103000811e20,tol=1e6)
+# measured is 0
+checkAnswer('relativeDiff first is zero',mathUtils.relativeDiff(0,1.234),1.0)
+# expected is 0
+checkAnswer('relativeDiff second is zero',mathUtils.relativeDiff(1.234,0),1.0)
+# both are 0
+checkAnswer('relativeDiff both are zero',mathUtils.relativeDiff(0,0),0.0)
+
 ### check float comparison
 #moderate order of magnitude
 checkTrue('compareFloats moderate OoM match',mathUtils.compareFloats(3.141592,3.141593,tol=1e-6),True)
@@ -292,6 +313,18 @@ factors = mathUtils.normalizationFactors(sequentialList, mode='scale')
 checkArray('0-1 scaling sequentialList: ', factors, (0,4))
 factors = mathUtils.normalizationFactors(sequentialList, mode='none')
 checkArray('No scaling sequentialList: ', factors,(0,1))
+
+#check hyperrectangle diagonal on several dimensions
+## 2d
+sideLengths = [3,4]
+checkAnswer('2D hyperdiagonal',mathUtils.hyperdiagonal(sideLengths),5)
+## 3d
+sideLengths.append(12)
+checkAnswer('3D hyperdiagonal',mathUtils.hyperdiagonal(sideLengths),13)
+## 3d
+sideLengths.append(84)
+checkAnswer('4D hyperdiagonal',mathUtils.hyperdiagonal(sideLengths),85)
+
 
 print(results)
 

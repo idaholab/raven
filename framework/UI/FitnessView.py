@@ -23,9 +23,10 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-from PySide import QtCore as qtc
-from PySide import QtGui as qtg
-from PySide import QtSvg as qts
+from qtpy import QtCore as qtc
+from qtpy import QtGui as qtg
+from qtpy import QtSvg as qts
+from qtpy import QtWidgets as qtw
 
 from .BaseTopologicalView import BaseTopologicalView
 
@@ -58,16 +59,16 @@ class FitnessView(BaseTopologicalView):
     """
     # Try to apply a new layout, if one already exists then make sure to grab
     # it for updating
-    self.setLayout(qtg.QVBoxLayout())
+    self.setLayout(qtw.QVBoxLayout())
     layout = self.layout()
     self.clearLayout(layout)
 
     self.padding = 2
 
     ## General Graphics View/Scene setup
-    self.scene = qtg.QGraphicsScene()
+    self.scene = qtw.QGraphicsScene()
     self.scene.setSceneRect(0,0,100,100)
-    self.gView = qtg.QGraphicsView(self.scene)
+    self.gView = qtw.QGraphicsView(self.scene)
     self.gView.setRenderHints(qtg.QPainter.Antialiasing |
                               qtg.QPainter.SmoothPixmapTransform)
     self.gView.setHorizontalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
@@ -75,7 +76,7 @@ class FitnessView(BaseTopologicalView):
     self.font = qtg.QFont('sans-serif', 12)
 
     ## Defining the right click menu
-    self.rightClickMenu = qtg.QMenu()
+    self.rightClickMenu = qtw.QMenu()
     self.fillAction = self.rightClickMenu.addAction('Fill viewport')
     self.fillAction.setCheckable(True)
     self.fillAction.setChecked(True)
@@ -95,34 +96,43 @@ class FitnessView(BaseTopologicalView):
     layout.addWidget(self.gView)
     self.updateScene()
 
-  def saveImage(self):
-    """ Saves the current display of this view to a static image by loading a
-        file dialog box.
+  def saveImage(self, filename=None):
     """
-    dialog = qtg.QFileDialog(self)
-    dialog.setFileMode(qtg.QFileDialog.AnyFile)
-    dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
-    dialog.exec_()
-    if dialog.result() == qtg.QFileDialog.Accepted:
-      myFile = dialog.selectedFiles()[0]
-      self.scene.clearSelection()
-      self.scene.setSceneRect(self.scene.itemsBoundingRect())
-      if myFile.endswith('.svg'):
-        svgGen = qts.QSvgGenerator()
-        svgGen.setFileName(myFile)
-        svgGen.setSize(self.scene.sceneRect().size().toSize())
-        svgGen.setViewBox(self.scene.sceneRect())
-        svgGen.setTitle("Screen capture of " + self.__class__.__name__)
-        svgGen.setDescription("Generated from RAVEN.")
-        painter = qtg.QPainter(svgGen)
+        Saves the current display of this view to a static image by loading a
+        file dialog box.
+        @ In, filename, string, optional parameter specifying where this image
+        will be saved. If None, then a dialog box will prompt the user for a
+        name and location.
+        @ Out, None
+    """
+    if filename is None:
+      dialog = qtw.QFileDialog(self)
+      dialog.setFileMode(qtw.QFileDialog.AnyFile)
+      dialog.setAcceptMode(qtw.QFileDialog.AcceptSave)
+      dialog.exec_()
+      if dialog.result() == qtw.QFileDialog.Accepted:
+        filename = dialog.selectedFiles()[0]
       else:
-        image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
-        image.fill(qtc.Qt.transparent)
-        painter = qtg.QPainter(image)
-      self.scene.render(painter)
-      if not myFile.endswith('.svg'):
-        image.save(myFile,quality=100)
-      del painter
+        return
+
+    self.scene.clearSelection()
+    self.scene.setSceneRect(self.scene.itemsBoundingRect())
+    if filename.endswith('.svg'):
+      svgGen = qts.QSvgGenerator()
+      svgGen.setFileName(filename)
+      svgGen.setSize(self.scene.sceneRect().size().toSize())
+      svgGen.setViewBox(self.scene.sceneRect())
+      svgGen.setTitle("Screen capture of " + self.__class__.__name__)
+      svgGen.setDescription("Generated from RAVEN.")
+      painter = qtg.QPainter(svgGen)
+    else:
+      image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
+      image.fill(qtc.Qt.transparent)
+      painter = qtg.QPainter(image)
+    self.scene.render(painter)
+    if not filename.endswith('.svg'):
+      image.save(filename,quality=100)
+    del painter
 
   def contextMenuEvent(self,event):
     """ An event handler triggered when the user right-clicks on this view that
@@ -178,10 +188,10 @@ class FitnessView(BaseTopologicalView):
 
     if not self.amsc.FitsSynced():
       txtItem = self.scene.addSimpleText('Rebuild Local Models',self.font)
-      txtItem.setFlag(qtg.QGraphicsItem.ItemIgnoresTransformations)
+      txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
       txtItem.setPos(0,0)
-      txtItem.setFlag(qtg.QGraphicsItem.ItemIsMovable)
-      txtItem.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+      txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
+      txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
       self.scene.changed.connect(self.scene.invalidate)
       self.gView.fitInView(self.scene.sceneRect(),qtc.Qt.KeepAspectRatio)
       return
@@ -250,8 +260,8 @@ class FitnessView(BaseTopologicalView):
 
           numTxtItem.setPos(x+(w-fontHeight)/2.,y-plotHeight+fontWidth)
           numTxtItem.rotate(285)
-          numTxtItem.setFlag(qtg.QGraphicsItem.ItemIsMovable)
-          numTxtItem.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+          numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
+          numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
           numTxtItem.setZValue(2)
 
         myRect = self.scene.addRect(x,y,w,h,myPen,myBrush)
@@ -264,8 +274,8 @@ class FitnessView(BaseTopologicalView):
         fontWidth = fm.width(name)
         txtItem.setPos(x+(w-fontHeight)/2.,y)
         txtItem.rotate(270)
-        txtItem.setFlag(qtg.QGraphicsItem.ItemIsMovable)
-        txtItem.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+        txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
+        txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
         txtItem.setZValue(2)
 
       x = j*axisWidth+self.padding
@@ -277,3 +287,21 @@ class FitnessView(BaseTopologicalView):
 
       self.scene.changed.connect(self.scene.invalidate)
       self.gView.fitInView(self.scene.sceneRect(),qtc.Qt.KeepAspectRatio)
+
+  def test(self):
+    """
+        A test function for performing operations on this class that need to be
+        automatically tested such as simulating mouse and keyboard events, and
+        other internal operations. For this class in particular, we will test:
+        - Building the models (which allows the actual plot to be displayed)
+        - Saving the view buffer in svg and png formats.
+        - Triggering the resize event.
+        @ In, None
+        @ Out, None
+    """
+    self.amsc.BuildModels()
+    self.amsc.ClearSelection()
+    self.saveImage(self.windowTitle()+'.svg')
+    self.saveImage(self.windowTitle()+'.png')
+    self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
+    super(FitnessView, self).test()

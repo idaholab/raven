@@ -147,7 +147,8 @@ class Dymola(CodeInterfaceBase):
       if inputFile.getType() == "DymolaInitialisation":
         foundInit = True
         indexInit = index
-    if not foundInit: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
+    if not foundInit:
+      raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
     # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
     #   input file passed in: /path/to/file/<Base Name>.ext. 'rawout' indicates that this is the direct
     #   output from running the Dymola executable.
@@ -188,8 +189,10 @@ class Dymola(CodeInterfaceBase):
       if inputFile.getType() == "DymolaVectors":
         foundVect = True
         indexVect = index
-    if not foundInit: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
-    if not foundVect: print('Dymola INTERFACE WARNING -> None of the input files has the type "DymolaVectors"! ')
+    if not foundInit:
+      raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
+    if not foundVect:
+      print('Dymola INTERFACE WARNING -> None of the input files has the type "DymolaVectors"! ')
     # Figure out the new file name and put it into the proper place in the return list
     #newInputFiles = copy.deepcopy(currentInputFiles)
     originalPath = oriInputFiles[indexInit].getAbsFile()
@@ -214,7 +217,8 @@ class Dymola(CodeInterfaceBase):
         print("                            is supposed to go into the simulation initialisation file of type")
         print("                            'DymolaInitialisation' the array must be split into scalars.")
         print("                            => It is assumed that the array goes into the input file with type 'DymolaVectors'")
-        if not foundVect: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ')
+        if not foundVect:
+          raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ')
         # extract dict entry
         vectorsToPass[key] = varDict.pop(key)
       assert not type(value).__name__ in ['str','bytes','unicode'], ("Strings cannot be "
@@ -228,7 +232,7 @@ class Dymola(CodeInterfaceBase):
           inc = 0
           Fvect.write("double %s(%s,2) #Comments here\n" %(key, len(value)))
           for val in value:
-            Fvect.write("%s\t%s\n" %(inc,val[0]))
+            Fvect.write("%s\t%s\n" %(inc,val))
             inc += 1
 
     # Do the search and replace in input file "DymolaInitialisation"
@@ -391,6 +395,16 @@ class Dymola(CodeInterfaceBase):
       timeSeriesData1 = numpy.array(self._timeSeriesData1)
       timeSeriesData2 = numpy.array(self._timeSeriesData2)
 
+      # The csv writer places quotes arround variables that contain a ',' in the name, i.e.
+      # a, "b,c", d would represent 3 variables 1) a 2) b,c 3) d. The csv reader in RAVEN does not
+      # suport this convention.
+      # => replace ',' in variable names with '@', i.e.
+      # a, "b,c", d will become a, b@c, d
+      for mylist in [self._namesData1, self._namesData2]:
+        for i in range(len(mylist)):
+          if ',' in mylist[i]:
+            mylist[i]  = mylist[i].replace(',', '@')
+
       # Recombine the names of the variables and insert the variable 'Time'.
       # Order of the variable names should be 'Time', self._namesData1, self._namesData2.
       # Also, convert the type of the resulting variable from 'list' to '2-d array'.
@@ -401,7 +415,7 @@ class Dymola(CodeInterfaceBase):
 
       # Create a 2-d array whose size is 'the number of parameters' by 'number of ouput points of the trajectories'.
       # Fill each row in a 2-d array with the parameter value.
-      Data1Array =  numpy.full((sizeParams,numOutputPts),1)
+      Data1Array =  numpy.full((sizeParams,numOutputPts),1.)
       for n in range(sizeParams):
         Data1Array[n,:] = timeSeriesData1[n,0]
 

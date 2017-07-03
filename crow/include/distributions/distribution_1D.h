@@ -138,6 +138,19 @@ public:
 
 };
 
+/*
+ * CLASS LAPLACE DISTRIBUTION
+ */
+class LaplaceDistribution;
+
+class LaplaceDistributionBackend;
+
+class BasicLaplaceDistribution : public BasicTruncatedDistribution {
+public:
+  BasicLaplaceDistribution(double location, double scale, double x_min, double x_max);
+  virtual ~BasicLaplaceDistribution();
+};
+
 
 /*
  * CLASS TRIANGULAR DISTRIBUTION
@@ -283,6 +296,23 @@ public:
   BasicBernoulliDistribution(double p);
   virtual ~BasicBernoulliDistribution();
 };
+
+/*
+ * CLASS GEOMETRIC DISTRIBUTION
+ */
+class GeometricDistribution;
+
+class GeometricDistributionBackend;
+
+class BasicGeometricDistribution : public BasicDiscreteDistribution {
+public:
+  BasicGeometricDistribution(double p);
+  virtual ~BasicGeometricDistribution();
+};
+
+/*
+ * CLASS CONSTANT DISTRIBUTION
+ */
 
 
 class BasicConstantDistribution : public virtual BasicDistribution

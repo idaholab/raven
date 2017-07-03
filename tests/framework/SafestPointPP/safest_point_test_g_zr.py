@@ -12,5 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 def __residuumSign(self):
-  if self.g<0 : return  1
-  else        : return -1
+  if self.g<0:
+    return  1
+  else:
+    return -1

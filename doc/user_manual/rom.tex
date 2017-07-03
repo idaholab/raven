@@ -3,7 +3,7 @@
   \textcolor{red}{\\It is important to NOTE that RAVEN uses a Z-score normalization of the training data before
   constructing the \textit{#1} ROM:
 \begin{equation}
-  \mathit{\mathbf{X}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
+  \mathit{\mathbf{X'}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
 \end{equation}
  }
 }
@@ -104,7 +104,7 @@ Note that if an HistorySet is provided in the training step then a temporal ROM 
 \textcolor{red}{\\\textbf{It is important to NOTE that RAVEN uses a Z-score normalization of the training data before constructing most of the
 Reduced Order Models (e.g. most of the SciKitLearn-based ROMs):}}
 \begin{equation}
-  \mathit{\mathbf{X}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
+  \mathit{\mathbf{X'}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
 \end{equation}
 \\In the following sections the specifications of each ROM type are reported, highlighting when a \textbf{Z-score normalization} is performed by RAVEN before constructing the ROM or when it is not performed.
 
@@ -164,11 +164,11 @@ its subtype.
 
 Note that when loading ROMs from file, RAVEN will not perform any checks on the expected inputs or outputs of
 a ROM; it is expected that a user know at least the I/O of a ROM before trying to use it as a model.
+However, RAVEN does require that pickled ROMs be trained before pickling in the first place.
 
 Initially, a pickledROM is not usable.  It cannot be trained or sampled; attempting to do so will raise an
 error.  An \xmlNode{IOStep} is used to load the ROM from file, at which point the ROM will have all the same
-characteristics as when it was pickled in a previous RAVEN run.  Specifically, if it was trained before
-pickling, then it will be trained when it is loaded.
+characteristics as when it was pickled in a previous RAVEN run.
 
 \textbf{Example:}
 For this example the ROM has already been created and trained in another RAVEN run, then pickled to a file

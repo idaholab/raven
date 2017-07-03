@@ -21,5 +21,3 @@ def run(self,Input):
 
   self.pdf = norm.pdf(self.x)
   self.cdf = norm.cdf(self.x)
-
-

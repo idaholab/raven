@@ -4,7 +4,7 @@
     <JobName>RunDir/MonteCarlo</JobName>
     <Sequence>sample,writeHistories</Sequence>
     <WorkingDir>RunDir/MonteCarlo</WorkingDir>
-    <batchSize>8</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/ForwardSamplingStrategies/MonteCarlo</name>
@@ -43,10 +43,11 @@
 
   <Samplers>
     <MonteCarlo name="monteCarlo">
-        <samplerInit>
-            <limit>100</limit>
-            <reseedEachIteration>True</reseedEachIteration>
-        </samplerInit>
+      <samplerInit>
+          <limit>100</limit>
+          <reseedEachIteration>True</reseedEachIteration>
+          <initialSeed>0</initialSeed>
+      </samplerInit>
       <variable name="sigma-A">
         <distribution>sigma</distribution>
       </variable>
