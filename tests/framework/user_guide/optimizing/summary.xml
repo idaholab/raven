@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>framework/user_guide/Summary</name>
+    <author>talbpaul</author>
+    <created>2017-06-30</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      Provides a user case of how to get a summary result of optimization efforts.
+    </description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>Summary</WorkingDir>
     <Sequence>optimize,getOptPoint,print</Sequence>

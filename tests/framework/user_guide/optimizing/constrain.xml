@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity='debug'>
+  <TestInfo>
+    <name>framework/user_guide/Constrain</name>
+    <author>talbpaul</author>
+    <created>2017-06-30</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      Provides a user case of the "constraints" function in action for the user guide.
+    </description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>Constrain</WorkingDir>
     <Sequence>optimize,print</Sequence>

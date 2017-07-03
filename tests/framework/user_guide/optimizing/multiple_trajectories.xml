@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>framework/user_guide/Multilevel</name>
+    <author>talbpaul</author>
+    <created>2017-06-30</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      Provides a user case of multiple-trajectory optimization in action for the user guide.
+    </description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>MultipleTraj</WorkingDir>
     <Sequence>optimize,print</Sequence>

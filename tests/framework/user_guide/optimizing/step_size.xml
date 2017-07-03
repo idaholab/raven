@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>framework/user_guide/StepSize</name>
+    <author>talbpaul</author>
+    <created>2017-06-30</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      Provides a user case of providing growth and shrink multiplication factors for gradient search.
+    </description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>StepSize</WorkingDir>
     <Sequence>optimize,print</Sequence>
