@@ -415,7 +415,7 @@ class Dymola(CodeInterfaceBase):
 
       # Create a 2-d array whose size is 'the number of parameters' by 'number of ouput points of the trajectories'.
       # Fill each row in a 2-d array with the parameter value.
-      Data1Array =  numpy.full((sizeParams,numOutputPts),1)
+      Data1Array =  numpy.full((sizeParams,numOutputPts),1.)
       for n in range(sizeParams):
         Data1Array[n,:] = timeSeriesData1[n,0]
 
