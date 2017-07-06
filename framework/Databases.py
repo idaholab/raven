@@ -140,8 +140,9 @@ class HDF5(DateBase):
       @ Out, None
     """
     self.__dict__.update(newstate)
-    self.database = h5Data(self.name,self.databaseDir,self.filename)
     self.exist    = True
+    self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist)
+
 
   def _readMoreXML(self,xmlNode):
     """

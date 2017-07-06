@@ -185,28 +185,9 @@ class Dummy(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(AttributeError,"No available Output to collect")
-
-    sampledVars,outputDict = evaluation
-
-    if type(outputDict).__name__ == "tuple":
-      outputEval = outputDict[0]
-    else:
-      outputEval = outputDict
-
-    exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputEval,'metadata':finishedJob.getMetadata()})
-    self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
-
-    if output.type == 'HDF5':
-      optionsIn = {'group':self.name+str(finishedJob.identifier)}
-      if options is not None:
-        optionsIn.update(options)
-      self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
-      output.addGroupDataObjects(optionsIn,exportDict,False)
-    else:
-      self.collectOutputFromDict(exportDict,output,options)
+    # create the export dictionary
+    exportDict = self.createExportDictionaryFromFinishedJob(finishedJob )#,True,inputParams)
+    self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
 
   def collectOutputFromDict(self,exportDict,output,options=None):
     """

@@ -242,8 +242,8 @@ class EnsembleModel(Dummy):
         outputInstancesForModel = []
         for output in self.modelsDictionary[modelIn[2]]['Output']:
           outputObject = self.retrieveObjectFromAssemblerDict('Output',output)
-          if type(outputObject).__name__ == 'HDF5':
-            self.raiseAnError(IOError, "Only DataObjects are allowed as optional Outputs. Got HDF5!")
+          #if type(outputObject).__name__ == 'HDF5':
+          #  self.raiseAnError(IOError, "Only DataObjects are allowed as optional Outputs. Got HDF5!")
           if outputObject.name not in outputsNames:
             self.raiseAnError(IOError, "The optional Output "+outputObject.name+" listed for Model "+modelIn[2]+" is not present among the Step outputs!!!")
           outputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Output',output))
