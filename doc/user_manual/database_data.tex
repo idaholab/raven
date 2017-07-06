@@ -285,6 +285,21 @@ XML block \xmlNode{HDF5}, that recognizes the following attributes:
   \default{None}
 \end{itemize}
 
+In addition, the \xmlNode{HDF5} recognizes the following subnodes:
+\begin{itemize}
+  \itemsep0em
+  \item \xmlNode{variables}, \xmlDesc{optional, comma-separated string}, allows only a pre-specified set of variables to be
+    included in the HDF5 when it is written to.  If this node is not included, by default the HDF5 will
+    include ALL of the input/output variables as a result of the step it is part of.  If included, only the
+    comma-separated variable names will be included if found.
+
+    \nb RAVEN will not error if one of the requested variables is not found; instead, it will silently pass.
+    It is recommended that a small trial run is performed, loading the HDF5 back into a data object, to check
+    that the correct variables are saved to the HDF5 before performing large-scale calculations.
+\end{itemize}
+
+
+Example:
 \begin{lstlisting}[style=XML,morekeywords={directory,filename}]
 <Databases>
   <HDF5 name="aDatabaseName1" directory=''path_to_a_dir'' compression=''lzf'' readMode='overwrite'/>
