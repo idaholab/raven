@@ -557,32 +557,25 @@ class Code(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    ## What happens if the code modified the input parameter space? Well,
-    ## let's grab any input fields existing in the output file and to ensure
-    ## that we have the correct information that the code actually ran.
-
     ## First, if the output is a data object, let's see what inputs it requests
+    if options is None:
+        options = {}
     if isinstance(output,Data):
       inputParams = output.getParaKeys('input')
+      options["inputFile"] = self.currentInputFiles
     else:
       inputParams = []
     # create the export dictionary
-    exportDict = self.createExportDictionaryFromFinishedJob(finishedJob, True, inputParams)
-
-    if options is None:
-      options = {}
+    if 'exportDict' in options:
+      exportDict = options['exportDict']
+    else:
+      exportDict = self.createExportDictionaryFromFinishedJob(finishedJob, True, inputParams)
     options['alias'] = self.alias
-
-    metadata = exportDict['metadata'] #finishedJob.getMetadata()
+    metadata = exportDict['metadata']
     if metadata:
       options['metadata'] = metadata
 
-    if isinstance(output,Data):
-      options["inputFile"] = self.currentInputFiles
-
     self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
-
-
 
   def collectOutputFromDict(self,exportDict,output,options=None):
     """

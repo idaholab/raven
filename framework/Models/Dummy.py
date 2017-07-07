@@ -186,7 +186,10 @@ class Dummy(Model):
       @ Out, None
     """
     # create the export dictionary
-    exportDict = self.createExportDictionaryFromFinishedJob(finishedJob )#,True,inputParams)
+    if 'exportDict' in options:
+      exportDict = options['exportDict']
+    else:
+      exportDict = self.createExportDictionaryFromFinishedJob(finishedJob )#,True,inputParams)
     self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
 
   def collectOutputFromDict(self,exportDict,output,options=None):
