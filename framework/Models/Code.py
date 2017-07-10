@@ -557,70 +557,25 @@ class Code(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(AttributeError,"No available Output to collect")
-
-    sampledVars,outputDict = evaluation
-
-    ## The single run does not perturb data, however RAVEN expects something in
-    ## the input space, so let's just put a 0 entry for the inputPlaceHolder
-    ## - DPM 5/4/2017
-    if len(sampledVars) == 0:
-      sampledVars = {'InputPlaceHolder': 0.}
-      # for key,value in outputDict.items():
-      #   sampledVars[key] = value[0]
-
-    ## What happens if the code modified the input parameter space? Well,
-    ## let's grab any input fields existing in the output file and to ensure
-    ## that we have the correct information that the code actually ran.
-
     ## First, if the output is a data object, let's see what inputs it requests
+    if options is None:
+        options = {}
     if isinstance(output,Data):
       inputParams = output.getParaKeys('input')
+      options["inputFile"] = self.currentInputFiles
     else:
       inputParams = []
-
-    for key,value in outputDict.items():
-      if key in sampledVars:
-        ## This will change with the reworking of the data objects, but for now
-        ## inputs can only be scalar, so we should only be grabbing the first
-        ## item (at this point the values should not change, but I did observe
-        ## a RELAP7 case where it did, but the gold file uses the first value)
-        ## -- DPM 5/2/17
-        if value[0] != sampledVars[key]:
-          self.raiseAWarning('The code reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the code (%f).' % (value[0], key, sampledVars[key], value[0]))
-          sampledVars[key] = value[0]
-      ## If the key value is not one of the sampled variables listed in sampledVars,
-      ## then double check that it was not one of the user-requested variables
-      ## that just so happened to be placed in the output file. This can happen
-      ## with interfaces like RELAP7 where the sampledVars can contain other
-      ## information. This may need reworked at some point to be more consisent
-      ## with how data is handled by the rest of RAVEN -- DPM 5/1/17
-      elif key in inputParams:
-        # self.raiseAWarning('Input data found in the output.')
-        sampledVars[key] = value[0]
-
-
-    if options is None:
-      options = {}
+    # create the export dictionary
+    if 'exportDict' in options:
+      exportDict = options['exportDict']
+    else:
+      exportDict = self.createExportDictionaryFromFinishedJob(finishedJob, True, inputParams)
     options['alias'] = self.alias
-
-    metadata = finishedJob.getMetadata()
+    metadata = exportDict['metadata']
     if metadata:
       options['metadata'] = metadata
 
-    exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputDict,'metadata':metadata, 'prefix':finishedJob.identifier})
-    self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
-    if output.type == 'HDF5':
-      optionsIn = {'group':self.name+str(finishedJob.identifier)}
-      if options is not None:
-        optionsIn.update(options)
-      output.addGroupDataObjects(optionsIn,exportDict,False)
-      # output.addGroup(optionsIn,optionsIn)
-    else:
-      options["inputFile"] = self.currentInputFiles
-      self.collectOutputFromDict(exportDict,output,options)
+    self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
 
   def collectOutputFromDict(self,exportDict,output,options=None):
     """
