@@ -378,17 +378,20 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## class and pass self in as the first parameter
     jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
 
-  def createExportDictionaryFromFinishedJob(self,finishedJob, addJobId = False, inputParams=[]):
+  def createExportDictionaryFromFinishedJob(self,finishedJob, addJobId = False, inputParams = None):
     """
       Method that is aimed to create a dictionary with the sampled and output variables that can be collected by the different
       output objects.
       @ In, finishedJob, InternalRunner object, instance of the run just finished
       @ In, addJobId, bool, optional, add prefix in the exportDictionary? Default: False
-      @ In, inputParams, list, optional, list of input space parameters in the output object? Default: empty list
+      @ In, inputParams, list, optional, list of input space parameters in the output object? Default: None
       @ Out, exportDict, dict, dictionary containing the output/input values: {'inputSpaceParams':dict(sampled variables),
                                                                                'outputSpaceParams':dict(output variables),
                                                                                'metadata':dict(metadata)}
     """
+    if inputParams is None:
+      inputParams = []
+
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(AttributeError,"No available Output to collect")
@@ -404,7 +407,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## - DPM 5/4/2017
     if len(sampledVars) == 0:
       sampledVars = {'InputPlaceHolder': 0.}
-
 
     ## What happens if the code modified the input parameter space? Well,
     ## let's grab any input fields existing in the output file and to ensure

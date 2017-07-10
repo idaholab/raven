@@ -449,9 +449,7 @@ class EnsembleModel(Dummy):
     optionalOutputNames = []
     for modelIn in self.modelsDictionary.keys():
       for optionalOutput in self.modelsDictionary[modelIn]['OutputObject']:
-        #if key != 'uncollectedJobIds':
         optionalOutputNames.append(optionalOutput.name)
-        #optionalOutputNames+=[obj.name for obj in value]
     if output.type == 'HDF5':
       if output.name not in optionalOutputNames:
         output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
@@ -559,9 +557,6 @@ class EnsembleModel(Dummy):
     for modelIn in self.orderList:
       self.tempTargetEvaluations[modelIn].resetData()
       tempTargetEvaluations[modelIn] = copy.copy(self.tempTargetEvaluations[modelIn])
-      #for i in range(len(self.tempOutputs[modelIn])):
-      #  self.tempOutputs[modelIn][i].resetData()
-      #tempOutputs[modelIn] = copy.deepcopy(self.tempOutputs[modelIn])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
     gotOutputs       = [{}]*len(self.orderList)
     typeOutputs      = ['']*len(self.orderList)
@@ -586,8 +581,6 @@ class EnsembleModel(Dummy):
 
       for modelCnt, modelIn in enumerate(self.orderList):
         tempTargetEvaluations[modelIn].resetData()
-        #for i in range(len(tempOutputs[modelIn])):
-        #  tempOutputs[modelIn][i].resetData()
         # in case there are metadataToTransfer, let's collect them from the source
         metadataToTransfer = None
         if self.modelsDictionary[modelIn]['metadataToTransfer']:
