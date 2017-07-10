@@ -189,7 +189,7 @@ class Dummy(Model):
     if options is not None and 'exportDict' in options:
       exportDict = options['exportDict']
     else:
-      exportDict = self.createExportDictionaryFromFinishedJob(finishedJob )#,True,inputParams)
+      exportDict = self.createExportDictionaryFromFinishedJob(finishedJob)
     self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
 
   def collectOutputFromDict(self,exportDict,output,options=None):
