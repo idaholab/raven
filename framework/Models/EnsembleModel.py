@@ -249,7 +249,8 @@ class EnsembleModel(Dummy):
           outputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Output',output))
         self.modelsDictionary[modelIn[2]]['OutputObject'] = outputInstancesForModel
         #self.tempOutputs[modelIn[2]] = copy.deepcopy(outputInstancesForModel)
-      #else:
+      else:
+        self.modelsDictionary[modelIn[2]]['OutputObject'] = []
       #  self.tempOutputs[modelIn[2]] = [utils.byPass()]
       self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
       for mm in self.modelsDictionary[modelIn[2]]['Instance'].mods:

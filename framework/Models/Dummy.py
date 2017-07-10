@@ -186,7 +186,7 @@ class Dummy(Model):
       @ Out, None
     """
     # create the export dictionary
-    if 'exportDict' in options:
+    if options is not None and 'exportDict' in options:
       exportDict = options['exportDict']
     else:
       exportDict = self.createExportDictionaryFromFinishedJob(finishedJob )#,True,inputParams)
