@@ -9,7 +9,9 @@
        The main goal of this test is to show how to specify optional output in the Ensemble Model object.
        All the RAVEN available data storage types are tested (DataObjects and Databases).
     </description>
-    <revision author="alfoa" date="2017-07-10">Modified test in order to show how to use a HDF5 as optional output (Issue #237)</revision>
+    <revisions>
+      <revision author="alfoa" date="2017-07-10">Modified test in order to show how to use a HDF5 as optional output (Issue #237)</revision>
+    </revisions>
   </TestInfo>
   
   <RunInfo>
