@@ -242,16 +242,12 @@ class EnsembleModel(Dummy):
         outputInstancesForModel = []
         for output in self.modelsDictionary[modelIn[2]]['Output']:
           outputObject = self.retrieveObjectFromAssemblerDict('Output',output)
-          #if type(outputObject).__name__ == 'HDF5':
-          #  self.raiseAnError(IOError, "Only DataObjects are allowed as optional Outputs. Got HDF5!")
           if outputObject.name not in outputsNames:
             self.raiseAnError(IOError, "The optional Output "+outputObject.name+" listed for Model "+modelIn[2]+" is not present among the Step outputs!!!")
           outputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Output',output))
         self.modelsDictionary[modelIn[2]]['OutputObject'] = outputInstancesForModel
-        #self.tempOutputs[modelIn[2]] = copy.deepcopy(outputInstancesForModel)
       else:
         self.modelsDictionary[modelIn[2]]['OutputObject'] = []
-      #  self.tempOutputs[modelIn[2]] = [utils.byPass()]
       self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
       for mm in self.modelsDictionary[modelIn[2]]['Instance'].mods:
         if mm not in self.mods:
@@ -449,28 +445,6 @@ class EnsembleModel(Dummy):
       if jobIndex is not None:
         for optionalModelOutput in self.modelsDictionary[modelIn]['OutputObject']:
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedJob,optionalModelOutput,options={'exportDict':copy.copy(optionalOutputs[modelIn])})
-
-      #if type(optionalOutputs[modelIn][0]).__name__ != "byPass" and jobIndex is not None:
-        ## collect optional data
-        #for index, optionalOut in enumerate(optionalOutputs[modelIn]):
-          #inputsValuesOptionalOut    = optionalOut.getParametersValues('inputs', nodeId = 'RecontructEnding')
-          #inputsValuesOptionalOut    = inputsValuesOptionalOut if optionalOut.type != 'HistorySet' else inputsValuesOptionalOut.values()[-1]
-          #outputsValuesOptionalOut   = optionalOut.getParametersValues('outputs', nodeId = 'RecontructEnding')
-          #outputsValuesOptionalOut   = outputsValuesOptionalOut if optionalOut.type != 'HistorySet' else outputsValuesOptionalOut.values()[-1]
-          #metadataValuesOptionalOut  = optionalOut.getAllMetadata(nodeId = 'RecontructEnding')
-          #for key in self.modelsDictionary[modelIn]['OutputObject'][index].getParaKeys('inputs'):
-            #if key in inputsValuesOptionalOut:
-              #self.modelsDictionary[modelIn]['OutputObject'][index].updateInputValue (key,inputsValuesOptionalOut[key])
-            #else:
-              #self.raiseAWarning('Input key "'+key+'" is not contained in output '+self.modelsDictionary[modelIn]['OutputObject'][index].name)
-          #for key in self.modelsDictionary[modelIn]['OutputObject'][index].getParaKeys('outputs'):
-            #if key in outputsValuesOptionalOut:
-              #self.modelsDictionary[modelIn]['OutputObject'][index].updateOutputValue (key,outputsValuesOptionalOut[key])
-            #else:
-              #self.raiseAWarning('Output key "'+key+'" is not contained in output '+self.modelsDictionary[modelIn]['OutputObject'][index].name)
-          #for key,value in metadataValuesOptionalOut.items():
-            #self.modelsDictionary[modelIn]['OutputObject'][index].updateMetadata(key,value[-1])
-
     # collect the output of the STEP
     optionalOutputNames = []
     for modelIn in self.modelsDictionary.keys():
@@ -688,9 +662,6 @@ class EnsembleModel(Dummy):
           tempOutputs[modelIn] = copy.deepcopy(exportDict)
           # collect the target evaluation
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn],options={'exportDict':exportDict})
-          #if type(tempOutputs[modelIn][0]).__name__ != 'byPass':
-          #  for index in range(len(tempOutputs[modelIn])):
-          #    self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempOutputs[modelIn][index])
           # store the results in the working dictionaries
           returnDict[modelIn]   = {}
           responseSpace         = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
