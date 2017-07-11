@@ -62,7 +62,8 @@ class SensitivityView(BaseTopologicalView):
     """
     # Try to apply a new layout, if one already exists then make sure to grab
     # it for updating
-    self.setLayout(qtw.QVBoxLayout())
+    if self.layout() is None:
+      self.setLayout(qtw.QVBoxLayout())
     layout = self.layout()
     self.clearLayout(layout)
 

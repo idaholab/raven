@@ -1005,21 +1005,21 @@ class AMSC_Object(object):
 
 
 try:
-  import PySide.QtCore
+  import qtpy.QtCore as qtc
 
   TolColors = ['#88CCEE', '#DDCC77', '#AA4499', '#117733', '#332288', '#999933',
              '#44AA99', '#882255', '#CC6677']
 
-  class QAMSC_Object(AMSC_Object,PySide.QtCore.QObject):
+  class QAMSC_Object(AMSC_Object,qtc.QObject):
     ## Paul Tol's colorblind safe colors
     colorList = itertools.cycle(TolColors)
 
-    sigPersistenceChanged = PySide.QtCore.Signal()
-    sigSelectionChanged = PySide.QtCore.Signal()
-    sigFilterChanged = PySide.QtCore.Signal()
-    sigDataChanged = PySide.QtCore.Signal()
-    sigModelsChanged = PySide.QtCore.Signal()
-    sigWeightsChanged = PySide.QtCore.Signal()
+    sigPersistenceChanged = qtc.Signal()
+    sigSelectionChanged = qtc.Signal()
+    sigFilterChanged = qtc.Signal()
+    sigDataChanged = qtc.Signal()
+    sigModelsChanged = qtc.Signal()
+    sigWeightsChanged = qtc.Signal()
 
     def Reinitialize(self, X, Y, w=None, names=None, graph='beta skeleton',
                      gradient='steepest', knn=-1, beta=1.0, normalization=None,
