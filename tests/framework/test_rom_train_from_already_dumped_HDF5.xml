@@ -6,7 +6,7 @@
     <created>2014-02-26</created>
     <classesTested>Steps.RomTrainer, Models.ROM, Databases.HDF5</classesTested>
     <description>
-       This test is aimed to test the capability of RAVEN to train ROMs based on the pre-gerenated data sets (HDF5)     
+       This test is aimed to test the capability of RAVEN to train ROMs based on the pre-gerenated data sets (HDF5)
     </description>
     <revisions>
       <revision author="alfoa" date="2014-03-06">changed name of DataBase handling, modified all tests were using it, improved Step output handling etc        r25347</revision>
@@ -17,6 +17,7 @@
       <revision author="cogljj" date="2015-11-17">Updating to work with scikit-learn 0.17. In the new version of sklearn the rom can not use a classifier anymore.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="talbpaul" date="2017-07-10">Fixed location of database to be specified relative to working directory</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -24,9 +25,6 @@
     <Sequence>test_extract_for_rom_trainer,test_rom_trainer,rom_MC</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-  </Files>
 
   <Distributions>
     <Uniform name="auxbackup">
@@ -91,7 +89,7 @@
   </OutStreams>
 
   <Databases>
-    <HDF5 directory="test_rom_trainer/DatabaseStorage" filename="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5" name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" readMode="read"/>
+    <HDF5 directory="../test_rom_trainer/DatabaseStorage" filename="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5" name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" readMode="read"/>
   </Databases>
 
   <DataObjects>

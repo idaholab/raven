@@ -74,10 +74,10 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="sine" readMode="overwrite" directory="HDF5_selective">
+    <HDF5 name="sine" readMode="overwrite" directory=".">
       <variables>var1,var2,time,sine</variables>
     </HDF5>
-    <HDF5 name="all" readMode="overwrite" directory="HDF5_selective"/>
+    <HDF5 name="all" readMode="overwrite" directory="."/>
   </Databases>
 
   <DataObjects>
