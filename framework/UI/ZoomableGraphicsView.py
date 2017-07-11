@@ -92,8 +92,8 @@ class OverlayButton(qtw.QPushButton):
 # handIcon = qta.icon('fa.hand-paper-o', color=defaultIconColor)
 # mouseIcon = qta.icon('fa.mouse-pointer', color=defaultIconColor)
 # screenshotIcon = qta.icon('fa.camera', color=defaultIconColor)
-resourceLocation = os.path.join(os.path.dirname(os.path.abspath(__file__)),'resources')
 
+resourceLocation = os.path.join(os.path.dirname(os.path.abspath(__file__)),'resources')
 resetIcon      = qtg.QIcon(os.path.join(resourceLocation,'fa-rotate-left_32.png'))
 handIcon       = qtg.QIcon(os.path.join(resourceLocation,'fa-hand-paper-o_32.png'))
 mouseIcon      = qtg.QIcon(os.path.join(resourceLocation,'fa-mouse-pointer_32.png'))
