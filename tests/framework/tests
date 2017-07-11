@@ -479,6 +479,12 @@
     input = 'hdf5_selective.xml'
     expect_err = 'RuntimeError: the parameter square has not been found in'
   [../]
+  [./HDF5location]
+    type = 'RavenFramework'
+    input = 'hdf5_location.xml'
+    output = 'HDF5_location/hasSquare_0.csv'
+    prereq = HDF5selective
+  [../]
 []
 
 

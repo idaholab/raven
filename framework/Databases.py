@@ -157,8 +157,15 @@ class HDF5(DateBase):
     # Check if database directory exist, otherwise create it
     if '~' in self.databaseDir:
       self.databaseDir = copy.copy(os.path.expanduser(self.databaseDir))
+    # Determine RELATIVE location for HDF5.
+    # - if a full path is given, accept it as given, else ...
+    if not os.path.isabs(self.databaseDir):
+      # use working dir as base
+      self.databaseDir = os.path.join(self.workingDir,self.databaseDir)
+    self.databaseDir = os.path.normpath(self.databaseDir)
+
     utils.makeDir(self.databaseDir)
-    self.raiseAMessage('Database Directory is',self.databaseDir,'.')
+    self.raiseADebug('Database Directory is:',self.databaseDir)
     # Check if a filename has been provided
     # if yes, we assume the user wants to load the data from there
     # or update it
@@ -181,9 +188,10 @@ class HDF5(DateBase):
     else:
       #file does not exist in path
       if self.readMode == 'read':
-        self.raiseAWarning('Requested to read from database, but it does not exist:',fullpath,'so continuing without reading...')
+        self.raiseAWarning('Requested to read from database, but it does not exist at:',fullpath,'; continuing without reading...')
       self.exist = False
       self.database  = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist)
+    self.raiseAMessage('Database is located at:',fullpath)
 
   def getInitParams(self):
     """
