@@ -504,7 +504,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       for idx,(x,y) in newNodes:
         color = self.getColor(idx)
         brush = qtg.QBrush(color)
-        pen = qtc.Qt.NoPen
+        pen = qtg.QPen(qtc.Qt.NoPen)
 
         ## Don't worry about placing or sizing the ellipse, we will do that
         ## below according to current settings of the view, right now we want
@@ -546,7 +546,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       if self.nodes[idx].isSelected():
         pen = qtg.QPen(black)
       else:
-        pen = qtc.Qt.NoPen
+        pen = qtg.QPen(qtc.Qt.NoPen)
 
       newX = glyph.rawX*self.usableWidth + self.padding - diameter/2.
       newY = height - self.usableHeight * glyph.rawY - self.padding - diameter/2.
