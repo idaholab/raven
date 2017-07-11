@@ -391,7 +391,8 @@ class TopologyMapView(BaseTopologicalView):
     """
     # Try to apply a new layout, if one already exists then make sure to grab
     # it for updating
-    self.setLayout(qtw.QGridLayout())
+    if self.layout() is None:
+      self.setLayout(qtw.QGridLayout())
     layout = self.layout()
     self.clearLayout(layout)
 
