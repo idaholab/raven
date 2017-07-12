@@ -88,10 +88,10 @@ coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_det_multi
 coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_inss.xml interfaceCheck
 # code interface tests END
 
-Xvfb :8 &
+Xvfb :8888 &
 xvfbPID=$!
 oldDisplay=$DISPLAY
-export DISPLAY=:8
+export DISPLAY=:8888
 cd ../PostProcessors/TopologicalPostProcessor
 coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
 cd ../DataMiningPostProcessor/Clustering/
