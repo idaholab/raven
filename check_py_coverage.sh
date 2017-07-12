@@ -88,17 +88,26 @@ coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_det_multi
 coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_inss.xml interfaceCheck
 # code interface tests END
 
-Xvfb :8888 &
-xvfbPID=$!
-oldDisplay=$DISPLAY
-export DISPLAY=:8888
-cd ../PostProcessors/TopologicalPostProcessor
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
-cd ../DataMiningPostProcessor/Clustering/
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck
-kill -9 $xvfbPID
-export DISPLAY=$oldDisplay
-
+if which Xvfb
+then
+    Xvfb :8888 &
+    xvfbPID=$!
+    oldDisplay=$DISPLAY
+    export DISPLAY=:8888
+    cd ../PostProcessors/TopologicalPostProcessor
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
+    cd ../DataMiningPostProcessor/Clustering/
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck
+    kill -9 $xvfbPID
+    export DISPLAY=$oldDisplay
+else
+    ## Try these tests anyway, we can get some coverage out of them even if the
+    ## UI fails or is unavailable.
+    cd ../PostProcessors/TopologicalPostProcessor
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
+    cd ../DataMiningPostProcessor/Clustering/
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck
+fi
 
 ## Go to the final directory and generate the html documents
 cd $SCRIPT_DIR/tests/framework
