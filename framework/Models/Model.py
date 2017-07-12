@@ -32,6 +32,7 @@ from BaseClasses import BaseType
 from utils import utils
 from Assembler import Assembler
 from utils import InputData
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
@@ -376,6 +377,85 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
     jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+
+  def createExportDictionaryFromFinishedJob(self,finishedJob, addJobId = False, inputParams = None):
+    """
+      Method that is aimed to create a dictionary with the sampled and output variables that can be collected by the different
+      output objects.
+      @ In, finishedJob, InternalRunner object, instance of the run just finished
+      @ In, addJobId, bool, optional, add prefix in the exportDictionary? Default: False
+      @ In, inputParams, list, optional, list of input space parameters in the output object? Default: None
+      @ Out, exportDict, dict, dictionary containing the output/input values: {'inputSpaceParams':dict(sampled variables),
+                                                                               'outputSpaceParams':dict(output variables),
+                                                                               'metadata':dict(metadata)}
+    """
+    if inputParams is None:
+      inputParams = []
+
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(AttributeError,"No available Output to collect")
+
+    sampledVars,outputDict = evaluation
+
+    if type(outputDict).__name__ == "tuple":
+      outputEval = outputDict[0]
+    else:
+      outputEval = outputDict
+    ## The single run does not perturb data, however RAVEN expects something in
+    ## the input space, so let's just put a 0 entry for the inputPlaceHolder
+    ## - DPM 5/4/2017
+    if len(sampledVars) == 0:
+      sampledVars = {'InputPlaceHolder': 0.}
+
+    ## What happens if the code modified the input parameter space? Well,
+    ## let's grab any input fields existing in the output file and to ensure
+    ## that we have the correct information that the code actually ran.
+    if len(inputParams) > 0:
+      for key,value in outputEval.items():
+        if key in sampledVars:
+          ## This will change with the reworking of the data objects, but for now
+          ## inputs can only be scalar, so we should only be grabbing the first
+          ## item (at this point the values should not change, but I did observe
+          ## a RELAP7 case where it did, but the gold file uses the first value)
+          ## -- DPM 5/2/17
+          if value[0] != sampledVars[key]:
+            self.raiseAWarning('The model '+self.type+' reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the code (%f).' % (value[0], key, sampledVars[key], value[0]))
+            sampledVars[key] = value[0]
+        ## If the key value is not one of the sampled variables listed in sampledVars,
+        ## then double check that it was not one of the user-requested variables
+        ## that just so happened to be placed in the output file. This can happen
+        ## with interfaces like RELAP7 where the sampledVars can contain other
+        ## information. This may need reworked at some point to be more consisent
+        ## with how data is handled by the rest of RAVEN -- DPM 5/1/17
+        elif key in inputParams:
+          sampledVars[key] = value[0]
+
+    exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputEval,'metadata':finishedJob.getMetadata()})
+    if addJobId:
+      exportDict['prefix'] = finishedJob.identifier
+    self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
+
+    return exportDict
+
+  def addOutputFromExportDictionary(self,exportDict,output,options,jobIdentifier):
+    """
+      Method that collects the outputs from them export dictionary
+      @ In, exportDict, dict, dictionary containing the output/input values: {'inputSpaceParams':dict(sampled variables),
+                                                                              'outputSpaceParams':dict(output variables),
+                                                                              'metadata':dict(metadata)}
+      @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, options, dict, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
+      @ In, jobIdentifier, str, job identifier
+      @ Out, None
+    """
+    if output.type == 'HDF5':
+      optionsIn = {'group':self.name+str(jobIdentifier)}
+      if options is not None:
+        optionsIn.update(options)
+      output.addGroupDataObjects(optionsIn,exportDict,False)
+    else:
+      self.collectOutputFromDict(exportDict,output,options)
 
   def collectOutput(self,collectFrom,storeTo,options=None):
     """
