@@ -112,8 +112,13 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       @In, mainWindow, HierarchicalWindow, the parent window of this view
       @Out, None
     """
-    BaseHierarchicalView.__init__(self, mainWindow)
+    # BaseHierarchicalView.__init__(self, mainWindow)
     ZoomableGraphicsView.__init__(self, mainWindow)
+
+    self.setWindowTitle(self.__class__.__name__)
+    self.scrollable = False
+    self.mainWindow = mainWindow
+
 
     self.tree = linakgeToTree(self.mainWindow.engine.linkage)
 
