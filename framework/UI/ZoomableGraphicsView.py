@@ -113,7 +113,8 @@ class ZoomableGraphicsView(qtw.QGraphicsView):
       Initializer that will set L&F defaults and initialize the UI elements
       @ In, parent, PySide.QtGui.QWidget, the parent widget of this widget.
     """
-    super(ZoomableGraphicsView, self).__init__(parent)
+    #super(ZoomableGraphicsView, self).__init__(parent)
+    qtw.QGraphicsView.__init__(self, parent)
     self._zoom = 0
     self.padding = 10
     self.setTransformationAnchor(qtw.QGraphicsView.AnchorUnderMouse)

@@ -112,8 +112,8 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       @In, mainWindow, HierarchicalWindow, the parent window of this view
       @Out, None
     """
-    ZoomableGraphicsView.__init__(self, mainWindow)
     BaseHierarchicalView.__init__(self, mainWindow)
+    ZoomableGraphicsView.__init__(self, mainWindow)
 
     self.tree = linakgeToTree(self.mainWindow.engine.linkage)
 
@@ -621,7 +621,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       parent = pathGraphic.source
       child = pathGraphic.sink
       if parent.level > currentLevel and child.level <= currentLevel:
-        pathGraphic.setPen(qtg.QPen(self.getColor(idx2),min(2,rect2.width()),c=qtc.Qt.RoundCap))
+        pathGraphic.setPen(qtg.QPen(self.getColor(idx2),min(2,rect2.width()),cap=qtc.Qt.RoundCap))
       else:
         pathGraphic.setPen(qtg.QPen(gray,0))
       pathGraphic.setPath(path)
