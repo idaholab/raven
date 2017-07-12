@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="verbose">
   <RunInfo>
     <WorkingDir>basicStatisticsTimeDependent</WorkingDir>
     <Sequence>FirstMRun,timeDepBasicStatPP,readStats,plot_results</Sequence>
@@ -30,7 +30,7 @@
       </File>
     </PostProcessor>
   </Models>
-  
+
   <Distributions>
     <Normal name="distrib">
       <mean>4</mean>

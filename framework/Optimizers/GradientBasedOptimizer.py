@@ -193,12 +193,14 @@ class GradientBasedOptimizer(Optimizer):
     for var in self.getOptVars(traj=traj):
       gradArray[var] = np.zeros(2) #why are we initializing to this?
     # Evaluate gradient at each point
-    #for pertIndex in optVarsValues.keys():
+    # first, get average opt point
+    optOutAvg = np.average(list(optVarsValues[i*2]['output'] for i in range(self.gradDict['numIterForAve'])))
+    # then, evaluate gradients
     for i in range(self.gradDict['numIterForAve']):
-      opt  = optVarsValues[i*2]      #the latest opt point
+      opt  = optVarsValues[i*2]     #the latest opt point
       pert = optVarsValues[i*2 + 1] #the perturbed point
       #calculate grad(F) wrt each input variable
-      lossDiff = pert['output'] - opt['output']
+      lossDiff = pert['output'] - optOutAvg #['output']
       #cover "max" problems
       # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
       #   sign flipping was only called when evaluating the gradient.
