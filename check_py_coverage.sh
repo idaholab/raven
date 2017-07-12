@@ -87,10 +87,18 @@ coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_adaptive_
 coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_det_multibranch.xml interfaceCheck
 coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_inss.xml interfaceCheck
 # code interface tests END
+
+Xvfb :8 &
+xvfbPID=$!
+oldDisplay=$DISPLAY
+export DISPLAY=:8
 cd ../PostProcessors/TopologicalPostProcessor
 coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
 cd ../DataMiningPostProcessor/Clustering/
 coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck
+kill -9 $xvfbPID
+export DISPLAY=$oldDisplay
+
 
 ## Go to the final directory and generate the html documents
 cd $SCRIPT_DIR/tests/framework
