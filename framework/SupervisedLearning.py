@@ -66,7 +66,7 @@ from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils,mathUtils
+from utils import utils,mathUtils,randomUtils
 import sys
 import MessageHandler
 import Distributions
@@ -2305,6 +2305,7 @@ class ARMA(superVisedLearning):
     self.armaPara['Qmax']      = kwargs.get('Qmax', 3)
     self.armaPara['Qmin']      = kwargs.get('Qmin', 0)
     self.armaPara['dimension'] = len(self.features)
+    self.reseedCopies          = kwargs.get('reseedCopies',True)
     self.outTruncation         = kwargs.get('outTruncation', None)     # Additional parameters to allow user to specify the time series to be all positive or all negative
     self.pivotParameterID      = kwargs.get('pivotParameter', 'Time')
     self.pivotParameterValues  = None                                  # In here we store the values of the pivot parameter (e.g. Time)
@@ -2330,6 +2331,30 @@ class ARMA(superVisedLearning):
           self.fourierPara['FourierOrder'][basePeriod] = int(temps[index])
       if len(self.fourierPara['basePeriod']) != len(self.fourierPara['FourierOrder']):
         self.raiseAnError(ValueError, 'Length of FourierOrder should be ' + str(len(self.fourierPara['basePeriod'])))
+
+  def __getstate__(self):
+    """
+      Obtains state of object for pickling.
+      @ In, None
+      @ Out, d, dict, stateful dictionary
+    """
+    d = copy.copy(self.__dict__)
+    # set up a seed for the next pickled iteration
+    if self.reseedCopies:
+      rand = randomUtils.randomIntegers(1,int(2**20),self)
+      d['random seed'] = rand
+    return d
+
+  def __setstate__(self,d):
+    """
+      Sets state of object from pickling.
+      @ In, d, dict, stateful dictionary
+      @ Out, None
+    """
+    seed = d.pop('random seed',None)
+    if seed is not None:
+      randomUtils.randomSeed(seed)
+    self.__dict__ = d
 
   def _localNormalizeData(self,values,names,feat): # This function is not used in this class and can be removed
     """
