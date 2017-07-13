@@ -25,10 +25,10 @@ warnings.simplefilter('default',DeprecationWarning)
 import numpy as np
 import sys
 
-from qtpy import QtCore as qtc
-from qtpy import QtGui as qtg
-from qtpy import QtSvg as qts
-from qtpy import QtWidgets as qtw
+from PySide import QtCore as qtc
+from PySide import QtGui as qtg
+from PySide import QtGui as qtw
+from PySide import QtSvg as qts
 
 from .BaseHierarchicalView import BaseHierarchicalView
 from .ZoomableGraphicsView import ZoomableGraphicsView

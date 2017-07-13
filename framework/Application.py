@@ -31,8 +31,8 @@ from Interaction import Interaction
 #Internal Modules End-----------------------------------------------------------
 
 try:
-  import qtpy.QtWidgets as qtw
-  import qtpy.QtCore as qtc
+  import PySide.QtGui as qtw
+  import PySide.QtCore as qtc
 
   class InteractiveApplication(qtw.QApplication, MessageHandler.MessageUser):
     """
