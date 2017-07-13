@@ -221,6 +221,73 @@ It is often challenging to find the best gain growth and shrink factors, and the
 impact on the speed and accuracy of the convergence process.  Too large a shrink factor results in poor
 resolution of valleys, while too small a shrink factor results in many unnecessary evaluations of the model.
 
+\subsection{Denoising Stochastic Problems}
+While many of the models we see in optimization are deterministic (meaning running the same inputs into the
+model yields the same results every time), there are quite a few stochastic models that we might desire to
+optimize.  For example, a model that included Brownian motion or is solved using unseeded random numbers might
+be considered stochastic.
+
+The difficulty with optimizing noisy problems rests in the unreliability of a single sample.  If we send a
+single set of inputs into a stochastic model, we can't trust the results to be consistent.  One way to measure
+the consistency of the results is through a signal-to-noise ratio (SNR).  There are many ways to define this
+value; for our purposes, we will use the ratio of the mean of the signal to the standard deviation of the
+signal, $\mu/\sigma$.
+
+To obtain an approximation of your SNR, you can use RAVEN to perform a Monte Carlo run on your model and then
+use the BasicStatistics postprocessor to collect the mean (expectedValue) and standard deviation (sigma) of
+your response.  It's important to make this sampling all at a single value in the input space, so replace your
+variables with constants in the Sampler input.  Once you have the mean and sigma, you have an idea of how
+noisy your model is.  A SNR of 1 means the signal is just as big as the noise, making it very difficult to
+optimize.  A SNR of less than 1 means the noise dominates the signal, and will make optimization almost
+impossible without introducing denoising.  A SNR of more than 1 indicates the signal is stronger than the
+noise, and perhaps denoising is not necessary.  If your standard deviation is 0, then you don't have any
+discernable noise!
+
+To denoise a model in RAVEN SPSA optimization currently, we turn our attention to the \xmlNode{Optimizer}
+subnode \xmlNode{parameter}, specifically the \xmlNode{numGradAvgIterations} node.  This parameter instructs
+RAVEN to perform multiple gradient evaluations, including multiple evaluations of each optimal point, and use
+the average to make decisions in optimization pathing.  By default, RAVEN takes one optimal point and one
+neighboring point to evaluate a gradient.  Increasing the \xmlNode{numGradAvgIterations} will increase the
+number of times the optimal point is sampled, and how many neighbor points are sampled.  This serves to
+denoise the model.
+
+However, this also raises the question, how many resamples do I need to denoise my model?  In a Wilks-like
+approach, we want to reduce the size of the confidence interval for our mean to be less than the noise.  The
+number of resamples required depends on the size of the confidence interval $z$ and the confidence-to-noise ratio
+$\xi$ we want to ultimately have for the optimization algorithm.  We also assume the distribution of the
+response is roughly Gaussian Normal, which may not be the case.  The approximate equation for assuring the
+confidence interval is smaller than the noise is
+\begin{equation}
+  \frac{z\sigma}{\sqrt{n}} \leq \xi\sigma,
+\end{equation}
+\begin{equation}
+  n \geq \left(\frac{z}{\xi}\right)^2.
+\end{equation}
+Thus, the number of resamples depends on the confidence level as well as the desired ratio of the confidence interval
+to the noise.
+
+A few values for varying ratios are given in Table \ref{tab:confidence levels} for the 99\% confidence level ($z=2.576$).
+\begin{table}[htb]
+  \centering
+  \begin{tabular}{c c}
+    Confidence-to-noise $\xi$ & Resamples necessary \\ \hline
+    1.0 & 7 \\
+    0.9 & 9 \\
+    0.7 & 14 \\
+    0.5 & 27 \\
+    0.1 & 664 \\
+    0.05 & 2655
+  \end{tabular}
+  \caption{Estimate of the number of samples necessary to denoise models to varying confidence levels}
+  \label{tab:confidence levels}
+\end{table}
+That is, if you want the noise and confidence interval to have the same magnitude, only 7 resamples are
+required.  If, on the other hand, you want the confidence interval to be half the level of the noise, 27
+resamples are required.
+
+Note these are only guidelines; individual models may behave differently and require more or less resamples to
+provide a clear optimization path.
+
 \subsection{Input Space Subdivision}
 In higher-dimensional problems, sometimes the input space can be divided into characteristic subspaces.  For
 example, potentially one set of inputs vary slowly with consistent gradient directions in the response, while
