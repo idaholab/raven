@@ -200,7 +200,7 @@ class GradientBasedOptimizer(Optimizer):
       opt  = optVarsValues[i*2]     #the latest opt point
       pert = optVarsValues[i*2 + 1] #the perturbed point
       #calculate grad(F) wrt each input variable
-      lossDiff = pert['output'] - optOutAvg #['output']
+      lossDiff = pert['output'] - optOutAvg
       #cover "max" problems
       # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
       #   sign flipping was only called when evaluating the gradient.

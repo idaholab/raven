@@ -1,5 +1,23 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers/Stochastic</name>
+    <author>talbpaul</author>
+    <created>2017-06-14</created>
+    <classesTested>Optimizer.SPSA</classesTested>
+    <description>
+      This test runs the optimization on a inverse parabola with signal-to-noise ratio close to 1.0 using
+      multiple gradient evaluations to denoise the response space.  It tests stochastic optimization mechanics.
+    </description>
+    <analytic>
+      This tests uses the inverse parabola as a basis for the noisy optimization. The inverse parabola is documented
+      in the analytic tests, and has an average optimal max point at $x=0$.
+    </analytic>
+    <revisions>
+      <revision author="talbpaul" date="2017-05-14">creation</revision>
+      <revision author="talbpaul" date="2017-07-11">changed model for simpler analytic checking</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>Stochastic</WorkingDir>
     <Sequence>optimize,getOptPoint,print</Sequence>
