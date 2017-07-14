@@ -112,5 +112,4 @@ try:
 
   __QtAvailable = True
 except ImportError as e:
-  raise(e)
   __QtAvailable = False

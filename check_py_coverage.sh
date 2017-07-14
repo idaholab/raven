@@ -52,6 +52,8 @@ FRAMEWORK_DIR=`(cd ../../framework && pwd)`
 EXTRA="--rcfile=$FRAMEWORK_DIR/../tests/framework/.coveragerc --source=$FRAMEWORK_DIR -a --omit=$FRAMEWORK_DIR/contrib/*"
 export COVERAGE_FILE=`pwd`/.coverage
 
+source $SCRIPT_DIR/scripts/setup_raven_libs
+
 coverage erase
 #skip test_rom_trainer.xml
 DRIVER=$FRAMEWORK_DIR/Driver.py
