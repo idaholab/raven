@@ -35,9 +35,12 @@ try:
   import PySide.QtCore as qtc
   __QtAvailable = True
 except ImportError as e:
+  print('#'*160)
+  help('modules')
   import PySide
   print(PySide)
   __QtAvailable = False
+  print('#'*160)
 
 if __QtAvailable:
   class InteractiveApplication(qtw.QApplication, MessageHandler.MessageUser):
