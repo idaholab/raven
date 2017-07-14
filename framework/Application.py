@@ -36,11 +36,11 @@ try:
   __QtAvailable = True
 except ImportError as e:
   print('#'*160)
-  help('modules')
+  help('modules PySide')
+  print('#'*160)
   import PySide
   print(PySide)
   __QtAvailable = False
-  print('#'*160)
 
 if __QtAvailable:
   class InteractiveApplication(qtw.QApplication, MessageHandler.MessageUser):
