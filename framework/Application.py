@@ -38,6 +38,11 @@ except ImportError as e:
   print('#'*160)
   help('modules PySide')
   print('#'*160)
+  print('#'*160)
+  import pkgutil
+  for p in pkgutil.iter_modules():
+    print(p[1])
+  print('#'*160)
   import PySide
   print(PySide)
   __QtAvailable = False
