@@ -53,7 +53,7 @@ __condaList = [("numpy",__lookUpPreferredVersion("numpy")),
                ("scipy",__lookUpPreferredVersion("scipy")),
                ("scikit-learn",__lookUpPreferredVersion("sklearn")),
                ("matplotlib",__lookUpPreferredVersion("matplotlib")),
-               ("pyside",__lookUpPreferredVersion("pyside")),
+               ("pyside",""),
                ("python","2.7"),
                ("hdf5",""),
                ("swig",""),
@@ -64,8 +64,7 @@ __pipList = [("numpy",__lookUpPreferredVersion("numpy")),
              ("h5py",__lookUpPreferredVersion("h5py")),
              ("scipy",__lookUpPreferredVersion("scipy")),
              ("scikit-learn",__lookUpPreferredVersion("sklearn")),
-             ("matplotlib",__lookUpPreferredVersion("matplotlib")),
-             ("pyside",__lookUpPreferredVersion("pyside"))]
+             ("matplotlib",__lookUpPreferredVersion("matplotlib"))]
 
 def moduleReport(module,version=''):
   """Checks if the module exists.
