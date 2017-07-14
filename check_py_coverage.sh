@@ -29,7 +29,6 @@ python -c 'import PySide; print PySide'
 python -c 'import PySide.QtCore; print PySide.QtCore'
 python -c 'import PySide.QtGui; print PySide.QtGui'
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-exit 0
 
 if which coverage
 then
