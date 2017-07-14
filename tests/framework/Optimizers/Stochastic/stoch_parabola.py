@@ -7,6 +7,9 @@
 #
 import numpy as np
 
+#static seed
+np.random.seed(42)
+
 def base(values):
   return -sum(l*l for l in values)+1.
 
