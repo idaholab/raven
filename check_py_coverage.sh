@@ -22,6 +22,14 @@ update_python_path ()
 update_python_path
 PATH=$INSTALL_DIR/bin:$PATH
 
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "DEBUG INFO"
+./run_tests  --library-report
+python -c 'import PySide; print PySide'
+python -c 'import PySide.QtCore; print PySide.QtCore'
+python -c 'import PySide.QtGui; print PySide.QtGui'
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+exit 0
 
 if which coverage
 then
