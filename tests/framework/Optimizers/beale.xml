@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers/Beale</name>
+    <name>framework/Optimizers.Beale</name>
     <author>talbpaul</author>
     <created>2017-05-03</created>
     <classesTested>Optimizer</classesTested>
