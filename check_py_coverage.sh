@@ -22,14 +22,6 @@ update_python_path ()
 update_python_path
 PATH=$INSTALL_DIR/bin:$PATH
 
-echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-echo "DEBUG INFO"
-./run_tests  --library-report
-python -c 'import PySide; print PySide'
-python -c 'import PySide.QtCore; print PySide.QtCore'
-python -c 'import PySide.QtGui; print PySide.QtGui'
-echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-
 if which coverage
 then
     echo coverage already available, skipping building it.
@@ -56,10 +48,19 @@ cd tests/framework
 #coverage help run
 FRAMEWORK_DIR=`(cd ../../framework && pwd)`
 
+source $SCRIPT_DIR/scripts/setup_raven_libs
+
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "DEBUG INFO"
+./run_tests  --library-report
+python -c 'import PySide; print PySide'
+python -c 'import PySide.QtCore; print PySide.QtCore'
+python -c 'import PySide.QtGui; print PySide.QtGui'
+conda info
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+
 EXTRA="--rcfile=$FRAMEWORK_DIR/../tests/framework/.coveragerc --source=$FRAMEWORK_DIR -a --omit=$FRAMEWORK_DIR/contrib/*"
 export COVERAGE_FILE=`pwd`/.coverage
-
-source $SCRIPT_DIR/scripts/setup_raven_libs
 
 coverage erase
 #skip test_rom_trainer.xml
