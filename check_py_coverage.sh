@@ -53,10 +53,10 @@ source $SCRIPT_DIR/scripts/setup_raven_libs
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "DEBUG INFO"
 ./run_tests  --library-report
-python -c 'import PySide; print PySide'
+python -c 'import PySide; import sys; print PySide; print (sys.path, sys.prefix)'
 python -c 'import PySide.QtCore; print PySide.QtCore'
 python -c 'import PySide.QtGui; print PySide.QtGui'
-conda info
+# conda info
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
 EXTRA="--rcfile=$FRAMEWORK_DIR/../tests/framework/.coveragerc --source=$FRAMEWORK_DIR -a --omit=$FRAMEWORK_DIR/contrib/*"
