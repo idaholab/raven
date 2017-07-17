@@ -58,6 +58,7 @@ __condaList = [("numpy",__lookUpPreferredVersion("numpy")),
                ("hdf5",""),
                ("swig",""),
                ("pylint",""),
+               ("coverage",""),
                ("lxml","")]
 
 __pipList = [("numpy",__lookUpPreferredVersion("numpy")),

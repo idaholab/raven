@@ -35,17 +35,6 @@ try:
   import PySide.QtCore as qtc
   __QtAvailable = True
 except ImportError as e:
-  import sys
-  print('#'*160)
-  print(sys.path)
-  # print(sys.version)
-  print(sys.prefix)
-  print('#'*160)
-  import pkgutil
-  for p in pkgutil.iter_modules():
-    if p[1].lower() == 'pyside':
-      print(p[1])
-  print('#'*160)
   __QtAvailable = False
 
 if __QtAvailable:
