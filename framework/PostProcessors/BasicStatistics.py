@@ -975,15 +975,11 @@ class BasicStatistics(PostProcessor):
         covar = self.covariance(paramSamples)
       else:
         covar = self.covariance(paramSamples, weights = pbWeightsList)
-      for cnt1, param1 in enumerate(params):
-        for cnt2, param2 in enumerate(params):
-          fullCovar[indeces[param1],indeces[param2]] = covar[cnt1,cnt2]
-      diff = fullCovar - np.cov(paramSamples,aweights=pbWeightsList[0])
-      print(fullCovar.shape)
-      print(pbWeightsList[0])
-      print(np.cov(paramSamples,aweights=pbWeightsList[0]))
-      print(np.cov(paramSamples,aweights=pbWeightsList[0]).shape)
-      calculations[metric]['matrix'] = np.cov(paramSamples,aweights=pbWeightsList[0])
+      #for cnt1, param1 in enumerate(params):
+      #  for cnt2, param2 in enumerate(params):
+      #    fullCovar[indeces[param1],indeces[param2]] = covar[cnt1,cnt2]
+      #diff = fullCovar - np.cov(paramSamples,aweights=pbWeightsList[0])
+      calculations[metric]['matrix'] = covar #np.cov(paramSamples,aweights=pbWeightsList[0])
       calculations[metric]['params'] = fullMatrixParam
 
     def getCovarianceSubset(desired):
