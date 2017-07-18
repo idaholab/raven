@@ -29,6 +29,7 @@
       <Input class="Files" type="input">referenceInput.xml</Input>
       <Model class="Models" type="Code">testModel</Model>
       <Output class="DataObjects" type="HistorySet">history</Output>
+      <Output class="OutStreams" type="Print">print_history</Output>
     </SingleRun>
   </Steps>
 
@@ -38,5 +39,11 @@
         <Output>A,B,C,D,time</Output>
     </HistorySet>
   </DataObjects>
+  <OutStreams>
+    <Print name="print_history">
+        <type>csv</type>
+        <source>history</source>
+    </Print>
+  </OutStreams>
 
 </Simulation>

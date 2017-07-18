@@ -1,13 +1,19 @@
 [Tests]
   [./singleRun]
     type = 'RavenFramework'
+    input = 'singleRun.xml'
+    csv = 'singleRunAnalysis/print_history_0.csv'
+    rel_err = 0.000001
+  [../]
+  [./singleRunPlot]
+    type = 'RavenFramework'
     input = 'singleRunPlotAndPrint.xml'
     csv = 'singleRunPlot/history_0.csv singleRunPlot/pointValues.csv'
     image = 'singleRunPlot/1-historyPlot_line-line-line-line.png'
     required_libraries = 'PIL'
     rel_err = 0.01
   [../]
-  [./singleRunSelective]
+  [./singleRunSubPlot]
     type = 'RavenFramework'
     input = 'singleRunSubPlotsAndSelectivePrint.xml'
     csv = 'subPlot/history_0.csv subPlot/pointValues.csv'

@@ -3,7 +3,7 @@
   <RunInfo>
     <JobName>singRunPlot</JobName>
     <Sequence>single,writehistory</Sequence>
-    <WorkingDir>singleRunAnalysis</WorkingDir>
+    <WorkingDir>singleRunPlot</WorkingDir>
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
