@@ -8,6 +8,7 @@
     <description>
       This test runs the optimization on a inverse parabola with signal-to-noise ratio close to 1.0 using
       multiple gradient evaluations to denoise the response space.  It tests stochastic optimization mechanics.
+      Also tests having other response variables in SolutionExport besides the objective variable.
     </description>
     <analytic>
       This tests uses the inverse parabola as a basis for the noisy optimization. The inverse parabola is documented
@@ -16,6 +17,7 @@
     <revisions>
       <revision author="talbpaul" date="2017-05-14">creation</revision>
       <revision author="talbpaul" date="2017-07-11">changed model for simpler analytic checking</revision>
+      <revision author="talbpaul" date="2017-07-18">added additional model output for testing mechanics</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
