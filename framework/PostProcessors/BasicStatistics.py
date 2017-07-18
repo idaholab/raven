@@ -903,6 +903,14 @@ class BasicStatistics(PostProcessor):
       return targets,features,skip
 
     def createTargetFeatureList(targets,features,input):
+      """
+        This utility method is aimed to create a list of targets and features based on the
+        sampling input
+        @ In, targets, list, list of user inputted targets
+        @ In, features, list, list of user inputted features
+        @ In, input, dict, dictionary of input output mapping
+        @ Out, (targetList,featureList), tuple, tuple of mapped target and feature parameters
+      """
       targetList  = []
       featureList = []
       for target in targets:
