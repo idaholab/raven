@@ -29,6 +29,7 @@ import sys
 import copy
 import abc
 import json
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -318,7 +319,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     for child in xmlNode:
       if child.tag == "samplerInit":
-        self.initSeed = np.random.randint(0,2**31,self)
+        self.initSeed = np.random.randint(0,2**31)
         for childChild in child:
           if childChild.tag == "limit":
             try:
