@@ -7,8 +7,8 @@
   </RunInfo>
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics.sensitivityOnly</name>
-    <author>wangc</author>
-    <created>2015-12-10</created>
+    <author>alfoa</author>
+    <created>2017-07-18</created>
     <classesTested>PostProcessors.BasicStatistics</classesTested>
     <description>
       This test checks the sensitivities only calculated by basic statistics PP
