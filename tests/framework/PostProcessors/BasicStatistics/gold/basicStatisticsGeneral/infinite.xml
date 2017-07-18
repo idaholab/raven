@@ -15,7 +15,7 @@
     <sensitivity>
       <y02>1.0</y02>
       <y0>1.0</y0>
-      <x0>-9.16181087043e-17</x0>
+      <x0>-1.1452263588e-16</x0>
       <time>0.0</time>
     </sensitivity>
     <covariance>
@@ -33,13 +33,13 @@
     <NormalizedSensitivity>
       <y02>1.0</y02>
       <y0>1.0</y0>
-      <x0>-9.06441178392e-18</x0>
+      <x0>-6.8046965937e-18</x0>
       <time>0.0</time>
     </NormalizedSensitivity>
     <VarianceDependentSensitivity>
       <y02>1.0</y02>
       <y0>1.0</y0>
-      <x0>-2.22044604925e-16</x0>
+      <x0>-1.66689930114e-16</x0>
       <time>0.0</time>
     </VarianceDependentSensitivity>
   </y02>
@@ -105,7 +105,7 @@
     <sensitivity>
       <y02>1.0</y02>
       <y0>1.0</y0>
-      <x0>-9.16181087043e-17</x0>
+      <x0>0.522169368635</x0>
       <time>0.0</time>
     </sensitivity>
     <covariance>
@@ -123,13 +123,13 @@
     <NormalizedSensitivity>
       <y02>1.0</y02>
       <y0>1.0</y0>
-      <x0>-9.06441178392e-18</x0>
+      <x0>-6.8046965937e-18</x0>
       <time>0.0</time>
     </NormalizedSensitivity>
     <VarianceDependentSensitivity>
       <y02>1.0</y02>
       <y0>1.0</y0>
-      <x0>-2.22044604925e-16</x0>
+      <x0>-1.66689930114e-16</x0>
       <time>0.0</time>
     </VarianceDependentSensitivity>
   </y0>
@@ -148,8 +148,8 @@
     <kurtosis>-0.429597817542</kurtosis>
     <samples>4</samples>
     <sensitivity>
-      <y02>0.0525442990651</y02>
-      <y0>0.0525442990651</y0>
+      <y02>0.10508859813</y02>
+      <y0>0.10508859813</y0>
       <x0>1.0</x0>
       <time>0.0</time>
     </sensitivity>

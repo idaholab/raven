@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <BasicStatisticsPP type="Static">
   <y>
     <expectedValue>0.759831349694</expectedValue>
@@ -15,28 +14,28 @@
     <samples>13</samples>
     <sensitivity>
       <y>1.0</y>
-      <x>-6.54205191118e-17</x>
-      <z>0.0</z>
+      <x>-1.01138459477e-17</x>
+      <z>-3.35898155353e-17</z>
     </sensitivity>
     <covariance>
       <y>0.0522153037293</y>
-      <x>-0.00415568492546</x>
-      <z>-0.00415568492546</z>
+      <x>-9.8860495968e-19</x>
+      <z>-4.1103627955e-19</z>
     </covariance>
     <pearson>
       <y>1.0</y>
-      <x>-0.0795874892733</x>
-      <z>-0.0795874892733</z>
+      <x>-1.8016426637e-17</x>
+      <z>-7.49076251657e-18</z>
     </pearson>
     <NormalizedSensitivity>
       <y>1.0</y>
-      <x>-0.0864693692727</x>
-      <z>-0.0864693692727</z>
+      <x>-1.71440071366e-17</x>
+      <z>-7.12803313499e-18</z>
     </NormalizedSensitivity>
     <VarianceDependentSensitivity>
       <y>1.0</y>
-      <x>-0.0864693692727</x>
-      <z>-0.0864693692727</z>
+      <x>-1.71440071366e-17</x>
+      <z>-7.12803313499e-18</z>
     </VarianceDependentSensitivity>
   </y>
 
@@ -54,29 +53,29 @@
     <kurtosis>0.12677444078</kurtosis>
     <samples>13</samples>
     <sensitivity>
-      <y>-6.54205191118e-17</y>
+      <y>-5.43889286768e-17</y>
       <x>1.0</x>
-      <z>1.30841038224e-16</z>
+      <z>3.35898155353e-17</z>
     </sensitivity>
     <covariance>
-      <y>-0.00415568492546</y>
-      <x>0.0522153037293</x>
-      <z>-0.00415568492546</z>
+      <y>2.4715123992e-19</y>
+      <x>0.057664754325</x>
+      <z>2.02261372627e-19</z>
     </covariance>
     <pearson>
-      <y>-0.0795874892733</y>
+      <y>4.50410665925e-18</y>
       <x>1.0</x>
-      <z>-0.0795874892733</z>
+      <z>3.5075389637e-18</z>
     </pearson>
     <NormalizedSensitivity>
-      <y>-0.0864693692727</y>
+      <y>4.73331039499e-18</y>
       <x>1.0</x>
-      <z>-0.0864693692727</z>
+      <z>3.5075389637e-18</z>
     </NormalizedSensitivity>
     <VarianceDependentSensitivity>
-      <y>-0.0864693692727</y>
+      <y>4.73331039499e-18</y>
       <x>1.0</x>
-      <z>-0.0864693692727</z>
+      <z>3.5075389637e-18</z>
     </VarianceDependentSensitivity>
   </x>
 
@@ -95,29 +94,28 @@
     <samples>13</samples>
     <sensitivity>
       <y>-1.98420996362e-18</y>
-      <x>-1.55484999372e-18</x>
+      <x>7.40013989212e-18</x>
       <z>1.0</z>
     </sensitivity>
     <covariance>
-      <y>-0.00415568492546</y>
-      <x>-0.00415568492546</x>
-      <z>0.0522153037293</z>
+      <y>9.65105754079e-19</y>
+      <x>-9.8860495968e-20</x>
+      <z>0.057664754325</z>
     </covariance>
     <pearson>
-      <y>-0.0795874892733</y>
-      <x>-0.0795874892733</x>
+      <y>1.75881749783e-17</y>
+      <x>-1.71440071366e-18</x>
       <z>1.0</z>
     </pearson>
     <NormalizedSensitivity>
-      <y>-0.0864693692727</y>
-      <x>-0.0864693692727</x>
+      <y>1.84831971692e-17</y>
+      <x>-1.71440071366e-18</x>
       <z>1.0</z>
     </NormalizedSensitivity>
     <VarianceDependentSensitivity>
-      <y>-0.0864693692727</y>
-      <x>-0.0864693692727</x>
+      <y>1.84831971692e-17</y>
+      <x>-1.71440071366e-18</x>
       <z>1.0</z>
     </VarianceDependentSensitivity>
   </z>
-
 </BasicStatisticsPP>
