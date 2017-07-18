@@ -30,9 +30,10 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-import PySide.QtCore as qtc
-import PySide.QtGui as qtg
-import PySide.QtSvg as qts
+import qtpy.QtCore as qtc
+import qtpy.QtGui as qtg
+import qtpy.QtWidgets as qtw
+import qtpy.QtSvg as qts
 
 from .BaseTopologicalView import BaseTopologicalView
 
@@ -41,7 +42,7 @@ import math
 import time
 from . import colors
 
-class CustomGraphicsView(qtg.QGraphicsView):
+class CustomGraphicsView(qtw.QGraphicsView):
   """
      A subclass of QGraphicsView where we custom the handling of mouse
      events and drawing of selected items.
@@ -75,7 +76,7 @@ class CustomGraphicsView(qtg.QGraphicsView):
     else:
       self.parent().mouseReleaseEvent(event,True)
 
-class CustomPathItem(qtg.QGraphicsPathItem):
+class CustomPathItem(qtw.QGraphicsPathItem):
   """
      A subclass of QGraphicsPathItem where we custom the drawing.
   """
@@ -243,7 +244,7 @@ class CustomPathItem(qtg.QGraphicsPathItem):
       @ Out, None
     """
     if self.isSelected():
-      selectedOption = qtg.QStyleOptionGraphicsItem(option)
+      selectedOption = qtw.QStyleOptionGraphicsItem(option)
       selectedOption.state &=  (not qtg.QStyle.State_Selected)
       originalPen = self.pen()
       selectedPen = qtg.QPen(originalPen)
@@ -347,7 +348,7 @@ class CustomPathItem(qtg.QGraphicsPathItem):
         @ Out, object specifying the new state (default is to return value).
 
     """
-    if change == qtg.QGraphicsItem.ItemSceneHasChanged:
+    if change == qtw.QGraphicsItem.ItemSceneHasChanged:
       for graphic,path in zip(self.graphics,self.paths):
         if graphic not in self.scene().items():
           self.scene().addItem(graphic)
@@ -390,11 +391,11 @@ class TopologyMapView(BaseTopologicalView):
     """
     # Try to apply a new layout, if one already exists then make sure to grab
     # it for updating
-    self.setLayout(qtg.QGridLayout())
+    self.setLayout(qtw.QGridLayout())
     layout = self.layout()
     self.clearLayout(layout)
 
-    self.scene = qtg.QGraphicsScene()
+    self.scene = qtw.QGraphicsScene()
     self.scene.setSceneRect(0,0,100,100)
     self.gView = CustomGraphicsView(self.scene)
     self.gView.setParent(self)
@@ -402,13 +403,13 @@ class TopologyMapView(BaseTopologicalView):
                               qtg.QPainter.SmoothPixmapTransform)
     self.gView.setHorizontalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
     self.gView.setVerticalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
-    self.gView.setDragMode(qtg.QGraphicsView.RubberBandDrag)
+    self.gView.setDragMode(qtw.QGraphicsView.RubberBandDrag)
     self.scene.selectionChanged.connect(self.select)
 
     mergeSequence = self.amsc.GetMergeSequence()
     pCount = len(set([p for idx,(parent,p) in mergeSequence.iteritems()]))-1
 
-    self.rightClickMenu = qtg.QMenu()
+    self.rightClickMenu = qtw.QMenu()
     persAction = self.rightClickMenu.addAction('Set Persistence Here')
     persAction.triggered.connect(self.setPersistence)
     incAction = self.rightClickMenu.addAction('Increase Persistence')
@@ -426,7 +427,7 @@ class TopologyMapView(BaseTopologicalView):
     glyphActions.append(self.glyphMenu.addAction('Triangle'))
     glyphActions.append(self.glyphMenu.addAction('Circle'))
 
-    self.glyphGroup = qtg.QActionGroup(self.glyphMenu)
+    self.glyphGroup = qtw.QActionGroup(self.glyphMenu)
     for act in glyphActions:
       act.setCheckable(True)
       self.glyphGroup.addAction(act)
@@ -461,11 +462,11 @@ class TopologyMapView(BaseTopologicalView):
         @ Out, None
     """
     if filename is None:
-      dialog = qtg.QFileDialog(self)
-      dialog.setFileMode(qtg.QFileDialog.AnyFile)
-      dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
+      dialog = qtw.QFileDialog(self)
+      dialog.setFileMode(qtw.QFileDialog.AnyFile)
+      dialog.setAcceptMode(qtw.QFileDialog.AcceptSave)
       dialog.exec_()
-      if dialog.result() == qtg.QFileDialog.Accepted:
+      if dialog.result() == qtw.QFileDialog.Accepted:
         filename = dialog.selectedFiles()[0]
       else:
         return
@@ -642,7 +643,7 @@ class TopologyMapView(BaseTopologicalView):
         colorMap = self.amsc.GetColors()
         for extPair,graphic in self.polygonMap.iteritems():
           if graphic in self.scene.selectedItems():
-            if isinstance(graphic,qtg.QGraphicsPathItem):
+            if isinstance(graphic,qtw.QGraphicsPathItem):
               minLabel = extPair[0]
               maxLabel = extPair[1]
 
@@ -813,9 +814,9 @@ class TopologyMapView(BaseTopologicalView):
       self.polygonMap[(minLabel,maxLabel)] = CustomPathItem(path,None,self.scene,partitionData)
       pen = qtg.QPen(brush,self.minDiameter)
       self.polygonMap[(minLabel,maxLabel)].setPen(pen)
-      self.polygonMap[(minLabel,maxLabel)].setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+      self.polygonMap[(minLabel,maxLabel)].setFlag(qtw.QGraphicsItem.ItemIsSelectable)
       self.polygonMap[(minLabel,maxLabel)].setAcceptHoverEvents(True)
-      self.polygonMap[(minLabel,maxLabel)].setFlag(qtg.QGraphicsItem.ItemClipsToShape)
+      self.polygonMap[(minLabel,maxLabel)].setFlag(qtw.QGraphicsItem.ItemClipsToShape)
 
     for key,(parentIdx,persistence) in mergeSequence.iteritems():
       if key in self.extLocations:
@@ -887,7 +888,7 @@ class TopologyMapView(BaseTopologicalView):
                                                      y-diameter/2., diameter, \
                                                      diameter, pen, brush)
       if currentP <= persistence:
-        self.polygonMap[key].setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+        self.polygonMap[key].setFlag(qtw.QGraphicsItem.ItemIsSelectable)
         self.polygonMap[key].setZValue(1/diameter)
       self.polygonMap[key].setToolTip(str(key))
       self.polygonMap[key].setAcceptHoverEvents(True)

@@ -54,6 +54,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
     """
+    self.name = xmlNode.attrib['name']
     for child in xmlNode:
       if child.tag == 'subseqLen':
         self.subseqLen = map(int, child.text.split(','))
@@ -68,7 +69,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       @ Out, outputDic, dict, dictionary which contains the data to be collected by output DataObject
     """
     if len(inputDic)>1:
-      self.raiseAnError(IOError, 'TypicalHistoryFromHistorySet Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+      self.raiseAnError(IOError, self.__class__.__name__ + ' Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
 
     #get actual data
     inputDict = inputDic[0]['data']
@@ -81,6 +82,14 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     #if output length (size of desired output history) not set, set it now
     if self.outputLen is None:
       self.outputLen = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameter])[-1]
+
+    ## Check if data is synchronized
+    referenceHistory = inputDict['output'].keys()[0]
+    referenceTimeAxis = inputDict['output'][referenceHistory][self.pivotParameter]
+    for hist in inputDict['output']:
+      if (str(inputDict['output'][hist][self.pivotParameter]) != str(referenceTimeAxis)):
+        errorMessage = '{} Interfaced Post-Processor "{}": one or more histories in the historySet have different time scales (e.g., reference points: {} and {})'.format(self.__class__.__name__, self.name,referenceHistory, hist)
+        self.raiseAnError(IOError, errorMessage)
 
     # task: reshape the data into histories with the size of the output I'm looking for
     #data dictionaries have form {historyNumber:{VarName:[data], VarName:[data]}}

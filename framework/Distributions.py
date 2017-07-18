@@ -38,6 +38,7 @@ from scipy.interpolate import UnivariateSpline
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from utils import utils
+from utils.randomUtils import random
 distribution1D = utils.find_distribution1D()
 from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
@@ -237,7 +238,7 @@ class Distribution(BaseType):
       @ In, upperBound, float, upper bound
       @ Out,randResult, float, random number
     """
-    randResult = self._distribution.inverseCdf(float(np.random.rand(1))*(upperBound-lowerBound)+lowerBound)
+    randResult = self._distribution.inverseCdf(float(random(1))*(upperBound-lowerBound)+lowerBound)
     return randResult
 
   def rvsWithinbounds(self,lowerBound,upperBound):
@@ -362,51 +363,6 @@ class Distribution(BaseType):
       @ Out, disttype, string,  ('Continuous' or 'Discrete')
     """
     return self.disttype
-
-
-def random():
-  """
-    Function to get a random number <1<
-    @ In, None
-    @ Out, random, float, random number
-  """
-  return stochasticEnv.random()
-
-def randomSeed(value):
-  """
-    Function to get a random seed
-    @ In, value, float, the seed
-    @ Out, seed, int, the random seed
-  """
-  return stochasticEnv.seedRandom(value)
-
-def randomIntegers(low,high,caller):
-  """
-    Function to get a random integer
-    @ In, low, int, low boundary
-    @ In, high, int, upper boundary
-    @ Out, rawInt, int, random int
-  """
-  intRange = high-low
-  rawNum = low + random()*intRange
-  rawInt = int(round(rawNum))
-  if rawInt < low or rawInt > high:
-    caller.raiseAMessage("Random int out of range")
-    rawInt = max(low,min(rawInt,high))
-  return rawInt
-
-def randomPermutation(l,caller):
-  """
-    Function to get a random permutation
-    @ In, l, list, list to be permuted
-    @ In, caller, instance, the caller
-    @ Out, newList, list, randomly permuted list
-  """
-  newList = []
-  oldList = l[:]
-  while len(oldList) > 0:
-    newList.append(oldList.pop(randomIntegers(0,len(oldList)-1,caller)))
-  return newList
 
 class BoostDistribution(Distribution):
   """

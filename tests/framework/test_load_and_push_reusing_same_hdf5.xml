@@ -106,7 +106,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="test_DummyModel_db" directory="GridTest/DatabaseStorage" readMode="read"/>
+    <HDF5 name="test_DummyModel_db" directory="../GridTest/DatabaseStorage" readMode="read"/>
   </Databases>
 
   <OutStreams>
@@ -199,8 +199,8 @@
         <Input>VarGauss1,VarGauss2,VarTri1</Input>
         <Output>OutputPlaceHolder</Output>
     </HistorySet>
-    
-    
+
+
   </DataObjects>
 
 </Simulation>

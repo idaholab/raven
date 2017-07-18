@@ -730,7 +730,7 @@ class DataMining(PostProcessor):
     return outputDict
 
 try:
-  import PySide.QtCore as qtc
+  import qtpy.QtCore as qtc
 
   class QDataMining(DataMining,qtc.QObject):
     """

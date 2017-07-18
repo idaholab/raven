@@ -1,0 +1,122 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.Constrained</name>
+    <author>talbpaul</author>
+    <created>2017-06-26</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      This test runs constrained optimization on Mishra's Bird function.  The trajectories and
+      seed chosen demonstrate convergence on a plateau (trajectory 0), good convergence (trajecory 1),
+      and attempt to converge outside the constraints (trajectory 2).
+    </description>
+    <analytic>
+      This test uses Mishra's Bird function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Constrained</WorkingDir>
+    <Sequence>optimize,getOptPoint,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">mishra</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">opt_soln</Input>
+      <Input class="DataObjects" type="HistorySet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </IOStep>
+    <PostProcess name="getOptPoint">
+      <Input class="DataObjects" type="HistorySet">opt_export</Input>
+      <Model class="Models" type="PostProcessor">snapshot</Model>
+      <Output class="DataObjects" type="PointSet">opt_soln</Output>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
+    </PostProcess>
+  </Steps>
+
+  <Functions>
+    <External file="../../../framework/AnalyticModels/optimizing/mishra_bird" name="mishra">
+      <variable>x</variable>
+      <variable>y</variable>
+    </External>
+  </Functions>
+
+  <Optimizers>
+    <SPSA name="opter">
+      <initialization>
+        <initialSeed>42</initialSeed>
+      </initialization>
+      <Function class="Functions" type="External">mishra</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <convergence>
+          <gradientThreshold>1e-2</gradientThreshold>
+          <gainGrowthFactor>2</gainGrowthFactor>
+          <gainShrinkFactor>1.25</gainShrinkFactor>
+      </convergence>
+      <variable name='x'>
+        <upperBound>0</upperBound>
+        <lowerBound>-10</lowerBound>
+        <initial>-3,-6,-9</initial>
+      </variable>
+      <variable name='y'>
+        <upperBound>0</upperBound>
+        <lowerBound>-6</lowerBound>
+        <initial>-5,-1.5,-2.5</initial>
+      </variable>
+      <objectVar>ans</objectVar>
+    </SPSA>
+  </Optimizers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/mishra_bird" name="mishra" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+    <PostProcessor name="snapshot" subType="InterfacedPostProcessor">
+      <method>HistorySetSnapShot</method>
+      <type>max</type>
+      <pivotVar>varsUpdate</pivotVar>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_soln">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </PointSet>
+    <HistorySet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+    </Print>
+    <Print name="opt_soln">
+      <type>csv</type>
+      <source>opt_soln</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

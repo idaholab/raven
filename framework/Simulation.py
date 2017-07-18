@@ -50,9 +50,9 @@ import MessageHandler
 import VariableGroups
 from utils import utils
 from utils import TreeStructure
-from Application import __PySideAvailable
+from Application import __QtAvailable
 from Interaction import Interaction
-if __PySideAvailable:
+if __QtAvailable:
   from Application import InteractiveApplication
 #Internal Modules End--------------------------------------------------------------------------------
 

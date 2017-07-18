@@ -46,7 +46,7 @@ utils.add_path(os.path.join(frameworkDir,'contrib','AMSC'))
 utils.add_path(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
 from Simulation import Simulation
-from Application import __PySideAvailable
+from Application import __QtAvailable
 from Interaction import Interaction
 #Internal Modules
 
@@ -143,16 +143,16 @@ if __name__ == '__main__':
       interfaceCheck = True
       itemsToRemove.append(item)
     elif item.lower() == 'interactive':
-      if __PySideAvailable:
+      if __QtAvailable:
         interactive = Interaction.Yes
       else:
-        print('\nPySide is not installed, disabling interactive mode.\n')
+        print('\Qt is not available, disabling interactive mode.\n')
       itemsToRemove.append(item)
     elif item.lower() == 'interactivecheck':
-      if __PySideAvailable:
+      if __QtAvailable:
         interactive = Interaction.Test
       else:
-        print('\nPySide is not installed, disabling interactive check.\n')
+        print('\Qt is not available, disabling interactive check.\n')
       itemsToRemove.append(item)
 
   ## Now outside of the loop iterating on the object we want to modify, we are

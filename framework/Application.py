@@ -31,17 +31,17 @@ from Interaction import Interaction
 #Internal Modules End-----------------------------------------------------------
 
 try:
-  import PySide.QtGui as qtg
-  import PySide.QtCore as qtc
+  import qtpy.QtWidgets as qtw
+  import qtpy.QtCore as qtc
 
-  class InteractiveApplication(qtg.QApplication, MessageHandler.MessageUser):
+  class InteractiveApplication(qtw.QApplication, MessageHandler.MessageUser):
     """
       Application - A subclass of the base QApplication where we can instantiate
       our own signals and slots, create UI elements, and manage inter-thread
       communication
     """
     windowClosed = qtc.Signal(str)
-    def __init__(self, arg__1, messageHandler, interactionType=Interaction.Yes):
+    def __init__(self, arg1, messageHandler, interactionType=Interaction.Yes):
       """
         A default constructor which will initialize an empty dictionary of user
         interfaces that will be managed by this instance.
@@ -49,7 +49,7 @@ try:
       self.printTag = 'RAVEN Application'
       self.UIs = {}
       self.interactionType = interactionType
-      qtg.QApplication.__init__(self,arg__1)
+      qtw.QApplication.__init__(self, arg1)
       self.messageHandler = messageHandler
       self.setQuitOnLastWindowClosed(False)
 
@@ -110,6 +110,6 @@ try:
         if value == window:
           self.windowClosed.emit(key)
 
-  __PySideAvailable = True
+  __QtAvailable = True
 except ImportError as e:
-  __PySideAvailable = False
+  __QtAvailable = False
