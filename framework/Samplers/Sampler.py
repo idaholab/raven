@@ -245,7 +245,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                   ' '.join([i if i in self.toBeSampled.keys() else "" for i in self.constants.keys()])  )
 
     if self.initSeed == None:
-      self.initSeed = randomUtils.randomIntegers(0,2**31,self)
+      self.initSeed = np.random.randint(0,2**31) #NOTE: DO NOT change this random int to generate from crow!  Need a more random seeed
     # Creation of the self.distributions2variablesMapping dictionary: {'distName': ({'variable_name1': dim1}, {'variable_name2': dim2})}
     for variable in self.variables2distributionsMapping.keys():
       distName = self.variables2distributionsMapping[variable]['name']
@@ -318,7 +318,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     for child in xmlNode:
       if child.tag == "samplerInit":
-        self.initSeed = randomUtils.randomIntegers(0,2**31,self)
+        self.initSeed = np.random.randint(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
             try:
@@ -449,7 +449,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     if self.initSeed == None:
-      self.initSeed = randomUtils.randomIntegers(0,2**31,self)
+      self.initSeed = np.random.randint(0,2**31)
     self.counter = 0
     if   not externalSeeding          :
       randomUtils.randomSeed(self.initSeed)       #use the sampler initialization seed
