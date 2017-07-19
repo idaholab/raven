@@ -11,7 +11,7 @@
   </Files>
 	
   <Databases>
-    <HDF5 name="out_db_adaptive" readMode="read" directory="DatabaseStorage"/>
+    <HDF5 name="out_db_adaptive" readMode="read" directory="../resultsLS/DatabaseStorage"/>
   </Databases>
 	
 	<Models>
@@ -19,20 +19,20 @@
 		  <tolerance>0.001</tolerance>
 		  <integralType>MonteCarlo</integralType>
 		  <target>goalFunction</target>
-      <variable name="tREC">
-        <distribution>tREC_dist</distribution>
-      </variable>
-      <variable name="tSBO">
-        <distribution>tSBO_dist</distribution>
-      </variable>
-		</PostProcessor>
+          <variable name="tREC">
+            <distribution>tREC_dist</distribution>
+          </variable>
+          <variable name="tSBO">
+            <distribution>tSBO_dist</distribution>
+          </variable>
+	 	</PostProcessor>
 	</Models>
 	
 	<Steps>
-		<IOStep name="extract_data_adapt">
-			<Input    class="Databases"      type="HDF5"             >out_db_adaptive</Input>
-			<Output   class="DataObjects"    type="PointSet"         >outAdapt_failure</Output>
-		</IOStep>
+    <IOStep name="extract_data_adapt">
+      <Input    class="Databases"      type="HDF5"             >out_db_adaptive</Input>
+      <Output   class="DataObjects"    type="PointSet"         >outAdapt_failure</Output>
+    </IOStep>
     <PostProcess name="integral">
       <Input    class="DataObjects"    type="PointSet"         >outAdapt_failure</Input>
       <Model    class="Models"         type="PostProcessor"    >LS_Integral</Model>
