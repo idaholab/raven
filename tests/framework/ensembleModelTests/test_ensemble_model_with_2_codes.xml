@@ -9,8 +9,11 @@
        Example of usage of the Ensemble Model capability in RAVEN, connecting multiple multiple Codes together, with same output variable names.
        This means that the alias system has been used and this test is aimed to show how to use it in these kinds of situations.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2017-07-19">added seed for MC</revision>
+    </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <JobName>testEnsembleModelWith2CodesAndAlias</JobName>
     <Sequence>
@@ -79,6 +82,7 @@
     <MonteCarlo name="mc">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>42</initialSeed>
       </samplerInit>
       <variable name="sigma-A">
         <distribution>sigma</distribution>

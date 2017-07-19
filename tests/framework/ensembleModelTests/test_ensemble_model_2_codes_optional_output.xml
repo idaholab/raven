@@ -11,9 +11,10 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2017-07-10">Modified test in order to show how to use a HDF5 as optional output (Issue #237)</revision>
+      <revision author="talbpaul" date="2017-07-19">Added seed for MC</revision>
     </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <JobName>testEnsembleModelWith2CodesAndAliasAndSelectiveOutputs</JobName>
     <Sequence>
@@ -87,6 +88,7 @@
     <MonteCarlo name="mc">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>42</initialSeed>
       </samplerInit>
       <variable name="sigma-A">
         <distribution>sigma</distribution>
@@ -183,7 +185,7 @@
         <type>csv</type>
         <source>responseModel2_from_optional_hdf5_output</source>
     </Print>
-    
+
   </OutStreams>
 
   <DataObjects>

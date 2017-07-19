@@ -13,6 +13,9 @@
     <description>
       Tests basic statistics on uniformly-sampled normally-distributed Monte Carlo sampling.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2017_07_19">Provided seed to MC sampler</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
@@ -42,6 +45,7 @@
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>5</limit>
+        <initialSeed>42</initialSeed>
         <samplingType>uniform</samplingType>
       </samplerInit>
       <variable name="x1">
