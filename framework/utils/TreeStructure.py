@@ -406,7 +406,7 @@ class InputNode:
       @ In, None
       @ Out, hash, tuple, name and values and text
     """
-    return hash(tuple(self.tag,tuple(sorted(self.attrib.items())),self.text))
+    return hash(tuple((self.tag,tuple(sorted(self.attrib.items())),self.text)))
 
   def __iter__(self):
     """
@@ -426,6 +426,14 @@ class InputNode:
       @ Out, __len__, int, number of children
     """
     return len(self.children)
+
+  def __getitem__(self, index):
+    """
+      Returns a specific child node.
+      @ In, index, int, the index for the child
+      @ Out, __getitem__, InputNode, the child
+    """
+    return self.children[index]
 
   def __repr__(self):
     """
@@ -540,6 +548,14 @@ class InputNode:
       @ Out, None
     """
     self.children.remove(node)
+
+  def items(self):
+    """
+      Gets all the children in the tree.
+      @ In, None
+      @ Out, children, list, list of all the children.
+    """
+    return self.children
 
 class HierarchicalNode(MessageHandler.MessageUser):
   """
