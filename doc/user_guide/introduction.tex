@@ -27,6 +27,41 @@ Simulation Environment-based App, etc.)
 or are currently ongoing for coupling RAVEN with several different software.
 %
 
+\subsection{Acquiring and Installing RAVEN}
+RAVEN is supported on three separate computing platforms: Linux, OSX (Apple Macintosh), and Microsoft Windows.
+Currently, RAVEN is open-source and downloadable from RAVEN GitHub repository: \url{https://github.com/idaholab/raven}.
+New users should visit \url{https://github.com/idaholab/raven/wiki} or refer to the user manual ~\cite{RAVENuserManual}
+to get started with RAVEN. This typically involves the following steps:
+\begin{itemize}
+  \item \textit{Download RAVEN}
+    \\ You can download the source code of RAVEN from \url{https://github.com/idaholab/raven}.
+  \item \textit{Install RAVEN dependencies}
+    \\ Instructions are available from \url{https://github.com/idaholab/raven/wiki}, or the user manual ~\cite{RAVENuserManual}.
+  \item \textit{Install RAVEN}
+    \\ Instructions are available from \url{https://github.com/idaholab/raven/wiki}, or the user manual ~\cite{RAVENuserManual}.
+  \item \textit{Run RAVEN}
+    \\ If RAVEN is installed successfully, please run the regression tests to verify your installation:
+    \begin{lstlisting}[language=bash]
+      ./run_tests
+    \end{lstlisting}
+    Normally there are skipped tests because either some of the codes are not available, or some of the test are not
+    currently working. The output will explain why each is skipped. If all the tests pass, you are ready to run RAVEN.
+    Now, open a terminal and use the following command (replace \texttt{<inputFileName.xml>} with your
+    RAVEN input file):
+    \begin{lstlisting}[language=bash]
+      raven_framework <inputFileName.xml>
+    \end{lstlisting}
+    where the \texttt{raven\_framework} script can be found in the RAVEN folder. Alternatively, the \texttt{Driver.py} script
+    contained in the folder ``\texttt{raven/framework}'' can be directly used:
+    \begin{lstlisting}[language=bash]
+      python raven/framework/Driver.py <inputFileName.xml>
+    \end{lstlisting}
+  \item \textit{Participate in RAVEN user communities}
+    \\ Join RAVEN mail lists to get help and updates of RAVEN: \url{https://groups.google.com/forum/#!forum/inl-raven-users}.
+\end{itemize}
+
+\input{userGuideFormats.tex}
+
 \subsection{Capabilities of RAVEN}
 % High-level RAVEN description
 RAVEN~\cite{alfonsiMC} ~\cite{alfonsiPSA}~\cite{RAVENFY13}~\cite{ESREL2014} is a software framework that allows the user to perform parametric and stochastic
@@ -51,6 +86,12 @@ The main capabilities of RAVEN, with brief descriptions, are summarized here, or
 These capabilities may be used on their own or as building blocks to construct the sought workflow. In addition, RAVEN also provides some more sophisticated
 \textbf{Ensemble algorithms} such as \textbf{EnsembleForward}, \textbf{EnsembleModel} to combine the existing
 capabilites.
+
+\begin{figure}[h!]
+  \includegraphics[width=\textwidth]{pics/raven_cap.png}
+  \caption{RAVEN Capabilities vs. Needs}
+  \label{fig:ravenCap}
+\end{figure}
 
 \begin{itemize}
   \item \textbf{Sensitivity Analysis and Uncertainty Quantification}: Sensitivity analysis is a mathematical tool
@@ -82,11 +123,7 @@ and \textbf{ROMs}. It is aimed to create a chain of models whose execution order
 relationships among them. If the relationships among the models evolve in a non-linear system, a Picard's iteration scheme is
 employed.
 
-\begin{figure}[h!]
-  \includegraphics[width=\textwidth]{pics/raven_cap.png}
-  \caption{RAVEN Capabilities vs. Needs}
-  \label{fig:ravenCap}
-\end{figure}
+\input{ravenComponents.tex}
 
 \subsection{Code Interfaces of RAVEN}
 The procedure of coupling a new code/application with RAVEN is a straightforward process. The provided Application
