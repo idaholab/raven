@@ -27,3 +27,4 @@ def run(self,Input):
     @ Out, None
   """
   self.ans = evaluate(Input.values())
+  self.reg = base(Input.values())
