@@ -224,7 +224,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.initSeed = randomUtils.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
-            self.limit['mdlEval'] = int(childChild.text) #FIXME what's the difference between this and self.limit['varsUpdate']?
+            self.limit['mdlEval'] = int(childChild.text)
             #the manual once claimed that "A" defaults to iterationLimit/10, but it's actually this number/10.
           elif childChild.tag == "type":
             self.optType = childChild.text
@@ -515,7 +515,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         # do we have any opt points yet?
         if len(self.counter['recentOptHist'][traj][0]) > 0:
           # get the latset optimization point (normalized)
-          latestPoint = self.counter['recentOptHist'][traj][0]['inputs'] #self.latestPoint[traj]['inputs']#self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
+          latestPoint = self.counter['recentOptHist'][traj][0]['inputs']
           #some flags for clarity of checking
           justStarted = self.mlDepth[traj] is None
           inInnermost = self.mlDepth[traj] is not None and self.mlDepth[traj] == len(self.mlSequence)-1
