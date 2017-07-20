@@ -703,7 +703,7 @@ class OutStreamPlot(OutStreamManager):
             customFunctionCall = getattr(self.plt3D, key)
           self.actPlot = customFunctionCall(**kwargs)
         except AttributeError as ae:
-          self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\n ' + self.printTag + ' command has been called in the following way: ' + 'plt.' + key + '(' + commandArgs + ')')
+          self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\n ' + self.printTag + ' command has been called in the following way: ' + 'plt.' + key + '(**' + str(kwargs) + ')')
 
   ####################
   #  PUBLIC METHODS  #

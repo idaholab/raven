@@ -12,6 +12,7 @@
     <revisions>
       <revision author="cogljj" date="2016-08-23">Converting test dataobjects attributes to external model. Refs #94</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-07-20">Added 3 new dataobjects with operator node</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -63,11 +64,17 @@
       <Output class="DataObjects" type="HistorySet">stories2</Output>
       <Output class="DataObjects" type="PointSet">outGridTPS1</Output>
       <Output class="DataObjects" type="PointSet">outGridTPS2</Output>
+      <Output class="DataObjects" type="PointSet">outGridTPS3</Output>
+      <Output class="DataObjects" type="PointSet">outGridTPS4</Output>
+      <Output class="DataObjects" type="PointSet">outGridTPS5</Output>
       <Output class="OutStreams" type="Print">allStories_dump</Output>
       <Output class="OutStreams" type="Print">stories1_dump</Output>
       <Output class="OutStreams" type="Print">stories2_dump</Output>
       <Output class="OutStreams" type="Print">outGridTPS1_dump</Output>
       <Output class="OutStreams" type="Print">outGridTPS2_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTPS3_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTPS4_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTPS5_dump</Output>
     </MultiRun>
     <IOStep name="TestDataObjectAttributesFromDataBase">
       <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
@@ -122,6 +129,18 @@
       <type>csv</type>
       <source>outGridTPS2</source>
     </Print>
+    <Print name="outGridTPS3_dump">
+      <type>csv</type>
+      <source>outGridTPS3</source>
+    </Print>
+    <Print name="outGridTPS4_dump">
+      <type>csv</type>
+      <source>outGridTPS4</source>
+    </Print>
+    <Print name="outGridTPS5_dump">
+      <type>csv</type>
+      <source>outGridTPS5</source>
+    </Print>
     <Print name="allStories_dump">
       <type>csv</type>
       <source>allStories</source>
@@ -138,7 +157,7 @@
         <inputRow>1</inputRow>
         <outputRow>-1</outputRow>
       </options>
-      <Input>pipe_Area,Dummy1</Input>
+      <Input>Tw,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
     <PointSet name="outGridTPS2">
@@ -147,15 +166,41 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.00012345</outputPivotValue>
       </options>
-      <Input>pipe_Area,Dummy1</Input>
+      <Input>Tw,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
+
+    <PointSet name="outGridTPS3">
+      <options>
+        <operator>min</operator>
+      </options>
+      <Input>Tw,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </PointSet>
+    
+    <PointSet name="outGridTPS4">
+      <options>
+        <operator>max</operator>
+      </options>
+      <Input>Tw,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </PointSet>
+
+    <PointSet name="outGridTPS5">
+      <options>
+        <operator>average</operator>
+      </options>
+      <Input>Tw,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </PointSet>
+
+
     <PointSet name="outGridTPS1_from_DB">
       <options>
         <inputRow>1</inputRow>
         <outputRow>-1</outputRow>
       </options>
-      <Input>pipe_Area,Dummy1</Input>
+      <Input>Tw,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
     <PointSet name="outGridTPS2_from_DB">
@@ -164,8 +209,8 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.00012345</outputPivotValue>
       </options>
-      <Input>pipe_Area,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
+      <Input>Tw,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,pipe_Area,time</Output>
     </PointSet>
     <HistorySet name="allStories">
       <Input>Tw,Dummy1</Input>
@@ -175,7 +220,7 @@
       <options>
         <inputRow>1</inputRow>
       </options>
-      <Input>Tw</Input>
+      <Input>Tw,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
     <HistorySet name="stories2">
@@ -184,15 +229,15 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
       </options>
-      <Input>Tw</Input>
+      <Input>Tw,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
     <HistorySet name="stories1_from_DB">
       <options>
         <inputRow>1</inputRow>
       </options>
-      <Input>pipe_Area</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
+      <Input>Tw,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Area,pipe_Tw,time</Output>
     </HistorySet>
     <HistorySet name="stories2_from_DB">
       <options>
@@ -200,8 +245,8 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
       </options>
-      <Input>pipe_Area</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
+      <Input>Tw,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Area,pipe_Tw,time</Output>
     </HistorySet>
   </DataObjects>
 
