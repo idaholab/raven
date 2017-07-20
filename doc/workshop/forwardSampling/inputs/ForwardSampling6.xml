@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>GenerateData,PP</Sequence>
@@ -48,12 +48,13 @@
       <variables>X1,X2,Y1,Y2</variables>
     </ExternalModel>
     <PostProcessor name="Stat" subType="BasicStatistics">
+      <!--
       <expectedValue>X2,Y1</expectedValue>
       <sensitivity>
         <targets>X1,X2</targets>
         <features>Y1,Y2</features>
       </sensitivity>
-      <expectedValue>X1,X2,Y1,Y2</expectedValue>
+      <expectedValue>X1,X2,Y1,Y2</expectedValue> -->
       <sensitivity>
         <targets>X1,X2,Y1,Y2</targets>
         <features>X1,X2,Y1,Y2</features>
