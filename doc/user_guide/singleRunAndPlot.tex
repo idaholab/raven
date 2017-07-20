@@ -1,7 +1,6 @@
 \subsection{Build RAVEN input: \xmlNode{SingleRun}}
-In this section, we will show the user how to use RAVEN to run a single instance of a driven code, plotting and
+In this section, we will show the user how to use RAVEN to run a single instance of a driven code, and
 printing some variables. 
-\subsubsection{Set up a simple RAVEN input}
 We will start to build a very simple RAVEN input, and this input file can be found at 
 ``\textit{raven/tests/framework/user\textunderscore guide/SingleRuns/singleRun.xml}''. 
 From this process, we hope the user can get a better idea about
@@ -139,8 +138,11 @@ In order to accomplish these tasks, the following procedures are needed:
       \xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{Steps}
       The code ``testModel'' will be executed once, and the outputs will be collected into a \xmlString{DataObjects}
       of type \textbf{HistorySet}. In addition, \xmlString{OutStreams} is used to print the output data into a CSV file.
-
 \end{enumerate}
+
+The core of the RAVEN calculation flow is the \textbf{Steps} system. The \textbf{Steps} is in charge of assembling
+different entities in RAVEN in order to perform a task defined by the kind of step being used
+(see Figure.~\ref{fig:ExampleStepEntity}).
 
 \begin{figure}[h!]
   \includegraphics[scale=1]{pics/ExampleStepEntity.png}
@@ -149,63 +151,63 @@ In order to accomplish these tasks, the following procedures are needed:
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Output: print and plot using \xmlNode{OutStreams}}
-\xmlNode{OutStreams} can be used to visualize and dump out the data that is generated, imported or post-processed during
-the analysis. It supports two actions:
-\begin{enumerate}
-  \item \textbf{Print}: module that lets the user dump the data contained in the internal objects;
-  \item \textbf{Plot}: module based on MatPLotLib~\cite{MatPlotLib}, aimed to provide advanced plotting capabilities.
-\end{enumerate}
-Both actions listed above accept a \xmlString{DataObject} as an \xmlNode{Input}. The printing system has been created
-in order to let he user dump the data, contained in the internal data objects, out at anytime during the calculation.
-The plotting system provides all the capabilities to visualize the analysis outcomes, in real-time or as a post-processing
-stage.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Build RAVEN Input: \xmlNode{IOStep}}
+The \xmlNode{IOStep} acts as a "transfer network" among different RAVEN storing or streaming objects. The number
+of \xmlNode{Input} and \xmlNode{Output} is unlimited. This \xmlNode{IOStep} assumes one-to-one mapping, i.e. the first
+\xmlNode{Input} is going to be used for the first \xmlNode{Output}, etc. \nb If the \xmlNode{Output} nodes are class
+\xmlString{OutStreams}, the user does not need to follow this assumption, since \textbf{OutStreams} objects are already
+linked to \textbf{DataObjects} in the relative RAVEN input block.
+The \textbf{IOStep} can be used to:
+\begin{itemize}
+  \item construct/update a \textit{Database} from a \textit{DataObjects} object, and vice versa;
+  \item construct/update a \textit{DataObject} from a \textit{CSV} file contained in a directory;
+  \item construct/update a \textit{Database} or a \textit{DataObjects} object from
+    \textit{CSV} files contained in a directory;
+  \item stream the content of a \textit{Database} or a \textit{DataObjects} out through an \textbf{OutStream} object;
+  \item store/retrieve a \textit{ROM} to/from an external \textit{File} using Pickle module of Python.
+\end{itemize}
+The last function can be used to create and store mathematical model of fast solution trained to predict a
+response of interest of a physical system. This model can be recovered in other simulations or used to evaluate
+the response of a physical system in a Python program by the implementing of the Pickle module.
 
-\begin{enumerate}
-   \item \textbf{\textit{OutStreams}}:
-     \xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint.xml}{OutStreams}
-  In this block, both the Out-Stream types are constructed:
-  \begin{itemize}
-    \item \textit{Print}:
-     \begin{itemize}
-       \item named "pointValues" connected with the \textit{DataObjects} \textbf{Entity} ``pointValues'' (\xmlNode{source})
-       \item named ``history'' connected with the \textit{DataObjects} \textbf{Entity} ``history'' (\xmlNode{source})
-     \end{itemize}
-      When this objects get used, all the information contained in the linked  \textit{DataObjects} are going
-    to be dumped in CSV files (\xmlNode{type}).
-    \item \textit{Plot}: a single \xmlNode{Plot} \textbf{Entity} is defined, containing the line plots of the 4 output variables
-    ($A,B,C,D$) in the same figure. This object is going to generate a PNG file and an interactive Plot on
-    the screen.
-  \end{itemize}
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- %figure history
- \begin{figure}[h!]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Perform input/output operations}
+In this case, we will use \xmlNode{IOStep} to stream the output data from the \textit{DataObjects} out through the
+\textit{OutStreams}. The \xmlNode{IOStep} block is shown as following:
+\xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint.xml}{Steps}
+\xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint.xml}{DataObjects}
+As shown above, a data object with type \textit{PointSet} is also used to collect the output data. In this case, only
+the output data from the last time step will be stored in this data object. This can be checked via comparing the
+output files \textit{pointValues.csv} and \textit{history\_0.csv}. In addition,
+the \textit{OutStreams} is employed to print and plot the data from the data object with the type of \textit{HistorySet}, and
+the \textit{OutStreams} becomes:
+\xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint.xml}{OutStreams}
+In this block, both the Out-Stream types are constructed:
+\begin{itemize}
+  \item \textit{Print}: named ``history'' connected with the \textit{DataObjects} \textbf{Entity} ``history'' (\xmlNode{source})
+  When this object get used, all the information contained in the linked  \textit{DataObjects} are going
+  to be dumped in CSV files (\xmlNode{type}).
+  \item \textit{Plot}: a single \xmlNode{Plot} \textbf{Entity} is defined, containing the line plots of the 4 output variables
+  ($A,B,C,D$) in the same figure. This object is going to generate a PNG file and an interactive Plot on
+  the screen.
+\end{itemize}
+
+%figure history
+\begin{figure}[h!]
   \centering
   \includegraphics[scale=0.7]{../../tests/framework/user_guide/SingleRuns/gold/singleRunPlot/1-historyPlot_line-line-line-line.png}
   \caption{Plot of the history for variables $A,B,C,D$.}
   \label{fig:historyPlotLine}
- \end{figure}
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\end{enumerate}
-
-\subsubsection{IOStep: perform input/output operations}
-The \xmlNode{IOStep} acts as a "transfer network" among different RAVEN storing or streaming objects. The number
-of \xmlNode{Input} and \xmlNode{Output} is unlimited. This \xmlNode{IOStep} assumes one-to-one maping, i.e. the first
-\xmlNode{Input} is going to be used for the first \xmlNode{Output}, etc. \nb If the \xmlNode{Output} nodes are class
-\xmlString{OutStreams}, the user does not need to follow this assumption, since \textbf{OutStreams} objects are already
-lined to \textbf{DataObjects} in the relative RAVEN input block.
-
-\begin{enumerate}
-   \item \textbf{\textit{IOStep}}:
-     \xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint.xml}{Steps}
-\end{enumerate}
+\end{figure}
 
 For examples of the numerical data produced by the OutStreams \textit{Print}, see \texttt{history\_0.csv} in the directory
  \texttt{raven/tests/framework/user\_guide/SingleRuns/gold/singleRunPlot/}
  As previously mentioned, Figure~\ref{fig:historyPlotLine} reports the four plots (four variables) drawn in the same picture.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\FloatBarrier
-\subsubsection{OutStream System: Sub-plot and Selectively print.}
+\subsubsection{Sub-plot and selectively print.}
 This Section shows how to use RAVEN to create sub-plots (multiple plots in the same figure) and
 how to select only some variable from the \textit{DataObjects} in the \textit{Print} OutStream.
  \\ The goals of this Section are about learning how to:
@@ -214,8 +216,14 @@ how to select only some variable from the \textit{DataObjects} in the \textit{Pr
    \item Generate sub-plots (multiple plots in the same figure) of the code results
 \end{enumerate}
 
-To accomplish these tasks, the \textit{OutStreams} \textbf{Entity} in the input defined in the previous section needs to be modified as follows:
+To accomplish these tasks, the \xmlNode{IOStep} needs to be modified as follows:
+\xmlExample{framework/user_guide/SingleRuns/singleRunSubPlotsAndSelectivePrint.xml}{Steps}
+\nb as mentioned before, this \xmlNode{IOStep} does not need to follow the one-to-one mapping, since \textit{OutStreams}
+are alreadly linked to the \textit{DataObjects}.
+And the \textit{OutStreams} \textbf{Entity} in the input defined in the previous section needs to be modified as
+follows:
 \xmlExample{framework/user_guide/SingleRuns/singleRunSubPlotsAndSelectivePrint.xml}{OutStreams}
+
 \begin{enumerate}
    \item \textbf{\textit{Print}}:
    With respect to the \textit{Print} nodes defined in the previous section, it can
@@ -231,21 +239,20 @@ To accomplish these tasks, the \textit{OutStreams} \textbf{Entity} in the input 
  a 2 by 2 grid is requested. 2) in each \xmlNode{plot} the node \xmlNode{gridLocation} is placed in
  order to specify in which position the relative plot needs to be placed. For example, in the following grid
  location, the relative plot is going to be placed at the bottom-right corner.
-  \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
+ \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
    <gridLocation>
       <x>1</x>
       <y>1</y>
    </gridLocation>
-   \end{lstlisting}
- \end{enumerate}
-The CSV tables generated by the \textit{Print} \textbf{Entities} are not reported, since the only differences with respect to Tables ~\ref{historyVI.I} and ~\ref{pointValuesVI.I} are related to the number of columns (variables)
-dumped out.
-\\Figure~\ref{fig:historySubPlotLine} reports the four plots (four variables) drawn in the same picture.
- %figure history sublots
- \begin{figure}[h!]
+  \end{lstlisting}
+\end{enumerate}
+
+The printed data will dump to the CSV file \textit{history\_0.csv}, and \\Figure~\ref{fig:historySubPlotLine} reports the four plots (four variables) drawn in the same picture.
+
+%figure history sublots
+\begin{figure}[h!]
   \centering
   \includegraphics[scale=0.7]{../../tests/framework/user_guide/SingleRuns/gold/subPlot/1-historyPlot_line-line-line-line.png}
   \caption{Subplot of the history for variables $A,B,C,D$.}
   \label{fig:historySubPlotLine}
- \end{figure}
-
+\end{figure}
