@@ -410,10 +410,10 @@ class BasicStatistics(PostProcessor):
       haveScalars = list(scalar for scalar in self.scalarVals if scalar in outputDict.keys())
       if 'percentile_map' in self.parameters and len(self.parameters['percentile_map']) >0 :
         haveScalars = haveScalars + ['percentile_'+val for val in self.parameters['percentile_map'].values()]
+      valueStrFormat = ('{:^22.22}').format
+      valueFormat    = '{:+.15e}'.format
       if len(haveScalars) > 0:
         longestScalar = max(18,max(len(scalar) for scalar in haveScalars))
-        valueStrFormat = ('{:^22.22}').format
-        valueFormat = '{:+.15e}'.format
         output.write(paramFormat('Metric:') + separator)
         output.write(separator.join(valueStrFormat(scalar) for scalar in haveScalars) + os.linesep)
         #body
