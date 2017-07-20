@@ -1,7 +1,7 @@
-\subsection{AnalyticBateman, Example Model}\label{sec:analyticalbateman}
-To generalize the examples to any driven software, a simple \texttt{Python} code (conventionally called \textbf{AnalyticBateman})
-has been developed (located at ``\textit{raven/tests/framework/user\textunderscore guide/physicalCode}''). It solves a
-system of ordinary differential equations (ODEs), of the form:
+\subsection{Example Model: Analytic Bateman}\label{sec:analyticalbateman}
+This section is intended for the new users to familiarize them with how to perform their studies through RAVEN.
+A simple example, conventionally called \textbf{AnalyticBateman}, has been developed. It solves a system of
+ordinary differential equations (ODEs), of the form:
 
 \begin{equation}
 \begin{dcases}
@@ -16,11 +16,11 @@ system of ordinary differential equations (ODEs), of the form:
      \item $\mathbf{L}$, loss terms
    \end{itemize}
 
-For example, this  code is able to solve a system of equations as follows:
+For example, this  code is able to solve a system of two ODEs as follows:
 \begin{equation}
   \begin{dcases}
-   \frac{\mathrm{d} x_{1}}{\mathrm{d} t} = \phi (t)\times \sigma_{x_{1}}-\lambda_{x_{1}} \\
-   \frac{\mathrm{d} x_{2}}{\mathrm{d} t} = \phi (t)\times \sigma_{x_{2}}-\lambda_{x_{2}}+x_{1}(t)\times\lambda_{x_{1}} \\
+    \frac{\mathrm{d} x_{1}}{\mathrm{d} t} = \phi (t)\times \sigma_{x_{1}}-\lambda_{x_{1}}\times x_{1}(t) \\
+    \frac{\mathrm{d} x_{2}}{\mathrm{d} t} = \phi (t)\times \sigma_{x_{2}}-\lambda_{x_{2}} \times x_{2}(t) + x_{1}(t)\times\lambda_{x_{1}} \\
     x_{1}(t=0)= x_{1}^{0} \\
     x_{2}(t=0)= 0.0
   \end{dcases}
@@ -28,7 +28,8 @@ For example, this  code is able to solve a system of equations as follows:
 
 The input of the \textbf{AnalyticBateman} code is in XML format.
 For example, the following is the reference input for a system of 4 Ordinary Differential Equations (ODEs)
-that is going to be used for all the examples reported in this guide.
+that is going to be used for as an example in this guide. All the files required for this system are  located at
+``\textit{raven/tests/framework/user\textunderscore guide/physicalCode}''. 
 
 \xmlExample{framework/user_guide/physicalCode/analyticalbateman/Input.xml}{AnalyticalBateman}
 The code outputs the time evolution of the 4 variables ($A,B,C,D$) in a CSV file, producing the following output:

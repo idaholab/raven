@@ -1,20 +1,13 @@
-\section{Raven Tutorial}
+\section{RAVEN Tutorial}
 \label{sec:ravenTutorial}
 
-\subsection{Overview}
-\label{sub:overview}
-RAVEN is a multi-purpose software framework designed to perform parametric and stochastic analysis based on the
-response of complex system codes. The initial development was designed to provide dynamic probabilistic risk
-analysis capabilities (DPRA) to the thermal-hydraulic code RELAP-7, currently under development at Idaho National
-Laboratory (INL).
-Now, RAVEN is not only a framework to perform DPRA but it is a multi-purpose stochastic and uncertainty 
-quantification platform, capable of communicating with any system code through the provided  Application
-Programming Interfaces (APIs). These APIs allow RAVEN to interact with any code as long as all the parameters
-that need to be perturbed are accessible through input files or via  \texttt{Python} interfaces. RAVEN is capable
-of investigating the system response as well as the input space using sampling schemes, such as Monte Carlo, Grid,
-Latin Hyper Cube. However, RAVEN strength is the set of system feature discovery capabilities.
-
+% A simple example
 \input{exampleDescription.tex}
-\pagebreak
+% Run RAVEN with the simple example
 \input{singleRunAndPlot.tex}
+% Build RAVEN input with explanation
+
+
+\input{ravenOverview.tex}
+
 
