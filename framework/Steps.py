@@ -93,8 +93,11 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #  re-seeding = 'continue' the use the already present random environment
     #If there is no instruction (self.initSeed = None) the sampler will reinitialize
     self.initSeed        = None
-    self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd','fromDirectory']
+    self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd','fromDirectory','repeatFailureRuns']
     self._excludeFromModelValidation = ['SolutionExport']
+    # how to handle failed runs. By default, the step fails.
+    # If the attribute "repeatFailureRuns" is inputted, a certain number of repetitions are going to be performed
+    self.failureHandling = {"fail":True, "repetitions":0, "perturbationFactor":0.0, "jobRepetitionPerformed":{}}
     self.printTag = 'STEPS'
 
   def _readMoreXML(self,xmlNode):
@@ -136,6 +139,19 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self.pauseEndStep = False
       else:
         self.raiseAnError(IOError,printString.format(self.type,self.name,xmlNode.attrib['pauseAtEnd'],'pauseAtEnd'))
+    if 'repeatFailureRuns' in xmlNode.attrib.keys():
+      failureSettings = str(xmlNode.attrib['repeatFailureRuns']).split("|")
+      self.failureHandling['fail'] = False
+      if len(failureSettings) not in [1,2]:
+        self.raiseAnError(IOError,'repeatFailureRuns format error. Expecting either the repetition number only ' +
+                                  'or the repetition number and the perturbation factor separated by "|" symbol')
+      self.failureHandling['repetitions'] = utils.intConversion(failureSettings[0])
+      if len(failureSettings) == 2:
+        self.failureHandling['perturbationFactor'] = utils.floatConversion(failureSettings[1])
+      if self.failureHandling['repetitions'] is None:
+        self.raiseAnError(IOError,'In Step named '+self.name+' it was not possible to cast "repetitions" attribute into an integer!')
+      if self.failureHandling['perturbationFactor'] is None:
+        self.raiseAnError(IOError,'In Step named '+self.name+' it was not possible to cast "perturbationFactor" attribute into a float!')
     self._localInputAndChecks(xmlNode)
     if None in self.parList:
       self.raiseAnError(IOError,'A problem was found in  the definition of the step '+str(self.name))
@@ -528,6 +544,9 @@ class MultiRun(SingleRun):
         # pool it if it failed, before we loop back to "while True" we'll check for these again
         else:
           #add run to a pool that can be sent to the sampler later
+          if isinstance(model,Models.EnsembleModel):
+            reAddJob(runner,clientQueue)
+          finishedJob.start()
           self.failedRuns.append(copy.copy(finishedJob))
           self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
 
