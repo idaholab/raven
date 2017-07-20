@@ -1,36 +1,154 @@
 \subsection{Build RAVEN input: \xmlNode{SingleRun}}
 In this section, we will show the user how to use RAVEN to run a single instance of a driven code, plotting and
-printing some variables.. 
+printing some variables. 
 \subsubsection{Set up a simple RAVEN input}
-We will start to build a very simple RAVEN input. From this process, we hope the user can get a better idea about
-RAVEN \textbf{Entities} and learn how to build their own RAVEN inputs for their applications.
-In order to accomplish these tasks, the following steps are needed:
+We will start to build a very simple RAVEN input, and this input file can be found at 
+``\textit{raven/tests/framework/user\textunderscore guide/SingleRuns/singleRun.xml}''. 
+From this process, we hope the user can get a better idea about
+RAVEN entities and learn how to build their own RAVEN inputs for their applications.
+In order to accomplish these tasks, the following procedures are needed:
 \begin{enumerate}
    \item \textbf{Set up the running environment}: \xmlNode{RunInfo}
-   \item \textbf{Provide the required files}: \xmlNode{Files}
-   \item \textbf{Link between RAVEN and driven code}: \xmlNode{Models}
-   \item \textbf{Container of input and output data}: \xmlNode{DataObjects}
-   \item \textbf{Control of executions}: \xmlNode{Steps}
-\end{enumerate}
-The RAVEN input file will look like:
-\xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{Simulation}
-In this specific case, as shown in \xmlNode{RunInfo}, only one step named \xmlString{singleRun} is going to be
-sequentially run using a single processor as defined by \xmlNode{BatchSize}. All the output files and temporary
-files will be dumped in the folder \xmlString{singleRunAnalysis}.The \xmlNode{Steps} will be used to
-link the rest of \textbf{Entities} to perform a single run, i.e. load the input file \xmlString{referenceInput.xml} as defined in
-\xmlNode{Files} via \xmlNode{Input}, run the code using the commands defined in \xmlNode{Models}, and collect the
-input and output data into the data objects \xmlString{history} which is defined as \xmlNode{HistorySet} to store
-the time-dependent data..
-The subnodes defined for \xmlNode{Code} is equivalent to:
-\begin{lstlisting}[language=bash]
-python ../physicalCode/analyticalbateman/AnalyticalDplMain.py
-\end{lstlisting}
-with the requirement of extensions of input and output files, as defined via \xmlNode{clargs}, to be \xmlString{.xml} and \xmlString{.csv},
-respectively.
-In addition, the \xmlString{GenericCode} interface is used for this case since the driven code already dumps its
-outputs in CSV format. In general, the users need to create an ad-hoc code interface for their applications. More
-detailed information can be found in ~\cite{RAVENuserManual}. 
+     \\The \textbf{RunInfo} entity is an information container which describes how the overall computation should
+      be performed. This Entity accepts several input settings that define how to drive the calculation and set up,
+      when needed, particular settings for the machine the code needs to run on (queue system, if not Portable
+      Batch System-PBS, etc.). For the simple case, the \textbf{RunInfo} will look like:
+      \xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{RunInfo}
+      In this specific case, only one step named \xmlString{single} is going to be sequentially run using a single
+      processor as defined by \xmlNode{BatchSize}. All the output files and temporary files will be dumped in the
+      folder \xmlString{singleRunAnalysis}.
 
+   \item \textbf{Provide the required files}: \xmlNode{Files}
+     \\ The \textbf{Files} entity  defines any files that might be needed within the RAVEN run. This could include
+     inputs to the Model, pickled ROM files, or Comma Separated Value (CSV) files for post-processors, to name a few.
+     Each entry in the \xmlNode{Files} block is a tag with the file type. Files given through the input XML at this
+     point are all \xmlNode{Input} type. Each \xmlNode{Input} node has a required attributes \xmlAttr{name}. It does
+     not need to be the actual filename, and it is the name by which RAVEN will use to identify the file. Other
+     optional attributes are not directly used by RAVEN, and they are mainly used by the \textbf{CodeInterface}. More
+     detailed information can be found in the user manual ~\cite{RAVENuserManual}. For the simple case, the \textbf{Files}
+     will look like:
+     \xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{Files}
+     This RAVEN input file shows that the user will provide a file that is located at ``\textit{../commonFiles/referenceInput.xml}''
+     with reference name \xmlString{referenceInput.xml}. This file will be available for use via other RAVEN input blocks or entities.
+
+   \item \textbf{Link between RAVEN and driven code}: \xmlNode{Models}
+     \\ The \textbf{Models} entity represents the projection from the input to the output space. In other words,
+     the Model entity can be seen as a transfer function between the input and output space. Currently, RAVEN
+     defines the following sub-entities:
+     \begin{itemize}
+       \item \textit{Code}, represents the driven code, through external code interfaces (see~\cite{RAVENuserManual})
+       \item  \textit{ExternalModel}, represents a physical or mathematical model that is directly implemented by
+         the user in a Python module
+       \item \textit{ROM}, represents the Reduced Order Model, interfaced with several algorithms
+       \item \textit{PostProcessor}, is used to perform action on data, such as computation of statistical moments,
+         correlation matrices, etc.
+     \end{itemize}
+     For simplicity, only \textit{Code} is used here for the demonstration, and the input block looks like:
+     \xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{Models}
+     As shown in the \xmlNode{Models} block, the subnodes defined for \xmlNode{Code} is equivalent to:
+     \begin{lstlisting}[language=bash]
+     python ../physicalCode/analyticalbateman/AnalyticalDplMain.py
+     \end{lstlisting}
+     with the requirement of extensions of input and output files, as defined via \xmlNode{clargs}, to be 
+     \xmlString{.xml} and \xmlString{.csv}, respectively. In this case, the \textbf{GenericCode} interface is employed.
+     This interface is meant to handle a wide variety of generic codes that take straightforward input files and produce
+     CSV files. \nb If a code contains cross-dependent data, the generic interface is not applicable. For more detailed
+     information, the user can refer to section \textbf{Existing Interface} of the user manual ~\cite{RAVENuserManual}.
+
+   \item \textbf{Container of input and output data}: \xmlNode{DataObjects}
+     \\The \textbf{DataObjects} system is a container of data objects of various types that can be constructed
+     during the execution of desired calculation flow. These data objects can be used as input or output for a
+     particular \textbf{Model} Entity. Currently RAVEN supports the following data types, each with a particular
+     conceptual meaning:
+     \begin{itemize}
+        \item \textit{PointSet} is a collection of individual objects, each describing the state of the system at
+                                a certain point (e.g. in time). It can be considered a mapping between multiple
+                                            sets of parameters in the input space and the resulting sets of outcomes in the output space
+                                            at a particular point (e.g., in time).
+        \item \textit{HistorySet} is a collection of individual objects, each describing the temporal evolution of the
+                                  state of the system within a certain input domain. It can be considered a mapping between
+                                               multiple sets of parameters in the input space and the resulting sets of temporal evolution
+                                               in the output space.
+     \end{itemize}
+     The DataObjects represent the preferred way to transfer the information coming from a Model (e.g., the
+     driven code) to all the other RAVEN systems (e.g., Out-Stream system, Reduced Order Modeling component, etc.).
+     For the simple case, the \xmlNode{DataObjects} block of RAVEN input is:
+     \xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{DataObjects}
+     \xmlNode{HistorySet} with a user-defined identifier (e.g. ``history'') is used to collect the mass evolutions
+     of four given isotopes, i.e. A, B, C, D. \xmlNode{Input} node is used to list the input parametes to which
+     this data is connected. If there is no input data associated with this node, the \xmlString{InputPlaceHolder}
+     can be used. \xmlNode{Output} is used to list the output parameters to which this data is connected. Similarly,
+     if there is no output data associated with this node, the \xmlString{OutputPlaceHolder} can be used. This is
+     mainly because both \xmlNode{Input} and \xmlNode{Output} nodes are required for all types of \textbf{DataObjects}.
+
+    \item \textbf{Print and plot input and output data}: \xmlNode{OutStreams}
+      \\ The OutStreams node is the entity used for data exporting and dumping. The OutStreams support
+      2 actions:
+      \begin{itemize}
+       \item \textit{Print}. This Out-Stream is able to print out (in a Comma Separated Value format) all the information
+         contained in:
+         \begin{itemize}
+          \item DataObjects
+          \item Reduced Order Models.
+         \end{itemize}
+       \item \textit{Plot}. This Out-Stream is able to plot 2-Dimensional, 3-Dimensional, 4-Dimensional (using color
+       mapping) and 5-Dimensional (using marker size). Several types of plot are available, such as scatter, line, surfaces,
+       histograms, pseudo-colors, contours, etc.
+      \end{itemize}
+      In this case, a simple \xmlNode{OutStreams} is used to output the mass evolutions of all four model variables
+      into a CSV file with the name prefix ``print\textunderscore history''.
+      \xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{OutStreams}
+
+    \item \textbf{Control of executions}: \xmlNode{Steps}
+      \\The \textbf{Steps} entity is used to create a peculiar analysis flow via combining together different RAVEN
+      entities. It is the location where all the defined entities get finally linked in order to perform a combined
+      action a certain \textit{Model}. In order to perform this linking, each entity defined in the Step needs to
+      ``play'' a role:
+      \begin{itemize}
+        \item \textit{Input} represents the input of the step. The allowable input objects depend on the type
+          of \textit{Model} in this step.
+        \item \textit{Model} represents a physical or mathematical system or behavior. The object used in this role
+          defines the allowable types of inputs and outputs usable in this step.
+        \item \textit{Output} defines where to collect the results of an action performed by the \textit{Model}. It
+          is generally one of the following types: \textbf{DataObjects}, \textbf{Databases}, or \textbf{OutStreams}.
+        \item \textit{Sampler} defines the sampling strategy to be used to probe the model. \nb When a sampling
+          strategy is employed, the "variables" defined in the \xmlNode{variable} blocks are going to be directly
+          placed in the output objects of type \textbf{DataObjects} and \textbf{Databases}.
+        \item \textit{Function} is an extremely importance role. It introduces the capability to perform pre or post
+          processing of model inputs and outputs. Its specific behavior depends on the step is using it.
+        \item \textit{ROM} defines an acceleration reduced order model to use for a step.
+        \item \textit{SolutionExport}, represents the container of the eventual output of a step. It is the entity
+          that is used to export the solution of a \textit{Sampler} or post-processors.
+      \end{itemize}
+      Currently, RAVEN supports the following types of \textit{\xmlNode{Steps}}:
+      \begin{itemize}
+        \item \textit{SingleRun}, perform a single run of a model
+        \item \textit{MultiRun}, perform multiple runs of a model
+        \item \textit{RomTrainer}, perform the training of a Reduced Order Model (ROM)
+        \item \textit{PostProcess}, post-process data or manipulate RAVEN entities
+        \item \textit{IOStep}, step aimed to perform multiple actions:
+        \begin{itemize}
+          \item construct/update a Database from a DataObjects and vice-versa
+          \item construct/update a Database or a DataObjects object from CSV files
+          \item stream the content of a Database or a DataObjects out through an OutStream
+          \item store/retrieve a ROM to/from an external File using Pickle module of Python
+        \end{itemize}
+      \end{itemize}
+      For this example, the \xmlNode{SingleRun} is used to assemble a calculation flow, i.e. perform a single action
+      of a model.
+      \xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{Steps}
+      The code ``testModel'' will be executed once, and the outputs will be collected into a \xmlString{DataObjects}
+      of type \textbf{HistorySet}. In addition, \xmlString{OutStreams} is used to print the output data into a CSV file.
+
+\end{enumerate}
+
+\begin{figure}[h!]
+  \includegraphics[scale=1]{pics/ExampleStepEntity.png}
+  \caption{Example of the Steps \textbf{Entity}  and its connection in the input file.}
+  \label{fig:ExampleStepEntity}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Output: print and plot using \xmlNode{OutStreams}}
 \xmlNode{OutStreams} can be used to visualize and dump out the data that is generated, imported or post-processed during
 the analysis. It supports two actions:
