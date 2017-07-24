@@ -319,18 +319,20 @@ class JobHandler(MessageHandler.MessageUser):
                                                     modulesToImport, identifier,
                                                     metadata, skipFunctions,
                                                     uniqueHandler)
+    
+    # set the client info
+    internalJob.clientRunner = clientQueue
     # add the runner in the Queue
-    self.reAddJob(runner,clientQueue)
+    self.reAddJob(internalJob)
 
   def reAddJob(self, runner):
     """
       Method to add a runner object in the queue
       @ In, runner, Runner Instance, this is the instance of the runner that we want to readd in the queque
-      @ In, clientQueue, boolean, optional, if this run needs to be added in the clientQueue
       @ Out, None
     """
     with self.__queueLock:
-      if not clientQueue:
+      if not runner.clientRunner:
         self.__queue.append(runner)
       else:
         self.__clientQueue.append(runner)
