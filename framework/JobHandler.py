@@ -319,7 +319,7 @@ class JobHandler(MessageHandler.MessageUser):
                                                     modulesToImport, identifier,
                                                     metadata, skipFunctions,
                                                     uniqueHandler)
-    
+
     # set the client info
     internalJob.clientRunner = clientQueue
     # add the runner in the Queue

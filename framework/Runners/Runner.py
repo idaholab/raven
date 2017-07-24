@@ -55,7 +55,6 @@ class Runner(MessageHandler.MessageUser):
     self.metadata       = copy.copy(metadata)
     self.uniqueHandler  = uniqueHandler
     self.started        = False
-    self.clientRunner   = False # is this runner needed to be executed in client mode? False. N.B. This attribute is set by the jobHandler class
 
     ## First attempt to use a user-specified identifier name
     if identifier is not None:

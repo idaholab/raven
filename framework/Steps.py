@@ -408,19 +408,19 @@ class SingleRun(Step):
           self.raiseADebug('the job "'+finishedJob.identifier+'" has failed.')
           if self.failureHandling['fail']:
             #add run to a pool that can be sent to the sampler later
-            self.failedRuns.append(copy.copy(finishedJob))            
+            self.failedRuns.append(copy.copy(finishedJob))
           else:
             if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
               self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
             if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
               # we re-add the failed job
-              jobHandler.reAddJob(finishedJob)              
+              jobHandler.reAddJob(finishedJob)
               self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+finishedJob.identifier+'". Trial '+
                                str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
               self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
             else:
               #add run to a pool that can be sent to the sampler later
-              self.failedRuns.append(copy.copy(finishedJob))                 
+              self.failedRuns.append(copy.copy(finishedJob))
               self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
@@ -564,19 +564,19 @@ class MultiRun(SingleRun):
           self.raiseADebug('the job "'+finishedJob.identifier+'" has failed.')
           if self.failureHandling['fail']:
             #add run to a pool that can be sent to the sampler later
-            self.failedRuns.append(copy.copy(finishedJob))            
+            self.failedRuns.append(copy.copy(finishedJob))
           else:
             if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
               self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
             if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
               # we re-add the failed job
-              jobHandler.reAddJob(finishedJob)              
+              jobHandler.reAddJob(finishedJob)
               self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+finishedJob.identifier+'". Trial '+
                                str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
-              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1 
+              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
             else:
               #add run to a pool that can be sent to the sampler later
-              self.failedRuns.append(copy.copy(finishedJob))                 
+              self.failedRuns.append(copy.copy(finishedJob))
               self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
         # finalize actual sampler
         sampler.finalizeActualSampling(finishedJob,model,inputs)

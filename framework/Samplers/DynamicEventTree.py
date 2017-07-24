@@ -300,7 +300,7 @@ class DynamicEventTree(Grid):
       self.endInfo[index]['branchChangedParams'][key]['changedConditionalPb'] = []
       self.endInfo[index]['branchChangedParams'][key]['unchangedConditionalPb'] = parentCondPb*float(self.endInfo[index]['branchChangedParams'][key]['unchangedPb'])
       for pb in range(len(self.endInfo[index]['branchChangedParams'][key]['associatedProbability'])):
-        self.endInfo[index]['branchChangedParams'][key]['unchangedConditionalPb'].append(parentCondPb*float(self.endInfo[index]['branchChangedParams'][key]['associatedProbability'][pb]))
+        self.endInfo[index]['branchChangedParams'][key]['changedConditionalPb'].append(parentCondPb*float(self.endInfo[index]['branchChangedParams'][key]['associatedProbability'][pb]))
 
   def __readBranchInfo(self,outBase=None,currentWorkingDir=None):
     """

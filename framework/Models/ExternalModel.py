@@ -116,15 +116,15 @@ class ExternalModel(Dummy):
       if extCreateNewInput== None:
         self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
       if type(extCreateNewInput).__name__ != "dict":
-        self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+ ' the method createNewInput must return a dictionary. Got type: ' +type(extCreateNewInput).__name__) 
+        self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+ ' the method createNewInput must return a dictionary. Got type: ' +type(extCreateNewInput).__name__)
       if 'SampledVars' in kwargs.keys() and len(self.alias['input'].keys()) != 0:
         kwargs['SampledVars'] = sampledVars
-      # add sampled vars  
+      # add sampled vars
       if 'SampledVars' in kwargs:
         for key in kwargs['SampledVars']:
           if key not in extCreateNewInput:
             extCreateNewInput[key] =   kwargs['SampledVars'][key]
-            
+
       newInput = ([(extCreateNewInput)],copy.deepcopy(kwargs))
     else:
       newInput =  Dummy.createNewInput(self, myInput,samplerType,**kwargs)
