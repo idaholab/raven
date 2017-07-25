@@ -220,6 +220,7 @@ class EnsembleModel(Dummy):
     """
     # in here we store the job ids for which we did not collected the optional output yet
     self.tempOutputs['uncollectedJobIds'] = []
+    self.tempOutputs['forHold'] = {}
     # collect name of all the outputs in the Step
     outputsNames = []
     if initDict is not None:
@@ -421,6 +422,7 @@ class EnsembleModel(Dummy):
       self.tempOutputs['uncollectedJobIds'].pop(jobIndex)
     except ValueError:
       jobIndex = None
+    self.tempOutputs['forHold'][finishedJob.identifier] = {'outs':optionalOutputs,'targetEvaluations':targetEvaluations}
     for modelIn in self.modelsDictionary.keys():
       # collect data
       inputsValues               = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
@@ -445,6 +447,7 @@ class EnsembleModel(Dummy):
       if jobIndex is not None:
         for optionalModelOutput in self.modelsDictionary[modelIn]['OutputObject']:
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedJob,optionalModelOutput,options={'exportDict':copy.copy(optionalOutputs[modelIn])})
+    #self.tempOutputs['forHold'][finishedJob.identifier] = exportDictTargetEvaluation
     # collect the output of the STEP
     optionalOutputNames = []
     for modelIn in self.modelsDictionary.keys():
@@ -581,7 +584,8 @@ class EnsembleModel(Dummy):
     if holdOutputSpace is not None:
       modelsOnHold = self._identifyModelsOnHold(holdOutputSpace[0])
       for modelOnHold in modelsOnHold:
-        holdCollector[modelOnHold] = self.modelsDictionary[modelOnHold]['TargetEvaluation'].getRealizationGivenEvaluationID(holdOutputSpace[1])
+        holdCollector[modelOnHold] = {'exportDict':self.tempOutputs['forHold'][holdOutputSpace[1]]['outs'][modelOnHold],'targetEvaluations':self.tempOutputs['forHold'][holdOutputSpace[1]]['targetEvaluations'][modelOnHold]} #         self.tempOutputs['forHold'][holdOutputSpace[1]][modelOnHold]
+    #    holdCollector[modelOnHold] = self.modelsDictionary[modelOnHold]['TargetEvaluation'].getRealizationGivenEvaluationID(holdOutputSpace[1])
 
     for modelIn in self.orderList:
       self.tempTargetEvaluations[modelIn].resetData()
@@ -625,7 +629,6 @@ class EnsembleModel(Dummy):
         # if nonlinear system, check for initial coditions
         if iterationCount == 1  and self.activatePicard:
           sampledVars = inputKwargs[modelIn]['SampledVars'].keys()
-
           conditionsToCheck = set(self.modelsDictionary[modelIn]['Input']) - set(dependentOutput.keys()+sampledVars)
           for initialConditionToSet in conditionsToCheck:
             if initialConditionToSet in self.initialConditions.keys():
@@ -679,15 +682,20 @@ class EnsembleModel(Dummy):
                 if modelToRemove != modelIn:
                   jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
               self.raiseAnError(RuntimeError,"The Model  " + modelIn + " identified by " + finishedRun[0].identifier +" failed!")
-
-          # collect output in the temporary data object
-          exportDict = self.modelsDictionary[modelIn]['Instance'].createExportDictionaryFromFinishedJob(finishedRun[0], True)
+          
+            # collect output in the temporary data object
+            exportDict = self.modelsDictionary[modelIn]['Instance'].createExportDictionaryFromFinishedJob(finishedRun[0], True)
+          else:
+            exportDict = holdCollector[modelIn]['exportDict']
           # store the output dictionary
           tempOutputs[modelIn] = copy.deepcopy(exportDict)
+  
           # collect the target evaluation
-          self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn],options={'exportDict':exportDict})
-          # store the results in the working dictionaries
-          returnDict[modelIn]   = {}
+          if modelIn not in modelsOnHold:
+            self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn],options={'exportDict':exportDict})
+          else:
+            tempTargetEvaluations[modelIn] = holdCollector[modelIn]['targetEvaluations']
+
           responseSpace         = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
           inputSpace            = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
           typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
