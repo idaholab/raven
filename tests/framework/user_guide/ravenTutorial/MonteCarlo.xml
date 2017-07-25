@@ -28,7 +28,7 @@
       <executable>../physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
-      <clargs arg=" " extension=".csv" type="output"/>
+      <clargs arg="" extension=".csv" type="output"/>
     </Code>
   </Models>
 

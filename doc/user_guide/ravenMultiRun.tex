@@ -58,7 +58,8 @@ strategies that can be used in almost all RAVEN related applications. In this se
 the simplest forward sampler, i.e. \textit{Monte-Carlo}, to familarize the user with the use of sampler. Monte-Carlo method
 is one of the most-used methodologies in several mathematic disciplines. The theory of this method can be found in
 the RAVEN theory manual. In addition, we will continue to use the \textbf{AnalyticBateman} to illustrate the setup
-of \textbf{MultiRun} and \textbf{Samplers}. In order to accomplish these tasks, the following precedures are needed:
+of \textbf{MultiRun} and \textbf{Samplers}. In order to accomplish these tasks, the following precedures or RAVEN
+entities are needed:
 
 \begin{enumerate}
   \item Set up the running environment: \xmlNode{RunInfo}
@@ -74,7 +75,7 @@ of \textbf{MultiRun} and \textbf{Samplers}. In order to accomplish these tasks, 
 In section~\ref{sub:singleRun}, we have already discussed the use of \xmlNode{RunInfo}, \xmlNode{Files}, \xmlNode{Models},
 \xmlNode{DataObjects}, \xmlNode{OutStreams}. For practice, the user can try to build these RAVEN entities by themselves,
 and refer to the complete input file located at
-\textit{raven/tests/framework/user\_guide/ ForwardSamplingStrategies/forwardSamplingMontecarlo.xml}.
+\textit{raven/tests/framework/user\_guide/ ravenTutorial/MonteCarlo.xml}.
 In this section, we'd like to show the users how to set up \xmlNode{Distributions}, \xmlNode{Samplers} and \textbf{MultiRun}
 of \xmlNode{Steps}. RAVEN employs \xmlNode{Distributions} to define many different probability distribution
 functions (PDFs) that can be used to characterize the input parameters. One can consider the \xmlNode{Distributions}
@@ -91,8 +92,9 @@ For the \textbf{AnalyticBateman} example, two 1-D uniform distributions are defi
     still keeping those variables independent.
 \end{itemize}
 The following is the definition of \xmlNode{Distributions} block that is used for the \textbf{AnalyticBateman} problem:
-\xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingMontecarlo.xml}{Distributions}
-For uniform distributions, only \xmlNode{lowerBound} and \xmlNode{upperBound} are required.
+\xmlExample{framework/user_guide/ravenTutorial/MonteCarlo.xml}{Distributions}
+For uniform distributions, only \xmlNode{lowerBound} and \xmlNode{upperBound} are required. For other distributions,
+please refer to the RAVEN user manual.
 
 As we already mentioned, we will employ Monte-Carlo sampling strategy to demonstrate \textbf{MultiRun}.
 To employ the Monte-Carlo sampling strategy, a \xmlNode{MonteCarlo} node needs to be defined.
@@ -100,10 +102,32 @@ The user also needs to specify the variables that need to be sampled using \xmlN
 the setting for this sampler need to be specified in the \xmlNode{samplerInit} block. The only required sub-node
 \xmlNode{limit} is used to specify the number of Monte Carlo samples. The user can also use other optional sub-node
 to characterize their samplers. For this example, the \xmlNode{Samplers} block is:
-\xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingMontecarlo.xml}{Samplers}
-In this case, the Monte-Carlo method is employed on $eight$ model variables, each of which are listed by name and
-are associated with a distribution. Note that all the \textit{decay-\*} and \textit{sigma-\*} variables are
-associated with the distributions $decayConstant$ and $sigma$, respectively.
+\xmlExample{framework/user_guide/ravenTutorial/MonteCarlo.xml}{Samplers}
+In this case, the Monte-Carlo method is employed on $two$ model variables, each of which are listed by name and
+are associated with a distribution. Note that the \textit{decay-\*} and \textit{sigma-\*} variables are
+associated with the distributions $decayConstant$ and $sigma$, respectively. These variables and their values are
+passed to the model via the generic code interface. This requires the users to make some changes in their input files
+in order to accept these variables. For example, the input file of \textbf{AnalyticBateman} becomes:
+\xmlExample{framework/user_guide/ravenTutorial/commonFiles/referenceInput_generic_CI.xml}{nuclides}
+As shown in this example, the values of nodes \xmlNode{sigma} and \xmlNode{decayConstant} are replaced with variables
+\xmlString{\$RAVEN-decay-A|10\$} and \xmlString{\$RAVEN-sigma-A|10\$}, respectively. \nb we use prefix \xmlString{RAVEN-}
+$+$ \xmlString{variable names defined inside RAVEN input files} within \xmlString{\$ \$} to define the
+RAVEN-editable input parameters. In other words, the RAVEN-editable input parameters is used to transfer the sampled values
+of RAVEN variables to input parameters of given code. This is the only way to connect the input parameters of code
+with variables of RAVEN if \textit{Generic code interface} is employed. In addition, we use the wild-cards \texttt{|}
+to define the format of the value of the RAVEN-editable input parameters. In this case, the value that is going to
+be replaced by the generic code interface will be left-justified with a string length of 10 (e.g. ``\texttt{|}10''). Other
+formatting options can be found in the RAVEN user manual.
+
+As we already mentioned, the \textit{Generic code interface} requires that the codes need to return a CSV file with
+the input parameters and output parameters. The filename of the CSV file should includes:
+\begin{itemize}
+  \item prefix: ``out$\mathtt{\sim}$''
+  \item filename: the base of input filename without extension
+  \item extension: ``.csv''
+\end{itemize}
+For this case, the input filename is ``referenceInput\_generic\_CI.xml'', thus the output CSV filename should be
+``out$\mathtt{\sim}$referenceInput\_generic\_CI.csv''.
 
 Once all the other entities are defined in the RAVEN input file, they must be combined in the \xmlNode{Steps} block,
 which dictates the workflow of RAVEN.  For this case, two \xmlNode{Steps} are defined:
@@ -114,6 +138,7 @@ which dictates the workflow of RAVEN.  For this case, two \xmlNode{Steps} are de
   \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump the ``histories'' and ``samples'' \textit{DataObjects}
     \textbf{Entity} to a CSV file and 2) plot the data in the EPS file.
 \end{itemize}
+\xmlExample{framework/user_guide/ravenTutorial/MonteCarlo.xml}{Steps}
 
 Figures~\ref{fig:historiesMCPlotLine_A} and ~\ref{fig:samplesMCPlotLine_A} show the report generated by RAVEN of the
 evolution of the variable $A$ and its final values, respectively.
