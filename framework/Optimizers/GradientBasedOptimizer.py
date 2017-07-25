@@ -239,6 +239,21 @@ class GradientBasedOptimizer(Optimizer):
     identifier = str(trajID) + '_' + str(iterID) + '_' + str(evalType)
     return identifier
 
+  def getPreviousIdentifierGivenCurrent(self,prefix):
+    """
+      Method to get the previous identifier given the current prefix
+      @ In, prefix, str, the current identifier
+      @ Out, previousPrefix, str, the previous identifier
+    """
+    traj, iterID, evalType = prefix.split("_")
+    try:
+      evalType = int(evalType)
+      evalType -= 1
+      previousPrefix = self._createEvaluationIdentifier(traj, iterID, evalType)
+    except ValueError:
+      previousPrefix = self._createEvaluationIdentifier(traj, (self.gradDict['numIterForAve']-1)*2, evalType)
+    return previousPrefix
+
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
       Local method to evaluate gradient.
