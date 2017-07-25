@@ -1,8 +1,9 @@
 \subsection{Build RAVEN input: \xmlNode{SingleRun}}
+\label{sub:singleRun}
 In this section, we will show the user how to use RAVEN to run a single instance of a driven code, and
 printing some variables. 
 We will start to build a very simple RAVEN input, and this input file can be found at 
-``\textit{raven/tests/framework/user\textunderscore guide/SingleRuns/singleRun.xml}''. 
+``\textit{raven/tests/framework/user\textunderscore guide/ravenTutorial/singleRun.xml}''. 
 From this process, we hope the user can get a better idea about
 RAVEN entities and learn how to build their own RAVEN inputs for their applications.
 In order to accomplish these tasks, the following procedures are needed:
@@ -12,7 +13,7 @@ In order to accomplish these tasks, the following procedures are needed:
       be performed. This Entity accepts several input settings that define how to drive the calculation and set up,
       when needed, particular settings for the machine the code needs to run on (queue system, if not Portable
       Batch System-PBS, etc.). For the simple case, the \textbf{RunInfo} will look like:
-      \xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{RunInfo}
+      \xmlExample{framework/user_guide/ravenTutorial/singleRun.xml}{RunInfo}
       In this specific case, only one step named \xmlString{single} is going to be sequentially run using a single
       processor as defined by \xmlNode{BatchSize}. All the output files and temporary files will be dumped in the
       folder \xmlString{singleRunAnalysis}.
@@ -26,7 +27,7 @@ In order to accomplish these tasks, the following procedures are needed:
      optional attributes are not directly used by RAVEN, and they are mainly used by the \textbf{CodeInterface}. More
      detailed information can be found in the user manual ~\cite{RAVENuserManual}. For the simple case, the \textbf{Files}
      will look like:
-     \xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{Files}
+     \xmlExample{framework/user_guide/ravenTutorial/singleRun.xml}{Files}
      This RAVEN input file shows that the user will provide a file that is located at ``\textit{../commonFiles/referenceInput.xml}''
      with reference name \xmlString{referenceInput.xml}. This file will be available for use via other RAVEN input blocks or entities.
 
@@ -43,7 +44,7 @@ In order to accomplish these tasks, the following procedures are needed:
          correlation matrices, etc.
      \end{itemize}
      For simplicity, only \textit{Code} is used here for the demonstration, and the input block looks like:
-     \xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{Models}
+     \xmlExample{framework/user_guide/ravenTutorial/singleRun.xml}{Models}
      As shown in the \xmlNode{Models} block, the subnodes defined for \xmlNode{Code} is equivalent to:
      \begin{lstlisting}[language=bash]
      python ../physicalCode/analyticalbateman/AnalyticalDplMain.py
@@ -72,7 +73,7 @@ In order to accomplish these tasks, the following procedures are needed:
      The DataObjects represent the preferred way to transfer the information coming from a Model (e.g., the
      driven code) to all the other RAVEN systems (e.g., Out-Stream system, Reduced Order Modeling component, etc.).
      For the simple case, the \xmlNode{DataObjects} block of RAVEN input is:
-     \xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{DataObjects}
+     \xmlExample{framework/user_guide/ravenTutorial/singleRun.xml}{DataObjects}
      \xmlNode{HistorySet} with a user-defined identifier (e.g. ``history'') is used to collect the mass evolutions
      of four given isotopes, i.e. A, B, C, D. \xmlNode{Input} node is used to list the input parametes to which
      this data is connected. If there is no input data associated with this node, the \xmlString{InputPlaceHolder}
@@ -96,7 +97,7 @@ In order to accomplish these tasks, the following procedures are needed:
       \end{itemize}
       In this case, a simple \xmlNode{OutStreams} is used to output the mass evolutions of all four model variables
       into a CSV file with the name prefix ``print\textunderscore history''.
-      \xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{OutStreams}
+      \xmlExample{framework/user_guide/ravenTutorial/singleRun.xml}{OutStreams}
 
     \item \textbf{Control of executions}: \xmlNode{Steps}
       \\The \textbf{Steps} entity is used to create a peculiar analysis flow via combining together different RAVEN
@@ -135,7 +136,7 @@ In order to accomplish these tasks, the following procedures are needed:
       \end{itemize}
       For this example, the \xmlNode{SingleRun} is used to assemble a calculation flow, i.e. perform a single action
       of a model.
-      \xmlExample{framework/user_guide/SingleRuns/singleRun.xml}{Steps}
+      \xmlExample{framework/user_guide/ravenTutorial/singleRun.xml}{Steps}
       The code ``testModel'' will be executed once, and the outputs will be collected into a \xmlString{DataObjects}
       of type \textbf{HistorySet}. In addition, \xmlString{OutStreams} is used to print the output data into a CSV file.
 \end{enumerate}
@@ -175,14 +176,14 @@ the response of a physical system in a Python program by the implementing of the
 \subsubsection{Perform input/output operations}
 In this case, we will use \xmlNode{IOStep} to stream the output data from the \textit{DataObjects} out through the
 \textit{OutStreams}. The \xmlNode{IOStep} block is shown as following:
-\xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint.xml}{Steps}
-\xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint.xml}{DataObjects}
+\xmlExample{framework/user_guide/ravenTutorial/singleRunPlotAndPrint.xml}{Steps}
+\xmlExample{framework/user_guide/ravenTutorial/singleRunPlotAndPrint.xml}{DataObjects}
 As shown above, a data object with type \textit{PointSet} is also used to collect the output data. In this case, only
 the output data from the last time step will be stored in this data object. This can be checked via comparing the
 output files \textit{pointValues.csv} and \textit{history\_0.csv}. In addition,
 the \textit{OutStreams} is employed to print and plot the data from the data object with the type of \textit{HistorySet}, and
 the \textit{OutStreams} becomes:
-\xmlExample{framework/user_guide/SingleRuns/singleRunPlotAndPrint.xml}{OutStreams}
+\xmlExample{framework/user_guide/ravenTutorial/singleRunPlotAndPrint.xml}{OutStreams}
 In this block, both the Out-Stream types are constructed:
 \begin{itemize}
   \item \textit{Print}: named ``history'' connected with the \textit{DataObjects} \textbf{Entity} ``history'' (\xmlNode{source})
@@ -196,13 +197,13 @@ In this block, both the Out-Stream types are constructed:
 %figure history
 \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{../../tests/framework/user_guide/SingleRuns/gold/singleRunPlot/1-historyPlot_line-line-line-line.png}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ravenTutorial/gold/singleRunPlot/1-historyPlot_line-line-line-line.png}
   \caption{Plot of the history for variables $A,B,C,D$.}
   \label{fig:historyPlotLine}
 \end{figure}
 
 For examples of the numerical data produced by the OutStreams \textit{Print}, see \texttt{history\_0.csv} in the directory
- \texttt{raven/tests/framework/user\_guide/SingleRuns/gold/singleRunPlot/}
+ \texttt{raven/tests/framework/user\_guide/ravenTutorial/gold/singleRunPlot/}
  As previously mentioned, Figure~\ref{fig:historyPlotLine} reports the four plots (four variables) drawn in the same picture.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -217,12 +218,12 @@ how to select only some variable from the \textit{DataObjects} in the \textit{Pr
 \end{enumerate}
 
 To accomplish these tasks, the \xmlNode{IOStep} needs to be modified as follows:
-\xmlExample{framework/user_guide/SingleRuns/singleRunSubPlotsAndSelectivePrint.xml}{Steps}
+\xmlExample{framework/user_guide/ravenTutorial/singleRunSubPlotsAndSelectivePrint.xml}{Steps}
 \nb as mentioned before, this \xmlNode{IOStep} does not need to follow the one-to-one mapping, since \textit{OutStreams}
 are alreadly linked to the \textit{DataObjects}.
 And the \textit{OutStreams} \textbf{Entity} in the input defined in the previous section needs to be modified as
 follows:
-\xmlExample{framework/user_guide/SingleRuns/singleRunSubPlotsAndSelectivePrint.xml}{OutStreams}
+\xmlExample{framework/user_guide/ravenTutorial/singleRunSubPlotsAndSelectivePrint.xml}{OutStreams}
 
 \begin{enumerate}
    \item \textbf{\textit{Print}}:
@@ -252,7 +253,7 @@ The printed data will dump to the CSV file \textit{history\_0.csv}, and \\Figure
 %figure history sublots
 \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{../../tests/framework/user_guide/SingleRuns/gold/subPlot/1-historyPlot_line-line-line-line.png}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ravenTutorial/gold/subPlot/1-historyPlot_line-line-line-line.png}
   \caption{Subplot of the history for variables $A,B,C,D$.}
   \label{fig:historySubPlotLine}
 \end{figure}

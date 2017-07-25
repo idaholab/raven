@@ -21,4 +21,12 @@
     required_libraries = 'PIL'
     rel_err = 0.01
   [../]
+  [./MonteCarloSampling]
+    type = 'RavenFramework'
+    input = 'MonteCarlo.xml'
+    csv = 'MonteCarlo/histories_0.csv'
+    image = 'MonteCarlo/1-history_A_line.png MonteCarlo/1-samplesPlot_A_scatter.png'
+    required_libraries = 'PIL'
+    rel_err = 0.01
+  [../]
 []
