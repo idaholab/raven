@@ -782,11 +782,11 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.raiseAnError(RuntimeError,'The user requested to hold a certain output space but the model "'+model.name+'" does not allow it!')
       # try to hold this output variables (multilevel)
       self.inputInfo['holdOutputSpace'] = [staticOutputVars,self.getPreviousIdentifierGivenCurrent(self.inputInfo['prefix'])]
-      self.inputInfo["holdOutputErase"] = False
-    else:
+      self.inputInfo["holdOutputErase"] = None
+    #else:
       if "holdOutputSpace" in self.inputInfo:
         self.inputInfo.pop("holdOutputSpace")
-      self.inputInfo["holdOutputErase"] = True
+      self.inputInfo["holdOutputErase"] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj]-1,"")
     #### CONSTANT VARIABLES ####
     if len(self.constants) > 0:
       self.values.update(self.constants)

@@ -469,9 +469,12 @@ class EnsembleModel(Dummy):
         for key in exportDict['metadata']:
           output.updateMetadata(key,exportDict['metadata'][key][-1])
     # collect outputs for "holding"
-    #if "holdOutputErase" in exportDict['metadata']:
-    #  if exportDict['metadata']['holdOutputErase']:
-    #    self.tempOutputs['forHold'] = {}
+    if "holdOutputErase" in exportDict['metadata']:
+      if exportDict['metadata']['holdOutputErase'] is not None:
+        keys = self.tempOutputs['forHold'].keys()
+        for key in keys:
+          if key.startswith(exportDict['metadata']['holdOutputErase'][0]):
+            self.tempOutputs['forHold'].pop(key)
     self.tempOutputs['forHold'][finishedJob.identifier] = {'outs':optionalOutputs,'targetEvaluations':targetEvaluations}
 
   def getAdditionalInputEdits(self,inputInfo):
