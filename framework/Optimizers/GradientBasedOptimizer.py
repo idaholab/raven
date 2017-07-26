@@ -246,12 +246,11 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, previousPrefix, str, the previous identifier
     """
     traj, iterID, evalType = prefix.split("_")
-    try:
-      evalType = int(evalType)
-      evalType -= 1
-      previousPrefix = self._createEvaluationIdentifier(traj, iterID, evalType)
-    except ValueError:
-      previousPrefix = self._createEvaluationIdentifier(traj, (self.gradDict['numIterForAve']-1)*2, evalType)
+    traj, iterID, evalType = int(traj), int(iterID), int(evalType)
+    if evalType == 0:
+      previousPrefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj]-1,(self.gradDict['numIterForAve']-1)*2)
+    else:
+      previousPrefix = self._createEvaluationIdentifier(traj, iterID, evalType-1)
     return previousPrefix
 
   def localEvaluateGradient(self, optVarsValues, gradient = None):

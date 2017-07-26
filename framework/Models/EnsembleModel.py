@@ -422,7 +422,6 @@ class EnsembleModel(Dummy):
       self.tempOutputs['uncollectedJobIds'].pop(jobIndex)
     except ValueError:
       jobIndex = None
-    self.tempOutputs['forHold'][finishedJob.identifier] = {'outs':optionalOutputs,'targetEvaluations':targetEvaluations}
     for modelIn in self.modelsDictionary.keys():
       # collect data
       inputsValues               = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
@@ -469,6 +468,11 @@ class EnsembleModel(Dummy):
             output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
         for key in exportDict['metadata']:
           output.updateMetadata(key,exportDict['metadata'][key][-1])
+    # collect outputs for "holding"
+    if "holdOutputErase" in exportDict['metadata']:
+      if exportDict['metadata']['holdOutputErase']:
+        self.tempOutputs['forHold'] = {}
+    self.tempOutputs['forHold'][finishedJob.identifier] = {'outs':optionalOutputs,'targetEvaluations':targetEvaluations}
 
   def getAdditionalInputEdits(self,inputInfo):
     """
@@ -582,6 +586,7 @@ class EnsembleModel(Dummy):
     modelsOnHold    = []
     holdCollector   = {}
     if holdOutputSpace is not None:
+      print("******************************** blocking some models ***********************************")
       modelsOnHold = self._identifyModelsOnHold(holdOutputSpace[0])
       for modelOnHold in modelsOnHold:
         holdCollector[modelOnHold] = {'exportDict':self.tempOutputs['forHold'][holdOutputSpace[1]]['outs'][modelOnHold],'targetEvaluations':self.tempOutputs['forHold'][holdOutputSpace[1]]['targetEvaluations'][modelOnHold]} #         self.tempOutputs['forHold'][holdOutputSpace[1]][modelOnHold]
@@ -672,6 +677,8 @@ class EnsembleModel(Dummy):
               nextModel = moveOn = True
             else:
               time.sleep(1.e-3)
+          # store the results in the working dictionaries
+            returnDict[modelIn]   = {}
           if modelIn not in modelsOnHold:
             # get job that just finished to gather the results
             finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
@@ -682,14 +689,14 @@ class EnsembleModel(Dummy):
                 if modelToRemove != modelIn:
                   jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
               self.raiseAnError(RuntimeError,"The Model  " + modelIn + " identified by " + finishedRun[0].identifier +" failed!")
-          
+
             # collect output in the temporary data object
             exportDict = self.modelsDictionary[modelIn]['Instance'].createExportDictionaryFromFinishedJob(finishedRun[0], True)
           else:
             exportDict = holdCollector[modelIn]['exportDict']
           # store the output dictionary
           tempOutputs[modelIn] = copy.deepcopy(exportDict)
-  
+
           # collect the target evaluation
           if modelIn not in modelsOnHold:
             self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn],options={'exportDict':exportDict})

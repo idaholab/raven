@@ -772,13 +772,20 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # get trajectory asking for eval from LGI variable set
     traj = self.inputInfo['trajectory']
     self.values.update(self.denormalizeData(self.mlStaticValues[traj]))
-    staticOutputVars = self.mlOutputStaticVariables.pop(traj,None)
+    staticOutputVars = self.mlOutputStaticVariables[traj] if traj in self.mlOutputStaticVariables else None #self.mlOutputStaticVariables.pop(traj,None)
+    #if "holdOutputSpace" in self.inputInfo:
+    #  self.inputInfo.pop("holdOutputSpace")
     if staticOutputVars is not None:
       # check if the model can hold a portion of the output space
       if not model.acceptHoldOutputSpace():
         self.raiseAnError(RuntimeError,'The user requested to hold a certain output space but the model "'+model.name+'" does not allow it!')
       # try to hold this output variables (multilevel)
       self.inputInfo['holdOutputSpace'] = [staticOutputVars,self.getPreviousIdentifierGivenCurrent(self.inputInfo['prefix'])]
+      self.inputInfo["holdOutputErase"] = False
+    else:
+      if "holdOutputSpace" in self.inputInfo:
+        self.inputInfo.pop("holdOutputSpace")
+      self.inputInfo["holdOutputErase"] = True
     #### CONSTANT VARIABLES ####
     if len(self.constants) > 0:
       self.values.update(self.constants)
