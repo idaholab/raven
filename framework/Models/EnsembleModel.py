@@ -469,9 +469,9 @@ class EnsembleModel(Dummy):
         for key in exportDict['metadata']:
           output.updateMetadata(key,exportDict['metadata'][key][-1])
     # collect outputs for "holding"
-    if "holdOutputErase" in exportDict['metadata']:
-      if exportDict['metadata']['holdOutputErase']:
-        self.tempOutputs['forHold'] = {}
+    #if "holdOutputErase" in exportDict['metadata']:
+    #  if exportDict['metadata']['holdOutputErase']:
+    #    self.tempOutputs['forHold'] = {}
     self.tempOutputs['forHold'][finishedJob.identifier] = {'outs':optionalOutputs,'targetEvaluations':targetEvaluations}
 
   def getAdditionalInputEdits(self,inputInfo):
@@ -529,7 +529,7 @@ class EnsembleModel(Dummy):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix)
+    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
     """
@@ -583,10 +583,10 @@ class EnsembleModel(Dummy):
     tempOutputs = {}
     tempTargetEvaluations = {}
     holdOutputSpace = inputKwargs.values()[-1]['holdOutputSpace'] if 'holdOutputSpace' in inputKwargs.values()[-1] else None
+    # the sampler or optimizer wants to hold the result of
     modelsOnHold    = []
     holdCollector   = {}
     if holdOutputSpace is not None:
-      print("******************************** blocking some models ***********************************")
       modelsOnHold = self._identifyModelsOnHold(holdOutputSpace[0])
       for modelOnHold in modelsOnHold:
         holdCollector[modelOnHold] = {'exportDict':self.tempOutputs['forHold'][holdOutputSpace[1]]['outs'][modelOnHold],'targetEvaluations':self.tempOutputs['forHold'][holdOutputSpace[1]]['targetEvaluations'][modelOnHold]} #         self.tempOutputs['forHold'][holdOutputSpace[1]][modelOnHold]

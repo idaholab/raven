@@ -60,6 +60,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.counter['recentOptHist']       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
+    self.counter['prefixHistory']       = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
     #limits
     self.limit                          = {}                        # Dict containing limits for each counter
     self.limit['mdlEval']               = 2000                      # Maximum number of the loss function evaluation
@@ -765,12 +766,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     self.counter['mdlEval'] +=1 #since we are creating the input for the next run we increase the counter and global counter
     self.inputInfo['prefix'] = str(self.counter['mdlEval'])
-
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     ####   UPDATE STATICS   ####
     # get trajectory asking for eval from LGI variable set
     traj = self.inputInfo['trajectory']
+
     self.values.update(self.denormalizeData(self.mlStaticValues[traj]))
     staticOutputVars = self.mlOutputStaticVariables[traj] if traj in self.mlOutputStaticVariables else None #self.mlOutputStaticVariables.pop(traj,None)
     #if "holdOutputSpace" in self.inputInfo:

@@ -245,13 +245,18 @@ class GradientBasedOptimizer(Optimizer):
       @ In, prefix, str, the current identifier
       @ Out, previousPrefix, str, the previous identifier
     """
-    traj, iterID, evalType = prefix.split("_")
-    traj, iterID, evalType = int(traj), int(iterID), int(evalType)
-    if evalType == 0:
-      previousPrefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj]-1,(self.gradDict['numIterForAve']-1)*2)
-    else:
-      previousPrefix = self._createEvaluationIdentifier(traj, iterID, evalType-1)
-    return previousPrefix
+
+    traj, _, _ = prefix.split("_")
+    traj       = int(traj)
+    return self.counter['prefixHistory'][traj][-1]
+    #currentIndex   = self.counter['prefixHistory'][traj].index(prefix)
+    #previousPrefix = self.counter['prefixHistory'][traj][currentIndex-1]
+    #return previousPrefix
+    #if evalType == 0:
+      #previousPrefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj]-1,(self.gradDict['numIterForAve']-1)*2)
+    #else:
+      #previousPrefix = self._createEvaluationIdentifier(traj, iterID, evalType-1)
+    #return previousPrefix
 
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
@@ -485,10 +490,7 @@ class GradientBasedOptimizer(Optimizer):
       @ In, myInput, list, the generating input
     """
     # for some reason, Ensemble Model doesn't preserve this information, so wrap this debug in a try:
-    try:
-      prefix = jobObject.getMetadata()['prefix']
-    except TypeError:
-      prefix = ''
+    prefix = jobObject.getMetadata()['prefix']
     self.raiseADebug('Collected sample "{}"'.format(prefix))
 
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
@@ -538,6 +540,9 @@ class GradientBasedOptimizer(Optimizer):
               self.counter['recentOptHist'][traj][0] = {}
               self.counter['recentOptHist'][traj][0]['inputs'] = self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
               self.counter['recentOptHist'][traj][0]['output'] = currentObjectiveValue
+              if traj not in self.counter['prefixHistory']:
+                self.counter['prefixHistory'][traj] = []
+              self.counter['prefixHistory'][traj].append(prefix)
 
             # update solution export
             #FIXME much of this should move to the base class!
