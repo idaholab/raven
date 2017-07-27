@@ -18,7 +18,6 @@ def random(scale=0.5,loc=-1.0):
 
 def evaluate(values):
   ran = random()/10.0
-  print(ran)
   return base(values) + ran
 
 def run(self,Input):
