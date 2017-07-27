@@ -194,7 +194,6 @@ class GradientBasedOptimizer(Optimizer):
       gradArray[var] = np.zeros(2) #why are we initializing to this?
     # Evaluate gradient at each point
     # first, get average opt point
-    # optOutAvg = np.average(list(optVarsValues[i*2]['output'] for i in range(self.gradDict['numIterForAve'])))
     # then, evaluate gradients
     for i in range(self.gradDict['numIterForAve']):
       opt  = optVarsValues[i*2]     #the latest opt point
