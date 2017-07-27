@@ -51,7 +51,7 @@
   <Optimizers>
     <SPSA name="opter">
       <initialization>
-        <limit>500</limit>
+        <limit>2000</limit>
         <initialSeed>42</initialSeed>
         <type>max</type>
       </initialization>
