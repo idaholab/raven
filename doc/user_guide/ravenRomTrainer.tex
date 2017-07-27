@@ -31,7 +31,7 @@ with a known scattered set of points. The assigned values to unknown points are 
 of the values available at the known points.
 \zNormalizationPerformed{NDinvDistWeight}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Train the rom
+% Train and dump the rom
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{How to train and output a ROM?}
 In general, the ``training'' is a process that use sampling of the physical model to improve the prediction
@@ -121,19 +121,90 @@ step. The output of the \textbf{``trainROM''} is ``rom'' which is predefined in 
 is provided as input, the output ``rom'' will be time-independent. The \textbf{``dumpROM''} step is used to serialize
 the ``rom'' to file (pickled). In this example, the file is identified in \xmlNode{Files}.
 \xmlExample{framework/user_guide/ravenTutorial/RomTrain.xml}{Files}
+A pickled file with name ``inverseRom.pk'' will be generated in the working directory. This pickled ROM can be
+reused by RAVEN to perform additional analysis, and we will introduce this capability in the following section.
+Since we have four different steps to execute, the \xmlNode{RunInfo} block is modified:
+\xmlExample{framework/user_guide/ravenTutorial/RomTrain.xml}{RunInfo}
+The \xmlNode{Sequence} is used to provide an ordered list of the step names that RAVEN will run.
 
-
-
-
-
-
-
-
-
-
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Dump and sample the rom
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{How to load and sample a ROM?}
+In previous section, we have shown that RAVEN can be used to train a ROM and output the ROM to a pickled file. In
+this section, we will show the user how to load the pickled ROM, and how to reuse it inside RAVEN environment.
+In general, a \xmlNode{ROM} with subtype \xmlString{pickledROM} is used to hold the place of the ROM that will be
+loaded from file. The notation for this ROM is much less than a typical ROM; it only requires a name and its subtype.
+
+\textbf{Example:}
+For this example the ROM has already been created and trained in another RAVEN run, then pickled to a file
+called \texttt{rom\_pickle.pk}.  In the example, the file is identified in \xmlNode{Files}, the model is
+defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
+{\footnotesize
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Files>
+    <Input name="rompk" type="">rom_pickle.pk</Input>
+  </Files>
+  ...
+  <Models>
+    ...
+    <ROM name="myRom" subType="pickledROM"/>
+    ...
+  </Models>
+  ...
+  <Steps>
+    ...
+    <IOStep name="loadROM">
+      <Input class="Files" type="">rompk</Input>
+      <Output class="Models" type="ROM">myRom</Output>
+    </IOStep>
+    ...
+  </Steps>
+  ...
+</Simulation>
+\end{lstlisting}
+}
+
+\nb When loading ROMs from file, RAVEN will not perform any checks on the expected inputs or outputs of a ROM;
+it is expected that a user knows at least the I/O of a ROM before trying to use it as a model. However, RAVEN
+does require that pickled ROMs be trained before pickling in the first place.
+
+Initially, a pickled ROM is not usable. It can not be trained or sampled; attempting to do so will raise an error.
+An \xmlNode{IOStep} is used to load the ROM from file, at which point the ROM will have all the same characteristics
+as when it was pickled in a previous RAVEN run. Take \textbf{AnalyticBateman} for example, the pickled ROM
+``inverseRom.pk'' is generated in previous section and copied to the \textit{commonFiles} folder, RAVEN use the
+\textbf{Files} object to track the pickled ROM file.
+\xmlExample{framework/user_guide/ravenTutorial/RomLoad.xml}{Files}
+
+In this example, the subtype \xmlString{NDinvDistWeight} of \xmlNode{ROM} is used instead of \xmlString{pickledROM},
+since the subtype of ROM is already known.
+\xmlExample{framework/user_guide/ravenTutorial/RomLoad.xml}{Models}
+
+Two data objects are defined: 1) a \textbf{HistorySet} named ``inputPlaceHolder'' used as a placeholder input for
+the ROM sampling step, 2) a \textbf{HistorySet} named ``histories'' used to store the ROM responses from Monte
+Carlo samples. 
+\xmlExample{framework/user_guide/ravenTutorial/RomLoad.xml}{DataObjects}
+\nb In this example, a time-dependent ROM trained in previous case is used here. \xmlString{time} is identified as
+\textbf{Output}. The sub-node \xmlNode{pivotParameter} can be used to define the pivot variable (e.g. time) that
+is non-decreasing in the input HistorySet.
+
+As mentioned before, the \xmlNode{IOStep} is used to load the pickled ROM. In addition, the \xmlNode{MultiRun} is
+used to sample the ROM using Monte Carlo method. Another \xmlNode{IOStep} is used to output the responses of ROM
+into a CSV file. Figure~\ref{fig:historiesROMPlotLine_A} shows the different evolutions of the variable $A$ for
+all 20 samples.
+\xmlExample{framework/user_guide/ravenTutorial/RomLoad.xml}{Steps}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%figure histories
+\begin{figure}[h!]
+  \centering
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ravenTutorial/gold/ROMLoad/1-historyROMPlot_line.png}
+  \caption{Plot of the histories generated by the Monte Carlo sampling of pickled ROM for variable $A$ (20 samples).}
+  \label{fig:historiesROMPlotLine_A}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
