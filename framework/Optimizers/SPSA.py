@@ -277,9 +277,10 @@ class SPSA(GradientBasedOptimizer):
         #TODO this same check is in GradientBasedOptimizer.queueUpOptPointRuns, they might benefit from abstracting
         if len(self.submissionQueue[traj]) > 0:
           self.raiseAnError(RuntimeError,'Preparing to add grad evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
+        # in order to perform the de-noising we keep the same perturbation direction and we repeat the evaluation multiple times
+        direction = self.stochasticEngine() #the deltas for each dimension
         for i in range(1,2*self.gradDict['numIterForAve'],2): #perturbation points are odd, not even
           point = {}
-          direction = self.stochasticEngine() #the deltas for each dimension
           for varID, var in enumerate(self.getOptVars(traj=traj)):
             try:
               val = varK[var] + ck*direction[varID]

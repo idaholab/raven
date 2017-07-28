@@ -449,6 +449,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           
           
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
+    # check if the TargetEvaluation feature and target spaces are consistent
+    ins  = self.mdlEvalHist.getParaKeys("inputs")
+    outs = self.mdlEvalHist.getParaKeys("outputs")
+    for varName in self.fullOptVars:
+      if varName not in ins:
+        self.raiseAnError(RuntimeError,"the optimization variable "+varName+" is not contained in the TargetEvaluation object "+self.mdlEvalHist.name)
+    if self.objVar not in outs:
+      self.raiseAnError(RuntimeError,"the optimization objective variable "+self.objVar+" is not contained in the TargetEvaluation object "+self.mdlEvalHist.name)
     self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.fullOptVars)), 'Target':self.objVar, 'n_neighbors':1,'weights':'distance'})
     self.solutionExport = solutionExport
     if self.solutionExport is None:
