@@ -1,0 +1,78 @@
+\subsection{Build RAVEN Input: \xmlNode{PostProcess}}
+\label{sub:ravenPostProcess}
+The \textbf{PostProcess} step is used to post-process data or manipulate RAVEN entities. It is aimed at performing
+a single action that is employed by a \textbf{Model} of type \textbf{PostProcessor}. The specification of this
+type of step is defined within a \xmlNode{PostProcess} XML block. As for the oher objects, the attribute 
+\xmlAttr{name} is required and is used to refer to this specific entity in the \xmlNode{RunInfo} block under
+the \xmlNode{Sequence} node.
+
+In the \xmlNode{PostProcess} input block, the user needs to specify the objects needed for the different allowable
+roles. This step requires the following roles:
+
+\begin{itemize}
+  \item \xmlNode{Input}: accepts \textbf{Files}, \textbf{DataObjects} and \textbf{Databases}.
+  \item \xmlNode{Model}: Only \xmlString{Models} and \xmlString{PostProcessor} can be assigned to the node's
+    attributes \xmlAttr{class} and \xmlAttr{type}, respectively.
+  \item \xmlNode{Output}: accepts \textbf{Files}, \textbf{DataObjects}, \textbf{Databases} and \textbf{OutStreams}.
+\end{itemize}
+
+As mentioned before, only the model with type \textbf{PostProcessor} is allowed for this step. A Post-Processor
+can be considered as an action performed on a set of data or other type of objects. Most of the post-processors
+contained in RAVEN, employ a mathematical operation on the data given as \textbf{``Input''}. Currently, the
+following PostProcessor are available in RAVEN:
+
+\begin{itemize}
+  \itemsep0em
+  \item \textbf{BasicStatistics}
+  \item \textbf{ComparisonStatistics}
+  \item \textbf{ImportanceRank}
+  \item \textbf{SafestPoint}
+  \item \textbf{LimitSurface}
+  \item \textbf{LimitSurfaceIntegral}
+  \item \textbf{External}
+  \item \textbf{TopologicalDecomposition}
+  \item \textbf{RavenOutput}
+  \item \textbf{DataMining}
+\end{itemize}
+
+One can use the node attribute \xmlAttr{subType} to select which of the PostProcessors to be used. As with other
+objects, the attribute \xmlAttr{name} is always required so that other RAVEN input XML blocks can use this name
+to refer to this specific entity. In addition, each PostProcessor may require extra sub-node, and the user can refer
+to the RAVEN user manual for the detailed specifications.
+
+In this example, the \textbf{BasicStatistics} PostProcessor is used to demonstrate the \textbf{PostProcess} step.
+\textbf{BasicStatistics} is a container of the algorithms to compute many of the most important statistical quantities.
+Both \textbf{PointSet} and \textbf{HistorySet} can be accepted to compute the static statistics and dynamic statistics,
+respectively. In case an \textbf{HistorySet} is provided as \textbf{Input}, the user need to define the \textbf{pivotParameter},
+and sometimes the user need to synchronize the \textbf{HistorySet} first via the \textbf{Interfaced} PostProcessor of
+type \textbf{HistorySetSync}.
+\xmlExample{framework/user_guide/ravenTutorial/PostProcess.xml}{Models}
+In this example, all the metrics of \textbf{BasicStatistics} will be computed for the response $A$.
+
+The \xmlNode{Files} will be used to include all input and output files. In this example, the single input file
+for the driven code and the output files of the \textbf{PostProcess} step are defined here. As shown in the following,
+two output files are defined for this case study to store the static statistics and dynamic statistics information.
+The \xmlString{time} is used as the \xmlNode{pivotParameter}.
+\xmlExample{framework/user_guide/ravenTutorial/PostProcess.xml}{Files}
+
+
+As before, all defined RAVEN entities are combined in the \xmlNode{Steps} block.
+\xmlExample{framework/user_guide/ravenTutorial/PostProcess.xml}{Steps}
+In this case, three steps have been defined:
+
+\begin{itemize}
+  \item \xmlNode{MultiRun} named ``sampleMC'', used to run the multiple instances of the driven code and
+     collect the outputs in the two \textit{DataObjects}. As it can be seen, the \xmlNode{Sampler} is inputted
+     to communicate to the \textit{Step} that the driven code needs to be perturbed through the Monte Carlo sampling
+     strategy.
+  \item \xmlNode{PostProcess} named ``statAnalysis\_1'', used compute all the statistical moments and FOMs
+    based on the data obtained through the sampling strategy. As it can be noticed, the \xmlString{PointSet}
+    ``samplesMC'' is used as input to compute the static statistics.
+  \item \xmlNode{PostProcess} named ``statAnalysis\_2'', used compute all the statistical moments and FOMs
+    based on the data obtained through the sampling strategy. As it can be noticed, the \xmlString{HistorySet}
+    ``histories'' is used as input to compute the dynamic statistics.
+\end{itemize}
+
+%\xmlExample{framework/user_guide/ravenTutorial/gold/StatisticalAnaly/output_stat_analysis_static.xml}
+
+
