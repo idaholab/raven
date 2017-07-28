@@ -446,7 +446,6 @@ class EnsembleModel(Dummy):
       if jobIndex is not None:
         for optionalModelOutput in self.modelsDictionary[modelIn]['OutputObject']:
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedJob,optionalModelOutput,options={'exportDict':copy.copy(optionalOutputs[modelIn])})
-    #self.tempOutputs['forHold'][finishedJob.identifier] = exportDictTargetEvaluation
     # collect the output of the STEP
     optionalOutputNames = []
     for modelIn in self.modelsDictionary.keys():
@@ -456,7 +455,6 @@ class EnsembleModel(Dummy):
       if output.name not in optionalOutputNames:
         output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
-
       if output.name not in optionalOutputNames:
         if output.name in exportDictTargetEvaluation.keys():
           exportDict = exportDictTargetEvaluation[output.name]

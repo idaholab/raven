@@ -1166,31 +1166,3 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       valueType = None if utils.checkTypeRecursively(value) not in ['str','unicode','bytes'] else object
       self._dataParameters['typeMetadata'][name] = valueType
     return valueType
-
-  #def getRealizationGivenEvaluationID(self, evaluationID, variable=None):
-    #"""
-      #Method to get a realization values given an evaluation ID
-      #@ In, evaluationID, string, the evaluation identifier (prefix)
-      #@ In, variable, string, optional, the variable ("inputs/outputs/metadata|varName") for which we want the realization. If None, all the variables are returned
-      #@ Out, realization, dict, the realization for the evaluationID (if not found, None is returned) {space|varName} e.g. {inputs|var1}
-    #"""
-    #objective = {}
-    #if variable is not None:
-      #if "|" not in variable:
-        #self.raiseAnError(RuntimeError,'the variable should have the format "inputs/outputs/metadata|varName" in method "getRealizationGivenEvaluationID"!')
-      #space, varName = variable.split("|")
-      #objective[space] = {varName:self.getParametersValues(space, nodeId = 'RecontructEnding')[varName]}
-    #else:
-      #for space in ['inputs','outputs','metadata']:
-        #fullSpace = self.getParametersValues(space, nodeId = 'RecontructEnding')
-        #objective[space] = {}
-        #for varName in fullSpace:
-          #objective[space][varName] = fullSpace[varName]
-    #prefix = self.getMetadata('prefix',nodeId='RecontructEnding')
-    #if len(prefix) > 0 and utils.returnIdSeparator() in prefix[0]:
-      ## ensemble model id modification
-      ## FIXME: Need to find a better way to handle this case
-      #prefix = [key.split(utils.returnIdSeparator())[-1] for key in prefix]
-    #search = dict(zip(prefix, objective))
-    #realization = search.get(evaluationID,None)
-    #return realization
