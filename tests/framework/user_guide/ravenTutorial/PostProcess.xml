@@ -8,6 +8,7 @@
     <WorkingDir>stat</WorkingDir>
     <batchSize>4</batchSize>
   </RunInfo>
+
   <TestInfo>
       <name>framework/user_guide/ravenTutorial/PostProcess</name>
     <author>wangc</author>

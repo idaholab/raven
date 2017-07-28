@@ -7,6 +7,17 @@
     <batchSize>1</batchSize>
   </RunInfo>
 
+  <TestInfo>
+    <name>framework/user_guide/ravenTutorial/singleRun</name>
+    <author>wangc</author>
+    <created>2017-07-24</created>
+    <classesTested>Models.Code</classesTested>
+    <description>
+      This test is an example for the user guide to draw from.  It demonstrates typical usage
+      of SingleRun.
+    </description>
+  </TestInfo>
+  
   <Files>
       <Input name="referenceInput.xml" type="input">
           ../commonFiles/referenceInput.xml
