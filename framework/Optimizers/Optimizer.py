@@ -79,6 +79,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.initSeed                       = None                      # Seed for random number generators
     self.optType                        = None                      # Either max or min
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
+    self.initializationSampler          = None                      # Sampler that can be used to initialize the optimizer trajectories
+    self.optVarsInitialized             = {}                        # Dict {var1:<initial> present?,var2:<initial> present?}
     #convergence tools
     self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
     self.thresholdTrajRemoval           = None                      # Threshold used to determine the convergence of parallel optimization trajectories
@@ -143,6 +145,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.addAssemblerObject('TargetEvaluation','1')
     self.addAssemblerObject('Function','-1')
     self.addAssemblerObject('Preconditioner','-n')
+    self.addAssemblerObject('Sampler','-1')   #This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
   def _localGenerateAssembler(self,initDict):
     """
@@ -191,6 +194,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.fullOptVars = []
         try:
           varname = child.attrib['name']
+          self.optVarsInitialized[varname] = False
         except KeyError:
           self.raiseAnError(IOError, child.tag+' node does not have the "name" attribute')
         self.fullOptVars.append(varname)
@@ -201,6 +205,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.optVarsInit['lowerBound'][varname] = float(childChild.text)
           elif childChild.tag == "initial"   :
             self.optVarsInit['initial'][varname] = {}
+            self.optVarsInitialized[varname] = True
             temp = childChild.text.split(',')
             for trajInd, initVal in enumerate(temp):
               try:
@@ -418,6 +423,31 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.raiseAnError(IOError,'Currently only "ExternalModel" models can be used as preconditioners! Got "{}.{}" for "{}".'.format(cls,typ,name))
       self.preconditioners[name] = model
 
+    for entry in self.assemblerDict.get('Sampler',[]):
+      cls,typ,name,sampler = entry
+      forwardSampler = False
+      for baseClass in sampler.__class__.__bases__:
+        if "ForwardSampler" in baseClass.__name__:
+          forwardSampler = True
+          break
+      if not forwardSampler:
+        self.raiseAnError(IOError,'Only "ForwardSampler"s (e.g. MonteCarlo, Grid, etc.) can be used for initializing the trajectories in the Optimizer! Got "{}.{}" for "{}".'.format(cls,typ,name))
+      self.initializationSampler = sampler
+      for key in self.initializationSampler.getInitParams().keys():
+        if key.startswith("sampled variable:"):
+          var = key.replace("sampled variable:","")
+          # check if the sampled variables are among the optimization parameters
+          if var not in self.fullOptVars:
+            self.raiseAnError(IOError,'The variable "'+var+'" sampled by the initialization Sampler "'+self.initializationSampler.name+'" is not among the optimization parameters!')  
+          # check if the sampled variables have been already initialized in the optimizer (i.e. <initial>)
+          if self.optVarsInitialized[var]:
+            self.raiseAnError(IOError,'The variable "'+var+'" sampled by the initialization Sampler "'+self.initializationSampler.name+
+                                      '" has been already initialized in the Optimizer block. Remove <initial> XML node in Optimizer or the <variable> XML node in the Sampler!')  
+        # generate the initial coordinates by the sampler and check if they are inside the boundaries
+        gagaagga
+        
+          
+          
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
     self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.fullOptVars)), 'Target':self.objVar, 'n_neighbors':1,'weights':'distance'})
     self.solutionExport = solutionExport
