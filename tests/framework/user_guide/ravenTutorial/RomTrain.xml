@@ -6,6 +6,7 @@
     <WorkingDir>ROM</WorkingDir>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/user_guide/ravenTutorial/RomTrain</name>
     <author>wangc</author>

@@ -6,6 +6,7 @@
     <WorkingDir>MonteCarlo</WorkingDir>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/user_guide/ravenTutorial/MonteCarlo</name>
     <author>wangc</author>
@@ -13,7 +14,7 @@
     <classesTested>Samplers.MonteCarlo</classesTested>
     <description>
       This test is an example for the user guide to draw from.  It demonstrates typical usage
-      of the MonteCarlo sampler to sample a Code model.
+      of the MultiRun with Monte Carlo sampler.
     </description>
   </TestInfo>
 

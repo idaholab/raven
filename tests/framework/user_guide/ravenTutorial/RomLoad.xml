@@ -6,6 +6,7 @@
     <WorkingDir>ROMLoad</WorkingDir>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/user_guide/ravenTutorial/RomLoad</name>
     <author>wangc</author>

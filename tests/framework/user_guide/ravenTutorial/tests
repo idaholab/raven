@@ -24,7 +24,7 @@
     rel_err = 0.01
   [../]
   
-  [./MonteCarloSampling]
+  [./MonteCarlo]
     type = 'RavenFramework'
     input = 'MonteCarlo.xml'
     csv = 'MonteCarlo/histories_0.csv'
