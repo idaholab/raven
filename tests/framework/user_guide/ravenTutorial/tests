@@ -48,4 +48,10 @@
     required_libraries = 'PIL'
     rel_err = 0.000001
   [../]
+  
+  [./PostProcess]
+    type = 'RavenFramework'
+    input = 'PostProcess.xml'
+    xml = 'stat/static.xml stat/time.xml'
+  [../]
 []
