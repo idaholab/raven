@@ -209,7 +209,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     try:
       self.subType = xmlNode.attrib['subType']
     except KeyError:
-      self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
+      self.raiseADebug("Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
     for child in xmlNode:
       if child.tag =='alias':
@@ -236,6 +236,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.raiseAnError(IOError,'not found the attribute "variable" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
     # read local information
     self.localInputAndChecks(xmlNode)
+    #################
+
+
 
   def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
     """
