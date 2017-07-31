@@ -1050,7 +1050,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     optionsData = xmlNode.find('options')
     if optionsData != None:
       for child in optionsData:
-        self._dataParameters[child.tag] = child.text
+        self._dataParameters[child.tag] = utils.tryParse(child.text)
     if set(self._dataParameters.keys()).issubset(['inputRow','inputPivotValue']):
       self.raiseAnError(IOError,'It is not allowed to simultaneously specify the nodes: inputRow and inputPivotValue!')
     if set(self._dataParameters.keys()).issubset(['outputRow','outputPivotValue','operator']):

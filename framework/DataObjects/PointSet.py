@@ -230,16 +230,16 @@ class PointSet(Data):
     value = np.atleast_1d(value).flatten()
     if len(value) > 1:
 
-      if options is None:
+      if self._dataParameters is None:
         outputRow = -1
         outputPivotVal = None
         operator = None
       else:
         ## Not sure if any of these are necessary, but I am trying to replicate
         ## the magic that takes place in the Csv_loader -- DPM 5/3/2017
-        outputRow = copy.deepcopy(options.get('outputRow',-1))
-        outputPivotVal = options.get('outputPivotValue',None)
-        operator = options.get('operator',None)
+        outputRow = self._dataParameters.get('outputRow',-1)
+        outputPivotVal = self._dataParameters.get('outputPivotValue',None)
+        operator = self._dataParameters.get('operator',None)
 
       if outputRow is None:
         if outputPivotVal is not None and 'end' in outputPivotVal:

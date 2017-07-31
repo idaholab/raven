@@ -29,6 +29,7 @@ import os
 import abc
 import gc
 from scipy.interpolate import interp1d
+import collections
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -302,7 +303,7 @@ class HDF5(DateBase):
       allOutParam = False
 
     if outputPivotVal != None:
-      if 'end' in outputPivotVal:
+      if isinstance(outputPivotVal,collections.Sequence) and 'end' in outputPivotVal:
         outputPivotValEnd = True
       else:
         outputPivotValEnd, outputPivotVal = False,  float(outputPivotVal)
