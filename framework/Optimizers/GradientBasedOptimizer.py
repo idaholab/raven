@@ -480,7 +480,7 @@ class GradientBasedOptimizer(Optimizer):
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
     # TODO what if there's no solution export?  Our "status" and etc fail badly!
     if len(self.mdlEvalHist) > 0:
-      for traj in self.optTraj:
+      for traj in self.optTraj: #TODO should this just be optTrajLive?
         #does this need to be a while loop?  We can't get behind by 2 points...
         #while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
         if self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
@@ -568,8 +568,8 @@ class GradientBasedOptimizer(Optimizer):
               self.solutionExport.updateOutputValue([trajID,var],np.append(old,new))
 
             self.counter['solutionUpdate'][traj] += 1
-          else: #not ready to update solutionExport
-            break
+          else: #not ready to update solutionExport FOR THIS TRAJECTORY
+            continue
 
   def fractionalStepChangeFromGradHistory(self,traj):
     """
