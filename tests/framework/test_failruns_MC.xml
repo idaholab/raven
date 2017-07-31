@@ -32,7 +32,7 @@
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
-    <MultiRun name="csample">
+    <MultiRun name="csample" repeatFailureRuns="3">
       <Input class="Files" type="">infile.inp</Input>
       <Model class="Models" type="ExternalModel">codefailer</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>

@@ -60,6 +60,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.counter['recentOptHist']       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
+    self.counter['prefixHistory']       = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
     #limits
     self.limit                          = {}                        # Dict containing limits for each counter
     self.limit['mdlEval']               = 2000                      # Maximum number of the loss function evaluation
@@ -95,18 +96,23 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.submissionQueue                = {}                        # by traj, a place (deque) to store points that should be submitted some time after they are discovered
     #functions and dataojbects
     self.constraintFunction             = None                      # External constraint function, could be not present
-    self.solutionExport                 = None                      #This is the data used to export the solution (it could also not be present)
+    self.preconditioners                = {}                        # by name, Models that might be used as preconditioners
+    self.solutionExport                 = None                      # This is the data used to export the solution (it could also not be present)
     self.mdlEvalHist                    = None                      # Containing information of all model evaluation
     self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
     #multilevel
     self.multilevel                     = False                     # indicates if operating in multilevel mode
     self.mlBatches                      = {}                        # dict of {batchName:[list,of,vars]} that defines input subspaces
+    self.mlHoldBatches                  = {}                        # dict of {batchName:[list,of,vars]} that defines the optional output subspaces that need to be kept constant till convergence of this space
     self.mlSequence                     = []                        # list of batch names that determines the order of convergence.  Last entry is converged most often and fastest (innermost loop).
     self.mlDepth                        = {}                        # {traj: #} index of current recursion depth within self.mlSequence, must be initialized to None
     self.mlStaticValues                 = {}                        # by traj, dictionary of static values for variables in fullOptVars but not in optVars due to multilevel
+    self.mlOutputStaticVariables        = {}                        # by traj, dictionary of list of output that must be kept constant due to multilevel
     self.mlActiveSpaceSteps             = {}                        # by traj, integer to track iterations performed in optimizing the current, active subspace
     self.mlBatchInfo                    = {}                        # by batch, by traj, info includes 'lastStepSize','gradientHistory','recommendToGain'
+    self.mlPreconditioners              = {}                        # by batch, the preconditioner models to use when transitioning subspaces
     #stateful tracking
+    self.recommendedOptPoint            = {}                        # by traj, the next recommended point (as a dict) in the input space to move to
     self.nextActionNeeded               = (None,None)               # tool for localStillReady to inform localGenerateInput on the next action needed
     self.status                         = {}                        # by trajectory, ("string-based status", arbitrary, other, entries)
     ### EXPLANATION OF STATUS SYSTEM
@@ -120,15 +126,18 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # Processes:
     #   "submitting grad eval points" - submitting new points so later we can evaluate a gradient and take an opt step
     #   "collecting grad eval points" - all the required gradient evaluation points are submitted, so we're just waiting to collect them
-    #   "submitting new opt points"    - a new optimal point has been postulated, and is being submitted for evaluationa (not actually used)
-    #   "collecting new opt points"    - the new  hypothetical optimal point has been submitted, and we're waiting on it to finish
+    #   "submitting new opt points"   - a new optimal point has been postulated, and is being submitted for evaluationa (not actually used)
+    #   "collecting new opt points"   - the new  hypothetical optimal point has been submitted, and we're waiting on it to finish
     #   "evaluate gradient"           - localStillReady notes we have all the new grad eval points, and has flagged for gradient to be evaluated in localGenerateInput
+    #   "following traj <#>"          - trajectory is following another one, given by the last word
     # Reasons:
-    #   "just started"            - the optimizer has only just begun operation, and doesn't know what it's doing yet
-    #   "found new opt point"     - the last hypothetical optimal point has been accepted, so we need to move forward
-    #   "rejecting bad opt point" - the last hypothetical optimal point was rejected, so we need to reconsider
-    #   "seeking new opt point"   - the process of looking for a new opt point has started
-    #   "converged"               - the trajectory is in convergence
+    #   "just started"                - the optimizer has only just begun operation, and doesn't know what it's doing yet
+    #   "found new opt point"         - the last hypothetical optimal point has been accepted, so we need to move forward
+    #   "rejecting bad opt point"     - the last hypothetical optimal point was rejected, so we need to reconsider
+    #   "seeking new opt point"       - the process of looking for a new opt point has started
+    #   "converged"                   - the trajectory is in convergence
+    #   "removed as redundant"        - the trajectory has ended because it follows another one
+    #   "received recommended point"  - something other than the normal algorithm (such as a preconditioner) suggested a point
     # example usage:
     #   self.status[traj]['process'] == 'submitting grad eval points' and self.status[traj]['reason'] == 'rejecting bad opt point'
     #
@@ -136,6 +145,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.addAssemblerObject('Restart' ,'-n',True)
     self.addAssemblerObject('TargetEvaluation','1')
     self.addAssemblerObject('Function','-1')
+    self.addAssemblerObject('Preconditioner','-n')
 
   def _localGenerateAssembler(self,initDict):
     """
@@ -217,7 +227,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.initSeed = randomUtils.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
-            self.limit['mdlEval'] = int(childChild.text) #FIXME what's the difference between this and self.limit['varsUpdate']?
+            self.limit['mdlEval'] = int(childChild.text)
             #the manual once claimed that "A" defaults to iterationLimit/10, but it's actually this number/10.
           elif childChild.tag == "type":
             self.optType = childChild.text
@@ -251,17 +261,25 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.multilevel = True
         for subnode in child:
           if subnode.tag == 'subspace':
-            attribs = {}
+            #subspace name
             try:
               name = subnode.attrib['name']
             except KeyError:
               self.raiseAnError(IOError, 'A multilevel subspace is missing the "name" attribute!')
             if name in self.mlBatches.keys():
               self.raiseAnError(IOError,'Multilevel subspace "{}" has a duplicate name!'.format(name))
+            if "holdOutputSpace" in subnode.attrib:
+              self.mlHoldBatches[name] =  [var.strip() for var in subnode.attrib['holdOutputSpace'].split(",")]
+              self.raiseAMessage('For subspace "'+name+'" the following output space is asked to be kept on hold: '+','.join(self.mlHoldBatches[name]))
+            #subspace text
             subspaceVars = list(x.strip() for x in subnode.text.split(','))
-            if len(subspaceVars)<1:
+            if len(subspaceVars) < 1:
               self.raiseAnError(IOError,'Multilevel subspace "{}" has no variables specified!'.format(name))
             self.mlBatches[name] = subspaceVars
+            #subspace preconditioner
+            precond = subnode.attrib.get('precond')
+            if precond is not None:
+              self.mlPreconditioners[name] = precond
           elif subnode.tag == 'sequence':
             self.mlSequence = list(x.strip() for x in subnode.text.split(','))
 
@@ -400,11 +418,27 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.counter['mdlEval'] = 0
     self.counter['varsUpdate'] = [0]*len(self.optTraj)
 
+    for entry in self.assemblerDict.get('Preconditioner',[]):
+      cls,typ,name,model = entry
+      if cls != 'Models' or typ != 'ExternalModel':
+        self.raiseAnError(IOError,'Currently only "ExternalModel" models can be used as preconditioners! Got "{}.{}" for "{}".'.format(cls,typ,name))
+      self.preconditioners[name] = model
+
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
+    # check if the TargetEvaluation feature and target spaces are consistent
+    ins  = self.mdlEvalHist.getParaKeys("inputs")
+    outs = self.mdlEvalHist.getParaKeys("outputs")
+    for varName in self.fullOptVars:
+      if varName not in ins:
+        self.raiseAnError(RuntimeError,"the optimization variable "+varName+" is not contained in the TargetEvaluation object "+self.mdlEvalHist.name)
+    if self.objVar not in outs:
+      self.raiseAnError(RuntimeError,"the optimization objective variable "+self.objVar+" is not contained in the TargetEvaluation object "+self.mdlEvalHist.name)
     self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.fullOptVars)), 'Target':self.objVar, 'n_neighbors':1,'weights':'distance'})
     self.solutionExport = solutionExport
+    if self.solutionExport is None:
+      self.raiseAnError(IOError,'The results of optimization cannot be obtained without a SolutionExport defined in the Step!')
 
-    if solutionExport != None and type(solutionExport).__name__ != "HistorySet":
+    if type(solutionExport).__name__ != "HistorySet":
       self.raiseAnError(IOError,'solutionExport type is not a HistorySet. Got '+ type(solutionExport).__name__+ '!')
 
     if 'Function' in self.assemblerDict.keys():
@@ -416,7 +450,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for trajInd in self.optTraj:
       for varname in self.getOptVars():
         varK[varname] = self.optVarsInit['initial'][varname][trajInd]
-      satisfied, _ = self.checkConstraint(self.normalizeData(varK))
+      satisfied, _ = self.checkConstraint(varK)
       if not satisfied:
         # get a random value between the the lower and upper bounds
         self.raiseAWarning("the initial values specified for trajectory "+str(trajInd)+" do not satify the contraints. Picking random ones!")
@@ -442,18 +476,20 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.submissionQueue[traj]    = deque()
     for batch in self.mlBatches.keys():
       self.mlBatchInfo[batch]       = {}
+    # line up preconditioners with their batches
+    for batch,precondName in self.mlPreconditioners.items():
+      try:
+        self.mlPreconditioners[batch] = self.preconditioners[precondName]
+      except IndexError:
+        self.raiseAnError(IOError,'Could not find preconditioner "{}" in <Preconditioner> nodes!'.format(precondName))
 
-    # specializing the self.localInitialize()
-    if solutionExport != None:
-      self.localInitialize(solutionExport=solutionExport)
-    else:
-      self.localInitialize()
+    self.localInitialize(solutionExport=solutionExport)
 
-  def localInitialize(self,solutionExport=None):
+  def localInitialize(self,solutionExport):
     """
       Use this function to add initialization features to the derived class
       it is call at the beginning of each step
-      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      @ In, solutionExport, DataObject, a PointSet to hold the solution
       @ Out, None
     """
     pass # To be overwritten by subclass
@@ -493,7 +529,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         # do we have any opt points yet?
         if len(self.counter['recentOptHist'][traj][0]) > 0:
           # get the latset optimization point (normalized)
-          latestPoint = self.counter['recentOptHist'][traj][0]['inputs'] #self.latestPoint[traj]['inputs']#self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
+          latestPoint = self.counter['recentOptHist'][traj][0]['inputs']
           #some flags for clarity of checking
           justStarted = self.mlDepth[traj] is None
           inInnermost = self.mlDepth[traj] is not None and self.mlDepth[traj] == len(self.mlSequence)-1
@@ -527,6 +563,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       ready = self.localStillReady(True)
     return ready
 
+  @abc.abstractmethod
+  def getPreviousIdentifierGivenCurrent(self,prefix):
+    """
+      Method to get the previous identifier given the current prefix
+      @ In, prefix, str, the current identifier
+      @ Out, previousPrefix, str, the previous identifier
+    """
+    pass
+
   def updateMultilevelDepth(self, traj, depth, optPoint, setAll=False):
     """
       Updates the multilevel depth with static values for inactive subspaces
@@ -546,6 +591,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       firstTime = True
       oldBatch = 'pre-initialize'
+      oldDepth = depth
     # set the new active space
     self.mlDepth[traj] = depth
     newBatch = self.mlSequence[self.mlDepth[traj]]
@@ -559,6 +605,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       toMakeStatic = set(self.fullOptVars)-set(self.mlBatches[newBatch])
     else:
       toMakeStatic = self.mlBatches[oldBatch]
+    if traj in self.mlOutputStaticVariables:
+      self.mlOutputStaticVariables.pop(traj)
+    if newBatch in self.mlHoldBatches:
+      self.raiseAMessage('For subspace "'+newBatch+'" the following output space is going to be kept on hold: '+','.join(self.mlHoldBatches[newBatch]))
+      self.mlOutputStaticVariables[traj] = self.mlHoldBatches[newBatch]
+
     for var in toMakeStatic:
       self.mlStaticValues[traj][var] = copy.deepcopy(optPoint[var])
     # remove newBatch static values
@@ -571,11 +623,39 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # clear existing gradient determination data
     if not firstTime:
       self.clearCurrentOptimizationEffort(traj)
+    # apply preconditioner IFF we're going towards INNER loops
+    if depth > oldDepth:
+      self.raiseADebug('Preconditioning subsets below',oldDepth,range(oldDepth+1,depth+1))
+      #apply changes all the way down
+      for d in range(oldDepth+1,depth+1):
+        precondBatch = self.mlSequence[d]
+        precond = self.mlPreconditioners.get(precondBatch,None)
+        if precond is not None:
+          self.raiseADebug('Running preconditioner on batch "{}"'.format(precondBatch))
+          infoDict = {'SampledVars':self.denormalizeData(optPoint)}
+          _,(results,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
+          # flatten results #TODO breaks for multi-entry arrays
+          for key,val in results.items():
+            results[key] = float(val)
+          self.proposeNewPoint(traj,self.normalizeData(results))
+          self.status[traj]['process'] = 'submitting new opt points'
+          self.status[traj]['reason'] = 'received recommended point'
     # if there's batch info about the new batch, set it
     self._setAlgorithmState(traj,self.mlBatchInfo[newBatch].get(traj,None))
     #make sure trajectory is live
     if traj not in self.optTrajLive:
       self.optTrajLive.append(traj)
+
+  def proposeNewPoint(self,traj,point):
+    """
+      Sets a proposed point for the next in the opt chain.  Recommended to be overwritten in subclasses.
+      @ In, traj, int, trajectory who is getting proposed point
+      @ In, point, dict, new input space point as {var:val}
+      @ Out, None
+    """
+    point = copy.deepcopy(point)
+    self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = point
+    self.recommendedOptPoint[traj] = point
 
   @abc.abstractmethod
   def clearCurrentOptimizationEffort(self):
@@ -616,7 +696,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def checkConstraint(self, optVars):
     """
-      Method to check whether a set of decision variables satisfy the constraint or not
+      Method to check whether a set of decision variables satisfy the constraint or not in UNNORMALIZED input space
       @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
       @ Out, satisfaction, tuple, (bool,list) => (variable indicating the satisfaction of constraints at the point optVars, list of the violated constrains)
     """
@@ -627,14 +707,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
       if not satisfied:
         violatedConstrains['external'].append(self.constraintFunction.name)
-    optVars = self.denormalizeData(optVars)
     for var in optVars:
-      if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
+      if optVars[var] > self.optVarsInit['upperBound'][var]:
+        violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
         satisfied = False
-        if optVars[var] > self.optVarsInit['upperBound'][var]:
-          violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
-        if optVars[var] < self.optVarsInit['lowerBound'][var]:
-          violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
+      elif optVars[var] < self.optVarsInit['lowerBound'][var]:
+        violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
+        satisfied = False
 
     satisfied = self.localCheckConstraint(optVars, satisfied)
     satisfaction = satisfied,violatedConstrains
@@ -695,13 +774,27 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     self.counter['mdlEval'] +=1 #since we are creating the input for the next run we increase the counter and global counter
     self.inputInfo['prefix'] = str(self.counter['mdlEval'])
-
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     ####   UPDATE STATICS   ####
     # get trajectory asking for eval from LGI variable set
     traj = self.inputInfo['trajectory']
+
     self.values.update(self.denormalizeData(self.mlStaticValues[traj]))
+    staticOutputVars = self.mlOutputStaticVariables[traj] if traj in self.mlOutputStaticVariables else None #self.mlOutputStaticVariables.pop(traj,None)
+    #if "holdOutputSpace" in self.inputInfo:
+    #  self.inputInfo.pop("holdOutputSpace")
+    if staticOutputVars is not None:
+      # check if the model can hold a portion of the output space
+      if not model.acceptHoldOutputSpace():
+        self.raiseAnError(RuntimeError,'The user requested to hold a certain output space but the model "'+model.name+'" does not allow it!')
+      # try to hold this output variables (multilevel)
+      self.inputInfo['holdOutputSpace'] = [staticOutputVars,self.getPreviousIdentifierGivenCurrent(self.inputInfo['prefix'])]
+      self.inputInfo["holdOutputErase"] = None
+    #else:
+      if "holdOutputSpace" in self.inputInfo:
+        self.inputInfo.pop("holdOutputSpace")
+      self.inputInfo["holdOutputErase"] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj]-1,"")
     #### CONSTANT VARIABLES ####
     if len(self.constants) > 0:
       self.values.update(self.constants)

@@ -1,0 +1,100 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/user_guide/Summary</name>
+    <author>talbpaul</author>
+    <created>2017-06-30</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      Provides a user case of how to get a summary result of optimization efforts.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Summary</WorkingDir>
+    <Sequence>optimize,getOptPoint,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">beale</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="HistorySet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">opt_soln</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
+    </IOStep>
+    <PostProcess name="getOptPoint">
+      <Input class="DataObjects" type="HistorySet">opt_export</Input>
+      <Model class="Models" type="PostProcessor">snapshot</Model>
+      <Output class="DataObjects" type="PointSet">opt_soln</Output>
+    </PostProcess>
+  </Steps>
+
+  <Optimizers>
+    <SPSA name="opter">
+      <initialization>
+        <initialSeed>1234</initialSeed>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <variable name='x'>
+        <upperBound>4.5</upperBound>
+        <lowerBound>-4.5</lowerBound>
+        <initial>-2,-2,2,2</initial>
+      </variable>
+      <variable name='y'>
+        <upperBound>4.5</upperBound>
+        <lowerBound>-4.5</lowerBound>
+        <initial>-2,2,-2,2</initial>
+      </variable>
+      <objectVar>ans</objectVar>
+    </SPSA>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+    <PostProcessor name="snapshot" subType="InterfacedPostProcessor">
+      <method>HistorySetSnapShot</method>
+      <type>max</type>
+      <pivotVar>varsUpdate</pivotVar>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_soln">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </PointSet>
+    <HistorySet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+    </Print>
+    <Print name="opt_soln">
+      <type>csv</type>
+      <source>opt_soln</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

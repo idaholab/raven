@@ -1158,6 +1158,7 @@ framework, during the employment of a calculation flow, and use them to
 construct a new input that is going to be transferred to the ``run'' method.
 %
 The new input created needs to be returned to RAVEN (i.e. ``return NewInput'').
+\\This method expects that the new input is returned in a Python ``dictionary''.
 %
 RAVEN communicates, thorough a set of method attributes, all the information
 that are generally needed to create a new input:
@@ -1318,7 +1319,8 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         Note that the structure of each Output dataObject must include only variables (either input or output) that are defined among the model.
         As an example, the Output dataObjects cannot contained variables that are defined at the Ensemble model level.
         %
-        The user can specify as many \xmlNode{Output} (s) as needed. 
+        The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of both classes ``DataObjects'' and ``Databases'' 
+        (e.g. PointSet, HistorySet, HDF5).
         \nb \textbf{The \xmlNode{Output} (s) here specified MUST be listed in the Step in which the EnsembleModel is used.}
     \end{itemize}
   %
@@ -1372,7 +1374,10 @@ It is important to notice that when the EnsembleModel detects a chain of models 
         </Input>
         <Output class="DataObjects" type="HistorySet">
           thisModelLinkedOutput
-        </Input>
+        </Output>
+        <Output class="Databases" type="HDF5">
+          thisModelLinkedHDF5
+        </Output>
       </Model>
     </EnsembleModel>
     ...

@@ -220,6 +220,7 @@ class EnsembleModel(Dummy):
     """
     # in here we store the job ids for which we did not collected the optional output yet
     self.tempOutputs['uncollectedJobIds'] = []
+    self.tempOutputs['forHold'] = {}
     # collect name of all the outputs in the Step
     outputsNames = []
     if initDict is not None:
@@ -242,15 +243,12 @@ class EnsembleModel(Dummy):
         outputInstancesForModel = []
         for output in self.modelsDictionary[modelIn[2]]['Output']:
           outputObject = self.retrieveObjectFromAssemblerDict('Output',output)
-          if type(outputObject).__name__ == 'HDF5':
-            self.raiseAnError(IOError, "Only DataObjects are allowed as optional Outputs. Got HDF5!")
           if outputObject.name not in outputsNames:
             self.raiseAnError(IOError, "The optional Output "+outputObject.name+" listed for Model "+modelIn[2]+" is not present among the Step outputs!!!")
           outputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Output',output))
         self.modelsDictionary[modelIn[2]]['OutputObject'] = outputInstancesForModel
-        self.tempOutputs[modelIn[2]] = copy.deepcopy(outputInstancesForModel)
       else:
-        self.tempOutputs[modelIn[2]] = [utils.byPass()]
+        self.modelsDictionary[modelIn[2]]['OutputObject'] = []
       self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
       for mm in self.modelsDictionary[modelIn[2]]['Instance'].mods:
         if mm not in self.mods:
@@ -445,35 +443,18 @@ class EnsembleModel(Dummy):
         for key in values.keys():
           exportDict[typeInfo][key] = np.asarray(values[key])
       # collect optional output if present and not already collected
-      if type(optionalOutputs[modelIn][0]).__name__ != "byPass" and jobIndex is not None:
-        # collect optional data
-        for index, optionalOut in enumerate(optionalOutputs[modelIn]):
-          inputsValuesOptionalOut    = optionalOut.getParametersValues('inputs', nodeId = 'RecontructEnding')
-          inputsValuesOptionalOut    = inputsValuesOptionalOut if optionalOut.type != 'HistorySet' else inputsValuesOptionalOut.values()[-1]
-          outputsValuesOptionalOut   = optionalOut.getParametersValues('outputs', nodeId = 'RecontructEnding')
-          outputsValuesOptionalOut   = outputsValuesOptionalOut if optionalOut.type != 'HistorySet' else outputsValuesOptionalOut.values()[-1]
-          metadataValuesOptionalOut  = optionalOut.getAllMetadata(nodeId = 'RecontructEnding')
-          for key in self.modelsDictionary[modelIn]['OutputObject'][index].getParaKeys('inputs'):
-            if key in inputsValuesOptionalOut:
-              self.modelsDictionary[modelIn]['OutputObject'][index].updateInputValue (key,inputsValuesOptionalOut[key])
-            else:
-              self.raiseAWarning('Input key "'+key+'" is not contained in output '+self.modelsDictionary[modelIn]['OutputObject'][index].name)
-          for key in self.modelsDictionary[modelIn]['OutputObject'][index].getParaKeys('outputs'):
-            if key in outputsValuesOptionalOut:
-              self.modelsDictionary[modelIn]['OutputObject'][index].updateOutputValue (key,outputsValuesOptionalOut[key])
-            else:
-              self.raiseAWarning('Output key "'+key+'" is not contained in output '+self.modelsDictionary[modelIn]['OutputObject'][index].name)
-          for key,value in metadataValuesOptionalOut.items():
-            self.modelsDictionary[modelIn]['OutputObject'][index].updateMetadata(key,value[-1])
-
+      if jobIndex is not None:
+        for optionalModelOutput in self.modelsDictionary[modelIn]['OutputObject']:
+          self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedJob,optionalModelOutput,options={'exportDict':copy.copy(optionalOutputs[modelIn])})
     # collect the output of the STEP
+    optionalOutputNames = []
+    for modelIn in self.modelsDictionary.keys():
+      for optionalOutput in self.modelsDictionary[modelIn]['OutputObject']:
+        optionalOutputNames.append(optionalOutput.name)
     if output.type == 'HDF5':
-      output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
+      if output.name not in optionalOutputNames:
+        output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
-      optionalOutputNames = []
-      for key, value in optionalOutputs.items():
-        if key != 'uncollectedJobIds':
-          optionalOutputNames+=[obj.name for obj in value]
       if output.name not in optionalOutputNames:
         if output.name in exportDictTargetEvaluation.keys():
           exportDict = exportDictTargetEvaluation[output.name]
@@ -485,6 +466,14 @@ class EnsembleModel(Dummy):
             output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
         for key in exportDict['metadata']:
           output.updateMetadata(key,exportDict['metadata'][key][-1])
+    # collect outputs for "holding"
+    if "holdOutputErase" in exportDict['metadata']:
+      if exportDict['metadata']['holdOutputErase'] is not None:
+        keys = self.tempOutputs['forHold'].keys()
+        for key in keys:
+          if key.startswith(exportDict['metadata']['holdOutputErase'][0]):
+            self.tempOutputs['forHold'].pop(key)
+    self.tempOutputs['forHold'][finishedJob.identifier] = {'outs':optionalOutputs,'targetEvaluations':targetEvaluations}
 
   def getAdditionalInputEdits(self,inputInfo):
     """
@@ -541,7 +530,7 @@ class EnsembleModel(Dummy):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix)
+    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
     """
@@ -559,6 +548,27 @@ class EnsembleModel(Dummy):
           #if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
     return dependentOutputs
 
+  def _identifyModelsOnHold(self,holdOutputSpace):
+    """
+      This method is aimed to identify the models that belong to a requested "on hold" outputspace
+      @ In, holdOutputSpace, list, list of output variables whose models should be kept on hold
+      @ Out, modelsOnHold, list, list of Models on hold
+    """
+    modelsOnHold = []
+    modelsOutputBool = {}
+
+    for modelIn in self.modelsDictionary:
+      modelsOutputBool[modelIn] = {key:False for key in self.modelsDictionary[modelIn]['Output']}
+      for outputVar in holdOutputSpace:
+        if outputVar in self.modelsDictionary[modelIn]['Output']:
+          modelsOnHold.append(modelIn)
+          modelsOutputBool[modelIn][outputVar] = True
+    modelsOnHold = list(set(modelsOnHold))
+    for holdModel in modelsOnHold:
+      if len(set(modelsOutputBool[holdModel].values())) > 1:
+        self.raiseAnError(RuntimeError,"In order to keep on hold a model, all the outputs generated by that model must be kept on hold!"+"Model: "+ holdModel)
+    return modelsOnHold
+
   def _externalRun(self,inRun, jobHandler):
     """
       Method that performs the actual run of the essembled model (separated from run method for parallelization purposes)
@@ -573,12 +583,19 @@ class EnsembleModel(Dummy):
     identifier = inputKwargs.pop('prefix')
     tempOutputs = {}
     tempTargetEvaluations = {}
+    holdOutputSpace = inputKwargs.values()[-1]['holdOutputSpace'] if 'holdOutputSpace' in inputKwargs.values()[-1] else None
+    # the sampler or optimizer wants to hold the result of
+    modelsOnHold    = []
+    holdCollector   = {}
+    if holdOutputSpace is not None:
+      modelsOnHold = self._identifyModelsOnHold(holdOutputSpace[0])
+      for modelOnHold in modelsOnHold:
+        holdCollector[modelOnHold] = {'exportDict':self.tempOutputs['forHold'][holdOutputSpace[1]]['outs'][modelOnHold],'targetEvaluations':self.tempOutputs['forHold'][holdOutputSpace[1]]['targetEvaluations'][modelOnHold]} #         self.tempOutputs['forHold'][holdOutputSpace[1]][modelOnHold]
+    #    holdCollector[modelOnHold] = self.modelsDictionary[modelOnHold]['TargetEvaluation'].getRealizationGivenEvaluationID(holdOutputSpace[1])
+
     for modelIn in self.orderList:
       self.tempTargetEvaluations[modelIn].resetData()
       tempTargetEvaluations[modelIn] = copy.copy(self.tempTargetEvaluations[modelIn])
-      for i in range(len(self.tempOutputs[modelIn])):
-        self.tempOutputs[modelIn][i].resetData()
-      tempOutputs[modelIn] = copy.deepcopy(self.tempOutputs[modelIn])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
     gotOutputs       = [{}]*len(self.orderList)
     typeOutputs      = ['']*len(self.orderList)
@@ -603,8 +620,6 @@ class EnsembleModel(Dummy):
 
       for modelCnt, modelIn in enumerate(self.orderList):
         tempTargetEvaluations[modelIn].resetData()
-        for i in range(len(tempOutputs[modelIn])):
-          tempOutputs[modelIn][i].resetData()
         # in case there are metadataToTransfer, let's collect them from the source
         metadataToTransfer = None
         if self.modelsDictionary[modelIn]['metadataToTransfer']:
@@ -620,7 +635,6 @@ class EnsembleModel(Dummy):
         # if nonlinear system, check for initial coditions
         if iterationCount == 1  and self.activatePicard:
           sampledVars = inputKwargs[modelIn]['SampledVars'].keys()
-
           conditionsToCheck = set(self.modelsDictionary[modelIn]['Input']) - set(dependentOutput.keys()+sampledVars)
           for initialConditionToSet in conditionsToCheck:
             if initialConditionToSet in self.initialConditions.keys():
@@ -656,30 +670,40 @@ class EnsembleModel(Dummy):
           while not moveOn:
             if jobHandler.availability() > 0:
               # run the model
-              self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
-              # wait until the model finishes, in order to get ready to run the subsequential one
-              while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
-                time.sleep(1.e-3)
+              if modelIn not in modelsOnHold:
+                self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
+                # wait until the model finishes, in order to get ready to run the subsequential one
+                while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
+                  time.sleep(1.e-3)
               nextModel = moveOn = True
             else:
               time.sleep(1.e-3)
-          # get job that just finished to gather the results
-          finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
-          evaluation = finishedRun[0].getEvaluation()
-          if isinstance(evaluation, Runners.Error):
-            # the model failed
-            for modelToRemove in self.orderList:
-              if modelToRemove != modelIn:
-                jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
-            self.raiseAnError(RuntimeError,"The Model  " + modelIn + " identified by " + finishedRun[0].identifier +" failed!")
-
-          # collect output in the temporary data object
-          self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
-          if type(tempOutputs[modelIn][0]).__name__ != 'byPass':
-            for index in range(len(tempOutputs[modelIn])):
-              self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempOutputs[modelIn][index])
           # store the results in the working dictionaries
-          returnDict[modelIn]   = {}
+            returnDict[modelIn]   = {}
+          if modelIn not in modelsOnHold:
+            # get job that just finished to gather the results
+            finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
+            evaluation = finishedRun[0].getEvaluation()
+            if isinstance(evaluation, Runners.Error):
+              # the model failed
+              for modelToRemove in self.orderList:
+                if modelToRemove != modelIn:
+                  jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
+              self.raiseAnError(RuntimeError,"The Model  " + modelIn + " identified by " + finishedRun[0].identifier +" failed!")
+
+            # collect output in the temporary data object
+            exportDict = self.modelsDictionary[modelIn]['Instance'].createExportDictionaryFromFinishedJob(finishedRun[0], True)
+          else:
+            exportDict = holdCollector[modelIn]['exportDict']
+          # store the output dictionary
+          tempOutputs[modelIn] = copy.deepcopy(exportDict)
+
+          # collect the target evaluation
+          if modelIn not in modelsOnHold:
+            self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn],options={'exportDict':exportDict})
+          else:
+            tempTargetEvaluations[modelIn] = holdCollector[modelIn]['targetEvaluations']
+
           responseSpace         = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
           inputSpace            = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
           typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
@@ -715,3 +739,11 @@ class EnsembleModel(Dummy):
           break
     returnEvaluation = returnDict, tempTargetEvaluations, tempOutputs
     return returnEvaluation
+
+  def acceptHoldOutputSpace(self):
+    """
+      This method returns True if a certain output space can be kept on hold (so far, just the EnsembelModel can do that)
+      @ In, None
+      @ Out, acceptHoldOutputSpace, bool, True if a certain output space can be kept on hold
+    """
+    return True

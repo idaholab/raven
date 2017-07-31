@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers/Max</name>
+    <name>framework/Optimizers.Max</name>
     <author>talbpaul</author>
     <created>2017-06-13</created>
     <classesTested>Optimizer</classesTested>

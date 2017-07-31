@@ -44,7 +44,7 @@ class GradientBasedOptimizer(Optimizer):
   """
     This is the base class for gradient based optimizer. The following methods need to be overridden by all derived class
     self.localLocalInputAndChecks(self, xmlNode)
-    self.localLocalInitialize(self, solutionExport = None)
+    self.localLocalInitialize(self, solutionExport)
     self.localLocalGenerateInput(self,model,oldInput)
     self.localEvaluateGradient(self, optVarsValues, gradient = None)
   """
@@ -73,6 +73,8 @@ class GradientBasedOptimizer(Optimizer):
     self.convergenceProgress        = {}              #tracks the convergence progress, by trajectory
     self.trajectoriesKilled         = {}              # by traj, store traj killed, so that there's no mutual destruction
     self.recommendToGain            = {}              # recommended action to take in next step, by trajectory
+    self.gainGrowthFactor           = 2.              # max step growth factor
+    self.gainShrinkFactor           = 2.              # max step shrinking factor
 
   def localInputAndChecks(self, xmlNode):
     """
@@ -104,10 +106,10 @@ class GradientBasedOptimizer(Optimizer):
       self.raiseADebug('Gain growth factor is set at',self.gainGrowthFactor)
       self.raiseADebug('Gain shrink factor is set at',self.gainShrinkFactor)
 
-  def localInitialize(self,solutionExport=None):
+  def localInitialize(self,solutionExport):
     """
       Method to initialize settings that belongs to all gradient based optimizer
-      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      @ In, solutionExport, DataObject, a PointSet to hold the solution
       @ Out, None
     """
     self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
@@ -127,16 +129,13 @@ class GradientBasedOptimizer(Optimizer):
     # end job runnable equal to number of trajectory
     self._endJobRunnable = len(self.optTraj)
     #specializing the self.localLocalInitialize()
-    if solutionExport != None:
-      self.localLocalInitialize(solutionExport=solutionExport)
-    else:
-      self.localLocalInitialize()
+    self.localLocalInitialize(solutionExport=solutionExport)
 
   @abc.abstractmethod
-  def localLocalInitialize(self, solutionExport = None):
+  def localLocalInitialize(self, solutionExport):
     """
       Method to initialize local settings.
-      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      @ In, solutionExport, DataObject, a PointSet to hold the solution
       @ Out, None
     """
     pass
@@ -194,12 +193,13 @@ class GradientBasedOptimizer(Optimizer):
     for var in self.getOptVars(traj=traj):
       gradArray[var] = np.zeros(2) #why are we initializing to this?
     # Evaluate gradient at each point
-    #for pertIndex in optVarsValues.keys():
+    # first, get average opt point
+    # then, evaluate gradients
     for i in range(self.gradDict['numIterForAve']):
-      opt  = optVarsValues[i*2]      #the latest opt point
+      opt  = optVarsValues[i*2]     #the latest opt point
       pert = optVarsValues[i*2 + 1] #the perturbed point
       #calculate grad(F) wrt each input variable
-      lossDiff = pert['output'] - opt['output']
+      lossDiff = pert['output'] - opt['output'] #optOutAvg
       #cover "max" problems
       # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
       #   sign flipping was only called when evaluating the gradient.
@@ -238,6 +238,17 @@ class GradientBasedOptimizer(Optimizer):
     identifier = str(trajID) + '_' + str(iterID) + '_' + str(evalType)
     return identifier
 
+  def getPreviousIdentifierGivenCurrent(self,prefix):
+    """
+      Method to get the previous identifier given the current prefix
+      @ In, prefix, str, the current identifier
+      @ Out, previousPrefix, str, the previous identifier
+    """
+
+    traj, _, _ = prefix.split("_")
+    traj       = int(traj)
+    return self.counter['prefixHistory'][traj][-1]
+
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
       Local method to evaluate gradient.
@@ -265,86 +276,120 @@ class GradientBasedOptimizer(Optimizer):
         break
     return convergence
 
-  def _updateConvergenceVector(self, traj, varsUpdate, currentLossValue):
+  def _updateConvergenceVector(self, traj, varsUpdate, currentLossVal):
     """
       Local method to update convergence vector.
       @ In, traj, int, identifier of the trajector to update
       @ In, varsUpdate, int, current variables update iteration number
-      @ In, currentLossValue, float, current loss function value
+      @ In, currentLossVal, float, current loss function value
       @ Out, None
     """
-    if not self.convergeTraj[traj]:
-      if len(self.counter['gradientHistory'][traj][1]) < 1:
-        self.status[traj]['reason'] = 'found new opt point'
-      else:
-        objectiveOutputs = np.zeros(self.gradDict['numIterForAve'])
-        for i in range(self.gradDict['numIterForAve']): #evens are opt point evaluations
-          index = i*2
-          objectiveOutputs[i] = self.getLossFunctionGivenId(self._createEvaluationIdentifier(traj,varsUpdate-1,index))
-        if any(np.isnan(objectiveOutputs)):
-          self.raiseAnError(Exception,"the objective function evaluation for trajectory " +str(traj)+ "and iteration "+str(varsUpdate-1)+" has not been found!")
-        oldVal = objectiveOutputs.mean() # TODO should this be from counter[recentOptPoints][traj]?
-        # see if new point is better than old point
-        newerIsBetter = self.checkIfBetter(currentLossValue,oldVal)
-        varK = self.denormalizeData(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
-        ## convergence values
-        # gradient norm
-        gradNorm  = self.counter['gradNormHistory'][traj][0]
+    # first, check if we're at varsUpdate 0 (first entry); if so, we are at our first point
+    if varsUpdate == 0:
+      # we don't have enough points to decide to accept or reject the new point, so accept it as the initial point
+      self.raiseADebug('Accepting first point, since we have no rejection criteria.')
+      self.status[traj]['reason'] = 'found new opt point'
+      return
+
+    #otherwise, we need to accept/reject point and check convergence
+    currentInputDenorm = self.denormalizeData(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
+
+    ## first, determine if we want to keep the new point
+    # obtain the old loss value
+    oldLossVal = self.counter['recentOptHist'][traj][0]['output']
+    # see if new point is better than old point
+    newerIsBetter = self.checkIfBetter(currentLossVal,oldLossVal)
+    # if this was a recommended preconditioning point, we should not be converged.
+    pointFromRecommendation = self.status[traj]['reason'] == 'received recommended point'
+    # if improved, keep it and move forward; otherwise, reject it and recommend cutting step size
+    if newerIsBetter:
+      self.status[traj]['reason'] = 'found new opt point'
+      self.raiseADebug('Accepting potential opt point for improved loss value')
+      #TODO REWORK this belongs in the base class optimizer; grad shouldn't know about multilevel!!
+      #  -> this parameter is how multilevel knows that a successful perturbation of an outer loop has been performed
+      #  maybe implement a "acceptPoint" method in base class?
+      self.mlActiveSpaceSteps[traj] += 1
+    else:
+      self.status[traj]['reason'] = 'rejecting bad opt point'
+      self.raiseADebug('Rejecting potential opt point for worse loss value. old: "{}", new: "{}"'.format(oldLossVal,currentLossVal))
+      # cut the next step size to hopefully stay in the valley instead of climb up the other side
+      self.recommendToGain[traj] = 'cut'
+
+    ## determine convergence
+    if pointFromRecommendation:
+      self.raiseAMessage('Setting convergence for Trajectory "{}" to "False" because of preconditioning.'.format(traj))
+      converged = False
+    else:
+      self.raiseAMessage('Checking convergence for Trajectory "{}":'.format(traj))
+      self.convergenceProgress[traj] = {} # tracks progress for grad norm, abs, rel tolerances
+      converged = False                   # updated for each individual criterion using "or" (pass one, pass all)
+      #printing utility
+      printString = '    {:<21}: {:<5}'
+      printVals = printString + ' (check: {:>+9.2e} < {:>+9.2e}, diff: {:>9.2e})'
+      def printProgress(name,boolCheck,test,gold):
+        """
+          Consolidates a commonly-used print statement to prevent errors and improve readability.
+          @ In, name, str, printed name of convergence check
+          @ In, boolCheck, bool, boolean convergence results for this check
+          @ In, test, float, value of check at current opt point
+          @ In, gold, float, convergence threshold value
+          @ Out, None
+        """
+        self.raiseAMessage(printVals.format(name,str(boolCheck),test,gold,abs(test-gold)))
+
+      # "min step size" and "gradient norm" are both always valid checks, whether rejecting or accepting new point
+
+      # min step size check
+      try:
+        lastStep = self.counter['lastStepSize'][traj]
+        minStepSizeCheck = lastStep <= self.minStepSize
+      except KeyError:
+        #we reset the step size, so we don't have a value anymore
+        lastStep = np.nan
+        minStepSizeCheck = False
+      printProgress('Min step size',minStepSizeCheck,lastStep,self.minStepSize)
+      converged = converged or minStepSizeCheck
+
+      # gradient norm
+      if len(self.counter['gradientHistory'][traj][0]) > 0:
+        gradNorm = self.counter['gradNormHistory'][traj][0]
+        self.convergenceProgress[traj]['grad'] = gradNorm
         gradientNormCheck = gradNorm <= self.gradientNormTolerance
-        # absolute loss value difference
-        absDifference = abs(currentLossValue-oldVal)
-        absoluteTolCheck = absDifference <= self.absConvergenceTol
-        # relative loss value difference
-        relativeDifference = mathUtils.relativeDiff(currentLossValue,oldVal)
-        relativeTolCheck = relativeDifference <= self.relConvergenceTol
-        # store progress for verbosity options
-        self.convergenceProgress[traj] = {'abs':absDifference,'rel':relativeDifference,'grad':gradNorm}
-        # safety check against multiple evaluations on the same point
-        sameCoordinateCheck = set(self.optVarsHist[traj][varsUpdate].items()) == set(self.counter['recentOptHist'][traj][0]['inputs'].items()) #set(self.optVarsHist[traj][varsUpdate-1].items())
-        # min step size check
-        try:
-          lastStep = self.counter['lastStepSize'][traj]
-          minStepSizeCheck = lastStep <= self.minStepSize
-        except KeyError:
-          #we reset the step size, so we don't have a value anymore
-          lastStep = np.nan
-          minStepSizeCheck = False
-        # screen outputs
-        self.raiseAMessage("Trajectory: "+"%8i"% (traj)+      " | Iteration    : "+"%8i"% (varsUpdate)+ " | Loss function: "+"%8.2E"% (currentLossValue)+" |")
-        self.raiseAMessage("Grad Norm : "+"%8.2E"% (gradNorm)+" | Relative Diff: "+"%8.2E"% (relativeDifference)+" | Abs Diff     : "+"%8.2E"% (absDifference)+" |")
-        self.raiseAMessage("Step Size : "+"%8.2E"% (lastStep))
-        self.raiseAMessage("Input Location :" +str(varK))
-        ## set up status going forward
-        # if new point is better, accept it and move forward
-        if newerIsBetter:
-          self.status[traj]['reason'] = 'found new opt point'
-          self.raiseADebug('Accepting potential opt point for improved loss value')
-          #TODO REWORK this belongs in the base class optimizer; grad shouldn't know about multilevel!!
-          #  -> this parameter is how multilevel knows that a successful perturbation of an outer loop has been performed
-          self.mlActiveSpaceSteps[traj] += 1
-          converged = minStepSizeCheck or sameCoordinateCheck or gradientNormCheck or absoluteTolCheck or relativeTolCheck
-        # if newer point is not better, we're keeping the old point, and sameCoordinate, absoluteTol, and relativeTol aren't applicable
-        else:
-          self.status[traj]['reason'] = 'rejecting bad opt point'
-          self.raiseADebug('Rejecting potential opt point for worse loss value: "{}" vs "{}"'.format(oldVal,currentLossValue))
-          # cut the next step size to hopefully stay in the valley instead of climb up the other side
-          self.recommendToGain[traj] = 'cut'
-          converged = gradientNormCheck or minStepSizeCheck
-        if converged:
-          reasons = []
-          if sameCoordinateCheck:
-            reasons.append("same coordinate")
-          if gradientNormCheck:
-            reasons.append("gradient norm")
-          if absoluteTolCheck:
-            reasons.append("absolute tolerance")
-          if relativeTolCheck:
-            reasons.append("relative tolerance")
-          if minStepSizeCheck:
-            reasons.append("minimum step size")
-          self.raiseAMessage("Trajectory: "+"%8i"% (traj) +"   converged. Reasons: "+', '.join(reasons))
-          self.convergeTraj[traj] = True
-          self.removeConvergedTrajectory(traj)
+      else:
+        gradNorm = np.nan
+        gradientNormCheck = False
+      printProgress('Gradient magnitude',gradientNormCheck,gradNorm,self.gradientNormTolerance)
+      converged = converged or gradientNormCheck
+
+      # if accepting new point, then "same coordinate" and "abs" and "rel" checks are also valid reasons to converge
+      if newerIsBetter:
+        #absolute tolerance
+        absLossDiff = abs(currentLossVal-oldLossVal)
+        self.convergenceProgress[traj]['abs'] = absLossDiff
+        absTolCheck = absLossDiff <= self.absConvergenceTol
+        printProgress('Absolute Loss Diff',absTolCheck,absLossDiff,self.absConvergenceTol)
+        converged = converged or absTolCheck
+
+        #relative tolerance
+        relLossDiff = mathUtils.relativeDiff(currentLossVal,oldLossVal)
+        self.convergenceProgress[traj]['rel'] = relLossDiff
+        relTolCheck = relLossDiff <= self.relConvergenceTol
+        printProgress('Relative Loss Diff',relTolCheck,relLossDiff,self.relConvergenceTol)
+        converged = converged or relTolCheck
+
+        #same coordinate check
+        oldInputSpace = set(self.optVarsHist[traj][varsUpdate].items())
+        curInputSpace = set(self.counter['recentOptHist'][traj][0]['inputs'].items())
+        sameCoordinateCheck = oldInputSpace == curInputSpace
+        self.raiseAMessage(printString.format('Same coordinate check',str(minStepSizeCheck)))
+        converged = converged or sameCoordinateCheck
+
+    if converged:
+      self.raiseAMessage(' ... Trajectory "{}" converged!'.format(traj))
+      self.convergeTraj[traj] = True
+      self.removeConvergedTrajectory(traj)
+    else:
+      self.raiseAMessage(' ... continuing trajectory "{}".'.format(traj))
 
   def _removeRedundantTraj(self, trajToRemove, currentInput):
     """
@@ -436,58 +481,67 @@ class GradientBasedOptimizer(Optimizer):
       @ In, myInput, list, the generating input
     """
     # for some reason, Ensemble Model doesn't preserve this information, so wrap this debug in a try:
-    try:
-      prefix = jobObject.getMetadata()['prefix']
-      self.raiseADebug('Collected sample "{}"'.format(prefix))
-    except TypeError:
-      prefix = ''
+    prefix = jobObject.getMetadata()['prefix']
     self.raiseADebug('Collected sample "{}"'.format(prefix))
 
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
-    if self.solutionExport != None and len(self.mdlEvalHist) > 0:
+    if len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
-        while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
+        if self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
           solutionExportUpdatedFlag, indices = self._getJobsByID(traj)
-
           if solutionExportUpdatedFlag:
             #get evaluations (input,output) from the collection of all evaluations
             inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
             outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
             #TODO this might be faster for non-stochastic if we do an "if" here on gradDict['numIterForAve']
             #make a place to store distinct evaluation values
-            objectiveOutputs = np.zeros(self.gradDict['numIterForAve'])
+            outputs = {}
+            for outvar in self.solutionExport.getParaKeys('outputs'):
+              if outvar not in outputeval.keys():
+                continue
+              outputs[outvar] = np.zeros(self.gradDict['numIterForAve'])
             # get output values corresponding to evaluations of the opt point
             # also add opt points to the grad perturbation list
             self.gradDict['pertPoints'][traj] = np.zeros(2*self.gradDict['numIterForAve'],dtype=dict)
             for i, index in enumerate(indices):
-              objectiveOutputs[i] = outputeval[self.objVar][index]
-              self.gradDict['pertPoints'][traj][i*2] = {'inputs':self.normalizeData(dict((k,v[index]) for k,v in inputeval.items())),
-                                                        'output':objectiveOutputs[i]}
+              for outvar in outputs.keys():
+                outputs[outvar][i] = outputeval[outvar][index]
+                if outvar == self.objVar:
+                  self.gradDict['pertPoints'][traj][i*2] = {'inputs':self.normalizeData(dict((k,v[index]) for k,v in inputeval.items())),
+                                                            'output':outputs[self.objVar][i]}
             # assumed output value is the mean of sampled values
-            currentObjectiveValue = objectiveOutputs.mean()
+            for outvar,vals in outputs.items():
+              outputs[outvar] = vals.mean()
+            currentObjectiveValue = outputs[self.objVar]#.mean()
             # check convergence
             # TODO REWORK move this to localStillReady, along with the gradient evaluation
             self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], currentObjectiveValue)
             if self.convergeTraj[traj]:
               self.status[traj] = {'process':None, 'reason':'converged'}
             else:
-              # if rejecting bad point, keep the old point as the new point
-              if self.status[traj]['reason'] != 'rejecting bad opt point':
-                try:
-                  self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
-                except KeyError:
-                  # this means we don't have an entry for this trajectory yet, so don't copy anything
-                  pass
-                self.counter['recentOptHist'][traj][0] = {'inputs':self.optVarsHist[traj][self.counter['varsUpdate'][traj]],
-                                                          'output':currentObjectiveValue}
               # update status to submitting grad eval points
               self.status[traj]['process'] = 'submitting grad eval points'
+            # if rejecting bad point, keep the old point as the new point; otherwise, add the new one
+            if self.status[traj]['reason'] != 'rejecting bad opt point':
+              try:
+                self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
+              except KeyError:
+                # this means we don't have an entry for this trajectory yet, so don't copy anything
+                pass
+              self.counter['recentOptHist'][traj][0] = {}
+              self.counter['recentOptHist'][traj][0]['inputs'] = self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
+              self.counter['recentOptHist'][traj][0]['output'] = currentObjectiveValue
+              if traj not in self.counter['prefixHistory']:
+                self.counter['prefixHistory'][traj] = []
+              self.counter['prefixHistory'][traj].append(prefix)
 
             # update solution export
+            #FIXME much of this should move to the base class!
             if 'trajID' not in self.solutionExport.getParaKeys('inputs'):
               self.raiseAnError(IOError, 'trajID is not in the <inputs> space of the solutionExport data object specified for this optimization step!  Please add it.')
             trajID = traj+1 # This is needed to be compatible with historySet object
             self.solutionExport.updateInputValue([trajID,'trajID'], traj)
+            #otherOutVars = self.solutionExport.getParaKeys('outputs')
             output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding').get(trajID,{})
             badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
             for var in self.solutionExport.getParaKeys('outputs'):
@@ -496,7 +550,9 @@ class GradientBasedOptimizer(Optimizer):
               if var in self.getOptVars():
                 new = self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs'])[var] #inputeval[var][index]
               elif var == self.objVar:
-                new = self.counter['recentOptHist'][traj][0]['output'] #currentObjectiveValue
+                new = self.counter['recentOptHist'][traj][0]['output']
+              elif var in outputs.keys():
+                new = outputs[var]
               elif var == 'varsUpdate':
                 new = [self.counter['solutionUpdate'][traj]]
               elif var == 'stepSize':
@@ -605,3 +661,13 @@ class GradientBasedOptimizer(Optimizer):
       point = self.denormalizeData(point)
     return prefix,point
 
+  def proposeNewPoint(self,traj,point):
+    """
+      See base class.  Used to set next recommended point to use for algorithm, overriding the gradient descent.
+      @ In, traj, int, trajectory who gets proposed point
+      @ In, point, dict, input space as dictionary {var:val}
+      @ Out, None
+    """
+    Optimizer.proposeNewPoint(self,traj,point)
+    self.counter['varsUpdate'][traj] += 1 #usually done when evaluating gradient, but we're bypassing that
+    self.queueUpOptPointRuns(traj,self.recommendedOptPoint[traj])

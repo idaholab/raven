@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <!-- Test info -->
   <TestInfo>
-    <name>framework/Optimizers/Verbose</name>
+    <name>framework/Optimizers.Verbose</name>
     <author>talbpaul</author>
     <created>2017-06-01</created>
     <classesTested>Optimizer</classesTested>
