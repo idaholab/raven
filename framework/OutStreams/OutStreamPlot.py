@@ -1908,7 +1908,7 @@ class OutStreamPlot(OutStreamManager):
     # self.plt3D.draw(self.fig.canvas.renderer)
 
     if 'screen' in self.destinations and displayAvailable:
-      if platform.system() == 'Linux':
+      if platform.system() in ['Linux','Windows']:
         # XXX For some reason, this is required on Linux, but causes
         # OSX to fail.  Which is correct for windows has not been determined.
         def handle_close(event):

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers/McCormick</name>
+    <name>framework/Optimizers.McCormick</name>
     <author>talbpaul</author>
     <created>2017-05-30</created>
     <classesTested>Optimizer</classesTested>
