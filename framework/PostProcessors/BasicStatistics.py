@@ -142,12 +142,14 @@ class BasicStatistics(PostProcessor):
     if currentInput.type not in ['PointSet','HistorySet']:
       self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
     if currentInput.type in ['PointSet']:
-      inputDict = {'targets':{},'metadata':currentInput.getAllMetadata()}
+      inputDict = {'targets':{},'metadata':currentInput.getAllMetadata(),'inoutMapping':{'input':[],'output':[]}}
       for targetP in self.parameters['targets']:
         if   targetP in currentInput.getParaKeys('input'):
           inputDict['targets'][targetP] = currentInput.getParam('input' , targetP, nodeId = 'ending')
+          inputDict['inoutMapping']['input'].append(targetP)
         elif targetP in currentInput.getParaKeys('output'):
           inputDict['targets'][targetP] = currentInput.getParam('output', targetP, nodeId = 'ending')
+          inputDict['inoutMapping']['output'].append(targetP)
         else:
           self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
     else:
@@ -181,6 +183,7 @@ class BasicStatistics(PostProcessor):
           self.raiseAnError(IOError, 'Histories are not syncronized! Please, pre-process the data using Interfaced PostProcessor HistorySetSync!')
         for ts in range(nTs):
           inputDict['timeDepData'][pivotParameter[ts]]['targets'][targetP] = outputValues[:,ts]
+          inputDict['timeDepData'][pivotParameter[ts]]['inoutMapping'] = {'input':targetInput,'output':targetOutput}
           if cnt == 0:
             inputDict['timeDepData'][pivotParameter[ts]]['metadata'] = metadata
     self.raiseAMessage("Recasting performed")
@@ -284,11 +287,11 @@ class BasicStatistics(PostProcessor):
           #   nodes with the same metric (tag), but with different targets and features.  For instance, the user might
           #   want the sensitivity of A and B to X and Y, and the sensitivity of C to W and Z, but not the sensitivity
           #   of A to W.  If we didn't keep them separate, we could potentially waste a fair number of calculations.
-          self.toDo[tag].append({'targets':set(a.strip() for a in fnode.text.split(',')),
-                            'features':set(a.strip() for a in tnode.text.split(','))})
+          self.toDo[tag].append({'targets':set(a.strip() for a in tnode.text.split(',')),
+                            'features':set(a.strip() for a in fnode.text.split(','))})
         else:
-          self.toDo[tag] = [{'targets':set(a.strip() for a in fnode.text.split(',')),
-                            'features':set(a.strip() for a in tnode.text.split(','))}]
+          self.toDo[tag] = [{'targets':set(a.strip() for a in tnode.text.split(',')),
+                            'features':set(a.strip() for a in fnode.text.split(','))}]
       elif tag == 'all':
         #do all the metrics
         #establish targets and features
@@ -322,8 +325,8 @@ class BasicStatistics(PostProcessor):
         for vector in self.vectorVals:
           if vector not in self.toDo.keys():
             self.toDo[vector] = []
-          self.toDo[vector].append({'targets':set(a.strip() for a in fnode.text.split(',')),
-                                 'features':set(a.strip() for a in tnode.text.split(','))})
+          self.toDo[vector].append({'targets':set(a.strip() for a in tnode.text.split(',')),
+                                 'features':set(a.strip() for a in fnode.text.split(','))})
       elif child.tag == "biased":
         if child.text.lower() in utils.stringsThatMeanTrue():
           self.biased = True
@@ -899,37 +902,70 @@ class BasicStatistics(PostProcessor):
         self.skipped[metric].update(needed[metric])
       return targets,features,skip
 
+    def createTargetFeatureList(targets,features,input):
+      """
+        This utility method is aimed to create a list of targets and features based on the
+        sampling input
+        @ In, targets, list, list of user inputted targets
+        @ In, features, list, list of user inputted features
+        @ In, input, dict, dictionary of input output mapping
+        @ Out, (targetList,featureList), tuple, tuple of mapped target and feature parameters
+      """
+      targetList  = []
+      featureList = []
+      for target in targets:
+        targetList.append([target])
+      featureList.append(list(set(features) - set(input['inoutMapping']['output'])))
+      for out in input['inoutMapping']['output']:
+        if out in features:
+          featureList.append([out])
+      return targetList, featureList
+
     metric = 'sensitivity'
     targets,features,skip = startVector(metric)
     #NOTE sklearn expects the transpose of what we usually do in RAVEN, so #samples by #features
     if not skip:
-      #for sensitivity matrix, we don't use numpy/scipy methods to calculate matrix operations,
-      #so we loop over targets and features
-      for t,target in enumerate(targets):
-        calculations[metric][target] = {}
-        targetVals = input['targets'][target]
-        #don't do self-sensitivity
-        inpSamples = np.atleast_2d(np.asarray(list(input['targets'][f] for f in features if f!=target))).T
-        useFeatures = list(f for f in features if f != target)
-        #use regressor coefficients as sensitivity
-        regressDict = dict(zip(useFeatures, LinearRegression().fit(inpSamples,targetVals).coef_))
-        for f,feature in enumerate(features):
-          calculations[metric][target][feature] = 1.0 if feature==target else regressDict[feature]
+      targetList, featureList = createTargetFeatureList(targets, features, input)
+      for targets in targetList:
+        #for sensitivity matrix, we don't use numpy/scipy methods to calculate matrix operations,
+        #so we loop over targets and features
+        for t,target in enumerate(targets):
+          if target not in calculations[metric]:
+            calculations[metric][target] = {}
+          targetVals = input['targets'][target]
+          #don't do self-sensitivity
+          for features in featureList:
+            inpSamples = np.atleast_2d(np.asarray(list(input['targets'][f] for f in features if f!=target))).T
+            useFeatures = list(f for f in features if f != target)
+            #use regressor coefficients as sensitivity
+            if len(useFeatures) > 0:
+              regressDict = dict(zip(useFeatures, LinearRegression().fit(inpSamples,targetVals).coef_))
+            for f,feature in enumerate(features):
+              calculations[metric][target][feature] = 1.0 if feature==target else regressDict[feature]
     #
     # covariance matrix
     #
     metric = 'covariance'
     targets,features,skip = startVector(metric)
     if not skip:
+      targetList, featureList = createTargetFeatureList(targets, features, input)
       # because the C implementation is much faster than picking out individual values,
       #   we do the full covariance matrix with all the targets and features.
       # FIXME adding an alternative for users to choose pick OR do all, defaulting to something smart
       #   dependent on the percentage of the full matrix desired, would be better.
       # IF this is fixed, make sure all the features and targets are requested for all the metrics
       #   dependent on this metric
+      fullMatrixParam = list(set(targets).union(set(features)))
+      indeces = {}
+      for cnt, key in enumerate(fullMatrixParam):
+        indeces[key] = cnt
+      fullCovar       = np.zeros((len(fullMatrixParam), len(fullMatrixParam)))
+      #for targets in targetList:
+      #  for features in featureList:
       params = list(set(targets).union(set(features)))
       paramSamples = np.zeros((len(params), utils.first(input['targets'].values()).size))
-      pbWeightsList = [None]*len(input['targets'].keys())
+      pbWeightsList = [None]*len(params)
+      #pbWeightsList = [None]*len(input['targets'].keys())
       for p,param in enumerate(params):
         dataIndex = parameter2index[param]
         paramSamples[p,:] = input['targets'][param][:]
@@ -939,8 +975,12 @@ class BasicStatistics(PostProcessor):
         covar = self.covariance(paramSamples)
       else:
         covar = self.covariance(paramSamples, weights = pbWeightsList)
-      calculations[metric]['matrix'] = covar
-      calculations[metric]['params'] = params
+      #for cnt1, param1 in enumerate(params):
+      #  for cnt2, param2 in enumerate(params):
+      #    fullCovar[indeces[param1],indeces[param2]] = covar[cnt1,cnt2]
+      #diff = fullCovar - np.cov(paramSamples,aweights=pbWeightsList[0])
+      calculations[metric]['matrix'] = covar #np.cov(paramSamples,aweights=pbWeightsList[0])
+      calculations[metric]['params'] = fullMatrixParam
 
     def getCovarianceSubset(desired):
       """
@@ -977,7 +1017,7 @@ class BasicStatistics(PostProcessor):
     targets,features,skip = startVector(metric)
     if not skip:
       params = list(set(targets).union(set(features)))
-      reducedCovar,reducedParams = getCovarianceSubset(params)
+      parameter2index,reducedParams = getCovarianceSubset(params)
       inputSamples = np.zeros((len(params),utils.first(input['targets'].values()).size))
       pbWeightsList = [None]*len(params)
       for p,param in enumerate(reducedParams):
@@ -1004,7 +1044,6 @@ class BasicStatistics(PostProcessor):
     metric = 'NormalizedSensitivity'
     targets,features,skip = startVector(metric)
     if not skip:
-      reducedCovar,reducedParams = getCovarianceSubset(params)
       for p,param in enumerate(reducedParams):
         calculations[metric][param] = {}
         for f,feature in enumerate(reducedParams):
@@ -1085,16 +1124,16 @@ class BasicStatistics(PostProcessor):
       @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
       @ Out, outputDict, dict, Dictionary containing the results
     """
-    input = self.inputToInternal(inputIn)
+    convertedInput = self.inputToInternal(inputIn)
     if not self.dynamic:
-      outputDict = self.__runLocal(input)
+      outputDict = self.__runLocal(convertedInput)
     else:
       # time dependent (actually pivot-dependent)
       outputDict = OrderedDict()
       self.raiseADebug('BasicStatistics Pivot-Dependent output:')
-      for pivotParamValue in input['timeDepData'].keys():
+      for pivotParamValue in convertedInput['timeDepData'].keys():
         self.raiseADebug('Pivot Parameter Value: ' + str(pivotParamValue))
-        outputDict[pivotParamValue] = self.__runLocal(input['timeDepData'][pivotParamValue])
+        outputDict[pivotParamValue] = self.__runLocal(convertedInput['timeDepData'][pivotParamValue])
     return outputDict
 
   def covariance(self, feature, weights = None, rowVar = 1):

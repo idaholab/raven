@@ -14,7 +14,7 @@
     <samples>4</samples>
     <sensitivity>
       <y>1.0</y>
-      <x>0.0</x>
+      <x>5.55111512313e-17</x>
       <z>1.11022302463e-16</z>
     </sensitivity>
     <covariance>
@@ -53,9 +53,9 @@
     <kurtosis>25.6610302732</kurtosis>
     <samples>4</samples>
     <sensitivity>
-      <y>0.0</y>
+      <y>5.55111512313e-17</y>
       <x>1.0</x>
-      <z>2.22044604925e-16</z>
+      <z>1.70234197109e-16</z>
     </sensitivity>
     <covariance>
       <y>0.204608039915</y>
@@ -93,8 +93,8 @@
     <kurtosis>25.6610302732</kurtosis>
     <samples>4</samples>
     <sensitivity>
-      <y>0.0</y>
-      <x>2.22044604925e-16</x>
+      <y>-5.55111512313e-17</y>
+      <x>1.70234197109e-16</x>
       <z>1.0</z>
     </sensitivity>
     <covariance>
