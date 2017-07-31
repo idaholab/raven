@@ -310,6 +310,10 @@ class SingleRun(Step):
     if self.type == 'SingleRun':
       if self.parList[modelIndex][2] != 'Code':
         self.raiseAnError(IOError,'<SingleRun> steps only support running "Code" model types!  Consider using a <MultiRun> step using a "Custom" sampler for other models.')
+      if 'Optimizer' in roles or 'Sampler' in roles:
+        self.raiseAnError(IOError,'<SingleRun> steps does not allow the usage of <Sampler> or <Optimizer>!  Consider using a <MultiRun> step.')
+      if 'SolutionExport' in roles:
+        self.raiseAnError(IOError,'<SingleRun> steps does not allow the usage of <SolutionExport>!  Consider using a <MultiRun> step with a <Sampler>/<Optimizer> that allows its usage.')
     #build entry list for verification of correct input types
     toBeTested = {}
     for role in roles:

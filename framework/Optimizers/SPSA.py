@@ -325,6 +325,7 @@ class SPSA(GradientBasedOptimizer):
       self.raiseAnError(RuntimeError,'Unrecognized "action" in localGenerateInput:',action)
     self.raiseADebug('Queuing run "{}"'.format(self.inputInfo['prefix']))
 
+
   def _checkBoundariesAndModify(self,upperBound,lowerBound,varRange,currentValue,pertUp,pertLow):
     """
       Method to check the boundaries and add a perturbation in case they are violated

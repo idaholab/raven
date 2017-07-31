@@ -214,8 +214,10 @@ specified:
         name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}). This external function must
         contain a method called ``constrain'', which returns 1 for inputs satisfying the constraints and 0 otherwise.
 \item \xmlNode{Preconditioner}, \xmlDesc{XML node, optional parameter},
-        provides a model that can be used as a preconditioner in Multilevel optimization calculations.  Only
-        affects optimizers with a \xmlNode{multilevel} node.  As many preconditioners as desired can be added
+        provides a model that can be used as a preconditioner in Multilevel optimization 
+        calculations.  Only
+        affects optimizers with a \xmlNode{multilevel} node.  As many preconditioners as 
+        desired can be added
         to the optimizer, each defined with a \xmlNode{Preconditioner} node.
         %
         From a practical point of view, this XML node must contain the name of
@@ -274,6 +276,12 @@ specified:
                 a preconditioner to this subset, chosen from the \xmlNode{Preconditioner} nodes defined within
                 the optimzer, and identified by the text of those nodes.  See the documentation for the
                 preconditioner node above for details on how they affect the calculation flow.
+              \item \xmlAttr{holdOutputSpace}, \xmlDesc{parameter names, optional comma separated parameter}, provides the option to identify some output parameters that 
+              need to be kept on hold at this subspace optimization level. This capability is
+              currently implemented for the \textit{EnsembleModel} only.  In other words, 
+              all the models that have, in their output spaces, the parameter here specified 
+              will not be re-run for the iteration $i$ but the solution at iteration $i-1$ will be 
+              used.
             \end{itemize}
         \end{itemize}
 
