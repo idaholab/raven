@@ -2,8 +2,8 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/DataObjects.dataObject_metadata</name>
-    <author>maljdan</author>
-    <created>2016-06-23</created>
+    <author>wangc</author>
+    <created>2015-09-02</created>
     <classesTested>DataObjects.PointSet</classesTested>
     <description>
        Test to check the functionalities of DataObjects.PointSet, when metadata need to be dumped out.
@@ -11,6 +11,7 @@
        is dumped in the CSV files, even if it is part of the metadata container.
     </description>
     <revisions>
+      <revision author="maljdan" date="2016-06-23">Moving test case into a specific DataObjects folder</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
