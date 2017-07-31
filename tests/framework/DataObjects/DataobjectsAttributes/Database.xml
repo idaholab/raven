@@ -1,0 +1,3 @@
+  <Databases>
+    <HDF5 name="testGridRavenDatabase" readMode="read"/>
+  </Databases>

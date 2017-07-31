@@ -1,0 +1,12 @@
+  <Samplers>
+    <Grid name="myGrid">
+      <variable name="Tw">
+        <distribution>Gauss1</distribution>
+        <grid construction="equal" steps="1" type="value">300 303</grid>
+      </variable>
+      <variable name="Dummy1">
+        <distribution>ANormalDistribution</distribution>
+        <grid construction="equal" steps="2" type="CDF">0.1 0.5</grid>
+      </variable>
+    </Grid>
+  </Samplers>

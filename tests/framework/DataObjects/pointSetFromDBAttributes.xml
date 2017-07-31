@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/DataObjects.test_output_attributes</name>
+    <author>maljdan</author>
+    <created>2016-06-23</created>
+    <classesTested>DataObjects.PointSet, Databases.HDF5</classesTested>
+    <description>
+       Test to check the functionalities of DataObjects preprocess the data applying simple 
+       operator (e.g. max value, average, min value, etc.), in the $options$ XML node.
+    </description>
+    <revisions>
+      <revision author="cogljj" date="2016-08-23">Converting test dataobjects attributes to external model. Refs #94</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="maljdan" date="2017-07-31">Splitting original test case file (test_dataobjects_attributes.xml or framework/DataObjects.test_output_attributes) into more granular test cases</revision>
+    </revisions>
+  </TestInfo>
+
+  <ExternalXML node="RunInfo" xmlToLoad="DataobjectsAttributes/RunInfo.xml"/>
+
+  <Steps>
+    <IOStep name="TestDataObjectAttributes">
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Output class="DataObjects" type="PointSet">outGridTPS1_from_DB</Output>
+      <Output class="DataObjects" type="PointSet">outGridTPS2_from_DB</Output>
+      <Output class="OutStreams" type="Print">outGridTPS1_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTPS2_from_DB_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <ExternalXML node="Databases" xmlToLoad="DataobjectsAttributes/Database.xml"/>
+  <ExternalXML node="OutStreams" xmlToLoad="DataobjectsAttributes/OutStreams.xml"/>
+  <ExternalXML node="DataObjects" xmlToLoad="DataobjectsAttributes/DataObjects.xml"/>
+
+</Simulation>

@@ -1,0 +1,12 @@
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>310</mean>
+      <sigma>3</sigma>
+      <lowerBound>300</lowerBound>
+      <upperBound>320</upperBound>
+    </Normal>
+    <Normal name="ANormalDistribution">
+      <mean>-4</mean>
+      <sigma>2</sigma>
+    </Normal>
+  </Distributions>
