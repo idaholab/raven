@@ -238,6 +238,17 @@ class GradientBasedOptimizer(Optimizer):
     identifier = str(trajID) + '_' + str(iterID) + '_' + str(evalType)
     return identifier
 
+  def getPreviousIdentifierGivenCurrent(self,prefix):
+    """
+      Method to get the previous identifier given the current prefix
+      @ In, prefix, str, the current identifier
+      @ Out, previousPrefix, str, the previous identifier
+    """
+
+    traj, _, _ = prefix.split("_")
+    traj       = int(traj)
+    return self.counter['prefixHistory'][traj][-1]
+
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
       Local method to evaluate gradient.
@@ -470,10 +481,7 @@ class GradientBasedOptimizer(Optimizer):
       @ In, myInput, list, the generating input
     """
     # for some reason, Ensemble Model doesn't preserve this information, so wrap this debug in a try:
-    try:
-      prefix = jobObject.getMetadata()['prefix']
-    except TypeError:
-      prefix = ''
+    prefix = jobObject.getMetadata()['prefix']
     self.raiseADebug('Collected sample "{}"'.format(prefix))
 
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
@@ -523,6 +531,9 @@ class GradientBasedOptimizer(Optimizer):
               self.counter['recentOptHist'][traj][0] = {}
               self.counter['recentOptHist'][traj][0]['inputs'] = self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
               self.counter['recentOptHist'][traj][0]['output'] = currentObjectiveValue
+              if traj not in self.counter['prefixHistory']:
+                self.counter['prefixHistory'][traj] = []
+              self.counter['prefixHistory'][traj].append(prefix)
 
             # update solution export
             #FIXME much of this should move to the base class!
