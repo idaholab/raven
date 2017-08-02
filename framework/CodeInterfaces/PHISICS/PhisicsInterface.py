@@ -51,53 +51,6 @@ class Phisics(CodeInterfaceBase):
       @ Out, __base, string path
     """
     return self.__base
-    
-    
-  def copyIntoFolders(self, workDir):
-    """
-      copies the perturbed files into the their original directory. For example, BetaDecay.path belong to the relative folders
-      ./path/BetaDecay.path
-    """
-    #print (workDir)
-    os.rename(workDir+'/BetaDecay.path', workDir+'/path/BetaDecay.path')
-    
-  
-  def untarFolders(self, tarName, workDir):
-    """
-      zip the folder need in PHISICS, copy the zipped files (path, library_fiss and input_dpl) in each perturbed folder and unzip there. 
-    """
-    t = tarfile.open(tarName, 'r')
-    print (tarName) 
-    f = t.extractall(workDir) 
-    t.close()
-    
-  def tarFiles(self, directoryFiles):
-    """
-      gzip the folder needed in PHISICS, copy the zipped files (path, library_fiss and input_dpl) in each perturbed folder and unzip there. 
-    """
-    tarName = 'dirFiles.tar.gz'
-    with tarfile.open(tarName, "w:gz") as mytar:
-      for i in xrange(0,len(directoryFiles)):
-        mytar.add(directoryFiles[i])
-      mytar.add('ISOTXS000007')
-    return tarName 
-    
-  def getDirInfo(self, driverXML):
-    """
-      get the working directory from the xml file
-      In, XML file name 
-      out, runInfoList, list. It contains the subdirectory name and number of perturbations
-    """
-    tree = ET.parse(driverXML)
-    root = tree.getroot()
-    for runInfoXML in root.getiterator('RunInfo'):
-      for sequenceXML in runInfoXML.getiterator('Sequence'): 
-        subdir =  sequenceXML.text
-    for limitXML in root.getiterator('limit'):
-      numberOfPert = limitXML.text
-    #print (numberOfPert)
-    runInfoList = [subdir, numberOfPert]
-    return runInfoList
   
   def distributeVariablesToParsers(self, perturbedVars):
     """
