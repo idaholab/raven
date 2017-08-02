@@ -1,19 +1,19 @@
   <OutStreams>
     <Print name="stories1_from_DB_dump">
       <type>csv</type>
-      <source>stories1_from_DB</source>
+      <source>stories1</source>
     </Print>
     <Print name="stories2_from_DB_dump">
       <type>csv</type>
-      <source>stories2_from_DB</source>
+      <source>stories2</source>
     </Print>
     <Print name="outGridTPS1_from_DB_dump">
       <type>csv</type>
-      <source>outGridTPS1_from_DB</source>
+      <source>outGridTPS1</source>
     </Print>
     <Print name="outGridTPS2_from_DB_dump">
       <type>csv</type>
-      <source>outGridTPS2_from_DB</source>
+      <source>outGridTPS2</source>
     </Print>
     <Print name="stories1_dump">
       <type>csv</type>

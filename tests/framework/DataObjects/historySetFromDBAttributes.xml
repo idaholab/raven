@@ -23,8 +23,8 @@
     <IOStep name="TestDataObjectAttributes">
       <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
       <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
-      <Output class="DataObjects" type="HistorySet">stories1_from_DB</Output>
-      <Output class="DataObjects" type="HistorySet">stories2_from_DB</Output>
+      <Output class="DataObjects" type="HistorySet">stories1</Output>
+      <Output class="DataObjects" type="HistorySet">stories2</Output>
       <Output class="OutStreams" type="Print">stories1_from_DB_dump</Output>
       <Output class="OutStreams" type="Print">stories2_from_DB_dump</Output>
     </IOStep>

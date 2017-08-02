@@ -23,25 +23,6 @@
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
 
-      <!-- From Databases -->
-      <PointSet name="outGridTPS1_from_DB">
-        <options>
-          <inputRow>1</inputRow>
-          <outputRow>-1</outputRow>
-        </options>
-        <Input>pipe_Area,Dummy1</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
-      </PointSet>
-      <PointSet name="outGridTPS2_from_DB">
-        <options>
-          <inputPivotValue>0.00011</inputPivotValue>
-          <pivotParameter>time</pivotParameter>
-          <outputPivotValue>0.00012345</outputPivotValue>
-        </options>
-        <Input>pipe_Area,Dummy1</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
-      </PointSet>
-
     <!-- History Sets for Testing -->
     <HistorySet name="allStories">
       <Input>Tw,Dummy1</Input>
@@ -64,21 +45,4 @@
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
 
-      <!-- From Databases -->
-      <HistorySet name="stories1_from_DB">
-        <options>
-          <inputRow>1</inputRow>
-        </options>
-        <Input>pipe_Area</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
-      </HistorySet>
-      <HistorySet name="stories2_from_DB">
-        <options>
-          <inputRow>-1</inputRow>
-          <pivotParameter>time</pivotParameter>
-          <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
-        </options>
-        <Input>pipe_Area</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
-      </HistorySet>
   </DataObjects>
