@@ -123,11 +123,13 @@ class Phisics(CodeInterfaceBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
-    self.outputDeck = -1 # default is the last deck!
+    validPerturbation = ['additive', 'multiplicative', 'absolute']
+    self.perturbXS = validPerturbation[1] # default is cross section perturbation mode
+    setOfPerturbations = set(validPerturbation)
     for child in xmlNode:
-      if child.tag == 'outputDeckNumber':
-        try              : self.outputDeck = int(child.text)
-        except ValueError: raise ValueError("can not convert outputDeckNumber to integer!!!! Got "+ child.text)
+      if child.tag == 'PerturbXS':
+        if child.text.lower() in set(validPerturbation): self.perturbXS = child.text.lower()
+        else: raise ValueError("\n\nThe type of perturbation --"+child.text.lower()+"-- is not valid. You can choose one of the following \n"+"\n".join(set(validPerturbation)))
 
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
