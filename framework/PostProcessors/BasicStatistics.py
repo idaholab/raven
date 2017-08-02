@@ -1095,8 +1095,8 @@ class BasicStatistics(PostProcessor):
       for pivotParamValue in inputAdapted['timeDepData'].keys():
         self.raiseADebug('Pivot Parameter Value: ' + str(pivotParamValue))
         outputDict[pivotParamValue] = self.__runLocal(inputAdapted['timeDepData'][pivotParamValue])
-    
-    
+
+
     return outputDict
 
   def covariance(self, feature, weights = None, rowVar = 1):

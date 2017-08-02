@@ -29,6 +29,16 @@ Each \xmlNode{Input} node has the following attributes:
   directly use this attribute, but it is availabe in the CodeInterface.
   If not provided, defaults to True.
   %
+  
+  \item \xmlAttr{subDirectory}, \xmlDesc{optional string attribute}, sub-directory
+  that should be created in the perturbation process. If specified, the file will be
+  placed in the subdirectory. For example, in a \textit{MultiRun} step using a \textit{MonteCarlo}
+  Sampler, the file will be copied into $workingDir/stepName/\%counter\%/subDirectory$, where $workingDir$
+  is the working directory specified in the \textit{RunInfo} XML block, $stepName$ is the name of the step, 
+  $/\%counter\%$ is the realization identifier (e.g. $1$,$2$, etc.) and $subDirectory$ is the sub-directory here
+  specified.
+  If not provided, defaults to an empty string.
+  %
 \end{itemize}
 \vspace{-5mm}
 For example, if the files \texttt{templateInput.i, materials.i, history.i, mesh.e}

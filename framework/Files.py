@@ -758,6 +758,7 @@ class UserGenerated(File):
     self.setAbsFile(node.text.strip())
     self.__linkedModel = node.attrib.get('linkedCode' ,None)
     self.perturbed     = node.attrib.get('perturbable',True)
+    self.subDirectory  = node.attrib.get('subDirectory',"")
     self.alias         = node.attrib.get('name'       ,self.getFilename())
 
 #
