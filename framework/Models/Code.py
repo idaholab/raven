@@ -269,15 +269,13 @@ class Code(Model):
     """
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
+    self.oriInputFiles = []
     for inputFile in inputFiles:
       subSubDirectory = os.path.join(self.workingDir,inputFile.subDirectory)
       if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
         os.mkdir(subSubDirectory)
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
-    self.oriInputFiles = []
-    for i in range(len(inputFiles)):
-      subSubDirectory = os.path.join(self.workingDir,inputFiles[i].subDirectory)
-      self.oriInputFiles.append(copy.deepcopy(inputFiles[i]))
+      self.oriInputFiles.append(copy.deepcopy(inputFile))
       self.oriInputFiles[-1].setPath(subSubDirectory)
     self.currentInputFiles        = None
     self.outFileRoot              = None
