@@ -51,8 +51,8 @@ class HS2PS(PostProcessorInterfaceBase):
     self.outputFormat = 'PointSet'
 
     self.pivotParameter       = None
-    ''' pivotParameter identify the ID of the temporal variable in the data set; it is used so that in the
-    conversion the time array is not inserted since it is not needed (all histories have same length)'''
+    #pivotParameter identify the ID of the temporal variable in the data set; it is used so that in the
+    #conversion the time array is not inserted since it is not needed (all histories have same length)
     self.features     = 'all'
 
 
