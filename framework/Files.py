@@ -755,9 +755,10 @@ class UserGenerated(File):
     #used to be node.tag, but this caused issues, since many things in raven
     #access "type" directly instead of through an accessor like getType
     self.printTag = self.type+' File'
-    self.setAbsFile(node.text.strip())
     self.__linkedModel = node.attrib.get('linkedCode' ,None)
     self.perturbed     = node.attrib.get('perturbable',True)
+    self.subDirectory  = node.attrib.get('subDirectory',"")
+    self.setAbsFile(os.path.join(self.subDirectory,node.text.strip()))
     self.alias         = node.attrib.get('name'       ,self.getFilename())
 
 #

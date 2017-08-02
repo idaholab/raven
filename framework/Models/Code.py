@@ -269,12 +269,19 @@ class Code(Model):
     """
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
-    for inputFile in inputFiles:
-      shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.oriInputFiles = []
-    for i in range(len(inputFiles)):
-      self.oriInputFiles.append(copy.deepcopy(inputFiles[i]))
-      self.oriInputFiles[-1].setPath(self.workingDir)
+    for inputFile in inputFiles:
+      subSubDirectory = os.path.join(self.workingDir,inputFile.subDirectory)
+      ## Currently, there are no tests that verify the lines below can be hit
+      ## It appears that the folders already exist by the time we get here,
+      ## this could change, so we will leave this code here.
+      ## -- DPM 8/2/17
+      if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
+        os.mkdir(subSubDirectory)
+      ##########################################################################
+      shutil.copy(inputFile.getAbsFile(),subSubDirectory)
+      self.oriInputFiles.append(copy.deepcopy(inputFile))
+      self.oriInputFiles[-1].setPath(subSubDirectory)
     self.currentInputFiles        = None
     self.outFileRoot              = None
 
@@ -308,8 +315,16 @@ class Code(Model):
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
     for index in range(len(newInputSet)):
-      newInputSet[index].setPath(subDirectory)
-      shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
+      subSubDirectory = os.path.join(subDirectory,newInputSet[index].subDirectory)
+      ## Currently, there are no tests that verify the lines below can be hit
+      ## It appears that the folders already exist by the time we get here,
+      ## this could change, so we will leave this code here.
+      ## -- DPM 8/2/17
+      if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
+        os.mkdir(subSubDirectory)
+      ##########################################################################
+      newInputSet[index].setPath(subSubDirectory)
+      shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)
 
     kwargs['subDirectory'] = subDirectory
 
