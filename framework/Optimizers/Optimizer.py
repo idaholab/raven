@@ -634,7 +634,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         if precond is not None:
           self.raiseADebug('Running preconditioner on batch "{}"'.format(precondBatch))
           # TODO someday this might need to be extended when other models or more complex external models are used for precond
-          precond.createNewInput([],'Optimizer')
+          precond.createNewInput([{}],'Optimizer')
           infoDict = {'SampledVars':self.denormalizeData(optPoint)}
           _,(results,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
           # flatten results #TODO breaks for multi-entry arrays
