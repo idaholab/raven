@@ -272,8 +272,13 @@ class Code(Model):
     self.oriInputFiles = []
     for inputFile in inputFiles:
       subSubDirectory = os.path.join(self.workingDir,inputFile.subDirectory)
+      ## Currently, there are no tests that verify the lines below can be hit
+      ## It appears that the folders already exist by the time we get here,
+      ## this could change, so we will leave this code here.
+      ## -- DPM 8/2/17
       if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
         os.mkdir(subSubDirectory)
+      ##########################################################################
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
       self.oriInputFiles[-1].setPath(subSubDirectory)
@@ -311,8 +316,13 @@ class Code(Model):
       os.mkdir(subDirectory)
     for index in range(len(newInputSet)):
       subSubDirectory = os.path.join(subDirectory,newInputSet[index].subDirectory)
+      ## Currently, there are no tests that verify the lines below can be hit
+      ## It appears that the folders already exist by the time we get here,
+      ## this could change, so we will leave this code here.
+      ## -- DPM 8/2/17
       if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
         os.mkdir(subSubDirectory)
+      ##########################################################################
       newInputSet[index].setPath(subSubDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)
 
