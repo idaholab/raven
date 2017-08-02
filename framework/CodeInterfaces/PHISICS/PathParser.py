@@ -10,21 +10,20 @@ from shutil import copyfile
 import fileinput 
 from decimal import Decimal 
 
-import time 
-
 
 class PathParser():
 
   def matrix_printer(self, line, outfile):
-  
-    #print line 
+    """
+      copies the original input file lines, and the pastes (replaces) the perturbed values in the output files
+      In: line, outfile 
+      Out: None 
+    """
     line = re.sub(r'(.*?)(\w+)(-)(\d+M?)',r'\1\2\4',line)
     line = line.upper().split()
     #print line
     if line[0] in self.setOfPerturbedIsotopes:
       try :
-        #print line[1]
-        #print self.listedQValuesDict.get(line[0])
         line[1] = str(self.listedQValuesDict.get(line[0]))
         #print line[1]
       except : 
@@ -34,9 +33,6 @@ class PathParser():
       line[0] = "{0:<7s}".format(line[0])
       line[1] = "{0:<11s}".format(line[1])
       line = ''.join(line[0]+line[1]+"\n")
-      #outfile.writelines(line)
-      #print line 
-      #outfile.writelines(line)
       outfile.writelines(line) 
     if re.search(r'(.*?)END', line[0]):
       self.stopFlag = self.stopFlag + 1
@@ -44,10 +40,9 @@ class PathParser():
           
   def __init__(self, inputFiles, **pertDict):
     """
-      Parse the PHISICS Decay data file and put the isotopes name as key and 
-      the decay constant relative to the isotopes as values  
-      In: decay.dat
-      Out: self.decay (dictionary)
+      takes the input qvalue decay files. changes values into scientific notations.  
+      In: input files, perturbed dictionart 
+      Out: None 
     """
     self.inputFiles = inputFiles
     self.pertQValuesDict = pertDict
@@ -55,30 +50,6 @@ class PathParser():
       self.pertQValuesDict[key] = '%.3E' % Decimal(str(value)) #convert the values into scientific values
     #print self.pertDict
     #print self.inputFiles
-    self.start_time = time.time()
-    self.directory = ""
-    self.pathList = []
-    self.pathListWithQvalue = []
-    self.pathToFileDict = {}
-    #for file in os.listdir(self.directory):
-    #  if file.endswith(".path"):
-    #    #print os.path.join("path", file)
-    #    filePath =  str(os.path.join(self.directory, file))  
-    #    self.pathList.append(filePath)
-    #  self.pathToFileDict[filePath] = file
-    ##print self.pathList
-    ##print self.pathToFileDict 
-    #for i in xrange (0, len(self.pathList)):
-    #  qvalueFlag = 0 
-    #with open(self.inputFile, 'r') as infile:
-    #  for line in infile:
-    #    #print line 
-    #    if re.search(r'Qvalue',line):
-    #      qvalueFlag = 1
-    #      break 
-    #  if qvalueFlag == 1 :
-    #    self.pathListWithQvalue.append(self.pathList[i])
-    #print self.pathListWithQvalue
     self.fileReconstruction() 
     
     
@@ -115,11 +86,7 @@ class PathParser():
       @ In, outfile, string, optional, output file root
       @ Out, None
     """
-    #for i in xrange (0, len(self.pathListWithQvalue)):
-      #print self.pathListWithQvalue[i]
-      #print self.pathToFileDict.get(self.pathListWithQvalue[i]) 
     modifiedFile = 'modif.dat'
-    #modifiedFile = 'modified'+self.pathToFileDict.get(self.pathListWithQvalue[i])  
     #print modifiedFile
     #print "\n"
     sectionCounter = 0
@@ -133,7 +100,6 @@ class PathParser():
             #print line 
             sectionCounter = sectionCounter + 1 
             #print sectionCounter
-          #line = line.upper().split()
           if not line.split(): continue       # if the line is blank, ignore it 
           if sectionCounter == 1 and self.stopFlag == 0:     #actinide section
             self.harcodingSection = 1 
@@ -145,7 +111,10 @@ class PathParser():
           if self.harcodingSection != 1 and self.harcodingSection !=2:
             outfile.writelines(line)
     copyfile('modif.dat', self.inputFiles)
-    print ("--- %s seconds --- " % (time.time() - self.start_time))
+
+    
+
+
 
     
 
