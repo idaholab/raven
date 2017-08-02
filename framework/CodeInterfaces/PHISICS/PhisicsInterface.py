@@ -276,37 +276,19 @@ class Phisics(CodeInterfaceBase):
     driverXML = 'test_phisics_code_interface.xml'
     keyWordDict = self.mapFile(driverXML)
     #print (keyWordDict)
-    tarName = self.tarFiles(directoryFiles)
-    runInfoList = self.getDirInfo(driverXML)
-    #print (int(runInfoList[1]))
-    N = int(runInfoList[1])
-    
-    
-    #print (Kwargs)
-    #print ("\n\n\n\n\n\n")
     perturbedVars = Kwargs['SampledVars']
     distributedPerturbedVars = self.distributeVariablesToParsers(perturbedVars)
-    #print (distributedPerturbedVars)
-    #perturbedVars = {'DECAY|BETA|U235':1.0778}
-    #perturbedVars = {'FUEL1|DENSITY|U234':1.2, 'FUEL1|DENSITY|U235':1.08E+02}
-    #perturbedVars = {'FY|FAST|PU241|SE78':1.2, 'FY|THERMAL|U238|ZN68':1.08E+02, 'FY|THERMAL|U235|ZN66':5.777}
-    #perturbedVars = {'QVALUES|U235':4.5963, 'QVALUES|U238':1.08E+02, 'QVALUES|CF252':7.846}
-    #perturbedVars = {'BETADECAY|U235':4.5963, 'BETADECAY|U238':1.08E+02, 'BETADECAY|CF252':7.846}
-    
-    # NOTE: IF YOU DON'T LIKE OR CAN'T GET THE THE KEYWORDS WIT THE DICTIONARY KEYWORDdICT, I CAN USE GETBASE TO 
-    # OBRAIN THE KEYWORD CORRESPONDING TO THE PARSER OF INTEREST. EXAMPLE: AAA = currentInputFiles[0].getBase()print (AAA)
     for i in distributedPerturbedVars.iterkeys():
-      if i == 'DECAY'    : decayParser        = DecayParser.DecayParser(currentInputFiles[keyWordDict['decay']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'DENSITY'  : materialParser     = MaterialParser.MaterialParser(currentInputFiles[keyWordDict['material']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'FY'       : FissionYieldParser = FissionYieldParser.FissionYieldParser(currentInputFiles[keyWordDict['fissionyield']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'QVALUES'  : QValuesParser      = QValuesParser.QValuesParser(currentInputFiles[keyWordDict['fissqvalue']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'BETADECAY': BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['betadecay']].getAbsFile(), **distributedPerturbedVars[i])
-    
-    tarFiles = currentInputFiles[keyWordDict['dirfiles']].getAbsFile()
-    workDir = currentInputFiles[0].getPath()
-    #print (workDir)
-    self.untarFolders(tarFiles, workDir)
-    self.copyIntoFolders(workDir)
+      if i == 'DECAY'         : decayParser        = DecayParser.DecayParser(currentInputFiles[keyWordDict['decay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'DENSITY'       : materialParser     = MaterialParser.MaterialParser(currentInputFiles[keyWordDict['material']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'FY'            : FissionYieldParser = FissionYieldParser.FissionYieldParser(currentInputFiles[keyWordDict['fissionyield']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'QVALUES'       : QValuesParser      = QValuesParser.QValuesParser(currentInputFiles[keyWordDict['fissqvalue']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'ALPHADECAY'    : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['alphadecay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'BETA+DECAY'    : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['beta+decay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'BETA+XDECAY'   : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['beta+xdecay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'BETADECAY'     : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['betadecay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'BETAXDECAY'    : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['betaxdecay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'INTTRADECAY'  : BetaDecayParser     = PathParser.PathParser(currentInputFiles[keyWordDict['inttradecay']].getAbsFile(), **distributedPerturbedVars[i])
     
     return currentInputFiles
     
