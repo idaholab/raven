@@ -124,7 +124,7 @@ class Phisics(CodeInterfaceBase):
       @ Out, None.
     """
     validPerturbation = ['additive', 'multiplicative', 'absolute']
-    self.perturbXS = validPerturbation[1] # default is cross section perturbation mode
+    self.perturbXS = validPerturbation[1] # default is cross section perturbation multiplicative mode
     setOfPerturbations = set(validPerturbation)
     for child in xmlNode:
       if child.tag == 'PerturbXS':
