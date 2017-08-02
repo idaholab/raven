@@ -9,6 +9,7 @@
       Tests using the limit node with a max on node.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstMLRun</Sequence>
@@ -70,6 +71,7 @@
     <MonteCarlo name="RAVENmc6">
       <samplerInit>
         <limit>6</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
     </MonteCarlo>
   </Samplers>

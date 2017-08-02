@@ -16,6 +16,7 @@
     </revisions>
     <requirements>R-IS-6</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>MCTestBison</WorkingDir>
     <Sequence>CustomSampler,CustomSampler_noalias</Sequence>
@@ -34,8 +35,8 @@
      -->
     <Code name="Bison" subType="MooseBasedApp">
       <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
-      <alias variable="tc_heat1" type="input">Materials|heat1|thermal_conductivity</alias>
-      <alias variable="tc_heat2" type="input">Materials|heat2|thermal_conductivity</alias>
+      <alias type="input" variable="tc_heat1">Materials|heat1|thermal_conductivity</alias>
+      <alias type="input" variable="tc_heat2">Materials|heat2|thermal_conductivity</alias>
     </Code>
     <!-- You can define the code, when there are no alias, in the following way -->
     <Code name="Bison_code_noalias" subType="MooseBasedApp">
@@ -62,6 +63,7 @@
     <MonteCarlo name="Bison1">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="tc_heat1">
         <distribution>FlatHeat1</distribution>

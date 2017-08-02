@@ -5,6 +5,7 @@
     <Sequence>BNmake,BNtrain,BNtest,BNprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/SparseGrid/betanorm</name>
     <author>talbpaul</author>

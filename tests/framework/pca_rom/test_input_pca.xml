@@ -5,6 +5,7 @@
     <Sequence>FirstMRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_rom/inputPCAReduction</name>
     <author>wangc</author>

@@ -9,7 +9,7 @@
       Test of the interfaced post-processor interface
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>interfacedPostProcessor</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
@@ -67,6 +67,7 @@
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>1</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>

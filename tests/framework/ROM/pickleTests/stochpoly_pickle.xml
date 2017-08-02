@@ -5,6 +5,7 @@
     <Sequence>make,train,pkDump,pkLoad,sampleNatural,samplePickle,write</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/stochPolyPickleTest</name>
     <author>talbpaul</author>

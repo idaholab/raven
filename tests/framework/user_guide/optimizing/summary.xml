@@ -42,12 +42,12 @@
         <initialSeed>1234</initialSeed>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
         <initial>-2,-2,2,2</initial>
       </variable>
-      <variable name='y'>
+      <variable name="y">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
         <initial>-2,2,-2,2</initial>

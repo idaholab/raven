@@ -16,72 +16,71 @@
     </revisions>
   </TestInfo>
 
-    <RunInfo>
-      <WorkingDir>ARMAparallel</WorkingDir>
-      <Sequence>read,run,write</Sequence>
-      <batchSize>4</batchSize>
-      <internalParallel>True</internalParallel>
-    </RunInfo>
+  <RunInfo>
+    <WorkingDir>ARMAparallel</WorkingDir>
+    <Sequence>read,run,write</Sequence>
+    <batchSize>4</batchSize>
+    <internalParallel>True</internalParallel>
+  </RunInfo>
 
-    <Files>
-        <Input name="pk">arma.pk</Input>
-    </Files>
+  <Files>
+    <Input name="pk">arma.pk</Input>
+  </Files>
 
-    <Distributions>
-		  <Uniform name="uniDist">
-			  <lowerBound>0</lowerBound>
-			  <upperBound>1</upperBound>
-		  </Uniform>
-	</Distributions>
+  <Distributions>
+    <Uniform name="uniDist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
 
-	<Samplers>
-		<MonteCarlo name="mc">
-			<samplerInit>
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
         <limit>4</limit>
-		    <initialSeed>20021986</initialSeed>
-			</samplerInit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
       <constant name="scaling">1</constant>
     </MonteCarlo>
-	</Samplers>
+  </Samplers>
 
-	<Models>
-    <ROM name='ARMA' subType='pickledROM'/>
+  <Models>
+    <ROM name="ARMA" subType="pickledROM"/>
   </Models>
 
   <Steps>
-    <IOStep name='read'>
-      <Input  class='Files'  type = ''    >pk</Input>
-      <Output class='Models' type = 'ROM' >ARMA</Output>
+    <IOStep name="read">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">ARMA</Output>
     </IOStep>
-		<MultiRun name='run'>
-			<Input  class='DataObjects' type='HistorySet'>dataIn</Input>
-			<Model class='Models' 		  type='ROM' 	 		 >ARMA</Model>
+    <MultiRun name="run">
+      <Input class="DataObjects" type="HistorySet">dataIn</Input>
+      <Model class="Models" type="ROM">ARMA</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="HistorySet">results</Output>
-		</MultiRun>
-    <IOStep name='write'>
-			<Input  class='DataObjects' type='HistorySet'>results</Input>
-			<Output class='OutStreams'  type='Print'>results</Output>
-		</IOStep>
+    </MultiRun>
+    <IOStep name="write">
+      <Input class="DataObjects" type="HistorySet">results</Input>
+      <Output class="OutStreams" type="Print">results</Output>
+    </IOStep>
   </Steps>
 
-    <OutStreams>
-        <Print name = 'results'>
-       <type>csv</type>
-       <source>results</source>
-        </Print>
-	</OutStreams>
+  <OutStreams>
+    <Print name="results">
+      <type>csv</type>
+      <source>results</source>
+    </Print>
+  </OutStreams>
 
-    <DataObjects>
-      <PointSet name="dataIn">
-        <Input>scaling</Input>
-        <Output>OutputPlaceHolder</Output>
-      </PointSet>
-      <HistorySet name="results">
-        <Input>scaling</Input>
-        <Output>Time,Speed</Output>
-      </HistorySet>
-    </DataObjects>
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="results">
+      <Input>scaling</Input>
+      <Output>Time,Speed</Output>
+    </HistorySet>
+  </DataObjects>
+
 </Simulation>
-
-

@@ -13,6 +13,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>TestRattlesnake</WorkingDir>
     <Sequence>MCTest</Sequence>
@@ -53,6 +54,7 @@
     <MonteCarlo name="MC1">
       <samplerInit>
         <limit>10</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="f11">
         <distribution>G1</distribution>

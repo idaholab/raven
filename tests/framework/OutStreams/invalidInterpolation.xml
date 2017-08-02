@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-
   <TestInfo>
     <name>framework/OutStreams.invalidInterpolation</name>
     <author>maljdan</author>
@@ -36,6 +35,7 @@
     <MonteCarlo name="mcSampler">
       <samplerInit>
         <limit>1</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="x">
         <distribution>zeroToOne</distribution>
@@ -47,7 +47,7 @@
   </Samplers>
 
   <OutStreams>
-    <Plot  name="contour" overwrite="false">
+    <Plot name="contour" overwrite="false">
       <filename>contour</filename>
       <plotSettings>
         <plot>
@@ -61,7 +61,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="surface" overwrite="false">
+    <Plot name="surface" overwrite="false">
       <filename>surface</filename>
       <plotSettings>
         <plot>
@@ -75,7 +75,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="trisurface" overwrite="false">
+    <Plot name="trisurface" overwrite="false">
       <filename>trisurface</filename>
       <plotSettings>
         <plot>
@@ -89,7 +89,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="wireframe" overwrite="false">
+    <Plot name="wireframe" overwrite="false">
       <filename>wireframe</filename>
       <plotSettings>
         <plot>
@@ -103,7 +103,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="pseudocolor" overwrite="false">
+    <Plot name="pseudocolor" overwrite="false">
       <filename>pseudocolor</filename>
       <plotSettings>
         <plot>

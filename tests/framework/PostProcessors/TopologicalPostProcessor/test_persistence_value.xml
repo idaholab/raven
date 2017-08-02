@@ -10,9 +10,9 @@
        where we select a persistence level based on the standard notion of the
        function value difference between the extrema and its nearest valued
        neighboring critical point. That is, larger peaks and valleys will
-       persist longer than smaller "noisy" features. This is the standard
+       persist longer than smaller &quot;noisy&quot; features. This is the standard
        definition of persistence used in Morse topology. Note, that all of the
-       "persistence" tests will use the Schwefel function for testing.
+       &quot;persistence&quot; tests will use the Schwefel function for testing.
     </description>
     <revisions>
       <revision author="cogljj" date="2015-09-29">Modifying external modules to use relative to working directory.</revision>
@@ -24,6 +24,7 @@
       <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>

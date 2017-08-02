@@ -50,15 +50,15 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <relativeThreshold>1e-6</relativeThreshold>
-          <gradientThreshold>1e-2</gradientThreshold>
+        <relativeThreshold>1e-6</relativeThreshold>
+        <gradientThreshold>1e-2</gradientThreshold>
       </convergence>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>3</upperBound>
         <lowerBound>-2</lowerBound>
         <initial>-2,-2,0,3,3</initial>
       </variable>
-      <variable name='y'>
+      <variable name="y">
         <upperBound>3</upperBound>
         <lowerBound>-2</lowerBound>
         <initial>-2,3,0,-2,3</initial>

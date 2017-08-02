@@ -5,6 +5,7 @@
     <Sequence>make,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers.prerunReseed1</name>
     <author>talbpaul</author>
@@ -44,6 +45,7 @@
     <MonteCarlo name="mc">
       <samplerInit>
         <limit>15</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="x1">
         <distribution>u1</distribution>

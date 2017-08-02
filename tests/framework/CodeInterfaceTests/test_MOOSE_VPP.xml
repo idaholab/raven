@@ -7,7 +7,7 @@
     <classesTested>Models.Code.MooseBasedApp</classesTested>
     <description>
        An example of using the MooseBasedApp code interface.
-       This test is designed to ensure the MooseBasedApp interface is able to process vectorial data (sample vectors)    
+       This test is designed to ensure the MooseBasedApp interface is able to process vectorial data (sample vectors)
     </description>
     <revisions>
       <revision author="alfoa" date="2015-10-09">Changing batch size in RAVEN test</revision>
@@ -17,6 +17,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <!--Moose Interface Test
   This test is designed to ensure the Moose interface runs correctly.
   It will only run if a modules-$METHOD executable is found.
@@ -68,8 +69,8 @@
     <Code name="MOOSETestApp" subType="MooseBasedApp">
       <executable>%FRAMEWORK_DIR%/../../moose/modules/combined/modules-%METHOD%</executable>
       <fileargs arg="_J_1_" type="MooseVPP"/>
-      <alias variable="poissonsRatio" type="input">Materials|stiffStuff|poissons_ratio</alias>
-      <alias variable="youngModulus" type="input">Materials|stiffStuff|youngs_modulus</alias>
+      <alias type="input" variable="poissonsRatio">Materials|stiffStuff|poissons_ratio</alias>
+      <alias type="input" variable="youngModulus">Materials|stiffStuff|youngs_modulus</alias>
     </Code>
   </Models>
 

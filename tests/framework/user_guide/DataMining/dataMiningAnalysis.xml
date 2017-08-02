@@ -1,10 +1,12 @@
-<Simulation verbosity="debug" color="True">
+<?xml version="1.0" ?>
+<Simulation color="True" verbosity="debug">
   <RunInfo>
     <JobName>dataMiningAnalysis</JobName>
     <WorkingDir>dataMiningAnalysis</WorkingDir>
     <Sequence>sampleMC,kmeans,pca</Sequence>
     <batchSize>8</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/user_guide/DataMining/dataMiningAnalysis</name>
     <author>talbpw</author>
@@ -112,71 +114,71 @@
 
   <OutStreams>
     <Print name="samplesDump">
-        <type>csv</type>
-        <source>samples</source>
+      <type>csv</type>
+      <source>samples</source>
     </Print>
     <Plot name="PlotKMeans1" overwrite="false">
-        <plotSettings>
-            <gridSpace>3 1</gridSpace>
-            <plot>
-                <type>dataMining</type>
-                <SKLtype>cluster</SKLtype>
-                <clusterLabels>samples|Output|klabels</clusterLabels>
-                <noClusters>2</noClusters>
-                <x>samples|Input|sigma-A</x>
-                <y>samples|Output|A</y>
-                <gridLocation>
-                    <x>0</x>
-                    <y>0</y>
-                </gridLocation>
-                <range>
-                  <xmin>0</xmin>
-                  <xmax>1000</xmax>
-                  <ymin>0</ymin>
-                  <ymax>1</ymax>
-                </range>
-            </plot>
-            <plot>
-                <type>dataMining</type>
-                <SKLtype>cluster</SKLtype>
-                <clusterLabels>samples|Output|klabels</clusterLabels>
-                <noClusters>2</noClusters>
-                <x>samples|Input|decay-A</x>
-                <y>samples|Output|A</y>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <range>
-                  <xmin>1e-8</xmin>
-                  <xmax>1e-7</xmax>
-                  <ymin>0</ymin>
-                  <ymax>1</ymax>
-                </range>
-            </plot>
-            <plot>
-                <type>dataMining</type>
-                <SKLtype>cluster</SKLtype>
-                <clusterLabels>samples|Output|klabels</clusterLabels>
-                <noClusters>2</noClusters>
-                <x>samples|Input|sigma-B</x>
-                <y>samples|Output|B</y>
-                <gridLocation>
-                    <x>2</x>
-                    <y>0</y>
-                </gridLocation>
-                <range>
-                  <xmin>0</xmin>
-                  <xmax>1000</xmax>
-                </range>
-            </plot>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <plotSettings>
+        <gridSpace>3 1</gridSpace>
+        <plot>
+          <type>dataMining</type>
+          <SKLtype>cluster</SKLtype>
+          <clusterLabels>samples|Output|klabels</clusterLabels>
+          <noClusters>2</noClusters>
+          <x>samples|Input|sigma-A</x>
+          <y>samples|Output|A</y>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <range>
+            <xmin>0</xmin>
+            <xmax>1000</xmax>
+            <ymin>0</ymin>
+            <ymax>1</ymax>
+          </range>
+        </plot>
+        <plot>
+          <type>dataMining</type>
+          <SKLtype>cluster</SKLtype>
+          <clusterLabels>samples|Output|klabels</clusterLabels>
+          <noClusters>2</noClusters>
+          <x>samples|Input|decay-A</x>
+          <y>samples|Output|A</y>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <range>
+            <xmin>1e-8</xmin>
+            <xmax>1e-7</xmax>
+            <ymin>0</ymin>
+            <ymax>1</ymax>
+          </range>
+        </plot>
+        <plot>
+          <type>dataMining</type>
+          <SKLtype>cluster</SKLtype>
+          <clusterLabels>samples|Output|klabels</clusterLabels>
+          <noClusters>2</noClusters>
+          <x>samples|Input|sigma-B</x>
+          <y>samples|Output|B</y>
+          <gridLocation>
+            <x>2</x>
+            <y>0</y>
+          </gridLocation>
+          <range>
+            <xmin>0</xmin>
+            <xmax>1000</xmax>
+          </range>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot name="PlotLabels" overwrite="false">
       <plotSettings>
@@ -190,12 +192,12 @@
           <z>samples|Input|decay-A</z>
         </plot>
       </plotSettings>
-        <actions>
-          <how>png</how>
-          <title>
-            <text> </text>
-          </title>
-        </actions>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot name="PlotPCA1" overwrite="false">
       <plotSettings>
@@ -208,12 +210,12 @@
           <y>samples|Output|PCA1Dimension2</y>
         </plot>
       </plotSettings>
-        <actions>
-          <how>png</how>
-          <title>
-            <text> </text>
-          </title>
-        </actions>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
   </OutStreams>
 

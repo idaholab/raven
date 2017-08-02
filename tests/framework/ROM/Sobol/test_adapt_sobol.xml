@@ -5,6 +5,7 @@
     <Sequence>make,train,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/AdaptiveSobol</name>
     <author>talbpaul</author>

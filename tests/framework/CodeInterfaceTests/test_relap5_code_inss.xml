@@ -6,7 +6,7 @@
     <created>2016-07-21</created>
     <classesTested>Models.Code.Relap5inssJp</classesTested>
     <description>
-       An example of using the RELAP5 code interface (modified version of INSS (Japan)). 
+       An example of using the RELAP5 code interface (modified version of INSS (Japan)).
        This test is aimed to test the mechanics of the interface (no executable), that perturbs the RELAP5 input deck
        and the auxiliary file that the RELAP5 version by INSS reads.
     </description>
@@ -17,6 +17,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>RELAP5interfaceTestModifiedVersionINSS</WorkingDir>
     <Sequence>INSS_RELAP5_step,io_test</Sequence>
@@ -33,13 +34,13 @@
   <Models>
     <Code name="INSS_JP_RELAP5test" subType="Relap5inssJp">
       <executable> </executable>
-      <!-- 
+      <!--
         The following clarg variable is used to add customized commands to add to the
         running command of the code. For example, it can be used to define a customized
         restart file name like in the following
         Note: If it is not provided, RELAP5 is going to look for the defaul file name for RESTART calculations
        -->
-      <clargs type="text" arg="-r dummy_restart_file_with_custom_name.r"/>
+      <clargs arg="-r dummy_restart_file_with_custom_name.r" type="text"/>
     </Code>
   </Models>
 
@@ -80,31 +81,24 @@
         <limit>4</limit>
         <initialSeed>509</initialSeed>
       </samplerInit>
-  
-       <variable name="1060110:3">
+      <variable name="1060110:3">
         <distribution>distribution008</distribution>
       </variable>
       <variable name="3060110:3">
         <distribution>distribution008</distribution>
       </variable>
-
-    
       <variable name="modelpar004">
         <distribution>distribution004</distribution>
       </variable>
-    
-      
       <variable name="modelpar005">
         <distribution>distribution005</distribution>
       </variable>
-  
       <variable name="modelpar009">
         <distribution>distribution009</distribution>
       </variable>
       <variable name="modelpar010">
         <distribution>distribution010</distribution>
       </variable>
-
     </MonteCarlo>
   </Samplers>
 
@@ -262,7 +256,7 @@
   </OutStreams>
 
   <Steps>
-    <MultiRun name="INSS_RELAP5_step" re-seeding="1"  >
+    <MultiRun name="INSS_RELAP5_step" re-seeding="1">
       <Input class="Files" type="">h25_rosa5sb10C005d2K3m_tr.i</Input>
       <Input class="Files" type="">dummy_restart_file_with_custom_name.r</Input>
       <Input class="Files" type="">modelpar.inp</Input>
@@ -270,17 +264,17 @@
       <Model class="Models" type="Code">INSS_JP_RELAP5test</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc_loca</Sampler>
       <Output class="Databases" type="HDF5">INSS_RELAP5_database</Output>
-      <Output class="DataObjects" type="PointSet" >samples</Output>
-      <Output class="DataObjects" type="HistorySet" >histories</Output>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
     <IOStep name="io_test" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">samples</Input>
       <Input class="DataObjects" type="HistorySet">histories</Input>
-      <Output class="OutStreams" type="Print" >samples</Output>
-      <Output class="OutStreams" type="Print" >histories</Output>
-      <Output class="OutStreams" type="Plot" >historyPlot</Output>
-      <Output class="OutStreams" type="Plot" >samplePlot</Output>
-    </IOStep>    
+      <Output class="OutStreams" type="Print">samples</Output>
+      <Output class="OutStreams" type="Print">histories</Output>
+      <Output class="OutStreams" type="Plot">historyPlot</Output>
+      <Output class="OutStreams" type="Plot">samplePlot</Output>
+    </IOStep>
   </Steps>
 
 </Simulation>

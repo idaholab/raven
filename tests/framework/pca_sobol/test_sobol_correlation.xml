@@ -5,6 +5,7 @@
     <batchSize>1</batchSize>
     <Sequence>sample,train,print</Sequence>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_sobol/test_sobol_poly_correlation</name>
     <author>wangc</author>
@@ -15,7 +16,7 @@
       using correlated multivariate normal distributions.
     </description>
     <analytic>
-      This test is analytic in mean and variance using the "attenuation" and "tensor polynomial" analytic models
+      This test is analytic in mean and variance using the &quot;attenuation&quot; and &quot;tensor polynomial&quot; analytic models
       documented in the analytic tests.
     </analytic>
   </TestInfo>

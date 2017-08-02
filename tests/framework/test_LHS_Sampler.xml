@@ -24,6 +24,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>LHStest</WorkingDir>
     <Sequence>myLHS,LHS_1D</Sequence>
@@ -81,6 +82,9 @@
         <distribution>Uniform</distribution>
         <grid construction="equal" steps="10" type="value">1000 1001</grid>
       </variable>
+      <samplerInit>
+        <initialSeed>66</initialSeed>
+      </samplerInit>
     </Stratified>
   </Samplers>
 

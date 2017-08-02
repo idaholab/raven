@@ -5,6 +5,7 @@
     <Sequence>FirstMRun,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/printXml</name>
     <author>talbpaul</author>
@@ -51,6 +52,7 @@
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>4</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>

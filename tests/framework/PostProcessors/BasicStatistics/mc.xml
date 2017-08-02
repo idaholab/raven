@@ -5,6 +5,7 @@
     <Sequence>SamplingMirrowModelMC,PP1mc</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/mc</name>
     <author>alfoa</author>
@@ -47,6 +48,7 @@
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>1000</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="x">
         <distribution>x0_distrib</distribution>

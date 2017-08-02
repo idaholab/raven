@@ -7,7 +7,7 @@
     <classesTested>Samplers.DynamicEventTree, Models.Code</classesTested>
     <description>
        An example of using the Dynamic Event Tree Methodology (Hybrid Dynamic Event Tree) with an external Code (RELAP7 in this case).
-       This test is a fast executing one that is aimed to check the mechanics of the DET methodology, when epistemic uncertanties 
+       This test is a fast executing one that is aimed to check the mechanics of the DET methodology, when epistemic uncertanties
        need to be modeled.
     </description>
     <revisions>
@@ -20,6 +20,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>HybridDynamicEventTree</WorkingDir>
     <Sequence>HybridDETrunTest,testOutstreamStep</Sequence>
@@ -126,7 +127,7 @@
       <source>Pointset</source>
       <what>Output,Input|dummy_for_branch</what>
     </Print>
-    <Plot  interactive="false" name="2DHistoryPlot" overwrite="true">
+    <Plot interactive="false" name="2DHistoryPlot" overwrite="true">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -146,7 +147,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot  interactive="false" name="2DHistoryPlot_tps" overwrite="true">
+    <Plot interactive="false" name="2DHistoryPlot_tps" overwrite="true">
       <plotSettings>
         <plot>
           <type>scatter</type>

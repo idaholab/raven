@@ -1,6 +1,7 @@
-<ReducedOrderModel>
+<ROM type="Static">
   <ans>
     <mean>0.619272293852</mean>
+    <expectedValue>0.619272293852</expectedValue>
     <variance>0.0160715187013</variance>
     <samples>13</samples>
     <polyCoeffs>
@@ -12,20 +13,20 @@
       <_1_1_>0.0127240499096</_1_1_>
       <_2_0_>0.00565886740338</_2_0_>
     </polyCoeffs>
-    <indices>
-      <tot_variance>0.0160715187013</tot_variance>
-      <variables>x2
-        <partial_variance>0.00795480862761</partial_variance>
-        <Sobol_index>0.494963094369</Sobol_index>
-      </variables>
-      <variables>x1
-        <partial_variance>0.00795480862761</partial_variance>
-        <Sobol_index>0.494963094369</Sobol_index>
-      </variables>
-      <variables>x1,x2
-        <partial_variance>0.000161901446102</partial_variance>
-        <Sobol_index>0.0100738112627</Sobol_index>
-      </variables>
-    </indices>
+    <partialVariance>
+      <x2>0.00795480862761</x2>
+      <x1>0.00795480862761</x1>
+      <x1.x2>0.000161901446102</x1.x2>
+    </partialVariance>
+    <sobolIndices>
+      <x2>0.494963094369</x2>
+      <x1>0.494963094369</x1>
+      <x1.x2>0.0100738112627</x1.x2>
+    </sobolIndices>
+    <sobolTotalIndices>
+      <x2>0.505036905631</x2>
+      <x1>0.505036905631</x1>
+      <x1.x2>0.0100738112627</x1.x2>
+    </sobolTotalIndices>
   </ans>
-</ReducedOrderModel>
+</ROM>

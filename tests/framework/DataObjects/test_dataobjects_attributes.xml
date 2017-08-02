@@ -6,7 +6,7 @@
     <created>2016-06-23</created>
     <classesTested>DataObjects.PointSet, DataObjects.HistorySet</classesTested>
     <description>
-       Test to check the functionalities of DataObjects preprocess the data applying simple 
+       Test to check the functionalities of DataObjects preprocess the data applying simple
        operator (e.g. max value, average, min value, etc.), in the $options$ XML node.
     </description>
     <revisions>
@@ -14,6 +14,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>DataobjectsAttributes</WorkingDir>
     <Sequence>TestDataObjectAttributes,TestDataObjectAttributesFromDataBase</Sequence>

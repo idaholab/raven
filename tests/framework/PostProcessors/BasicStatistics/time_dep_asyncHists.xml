@@ -5,6 +5,7 @@
     <Sequence>FirstMRun,syncronizeHistorySetStep,timeDepBasicStatPP,FirstMRunEnsemble,syncronizeHistorySetStepEnsemble,timeDepBasicStatPPEnsemble</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/timeDependentAsyncHistories</name>
     <author>alfoa</author>

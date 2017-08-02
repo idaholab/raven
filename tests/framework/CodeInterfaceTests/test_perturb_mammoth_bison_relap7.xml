@@ -6,7 +6,7 @@
     <created>2016-08-29</created>
     <classesTested>Models.Code.MAMMOTH, Models.AliasSystem</classesTested>
     <description>
-       An example of using the MAMMOTH code interface (no executable). It checks Bison and RELAP7. 
+       An example of using the MAMMOTH code interface (no executable). It checks Bison and RELAP7.
        This test is designed to ensure the MAMMOTH interface mechanics is correctly functional.
        In addition it used the RAVEN alias system.
     </description>
@@ -17,6 +17,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>MammothInterface/Bison_Relap7</WorkingDir>
     <Sequence>MCTestMammoth,print</Sequence>
@@ -34,7 +35,7 @@
         <!--  /path/to/mammoth/executable -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
-      <alias variable='init_liq_temp' type="input">Relap7@GlobalParams|initial_T_liquid</alias>
+      <alias type="input" variable="init_liq_temp">Relap7@GlobalParams|initial_T_liquid</alias>
     </Code>
   </Models>
 
@@ -57,6 +58,7 @@
     <MonteCarlo name="MC1">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="init_liq_temp">
         <distribution>G1</distribution>

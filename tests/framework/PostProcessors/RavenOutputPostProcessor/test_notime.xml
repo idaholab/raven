@@ -5,6 +5,7 @@
     <Sequence>basic,basicpp,coll,colltrain,collprint,pp</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/RavenOutputPostProcessor.static</name>
     <author>talbpaul</author>
@@ -60,6 +61,7 @@
     <MonteCarlo name="mc">
       <samplerInit>
         <limit>5</limit>
+        <initialSeed>42</initialSeed>
       </samplerInit>
       <variable name="x1">
         <distribution>uni</distribution>

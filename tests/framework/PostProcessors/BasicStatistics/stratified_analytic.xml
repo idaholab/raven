@@ -5,6 +5,7 @@
     <Sequence>SamplingMirrowModelStratified,PP1Stratified</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/grid_analytic</name>
     <author>alfoa</author>
@@ -53,6 +54,9 @@
         <distribution>y0_distrib</distribution>
         <grid construction="equal" steps="500" type="CDF">0.0001 0.9999</grid>
       </variable>
+      <samplerInit>
+        <initialSeed>66</initialSeed>
+      </samplerInit>
     </Stratified>
   </Samplers>
 

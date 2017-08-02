@@ -5,6 +5,7 @@
     <Sequence>make,train,print,print2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_adaptive_sgc/test_adaptive_sgc_pca_analytic</name>
     <author>wangc</author>

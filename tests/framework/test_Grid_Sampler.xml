@@ -6,7 +6,7 @@
     <created>2013-10-15</created>
     <classesTested>Sampler.Grid</classesTested>
     <description>
-       This test is aimed to check the capability in RAVEN to employ a Grid sampling strategy. Since the goal of the test is to testify 
+       This test is aimed to check the capability in RAVEN to employ a Grid sampling strategy. Since the goal of the test is to testify
        that the Grid sampling strategy is functional, a Dummy model is used.
     </description>
     <revisions>
@@ -22,6 +22,7 @@
     </revisions>
     <requirements>R-RE-3</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>GridTest</WorkingDir>
     <Sequence>CustomSampler</Sequence>
@@ -67,8 +68,8 @@
         <grid construction="equal" steps="1" type="value">3.5 4.0</grid>
       </variable>
       <variable name="TestOnePoint">
-          <distribution>DistTri1</distribution>
-          <grid construction="custom" type="CDF">0.5</grid>
+        <distribution>DistTri1</distribution>
+        <grid construction="custom" type="CDF">0.5</grid>
       </variable>
     </Grid>
   </Samplers>

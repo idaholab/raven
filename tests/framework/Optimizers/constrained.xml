@@ -59,16 +59,16 @@
       <Function class="Functions" type="External">mishra</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <gradientThreshold>1e-2</gradientThreshold>
-          <gainGrowthFactor>2</gainGrowthFactor>
-          <gainShrinkFactor>1.25</gainShrinkFactor>
+        <gradientThreshold>1e-2</gradientThreshold>
+        <gainGrowthFactor>2</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>0</upperBound>
         <lowerBound>-10</lowerBound>
         <initial>-3,-6,-9</initial>
       </variable>
-      <variable name='y'>
+      <variable name="y">
         <upperBound>0</upperBound>
         <lowerBound>-6</lowerBound>
         <initial>-5,-1.5,-2.5</initial>

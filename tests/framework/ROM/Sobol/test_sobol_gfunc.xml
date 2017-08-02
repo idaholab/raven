@@ -5,6 +5,7 @@
     <Sequence>make,train,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/sobolGFunction</name>
     <author>talbpaul</author>
@@ -15,7 +16,7 @@
     </description>
     <analytic>
       dumprom.xml has analytic mean and variance, but is poorly converged for this model.  It is documented
-      in the analytic test documentation under "Sobol G-Function"
+      in the analytic test documentation under &quot;Sobol G-Function&quot;
     </analytic>
   </TestInfo>
 

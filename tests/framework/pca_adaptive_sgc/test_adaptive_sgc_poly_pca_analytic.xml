@@ -5,6 +5,7 @@
     <batchSize>1</batchSize>
     <Sequence>sample,train,print,stats</Sequence>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_adaptive_sgc</name>
     <author>wangc</author>
@@ -15,7 +16,7 @@
       using uncorrelated multivariate normal distributions.
     </description>
     <analytic>
-      This test is analytic in mean and variance using the "tensor polynomial" analytic model
+      This test is analytic in mean and variance using the &quot;tensor polynomial&quot; analytic model
       documented in the analytic tests.
     </analytic>
   </TestInfo>

@@ -5,6 +5,7 @@
     <Sequence>modelRun,computeRank</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_grid/importanceRankAbsCov</name>
     <author>wangc</author>

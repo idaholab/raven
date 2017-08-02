@@ -8,6 +8,7 @@
     <WorkingDir>StatisticalAnalysis</WorkingDir>
     <batchSize>40</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/user_guide/StatisticalAnalysis/StatisticalAnalysis</name>
     <author>talbpw</author>
@@ -41,14 +42,14 @@
   </Models>
 
   <Distributions>
-      <Uniform name="sigma">
-          <lowerBound>0</lowerBound>
-          <upperBound>1000</upperBound>
-      </Uniform>
-      <Uniform name="decayConstant">
-          <lowerBound>0.00000001</lowerBound>
-          <upperBound>0.0000001</upperBound>
-      </Uniform>
+    <Uniform name="sigma">
+      <lowerBound>0</lowerBound>
+      <upperBound>1000</upperBound>
+    </Uniform>
+    <Uniform name="decayConstant">
+      <lowerBound>0.00000001</lowerBound>
+      <upperBound>0.0000001</upperBound>
+    </Uniform>
   </Distributions>
 
   <Samplers>
@@ -64,26 +65,26 @@
         <distribution>decayConstant</distribution>
       </variable>
       <variable name="sigma-B">
-          <distribution>sigma</distribution>
+        <distribution>sigma</distribution>
       </variable>
       <variable name="decay-B">
-          <distribution>decayConstant</distribution>
+        <distribution>decayConstant</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
 
   <Steps>
     <MultiRun name="sampleMC">
-      <Input   class="Files"       type="input">referenceInput.xml</Input>
-      <Model   class="Models"      type="Code">testModel</Model>
-      <Sampler class="Samplers"    type="MonteCarlo">mc</Sampler>
-      <Output  class="DataObjects" type="PointSet">samplesMC</Output>
-      <Output  class="DataObjects" type="HistorySet">histories</Output>
+      <Input class="Files" type="input">referenceInput.xml</Input>
+      <Model class="Models" type="Code">testModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">samplesMC</Output>
+      <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
     <PostProcess name="statisticalAnalysisMC">
-      <Input  class="DataObjects" type="PointSet">samplesMC</Input>
-      <Model  class="Models"      type="PostProcessor">statisticalAnalysis</Model>
-      <Output class="Files"       type="">output_stat_analysis_mc.xml</Output>
+      <Input class="DataObjects" type="PointSet">samplesMC</Input>
+      <Model class="Models" type="PostProcessor">statisticalAnalysis</Model>
+      <Output class="Files" type="">output_stat_analysis_mc.xml</Output>
     </PostProcess>
   </Steps>
 
@@ -93,8 +94,8 @@
       <Output>A,B,C,D</Output>
     </PointSet>
     <HistorySet name="histories">
-        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-        <Output>A,B,C,D,time</Output>
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>A,B,C,D,time</Output>
     </HistorySet>
   </DataObjects>
 

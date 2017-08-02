@@ -13,6 +13,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>GridTestSameHDF5</WorkingDir>
     <Sequence>test_extract,MonteCarloRestarted,test_push</Sequence>
@@ -64,8 +65,8 @@
         <grid construction="equal" steps="1" type="value">3.5 4.0</grid>
       </variable>
       <variable name="TestOnePoint">
-          <distribution>DistTri1</distribution>
-          <grid construction="custom" type="CDF">0.5</grid>
+        <distribution>DistTri1</distribution>
+        <grid construction="custom" type="CDF">0.5</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -99,14 +100,14 @@
       <Output class="OutStreams" type="Print">outGridAverage_dump</Output>
     </IOStep>
     <IOStep name="test_push">
-        <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
-        <Output class="DataObjects" type="HistorySet">stories2</Output>
-        <Output class="OutStreams" type="Print">stories2_dump</Output>
+      <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
+      <Output class="DataObjects" type="HistorySet">stories2</Output>
+      <Output class="OutStreams" type="Print">stories2_dump</Output>
     </IOStep>
   </Steps>
 
   <Databases>
-    <HDF5 name="test_DummyModel_db" directory="../GridTest/DatabaseStorage" readMode="read"/>
+    <HDF5 directory="../GridTest/DatabaseStorage" name="test_DummyModel_db" readMode="read"/>
   </Databases>
 
   <OutStreams>
@@ -126,7 +127,7 @@
       <type>csv</type>
       <source>outGridAverage</source>
     </Print>
-     <Print name="outGridMaxFromHDF5_dump">
+    <Print name="outGridMaxFromHDF5_dump">
       <type>csv</type>
       <source>outGridMaxFromHDF5</source>
     </Print>
@@ -139,8 +140,8 @@
       <source>outGridAverageFromHDF5</source>
     </Print>
     <Print name="stories2_dump">
-        <type>csv</type>
-        <source>stories2</source>
+      <type>csv</type>
+      <source>stories2</source>
     </Print>
   </OutStreams>
 
@@ -196,11 +197,9 @@
       <Output>OutputPlaceHolder</Output>
     </HistorySet>
     <HistorySet name="stories2">
-        <Input>VarGauss1,VarGauss2,VarTri1</Input>
-        <Output>OutputPlaceHolder</Output>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
     </HistorySet>
-
-
   </DataObjects>
 
 </Simulation>

@@ -5,6 +5,7 @@
     <Sequence>load,compare,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers.noseed</name>
     <author>talbpaul</author>
@@ -14,7 +15,6 @@
       Checks that not specifying a seed for MC results in two different data sets.
     </description>
   </TestInfo>
-
 
   <Files>
     <Input name="first">first.csv</Input>

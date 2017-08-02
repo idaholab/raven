@@ -6,7 +6,7 @@
     <created>2015-03-04</created>
     <classesTested>Distributions.NDInverseWeight, Distrubtions.NDCartesianSpline, Samplers.Grid</classesTested>
     <description>
-       This test is aimed to check the capability of RAVEN to handle ND probability density functions (distributions), when 
+       This test is aimed to check the capability of RAVEN to handle ND probability density functions (distributions), when
        a Grid sampling strategy is performed. In this case, the capability to construct marginal distributions (for each uncertanties of
        the ND distribution domain), when the discretization is performed in CDF.
     </description>
@@ -18,7 +18,7 @@
       <revision author="senrs" date="2015-05-18">update the test cases</revision>
       <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
       <revision author="talbpaul" date="2015-07-06">standardization of tests</revision>
-      <revision author="talbpaul" date="2015-07-06">Revert "standardization of tests"        This reverts commit 68099325e8daba0f756179a20b5c75ba651cb62d.</revision>
+      <revision author="talbpaul" date="2015-07-06">Revert &quot;standardization of tests&quot;        This reverts commit 68099325e8daba0f756179a20b5c75ba651cb62d.</revision>
       <revision author="talbpaul" date="2015-07-06">updated tests, added script</revision>
       <revision author="talbpaul" date="2015-07-07">updated to restrict partial-node comments</revision>
       <revision author="talbpaul" date="2015-07-07">standardized tests</revision>
@@ -39,6 +39,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>ND_test_Grid_cdf</WorkingDir>
     <Sequence>FirstMRun</Sequence>

@@ -9,6 +9,7 @@
       Tests mixtures with the GMM model.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>GaussianMixture</WorkingDir>
     <Sequence>readIn,GaussianMixtureBlobs,output</Sequence>
@@ -63,7 +64,7 @@
       <type>csv</type>
       <source>clusterInfo</source>
     </Print>
-    <Plot  name="PlotGaussianMixtureBlobs" overwrite="false">
+    <Plot name="PlotGaussianMixtureBlobs" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

@@ -7,7 +7,7 @@
     <classesTested>Models.Code.MAAP5, Samplers.AdaptiveDynamicEventTree</classesTested>
     <description>
        An example of using the the Model Code of type MAAP5.
-       This test is aimed to test the mechanics of the MAAP5 interface when used with the 
+       This test is aimed to test the mechanics of the MAAP5 interface when used with the
        Adaptive Dynamic Event Tree methodology.
     </description>
     <revisions>
@@ -17,6 +17,7 @@
       <revision author="maljdan" date="2017-05-03">Reducing batch size to ensure consistent execution path</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <batchSize>1</batchSize>
     <WorkingDir>MAAP5_adaptiveDET_test</WorkingDir>
@@ -29,11 +30,10 @@
     <Input name="plot_900_502a.txt" type="">plot_900_502a.txt</Input>
   </Files>
 
-
   <Models>
     <Code name="MyMAAP" subType="MAAP5">
-      <executable></executable>         
-      <clargs type='input' extension='.inp'/>
+      <executable/>
+      <clargs extension=".inp" type="input"/>
       <boolMaapOutputVariables>IEVNT(691)</boolMaapOutputVariables>
       <contMaapOutputVariables>PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1),FAIL</contMaapOutputVariables>
       <stopSimulation>mission_time</stopSimulation>
@@ -91,7 +91,7 @@
       <Output class="DataObjects" type="PointSet">adaptiveOutsimple</Output>
       <Output class="OutStreams" type="Print">limitSurfDump</Output>
       <Output class="OutStreams" type="Print">adaptiveOutsimpleDump</Output>
-   </MultiRun>
+    </MultiRun>
   </Steps>
 
   <OutStreams>
@@ -118,4 +118,5 @@
       <Output>FAIL</Output>
     </PointSet>
   </DataObjects>
+
 </Simulation>

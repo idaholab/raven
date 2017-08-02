@@ -5,6 +5,7 @@
     <Sequence>Nmake,Nprint1,Ntrain,Ntest,Nprint2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_sparseGrid/MVNCorrelated</name>
     <author>wangc</author>

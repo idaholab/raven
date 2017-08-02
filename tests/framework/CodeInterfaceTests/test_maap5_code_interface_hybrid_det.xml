@@ -7,7 +7,7 @@
     <classesTested>Models.Code.MAAP5, Samplers.DynamicEventTree</classesTested>
     <description>
        An example of using the the Model Code of type MAAP5.
-       This test is aimed to test the mechanics of the MAAP5 interface when used with the 
+       This test is aimed to test the mechanics of the MAAP5 interface when used with the
        Dynamic Event Tree (Hybrid Dynamic Event Tree) methodology.
     </description>
     <revisions>
@@ -19,6 +19,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>MAAP5_HybridDET_test</WorkingDir>
     <Sequence>testDummyStep</Sequence>
@@ -59,6 +60,7 @@
       <HybridSampler type="MonteCarlo">
         <samplerInit>
           <limit>2</limit>
+          <initialSeed>66</initialSeed>
         </samplerInit>
         <variable name="ZCRU">
           <distribution>normal</distribution>

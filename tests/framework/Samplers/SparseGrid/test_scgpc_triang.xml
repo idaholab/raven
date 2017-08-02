@@ -5,6 +5,7 @@
     <Sequence>Tmake,Ttrain,Ttest,Tprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/SparseGrid/triang</name>
     <author>talbpaul</author>

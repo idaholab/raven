@@ -9,6 +9,7 @@
       Tests clustering using the Agglomerative model.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>Agglomerative</WorkingDir>
     <Sequence>input,cluster,output</Sequence>
@@ -60,8 +61,7 @@
       <source>data</source>
       <what>Output|labels</what>
     </Print>
-
-    <Plot  name="plot" overwrite="false">
+    <Plot name="plot" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

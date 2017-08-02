@@ -13,6 +13,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>ensembleModelAliased</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
@@ -34,16 +35,16 @@
   <Models>
     <ExternalModel ModuleToLoad="EM1linear" name="heatTransfer" subType="">
       <variables>anAliasForLeftTemperatureInHeatTransfer,anAliasForRightTemperatureInHeatTransferr,anAliasForKInHeatTransfer,anAliasForSolutionInHeatTransfer</variables>
-      <alias variable="leftTemperature" type="input">anAliasForLeftTemperatureInHeatTransfer</alias>
-      <alias variable="rightTemperature" type="input">anAliasForRightTemperatureInHeatTransferr</alias>
-      <alias variable="k" type="input">anAliasForKInHeatTransfer</alias>
-      <alias variable="solution" type="output">anAliasForSolutionInHeatTransfer</alias>
+      <alias type="input" variable="leftTemperature">anAliasForLeftTemperatureInHeatTransfer</alias>
+      <alias type="input" variable="rightTemperature">anAliasForRightTemperatureInHeatTransferr</alias>
+      <alias type="input" variable="k">anAliasForKInHeatTransfer</alias>
+      <alias type="output" variable="solution">anAliasForSolutionInHeatTransfer</alias>
     </ExternalModel>
     <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
       <variables>anAliasForLeftTemperatureInThermalConductivityComputation,anAliasForRightTemperatureInThermalConductivityComputation,anAliasForKInThermalConductivityComputation,averageTemperature</variables>
-      <alias variable="leftTemperature" type="input">anAliasForLeftTemperatureInThermalConductivityComputation</alias>
-      <alias variable="rightTemperature" type="input">anAliasForRightTemperatureInThermalConductivityComputation</alias>
-      <alias variable="k" type="output">anAliasForKInThermalConductivityComputation</alias>
+      <alias type="input" variable="leftTemperature">anAliasForLeftTemperatureInThermalConductivityComputation</alias>
+      <alias type="input" variable="rightTemperature">anAliasForRightTemperatureInThermalConductivityComputation</alias>
+      <alias type="output" variable="k">anAliasForKInThermalConductivityComputation</alias>
     </ExternalModel>
     <EnsembleModel name="heatTransferEnsembleModel" subType="">
       <Model class="Models" type="ExternalModel">
@@ -106,7 +107,7 @@
       <type>csv</type>
       <source>metaModelOutputTest</source>
     </Print>
-    <Plot   name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
+    <Plot name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -134,7 +135,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot   name="metaModelOutputTestK" overwrite="false" verbosity="debug">
+    <Plot name="metaModelOutputTestK" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>

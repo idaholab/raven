@@ -10,6 +10,7 @@
       putting the node parameter in the MPIExec block.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstMFRun</Sequence>
@@ -74,6 +75,7 @@
     <MonteCarlo name="RAVENmc6">
       <samplerInit>
         <limit>6</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
     </MonteCarlo>
   </Samplers>

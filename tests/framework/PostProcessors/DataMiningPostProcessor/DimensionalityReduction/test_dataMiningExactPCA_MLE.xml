@@ -11,6 +11,7 @@
       See Issue #649
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>ExactPCA</WorkingDir>
     <Sequence>readIn,PCAIris,output</Sequence>
@@ -23,7 +24,7 @@
 
   <Models>
     <PostProcessor name="PCA" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn" labelFeature='component'>
+      <KDD labelFeature="component" lib="SciKitLearn">
         <Features>x1,x2,x3,x4</Features>
         <SKLtype>decomposition|PCA</SKLtype>
         <n_components>mle</n_components>
@@ -72,7 +73,7 @@
           <y>DataSets|Output|component2</y>
           <z>DataSets|Output|component3</z>
           <colorMap>DataSets|Input|labels</colorMap>
-          <kwargs></kwargs>
+          <kwargs/>
         </plot>
         <xlabel>Principal Component 1</xlabel>
         <ylabel>Principal Component 2</ylabel>

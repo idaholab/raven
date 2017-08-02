@@ -5,6 +5,7 @@
     <Sequence>stratifiedRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_LHS/stratifiedCdf</name>
     <author>wangc</author>

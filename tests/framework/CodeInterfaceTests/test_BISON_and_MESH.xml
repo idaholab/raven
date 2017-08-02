@@ -26,6 +26,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <!--BisonAndMesh Interface Test
   This test is designed to ensure the BisonAndMesh interface runs correctly.
   It will only run if a BISON executable is found.  At this time, a check is
@@ -104,10 +105,10 @@
     <Code name="Bison-opt" subType="BisonAndMesh">
       <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
       <preexec>%FRAMEWORK_DIR%/../../bison/tools/UO2/mesh_script.py</preexec>
-      <alias variable="pellet_radius" type="input">Cubit@Pellet1|outer_radius</alias>
-      <alias variable="clad_thickness" type="input">Cubit@clad|clad_thickness</alias>
-      <alias variable="fuel_k" type="input">Materials|fuel_thermal|thermal_conductivity</alias>
-      <alias variable="clad_k" type="input">Materials|clad_thermal|thermal_conductivity</alias>
+      <alias type="input" variable="pellet_radius">Cubit@Pellet1|outer_radius</alias>
+      <alias type="input" variable="clad_thickness">Cubit@clad|clad_thickness</alias>
+      <alias type="input" variable="fuel_k">Materials|fuel_thermal|thermal_conductivity</alias>
+      <alias type="input" variable="clad_k">Materials|clad_thermal|thermal_conductivity</alias>
     </Code>
   </Models>
 

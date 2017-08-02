@@ -5,6 +5,7 @@
     <Sequence>make1k,print,load,print2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/Restart/LoadFromLargeCSV</name>
     <author>talbpaul</author>

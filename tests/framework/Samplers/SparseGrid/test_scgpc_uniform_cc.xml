@@ -5,6 +5,7 @@
     <Sequence>UCmake,UCtrain,UCtest,UCprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/SparseGrid/uniform_cc</name>
     <author>talbpaul</author>

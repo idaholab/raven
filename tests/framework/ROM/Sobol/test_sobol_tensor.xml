@@ -5,6 +5,7 @@
     <Sequence>make,train,test,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/staticSobolRomSmolyak</name>
     <author>talbpaul</author>

@@ -5,6 +5,7 @@
     <Sequence>SamplingMirrowModelBoxBehnkenRespDesign,SamplingMirrowModelCentralCompositeRespDesign,PP1BoxBehnkenRespDesign,PP1CentralCompositeRespDesign</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/responseSurfaceDoE_analytic</name>
     <author>alfoa</author>

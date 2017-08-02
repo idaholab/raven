@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
     <name>framework/PostProcessors/TopologicalPostProcessor.interactive_UI</name>
@@ -16,6 +16,7 @@
       <revision author="maljdan" date="2017-05-09">Adding this test to the automated system.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>
@@ -25,11 +26,11 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel name='test' subType='' ModuleToLoad = '../GaussianPeaks'>
+    <ExternalModel ModuleToLoad="../GaussianPeaks" name="test" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
     <!-- Nearest neighbor -->
-    <PostProcessor name='AMSC_NN' subType='TopologicalDecomposition'>
+    <PostProcessor name="AMSC_NN" subType="TopologicalDecomposition">
       <graph>Approximate KNN</graph>
       <gradient>steepest</gradient>
       <knn>9</knn>
@@ -38,7 +39,7 @@
       <response>Z</response>
       <simplification>1.0</simplification>
       <persistence>difference</persistence>
-      <interactive />
+      <interactive/>
     </PostProcessor>
   </Models>
 
@@ -66,18 +67,18 @@
 
   <Steps>
     <!-- Sample the data from the test function -->
-    <MultiRun name="sampleData" sleepTime='1e-5'>
-      <Input   class="DataObjects" type="PointSet"         >dummyIN</Input>
-      <Model   class="Models"      type="ExternalModel"    >test</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"       >sampler</Sampler>
-      <Output  class="DataObjects" type="PointSet"         >testData</Output>
+    <MultiRun name="sampleData" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">test</Model>
+      <Sampler class="Samplers" type="MonteCarlo">sampler</Sampler>
+      <Output class="DataObjects" type="PointSet">testData</Output>
     </MultiRun>
     <!-- Perform the topological decomposition -->
     <PostProcess name="decomposeNN">
-      <Input  class="DataObjects"      type="PointSet"     >testData</Input>
-      <Model  class="Models"           type="PostProcessor">AMSC_NN</Model>
-      <Output class="DataObjects"      type="PointSet"     >outNN</Output>
-      <Output class="OutStreams"       type="Print"        >segNN</Output>
+      <Input class="DataObjects" type="PointSet">testData</Input>
+      <Model class="Models" type="PostProcessor">AMSC_NN</Model>
+      <Output class="DataObjects" type="PointSet">outNN</Output>
+      <Output class="OutStreams" type="Print">segNN</Output>
     </PostProcess>
   </Steps>
 

@@ -5,6 +5,7 @@
     <Sequence>makeCoarse,printCoarse,load,makeRestart,printRestart</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/Restart/Truncated/Scaled</name>
     <author>@talbpaul</author>

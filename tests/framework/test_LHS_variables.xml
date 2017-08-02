@@ -6,9 +6,9 @@
     <created>2015-10-22</created>
     <classesTested>Sampler.Stratified</classesTested>
     <description>
-       This test is aimed to check the capability in RAVEN to employ a Stratified sampling strategy (LHS- equally spaced in CDF). 
-       Since the goal of the test is to testify 
-       that the Stratified sampling strategy is functional, a Dummy model is used. 
+       This test is aimed to check the capability in RAVEN to employ a Stratified sampling strategy (LHS- equally spaced in CDF).
+       Since the goal of the test is to testify
+       that the Stratified sampling strategy is functional, a Dummy model is used.
     </description>
     <revisions>
       <revision author="cogljj" date="2015-10-29">Moving comment to third line and removing #</revision>
@@ -17,6 +17,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <!-- This test is used to prevent the issue number 319 -->
   <RunInfo>
     <WorkingDir>LHStestVariables</WorkingDir>

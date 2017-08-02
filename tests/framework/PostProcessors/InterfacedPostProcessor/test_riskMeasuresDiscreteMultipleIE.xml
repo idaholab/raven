@@ -9,98 +9,98 @@
       Tests of the four risk importance measures for multiple IEs: Risk Achievement Worth (RAW), Risk Reduction Worth (RRW), Birnbaum (B) and Fussell-Vesely (FV)
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>RiskMeasuresDiscreteMultipleIE</WorkingDir>
     <Sequence>Run1,Run2,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-  
+
   <Models>
-    <ExternalModel name='model1' subType='' ModuleToLoad='model1'>
+    <ExternalModel ModuleToLoad="model1" name="model1" subType="">
       <variables>Astatus,Bstatus,Cstatus,outcome</variables>
     </ExternalModel>
-    <ExternalModel name='model2' subType='' ModuleToLoad='model2'>
+    <ExternalModel ModuleToLoad="model2" name="model2" subType="">
       <variables>Bstatus,Cstatus,Dstatus,outcome</variables>
     </ExternalModel>
     <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
       <method>riskMeasuresDiscrete</method>
       <measures>B,FV,RAW,RRW</measures>
-      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Astatus</variable>
-      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Bstatus</variable>
-      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Cstatus</variable>
-      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Dstatus</variable>
-      <target   values='0.9,1.1'>outcome</target>
-      <data     freq='0.01'>outRun1</data>
-      <data     freq='0.02'>outRun2</data>
-    </PostProcessor>   
+      <variable R0values="0.9,1.1" R1values="-0.1,0.1">Astatus</variable>
+      <variable R0values="0.9,1.1" R1values="-0.1,0.1">Bstatus</variable>
+      <variable R0values="0.9,1.1" R1values="-0.1,0.1">Cstatus</variable>
+      <variable R0values="0.9,1.1" R1values="-0.1,0.1">Dstatus</variable>
+      <target values="0.9,1.1">outcome</target>
+      <data freq="0.01">outRun1</data>
+      <data freq="0.02">outRun2</data>
+    </PostProcessor>
   </Models>
 
   <Distributions>
-    <Bernoulli name='Adist'>
+    <Bernoulli name="Adist">
       <p>0.01</p>
     </Bernoulli>
-    <Bernoulli name='Bdist'>
+    <Bernoulli name="Bdist">
       <p>0.05</p>
     </Bernoulli>
-    <Bernoulli name='Cdist'>
+    <Bernoulli name="Cdist">
       <p>0.1</p>
     </Bernoulli>
-    <Bernoulli name='Ddist'>
+    <Bernoulli name="Ddist">
       <p>0.02</p>
     </Bernoulli>
   </Distributions>
 
   <Samplers>
-    <Grid name='Grid1'>
-      <variable name='Astatus'>
+    <Grid name="Grid1">
+      <variable name="Astatus">
         <distribution>Adist</distribution>
-        <grid type='value' construction='custom'>0.0 1.0</grid>
+        <grid construction="custom" type="value">0.0 1.0</grid>
       </variable>
-      <variable name='Bstatus'>
+      <variable name="Bstatus">
         <distribution>Bdist</distribution>
-        <grid type='value' construction='custom'>0.0 1.0</grid>
+        <grid construction="custom" type="value">0.0 1.0</grid>
       </variable>
-      <variable name='Cstatus'>
+      <variable name="Cstatus">
         <distribution>Cdist</distribution>
-        <grid type='value' construction='custom'>0.0 1.0</grid>
+        <grid construction="custom" type="value">0.0 1.0</grid>
       </variable>
     </Grid>
-    <Grid name='Grid2'>
-      <variable name='Bstatus'>
+    <Grid name="Grid2">
+      <variable name="Bstatus">
         <distribution>Bdist</distribution>
-        <grid type='value' construction='custom'>0.0 1.0</grid>
+        <grid construction="custom" type="value">0.0 1.0</grid>
       </variable>
-      <variable name='Cstatus'>
+      <variable name="Cstatus">
         <distribution>Cdist</distribution>
-        <grid type='value' construction='custom'>0.0 1.0</grid>
+        <grid construction="custom" type="value">0.0 1.0</grid>
       </variable>
-      <variable name='Dstatus'>
+      <variable name="Dstatus">
         <distribution>Ddist</distribution>
-        <grid type='value' construction='custom'>0.0 1.0</grid>
+        <grid construction="custom" type="value">0.0 1.0</grid>
       </variable>
     </Grid>
   </Samplers>
 
   <Steps>
     <MultiRun name="Run1" pauseAtEnd="True">
-      <Input   class="DataObjects"  type="PointSet"        >inputPlaceHolder1</Input>
-      <Model   class="Models"       type="ExternalModel"   >model1</Model>
-      <Sampler class="Samplers"     type="Grid"            >Grid1</Sampler>
-      <Output  class="DataObjects"  type="PointSet"        >outRun1</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder1</Input>
+      <Model class="Models" type="ExternalModel">model1</Model>
+      <Sampler class="Samplers" type="Grid">Grid1</Sampler>
+      <Output class="DataObjects" type="PointSet">outRun1</Output>
     </MultiRun>
     <MultiRun name="Run2" pauseAtEnd="True">
-      <Input   class="DataObjects"  type="PointSet"        >inputPlaceHolder2</Input>
-      <Model   class="Models"       type="ExternalModel"   >model2</Model>
-      <Sampler class="Samplers"     type="Grid"            >Grid2</Sampler>
-      <Output  class="DataObjects"  type="PointSet"        >outRun2</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">model2</Model>
+      <Sampler class="Samplers" type="Grid">Grid2</Sampler>
+      <Output class="DataObjects" type="PointSet">outRun2</Output>
     </MultiRun>
     <PostProcess name="PP">
-      <Input   class="DataObjects"  type="PointSet"        >outRun1</Input>
-      <Input   class="DataObjects"  type="PointSet"        >outRun2</Input>
-      <Model   class="Models"       type="PostProcessor"   >riskMeasuresDiscrete</Model>
-      <Output  class="DataObjects"  type="PointSet"        >outPPS</Output>
-      <Output  class="OutStreams"   type="Print"           >PrintPPS_dump</Output>
+      <Input class="DataObjects" type="PointSet">outRun1</Input>
+      <Input class="DataObjects" type="PointSet">outRun2</Input>
+      <Model class="Models" type="PostProcessor">riskMeasuresDiscrete</Model>
+      <Output class="DataObjects" type="PointSet">outPPS</Output>
+      <Output class="OutStreams" type="Print">PrintPPS_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -110,7 +110,7 @@
       <source>outPPS</source>
     </Print>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder1">
       <Input>Astatus,Bstatus,Cstatus</Input>
@@ -135,5 +135,5 @@
               Astatus_RRW , Bstatus_RRW , Cstatus_RRW , Dstatus_RRW</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>
