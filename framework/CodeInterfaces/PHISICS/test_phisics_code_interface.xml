@@ -32,7 +32,7 @@
     <Input name="BetaxDecay.path"     type="BetaxDecay"       perturbable="True" subDirectory="path"          >BetaxDecay.path</Input>
     <Input name="IntTraDecay.path"    type="IntTraDecay"      perturbable="True" subDirectory="path"          >IntTraDecay.path</Input>
     <Input name="ISOTXS000007"        type="isoXS"            perturbable="False"                             >ISOTXS000007</Input>
-    <Input name="1"                   type="allFilePath"      perturbable="False"          >*</Input>
+    <!--Input name="1"                   type="allFilePath"      perturbable="False" subDirectory="path"      >*</Input-->
     <!--Input name="2"                   type="allFileLib_fiss"  perturbable="False" subDirectory="library_fiss" >*</Input-->
     <!--Input name="3"                   type="allFileinput_dpl" perturbable="False" subDirectory="input_dpl"    >*</Input-->
   </Files>
@@ -69,13 +69,43 @@
       <upperBound>0.015</upperBound>
       <lowerBound>0.025</lowerBound>
     </Normal>
-    <Normal name="BETADECAY|U234_distrib">
+    <Normal name="QVALUES|B10_distrib">
       <mean>0.02</mean>
       <sigma>0.001</sigma>
       <upperBound>0.015</upperBound>
       <lowerBound>0.025</lowerBound>
     </Normal>
-    <Normal name="QVALUES|B10_distrib">
+    <Normal name="ALPHADECAY|U234_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+      <upperBound>0.015</upperBound>
+      <lowerBound>0.025</lowerBound>
+    </Normal>
+    <Normal name="BETA+DECAY|NB93_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+      <upperBound>0.015</upperBound>
+      <lowerBound>0.025</lowerBound>
+    </Normal>
+    <Normal name="BETA+XDECAY|U234_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+      <upperBound>0.015</upperBound>
+      <lowerBound>0.025</lowerBound>
+    </Normal>
+    <Normal name="BETADECAY|MO95_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+      <upperBound>0.015</upperBound>
+      <lowerBound>0.025</lowerBound>
+    </Normal>
+    <Normal name="BETAXDECAY|U234_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+      <upperBound>0.015</upperBound>
+      <lowerBound>0.025</lowerBound>
+    </Normal>
+    <Normal name="INTTRADECAY|U234_distrib">
       <mean>0.02</mean>
       <sigma>0.001</sigma>
       <upperBound>0.015</upperBound>
@@ -100,11 +130,26 @@
       <variable name="DENSITY|FUEL1|U238">
         <distribution>DENSITY|FUEL1|U238_distrib</distribution>
       </variable>
-      <variable name="BETADECAY|U234">
-        <distribution>BETADECAY|U234_distrib</distribution>
-      </variable>
       <variable name="QVALUES|B10">
         <distribution>QVALUES|B10_distrib</distribution>
+      </variable>
+      <variable name="ALPHADECAY|U234">
+        <distribution>ALPHADECAY|U234_distrib</distribution>
+      </variable>
+      <variable name="BETA+DECAY|NB93">
+        <distribution>BETA+DECAY|NB93_distrib</distribution>
+      </variable>
+      <variable name="BETA+XDECAY|U234">
+        <distribution>BETA+XDECAY|U234_distrib</distribution>
+      </variable>
+      <variable name="BETADECAY|MO95">
+        <distribution>BETADECAY|MO95_distrib</distribution>
+      </variable>
+      <variable name="BETAXDECAY|U234">
+        <distribution>BETAXDECAY|U234_distrib</distribution>
+      </variable>
+      <variable name="INTTRADECAY|U234">
+        <distribution>INTTRADECAY|U234_distrib</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
@@ -119,7 +164,6 @@
       <Input class="Files" type="">Xs-Library.xml</Input>
       <Input class="Files" type="">FissionYield.dat</Input>
       <Input class="Files" type="">FissQValue.dat</Input>
-      <Input class="Files" type="">BetaDecay.path</Input>
       <Input class="Files" type="">AlphaDecay.path</Input>
       <Input class="Files" type="">Beta+Decay.path</Input>
       <Input class="Files" type="">Beta+xDecay.path</Input>
@@ -127,9 +171,9 @@
       <Input class="Files" type="">BetaxDecay.path</Input>
       <Input class="Files" type="">IntTraDecay.path</Input>
       <Input class="Files" type="">ISOTXS000007</Input>
-      <Input class="Files" type="">1</Input>
-      <Input class="Files" type="">2</Input>
-      <Input class="Files" type="">3</Input>
+      <!--Input class="Files" type="">1</Input-->
+      <!--Input class="Files" type="">2</Input-->
+      <!--Input class="Files" type="">3</Input-->
            
       <Model class="Models" type="Code">PHISICS</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
@@ -152,7 +196,7 @@
 
 <DataObjects>
     <PointSet name="outputPointSet">
-      <Input>DECAY|BETA|U235,FY|FAST|U235|ZN67,DENSITY|FUEL1|U235,DENSITY|FUEL1|U238,BETADECAY|U234,QVALUES|B10</Input>
+      <Input>DECAY|BETA|U235,FY|FAST|U235|ZN67,DENSITY|FUEL1|U235,DENSITY|FUEL1|U238,BETADECAY|MO95,QVALUES|B10, ALPHADECAY|U234, BETA+DECAY|NB93, BETA+XDECAY|U234, BETAXDECAY|U234, INTTRADECAY|U234</Input>
       <Output>keff</Output>
     </PointSet>
 </DataObjects>
@@ -162,3 +206,4 @@
   </Databases>
 
 </Simulation>
+
