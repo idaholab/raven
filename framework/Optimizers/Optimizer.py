@@ -423,6 +423,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if cls != 'Models' or typ != 'ExternalModel':
         self.raiseAnError(IOError,'Currently only "ExternalModel" models can be used as preconditioners! Got "{}.{}" for "{}".'.format(cls,typ,name))
       self.preconditioners[name] = model
+      model.initialize({},[])
 
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
     # check if the TargetEvaluation feature and target spaces are consistent
@@ -632,6 +633,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         precond = self.mlPreconditioners.get(precondBatch,None)
         if precond is not None:
           self.raiseADebug('Running preconditioner on batch "{}"'.format(precondBatch))
+          # TODO someday this might need to be extended when other models or more complex external models are used for precond
+          precond.createNewInput([{}],'Optimizer')
           infoDict = {'SampledVars':self.denormalizeData(optPoint)}
           _,(results,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
           # flatten results #TODO breaks for multi-entry arrays

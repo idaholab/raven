@@ -140,9 +140,9 @@ class Dummy(Model):
 
     if 'SampledVars' in kwargs.keys():
       sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
+      for key in kwargs['SampledVars'].keys():
+        inputDict[key] = np.atleast_1d(kwargs['SampledVars'][key])
 
-    for key in kwargs['SampledVars'].keys():
-      inputDict[key] = np.atleast_1d(kwargs['SampledVars'][key])
     for val in inputDict.values():
       if val is None:
         self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found a None input variable '+ str(inputDict.items()))
