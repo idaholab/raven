@@ -347,40 +347,89 @@ class DataMining(PostProcessor):
       elif self.unSupervisedEngine.getDataMiningType() in ['decomposition','manifold']:
         self.labelFeature = self.name+'Dimension'
 
-  def collectOutput(self, finishedJob, output):
+  def collectOutput(self, finishedJob, outputObject):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob, JobHandler External or Internal instance, A JobHandler
         object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed
-        results
-      @ Out, None
+      @ InOut, outputObject, dataObjects, A reference to an object where we want
+        to place our computed results
     """
     ## When does this actually happen?
     if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    dataMineDict = finishedJob.getEvaluation()[1]
+
+    inputObject, dataMineDict = finishedJob.getEvaluation()
+
+    ## This should not have to be a list
+    ## TODO: figure out if there is a case where it can be in this processor
+    inputObject = inputObject[0]
+
+
+    ## Store everything we cannot wrangle from the input data object and the
+    ## result of the dataMineDict
+    missingKeys = []
+
+    ## First copy any data you need from the input object
+    ## before adding new data
+    if outputObject.type == 'PointSet':
+      for key in outputObject.getParaKeys('Input')+outputObject.getParaKeys('Output'):
+        column = None
+        if key in inputObject.getParaKeys('Input'):
+          column = copy.copy(inputObject.getParam('Input', key))
+        elif key in inputObject.getParaKeys('Output'):
+          column = copy.copy(inputObject.getParam('Output', key))
+
+        if column is None:
+          missingKeys.append(key)
+        else:
+          for value in column:
+            if key in outputObject.getParaKeys('Input'):
+              outputObject.updateInputValue(key, value)
+            else:
+              outputObject.updateOutputValue(key, value)
+    elif outputObject.type == 'HistorySet':
+      ## Ask Diego what is happening below
+      if self.PreProcessor is not None or self.metric is not None:
+        pass
+      else:
+        pass
+          # historyKey = outputObject.getOutParametersValues().keys()
+          # for index, keyH in enumerate(historyKey):
+          #   for keyL in dataMineDict['outputs'].keys():
+          #     outputObject.updateOutputValue([keyH,keyL], dataMineDict['outputs'][keyL][index,:])
+
     for key in dataMineDict['outputs']:
-      for param in output.getParaKeys('output'):
+      if key in missingKeys:
+        missingKeys.remove(key)
+      for param in outputObject.getParaKeys('output'):
         if key == param:
-          output.removeOutputValue(key)
-      if output.type == 'PointSet':
+          outputObject.removeOutputValue(key)
+      if outputObject.type == 'PointSet':
         for value in dataMineDict['outputs'][key]:
-          output.updateOutputValue(key, copy.copy(value))
-      elif output.type == 'HistorySet':
+          outputObject.updateOutputValue(key, copy.copy(value))
+      elif outputObject.type == 'HistorySet':
         if self.PreProcessor is not None or self.metric is not None:
           for index,value in np.ndenumerate(dataMineDict['outputs'][key]):
-            firstHist = output._dataContainer['outputs'].keys()[0]
-            firstVar  = output._dataContainer['outputs'][index[0]+1].keys()[0]
-            timeLength = output._dataContainer['outputs'][index[0]+1][firstVar].size
+            firstHist = outputObject._dataContainer['outputs'].keys()[0]
+            firstVar  = outputObject._dataContainer['outputs'][index[0]+1].keys()[0]
+            timeLength = outputObject._dataContainer['outputs'][index[0]+1][firstVar].size
             arrayBase = value * np.ones(timeLength)
-            output.updateOutputValue([index[0]+1,key], arrayBase)
+            outputObject.updateOutputValue([index[0]+1,key], arrayBase)
         else:
-          tlDict = finishedJob.getEvaluation()[1]
-          historyKey = output.getOutParametersValues().keys()
+          historyKey = outputObject.getOutParametersValues().keys()
           for index, keyH in enumerate(historyKey):
-            for keyL in tlDict['outputs'].keys():
-              output.updateOutputValue([keyH,keyL], tlDict['outputs'][keyL][index,:])
+            for keyL in dataMineDict['outputs'].keys():
+              outputObject.updateOutputValue([keyH,keyL], dataMineDict['outputs'][keyL][index,:])
+
+    if len(missingKeys) > 0:
+      missingKeys = ','.join(missingKeys)
+      self.raiseAWarning("The {} \"{}\" used as an output specifies the "
+                         "following inputs/outputs that could not be resolved "
+                         "by the \"{}\" {}: {}".format(outputObject.type,
+                                                       outputObject.name,
+                                                       self.name, "Model",
+                                                       missingKeys))
 
   def run(self, inputIn):
     """
@@ -390,6 +439,7 @@ class DataMining(PostProcessor):
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
     Input = self.inputToInternal(inputIn)
+
     if type(inputIn) == list:
       currentInput = inputIn[-1]
     else:
