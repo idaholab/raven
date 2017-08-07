@@ -106,6 +106,7 @@ class EnsembleModel(Dummy):
         # number of allower entries
         allowedEntriesLen = len(self.modelsDictionary[modelName].keys())
         for childChild in child:
+          # FIXME: 'metadataToTransfer' is not documented in the user manual
           if childChild.tag.strip() == 'metadataToTransfer':
             # metadata that needs to be transfered from a source model into this model
             # list(metadataToTranfer, ModelSource,Alias (optional))
@@ -118,7 +119,7 @@ class EnsembleModel(Dummy):
             except AttributeError:
               self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
             except KeyError:
-              self.raiseAnError(IOError, 'The role '+str(childChild.tag) +" can not be used in the EnsebleModel. Check the manual for allowable nodes!")
+              self.raiseAnError(IOError, 'The role '+str(childChild.tag) +" can not be used in the EnsembleModel. Check the manual for allowable nodes!")
         if self.modelsDictionary[modelName].values().count(None) != 1:
           self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
         if len(self.modelsDictionary[modelName]['Input']) == 0:
