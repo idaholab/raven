@@ -365,40 +365,67 @@ class DataMining(PostProcessor):
     ## TODO: figure out if there is a case where it can be in this processor
     inputObject = inputObject[0]
 
-
     ## Store everything we cannot wrangle from the input data object and the
     ## result of the dataMineDict
     missingKeys = []
 
-    ## First copy any data you need from the input object
-    ## before adding new data
-    if outputObject.type == 'PointSet':
-      for key in outputObject.getParaKeys('Input')+outputObject.getParaKeys('Output'):
-        column = None
-        if key in inputObject.getParaKeys('Input'):
-          column = copy.copy(inputObject.getParam('Input', key))
-        elif key in inputObject.getParaKeys('Output'):
-          column = copy.copy(inputObject.getParam('Output', key))
+    ############################################################################
+    ## If the input data object is different from the output data object, we
+    ## need to explicitly copy everything over that the user requests from the
+    ## input object
+    if inputObject != outputObject:
 
-        if column is None:
-          missingKeys.append(key)
-        else:
-          for value in column:
-            if key in outputObject.getParaKeys('Input'):
-              outputObject.updateInputValue(key, value)
-            else:
-              outputObject.updateOutputValue(key, value)
-    elif outputObject.type == 'HistorySet':
-      ## Ask Diego what is happening below
-      if self.PreProcessor is not None or self.metric is not None:
-        pass
-      else:
-        pass
-          # historyKey = outputObject.getOutParametersValues().keys()
-          # for index, keyH in enumerate(historyKey):
-          #   for keyL in dataMineDict['outputs'].keys():
-          #     outputObject.updateOutputValue([keyH,keyL], dataMineDict['outputs'][keyL][index,:])
+      ## First copy any data you need from the input object
+      ## before adding new data
+      if outputObject.type == 'PointSet':
+        for key in outputObject.getParaKeys('Input')+outputObject.getParaKeys('Output'):
+          column = None
+          if key in inputObject.getParaKeys('Input'):
+            column = copy.copy(inputObject.getParam('Input', key))
+          elif key in inputObject.getParaKeys('Output'):
+            column = copy.copy(inputObject.getParam('Output', key))
 
+          if column is None:
+            missingKeys.append(key)
+          else:
+            for value in column:
+              if key in outputObject.getParaKeys('Input'):
+                outputObject.updateInputValue(key, value)
+              else:
+                outputObject.updateOutputValue(key, value)
+      elif outputObject.type == 'HistorySet':
+        ## This should really be fixed. Copying from a HistorySet should not
+        ## have a different use of the same API as copying a PointSet, the
+        ## way this data is stored internally seems to be bleeding over into
+        ## other parts of the code making everything else less maintainable
+        ## -- DPM 7/Aug/2017
+        for key in outputObject.getParaKeys('Input')+outputObject.getParaKeys('Output'):
+          column = None
+          if key in inputObject.getParaKeys('Input'):
+            column = {}
+            for historyIdx in inputObject.getParametersValues('inputs').keys():
+              column[historyIdx] = copy.copy(inputObject.getParam('Input', historyIdx)[key])
+            # column = copy.copy(inputObject.getParam('Input', key))
+          elif key in inputObject.getParaKeys('Output'):
+            column = {}
+            for historyIdx in inputObject.getParametersValues('outputs').keys():
+              column[historyIdx] = copy.copy(inputObject.getParam('Output', historyIdx)[key])
+            # column = copy.copy(inputObject.getParam('Output', key))
+
+          if column is None:
+            missingKeys.append(key)
+          else:
+            for historyIdx,value in column.items():
+              if key in outputObject.getParaKeys('Input'):
+                outputObject.updateInputValue([historyIdx,key], value[-1])
+              else:
+                outputObject.updateOutputValue([historyIdx,key], value)
+    ## End data copy
+    ############################################################################
+
+    ############################################################################
+    ## Now augment the DataObject by adding the computed labels and/or
+    ## transformed coordinates aka the new columns added to the DataObject
     for key in dataMineDict['outputs']:
       if key in missingKeys:
         missingKeys.remove(key)
@@ -421,6 +448,8 @@ class DataMining(PostProcessor):
           for index, keyH in enumerate(historyKey):
             for keyL in dataMineDict['outputs'].keys():
               outputObject.updateOutputValue([keyH,keyL], dataMineDict['outputs'][keyL][index,:])
+    ## End data augmentation
+    ############################################################################
 
     if len(missingKeys) > 0:
       missingKeys = ','.join(missingKeys)

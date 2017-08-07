@@ -1805,7 +1805,6 @@ class OutStreamPlot(OutStreamManager):
                   ## resize the points
                   dataMiningPlotOptions['s'] /= 2
                   ## and hollow out their markers
-                  faceColors = dataMiningPlotOptions['facecolors']
                   if 'facecolors' in dataMiningPlotOptions:
                     faceColors = dataMiningPlotOptions['facecolors']
                   else:
