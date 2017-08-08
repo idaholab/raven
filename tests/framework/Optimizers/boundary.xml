@@ -58,7 +58,7 @@
       <variable name='x'>
         <upperBound>2</upperBound>
         <lowerBound>1</lowerBound>
-        <intial>1.5</intial>
+        <intiial>1.5</initial>
       </variable>
       <objectVar>ans</objectVar>
     </SPSA>
