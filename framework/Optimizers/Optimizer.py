@@ -293,8 +293,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
     if self.fullOptVars is None:
       self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
-    else:
-      self.fullOptVars.sort()
+    self.fullOptVars.sort()
     if self.optTraj is None:
       self.optTraj = [0]
     for varname in self.fullOptVars:
@@ -302,17 +301,20 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.raiseAnError(IOError, 'Upper bound for '+varname+' is not provided' )
       if varname not in self.optVarsInit['lowerBound'].keys():
         self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
-      if varname not in self.optVarsInit['initial'].keys():
-        self.optVarsInit['initial'][varname] = {}
-        for trajInd in self.optTraj:
-          self.optVarsInit['initial'][varname][trajInd] = (self.optVarsInit['upperBound'][varname]+self.optVarsInit['lowerBound'][varname])/2.0
-      else:
-        for trajInd in self.optTraj:
-          initVal =  self.optVarsInit['initial'][varname][trajInd]
-          if initVal < self.optVarsInit['lowerBound'][varname] or initVal > self.optVarsInit['upperBound'][varname]:
-            self.raiseAnError(IOError,"The initial value for variable "+varname+" and trajectory "+str(trajInd) +" is outside the domain identified by the lower and upper bounds!")
-      if len(self.optTraj) != len(self.optVarsInit['initial'][varname].keys()):
-        self.raiseAnError(ValueError, 'Number of initial values does not equal to the number of parallel optimization trajectories')
+      #save all of this for the "initialize" after the preconditioners
+      #if varname not in self.optVarsInit['initial'].keys():
+        #self.optVarsInit['initial'][varname] = {}
+        # TODO FIXME XXX WORKING DEBUGG
+        #for trajInd in self.optTraj:
+        #  self.optVarsInit['initial'][varname][trajInd] = (self.optVarsInit['upperBound'][varname]+self.optVarsInit['lowerBound'][varname])/2.0
+        # instead of setting a value, we will check if the preconditioner sets it first!
+      #else:
+      #  for trajInd in self.optTraj:
+      #    initVal =  self.optVarsInit['initial'][varname][trajInd]
+      #    if initVal < self.optVarsInit['lowerBound'][varname] or initVal > self.optVarsInit['upperBound'][varname]:
+      #      self.raiseAnError(IOError,"The initial value for variable "+varname+" and trajectory "+str(trajInd) +" is outside the domain identified by the lower and upper bounds!")
+      #if len(self.optTraj) != len(self.optVarsInit['initial'][varname].keys()):
+      #  self.raiseAnError(ValueError, 'Number of initial values does not equal to the number of parallel optimization trajectories')
       #store ranges of variables
       self.optVarsInit['ranges'][varname] = self.optVarsInit['upperBound'][varname] - self.optVarsInit['lowerBound'][varname]
     self.optTrajLive = copy.deepcopy(self.optTraj)
@@ -446,26 +448,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.constraintFunction = self.assemblerDict['Function'][0][3]
       if 'constrain' not in self.constraintFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
-    # check the constraint here to check if the initial values violate it
-    varK = {}
-    for trajInd in self.optTraj:
-      for varname in self.getOptVars():
-        varK[varname] = self.optVarsInit['initial'][varname][trajInd]
-      satisfied, _ = self.checkConstraint(varK)
-      if not satisfied:
-        # get a random value between the the lower and upper bounds
-        self.raiseAWarning("the initial values specified for trajectory "+str(trajInd)+" do not satify the contraints. Picking random ones!")
-        randomGuessesCnt = 0
-        while not satisfied and randomGuessesCnt < self.constraintHandlingPara['innerLoopLimit']:
-          for varname in self.getOptVars():
-            varK[varname] = self.optVarsInit['lowerBound'][varname]+randomUtils.random()*self.optVarsInit['ranges'][varname]
-            self.optVarsInit['initial'][varname][trajInd] = varK[varname]
-          satisfied, _ = self.checkConstraint(varK)
-        if not satisfied:
-          self.raiseAnError(Exception,"It was not possible to find any initial values that could satisfy the constraints for trajectory "+str(trajInd))
-
-    if self.initSeed != None:
-      randomUtils.randomSeed(self.initSeed)
 
     # initialize multilevel trajectory-based structures
     # TODO a bunch of the gradient-level trajectory initializations should be moved here.
@@ -484,7 +466,100 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       except IndexError:
         self.raiseAnError(IOError,'Could not find preconditioner "{}" in <Preconditioner> nodes!'.format(precondName))
 
+    # apply multilevel preconditioners, in order
+    #   but only if user did not provide an initial point
+    # TODO condition to check if using preconds
+    # initial point(s) are in self.optVarsInit['initial']
+    # run preconditioner on that point
+    initPoint = dict((var,self.optVarsInit['initial'][var][0]) for var in self.optVarsInit['initial'].keys())
+    for depth in range(len(self.mlSequence)):
+      batch = self.mlSequence[depth]
+      initPoint = self.applyPreconditioner(batch,initPoint)
+    #check initial point consistency
+    okay,missing = self.checkInputs(initPoint)
+    if not okay:
+      self.raiseAnError(IOError,'While initializing model inputs, some were not set! Set them through preconditioners or using the <initial> block.\n  Missing:', ', '.join(missing))
+
+    # set the initial values that come from preconditioning
+    # FIXME technically the user can't have multiple trajectories AND use preconditioners, but we leave mechanics for now.
+    for var in self.getOptVars(full=True):#initPoint.keys():#self.optVarsInit['initial'].keys():
+      # ONLY replace values that weren't specified!
+      if var not in self.optVarsInit['initial'].keys():
+        self.optVarsInit['initial'][var] = {}
+        for traj in self.optTraj:
+          self.optVarsInit['initial'][var][traj] = initPoint[var]
+
+    #check initial point array consistency
+    rightLen = len(self.optTraj) #the hypothetical correct length
+    for var in self.getOptVars(full=True):
+      haveLen = len(self.optVarsInit['initial'][var])
+      if haveLen != rightLen:
+        self.raiseAnError(RuntimeError,'The number of trajectories for variable "{}" is incorrect!  Got {} but expected {}!  Check the <initial> block.'.format(var,haveLen,rightLen))
+
+
+    # check the constraint here to check if the initial values violate it
+    varK = {}
+    for trajInd in self.optTraj:
+      for varname in self.getOptVars():
+        if varname in self.optVarsInit['initial'].keys():
+          varK[varname] = self.optVarsInit['initial'][varname][trajInd]
+      satisfied, _ = self.checkConstraint(varK)
+      if not satisfied:
+        # get a random value between the the lower and upper bounds
+        self.raiseAWarning("the initial values specified for trajectory "+str(trajInd)+" do not satify the contraints. Picking random ones!")
+        randomGuessesCnt = 0
+        while not satisfied and randomGuessesCnt < self.constraintHandlingPara['innerLoopLimit']:
+          for varname in self.getOptVars():
+            varK[varname] = self.optVarsInit['lowerBound'][varname]+randomUtils.random()*self.optVarsInit['ranges'][varname]
+            self.optVarsInit['initial'][varname][trajInd] = varK[varname]
+          satisfied, _ = self.checkConstraint(varK)
+        if not satisfied:
+          self.raiseAnError(Exception,"It was not possible to find any initial values that could satisfy the constraints for trajectory "+str(trajInd))
+
+    if self.initSeed != None:
+      randomUtils.randomSeed(self.initSeed)
+
     self.localInitialize(solutionExport=solutionExport)
+
+  def checkInputs(self,inp):
+    """
+      Checks that all the values of the optimization variables have been set for the point.
+      @ In, inp, dict, {var:val} input space point
+      @ Out, okay, bool, True if all inputs there, False if not
+      @ Out, missing, list, list of missing variables
+    """
+    missing = []
+    for var in self.getOptVars():
+      if inp.get(var,None) is None:
+        missing.append(var)
+        okay = False
+    return len(missing)==0,missing
+
+  def applyPreconditioner(self,batch,originalPoint):
+    """
+      Applies the preconditioner model of a batch to the original point given.
+      @ In, batch, string, name of the subsequence batch whose preconditioner needs to be applied
+      @ In, originalPoint, dict, {var:val} the point that needs preconditioning (normalized space)
+      @ Out, results, dict, {var:val} the preconditioned point (still normalized space)
+    """
+    precond = self.mlPreconditioners.get(batch,None)
+    if precond is not None:
+      self.raiseADebug('Running preconditioner on batch "{}"'.format(batch))
+      # TODO someday this might need to be extended when other models or more complex external models are used for precond
+      precond.createNewInput([{}],'Optimizer')
+      infoDict = {'SampledVars':self.denormalizeData(originalPoint)}
+      try:
+        _,(results,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
+      except RuntimeError:
+        self.raiseAnError(RuntimeError,'There was an error running the preconditioner for batch "{}"! See messages above for details.'.format(batch))
+      # flatten results #TODO breaks for multi-entry arrays
+      for key,val in results.items():
+        results[key] = float(val)
+      results = self.normalizeData(results)
+      return results
+    else:
+      return originalPoint
+
 
   def localInitialize(self,solutionExport):
     """
@@ -625,24 +700,17 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if not firstTime:
       self.clearCurrentOptimizationEffort(traj)
     # apply preconditioner IFF we're going towards INNER loops
+    newInput = copy.deepcopy(optPoint)
     if depth > oldDepth:
       self.raiseADebug('Preconditioning subsets below',oldDepth,range(oldDepth+1,depth+1))
       #apply changes all the way down
       for d in range(oldDepth+1,depth+1):
         precondBatch = self.mlSequence[d]
-        precond = self.mlPreconditioners.get(precondBatch,None)
-        if precond is not None:
-          self.raiseADebug('Running preconditioner on batch "{}"'.format(precondBatch))
-          # TODO someday this might need to be extended when other models or more complex external models are used for precond
-          precond.createNewInput([{}],'Optimizer')
-          infoDict = {'SampledVars':self.denormalizeData(optPoint)}
-          _,(results,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
-          # flatten results #TODO breaks for multi-entry arrays
-          for key,val in results.items():
-            results[key] = float(val)
-          self.proposeNewPoint(traj,self.normalizeData(results))
-          self.status[traj]['process'] = 'submitting new opt points'
-          self.status[traj]['reason'] = 'received recommended point'
+        newInput = self.applyPreconditioner(precondBatch,newInput)
+        # TODO I don't like that this is called every time!
+        self.proposeNewPoint(traj,newInput)
+        self.status[traj]['process'] = 'submitting new opt points'
+        self.status[traj]['reason'] = 'received recommended point'
     # if there's batch info about the new batch, set it
     self._setAlgorithmState(traj,self.mlBatchInfo[newBatch].get(traj,None))
     #make sure trajectory is live

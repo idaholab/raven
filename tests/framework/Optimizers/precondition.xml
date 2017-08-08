@@ -59,12 +59,11 @@
       <variable name='x'>
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
-        <initial>-2</initial>
+        <initial>-3</initial>
       </variable>
       <variable name='y'>
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
-        <initial>-2</initial>
       </variable>
       <objectVar>ans</objectVar>
       <multilevel>
