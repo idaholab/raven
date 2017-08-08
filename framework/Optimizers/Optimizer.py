@@ -301,20 +301,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.raiseAnError(IOError, 'Upper bound for '+varname+' is not provided' )
       if varname not in self.optVarsInit['lowerBound'].keys():
         self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
-      #save all of this for the "initialize" after the preconditioners
-      #if varname not in self.optVarsInit['initial'].keys():
-        #self.optVarsInit['initial'][varname] = {}
-        # TODO FIXME XXX WORKING DEBUGG
-        #for trajInd in self.optTraj:
-        #  self.optVarsInit['initial'][varname][trajInd] = (self.optVarsInit['upperBound'][varname]+self.optVarsInit['lowerBound'][varname])/2.0
-        # instead of setting a value, we will check if the preconditioner sets it first!
-      #else:
-      #  for trajInd in self.optTraj:
-      #    initVal =  self.optVarsInit['initial'][varname][trajInd]
-      #    if initVal < self.optVarsInit['lowerBound'][varname] or initVal > self.optVarsInit['upperBound'][varname]:
-      #      self.raiseAnError(IOError,"The initial value for variable "+varname+" and trajectory "+str(trajInd) +" is outside the domain identified by the lower and upper bounds!")
-      #if len(self.optTraj) != len(self.optVarsInit['initial'][varname].keys()):
-      #  self.raiseAnError(ValueError, 'Number of initial values does not equal to the number of parallel optimization trajectories')
       #store ranges of variables
       self.optVarsInit['ranges'][varname] = self.optVarsInit['upperBound'][varname] - self.optVarsInit['lowerBound'][varname]
     self.optTrajLive = copy.deepcopy(self.optTraj)
@@ -481,9 +467,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseAnError(IOError,'While initializing model inputs, some were not set! Set them through preconditioners or using the <initial> block.\n  Missing:', ', '.join(missing))
 
     # set the initial values that come from preconditioning
-    # FIXME technically the user can't have multiple trajectories AND use preconditioners, but we leave mechanics for now.
-    for var in self.getOptVars(full=True):#initPoint.keys():#self.optVarsInit['initial'].keys():
-      # ONLY replace values that weren't specified!
+    for var in self.getOptVars(full=True):
+      # ONLY replace values that weren't specified by user!
       if var not in self.optVarsInit['initial'].keys():
         self.optVarsInit['initial'][var] = {}
         for traj in self.optTraj:
@@ -501,8 +486,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     varK = {}
     for trajInd in self.optTraj:
       for varname in self.getOptVars():
-        if varname in self.optVarsInit['initial'].keys():
-          varK[varname] = self.optVarsInit['initial'][varname][trajInd]
+        varK[varname] = self.optVarsInit['initial'][varname][trajInd]
       satisfied, _ = self.checkConstraint(varK)
       if not satisfied:
         # get a random value between the the lower and upper bounds
