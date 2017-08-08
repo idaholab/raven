@@ -532,6 +532,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # TODO someday this might need to be extended when other models or more complex external models are used for precond
       precond.createNewInput([{}],'Optimizer')
       infoDict = {'SampledVars':self.denormalizeData(originalPoint)}
+      for key,value in self.constants.items():
+        infoDict['SampledVars'][key] = value
       try:
         _,(results,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
       except RuntimeError:
