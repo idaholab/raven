@@ -460,7 +460,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     initPoint = dict((var,self.optVarsInit['initial'][var][0]) for var in self.optVarsInit['initial'].keys())
     for depth in range(len(self.mlSequence)):
       batch = self.mlSequence[depth]
-      initPoint = self.applyPreconditioner(batch,initPoint)
+      initPoint = self.applyPreconditioner(batch,initPoint,denormalize=False)
     #check initial point consistency
     okay,missing = self.checkInputs(initPoint)
     if not okay:
@@ -519,11 +519,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         okay = False
     return len(missing)==0,missing
 
-  def applyPreconditioner(self,batch,originalPoint):
+  def applyPreconditioner(self,batch,originalPoint,denormalize=True):
     """
       Applies the preconditioner model of a batch to the original point given.
       @ In, batch, string, name of the subsequence batch whose preconditioner needs to be applied
       @ In, originalPoint, dict, {var:val} the point that needs preconditioning (normalized space)
+      @ In, denormalize, bool, optional, if True then the originalPoint will be denormalized before running in the preconditioner
       @ Out, results, dict, {var:val} the preconditioned point (still normalized space)
     """
     precond = self.mlPreconditioners.get(batch,None)
@@ -531,7 +532,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseADebug('Running preconditioner on batch "{}"'.format(batch))
       # TODO someday this might need to be extended when other models or more complex external models are used for precond
       precond.createNewInput([{}],'Optimizer')
-      infoDict = {'SampledVars':self.denormalizeData(originalPoint)}
+      if denormalize:
+        originalPoint = self.denormalizeData(originalPoint)
+      infoDict = {'SampledVars':originalPoint}
       for key,value in self.constants.items():
         infoDict['SampledVars'][key] = value
       try:
