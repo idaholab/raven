@@ -77,6 +77,7 @@ class EnsembleModel(Dummy):
     self.maxIterations         = 30       # max number of iterations (in case of non-linear system activated)
     self.convergenceTol        = 1.e-3    # tolerance of the iteration scheme (if activated) => L2 norm
     self.initialConditions     = {}       # dictionary of initial conditions in case non-linear system is detected
+    self.initialStartModels    = []       # list of models that will execute first.
     self.ensembleModelGraph    = None     # graph object (graphStructure.graphObject)
     self.printTag = 'EnsembleModel MODEL' # print tag
     # assembler objects to be requested
@@ -148,9 +149,11 @@ class EnsembleModel(Dummy):
     for child in xmlNode:
       if child.tag == 'maxIterations':
         self.maxIterations  = int(child.text)
-      if child.tag == 'tolerance':
+      elif child.tag == 'tolerance':
         self.convergenceTol = float(child.text)
-      if child.tag == 'initialConditions':
+      elif child.tag == 'initialStartModels':
+        self.initialStartModels = list(inp.strip() for inp in child.text.strip().split(','))
+      elif child.tag == 'initialConditions':
         for var in child:
           if "repeat" in var.attrib.keys():
             self.initialConditions[var.tag] = np.repeat([float(var.text.split()[0])], int(var.attrib['repeat'])) #np.array([float(var.text.split()[0]) for _ in range(int(var.attrib['repeat']))])
@@ -160,6 +163,8 @@ class EnsembleModel(Dummy):
               self.initialConditions[var.tag] = float(values[0]) if len(values) == 1 else np.asarray([float(varValue) for varValue in values])
             except:
               self.raiseAnError(IOError,"unable to read text from XML node "+var.tag)
+      else:
+        self.raiseAnError(IOError, "Unrecognizable XML node " + child.tag)
 
   def __findMatchingModel(self,what,subWhat):
     """
@@ -300,11 +305,18 @@ class EnsembleModel(Dummy):
     # construct the ensemble model directed graph
     self.ensembleModelGraph = graphStructure.graphObject(modelsToOutputModels)
     # make some checks
+    # FIXME: the following check is too tight, even if the models are connected, the
+    # code may still raise an error. I think in really, we do not need to raise an error,
+    # maybe a warning is enough. For example:
+    #   a -> b -> c
+    #        ^
+    #        |
+    #   e -> d -> f
     if not self.ensembleModelGraph.isConnectedNet():
       isolatedModels = self.ensembleModelGraph.findIsolatedVertices()
       self.raiseAnError(IOError, "Some models are not connected. Possible candidates are: "+' '.join(isolatedModels))
     # get all paths
-    allPath = self.ensembleModelGraph.findAllUniquePaths()
+    allPath = self.ensembleModelGraph.findAllUniquePaths(self.initialStartModels)
     ###################################################
     # to be removed once executionList can be handled #
     self.orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)

@@ -248,19 +248,21 @@ class graphObject(object):
           break
     return graphNetConnected
 
-  def findAllUniquePaths(self):
+  def findAllUniquePaths(self, startVertices=None):
     """
       This method finds all the unique paths in the graph
       N.B. This method is not super efficient but since it is used generally at construction stage
       of the graph, it is not a big problem
-      @ In, None
+      @ In, startVertices, list, optional, list of start vertices
       @ Out, uniquePaths,list, list of unique paths (verteces)
     """
     paths = []
-    for vert in self.vertices():
+    if not startVertices:
+      startVertices = self.vertices()
+    for vert in startVertices:
       for vertex in self.vertices():
         if vertex != vert:
-          paths.extend(self.findAllPaths(vertex, vert))
+          paths.extend(self.findAllPaths(vert, vertex))
     uniquePaths = list(utils.filterAllSubSets(paths))
     return uniquePaths
 
