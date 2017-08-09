@@ -792,13 +792,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if not model.acceptHoldOutputSpace():
         self.raiseAnError(RuntimeError,'The user requested to hold a certain output space but the model "'+model.name+'" does not allow it!')
       # try to hold this output variables (multilevel)
-      #appears to be redundant code
-      #self.inputInfo['holdOutputSpace'] = [staticOutputVars,self.getPreviousIdentifierGivenCurrent(self.inputInfo['prefix'])]
-      #self.inputInfo["holdOutputErase"] = None
-    #else:
-      #if "holdOutputSpace" in self.inputInfo:
-      #  self.inputInfo.pop("holdOutputSpace")
-      # PROBLEM: rejecting samples doesn't respect the varsUpdate-1, since varsUpdate stays the same
       ID = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj]-1,"")
       self.inputInfo["holdOutputErase"] = ID
     #### CONSTANT VARIABLES ####
