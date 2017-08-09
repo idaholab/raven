@@ -48,7 +48,7 @@ class EnsembleModel(Dummy):
     """
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][1]['class'       ] = 'DataObjects'
-    cls.validateDict['Output' ][1]['type'        ] = ['PointSet']
+    cls.validateDict['Output' ][1]['type'        ] = ['PointSet', 'HistorySet']
     cls.validateDict['Output' ][1]['required'    ] = False
     cls.validateDict['Output' ][1]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
@@ -81,9 +81,10 @@ class EnsembleModel(Dummy):
     self.printTag = 'EnsembleModel MODEL' # print tag
     # assembler objects to be requested
     self.addAssemblerObject('Model','n',True)
-    self.addAssemblerObject('TargetEvaluation','n')
-    self.addAssemblerObject('Input','n')
+    self.addAssemblerObject('TargetEvaluation','n',True)
+    self.addAssemblerObject('Input','n',True)
     self.addAssemblerObject('Output','-n')
+    self.addAssemblerObject('ROM','-n')
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -102,7 +103,7 @@ class EnsembleModel(Dummy):
         # get model name
         modelName = child.text.strip()
         # create space of the allowed entries
-        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[]}
+        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[],'ROM':[]}
         # number of allower entries
         allowedEntriesLen = len(self.modelsDictionary[modelName].keys())
         for childChild in child:
@@ -125,7 +126,7 @@ class EnsembleModel(Dummy):
         if len(self.modelsDictionary[modelName]['Input']) == 0:
           self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
         if len(self.modelsDictionary[modelName].values()) > allowedEntriesLen:
-          self.raiseAnError(IOError, "TargetEvaluation, Input and metadataToTransfer XML blocks are the only XML sub-blocks allowed!")
+          self.raiseAnError(IOError, "TargetEvaluation, Input, Output, ROM and metadataToTransfer XML blocks are the only XML sub-blocks allowed!")
         if child.attrib['type'].strip() == "Code":
           self.createWorkingDir = True
       if child.tag == 'settings':
@@ -135,6 +136,8 @@ class EnsembleModel(Dummy):
     for modelName in self.modelsDictionary.keys():
       if len(self.modelsDictionary[modelName]['Output']) == 0:
         self.modelsDictionary[modelName]['Output'] = None
+      if len(self.modelsDictionary[modelName]['ROM']) == 0:
+        self.modelsDictionary[modelName]['ROM'] = None
 
   def __readSettings(self, xmlNode):
     """
@@ -160,7 +163,7 @@ class EnsembleModel(Dummy):
 
   def __findMatchingModel(self,what,subWhat):
     """
-      Method to find the matching models with respect a some input/output. If not found, return None
+      Method to find the matching models with respect to some input/output. If not found, return None
       @ In, what, string, "Input" or "Output"
       @ In, subWhat, string, a keyword that needs to be contained in "what" for the mathching model
       @ Out, models, list, list of model names that match the key subWhat
@@ -214,9 +217,9 @@ class EnsembleModel(Dummy):
   def initialize(self,runInfo,inputs,initDict=None):
     """
       Method to initialize the EnsembleModel
-      @ In, runInfo is the run info from the jobHandler
-      @ In, inputs is a list containing whatever is passed with an input role in the step
-      @ In, initDict, optional, dictionary of all objects available in the step is using this model
+      @ In, runInfo, dict, is the run info from the jobHandler
+      @ In, inputs, list,  is a list containing whatever is passed with an input role in the step
+      @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
     # in here we store the job ids for which we did not collected the optional output yet
@@ -227,47 +230,64 @@ class EnsembleModel(Dummy):
     if initDict is not None:
       outputsNames = [output.name for output in initDict['Output']]
 
-    # here we check if all the inputs inputted in the Step containing the EnsembleModel are acttualy used
+    # here we check if all the inputs inputted in the Step containing the EnsembleModel are actually used
     checkDictInputsUsage = {}
-    for input in inputs:
-      checkDictInputsUsage[input] = False
+    for inp in inputs:
+      checkDictInputsUsage[inp] = False
 
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
+      # retrieve 'Input' objects, such as DataObjects, Files
       inputInstancesForModel = []
-      for input in self.modelsDictionary[modelIn[2]]['Input']:
-        inputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Input',input))
+      for inputName in self.modelsDictionary[modelIn[2]]['Input']:
+        inputInstancesForModel.append(self.retrieveObjectFromAssemblerDict('Input',inputName))
         checkDictInputsUsage[inputInstancesForModel[-1]] = True
       self.modelsDictionary[modelIn[2]]['InputObject'] = inputInstancesForModel
-
+      # retrieve 'ROM' objects
+      if self.modelsDictionary[modelIn[2]]['ROM'] is not None:
+        romInstancesForModel = []
+        for romName in self.modelsDictionary[modelIn[2]]['ROM']:
+          romObject = self.retrieveObjectFromAssemblerDict('ROM',romName)
+          romInstancesForModel.append(romObject)
+        self.modelsDictionary[modelIn[2]]['ROMObject'] = romInstancesForModel
+      else:
+        self.modelsDictionary[modelIn[2]]['ROMObject'] = []
+      # retrieve 'Output' objects, such as DataObjects, Databases
       if self.modelsDictionary[modelIn[2]]['Output'] is not None:
         outputInstancesForModel = []
         for output in self.modelsDictionary[modelIn[2]]['Output']:
           outputObject = self.retrieveObjectFromAssemblerDict('Output',output)
           if outputObject.name not in outputsNames:
             self.raiseAnError(IOError, "The optional Output "+outputObject.name+" listed for Model "+modelIn[2]+" is not present among the Step outputs!!!")
-          outputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Output',output))
+          outputInstancesForModel.append(outputObject)
         self.modelsDictionary[modelIn[2]]['OutputObject'] = outputInstancesForModel
       else:
         self.modelsDictionary[modelIn[2]]['OutputObject'] = []
+      # Initialize the Models
       self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
+      # Generate a list of modules that need to be imported for internal parallelization (parallel python)
       for mm in self.modelsDictionary[modelIn[2]]['Instance'].mods:
         if mm not in self.mods:
-          self.mods.append(mm)
+            self.mods.append(mm)
+      # retrieve 'TargetEvaluation' object, i.e. DataObjects
       self.modelsDictionary[modelIn[2]]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
       if self.modelsDictionary[modelIn[2]]['TargetEvaluation'].type not in ['PointSet','HistorySet']:
-        self.raiseAnError(IOError, "Only DataObjects are allowed as TargetEvaluation object. Got "+ str(self.modelsDictionary[modelIn[2]]['TargetEvaluation'].type)+"!")
+        self.raiseAnError(IOError, "Only DataObjects are allowed as TargetEvaluation object. Got " + str(self.modelsDictionary[modelIn[2]]['TargetEvaluation'].type)+"!")
       self.tempTargetEvaluations[modelIn[2]]                = copy.deepcopy(self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
+      # attention: from now on 'values' are changed for keys 'Input' and 'Output',
+      # the lists of input or output parameters are used as the 'values'
       self.modelsDictionary[modelIn[2]]['Input' ]           = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
       self.modelsDictionary[modelIn[2]]['Output']           = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
+
     # check if all the inputs passed in the step are linked with at least a model
     if not all(checkDictInputsUsage.values()):
       unusedFiles = ""
       for inFile, used in checkDictInputsUsage.items():
         if not used:
-          unusedFiles+= " "+inFile.name
-      self.raiseAnError(IOError, "The following inputs specified in the Step are not used in the EnsembleModel: "+unusedFiles)
-    # construct chain connections
+          unusedFiles += " " + inFile.name
+      self.raiseAnError(IOError, "The following inputs specified in the Step are not used in the EnsembleModel: " + unusedFiles)
+
+    # construct chain connections using the Graphs in Python
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
     # find matching models
     for modelIn in self.modelsDictionary.keys():
@@ -318,10 +338,10 @@ class EnsembleModel(Dummy):
                                        '" is linked to the source"'+source+'" that will be executed after this model.')
     self.needToCheckInputs = True
     # write debug statements
-    self.raiseAMessage("Specs of Graph Network represented by EnsembleModel:")
-    self.raiseAMessage("Graph Degree Sequence is    : "+str(self.ensembleModelGraph.degreeSequence()))
-    self.raiseAMessage("Graph Minimum/Maximum degree: "+str( (self.ensembleModelGraph.minDelta(), self.ensembleModelGraph.maxDelta())))
-    self.raiseAMessage("Graph density/diameter      : "+str( (self.ensembleModelGraph.density(),  self.ensembleModelGraph.diameter())))
+    self.raiseADebug("Specs of Graph Network represented by EnsembleModel:")
+    self.raiseADebug("Graph Degree Sequence is    : " + str(self.ensembleModelGraph.degreeSequence()))
+    self.raiseADebug("Graph Minimum/Maximum degree: " + str( (self.ensembleModelGraph.minDelta(), self.ensembleModelGraph.maxDelta())))
+    self.raiseADebug("Graph density/diameter      : " + str( (self.ensembleModelGraph.density(),  self.ensembleModelGraph.diameter())))
 
   def getInitParams(self):
     """
