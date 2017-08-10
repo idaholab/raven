@@ -471,9 +471,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     # set the initial values that come from preconditioning
     for var in self.getOptVars(full=True):
-      # ONLY replace values that weren't specified by user!
-      #if var not in self.optVarsInit['initial'].keys():
-      #  self.optVarsInit['initial'][var] = {}
+      # results from preconditioners always include all values, so set them all #FIXME this puts a lot of trust on users not messing with stuff in preconditioners
       for traj in self.optTraj:
         self.optVarsInit['initial'][var][traj] = initPoint[var]
 
