@@ -197,13 +197,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         except KeyError:
           self.raiseAnError(IOError, child.tag+' node does not have the "name" attribute')
         self.fullOptVars.append(varname)
+        self.optVarsInit['initial'][varname] = {}
         for childChild in child:
           if   childChild.tag == "upperBound":
             self.optVarsInit['upperBound'][varname] = float(childChild.text)
           elif childChild.tag == "lowerBound":
             self.optVarsInit['lowerBound'][varname] = float(childChild.text)
           elif childChild.tag == "initial"   :
-            self.optVarsInit['initial'][varname] = {}
             temp = childChild.text.split(',')
             for trajInd, initVal in enumerate(temp):
               try:
@@ -303,6 +303,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
       #store ranges of variables
       self.optVarsInit['ranges'][varname] = self.optVarsInit['upperBound'][varname] - self.optVarsInit['lowerBound'][varname]
+      if len(self.optVarsInit['initial'][varname]) == 0:
+        for traj in self.optTraj:
+          self.optVarsInit['initial'][varname][traj] = None
     self.optTrajLive = copy.deepcopy(self.optTraj)
     if self.multilevel:
       if len(self.mlSequence) < 1:
@@ -469,10 +472,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # set the initial values that come from preconditioning
     for var in self.getOptVars(full=True):
       # ONLY replace values that weren't specified by user!
-      if var not in self.optVarsInit['initial'].keys():
-        self.optVarsInit['initial'][var] = {}
-        for traj in self.optTraj:
-          self.optVarsInit['initial'][var][traj] = initPoint[var]
+      #if var not in self.optVarsInit['initial'].keys():
+      #  self.optVarsInit['initial'][var] = {}
+      for traj in self.optTraj:
+        self.optVarsInit['initial'][var][traj] = initPoint[var]
 
     #check initial point array consistency
     rightLen = len(self.optTraj) #the hypothetical correct length
@@ -489,6 +492,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         varK[varname] = self.optVarsInit['initial'][varname][trajInd]
       satisfied, _ = self.checkConstraint(varK)
       if not satisfied:
+        for k,v in varK.items():
         # get a random value between the the lower and upper bounds
         self.raiseAWarning("the initial values specified for trajectory "+str(trajInd)+" do not satify the contraints. Picking random ones!")
         randomGuessesCnt = 0
@@ -777,12 +781,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if not satisfied:
         violatedConstrains['external'].append(self.constraintFunction.name)
     for var in optVars:
+      varSatisfy=True
       if optVars[var] > self.optVarsInit['upperBound'][var]:
         violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
-        satisfied = False
+        varSatisfy = False
       elif optVars[var] < self.optVarsInit['lowerBound'][var]:
         violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
-        satisfied = False
+        varSatisfy = False
+      if not varSatisfy:
+        self.raiseAWarning('A variable violated boundary constraints! "{}"={}'.format(var,optVars[var]))
+        satisfied=False
 
     satisfied = self.localCheckConstraint(optVars, satisfied)
     satisfaction = satisfied,violatedConstrains
