@@ -490,7 +490,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         varK[varname] = self.optVarsInit['initial'][varname][trajInd]
       satisfied, _ = self.checkConstraint(varK)
       if not satisfied:
-        for k,v in varK.items():
         # get a random value between the the lower and upper bounds
         self.raiseAWarning("the initial values specified for trajectory "+str(trajInd)+" do not satify the contraints. Picking random ones!")
         randomGuessesCnt = 0
