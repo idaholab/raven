@@ -454,25 +454,25 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     # apply multilevel preconditioners, in order
     #   but only if user did not provide an initial point
-    # TODO condition to check if using preconds
-    # initial point(s) are in self.optVarsInit['initial']
-    # run preconditioner on that point
-    initPoint = dict((var,self.optVarsInit['initial'][var][0]) for var in self.optVarsInit['initial'].keys())
-    for depth in range(len(self.mlSequence)):
-      batch = self.mlSequence[depth]
-      initPoint = self.applyPreconditioner(batch,initPoint,denormalize=False)
-    #check initial point consistency
-    okay,missing = self.checkInputs(initPoint)
-    if not okay:
-      self.raiseAnError(IOError,'While initializing model inputs, some were not set! Set them through preconditioners or using the <initial> block.\n  Missing:', ', '.join(missing))
-
-    # set the initial values that come from preconditioning
-    for var in self.getOptVars(full=True):
-      # ONLY replace values that weren't specified by user!
-      if var not in self.optVarsInit['initial'].keys():
-        self.optVarsInit['initial'][var] = {}
-        for traj in self.optTraj:
-          self.optVarsInit['initial'][var][traj] = initPoint[var]
+    for traj in self.optTraj:
+      # initial point(s) are in self.optVarsInit['initial']
+      initPoint = dict((var,self.optVarsInit['initial'][var][traj]) for var in self.optVarsInit['initial'].keys())
+      print('DEBUG    initpoint:',initPoint)
+      # run all preconditioners on that point
+      for depth in range(len(self.mlSequence)):
+        batch = self.mlSequence[depth]
+        initPoint = self.applyPreconditioner(batch,initPoint,denormalize=False)
+      print('DEBUG    precondpoint:',initPoint)
+      #check initial point consistency
+      okay,missing = self.checkInputs(initPoint)
+      if not okay:
+        self.raiseAnError(IOError,'While initializing model inputs, some were not set! Set them through preconditioners or using the <initial> block.\n  Missing:', ', '.join(missing))
+      # set the initial values that come from preconditioning
+      for var in self.getOptVars(full=True):
+        # ONLY replace values that weren't specified by user!
+        if var not in self.optVarsInit['initial'].keys():
+          self.optVarsInit['initial'][var] = {}
+        self.optVarsInit['initial'][var][traj] = initPoint[var]
 
     #check initial point array consistency
     rightLen = len(self.optTraj) #the hypothetical correct length
@@ -480,7 +480,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       haveLen = len(self.optVarsInit['initial'][var])
       if haveLen != rightLen:
         self.raiseAnError(RuntimeError,'The number of trajectories for variable "{}" is incorrect!  Got {} but expected {}!  Check the <initial> block.'.format(var,haveLen,rightLen))
-
 
     # check the constraint here to check if the initial values violate it
     varK = {}
@@ -544,7 +543,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # flatten results #TODO breaks for multi-entry arrays
       for key,val in results.items():
         results[key] = float(val)
-      results = self.normalizeData(results)
+      # if data was normalized coming in, make sure it's normalized going out
+      if denormalize:
+        results = self.normalizeData(results)
       return results
     else:
       return originalPoint
