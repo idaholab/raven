@@ -451,12 +451,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if self.initSeed == None:
       self.initSeed = randomUtils.randomIntegers(0,2**31,self)
     self.counter = 0
-    if   not externalSeeding          :
+    if not externalSeeding          :
       randomUtils.randomSeed(self.initSeed)       #use the sampler initialization seed
       self.auxcnt = self.initSeed
     elif externalSeeding=='continue':
       pass        #in this case the random sequence needs to be preserved
-    else                              :
+    else                            :
       randomUtils.randomSeed(externalSeeding)     #the external seeding is used
       self.auxcnt = externalSeeding
     #grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.
@@ -591,6 +591,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if self.reseedAtEachIteration:
       randomUtils.randomSeed(self.auxcnt-1)
     self.inputInfo['prefix'] = str(self.counter)
+    # used for ensemble model to identify the number of runs
+    self.inputInfo['counter'] = self.counter
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
 

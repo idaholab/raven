@@ -70,12 +70,25 @@ class EnsembleModel(Dummy):
     """
     Dummy.__init__(self,runInfoDict)
     self.modelsDictionary      = {}       # dictionary of models that are going to be assembled
-                                          # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
+                                          # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}, 'ROM':[romName1,romName2,...,romNameN]}
+    self.romsDictionary        = {}       # dictionary of roms paired with Models that are going to be assembled
+                                          # {'romName':{'Input':[], 'Output':[], 'Instance':Instance}}
     self.activatePicard        = False    # is non-linear system beeing identified?
     self.tempTargetEvaluations = {}       # temporary storage of target evaluation data objects
     self.tempOutputs           = {}       # temporary storage of optional output data objects
     self.maxIterations         = 30       # max number of iterations (in case of non-linear system activated)
     self.convergenceTol        = 1.e-3    # tolerance of the iteration scheme (if activated) => L2 norm
+
+    self.romTrainStepSize      = 10       # the step size for rom train
+    self.romTrainStartSize     = 10       # the initial size of training set
+    self.romTrainMaxSize       = 1000     # the maximum size of training set
+    self.romValidateSize       = 10       # the size of rom validation set
+    self.counter               = 0        # record the number of model runs
+    self.optimizerTypes        = ['SPSA'] # list of types of optimizer
+    self.romTrained            = False    # True if all roms are trained
+    self.hasRom                = False    # True if at least one rom is paired with a model
+
+
     self.initialConditions     = {}       # dictionary of initial conditions in case non-linear system is detected
     self.initialStartModels    = []       # list of models that will execute first.
     self.ensembleModelGraph    = None     # graph object (graphStructure.graphObject)
@@ -104,7 +117,8 @@ class EnsembleModel(Dummy):
         # get model name
         modelName = child.text.strip()
         # create space of the allowed entries
-        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[],'ROM':[]}
+        # 'useRom': [rom can be used to replace model, trained, converged, validated]
+        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[],'ROM':[],'useRom':[False,False,False,False]}
         # number of allower entries
         allowedEntriesLen = len(self.modelsDictionary[modelName].keys())
         for childChild in child:
@@ -139,6 +153,13 @@ class EnsembleModel(Dummy):
         self.modelsDictionary[modelName]['Output'] = None
       if len(self.modelsDictionary[modelName]['ROM']) == 0:
         self.modelsDictionary[modelName]['ROM'] = None
+      else:
+        self.hasRom = True
+        for romName in self.modelsDictionary[modelName]['ROM']:
+          if romName not in self.romsDictionary.keys():
+            self.romsDictionary[romName] = {'Instance':None, 'Input':[], 'Output':[], 'Model':modelName, 'Trained':False, 'Converged':False, 'Validated':False}
+          else:
+            self.raiseAnError(IOError,"ROM:  " + romName + " is paired with multiple models, this feature is currently not supported!")
 
   def __readSettings(self, xmlNode):
     """
@@ -248,15 +269,7 @@ class EnsembleModel(Dummy):
         inputInstancesForModel.append(self.retrieveObjectFromAssemblerDict('Input',inputName))
         checkDictInputsUsage[inputInstancesForModel[-1]] = True
       self.modelsDictionary[modelIn[2]]['InputObject'] = inputInstancesForModel
-      # retrieve 'ROM' objects
-      if self.modelsDictionary[modelIn[2]]['ROM'] is not None:
-        romInstancesForModel = []
-        for romName in self.modelsDictionary[modelIn[2]]['ROM']:
-          romObject = self.retrieveObjectFromAssemblerDict('ROM',romName)
-          romInstancesForModel.append(romObject)
-        self.modelsDictionary[modelIn[2]]['ROMObject'] = romInstancesForModel
-      else:
-        self.modelsDictionary[modelIn[2]]['ROMObject'] = []
+
       # retrieve 'Output' objects, such as DataObjects, Databases
       if self.modelsDictionary[modelIn[2]]['Output'] is not None:
         outputInstancesForModel = []
@@ -291,6 +304,54 @@ class EnsembleModel(Dummy):
         if not used:
           unusedFiles += " " + inFile.name
       self.raiseAnError(IOError, "The following inputs specified in the Step are not used in the EnsembleModel: " + unusedFiles)
+
+    # retrieve information for ROMs that are paired with models
+    if self.romsDictionary:
+      for romIn in self.assemblerDict['ROM']:
+        self.romsDictionary[romIn[2]]['Instance'] = romIn[3]
+        self.romsDictionary[romIn[2]]['Input']    = romIn[3].getInitParams()['Features']
+        self.romsDictionary[romIn[2]]['Output']   = romIn[3].getInitParams()['Target']
+        self.romsDictionary[romIn[2]]['Trained']  = romIn[3].amITrained
+        # check: the Input/Output of ROM should be a subset of Input/Output of Model
+        # In this implementation, we will assume:
+        # 1. The input of each ROM is a subset of paired model input, we do not require them have the same input space,
+        # since the input space can be reduced, i.e. dimensionality reduction, input selection via sensitivities
+        # 2. The output of each ROM is a subset of paired model output since multiple ROMs can be paired with the same
+        # model. For example, one can build different ROMs for different outputs of paired model.
+        modelName = self.romsDictionary[romIn[2]]['Model']
+        unknownList = utils.checkIfUnknowElementsinList(self.modelsDictionary[modelName]['Input'],self.romsDictionary[romIn[2]]['Input'])
+        if unknownList:
+          self.raiseAnError(IOError, "Input Parameters: '" + ','.join(str(e) for e in unknownList) + "' used in ROM: '" +
+                                      romIn[2] + "', can not be found in Model: '" + modelName + "'")
+        unknownList = utils.checkIfUnknowElementsinList(self.romsDictionary[romIn[2]]['Input'],self.modelsDictionary[modelName]['Input'])
+        if unknownList:
+          self.raiseAWarning("The following parameters: ", ','.join(str(e) for e in unknownList), "used in Model: ", modelName,
+                             "but not used in ROM: ", romIn[2])
+        unknownList = utils.checkIfUnknowElementsinList(self.modelsDictionary[modelName]['Output'],self.romsDictionary[romIn[2]]['Output'])
+        if unknownList:
+          self.raiseAnError(IOError, "Output Parameters: '" + ','.join(str(e) for e in unknownList) + "' used in ROM: '" +
+                                      romIn[2] + "', can not be found in Model:  '" + modelName + "'")
+    # check: we require that the union of ROMs outputs is the same as the paired model in order to use the ROM to replace the paired Model
+    allTrained = True
+    for modelIn, specs in self.modelsDictionary.items():
+      if specs['ROM']:
+        outParams = specs['Output']
+        romOutParams = []
+        trained = True
+        for romName in specs['ROM']:
+          romOutParams.extend(self.romsDictionary[romName]['Output'])
+          if not self.romsDictionary[romName]['Trained']:
+            trained = False
+            allTrained = False
+        self.modelsDictionary[modelIn]['useRom'][1] = trained
+        unknownList = utils.checkIfUnknowElementsinList(romOutParams,outParams)
+        if unknownList:
+          self.raiseAWarning("The following outputs: ", ','.join(str(e) for e in unknownList), "used in Model: ", modelName,
+                             "but not used in the paired ROMs.")
+          self.raiseAWarning("ROMs: ", ','.join(str(e) for e in specs['ROM']), "will not be trained")
+        else:
+          self.modelsDictionary[modelIn]['useRom'][0] = True
+    self.romTrained = allTrained
 
     # construct chain connections using the Graphs in Python
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
@@ -377,7 +438,7 @@ class EnsembleModel(Dummy):
     paramDict = self.getInitParams()
     return paramDict
 
-  def __selectInputSubset(self,modelName, kwargs ):
+  def __selectInputSubset(self,modelName,kwargs):
     """
       Method aimed to select the input subset for a certain model
       @ In, modelName, string, the model name
@@ -395,7 +456,7 @@ class EnsembleModel(Dummy):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
-      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In, samplerType, string, is the type of sampler or optimizer that is calling to generate a new input
       @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
@@ -407,6 +468,7 @@ class EnsembleModel(Dummy):
     identifier = kwargs['prefix']
     # global prefix
     newKwargs = {'prefix':identifier}
+    newKwargs['counter'] = kwargs['counter']
 
     newInputs = {}
 
@@ -558,6 +620,21 @@ class EnsembleModel(Dummy):
       if mm not in self.mods:
         self.mods.append(mm)
 
+#####################################################################
+    if self.hasRom:
+      if self.romTrained:
+        converged = self.checkRomConvergence()
+        if not converged:
+          self.trainRom()
+      else:
+        # We assume the optimizers only accept trained ROMs
+        if samplerType in self.optimizerTypes:
+          self.raiseAnError(IOError,"Untrained ROMs paired with Model are used in Optimizer, this is not allowed")
+        self.trainRom()
+        self.checkRomConvergence()
+
+#####################################################################
+
     prefix = kwargs['prefix']
     self.tempOutputs['uncollectedJobIds'].append(prefix)
 
@@ -646,15 +723,20 @@ class EnsembleModel(Dummy):
   def _externalRun(self,inRun, jobHandler):
     """
       Method that performs the actual run of the essembled model (separated from run method for parallelization purposes)
-      @ In, inRun, tuple, tuple of Inputs (inRun[0] actual input, inRun[1] jobHandler instance )
+      @ In, inRun, tuple, tuple of Inputs, e.g. inRun[0]: actual dictionary of input, inRun[1]: string,
+        the type of Sampler or Optimizer, inRun[2], dict, contains the information from the Sampler
+      @ In, jobHandler, object, instance of jobHandler
       @ Out, returnEvaluation, tuple, the results of the essembled model:
                                - returnEvaluation[0] dict of results from each sub-model,
                                - returnEvaluation[1] the dataObjects where the projection of each model is stored
+                               - returnEvaluation[2] dict used to store the optional outputs
     """
     originalInput = inRun[0]
     samplerType = inRun[1]
     inputKwargs = inRun[2]
     identifier = inputKwargs.pop('prefix')
+    self.counter = inputKwargs.pop('counter')
+    print("samplerType",samplerType)
     tempOutputs = {}
     tempTargetEvaluations = {}
     holdOutputSpace = inputKwargs.values()[-1]['holdOutputSpace'] if 'holdOutputSpace' in inputKwargs.values()[-1] else None
