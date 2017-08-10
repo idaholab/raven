@@ -1,0 +1,146 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ensembleModelTests.adaptiveROM.adaptive_rom</name>
+    <author>wangc</author>
+    <created>2017-08-08</created>
+    <classesTested>Models.EnsembleModel, Models.ExternalModel, Models.ROM</classesTested>
+    <description>
+       Example of usage of the Ensemble Model capability in RAVEN
+       This test is intended to check the functionality of assembling Models with ROMs.
+       The ROMs will be adaptive trained.
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>simpleRomAdaptive</WorkingDir>
+    <Sequence>testAdaptiveRom,dumpResults</Sequence>
+    <batchSize>2</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Uniform name="leftTemperatureDist">
+      <lowerBound>500</lowerBound>
+      <upperBound>1700</upperBound>
+    </Uniform>
+    <Uniform name="rightTemperatureDist">
+      <lowerBound>500</lowerBound>
+      <upperBound>1700</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="EM1linear" name="heatTransfer" subType="">
+      <variables>leftTemperature,rightTemperature,k,solution</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
+      <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
+    </ExternalModel>
+    <ROM name="knr" subType="SciKitLearn">
+      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+      <Features>leftTemperature, rightTemperature</Features>
+      <Target>k</Target>
+      <n_neighbors>5</n_neighbors>
+      <weights>uniform</weights>
+      <algorithm>auto</algorithm>
+      <leaf_size>30</leaf_size>
+      <metric>minkowski</metric>
+      <p>2</p>
+    </ROM>
+    <EnsembleModel name="heatTransferEnsembleModel" subType="">
+      <Model class="Models" type="ExternalModel">
+        thermalConductivityComputation
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
+        
+        
+        <ROM class="Models" type="ROM">knr</ROM>
+    
+        <!--scoring>metric</scoring-->
+        <!--convergence>
+            <limit>100</limit>
+            <relativeThreshold>1e-3</relativeThreshold>
+            <absoluteThreshold>0</absoluteThreshold>
+            <stepSize>10</stepSize>
+
+        
+        </convergence-->
+
+        <!--PostProcessor class="Models" type="PostProcessor">pp</PostProcessor-->
+
+
+      </Model>
+      <Model class="Models" type="ExternalModel">
+          heatTransfer
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <Samplers>
+    <Grid name="MonteCarloTemperature">
+      <variable name="leftTemperature">
+        <distribution>leftTemperatureDist</distribution>
+        <grid construction="equal" steps="4" type="value">500 600</grid>
+      </variable>
+      <variable name="rightTemperature">
+        <distribution>rightTemperatureDist</distribution>
+        <grid construction="equal" steps="4" type="value">500 600</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="testAdaptiveRom">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="EnsembleModel">heatTransferEnsembleModel</Model>
+      <Sampler class="Samplers" type="Grid">MonteCarloTemperature</Sampler>
+      <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
+      <Output class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Output>
+      <Output class="DataObjects" type="PointSet">heatTransferContainer</Output>
+      <Output class="OutStreams" type="Print">metaModelOutputTestDump</Output>
+    </MultiRun>
+    <IOStep name="dumpResults" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">heatTransferContainer</Input>
+      <Input class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Input>
+      <Output class="OutStreams" type="Print">thermalConductivityComputationContainerDump</Output>
+      <Output class="OutStreams" type="Print">heatTransferContainerDump</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="thermalConductivityComputationContainerDump">
+      <type>csv</type>
+      <source>thermalConductivityComputationContainer</source>
+    </Print>
+    <Print name="heatTransferContainerDump">
+      <type>csv</type>
+      <source>heatTransferContainer</source>
+    </Print>
+    <Print name="metaModelOutputTestDump">
+      <type>csv</type>
+      <source>metaModelOutputTest</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="heatTransferContainer">
+      <Input>leftTemperature,rightTemperature,k</Input>
+      <Output>solution</Output>
+    </PointSet>
+    <PointSet name="thermalConductivityComputationContainer">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>k</Output>
+    </PointSet>
+    <PointSet name="metaModelOutputTest">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>k,solution</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
