@@ -85,7 +85,7 @@ if __name__=='__main__':
   #   line feeds when the XML is rendered into the user guide.
   outFile = file('raven_temp_tex_xml.tex','wb')
   # On windows the output of os.path.join will use backslashes as path separators, which gives LaTeX a problem.  Since printName is
-  #   being used to display the original file name, lets just convert it back to forward slashes.  That means we also have to 
+  #   being used to display the original file name, lets just convert it back to forward slashes.  That means we also have to
   #   remove '..\' as well as '../'.
   printName = os.path.join('raven',fname.replace('../','')).replace('..\\','')
   printName = printName.replace('\\','/').replace('_','\_')
@@ -101,4 +101,3 @@ if __name__=='__main__':
              '\\normalsize'
   outFile.writelines(toWrite)
   outFile.close()
-
