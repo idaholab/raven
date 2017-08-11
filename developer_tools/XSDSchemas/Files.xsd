@@ -17,9 +17,10 @@
   <xsd:complexType name="InputFileType">
         <xsd:simpleContent>
           <xsd:extension base="BaseInput">
-            <xsd:attribute name="name"        type="xsd:string"/>
-            <xsd:attribute name="type"        type="xsd:string"/>
-            <xsd:attribute name="perturbable" type="RavenBool" />
+            <xsd:attribute name="name"         type="xsd:string"/>
+            <xsd:attribute name="type"         type="xsd:string"/>
+            <xsd:attribute name="perturbable"  type="RavenBool" />
+            <xsd:attribute name="subDirectory" type="xsd:string"/>
           </xsd:extension>
         </xsd:simpleContent>
   </xsd:complexType>

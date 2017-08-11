@@ -32,6 +32,7 @@
         <xsd:extension base="xsd:string">
           <xsd:attribute name="name" type="xsd:string" use="required"/>
           <xsd:attribute name="precond" type="xsd:string"/>
+          <xsd:attribute name="holdOutputSpace" type="xsd:string" use="optional"/>
         </xsd:extension>
       </xsd:simpleContent>
     </xsd:complexType>

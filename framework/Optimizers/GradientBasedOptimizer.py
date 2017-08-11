@@ -194,13 +194,12 @@ class GradientBasedOptimizer(Optimizer):
       gradArray[var] = np.zeros(2) #why are we initializing to this?
     # Evaluate gradient at each point
     # first, get average opt point
-    optOutAvg = np.average(list(optVarsValues[i*2]['output'] for i in range(self.gradDict['numIterForAve'])))
     # then, evaluate gradients
     for i in range(self.gradDict['numIterForAve']):
       opt  = optVarsValues[i*2]     #the latest opt point
       pert = optVarsValues[i*2 + 1] #the perturbed point
       #calculate grad(F) wrt each input variable
-      lossDiff = pert['output'] - optOutAvg
+      lossDiff = pert['output'] - opt['output'] #optOutAvg
       #cover "max" problems
       # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
       #   sign flipping was only called when evaluating the gradient.
@@ -238,6 +237,17 @@ class GradientBasedOptimizer(Optimizer):
     """
     identifier = str(trajID) + '_' + str(iterID) + '_' + str(evalType)
     return identifier
+
+  def getPreviousIdentifierGivenCurrent(self,prefix):
+    """
+      Method to get the previous identifier given the current prefix
+      @ In, prefix, str, the current identifier
+      @ Out, previousPrefix, str, the previous identifier
+    """
+
+    traj, _, _ = prefix.split("_")
+    traj       = int(traj)
+    return self.counter['prefixHistory'][traj][-1]
 
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
@@ -471,18 +481,12 @@ class GradientBasedOptimizer(Optimizer):
       @ In, myInput, list, the generating input
     """
     # for some reason, Ensemble Model doesn't preserve this information, so wrap this debug in a try:
-    try:
-      prefix = jobObject.getMetadata()['prefix']
-    except TypeError:
-      prefix = ''
+    prefix = jobObject.getMetadata()['prefix']
     self.raiseADebug('Collected sample "{}"'.format(prefix))
 
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
-    # TODO what if there's no solution export?  Our "status" and etc fail badly!
     if len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
-        #does this need to be a while loop?  We can't get behind by 2 points...
-        #while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
         if self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
           solutionExportUpdatedFlag, indices = self._getJobsByID(traj)
           if solutionExportUpdatedFlag:
@@ -491,16 +495,24 @@ class GradientBasedOptimizer(Optimizer):
             outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
             #TODO this might be faster for non-stochastic if we do an "if" here on gradDict['numIterForAve']
             #make a place to store distinct evaluation values
-            objectiveOutputs = np.zeros(self.gradDict['numIterForAve'])
+            outputs = {}
+            for outvar in self.solutionExport.getParaKeys('outputs'):
+              if outvar not in outputeval.keys():
+                continue
+              outputs[outvar] = np.zeros(self.gradDict['numIterForAve'])
             # get output values corresponding to evaluations of the opt point
             # also add opt points to the grad perturbation list
             self.gradDict['pertPoints'][traj] = np.zeros(2*self.gradDict['numIterForAve'],dtype=dict)
             for i, index in enumerate(indices):
-              objectiveOutputs[i] = outputeval[self.objVar][index]
-              self.gradDict['pertPoints'][traj][i*2] = {'inputs':self.normalizeData(dict((k,v[index]) for k,v in inputeval.items())),
-                                                        'output':objectiveOutputs[i]}
+              for outvar in outputs.keys():
+                outputs[outvar][i] = outputeval[outvar][index]
+                if outvar == self.objVar:
+                  self.gradDict['pertPoints'][traj][i*2] = {'inputs':self.normalizeData(dict((k,v[index]) for k,v in inputeval.items())),
+                                                            'output':outputs[self.objVar][i]}
             # assumed output value is the mean of sampled values
-            currentObjectiveValue = objectiveOutputs.mean()
+            for outvar,vals in outputs.items():
+              outputs[outvar] = vals.mean()
+            currentObjectiveValue = outputs[self.objVar]#.mean()
             # check convergence
             # TODO REWORK move this to localStillReady, along with the gradient evaluation
             self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], currentObjectiveValue)
@@ -516,14 +528,20 @@ class GradientBasedOptimizer(Optimizer):
               except KeyError:
                 # this means we don't have an entry for this trajectory yet, so don't copy anything
                 pass
-              self.counter['recentOptHist'][traj][0] = {'inputs':self.optVarsHist[traj][self.counter['varsUpdate'][traj]],
-                                                        'output':currentObjectiveValue}
+              self.counter['recentOptHist'][traj][0] = {}
+              self.counter['recentOptHist'][traj][0]['inputs'] = self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
+              self.counter['recentOptHist'][traj][0]['output'] = currentObjectiveValue
+              if traj not in self.counter['prefixHistory']:
+                self.counter['prefixHistory'][traj] = []
+              self.counter['prefixHistory'][traj].append(prefix)
 
             # update solution export
+            #FIXME much of this should move to the base class!
             if 'trajID' not in self.solutionExport.getParaKeys('inputs'):
               self.raiseAnError(IOError, 'trajID is not in the <inputs> space of the solutionExport data object specified for this optimization step!  Please add it.')
             trajID = traj+1 # This is needed to be compatible with historySet object
             self.solutionExport.updateInputValue([trajID,'trajID'], traj)
+            #otherOutVars = self.solutionExport.getParaKeys('outputs')
             output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding').get(trajID,{})
             badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
             for var in self.solutionExport.getParaKeys('outputs'):
@@ -532,7 +550,9 @@ class GradientBasedOptimizer(Optimizer):
               if var in self.getOptVars():
                 new = self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs'])[var] #inputeval[var][index]
               elif var == self.objVar:
-                new = self.counter['recentOptHist'][traj][0]['output'] #currentObjectiveValue
+                new = self.counter['recentOptHist'][traj][0]['output']
+              elif var in outputs.keys():
+                new = outputs[var]
               elif var == 'varsUpdate':
                 new = [self.counter['solutionUpdate'][traj]]
               elif var == 'stepSize':

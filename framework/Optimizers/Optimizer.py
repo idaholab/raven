@@ -60,6 +60,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.counter['recentOptHist']       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
+    self.counter['prefixHistory']       = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
     #limits
     self.limit                          = {}                        # Dict containing limits for each counter
     self.limit['mdlEval']               = 2000                      # Maximum number of the loss function evaluation
@@ -96,15 +97,17 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #functions and dataojbects
     self.constraintFunction             = None                      # External constraint function, could be not present
     self.preconditioners                = {}                        # by name, Models that might be used as preconditioners
-    self.solutionExport                 = None                      #This is the data used to export the solution (it could also not be present)
+    self.solutionExport                 = None                      # This is the data used to export the solution (it could also not be present)
     self.mdlEvalHist                    = None                      # Containing information of all model evaluation
     self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
     #multilevel
     self.multilevel                     = False                     # indicates if operating in multilevel mode
     self.mlBatches                      = {}                        # dict of {batchName:[list,of,vars]} that defines input subspaces
+    self.mlHoldBatches                  = {}                        # dict of {batchName:[list,of,vars]} that defines the optional output subspaces that need to be kept constant till convergence of this space
     self.mlSequence                     = []                        # list of batch names that determines the order of convergence.  Last entry is converged most often and fastest (innermost loop).
     self.mlDepth                        = {}                        # {traj: #} index of current recursion depth within self.mlSequence, must be initialized to None
     self.mlStaticValues                 = {}                        # by traj, dictionary of static values for variables in fullOptVars but not in optVars due to multilevel
+    self.mlOutputStaticVariables        = {}                        # by traj, dictionary of list of output that must be kept constant due to multilevel
     self.mlActiveSpaceSteps             = {}                        # by traj, integer to track iterations performed in optimizing the current, active subspace
     self.mlBatchInfo                    = {}                        # by batch, by traj, info includes 'lastStepSize','gradientHistory','recommendToGain'
     self.mlPreconditioners              = {}                        # by batch, the preconditioner models to use when transitioning subspaces
@@ -224,7 +227,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.initSeed = randomUtils.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
-            self.limit['mdlEval'] = int(childChild.text) #FIXME what's the difference between this and self.limit['varsUpdate']?
+            self.limit['mdlEval'] = int(childChild.text)
             #the manual once claimed that "A" defaults to iterationLimit/10, but it's actually this number/10.
           elif childChild.tag == "type":
             self.optType = childChild.text
@@ -265,9 +268,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
               self.raiseAnError(IOError, 'A multilevel subspace is missing the "name" attribute!')
             if name in self.mlBatches.keys():
               self.raiseAnError(IOError,'Multilevel subspace "{}" has a duplicate name!'.format(name))
+            if "holdOutputSpace" in subnode.attrib:
+              self.mlHoldBatches[name] =  [var.strip() for var in subnode.attrib['holdOutputSpace'].split(",")]
+              self.raiseAMessage('For subspace "'+name+'" the following output space is asked to be kept on hold: '+','.join(self.mlHoldBatches[name]))
             #subspace text
             subspaceVars = list(x.strip() for x in subnode.text.split(','))
-            if len(subspaceVars)<1:
+            if len(subspaceVars) < 1:
               self.raiseAnError(IOError,'Multilevel subspace "{}" has no variables specified!'.format(name))
             self.mlBatches[name] = subspaceVars
             #subspace preconditioner
@@ -417,8 +423,17 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if cls != 'Models' or typ != 'ExternalModel':
         self.raiseAnError(IOError,'Currently only "ExternalModel" models can be used as preconditioners! Got "{}.{}" for "{}".'.format(cls,typ,name))
       self.preconditioners[name] = model
+      model.initialize({},[])
 
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
+    # check if the TargetEvaluation feature and target spaces are consistent
+    ins  = self.mdlEvalHist.getParaKeys("inputs")
+    outs = self.mdlEvalHist.getParaKeys("outputs")
+    for varName in self.fullOptVars:
+      if varName not in ins:
+        self.raiseAnError(RuntimeError,"the optimization variable "+varName+" is not contained in the TargetEvaluation object "+self.mdlEvalHist.name)
+    if self.objVar not in outs:
+      self.raiseAnError(RuntimeError,"the optimization objective variable "+self.objVar+" is not contained in the TargetEvaluation object "+self.mdlEvalHist.name)
     self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.fullOptVars)), 'Target':self.objVar, 'n_neighbors':1,'weights':'distance'})
     self.solutionExport = solutionExport
     if self.solutionExport is None:
@@ -515,7 +530,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         # do we have any opt points yet?
         if len(self.counter['recentOptHist'][traj][0]) > 0:
           # get the latset optimization point (normalized)
-          latestPoint = self.counter['recentOptHist'][traj][0]['inputs'] #self.latestPoint[traj]['inputs']#self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
+          latestPoint = self.counter['recentOptHist'][traj][0]['inputs']
           #some flags for clarity of checking
           justStarted = self.mlDepth[traj] is None
           inInnermost = self.mlDepth[traj] is not None and self.mlDepth[traj] == len(self.mlSequence)-1
@@ -548,6 +563,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseADebug('Because multilevel intervened, rechecking readiness of optimizer for trajectory "{}"'.format(traj))
       ready = self.localStillReady(True)
     return ready
+
+  @abc.abstractmethod
+  def getPreviousIdentifierGivenCurrent(self,prefix):
+    """
+      Method to get the previous identifier given the current prefix
+      @ In, prefix, str, the current identifier
+      @ Out, previousPrefix, str, the previous identifier
+    """
+    pass
 
   def updateMultilevelDepth(self, traj, depth, optPoint, setAll=False):
     """
@@ -582,6 +606,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       toMakeStatic = set(self.fullOptVars)-set(self.mlBatches[newBatch])
     else:
       toMakeStatic = self.mlBatches[oldBatch]
+    if traj in self.mlOutputStaticVariables:
+      self.mlOutputStaticVariables.pop(traj)
+    if newBatch in self.mlHoldBatches:
+      self.raiseAMessage('For subspace "'+newBatch+'" the following output space is going to be kept on hold: '+','.join(self.mlHoldBatches[newBatch]))
+      self.mlOutputStaticVariables[traj] = self.mlHoldBatches[newBatch]
+
     for var in toMakeStatic:
       self.mlStaticValues[traj][var] = copy.deepcopy(optPoint[var])
     # remove newBatch static values
@@ -603,6 +633,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         precond = self.mlPreconditioners.get(precondBatch,None)
         if precond is not None:
           self.raiseADebug('Running preconditioner on batch "{}"'.format(precondBatch))
+          # TODO someday this might need to be extended when other models or more complex external models are used for precond
+          precond.createNewInput([{}],'Optimizer')
           infoDict = {'SampledVars':self.denormalizeData(optPoint)}
           _,(results,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
           # flatten results #TODO breaks for multi-entry arrays
@@ -745,13 +777,27 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     self.counter['mdlEval'] +=1 #since we are creating the input for the next run we increase the counter and global counter
     self.inputInfo['prefix'] = str(self.counter['mdlEval'])
-
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     ####   UPDATE STATICS   ####
     # get trajectory asking for eval from LGI variable set
     traj = self.inputInfo['trajectory']
+
     self.values.update(self.denormalizeData(self.mlStaticValues[traj]))
+    staticOutputVars = self.mlOutputStaticVariables[traj] if traj in self.mlOutputStaticVariables else None #self.mlOutputStaticVariables.pop(traj,None)
+    #if "holdOutputSpace" in self.inputInfo:
+    #  self.inputInfo.pop("holdOutputSpace")
+    if staticOutputVars is not None:
+      # check if the model can hold a portion of the output space
+      if not model.acceptHoldOutputSpace():
+        self.raiseAnError(RuntimeError,'The user requested to hold a certain output space but the model "'+model.name+'" does not allow it!')
+      # try to hold this output variables (multilevel)
+      self.inputInfo['holdOutputSpace'] = [staticOutputVars,self.getPreviousIdentifierGivenCurrent(self.inputInfo['prefix'])]
+      self.inputInfo["holdOutputErase"] = None
+    #else:
+      if "holdOutputSpace" in self.inputInfo:
+        self.inputInfo.pop("holdOutputSpace")
+      self.inputInfo["holdOutputErase"] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj]-1,"")
     #### CONSTANT VARIABLES ####
     if len(self.constants) > 0:
       self.values.update(self.constants)

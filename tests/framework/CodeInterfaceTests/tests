@@ -178,7 +178,7 @@
  [./genericInterface]
    type = 'RavenFramework'
    input = 'test_generic_interface.xml'
-   output = 'GenericInterface/samples.xml'
+   output = 'GenericInterface/samples.xml GenericInterface/sample/1/testSubDirectory/dummy_file_for_subdirectory.dummy GenericInterface/sample/testSubDirectory/dummy_file_for_subdirectory.dummy'
    csv = 'GenericInterface/samples.csv'
  [../]
  [./genericInterface2]

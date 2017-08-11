@@ -17,7 +17,8 @@ def random(scale=0.5,loc=-1.0):
   return scale*(2.*np.random.rand()+loc)
 
 def evaluate(values):
-  return base(values) + random()
+  ran = random()/10.0
+  return base(values) + ran
 
 def run(self,Input):
   """
@@ -27,3 +28,4 @@ def run(self,Input):
     @ Out, None
   """
   self.ans = evaluate(Input.values())
+  self.reg = base(Input.values())

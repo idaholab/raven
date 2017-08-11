@@ -175,7 +175,7 @@ class SPSA(GradientBasedOptimizer):
           if len(self.submissionQueue[traj]) == 0:
             ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
-            varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs']) #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
+            varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs'])
             varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
             #check for redundant paths
             if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
@@ -277,9 +277,10 @@ class SPSA(GradientBasedOptimizer):
         #TODO this same check is in GradientBasedOptimizer.queueUpOptPointRuns, they might benefit from abstracting
         if len(self.submissionQueue[traj]) > 0:
           self.raiseAnError(RuntimeError,'Preparing to add grad evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
+        # in order to perform the de-noising we keep the same perturbation direction and we repeat the evaluation multiple times
+        direction = self.stochasticEngine() #the deltas for each dimension
         for i in range(1,2*self.gradDict['numIterForAve'],2): #perturbation points are odd, not even
           point = {}
-          direction = self.stochasticEngine() #the deltas for each dimension
           for varID, var in enumerate(self.getOptVars(traj=traj)):
             try:
               val = varK[var] + ck*direction[varID]
@@ -323,6 +324,7 @@ class SPSA(GradientBasedOptimizer):
     else:
       self.raiseAnError(RuntimeError,'Unrecognized "action" in localGenerateInput:',action)
     self.raiseADebug('Queuing run "{}"'.format(self.inputInfo['prefix']))
+
 
   def _checkBoundariesAndModify(self,upperBound,lowerBound,varRange,currentValue,pertUp,pertLow):
     """

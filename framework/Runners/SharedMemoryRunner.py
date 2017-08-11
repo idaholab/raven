@@ -60,12 +60,11 @@ class SharedMemoryRunner(InternalRunner):
       @ In, identifier, string, optional, id of this job
       @ In, metadata, dict, optional, dictionary of metadata associated with
         this run
-      @ In, functionToSkip, list, optional, list of functions, classes and
-        modules that need to be skipped in pickling the function dependencies
       @ In, uniqueHandler, string, optional, it is a special keyword attached to
         this runner. For example, if present, to retrieve this runner using the
         method jobHandler.getFinished, the uniqueHandler needs to be provided.
         If uniqueHandler == 'any', every "client" can get this runner
+      @ In, clientRunner, bool, optional,  Is this runner needed to be executed in client mode? Default = False
       @ Out, None
     """
     ## First, allow the base class handle the commonalities

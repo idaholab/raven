@@ -2518,6 +2518,8 @@ class ARMA(superVisedLearning):
       @ Out, numBin, int, number of bins determined by Freedman Diaconis rule
     """
     IQR = np.percentile(data, 75) - np.percentile(data, 25)
+    if IQR <= 0.0:
+      self.raiseAnError(RuntimeError,"IQR is <= zero. Percentile 75% and Percentile 25% are the same: "+str(np.percentile(data, 25)))
     binSize = 2.0*IQR*(data.size**(-1.0/3.0))
     numBin = int((max(data)-min(data))/binSize)
     return numBin
