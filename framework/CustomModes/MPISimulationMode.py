@@ -25,6 +25,10 @@ import math
 import string
 import Simulation
 
+#For the mode information
+modeName = "mpi"
+modeClassName = "MPISimulationMode"
+
 class MPISimulationMode(Simulation.SimulationMode):
   """
     MPISimulationMode is a specialized class of SimulationMode.

@@ -25,6 +25,11 @@ import math
 import string
 import Simulation
 
+#For the mode information
+modeName = "mpilegacy"
+modeClassName = "MPILegacySimulationMode"
+
+
 def createAndRunQSUB(runInfoDict):
   """
     Generates a PBS qsub command to run the simulation
