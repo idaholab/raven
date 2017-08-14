@@ -472,13 +472,12 @@ class EnsembleModel(Dummy):
     # a very specific form that works with the the current SPSA optimizer.  Since we have no other optimizer right now,
     # the problem is only extensibility, not the actual implementation.
     if exportDict['metadata'].get('holdOutputErase',None) is not None:
-      #if exportDict['metadata']['holdOutputErase'] is not None:
       keys = self.tempOutputs['forHold'].keys()
       toErase = exportDict['metadata']['holdOutputErase'][0].split('_')[:2]
       for key in keys:
         traj,itr,pert = key.split('_')
         if traj == toErase[0] and itr <= toErase[1]:
-          self.tempOutputs['forHold'].pop(key)
+          del self.tempOutputs['forHold'][key]
     #then hold on to the current output
     #TODO we shouldn't be doing this unless the user asked us to hold outputs!  FIXME
     self.tempOutputs['forHold'][finishedJob.identifier] = {'outs':optionalOutputs,'targetEvaluations':targetEvaluations}
