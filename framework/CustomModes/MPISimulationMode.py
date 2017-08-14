@@ -149,7 +149,7 @@ class MPISimulationMode(Simulation.SimulationMode):
                "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1"+memString,
                "-l","walltime="+runInfoDict["expectedTime"],
                "-l","place="+self.__place,"-v",
-               'COMMAND="python Driver.py '+
+               'COMMAND="../raven_framework '+
                " ".join(runInfoDict["SimulationFiles"])+'"',
                runInfoDict['RemoteRunCommand']]
     #Change to frameworkDir so we find raven_qsub_command.sh

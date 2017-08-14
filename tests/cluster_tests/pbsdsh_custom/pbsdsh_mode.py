@@ -45,7 +45,7 @@ def createAndRunQSUB(runInfoDict):
              "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1",
              "-l","walltime="+runInfoDict["expectedTime"],
              "-l","place=free","-v",
-             'COMMAND="python Driver.py '+
+             'COMMAND="../raven_framework '+
              " ".join(runInfoDict["SimulationFiles"])+'"',
              runInfoDict['RemoteRunCommand']]
   #Change to frameworkDir so we find raven_qsub_command.sh
