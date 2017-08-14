@@ -43,19 +43,19 @@ wait_lines ()
 rm -Rf FirstMQRun/
 
 #REQUIREMENT_TEST R-IS-7
-python ../../framework/Driver.py test_mpiqsub_local.xml pbspro_mpi.xml cluster_runinfo_legacy.xml
+python ../../framework/Driver.py test_mpiqsub_local.xml pbspro_mpi.xml cluster_runinfo.xml
 
 wait_lines 'FirstMQRun/[1-6]/*test.csv' 6 mpiqsub
 
 rm -Rf FirstMNRun/
 
-python ../../framework/Driver.py test_mpiqsub_nosplit.xml cluster_runinfo_legacy.xml
+python ../../framework/Driver.py test_mpiqsub_nosplit.xml cluster_runinfo.xml
 
 wait_lines 'FirstMNRun/[1-6]/*.csv' 6 mpiqsub_nosplit
 
 rm -Rf FirstMLRun/
 
-python ../../framework/Driver.py test_mpiqsub_limitnode.xml cluster_runinfo_legacy.xml
+python ../../framework/Driver.py test_mpiqsub_limitnode.xml cluster_runinfo.xml
 
 wait_lines 'FirstMLRun/[1-6]/*.csv' 6 mpiqsub_limitnode
 
@@ -67,19 +67,19 @@ wait_lines 'FirstMRun/[1-6]/*test.csv' 6 mpi
 
 rm -Rf FirstPRun/
 
-python ../../framework/Driver.py test_pbs.xml cluster_runinfo_legacy.xml
+python ../../framework/Driver.py test_pbs.xml cluster_runinfo.xml
 
 wait_lines 'FirstPRun/[1-6]/*test.csv' 6 pbsdsh
 
 rm -Rf FirstMFRun/
 
-python ../../framework/Driver.py test_mpiqsub_flex.xml cluster_runinfo_legacy.xml
+python ../../framework/Driver.py test_mpiqsub_flex.xml cluster_runinfo.xml
 
 wait_lines 'FirstMFRun/[1-6]/*.csv' 6 mpiqsub_flex
 
 rm -Rf FirstMForcedRun/
 
-python ../../framework/Driver.py test_mpiqsub_forced.xml cluster_runinfo_legacy.xml
+python ../../framework/Driver.py test_mpiqsub_forced.xml cluster_runinfo.xml
 
 wait_lines 'FirstMForcedRun/[1-6]/*.csv' 6 mpiqsub_forced
 
@@ -91,7 +91,7 @@ cd InternalParallel/
 rm -Rf InternalParallelExtModel/*.csv
 
 #REQUIREMENT_TEST R-IS-8
-python ../../../framework/Driver.py test_internal_parallel_extModel.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml
+python ../../../framework/Driver.py test_internal_parallel_extModel.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'InternalParallelExtModel/*.csv' 28 paralExtModel
 
@@ -102,7 +102,7 @@ cd InternalParallel/
 rm -Rf InternalParallelScikit/*.csv
 
 #REQUIREMENT_TEST R-IS-9
-python ../../../framework/Driver.py test_internal_parallel_ROM_scikit.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml
+python ../../../framework/Driver.py test_internal_parallel_ROM_scikit.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'InternalParallelScikit/*.csv' 2 paralROM
 
@@ -112,7 +112,7 @@ cd ..
 cd InternalParallel/
 rm -Rf InternalParallelPostProcessorLS/*.csv
 
-python ../../../framework/Driver.py test_internal_parallel_PP_LS.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml
+python ../../../framework/Driver.py test_internal_parallel_PP_LS.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'InternalParallelPostProcessorLS/*.csv' 6 parallelPP
 
@@ -123,7 +123,7 @@ cd ..
 cd InternalParallel/
 rm -Rf InternalParallelMSR/*.csv
 
-python ../../../framework/Driver.py test_internal_MSR.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml
+python ../../../framework/Driver.py test_internal_MSR.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'InternalParallelMSR/*.csv' 1 parallelMSR
 
@@ -133,7 +133,7 @@ cd ..
 cd InternalParallel/
 rm -Rf metaModelNonLinearParallel/*.png
 
-python ../../../framework/Driver.py test_ensemble_model_picard_parallel.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml
+python ../../../framework/Driver.py test_ensemble_model_picard_parallel.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'metaModelNonLinearParallel/*.png' 3 parallelEnsemblePicard
 
@@ -143,7 +143,7 @@ cd ..
 cd InternalParallel/
 rm -Rf metaModelLinearParallel/*.png
 
-python ../../../framework/Driver.py test_ensemble_model_linear_internal_parallel.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml
+python ../../../framework/Driver.py test_ensemble_model_linear_internal_parallel.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'metaModelLinearParallel/*.png' 2 parallelEnsembleLinear
 
@@ -160,7 +160,7 @@ cd ..
 cd AdaptiveSobol/
 rm -Rf workdir/*
 
-python ../../../framework/Driver.py test_adapt_sobol_parallel.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml
+python ../../../framework/Driver.py test_adapt_sobol_parallel.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'workdir/*.csv' 1 adaptiveSobol
 
