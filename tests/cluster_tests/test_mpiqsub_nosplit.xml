@@ -9,6 +9,7 @@
       This tests the no split node with a maximum on the node.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstMNRun</Sequence>
