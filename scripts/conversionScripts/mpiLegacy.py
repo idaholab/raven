@@ -17,8 +17,8 @@ import os
 
 def convert(tree,fileName=None):
   """
-    Converts input files to be compatible with merge request ###, where BasicStatistics is given the power
-    to be more nodalized than before.
+    Converts input files to be compatible with merge request 191, where some
+    of the less used mpi mode features were moved to mpilegacy
     @ In, tree, xml.etree.ElementTree.ElementTree object, the contents of a RAVEN input file
     @ In, fileName, the name for the raven input file
     @Out, tree, xml.etree.ElementTree.ElementTree object, the modified RAVEN input file
@@ -35,9 +35,8 @@ def convert(tree,fileName=None):
         foundLegacy = True
       if child.tag.lower() == "limitnode":
         foundLegacy = True
-    print(foundLegacy)
     if foundLegacy and mode.text.strip() == "mpi":
-      print("foundLegacy")
+      print("found mpi legacy features in mpi mode")
       mode.text = "mpilegacy"
   return tree
 
