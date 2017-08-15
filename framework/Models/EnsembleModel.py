@@ -121,7 +121,7 @@ class EnsembleModel(Dummy):
         modelName = child.text.strip()
         # create space of the allowed entries
         # 'useRom': [rom can be used to replace model, trained, converged, validated]
-        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[],'ROM':[],'useRom':[False,False,False,False]}
+        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[],'ROM':[],'useRom':[False,False,False,False], 'romInstances': None}
         # number of allower entries
         allowedEntriesLen = len(self.modelsDictionary[modelName].keys())
         for childChild in child:
@@ -139,7 +139,7 @@ class EnsembleModel(Dummy):
               self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
             except KeyError:
               self.raiseAnError(IOError, 'The role '+str(childChild.tag) +" can not be used in the EnsembleModel. Check the manual for allowable nodes!")
-        if self.modelsDictionary[modelName].values().count(None) != 1:
+        if not self.modelsDictionary[modelName]['TargetEvaluation']:
           self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
         if len(self.modelsDictionary[modelName]['Input']) == 0:
           self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
@@ -954,38 +954,33 @@ class EnsembleModel(Dummy):
             if jobHandler.availability() > 0:
               # run the model
               if modelIn not in modelsOnHold:
-                self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
-                # wait until the model finishes, in order to get ready to run the subsequential one
-                while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
-                  time.sleep(1.e-3)
+                jobIdentifier = modelIn + utils.returnIdSeparator() + identifier
+                uniqueHandler = self.name + identifier
+                if not self.modelsDictionary[modelIn]['romInstances']:
+                  finishedRun = self.evaluateModel(self.modelsDictionary[modelIn]['Instance'], originalInput[modelIn], samplerType, jobHandler, jobIdentifier, uniqueHandler, inputKwargs[modelIn])
+                  # collect output in the temporary data object
+                  exportDict = self.modelsDictionary[modelIn]['Instance'].createExportDictionaryFromFinishedJob(finishedRun, True)
+                  self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun,tempTargetEvaluations[modelIn],options={'exportDict':exportDict})
+                  self.raiseADebug("The outputs of model ", modelIn, "have been collected")
+                else:
+                  exportDict = {}
+                  for romInstance in self.modelsDictionary[modelIn]['romInstances']:
+                    finishedRun = self.evaluateModel(romInstance, originalInput[modelIn], samplerType, jobHandler, jobIdentifier, uniqueHandler, inputKwargs[modelIn])
+                    # collect output in the temporary data object
+                    tempExportDict = romInstance.createExportDictionaryFromFinishedJob(finishedRun, True)
+                    romInstance.collectOutput(finishedRun,tempTargetEvaluations[modelIn],options={'exportDict':tempExportDict})
+                    self.raiseADebug("The outputs of model ", romInstance.name, " have been collected")
+                    self.__mergeDict(exportDict,tempExportDict)
               nextModel = moveOn = True
             else:
               time.sleep(1.e-3)
           # store the results in the working dictionaries
-            returnDict[modelIn]   = {}
-          if modelIn not in modelsOnHold:
-            # get job that just finished to gather the results
-            finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
-            evaluation = finishedRun[0].getEvaluation()
-            if isinstance(evaluation, Runners.Error):
-              # the model failed
-              for modelToRemove in self.orderList:
-                if modelToRemove != modelIn:
-                  jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
-              self.raiseAnError(RuntimeError,"The Model  " + modelIn + " identified by " + finishedRun[0].identifier +" failed!")
-
-            # collect output in the temporary data object
-            exportDict = self.modelsDictionary[modelIn]['Instance'].createExportDictionaryFromFinishedJob(finishedRun[0], True)
-          else:
+          returnDict[modelIn]   = {}
+          if modelIn in modelsOnHold:
             exportDict = holdCollector[modelIn]['exportDict']
+            tempTargetEvaluations[modelIn] = holdCollector[modelIn]['targetEvaluations']
           # store the output dictionary
           tempOutputs[modelIn] = copy.deepcopy(exportDict)
-
-          # collect the target evaluation
-          if modelIn not in modelsOnHold:
-            self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn],options={'exportDict':exportDict})
-          else:
-            tempTargetEvaluations[modelIn] = holdCollector[modelIn]['targetEvaluations']
 
           responseSpace         = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
           inputSpace            = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
@@ -1022,6 +1017,52 @@ class EnsembleModel(Dummy):
           break
     returnEvaluation = returnDict, tempTargetEvaluations, tempOutputs
     return returnEvaluation
+
+  def evaluateModel(self, modelIn, myInput, samplerType, jobHandler, identifier, uniqueHandler, kwargs):
+    """
+      This function tries to evaluate each given model
+      @ In, modelIn, instance of model,
+      @ In, myInput
+      @ In, samplerType, string
+      @ In, jobHandler,
+      @ In, kwargs,
+      @ In, identifier, string
+      @ IN, uniqueHandler, string
+      @ Out, finishedRun[0], InternalRunner object, instance of the run just finished
+    """
+    modelIn.submit(myInput, samplerType, jobHandler, **kwargs)
+    # wait until the model finishes, in order to get ready to run the subsequential one
+    while not jobHandler.isThisJobFinished(identifier):
+      time.sleep(1.e-3)
+    self.raiseADebug("The run of model ", modelIn.name, " is completed")
+    # collect output
+    # get job that just finished to gather the results
+    finishedRun = jobHandler.getFinished(jobIdentifier = identifier, uniqueHandler = uniqueHandler)
+    evaluation = finishedRun[0].getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      # the model failed
+      self.raiseAnError(RuntimeError,"The Model identified by " + finishedRun[0].identifier +" failed!")
+    return finishedRun[0]
+
+  def __mergeDict(self,exportDict, tempExportDict):
+    """
+      This function will combine two dicts into one
+      @ In, exportDict, dict, dictionary stores the input, output and metadata
+      @ In, tempExportDict, dict, dictionary stores the input, output and metadata
+    """
+    if not exportDict:
+      exportDict = copy.deepcopy(tempExportDict)
+    else:
+      inKey = 'inputSpaceParams'
+      outKey = 'outputSpaceParams'
+      for key, value in tempExportDict[inKey].items():
+        exportDict[inKey][key] = value
+      for key, value in tempExportDict[outKey].items():
+        exportDict[outKey][key] = value
+      for key, value in tempExportDict['metadata'].items():
+        exportDict['metadata'][key] = value
+
+    self.raiseADebug("The exportDict has been updated")
 
   def acceptHoldOutputSpace(self):
     """
