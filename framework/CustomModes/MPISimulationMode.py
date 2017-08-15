@@ -11,72 +11,45 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+Module that contains a SimulationMode for PBSPro and mpiexec
+"""
+#for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3----------------------------------------------------------------
 
 import os
-import string
-import subprocess
-import Simulation
 import math
+import string
+import Simulation
 
-def createAndRunQSUB(runInfoDict):
+#For the mode information
+modeName = "mpi"
+modeClassName = "MPISimulationMode"
+
+class MPISimulationMode(Simulation.SimulationMode):
   """
-    Generates a PBS qsub command to run the simulation
-    @ In, runInfoDict, dict, dictionary of run info.
-    @ Out, remoteRunCommand, dict, dictionary of command.
+    MPISimulationMode is a specialized class of SimulationMode.
+    It is aimed to distribute the runs using the MPI protocol
   """
-  # Check if the simulation has been run in PBS mode and, in case, construct the proper command
-  #while true, this is not the number that we want to select
-  coresNeeded = runInfoDict['batchSize']*runInfoDict['NumMPI']
-  #batchSize = runInfoDict['batchSize']
-  frameworkDir = runInfoDict["FrameworkDir"]
-  ncpus = runInfoDict['NumThreads']
-  jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
-  #check invalid characters
-  validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
-  if any(char not in validChars for char in jobName):
-    raise IOError('JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
-  #check jobName for length
-  if len(jobName) > 15:
-    jobName = jobName[:10]+'-'+jobName[-4:]
-    print('JobName is limited to 15 characters; truncating to '+jobName)
-  #Generate the qsub command needed to run input
-  command = ["qsub","-N",jobName]+\
-            runInfoDict["clusterParameters"]+\
-            ["-l",
-             "nodes="+str(coresNeeded)+":ppn="+str(ncpus),
-             "-l","walltime="+runInfoDict["expectedTime"],
-             "-v",
-             'COMMAND=../raven_framework '+
-             " ".join(runInfoDict["SimulationFiles"]),
-             runInfoDict['RemoteRunCommand']]
-  #Change to frameworkDir so we find raven_qsub_command.sh
-  remoteRunCommand = {}
-  remoteRunCommand["cwd"] = frameworkDir
-  remoteRunCommand["args"] = command
-  print("remoteRunCommand",remoteRunCommand)
-  return remoteRunCommand
-
-
-class TorqueSimulationMode(Simulation.SimulationMode):
-  """Implements SimulationMode to add the new mode torque
-  In this mode, torque is used to run new commands.
-  """
-
   def __init__(self,messageHandler):
     """
       Constructor
-      Create a new TorqueSimulationMode instance.
       @ In, messageHandler, instance, instance of the messageHandler class
       @ Out, None
     """
     Simulation.SimulationMode.__init__(self,messageHandler)
     self.messageHandler = messageHandler
-    #Check if in pbs by seeing if environmental variable exists
+    #Figure out if we are in PBS
     self.__inPbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False
     self.__runQsub = False
-    self.printTag = 'TORQUE SIMULATION MODE'
+    self.__coresNeeded = None #If not none, use this instead of calculating it
+    self.__memNeeded = None #If not none, use this for mem=
+    self.__place = "free" #use this for place=
+    self.printTag = 'MPI SIMULATION MODE'
 
   def modifyInfo(self, runInfoDict):
     """
@@ -141,6 +114,51 @@ class TorqueSimulationMode(Simulation.SimulationMode):
     self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
     return newRunInfo
 
+  def __createAndRunQSUB(self, runInfoDict):
+    """
+      Generates a PBS qsub command to run the simulation
+      @ In, runInfoDict, dict, dictionary of run info.
+      @ Out, remoteRunCommand, dict, dictionary of command.
+    """
+    # Check if the simulation has been run in PBS mode and, in case, construct the proper command
+    #while true, this is not the number that we want to select
+    if self.__coresNeeded is not None:
+      coresNeeded = self.__coresNeeded
+    else:
+      coresNeeded = runInfoDict['batchSize']*runInfoDict['NumMPI']
+    if self.__memNeeded is not None:
+      memString = ":mem="+self.__memNeeded
+    else:
+      memString = ""
+    #batchSize = runInfoDict['batchSize']
+    frameworkDir = runInfoDict["FrameworkDir"]
+    ncpus = runInfoDict['NumThreads']
+    jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
+    #check invalid characters
+    validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
+    if any(char not in validChars for char in jobName):
+      raise IOError('JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
+    #check jobName for length
+    if len(jobName) > 15:
+      jobName = jobName[:10]+'-'+jobName[-4:]
+      print('JobName is limited to 15 characters; truncating to '+jobName)
+    #Generate the qsub command needed to run input
+    command = ["qsub","-N",jobName]+\
+              runInfoDict["clusterParameters"]+\
+              ["-l",
+               "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1"+memString,
+               "-l","walltime="+runInfoDict["expectedTime"],
+               "-l","place="+self.__place,"-v",
+               'COMMAND="../raven_framework '+
+               " ".join(runInfoDict["SimulationFiles"])+'"',
+               runInfoDict['RemoteRunCommand']]
+    #Change to frameworkDir so we find raven_qsub_command.sh
+    remoteRunCommand = {}
+    remoteRunCommand["cwd"] = frameworkDir
+    remoteRunCommand["args"] = command
+    print("remoteRunCommand",remoteRunCommand)
+    return remoteRunCommand
+
   def remoteRunCommand(self, runInfoDict):
     """
       If this returns None, don't do anything.  If it returns a
@@ -151,7 +169,7 @@ class TorqueSimulationMode(Simulation.SimulationMode):
     if not self.__runQsub or self.__inPbs:
       return None
     assert self.__runQsub and not self.__inPbs
-    return createAndRunQSUB(runInfoDict)
+    return self.__createAndRunQSUB(runInfoDict)
 
   def XMLread(self, xmlNode):
     """
@@ -165,6 +183,12 @@ class TorqueSimulationMode(Simulation.SimulationMode):
         self.__nodefile = os.environ[child.text.strip()]
       elif child.tag == "nodefile":
         self.__nodefile = child.text.strip()
+      elif child.tag == "memory":
+        self.__memNeeded = child.text.strip()
+      elif child.tag == "coresneeded":
+        self.__coresNeeded = int(child.text.strip())
+      elif child.tag == "place":
+        self.__place = child.text.strip()
       elif child.tag.lower() == "runqsub":
         self.__runQsub = True
       else:
