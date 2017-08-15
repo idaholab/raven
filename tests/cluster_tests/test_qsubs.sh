@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#This script is used on the INL cluster machine Falcon to test
+# the cluster interface.
+
 num_fails=0
 fails=''
 
