@@ -467,12 +467,19 @@ class EnsembleModel(Dummy):
         for key in exportDict['metadata']:
           output.updateMetadata(key,exportDict['metadata'][key][-1])
     # collect outputs for "holding"
-    if "holdOutputErase" in exportDict['metadata']:
-      if exportDict['metadata']['holdOutputErase'] is not None:
-        keys = self.tempOutputs['forHold'].keys()
-        for key in keys:
-          if key.startswith(exportDict['metadata']['holdOutputErase'][0]):
-            self.tempOutputs['forHold'].pop(key)
+    # first clear old outputs
+    # TODO FIXME this is a flawed implementation, since it requires that the "holdOutputErase" is of
+    # a very specific form that works with the the current SPSA optimizer.  Since we have no other optimizer right now,
+    # the problem is only extensibility, not the actual implementation.
+    if exportDict['metadata'].get('holdOutputErase',None) is not None:
+      keys = self.tempOutputs['forHold'].keys()
+      toErase = exportDict['metadata']['holdOutputErase'][0].split('_')[:2]
+      for key in keys:
+        traj,itr,pert = key.split('_')
+        if traj == toErase[0] and itr <= toErase[1]:
+          del self.tempOutputs['forHold'][key]
+    #then hold on to the current output
+    #TODO we shouldn't be doing this unless the user asked us to hold outputs!  FIXME
     self.tempOutputs['forHold'][finishedJob.identifier] = {'outs':optionalOutputs,'targetEvaluations':targetEvaluations}
 
   def getAdditionalInputEdits(self,inputInfo):
