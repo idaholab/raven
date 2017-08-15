@@ -226,20 +226,21 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
       @ Out, None
     """
     for child in xmlNode:
+      child_tag = child.tag.lower()
       if child.tag == "nodefileenv":
         self.__nodefile = os.environ[child.text.strip()]
       elif child.tag == "nodefile":
         self.__nodefile = child.text.strip()
-      elif child.tag.lower() == "runqsub":
+      elif child_tag == "runqsub":
         self.__runQsub = True
-      elif child.tag.lower() == "nosplitnode":
+      elif child_tag == "nosplitnode":
         self.__noSplitNode = True
         self.__maxOnNode = child.attrib.get("maxOnNode",None)
         if self.__maxOnNode is not None:
           self.__maxOnNode = int(self.__maxOnNode)
         if "noOverlap" in child.attrib:
           self.__noOverlap = True
-      elif child.tag.lower() == "limitnode":
+      elif child_tag == "limitnode":
         self.__limitNode = True
         self.__maxOnNode = child.attrib.get("maxOnNode",None)
         if self.__maxOnNode is not None:
