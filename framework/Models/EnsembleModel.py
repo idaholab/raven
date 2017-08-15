@@ -343,6 +343,13 @@ class EnsembleModel(Dummy):
         trained = True
         for romName in specs['ROM']:
           romOutParams.extend(self.romsDictionary[romName]['Output'])
+          if len(set(romOutParams)) != len(romOutParams):
+            dup = []
+            for elem in set(romOutParams):
+              if romOutParams.count(elem) > 1:
+                dup.append(elem)
+            # We assume there is no duplicate outputs among the roms
+            self.raiseAnError(IOError, "The following outputs ", ','.join(str(e) for e in dup), "are computed multiple times via different roms")
           if not self.romsDictionary[romName]['Trained']:
             trained = False
             allTrained = False
@@ -352,6 +359,7 @@ class EnsembleModel(Dummy):
           self.raiseAWarning("The following outputs: ", ','.join(str(e) for e in unknownList), " used in Model: ", modelName,
                              "but not used in the paired ROMs.")
           self.raiseAWarning("ROMs: ", ','.join(str(e) for e in specs['ROM']), " will not be trained")
+          specs['useRom'][0] = False
         else:
           specs['useRom'][0] = True
         # When roms are present for models, the TargetEvaluation data object is used to train the roms.
@@ -701,7 +709,7 @@ class EnsembleModel(Dummy):
       @ Out, None
     """
     for modelName, specs in self.modelsDictionary.items():
-      if specs['ROM'] and specs['useRom'][3]:
+      if specs['ROM'] and specs['useRom'][3] and specs['useRom'][0]:
         romInstanceList = []
         for romName in specs['ROM']:
           romInstanceList.append(self.romsDictionary[romName]['Instance'])
@@ -961,7 +969,7 @@ class EnsembleModel(Dummy):
                   # collect output in the temporary data object
                   exportDict = self.modelsDictionary[modelIn]['Instance'].createExportDictionaryFromFinishedJob(finishedRun, True)
                   self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun,tempTargetEvaluations[modelIn],options={'exportDict':exportDict})
-                  self.raiseADebug("The outputs of model ", modelIn, "have been collected")
+                  self.raiseADebug("The outputs of model ", modelIn, "have been collected with identifier ", jobIdentifier )
                 else:
                   exportDict = {}
                   for romInstance in self.modelsDictionary[modelIn]['romInstances']:
@@ -969,7 +977,7 @@ class EnsembleModel(Dummy):
                     # collect output in the temporary data object
                     tempExportDict = romInstance.createExportDictionaryFromFinishedJob(finishedRun, True)
                     romInstance.collectOutput(finishedRun,tempTargetEvaluations[modelIn],options={'exportDict':tempExportDict})
-                    self.raiseADebug("The outputs of model ", romInstance.name, " have been collected")
+                    self.raiseADebug("The outputs of model ", romInstance.name, " have been collected with identifier ", jobIdentifier)
                     self.__mergeDict(exportDict,tempExportDict)
               nextModel = moveOn = True
             else:
@@ -1034,7 +1042,7 @@ class EnsembleModel(Dummy):
     # wait until the model finishes, in order to get ready to run the subsequential one
     while not jobHandler.isThisJobFinished(identifier):
       time.sleep(1.e-3)
-    self.raiseADebug("The run of model ", modelIn.name, " is completed")
+    self.raiseADebug("The run of model ", modelIn.name, " is completed with identifier ", identifier)
     # collect output
     # get job that just finished to gather the results
     finishedRun = jobHandler.getFinished(jobIdentifier = identifier, uniqueHandler = uniqueHandler)
