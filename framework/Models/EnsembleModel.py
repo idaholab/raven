@@ -79,7 +79,7 @@ class EnsembleModel(Dummy):
     self.maxIterations         = 30       # max number of iterations (in case of non-linear system activated)
     self.convergenceTol        = 1.e-3    # tolerance of the iteration scheme (if activated) => L2 norm
 
-    self.romTrainStepSize      = 10       # the step size for rom train
+    self.romTrainStepSize      = 5       # the step size for rom train
     self.romTrainStartSize     = 10       # the initial size of training set
     self.romTrainMaxSize       = 1000     # the maximum size of training set
     self.romValidateSize       = 10       # the size of rom validation set
@@ -87,6 +87,9 @@ class EnsembleModel(Dummy):
     self.optimizerTypes        = ['SPSA'] # list of types of optimizer
     self.romTrained            = False    # True if all roms are trained
     self.hasRom                = False    # True if at least one rom is paired with a model
+    self.sleepTime             = 0.005    # waiting time before checking if a run is finished.
+    self.romConverged          = False    # True if all roms are converged
+    self.romValid              = False    # True if all roms are valid for given input data
 
 
     self.initialConditions     = {}       # dictionary of initial conditions in case non-linear system is detected
@@ -343,14 +346,20 @@ class EnsembleModel(Dummy):
           if not self.romsDictionary[romName]['Trained']:
             trained = False
             allTrained = False
-        self.modelsDictionary[modelIn]['useRom'][1] = trained
+        specs['useRom'][1] = trained
         unknownList = utils.checkIfUnknowElementsinList(romOutParams,outParams)
         if unknownList:
-          self.raiseAWarning("The following outputs: ", ','.join(str(e) for e in unknownList), "used in Model: ", modelName,
+          self.raiseAWarning("The following outputs: ", ','.join(str(e) for e in unknownList), " used in Model: ", modelName,
                              "but not used in the paired ROMs.")
-          self.raiseAWarning("ROMs: ", ','.join(str(e) for e in specs['ROM']), "will not be trained")
+          self.raiseAWarning("ROMs: ", ','.join(str(e) for e in specs['ROM']), " will not be trained")
         else:
-          self.modelsDictionary[modelIn]['useRom'][0] = True
+          specs['useRom'][0] = True
+        # When roms are present for models, the TargetEvaluation data object is used to train the roms.
+        # This will require the TargetEvaluation data object should be one of the Step Outputs.
+        if specs['TargetEvaluation'].name not in outputsNames:
+          self.raiseAWarning("The output ", specs['TargetEvaluation'].name, " listed for model ", modelIn[2], " is not present among the Step Outputs!")
+          self.raiseAnError(IOError,"ROMs: ", ','.join(str(e) for e in specs['ROM']), " require target evaluation data object, ", specs['TargetEvaluation'].name, " present among the Step Outputs!")
+
     self.romTrained = allTrained
 
     # construct chain connections using the Graphs in Python
@@ -604,39 +613,159 @@ class EnsembleModel(Dummy):
     returnValue = (Input,self._externalRun(Input,jobHandler))
     return returnValue
 
+  def checkRomConvergence(self):
+    """
+      This function will check the convergence of all ROMs
+      @ In, None
+      @ Out, bool, True if all ROMs are converged
+    """
+    converged = True
+    for modelName, specs in self.modelsDictionary.items():
+      if specs['ROM'] and not specs['useRom'][2]:
+        converged = False
+    if converged: self.raiseADebug("All ROMs are converged")
+    return converged
+
+  def trainRom(self):
+    """
+      This function will train all ROMs if they are not converged
+      @ In, None
+      @ Out, None
+    """
+    self.raiseADebug("Start to train roms")
+    self.raiseADebug("Current sample: ", self.counter)
+    for modelName, specs in self.modelsDictionary.items():
+      if specs['ROM'] and not specs['useRom'][2]:
+        allTrained = True
+        allConverged = True
+        for romName in specs['ROM']:
+          if not self.romsDictionary[romName]['Converged']:
+            self.romsDictionary[romName]['Instance'].train(specs['TargetEvaluation'])
+            trained = self.romsDictionary[romName]['Instance'].amITrained
+            self.romsDictionary[romName]['Trained'] = trained
+            # check local convergence of each rom
+            if trained:
+              converged = self.isRomConverged()
+              if converged:
+                self.romsDictionary[romName]['Converged'] = converged
+                self.raiseADebug("Rom ", romName, " was converged!")
+              else:
+                allConverged = False
+            else:
+              allTrained = False
+            self.raiseADebug("Rom ", romName, " was trained!")
+        specs['useRom'][1] = allTrained
+        specs['useRom'][2] = allConverged
+    self.raiseADebug("Roms: ", ','.join(str(e) for e in self.romsDictionary.keys()), " were trained")
+
+  def checkRomValidity(self):
+    """
+      This function will check the validity of all roms
+      @ In, None
+      @ Out, None
+    """
+    for modelName, specs in self.modelsDictionary.items():
+      if specs['ROM']:
+        allValid = True
+        for romName in specs['ROM']:
+          valid = self.isRomValid()
+          self.romsDictionary[romName]['Validated'] = valid
+          if valid:
+            self.raiseADebug("Rom ", romName, " is valid")
+          else:
+            allValid = False
+        specs['useRom'][3] = allValid
+        if allValid:
+          self.raiseADebug("Roms ", ','.join(str(e) for e in specs['ROM']), " are all valid for given model ", modelName)
+
+  def isRomConverged(self):
+    """
+    """
+    converged = False
+
+    converged = True
+    return converged
+
+  def isRomValid(self):
+    """
+    """
+    valid = False
+
+    valid = True
+    return valid
+
+  def setModels(self):
+    """
+      This function will be used to swith the model with paired roms
+      @ In, None
+      @ Out, None
+    """
+    for modelName, specs in self.modelsDictionary.items():
+      if specs['ROM'] and specs['useRom'][3]:
+        romInstanceList = []
+        for romName in specs['ROM']:
+          romInstanceList.append(self.romsDictionary[romName]['Instance'])
+        specs['romInstances'] = romInstanceList
+        self.raiseADebug("Switch model ", modelName, " with roms ", ','.join(str(e) for e in specs['ROM']))
+      else:
+        specs['romInstances'] = None
+
+  def checkTrainingSize(self):
+    """
+      This will check the size of existing training set
+      @ In, None
+      @ Out, existTrainingSize, int, the size of existing training set
+    """
+    existTrainingSize = self.counter - len(self.tempOutputs['uncollectedJobIds'])
+    self.raiseADebug("Existing training size is: ", existTrainingSize)
+    return existTrainingSize
+
+
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
-        This will submit an individual sample to be evaluated by this model to a
-        specified jobHandler. Note, some parameters are needed by createNewInput
-        and thus descriptions are copied from there.
-        @ In, myInput, list, the inputs (list) to start from to generate the new one
-        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In,  jobHandler, JobHandler instance, the global job handler instance
-        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, None
+      This will submit an individual sample to be evaluated by this model to a
+      specified jobHandler. Note, some parameters are needed by createNewInput
+      and thus descriptions are copied from there.
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In,  jobHandler, JobHandler instance, the global job handler instance
+      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ Out, None
     """
     for mm in utils.returnImportModuleString(jobHandler):
       if mm not in self.mods:
         self.mods.append(mm)
 
-#####################################################################
-    if self.hasRom:
-      if self.romTrained:
-        converged = self.checkRomConvergence()
-        if not converged:
-          self.trainRom()
-      else:
-        # We assume the optimizers only accept trained ROMs
-        if samplerType in self.optimizerTypes:
-          self.raiseAnError(IOError,"Untrained ROMs paired with Model are used in Optimizer, this is not allowed")
-        self.trainRom()
-        self.checkRomConvergence()
-
-#####################################################################
-
     prefix = kwargs['prefix']
     self.tempOutputs['uncollectedJobIds'].append(prefix)
+    self.counter = kwargs['counter']
+
+    if samplerType in self.optimizerTypes and self.hasRom and not self.romTrained:
+      self.raiseAnError(IOError,"Untrained ROMs paired with Model are used in Optimizer, this is not allowed")
+
+    if samplerType in self.optimizerTypes and self.hasRom:
+      self.checkRomValidity()
+      self.setModels()
+
+    if samplerType not in self.optimizerTypes and self.hasRom:
+      if not self.romConverged:
+        trainingSize = self.checkTrainingSize()
+        if trainingSize == self.romTrainStartSize:
+          if not self.romTrained:
+            self.trainRom()
+            self.romTrained = True
+            self.romConverged = self.checkRomConvergence()
+          else:
+            self.romConverged = self.checkRomConvergence()
+            if not self.romConverged:
+              self.trainRom()
+        if trainingSize > self.romTrainStartSize and (trainingSize-self.romTrainStartSize)%self.romTrainStepSize == 0:
+          self.trainRom()
+          self.romConverged = self.checkRomConvergence()
+      else:
+        self.checkRomValidity()
+        self.setModels()
 
     ## Ensemble models need access to the job handler, so let's stuff it in our
     ## catch all kwargs where evaluateSample can pick it up, not great, but
@@ -735,8 +864,6 @@ class EnsembleModel(Dummy):
     samplerType = inRun[1]
     inputKwargs = inRun[2]
     identifier = inputKwargs.pop('prefix')
-    self.counter = inputKwargs.pop('counter')
-    print("samplerType",samplerType)
     tempOutputs = {}
     tempTargetEvaluations = {}
     holdOutputSpace = inputKwargs.values()[-1]['holdOutputSpace'] if 'holdOutputSpace' in inputKwargs.values()[-1] else None

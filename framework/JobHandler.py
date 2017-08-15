@@ -402,9 +402,11 @@ class JobHandler(MessageHandler.MessageUser):
     ## should also be addressed, but at least we can prevent it on this end since
     ## the main thread's issue may be legitimate.
     if client:
-      availability = self.maxQueueSize - len(self.__clientQueue) - len(self.__finished)
+      #availability = self.maxQueueSize - len(self.__clientQueue) - len(self.__finished)
+      availability = self.__clientRunning.count(None) - len(self.__clientQueue) - len(self.__finished)
     else:
-      availability = self.maxQueueSize - len(self.__queue) - len(self.__finished)
+      #availability = self.maxQueueSize - len(self.__queue) - len(self.__finished)
+      availability = self.__running.count(None) - len(self.__queue) - len(self.__finished)
     return availability
 
   def isThisJobFinished(self, identifier):
