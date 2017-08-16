@@ -11,13 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+Module that contains a SimulationMode for PBSPro and mpiexec
+"""
+#for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3----------------------------------------------------------------
 
 import os
-import string
-import subprocess
-import Simulation
 import math
+import string
+import Simulation
+
+#For the mode information
+modeName = "mpilegacy"
+modeClassName = "MPILegacySimulationMode"
+
 
 def createAndRunQSUB(runInfoDict):
   """
@@ -44,11 +55,11 @@ def createAndRunQSUB(runInfoDict):
   command = ["qsub","-N",jobName]+\
             runInfoDict["clusterParameters"]+\
             ["-l",
-             "nodes="+str(coresNeeded)+":ppn="+str(ncpus),
+             "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1",
              "-l","walltime="+runInfoDict["expectedTime"],
-             "-v",
-             'COMMAND=../raven_framework '+
-             " ".join(runInfoDict["SimulationFiles"]),
+             "-l","place=free","-v",
+             'COMMAND="../raven_framework '+
+             " ".join(runInfoDict["SimulationFiles"])+'"',
              runInfoDict['RemoteRunCommand']]
   #Change to frameworkDir so we find raven_qsub_command.sh
   remoteRunCommand = {}
@@ -57,26 +68,30 @@ def createAndRunQSUB(runInfoDict):
   print("remoteRunCommand",remoteRunCommand)
   return remoteRunCommand
 
-
-class TorqueSimulationMode(Simulation.SimulationMode):
-  """Implements SimulationMode to add the new mode torque
-  In this mode, torque is used to run new commands.
+class MPILegacySimulationMode(Simulation.SimulationMode):
   """
-
+    MPILegacySimulationMode is a specialized class of SimulationMode.
+    It is aimed to distribute the runs using the MPI protocol
+  """
   def __init__(self,messageHandler):
     """
       Constructor
-      Create a new TorqueSimulationMode instance.
       @ In, messageHandler, instance, instance of the messageHandler class
       @ Out, None
     """
     Simulation.SimulationMode.__init__(self,messageHandler)
     self.messageHandler = messageHandler
-    #Check if in pbs by seeing if environmental variable exists
+    #Figure out if we are in PBS
     self.__inPbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False
     self.__runQsub = False
-    self.printTag = 'TORQUE SIMULATION MODE'
+    self.__noSplitNode = False #If true, don't split mpi processes across nodes
+    self.__limitNode = False #If true, fiddle with max on Node
+    self.__maxOnNode = None #Used with __noSplitNode and __limitNode to limit number on a node
+    self.__noOverlap = False #Used with __limitNode to prevent multiple batches from being on one node
+    # If (__noSplitNode or __limitNode) and  __maxOnNode is not None,
+    # don't put more than that on on single shared memory node
+    self.printTag = 'MPI SIMULATION MODE'
 
   def modifyInfo(self, runInfoDict):
     """
@@ -109,11 +124,61 @@ class TorqueSimulationMode(Simulation.SimulationMode):
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = runInfoDict['WorkingDir']
-        for i in range(newBatchsize):
-          nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
-          for line in lines[i*numMPI:(i+1)*numMPI]:
-            nodeFile.write(line)
-          nodeFile.close()
+        if not (self.__noSplitNode or self.__limitNode):
+          for i in range(newBatchsize):
+            nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
+            for line in lines[i*numMPI:(i+1)*numMPI]:
+              nodeFile.write(line)
+            nodeFile.close()
+        else:
+          #self.__noSplitNode == True or self.__limitNode == True
+          nodes = []
+          for line in lines:
+            nodes.append(line.strip())
+
+          nodes.sort()
+
+          currentNode = ""
+          countOnNode = 0
+          nodeUsed = False
+
+          if self.__noSplitNode:
+            groups = []
+          else:
+            groups = [[]]
+
+          for i in range(len(nodes)):
+            node = nodes[i]
+            if node != currentNode:
+              currentNode = node
+              countOnNode = 0
+              nodeUsed = False
+              if self.__noSplitNode:
+                #When switching node, make new group
+                groups.append([])
+            if self.__maxOnNode is None or countOnNode < self.__maxOnNode:
+              countOnNode += 1
+              if len(groups[-1]) >= numMPI:
+                groups.append([])
+                nodeUsed = True
+              if not self.__noOverlap or not nodeUsed:
+                groups[-1].append(node)
+
+          fullGroupCount = 0
+          for group in groups:
+            if len(group) < numMPI:
+              self.raiseAWarning("not using part of node because of partial group: "+str(group))
+            else:
+              nodeFile = open(os.path.join(workingDir,"node_"+str(fullGroupCount)),"w")
+              for node in group:
+                print(node,file=nodeFile)
+              nodeFile.close()
+              fullGroupCount += 1
+          if fullGroupCount == 0:
+            self.raiseAnError(IOError, "Cannot run with given parameters because no nodes have numMPI "+str(numMPI)+" available and NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode))
+          if fullGroupCount != newRunInfo['batchSize']:
+            self.raiseAWarning("changing batchsize to "+str(fullGroupCount)+" because NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode)+" and some nodes could not be used.")
+            newRunInfo['batchSize'] = fullGroupCount
 
         #then give each index a separate file.
         nodeCommand = runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
@@ -161,11 +226,28 @@ class TorqueSimulationMode(Simulation.SimulationMode):
       @ Out, None
     """
     for child in xmlNode:
+      child_tag = child.tag.lower()
       if child.tag == "nodefileenv":
         self.__nodefile = os.environ[child.text.strip()]
       elif child.tag == "nodefile":
         self.__nodefile = child.text.strip()
-      elif child.tag.lower() == "runqsub":
+      elif child_tag == "runqsub":
         self.__runQsub = True
+      elif child_tag == "nosplitnode":
+        self.__noSplitNode = True
+        self.__maxOnNode = child.attrib.get("maxOnNode",None)
+        if self.__maxOnNode is not None:
+          self.__maxOnNode = int(self.__maxOnNode)
+        if "noOverlap" in child.attrib:
+          self.__noOverlap = True
+      elif child_tag == "limitnode":
+        self.__limitNode = True
+        self.__maxOnNode = child.attrib.get("maxOnNode",None)
+        if self.__maxOnNode is not None:
+          self.__maxOnNode = int(self.__maxOnNode)
+        else:
+          self.raiseAnError(IOError, "maxOnNode must be specified with LimitNode")
+        if "noOverlap" in child.attrib and child.attrib["noOverlap"].lower() in utils.stringsThatMeanTrue():
+          self.__noOverlap = True
       else:
         self.raiseADebug("We should do something with child "+str(child))

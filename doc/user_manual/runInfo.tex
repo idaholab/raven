@@ -265,7 +265,16 @@ RAVEN currently supports one pre-defined ``mode'':
                   to find the nodes' information in the enviroment variable
                   \texttt{PBS\_NODEFILE}.
            \end{itemize}
-           \item The mpi exec can be forced to run on one shared memory node with the \xmlNode{NoSplitNode}.  If this is present, the splitting apart of the batches will put each batch on one shared memory node.  Without \xmlNode{NoSplitNode}, they can be split across nodes.  There is an option \xmlAttr{maxOnNode} which puts at most \xmlAttr{maxOnNode} number of mpi processes on one node.  \xmlNode{NoSplitNode} can cause processes to not be placed, so \xmlNode{NoSplitNode} should not be used unless needed.  If limiting the number of mpi processes on one node is desired without forcing them to only run on one node, \xmlNode{LimitNode} can be used.  Both \xmlNode{NoSplitNode} and  \xmlNode{LimitNode} can have a \xmlAttr{noOverlap} which prevents multiple batches from running on a single node.
+         \item The cores needed can be specified manually with the
+           \xmlNode{coresneeded}.  This is directly used in the
+           \texttt{qsub} command select statement.
+         \item The max memory needed can be specified with the
+           \xmlNode{memory} XML node.  This will be used in the
+           \texttt{qsub} command select statement.
+         \item The placement can be specified with the \xmlNode{place}
+           XML node.  This will be used in the \texttt{qsub} place
+           statement.
+         \item There is a ``mpilegacy'' mode.  This probably will be removed in the future.  In this mode exec can be forced to run on one shared memory node with the \xmlNode{NoSplitNode}.  If this is present, the splitting apart of the batches will put each batch on one shared memory node.  Without \xmlNode{NoSplitNode}, they can be split across nodes.  There is an option \xmlAttr{maxOnNode} which puts at most \xmlAttr{maxOnNode} number of mpi processes on one node.  \xmlNode{NoSplitNode} can cause processes to not be placed, so \xmlNode{NoSplitNode} should not be used unless needed.  If limiting the number of mpi processes on one node is desired without forcing them to only run on one node, \xmlNode{LimitNode} can be used.  Both \xmlNode{NoSplitNode} and  \xmlNode{LimitNode} can have a \xmlAttr{noOverlap} which prevents multiple batches from running on a single node.
          \end{itemize}
          In addition, this flag activates the remote (PBS) execution of internal Models (e.g. ROMs,
          ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
@@ -477,23 +486,21 @@ overridden:
 \begin{lstlisting}[language=python]
 import Simulation
 class NewMode(Simulation.SimulationMode):
-  def doOverrideRun(self):
-    # If doOverrideRun is true, then use runOverride instead of
-    # running the simulation normally.
-    return True
+  def remoteRunCommand(self, runInfoDict):
+    # If it returns a dictionary, then run the command in args
+    # Example: {"args":["ssh","remotehost","raven_framework"]}
+    # Note that this command needs to be able to tell when it
+    # is running remotely, and then return None at that point
+    return None
 
-  def runOverride(self):
-    # this can completely override the Simulation's run method
-    # If implemented this method should call simulation.run somehow,
-    # possibly very indirectly
-    pass
-
-  def modifySimulation(self):
-    # modifySimulation is called after the runInfoDict has been
+  def modifyInfo(self, runInfoDict):
+    # modifyInfo is called after the runInfoDict has been
     # setup and allows the mode to change any parameters that
     # need changing. This typically modifies the precommand and
     # the postcommand that are put before/after the command.
-    pass
+    # In order to change them, return a dictionary with new values.
+    # Those new values will be used.
+    return {}
 
   def XMLread(self,XMLNode):
     # XMLread is called with the mode node, and can be used to
@@ -504,14 +511,15 @@ class NewMode(Simulation.SimulationMode):
 RAVEN's Job Handler module controls the creation and execution of
 individual code runs. Essentially, the SimulationMode class may be
 used when it is necessary to customize that behavior. First, it allows
-overriding how Simulation runs. This first method can be used if for
-example RAVEN needs to be run on a different machine such as a head
-node of a computer cluster. In such a case, a runOverride function can
-be created that causes RAVEN to be instantiated on the cluster head
-node (in cases where that is different than the computer where the
-user is currently working).  Secondly, (and usually easier when this
-is sufficient) the SimulationMode class allows modifying the various
-run info parameters before the code is run.
+providing a remote command for running RAVEN. This first method can be
+used if for example RAVEN needs to be run on a different machine such
+as a head node of a computer cluster. In such a case, a
+remoteRunCommand function can be created that causes RAVEN to be
+instantiated on the cluster head node (in cases where that is
+different than the computer where the user is currently working).
+Secondly, (and usually easier when this is sufficient) the
+SimulationMode class allows modifying the various run info parameters
+before the code is run.
 
 For modification of the run info parameters, generally the two most
 important are precommand and postcommand. They are placed in front and
@@ -520,9 +528,9 @@ back before running the code.  So for example if precommand is
 command is `runIt' then the full command would be: `mpiexec -n 3 runIt
 --number-threads=4' The precommand and postcommand are used for any
 run type that is `parallel', but not for `serial' codes.  They can be
-modified by overriding the \verb'modifySimulation' method and
-assigning to the \verb'runInfoDict' in the simulation passed in when
-the class is created.
+modified by overriding the \verb'modifyInfo' method and returning a
+new dictionary with new values.  The \verb'runInfoDict' in the
+simulation is passed in.
 
 To help with these commands, there are several variables that are
 substituted in before running the command.  These are:
