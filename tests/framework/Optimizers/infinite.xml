@@ -34,7 +34,7 @@
   <Optimizers>
     <SPSA name="opter">
       <initialization>
-        <limit>2000</limit>
+        <limit>20</limit>
         <initialSeed>42</initialSeed>
         <type>max</type>
       </initialization>
@@ -47,36 +47,41 @@
       </convergence>
       <variable name='x'>
         <upperBound>1.0</upperBound>
-        <lowerBound>-1.0</lowerBound>
-        <initial>0.0</initial>
+        <lowerBound>0.0</lowerBound>
+        <initial>0.2</initial>
       </variable>
-      <objectVar>y</objectVar>
+      <variable name='y'>
+        <upperBound>1.0</upperBound>
+        <lowerBound>0.0</lowerBound>
+        <initial>0.5</initial>
+      </variable>
+      <objectVar>ans</objectVar>
     </SPSA>
   </Optimizers>
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
     <ExternalModel ModuleToLoad="infinite" name="inf" subType="">
-      <variables>x,y</variables>
+      <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>
 
   <DataObjects>
     <PointSet name="dummyIN">
-      <Input>x</Input>
+      <Input>x,y</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="optOut">
-      <Input>x</Input>
-      <Output>y</Output>
+      <Input>x,y</Input>
+      <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_soln">
       <Input>trajID</Input>
-      <Output>x,y,varsUpdate</Output>
+      <Output>x,y,ans,varsUpdate</Output>
     </PointSet>
     <HistorySet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,varsUpdate</Output>
+      <Output>x,y,ans,varsUpdate,stepSize,gradient_x</Output>
     </HistorySet>
   </DataObjects>
 

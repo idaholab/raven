@@ -1,7 +1,8 @@
+import numpy as np
+
 def run(self,Inputs):
-  # test to make sure other methods were run
   if self.x != 0.0:
-    self.y = 1.0/self.x
+    self.ans = self.y/self.x
   else:
-    self.y = float('inf') + self.x
+    self.ans = np.array([float('inf')])
 

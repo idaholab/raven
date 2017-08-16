@@ -554,7 +554,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       return originalPoint
 
-
   def localInitialize(self,solutionExport):
     """
       Use this function to add initialization features to the derived class

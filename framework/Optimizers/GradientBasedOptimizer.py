@@ -198,6 +198,15 @@ class GradientBasedOptimizer(Optimizer):
     for i in range(self.gradDict['numIterForAve']):
       opt  = optVarsValues[i*2]     #the latest opt point
       pert = optVarsValues[i*2 + 1] #the perturbed point
+      #TODO fix infinities!
+      if pert['output'] == np.inf:
+        pert['output'] = sys.float_info.max
+      elif pert['output'] == -np.inf:
+        pert['output'] = -sys.float_info.max
+      if opt['output'] == np.inf:
+        opt['output'] = sys.float_info.max
+      elif opt['output'] == -np.inf:
+        opt['output'] = -sys.float_info.max
       #calculate grad(F) wrt each input variable
       lossDiff = pert['output'] - opt['output'] #optOutAvg
       #cover "max" problems
