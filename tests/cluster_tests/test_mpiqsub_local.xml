@@ -9,6 +9,7 @@
       This tests running with mpi and a qsub.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstMQRun</Sequence>
