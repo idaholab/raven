@@ -1,0 +1,117 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <JobName>ROMLoad</JobName>
+    <Sequence>loadROM,sampleROM, writeHistories</Sequence>
+    <WorkingDir>ROMLoad</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/user_guide/ravenTutorial/RomLoad</name>
+    <author>wangc</author>
+    <created>2017-07-26</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>
+      This test is an example for the user guide to draw from.  It demonstrates the workflow
+      for loading and sampling ROM.
+    </description>
+  </TestInfo>
+
+  <Files>
+      <Input name="rom_inv" type="">../commonFiles/inverseRom.pk</Input>
+  </Files>
+
+  <Models>
+    <ROM name="rom" subType="NDinvDistWeight">
+      <Features>sigma-A,decay-A</Features>
+      <Target>A, time</Target>
+      <p>3</p>
+    </ROM>
+  </Models>
+
+  <Distributions>
+      <Uniform name="sigma">
+          <lowerBound>1</lowerBound>
+          <upperBound>10</upperBound>
+      </Uniform>
+      <Uniform name="decayConstant">
+          <lowerBound>0.000000005</lowerBound>
+          <upperBound>0.000000010</upperBound>
+      </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="monteCarlo">
+      <samplerInit>
+          <limit>10</limit>
+          <reseedEachIteration>True</reseedEachIteration>
+          <initialSeed>130168</initialSeed>
+      </samplerInit>
+      <variable name="sigma-A">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay-A">
+        <distribution>decayConstant</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <IOStep name="loadROM">
+        <Input class="Files" type="">rom_inv</Input>
+        <Output class="Models" type="ROM">rom</Output>
+    </IOStep>
+    <MultiRun name="sampleROM">
+      <Input class="DataObjects" type="HistorySet">inputPlaceHolder</Input>
+      <Model class="Models" type="ROM">rom</Model>
+      <Sampler class="Samplers" type="MonteCarlo">monteCarlo</Sampler>
+      <Output class="DataObjects" type="HistorySet">histories</Output>
+    </MultiRun>
+    <IOStep name="writeHistories" pauseAtEnd="True">
+        <Input  class="DataObjects"      type="HistorySet">histories</Input>
+        <Output class="OutStreams" type="Plot">historyROMPlot</Output>
+        <Output class="OutStreams" type="Print">historiesROM</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="inputPlaceHolder">
+      <Input>sigma-A,decay-A</Input>
+      <Output>OutputPlaceHolder</Output>
+    </HistorySet>
+    <HistorySet name="histories">
+      <Input>sigma-A,decay-A</Input>
+      <Output>A, time</Output>
+      <options>
+          <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="historiesROM">
+        <type>csv</type>
+        <source>histories</source>
+    </Print>
+    <Plot   name="historyROMPlot" overwrite="false" verbosity="debug">
+        <plotSettings>
+            <plot>
+                <type>line</type>
+                <x>histories|Output|time</x>
+                <y>histories|Output|A</y>
+                <color>blue</color>
+            </plot>
+            <xlabel>time (s)</xlabel>
+            <ylabel>evolution A(kg)</ylabel>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

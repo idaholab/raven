@@ -1,10 +1,7 @@
-\section{Manual Structure}
-This manual is intended to provide an overview of the RAVEN capabilities through the explanation of multiple commented examples.
-To speed up the learning process, the examples are organized in an ascending complexity order, from simple data manipulation and visualization to
-full Probabilistic Risk Assessment and Uncertainty Quantification analysis. In addition, each example is followed by a brief explanation of the theoretical background of the methods that have been used.
-\\ It is important to notice that this document is intended to be consulted in conjunction with the user manual ~\cite{RAVENuserManual}.
-\subsection{AnalyticBateman, Example Model}\label{sec:analyticalbateman}
-To generalize the examples to any driven software, a simple \texttt{Python} code (conventionally called \textbf{AnalyticBateman}) has been developed (located at ``\textit{doc/user\textunderscore guide/ravenInputs/physicalCode}''). It solves a system of ordinary differential equations (ODEs), of the form:
+\subsection{Example Model: Analytic Bateman}\label{sec:analyticalbateman}
+This section is intended for the new users to familiarize them with how to perform their studies through RAVEN.
+A simple example, conventionally called \textbf{AnalyticBateman}, has been developed. It solves a system of
+ordinary differential equations (ODEs), of the form:
 
 \begin{equation}
 \begin{dcases}
@@ -19,11 +16,11 @@ To generalize the examples to any driven software, a simple \texttt{Python} code
      \item $\mathbf{L}$, loss terms
    \end{itemize}
 
-For example, this  code is able to solve a system of equations as follows:
+For example, this  code is able to solve a system of two ODEs as follows:
 \begin{equation}
   \begin{dcases}
-   \frac{\mathrm{d} x_{1}}{\mathrm{d} t} = \phi (t)\times \sigma_{x_{1}}-\lambda_{x_{1}} \\
-   \frac{\mathrm{d} x_{2}}{\mathrm{d} t} = \phi (t)\times \sigma_{x_{2}}-\lambda_{x_{2}}+x_{1}(t)\times\lambda_{x_{1}} \\
+    \frac{\mathrm{d} x_{1}}{\mathrm{d} t} = \phi (t)\times \sigma_{x_{1}}-\lambda_{x_{1}}\times x_{1}(t) \\
+    \frac{\mathrm{d} x_{2}}{\mathrm{d} t} = \phi (t)\times \sigma_{x_{2}}-\lambda_{x_{2}} \times x_{2}(t) + x_{1}(t)\times\lambda_{x_{1}} \\
     x_{1}(t=0)= x_{1}^{0} \\
     x_{2}(t=0)= 0.0
   \end{dcases}
@@ -31,9 +28,8 @@ For example, this  code is able to solve a system of equations as follows:
 
 The input of the \textbf{AnalyticBateman} code is in XML format.
 For example, the following is the reference input for a system of 4 Ordinary Differential Equations (ODEs)
-that is going to be used for all the examples reported in this manual.  For some examples, the number of
-calculated steps might be adjusted for time of calculation (\xmlNode{timeSteps}); however, the operation is
-similar for exemplary purposes.
+that is going to be used for as an example in this guide. All the files required for this system are  located at
+``\textit{raven/tests/framework/user\textunderscore guide/physicalCode}''. 
 
 \xmlExample{framework/user_guide/physicalCode/analyticalbateman/Input.xml}{AnalyticalBateman}
 The code outputs the time evolution of the 4 variables ($A,B,C,D$) in a CSV file, producing the following output:
@@ -59,5 +55,3 @@ The code outputs the time evolution of the 4 variables ($A,B,C,D$) in a CSV file
 34560000.0 & 0.818364043850 & 0.764762489077 & 1.07074662835 & 1.12628231792
 \end{tabular}
 \end{table}
-
-RAVEN is able to directly retrieve CSV files as output; for this reason, the \textit{\textbf{GenericInterface}} (see ~\cite{RAVENuserManual}-Chapter ``Existing Interfaces'') is used to drive the code.
