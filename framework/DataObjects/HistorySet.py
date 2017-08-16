@@ -260,6 +260,22 @@ class HistorySet(Data):
     if not isinstance(value,c1darray):
       self.raiseAnError(NotConsistentData,'HistorySet Data accepts only cached_ndarray as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
 
+    # inParam = copy.deepcopy(self._dataParameters['inParam'])
+    # outParam = copy.deepcopy(self._dataParameters['outParam'])
+    # inputRow = copy.deepcopy(self._dataParameters.get('inputRow',None))
+
+    # sampledVars = self._dataParameters.get('SampledVars',None)
+    # inputPivotVal = self._dataParameters.get('inputPivotValue',None)
+
+    pivotParameter = self._dataParameters.get('pivotParameter',None)
+    outputPivotVal = self._dataParameters.get('outputPivotValue',None)
+
+    outputPivotValAll = True
+    if outputPivotVal is not None:
+      outputPivotValAll = 'all' in outputPivotVal
+      if not outputPivotValAll:
+        outputPivotVal = [float(x) for x in outputPivotVal.split()]
+
     if options and self._dataParameters['hierarchical']:
       parentID = None
       if type(name) == list:
