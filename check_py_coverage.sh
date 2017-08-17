@@ -22,7 +22,6 @@ update_python_path ()
 update_python_path
 PATH=$INSTALL_DIR/bin:$PATH
 
-
 if which coverage
 then
     echo coverage already available, skipping building it.
@@ -48,6 +47,8 @@ cd $SCRIPT_DIR
 cd tests/framework
 #coverage help run
 FRAMEWORK_DIR=`(cd ../../framework && pwd)`
+
+source $SCRIPT_DIR/scripts/setup_raven_libs
 
 EXTRA="--rcfile=$FRAMEWORK_DIR/../tests/framework/.coveragerc --source=$FRAMEWORK_DIR -a --omit=$FRAMEWORK_DIR/contrib/*"
 export COVERAGE_FILE=`pwd`/.coverage
@@ -87,10 +88,27 @@ coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_adaptive_
 coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_det_multibranch.xml interfaceCheck
 coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_inss.xml interfaceCheck
 # code interface tests END
-cd ../PostProcessors/TopologicalPostProcessor
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
-cd ../DataMiningPostProcessor/Clustering/
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck
+
+if which Xvfb
+then
+    Xvfb :8888 &
+    xvfbPID=$!
+    oldDisplay=$DISPLAY
+    export DISPLAY=:8888
+    cd ../PostProcessors/TopologicalPostProcessor
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
+    cd ../DataMiningPostProcessor/Clustering/
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck
+    kill -9 $xvfbPID
+    export DISPLAY=$oldDisplay
+else
+    ## Try these tests anyway, we can get some coverage out of them even if the
+    ## UI fails or is unavailable.
+    cd ../PostProcessors/TopologicalPostProcessor
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
+    cd ../DataMiningPostProcessor/Clustering/
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck
+fi
 
 ## Go to the final directory and generate the html documents
 cd $SCRIPT_DIR/tests/framework
