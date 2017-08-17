@@ -257,6 +257,12 @@ checkAnswer('relativeDiff first is zero',mathUtils.relativeDiff(0,1.234),1.0)
 checkAnswer('relativeDiff second is zero',mathUtils.relativeDiff(1.234,0),1.0)
 # both are 0
 checkAnswer('relativeDiff both are zero',mathUtils.relativeDiff(0,0),0.0)
+# first is inf
+checkAnswer('relativeDiff first is inf',mathUtils.relativeDiff(np.inf,0),np.inf)
+# second is inf
+checkAnswer('relativeDiff second is inf',mathUtils.relativeDiff(0,np.inf),np.inf)
+# both are inf
+checkAnswer('relativeDiff both are inf',mathUtils.relativeDiff(np.inf,np.inf),0)
 
 ### check float comparison
 #moderate order of magnitude
