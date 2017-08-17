@@ -54,7 +54,7 @@ def checkAnswer(comment,value,expected,tol=1e-10,updateResults=True):
     @ Out, None
   """
   if abs(value - expected) > tol:
-    print("checking answer",comment,value,"!=",expected)
+    print("checking answer",comment,':',value,"!=",expected)
     if updateResults:
       results["fail"] += 1
     return False
@@ -324,6 +324,19 @@ checkAnswer('3D hyperdiagonal',mathUtils.hyperdiagonal(sideLengths),13)
 ## 3d
 sideLengths.append(84)
 checkAnswer('4D hyperdiagonal',mathUtils.hyperdiagonal(sideLengths),85)
+
+# check diffWithInfinites
+i = float('inf')
+n = np.inf
+checkAnswer('InfDiff inf    - inf'   ,mathUtils.diffWithInfinites( n, i), 0)
+checkAnswer('InfDiff inf    - finite',mathUtils.diffWithInfinites( n, 0), i)
+checkAnswer('InfDiff inf    - (-inf)',mathUtils.diffWithInfinites( n,-n), i)
+checkAnswer('InfDiff finite - inf'   ,mathUtils.diffWithInfinites( 0, n),-i)
+checkAnswer('InfDiff finite - finite',mathUtils.diffWithInfinites( 3, 2), 1)
+checkAnswer('InfDiff finite - (-inf)',mathUtils.diffWithInfinites( 0,-n), i)
+checkAnswer('InfDiff -inf   - inf'   ,mathUtils.diffWithInfinites(-n, n),-i)
+checkAnswer('InfDiff -inf   - finite',mathUtils.diffWithInfinites(-n, 0),-i)
+checkAnswer('InfDiff -inf   - (-inf)',mathUtils.diffWithInfinites(-n,-n), 0)
 
 
 print(results)

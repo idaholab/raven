@@ -611,3 +611,22 @@ def numBinsDraconis(data):
   numBins = int((max(data)-min(data))/binSize)
   binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
   return numBins,binEdges
+
+def diffWithInfinites(a,b):
+  """
+    Calculates the difference a-b and treats infinites.  We consider infinites to have equal values, but
+    inf - (- inf) = inf.
+    @ In, a, float, first value (could be infinite)
+    @ In, b, float, second value (could be infinite)
+    @ Out, res, float, b-a (could be infinite)
+  """
+  if abs(a) == np.inf or abs(b) == np.inf:
+    if a == b:
+      res = 0
+    elif a > b:
+      res = np.inf
+    else: # b > a
+      res = -np.inf
+  else:
+    res = a-b
+  return res
