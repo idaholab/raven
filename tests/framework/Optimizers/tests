@@ -46,7 +46,7 @@
   [../]
   [./Infinite]
     type = 'RavenFramework'
-    input = 'infinte.xml'
+    input = 'infinite.xml'
     output = 'Infinite/opt_export_0.csv'
     # The values of the CSV can't be tested, as "inf" is rejected in gold files currently
   [../]
