@@ -291,6 +291,7 @@
    xml = 'test_iostep_load/reprint_HistorySet.xml'
    prereq = test_output
    remove_unicode_identifier = true
+   remove_whitespace = true
  [../]
 
  [./load_and_push_reusing_same_hdf5]
