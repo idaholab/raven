@@ -935,7 +935,9 @@ class BasicStatistics(PostProcessor):
         paramSamples[p,:] = input['targets'][param][:]
         pbWeightsList[p] = pbWeights['realization'] if param not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][param]
       pbWeightsList.append(pbWeights['realization'])
-      if None in pbWeightsList:
+      #Note: this is basically "None in pbWeightsList", but
+      # using "is None" instead of "== None", which is more reliable
+      if True in [x is None for x in pbWeightsList]:
         covar = self.covariance(paramSamples)
       else:
         covar = self.covariance(paramSamples, weights = pbWeightsList)
