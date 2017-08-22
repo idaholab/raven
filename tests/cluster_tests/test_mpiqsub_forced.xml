@@ -1,32 +1,31 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>cluster_tests/test_mpiqsub_parameters</name>
+    <name>cluster_tests/test_mpiqsub</name>
     <author>cogljj</author>
-    <created>2016-08-31</created>
-    <classesTested>MPISimulationMode,Simulation</classesTested>
+    <created>2015-02-26</created>
+    <classesTested>MPISimulationMode</classesTested>
     <description>
-      Tests using the MPIExec and NodeParameter by fiddling with them and
-      putting the node parameter in the MPIExec block.
+      This tests running with mpi and a qsub.
     </description>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>.</WorkingDir>
-    <Sequence>FirstMFRun</Sequence>
+    <Sequence>FirstMForcedRun</Sequence>
     <batchSize>3</batchSize>
-    <clusterParameters>-W block=true</clusterParameters>
     <NumThreads>4</NumThreads>
-    <mode>
-      mpi
-      <runQSUB/>
-    </mode>
-    <!-- this is a silly rearrangement to test the functionality. -->
-    <MPIExec>mpiexec -f</MPIExec>
-    <NodeParameter> </NodeParameter>
     <NumMPI>2</NumMPI>
     <expectedTime>0:10:00</expectedTime>
     <JobName>test_qsub</JobName>
+    <clusterParameters>-W block=true</clusterParameters>
+    <mode>
+      mpi
+      <place>shared</place>
+      <memory>1gb</memory>
+      <coresneeded>2</coresneeded>
+      <runQSUB/>
+    </mode>
   </RunInfo>
 
   <Files>
@@ -80,7 +79,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="FirstMFRun">
+    <MultiRun name="FirstMForcedRun">
       <Input class="Files" type="">simple_gp_test.i</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
