@@ -79,7 +79,7 @@
       <executable>RunFailures/codeFailer.py</executable>
       <inputExtensions>inp</inputExtensions>
       <clargs arg="python" type="prepend"/>
-      <clargs args="" extension=".inp" type="input"/>
+      <clargs arg="" extension=".inp" type="input"/>
       <fileargs arg="out" type="output"/>
       <prepend>python</prepend>
     </Code>
