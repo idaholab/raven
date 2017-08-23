@@ -188,6 +188,7 @@ class ParameterInput(object):
   subOrder = None
   parameters = {}
   contentType = None
+  strictMode = True #If true, only allow parameters and subnodes that are listed
 
   def __init__(self):
     """
@@ -199,7 +200,7 @@ class ParameterInput(object):
     self.value = ""
 
   @classmethod
-  def createClass(cls, name, ordered=False, contentType=None, baseNode=None):
+  def createClass(cls, name, ordered=False, contentType=None, baseNode=None, strictMode=True):
     """
       Initializes a new class.
       @ In, name, string, The name of the node.
@@ -213,6 +214,7 @@ class ParameterInput(object):
     cls.__name__ = str(name+'Spec')
 
     cls.name = name
+    cls.strictMode = strictMode
     if baseNode is not None:
       #Make new copies of data from baseNode
       cls.parameters = dict(baseNode.parameters)
@@ -294,6 +296,12 @@ class ParameterInput(object):
         if parameter in node.attrib:
           param_type = self.parameters[parameter]["type"]
           self.parameterValues[parameter] = param_type.convert(node.attrib[parameter])
+      if self.strictMode:
+        for parameter in node.attrib:
+          if not parameter in self.parameters:
+            print(parameter," not in attributes and strict mode on in "+node.tag)
+            print("Allowed attributes ", self.parameters)
+            raise IOError
       if self.subOrder is not None:
         subs = [sub[0] for sub in self.subOrder]
       else:
