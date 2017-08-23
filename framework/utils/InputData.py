@@ -296,6 +296,9 @@ class ParameterInput(object):
         if parameter in node.attrib:
           param_type = self.parameters[parameter]["type"]
           self.parameterValues[parameter] = param_type.convert(node.attrib[parameter])
+        elif self.parameters[parameter]["required"] and self.strictMode:
+          print("Required parameter ",parameter," not in ",node.tag)
+          raise IOError
       if self.strictMode:
         for parameter in node.attrib:
           if not parameter in self.parameters:
