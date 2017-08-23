@@ -438,3 +438,11 @@ def createXSD(outerElement):
                                          'type':outerElement.getName()+'_type'})
   outerElement.generateXSD(outside, {})
   return outside
+
+
+class RavenBase(ParameterInput):
+  """
+    This can be used as a base class for things that inherit from BaseType
+  """
+RavenBase.createClass("RavenBase", baseNode=None)
+RavenBase.addParam("verbosity") #XXX should be enumeration
