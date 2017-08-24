@@ -287,16 +287,26 @@ class ParameterInput(object):
     """
     cls.contentType = contentType
 
-  def parseNode(self,node):
+  def parseNode(self,node, errorList = None):
     """
       Parses the xml node and puts the results in self.parameterValues and
       self.subparts and self.value
       @ In, node, xml.etree.ElementTree.Element, The node to parse.
+      @ In, errorList, list, if not None, put errors in errorList instead of throwing IOError.
       @ Out, None
     """
+    def handleError(s):
+      """
+        Handles the error, either by throwing IOError or adding to the errorlist
+        @ In, s, string, string describing error.
+      """
+      if errorList == None:
+        raise IOError(s)
+      else:
+        errorList.append(s)
+
     if node.tag != self.name:
-      print(node.tag,"!=",self.name)
-      raise IOError
+      handleError(node.tag + "!=" + self.name)
     else:
       if self.contentType:
         self.value = self.contentType.convert(node.text)
@@ -307,14 +317,11 @@ class ParameterInput(object):
           param_type = self.parameters[parameter]["type"]
           self.parameterValues[parameter] = param_type.convert(node.attrib[parameter])
         elif self.parameters[parameter]["required"] and self.strictMode:
-          print("Required parameter ",parameter," not in ",node.tag)
-          raise IOError
+          handleError("Required parameter " + parameter + " not in " + node.tag)
       if self.strictMode:
         for parameter in node.attrib:
           if not parameter in self.parameters:
-            print(parameter," not in attributes and strict mode on in "+node.tag)
-            print("Allowed attributes ", self.parameters)
-            raise IOError
+            handleError(parameter + " not in attributes and strict mode on in "+node.tag)
       if self.subOrder is not None:
         subs = [sub[0] for sub in self.subOrder]
       else:
@@ -325,15 +332,13 @@ class ParameterInput(object):
         subNames.add(subName)
         for subNode in node.findall(subName):
           subInstance = sub()
-          subInstance.parseNode(subNode)
+          subInstance.parseNode(subNode, errorList)
           self.subparts.append(subInstance)
-      print(type(node),node)
-      print(dir(node))
       if self.strictMode:
         for child in node:
           if child.tag not in subNames:
-            print("Child "+child.tag+" not in allowed sub elements in "+node.tag)
-            raise IOError
+            handleError("Child "+child.tag+" not in allowed sub elements in "+node.tag)
+
 
   def findFirst(self, name):
     """
