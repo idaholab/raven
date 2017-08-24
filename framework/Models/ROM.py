@@ -167,6 +167,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("outTruncation", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
