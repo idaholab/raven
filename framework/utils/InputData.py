@@ -207,6 +207,7 @@ class ParameterInput(object):
       @ In, ordered, bool, optional, If True, then the subnodes are checked to make sure they are in the same order.
       @ In, contentType, InputType, optional, If not None, set contentType.
       @ In, baseNode, ParameterInput, optional, If not None, copy parameters and subnodes, subOrder, and contentType from baseNode.
+      @ In, strictNode, bool, option, If True, then only allow paramters and subnodes that are specifically mentioned.
       @ Out, None
     """
 
@@ -233,6 +234,15 @@ class ParameterInput(object):
       else:
         cls.subOrder = None
       cls.contentType = contentType
+
+  @classmethod
+  def setStrictMode(cls, strictMode):
+    """
+      Sets how strict the parsing is.  Stricter will throw more IOErrors.
+      @ In, strictNode, bool, option, If True, then only allow paramters and subnodes that are specifically mentioned.
+      @ Out, None
+    """
+    cls.strictMode = strictMode
 
   @classmethod
   def getName(cls):
@@ -309,12 +319,21 @@ class ParameterInput(object):
         subs = [sub[0] for sub in self.subOrder]
       else:
         subs = self.subs
+      subNames = set()
       for sub in subs:
         subName = sub.getName()
+        subNames.add(subName)
         for subNode in node.findall(subName):
           subInstance = sub()
           subInstance.parseNode(subNode)
           self.subparts.append(subInstance)
+      print(type(node),node)
+      print(dir(node))
+      if self.strictMode:
+        for child in node:
+          if child.tag not in subNames:
+            print("Child "+child.tag+" not in allowed sub elements in "+node.tag)
+            raise IOError
 
   def findFirst(self, name):
     """
