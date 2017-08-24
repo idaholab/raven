@@ -537,6 +537,40 @@ class EnsembleModel(Dummy):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+
+
+  def submitAsClient(self,myInput,samplerType,jobHandler,**kwargs):
+    """
+        This will submit an individual sample to be evaluated by this model to a
+        specified jobHandler as a client job. Note, some parameters are needed
+        by createNewInput and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new
+          one
+        @ In, samplerType, string, is the type of sampler that is calling to
+          generate a new input
+        @ In,  jobHandler, JobHandler instance, the global job handler instance
+        @ In, **kwargs, dict,  is a dictionary that contains the information
+          coming from the sampler, a mandatory key is the sampledVars' that
+          contains a dictionary {'name variable':value}
+        @ Out, None
+    """
+    for mm in utils.returnImportModuleString(jobHandler):
+      if mm not in self.mods:
+        self.mods.append(mm)
+
+    prefix = kwargs['prefix']
+    self.tempOutputs['uncollectedJobIds'].append(prefix)
+
+    ## Ensemble models need access to the job handler, so let's stuff it in our
+    ## catch all kwargs where evaluateSample can pick it up, not great, but
+    ## will suffice until we can better redesign this whole process.
+    kwargs['jobHandler'] = jobHandler
+
+    ## This may look a little weird, but due to how the parallel python library
+    ## works, we are unable to pass a member function as a job because the
+    ## pp library loses track of what self is, so instead we call it from the
+    ## class and pass self in as the first parameter
     jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
@@ -675,10 +709,10 @@ class EnsembleModel(Dummy):
         while not nextModel:
           moveOn = False
           while not moveOn:
-            if jobHandler.availability() > 0:
+            if jobHandler.availability(client=True) > 0:
               # run the model
               if modelIn not in modelsOnHold:
-                self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
+                self.modelsDictionary[modelIn]['Instance'].submitAsClient(originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
                 # wait until the model finishes, in order to get ready to run the subsequential one
                 while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
                   time.sleep(1.e-3)
