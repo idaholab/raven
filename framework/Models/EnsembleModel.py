@@ -709,10 +709,10 @@ class EnsembleModel(Dummy):
         while not nextModel:
           moveOn = False
           while not moveOn:
-            if jobHandler.availability(client=True) > 0:
+            if jobHandler.availability() > 0:
               # run the model
               if modelIn not in modelsOnHold:
-                self.modelsDictionary[modelIn]['Instance'].submitAsClient(originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
+                self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
                 # wait until the model finishes, in order to get ready to run the subsequential one
                 while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
                   time.sleep(1.e-3)
