@@ -16,7 +16,6 @@
     <B>
         <equationType>N2</equationType>
         <initialMass>1.0</initialMass>
-        <initialMass>1.0</initialMass>
         <decayConstant>0.00000005</decayConstant>
         <sigma>10</sigma>
         <ANumber>200</ANumber>
@@ -24,14 +23,12 @@
     <C>
         <equationType>N3</equationType>
         <initialMass>1.0</initialMass>
-        <initialMass>1.0</initialMass>
         <decayConstant>0.000000005</decayConstant>
         <sigma>45</sigma>
         <ANumber>150</ANumber>
     </C>
     <D>
         <equationType>N4</equationType>
-        <initialMass>1.0</initialMass>
         <initialMass>1.0</initialMass>
         <decayConstant>0.00000008</decayConstant>
         <sigma>3</sigma>
