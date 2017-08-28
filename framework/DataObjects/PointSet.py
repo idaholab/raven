@@ -233,19 +233,25 @@ class PointSet(Data):
       if self._dataParameters is None:
         outputRow = -1
         outputPivotVal = None
+        pivotParameter = None
         operator = None
       else:
         ## Not sure if any of these are necessary, but I am trying to replicate
         ## the magic that takes place in the Csv_loader -- DPM 5/3/2017
-        outputRow = self._dataParameters.get('outputRow',-1)
+        outputRow = self._dataParameters.get('outputRow', None)
         outputPivotVal = self._dataParameters.get('outputPivotValue',None)
+        pivotParameter = self._dataParameters.get('pivotParameter',None)
         operator = self._dataParameters.get('operator',None)
 
       if outputRow is None:
-        if outputPivotVal is not None and 'end' in outputPivotVal:
+        if outputPivotVal is not None:
+          if type(outputPivotVal) is str and 'end' in outputPivotVal:
+            outputRow = -1
+          else:
+            outputPivotVal = float(outputPivotVal)
+            outputRow = self._dataContainer['outputs'][pivotParameter].index(outputPivotVal)
+        else:
           outputRow = -1
-        # elif outputPivotVal != None:
-        #   outputPivotVal = float(outputPivotVal)
 
       if operator == 'max':
         value = np.max(value)
@@ -290,11 +296,11 @@ class PointSet(Data):
     else:
       if name in self._dataContainer['outputs'].keys():
         #popped = self._dataContainer['outputs'].pop(name)
-        self._dataContainer['outputs'][name].append(np.atleast_1d(value)[-1])   #= copy.copy(np.concatenate((np.array(popped), np.atleast_1d(np.atleast_1d(value)[-1]))))
+        self._dataContainer['outputs'][name].append(np.atleast_1d(value)[outputRow])   #= copy.copy(np.concatenate((np.array(popped), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         if name not in self._dataParameters['outParam']:
           self._dataParameters['outParam'].append(name)
-        self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) # np.atleast_1d(np.atleast_1d(value)[-1])
+        self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[outputRow])) # np.atleast_1d(np.atleast_1d(value)[-1])
 
   def specializedPrintCSV(self,filenameLocal,options):
     """
