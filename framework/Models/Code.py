@@ -338,7 +338,7 @@ class Code(Model):
 
     return (newInput,kwargs)
 
-  def __expandForWindows(self, origCommand):
+  def _expandForWindows(self, origCommand):
     """
       Function to expand a command that has a #! to a windows runnable command
       @ In, origCommand, string, The command to check for expantion
@@ -475,7 +475,7 @@ class Code(Model):
 
     self.raiseAMessage('Execution command submitted:',command)
     if platform.system() == 'Windows':
-      command = self.__expandForWindows(command)
+      command = self._expandForWindows(command)
       self.raiseAMessage("modified command to" + repr(command))
 
     ## This code should be evaluated by the job handler, so it is fine to wait
