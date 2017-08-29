@@ -116,13 +116,10 @@ class Relap5(CodeInterfaceBase):
     readLines = outputToRead.readlines()
 
     for goodMsg in goodWord:
-        if goodMsg in readLines[-20:]:
+      for line in readLines[-20:]:
+        if goodMsg in line:
           failure = False
           break
-    for badMsg in errorWord:
-      if any(badMsg in x for x in readLines):
-        failure = failure or True
-        break
     return failure
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
