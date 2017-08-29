@@ -129,6 +129,10 @@ class PointSet(Data):
         row = self._dataParameters.get('inputRow', -1)
         operator = self._dataParameters.get('operator', None)
 
+      ## Zero or one indexed?
+      # if row  > 0:
+      #   row  -= 1
+
       if operator == 'max':
         value = np.max(value)
       elif operator == 'min':
@@ -259,6 +263,10 @@ class PointSet(Data):
       if self._dataParameters is not None:
         row = self._dataParameters.get('outputRow', -1)
         operator = self._dataParameters.get('operator', None)
+
+      ## Zero or one indexed?
+      # if row  > 0:
+      #   row  -= 1
 
       if operator == 'max':
         value = np.max(value)

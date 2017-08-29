@@ -122,6 +122,9 @@ class HistorySet(Data):
     if self._dataParameters is not None:
       rows = self._dataParameters.get('inputRow', None)
       operator = self._dataParameters.get('operator', None)
+      ## Zero or one indexed?
+      # if rows  > 0:
+      #   rows  -= 1
 
     if rows is None:
       rows = range(len(value))
@@ -282,6 +285,9 @@ class HistorySet(Data):
     if self._dataParameters is not None:
       rows = self._dataParameters.get('outputRow', None)
       operator = self._dataParameters.get('operator', None)
+      ## Zero or one indexed?
+      # if rows  > 0:
+      #   rows  -= 1
 
     if rows is None:
       rows = range(len(value))
