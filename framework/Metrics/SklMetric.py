@@ -73,7 +73,7 @@ class SKL(Metric):
       if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
         dictTemp = utils.mergeDictionaries(kwargs,self.distParams)
         if self.metricType in pairwise.kernel_metrics().keys():
-          value = pairwise.kernel_metrics(X=x, Y=y, metric=self.metricType, **dictTemp)
+          value = pairwise.pairwise_kernels(X=x, Y=y, metric=self.metricType, **dictTemp)
         elif self.metricType in pairwise.distance_metrics():
           value = pairwise.pairwise_distances(X=x, Y=y, metric=self.metricType, **dictTemp)
         return value
