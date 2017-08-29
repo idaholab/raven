@@ -107,15 +107,21 @@ class Relap5(CodeInterfaceBase):
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
     failure = True
-    errorWord = ["Transient terminated by end of time step cards","Transient terminated by trip"]
+    errorWord = ["Transient terminated by failure","Thermodynamic property error with minimum time step, transient being terminated"]
+    goodWord  = ["Transient terminated by end of time step cards","Transient terminated by trip"]
     try:
       outputToRead = open(os.path.join(workingDir,output+'.o'),"r")
     except:
       return failure
     readLines = outputToRead.readlines()
-    for goodMsg in errorWord:
-      if any(goodMsg in x for x in readLines):
-        failure = False
+
+    for goodMsg in goodWord:
+        if goodMsg in readLines[-20:]:
+          failure = False
+          break
+    for badMsg in errorWord:
+      if any(badMsg in x for x in readLines):
+        failure = failure or True
         break
     return failure
 
