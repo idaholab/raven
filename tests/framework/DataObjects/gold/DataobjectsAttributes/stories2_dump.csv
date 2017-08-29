@@ -1,7 +1,7 @@
-pipe_Dh,pipe_Area,filename
-6.91987130224e-310,0.000190772,stories2_dump_0.csv
-6.92846446421e-310,0.000190772,stories2_dump_1.csv
-6.90966877685e-310,0.000190772,stories2_dump_2.csv
-6.91502439002e-310,0.000190772,stories2_dump_3.csv
-6.93588556114e-310,0.000190772,stories2_dump_4.csv
-6.90255494551e-310,0.000190772,stories2_dump_5.csv
+Tw,filename
+300.0,stories2_dump_0.csv
+303.0,stories2_dump_1.csv
+300.0,stories2_dump_2.csv
+303.0,stories2_dump_3.csv
+300.0,stories2_dump_4.csv
+303.0,stories2_dump_5.csv

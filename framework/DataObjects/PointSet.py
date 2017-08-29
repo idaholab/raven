@@ -117,6 +117,31 @@ class PointSet(Data):
       @ In,  value, float, newer value (single value)
       @ Out, None
     """
+
+    ## So, you are trying to update a single data point, but you passed in
+    ## more information, this means we need to reduce it down using one of our
+    ## recipes.
+    value = np.atleast_1d(value).flatten()
+    if len(value) > 1:
+
+      row = -1
+      if self._dataParameters is not None:
+        row = self._dataParameters.get('inputRow', -1)
+        operator = self._dataParameters.get('operator', None)
+
+      if operator == 'max':
+        value = np.max(value)
+      elif operator == 'min':
+        value = np.min(value)
+      elif operator == 'average':
+        value = np.average(value)
+      else: #elif outputRow is not None:
+        value = value[row]
+      ## We don't have access to the pivot parameter's information at this
+      ## point, so I will forego this implementation for now -- DPM 5/3/2017
+      #else:
+      #  value = interp1d(data[:,pivotIndex], value, kind='linear')(outputPivotVal)
+
     # if this flag is true, we accept realizations in the input space that are not only scalar but can be 1-D arrays!
     #acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
     unstructuredInput = False
@@ -230,28 +255,10 @@ class PointSet(Data):
     value = np.atleast_1d(value).flatten()
     if len(value) > 1:
 
-      if self._dataParameters is None:
-        outputRow = -1
-        outputPivotVal = None
-        pivotParameter = None
-        operator = None
-      else:
-        ## Not sure if any of these are necessary, but I am trying to replicate
-        ## the magic that takes place in the Csv_loader -- DPM 5/3/2017
-        outputRow = self._dataParameters.get('outputRow', None)
-        outputPivotVal = self._dataParameters.get('outputPivotValue',None)
-        pivotParameter = self._dataParameters.get('pivotParameter',None)
-        operator = self._dataParameters.get('operator',None)
-
-      if outputRow is None:
-        if outputPivotVal is not None:
-          if type(outputPivotVal) is str and 'end' in outputPivotVal:
-            outputRow = -1
-          else:
-            outputPivotVal = float(outputPivotVal)
-            outputRow = self._dataContainer['outputs'][pivotParameter].index(outputPivotVal)
-        else:
-          outputRow = -1
+      row = -1
+      if self._dataParameters is not None:
+        row = self._dataParameters.get('outputRow', -1)
+        operator = self._dataParameters.get('operator', None)
 
       if operator == 'max':
         value = np.max(value)
@@ -260,7 +267,7 @@ class PointSet(Data):
       elif operator == 'average':
         value = np.average(value)
       else: #elif outputRow is not None:
-        value = value[outputRow]
+        value = value[row]
       ## We don't have access to the pivot parameter's information at this
       ## point, so I will forego this implementation for now -- DPM 5/3/2017
       #else:
@@ -296,11 +303,11 @@ class PointSet(Data):
     else:
       if name in self._dataContainer['outputs'].keys():
         #popped = self._dataContainer['outputs'].pop(name)
-        self._dataContainer['outputs'][name].append(np.atleast_1d(value)[outputRow])   #= copy.copy(np.concatenate((np.array(popped), np.atleast_1d(np.atleast_1d(value)[-1]))))
+        self._dataContainer['outputs'][name].append(np.atleast_1d(value)[-1])   #= copy.copy(np.concatenate((np.array(popped), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         if name not in self._dataParameters['outParam']:
           self._dataParameters['outParam'].append(name)
-        self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[outputRow])) # np.atleast_1d(np.atleast_1d(value)[-1])
+        self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) # np.atleast_1d(np.atleast_1d(value)[-1])
 
   def specializedPrintCSV(self,filenameLocal,options):
     """
@@ -519,38 +526,3 @@ class PointSet(Data):
       else:
         self._dataContainer["outputs"][key].append(c1darray(values=np.array(inoutDict[key])))
 
-#   COMMENTED BECUASE NOT USED. NEED TO BE REMOVED IN THE FUTURE
-#   def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
-#     """
-#       specialization of extractValue for this data type
-#       @ In, inOutType, string, the type of data to extract (input or output)
-#       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
-#       @ In, varName, string, is the name of the variable that should be recovered
-#       @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
-#         if varID.type!=tuple only one point along sampling of that variable is retrieved
-#           else:
-#             if varID=(int,int) the slicing is [varID[0]:varID[1]]
-#             if varID=(int,None) the slicing is [varID[0]:]
-#       @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
-#           if stepID.type!=tuple only one point along the history is retrieved
-#           else:
-#             if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
-#             if stepID=(int,None) the slicing is [stepID[0]:]
-#       @ In, nodeId, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
-#       @ Out, value, varTyp, the requested value
-#     """
-#     if stepID!=None: self.raiseAnError(RuntimeError,'seeking to extract a history slice over an PointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
-#     if varTyp!='numpy.ndarray':
-#       if varID!=None:
-#         if self._dataParameters['hierarchical']: exec('extractedValue ='+varTyp +'(self.getHierParam(inOutType,nodeId,varName,serialize=False)[nodeId])')
-#         else: exec('extractedValue ='+varTyp +'(self.getParam(inOutType,varName)[varID])')
-#         return extractedValue
-#       #if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID])')
-#       else: self.raiseAnError(RuntimeError,'trying to extract a scalar value from a time point set without an index')
-#     else:
-#       if self._dataParameters['hierarchical']:
-#         paramss = self.getHierParam(inOutType,nodeId,varName,serialize=True)
-#         extractedValue = np.zeros(len(paramss[nodeId]))
-#         for index in range(len(paramss[nodeId])): extractedValue[index] = paramss[nodeId][index]
-#         return extractedValue
-#       else: return self.getParam(inOutType,varName)

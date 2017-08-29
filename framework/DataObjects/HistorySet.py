@@ -1,3 +1,4 @@
+
 # Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -114,6 +115,26 @@ class HistorySet(Data):
       @ In, value, newer value
       @ Out, None
     """
+
+    ## Check if we need to reduce the dataset
+    value = np.atleast_1d(value).flatten()
+    rows = None
+    if self._dataParameters is not None:
+      rows = self._dataParameters.get('inputRow', None)
+      operator = self._dataParameters.get('operator', None)
+
+    if rows is None:
+      rows = range(len(value))
+
+    if operator == 'max':
+      value = np.max(value)
+    elif operator == 'min':
+      value = np.min(value)
+    elif operator == 'average':
+      value = np.average(value)
+    else:
+      value = value[rows]
+
     # if this flag is true, we accept realizations in the input space that are not only scalar but can be 1-D arrays!
     #acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
     unstructuredInput = False
@@ -254,27 +275,31 @@ class HistorySet(Data):
       @ In, value, ?, ?
       @ Out, None
     """
+
+    ## Check if we need to reduce the dataset
+    value = np.atleast_1d(value).flatten()
+    rows = None
+    if self._dataParameters is not None:
+      rows = self._dataParameters.get('outputRow', None)
+      operator = self._dataParameters.get('operator', None)
+
+    if rows is None:
+      rows = range(len(value))
+
+    if operator == 'max':
+      value = np.max(value)
+    elif operator == 'min':
+      value = np.min(value)
+    elif operator == 'average':
+      value = np.average(value)
+    else:
+      value = np.atleast_1d(value[rows])
+
     if isinstance(value,np.ndarray):
       #self.raiseADebug('FIXME: Converted np.ndarray into c1darray in HistorySet!')
       value = c1darray(values=value)
     if not isinstance(value,c1darray):
       self.raiseAnError(NotConsistentData,'HistorySet Data accepts only cached_ndarray as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
-
-    # inParam = copy.deepcopy(self._dataParameters['inParam'])
-    # outParam = copy.deepcopy(self._dataParameters['outParam'])
-    # inputRow = copy.deepcopy(self._dataParameters.get('inputRow',None))
-
-    # sampledVars = self._dataParameters.get('SampledVars',None)
-    # inputPivotVal = self._dataParameters.get('inputPivotValue',None)
-
-    pivotParameter = self._dataParameters.get('pivotParameter',None)
-    outputPivotVal = self._dataParameters.get('outputPivotValue',None)
-
-    outputPivotValAll = True
-    if outputPivotVal is not None:
-      outputPivotValAll = 'all' in outputPivotVal
-      if not outputPivotValAll:
-        outputPivotVal = [float(x) for x in outputPivotVal.split()]
 
     if options and self._dataParameters['hierarchical']:
       parentID = None
