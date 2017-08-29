@@ -1,0 +1,105 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <JobName>StatisticalAnalysis</JobName>
+    <Sequence>
+        sampleMC, statAnalysis_1, statAnalysis_2
+    </Sequence>
+    <WorkingDir>stat</WorkingDir>
+    <batchSize>4</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+      <name>framework/user_guide/ravenTutorial/PostProcess</name>
+    <author>wangc</author>
+    <created>2017-07-27</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This test is an example for the user guide to draw from.  It performs basic statistics on
+      data taken from the analytic bateman model, and demonstrates a typical workflow for using
+      the PostProcess step.
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="referenceInput.xml" type="input">
+        ../commonFiles/referenceInput_generic_CI.xml
+    </Input>
+    <Input name="output_1" type="">static.xml</Input>
+    <Input name="output_2" type="">time.xml</Input>
+  </Files>
+
+  <Models>
+    <Code name="testModel" subType="GenericCode">
+      <executable>../physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg=" " extension=".csv" type="output"/>
+    </Code>
+    <PostProcessor name="statisticalAnalysis" subType="BasicStatistics">
+      <all>
+        <targets>A</targets>
+        <features>sigma-A,decay-A</features>
+      </all>
+      <pivotParameter>time</pivotParameter>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+      <Uniform name="sigma">
+          <lowerBound>0</lowerBound>
+          <upperBound>1000</upperBound>
+      </Uniform>
+      <Uniform name="decayConstant">
+          <lowerBound>0.00000001</lowerBound>
+          <upperBound>0.0000001</upperBound>
+      </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>20</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="sigma-A">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay-A">
+        <distribution>decayConstant</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sampleMC">
+      <Input   class="Files"       type="input">referenceInput.xml</Input>
+      <Model   class="Models"      type="Code">testModel</Model>
+      <Sampler class="Samplers"    type="MonteCarlo">mc</Sampler>
+      <Output  class="DataObjects" type="PointSet">samplesMC</Output>
+      <Output  class="DataObjects" type="HistorySet">histories</Output>
+    </MultiRun>
+    <PostProcess name="statAnalysis_1">
+      <Input  class="DataObjects" type="PointSet">samplesMC</Input>
+      <Model  class="Models"      type="PostProcessor">statisticalAnalysis</Model>
+      <Output class="Files"       type="">output_1</Output>
+    </PostProcess>
+    <PostProcess name="statAnalysis_2">
+      <Input  class="DataObjects" type="PointSet">histories</Input>
+      <Model  class="Models"      type="PostProcessor">statisticalAnalysis</Model>
+      <Output class="Files"       type="">output_2</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="samplesMC">
+      <Input>sigma-A,decay-A</Input>
+      <Output>A,B,C,D</Output>
+    </PointSet>
+    <HistorySet name="histories">
+      <Input>sigma-A,decay-A</Input>
+      <Output>A,B,C,D,time</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

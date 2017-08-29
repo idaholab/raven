@@ -22,10 +22,9 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-import qtpy
-from qtpy import QtCore as qtc
-from qtpy import QtGui as qtg
-from qtpy import QtWidgets as qtw
+from PySide import QtCore as qtc
+from PySide import QtGui as qtg
+from PySide import QtGui as qtw
 
 from .BaseTopologicalView import BaseTopologicalView
 
@@ -67,7 +66,8 @@ class ScatterView3D(BaseTopologicalView):
     """
     # Try to apply a new layout, if one already exists then make sure to grab
     # it for updating
-    self.setLayout(qtw.QVBoxLayout())
+    if self.layout() is None:
+      self.setLayout(qtw.QVBoxLayout())
     layout = self.layout()
     self.clearLayout(layout)
 

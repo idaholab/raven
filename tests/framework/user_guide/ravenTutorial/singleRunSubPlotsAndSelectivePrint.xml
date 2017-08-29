@@ -1,15 +1,16 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <JobName>sectionVI.II</JobName>
+    <JobName>subPlot</JobName>
     <Sequence>single,writehistory</Sequence>
-    <WorkingDir>sectionVI.II</WorkingDir>
+    <WorkingDir>subPlot</WorkingDir>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
-    <name>framework/user_guide/singleRunSelective</name>
-    <author>talbpw</author>
-    <created>2017-02-06</created>
+    <name>framework/user_guide/singleRunSubPlot</name>
+    <author>wangc</author>
+    <created>2017-07-28</created>
     <classesTested>Steps.SingleRun,OutStreams.Print</classesTested>
     <description>
       This test is an example for the user guide to draw from.  This advances the simplest SingleRun example
@@ -18,7 +19,7 @@
   </TestInfo>
 
   <Files>
-    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
+      <Input name="referenceInput.xml" type="input">../commonFiles/referenceInput.xml</Input>
   </Files>
 
   <Models>
