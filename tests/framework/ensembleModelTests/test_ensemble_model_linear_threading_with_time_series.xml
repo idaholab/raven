@@ -15,7 +15,6 @@
       <revision author="alfoa" date="2016-11-29">Added test for time series</revision>
       <revision author="alfoa" date="2016-12-01">Fixed order of objects in test inputs in order to respect the XSD schema</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
-      <revision author="maljdan" date="2017-08-28">Reducing columns of heatTransferContainer to match what is in the gold file</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -105,7 +104,6 @@
     <Print name="heatTransferContainerDump">
       <type>csv</type>
       <source>heatTransferContainer</source>
-      <what>Input|leftTemperature,Input|rightTemperature,Output|solution</what>
     </Print>
     <Print name="metaModelOutputTestPointSetDump">
       <type>csv</type>

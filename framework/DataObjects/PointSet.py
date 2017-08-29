@@ -120,8 +120,9 @@ class PointSet(Data):
 
     ## So, you are trying to update a single data point, but you passed in
     ## more information, this means we need to reduce it down using one of our
-    ## recipes.
-    value = np.atleast_1d(value).flatten()
+    ## recipes, but only if it is not an unstructured input. Please refer
+    ## questions about unstructured input to alfoa. -- DPM 8/28/17
+    reducedValue = value = np.atleast_1d(value).flatten()
     if len(value) > 1:
 
       row = -1
@@ -134,13 +135,13 @@ class PointSet(Data):
       #   row  -= 1
 
       if operator == 'max':
-        value = np.max(value)
+        reducedValue = np.max(value)
       elif operator == 'min':
-        value = np.min(value)
+        reducedValue = np.min(value)
       elif operator == 'average':
-        value = np.average(value)
+        reducedValue = np.average(value)
       else: #elif outputRow is not None:
-        value = value[row]
+        reducedValue = value[row]
       ## We don't have access to the pivot parameter's information at this
       ## point, so I will forego this implementation for now -- DPM 5/3/2017
       #else:
@@ -180,7 +181,7 @@ class PointSet(Data):
       if name not in self._dataParameters['inParam']:
         self._dataParameters['inParam'].append(name)
       if not unstructuredInput:
-        self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(value)[-1]))
+        self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(reducedValue)[-1]))
       else:
         self._dataContainer['unstructuredInputs'][name] = [c1darray(values=np.atleast_1d(np.ravel(value)))]
       #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
@@ -189,7 +190,7 @@ class PointSet(Data):
       if name in itertools.chain(self._dataContainer['inputs'].keys(),self._dataContainer['unstructuredInputs'].keys()):
         #popped = self._dataContainer['inputs'].pop(name)
         if not unstructuredInput:
-          self._dataContainer['inputs'][name].append(np.atleast_1d(np.ravel(value)[-1]))
+          self._dataContainer['inputs'][name].append(np.atleast_1d(np.ravel(reducedValue)[-1]))
         else:
           self._dataContainer['unstructuredInputs'][name].append(np.atleast_1d(np.ravel(value)))
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))                     copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
@@ -199,7 +200,7 @@ class PointSet(Data):
         #if name not in self._dataParameters['inParam']: self.raiseAnError(NotConsistentData,'The input variable '+name+'is not among the input space of the DataObject '+self.name)
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
         if not unstructuredInput:
-          self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(value)[-1]))
+          self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(reducedValue)[-1]))
         else:
           self._dataContainer['unstructuredInputs'][name] = [c1darray(values=np.atleast_1d(np.ravel(value)))]
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
