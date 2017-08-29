@@ -31,9 +31,13 @@ from Interaction import Interaction
 #Internal Modules End-----------------------------------------------------------
 
 try:
-  import qtpy.QtWidgets as qtw
-  import qtpy.QtCore as qtc
+  import PySide.QtGui as qtw
+  import PySide.QtCore as qtc
+  __QtAvailable = True
+except ImportError as e:
+  __QtAvailable = False
 
+if __QtAvailable:
   class InteractiveApplication(qtw.QApplication, MessageHandler.MessageUser):
     """
       Application - A subclass of the base QApplication where we can instantiate
@@ -109,7 +113,3 @@ try:
       for key,value in self.UIs.items():
         if value == window:
           self.windowClosed.emit(key)
-
-  __QtAvailable = True
-except ImportError as e:
-  __QtAvailable = False

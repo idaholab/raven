@@ -935,7 +935,9 @@ class BasicStatistics(PostProcessor):
         paramSamples[p,:] = input['targets'][param][:]
         pbWeightsList[p] = pbWeights['realization'] if param not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][param]
       pbWeightsList.append(pbWeights['realization'])
-      if None in pbWeightsList:
+      #Note: this is basically "None in pbWeightsList", but
+      # using "is None" instead of "== None", which is more reliable
+      if True in [x is None for x in pbWeightsList]:
         covar = self.covariance(paramSamples)
       else:
         covar = self.covariance(paramSamples, weights = pbWeightsList)
@@ -1085,16 +1087,18 @@ class BasicStatistics(PostProcessor):
       @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
       @ Out, outputDict, dict, Dictionary containing the results
     """
-    input = self.inputToInternal(inputIn)
+    inputAdapted = self.inputToInternal(inputIn)
     if not self.dynamic:
-      outputDict = self.__runLocal(input)
+      outputDict = self.__runLocal(inputAdapted)
     else:
       # time dependent (actually pivot-dependent)
       outputDict = OrderedDict()
       self.raiseADebug('BasicStatistics Pivot-Dependent output:')
-      for pivotParamValue in input['timeDepData'].keys():
+      for pivotParamValue in inputAdapted['timeDepData'].keys():
         self.raiseADebug('Pivot Parameter Value: ' + str(pivotParamValue))
-        outputDict[pivotParamValue] = self.__runLocal(input['timeDepData'][pivotParamValue])
+        outputDict[pivotParamValue] = self.__runLocal(inputAdapted['timeDepData'][pivotParamValue])
+
+
     return outputDict
 
   def covariance(self, feature, weights = None, rowVar = 1):

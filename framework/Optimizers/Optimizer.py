@@ -60,6 +60,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.counter['recentOptHist']       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
+    self.counter['prefixHistory']       = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
     #limits
     self.limit                          = {}                        # Dict containing limits for each counter
     self.limit['mdlEval']               = 2000                      # Maximum number of the loss function evaluation
@@ -98,15 +99,17 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #functions and dataojbects
     self.constraintFunction             = None                      # External constraint function, could be not present
     self.preconditioners                = {}                        # by name, Models that might be used as preconditioners
-    self.solutionExport                 = None                      #This is the data used to export the solution (it could also not be present)
+    self.solutionExport                 = None                      # This is the data used to export the solution (it could also not be present)
     self.mdlEvalHist                    = None                      # Containing information of all model evaluation
     self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
     #multilevel
     self.multilevel                     = False                     # indicates if operating in multilevel mode
     self.mlBatches                      = {}                        # dict of {batchName:[list,of,vars]} that defines input subspaces
+    self.mlHoldBatches                  = {}                        # dict of {batchName:[list,of,vars]} that defines the optional output subspaces that need to be kept constant till convergence of this space
     self.mlSequence                     = []                        # list of batch names that determines the order of convergence.  Last entry is converged most often and fastest (innermost loop).
     self.mlDepth                        = {}                        # {traj: #} index of current recursion depth within self.mlSequence, must be initialized to None
     self.mlStaticValues                 = {}                        # by traj, dictionary of static values for variables in fullOptVars but not in optVars due to multilevel
+    self.mlOutputStaticVariables        = {}                        # by traj, dictionary of list of output that must be kept constant due to multilevel
     self.mlActiveSpaceSteps             = {}                        # by traj, integer to track iterations performed in optimizing the current, active subspace
     self.mlBatchInfo                    = {}                        # by batch, by traj, info includes 'lastStepSize','gradientHistory','recommendToGain'
     self.mlPreconditioners              = {}                        # by batch, the preconditioner models to use when transitioning subspaces
@@ -201,12 +204,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         except KeyError:
           self.raiseAnError(IOError, child.tag+' node does not have the "name" attribute')
         self.fullOptVars.append(varname)
+        self.optVarsInit['initial'][varname] = {}
         for childChild in child:
           if   childChild.tag == "upperBound":
             self.optVarsInit['upperBound'][varname] = float(childChild.text)
           elif childChild.tag == "lowerBound":
             self.optVarsInit['lowerBound'][varname] = float(childChild.text)
-          elif childChild.tag == "initial"   :
+          elif childChild.tag == "initial":
             self.optVarsInit['initial'][varname] = {}
             self.optVarsInitialized[varname] = True
             temp = childChild.text.split(',')
@@ -273,9 +277,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
               self.raiseAnError(IOError, 'A multilevel subspace is missing the "name" attribute!')
             if name in self.mlBatches.keys():
               self.raiseAnError(IOError,'Multilevel subspace "{}" has a duplicate name!'.format(name))
+            if "holdOutputSpace" in subnode.attrib:
+              self.mlHoldBatches[name] =  [var.strip() for var in subnode.attrib['holdOutputSpace'].split(",")]
+              self.raiseAMessage('For subspace "'+name+'" the following output space is asked to be kept on hold: '+','.join(self.mlHoldBatches[name]))
             #subspace text
             subspaceVars = list(x.strip() for x in subnode.text.split(','))
-            if len(subspaceVars)<1:
+            if len(subspaceVars) < 1:
               self.raiseAnError(IOError,'Multilevel subspace "{}" has no variables specified!'.format(name))
             self.mlBatches[name] = subspaceVars
             #subspace preconditioner
@@ -295,8 +302,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
     if self.fullOptVars is None:
       self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
-    else:
-      self.fullOptVars.sort()
+    self.fullOptVars.sort()
     if self.optTraj is None:
       self.optTraj = [0]
     for varname in self.fullOptVars:
@@ -304,19 +310,11 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.raiseAnError(IOError, 'Upper bound for '+varname+' is not provided' )
       if varname not in self.optVarsInit['lowerBound'].keys():
         self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
-      if varname not in self.optVarsInit['initial'].keys():
-        self.optVarsInit['initial'][varname] = {}
-        for trajInd in self.optTraj:
-          self.optVarsInit['initial'][varname][trajInd] = (self.optVarsInit['upperBound'][varname]+self.optVarsInit['lowerBound'][varname])/2.0
-      else:
-        for trajInd in self.optTraj:
-          initVal =  self.optVarsInit['initial'][varname][trajInd]
-          if initVal < self.optVarsInit['lowerBound'][varname] or initVal > self.optVarsInit['upperBound'][varname]:
-            self.raiseAnError(IOError,"The initial value for variable "+varname+" and trajectory "+str(trajInd) +" is outside the domain identified by the lower and upper bounds!")
-      if len(self.optTraj) != len(self.optVarsInit['initial'][varname].keys()):
-        self.raiseAnError(ValueError, 'Number of initial values does not equal to the number of parallel optimization trajectories')
       #store ranges of variables
       self.optVarsInit['ranges'][varname] = self.optVarsInit['upperBound'][varname] - self.optVarsInit['lowerBound'][varname]
+      if len(self.optVarsInit['initial'][varname]) == 0:
+        for traj in self.optTraj:
+          self.optVarsInit['initial'][varname][traj] = None
     self.optTrajLive = copy.deepcopy(self.optTraj)
     if self.multilevel:
       if len(self.mlSequence) < 1:
@@ -425,6 +423,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if cls != 'Models' or typ != 'ExternalModel':
         self.raiseAnError(IOError,'Currently only "ExternalModel" models can be used as preconditioners! Got "{}.{}" for "{}".'.format(cls,typ,name))
       self.preconditioners[name] = model
+      model.initialize({},[])
 
     for entry in self.assemblerDict.get('Sampler',[]):
       cls,typ,name,sampler = entry
@@ -447,11 +446,11 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           var = key.replace("sampled variable:","").strip()
           # check if the sampled variables are among the optimization parameters
           if var not in self.fullOptVars:
-            self.raiseAnError(IOError,'The variable "'+var+'" sampled by the initialization Sampler "'+self.initializationSampler.name+'" is not among the optimization parameters!')  
+            self.raiseAnError(IOError,'The variable "'+var+'" sampled by the initialization Sampler "'+self.initializationSampler.name+'" is not among the optimization parameters!')
           # check if the sampled variables have been already initialized in the optimizer (i.e. <initial>)
           if self.optVarsInitialized[var]:
             self.raiseAnError(IOError,'The variable "'+var+'" sampled by the initialization Sampler "'+self.initializationSampler.name+
-                                      '" has been already initialized in the Optimizer block. Remove <initial> XML node in Optimizer or the <variable> XML node in the Sampler!')  
+                                      '" has been already initialized in the Optimizer block. Remove <initial> XML node in Optimizer or the <variable> XML node in the Sampler!')
         # generate the initial coordinates by the sampler and check if they are inside the boundaries
         self.initializationSampler.initialize(externalSeeding)
         # check the number of trajectories (i.e. self.initializationSample.limit in the Sampler)
@@ -462,17 +461,17 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                       "than the one inputted in the Optimizer (from the variables where the <initial> XML block has been inputted)")
         else:
           self.optTraj = [i for i in range(currentNumberTrajectories)]
-        
+
         sampledCoordinates = []
         while self.initializationSampler.amIreadyToProvideAnInput():
           self.initializationSampler.counter +=1
           self.initializationSampler.localGenerateInput(None,None)
           self.initializationSampler.inputInfo['prefix'] = self.initializationSampler.counter
           sampledVars = self.initializationSampler.inputInfo['SampledVars']
-          
+
           sampledCoordinates.append(copy.deepcopy(self.initializationSampler.inputInfo))
-          
-          
+
+
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
     # check if the TargetEvaluation feature and target spaces are consistent
     ins  = self.mdlEvalHist.getParaKeys("inputs")
@@ -494,6 +493,47 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.constraintFunction = self.assemblerDict['Function'][0][3]
       if 'constrain' not in self.constraintFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
+
+    # initialize multilevel trajectory-based structures
+    # TODO a bunch of the gradient-level trajectory initializations should be moved here.
+    for traj in self.optTraj:
+      self.optVars[traj]            = self.getOptVars() #initial as full space
+      self.mlDepth[traj]            = None
+      self.mlStaticValues[traj]     = {}
+      self.mlActiveSpaceSteps[traj] = 0
+      self.submissionQueue[traj]    = deque()
+    for batch in self.mlBatches.keys():
+      self.mlBatchInfo[batch]       = {}
+    # line up preconditioners with their batches
+    for batch,precondName in self.mlPreconditioners.items():
+      try:
+        self.mlPreconditioners[batch] = self.preconditioners[precondName]
+      except IndexError:
+        self.raiseAnError(IOError,'Could not find preconditioner "{}" in <Preconditioner> nodes!'.format(precondName))
+
+    # apply multilevel preconditioners, in order
+    for traj in self.optTraj:
+      # initial point(s) are in self.optVarsInit['initial']
+      initPoint = dict((var,self.optVarsInit['initial'][var][traj]) for var in self.optVarsInit['initial'].keys())
+      # run all preconditioners on that point
+      for depth in range(len(self.mlSequence)):
+        batch = self.mlSequence[depth]
+        initPoint = self.applyPreconditioner(batch,initPoint,denormalize=False)
+      #check initial point consistency
+      okay,missing = self.checkInputs(initPoint)
+      if not okay:
+        self.raiseAnError(IOError,'While initializing model inputs, some were not set! Set them through preconditioners or using the <initial> block.\n  Missing:', ', '.join(missing))
+      # set the initial values that come from preconditioning
+      for var in self.getOptVars(full=True):
+        self.optVarsInit['initial'][var][traj] = initPoint[var]
+
+    #check initial point array consistency
+    rightLen = len(self.optTraj) #the hypothetical correct length
+    for var in self.getOptVars(full=True):
+      haveLen = len(self.optVarsInit['initial'][var])
+      if haveLen != rightLen:
+        self.raiseAnError(RuntimeError,'The number of trajectories for variable "{}" is incorrect!  Got {} but expected {}!  Check the <initial> block.'.format(var,haveLen,rightLen))
+
     # check the constraint here to check if the initial values violate it
     varK = {}
     for trajInd in self.optTraj:
@@ -515,24 +555,61 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if self.initSeed != None:
       randomUtils.randomSeed(self.initSeed)
 
-    # initialize multilevel trajectory-based structures
-    # TODO a bunch of the gradient-level trajectory initializations should be moved here.
-    for traj in self.optTraj:
-      self.optVars[traj]            = self.getOptVars() #initial as full space
-      self.mlDepth[traj]            = None
-      self.mlStaticValues[traj]     = {}
-      self.mlActiveSpaceSteps[traj] = 0
-      self.submissionQueue[traj]    = deque()
-    for batch in self.mlBatches.keys():
-      self.mlBatchInfo[batch]       = {}
-    # line up preconditioners with their batches
-    for batch,precondName in self.mlPreconditioners.items():
-      try:
-        self.mlPreconditioners[batch] = self.preconditioners[precondName]
-      except IndexError:
-        self.raiseAnError(IOError,'Could not find preconditioner "{}" in <Preconditioner> nodes!'.format(precondName))
-
     self.localInitialize(solutionExport=solutionExport)
+
+  def checkInputs(self,inp):
+    """
+      Checks that all the values of the optimization variables have been set for the point.
+      @ In, inp, dict, {var:val} input space point
+      @ Out, okay, bool, True if all inputs there, False if not
+      @ Out, missing, list, list of missing variables
+    """
+    missing = []
+    for var in self.getOptVars():
+      if inp.get(var,None) is None:
+        missing.append(var)
+        okay = False
+    return len(missing)==0,missing
+
+  def applyPreconditioner(self,batch,originalPoint,denormalize=True):
+    """
+      Applies the preconditioner model of a batch to the original point given.
+      @ In, batch, string, name of the subsequence batch whose preconditioner needs to be applied
+      @ In, originalPoint, dict, {var:val} the point that needs preconditioning (normalized space)
+      @ In, denormalize, bool, optional, if True then the originalPoint will be denormalized before running in the preconditioner
+      @ Out, results, dict, {var:val} the preconditioned point (still normalized space)
+    """
+    precond = self.mlPreconditioners.get(batch,None)
+    if precond is not None:
+      self.raiseADebug('Running preconditioner on batch "{}"'.format(batch))
+      # TODO someday this might need to be extended when other models or more complex external models are used for precond
+      precond.createNewInput([{}],'Optimizer')
+      if denormalize:
+        originalPoint = self.denormalizeData(originalPoint)
+      infoDict = {'SampledVars':originalPoint}
+      for key,value in self.constants.items():
+        infoDict['SampledVars'][key] = value
+      try:
+        _,(preResults,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
+      except RuntimeError:
+        self.raiseAnError(RuntimeError,'There was an error running the preconditioner for batch "{}"! See messages above for details.'.format(batch))
+      # flatten results #TODO breaks for multi-entry arrays
+      for key,val in preResults.items():
+        preResults[key] = float(val)
+      #restore to normalized space if the original point was normalized space
+      if denormalize:
+        preResults = self.normalizeData(preResults)
+      # construct new input point from results + originalPoint
+      results = {}
+      for key in originalPoint.keys():
+        if key in preResults.keys():
+          results[key] = preResults[key]
+        else:
+          results[key] = originalPoint[key]
+      return results
+    else:
+      return originalPoint
+
 
   def localInitialize(self,solutionExport):
     """
@@ -612,6 +689,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       ready = self.localStillReady(True)
     return ready
 
+  @abc.abstractmethod
+  def getPreviousIdentifierGivenCurrent(self,prefix):
+    """
+      Method to get the previous identifier given the current prefix
+      @ In, prefix, str, the current identifier
+      @ Out, previousPrefix, str, the previous identifier
+    """
+    pass
+
   def updateMultilevelDepth(self, traj, depth, optPoint, setAll=False):
     """
       Updates the multilevel depth with static values for inactive subspaces
@@ -645,6 +731,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       toMakeStatic = set(self.fullOptVars)-set(self.mlBatches[newBatch])
     else:
       toMakeStatic = self.mlBatches[oldBatch]
+    if traj in self.mlOutputStaticVariables:
+      self.mlOutputStaticVariables.pop(traj)
+    if newBatch in self.mlHoldBatches:
+      self.raiseAMessage('For subspace "'+newBatch+'" the following output space is going to be kept on hold: '+','.join(self.mlHoldBatches[newBatch]))
+      self.mlOutputStaticVariables[traj] = self.mlHoldBatches[newBatch]
+
     for var in toMakeStatic:
       self.mlStaticValues[traj][var] = copy.deepcopy(optPoint[var])
     # remove newBatch static values
@@ -658,22 +750,17 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if not firstTime:
       self.clearCurrentOptimizationEffort(traj)
     # apply preconditioner IFF we're going towards INNER loops
+    newInput = copy.deepcopy(optPoint)
     if depth > oldDepth:
       self.raiseADebug('Preconditioning subsets below',oldDepth,range(oldDepth+1,depth+1))
       #apply changes all the way down
       for d in range(oldDepth+1,depth+1):
         precondBatch = self.mlSequence[d]
-        precond = self.mlPreconditioners.get(precondBatch,None)
-        if precond is not None:
-          self.raiseADebug('Running preconditioner on batch "{}"'.format(precondBatch))
-          infoDict = {'SampledVars':self.denormalizeData(optPoint)}
-          _,(results,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
-          # flatten results #TODO breaks for multi-entry arrays
-          for key,val in results.items():
-            results[key] = float(val)
-          self.proposeNewPoint(traj,self.normalizeData(results))
-          self.status[traj]['process'] = 'submitting new opt points'
-          self.status[traj]['reason'] = 'received recommended point'
+        newInput = self.applyPreconditioner(precondBatch,newInput)
+        # TODO I don't like that this is called every time!
+        self.proposeNewPoint(traj,newInput)
+        self.status[traj]['process'] = 'submitting new opt points'
+        self.status[traj]['reason'] = 'received recommended point'
     # if there's batch info about the new batch, set it
     self._setAlgorithmState(traj,self.mlBatchInfo[newBatch].get(traj,None))
     #make sure trajectory is live
@@ -742,12 +829,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if not satisfied:
         violatedConstrains['external'].append(self.constraintFunction.name)
     for var in optVars:
+      varSatisfy=True
       if optVars[var] > self.optVarsInit['upperBound'][var]:
         violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
-        satisfied = False
+        varSatisfy = False
       elif optVars[var] < self.optVarsInit['lowerBound'][var]:
         violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
-        satisfied = False
+        varSatisfy = False
+      if not varSatisfy:
+        self.raiseAWarning('A variable violated boundary constraints! "{}"={}'.format(var,optVars[var]))
+        satisfied=False
 
     satisfied = self.localCheckConstraint(optVars, satisfied)
     satisfaction = satisfied,violatedConstrains
@@ -808,13 +899,23 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     self.counter['mdlEval'] +=1 #since we are creating the input for the next run we increase the counter and global counter
     self.inputInfo['prefix'] = str(self.counter['mdlEval'])
-
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     ####   UPDATE STATICS   ####
     # get trajectory asking for eval from LGI variable set
     traj = self.inputInfo['trajectory']
+
     self.values.update(self.denormalizeData(self.mlStaticValues[traj]))
+    staticOutputVars = self.mlOutputStaticVariables[traj] if traj in self.mlOutputStaticVariables else None #self.mlOutputStaticVariables.pop(traj,None)
+    #if "holdOutputSpace" in self.inputInfo:
+    #  self.inputInfo.pop("holdOutputSpace")
+    if staticOutputVars is not None:
+      # check if the model can hold a portion of the output space
+      if not model.acceptHoldOutputSpace():
+        self.raiseAnError(RuntimeError,'The user requested to hold a certain output space but the model "'+model.name+'" does not allow it!')
+      # try to hold this output variables (multilevel)
+      ID = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj]-1,"")
+      self.inputInfo["holdOutputErase"] = ID
     #### CONSTANT VARIABLES ####
     if len(self.constants) > 0:
       self.values.update(self.constants)

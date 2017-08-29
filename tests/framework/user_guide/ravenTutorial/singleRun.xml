@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <JobName>singleRun</JobName>
+    <Sequence>single</Sequence>
+    <WorkingDir>singleRunAnalysis</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/user_guide/ravenTutorial/singleRun</name>
+    <author>wangc</author>
+    <created>2017-07-24</created>
+    <classesTested>Models.Code</classesTested>
+    <description>
+      This test is an example for the user guide to draw from.  It demonstrates typical usage
+      of SingleRun.
+    </description>
+  </TestInfo>
+  
+  <Files>
+      <Input name="referenceInput.xml" type="input">
+          ../commonFiles/referenceInput.xml
+      </Input>
+  </Files>
+
+  <Models>
+    <Code name="testModel" subType="GenericCode">
+      <executable>
+         ../physicalCode/analyticalbateman/AnalyticalDplMain.py
+      </executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg=" " extension=".csv" type="output"/>
+    </Code>
+  </Models>
+
+  <Steps>
+    <SingleRun name="single">
+      <Input class="Files" type="input">referenceInput.xml</Input>
+      <Model class="Models" type="Code">testModel</Model>
+      <Output class="DataObjects" type="HistorySet">history</Output>
+      <Output class="OutStreams" type="Print">print_history</Output>
+    </SingleRun>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="history">
+        <Input>InputPlaceHolder</Input>
+        <Output>A,B,C,D,time</Output>
+    </HistorySet>
+  </DataObjects>
+  <OutStreams>
+    <Print name="print_history">
+        <type>csv</type>
+        <source>history</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
