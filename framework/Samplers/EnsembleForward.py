@@ -62,23 +62,31 @@ class EnsembleForwardSampler(ForwardSampler):
       @ Out, None
     """
     ForwardSampler.readSamplerInit(self,xmlNode)
-    from .Factory import returnInstance
+    # this import happens here because a recursive call is made if we attempt it in the header
+    from .Factory import returnInstance,knownTypes
     for child in xmlNode:
+      # read in samplers
       if child.tag in self.acceptableSamplers:
         child.attrib['name'] = child.tag
         self.instanciatedSamplers[child.tag] = returnInstance(child.tag,self)
         #FIXME the variableGroups needs to be fixed
         self.instanciatedSamplers[child.tag].readXML(child,self.messageHandler,variableGroups={},globalAttributes=self.globalAttributes)
+      # function variables are defined outside the individual samplers
       elif child.tag=='variable':
         for childChild in child:
           if childChild.tag == 'function':
             self.dependentSample[child.attrib['name']] = childChild.text
           else:
             self.raiseAnError(IOError,"Variable " + str(child.attrib['name']) + " must be defined by a function since it is located outside the samplers block")
+      # constants are handled in the base class
+      elif child.tag == 'constant':
+        pass
+      # some samplers aren't eligible for ensembling
       elif child.tag in knownTypes():
-        self.raiseAnError(IOError,"Sampling strategy "+child.tag+" is not usable in "+self.type+" Sampler. Available are "+",".join(self.acceptableSamplers))
+        self.raiseAnError(IOError,'Sampling strategy "{}" is not usable in "{}".  Available options include: {}.'.format(child.tag,self.type,", ".join(self.acceptableSamplers)))
+      # catch-all for bad inputs
       else:
-        self.raiseAnError(IOError,"XML node "+ child.tag + " unknown. Check the Manual!")
+        self.raiseAnError(IOError,'Unrecognized sampling strategy: "{}". Available options include: {}.'.format(child.tag,", ".join(self.acceptableSamplers)))
 
   def _localWhatDoINeed(self):
     """
