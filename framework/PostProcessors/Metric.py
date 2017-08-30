@@ -57,8 +57,8 @@ class Metric(PostProcessor):
     TargetsInput.addParam("type", InputData.StringType)
     inputSpecification.addSub(TargetsInput)
     MetricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
-    MetricInput.addParam("class", InputData.StringType)
-    MetricInput.addParam("type", InputData.StringType)
+    MetricInput.addParam("class", InputData.StringType, True)
+    MetricInput.addParam("type", InputData.StringType, True)
     inputSpecification.addSub(MetricInput)
 
     return inputSpecification
