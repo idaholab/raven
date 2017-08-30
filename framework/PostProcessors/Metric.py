@@ -73,10 +73,10 @@ class Metric(PostProcessor):
     self.dynamic        = False # is it time-dependent?
     self.features       = None  # list of feature variables
     self.targets        = None  # list of target variables
-    self.metric         = None  # pointer to a metric
+    self.metricsDict    = {}    # dictionary of metrics that are going to be assembled
     self.pivotParameter = None
     # assembler objects to be requested
-    self.addAssemblerObject('Metric', '1', True)
+    self.addAssemblerObject('Metric', 'n', True)
 
   def _localWhatDoINeed(self):
     """
@@ -86,7 +86,8 @@ class Metric(PostProcessor):
       @ Out, dict, dictionary of objects needed
     """
     needDict = {'Metrics':[]}
-    needDict['Metrics'].append((None, self.metric))
+    for metricName in self.metricsDict.keys():
+      needDict['Metrics'].append((None, metricName))
     return needDict
 
   def _localGenerateAssembler(self,initDict):
@@ -94,8 +95,8 @@ class Metric(PostProcessor):
       @ In, initDict, dict, init objects
       @ Out, None
     """
-    metricName = self.metric
-    self.metric = initDict['Metrics'][metricName]
+    for metricName in  self.metricsDict.keys():
+      self.metricsDict[metricName] = initDict['Metrics'][metricName]
 
   def inputToInternal(self, currentInputs):
     """
@@ -178,7 +179,8 @@ class Metric(PostProcessor):
         if 'type' not in child.attrib.keys() or 'class' not in child.attrib.keys():
           self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
         else:
-          self.metric = child.text.strip()
+          metricName = child.text.strip()
+          self.metricsDict[metricName] = None
       elif child.tag == 'Features':
         self.features = list(var.strip() for var in child.text.split(','))
       elif child.tag == 'Targets':
@@ -235,12 +237,13 @@ class Metric(PostProcessor):
     outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
     for ts, outputDict in enumerate(outputResults):
       pivotVal = outputDictionary.keys()[ts]
-      for key, value in outputDict.items():
-        if len(list(value)) == 1:
-          outputInstance.addScalar(key, self.metric.type, value[0], pivotVal=pivotVal)
-        else:
-          ## FIXME: The following are used to accept timedependent data, and should be checked later.
-          outputInstance.addVector(key, self.metric.type, value, pivotVal=pivotVal)
+      for nodeName, nodeValues in outputDict.items():
+        for metricName, value in nodeValues.items():
+          if len(list(value)) == 1:
+            outputInstance.addScalar(nodeName, metricName, value[0], pivotVal=pivotVal)
+          else:
+            ## FIXME: The following are used to accept timedependent data, and should be checked later.
+            outputInstance.addVector(nodeName, metricName, value, pivotVal=pivotVal)
     outputInstance.writeFile()
 
   def _writeText(self,output,outputDictionary, separator=' '):
@@ -263,10 +266,15 @@ class Metric(PostProcessor):
     outputDict = OrderedDict()
     if not self.dynamic:
       for cnt in range(len(self.features)):
-        output = self.metric.distance(inputDict['features'][self.features[cnt]], inputDict['targets'][self.targets[cnt]])
-        print('output: ', output)
         nodeName = str(self.features[cnt]) + '-' + str(self.targets[cnt])
-        outputDict[nodeName] = output
+        outputDict[nodeName] = {}
+        for metricInstance in self.metricsDict.values():
+          output = metricInstance.distance(inputDict['features'][self.features[cnt]], inputDict['targets'][self.targets[cnt]])
+          if hasattr(metricInstance, 'metricType'):
+            metricName = metricInstance.metricType
+          else:
+            metricName = metricInstance.type
+          outputDict[nodeName][metricName] = output
     else:
       self.raiseAnError(IOError, "Not implemented yet")
     return outputDict
