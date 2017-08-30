@@ -2,7 +2,7 @@
 <Simulation verbosity="all" color='true'>
   <RunInfo>
     <Sequence>
-      sampleMC,   sampleGrid,   sampleLHS,
+      sampleMC, sampleGrid, sampleLHS,
       statsMC, statsGrid, statsLHS,
       readStats, plot
     </Sequence>
