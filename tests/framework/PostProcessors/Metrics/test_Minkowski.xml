@@ -8,7 +8,7 @@
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_Minkowski</name>
     <author>wangc</author>
-    <created>2017-08-230</created>
+    <created>2017-08-30</created>
     <classesTested>PostProcessors.Metric</classesTested>
     <description>
       This test checks the Minkowski metric
