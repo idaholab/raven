@@ -43,7 +43,7 @@ class BaseType(MessageHandler.MessageUser):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=None)
+    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=InputData.RavenBase)
     inputSpecification.addParam("name", InputData.StringType, True)
 
     return inputSpecification

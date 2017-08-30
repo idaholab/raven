@@ -188,6 +188,7 @@ class ParameterInput(object):
   subOrder = None
   parameters = {}
   contentType = None
+  strictMode = True #If true, only allow parameters and subnodes that are listed
 
   def __init__(self):
     """
@@ -199,13 +200,14 @@ class ParameterInput(object):
     self.value = ""
 
   @classmethod
-  def createClass(cls, name, ordered=False, contentType=None, baseNode=None):
+  def createClass(cls, name, ordered=False, contentType=None, baseNode=None, strictMode=True):
     """
       Initializes a new class.
       @ In, name, string, The name of the node.
       @ In, ordered, bool, optional, If True, then the subnodes are checked to make sure they are in the same order.
       @ In, contentType, InputType, optional, If not None, set contentType.
       @ In, baseNode, ParameterInput, optional, If not None, copy parameters and subnodes, subOrder, and contentType from baseNode.
+      @ In, strictNode, bool, option, If True, then only allow paramters and subnodes that are specifically mentioned.
       @ Out, None
     """
 
@@ -213,6 +215,7 @@ class ParameterInput(object):
     cls.__name__ = str(name+'Spec')
 
     cls.name = name
+    cls.strictMode = strictMode
     if baseNode is not None:
       #Make new copies of data from baseNode
       cls.parameters = dict(baseNode.parameters)
@@ -231,6 +234,15 @@ class ParameterInput(object):
       else:
         cls.subOrder = None
       cls.contentType = contentType
+
+  @classmethod
+  def setStrictMode(cls, strictMode):
+    """
+      Sets how strict the parsing is.  Stricter will throw more IOErrors.
+      @ In, strictNode, bool, option, If True, then only allow paramters and subnodes that are specifically mentioned.
+      @ Out, None
+    """
+    cls.strictMode = strictMode
 
   @classmethod
   def getName(cls):
@@ -275,16 +287,26 @@ class ParameterInput(object):
     """
     cls.contentType = contentType
 
-  def parseNode(self,node):
+  def parseNode(self,node, errorList = None):
     """
       Parses the xml node and puts the results in self.parameterValues and
       self.subparts and self.value
       @ In, node, xml.etree.ElementTree.Element, The node to parse.
+      @ In, errorList, list, if not None, put errors in errorList instead of throwing IOError.
       @ Out, None
     """
+    def handleError(s):
+      """
+        Handles the error, either by throwing IOError or adding to the errorlist
+        @ In, s, string, string describing error.
+      """
+      if errorList == None:
+        raise IOError(s)
+      else:
+        errorList.append(s)
+
     if node.tag != self.name:
-      print(node.tag,"!=",self.name)
-      raise IOError
+      handleError(node.tag + "!=" + self.name)
     else:
       if self.contentType:
         self.value = self.contentType.convert(node.text)
@@ -294,16 +316,29 @@ class ParameterInput(object):
         if parameter in node.attrib:
           param_type = self.parameters[parameter]["type"]
           self.parameterValues[parameter] = param_type.convert(node.attrib[parameter])
+        elif self.parameters[parameter]["required"]:
+          handleError("Required parameter " + parameter + " not in " + node.tag)
+      if self.strictMode:
+        for parameter in node.attrib:
+          if not parameter in self.parameters:
+            handleError(parameter + " not in attributes and strict mode on in "+node.tag)
       if self.subOrder is not None:
         subs = [sub[0] for sub in self.subOrder]
       else:
         subs = self.subs
+      subNames = set()
       for sub in subs:
         subName = sub.getName()
+        subNames.add(subName)
         for subNode in node.findall(subName):
           subInstance = sub()
-          subInstance.parseNode(subNode)
+          subInstance.parseNode(subNode, errorList)
           self.subparts.append(subInstance)
+      if self.strictMode:
+        for child in node:
+          if child.tag not in subNames:
+            handleError("Child "+child.tag+" not in allowed sub elements in "+node.tag)
+
 
   def findFirst(self, name):
     """
@@ -430,3 +465,11 @@ def createXSD(outerElement):
                                          'type':outerElement.getName()+'_type'})
   outerElement.generateXSD(outside, {})
   return outside
+
+
+class RavenBase(ParameterInput):
+  """
+    This can be used as a base class for things that inherit from BaseType
+  """
+RavenBase.createClass("RavenBase", baseNode=None)
+RavenBase.addParam("verbosity") #XXX should be enumeration

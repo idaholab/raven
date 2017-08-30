@@ -56,7 +56,7 @@ class PostProcessor(Assembler):
         specifying input of cls.
     """
     ######## Temporary until this class inherits from the BaseType
-    inputSpecification = InputData.parameterInputFactory('PostProcessor', ordered=False, baseNode=None)
+    inputSpecification = InputData.parameterInputFactory('PostProcessor', ordered=False, baseNode=InputData.RavenBase)
     inputSpecification.addParam("name", InputData.StringType, True)
     ######## End Temporary until this class inherits from the BaseType
 

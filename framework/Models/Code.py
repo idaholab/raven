@@ -55,6 +55,7 @@ class Code(Model):
         specifying input of cls.
     """
     inputSpecification = super(Code, cls).getInputSpecification()
+    inputSpecification.setStrictMode(False) #Code interfaces can allow new elements.
     inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
 
