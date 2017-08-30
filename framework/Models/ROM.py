@@ -167,11 +167,15 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("outTruncation", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
     EstimatorInput = InputData.parameterInputFactory('estimator', contentType=InputData.StringType, baseNode=inputSpecification)
-    EstimatorInput.addParam("estimatorType", InputData.StringType, True)
+    EstimatorInput.addParam("estimatorType", InputData.StringType, False)
+    #The next lines are to make subType and name not required.
+    EstimatorInput.addParam("subType", InputData.StringType, False)
+    EstimatorInput.addParam("name", InputData.StringType, False)
     inputSpecification.addSub(EstimatorInput)
 
     return inputSpecification

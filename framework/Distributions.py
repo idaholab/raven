@@ -473,7 +473,7 @@ class Uniform(BoostDistribution):
     Uniform univariate distribution
   """
 
-  def __init__(self):
+  def __init__(self, lowerBound = None, upperBound = None):
     """
       Constructor
       @ In, None
@@ -488,6 +488,17 @@ class Uniform(BoostDistribution):
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature = 'Legendre'
     self.preferredPolynomials = 'Legendre'
+    if upperBound is not None:
+      self.upperBound = upperBound
+      self.upperBoundUsed = True
+      print("upperBound", self.upperBound)
+    if lowerBound is not None:
+      self.lowerBound = lowerBound
+      self.lowerBoundUsed = True
+      print("lowerBound", self.lowerBound)
+    if self.lowerBoundUsed and self.upperBoundUsed:
+      self.range = self.upperBound - self.lowerBound
+
 
   def _localSetState(self,pdict):
     """

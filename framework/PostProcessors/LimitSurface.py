@@ -61,6 +61,16 @@ class LimitSurface(PostProcessor):
     SideInput = InputData.parameterInputFactory("side", contentType=InputData.StringType)
     inputSpecification.addSub(SideInput)
 
+    ROMInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
+    ROMInput.addParam("class", InputData.StringType)
+    ROMInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(ROMInput)
+
+    FunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
+    FunctionInput.addParam("class", InputData.StringType)
+    FunctionInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(FunctionInput)
+
     return inputSpecification
 
   def __init__(self, messageHandler):
