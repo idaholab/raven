@@ -117,28 +117,28 @@ class Metric(PostProcessor):
         inputType = currentInput.type
 
       if isinstance(currentInput, Files.File):
-        self.raiseAWarning(self, 'Input type ', inputType, ' is not yet implemented. This input will be skipped')
+        self.raiseAWarning(self, "Input type '", inputType, "' is not yet implemented. This input will be skipped")
       elif inputType == 'HDF5':
-        self.raiseAWarning(self, 'Input type ', inputType, ' is not yet implemented. This input will be skipped')
+        self.raiseAWarning(self, "Input type '", inputType, "' is not yet implemented. This input will be skipped")
       elif inputType == 'PointSet':
         for feature in self.features:
           if feature in currentInput.getParaKeys('input'):
             if feature in inputDict['features'].keys():
-              self.raiseAnError(IOError, "Same feature variable ", feature, " is found in multiple input objects")
+              self.raiseAnError(IOError, "Same feature variable '", feature, "' is found in multiple input objects")
             inputDict['features'][feature] = currentInput.getParam('input', feature, nodeId = 'ending')
           elif feature in currentInput.getParaKeys('output'):
             if feature in inputDict['features'].keys():
-              self.raiseAnError(IOError, "Same feature variable ", feature, " is found in multiple input objects")
+              self.raiseAnError(IOError, "Same feature variable '", feature, "' is found in multiple input objects")
             inputDict['features'][feature] = currentInput.getParam('output', feature, nodeId = 'ending')
         if self.targets:
           for target in self.targets:
             if target in currentInput.getParaKeys('input'):
               if target in inputDict['targets'].keys():
-                self.raiseAnError(IOError, "Same target variable ", target, " is found in multiple input objects")
+                self.raiseAnError(IOError, "Same target variable '", target, "' is found in multiple input objects")
               inputDict['targets'][target] = currentInput.getParam('input', target, nodeId = 'ending')
             elif target in currentInput.getParaKeys('output'):
               if target in inputDict['targets'].keys():
-                self.raiseAnError(IOError, "Same target variable ", target, " is found in multiple input objects")
+                self.raiseAnError(IOError, "Same target variable '", target, "' is found in multiple input objects")
               inputDict['targets'][target] = currentInput.getParam('output', target, nodeId = 'ending')
       elif inputType == 'HistorySet':
         self.dynamic = True
@@ -146,10 +146,10 @@ class Metric(PostProcessor):
 
     unidentifiedVars = set(self.features) - set(inputDict['features'].keys())
     if len(unidentifiedVars) > 0:
-      self.raiseAnError(IOError, "Features: ", str(unidentifiedVars), " could not be found in the input objects")
+      self.raiseAnError(IOError, "Features: '", str(unidentifiedVars), "' could not be found in the input objects")
     unidentifiedVars = set(self.targets) - set(inputDict['targets'].keys())
     if len(unidentifiedVars) > 0:
-      self.raiseAnError(IOError, "Targets: ", str(unidentifiedVars), " could not be found in the input objects")
+      self.raiseAnError(IOError, "Targets: '", str(unidentifiedVars), "' could not be found in the input objects")
 
     return inputDict
 

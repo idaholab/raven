@@ -34,16 +34,6 @@
     <SKL name="euclidean">
       <metricType>euclidean</metricType>
     </SKL>
-    <SKL name="rbf">
-      <metricType>rbf</metricType>
-      <gamma>0.5</gamma>
-    </SKL>
-    <SKL name="polynomial">
-      <metricType>poly</metricType>
-      <gamma>1.0</gamma>
-      <degree>2.0</degree>
-      <coef0>1.0</coef0>
-    </SKL>
   </Metrics>
 
   <Distributions>
