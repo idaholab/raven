@@ -1,0 +1,25 @@
+<BasicStatisticsPP type="Static">
+  <A>
+    <expectedValue>0.0576560721169</expectedValue>
+    <variance>0.00636857522195</variance>
+    <samples>1295</samples>
+  </A>
+
+  <C>
+    <expectedValue>0.981631991225</expectedValue>
+    <variance>0.0121348504936</variance>
+    <samples>1295</samples>
+  </C>
+
+  <B>
+    <expectedValue>0.404636235525</expectedValue>
+    <variance>0.0596695544903</variance>
+    <samples>1295</samples>
+  </B>
+
+  <D>
+    <expectedValue>1.49324370819</expectedValue>
+    <variance>0.0149628378679</variance>
+    <samples>1295</samples>
+  </D>
+</BasicStatisticsPP>
