@@ -67,12 +67,16 @@ class SKL(Metric):
       This method returns the distance between two points x and y. If y is not provided then x is a pointSet and a distance matrix is returned
       @ In, x, numpy.ndarray, array containing data of x
       @ In, y, numpy.ndarray, array containing data of y
-      @ Out, value, float or numpy.ndarray, distance between x and y (if y is provided) or a square distance matrix if y is None
+      @ Out, value, numpy.ndarray, distance between x and y (if y is provided) or a square distance matrix if y is None
     """
     if y is not None:
       if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
-        x = x if len(x.shape) != 1 else x.reshape(1,-1)
-        y = y if len(y.shape) != 1 else y.reshape(1,-1)
+        if len(x.shape) == 1:
+          x = x.reshape(1,-1)
+          self.raiseAWarning(self, "1D array is provided. For consistence, this array is reshaped via x.reshape(1,-1) ")
+        if len(y.shape) == 1:
+          y = y.reshape(1,-1)
+          self.raiseAWarning(self, "1D array is provided. For consistence, this array is reshaped via y.reshape(1,-1) ")
         dictTemp = utils.mergeDictionaries(kwargs,self.distParams)
         if self.metricType in pairwise.kernel_metrics().keys():
           value = pairwise.pairwise_kernels(X=x, Y=y, metric=self.metricType, **dictTemp)
