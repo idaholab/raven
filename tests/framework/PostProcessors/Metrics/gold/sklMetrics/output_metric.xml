@@ -1,0 +1,7 @@
+<MetricPostProcessor type="Static">
+  <ans-ans2>
+    <euclidean>8.15320610438</euclidean>
+    <poly>28.4679271247</poly>
+    <rbf>3.67440606512e-15</rbf>
+  </ans-ans2>
+</MetricPostProcessor>

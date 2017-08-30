@@ -241,7 +241,7 @@ class Metric(PostProcessor):
         for metricName, value in nodeValues.items():
           if type(value) == float:
             outputInstance.addScalar(nodeName, metricName, value, pivotVal=pivotVal)
-          elif type(value) in [list, numpy.ndarray]:
+          elif type(value) in [list, np.ndarray]:
             if len(list(value)) == 1:
               outputInstance.addScalar(nodeName, metricName, value[0], pivotVal=pivotVal)
             else:
@@ -261,6 +261,7 @@ class Metric(PostProcessor):
       @ In, separator, string, optional, separator string
       @ Out, None
     """
+    ##TODO: Add this method if needed
     pass
 
   def run(self, inputIn):

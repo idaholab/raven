@@ -67,6 +67,7 @@
       <Model class="Models" type="ExternalModel">poly</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataMC</Output>
+      <Output class="OutStreams" type="Print">dumpMC</Output>
     </MultiRun>
     <PostProcess name="PP1">
       <Input class="DataObjects" type="PointSet">outputDataMC</Input>
@@ -85,5 +86,12 @@
       <Output>ans,ans2</Output>
     </PointSet>
   </DataObjects>
+ 
+  <OutStreams>
+      <Print name="dumpMC">
+          <type>csv</type>
+          <source>outputDataMC</source>
+      </Print>
+  </OutStreams>
 
 </Simulation>

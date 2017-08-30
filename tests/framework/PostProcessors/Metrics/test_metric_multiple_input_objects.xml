@@ -6,7 +6,7 @@
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
-    <name>framework/PostProcessors/Metric/test_metric</name>
+    <name>framework/PostProcessors/Metric/test_multiple_input_objects</name>
     <author>wangc</author>
     <created>2017-08-30</created>
     <classesTested>PostProcessors.Metric</classesTested>
