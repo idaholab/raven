@@ -76,6 +76,11 @@ class ComparisonStatistics(PostProcessor):
     CSInterpolationInput = InputData.parameterInputFactory("interpolation",contentType=CSInterpolationEnumType)
     inputSpecification.addSub(CSInterpolationInput)
 
+    DistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputData.StringType)
+    DistributionInput.addParam("class", InputData.StringType)
+    DistributionInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(DistributionInput)
+
     return inputSpecification
 
   class CompareGroup:
