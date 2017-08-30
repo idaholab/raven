@@ -24,10 +24,11 @@ class RELAPparser():
   """
     Import the RELAP5 input as list of lines, provide methods to add/change entries and print it back
   """
-  def __init__(self,inputFile):
+  def __init__(self,inputFile,addMinorEdits=False):
     """
       Constructor
       @ In, inputFile, string, input file name
+      @ In, addMinorEdits, bool, flag to add Minor Edits in case there are trips and the variables in the trip is not among the minor edits (generally for DET)
       @ Out, None
     """
     self.printTag = 'RELAP5 PARSER'
