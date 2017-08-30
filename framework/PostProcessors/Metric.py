@@ -49,16 +49,17 @@ class Metric(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    ## This will replace the lines above
-    inputSpecification = super(Metrics, cls).getInputSpecification()
-
-    ## TODO: Fill this in with the appropriate tags
-    #FeaturesInput = InputData.parameterInputFactory("Features", contentType=InputData.StringType)
-    #inputSpecification.addSub(FeaturesInput)
-    #TargetsInput = InputData.parameterInputFactory("Targets", contentType=InputData.StringType)
-    #inputSpecification.addSub(TargetsInput)
-    #MetricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
-    #inputSpecification.addSub(MetricInput)
+    inputSpecification = super(Metric, cls).getInputSpecification()
+    FeaturesInput = InputData.parameterInputFactory("Features", contentType=InputData.StringType)
+    FeaturesInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(FeaturesInput)
+    TargetsInput = InputData.parameterInputFactory("Targets", contentType=InputData.StringType)
+    TargetsInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(TargetsInput)
+    MetricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
+    MetricInput.addParam("class", InputData.StringType)
+    MetricInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(MetricInput)
 
     return inputSpecification
 
@@ -171,22 +172,25 @@ class Metric(PostProcessor):
       @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against the available options specific to this Sampler
       @ Out, None
     """
-    #paramInput = Metric.getInputSpecification()()
-    #paramInput.parseNode(xmlNode)
+    paramInput = Metric.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
 
-    for child in xmlNode:
-      if child.tag == 'Metric':
-        if 'type' not in child.attrib.keys() or 'class' not in child.attrib.keys():
+    for child in paramInput.subparts:
+      if child.getName() == 'Metric':
+        if 'type' not in child.parameterValues.keys() or 'class' not in child.parameterValues.keys():
           self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
         else:
-          metricName = child.text.strip()
+          metricName = child.value.strip()
           self.metricsDict[metricName] = None
-      elif child.tag == 'Features':
-        self.features = list(var.strip() for var in child.text.split(','))
-      elif child.tag == 'Targets':
-        self.targets = list(var.strip() for var in child.text.split(','))
+      elif child.getName() == 'Features':
+        self.features = list(var.strip() for var in child.value.split(','))
+        self.featuresType = child.parameterValues['type']
+      elif child.getName() == 'Targets':
+        self.targets = list(var.strip() for var in child.value.split(','))
+        self.TargetsType = child.parameterValues['type']
       else:
-        self.raiseAnError(IOError, "Unknown xml node ", child.tag, " is provided for metric system")
+        self.raiseAnError(IOError, "Unknown xml node ", child.getName(), " is provided for metric system")
+
     if not self.features:
       self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
     elif len(self.features) != len(self.targets):
@@ -262,7 +266,7 @@ class Metric(PostProcessor):
       @ Out, None
     """
     ##TODO: Add this method if needed
-    pass
+    self.raiseAnError(IOError, "Write output files into a text file is not implemented yet!")
 
   def run(self, inputIn):
     """
