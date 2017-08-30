@@ -239,11 +239,18 @@ class Metric(PostProcessor):
       pivotVal = outputDictionary.keys()[ts]
       for nodeName, nodeValues in outputDict.items():
         for metricName, value in nodeValues.items():
-          if len(list(value)) == 1:
-            outputInstance.addScalar(nodeName, metricName, value[0], pivotVal=pivotVal)
-          else:
+          if type(value) == float:
+            outputInstance.addScalar(nodeName, metricName, value, pivotVal=pivotVal)
+          elif type(value) in [list, numpy.ndarray]:
+            if len(list(value)) == 1:
+              outputInstance.addScalar(nodeName, metricName, value[0], pivotVal=pivotVal)
+            else:
+              self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
+          elif type(value) == dict:
             ## FIXME: The following are used to accept timedependent data, and should be checked later.
             outputInstance.addVector(nodeName, metricName, value, pivotVal=pivotVal)
+          else:
+            self.raiseAnError(IOError, "Unrecognized type of input value '", type(value), "'")
     outputInstance.writeFile()
 
   def _writeText(self,output,outputDictionary, separator=' '):
