@@ -104,37 +104,52 @@ class Metric(PostProcessor):
       @ In, currentInputs, list or DataObject, data object or a list of data objects
       @ Out, inputDict, dict, current inputs dictionary
     """
-    if type(currentInputs) == list:
-      currentInput = currentInputs[-1]
-    else:
-      currentInput = currentInputs
+    if type(currentInputs) == dict and 'features' in currentInputs.keys():
+      return currentInputs
 
-    if len(currentInput) == 0:
-      self.raiseAnError(IOError, "The input for ", self.name, " is empty")
+    if type(currentInputs) != list:
+      currentInputs = [currentInputs]
 
-    if currentInput.type not in ['PointSet', 'HistorySet']:
-      self.raiseAnError(IOError, "Only PointSet and HistorySet are valid! Got ", currentInput.type)
+    inputDict = {'features':OrderedDict(), 'targets':OrderedDict()}
+    for currentInput in currentInputs:
+      inputType = None
+      if hasattr(currentInput, 'type'):
+        inputType = currentInput.type
 
-    if currentInput.type == 'PointSet':
-      inputDict = {'features':OrderedDict(), 'targets':OrderedDict()}
-      for feature in self.features:
-        if feature in currentInput.getParaKeys('input'):
-          inputDict['features'][feature] = currentInput.getParam('input', feature, nodeId = 'ending').reshape(1,-1)
-        elif feature in currentInput.getParaKeys('output'):
-          inputDict['features'][feature] = currentInput.getParam('output', feature, nodeId = 'ending').reshape(1,-1)
-        else:
-          self.raiseAnError(IOError, "Feature ", feature, " has not been found in data object ", currentInput.name)
-      if self.targets:
-        for target in self.targets:
-          if target in currentInput.getParaKeys('input'):
-            inputDict['targets'][target] = currentInput.getParam('input', target, nodeId = 'ending').reshape(1,-1)
-          elif target in currentInput.getParaKeys('output'):
-            inputDict['targets'][target] = currentInput.getParam('output', target, nodeId = 'ending').reshape(1,-1)
-          else:
-            self.raiseAnError(IOError, "Target ", target, " has not been found in data object ", currentInput.name)
-    else:
-      self.dynamic = True
-      self.raiseAnError(IOError, "Metric can not process HistorySet, because this capability is not implemented yet")
+      if isinstance(currentInput, Files.File):
+        self.raiseAWarning(self, 'Input type ', inputType, ' is not yet implemented. This input will be skipped')
+      elif inputType == 'HDF5':
+        self.raiseAWarning(self, 'Input type ', inputType, ' is not yet implemented. This input will be skipped')
+      elif inputType == 'PointSet':
+        for feature in self.features:
+          if feature in currentInput.getParaKeys('input'):
+            if feature in inputDict['features'].keys():
+              self.raiseAnError(IOError, "Same feature variable ", feature, " is found in multiple input objects")
+            inputDict['features'][feature] = currentInput.getParam('input', feature, nodeId = 'ending')
+          elif feature in currentInput.getParaKeys('output'):
+            if feature in inputDict['features'].keys():
+              self.raiseAnError(IOError, "Same feature variable ", feature, " is found in multiple input objects")
+            inputDict['features'][feature] = currentInput.getParam('output', feature, nodeId = 'ending')
+        if self.targets:
+          for target in self.targets:
+            if target in currentInput.getParaKeys('input'):
+              if target in inputDict['targets'].keys():
+                self.raiseAnError(IOError, "Same target variable ", target, " is found in multiple input objects")
+              inputDict['targets'][target] = currentInput.getParam('input', target, nodeId = 'ending')
+            elif target in currentInput.getParaKeys('output'):
+              if target in inputDict['targets'].keys():
+                self.raiseAnError(IOError, "Same target variable ", target, " is found in multiple input objects")
+              inputDict['targets'][target] = currentInput.getParam('output', target, nodeId = 'ending')
+      elif inputType == 'HistorySet':
+        self.dynamic = True
+        self.raiseAnError(IOError, "Metric can not process HistorySet, because this capability is not implemented yet")
+
+    unidentifiedVars = set(self.features) - set(inputDict['features'].keys())
+    if len(unidentifiedVars) > 0:
+      self.raiseAnError(IOError, "Features: ", str(unidentifiedVars), " could not be found in the input objects")
+    unidentifiedVars = set(self.targets) - set(inputDict['targets'].keys())
+    if len(unidentifiedVars) > 0:
+      self.raiseAnError(IOError, "Targets: ", str(unidentifiedVars), " could not be found in the input objects")
 
     return inputDict
 
@@ -222,8 +237,9 @@ class Metric(PostProcessor):
       pivotVal = outputDictionary.keys()[ts]
       for key, value in outputDict.items():
         if len(list(value)) == 1:
-          outputInstance.addScalar(key, self.metric.type, value, pivotVal=pivotVal)
+          outputInstance.addScalar(key, self.metric.type, value[0], pivotVal=pivotVal)
         else:
+          ## FIXME: The following are used to accept timedependent data, and should be checked later.
           outputInstance.addVector(key, self.metric.type, value, pivotVal=pivotVal)
     outputInstance.writeFile()
 
@@ -254,14 +270,4 @@ class Metric(PostProcessor):
     else:
       self.raiseAnError(IOError, "Not implemented yet")
     return outputDict
-
-
-  def evaluate(self, estimator, X, y):
-    """
-      @ In, estimator, instance, the instance of the estimator
-      @ In, X, numpy.ndarray, (n_samples, n_features), the training set
-      @ In, y, numpy.ndarray, (n_samples,) the target results
-      @ Out,
-    """
-    pass
 
