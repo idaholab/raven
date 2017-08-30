@@ -521,7 +521,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       #check initial point consistency
       okay,missing = self.checkInputs(initPoint)
       if not okay:
-        self.raiseAnError(IOError,'While initializing model inputs, some were not set! Set them through preconditioners or using the <initial> block.\n  Missing:', ', '.join(missing))
+        self.raiseAnError(IOError,'While initializing model inputs, some were not set! Set them through preconditioners or using the <initial> block or a linked Sampler.\n  Missing:', ', '.join(missing))
       # set the initial values that come from preconditioning
       for var in self.getOptVars(full=True):
         self.optVarsInit['initial'][var][traj] = initPoint[var]

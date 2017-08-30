@@ -209,6 +209,14 @@ specified:
         The \xmlNode{SPSA} optimizer accepts ``DataObjects'' of type ``PointSet'' only;
         \item \xmlNode{objectVar}, \xmlDesc{XML node, required parameter}. The objective variable to be optimized. This variable must be
           output of the DataObject specified in \xmlNode{TargetEvaluation}.
+\item \xmlNode{Sampler}, \xmlDesc{XML node, optional parameter},
+        represents a Sampler (Forward) that can be used to initialize the starting points for the trajectories of some of the variables. 
+        %
+        From a practical point of view, this XML node must contain the name of
+        a Sampler (Forward) defined in the \xmlNode{Samplers} block (see
+        Section~\ref{subsec:onceThroughSamplers}). The Sampler will be used to initialize the trajectories' initial points for some
+        of the variables. For example, if the Sampler here specified ``samples'' only 2 variables over 5, the  \xmlNode{initial} XML node (see below) is required
+        only for the remaining 3 variables.
 \item \xmlNode{Function}, \xmlDesc{XML node, optional parameter},
         indicates the external function where the constraints are stored. From a practical point of view, this XML node must contain the
         name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}). This external function must
@@ -297,7 +305,7 @@ specified:
     than one initial values specified for a variable, then all the variables need to have the same number of initial values. In this case,
     \xmlNode{SPSA} optimizer will maintain multiple trajectories to fully utilize potential parallel computing capability.
     Every input variable must have an initial value specified either through this node, or through a
-    preconditioner in multilevel optimization.
+    preconditioner in multilevel optimization or through a linked Sampler (see above).
   \end{itemize}
 \end{itemize}
 \constantVariablesDescription

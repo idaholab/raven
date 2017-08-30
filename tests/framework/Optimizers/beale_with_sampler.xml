@@ -1,23 +1,23 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers.Beale</name>
-    <author>talbpaul</author>
-    <created>2017-05-03</created>
+    <name>framework/Optimizers.BealeWithSampler</name>
+    <author>alfoa</author>
+    <created>2017-08-29</created>
     <classesTested>Optimizer</classesTested>
     <description>
       This test runs the optimization on Beale's function.  It tests analytic optimization values
-      as well as the mechanical operation of the test.  Also tests the "gainGrowthFactor" and
-      "gainShrinkFactor" convergence parameters.
+      as well as the mechanical operation of the test.  It tests the possibility to initialize the starting points (For each trajectory) with
+      a Forward Sampler (e.g. Montecarlo, Grid, etc.)
     </description>
     <analytic>
-      This test uses  rosenbrock function, which is documented in the analytic tests documentation under
+      This test uses beale function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/Optimizers/RosenbrockWithSampler</WorkingDir>
+    <WorkingDir>BealeWithSampler</WorkingDir>
     <Sequence>optimize,getOptPoint,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -25,7 +25,7 @@
   <Steps>
     <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">rosenbrock</Model>
+      <Model class="Models" type="ExternalModel">mod</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
@@ -39,6 +39,7 @@
       <Model class="Models" type="PostProcessor">snapshot</Model>
       <Output class="DataObjects" type="PointSet">opt_soln</Output>
       <Output class="OutStreams" type="Print">opt_soln</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
     </PostProcess>
   </Steps>
 
@@ -50,9 +51,10 @@
         <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <!-- Initialization Sampler -->
       <Sampler          class="Samplers"    type="MonteCarlo">initialPointsSampler</Sampler>
       <convergence>
-          <gradientThreshold>1e-1</gradientThreshold>
+          <gradientThreshold>1e-4</gradientThreshold>
           <gainGrowthFactor>1.5</gainGrowthFactor>
           <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
@@ -66,23 +68,12 @@
         <lowerBound>-4.5</lowerBound>
         <!-- <initial>2,-2,0,2,-2</initial> -->
       </variable>
-      <variable name='z'>
-          <upperBound>4.5</upperBound>
-          <lowerBound>-4.5</lowerBound>
-          <!-- <initial>2,-2,0,2,-2</initial> -->
-      </variable>
       <objectVar>ans</objectVar>
       
     </SPSA>
   </Optimizers>
   <Distributions>
       <Normal name="ydist">
-          <mean>1</mean>
-          <sigma>0.1</sigma>
-          <lowerBound>-3</lowerBound>
-          <upperBound>3</upperBound>
-      </Normal>
-      <Normal name="zdist">
           <mean>1</mean>
           <sigma>0.1</sigma>
           <lowerBound>-3</lowerBound>
@@ -98,14 +89,11 @@
           <variable name="y">
               <distribution>ydist</distribution>
           </variable>
-          <variable name="z">
-              <distribution>zdist</distribution>
-          </variable>
       </MonteCarlo>
   </Samplers>
   <Models>
-    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/rosenbrock" name="rosenbrock" subType="">
-      <variables>x,y,z,ans</variables>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="mod" subType="">
+      <variables>x,y,ans</variables>
     </ExternalModel>
     <PostProcessor name="snapshot" subType="InterfacedPostProcessor">
       <method>HistorySetSnapShot</method>
@@ -116,20 +104,20 @@
 
   <DataObjects>
     <PointSet name="dummyIN">
-      <Input>x,y,z</Input>
+      <Input>x,y</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="optOut">
-      <Input>x,y,z</Input>
+      <Input>x,y</Input>
       <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_soln">
       <Input>trajID</Input>
-      <Output>x,y,z,ans,varsUpdate</Output>
+      <Output>x,y,ans,varsUpdate</Output>
     </PointSet>
     <HistorySet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,z,ans,varsUpdate</Output>
+      <Output>x,y,ans,varsUpdate</Output>
     </HistorySet>
   </DataObjects>
 
