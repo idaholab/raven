@@ -1,5 +1,5 @@
 """
-Created on July 30th, 2017
+Created on June 19th, 2017
 @author: rouxpn
 """
 
@@ -56,30 +56,68 @@ class XSParser():
     isotopeList = []
     reactionList = []
     XMLdict['XS'] = {}
+    reactionList = []
+    """
+    count = 0 
+    tab   = 0 
+    dummyTabDict = {}
+    mappingDict  = {}
+    for tabXML in self.root.getiterator('tab'):
+      #print tabXML.attrib.get('name')
+      if tabXML.attrib.get('name') in tabNames: 
+        numberOfTabPoints = len(tabNames)
+        #print numberOfTabPoints
+        tabDict[tuple(tabNames)] = tuple(tabValues) 
+        #print tabDict
+        tabNames = [] 
+        tabValues = []
+        break         
+      else: 
+        tabName = tabXML.attrib.get('name')
+        tabValue = tabXML.text
+        tabNames.append(tabName)
+        tabValues.append(tabValue)
+    #print numberOfTabPoints    
     
-    for libraryXML in self.root.getiterator('library'):
-      XMLdict['XS'][libraryXML.attrib.get('lib_name')] = {}
-      for isotopeXML in libraryXML.findall('.//isotope'):
-        reactionList = [j.tag for j in isotopeXML]
-        XMLdict['XS'][libraryXML.attrib.get('lib_name')][isotopeXML.attrib.get('id')] = {}
-        for k in xrange(0,len(reactionList)):
-          XMLdict['XS'][libraryXML.attrib.get('lib_name')][isotopeXML.attrib.get('id')][reactionList[k]] = {}
-          for groupXML in isotopeXML.findall(reactionList[k]):
-            if groupXML.attrib.get('gg') == None: 
-              XMLdict['XS'][libraryXML.attrib.get('lib_name')][isotopeXML.attrib.get('id')][reactionList[k]][groupXML.attrib.get('g')] = {}
-            else: 
-              XMLdict['XS'][libraryXML.attrib.get('lib_name')][isotopeXML.attrib.get('id')][reactionList[k]][str(groupXML.attrib.get('g'))+'->'+str(groupXML.attrib.get('gg'))] = {}
+    for tabXML in self.root.getiterator('tab'):
+      dummyTabDict[tabXML.attrib.get('name')] = tabXML.text
+      count = count + 1 
+      if count == numberOfTabPoints:
+        tab = tab + 1 
+        mappingDict[tab] = dummyTabDict
+        count = 0 
+        dummyTabDict = {}
+    #print mappingDict
+    
+    count = 0
+    tab   = 0 
+    """
+    for tabulationXML in self.root.getiterator('tabulation'):
+      XMLdict['XS'][tabulationXML.attrib.get('name')] = {}
+      #print tabulationXML.attrib.get('name')
+      for libraryXML in tabulationXML.getiterator('library'):
+        #print libraryXML.attrib.get('lib_name')
+        currentMat = libraryXML.attrib.get('lib_name')
+        XMLdict['XS'][tabulationXML.attrib.get('name')][libraryXML.attrib.get('lib_name')] = {}
+        for isotopeXML in libraryXML.getiterator('isotope'):
+          currentIsotope = isotopeXML.attrib.get('id')
+          currentType = isotopeXML.attrib.get('type')
+          #print currentIsotope + currentType
+          reactionList = [j.tag for j in isotopeXML]
+          #print reactionList
+          XMLdict['XS'][tabulationXML.attrib.get('name')][libraryXML.attrib.get('lib_name')][isotopeXML.attrib.get('id')] = {}
+          #XMLdict['XS'][tab][libraryXML.attrib.get('lib_name')][currentIsotope] = {}
+          #print XMLdict
+          for k in xrange (0, len(reactionList)):
+            XMLdict['XS'][tabulationXML.attrib.get('name')][libraryXML.attrib.get('lib_name')][isotopeXML.attrib.get('id')][reactionList[k]] = {}
+            for groupXML in isotopeXML.getiterator(reactionList[k]):
+              individualGroup = [x.strip() for x in groupXML.attrib.get('g').split(',')]
+              individualGroupValues = [y.strip() for y in groupXML.text.split(',')]
+              #print (individualGroup+individualGroupValues)
+              for position in xrange(0,len(individualGroup)):
+                #print (reactionList[k]+"\t\t"+individualGroup[position]+' '+individualGroupValues[position]) 
+                XMLdict['XS'][tabulationXML.attrib.get('name')][libraryXML.attrib.get('lib_name')][isotopeXML.attrib.get('id')][reactionList[k]][individualGroup[position]] = individualGroupValues[position]
     print XMLdict
-    for libraryXML in self.root.getiterator('library'):
-      for isotopeXML in libraryXML.findall('.//isotope'):
-        reactionList = [j.tag for j in isotopeXML]
-        for k in xrange(0,len(reactionList)):
-          for groupXML in isotopeXML.findall(reactionList[k]):
-            if groupXML.attrib.get('gg') == None: 
-              XMLdict['XS'][libraryXML.attrib.get('lib_name')][isotopeXML.attrib.get('id')][reactionList[k]][groupXML.attrib.get('g')] = groupXML.text
-            else: 
-              XMLdict['XS'][libraryXML.attrib.get('lib_name')][isotopeXML.attrib.get('id')][reactionList[k]][str(groupXML.attrib.get('g'))+'->'+str(groupXML.attrib.get('gg'))] = groupXML.text
-    #print XMLdict
     return XMLdict
   
   def prettify(self, elem):
@@ -114,7 +152,7 @@ class XSParser():
     
     file_obj = open('new.xml', 'w')
     file_obj.write(self.prettify(top))
-    print self.prettify(top)
+    #print self.prettify(top)
     
     
   def __init__(self, inputFiles, **pertDict):
@@ -196,7 +234,7 @@ class XSParser():
     newXMLDict = self.replaceValues(genericXMLdict)
     #print newXMLDict
     templatedNewXMLdict = self.fileReconstruction(newXMLDict)
-    print templatedNewXMLdict 
+    #print templatedNewXMLdict 
     
     for libraryXML in self.root.getiterator('library'): 
       #print libraryXML.attrib
@@ -205,12 +243,9 @@ class XSParser():
         reactionList = [j.tag for j in isotopeXML]
         for k in xrange(0,len(reactionList)):
           for groupXML in isotopeXML.findall(reactionList[k]):
-            if groupXML.attrib.get('gg') == None:  
-              #print templatedNewXMLdict.get('XS').get(libraryXML.attrib.get('lib_name').upper()).get(isotopeXML.attrib.get('id').upper()).get(reactionList[k].upper())
-              print templatedNewXMLdict.get('XS').get(libraryXML.attrib.get('lib_name').upper()).get(isotopeXML.attrib.get('id').upper()).get(reactionList[k].upper()).get(groupXML.attrib.get('g'))
-              groupXML.text = templatedNewXMLdict.get('XS').get(libraryXML.attrib.get('lib_name').upper()).get(isotopeXML.attrib.get('id').upper()).get(reactionList[k].upper()).get(groupXML.attrib.get('g'))
-            else: 
-              groupXML.text = templatedNewXMLdict.get('XS').get(libraryXML.attrib.get('lib_name').upper()).get(isotopeXML.attrib.get('id').upper()).get(reactionList[k].upper()).get(groupXML.attrib.get(str(groupXML.attrib.get('g'))+'->'+str(groupXML.attrib.get('gg'))))
+            #print templatedNewXMLdict.get('XS').get(libraryXML.attrib.get('lib_name').upper()).get(isotopeXML.attrib.get('id').upper()).get(reactionList[k].upper())
+            #print templatedNewXMLdict.get('XS').get(libraryXML.attrib.get('lib_name').upper()).get(isotopeXML.attrib.get('id').upper()).get(reactionList[k].upper()).get(groupXML.attrib.get('g'))
+            groupXML.text = templatedNewXMLdict.get('XS').get(libraryXML.attrib.get('lib_name').upper()).get(isotopeXML.attrib.get('id').upper()).get(reactionList[k].upper()).get(groupXML.attrib.get('g'))
         self.tree.write(modifiedFile)
     copyfile('modif.xml', self.inputFiles)  
    
