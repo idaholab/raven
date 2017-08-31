@@ -33,6 +33,7 @@ from utils import utils
 from utils import InputData
 import Files
 import Metrics
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Metric(PostProcessor):
@@ -79,26 +80,6 @@ class Metric(PostProcessor):
     # assembler objects to be requested
     self.addAssemblerObject('Metric', 'n', True)
 
-  def _localWhatDoINeed(self):
-    """
-      This method is a local mirror of the general whatDoINeed method.
-      It is implemented by the samplers that need to request special objects
-      @ In , None, None
-      @ Out, dict, dictionary of objects needed
-    """
-    needDict = {'Metrics':[]}
-    for metricName in self.metricsDict.keys():
-      needDict['Metrics'].append((None, metricName))
-    return needDict
-
-  def _localGenerateAssembler(self,initDict):
-    """Generates the assembler.
-      @ In, initDict, dict, init objects
-      @ Out, None
-    """
-    for metricName in  self.metricsDict.keys():
-      self.metricsDict[metricName] = initDict['Metrics'][metricName]
-
   def inputToInternal(self, currentInputs):
     """
       Method to convert an input object into the internal format that is
@@ -119,9 +100,9 @@ class Metric(PostProcessor):
         inputType = currentInput.type
 
       if isinstance(currentInput, Files.File):
-        self.raiseAWarning(self, "Input type '", inputType, "' is not yet implemented. This input will be skipped")
+        self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
       elif inputType == 'HDF5':
-        self.raiseAWarning(self, "Input type '", inputType, "' is not yet implemented. This input will be skipped")
+        self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
       elif inputType == 'PointSet':
         for feature in self.features:
           if feature in currentInput.getParaKeys('input'):
@@ -164,6 +145,8 @@ class Metric(PostProcessor):
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
+    for metricIn in self.assemblerDict['Metric']:
+      self.metricsDict[metricIn[2]] = metricIn[3]
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -179,9 +162,6 @@ class Metric(PostProcessor):
       if child.getName() == 'Metric':
         if 'type' not in child.parameterValues.keys() or 'class' not in child.parameterValues.keys():
           self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
-        else:
-          metricName = child.value.strip()
-          self.metricsDict[metricName] = None
       elif child.getName() == 'Features':
         self.features = list(var.strip() for var in child.value.split(','))
         self.featuresType = child.parameterValues['type']
@@ -203,9 +183,10 @@ class Metric(PostProcessor):
       @ In, output, object, the object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, ' No available output to collect')
-    outputDict = finishedJob.getEvaluation()[1]
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier, "failed!")
+    outputDict = evaluation[1]
 
     if isinstance(output, Files.File):
       availExtens = ['xml', 'csv']
@@ -218,8 +199,9 @@ class Metric(PostProcessor):
       if outputExtension == 'xml':
         self._writeXML(output, outputDict)
       else:
-        separator = ' ' if outputExtension != 'csv' else ','
-        self._writeText(output, outputDict, separator)
+        self.raiseAnError(IOError, "Write output files into a text file is not implemented yet!")
+        #separator = ' ' if outputExtension != 'csv' else ','
+        #self._writeText(output, outputDict, separator)
     else:
       self.raiseAnError(IOError, 'Output type ', str(output.type), ' can not be used for postprocessor', self.name)
 
@@ -257,16 +239,16 @@ class Metric(PostProcessor):
             self.raiseAnError(IOError, "Unrecognized type of input value '", type(value), "'")
     outputInstance.writeFile()
 
-  def _writeText(self,output,outputDictionary, separator=' '):
-    """
-      Defines the method for writing the post-processor to a .csv file
-      @ In, output, File object, file to write to
-      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
-      @ In, separator, string, optional, separator string
-      @ Out, None
-    """
+  #def _writeText(self,output,outputDictionary, separator=' '):
+  #  """
+  #    Defines the method for writing the post-processor to a .csv file
+  #    @ In, output, File object, file to write to
+  #    @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+  #    @ In, separator, string, optional, separator string
+  #    @ Out, None
+  #  """
     ##TODO: Add this method if needed
-    self.raiseAnError(IOError, "Write output files into a text file is not implemented yet!")
+    #self.raiseAnError(IOError, "Write output files into a text file is not implemented yet!")
 
   def run(self, inputIn):
     """
