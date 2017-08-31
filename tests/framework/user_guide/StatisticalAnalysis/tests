@@ -3,13 +3,7 @@
     type = 'RavenFramework'
     input = 'statisticalAnalysis.xml'
     UnorderedXml = 'StatisticalAnalysis/output_stat_analysis_mc.xml'
-    heavy = true
-    rel_err = 1e-3
-  [../]
-  [./ComparingSamplers]
-    type = 'RavenFramework'
-    input = 'comparingSamplers.xml'
-    UnorderedXml = 'comparingSamplers/output_stat_analysis_mc.xml comparingSamplers/output_stat_analysis_lhs.xml comparingSamplers/output_stat_analysis_grid.xml'
+    required_libraries = 'PIL'
     heavy = true
     rel_err = 1e-3
   [../]
