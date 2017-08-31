@@ -236,7 +236,7 @@ class PointSet(Data):
         operator = None
       else:
         ## Not sure if any of these are necessary, but I am trying to replicate
-        ## the magic that takes place in the Csv_loader -- DPM 5/3/2017
+        ## the magic that takes place in the CsvLoader -- DPM 5/3/2017
         outputRow = copy.deepcopy(options.get('outputRow',-1))
         outputPivotVal = options.get('outputPivotValue',None)
         operator = options.get('operator',None)

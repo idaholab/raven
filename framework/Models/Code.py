@@ -33,7 +33,7 @@ import shlex
 from .Model import Model
 from utils import utils
 from utils import InputData
-from Csv_loader import CsvLoader
+import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 import Files
 from DataObjects import Data
 import Runners
@@ -339,7 +339,7 @@ class Code(Model):
 
     return (newInput,kwargs)
 
-  def __expandForWindows(self, origCommand):
+  def _expandForWindows(self, origCommand):
     """
       Function to expand a command that has a #! to a windows runnable command
       @ In, origCommand, string, The command to check for expantion
@@ -476,7 +476,7 @@ class Code(Model):
 
     self.raiseAMessage('Execution command submitted:',command)
     if platform.system() == 'Windows':
-      command = self.__expandForWindows(command)
+      command = self._expandForWindows(command)
       self.raiseAMessage("modified command to" + repr(command))
 
     ## This code should be evaluated by the job handler, so it is fine to wait
@@ -521,7 +521,7 @@ class Code(Model):
         ## Should we be adding the file extension here?
         outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])
 
-        csvLoader = CsvLoader(self.messageHandler)
+        csvLoader = CsvLoader.CsvLoader(self.messageHandler)
         csvData = csvLoader.loadCsvFile(outFile)
         headers = csvLoader.getAllFieldNames()
 
