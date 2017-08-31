@@ -33,6 +33,7 @@ from utils import utils
 import LearningGate
 import GridEntities
 import Files
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class LimitSurface(PostProcessor):
@@ -360,10 +361,12 @@ class LimitSurface(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    self.raiseADebug(str(finishedJob.getEvaluation()))
-    limitSurf = finishedJob.getEvaluation()[1]
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
+    self.raiseADebug(str(evaluation))
+    limitSurf = evaluation[1]
     if limitSurf[0] is not None:
       for varName in output.getParaKeys('inputs'):
         for varIndex in range(len(self.axisName)):

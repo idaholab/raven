@@ -32,6 +32,7 @@ from .PostProcessor import PostProcessor
 from utils import InputData
 import Files
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ImportanceRank(PostProcessor):
@@ -282,9 +283,10 @@ class ImportanceRank(PostProcessor):
       @ In, output, object, the object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
-    outputDict = finishedJob.getEvaluation()[-1]
+    outputDict = evaluation[1]
     # Output to file
     if isinstance(output, Files.File):
       availExtens = ['xml','csv']

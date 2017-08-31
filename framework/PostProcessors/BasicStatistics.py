@@ -33,6 +33,7 @@ import six
 from .PostProcessor import PostProcessor
 from utils import utils
 import Files
+import Runners
 #Internal Modules End-----------------------------------------------------------
 
 
@@ -340,9 +341,12 @@ class BasicStatistics(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, ' No available Output to collect (run possibly not finished yet)')
-    outputDictionary = finishedJob.getEvaluation()[1]
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
+    outputDictionary = evaluation[1]
+
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam:
