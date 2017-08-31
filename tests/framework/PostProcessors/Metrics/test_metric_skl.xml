@@ -2,7 +2,7 @@
 <Simulation verbosity="all">
   <RunInfo>
     <WorkingDir>sklMetrics</WorkingDir>
-    <Sequence>mcRun, PP1</Sequence>
+    <Sequence>mcRun, PP1, PP2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
@@ -17,6 +17,7 @@
 
   <Files>
     <Input name="output_metric" type="">output_metric.xml</Input>
+    <Input name="chi2_metric" type="">chi2_metric.xml</Input>
   </Files>
 
   <Models>
@@ -28,7 +29,22 @@
       <Targets type="variable">ans2</Targets>
       <Metric class="Metrics" type="SKL">euclidean</Metric>
       <Metric class="Metrics" type="SKL">rbf</Metric>
+      <Metric class="Metrics" type="SKL">poly</Metric>
+      <Metric class="Metrics" type="SKL">sigmoid</Metric>
       <Metric class="Metrics" type="SKL">polynomial</Metric>
+      <Metric class="Metrics" type="SKL">linear</Metric>
+      <Metric class="Metrics" type="SKL">cosine</Metric>
+      <Metric class="Metrics" type="SKL">cityblock</Metric>
+      <Metric class="Metrics" type="SKL">l1</Metric>
+      <Metric class="Metrics" type="SKL">l2</Metric>
+      <Metric class="Metrics" type="SKL">manhattan</Metric>
+      <Metric class="Metrics" type="SKL">laplacian</Metric>
+    </PostProcessor>
+    <PostProcessor name="pp2" subType="Metric">
+      <Features type="variable">ans2</Features>
+      <Targets type="variable">x1</Targets>
+      <Metric class="Metrics" type="SKL">chi2</Metric>
+      <Metric class="Metrics" type="SKL">additive_chi2</Metric>
     </PostProcessor>
   </Models>
   
@@ -36,15 +52,60 @@
     <SKL name="euclidean">
       <metricType>euclidean</metricType>
     </SKL>
+    <SKL name="laplacian">
+        <metricType>laplacian</metricType>
+        <gamma>0.5</gamma>
+    </SKL>
     <SKL name="rbf">
       <metricType>rbf</metricType>
       <gamma>0.5</gamma>
     </SKL>
-    <SKL name="polynomial">
+    <SKL name="poly">
       <metricType>poly</metricType>
       <gamma>1.0</gamma>
       <degree>2.0</degree>
       <coef0>1.0</coef0>
+    </SKL>
+    <SKL name="sigmoid">
+        <metricType>sigmoid</metricType>
+        <gamma>1.0</gamma>
+        <coef0>1.0</coef0>
+    </SKL>
+    <SKL name="polynomial">
+        <metricType>polynomial</metricType>
+        <gamma>1.0</gamma>
+        <degree>2.0</degree>
+        <coef0>1.0</coef0>
+    </SKL>
+    <SKL name="linear">
+        <metricType>linear</metricType>
+    </SKL>
+    <SKL name="cosine">
+        <metricType>cosine</metricType>
+        <dense_output>True</dense_output>
+    </SKL>
+
+    <SKL name="cityblock">
+        <metricType>cityblock</metricType>
+    </SKL>
+    <SKL name="l1">
+        <metricType>l1</metricType>
+    </SKL>
+    <SKL name="l2">
+        <metricType>l2</metricType>
+    </SKL>
+    <SKL name="manhattan">
+        <metricType>manhattan</metricType>
+        <sum_over_features>True</sum_over_features>
+        <size_threshold>5e8</size_threshold>
+    </SKL>
+    
+    <SKL name="additive_chi2">
+        <metricType>additive_chi2</metricType>
+    </SKL>
+    <SKL name="chi2">
+        <metricType>chi2</metricType>
+        <gamma>1.0</gamma>
     </SKL>
   </Metrics>
 
@@ -84,6 +145,11 @@
       <Input class="DataObjects" type="PointSet">outputDataMC</Input>
       <Model class="Models" type="PostProcessor">pp1</Model>
       <Output class="Files" type="">output_metric</Output>
+    </PostProcess>
+    <PostProcess name="PP2">
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Model class="Models" type="PostProcessor">pp2</Model>
+      <Output class="Files" type="">chi2_metric</Output>
     </PostProcess>
   </Steps>
 
