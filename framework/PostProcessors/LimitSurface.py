@@ -164,7 +164,6 @@ class LimitSurface(PostProcessor):
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
     self.gridEntity = GridEntities.returnInstance("MultiGridEntity",self,self.messageHandler)
-    self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
       self.ROM = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':[self.externalFunction.name]})

@@ -296,7 +296,7 @@ class ImportanceRank(PostProcessor):
         self.raiseAWarning('Available are ' + str(availExtens) + '. Converting extension to ' + str(availExtens[0]) + '!')
         outputExtensions = availExtens[0]
         output.setExtension(outputExtensions)
-      output.setPath(self.__workingDir)
+      output.setPath(self._workingDir)
       self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
       if outputExtension == 'csv':
@@ -415,7 +415,6 @@ class ImportanceRank(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
 
   def inputToInternal(self, currentInp):
     """

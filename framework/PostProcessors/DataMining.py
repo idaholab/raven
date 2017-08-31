@@ -266,7 +266,6 @@ class DataMining(PostProcessor):
     """
 
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
 
     if "SolutionExport" in initDict:
       self.solutionExport = initDict["SolutionExport"]

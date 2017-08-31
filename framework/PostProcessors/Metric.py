@@ -144,7 +144,6 @@ class Metric(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
     for metricIn in self.assemblerDict['Metric']:
       self.metricsDict[metricIn[2]] = metricIn[3]
 
@@ -193,7 +192,7 @@ class Metric(PostProcessor):
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
         self.raiseAMessage('Metric postprocessor did not recognize extension ".', str(outputExtension), '". The output will be dumped to a text file')
-      output.setPath(self.__workingDir)
+      output.setPath(self._workingDir)
       self.raiseADebug('Write Metric prostprocessor output in file with name: ', output.getAbsFile())
       output.open('w')
       if outputExtension == 'xml':

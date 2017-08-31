@@ -153,7 +153,6 @@ class ExternalPostProcessor(PostProcessor):
       @ Out, None
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
     for key in self.assemblerDict.keys():
       if 'Function' in key:
         for val in self.assemblerDict[key]:

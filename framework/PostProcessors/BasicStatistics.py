@@ -216,7 +216,6 @@ class BasicStatistics(PostProcessor):
     #for backward compatibility, compile the full list of parameters used in Basic Statistics calculations
     self.parameters['targets'] = list(self.allUsedParams)
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -356,7 +355,7 @@ class BasicStatistics(PostProcessor):
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
         self.raiseAMessage('BasicStatistics did not recognize extension ".'+str(outputExtension)+'" as ".xml", so writing text output...')
-      output.setPath(self.__workingDir)
+      output.setPath(self._workingDir)
       self.raiseADebug('Writing statistics output in file named ' + output.getAbsFile())
       output.open('w')
       if outputExtension == 'xml':
