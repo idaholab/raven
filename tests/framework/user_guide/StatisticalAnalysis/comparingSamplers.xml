@@ -196,7 +196,7 @@
   <OutStreams>
     <Plot name="meanPlotter">
       <actions>
-        <how>screen,pdf</how>
+        <how>pdf</how>
         <title>
           <text>Means</text>
         </title>
@@ -213,7 +213,7 @@
     </Plot>
     <Plot name="varPlotter">
       <actions>
-        <how>screen,pdf</how>
+        <how>pdf</how>
         <title>
           <text>Variances</text>
         </title>
