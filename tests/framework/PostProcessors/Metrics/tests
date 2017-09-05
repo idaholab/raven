@@ -4,6 +4,7 @@
     input = 'test_metric.xml'
     UnorderedXml = 'mcMetricRun/output_metric.xml'
     UnorderedCsv = 'mcMetricRun/dumpMC.csv'
+    output = 'mcMetricRun/output_metric.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
     remove_whitespace = True

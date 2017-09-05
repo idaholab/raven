@@ -17,6 +17,7 @@
 
   <Files>
     <Input name="output_metric" type="">output_metric.xml</Input>
+    <Input name="output_metric.csv" type="">output_metric.csv</Input>
   </Files>
 
   <Models>
@@ -73,6 +74,7 @@
       <Input class="DataObjects" type="PointSet">outputDataMC</Input>
       <Model class="Models" type="PostProcessor">pp1</Model>
       <Output class="Files" type="">output_metric</Output>
+      <Output class="Files" type="">output_metric.csv</Output>
     </PostProcess>
   </Steps>
 

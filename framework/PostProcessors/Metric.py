@@ -198,9 +198,8 @@ class Metric(PostProcessor):
       if outputExtension == 'xml':
         self._writeXML(output, outputDict)
       else:
-        self.raiseAnError(IOError, "Write output files into a text file is not implemented yet!")
-        #separator = ' ' if outputExtension != 'csv' else ','
-        #self._writeText(output, outputDict, separator)
+        separator = ' ' if outputExtension != 'csv' else ','
+        self._writeText(output, outputDict, separator)
     else:
       self.raiseAnError(IOError, 'Output type ', str(output.type), ' can not be used for postprocessor', self.name)
 
@@ -238,16 +237,36 @@ class Metric(PostProcessor):
             self.raiseAnError(IOError, "Unrecognized type of input value '", type(value), "'")
     outputInstance.writeFile()
 
-  #def _writeText(self,output,outputDictionary, separator=' '):
-  #  """
-  #    Defines the method for writing the post-processor to a .csv file
-  #    @ In, output, File object, file to write to
-  #    @ In, outputDictionary, dict, dictionary stores importance ranking outputs
-  #    @ In, separator, string, optional, separator string
-  #    @ Out, None
-  #  """
-    ##TODO: Add this method if needed
-    #self.raiseAnError(IOError, "Write output files into a text file is not implemented yet!")
+  def _writeText(self, output, outputDictionary, separator=' '):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ In, separator, string, optional, separator string
+      @ Out, None
+    """
+    if self.dynamic:
+      output.write('Dynamic Metric', separator, 'Pivot Parameter', separator, self.pivotParameter, separator, os.linesep)
+      self.raiseAnError(IOError, 'The method to dump the dynamic metric into a CSV file is not implemented yet!')
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for ts, outputDict in enumerate(outputResults):
+      if self.dynamic:
+        output.write('Pivot value', separator, str(outputDictionary.keys()[ts]), os.linesep)
+      for nodeName, nodeValues in outputDict.items():
+        output.write('Metrics' + separator)
+        output.write(nodeName + os.linesep)
+        for metricName, value in nodeValues.items():
+          output.write(metricName+separator)
+          if type(value) == float:
+            output.write(str(value) + os.linesep)
+          elif type(value) in [list, np.ndarray]:
+            if len(list(value)) == 1:
+              output.write(str(value[0]) + os.linesep)
+            else:
+              self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
+          else:
+            self.raiseAnError(IOError, "Unrecognized type of input value '", type(value), "'")
+
 
   def run(self, inputIn):
     """
