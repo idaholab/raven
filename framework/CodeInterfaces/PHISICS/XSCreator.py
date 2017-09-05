@@ -83,9 +83,11 @@ class XSCreator():
                     reactionChild = SubElement(libraryChild, reaction.lower(), {'g':groups})
                     reactionChild.text = values
     
-    file_obj = open('XS.xml', 'w')
+    modifiedFile = 'modifffff.xml'
+    file_obj = open(modifiedFile, 'w')
     file_obj.write(self.prettify(top))
     #print self.prettify(top)
+    return modifiedFile
   
   def clean_empty(self, leanDict):
     """
@@ -117,8 +119,8 @@ class XSCreator():
     self.tree = ET.parse(self.inputFiles)
     self.root = self.tree.getroot()
     self.listedDict = self.fileReconstruction(self.pertDict)
-    self.generateXML()
-    self.printInput()
+    modifiedFile = self.generateXML()
+    self.printInput(modifiedFile)
 
   def fileReconstruction(self, deconstructedDict):
     """
@@ -178,16 +180,17 @@ class XSCreator():
     return leanReconstructedDict
    
     
-  def printInput(self):
+  def printInput(self, modifiedFile):
     """
       Method to print out the new input
       @ In, outfile, string, optional, output file root
       @ Out, None
-    """
-    modifiedFile = 'modif.xml'     
-    open(modifiedFile, 'w')
+    """     
     #print self.inputFiles
-    #copyfile('modiff.xml', self.inputFiles)  
+    copyfile(modifiedFile, self.inputFiles)  
+   
+
+
    
 
  
