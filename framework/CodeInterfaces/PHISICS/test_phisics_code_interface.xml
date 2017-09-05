@@ -135,33 +135,33 @@
     </Normal>
     <Normal name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|5_distrib">
       <mean>55555.555</mean>
-      <sigma>0.001</sigma>
-      <upperBound>55556</upperBound>
-      <lowerBound>55555</lowerBound>
+      <sigma>5</sigma>
+      <upperBound>55560</upperBound>
+      <lowerBound>55550</lowerBound>
     </Normal>
     <Normal name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|8_distrib">
       <mean>888.88</mean>
-      <sigma>0.001</sigma>
-      <upperBound>889</upperBound>
-      <lowerBound>888</lowerBound>
+      <sigma>8</sigma>
+      <upperBound>896</upperBound>
+      <lowerBound>880</lowerBound>
     </Normal>
     <Normal name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|3_distrib">
       <mean>333.333</mean>
-      <sigma>0.001</sigma>
-      <upperBound>334</upperBound>
-      <lowerBound>333</lowerBound>
+      <sigma>3</sigma>
+      <upperBound>336</upperBound>
+      <lowerBound>330</lowerBound>
     </Normal>
     <Normal name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|12_distrib">
       <mean>121212</mean>
-      <sigma>0.001</sigma>
-      <upperBound>121213</upperBound>
-      <lowerBound>121212</lowerBound>
+      <sigma>12</sigma>
+      <upperBound>121224</upperBound>
+      <lowerBound>121200</lowerBound>
     </Normal>
     <Normal name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|7_distrib">
       <mean>7777.777</mean>
-      <sigma>0.001</sigma>
-      <upperBound>7778</upperBound>
-      <lowerBound>7777</lowerBound>
+      <sigma>77</sigma>
+      <upperBound>7854</upperBound>
+      <lowerBound>7700</lowerBound>
     </Normal>
   </Distributions>
 
@@ -283,5 +283,6 @@
   </Databases>
 
 </Simulation>
+
 
 
