@@ -188,12 +188,3 @@ class XSCreator():
     """     
     #print self.inputFiles
     copyfile(modifiedFile, self.inputFiles)  
-   
-
-
-   
-
- 
-  
-   
-
