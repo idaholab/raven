@@ -34,8 +34,7 @@ import tarfile
 class Phisics(CodeInterfaceBase):
   """
     this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3
-  """
-  
+  """ 
   def getPath(self):
     """
       Retriever for path.
@@ -50,11 +49,11 @@ class Phisics(CodeInterfaceBase):
       @ In, None
       @ Out, __base, string path
     """
-    return self.__base
+    return self.__base 
   
   def distributeVariablesToParsers(self, perturbedVars):
     """
-      This module take the perturbedVars dictionary. perturbedVars contains all the variables to be perturbed. 
+      This module takes the perturbedVars dictionary. perturbedVars contains all the variables to be perturbed. 
       The module transform the dictionary into dictionary of dictionary. This dictionary renders easy the distribution 
       of the variable to their corresponding parser. For example, if the two variables are the following: 
       {'FY|FAST|PU241|SE78':1.0, 'DECAY|BETA|U235':2.0}, the output dict will be: 
@@ -64,6 +63,7 @@ class Phisics(CodeInterfaceBase):
     """
     distributedPerturbedVars = {}
     pertType = []
+    #print (perturbedVars)
     # teach what are the type of perturbation (decay FY etc...)
     for i in perturbedVars.iterkeys():
       splittedKeywords = i.split('|')
@@ -223,16 +223,21 @@ class Phisics(CodeInterfaceBase):
     import QValuesParser
     import MaterialParser
     import PathParser
+    import XSCreator
     
-    keyWordDict = {}
-    
+    keyWordDict = {} 
     directoryFiles = ['path','library_fiss','input_dpl']
     #print (currentInputFiles)
     driverXML = 'test_phisics_code_interface.xml'
     keyWordDict = self.mapFile(driverXML)
     #print (keyWordDict)
+    #print (Kwargs)
+    #print (Kwargs['SampledVars'])
+    #print ("\n\n\n")
     perturbedVars = Kwargs['SampledVars']
     distributedPerturbedVars = self.distributeVariablesToParsers(perturbedVars)
+    #print (distributedPerturbedVars)
+    #print (currentInputFiles)
     for i in distributedPerturbedVars.iterkeys():
       if i == 'DECAY'         : decayParser        = DecayParser.DecayParser(currentInputFiles[keyWordDict['decay']].getAbsFile(), **distributedPerturbedVars[i])
       if i == 'DENSITY'       : materialParser     = MaterialParser.MaterialParser(currentInputFiles[keyWordDict['material']].getAbsFile(), **distributedPerturbedVars[i])
@@ -243,8 +248,11 @@ class Phisics(CodeInterfaceBase):
       if i == 'BETA+XDECAY'   : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['beta+xdecay']].getAbsFile(), **distributedPerturbedVars[i])
       if i == 'BETADECAY'     : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['betadecay']].getAbsFile(), **distributedPerturbedVars[i])
       if i == 'BETAXDECAY'    : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['betaxdecay']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'INTTRADECAY'  : BetaDecayParser     = PathParser.PathParser(currentInputFiles[keyWordDict['inttradecay']].getAbsFile(), **distributedPerturbedVars[i])
-    
+      if i == 'INTTRADECAY'   : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['inttradecay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'XS'            : XSParser           = XSCreator.XSCreator(currentInputFiles[keyWordDict['xs']].getAbsFile(), **distributedPerturbedVars[i])
     return currentInputFiles
+    
+
+
     
 
