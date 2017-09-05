@@ -32,6 +32,8 @@
     <Input name="BetaxDecay.path"     type="BetaxDecay"       perturbable="True" subDirectory="path"          >BetaxDecay.path</Input>
     <Input name="IntTraDecay.path"    type="IntTraDecay"      perturbable="True" subDirectory="path"          >IntTraDecay.path</Input>
     <Input name="ISOTXS000007"        type="isoXS"            perturbable="False"                             >ISOTXS000007</Input>
+    <Input name="XS.xml"              type="XS"               perturbable="True"                              >XS.xml</Input>
+    
     <!--Input name="1"                   type="allFilePath"      perturbable="False" subDirectory="path"      >*</Input-->
     <!--Input name="2"                   type="allFileLib_fiss"  perturbable="False" subDirectory="library_fiss" >*</Input-->
     <!--Input name="3"                   type="allFileinput_dpl" perturbable="False" subDirectory="input_dpl"    >*</Input-->
@@ -40,8 +42,10 @@
   <Models>
     <Code name="PHISICS" subType="Phisics">
       <!--  <executable>  </executable> -->
-       <executable>/home/rouxpn/RAVEN/PHISICS/dpl_instant_run</executable>    
+       <executable>/home/rouxpn/RAVEN/PHISICS/dpl_instant_run</executable> 
+       <PerturbXS>additive</PerturbXS>       
     </Code>
+    
   </Models>
 
   <Distributions>
@@ -58,16 +62,22 @@
       <lowerBound>5.0</lowerBound>
     </Normal>
     <Normal name="DENSITY|FUEL1|U235_distrib">
-      <mean>0.02</mean>
-      <sigma>0.001</sigma>
-      <upperBound>0.015</upperBound>
-      <lowerBound>0.025</lowerBound>
+      <mean>100</mean>
+      <sigma>1</sigma>
+      <upperBound>102</upperBound>
+      <lowerBound>98</lowerBound>
     </Normal>
     <Normal name="DENSITY|FUEL1|U238_distrib">
       <mean>0.02</mean>
       <sigma>0.001</sigma>
       <upperBound>0.015</upperBound>
       <lowerBound>0.025</lowerBound>
+    </Normal>
+    <Normal name="DENSITY|FUEL3|XE135_distrib">
+      <mean>10000</mean>
+      <sigma>100</sigma>
+      <upperBound>10000</upperBound>
+      <lowerBound>9900</lowerBound>
     </Normal>
     <Normal name="QVALUES|B10_distrib">
       <mean>0.02</mean>
@@ -111,10 +121,52 @@
       <upperBound>0.015</upperBound>
       <lowerBound>0.025</lowerBound>
     </Normal>
+    <Normal name="XS|1|FUEL1|U235|MULTIPLIER|FISSIONXS|1_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+      <upperBound>0.015</upperBound>
+      <lowerBound>0.025</lowerBound>
+    </Normal>
+    <Normal name="XS|2|FUEL3|U238|ABSOLUTE|FISSIONXS|1_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+      <upperBound>0.015</upperBound>
+      <lowerBound>0.025</lowerBound>
+    </Normal>
+    <Normal name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|5_distrib">
+      <mean>55555.555</mean>
+      <sigma>0.001</sigma>
+      <upperBound>55556</upperBound>
+      <lowerBound>55555</lowerBound>
+    </Normal>
+    <Normal name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|8_distrib">
+      <mean>888.88</mean>
+      <sigma>0.001</sigma>
+      <upperBound>889</upperBound>
+      <lowerBound>888</lowerBound>
+    </Normal>
+    <Normal name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|3_distrib">
+      <mean>333.333</mean>
+      <sigma>0.001</sigma>
+      <upperBound>334</upperBound>
+      <lowerBound>333</lowerBound>
+    </Normal>
+    <Normal name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|12_distrib">
+      <mean>121212</mean>
+      <sigma>0.001</sigma>
+      <upperBound>121213</upperBound>
+      <lowerBound>121212</lowerBound>
+    </Normal>
+    <Normal name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|7_distrib">
+      <mean>7777.777</mean>
+      <sigma>0.001</sigma>
+      <upperBound>7778</upperBound>
+      <lowerBound>7777</lowerBound>
+    </Normal>
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name="MC_samp" verbosity='debug'>
+    <MonteCarlo name="MC_samp">
       <samplerInit>
         <limit>3</limit>
       </samplerInit>
@@ -128,6 +180,9 @@
         <distribution>DENSITY|FUEL1|U235_distrib</distribution>
       </variable>
       <variable name="DENSITY|FUEL1|U238">
+        <distribution>DENSITY|FUEL1|U238_distrib</distribution>
+      </variable>
+      <variable name="DENSITY|FUEL3|XE135">
         <distribution>DENSITY|FUEL1|U238_distrib</distribution>
       </variable>
       <variable name="QVALUES|B10">
@@ -151,6 +206,27 @@
       <variable name="INTTRADECAY|U234">
         <distribution>INTTRADECAY|U234_distrib</distribution>
       </variable>
+      <variable name="XS|1|FUEL1|U235|MULTIPLIER|FISSIONXS|1">
+        <distribution>XS|1|FUEL1|U235|MULTIPLIER|FISSIONXS|1_distrib</distribution>
+      </variable>
+      <variable name="XS|2|FUEL3|U238|ABSOLUTE|FISSIONXS|1">
+        <distribution>XS|2|FUEL3|U238|ABSOLUTE|FISSIONXS|1_distrib</distribution>
+      </variable>
+      <variable name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|5">
+        <distribution>XS|1|FUEL1|XE135|ABSOLUTE|NPXS|5_distrib</distribution>
+      </variable>
+      <variable name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|8">
+        <distribution>XS|1|FUEL1|XE135|ABSOLUTE|NPXS|8_distrib</distribution>
+      </variable>
+      <variable name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|3">
+        <distribution>XS|1|FUEL1|XE135|ABSOLUTE|NPXS|3_distrib</distribution>
+      </variable>
+      <variable name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|12">
+        <distribution>XS|1|FUEL1|XE135|ABSOLUTE|NPXS|12_distrib</distribution>
+      </variable>
+      <variable name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|7">
+        <distribution>XS|1|FUEL1|XE135|ABSOLUTE|NPXS|7_distrib</distribution>
+      </variable>
     </MonteCarlo>
   </Samplers>
 
@@ -171,6 +247,7 @@
       <Input class="Files" type="">BetaxDecay.path</Input>
       <Input class="Files" type="">IntTraDecay.path</Input>
       <Input class="Files" type="">ISOTXS000007</Input>
+      <Input class="Files" type="">XS.xml</Input>
       <!--Input class="Files" type="">1</Input-->
       <!--Input class="Files" type="">2</Input-->
       <!--Input class="Files" type="">3</Input-->
@@ -196,7 +273,7 @@
 
 <DataObjects>
     <PointSet name="outputPointSet">
-      <Input>DECAY|BETA|U235,FY|FAST|U235|ZN67,DENSITY|FUEL1|U235,DENSITY|FUEL1|U238,BETADECAY|MO95,QVALUES|B10, ALPHADECAY|U234, BETA+DECAY|NB93, BETA+XDECAY|U234, BETAXDECAY|U234, INTTRADECAY|U234</Input>
+      <Input>DECAY|BETA|U235,FY|FAST|U235|ZN67,DENSITY|FUEL1|U235,DENSITY|FUEL1|U238,DENSITY|FUEL3|XE135,BETADECAY|MO95,QVALUES|B10, ALPHADECAY|U234, BETA+DECAY|NB93, BETA+XDECAY|U234, BETAXDECAY|U234, INTTRADECAY|U234, XS|1|FUEL1|U235|MULTIPLIER|FISSIONXS|1, XS|2|FUEL3|U238|ABSOLUTE|FISSIONXS|1, XS|1|FUEL1|XE135ABSOLUTE|NPXS|5, XS|1|FUEL1|XE135|ABSOLUTE|NPXS|8, XS|1|FUEL1|XE135|ABSOLUTE|NPXS|3, XS|1|FUEL1|XE135|ABSOLUTE|NPXS|12, XS|1|FUEL1|XE135|ABSOLUTE|NPXS|7</Input>
       <Output>keff</Output>
     </PointSet>
 </DataObjects>
@@ -206,4 +283,5 @@
   </Databases>
 
 </Simulation>
+
 
