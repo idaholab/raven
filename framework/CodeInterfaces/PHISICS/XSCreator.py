@@ -1,5 +1,5 @@
 """
-Created on June 19th, 2017
+Created on September 1st, 2017
 @author: rouxpn
 """
 
@@ -14,80 +14,6 @@ from xml.etree.ElementTree import Element, SubElement, Comment
 from xml.dom import minidom
 
 class XSCreator():
-
-  def replaceValues(self, genericXMLdict):
-    """
-    replace the values from the perturbed dict and put them in the deconstructed original dictionary
-    """
-    setXML = set(genericXMLdict)
-    #print setXML
-    setPertDict = set(self.pertDict)
-    #print setPertDict
-    for key in setPertDict.intersection(setXML):
-      genericXMLdict[key] = self.pertDict.get(key, {})
-    #print genericXMLdict
-    return genericXMLdict
-
-  def dictFormating_from_perturbed_to_generic(self, XMLdict):
-    """
-    Transform the ditionary comning from the XML input into the templated dictionary.
-    The templated format is {DENSITY|FUEL|ISOTOPE}
-    """
-    genericXMLdict = {}
-    #print XMLdict
-    for paramXML in XMLdict.iterkeys():
-      for tabXML in XMLdict.get(paramXML).iterkeys():
-        for matXML in XMLdict.get(paramXML).get(tabXML).iterkeys():
-          for isotopeXML in XMLdict.get(paramXML).get(tabXML).get(matXML).iterkeys():
-            for reactionXML in XMLdict.get(paramXML).get(tabXML).get(matXML).get(isotopeXML).iterkeys():
-              for groupXML, pertValue in XMLdict.get(paramXML).get(tabXML).get(matXML).get(isotopeXML).get(reactionXML).iteritems():
-                genericXMLdict[paramXML.upper()+'|'+str(tabXML).upper()+'|'+matXML.upper()+'|'+isotopeXML.upper()+'|'+reactionXML.upper()+'|'+str(groupXML).upper()] = pertValue 
-    #print genericXMLdict
-    return genericXMLdict
-
-  def dictFormating_from_XML_to_perturbed(self):
-    """
-    Transform the dictionary of dictionaries from the XML tree to a dictionary of dictionaries
-    formatted identically as the perturbed dictionary 
-    the perturbed dictionary template is {'XS':{'FUEL1':{'u238':{'FISSION':{'1':1.000}}}}}
-    """
-    # declare the dictionaries 
-    XMLdict = {}
-    matList = []
-    isotopeList = []
-    reactionList = []
-    XMLdict['XS'] = {}
-    reactionList = []
-    
-    count = 0
-    for tabulationXML in self.root.getiterator('tabulation'):
-      #print count 
-      count = count + 1 
-      XMLdict['XS'][count] = {}
-      #print tabulationXML.attrib.get('name')
-      for libraryXML in tabulationXML.getiterator('library'):
-        #print libraryXML.attrib.get('lib_name')
-        currentMat = libraryXML.attrib.get('lib_name')
-        XMLdict['XS'][count][libraryXML.attrib.get('lib_name')] = {}
-        for isotopeXML in libraryXML.getiterator('isotope'):
-          currentIsotope = isotopeXML.attrib.get('id')
-          currentType = isotopeXML.attrib.get('type')
-          #print currentType
-          reactionList = [j.tag for j in isotopeXML]
-          #print reactionList
-          XMLdict['XS'][count][libraryXML.attrib.get('lib_name')][isotopeXML.attrib.get('id')+isotopeXML.attrib.get('type')] = {}
-          #print XMLdict
-          for k in xrange (0, len(reactionList)):
-            XMLdict['XS'][count][libraryXML.attrib.get('lib_name')][isotopeXML.attrib.get('id')+isotopeXML.attrib.get('type')][reactionList[k]] = {}
-            for groupXML in isotopeXML.getiterator(reactionList[k]):
-              individualGroup = [x.strip() for x in groupXML.attrib.get('g').split(',')]
-              individualGroupValues = [y.strip() for y in groupXML.text.split(',')]
-              #print (individualGroup+individualGroupValues)
-              for position in xrange(0,len(individualGroup)):
-                #print (reactionList[k]+"\t\t"+individualGroup[position]+' '+individualGroupValues[position]) 
-                XMLdict['XS'][count][libraryXML.attrib.get('lib_name')][isotopeXML.attrib.get('id')+isotopeXML.attrib.get('type')][reactionList[k]][individualGroup[position]] = individualGroupValues[position]
-    #print XMLdict
-    return XMLdict
 
   def tabMapping(self, tab):
     """
@@ -206,7 +132,7 @@ class XSCreator():
     perturbedTabulationPoint    = []
     perturbedMaterials          = []
     perturbedIsotopes           = []
-    perturbedTypes           = []
+    perturbedTypes              = []
     perturbedReactions          = []
     perturbedGroups             = []
     
@@ -259,25 +185,7 @@ class XSCreator():
     """
     modifiedFile = 'modif.xml'     
     open(modifiedFile, 'w')
-    XMLdict = {}
-    genericXMLdict = {}
-    newXMLdict = {}
-    templatedNewXMLdict = {} 
-    mapAttribIsotope = {}
-    
-    XMLdict = self.dictFormating_from_XML_to_perturbed()
-    #print XMLdict
-    genericXMLdict = self.dictFormating_from_perturbed_to_generic(XMLdict)
-    #print genericXMLdict
-    newXMLDict = self.replaceValues(genericXMLdict)
-    #print newXMLDict
-    templatedNewXMLdict = self.fileReconstruction(newXMLDict)
-    #print templatedNewXMLdict 
-    templatedNewXMLdict = self.listedDict
-    #print templatedNewXMLdict
-    count = 0
-    
-   
     copyfile('modif.xml', self.inputFiles)  
+  
    
 
