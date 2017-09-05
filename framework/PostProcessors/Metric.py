@@ -241,7 +241,7 @@ class Metric(PostProcessor):
     """
       Defines the method for writing the post-processor to a .csv file
       @ In, output, File object, file to write to
-      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ In, outputDictionary, dict, dictionary stores metric outputs
       @ In, separator, string, optional, separator string
       @ Out, None
     """
