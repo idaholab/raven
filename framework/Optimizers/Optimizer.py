@@ -80,6 +80,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.initSeed                       = None                      # Seed for random number generators
     self.optType                        = None                      # Either max or min
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
+    self.initializationSampler          = None                      # Sampler that can be used to initialize the optimizer trajectories
+    self.optVarsInitialized             = {}                        # Dict {var1:<initial> present?,var2:<initial> present?}
     #convergence tools
     self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
     self.thresholdTrajRemoval           = None                      # Threshold used to determine the convergence of parallel optimization trajectories
@@ -146,6 +148,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.addAssemblerObject('TargetEvaluation','1')
     self.addAssemblerObject('Function','-1')
     self.addAssemblerObject('Preconditioner','-n')
+    self.addAssemblerObject('Sampler','-1')   #This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
   def _localGenerateAssembler(self,initDict):
     """
@@ -154,9 +157,11 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
       @ Out, None
     """
-    ## FIX ME -- this method is inherited from sampler and may not be needed by optimizer
-    ## Currently put here as a place holder
-    pass
+    self.assemblerDict['Functions'    ] = []
+    self.assemblerDict['Distributions'] = []
+    for mainClass in ['Functions','Distributions']:
+      for funct in initDict[mainClass]:
+        self.assemblerDict[mainClass].append([mainClass,initDict[mainClass][funct].type,funct,initDict[mainClass][funct]])
 
   def _localWhatDoINeed(self):
     """
@@ -165,9 +170,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, needDict, dict, list of objects needed
     """
-    ## FIX ME -- this method is inherited from sampler and may not be needed by optimizer
-    ## Currently put here as a place holder
-    return {}
+    needDict = {}
+    needDict['Distributions'] = [(None,'all')] # We get ALL Distributions in case a Sampler is used for the initialization of the initial points
+    needDict['Functions']     = [(None,'all')] # We get ALL Functions in case a Sampler is used for the initialization of the initial points
+    return needDict
 
   def _readMoreXML(self,xmlNode):
     """
@@ -194,6 +200,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.fullOptVars = []
         try:
           varname = child.attrib['name']
+          self.optVarsInitialized[varname] = False
         except KeyError:
           self.raiseAnError(IOError, child.tag+' node does not have the "name" attribute')
         self.fullOptVars.append(varname)
@@ -203,7 +210,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.optVarsInit['upperBound'][varname] = float(childChild.text)
           elif childChild.tag == "lowerBound":
             self.optVarsInit['lowerBound'][varname] = float(childChild.text)
-          elif childChild.tag == "initial"   :
+          elif childChild.tag == "initial":
+            self.optVarsInit['initial'][varname] = {}
+            self.optVarsInitialized[varname] = True
             temp = childChild.text.split(',')
             for trajInd, initVal in enumerate(temp):
               try:
@@ -416,6 +425,52 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.preconditioners[name] = model
       model.initialize({},[])
 
+    for entry in self.assemblerDict.get('Sampler',[]):
+      cls,typ,name,sampler = entry
+      forwardSampler = False
+      for baseClass in sampler.__class__.__bases__:
+        if "ForwardSampler" in baseClass.__name__:
+          forwardSampler = True
+          break
+      if not forwardSampler:
+        self.raiseAnError(IOError,'Only "ForwardSampler"s (e.g. MonteCarlo, Grid, etc.) can be used for initializing the trajectories in the Optimizer! Got "{}.{}" for "{}".'.format(cls,typ,name))
+      self.initializationSampler = sampler
+      availableDist, availableFunc = {}, {} # {'dist name: object}
+      for entry in self.assemblerDict.get('Distributions',[]):
+        availableDist[entry[2]] = entry[3]
+      for entry in self.assemblerDict.get('Functions',[]):
+        availableFunc[entry[2]] = entry[3]
+      self.initializationSampler._generateDistributions(availableDist,availableFunc)
+      for key in self.initializationSampler.getInitParams().keys():
+        if key.startswith("sampled variable:"):
+          var = key.replace("sampled variable:","").strip()
+          # check if the sampled variables are among the optimization parameters
+          if var not in self.fullOptVars:
+            self.raiseAnError(IOError,'The variable "'+var+'" sampled by the initialization Sampler "'+self.initializationSampler.name+'" is not among the optimization parameters!')
+          # check if the sampled variables have been already initialized in the optimizer (i.e. <initial>)
+          if self.optVarsInitialized[var]:
+            self.raiseAnError(IOError,'The variable "'+var+'" sampled by the initialization Sampler "'+self.initializationSampler.name+
+                                      '" has been already initialized in the Optimizer block. Remove <initial> XML node in Optimizer or the <variable> XML node in the Sampler!')
+        # generate the initial coordinates by the sampler and check if they are inside the boundaries
+        self.initializationSampler.initialize(externalSeeding)
+        # check the number of trajectories (i.e. self.initializationSample.limit in the Sampler)
+        currentNumberTrajectories = len(self.optTraj)
+        if currentNumberTrajectories > 1:
+          if currentNumberTrajectories != self.initializationSampler.limit:
+            self.raiseAnError(IOError,"The number of samples generated by the initialization Sampler are different "+
+                                      "than the one inputted in the Optimizer (from the variables where the <initial> XML block has been inputted)")
+        else:
+          self.optTraj = [i for i in range(self.initializationSampler.limit)]
+          for varName in self.optVarsInit['initial'].keys():
+            self.optVarsInit['initial'][varName] = dict.fromkeys(self.optTraj, self.optVarsInit['initial'][varName][0])
+        while self.initializationSampler.amIreadyToProvideAnInput():
+          self.initializationSampler.localGenerateInput(None,None)
+          self.initializationSampler.inputInfo['prefix'] = self.initializationSampler.counter
+          sampledVars = self.initializationSampler.inputInfo['SampledVars']
+          for varName, value in sampledVars.items():
+            self.optVarsInit['initial'][varName][self.initializationSampler.counter] = value
+          self.initializationSampler.counter +=1
+
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
     # check if the TargetEvaluation feature and target spaces are consistent
     ins  = self.mdlEvalHist.getParaKeys("inputs")
@@ -466,7 +521,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       #check initial point consistency
       okay,missing = self.checkInputs(initPoint)
       if not okay:
-        self.raiseAnError(IOError,'While initializing model inputs, some were not set! Set them through preconditioners or using the <initial> block.\n  Missing:', ', '.join(missing))
+        self.raiseAnError(IOError,'While initializing model inputs, some were not set! Set them through preconditioners or using the <initial> block or a linked Sampler.\n  Missing:', ', '.join(missing))
       # set the initial values that come from preconditioning
       for var in self.getOptVars(full=True):
         self.optVarsInit['initial'][var][traj] = initPoint[var]

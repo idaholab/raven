@@ -181,6 +181,11 @@
    output = 'GenericInterface/samples.xml GenericInterface/sample/1/testSubDirectory/dummy_file_for_subdirectory.dummy GenericInterface/sample/testSubDirectory/dummy_file_for_subdirectory.dummy'
    csv = 'GenericInterface/samples.csv'
  [../]
+ [./genericInterfaceParallel]
+   type = 'RavenFramework'
+   input = 'generic_parallel.xml'
+   output = 'GenericInterfaceParallel/samples.csv'
+ [../]
  [./genericInterface2]
    type = 'RavenFramework'
    input = 'test_generic_interface.xml'
