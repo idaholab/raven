@@ -278,7 +278,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     if "subType" in paramInput.parameterValues:
-      self.subType = paraminput.parameterValues["subType"]
+      self.subType = paramInput.parameterValues["subType"]
     else:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)

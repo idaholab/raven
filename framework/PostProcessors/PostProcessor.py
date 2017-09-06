@@ -76,6 +76,7 @@ class PostProcessor(Assembler):
     """
     # if 'externalFunction' in initDict.keys(): self.externalFunction = initDict['externalFunction']
     self.inputs = inputs
+    self._workingDir = runInfo['WorkingDir']
 
   def inputToInternal(self, currentInput):
     """
