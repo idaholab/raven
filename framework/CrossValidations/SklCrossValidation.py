@@ -24,6 +24,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
+import sklearn
 from utils import utils
 if int(sklearn.__version__.split(".")[1]) > 17:
   from sklearn import model_selection as cross_validation
@@ -59,7 +60,7 @@ class SciKitLearn(CrossValidation):
       @ Out, None
     """
     CrossValidation.__init__(self, messageHandler, **kwargs)
-    self.printTag = 'SciKitLearn Cross Validation'
+    self.printTag = 'SKLearn Cross Validation'
 
     if 'SKLtype' not in self.initOptionDict.keys():
       self.raiseAnError(IOError, 'Missing XML node: Cross validation from SciKitLearn requires keyword "SKLtype"')

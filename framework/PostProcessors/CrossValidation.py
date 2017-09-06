@@ -107,14 +107,14 @@ class CrossValidation(PostProcessor):
     self.initializationOptionDict = {}
 
     for child in xmlNode:
-      if child.tag == 'SKLearn':
+      if child.tag == 'SciKitLearn':
         self.initializationOptionDict[child.tag] = self._localInputAndCheck(child)
-        self.CVEngine = CrossValidations.returnInstance(child.tag, self, **self.initializationOptionDict)
+        self.CVEngine = CrossValidations.returnInstance(child.tag, self, **self.initializationOptionDict[child.tag])
       elif child.tag == 'Metric':
-        if 'type' not in child.parameterValues.keys() or 'class' not in child.parameterValues.keys():
+        if 'type' not in child.attrib.keys() or 'class' not in child.attrib.keys():
           self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
         else:
-          metricName = child.value.strip()
+          metricName = child.text.strip()
           self.metricsDict[metricName] = None
       else:
         self.raiseAnError(IOError, "Unknown xml node ", child.tag, " is provided for metric system")
@@ -175,7 +175,7 @@ class CrossValidation(PostProcessor):
       newInput = dict.fromkeys(dictKeys, None)
       if not currentInput.isItEmpty():
         if inputType == 'PointSet':
-          for elem in currentInput.getParaKeys('inputs')
+          for elem in currentInput.getParaKeys('inputs'):
             if elem in newInput.keys():
               newInput[elem] = copy.copy(np.array(currentInput.getParam('input', elem))[0 if full else -1:])
           for elem in currentInput.getParaKeys('outputs'):

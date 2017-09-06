@@ -28,7 +28,7 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+import MessageHandler
 from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 

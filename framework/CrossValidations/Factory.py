@@ -63,7 +63,7 @@ def returnInstance(Type, caller, **kwargs):
     @ Out, object, instance,  an instance of a cross validation
   """
   try:
-    return __interfaceDict[Type](caller.messageHandler, **kwargs)
+    return __interFaceDict[Type](caller.messageHandler, **kwargs)
   except KeyError:
     caller.raiseAnError(NameError, 'unSupervisedLearning', 'Unknown ' + __base + ' type ' + str(Type))
 
