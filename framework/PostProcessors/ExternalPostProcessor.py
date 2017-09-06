@@ -28,6 +28,7 @@ import numpy as np
 from .PostProcessor import PostProcessor
 from utils import InputData
 import Files
+import Runners
 #Internal Modules End-----------------------------------------------------------
 
 class ExternalPostProcessor(PostProcessor):
@@ -152,7 +153,6 @@ class ExternalPostProcessor(PostProcessor):
       @ Out, None
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
     for key in self.assemblerDict.keys():
       if 'Function' in key:
         for val in self.assemblerDict[key]:
@@ -181,11 +181,12 @@ class ExternalPostProcessor(PostProcessor):
         results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      # #TODO This does not feel right
-      self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably did not finish yet)')
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
     dataLenghtHistory = {}
-    inputList,outputDict = finishedJob.getEvaluation()
+    inputList,outputDict = evaluation
 
     if isinstance(output,Files.File):
       self.raiseAWarning('Output type File not yet implemented. I am going to skip it.')

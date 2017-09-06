@@ -31,6 +31,7 @@ from utils import utils
 from utils import mathUtils
 from utils import InputData
 import Files
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ComparisonStatistics(PostProcessor):
@@ -205,10 +206,12 @@ class ComparisonStatistics(PostProcessor):
       @ Out, None
     """
     self.raiseADebug("finishedJob: " + str(finishedJob) + ", output " + str(output))
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, 'no available output to collect.')
-    else:
-      self.dataDict.update(finishedJob.getEvaluation()[1])
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
+    outputDictionary = evaluation[1]
+    self.dataDict.update(outputDictionary)
 
     dataToProcess = []
     for compareGroup in self.compareGroups:

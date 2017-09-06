@@ -31,6 +31,7 @@ from .PostProcessor import PostProcessor
 from utils import utils
 import Files
 import unSupervisedLearning
+import Runners
 #Internal Modules End-----------------------------------------------------------
 
 class DataMining(PostProcessor):
@@ -265,7 +266,6 @@ class DataMining(PostProcessor):
     """
 
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
 
     if "SolutionExport" in initDict:
       self.solutionExport = initDict["SolutionExport"]
@@ -356,10 +356,11 @@ class DataMining(PostProcessor):
         to place our computed results
     """
     ## When does this actually happen?
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
 
-    inputObject, dataMineDict = finishedJob.getEvaluation()
+    inputObject, dataMineDict = evaluation
 
     ## This should not have to be a list
     ## TODO: figure out if there is a case where it can be in this processor
