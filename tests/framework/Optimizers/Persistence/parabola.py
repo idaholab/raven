@@ -10,7 +10,7 @@ import numpy as np
 np.random.seed(42)
 
 def base(values):
-  return -sum(l*l for l in values)+1.
+  return -sum(x**2 for x in values)+1.
 
 def evaluate(values):
   return base(values)
