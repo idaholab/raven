@@ -25,6 +25,7 @@ import numpy as np
 import os
 import six
 from collections import OrderedDict
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -33,6 +34,7 @@ from utils import utils
 from utils import InputData
 import Files
 import Models
+import Runners
 import CrossValidations
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -150,7 +152,7 @@ class CrossValidation(PostProcessor):
     cvEstimator = None
     for currentInput in currentInputs:
       if isinstance(currentInput, Models.ROM):
-        if model.amITrained:
+        if currentInput.amITrained:
           currentInput.raiseAnError(RuntimeError, "ROM model '%s' has been already trained! " %currentInput.name +\
                                                   "Cross validation will not be performed")
         if not cvEstimator:
@@ -158,7 +160,7 @@ class CrossValidation(PostProcessor):
         else:
           self.raiseAnError(IOError, "This postprocessor '%s' only accepts one input of Models.ROM!" %self.name)
 
-    currentInputs.remove(self.CVEstimator)
+    currentInputs.remove(cvEstimator)
 
     currentInput = copy.deepcopy(currentInputs[-1])
     inputType = None
@@ -261,14 +263,14 @@ class CrossValidation(PostProcessor):
         if targetName not in outputDict.keys():
           outputDict[targetName] = {}
         for metricInstance in self.metricsDict.values():
-          metricValue = metricInstance(targetValue, testDict[targetName])
+          metricValue = metricInstance.distance(targetValue, testDict[targetName])
           if hasattr(metricInstance, 'metricType'):
             metricName = metricInstance.metricType
           else:
             metricName = metricInstance.type
           if metricName not in outputDict[targetName].keys():
             outputDict[targetName][metricName] = []
-          outputDict[targetName][metricName].append(metricValue)
+          outputDict[targetName][metricName].append(metricValue[0])
 
     return outputDict
 
@@ -289,7 +291,7 @@ class CrossValidation(PostProcessor):
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
         self.raiseAMessage('Cross Validation postprocessor did not recognize extension ".', str(outputExtension), '". The output will be dumped to a text file')
-      output.setPath(self.__workingDir)
+      output.setPath(self._workingDir)
       self.raiseADebug('Write Cross Validation prostprocessor output in file with name: ', output.getAbsFile())
       output.open('w')
       if outputExtension == 'xml':
@@ -347,7 +349,7 @@ class CrossValidation(PostProcessor):
       output.write('CV-Run-Number')
       for nodeName in nodeNames:
         for metricName in metricNames:
-          output.write(separator + nodeName + metricName)
+          output.write(separator + nodeName + '-' + metricName)
       output.write(os.linesep)
       for cvRunNum in range(len(nodeValues[0].values()[0])):
         output.write(str(cvRunNum))

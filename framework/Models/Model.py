@@ -179,7 +179,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
-        raise IOError('It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
+        raise IOError('It is not possible to use '+anItem['class']+' type = ' +anItem['type']+' as '+who)
     return True
 
   def __init__(self,runInfoDict):
