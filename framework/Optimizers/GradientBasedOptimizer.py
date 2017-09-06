@@ -120,6 +120,7 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['solutionUpdate'][traj]   = 0
       self.counter['gradientHistory'][traj]  = [{},{}]
       self.counter['gradNormHistory'][traj]  = [0.0,0.0]
+      self.counter['persistence'][traj]      = 0
       self.optVarsHist[traj]                 = {}
       self.readyVarsUpdate[traj]             = False
       self.convergeTraj[traj]                = False
@@ -385,10 +386,17 @@ class GradientBasedOptimizer(Optimizer):
         converged = converged or sameCoordinateCheck
 
     if converged:
-      self.raiseAMessage(' ... Trajectory "{}" converged!'.format(traj))
-      self.convergeTraj[traj] = True
-      self.removeConvergedTrajectory(traj)
+      # update number of successful convergences
+      self.counter['persistence'][traj] += 1
+      # check if we've met persistence requirement; if not, keep going
+      if self.counter['persistence'][traj] >= self.convergencePersistence:
+        self.raiseAMessage(' ... Trajectory "{}" converged {} times consecutively!'.format(traj,self.counter['persistence'][traj]))
+        self.convergeTraj[traj] = True
+        self.removeConvergedTrajectory(traj)
+      else:
+        self.raiseAMessage(' ... converged Traj "{}" {} times, required persistence is {}.'.format(traj,self.counter['persistence'][traj],self.convergencePersistence))
     else:
+      self.counter['persistence'][traj] = 0
       self.raiseAMessage(' ... continuing trajectory "{}".'.format(traj))
 
   def _removeRedundantTraj(self, trajToRemove, currentInput):
