@@ -20,6 +20,21 @@ import os
 import fileinput
 import re
 
+def _splitRecordAndRemoveComments(line, delimiter=None):
+  """
+    Method to split a record (relap5 input line) removing the comments if present
+    @ In, line, str, the line to be splitted
+    @ In, delimiter, str, optional, the delimiter to split by (default None -> white spaces)
+    @ Out, splitted, list, the list containing the splitted line (without comments)
+  """
+  splitted = []
+  for component in line.split(delimiter):
+    stripped = component.strip()
+    if stripped.startswith("*"):
+      break
+    splitted.append(stripped)
+  return splitted
+
 class RELAPparser():
   """
     Import the RELAP5 input as list of lines, provide methods to add/change entries and print it back
@@ -36,9 +51,20 @@ class RELAPparser():
       raise IOError(self.printTag+'ERROR: not found RELAP input file')
     IOfile = open(inputFile,'r')
     self.inputfile = inputFile
-    self.deckLines = {}
+    self.inputTrips = {1:{'variableTrips':{},'logicalTrips':{}}}
+    self.inputMinorEdits  = {}
+    self.inputControlVars = {}
+    self.hasLogicalTrips  = False
+    self.hasVariableTrips = False
+    self.inputStopTrips   = None
+    self.lastTripLine     = {1:-1}
+    self.lastCntrLine     = {1:-1}
+    self.lastMinorEditLine= {1:-1}
+    self.controlVarType   = {1:1}    # {deckNum:1 CCC format or 2 CCCC format}
+    self.deckLines        = {}
     self.maxNumberOfDecks = 0
     prevDeckLineNum       = 0
+    self.addMinorEdits    = addMinorEdits
     lines                 = IOfile.readlines()
     for lineNum, line in enumerate(lines):
       if line.strip().startswith("."):
@@ -47,6 +73,189 @@ class RELAPparser():
         prevDeckLineNum = lineNum + 1
     if self.maxNumberOfDecks < 1:
       raise IOError(self.printTag+ "ERROR: the file "+inputFile+" does not contain a end case fullstop '.'!")
+
+    if addMinorEdits:
+      # add Minor Edits in case there are trips and the variables in the trip is not among the minor edits
+      self.getTripsMinorEditsAndControlVars()
+      self.addTripsVarsInMinorEdits()
+      toAdd = {}
+      for deckNum in self.inputTrips.keys(): 
+        toAdd[deckNum] = self.inputTrips[deckNum]['variableTrips'].keys()
+      self.addControlVariablesForStoppingCoditions(toAdd)
+  
+  def addControlVariablesForStoppingCoditions(self, monitoredTrips):
+    """
+      Method to add the control variables to make any trip in the input list to cause a stop of the code
+      @ In, monitoredTrips, dict, dictionary of list of monitored trips {deckNum:[trips]}
+      @ Out, None
+    """
+    for deckNum in self.inputControlVars.keys():
+      (rangeLow, rangeUp, fill) = (1,999,3) if self.controlVarType[deckNum] == 1 else (1,9999,4)
+      #if self.controlVarType[deckNum] == 1: rangeLow, rangeUp, fill = 1,999,3
+      #else                                : rangeLow, rangeUp, fill = 1,9999,4
+      availableControlVars  = [str(y).zfill(fill) for y in range(rangeLow,rangeUp) if y not in [int(x) for x in self.inputControlVars[deckNum].keys()]]
+      if len(availableControlVars) < len(monitoredTrips)+1: raise IOError("Not enough control variables' slots are available. We need at least "+str(len(monitoredTrips)+1)+" free slots!") 
+      
+      presentTrips, cnt = self.inputTrips[deckNum]['variableTrips'].keys(), 501
+      while str(cnt) in presentTrips and cnt < 600: cnt+=1
+      if cnt == 600: raise IOError("All the Trip slots are used! We need at least " +str(len(monitoredTrips)+1)+" slots to specify the stop conditions!!!!")
+      else         : stopTripNumber, stopCntrVar = str(max(cnt,599)), availableControlVars.pop()
+      self.deckLines[deckNum].append("* START -- CONTROL VARIABLES ADDED BY RAVEN *\n")
+      self.deckLines[deckNum].append(stopTripNumber + " cntrlvar "+stopCntrVar+" gt null 0 0.0 l "+"\n")
+      self.deckLines[deckNum].append("600 "+stopTripNumber+" \n")
+      # convert trips in tripunit for control variables
+      controlledControlVars = []
+      for cnt, trip in enumerate(monitoredTrips[deckNum]):
+        controlVar = availableControlVars.pop()
+        controlledControlVars.append(controlVar)
+        self.deckLines[deckNum].append("205"+controlVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " raven"+str(cnt)+" tripunit 1.0 0.0 0 \n")
+        self.deckLines[deckNum].append("205"+controlVar.strip()+"1".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " " + str(monitoredTrips[deckNum][cnt])+" \n")
+      # to fix. the following can handle only 50 trips
+      self.lastCntrLine[deckNum]+=2
+      self.deckLines[deckNum].append("205"+stopCntrVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) +" tripstop sum 1.0 0.0 0 \n")
+      tripCnt = 0
+
+      for tripLine in range(int(math.ceil(float(len(monitoredTrips[deckNum]))/3.0))):
+        tripLineStr = str(tripLine+1).strip().zfill(2 if self.controlVarType[deckNum] == 1 else 1 )
+        toWrite="205"+stopCntrVar.strip()+str(tripLine+1).strip().zfill(2 if self.controlVarType[deckNum] == 1 else 1 )+ (" 0.0 " if tripLine==0 else "")
+        for x in range(3):
+          if tripCnt+1<len(monitoredTrips[deckNum]):
+            toWrite += " 1.0 cntrlvar " + controlledControlVars[tripCnt]
+            tripCnt+=1
+        toWrite += " \n"
+        self.deckLines[deckNum].append(toWrite)
+      self.deckLines[deckNum].append("* END -- CONTROL VARIABLES ADDED BY RAVEN *\n")  
+
+  def addTripsVarsInMinorEdits(self):
+    """
+      This method is aimed to check if the variables that can activate trips (variable trips), are part of the minor
+      edits section. In case they are not, those variables are added automatically
+      @ In, None
+      @ Out, None
+    """
+    for deckNum in self.inputTrips.keys():
+      alreadyAvailableEdits = self.inputMinorEdits[deckNum].values()
+      availableMinorEditsCards = [x for x in range(301,399) if str(x) not in self.inputMinorEdits[deckNum].keys()]
+      addedVars = []
+      self.deckLines[deckNum].append("* START -- MINOR EDITS ADDED BY RAVEN *\n")
+      for trip in self.inputTrips[deckNum]['variableTrips'].values():
+        found = False
+        for edit in alreadyAvailableEdits:
+          if trip['component'] in edit['component'] and trip['variable'] in edit['component']: found = True
+        if not found and trip['variable'] != 'time' and trip['variable']+"_"+trip['component'] not in addedVars:
+          addedVars.append(trip['variable']+"_"+trip['component'])
+          if len(availableMinorEditsCards) == 0: raise IOError("Number of minor edits reached already the upper bound of RELAP5. There are no available cards to monitor the trips!")
+          self.deckLines[deckNum].append(str(availableMinorEditsCards.pop()) + " "+trip['variable']+" "+trip['component'] +"\n")
+      self.deckLines[deckNum].append("* END --  MINOR EDITS ADDED BY RAVEN *\n")   
+
+  def getTripsMinorEditsAndControlVars(self):
+    """
+      Method to store the Trips, Minor edits and Control Variables in RELAP5
+      @ In, None
+      @ Out, None
+    """
+    for deckNum in self.deckLines.keys():
+      for lineNum, line in enumerate(self.deckLines[deckNum]):
+        splitted = _splitRecordAndRemoveComments(line)      
+        if len(splitted) > 0 and splitted[0].strip().isdigit():
+          isMinor = self.storeMinorEdit(deckNum,splitted)
+          isTrip  = self.storeTrip(deckNum,splitted)
+          isCntr  = self.storeControlVars(deckNum,splitted)
+          if isMinor: 
+            self.lastMinorEditLine[deckNum] = lineNum+1
+          if isTrip : 
+            self.lastTripLine[deckNum]      = lineNum+1
+          if isCntr : 
+            self.lastCntrLine[deckNum]      = lineNum+1
+
+  def getMinorEditsInfo(self):
+    """
+    """
+    for deckNum in self.deckLines.keys():
+      for lineNum, line in enumerate(self.deckLines[deckNum]):
+        splitted = _splitRecordAndRemoveComments(line)
+        if len(splitted) > 0 and splitted[0].strip().isdigit():
+          isMinor = self.storeMinorEdit(deckNum, splitted)
+          if isMinor: self.lastMinorEditLine[deckNum] = lineNum+1
+
+  def storeControlVars(self,deckNum, splitted):
+    """
+    """
+    isCntr = False
+    if int(splitted[0]) == 20500000:
+      self.controlVarType[deckNum] = 1 if splitted[1].strip() == '999' else 2
+      return isCntr
+    if deckNum not in self.inputControlVars.keys(): 
+      self.inputControlVars[deckNum] = {}
+    if 20500010 <= int(splitted[0]) <= 20599990:
+      isCntr = True
+      if splitted[0].endswith('0'):
+        controlVar = splitted[0][3:6] if self.controlVarType[deckNum] == 1 else splitted[0][3:7]
+        if controlVar not in self.inputControlVars[deckNum].keys():
+          self.inputControlVars[deckNum][controlVar] = {'alphaNumId': splitted[1], 'cardId':splitted[0]}
+    return isCntr
+
+  def storeMinorEdit(self,deckNum, splitted):
+    """
+    """
+    isMinor = False
+    if deckNum not in self.inputMinorEdits.keys(): 
+      self.inputMinorEdits[deckNum] = {}
+    if 301 <= int(splitted[0]) <= 399:
+      
+      if not len(splitted) == 3: 
+        raise IOError(self.printTag+ "ERROR: in RELAP5 input file the number of words in minor edits section needs to be 2. Edit= "+splitted[0])
+      self.inputMinorEdits[deckNum][splitted[0].strip()], isMinor = {'variable':splitted[1].strip(),'component':splitted[2].strip()}, True
+    return isMinor
+
+
+  def storeTrip(self,deckNum, splitted):
+    """
+    """
+    isTrip = False
+    if (401 <= int(splitted[0]) <= 599) or (20600010 <= int(splitted[0]) <= 20610000):
+      if  not (8 <= len(splitted)<= 9): 
+        raise IOError(self.printTag+ "ERROR: in RELAP5 input file the number of words in variable trip section needs to be 7 or 8 . Trip= "+splitted[0])
+      tripNumber = splitted[0].strip()
+      isTrip     = True
+      self.inputTrips[deckNum]['variableTrips'][tripNumber] = {}
+      self.inputTrips[deckNum]['variableTrips'][tripNumber]['variable'] = splitted[1].strip()
+      self.inputTrips[deckNum]['variableTrips'][tripNumber]['component'] = splitted[2].strip()
+      self.inputTrips[deckNum]['variableTrips'][tripNumber]['operator'] = splitted[3].strip()
+      self.inputTrips[deckNum]['variableTrips'][tripNumber]['variableCode'] = splitted[4].strip()
+      self.inputTrips[deckNum]['variableTrips'][tripNumber]['parameter'] = splitted[5].strip()
+      self.inputTrips[deckNum]['variableTrips'][tripNumber]['additiveConstant'] = splitted[6].strip()
+      self.inputTrips[deckNum]['variableTrips'][tripNumber]['latch'] = splitted[7].strip()
+      self.hasVariableTrips = True
+      if len(splitted) == 9: 
+        self.inputTrips[deckNum]['variableTrips'][tripNumber]['timeOf'] =  splitted[8].strip()
+    if (601 <= int(splitted[0]) <= 799) or (20610010 <= int(splitted[0]) <= 20620000):
+      if  not (5 <= len(splitted)<= 6): 
+        raise IOError(self.printTag+ "ERROR: in RELAP5 input file the number of words in logical trip section needs to be 4 or 5 . Trip= "+splitted[0])
+      tripNumber = splitted[0].strip()
+      isTrip     = True
+      self.inputTrips[deckNum]['logicalTrips'][tripNumber] = {}
+      self.inputTrips[deckNum]['logicalTrips'][tripNumber]['tripNumber1'] = splitted[1].strip()
+      self.inputTrips[deckNum]['logicalTrips'][tripNumber]['operator'] = splitted[2].strip()
+      self.inputTrips[deckNum]['logicalTrips'][tripNumber]['tripNumber2'] = splitted[3].strip()
+      self.inputTrips[deckNum]['logicalTrips'][tripNumber]['latch'] = splitted[4].strip()
+      if len(splitted) == 6: 
+        self.inputTrips[deckNum]['logicalTrips'][tripNumber]['timeOf'] =  splitted[5].strip()
+      self.hasLogicalTrips = True
+    if int(splitted[0]) == 600:
+      # it already has a stop trip
+      self.inputStopTrips = [splitted[1]] if len(splitted) == 2 else [splitted[1],splitted[2]]
+    return isTrip
+
+  def getTrips(self):
+    """
+    """
+    for deckNum in self.deckLines.keys():
+      for lineNum, line in enumerate(self.deckLines[deckNum]):
+        splitted = _splitRecordAndRemoveComments(line)
+        if len(splitted) > 0 and splitted[0].strip().isdigit():
+          isTrip = self.storeTrip(deckNum, splitted)
+          if isTrip: self.lastTripLine[deckNum] = lineNum+1
 
   def printInput(self,outfile=None):
     """
@@ -99,7 +308,7 @@ class RELAPparser():
         if all(foundAllCards.values()):
           break
         if not re.match('^\s*\n',line):
-          card = line.split()[0].strip()
+          card = _splitRecordAndRemoveComments(line)[0].strip()
           if card in modiDictionaryList.keys():
             cardLines[card] = {'lineNumber':lineNum,'numberOfLevels':1,'numberOfAvailableWords':self.countNumberOfWords(line)}
             foundAllCards[card] = True
@@ -127,6 +336,10 @@ class RELAPparser():
             raise IOError("RELAP5 Interface: The word that needs to be sampled is in a position ("+str(var['position'])+") > then the actual number of words ("+str(cardLines[card]['numberOfAvailableWords'])+")!!")
       if save:
         self.deckLines[deckNum]=temp
+        if self.addMinorEdits:
+          self.lastCntrLine[deckNum]      +=cnt
+          self.lastMinorEditLine[deckNum] +=cnt
+          self.lastTripLine[deckNum]      +=cnt
       lines = lines + temp
     return lines
 
@@ -137,7 +350,7 @@ class RELAPparser():
       @ In, additionFactor, int, addition factor
       @ Out, number, int, the number of words
     """
-    number = len(line.split())+additionFactor
+    number = len(_splitRecordAndRemoveComments(line))+additionFactor
     return number
 
   def replaceword(self,line,position,value):
