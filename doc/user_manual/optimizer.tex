@@ -316,7 +316,8 @@ convergence. This node accepts the following sub-nodes:
   \begin{itemize}
   \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations. \default{650}.
   \item \xmlNode{persistence}, \xmlDesc{integer, optional field}, number of consecutive successful
-    convergences required before completing calculation (per trajectory). \default{1}.
+    convergences required before completing calculation (per trajectory). Any value less than 1 will be
+    treated as 1.  Float values are rounded down to the nearest integer. \default{1}.
   \item \xmlNode{relativeThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality
   in a ``relative'' sense: when the relative change of the objective variable in two successive model evaluations is smaller than
   this specified threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
