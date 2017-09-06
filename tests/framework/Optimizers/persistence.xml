@@ -3,7 +3,7 @@
   <TestInfo>
     <name>framework/Optimizers.Persistance</name>
     <author>talbpaul</author>
-    <created>2017-08-06</created>
+    <created>2017-09-06</created>
     <classesTested>Optimizer.SPSA</classesTested>
     <description>
       This test runs the optimization on a inverse parabola with a persistance greater than 1 to
@@ -13,9 +13,6 @@
       This tests uses the inverse parabola for optimization. The inverse parabola is documented
       in the analytic tests, and has an optimal max point at $x=0$.
     </analytic>
-    <revisions>
-      <revision author="talbpaul" date="2017-05-14">creation</revision>
-    </revisions>
   </TestInfo>
   <RunInfo>
     <WorkingDir>Persistence</WorkingDir>
