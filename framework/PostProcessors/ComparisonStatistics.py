@@ -249,6 +249,7 @@ class ComparisonStatistics(PostProcessor):
         refCdf = lambda x:distribution.cdf(x)
         graphData.append((refDataStats, refCdf, refPdf, "ref_" + distributionName))
       for dataPull, data in zip(dataPulls, datas):
+        #Convert data to pdf and cdf.
         dataStats = self.__processData( data, self.methodInfo)
         dataKeys = set(dataStats.keys())
         counts = dataStats['counts']
@@ -355,7 +356,7 @@ class ComparisonStatistics(PostProcessor):
       Method to process the computed data
       @ In, data, np.array, the data to process
       @ In, methodInfo, dict, the info about which processing method needs to be used
-      @ Out, ret, dict, the processed data
+      @ Out, ret, dict, the processed data including the counts of the bins
     """
     ret = {}
     if hasattr(data,'tolist'):
