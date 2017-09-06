@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on Jul 18 2016
+Created on Sept 5 2017
 
-@author: mandd
+@author: wangc
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -54,18 +54,18 @@ def knownTypes():
   """
   return __interFaceDict.keys()
 
-def returnInstance(Type,caller):
+def returnInstance(Type, caller, **kwargs):
   """
-    Attempts to create and return an instance of a particular type of object
-    available to this factory.
+    This function return an instance of the request model type
     @ In, Type, string, string should be one of the knownTypes.
-    @ In, caller, instance, the object requesting the instance (used for error/debug messaging).
-    @ Out, returnInstance, instance, instance of OutStreamManager subclass, a subclass object constructed with no arguments
+    @ In, caller, instance, the object requesting the class (used for error/debug messaging).
+    @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
+    @ Out, object, instance,  an instance of a cross validation
   """
   try:
-    return __interFaceDict[Type]()
+    return __interfaceDict[Type](caller.messageHandler, **kwargs)
   except KeyError:
-    caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+    caller.raiseAnError(NameError, 'unSupervisedLearning', 'Unknown ' + __base + ' type ' + str(Type))
 
 def returnClass(Type,caller):
   """

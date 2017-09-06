@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on August 2017
+Created on September 2017
 
 @author: wangc
 """
@@ -77,7 +77,7 @@ class SciKitLearn(CrossValidation):
       except:
         pass
 
-    self.CVInstance = self.__class__.availImpl[self.SKLType][0](**self.initOptionDict)
+    self.__CVInstance = self.__class__.availImpl[self.SKLType][0](**self.initOptionDict)
     self.outputDict = {}
 
   def reset(self):
@@ -86,7 +86,7 @@ class SciKitLearn(CrossValidation):
       @ In, None
       @ Out, None
     """
-    self.CVInstance = None
+    self.__CVInstance = None
 
   def getCrossValidationType(self):
     """
@@ -102,5 +102,5 @@ class SciKitLearn(CrossValidation):
       @ In, None
       @ Out, Object, instance of cross validation
     """
-    return self.CVInstance
+    return self.__CVInstance
 
