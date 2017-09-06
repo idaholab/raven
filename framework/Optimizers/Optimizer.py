@@ -61,6 +61,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.counter['recentOptHist']       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
     self.counter['prefixHistory']       = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
+    self.counter['persistence'  ]       = {}                        # as {traj: n} where n is the number of consecutive converges
     #limits
     self.limit                          = {}                        # Dict containing limits for each counter
     self.limit['mdlEval']               = 2000                      # Maximum number of the loss function evaluation
@@ -87,6 +88,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.thresholdTrajRemoval           = None                      # Threshold used to determine the convergence of parallel optimization trajectories
     self.absConvergenceTol              = 0.0                       # Convergence threshold (absolute value)
     self.relConvergenceTol              = 1.e-3                     # Convergence threshold (relative value)
+    self.convergencePersistence         = 1                         # number of retries to attempt before accepting convergence
     # TODO REWORK minStepSize is for gradient-based specifically
     self.minStepSize                    = 1e-9                      # minimum allowable step size (in abs. distance, in input space)
     #sampler-step communication
@@ -253,12 +255,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for childChild in child:
           if childChild.tag == "iterationLimit":
             self.limit['varsUpdate'] = int(childChild.text)
-          if childChild.tag == "absoluteThreshold":
+          elif childChild.tag == "absoluteThreshold":
             self.absConvergenceTol = float(childChild.text)
-          if childChild.tag == "relativeThreshold":
+          elif childChild.tag == "relativeThreshold":
             self.relConvergenceTol = float(childChild.text)
-          if childChild.tag == "minStepSize":
+          elif childChild.tag == "minStepSize":
             self.minStepSize = float(childChild.text)
+          elif childChild.tag == 'persistence':
+            self.convergencePersistence = int(childChild.text)
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
 
@@ -608,7 +612,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       return results
     else:
       return originalPoint
-
 
   def localInitialize(self,solutionExport):
     """
