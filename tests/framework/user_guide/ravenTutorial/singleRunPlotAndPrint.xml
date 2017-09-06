@@ -1,15 +1,16 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <JobName>sectionVI.I</JobName>
+    <JobName>singRunPlot</JobName>
     <Sequence>single,writehistory</Sequence>
-    <WorkingDir>sectionVI.I</WorkingDir>
+    <WorkingDir>singleRunPlot</WorkingDir>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
-    <name>framework/user_guide/singleRun</name>
-    <author>talbpw</author>
-    <created>2017-02-06</created>
+    <name>framework/user_guide/singleRunPlot</name>
+    <author>wangc</author>
+    <created>2017-07-28</created>
     <classesTested>Steps.SingleRun</classesTested>
     <description>
       This test is an example for the user guide to draw from.  It demonstrates a streamlined workflow of
@@ -18,7 +19,7 @@
   </TestInfo>
 
   <Files>
-    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
+      <Input name="referenceInput.xml" type="input">../commonFiles/referenceInput.xml</Input>
   </Files>
 
   <Models>

@@ -529,7 +529,10 @@ class MultiRun(SingleRun):
       if inDictionary[self.samplerType].amIreadyToProvideAnInput():
         try:
           newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'])
-          inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
+          if isinstance(inDictionary["Model"], Models.EnsembleModel):
+            inDictionary["Model"].submitAsClient(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
+          else:
+            inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
           self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
@@ -586,18 +589,22 @@ class MultiRun(SingleRun):
         sampler.finalizeActualSampling(finishedJob,model,inputs)
         # add new job
 
+        isEnsemble = isinstance(model, Models.EnsembleModel)
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
         ## In order to ensure that the queue does not grow too large, we will
         ## employ a threshold on the number of jobs the jobHandler can take,
         ## in addition, we cannot provide more jobs than the sampler can provide.
         ## So, we take the minimum of these two values.
-        for _ in range(min(jobHandler.availability(),sampler.endJobRunnable())):
+        for _ in range(min(jobHandler.availability(isEnsemble),sampler.endJobRunnable())):
           self.raiseADebug('Testing if the sampler is ready to generate a new input')
 
           if sampler.amIreadyToProvideAnInput():
             try:
               newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
-              model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+              if isEnsemble:
+                model.submitAsClient(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+              else:
+                model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
               break

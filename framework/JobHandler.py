@@ -338,7 +338,7 @@ class JobHandler(MessageHandler.MessageUser):
         self.__clientQueue.append(runner)
       self.__submittedJobs.append(runner.identifier)
 
-  def addClientJob(self, args, functionToRun,identifier,metadata=None, uniqueHandler="any"):
+  def addClientJob(self, args, functionToRun, identifier, metadata=None, modulesToImport = [], uniqueHandler="any"):
     """
       Method to add an internal run (function execution), without consuming
       resources (free spots). This can be used for client handling (see
@@ -357,7 +357,7 @@ class JobHandler(MessageHandler.MessageUser):
         If uniqueHandler == 'any', every "client" can get this runner.
       @ Out, None
     """
-    self.addJob(args, functionToRun, identifier, metadata,
+    self.addJob(args, functionToRun, identifier, metadata, modulesToImport,
                 forceUseThreads = True, uniqueHandler = uniqueHandler,
                 clientQueue = True)
 

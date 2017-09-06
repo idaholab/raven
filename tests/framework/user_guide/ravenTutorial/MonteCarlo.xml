@@ -1,0 +1,136 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <JobName>MonteCarloSampling</JobName>
+    <Sequence>sample,writeHistories</Sequence>
+    <WorkingDir>MonteCarlo</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/user_guide/ravenTutorial/MonteCarlo</name>
+    <author>wangc</author>
+    <created>2017-07-24</created>
+    <classesTested>Samplers.MonteCarlo</classesTested>
+    <description>
+      This test is an example for the user guide to draw from.  It demonstrates typical usage
+      of the MultiRun with Monte Carlo sampler.
+    </description>
+  </TestInfo>
+
+  <Files>
+      <Input name="referenceInput.xml" type="input">
+          ../commonFiles/referenceInput_generic_CI.xml
+      </Input>
+  </Files>
+
+  <Models>
+    <Code name="testModel" subType="GenericCode">
+      <executable>../physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg="" extension=".csv" type="output"/>
+    </Code>
+  </Models>
+
+  <Distributions>
+      <Uniform name="sigma">
+          <lowerBound>1</lowerBound>
+          <upperBound>10</upperBound>
+      </Uniform>
+      <Uniform name="decayConstant">
+          <lowerBound>0.000000005</lowerBound>
+          <upperBound>0.000000010</upperBound>
+      </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="monteCarlo">
+      <samplerInit>
+          <limit>100</limit>
+          <reseedEachIteration>True</reseedEachIteration>
+          <initialSeed>0</initialSeed>
+      </samplerInit>
+      <variable name="sigma-A">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay-A">
+        <distribution>decayConstant</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input 	class="Files" 			 type="input">referenceInput.xml</Input>
+      <Model 	class="Models" 			 type="Code">testModel</Model>
+      <Sampler 	class="Samplers" 		 type="MonteCarlo">monteCarlo</Sampler>
+      <Output 	class="DataObjects" 	 type="PointSet">samples</Output>
+      <Output 	class="DataObjects" 	 type="HistorySet">histories</Output>
+    </MultiRun>
+    <IOStep name="writeHistories" pauseAtEnd="True">
+        <Input class="DataObjects" type="HistorySet">histories</Input>
+        <Input class="DataObjects" type="PointSet">samples</Input>
+        <Output 	class="OutStreams" type="Plot">samplesPlot_A</Output>
+        <Output 	class="OutStreams" type="Plot">history_A</Output>
+        <Output 	class="OutStreams" type="Print">histories</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="samples">
+      <Input>sigma-A,decay-A</Input>
+      <Output>A,B,C,D,time</Output>
+    </PointSet>
+    <HistorySet name="histories">
+        <Input>sigma-A,decay-A</Input>
+        <Output>A,B,C,D,time</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="histories">
+      <type>csv</type>
+      <source>histories</source>
+    </Print>
+    <Plot name="history_A" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>histories|Output|time</x>
+          <y>histories|Output|A</y>
+          <color>blue</color>
+        </plot>
+        <xlabel>time (s)</xlabel>
+        <ylabel>evolution A(kg)</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
+    </Plot>
+    <Plot name="samplesPlot_A" overwrite="false" verbosity="debug">
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>samples|Input|sigma-A</x>
+                <y>samples|Input|decay-A</y>
+                <z>samples|Output|A</z>
+                <color>blue</color>
+            </plot>
+            <xlabel>sigma</xlabel>
+            <ylabel>decay</ylabel>
+            <zlabel>final A</zlabel>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>
