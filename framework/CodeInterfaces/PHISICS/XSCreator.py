@@ -55,11 +55,12 @@ class XSCreator():
     #print self.listedDict
     for XS in self.listedDict.iterkeys():
       for tabulation in self.listedDict.get('XS').iterkeys():
-        topChild = SubElement(top, 'tabulation')
+        topChild = SubElement(top, 'set')
         tabList, valueList = self.tabMapping(tabulation)
-        for i in xrange (0,len(tabList)):
-          tabChild = SubElement(topChild, 'tab', {'name':tabList[i]})
-          tabChild.text = valueList[i]
+        if self.booleanTab is True:
+          for i in xrange (0,len(tabList)):
+            tabChild = SubElement(topChild, 'tab', {'name':tabList[i]})
+            tabChild.text = valueList[i] 
         for material in self.listedDict.get('XS').get(tabulation).iterkeys():
           tabulationChild = SubElement(topChild, 'library', {'lib_name':material.lower()})
           for isotope in self.listedDict.get('XS').get(tabulation).get(material).iterkeys():
@@ -83,7 +84,7 @@ class XSCreator():
                     reactionChild = SubElement(libraryChild, reaction.lower(), {'g':groups})
                     reactionChild.text = values
     
-    modifiedFile = 'modifffff.xml'
+    modifiedFile = 'modif.xml'
     file_obj = open(modifiedFile, 'w')
     file_obj.write(self.prettify(top))
     #print self.prettify(top)
@@ -102,19 +103,20 @@ class XSCreator():
     return {k: v for k, v in ((k, self.clean_empty(v)) for k, v in leanDict.items()) if v} 
 
    
-  def __init__(self, inputFiles, **pertDict):
+  def __init__(self, inputFiles, booleanTab, **pertDict):
     """
       Parse the PHISICS XS.xml data file   
       In: XS.xml
       Out: None 
     """
+    self.booleanTab = booleanTab
     self.pertDict = pertDict
     #print self.pertDict
     #print "\n\n\n"
     #print inputFiles
     
     for key, value in self.pertDict.iteritems(): 
-      self.pertDict[key] = '%.3E' % Decimal(str(value)) #convert the values into scientific values   
+      self.pertDict[key] = '%.5E' % Decimal(str(value)) #convert the values into scientific values   
     self.inputFiles = inputFiles
     self.tree = ET.parse(self.inputFiles)
     self.root = self.tree.getroot()
@@ -176,7 +178,7 @@ class XSCreator():
         reconstructedDict[keyWords[0]][keyWords[1]][keyWords[2]][keyWords[3]][keyWords[4]][keyWords[5]][keyWords[6]] = value
     #print reconstructedDict  
     leanReconstructedDict = self.clean_empty(reconstructedDict)
-    print leanReconstructedDict
+    #print leanReconstructedDict
     return leanReconstructedDict
    
     
@@ -188,3 +190,5 @@ class XSCreator():
     """     
     #print self.inputFiles
     copyfile(modifiedFile, self.inputFiles)  
+   
+

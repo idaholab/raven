@@ -43,7 +43,8 @@
     <Code name="PHISICS" subType="Phisics">
       <!--  <executable>  </executable> -->
        <executable>/home/rouxpn/RAVEN/PHISICS/dpl_instant_run</executable> 
-       <PerturbXS>additive</PerturbXS>       
+       <PerturbXS>additive</PerturbXS>  
+       <tabulation>F</tabulation>        
     </Code>
     
   </Models>
@@ -283,6 +284,3 @@
   </Databases>
 
 </Simulation>
-
-
-
