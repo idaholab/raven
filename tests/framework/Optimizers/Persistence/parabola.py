@@ -2,8 +2,7 @@
 #* Simple analytic test ExternalModule *
 #***************************************
 #
-# Given a set of lengths, will compute the longest diagonal in the hyperrectangle created by using each
-#   of these lengths as measurements of orthogonal axes.
+# Computes an inverse parabola with maximum value at x=0 of 1.0.
 #
 import numpy as np
 
