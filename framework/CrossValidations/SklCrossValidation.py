@@ -76,7 +76,8 @@ class SciKitLearn(CrossValidation):
     for key, value in self.initOptionDict.items():
       try:
         newValue = ast.literal_eval(value)
-        if type(newValue) == list: newValue = np.asarray(newValue)
+        if type(newValue) == list:
+          newValue = np.asarray(newValue)
         self.initOptionDict[key] = newValue
       except:
         self.initOptionDict[key] = value
