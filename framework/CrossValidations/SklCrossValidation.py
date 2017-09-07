@@ -25,6 +25,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import sklearn
+import ast
 from utils import utils
 if int(sklearn.__version__.split(".")[1]) > 17:
   from sklearn import model_selection as cross_validation
@@ -74,9 +75,11 @@ class SciKitLearn(CrossValidation):
 
     for key, value in self.initOptionDict.items():
       try:
-        self.initOptionDict[key] = ast.literal_eval(value)
+        newValue = ast.literal_eval(value)
+        if type(newValue) == list: newValue = np.asarray(newValue)
+        self.initOptionDict[key] = newValue
       except:
-        pass
+        self.initOptionDict[key] = value
 
     self.__CVInstance = self.__class__.availImpl[self.SKLType][0](**self.initOptionDict)
     self.outputDict = {}

@@ -909,6 +909,8 @@ def tryParse(text):
         value = True
       elif text.lower().strip() in stringsThatMeanFalse() :
         value = False
+      elif text.lower().strip() == 'none':
+        value = None
       else:
         value = text
   ## If this tag exists, but has no internal text, then it is most likely

@@ -1,17 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <RunInfo>
-    <WorkingDir>simpleCrossValidation</WorkingDir>
+    <WorkingDir>stratifiedKFold</WorkingDir>
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
-    <name>framework/PostProcessors/Metric/test_cross_validation</name>
+    <name>framework/PostProcessors/Metric/test_stratifiedKFold</name>
     <author>wangc</author>
-    <created>2017-09-06</created>
+    <created>2017-09-07</created>
     <classesTested>PostProcessors.CrossValidation</classesTested>
     <description>
-      This test checks the CrossValidation PostProcessor with KFold method
+      This test checks the CrossValidation PostProcessor with Stratified K-Folds method
     </description>
   </TestInfo>
 
@@ -33,11 +33,11 @@
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
-            <SKLtype>KFold</SKLtype>
-            <n>100</n>
-            <n_folds>10</n_folds>
+            <SKLtype>StratifiedKFold</SKLtype>
+            <y>[0,0,0,1,1,1,1,2,2,2]</y>
+            <n_folds>2</n_folds>
             <shuffle>False</shuffle>
-            <random_state>None</random_state>
+            <random_state>10</random_state>
         </SciKitLearn>
         <Metric class="Metrics" type="SKL">euclidean</Metric>
     </PostProcessor>
@@ -63,7 +63,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>100</limit>
+        <limit>10</limit>
       </samplerInit>
       <variable name="x1">
         <distribution>dist1</distribution>
@@ -80,7 +80,6 @@
       <Model class="Models" type="ExternalModel">poly</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataMC</Output>
-      <Output class="OutStreams" type="Print">dumpMC</Output>
     </MultiRun>
     <PostProcess name="PP1">
         <Input class="DataObjects" type="PointSet">outputDataMC</Input>
@@ -101,12 +100,5 @@
       <Output>ans,ans2</Output>
     </PointSet>
   </DataObjects>
-  
-  <OutStreams>
-      <Print name="dumpMC">
-          <type>csv</type>
-          <source>outputDataMC</source>
-      </Print>
-  </OutStreams>
 
 </Simulation>
