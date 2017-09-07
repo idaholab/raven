@@ -76,30 +76,10 @@ def _getGraphs(functions, fZStats = False):
       k += 2
   retDict["cdf_and_pdf_arrays"] = origCdfAndPdfArray
 
-  def fZ(z):
-    """
-      Compute f(z) with a simpson rule
-      @ In, z, float, the coordinate
-      @ Out, fZ, the f(z)
-    """
-    return mathUtils.simpson(lambda x: pdfs[0](x)*pdfs[1](x-z), lowLow, highHigh, 1000)
-
   if len(means) < 2:
     return
-  midZ = means[0]-means[1]
-  lowZ = midZ - 3.0*max(stddevs[0],stddevs[1])
-  highZ = midZ + 3.0*max(stddevs[0],stddevs[1])
 
-  #print the difference function table.
-  fZTable = [["z"],["f_z(z)"]]
-  zN = 20
-  intervalZ = (highZ - lowZ)/zN
-  for i in range(zN):
-    z = lowZ + intervalZ*i
-    fZTable[0].append(z)
-    fZTable[1].append(fZ(z))
   cdfAreaDifference = mathUtils.simpson(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh,100000)
-  retDict["f_z_table"] = fZTable
 
   def firstMomentSimpson(f, a, b, n):
     """
@@ -124,6 +104,26 @@ def _getGraphs(functions, fZStats = False):
   dataStats[0]["cdf_area_difference"] = cdfAreaDifference
   dataStats[0]["pdf_common_area"] = pdfCommonArea
   if fZStats:
+    def fZ(z):
+      """
+        Compute f(z) with a simpson rule
+        @ In, z, float, the coordinate
+        @ Out, fZ, the f(z)
+      """
+      return mathUtils.simpson(lambda x: pdfs[0](x)*pdfs[1](x-z), lowLow, highHigh, 1000)
+
+    midZ = means[0]-means[1]
+    lowZ = midZ - 3.0*max(stddevs[0],stddevs[1])
+    highZ = midZ + 3.0*max(stddevs[0],stddevs[1])
+    #print the difference function table.
+    fZTable = [["z"],["f_z(z)"]]
+    zN = 20
+    intervalZ = (highZ - lowZ)/zN
+    for i in range(zN):
+      z = lowZ + intervalZ*i
+      fZTable[0].append(z)
+      fZTable[1].append(fZ(z))
+    retDict["f_z_table"] = fZTable
     sumFunctionDiff = mathUtils.simpson(fZ, lowZ, highZ, 1000)
     firstMomentFunctionDiff = firstMomentSimpson(fZ, lowZ,highZ, 1000)
     varianceFunctionDiff = mathUtils.simpson(lambda x:((x-firstMomentFunctionDiff)**2)*fZ(x),lowZ,highZ, 1000)
