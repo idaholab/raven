@@ -58,12 +58,10 @@
       <variable name='x'>
         <upperBound>1</upperBound>
         <lowerBound>-1</lowerBound>
-        <!--initial>2,2,0,-2,-2</initial-->
       </variable>
       <variable name='y'>
         <upperBound>1</upperBound>
         <lowerBound>-1</lowerBound>
-        <!-- <initial>2,-2,0,2,-2</initial> -->
       </variable>
       <objectVar>ans</objectVar>
 
