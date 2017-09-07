@@ -192,16 +192,134 @@ def __processData(data, methodInfo):
   ret['xi'] = xi
   return ret
 
+def countWeightInBins(sortedData, binBoundaries):
+  """
+    This method counts the number of data items in the sorted_data
+    Returns an array with the number.  ret[0] is the number of data
+    points <= binBoundaries[0], ret[len(binBoundaries)] is the number
+    of points > binBoundaries[len(binBoundaries)-1]
+    @ In, sortedData, list of (value,weight) of the data to be analyzed
+    @ In, binBoundaries, list or np.array, the bin boundaries
+    @ Out, ret, list, the list containing the number of bins
+  """
+  VALUE = 0
+  WEIGHT = 1
+  binIndex = 0
+  sortedIndex = 0
+  ret = [0]*(len(binBoundaries)+1)
+  while sortedIndex < len(sortedData):
+    while not binIndex >= len(binBoundaries) and \
+          sortedData[sortedIndex][VALUE] > binBoundaries[binIndex]:
+      binIndex += 1
+    ret[binIndex] += sortedData[sortedIndex][WEIGHT]
+    sortedIndex += 1
+  return ret
+
+
+def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpolation):
+  """
+    This method is used to convert weighted data into a PDF and CDF function.
+    Basically, this does kernel density estimation of weighted data.
+    @ In, data, np.array,  one dimentional array of the data to process
+    @ In, weights, np.array, one dimentional array of the weights for the data
+    @ In, numBins, int, the number of bins to use.
+    @ In, uniformBins, bool, if True, use uniformly sized bins, otherwise use equal probability bins.
+    @ In, interpolation, str, "linear" or "quadratic", depending on which interpolation is used
+    @ Out, (dataStats, cdfFunc, pdfFunc), tuple, dataStats is dictionary with things like "mean" and "stdev", cdfFunction is a function that returns the CDF value and pdfFunc is a function that returns the PDF value.
+  """
+  # Sort the data
+  sortedData = zip(data, weights)
+  sortedData.sort() #Sort the data.
+  weightSum = sum(weights)
+  VALUE = 0
+  WEIGHT = 1
+  # Find data range
+  low = sortedData[0][VALUE]
+  high = sortedData[-1][VALUE]
+  dataRange = high - low
+  #Find the values to use between the histogram bins
+  if uniformBins:
+    minBinSize = dataRange/numBins
+    bins = [low + x * minBinSize for x in range(1, numBins)]
+  else:
+    #Equal probability bins
+    probPerBin = weightSum/numBins
+    probSum = 0.0
+    #nextProb = probPerBin
+    bins = [None]*(numBins-1)
+    searchIndex = 0
+    #Look thru the array, and find the next place where probSum > nextProb
+    for i in range(numBins-1):
+      nextProb = (i + 1) * probPerBin
+      #print(nextProb)
+      while probSum + sortedData[searchIndex][WEIGHT] < nextProb:
+        #print(probSum, searchIndex)
+        probSum += sortedData[searchIndex][WEIGHT]
+        searchIndex += 1
+      bins[i] = sortedData[searchIndex][VALUE]
+    if len(bins) > 1:
+      minBinSize = min(map(lambda x, y: x - y, bins[1:], bins[:-1]))
+    else:
+      minBinSize = dataRange
+  #Count the amount of weight in each bin
+  #print("bins",bins)
+  counts = countWeightInBins(sortedData, bins)
+  #print("counts",counts)
+  binBoundaries = [low] + bins + [high]
+  countSum = sum(counts)
+  assert -1e-4 < countSum - weightSum < 1e-4
+  # Create CDF
+  cdf = [0.0] * len(counts)
+  midpoints = [0.0] * len(counts)
+  cdfSum = 0.0
+  for i in range(len(counts)):
+    f0 = counts[i] / countSum
+    cdfSum += f0
+    cdf[i] = cdfSum
+    midpoints[i] = (binBoundaries[i] + binBoundaries[i + 1]) / 2.0
+  cdfFunc = mathUtils.createInterp(midpoints, cdf, 0.0, 1.0, interpolation)
+  #print("cdf",cdf,"midpoints",midpoints)
+  #Create PDF
+  fPrimeData = [0.0] * len(counts)
+  for i in range(len(counts)):
+    h = binBoundaries[i + 1] - binBoundaries[i]
+    nCount = counts[i] / countSum  # normalized count
+    f0 = cdf[i]
+    if i + 1 < len(counts):
+      f1 = cdf[i + 1]
+    else:
+      f1 = 1.0
+    if i + 2 < len(counts):
+      f2 = cdf[i + 2]
+    else:
+      f2 = 1.0
+    if interpolation == 'linear':
+      fPrime = (f1 - f0) / h
+    else:
+      fPrime = (-1.5 * f0 + 2.0 * f1 + -0.5 * f2) / h
+    fPrimeData[i] = fPrime
+  pdfFunc = mathUtils.createInterp(midpoints, fPrimeData, 0.0, 0.0, interpolation)
+  #print("fPrimeData",fPrimeData)
+  mean = np.average(data, weights = weights)
+  dataStats = {"mean":mean,"minBinSize":minBinSize,"low":low,"high":high}
+  return dataStats, cdfFunc, pdfFunc
+
+
+
+
+
 def _getPDFandCDFfromData(dataName, data, csv, methodInfo, interpolation,
                          generateCSV):
   """
     This method is used to convert some data into a PDF and CDF function.
+    Note, it might be better done by scipy.stats.gaussian_kde
     @ In, dataName, str, The name of the data.
     @ In, data, np.array, one dimentional array of the data to process
     @ In, csv, File, file to write out information on data.
     @ In, methodInfo, dict, the info about which processing method needs to be used
     @ In, interpolation, str, "linear" or "quadratic", depending on which interpolation is used
     @ In, generateCSV, bool, True if the csv should be written
+    @ Out, (dataStats, cdfFunc, pdfFunc), tuple, dataStats is dictionary with things like "mean" and "stdev", cdfFunction is a function that returns the CDF value and pdfFunc is a function that returns the PDF value.
   """
   #Convert data to pdf and cdf.
   dataStats = __processData( data, methodInfo)
