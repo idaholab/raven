@@ -233,6 +233,8 @@ class CrossValidation(PostProcessor):
     trainInput = dict.fromkeys(inputDict.keys(), None)
     testInput = dict.fromkeys(inputDict.keys(), None)
     for key, value in inputDict.items():
+      if np.asarray(value).size != trainIndex.size + testIndex.size:
+        self.raiseAnError(IOError, "The number of samples provided in the input is not equal the number of samples used in the cross-validation")
       trainInput[key] = np.asarray(value)[trainIndex]
       testInput[key] = np.asarray(value)[testIndex]
 
