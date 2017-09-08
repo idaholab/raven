@@ -41,6 +41,7 @@ from utils import utils
 from utils.randomUtils import random
 distribution1D = utils.find_distribution1D()
 from utils import InputData
+from utils import mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 def factorial(x):
@@ -1749,8 +1750,8 @@ class Categorical(Distribution):
     totPsum = 0.0
     for element in self.mapping:
       totPsum += self.mapping[element]
-    if totPsum!=1.0:
-      self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
+    if not mathUtils.compareFloats(totPsum,1.0):
+      self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is '+repr(totPsum)+', not 1.0')
 
   def pdf(self,x):
     """
