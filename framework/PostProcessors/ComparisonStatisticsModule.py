@@ -192,7 +192,7 @@ def __processData(data, methodInfo):
   ret['xi'] = xi
   return ret
 
-def countWeightInBins(sortedData, binBoundaries):
+def _countWeightInBins(sortedData, binBoundaries):
   """
     This method counts the number of data items in the sorted_data
     Returns an array with the number.  ret[0] is the number of data
@@ -263,7 +263,7 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
       minBinSize = dataRange
   #Count the amount of weight in each bin
   #print("bins",bins)
-  counts = countWeightInBins(sortedData, bins)
+  counts = _countWeightInBins(sortedData, bins)
   #print("counts",counts)
   binBoundaries = [low] + bins + [high]
   countSum = sum(counts)
