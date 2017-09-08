@@ -243,20 +243,11 @@ class phisicsdata():
                 #print i 
                 reactionRateDict[line[0]][line[1]][self.paramList[i]] = line[numbering.get(self.paramList[i])]
         if countTimeStep  == 1:
-          print line 
-          print 'dddfffggg'
-          print "\n\n\n\n"
-          if 'Time' in line:
-            print 'FUCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCK'
-          #if re.search(r'edd', line):
-          #  print 'aaaaaaaaaaaaaaaaa'
-          #  print units 
-        #  print 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-        #  print "\n\n\n"
-        #  timeStep = self.convertInDays([line.split(' ')[-1]])
-        #  #print timeStep
-        #  if float(timeStep[0]) - float(matchedTimeSteps[timeStepindex]) < 1E-03: break    
-    #print reactionRateDict
+          if 'Time(seconds)' in line:
+            timeStep = self.convertInDays([line.split(' ')[-1]])
+            #print timeStep
+            if float(timeStep[0]) - float(matchedTimeSteps[timeStepindex]) < 1E-03: break    
+    print reactionRateDict
     if reactionRateDict != {}:
       return reactionRateDict  
     
