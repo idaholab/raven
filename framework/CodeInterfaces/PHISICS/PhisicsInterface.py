@@ -130,7 +130,13 @@ class Phisics(CodeInterfaceBase):
       if child.tag == 'PerturbXS':
         if child.text.lower() in set(validPerturbation): self.perturbXS = child.text.lower()
         else: raise ValueError("\n\nThe type of perturbation --"+child.text.lower()+"-- is not valid. You can choose one of the following \n"+"\n".join(set(validPerturbation)))
-
+      if child.tag == 'tabulation':
+        self.tabulation = None
+        if (child.text.lower() == 't' or child.text.lower() == 'true'):  self.tabulation = True
+        if (child.text.lower() == 'f' or child.text.lower() == 'false'): self.tabulation = False 
+        if (self.tabulation is None): raise ValueError("\n\n The tabulation node --"+child.tag+"-- only supports the following text (case insensitive): \n True \n T \n False \n F" )
+  
+  
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
@@ -238,6 +244,8 @@ class Phisics(CodeInterfaceBase):
     distributedPerturbedVars = self.distributeVariablesToParsers(perturbedVars)
     #print (distributedPerturbedVars)
     #print (currentInputFiles)
+    #print (self.tabulation)
+    booleanTab = self.tabulation 
     for i in distributedPerturbedVars.iterkeys():
       if i == 'DECAY'         : decayParser        = DecayParser.DecayParser(currentInputFiles[keyWordDict['decay']].getAbsFile(), **distributedPerturbedVars[i])
       if i == 'DENSITY'       : materialParser     = MaterialParser.MaterialParser(currentInputFiles[keyWordDict['material']].getAbsFile(), **distributedPerturbedVars[i])
@@ -249,10 +257,7 @@ class Phisics(CodeInterfaceBase):
       if i == 'BETADECAY'     : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['betadecay']].getAbsFile(), **distributedPerturbedVars[i])
       if i == 'BETAXDECAY'    : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['betaxdecay']].getAbsFile(), **distributedPerturbedVars[i])
       if i == 'INTTRADECAY'   : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['inttradecay']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'XS'            : XSParser           = XSCreator.XSCreator(currentInputFiles[keyWordDict['xs']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'XS'            : XSParser           = XSCreator.XSCreator(currentInputFiles[keyWordDict['xs']].getAbsFile(), booleanTab, **distributedPerturbedVars[i])
     return currentInputFiles
-    
-
-
     
 
