@@ -33,4 +33,9 @@
     zero_threshold = 1e-9
     remove_whitespace = True
   [../]
+  [./test_comparison_statistics_unit]
+    type = 'RavenPython'
+    input = 'unit_test_comparison_statistics.py'
+    requires_swig2 = True
+  [../]
 []
