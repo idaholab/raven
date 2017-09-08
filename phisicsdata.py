@@ -26,13 +26,14 @@ class phisicsdata():
     mrtauTimeSteps              = self.getMrtauTimeSteps()
     instantTimeSteps            = self.getInstantTimeSteps()
     matchedTimeSteps            = self.commonInstantMrtauTimeStep(instantTimeSteps, mrtauTimeSteps)
-    for timeStepindex in xrange (0,len(matchedTimeSteps)): 
-      keff, errorKeff           = self.getKeff(workingDir, timeStepindex, matchedTimeSteps)
-      reactionRateInfo            = self.getReactionRates(workingDir, timeStepindex, matchedTimeSteps)
-    fissionMatrixInfo           = self.getMatrix(workingDir, markerList[0], markerList[1], 'FissionMatrix')
-    fluxLabelList, fluxList, matFluxLabelList, matFluxList     = self.getFluxInfo()
-    depLabelList, depList, timeStepList     = self.getDepInfo()
-    self.writeCSV(keff, errorKeff, reactionRateInfo, fissionMatrixInfo, workingDir, fluxLabelList, fluxList, matFluxLabelList, matFluxList, depLabelList, depList, timeStepList)
+    for timeStepIndex in xrange (0,len(matchedTimeSteps)): 
+      keff, errorKeff           = self.getKeff(workingDir, timeStepIndex, matchedTimeSteps)
+      reactionRateInfo          = self.getReactionRates(workingDir, timeStepIndex, matchedTimeSteps)
+      fissionMatrixInfo         = self.getMatrix(workingDir, markerList[0], markerList[1], 'FissionMatrix', timeStepIndex, matchedTimeSteps)
+      fluxLabelList, fluxList, matFluxLabelList, matFluxList     = self.getFluxInfo(timeStepIndex, matchedTimeSteps)
+      depLabelList, depList, timeStepList     = self.getDepInfo(timeStepIndex, matchedTimeSteps)
+      decayLabelList, decayList  = self.getDecayHeat(timeStepIndex, matchedTimeSteps)
+      self.writeCSV(keff, errorKeff, reactionRateInfo, fissionMatrixInfo, workingDir, fluxLabelList, fluxList, matFluxLabelList, matFluxList, depLabelList, depList, timeStepList, timeStepIndex, matchedTimeSteps)
 
   def removeSpaces(self, line):
     line = re.sub(r' ',r'',line)
@@ -136,30 +137,31 @@ class phisicsdata():
       return the units in which the time steps are printed in the instant output
       IN: line, string 
       OUT: units, string
-    """
-    return line.split(' ')[-3]
+    """ 
+    units = line.split(' ')[-3]
+    return units
   
-  def getKeff (self, workingDir, timeStepindex, matchedTimeSteps):
+  def getKeff (self, workingDir, timeStepIndex, matchedTimeSteps):
     """
       get the multiplication factor 
     """
     count = 0 
-    units = ''
+    self.units = ''
     keff = []
     with open(self.pathToPhisicsOutput, 'r') as outfile:
       for line in outfile :
         if re.search(r'Time Input Type', line):
-          units = self.findUnits(line)
+          self.units = self.findUnits(line)
         if re.search(r'k-effective at the last', line) :
           keff = [line.split()[-1]]
           count = count + 1 
         if re.search(r'error for the eigenvalue', line) :
             errorKeff = [line.split()[-1]]
         if count  == 1:
-          if re.search(r'Time\('+units+'\)', line):
+          if re.search(r'Time\('+self.units+'\)', line):
             timeStep = self.convertInDays([line.split(' ')[-1]])
             #print timeStep
-            if float(timeStep[0]) - float(matchedTimeSteps[timeStepindex]) < 1E-03: break    
+            if float(timeStep[0]) - float(matchedTimeSteps[timeStepIndex]) < 1E-03: break    
     #print keff
     return keff, errorKeff
 
@@ -193,7 +195,8 @@ class phisicsdata():
       for j in xrange (1,int(self.Nregions) + 1):
         declareDict[str(i)][str(j)] = {}
         for k in xrange (0, len(numbering)):
-          declareDict[str(i)][str(j)][numbering.keys()[k]] = {}
+          if numbering.keys()[k] == 'Group': pass
+          else: declareDict[str(i)][str(j)][numbering.keys()[k]] = {} 
     if typeOfParameters == 'reactionRates':
       self.paramList = []
       for key in numbering.iterkeys():
@@ -204,7 +207,7 @@ class phisicsdata():
         self.matrixList.append(key)  
     return declareDict
         
-  def getReactionRates (self, workingDir, timeStepindex, matchedTimeSteps):
+  def getReactionRates (self, workingDir, timeStepIndex, matchedTimeSteps):
     """
       get the reactions rates, power for each group in PHISICS 
       IN: wordingDir, string, working directory.
@@ -221,8 +224,6 @@ class phisicsdata():
     with open(self.pathToPhisicsOutput, 'r') as outfile:
       for line in outfile :
         #print flagStart
-        if re.search(r'Time Input Type', line):
-          units = self.findUnits(line)
         if re.search(r'averaged flux\s+power', line):
           numbering = self.mapColumns(line, count, numbering)
           reactionRateDict = self.declareDict(numbering, 'reactionRates')
@@ -241,28 +242,32 @@ class phisicsdata():
               #print line
               for i in xrange (0,len(numbering)): 
                 #print i 
-                reactionRateDict[line[0]][line[1]][self.paramList[i]] = line[numbering.get(self.paramList[i])]
+                if self.paramList[i] == 'Group': pass 
+                else: reactionRateDict[line[0]][line[1]][self.paramList[i]] = line[numbering.get(self.paramList[i])]
         if countTimeStep  == 1:
           if 'Time(seconds)' in line:
             timeStep = self.convertInDays([line.split(' ')[-1]])
             #print timeStep
-            if float(timeStep[0]) - float(matchedTimeSteps[timeStepindex]) < 1E-03: break    
-    print reactionRateDict
+            if float(timeStep[0]) - float(matchedTimeSteps[timeStepIndex]) < 1E-03: break    
     if reactionRateDict != {}:
       return reactionRateDict  
     
-  def getMatrix (self, workingDir, startStringFlag, endStringFlag, typeOfMatrix):
+  def getMatrix (self, workingDir, startStringFlag, endStringFlag, typeOfMatrix, timeStepIndex, matchedTimeSteps):
     """
       get the reactions rates, power for each group in PHISICS 
+      IN: timeStepIndex, integer, number of the timestep considered 
+      IN: matchedTimeSteps, list, list of time steps considered
+      OUT: matrixDict, dictionary
     """
     flagStart, count, countTimeStep = 0, 0, 0
     numbering = {}
     matrixDict = {}
     with open(self.pathToPhisicsOutput, 'r') as outfile:
       for line in outfile :
-        #print flagStart
+        #print flagStart 
         if re.search(startStringFlag, line):
           flagStart = 1 
+          countTimeStep = countTimeStep + 1
         if re.search(endStringFlag,line):
           flagStart = 2
         if flagStart == 1 :
@@ -280,6 +285,10 @@ class phisicsdata():
             for i in xrange (1,len(numbering) + 1):  
               #print i 
               matrixDict[line[0]][str(regionNumber)][str(i)] = line[numbering.get(str(i)) + 1] 
+        if countTimeStep  == 1:
+          if 'Time(seconds)' in line:
+            timeStep = self.convertInDays([line.split(' ')[-1]])
+            if float(timeStep[0]) - float(matchedTimeSteps[timeStepIndex]) < 1E-03: break    
     #print matrixDict
     return matrixDict
   
@@ -322,11 +331,13 @@ class phisicsdata():
     #print xPositionInList, yPositionInList, zPositionInList, group1PositionInList
     return xPositionInList, yPositionInList, zPositionInList, group1PositionInList
     
-  def getFluxInfo(self):
+  def getFluxInfo(self, timeStepIndex, matchedTimeSteps):
     """
       Read the Instant CSV file to get the flux info relative to each region and each group
       The flux info are also provided for each material
       IN: Dpl_INSTANT_HTGR_test_flux_mat.csv
+      IN: timeStepIndex, integer, number of the timestep considered 
+      IN: matchedTimeSteps, list, list of time steps considered
       OUT: fluxLabelList, fluxList, matFluxLabelList, matFluxList (lists)
     """
     IDlist = []
@@ -334,40 +345,51 @@ class phisicsdata():
     fluxList = []
     matFluxLabelList = []
     matFluxList = []
-    flagFlux = 0 
+    flagFlux, countTimeStep = 0, 0 
     with open(self.instantCSVOutput, 'r') as outfile:
       for line in outfile :
-        if re.search(r'FLUX BY CELLS',line):
-          flagFlux = 1 
-        if re.search(r'FLUX BY MATERIAL',line):
-          flagFlux = 2
-        #print line
-        if flagFlux == 1:
-          if re.search(r'ID\s+,\s+ID',line):
-            line = re.sub(r' ',r'',line)
-            IDlist = line.split(',')
-            xPosition, yPosition, zPosition, group1Position = self.locateXYandGroups(IDlist)
-            IDlist.remove('\n')         
-          stringIsNumber = self.isNumber(line.split(','))
-          if stringIsNumber is True:
-            line = re.sub(r' ',r'',line)
-            line = re.sub(r'\n',r'',line)
-            #if zPosition == 0: ## it means this is a 2D case
-            for g in xrange (1,int(self.Ngroups) + 1):
-              fluxLabelList.append('flux'+'|'+'cell'+line.split(',')[0]+'|'+'gr'+str(g))
-              fluxList.append(line.split(',')[group1Position + g - 1])
-        if flagFlux == 2:        
-          stringIsNumber = self.isNumber(line.split(','))
-          if stringIsNumber is True:
-            line = re.sub(r' ',r'',line)
-            line = re.sub(r'\n',r'',line)
-            for g in xrange (1,int(self.Ngroups) + 1):
-              matFluxLabelList.append('flux'+'|'+'mat'+line.split(',')[0]+'|'+'gr'+str(g))
-              matFluxList.append(line.split(',')[g])
-        #print matFluxLabelList, matFluxList
+        if re.search(r'PHISICS',line): 
+          timeStep = line.split(',')[line.split(',').index('Time') + 1]
+          timeStep = self.convertInDays([timeStep])
+          if float(timeStep[0]) - float(matchedTimeSteps[timeStepIndex]) < 1E-03:  countTimeStep = countTimeStep + 1     
+        if countTimeStep == 1:
+          if re.search(r'FLUX BY CELLS',line):
+            flagFlux = 1 
+          if re.search(r'FLUX BY MATERIAL',line):
+            flagFlux = 2
+          #print line
+          if flagFlux == 1:
+            if re.search(r'ID\s+,\s+ID',line):
+              line = re.sub(r' ',r'',line)
+              IDlist = line.split(',')
+              xPosition, yPosition, zPosition, group1Position = self.locateXYandGroups(IDlist)
+              IDlist.remove('\n')         
+            stringIsNumber = self.isNumber(line.split(','))
+            if stringIsNumber is True:
+              line = re.sub(r' ',r'',line)
+              line = re.sub(r'\n',r'',line)
+              #if zPosition == 0: ## it means this is a 2D case
+              for g in xrange (1,int(self.Ngroups) + 1):
+                fluxLabelList.append('flux'+'|'+'cell'+line.split(',')[0]+'|'+'gr'+str(g))
+                fluxList.append(line.split(',')[group1Position + g - 1])
+          if flagFlux == 2:        
+            stringIsNumber = self.isNumber(line.split(','))
+            if stringIsNumber is True:
+              line = re.sub(r' ',r'',line)
+              line = re.sub(r'\n',r'',line)
+              for g in xrange (1,int(self.Ngroups) + 1):
+                matFluxLabelList.append('flux'+'|'+'mat'+line.split(',')[0]+'|'+'gr'+str(g))
+                matFluxList.append(line.split(',')[g])
+    #print matFluxLabelList, matFluxList
     return fluxLabelList, fluxList, matFluxLabelList, matFluxList
-    
-  def getDepInfo(self):
+ 
+  def getMaterialList(self, line)
+    matList.append(line[1])
+    print matList
+    print "\n\n\n\n\n"
+    return matList 
+ 
+  def getDepInfo(self, timeStepIndex, matchedTimeSteps):
     """
       Read the Instant CSV file to get the material density info relative to depletion
       IN: numbers-0.csv
@@ -378,12 +400,67 @@ class phisicsdata():
     depLabelList = []
     depList = []
     timeStepList = []
-    countTimeOccurence = 0
+    matList = []
     with open(self.mrtauCSVOutput, 'r') as outfile:
       for line in outfile :
         line = self.removeSpaces(line)
         if re.search(r'TIME',line):
-          countTimeOccurence = countTimeOccurence + 1
+          line = re.sub(r'\n',r'',line)          
+          isotopeList = line.split(',')
+          #print isotopeList
+        if re.search(r'Material',line):
+          materialList = line.split(',')
+          matList = getMaterialList(line.split(','))
+        stringIsFloatNumber = self.isFloatNumber(line.split(','), matList)
+        
+        #print line
+        if stringIsFloatNumber is True:
+          line = re.sub(r'\n',r'',line)
+          if (float(line.split(',')[0]) - float(matchedTimeSteps[timeStepIndex])) < 1E-3:  
+            for i in xrange (1,len(isotopeList)):
+              timeStepList.append(line.split(',')[0])
+              depLabelList.append('dep'+'|'+materialList[1]+'|'+isotopeList[i])
+              depList.append(line.split(',')[i - 1])
+    #print depLabelList
+    #print depList
+    return depLabelList, depList, timeStepList
+
+  def findDecayHeat(self, line):
+    """
+      Determines if the decay heat is printed
+      IN: Dpl_INSTANT.outp-0
+      OUT: isDecayHeatPrinted, string (yes or no)
+    """
+    DecayHeatUnits = None 
+    isDecayHeatPrinted = line.split(' ')[-2]
+    if isDecayHeatPrinted == 'YES': 
+      DecayHeatUnits =  line.split(' ')[-1]
+      return True, DecayHeatUnits
+    else: return False, DecayHeatUnits
+
+  
+  def getDecayHeat(self, timeStepIndex, matchedTimeSteps):
+    """
+      Read the main output file to get the decay heat
+      IN: Dpl_INSTANT.outp-0
+      OUT: decayLabelList, decayList
+    """
+    isotopeList = []
+    materialList = []
+    depLabelList = []
+    depList = []
+    timeStepList = []
+    with open(self.pathToPhisicsOutput, 'r') as outfile:
+      for line in outfile :
+        if re.search(r'Decay Heat computed',line):
+          self.isDecayHeatPrinted, self.decayHeatUnits = self.findDecayHeat(line)
+          if self.isDecayHeatPrinted is False: 
+            decayLabelList = ['decayHeat']
+            decayList = 0
+            break 
+          else: pass 
+        line = self.removeSpaces(line)
+        if re.search(r'Material\s+\w+',line):
           line = re.sub(r'\n',r'',line)          
           isotopeList = line.split(',')
           #print isotopeList
@@ -393,16 +470,17 @@ class phisicsdata():
         #print line
         if stringIsFloatNumber is True:
           line = re.sub(r'\n',r'',line)
-          for i in xrange (1,len(isotopeList)):
-            timeStepList.append(line.split(',')[0])
-            depLabelList.append('dep'+'|'+line.split(',')[0]+'|'+materialList[1]+'|'+isotopeList[i])
-            depList.append(line.split(',')[i - 1])
+          if (float(line.split(',')[0]) - float(matchedTimeSteps[timeStepIndex])) < 1E-3:  
+            for i in xrange (1,len(isotopeList)):
+              timeStepList.append(line.split(',')[0])
+              depLabelList.append('dep'+'|'+materialList[1]+'|'+isotopeList[i])
+              depList.append(line.split(',')[i - 1])
     #print depLabelList
     #print depList
-    return depLabelList, depList, timeStepList
+    return depLabelList, depList
       
         
-  def writeCSV(self,keff, errorKeff, reactionRateDict, fissionMatrixDict, workingDir, fluxLabelList, fluxList, matFluxLabelList, matFluxList, depLabelList, depList, timeStepList):
+  def writeCSV(self,keff, errorKeff, reactionRateDict, fissionMatrixDict, workingDir, fluxLabelList, fluxList, matFluxLabelList, matFluxList, depLabelList, depList, timeStepList, timeStepIndex, matchedTimeSteps):
     """
       print the data in csv files 
     """ 
@@ -412,17 +490,21 @@ class phisicsdata():
     matrixCSV = workingDir+'fmatrix.csv'
     pertFile = 'pert'+self.perturbationNumber+'.csv'
     fissvalues = []
+    print 'PUTAIN PUTAIN PUTAIN '
     if self.paramList != []:
       for i in xrange(0,len(self.paramList)):
         for j in xrange(1,int(self.Ngroups) + 1):
           for k in xrange(1, int(self.Nregions) + 1):
-            fissionMatrixNames.append(self.paramList[i]+'|gr'+str(j)+'|reg'+str(k))
-            fissvalues.append(reactionRateDict.get(str(j)).get(str(k)).get(self.paramList[i]))
+            if self.paramList[i] == 'Group': pass
+            else:
+              fissionMatrixNames.append(self.paramList[i]+'|gr'+str(j)+'|reg'+str(k))
+              fissvalues.append(reactionRateDict.get(str(j)).get(str(k)).get(self.paramList[i]))
       #print fissionMatrixNames
       if 'Group' in fissionMatrixNames: fissionMatrixNames.remove('Group')
       with open(keffCSV, 'wb') as csvfile:
-        keffwriter = csv.writer(csvfile, delimiter=',',quotechar=',', quoting=csv.QUOTE_MINIMAL)
-        keffwriter.writerow(['time'] + ['keff'] + ['errorKeff'] + fissionMatrixNames + fluxLabelList + matFluxLabelList + depLabelList) 
-        keffwriter.writerow([str(timeStepList[0])] + keff + errorKeff + fissvalues + fluxList + matFluxList + depList)
+        if timeStepIndex == 0:
+          keffwriter = csv.writer(csvfile, delimiter=',',quotechar=',', quoting=csv.QUOTE_MINIMAL)
+          keffwriter.writerow(['time'] + ['keff'] + ['errorKeff'] + fissionMatrixNames + fluxLabelList + matFluxLabelList + depLabelList) 
+        keffwriter.writerow([str(matchedTimeSteps[timeStepIndex])] + keff + errorKeff + fissvalues + fluxList + matFluxList + depList)
     
 
