@@ -50,6 +50,7 @@ import Files
 import Models
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class InterfacedPostProcessor(PostProcessor):
@@ -153,9 +154,11 @@ class InterfacedPostProcessor(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
-    evaluation = finishedJob.getEvaluation()[1]
+    evaluations = finishedJob.getEvaluation()
+    if isinstance(evaluations, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
+    evaluation = evaluations[1]
 
     exportDict = {'inputSpaceParams':evaluation['data']['input'],'outputSpaceParams':evaluation['data']['output'],'metadata':evaluation['metadata']}
 

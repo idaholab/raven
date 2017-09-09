@@ -103,6 +103,7 @@ Example:
       <relativeThreshold>1e-3</relativeThreshold>
       <absoluteThreshold>1e-1</absoluteThreshold>
       <gradientThreshold>1e-5</gradientThreshold>
+      <persistence>1</persistence>
     </convergence>
     <parameter>
       <numGradAvgIterations>3</numGradAvgIterations>
@@ -210,7 +211,7 @@ specified:
         \item \xmlNode{objectVar}, \xmlDesc{XML node, required parameter}. The objective variable to be optimized. This variable must be
           output of the DataObject specified in \xmlNode{TargetEvaluation}.
 \item \xmlNode{Sampler}, \xmlDesc{XML node, optional parameter},
-        represents a Sampler (Forward) that can be used to initialize the starting points for the trajectories of some of the variables. 
+        represents a Sampler (Forward) that can be used to initialize the starting points for the trajectories of some of the variables.
         %
         From a practical point of view, this XML node must contain the name of
         a Sampler (Forward) defined in the \xmlNode{Samplers} block (see
@@ -314,6 +315,9 @@ specified:
 convergence. This node accepts the following sub-nodes:
   \begin{itemize}
   \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations. \default{650}.
+  \item \xmlNode{persistence}, \xmlDesc{integer, optional field}, number of consecutive successful
+    convergences required before completing calculation (per trajectory). Any value less than 1 will be
+    treated as 1.  Float values are rounded down to the nearest integer. \default{1}.
   \item \xmlNode{relativeThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality
   in a ``relative'' sense: when the relative change of the objective variable in two successive model evaluations is smaller than
   this specified threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
@@ -410,6 +414,7 @@ Example:
       <relativeThreshold>1e-3</relativeThreshold>
       <absoluteThreshold>1e-1</absoluteThreshold>
       <gradientThreshold>1e-5</gradientThreshold>
+      <persistence>1</persistence>
     </convergence>
     <parameter>
       <numGradAvgIterations>3</numGradAvgIterations>

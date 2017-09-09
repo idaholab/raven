@@ -40,7 +40,7 @@ from .SafestPoint import SafestPoint
 
 from .TopologicalDecomposition import TopologicalDecomposition
 from .DataMining import DataMining
-
+from .Metric import Metric
 ## These utilize the optional prequisite library PySide, so don't error if they
 ## do not import appropriately.
 try:
