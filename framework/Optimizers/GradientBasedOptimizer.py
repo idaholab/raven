@@ -56,25 +56,27 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     Optimizer.__init__(self)
-    self.constraintHandlingPara     = {}              # Dict containing parameters for parameters related to constraints handling
-    self.gradientNormTolerance      = 1.e-3           # tolerance on the L2 norm of the gradient
-    self.gradDict                   = {}              # Dict containing information for gradient related operations
-    self.gradDict['numIterForAve' ] = 1               # Number of iterations for gradient estimation averaging
-    self.gradDict['pertNeeded'    ] = 1               # Number of perturbation needed to evaluate gradient
-    self.gradDict['pertPoints'    ] = {}              # Dict containing normalized inputs sent to model for gradient evaluation
-    self.readyVarsUpdate            = {}              # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
-    self.counter['perturbation'   ] = {}              # Counter for the perturbation performed.
-    self.counter['gradientHistory'] = {}              # In this dict we store the gradient value (versor) for current and previous iterations {'trajectoryID':[{},{}]}
-    self.counter['gradNormHistory'] = {}              # In this dict we store the gradient norm for current and previous iterations {'trajectoryID':[float,float]}
-    self.counter['varsUpdate'     ] = {}
-    self.counter['solutionUpdate' ] = {}
-    self.counter['lastStepSize'   ] = {}              # counter to track the last step size taken, by trajectory
-    self.convergeTraj = {}
-    self.convergenceProgress        = {}              #tracks the convergence progress, by trajectory
-    self.trajectoriesKilled         = {}              # by traj, store traj killed, so that there's no mutual destruction
-    self.recommendToGain            = {}              # recommended action to take in next step, by trajectory
-    self.gainGrowthFactor           = 2.              # max step growth factor
-    self.gainShrinkFactor           = 2.              # max step shrinking factor
+    self.constraintHandlingPara      = {}              # Dict containing parameters for parameters related to constraints handling
+    self.gradientNormTolerance       = 1.e-3           # tolerance on the L2 norm of the gradient
+    self.gradDict                    = {}              # Dict containing information for gradient related operations
+    self.gradDict['numIterForAve'  ] = 1               # Number of iterations for gradient estimation averaging
+    self.gradDict['pertNeeded'     ] = 1               # Number of perturbation needed to evaluate gradient (globally, considering denoising)
+    self.paramDict['pertSingleGrad'] = 1               # Number of perturbation needed to evaluate a single gradient 
+    self.gradDict['pertPoints'     ] = {}              # Dict containing normalized inputs sent to model for gradient evaluation
+    self.readyVarsUpdate             = {}              # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
+    self.counter['perturbation'    ] = {}              # Counter for the perturbation performed.
+    self.counter['gradientHistory' ] = {}              # In this dict we store the gradient value (versor) for current and previous iterations {'trajectoryID':[{},{}]}
+    self.counter['gradNormHistory' ] = {}              # In this dict we store the gradient norm for current and previous iterations {'trajectoryID':[float,float]}
+    self.counter['varsUpdate'      ] = {}
+    self.counter['solutionUpdate'  ] = {}
+    self.counter['lastStepSize'    ] = {}              # counter to track the last step size taken, by trajectory
+    self.convergeTraj                = {}
+    self.convergenceProgress         = {}              #tracks the convergence progress, by trajectory
+    self.trajectoriesKilled          = {}              # by traj, store traj killed, so that there's no mutual destruction
+    self.recommendToGain             = {}              # recommended action to take in next step, by trajectory
+    self.gainGrowthFactor            = 2.              # max step growth factor
+    self.gainShrinkFactor            = 2.              # max step shrinking factor
+    self.perturbationIndeces         = []              # in this list we store the indeces that correspond to the perturbation. It is not ideal but it is quick and dirty now
 
   def localInputAndChecks(self, xmlNode):
     """
@@ -105,14 +107,15 @@ class GradientBasedOptimizer(Optimizer):
         self.raiseAnError(ValueError, 'Not able to convert <gainShrinkFactor> into a float.')
       self.raiseADebug('Gain growth factor is set at',self.gainGrowthFactor)
       self.raiseADebug('Gain shrink factor is set at',self.gainShrinkFactor)
-
+    self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
+    
   def localInitialize(self,solutionExport):
     """
       Method to initialize settings that belongs to all gradient based optimizer
       @ In, solutionExport, DataObject, a PointSet to hold the solution
       @ Out, None
     """
-    self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
+    
     for traj in self.optTraj:
       self.gradDict['pertPoints'][traj]      = {}
       self.counter['perturbation'][traj]     = 0

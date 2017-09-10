@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This module contains the Simultaneous Perturbation Stochastic Approximation Optimization strategy
+  This module contains the Finite Difference Gradient Optimization strategy
 
-  Created on June 16, 2016
-  @ author: chenj, alfoa
+  Created on Sept 10, 2017
+  @ author: alfoa
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -34,28 +34,22 @@ import scipy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .GradientBasedOptimizer import GradientBasedOptimizer
-import Distributions
+from .SPSA import SPSA
 from utils import mathUtils,randomUtils
-import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
-class SPSA(GradientBasedOptimizer):
+class FiniteDifferenceGradientOptimizer(SPSA):
   """
-    Simultaneous Perturbation Stochastic Approximation Optimizer
+    Finite Difference Gradient Optimizer
+    This class currently inherits from the SPSA (since most of the gradient based machinery is there). 
+    TODO: Move the SPSA machinery here (and GradientBasedOptimizer) and make the SPSA just take care of the
+    random perturbation approach
   """
   def __init__(self):
     """
       Default Constructor
     """
-    GradientBasedOptimizer.__init__(self)
-    self.paramDict['pertSingleGrad'] = 2   
-    self.stochasticDistribution = None                        # Distribution used to generate perturbations
-    self.stochasticEngine = None                              # Random number generator used to generate perturbations
-    self.stochasticEngineForConstraintHandling = Distributions.returnInstance('Normal',self)
-    self.stochasticEngineForConstraintHandling.mean, self.stochasticEngineForConstraintHandling.sigma = 0, 1
-    self.stochasticEngineForConstraintHandling.upperBoundUsed, self.stochasticEngineForConstraintHandling.lowerBoundUsed = False, False
-    self.stochasticEngineForConstraintHandling.initializeDistribution()
+    SPSA.__init__(self)
 
   def localInputAndChecks(self, xmlNode):
     """
@@ -63,52 +57,9 @@ class SPSA(GradientBasedOptimizer):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    GradientBasedOptimizer.localInputAndChecks(self, xmlNode)
-    self.paramDict['alpha'] = float(self.paramDict.get('alpha', 0.602))
-    self.paramDict['gamma'] = float(self.paramDict.get('gamma', 0.101))
-    self.paramDict['A']     = float(self.paramDict.get('A', self.limit['mdlEval']/10.))
-    self.paramDict['a']     = self.paramDict.get('a', None)
-    self.paramDict['c']     = float(self.paramDict.get('c', 0.005))
-    #FIXME the optimization parameters should probably all operate ONLY on normalized data!
-    #  -> perhaps the whole optimizer should only work on optimized data.
+    SPSA.localInputAndChecks(self, xmlNode)
+    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * len(self.fullOptVars)
 
-    #FIXME normalizing doesn't seem to have the desired effect, currently; it makes the step size very small (for large scales)
-    #if "a" was defaulted, use the average scale of the input space.
-    #This is the suggested value from the paper, missing a 1/gradient term since we don't know it yet.
-    if self.paramDict['a'] is None:
-      self.paramDict['a'] = mathUtils.hyperdiagonal(np.ones(len(self.getOptVars()))) # the features are always normalized
-      self.raiseAMessage('Defaulting "a" gradient parameter to',self.paramDict['a'])
-    else:
-      self.paramDict['a'] = float(self.paramDict['a'])
-
-    self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
-    self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
-
-    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * self.paramDict['pertSingleGrad']
-
-    stochDist = self.paramDict.get('stochasticDistribution', 'Hypersphere')
-    if stochDist == 'Bernoulli':
-      self.stochasticDistribution = Distributions.returnInstance('Bernoulli',self)
-      self.stochasticDistribution.p = 0.5
-      self.stochasticDistribution.initializeDistribution()
-      # Initialize bernoulli distribution for random perturbation. Add artificial noise to avoid that specular loss functions get false positive convergence
-      # FIXME there has to be a better way to get two random numbers
-      self.stochasticEngine = lambda: [(0.5+randomUtils.random()*(1.+randomUtils.random()/1000.*randomUtils.randomIntegers(-1, 1, self))) if self.stochasticDistribution.rvs() == 1 else
-                                   -1.*(0.5+randomUtils.random()*(1.+randomUtils.random()/1000.*randomUtils.randomIntegers(-1, 1, self))) for _ in range(len(self.getOptVars()))]
-    elif stochDist == 'Hypersphere':
-      self.stochasticEngine = lambda: randomUtils.randPointsOnHypersphere(len(self.getOptVars()))
-    else:
-      self.raiseAnError(IOError, self.paramDict['stochasticEngine']+'is currently not supported for SPSA')
-    # compute perturbation indeces
-    cnt = 0
-    for i in range(int(self.paramDict['pertSingleGrad']*self.gradDict['numIterForAve'])):
-      if cnt != 0:
-        self.perturbationIndeces.append(cnt)
-      if cnt + 1 == self.gradDict['numIterForAve']:
-        cnt = 0
-    
-    for i in range(1,int(self.paramDict['pertSingleGrad']*self.gradDict['numIterForAve']),self.paramDict['pertSingleGrad']):
-      self.perturbationIndeces.append(i)
 
   def localLocalInitialize(self, solutionExport):
     """
@@ -116,6 +67,8 @@ class SPSA(GradientBasedOptimizer):
       @ In, solutionExport, DataObject, a PointSet to hold the solution
       @ Out, None
     """
+    SPSA.localLocalInitialize(solutionExport)
+    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * len(self.fullOptVars)
     self._endJobRunnable        = (self._endJobRunnable*self.gradDict['pertNeeded'])+len(self.optTraj)
 
   def localStillReady(self, ready, convergence = False):
@@ -166,7 +119,7 @@ class SPSA(GradientBasedOptimizer):
         # check to see if the grad evaluation points have all been collected
         evalsFinished = True
         for pertID in range(self.gradDict['pertNeeded']):
-          if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:
+          if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:#[0]:
             evalsFinished = False
             break
         # if grad eval pts are finished, then evaluate the gradient
@@ -289,8 +242,7 @@ class SPSA(GradientBasedOptimizer):
           self.raiseAnError(RuntimeError,'Preparing to add grad evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
         # in order to perform the de-noising we keep the same perturbation direction and we repeat the evaluation multiple times
         direction = self.stochasticEngine() #the deltas for each dimension
-        for i in self.perturbationIndeces: #perturbation points are odd, not even
-          print("action:" +str(i))
+        for i in range(1,2*self.gradDict['numIterForAve'],2): #perturbation points are odd, not even
           point = {}
           for varID, var in enumerate(self.getOptVars(traj=traj)):
             try:
@@ -366,8 +318,8 @@ class SPSA(GradientBasedOptimizer):
     self.counter ['gradientHistory'][traj] = [{},{}]
     self.counter ['gradNormHistory'][traj] = [0,0]
     #only clear non-opt points from pertPoints
-    for i in self.perturbationIndeces:
-      self.gradDict['pertPoints'][traj][i] = 0
+    for i in range(self.gradDict['numIterForAve']):
+      self.gradDict['pertPoints'][traj][i*2+1] = 0
     self.convergeTraj[traj] = False
     self.status[traj] = {'process':'submitting grad eval points','reason':'found new opt point'}
     try:
@@ -444,16 +396,11 @@ class SPSA(GradientBasedOptimizer):
     # check if the active constraints are the boundary ones. In this case, try to project the gradient at an angle
     modded = False
     if len(activeConstraints['internal']) > 0:
-      modded = True
       projectedOnBoundary= {}
       for activeConstraint in activeConstraints['internal']:
         projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
-        gradient[activeConstraint[0]] = 0.0 # remove this component
       varKPlus.update(self.normalizeData(projectedOnBoundary))
-      newNormWithoutComponents = LA.norm(gradient.values())
-      for var in gradient.keys():
-        gradient[var] = gradient[var]/newNormWithoutComponents if newNormWithoutComponents != 0.0 else gradient[var]
-
+      modded = True
     if len(activeConstraints['external']) == 0:
       return varKPlus, modded
 
