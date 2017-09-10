@@ -433,11 +433,16 @@ class SPSA(GradientBasedOptimizer):
     # check if the active constraints are the boundary ones. In this case, try to project the gradient at an angle
     modded = False
     if len(activeConstraints['internal']) > 0:
+      modded = True
       projectedOnBoundary= {}
       for activeConstraint in activeConstraints['internal']:
         projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
+        gradient[activeConstraint[0]] = 0.0 # remove this component
       varKPlus.update(self.normalizeData(projectedOnBoundary))
-      modded = True
+      newNormWithoutComponents = LA.norm(gradient.values())
+      for var in gradient.keys():
+        gradient[var] = gradient[var]/newNormWithoutComponents if newNormWithoutComponents != 0.0 else gradient[var]
+
     if len(activeConstraints['external']) == 0:
       return varKPlus, modded
 

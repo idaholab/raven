@@ -192,7 +192,7 @@ class GradientBasedOptimizer(Optimizer):
     """
     gradArray = {}
     for var in self.getOptVars(traj=traj):
-      gradArray[var] = np.zeros(2) #why are we initializing to this?
+      gradArray[var] = np.zeros(0) #why are we initializing to this?
     # Evaluate gradient at each point
     # first, get average opt point
     # then, evaluate gradients
@@ -569,7 +569,7 @@ class GradientBasedOptimizer(Optimizer):
                 except KeyError:
                   new = badValue
               elif var.startswith( 'gradient_'):
-                varName = var[10:]
+                varName = var[9:]
                 vec = self.counter['gradientHistory'][traj][0].get(varName,None)
                 if vec is not None:
                   new = vec*self.counter['gradNormHistory'][traj][0]
