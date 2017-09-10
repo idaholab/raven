@@ -52,7 +52,7 @@ class RAVENparser():
     # firstly no multiple sublevels of RAVEN can be handled now
     for code in self.tree.findall('.//Models/Code'):
       if 'subType' not in code.attrib:
-        raise IOError(self.printTag+' ERROR: Not found subType attribute in <Code> XML blocks!')        
+        raise IOError(self.printTag+' ERROR: Not found subType attribute in <Code> XML blocks!')
       if code.attrib['subType'].strip() == 'RAVEN':
         raise IOError(self.printTag+' ERROR: Only one level of RAVEN runs are allowed (Not a chain of RAVEN runs). Found a <Code> of subType RAVEN!')
     # find steps and check if there are active outstreams (Print)
@@ -76,7 +76,7 @@ class RAVENparser():
       @ In, outfile, string, optional, output file root
       @ Out, None
     """
-    
+
     xml = xml.dom.minidom.parseString(ET.tostring(rootToPrint))
     inputAsString = xml.toprettyxml()
     if outfile==None:
@@ -89,7 +89,7 @@ class RAVENparser():
     """
       modiDictionary a dict of dictionaries of the required addition or modification
       {"variableToChange":value }
-      @ In, modiDictionary, dict, dictionary of variables to modify 
+      @ In, modiDictionary, dict, dictionary of variables to modify
             syntax:
             {'Node|SubNode|SubSubNode:value1','Node|SubNode|SubSubNode@attribute:attributeValue|SubSubSubNode':value2
                       'Node|SubNode|SubSubNode@attribute':value3}
@@ -103,7 +103,7 @@ class RAVENparser():
       returnElement = self.tree                           #otherwise return the original modified
     for node, value in modiDictionary.items():
       if "|" not in node:
-        raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' does not contain "|" separator and can not be handled!!') 
+        raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' does not contain "|" separator and can not be handled!!')
       changeTheNode = True
       if "@" in node:
         # there are attributes that are needed to locate the node
@@ -129,7 +129,7 @@ class RAVENparser():
                   # check if it is the last component
                   if cnt+1 != len(splittedComponents):
                     raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' follows the syntax "Node|SubNode|SubSubNode@attribute"'+
-                                                ' but the attribute is not the last component. Please check your input!')  
+                                                ' but the attribute is not the last component. Please check your input!')
                   changeTheNode, attribName = False, [splittedComp[0].strip()]
               pass
             else:
@@ -141,7 +141,7 @@ class RAVENparser():
                 # check if it is the last component
                 if cnt+1 != len(splittedComponents):
                   raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' follows the syntax "Node|SubNode|SubSubNode@attribute"'+
-                                              ' but the attribute is not the last component. Please check your input!')  
+                                              ' but the attribute is not the last component. Please check your input!')
                 changeTheNode, attribName = False, [splittedComp[0].strip()]
               findIt = True
           pathNode += "/" + component.strip()
@@ -154,12 +154,12 @@ class RAVENparser():
                 if attribValue == intermNode.attrib[attribName].strip():
                   foundIt, nodeToChange, pathNode = True, intermNode, './/'
                   break
-            if not foundIt: raise IOError(self.printTag+' ERROR: no node has been found corresponding to path -> '+node.strip()+'. Please check the input!!')        
+            if not foundIt: raise IOError(self.printTag+' ERROR: no node has been found corresponding to path -> '+node.strip()+'. Please check the input!!')
       else:
         # there are no attributes that are needed to track down the node to change
         nodePath = './/' + node.replace("|","/").strip()
         # find the node Path
-        nodeToChange = returnElement.findall(nodePath)  
+        nodeToChange = returnElement.findall(nodePath)
         if len(nodeToChange) > 1:
           raise IOError(self.printTag+' ERROR: multiple nodes have been found corresponding to path -> '+node.strip()+'. Please use the attribute identifier "@" to nail down to a specific node !!')
         if len(nodeToChange) == 0:
@@ -169,7 +169,7 @@ class RAVENparser():
         nodeToChange.text = str(value).strip()
       else:
         nodeToChange.attrib[attribName] = str(value).strip()
-    
+
 
 
     import xml.dom.minidom
