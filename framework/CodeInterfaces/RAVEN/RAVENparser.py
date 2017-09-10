@@ -137,7 +137,7 @@ class RAVENparser():
             if attributeNumber > 1:
               # more than an attribute locator
               # 
-              
+              pass
             else:
               if ":" in splittedComp[0].strip():
                 # it is a locator
