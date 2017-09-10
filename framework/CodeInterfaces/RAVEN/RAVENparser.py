@@ -23,6 +23,7 @@ if not 'xrange' in dir(__builtins__):
   xrange = range
 
 import xml.etree.ElementTree as ET
+import xml.dom.minidom
 import os
 import copy
 #from utils.utils import toBytes, toStrish, compare
@@ -37,7 +38,8 @@ class RAVENparser():
       @ In, inputFile, string, input file name
       @ Out, None
     """
-    self.printTag = 'RAVEN_PARSER'
+    self.printTag  = 'RAVEN_PARSER'
+    self.inputFile = inputFile
     if not os.path.exists(inputFile):
       raise IOError('not found RAVEN input file')
     try:
@@ -67,40 +69,21 @@ class RAVENparser():
     if not foundOutStreams:
       raise IOError(self.printTag+' ERROR: at least one <OutStreams> of type "Print" needs to be inputted in the active Steps!!')
 
-  def printInput(self,outfile=None):
+  def printInput(self,rootToPrint,outfile=None):
     """
       Method to print out the new input
+      @ In, rootToPrint, xml.etree.ElementTree.Element, the Element containing the input that needs to be printed out
       @ In, outfile, string, optional, output file root
       @ Out, None
     """
-    # 4 sub levels maximum
-    def printSubLevels(xmlnode,IOfile,indentMultiplier):
-      IOfile.write(b'  '*indentMultiplier+b'[./'+toBytes(xmlnode.tag)+b']\n')
-      for string in xmlnode.tail if xmlnode.tail else []:
-        IOfile.write(b'    '*indentMultiplier+string+b'\n')
-      for key in xmlnode.attrib.keys():
-        IOfile.write(b'    '*indentMultiplier+toBytes(key)+b' = '+toBytes(toStrish(xmlnode.attrib[key]))+b'\n')
+    
+    xml = xml.dom.minidom.parseString(ET.tostring(rootToPrint))
+    inputAsString = xml.toprettyxml()
     if outfile==None:
       outfile =self.inputfile
     IOfile = open(outfile,'wb')
-    for child in self.root:
-      IOfile.write(b'['+toBytes(child.tag)+b']\n')
-      if child.tail:
-        for string in child.tail:
-          IOfile.write(b'  '+string+b'\n')
-      for key in child.attrib.keys():
-        IOfile.write(b'  '+toBytes(key)+b' = '+toBytes(toStrish(child.attrib[key]))+b'\n')
-      for childChild in child:
-        printSubLevels(childChild,IOfile,1)
-        for childChildChild in childChild:
-          printSubLevels(childChildChild,IOfile,2)
-          for childChildChildChild in childChildChild:
-            printSubLevels(childChildChildChild,IOfile,3)
-            IOfile.write(b'      [../]\n')
-          IOfile.write(b'    [../]\n')
-        IOfile.write(b'  [../]\n')
-      IOfile.write(b'[]\n')
-
+    IOfile.write(inputAsString)
+    IOfile.close()
 
   def modifyOrAdd(self,modiDictionary={},save=True):
     """
@@ -131,12 +114,23 @@ class RAVENparser():
         for cnt, subNode in enumerate(splittedComponents):
           findIt = False
           splittedComp = subNode.split("@")
-          component = splittedComp.pop(0)
+          component = splittedComp[0]
           if "@" in subNode:
-            attributeNumber = len(splittedComp)
+            attributeNumber = len(splittedComp)-1
             if attributeNumber > 1:
               # more than an attribute locator
-              # 
+              #
+              for attribComp in splittedComp[1:]:
+                if ":" in attribComp.strip():
+                  # it is a locator
+                  attribName, attribValue = [attribComp.split(":")[0].strip()], [attribComp.split(":")[1].strip()]
+                else:
+                  # it is actually the attribute that needs to be changed
+                  # check if it is the last component
+                  if cnt+1 != len(splittedComponents):
+                    raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' follows the syntax "Node|SubNode|SubSubNode@attribute"'+
+                                                ' but the attribute is not the last component. Please check your input!')  
+                  changeTheNode, attribName = False, [splittedComp[0].strip()]
               pass
             else:
               if ":" in splittedComp[0].strip():
@@ -182,7 +176,7 @@ class RAVENparser():
     xml = xml.dom.minidom.parseString(ET.tostring(returnElement))
     pretty_xml_as_string = xml.toprettyxml()
     print(pretty_xml_as_string)
-
+    self.printInput(returnElement,outfile="lupo.xml")
     if save:
       return returnElement
 
