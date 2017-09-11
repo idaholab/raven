@@ -1723,7 +1723,7 @@ In order to use this algorithm, the user needs to set the subnode:
 In addition to this XML node, several others are available:
 \begin{itemize}
   \item \xmlNode{n}, \xmlDesc{integer, required field}, total number of elements
-  \item \xmlNode{n\_folds}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3} 
+  \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3} 
   \item \xmlNode{shuffle}, \xmlDesc{boolean, optional field}, whether to shuffle the data before splitting into
     batches.
   \item \xmlNode{random\_state}, \xmlDesc{None, integer or RandomState, optional field}, when shuffle=True,
@@ -1740,7 +1740,7 @@ In order to use this algorithm, the user needs to set the subnode:
 In addition to this XML node, several others are available:
 \begin{itemize}
   \item \xmlNode{y}, \xmlDesc{array-like, [n\_samples], required field}, samples to split in K folds.
-  \item \xmlNode{n\_folds}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3} 
+  \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3} 
   \item \xmlNode{shuffle}, \xmlDesc{boolean, optional field}, whether to shuffle the data before splitting into
     batches.
   \item \xmlNode{random\_state}, \xmlDesc{None, integer or RandomState, optional field}, when shuffle=True,
@@ -1759,7 +1759,7 @@ In addition to this XML node, several others are available:
 \begin{itemize}
   \item \xmlNode{labels}, \xmlDesc{array-like with shape (n\_samples, ), required field}, contains a label for
     each sample. The folds are built so that the same label does not appear in two different folds.
-  \item \xmlNode{n\_folds}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3} 
+  \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3} 
 \end{itemize}
 
 \paragraph{Leave-One-Out - LOO}
@@ -1888,7 +1888,7 @@ In addition to this XML node, several others are available:
         <SciKitLearn>
             <SKLtype>KFold</SKLtype>
             <n>10</n>
-            <n_folds>3</n_folds>
+            <n_splits>3</n_splits>
             <shuffle>False</shuffle>
             <random_state>None</random_state>
         </SciKitLearn>

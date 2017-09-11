@@ -35,7 +35,7 @@
         <SciKitLearn>
             <SKLtype>LabelKFold</SKLtype>
             <labels>[0,0,0,1,1,1,1,2,2,2]</labels>
-            <n_folds>3</n_folds>
+            <n_splits>3</n_splits>
         </SciKitLearn>
         <Metric class="Metrics" type="SKL">euclidean</Metric>
     </PostProcessor>

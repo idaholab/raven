@@ -81,9 +81,18 @@ class SciKitLearn(CrossValidation):
         newValue = ast.literal_eval(value)
         if type(newValue) == list:
           newValue = np.asarray(newValue)
-        self.initOptionDict[key] = newValue
+        if key == 'n_splits':
+          self.initOptionDict['n_folds'] = newValue
+        else:
+          self.initOptionDict[key] = newValue
       except:
-        self.initOptionDict[key] = value
+        if key == 'n_splits':
+          self.initOptionDict['n_folds'] = value
+        else:
+          self.initOptionDict[key] = value
+
+    if 'n_splits' in self.initOptionDict.keys():
+      self.initOptionDict.pop('n_splits')
 
     self.__CVInstance = self.__class__.availImpl[self.SKLType][0](**self.initOptionDict)
     self.outputDict = {}
