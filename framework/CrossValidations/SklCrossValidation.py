@@ -27,10 +27,10 @@ import numpy as np
 import sklearn
 import ast
 from utils import utils
-if int(sklearn.__version__.split(".")[1]) > 17:
-  from sklearn import model_selection as cross_validation
-else:
-  from sklearn import cross_validation
+# Modules of cross_validation will be deprecated in SciKit Learn version 0.18 and will be removed in 0.20
+# Currently, I think this is fine, but in the future we will use sklearn.model_selection instead.
+# from sklearn import model_selection as cross_validation
+from sklearn import cross_validation
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -41,17 +41,20 @@ class SciKitLearn(CrossValidation):
   """
     SciKitLearn inteface for Cross validation methods
   """
-  availImpl = {}  # dictionary of available cross validation methods {mainClass:(classPointer, output Type (float))}
+  # The following methods will be deprecated since 0.18 of SciKitLearn, and will be removed in 0.20 of SciKitLearn
+  # FIXME: Swith to sklearn.model_selection instead.
+  # dictionary of available cross validation methods {mainClass:(classPointer, output Type (float))}
+  availImpl = {}
   availImpl['KFold'                  ] = (cross_validation.KFold,                  'float')
   availImpl['StratifiedKFold'        ] = (cross_validation.StratifiedKFold,        'float')
   availImpl['LeaveOneOut'            ] = (cross_validation.LeaveOneOut,            'float')
   availImpl['LeavePOut'              ] = (cross_validation.LeavePOut,              'float')
-  availImpl['LeaveOneLabelOut'       ] = (cross_validation.LeaveOneLabelOut,       'float')
-  availImpl['LeavePLabelOut'         ] = (cross_validation.LeavePLabelOut,         'float')
   availImpl['ShuffleSplit'           ] = (cross_validation.ShuffleSplit,           'float')
+  availImpl['StratifiedShuffleSplit' ] = (cross_validation.StratifiedShuffleSplit, 'float')
   availImpl['LabelKFold'             ] = (cross_validation.LabelKFold,             'float')
   availImpl['LabelShuffleSplit'      ] = (cross_validation.LabelShuffleSplit,      'float')
-  availImpl['StratifiedShuffleSplit' ] = (cross_validation.StratifiedShuffleSplit, 'float')
+  availImpl['LeaveOneLabelOut'       ] = (cross_validation.LeaveOneLabelOut,       'float')
+  availImpl['LeavePLabelOut'         ] = (cross_validation.LeavePLabelOut,         'float')
 
   def __init__(self, messageHandler, **kwargs):
     """
