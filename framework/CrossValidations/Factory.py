@@ -29,10 +29,6 @@ from utils import utils
 from .CrossValidation import CrossValidation
 from .SklCrossValidation import SciKitLearn
 ## [ Add new class here ]
-################################################################################
-## Alternatively, to fully automate this file:
-# from OutStreamManagers import *
-################################################################################
 
 """
   Interface Dictionary (factory) (private)
