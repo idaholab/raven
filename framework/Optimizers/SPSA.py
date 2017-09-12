@@ -227,6 +227,47 @@ class SPSA(GradientBasedOptimizer):
       self.raiseADebug('Next action needed: "%s" on trajectory "%i"' %self.nextActionNeeded)
       return True
 
+  def localEvaluateGradient(self, optVarsValues, traj,  gradient = None):
+    """
+      Local method to evaluate gradient.
+      @ In, optVarsValues, dict, dictionary containing perturbed points.
+                                 optVarsValues should have the form {pertIndex: {varName: [varValue1 varValue2]}}
+                                 Therefore, each optVarsValues[pertIndex] should return a dict of variable values
+                                 that is sufficient for gradient evaluation for at least one variable
+                                 (depending on specific optimization algorithm)
+      @ In, traj, int, the trajectory id
+      @ In, gradient, dict, optional, dictionary containing gradient estimation by the caller.
+                                      gradient should have the form {varName: gradEstimation}
+      @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
+    """
+    gradArray = {}
+    for var in self.getOptVars(traj=traj):
+      gradArray[var] = np.zeros(0) #why are we initializing to this?
+    # Evaluate gradient at each point
+    # first, get average opt point
+    # then, evaluate gradients
+    for i in range(self.gradDict['numIterForAve']):
+      opt  = optVarsValues[i]                                  #the latest opt point
+      pert = optVarsValues[i + self.gradDict['numIterForAve']] #the perturbed point
+      #calculate grad(F) wrt each input variable
+      lossDiff = pert['output'] - opt['output'] #optOutAvg
+      #cover "max" problems
+      # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
+      #   sign flipping was only called when evaluating the gradient.
+      if self.optType == 'max':
+        lossDiff *= -1.0
+      for var in self.getOptVars(traj=traj):
+        # gradient is calculated in normalized space
+        dh = pert['inputs'][var] - opt['inputs'][var]
+        if abs(dh) < 1e-15:
+          self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
+        gradArray[var] = np.append(gradArray[var], lossDiff/dh)
+    gradient = {}
+    for var in self.getOptVars(traj=traj):
+      gradient[var] = gradArray[var].mean()
+    print("grad "+str(gradient))
+    return gradient
+
   def localGenerateInput(self,model,oldInput):
     """
       Method to generate input for model to run
@@ -281,7 +322,7 @@ class SPSA(GradientBasedOptimizer):
         if len(self.submissionQueue[traj]) > 0:
           self.raiseAnError(RuntimeError,'Preparing to add grad evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
         for i in self.perturbationIndeces: #perturbation points are odd, not even
-          direction = self._getPerturbationDirection(i)
+          direction = self._getPerturbationDirection(i, traj)
           point = {}
           for varID, var in enumerate(self.getOptVars(traj=traj)):
             val = varK[var] + ck*direction[varID]
@@ -632,10 +673,11 @@ class SPSA(GradientBasedOptimizer):
     if state['recommendToGain'] is not None:
       self.recommendToGain[traj] = state['recommendToGain']
 
-  def _getPerturbationDirection(self,perturbationIndex):
+  def _getPerturbationDirection(self,perturbationIndex, traj):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
       @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndeces)
+      @ In, traj, int, the trajectory id
       @ Out, direction, list, the versor for each optimization dimension
     """
     if perturbationIndex == self.perturbationIndeces[0]:
@@ -644,6 +686,7 @@ class SPSA(GradientBasedOptimizer):
     else:
       # in order to perform the de-noising we keep the same perturbation direction and we repeat the evaluation multiple times
       direction = self.currentDirection
+    print("direction: "+str(direction))
     return direction
 
 

@@ -59,25 +59,75 @@ class FiniteDifferenceGradientOptimizer(SPSA):
     """
     SPSA.localInputAndChecks(self, xmlNode)
     self.paramDict['pertSingleGrad'] = len(self.fullOptVars)
+    self.gradDict['pertNeeded']      = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)
 
-  #def localLocalInitialize(self, solutionExport):
-  #  """
-  #    Method to initialize local settings.
-  #    @ In, solutionExport, DataObject, a PointSet to hold the solution
-  #    @ Out, None
-  #  """
-  #  SPSA.localLocalInitialize(solutionExport)
 
-  def _getPerturbationDirection(self,perturbationIndex):
+  def _getPerturbationDirection(self,perturbationIndex, traj):
     """
-      This method is aimed to get the perturbation direction (i.e. in this case the finite difference versor)
+      This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
       @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndeces)
+      @ In, traj, int, the trajectory id
       @ Out, direction, list, the versor for each optimization dimension
     """
-    if perturbationIndex == self.perturbationIndeces[0]:
-      direction = self.stochasticEngine()
-      self.currentDirection = direction
+    optVars = self.getOptVars(traj)
+    if len(optVars) == 1:
+      direction = [-1.0]
     else:
-      # in order to perform the de-noising we keep the same perturbation direction and we repeat the evaluation multiple times
-      direction = self.currentDirection
+      if perturbationIndex == self.perturbationIndeces[0]:
+        direction = np.zeros(len(self.getOptVars(traj))).tolist()
+        direction[0] = 1.0
+      else:
+        print(self.currentDirection)
+        index = self.currentDirection.index(1.0)
+        direction = self.currentDirection
+        newIndex = 0 if index+1 == len(direction) else index+1
+        direction[newIndex],direction[index] = 1.0, 0.0
+    self.currentDirection = direction
+    print("direction: "+str(direction))
     return direction
+
+  def localEvaluateGradient(self, optVarsValues, traj, gradient = None):
+    """
+      Local method to evaluate gradient.
+      @ In, optVarsValues, dict, dictionary containing perturbed points.
+                                 optVarsValues should have the form {pertIndex: {varName: [varValue1 varValue2]}}
+                                 Therefore, each optVarsValues[pertIndex] should return a dict of variable values
+                                 that is sufficient for gradient evaluation for at least one variable
+                                 (depending on specific optimization algorithm)
+      @ In, traj, int, the trajectory id
+      @ In, gradient, dict, optional, dictionary containing gradient estimation by the caller.
+                                      gradient should have the form {varName: gradEstimation}
+      @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
+    """
+    gradArray = {}
+    optVars = self.getOptVars(traj=traj)
+    for var in optVars:
+      gradArray[var] = np.zeros(self.gradDict['numIterForAve']) #why are we initializing to this?
+
+    # Evaluate gradient at each point
+    # first, get average opt point
+    # then, evaluate gradients
+
+    for i in range(self.gradDict['numIterForAve']):
+      opt  = optVarsValues[i]                                  #the latest opt point
+      for j in range(self.paramDict['pertSingleGrad']):
+        # loop over the perturbation to construct the full gradient
+        pert = optVarsValues[self.gradDict['numIterForAve']+j] #the perturbed point
+        #calculate grad(F) wrt each input variable
+        lossDiff = pert['output'] - opt['output'] #optOutAvg
+        #cover "max" problems
+        # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
+        #   sign flipping was only called when evaluating the gradient.
+        if self.optType == 'max':
+          lossDiff *= -1.0
+        var = optVars[j]
+        # gradient is calculated in normalized space
+        dh = pert['inputs'][var] - opt['inputs'][var]
+        if abs(dh) < 1e-15:
+          self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
+        gradArray[var][i] = lossDiff/dh
+    gradient = {}
+    for var in optVars:
+      gradient[var] = gradArray[var].mean()
+    print("grad "+str(gradient))
+    return gradient

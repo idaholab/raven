@@ -195,33 +195,9 @@ class GradientBasedOptimizer(Optimizer):
       @ In, traj, int, the trajectory id
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
-    gradArray = {}
-    for var in self.getOptVars(traj=traj):
-      gradArray[var] = np.zeros(0) #why are we initializing to this?
-    # Evaluate gradient at each point
-    # first, get average opt point
-    # then, evaluate gradients
-    for i in range(self.gradDict['numIterForAve']):
-      opt  = optVarsValues[i]                                  #the latest opt point
-      pert = optVarsValues[i + self.gradDict['numIterForAve']] #the perturbed point
-      #calculate grad(F) wrt each input variable
-      lossDiff = pert['output'] - opt['output'] #optOutAvg
-      #cover "max" problems
-      # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
-      #   sign flipping was only called when evaluating the gradient.
-      if self.optType == 'max':
-        lossDiff *= -1.0
-      for var in self.getOptVars(traj=traj):
-        # gradient is calculated in normalized space
-        dh = pert['inputs'][var] - opt['inputs'][var]
-        if abs(dh) < 1e-15:
-          self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
-        gradArray[var] = np.append(gradArray[var], lossDiff/dh)
-    gradient = {}
-    for var in self.getOptVars(traj=traj):
-      gradient[var] = gradArray[var].mean()
     # currently unused, allow subclasses to modify gradient evaluation
-    gradient = self.localEvaluateGradient(optVarsValues, gradient)
+    gradient = None # for now...most of the stuff in the localEvaluate can be performed here
+    gradient = self.localEvaluateGradient(optVarsValues, traj, gradient)
     # we intend for gradient to give direction only
     gradientNorm = np.linalg.norm(gradient.values())
     if gradientNorm > 0.0:
