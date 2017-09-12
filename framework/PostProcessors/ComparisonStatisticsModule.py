@@ -32,6 +32,7 @@ from utils import mathUtils
 from utils import InputData
 import Files
 import Runners
+import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
 def _getGraphs(functions, fZStats = False):
@@ -305,7 +306,89 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
   return dataStats, cdfFunc, pdfFunc
 
 
+def _convertToCommonFormat(data):
+  """
+    Convert either a distribution or a set of data to a (stats, cdf, pdf) pair
+  """
+  if isinstance(data, Distributions.Distribution):
+    # data is a subclass of BoostDistribution, generate needed stats, and pass in cdf and pdf.
+    stats = {"mean":data.untruncatedMean(),"stdev":data.untruncatedStdDev()}
+    cdf = lambda x:data.cdf(x)
+    pdf = lambda x:data.pdf(x)
+    return stats, cdf, pdf
+  if type(data).__name__ == "tuple":
+    # data is (list,list), then it is a list of weights
+    assert len(data) == 2
+    points, weights = data
+    assert len(points) == len(weights)
+  elif '__len__' in dir(data):
+    # data is list, then it is a list of data, generate uniform weights and begin
+    points = data
+    weights = [1.0/len(points)]*len(points)
+  else:
+    raise IOError("Unknown type in _convertToCommonFormat")
+  #Sturges method for determining number of bins
+  numBins = int(math.ceil(mathUtils.log2(len(points)) + 1))
+  return _getPDFandCDFfromWeightedData(points, weights, numBins, False, 'linear')
 
+
+def _getBounds(stats1, stats2):
+  """
+    Gets low and high bounds that captures the interesting bits of the two
+    pieces of data.
+    @ In, stats1, dict, dictionary with either "low" and "high" or "mean" and "stdev"
+    @ In, stats2, dict, dictionary with either "low" and "high" or "mean" and "stdev"
+    @ Out, (low, high), (float, float) Returns low and high bounds.
+  """
+  def getLowBound(stat):
+    """
+      Finds the lower bound from the statistics in stat.
+      @ In, stat, dict, Dictionary with either "low" or "mean" and "stdev"
+      @ Out, getLowBound, float, the lower bound to use.
+    """
+    if "low" in stat:
+      return stat["low"]
+    return stat["mean"] - 5*stat["stdev"]
+
+  def getHighBound(stat):
+    """
+      Finds the higher bound from the statistics in stat.
+      @ In, stat, dict, Dictionary with either "high" or "mean" and "stdev"
+      @ Out, getLowBound, float, the lower bound to use.
+    """
+    if "high" in stat:
+      return stat["high"]
+    return stat["mean"] + 5*stat["stdev"]
+
+  low = min(getLowBound(stats1), getLowBound(stats2))
+  high = max(getHighBound(stats1), getHighBound(stats2))
+  return (low,high)
+
+def _getCDFAreaDifference(data1, data2):
+  """
+    Gets the area between the two CDFs in data1 and data2.
+    The greater the area, the more different data1 and data2 are.
+    @ In, data1, varies, The first data to use, see _convertToCommonFormat
+    @ In, data2, varies, The second data to use, see _convertToCommonFormat
+    @ Out, cdfAreaDifference, float, the area difference between the CDFs.
+  """
+  stats1, cdf1, pdf1 =_convertToCommonFormat(data1)
+  stats2, cdf2, pdf2 =_convertToCommonFormat(data2)
+  low, high = _getBounds(stats1, stats2)
+  return mathUtils.simpson(lambda x:abs(cdf1(x)-cdf2(x)),low,high,100000)
+
+def _getPDFCommonArea(data1, data2):
+  """
+    Gets the area that the PDFs overlap in data1 and data2.
+    The greater the area, the more similar data1 and data2 are.
+    @ In, data1, varies, The first data to use, see _convertToCommonFormat
+    @ In, data2, varies, The second data to use, see _convertToCommonFormat
+    @ Out, pdfCommonArea, float, the common area between the PDFs.
+  """
+  stats1, cdf1, pdf1 =_convertToCommonFormat(data1)
+  stats2, cdf2, pdf2 =_convertToCommonFormat(data2)
+  low, high = _getBounds(stats1, stats2)
+  return mathUtils.simpson(lambda x:min(pdf1(x),pdf2(x)),low,high,100000)
 
 
 def _getPDFandCDFfromData(dataName, data, csv, methodInfo, interpolation,

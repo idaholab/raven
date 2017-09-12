@@ -33,6 +33,7 @@ import utils.utils
 utils.utils.find_crow(frameworkDir)
 
 import PostProcessors.ComparisonStatisticsModule
+import Distributions
 
 print(dir(PostProcessors.ComparisonStatisticsModule))
 
@@ -66,5 +67,37 @@ stats, cdf, pdf = PostProcessors.ComparisonStatisticsModule._getPDFandCDFfromWei
 print(stats)
 print(cdf(0.0),cdf(32.0),cdf(64.0))
 assert 0.4 < cdf(32.0) < 0.6
+
+low, high = PostProcessors.ComparisonStatisticsModule._getBounds({"low":1.0,"high":3.0},{"low":2.0,"high":2.5})
+assert low == 1.0
+assert high == 3.0
+
+dist1 = Distributions.Normal(0.0, 1.0)
+dist1.initializeDistribution()
+
+dist2 = Distributions.Normal(1.0, 1.0)
+dist2.initializeDistribution()
+
+#Test same
+cdfAreaDifference = PostProcessors.ComparisonStatisticsModule._getCDFAreaDifference(dist1, dist1)
+
+print("cdfAreaDifference same",cdfAreaDifference)
+assert -1e-3 < cdfAreaDifference < 1e-3
+
+pdfCommonArea = PostProcessors.ComparisonStatisticsModule._getPDFCommonArea(dist1, dist1)
+
+print("pdfCommonArea same",pdfCommonArea)
+assert 0.99 < pdfCommonArea < 1.01
+
+#Test different
+cdfAreaDifference = PostProcessors.ComparisonStatisticsModule._getCDFAreaDifference(dist1, dist2)
+
+print("cdfAreaDifference different",cdfAreaDifference)
+assert 0.99 < cdfAreaDifference < 1.01
+
+pdfCommonArea = PostProcessors.ComparisonStatisticsModule._getPDFCommonArea(dist1, dist2)
+
+print("pdfCommonArea different",pdfCommonArea)
+assert 0.60 < pdfCommonArea < 0.62
 
 
