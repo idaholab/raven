@@ -4,7 +4,7 @@
     <name>framework/Optimizers.BealeFiniteDifference</name>
     <author>alfoa</author>
     <created>2017-09-11</created>
-    <classesTested>Optimizer</classesTested>
+    <classesTested>Optimizer.FiniteDifferenceGradientOptimizer</classesTested>
     <description>
       This test runs the optimization (Finite difference forward) on Beale's function.  It tests analytic optimization values
       as well as the mechanical operation of the Finite Difference optimizer.     </description>

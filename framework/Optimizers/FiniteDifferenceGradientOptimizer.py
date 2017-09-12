@@ -71,7 +71,7 @@ class FiniteDifferenceGradientOptimizer(SPSA):
     """
     optVars = self.getOptVars(traj)
     if len(optVars) == 1:
-      direction = [-1.0]
+      direction = [1.0]
     else:
       if perturbationIndex == self.perturbationIndeces[0]:
         direction = np.zeros(len(self.getOptVars(traj))).tolist()
@@ -112,7 +112,7 @@ class FiniteDifferenceGradientOptimizer(SPSA):
       opt  = optVarsValues[i]                                  #the latest opt point
       for j in range(self.paramDict['pertSingleGrad']):
         # loop over the perturbation to construct the full gradient
-        pert = optVarsValues[self.gradDict['numIterForAve']+j] #the perturbed point
+        pert = optVarsValues[self.gradDict['numIterForAve']+i+j] #the perturbed point
         #calculate grad(F) wrt each input variable
         lossDiff = pert['output'] - opt['output'] #optOutAvg
         #cover "max" problems
