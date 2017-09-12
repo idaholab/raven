@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on Mar 25, 2013
+Created on Sept 10, 2017
 
-@author: crisr
+@author: alfoa
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -76,9 +76,9 @@ class RAVENparser():
       @ In, outfile, string, optional, output file root
       @ Out, None
     """
-
-    xml = xml.dom.minidom.parseString(ET.tostring(rootToPrint))
-    inputAsString = xml.toprettyxml()
+    xmlObj = xml.dom.minidom.parseString(ET.tostring(rootToPrint))
+    inputAsString = xmlObj.toprettyxml()
+    inputAsString = "".join([s for s in inputAsString.strip().splitlines(True) if s.strip()])
     if outfile==None:
       outfile =self.inputfile
     IOfile = open(outfile,'wb')
@@ -107,75 +107,49 @@ class RAVENparser():
       changeTheNode = True
       if "@" in node:
         # there are attributes that are needed to locate the node
-        nodeToChange = returnElement
         splittedComponents = node.split("|")
         # check the first
         pathNode = './'
+        attribName = ''
         for cnt, subNode in enumerate(splittedComponents):
-          findIt = False
           splittedComp = subNode.split("@")
           component = splittedComp[0]
+          attribPath = ""
           if "@" in subNode:
-            attributeNumber = len(splittedComp)-1
-            if attributeNumber > 1:
-              # more than an attribute locator
-              #
-              for attribComp in splittedComp[1:]:
-                if ":" in attribComp.strip():
-                  # it is a locator
-                  attribName, attribValue = [attribComp.split(":")[0].strip()], [attribComp.split(":")[1].strip()]
-                else:
-                  # it is actually the attribute that needs to be changed
-                  # check if it is the last component
-                  if cnt+1 != len(splittedComponents):
-                    raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' follows the syntax "Node|SubNode|SubSubNode@attribute"'+
-                                                ' but the attribute is not the last component. Please check your input!')
-                  changeTheNode, attribName = False, [splittedComp[0].strip()]
-              pass
-            else:
-              if ":" in splittedComp[0].strip():
+            # more than an attribute locator
+            for attribComp in splittedComp[1:]:
+              if ":" in attribComp.strip():
                 # it is a locator
-                attribName, attribValue = [splittedComp[0].split(":")[0].strip()], [splittedComp[0].split(":")[1].strip()]
+                attribPath +='[@'+attribComp.split(":")[0].strip()+('="'+attribComp.split(":")[1].strip()+'"]')
               else:
                 # it is actually the attribute that needs to be changed
                 # check if it is the last component
                 if cnt+1 != len(splittedComponents):
                   raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' follows the syntax "Node|SubNode|SubSubNode@attribute"'+
                                               ' but the attribute is not the last component. Please check your input!')
-                changeTheNode, attribName = False, [splittedComp[0].strip()]
-              findIt = True
-          pathNode += "/" + component.strip()
-          if findIt:
-            foundIt = False
-            intermNodes = nodeToChange.findall(pathNode)
-            if len(intermNodes) == 0: raise IOError(self.printTag+' ERROR: no node has been found corresponding to path -> '+node.strip()+'. Please check the input!!')
-            for intermNode in intermNodes:
-              if attribName in intermNode.attrib:
-                if attribValue == intermNode.attrib[attribName].strip():
-                  foundIt, nodeToChange, pathNode = True, intermNode, './/'
-                  break
-            if not foundIt: raise IOError(self.printTag+' ERROR: no node has been found corresponding to path -> '+node.strip()+'. Please check the input!!')
+                attribPath +='[@'+attribComp.strip()+']'
+                attribName = attribComp
+          pathNode += "/" + component.strip()+attribPath
+        if pathNode.endswith("]"):
+          changeTheNode = False
+        else:
+          changeTheNode = True     
       else:
         # there are no attributes that are needed to track down the node to change
-        nodePath = './/' + node.replace("|","/").strip()
-        # find the node Path
-        nodeToChange = returnElement.findall(nodePath)
-        if len(nodeToChange) > 1:
-          raise IOError(self.printTag+' ERROR: multiple nodes have been found corresponding to path -> '+node.strip()+'. Please use the attribute identifier "@" to nail down to a specific node !!')
-        if len(nodeToChange) == 0:
-          raise IOError(self.printTag+' ERROR: no node has been found corresponding to path -> '+node.strip()+'. Please check the input!!')
-        nodeToChange = nodeToChange[0]
+        pathNode = './/' + node.replace("|","/").strip()
+      # look for the node with XPath directives 
+      foundNodes = returnElement.findall(pathNode)
+      if len(foundNodes) > 1:
+        raise IOError(self.printTag+' ERROR: multiple nodes have been found corresponding to path -> '+node.strip()+'. Please use the attribute identifier "@" to nail down to a specific node !!')
+      if len(foundNodes) == 0:
+        raise IOError(self.printTag+' ERROR: no node has been found corresponding to path -> '+node.strip()+'. Please check the input!!')
+      nodeToChange = foundNodes[0]
+      pathNode     = './/'      
       if changeTheNode:
         nodeToChange.text = str(value).strip()
       else:
         nodeToChange.attrib[attribName] = str(value).strip()
 
-
-
-    import xml.dom.minidom
-    xml = xml.dom.minidom.parseString(ET.tostring(returnElement))
-    pretty_xml_as_string = xml.toprettyxml()
-    print(pretty_xml_as_string)
     self.printInput(returnElement,outfile="lupo.xml")
     if save:
       return returnElement
