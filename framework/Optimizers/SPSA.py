@@ -265,7 +265,6 @@ class SPSA(GradientBasedOptimizer):
     gradient = {}
     for var in self.getOptVars(traj=traj):
       gradient[var] = gradArray[var].mean()
-    print("grad "+str(gradient))
     return gradient
 
   def localGenerateInput(self,model,oldInput):
@@ -337,7 +336,6 @@ class SPSA(GradientBasedOptimizer):
       entry = self.submissionQueue[traj].popleft()
       prefix = entry['prefix']
       point = entry['inputs']
-      print(prefix)
       self.gradDict['pertPoints'][traj][int(prefix.split('_')[-1])] = {'inputs':point}#self.normalizeData(point)}
       point = self.denormalizeData(point)
       for var in self.getOptVars(traj=traj):
@@ -686,7 +684,6 @@ class SPSA(GradientBasedOptimizer):
     else:
       # in order to perform the de-noising we keep the same perturbation direction and we repeat the evaluation multiple times
       direction = self.currentDirection
-    print("direction: "+str(direction))
     return direction
 
 

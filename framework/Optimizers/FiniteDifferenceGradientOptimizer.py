@@ -71,19 +71,26 @@ class FiniteDifferenceGradientOptimizer(SPSA):
     """
     optVars = self.getOptVars(traj)
     if len(optVars) == 1:
-      direction = [1.0]
+      if self.currentDirection:
+        factor = np.sum(self.currentDirection)*-1.0
+      else:
+        factor = 1.0
+      direction = [factor]
     else:
       if perturbationIndex == self.perturbationIndeces[0]:
         direction = np.zeros(len(self.getOptVars(traj))).tolist()
-        direction[0] = 1.0
+        factor = 1.0
+        if self.currentDirection:
+          factor = np.sum(self.currentDirection)*-1.0
+        else:
+          factor = 1.0
+        direction[0] = factor
       else:
-        print(self.currentDirection)
-        index = self.currentDirection.index(1.0)
+        index = self.currentDirection.index(1.0) if self.currentDirection.count(1.0) > 0 else self.currentDirection.index(-1.0)
         direction = self.currentDirection
         newIndex = 0 if index+1 == len(direction) else index+1
-        direction[newIndex],direction[index] = 1.0, 0.0
+        direction[newIndex],direction[index] = direction[index], 0.0
     self.currentDirection = direction
-    print("direction: "+str(direction))
     return direction
 
   def localEvaluateGradient(self, optVarsValues, traj, gradient = None):
@@ -129,5 +136,4 @@ class FiniteDifferenceGradientOptimizer(SPSA):
     gradient = {}
     for var in optVars:
       gradient[var] = gradArray[var].mean()
-    print("grad "+str(gradient))
     return gradient
