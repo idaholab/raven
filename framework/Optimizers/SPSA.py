@@ -165,7 +165,7 @@ class SPSA(GradientBasedOptimizer):
         if evalsFinished:
           # collect output values for perturbed points
           #for i in range(1,self.gradDict['numIterForAve']*2,2):
-          for i in self.perturbationIndeces:
+          for i in self.perturbationIndices:
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
             outval = self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar][evalIndex]
             self.gradDict['pertPoints'][traj][i]['output'] = outval
@@ -319,7 +319,7 @@ class SPSA(GradientBasedOptimizer):
         #TODO this same check is in GradientBasedOptimizer.queueUpOptPointRuns, they might benefit from abstracting
         if len(self.submissionQueue[traj]) > 0:
           self.raiseAnError(RuntimeError,'Preparing to add grad evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
-        for i in self.perturbationIndeces: #perturbation points are odd, not even
+        for i in self.perturbationIndices: #perturbation points are odd, not even
           direction = self._getPerturbationDirection(i, traj)
           point = {}
           for varID, var in enumerate(self.getOptVars(traj=traj)):
@@ -393,7 +393,7 @@ class SPSA(GradientBasedOptimizer):
     self.counter ['gradientHistory'][traj] = [{},{}]
     self.counter ['gradNormHistory'][traj] = [0,0]
     #only clear non-opt points from pertPoints
-    for i in self.perturbationIndeces:
+    for i in self.perturbationIndices:
       self.gradDict['pertPoints'][traj][i] = 0
     self.convergeTraj[traj] = False
     self.status[traj] = {'process':'submitting grad eval points','reason':'found new opt point'}
@@ -673,17 +673,14 @@ class SPSA(GradientBasedOptimizer):
   def _getPerturbationDirection(self,perturbationIndex, traj):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
-      @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndeces)
+      @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
       @ In, traj, int, the trajectory id
       @ Out, direction, list, the versor for each optimization dimension
     """
-    if perturbationIndex == self.perturbationIndeces[0]:
+    if perturbationIndex == self.perturbationIndices[0]:
       direction = self.stochasticEngine()
       self.currentDirection = direction
     else:
       # in order to perform the de-noising we keep the same perturbation direction and we repeat the evaluation multiple times
       direction = self.currentDirection
     return direction
-
-
-

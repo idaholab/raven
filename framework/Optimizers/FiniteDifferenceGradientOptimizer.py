@@ -61,11 +61,10 @@ class FiniteDifferenceGradientOptimizer(SPSA):
     self.paramDict['pertSingleGrad'] = len(self.fullOptVars)
     self.gradDict['pertNeeded']      = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)
 
-
   def _getPerturbationDirection(self,perturbationIndex, traj):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
-      @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndeces)
+      @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
       @ In, traj, int, the trajectory id
       @ Out, direction, list, the versor for each optimization dimension
     """
@@ -77,7 +76,7 @@ class FiniteDifferenceGradientOptimizer(SPSA):
         factor = 1.0
       direction = [factor]
     else:
-      if perturbationIndex == self.perturbationIndeces[0]:
+      if perturbationIndex == self.perturbationIndices[0]:
         direction = np.zeros(len(self.getOptVars(traj))).tolist()
         factor = 1.0
         if self.currentDirection:

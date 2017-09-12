@@ -76,7 +76,7 @@ class GradientBasedOptimizer(Optimizer):
     self.recommendToGain             = {}              # recommended action to take in next step, by trajectory
     self.gainGrowthFactor            = 2.              # max step growth factor
     self.gainShrinkFactor            = 2.              # max step shrinking factor
-    self.perturbationIndeces         = []              # in this list we store the indeces that correspond to the perturbation. It is not ideal but it is quick and dirty now
+    self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation. It is not ideal but it is quick and dirty now
 
   def localInputAndChecks(self, xmlNode):
     """
@@ -133,7 +133,7 @@ class GradientBasedOptimizer(Optimizer):
     # end job runnable equal to number of trajectory
     self._endJobRunnable = len(self.optTraj)
     # compute perturbation indeces
-    self.perturbationIndeces = list(range(self.gradDict['numIterForAve'],self.gradDict['numIterForAve']*(self.paramDict['pertSingleGrad']+1)))
+    self.perturbationIndices = list(range(self.gradDict['numIterForAve'],self.gradDict['numIterForAve']*(self.paramDict['pertSingleGrad']+1)))
     #specializing the self.localLocalInitialize()
     self.localLocalInitialize(solutionExport=solutionExport)
 
