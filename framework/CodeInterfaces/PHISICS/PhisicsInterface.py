@@ -27,8 +27,6 @@ import re
 from  __builtin__ import any as bAny
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import phisicsdata
-import xml.etree.ElementTree as ET
-import tarfile
 
 
 class Phisics(CodeInterfaceBase):
@@ -79,37 +77,6 @@ class Phisics(CodeInterfaceBase):
           distributedPerturbedVars[pertType[j]][key] = value
     #print (distributedPerturbedVars)
     return distributedPerturbedVars
-  
-  def mapFile(self, driverXML):
-    """
-      This module map the "type" in the XML tree and locate, and associate the "type" value to a number. 
-      this number is then used as an index to associate the correct files to be perturbed to the corresponding 
-      parsers
-      In: Driver input file (xml file)
-      out: mapDict, dictionary, key is the "type", the value is a number
-    """
-    stepDict = {}
-    fileDict = {}
-    mapDict = {}
-    stepCount = 0 
-    tree = ET.parse(driverXML)
-    root = tree.getroot()
-    for stepsXML in root.getiterator('Steps'):
-      for inputXML in stepsXML.getiterator('Input'): 
-        #print (fileCount)
-        #print (inputXML.attrib)
-        #print (inputXML.text)
-        stepDict[inputXML.text.lower()] = stepCount
-        stepCount = stepCount + 1  
-    for filesXML in root.getiterator('Files'):
-      for inputXML in filesXML.getiterator('Input'): 
-        fileDict[inputXML.attrib.get('type').lower()] = inputXML.text.lower()
-    #for typeName, fileName in fileDict.item():
-    #  for stepName, mapNumber in stepDict():
-    mapDict = {k:stepDict[v] for k,v in fileDict.iteritems()}    
-    #print (fileDict)
-    #print (mapDict)
-    return mapDict
   
   def addDefaultExtension(self):
     self.addInputExtension(['xml','dat','path'])
@@ -232,15 +199,18 @@ class Phisics(CodeInterfaceBase):
     import XSCreator
     
     keyWordDict = {} 
+    count = 0
+    
     directoryFiles = ['path','library_fiss','input_dpl']
     #print (currentInputFiles)
-    driverXML = 'test_phisics_code_interface.xml'
-    keyWordDict = self.mapFile(driverXML)
-    #print (keyWordDict)
     #print (Kwargs)
     #print (Kwargs['SampledVars'])
-    #print ("\n\n\n")
     perturbedVars = Kwargs['SampledVars']
+    
+    for inFile in currentInputFiles:
+      keyWordDict[inFile.getType().lower()] = count 
+      count = count + 1
+
     distributedPerturbedVars = self.distributeVariablesToParsers(perturbedVars)
     #print (distributedPerturbedVars)
     #print (currentInputFiles)

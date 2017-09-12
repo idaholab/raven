@@ -422,7 +422,7 @@ class phisicsdata():
             for i in xrange (1,len(self.isotopeList)):
               timeStepList.append(line.split(',')[0])
               depLabelList.append('dep'+'|'+materialList[1]+'|'+self.isotopeList[i])
-              depList.append(line.split(',')[i - 1])
+              depList.append(line.split(',')[i])
     #print depLabelList
     #print depList
     return depLabelList, depList, timeStepList, matList
@@ -484,7 +484,7 @@ class phisicsdata():
               for i in xrange (1,len(self.isotopeList)):
                 timeStepList.append(decayLine[0])
                 decayLabelList.append('decay'+'|'+matDecay+'|'+self.isotopeList[i])
-                decayList.append(decayLine[i - 1])
+                decayList.append(decayLine[i])
         if breakFlag == 1:
           break
     #print decayLabelList

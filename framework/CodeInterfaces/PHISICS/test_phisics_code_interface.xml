@@ -34,7 +34,7 @@
     <Input name="ISOTXS000007"        type="isoXS"            perturbable="False"                             >ISOTXS000007</Input>
     <Input name="XS.xml"              type="XS"               perturbable="True"                              >XS.xml</Input>
     
-    <!--Input name="1"                   type="allFilePath"      perturbable="False" subDirectory="path"      >*</Input-->
+    <!--Input name="1"                   type="allFilePath"      perturbable="False" subDirectory="path"         >*</Input-->
     <!--Input name="2"                   type="allFileLib_fiss"  perturbable="False" subDirectory="library_fiss" >*</Input-->
     <!--Input name="3"                   type="allFileinput_dpl" perturbable="False" subDirectory="input_dpl"    >*</Input-->
   </Files>
@@ -233,22 +233,22 @@
 
   <Steps>
     <MultiRun name="testDummyStep">
-      <Input class="Files" type="">decay.dat</Input>
-      <Input class="Files" type="">inp.xml</Input>
-      <Input class="Files" type="">lib_inp_path.xml</Input>
-      <Input class="Files" type="">Material.xml</Input>
-      <Input class="Files" type="">Depletion_input.xml</Input>
-      <Input class="Files" type="">Xs-Library.xml</Input>
-      <Input class="Files" type="">FissionYield.dat</Input>
-      <Input class="Files" type="">FissQValue.dat</Input>
-      <Input class="Files" type="">AlphaDecay.path</Input>
-      <Input class="Files" type="">Beta+Decay.path</Input>
-      <Input class="Files" type="">Beta+xDecay.path</Input>
-      <Input class="Files" type="">BetaDecay.path</Input>
-      <Input class="Files" type="">BetaxDecay.path</Input>
-      <Input class="Files" type="">IntTraDecay.path</Input>
-      <Input class="Files" type="">ISOTXS000007</Input>
-      <Input class="Files" type="">XS.xml</Input>
+      <Input class="Files" type="decay">decay.dat</Input>
+      <Input class="Files" type="inp">inp.xml</Input>
+      <Input class="Files" type="lib_inp_path">lib_inp_path.xml</Input>
+      <Input class="Files" type="Material">Material.xml</Input>
+      <Input class="Files" type="Depletion_input">Depletion_input.xml</Input>
+      <Input class="Files" type="Xs-Library">Xs-Library.xml</Input>
+      <Input class="Files" type="FissionYield">FissionYield.dat</Input>
+      <Input class="Files" type="FissQValue">FissQValue.dat</Input>
+      <Input class="Files" type="AlphaDecay">AlphaDecay.path</Input>
+      <Input class="Files" type="Beta+Decay">Beta+Decay.path</Input>
+      <Input class="Files" type="Beta+xDecay">Beta+xDecay.path</Input>
+      <Input class="Files" type="BetaDecay">BetaDecay.path</Input>
+      <Input class="Files" type="BetaxDecay">BetaxDecay.path</Input>
+      <Input class="Files" type="IntTraDecay">IntTraDecay.path</Input>
+      <Input class="Files" type="ISOTXS000007">ISOTXS000007</Input>
+      <Input class="Files" type="XS">XS.xml</Input>
       <!--Input class="Files" type="">1</Input-->
       <!--Input class="Files" type="">2</Input-->
       <!--Input class="Files" type="">3</Input-->
