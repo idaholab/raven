@@ -220,7 +220,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
               try:
                 self.optVarsInit['initial'][varname][trajInd] = float(initVal)
               except ValueError:
-                self.raiseAnError(ValueError, "Unable to convert to float the intial value for variable "+varname+ " in trajectory "+str(trajInd))
+                self.raiseAnError(ValueError, 'Unable to convert to float the intial value for variable "{}" in trajectory "{}": {}'.format(varname,trajInd,initVal))
             if self.optTraj == None:
               self.optTraj = range(len(self.optVarsInit['initial'][varname].keys()))
       elif child.tag == "constant":
