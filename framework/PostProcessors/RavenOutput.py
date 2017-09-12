@@ -28,6 +28,7 @@ from .PostProcessor import PostProcessor
 from utils import utils
 from utils import xmlUtils
 import Files
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class RavenOutput(PostProcessor):
@@ -206,9 +207,12 @@ class RavenOutput(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    realizations = finishedJob.getEvaluation()[1]['realizations']
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
+    outputDictionary = evaluation[1]
+    realizations = outputDictionary['realizations']
     for real in realizations:
       for key in output.getParaKeys('inputs'):
         if key not in real['inputs'].keys():

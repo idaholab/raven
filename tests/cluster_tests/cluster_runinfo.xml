@@ -1,5 +1,4 @@
 <Simulation>
   <RunInfo>
-    <clusterParameters>-P moose</clusterParameters>
   </RunInfo>
 </Simulation>

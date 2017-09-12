@@ -467,12 +467,19 @@ class EnsembleModel(Dummy):
         for key in exportDict['metadata']:
           output.updateMetadata(key,exportDict['metadata'][key][-1])
     # collect outputs for "holding"
-    if "holdOutputErase" in exportDict['metadata']:
-      if exportDict['metadata']['holdOutputErase'] is not None:
-        keys = self.tempOutputs['forHold'].keys()
-        for key in keys:
-          if key.startswith(exportDict['metadata']['holdOutputErase'][0]):
-            self.tempOutputs['forHold'].pop(key)
+    # first clear old outputs
+    # TODO FIXME this is a flawed implementation, since it requires that the "holdOutputErase" is of
+    # a very specific form that works with the the current SPSA optimizer.  Since we have no other optimizer right now,
+    # the problem is only extensibility, not the actual implementation.
+    if exportDict['metadata'].get('holdOutputErase',None) is not None:
+      keys = self.tempOutputs['forHold'].keys()
+      toErase = exportDict['metadata']['holdOutputErase'][0].split('_')[:2]
+      for key in keys:
+        traj,itr,pert = key.split('_')
+        if traj == toErase[0] and itr <= toErase[1]:
+          del self.tempOutputs['forHold'][key]
+    #then hold on to the current output
+    #TODO we shouldn't be doing this unless the user asked us to hold outputs!  FIXME
     self.tempOutputs['forHold'][finishedJob.identifier] = {'outs':optionalOutputs,'targetEvaluations':targetEvaluations}
 
   def getAdditionalInputEdits(self,inputInfo):
@@ -512,6 +519,40 @@ class EnsembleModel(Dummy):
         @ In,  jobHandler, JobHandler instance, the global job handler instance
         @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ Out, None
+    """
+    for mm in utils.returnImportModuleString(jobHandler):
+      if mm not in self.mods:
+        self.mods.append(mm)
+
+    prefix = kwargs['prefix']
+    self.tempOutputs['uncollectedJobIds'].append(prefix)
+
+    ## Ensemble models need access to the job handler, so let's stuff it in our
+    ## catch all kwargs where evaluateSample can pick it up, not great, but
+    ## will suffice until we can better redesign this whole process.
+    kwargs['jobHandler'] = jobHandler
+
+    ## This may look a little weird, but due to how the parallel python library
+    ## works, we are unable to pass a member function as a job because the
+    ## pp library loses track of what self is, so instead we call it from the
+    ## class and pass self in as the first parameter
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+
+
+  def submitAsClient(self,myInput,samplerType,jobHandler,**kwargs):
+    """
+        This will submit an individual sample to be evaluated by this model to a
+        specified jobHandler as a client job. Note, some parameters are needed
+        by createNewInput and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new
+          one
+        @ In, samplerType, string, is the type of sampler that is calling to
+          generate a new input
+        @ In,  jobHandler, JobHandler instance, the global job handler instance
+        @ In, **kwargs, dict,  is a dictionary that contains the information
+          coming from the sampler, a mandatory key is the sampledVars' that
+          contains a dictionary {'name variable':value}
         @ Out, None
     """
     for mm in utils.returnImportModuleString(jobHandler):

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,8 +67,7 @@ def get_params(line):
   params = line[equalsIndex + 1:].strip().strip('"').split()
   return name,params
 
-for name, params in [get_params(l) for l in lines[1:
-  4]]:
+for name, params in [get_params(l) for l in lines[1:4]]:
   print(name,params)
   if name == "names":
     names = ",".join(params)

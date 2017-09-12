@@ -373,7 +373,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     paramDict = {}
     for variable in self.toBeSampled.items():
-      paramDict[variable[0]] = 'is sampled using the distribution ' +variable[1]
+      paramDict["sampled variable: "+variable[0]] = 'is sampled using the distribution ' +variable[1]
     paramDict['limit' ]        = self.limit
     paramDict['initial seed' ] = self.initSeed
     paramDict.update(self.localGetInitParams())

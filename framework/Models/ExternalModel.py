@@ -49,6 +49,7 @@ class ExternalModel(Dummy):
         specifying input of cls.
     """
     inputSpecification = super(ExternalModel, cls).getInputSpecification()
+    inputSpecification.setStrictMode(False) #External models can allow new elements
     inputSpecification.addParam("ModuleToLoad", InputData.StringType, True)
     inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringType))
 
@@ -112,7 +113,7 @@ class ExternalModel(Dummy):
     if 'createNewInput' in dir(self.sim):
       if 'SampledVars' in kwargs.keys():
         sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
-      extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**kwargs)
+      extCreateNewInput = self.sim.createNewInput(self.initExtSelf,myInput,samplerType,**kwargs)
       if extCreateNewInput== None:
         self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
       if type(extCreateNewInput).__name__ != "dict":
@@ -128,8 +129,9 @@ class ExternalModel(Dummy):
       newInput = ([(extCreateNewInput)],copy.deepcopy(kwargs))
     else:
       newInput =  Dummy.createNewInput(self, myInput,samplerType,**kwargs)
-    for key in kwargs['SampledVars'].keys():
-      modelVariableValues[key] = kwargs['SampledVars'][key]
+    if 'SampledVars' in kwargs.keys():
+      for key in kwargs['SampledVars'].keys():
+        modelVariableValues[key] = kwargs['SampledVars'][key]
     return newInput, copy.copy(modelVariableValues)
 
   def localInputAndChecks(self,xmlNode):

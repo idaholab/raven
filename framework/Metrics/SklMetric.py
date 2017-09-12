@@ -65,18 +65,27 @@ class SKL(Metric):
   def distance(self, x, y=None, **kwargs):
     """
       This method returns the distance between two points x and y. If y is not provided then x is a pointSet and a distance matrix is returned
-      @ In, x, dict, dictionary containing data of x
-      @ In, y, dict, dictionary containing data of y
-      @ Out, value, float or numpy.ndarray, distance between x and y (if y is provided) or a square distance matrix if y is None
+      @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided, the array will be reshaped via x.reshape(1,-1)
+      @ In, y, numpy.ndarray, array containing data of y, if 1D array is provided, the array will be reshaped via y.reshape(1,-1)
+      @ Out, value, numpy.ndarray, distance between x and y (if y is provided) or a square distance matrix if y is None
     """
     if y is not None:
       if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
+        if len(x.shape) == 1:
+          x = x.reshape(1,-1)
+          #self.raiseAWarning(self, "1D array is provided. For consistence, this array is reshaped via x.reshape(1,-1) ")
+        if len(y.shape) == 1:
+          y = y.reshape(1,-1)
+          #self.raiseAWarning(self, "1D array is provided. For consistence, this array is reshaped via y.reshape(1,-1) ")
         dictTemp = utils.mergeDictionaries(kwargs,self.distParams)
         if self.metricType in pairwise.kernel_metrics().keys():
-          value = pairwise.kernel_metrics(X=x, Y=y, metric=self.metricType, **dictTemp)
+          value = pairwise.pairwise_kernels(X=x, Y=y, metric=self.metricType, **dictTemp)
         elif self.metricType in pairwise.distance_metrics():
           value = pairwise.pairwise_distances(X=x, Y=y, metric=self.metricType, **dictTemp)
-        return value
+        if value.shape == (1,1):
+          return value[0]
+        else:
+          return value
       else:
         self.raiseAnError(IOError,'Metric SKL error: SKL metrics support only PointSets and not HistorySets')
     else:
@@ -88,4 +97,7 @@ class SKL(Metric):
         value = pairwise.pairwise_kernels(X=x, metric=self.metricType, **dictTemp)
       elif self.metricType in pairwise.distance_metrics().keys():
         value = pairwise.pairwise_distances(X=x, metric=self.metricType, **dictTemp)
-      return value
+      if value.shape == (1,1):
+        return value[0]
+      else:
+        return value

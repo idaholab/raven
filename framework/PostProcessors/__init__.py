@@ -37,6 +37,8 @@ from .SafestPoint import SafestPoint
 
 from .TopologicalDecomposition import TopologicalDecomposition
 from .DataMining import DataMining
+from .Metric import Metric
+from .CrossValidation import CrossValidation
 
 additionalModules = []
 ## These utilize the optional prequisite library PySide, so don't error if they
@@ -66,4 +68,6 @@ __all__ = ['PostProcessor',
            'RavenOutput',
            'SafestPoint',
            'TopologicalDecomposition',
-           'DataMining'] + additionalModules
+           'DataMining',
+           'Metric',
+           'CrossValidation'] + additionalModules

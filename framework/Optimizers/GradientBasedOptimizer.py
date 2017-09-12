@@ -120,6 +120,7 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['solutionUpdate'][traj]   = 0
       self.counter['gradientHistory'][traj]  = [{},{}]
       self.counter['gradNormHistory'][traj]  = [0.0,0.0]
+      self.counter['persistence'][traj]      = 0
       self.optVarsHist[traj]                 = {}
       self.readyVarsUpdate[traj]             = False
       self.convergeTraj[traj]                = False
@@ -191,15 +192,16 @@ class GradientBasedOptimizer(Optimizer):
     """
     gradArray = {}
     for var in self.getOptVars(traj=traj):
-      gradArray[var] = np.zeros(2) #why are we initializing to this?
+      gradArray[var] = np.zeros(0) #why are we initializing to this?
     # Evaluate gradient at each point
     # first, get average opt point
     # then, evaluate gradients
     for i in range(self.gradDict['numIterForAve']):
       opt  = optVarsValues[i*2]     #the latest opt point
       pert = optVarsValues[i*2 + 1] #the perturbed point
-      #calculate grad(F) wrt each input variable
-      lossDiff = pert['output'] - opt['output'] #optOutAvg
+      # calculate grad(F) wrt each input variable
+      # fix infinities!
+      lossDiff = mathUtils.diffWithInfinites(pert['output'],opt['output'])
       #cover "max" problems
       # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
       #   sign flipping was only called when evaluating the gradient.
@@ -217,8 +219,23 @@ class GradientBasedOptimizer(Optimizer):
     # currently unused, allow subclasses to modify gradient evaluation
     gradient = self.localEvaluateGradient(optVarsValues, gradient)
     # we intend for gradient to give direction only
-    gradientNorm = np.linalg.norm(gradient.values())
-    if gradientNorm > 0.0:
+    gradientNorm = np.linalg.norm(gradient.values()) #might be infinite!
+    #fix inf
+    if gradientNorm == np.inf:
+      # if there are infinites, then only infinites should remain, and they are +-1
+      for var in gradient.keys():
+        if gradient[var] == -np.inf:
+          gradient[var] = -1.0
+        elif gradient[var] == np.inf:
+          gradient[var] = 1.0
+        else:
+          gradient[var] = 0
+      # set up the new grad norm
+      infGradientNorm = np.linalg.norm(gradient.values())
+      for var in gradient.keys():
+        gradient[var] = gradient[var]/infGradientNorm
+    # else, if no infinites, use normal norm
+    elif gradientNorm > 0.0:
       for var in gradient.keys():
         gradient[var] = gradient[var]/gradientNorm
     self.counter['gradientHistory'][traj][1] = copy.deepcopy(self.counter['gradientHistory'][traj][0])
@@ -364,7 +381,7 @@ class GradientBasedOptimizer(Optimizer):
       # if accepting new point, then "same coordinate" and "abs" and "rel" checks are also valid reasons to converge
       if newerIsBetter:
         #absolute tolerance
-        absLossDiff = abs(currentLossVal-oldLossVal)
+        absLossDiff = abs(mathUtils.diffWithInfinites(currentLossVal,oldLossVal))
         self.convergenceProgress[traj]['abs'] = absLossDiff
         absTolCheck = absLossDiff <= self.absConvergenceTol
         printProgress('Absolute Loss Diff',absTolCheck,absLossDiff,self.absConvergenceTol)
@@ -385,10 +402,17 @@ class GradientBasedOptimizer(Optimizer):
         converged = converged or sameCoordinateCheck
 
     if converged:
-      self.raiseAMessage(' ... Trajectory "{}" converged!'.format(traj))
-      self.convergeTraj[traj] = True
-      self.removeConvergedTrajectory(traj)
+      # update number of successful convergences
+      self.counter['persistence'][traj] += 1
+      # check if we've met persistence requirement; if not, keep going
+      if self.counter['persistence'][traj] >= self.convergencePersistence:
+        self.raiseAMessage(' ... Trajectory "{}" converged {} times consecutively!'.format(traj,self.counter['persistence'][traj]))
+        self.convergeTraj[traj] = True
+        self.removeConvergedTrajectory(traj)
+      else:
+        self.raiseAMessage(' ... converged Traj "{}" {} times, required persistence is {}.'.format(traj,self.counter['persistence'][traj],self.convergencePersistence))
     else:
+      self.counter['persistence'][traj] = 0
       self.raiseAMessage(' ... continuing trajectory "{}".'.format(traj))
 
   def _removeRedundantTraj(self, trajToRemove, currentInput):
@@ -561,7 +585,7 @@ class GradientBasedOptimizer(Optimizer):
                 except KeyError:
                   new = badValue
               elif var.startswith( 'gradient_'):
-                varName = var[10:]
+                varName = var[9:]
                 vec = self.counter['gradientHistory'][traj][0].get(varName,None)
                 if vec is not None:
                   new = vec*self.counter['gradNormHistory'][traj][0]
