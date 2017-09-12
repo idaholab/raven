@@ -60,6 +60,12 @@ class PostProcessor(Model):
     #cls.validateDict['Input'  ][3]['type'        ] = ['']
     cls.validateDict['Input'  ][3]['required'    ] = False
     cls.validateDict['Input'  ][3]['multiplicity'] = 'n'
+    # Cross validations will accept Model.ROM
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    cls.validateDict['Input'  ][4]['class'       ] = 'Models'
+    cls.validateDict['Input'  ][4]['type'        ] = ['ROM']
+    cls.validateDict['Input'  ][4]['required'    ] = False
+    cls.validateDict['Input'  ][4]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][0]['class'       ] = 'Files'
     cls.validateDict['Output' ][0]['type'        ] = ['']
