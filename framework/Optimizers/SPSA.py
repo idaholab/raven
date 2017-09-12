@@ -242,15 +242,14 @@ class SPSA(GradientBasedOptimizer):
     """
     gradArray = {}
     for var in self.getOptVars(traj=traj):
-      gradArray[var] = np.zeros(0) #why are we initializing to this?
+      gradArray[var] = np.zeros(0)
     # Evaluate gradient at each point
-    # first, get average opt point
-    # then, evaluate gradients
     for i in range(self.gradDict['numIterForAve']):
       opt  = optVarsValues[i]                                  #the latest opt point
       pert = optVarsValues[i + self.gradDict['numIterForAve']] #the perturbed point
-      #calculate grad(F) wrt each input variable
-      lossDiff = pert['output'] - opt['output'] #optOutAvg
+      # calculate grad(F) wrt each input variable
+      # fix infinities!
+      lossDiff = mathUtils.diffWithInfinites(pert['output'],opt['output'])
       #cover "max" problems
       # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
       #   sign flipping was only called when evaluating the gradient.

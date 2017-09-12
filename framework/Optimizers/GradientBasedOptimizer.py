@@ -199,8 +199,23 @@ class GradientBasedOptimizer(Optimizer):
     gradient = None # for now...most of the stuff in the localEvaluate can be performed here
     gradient = self.localEvaluateGradient(optVarsValues, traj, gradient)
     # we intend for gradient to give direction only
-    gradientNorm = np.linalg.norm(gradient.values())
-    if gradientNorm > 0.0:
+    gradientNorm = np.linalg.norm(gradient.values()) #might be infinite!
+    #fix inf
+    if gradientNorm == np.inf:
+      # if there are infinites, then only infinites should remain, and they are +-1
+      for var in gradient.keys():
+        if gradient[var] == -np.inf:
+          gradient[var] = -1.0
+        elif gradient[var] == np.inf:
+          gradient[var] = 1.0
+        else:
+          gradient[var] = 0
+      # set up the new grad norm
+      infGradientNorm = np.linalg.norm(gradient.values())
+      for var in gradient.keys():
+        gradient[var] = gradient[var]/infGradientNorm
+    # else, if no infinites, use normal norm
+    elif gradientNorm > 0.0:
       for var in gradient.keys():
         gradient[var] = gradient[var]/gradientNorm
     self.counter['gradientHistory'][traj][1] = copy.deepcopy(self.counter['gradientHistory'][traj][0])
@@ -346,7 +361,7 @@ class GradientBasedOptimizer(Optimizer):
       # if accepting new point, then "same coordinate" and "abs" and "rel" checks are also valid reasons to converge
       if newerIsBetter:
         #absolute tolerance
-        absLossDiff = abs(currentLossVal-oldLossVal)
+        absLossDiff = abs(mathUtils.diffWithInfinites(currentLossVal,oldLossVal))
         self.convergenceProgress[traj]['abs'] = absLossDiff
         absTolCheck = absLossDiff <= self.absConvergenceTol
         printProgress('Absolute Loss Diff',absTolCheck,absLossDiff,self.absConvergenceTol)

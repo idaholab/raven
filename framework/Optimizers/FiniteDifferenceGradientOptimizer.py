@@ -109,19 +109,16 @@ class FiniteDifferenceGradientOptimizer(SPSA):
     gradArray = {}
     optVars = self.getOptVars(traj=traj)
     for var in optVars:
-      gradArray[var] = np.zeros(self.gradDict['numIterForAve']) #why are we initializing to this?
+      gradArray[var] = np.zeros(self.gradDict['numIterForAve'])
 
     # Evaluate gradient at each point
-    # first, get average opt point
-    # then, evaluate gradients
-
     for i in range(self.gradDict['numIterForAve']):
       opt  = optVarsValues[i]                                  #the latest opt point
       for j in range(self.paramDict['pertSingleGrad']):
         # loop over the perturbation to construct the full gradient
         pert = optVarsValues[self.gradDict['numIterForAve']+i+j] #the perturbed point
         #calculate grad(F) wrt each input variable
-        lossDiff = pert['output'] - opt['output'] #optOutAvg
+        lossDiff = mathUtils.diffWithInfinites(pert['output'],opt['output'])
         #cover "max" problems
         # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
         #   sign flipping was only called when evaluating the gradient.
