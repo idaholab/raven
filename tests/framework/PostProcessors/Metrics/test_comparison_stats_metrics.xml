@@ -1,0 +1,114 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>compStats</WorkingDir>
+    <Sequence>mcRun, PP1, PP2</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/Metric/test_metric</name>
+    <author>wangc</author>
+    <created>2017-08-29</created>
+    <classesTested>PostProcessors.Metric</classesTested>
+    <description>
+      This test checks the Metric PostProcessor
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="output_cdf_diff" type="">output_cdf_diff.xml</Input>
+    <Input name="output_cdf_diff.csv" type="">output_cdf_diff.csv</Input>
+    <Input name="output_pdf_area" type="">output_pdf_area.xml</Input>
+    <Input name="output_pdf_area.csv" type="">output_pdf_area.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="passthru.py" name="passthru" subType="">
+      <variables>x1,x2,ans,ans2</variables>
+    </ExternalModel>
+    <PostProcessor name="pp1" subType="Metric">
+      <Features type="variable">ans</Features>
+      <Targets type="variable">ans2</Targets>
+      <Metric class="Metrics" type="CDFAreaDifference">cdf_diff</Metric>
+    </PostProcessor>
+    <PostProcessor name="pp2" subType="Metric">
+      <Features type="variable">ans</Features>
+      <Targets type="variable">ans2</Targets>
+      <Metric class="Metrics" type="PDFCommonArea">pdf_area</Metric>
+    </PostProcessor>
+  </Models>
+
+  <Metrics>
+    <CDFAreaDifference name="cdf_diff">
+    </CDFAreaDifference>
+    <PDFCommonArea name="pdf_area">
+    </PDFCommonArea>
+  </Metrics>
+
+  <Distributions>
+    <Normal name="dist1">
+      <mean>1</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="dist2">
+      <mean>2</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>300</limit>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>dist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>dist2</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mcRun" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">passthru</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC</Output>
+      <Output class="OutStreams" type="Print">dumpMC</Output>
+    </MultiRun>
+    <PostProcess name="PP1">
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="Files" type="">output_cdf_diff</Output>
+      <Output class="Files" type="">output_cdf_diff.csv</Output>
+    </PostProcess>
+    <PostProcess name="PP2">
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Model class="Models" type="PostProcessor">pp2</Model>
+      <Output class="Files" type="">output_pdf_area</Output>
+      <Output class="Files" type="">output_pdf_area.csv</Output>
+    </PostProcess>
+
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataMC">
+      <Input>x1,x2</Input>
+      <Output>ans,ans2</Output>
+    </PointSet>
+  </DataObjects>
+ 
+  <OutStreams>
+      <Print name="dumpMC">
+          <type>csv</type>
+          <source>outputDataMC</source>
+      </Print>
+  </OutStreams>
+
+</Simulation>
