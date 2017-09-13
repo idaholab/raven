@@ -25,6 +25,8 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import copy
 import numpy as np
+import time
+from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -82,6 +84,7 @@ class HybridModel(Dummy):
     self.romConverged          = False    # True if all roms are converged
     self.romValid              = False    # True if all roms are valid for given input data
     self.romConvergence        = 0.001
+    self.tempOutputs           = {}
     self.optimizerTypes        = ['SPSA'] # list of types of optimizer
     self.printTag              = 'HYBRIDMODEL MODEL' # print tag
     # assembler objects to be requested
@@ -147,17 +150,18 @@ class HybridModel(Dummy):
     if self.targetEvaluationInstance is None:
       self.raiseAnError(IOError, 'TargetEvaluation XML block needs to be inputted!')
 
-    for romName, romInfo in self.romsDictionary.keys():
-      romInfo['Instance'] = self.retrieveObjectFromAssemblerDcit('ROM', romName)
+    for romName, romInfo in self.romsDictionary.items():
+      romInfo['Instance'] = self.retrieveObjectFromAssemblerDict('ROM', romName)
       if romInfo['Instance']  is None:
         self.raiseAnError(IOError, 'ROM XML block needs to be inputted!')
 
     modelInputs = self.targetEvaluationInstance.getParaKeys("inputs")
-    modelOutputs = self.targetEvaluationInstance.getParaKeys("ouptuts")
+    modelOutputs = self.targetEvaluationInstance.getParaKeys("outputs")
     modelName = self.modelInstance.name
     totalRomOutputs = []
 
-    for romIn in self.romsDictionary['ROM'].keys():
+    for romInfo in self.romsDictionary.values():
+      romIn = romInfo['Instance']
       romInputs = romIn.getInitParams()['Features']
       romOutputs = romIn.getInitParams()['Target']
       totalRomOutputs.extend(romOutputs)
@@ -176,7 +180,7 @@ class HybridModel(Dummy):
 
     # check: we require that the union of ROMs outputs is the same as the paired model in order to use the ROM
     # to replace the paired model.
-    if len(set(totalRomOutputs)) != len(totalRomOutputs)
+    if len(set(totalRomOutputs)) != len(totalRomOutputs):
       dup = []
       for elem in set(totalRomOutputs):
         if totalRomOutputs.count(elem) > 1:
@@ -221,15 +225,16 @@ class HybridModel(Dummy):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
+    self.raiseADebug("Create New Input")
     if self.romValid:
       identifier = kwargs['prefix']
       newKwargs = {'prefix':identifier}
       for romName in self.romsDictionary.keys():
         newKwargs[romName] = self.__selectInputSubset(romName, kwargs)
         newKwargs[romName]['prefix'] = romName+utils.returnIdSeparator()+identifier
-        newKwargs[romName]['uniqueHandler'] = self.name+identfier
+        newKwargs[romName]['uniqueHandler'] = self.name+identifier
     else:
-      newKwargs = copy.copy(kwargs)
+      newKwargs = copy.deepcopy(kwargs)
 
     return (myInput, samplerType, newKwargs)
 
@@ -300,7 +305,6 @@ class HybridModel(Dummy):
         self.mods.append(mm)
 
     prefix = kwargs['prefix']
-    uniqueHandler = kwargs['uniqueHandler']
     self.tempOutputs['uncollectedJobIds'].append(prefix)
     self.counter = kwargs['counter']
 
@@ -328,6 +332,53 @@ class HybridModel(Dummy):
     ## class and pass self in as the first parameter
     jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
+  def submitAsClient(self,myInput,samplerType,jobHandler,**kwargs):
+    """
+        This will submit an individual sample to be evaluated by this model to a
+        specified jobHandler as a client job. Note, some parameters are needed
+        by createNewInput and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new
+          one
+        @ In, samplerType, string, is the type of sampler that is calling to
+          generate a new input
+        @ In,  jobHandler, JobHandler instance, the global job handler instance
+        @ In, **kwargs, dict,  is a dictionary that contains the information
+          coming from the sampler, a mandatory key is the sampledVars' that
+          contains a dictionary {'name variable':value}
+        @ Out, None
+    """
+    for mm in utils.returnImportModuleString(jobHandler):
+      if mm not in self.mods:
+        self.mods.append(mm)
+
+    prefix = kwargs['prefix']
+    self.tempOutputs['uncollectedJobIds'].append(prefix)
+    self.counter = kwargs['counter']
+
+    if not self.romConverged:
+      trainingSize = self.checkTrainingSize()
+      if trainingSize == self.romTrainStartSize:
+        self.trainRom()
+        self.romConverged = self.checkRomConvergence()
+      elif trainingSize > self.romTrainStartSize and (trainingSize-self.romTrainStartSize)%self.romTrainStepSize == 0 and trainingSize <= self.romTrainMaxSize:
+        self.trainRom()
+        self.romConverged = self.checkRomConvergence()
+      elif trainingSize > self.romTrainMaxSize:
+        self.raiseAnError(IOError, "Maximum training size is reached, but ROMs are still not converged!")
+    else:
+      self.romValid = self.checkRomValidity()
+
+    ## Ensemble models need access to the job handler, so let's stuff it in our
+    ## catch all kwargs where evaluateSample can pick it up, not great, but
+    ## will suffice until we can better redesign this whole process.
+    kwargs['jobHandler'] = jobHandler
+
+    ## This may look a little weird, but due to how the parallel python library
+    ## works, we are unable to pass a member function as a job because the
+    ## pp library loses track of what self is, so instead we call it from the
+    ## class and pass self in as the first parameter
+    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
@@ -338,8 +389,9 @@ class HybridModel(Dummy):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, returnValue, dict, This holds the output information of the evaluated sample.
     """
+    self.raiseADebug("Evaluate Sample")
     jobHandler = kwargs.pop('jobHandler')
-    Input = self.createNewInput(myInput, samplerType, **kwargs)
+    Input = self.createNewInput(myInput[0], samplerType, **kwargs)
 
     ## Unpack the specifics for this class, namely just the jobHandler
     returnValue = (Input,self._externalRun(Input,jobHandler))
@@ -353,16 +405,17 @@ class HybridModel(Dummy):
       @ In, jobHandler, instance, instance of jobHandler
       @ Out, exportDict, dict, dict of results from this hybrid model
     """
+    self.raiseADebug("External Run")
     originalInput = inRun[0]
     samplerType = inRun[1]
     inputKwargs = inRun[2]
     identifier = inputKwargs.pop('prefix')
+    uniqueHandler = self.name + identifier
 
     if self.romValid:
       # run roms
       exportDict = {}
       for romName, romInfo in self.romsDictionary.items():
-        inputKwargs['uniqueHandler'] = self.name + identifier
         nextRom = False
         while not nextRom:
           if jobHandler.availability() > 0:
@@ -372,32 +425,35 @@ class HybridModel(Dummy):
             nextRom = True
           else:
             time.sleep(1.0e-3)
-          finishedRun = jobHandler.getFinished(jobIdentifier = romName+utils.returnIdSeparator()+identifier, uniqueHandler = self.name+identifier)
+          finishedRun = jobHandler.getFinished(jobIdentifier = romName+utils.returnIdSeparator()+identifier, uniqueHandler = uniqueHandler)
           evaluation = finishedRun[0].getEvaluation()
-          if isinstance(evaluation, Runners.Error)
+          if isinstance(evaluation, Runners.Error):
             self.raiseAnError(RuntimeError, "The rom "+romName+" identified by "+finishedRun[0].identifier+" failed!")
           # collect output in temporary data object
           tempExportDict = romInfo['Instance'].createExportDictionaryFromFinishedJob(finishedRun[0], True)
           self.__mergeDict(exportDict, tempExportDict)
     else:
       # run model
-      inputKwargs['prefix'] = identifier
-      inputKwargs['uniqueHandler'] = uniqueHandler
+      inputKwargs['prefix'] = self.modelInstance.name+utils.returnIdSeparator()+identifier
+      inputKwargs['uniqueHandler'] = self.name + identifier
       moveOn = False
       while not moveOn:
         if jobHandler.availability() > 0:
           self.modelInstance.submit(originalInput, samplerType, jobHandler, **inputKwargs)
-          while not jobHandler.isThisJobFinished(identifier):
+          self.raiseADebug("Job submitted for model ", self.modelInstance.name, " with identifier ", identifier)
+          while not jobHandler.isThisJobFinished(self.modelInstance.name+utils.returnIdSeparator()+identifier):
             time.sleep(1.0e-3)
+          self.raiseADebug("Job finished ", self.modelInstance.name, " with identifier ", identifier)
           moveOn = True
         else:
           time.sleep(1.0e-3)
         finishedRun = jobHandler.getFinished(jobIdentifier = identifier, uniqueHandler = uniqueHandler)
         evaluation = finishedRun[0].getEvaluation()
-        if isinstance(evaluation, Runners.Error)
+        if isinstance(evaluation, Runners.Error):
           self.raiseAnError(RuntimeError, "The model "+self.modelInstance.name+" identified by "+finishedRun[0].identifier+" failed!")
         # collect output in temporary data object
         exportDict = self.modelInstance.createExportDictionaryFromFinishedJob(finishedRun[0], True)
+        self.raiseADebug("Create exportDict")
 
     return exportDict
 
@@ -412,10 +468,15 @@ class HybridModel(Dummy):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
     exportDict = evaluation[1]
+    try:
+      jobIndex = self.tempOutputs['uncollectedJobIds'].index(finishedJob.identifier)
+      self.tempOutputs['uncollectedJobIds'].pop(jobIndex)
+    except ValueError:
+      jobIndex = None
     # save the data into targetEvaluation
     self.collectOutputFromDict(exportDict, self.targetEvaluationInstance)
 
-    Dummy.collectOutput(self, finishedJob, output, exportDict)
+    Dummy.collectOutput(self, finishedJob, output, options = {'exportDict':exportDict})
 
   def isRomConverged(self):
     """

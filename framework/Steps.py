@@ -590,6 +590,8 @@ class MultiRun(SingleRun):
         # add new job
 
         isEnsemble = isinstance(model, Models.EnsembleModel)
+        isHybrid = isinstance(model, Models.HybridModel)
+        isEnsemble = any([isEnsemble,isHybrid])
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
         ## In order to ensure that the queue does not grow too large, we will
         ## employ a threshold on the number of jobs the jobHandler can take,
