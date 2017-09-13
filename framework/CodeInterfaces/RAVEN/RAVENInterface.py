@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on April 14, 2014
+Created on Sept 10, 2017
 
 @author: alfoa
 """
@@ -23,7 +23,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
-import MooseData
+import RavenData
 import csvUtilities
 
 class RAVEN(CodeInterfaceBase):
@@ -32,6 +32,7 @@ class RAVEN(CodeInterfaceBase):
   """
   def __init__(self):
     CodeInterfaceBase.__init__(self)
+    self.printTag  = 'RAVEN INTERFACE'
     self.outputPrefix = 'out~'
 
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
@@ -54,8 +55,6 @@ class RAVEN(CodeInterfaceBase):
         break
     if not found:
       raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    if fargs['moosevpp'] != '':
-      self.mooseVPPFile = fargs['moosevpp']
     outputfile = self.outputPrefix+inputFiles[index].getBase()
     executeCommand = [('parallel',executable+' -i '+inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
@@ -71,29 +70,26 @@ class RAVEN(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    import MOOSEparser
-    self._samplersDictionary                = {}
-    if 'dynamiceventtree' in str(samplerType).lower():
-      self._samplersDictionary[samplerType] = self.dynamicEventTreeForMooseBasedApp
-    else:
-      self._samplersDictionary[samplerType] = self.pointSamplerForMooseBasedApp
+    import RAVENparser
+    #self._samplersDictionary                = {}
+    if 'dynamiceventtree' in str(samplerType).strip().lower():
+      raise IOError(self.printTag+' ERROR: DynamicEventTree-based sampling not supported!')
 
     found = False
     for index, inputFile in enumerate(currentInputFiles):
-      inputFile = inputFile.getAbsFile()
-      if inputFile.endswith(self.getInputExtension()):
+      if inputFile.getType().lower() == 'raven':
+        inputFileIndex = index
+        if found:
+          raise IOError(self.printTag+" ERROR: Currently the RAVEN interface allows only one input file (xml). ExternalXML and Merging Files will be added in the future!")
         found = True
         break
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+      raise IOError('None of the input files are tagged with the "type" "raven" (e.g. <Input name="aName" type="raven">inputFileName.xml</Input>)')
     outName = self.outputPrefix+currentInputFiles[index].getBase()
-    parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
-    modifDict = {}
-    if 'None' not in str(samplerType):
-      modifDict = self._samplersDictionary[samplerType](**Kwargs)
-    #set up output
-    modifDict.append({'csv':'true','name':['Outputs']})
-    modifDict.append({'file_base':outName,'name':['Outputs']})
+    parser = RAVENparser.RAVENparser(currentInputFiles[inputFileIndex].getAbsFile())
+    modifDict = Kwargs['SampledVars']
+    # we set the workind directory to the current working dir
+    modifDict['RunInfo|WorkingDir'] = '.'
     #make tree
     parser.modifyOrAdd(modifDict,False)
     #make input
@@ -143,25 +139,3 @@ class RAVEN(CodeInterfaceBase):
       outputObj = MooseData.mooseData(files2Merge,workingDir,output,self.mooseVPPFile)
       vppFiles.append(os.path.join(workingDir,str(outputObj.vppFiles)))
     return vppFiles
-
-  def _expandVarNames(self,**Kwargs):
-    """
-      This method will assure the full proper variable names are returned in a dictionary.
-      @ In, Kwargs, dict, keyworded dictionary. Arguments include:
-          - SampleVars, short name -> sampled value dictionary
-      @ Out, listDict, list, list of dictionaries. The dictionaries contain:
-               ['name'][path,to,name]
-               [short varname][var value]
-    """
-    listDict=[]
-    modifDict={}
-    for var in Kwargs['SampledVars']:
-      key = var.split(':')
-      modifDict = {}
-      if '|' not in key[0]:
-        continue
-      modifDict['name'] = key[0].split('|')[:-1]
-      modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
-      listDict.append(modifDict)
-      del modifDict
-    return listDict
