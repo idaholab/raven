@@ -5,7 +5,8 @@
     <!-- *********************************************************************** -->
     <xsd:complexType name="OptimizerData">
         <xsd:sequence>
-            <xsd:element name="SPSA"                  type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="SPSA"                              type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="FiniteDifferenceGradientOptimizer" type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 

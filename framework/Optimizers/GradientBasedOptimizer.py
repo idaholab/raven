@@ -56,25 +56,27 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     Optimizer.__init__(self)
-    self.constraintHandlingPara     = {}              # Dict containing parameters for parameters related to constraints handling
-    self.gradientNormTolerance      = 1.e-3           # tolerance on the L2 norm of the gradient
-    self.gradDict                   = {}              # Dict containing information for gradient related operations
-    self.gradDict['numIterForAve' ] = 1               # Number of iterations for gradient estimation averaging
-    self.gradDict['pertNeeded'    ] = 1               # Number of perturbation needed to evaluate gradient
-    self.gradDict['pertPoints'    ] = {}              # Dict containing normalized inputs sent to model for gradient evaluation
-    self.readyVarsUpdate            = {}              # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
-    self.counter['perturbation'   ] = {}              # Counter for the perturbation performed.
-    self.counter['gradientHistory'] = {}              # In this dict we store the gradient value (versor) for current and previous iterations {'trajectoryID':[{},{}]}
-    self.counter['gradNormHistory'] = {}              # In this dict we store the gradient norm for current and previous iterations {'trajectoryID':[float,float]}
-    self.counter['varsUpdate'     ] = {}
-    self.counter['solutionUpdate' ] = {}
-    self.counter['lastStepSize'   ] = {}              # counter to track the last step size taken, by trajectory
-    self.convergeTraj = {}
-    self.convergenceProgress        = {}              #tracks the convergence progress, by trajectory
-    self.trajectoriesKilled         = {}              # by traj, store traj killed, so that there's no mutual destruction
-    self.recommendToGain            = {}              # recommended action to take in next step, by trajectory
-    self.gainGrowthFactor           = 2.              # max step growth factor
-    self.gainShrinkFactor           = 2.              # max step shrinking factor
+    self.constraintHandlingPara      = {}              # Dict containing parameters for parameters related to constraints handling
+    self.gradientNormTolerance       = 1.e-3           # tolerance on the L2 norm of the gradient
+    self.gradDict                    = {}              # Dict containing information for gradient related operations
+    self.gradDict['numIterForAve'  ] = 1               # Number of iterations for gradient estimation averaging
+    self.gradDict['pertNeeded'     ] = 1               # Number of perturbation needed to evaluate gradient (globally, considering denoising)
+    self.paramDict['pertSingleGrad'] = 1               # Number of perturbation needed to evaluate a single gradient
+    self.gradDict['pertPoints'     ] = {}              # Dict containing normalized inputs sent to model for gradient evaluation
+    self.readyVarsUpdate             = {}              # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
+    self.counter['perturbation'    ] = {}              # Counter for the perturbation performed.
+    self.counter['gradientHistory' ] = {}              # In this dict we store the gradient value (versor) for current and previous iterations {'trajectoryID':[{},{}]}
+    self.counter['gradNormHistory' ] = {}              # In this dict we store the gradient norm for current and previous iterations {'trajectoryID':[float,float]}
+    self.counter['varsUpdate'      ] = {}
+    self.counter['solutionUpdate'  ] = {}
+    self.counter['lastStepSize'    ] = {}              # counter to track the last step size taken, by trajectory
+    self.convergeTraj                = {}
+    self.convergenceProgress         = {}              #tracks the convergence progress, by trajectory
+    self.trajectoriesKilled          = {}              # by traj, store traj killed, so that there's no mutual destruction
+    self.recommendToGain             = {}              # recommended action to take in next step, by trajectory
+    self.gainGrowthFactor            = 2.              # max step growth factor
+    self.gainShrinkFactor            = 2.              # max step shrinking factor
+    self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation. It is not ideal but it is quick and dirty now
 
   def localInputAndChecks(self, xmlNode):
     """
@@ -105,6 +107,7 @@ class GradientBasedOptimizer(Optimizer):
         self.raiseAnError(ValueError, 'Not able to convert <gainShrinkFactor> into a float.')
       self.raiseADebug('Gain growth factor is set at',self.gainGrowthFactor)
       self.raiseADebug('Gain shrink factor is set at',self.gainShrinkFactor)
+    self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
 
   def localInitialize(self,solutionExport):
     """
@@ -112,7 +115,7 @@ class GradientBasedOptimizer(Optimizer):
       @ In, solutionExport, DataObject, a PointSet to hold the solution
       @ Out, None
     """
-    self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
+
     for traj in self.optTraj:
       self.gradDict['pertPoints'][traj]      = {}
       self.counter['perturbation'][traj]     = 0
@@ -129,6 +132,8 @@ class GradientBasedOptimizer(Optimizer):
       self.trajectoriesKilled[traj]          = []
     # end job runnable equal to number of trajectory
     self._endJobRunnable = len(self.optTraj)
+    # compute perturbation indeces
+    self.perturbationIndices = list(range(self.gradDict['numIterForAve'],self.gradDict['numIterForAve']*(self.paramDict['pertSingleGrad']+1)))
     #specializing the self.localLocalInitialize()
     self.localLocalInitialize(solutionExport=solutionExport)
 
@@ -190,34 +195,9 @@ class GradientBasedOptimizer(Optimizer):
       @ In, traj, int, the trajectory id
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
-    gradArray = {}
-    for var in self.getOptVars(traj=traj):
-      gradArray[var] = np.zeros(0) #why are we initializing to this?
-    # Evaluate gradient at each point
-    # first, get average opt point
-    # then, evaluate gradients
-    for i in range(self.gradDict['numIterForAve']):
-      opt  = optVarsValues[i*2]     #the latest opt point
-      pert = optVarsValues[i*2 + 1] #the perturbed point
-      # calculate grad(F) wrt each input variable
-      # fix infinities!
-      lossDiff = mathUtils.diffWithInfinites(pert['output'],opt['output'])
-      #cover "max" problems
-      # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
-      #   sign flipping was only called when evaluating the gradient.
-      if self.optType == 'max':
-        lossDiff *= -1.0
-      for var in self.getOptVars(traj=traj):
-        # gradient is calculated in normalized space
-        dh = pert['inputs'][var] - opt['inputs'][var]
-        if abs(dh) < 1e-15:
-          self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
-        gradArray[var] = np.append(gradArray[var], lossDiff/dh)
-    gradient = {}
-    for var in self.getOptVars(traj=traj):
-      gradient[var] = gradArray[var].mean()
     # currently unused, allow subclasses to modify gradient evaluation
-    gradient = self.localEvaluateGradient(optVarsValues, gradient)
+    gradient = None # for now...most of the stuff in the localEvaluate can be performed here
+    gradient = self.localEvaluateGradient(optVarsValues, traj, gradient)
     # we intend for gradient to give direction only
     gradientNorm = np.linalg.norm(gradient.values()) #might be infinite!
     #fix inf
@@ -487,9 +467,9 @@ class GradientBasedOptimizer(Optimizer):
     """
     solutionUpdateList = []
     solutionIndeces = []
-    # get all the even-valued results (these are the multiple evaluations of the opt point)
+    # get all the opt point results (these are the multiple evaluations of the opt point)
     for i in range(self.gradDict['numIterForAve']):
-      identifier = i*2
+      identifier = i
       solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], str(identifier))
       solutionUpdateList.append(solutionExportUpdatedFlag)
       solutionIndeces.append(index)
@@ -526,12 +506,12 @@ class GradientBasedOptimizer(Optimizer):
               outputs[outvar] = np.zeros(self.gradDict['numIterForAve'])
             # get output values corresponding to evaluations of the opt point
             # also add opt points to the grad perturbation list
-            self.gradDict['pertPoints'][traj] = np.zeros(2*self.gradDict['numIterForAve'],dtype=dict)
+            self.gradDict['pertPoints'][traj] = np.zeros((1+self.paramDict['pertSingleGrad'])*self.gradDict['numIterForAve'],dtype=dict)
             for i, index in enumerate(indices):
               for outvar in outputs.keys():
                 outputs[outvar][i] = outputeval[outvar][index]
                 if outvar == self.objVar:
-                  self.gradDict['pertPoints'][traj][i*2] = {'inputs':self.normalizeData(dict((k,v[index]) for k,v in inputeval.items())),
+                  self.gradDict['pertPoints'][traj][i] = {'inputs':self.normalizeData(dict((k,v[index]) for k,v in inputeval.items())),
                                                             'output':outputs[self.objVar][i]}
             # assumed output value is the mean of sampled values
             for outvar,vals in outputs.items():
@@ -664,7 +644,7 @@ class GradientBasedOptimizer(Optimizer):
     for i in range(self.gradDict['numIterForAve']):
       #entries into the queue are as {'inputs':{var:val}, 'prefix':runid} where runid is <traj>_<varUpdate>_<evalNumber> as 0_0_2
       nPoint = {'inputs':copy.deepcopy(point)} #deepcopy to prevent simultaneous alteration
-      nPoint['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i*2) # evens (including 0) are opt point evals
+      nPoint['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i) # from 0 to self.gradDict['numIterForAve'] are opt point evals
       self.submissionQueue[traj].append(nPoint)
 
   def getQueuedPoint(self,traj,denorm=True):
