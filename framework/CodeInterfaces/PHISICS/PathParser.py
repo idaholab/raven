@@ -9,6 +9,7 @@ import re
 from shutil import copyfile 
 import fileinput 
 from decimal import Decimal 
+from random import *
 
 
 class PathParser():
@@ -79,6 +80,23 @@ class PathParser():
     self.setOfPerturbedIsotopes = set(self.listedQValuesDict.iterkeys())
     #print self.setOfPerturbedIsotopes
     self.printInput()
+  
+  def removeRandomlyNamedFiles(self, modifiedFile):
+    """
+      Remove the temporary file with a random name in the working directory
+      In, modifiedFile, string
+      Out, None 
+    """
+    os.remove(modifiedFile)  
+    
+  def generateRandomName(self):
+    """
+      generate a random file name for the modified file
+      @ in, None
+      @ Out, string
+    """
+    return str(randint(1,1000000000000))+'.dat' 
+    
     
   def printInput(self):
     """
@@ -86,7 +104,7 @@ class PathParser():
       @ In, outfile, string, optional, output file root
       @ Out, None
     """
-    modifiedFile = 'modif.dat'
+    modifiedFile = self.generateRandomName() 
     #print modifiedFile
     #print "\n"
     sectionCounter = 0
@@ -110,11 +128,8 @@ class PathParser():
           #print line 
           if self.harcodingSection != 1 and self.harcodingSection !=2:
             outfile.writelines(line)
-    copyfile('modif.dat', self.inputFiles)
-
-    
-
-
+    copyfile(modifiedFile, self.inputFiles)
+    self.removeRandomlyNamedFiles(modifiedFile)
 
     
 

@@ -12,6 +12,7 @@ from decimal import Decimal
 import xml.etree.ElementTree as ET 
 from xml.etree.ElementTree import Element, SubElement, Comment
 from xml.dom import minidom
+from random import *
 
 class XSCreator():
 
@@ -40,7 +41,14 @@ class XSCreator():
     rough_string = ET.tostring(elem, 'utf-8')
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
-    
+   
+  def generateRandomName(self):
+    """
+      generate a random file name for the modified file
+      @ in, None
+      @ Out, string
+    """
+    return str(randint(1,1000000000000))+'.xml'
     
   def generateXML(self):
     """
@@ -84,7 +92,7 @@ class XSCreator():
                     reactionChild = SubElement(libraryChild, reaction.lower(), {'g':groups})
                     reactionChild.text = values
     
-    modifiedFile = 'modif.xml'
+    modifiedFile = self.generateRandomName()
     file_obj = open(modifiedFile, 'w')
     file_obj.write(self.prettify(top))
     #print self.prettify(top)
@@ -180,7 +188,14 @@ class XSCreator():
     leanReconstructedDict = self.clean_empty(reconstructedDict)
     #print leanReconstructedDict
     return leanReconstructedDict
-   
+    
+  def removeRandomlyNamedFiles(self, modifiedFile):
+    """
+      Remove the temporary file with a random name in the working directory
+      In, modifiedFile, string
+      Out, None 
+    """
+    os.remove(modifiedFile) 
     
   def printInput(self, modifiedFile):
     """
@@ -190,5 +205,6 @@ class XSCreator():
     """     
     #print self.inputFiles
     copyfile(modifiedFile, self.inputFiles)  
+    self.removeRandomlyNamedFiles(modifiedFile)
    
 

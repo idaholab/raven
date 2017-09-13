@@ -9,6 +9,7 @@ import re
 from shutil import copyfile 
 import fileinput 
 from decimal import Decimal 
+from random import *
 
 
 class QValuesParser():
@@ -107,16 +108,33 @@ class QValuesParser():
       self.listedQValuesDict[isotopeName[1]] = QValue
     #print self.listedQValuesDict
     self.printInput()
-    
+  
+  def removeRandomlyNamedFiles(self, modifiedFile):
+    """
+      Remove the temporary file with a random name in the working directory
+      In, modifiedFile, string
+      Out, None 
+    """
+    os.remove(modifiedFile)
+  
+  def generateRandomName(self):
+    """
+      generate a random file name for the modified file
+      @ in, None
+      @ Out, string
+    """
+    return str(randint(1,1000000000000))+'.dat'  
+      
   def printInput(self):
     """
       Method to print out the new input
       @ In, outfile, string, optional, output file root
       @ Out, None
     """
-    modifiedFile = 'modif.dat' 
+    modifiedFile = self.generateRandomName()
     #print modifiedFile
     open(modifiedFile, 'w')
     self.hardcopy_printer(self.inputFiles, modifiedFile)
-    copyfile('modif.dat', self.inputFiles)
+    copyfile(modifiedFile, self.inputFiles)
+    self.removeRandomlyNamedFiles(modifiedFile)
 

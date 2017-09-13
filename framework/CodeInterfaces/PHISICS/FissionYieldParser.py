@@ -9,6 +9,7 @@ import re
 from shutil import copyfile 
 import fileinput 
 from decimal import Decimal 
+from random import *
 
 class FissionYieldParser():
      
@@ -109,7 +110,6 @@ class FissionYieldParser():
       In: FissionYield.dat
       Out: isotopeDecay (dictionary)
     """
-    
     numbering = {}
     self.fissionYield     = {}
     self.FYList = []
@@ -204,19 +204,35 @@ class FissionYieldParser():
     #print self.listedYieldDict
     self.printInput()
     
+  def removeRandomlyNamedFiles(self, modifiedFile):
+    """
+      Remove the temporary file with a random name in the working directory
+      In, modifiedFile, string
+      Out, None 
+    """
+    os.remove(modifiedFile)
+   
+  def generateRandomName(self):
+    """
+      generate a random file name for the modified file
+      @ in, None
+      @ Out, string
+    """
+    return str(randint(1,1000000000000))+'.dat'
+   
   def printInput(self):
     """
       Method to print out the new input
       @ In, outfile, string, optional, output file root
       @ Out, None
     """
-    
-    modifiedFile = 'modif.dat'    
+    modifiedFile = self.generateRandomName()    
     open(modifiedFile, 'w')
     for spectra in self.spectrum :
       #print spectra 
       self.hardcopy_printer(self.inputFiles, spectra, modifiedFile)
     with open(modifiedFile, 'a') as outfile:
       outfile.writelines(' end')
-    copyfile('modif.dat', self.inputFiles)
+    copyfile(modifiedFile, self.inputFiles)
+    self.removeRandomlyNamedFiles(modifiedFile)
 

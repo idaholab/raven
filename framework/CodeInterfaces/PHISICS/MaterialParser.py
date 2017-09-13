@@ -11,6 +11,7 @@ import fileinput
 from decimal import Decimal 
 import time
 import xml.etree.ElementTree as ET
+from random import *
 
 class MaterialParser():
 
@@ -55,9 +56,10 @@ class MaterialParser():
     for matXML in self.root.getiterator('mat'):
       #print matXML.attrib.get('id')
       for isotopeXML in self.root.getiterator('isotope'):
-        #XMLdict['density'][matXML.attrib.get('id')] = {}
         matList.append(matXML.attrib.get('id'))
         isotopeList.append(isotopeXML.attrib.get('id'))
+    #print matList
+    #print isotopeList
     for i in xrange(0,len(matList)):
       XMLdict['density'][matList[i]] = {}
       for j in xrange(0,len(isotopeList)):
@@ -85,6 +87,8 @@ class MaterialParser():
     self.inputFiles = inputFiles
     self.tree = ET.parse(self.inputFiles)
     self.root = self.tree.getroot()
+    #print self.pertDict
+    #print "\n\n\n\n"
     self.listedDict = self.fileReconstruction(self.pertDict)
     self.printInput()
 
@@ -123,6 +127,22 @@ class MaterialParser():
     #print reconstructedDict
     
     return reconstructedDict
+
+  def removeRandomlyNamedFiles(self, modifiedFile):
+    """
+      Remove the temporary file with a random name in the working directory
+      In, modifiedFile, string
+      Out, None 
+    """
+    os.remove(modifiedFile)    
+       
+  def generateRandomName(self):
+    """
+      generate a random file name for the modified file
+      @ in, None
+      @ Out, string
+    """
+    return str(randint(1,1000000000000))+'.xml'
     
   def printInput(self):
     """
@@ -130,13 +150,12 @@ class MaterialParser():
       @ In, outfile, string, optional, output file root
       @ Out, None
     """
-    modifiedFile = 'modif.dat'     
+    modifiedFile = self.generateRandomName()      
     open(modifiedFile, 'w')
     XMLdict = {}
     genericXMLdict = {}
     newXMLdict = {}
-    templatedNewXMLdict = {}
-    attribCount = 0 
+    templatedNewXMLdict = {} 
     mapAttribIsotope = {}
     
     XMLdict = self.dictFormating_from_XML_to_perturbed()
@@ -152,6 +171,7 @@ class MaterialParser():
       for isotopeXML in matXML.findall('isotope'):
         isotopeXML.attrib['density'] = templatedNewXMLdict.get(isotopeXML.attrib.keys()[1].upper()).get(matXML.attrib.get('id').upper()).get(isotopeXML.attrib.get('id').upper())
         self.tree.write(modifiedFile)
-    copyfile('modif.dat', self.inputFiles)  
+    copyfile(modifiedFile, self.inputFiles)  
+    self.removeRandomlyNamedFiles(modifiedFile)
 
 
