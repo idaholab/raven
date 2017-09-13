@@ -38,6 +38,11 @@
     input = 'test_comparison_stats_metrics.xml'
     xml = 'compStats/output_cdf_diff.xml compStats/output_pdf_area.xml'
   [../]
+  [./test_comparison_statistics_metrics_grid]
+    type = 'RavenFramework'
+    input = 'test_comparison_stats_metrics_grid.xml'
+    xml = 'compStatsGrid/output_cdf_diff.xml compStatsGrid/output_pdf_area.xml'
+  [../]
   [./test_comparison_statistics_unit]
     type = 'RavenPython'
     input = 'unit_test_comparison_statistics.py'

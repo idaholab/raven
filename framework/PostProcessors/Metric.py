@@ -93,8 +93,10 @@ class Metric(PostProcessor):
     if type(currentInputs) != list:
       currentInputs = [currentInputs]
 
-    inputDict = {'features':OrderedDict(), 'targets':OrderedDict()}
+    inputDict = {'features':OrderedDict(), 'targets':OrderedDict(),
+            'features_prob':OrderedDict(), 'targets_prob':OrderedDict()}
     for currentInput in currentInputs:
+      metadata = currentInput.getAllMetadata()
       inputType = None
       if hasattr(currentInput, 'type'):
         inputType = currentInput.type
@@ -109,20 +111,24 @@ class Metric(PostProcessor):
             if feature in inputDict['features'].keys():
               self.raiseAnError(IOError, "Same feature variable '", feature, "' is found in multiple input objects")
             inputDict['features'][feature] = currentInput.getParam('input', feature, nodeId = 'ending')
+            inputDict['features_prob'][feature] = metadata['ProbabilityWeight']
           elif feature in currentInput.getParaKeys('output'):
             if feature in inputDict['features'].keys():
               self.raiseAnError(IOError, "Same feature variable '", feature, "' is found in multiple input objects")
             inputDict['features'][feature] = currentInput.getParam('output', feature, nodeId = 'ending')
+            inputDict['features_prob'][feature] = metadata['ProbabilityWeight']
         if self.targets:
           for target in self.targets:
             if target in currentInput.getParaKeys('input'):
               if target in inputDict['targets'].keys():
                 self.raiseAnError(IOError, "Same target variable '", target, "' is found in multiple input objects")
               inputDict['targets'][target] = currentInput.getParam('input', target, nodeId = 'ending')
+              inputDict['targets_prob'][target] = metadata['ProbabilityWeight']
             elif target in currentInput.getParaKeys('output'):
               if target in inputDict['targets'].keys():
                 self.raiseAnError(IOError, "Same target variable '", target, "' is found in multiple input objects")
               inputDict['targets'][target] = currentInput.getParam('output', target, nodeId = 'ending')
+              inputDict['targets_prob'][target] = metadata['ProbabilityWeight']
       elif inputType == 'HistorySet':
         self.dynamic = True
         self.raiseAnError(IOError, "Metric can not process HistorySet, because this capability is not implemented yet")
@@ -281,7 +287,15 @@ class Metric(PostProcessor):
         nodeName = str(self.features[cnt]) + '-' + str(self.targets[cnt])
         outputDict[nodeName] = {}
         for metricInstance in self.metricsDict.values():
-          output = metricInstance.distance(inputDict['features'][self.features[cnt]], inputDict['targets'][self.targets[cnt]])
+          inData = []
+          for inputKey, subKey in [('features',self.features[cnt]),
+                                     ('targets',self.targets[cnt])]:
+            if metricInstance.acceptsProbability and subKey in inputDict[inputKey+"_prob"]:
+              inData.append((inputDict[inputKey][subKey],
+                             inputDict[inputKey+"_prob"][subKey]))
+            else:
+              inData.append(inputDict[inputKey][subKey])
+          output = metricInstance.distance(inData[0], inData[1])
           if hasattr(metricInstance, 'metricType'):
             metricName = metricInstance.metricType
           else:

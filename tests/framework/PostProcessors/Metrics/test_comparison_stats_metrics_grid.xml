@@ -1,17 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>compStats</WorkingDir>
-    <Sequence>mcRun, PP1, PP2</Sequence>
+    <WorkingDir>compStatsGrid</WorkingDir>
+    <Sequence>gridRun, PP1, PP2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
-    <name>framework/PostProcessors/Metric/test_comparison_stats_metrics</name>
+    <name>framework/PostProcessors/Metric/test_comparison_stats_metrics_grid</name>
     <author>joshua-cogliati-inl</author>
-    <created>2017-09-12</created>
+    <created>2017-09-13</created>
     <classesTested>PostProcessors.Metric</classesTested>
     <description>
-      This test checks the Comparison Statistics Metric
+      This test checks the Comparison Statistics Metrics with a Grid.
     </description>
   </TestInfo>
 
@@ -23,7 +23,7 @@
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="passthru.py" name="passthru" subType="">
+    <ExternalModel ModuleToLoad="../compStats/passthru.py" name="passthru" subType="">
       <variables>x1,x2,ans,ans2</variables>
     </ExternalModel>
     <PostProcessor name="pp1" subType="Metric">
@@ -47,34 +47,33 @@
 
   <Distributions>
     <Normal name="dist1">
-      <mean>1</mean>
+      <mean>1.1</mean>
       <sigma>1</sigma>
     </Normal>
     <Normal name="dist2">
-      <mean>2</mean>
+      <mean>1.9</mean>
       <sigma>1</sigma>
     </Normal>
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name="MC_external">
-      <samplerInit>
-        <limit>300</limit>
-      </samplerInit>
+    <Grid name="grid_external">
       <variable name="x1">
         <distribution>dist1</distribution>
+        <grid type='value' construction='equal' steps='20'>-1 3</grid>
       </variable>
       <variable name="x2">
         <distribution>dist2</distribution>
+        <grid type='value' construction='equal' steps='20'>0 4</grid>
       </variable>
-    </MonteCarlo>
+    </Grid>
   </Samplers>
 
   <Steps>
-    <MultiRun name="mcRun" re-seeding="20021986">
+    <MultiRun name="gridRun" re-seeding="20021986">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
       <Model class="Models" type="ExternalModel">passthru</Model>
-      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">grid_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataMC</Output>
       <Output class="OutStreams" type="Print">dumpMC</Output>
     </MultiRun>

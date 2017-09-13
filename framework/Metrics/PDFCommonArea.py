@@ -38,7 +38,7 @@ class PDFCommonArea(Metric):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    pass
+    self.acceptsProbability = True
 
   def distance(self,x,y,**kwargs):
     """
