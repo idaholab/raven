@@ -441,6 +441,34 @@ class JobHandler(MessageHandler.MessageUser):
     ## problems.
     self.raiseAnError(RuntimeError,"Job "+identifier+" is unknown!")
 
+  def areTheseJobsFinished(self, uniqueHandler="any"):
+    """
+      Method to check if all the runs in the queue are finished
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to
+        each runner. If provided, just the jobs that have the uniqueIdentifier
+        will be retrieved. By default uniqueHandler = 'any' => all the jobs for
+        which no uniqueIdentifier has been set up are going to be retrieved
+      @ Out, isFinished, bool, True all the runs in the queue are finished
+    """
+    uniqueHandler = uniqueHandler.strip()
+    with self.__queueLock:
+      for run in self.__finished:
+        if run.uniqueHandler == uniqueHandler:
+          return False
+
+      for queue in [self.__queue, self.__clientQueue]:
+        for run in queue:
+          if run.uniqueHandler == uniqueHandler:
+            return False
+
+      for run in self.__running + self.__clientRunning:
+        if run is not None and run.uniqueHandler == uniqueHandler:
+          return False
+
+    self.raiseADebug("The jobs with uniqueHandler ", uniqueHandler, "are finished")
+
+    return True
+
   def getFailedJobs(self):
     """
       Method to get list of failed jobs
