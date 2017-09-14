@@ -73,7 +73,7 @@ class RAVENparser():
     # Find the Files
     self.slaveInputFiles = []
     filesNode = self.tree.find('.//Files')
-    if filesNode:
+    if filesNode is not None:
       for child in self.tree.find('.//Files'):
         subDirectory = child.attrib['subDirectory'] if 'subDirectory' in child.attrib else None
         if subDirectory:
@@ -225,8 +225,7 @@ class RAVENparser():
           nodeToChange.text = str(value).strip()
         else:
           nodeToChange.attrib[attribName] = str(value).strip()
-    if save:
-      return returnElement
+    return returnElement
 
 if __name__ == '__main__':
   parser = RAVENparser("/Users/alfoa/projects/raven_github/raven/tests/framework/test_redundant_inputs.xml")

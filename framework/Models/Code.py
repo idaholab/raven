@@ -217,7 +217,7 @@ class Code(Model):
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
     self.code.readMoreXML(xmlNode) #TODO figure out how to handle this with InputData
-    self.code.setInputExtension(list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
+    self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
 

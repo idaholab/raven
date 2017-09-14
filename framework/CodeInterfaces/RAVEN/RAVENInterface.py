@@ -23,7 +23,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
-import RavenData
+#import RavenData
 import csvUtilities
 
 class RAVEN(CodeInterfaceBase):
@@ -34,6 +34,24 @@ class RAVEN(CodeInterfaceBase):
     CodeInterfaceBase.__init__(self)
     self.printTag  = 'RAVEN INTERFACE'
     self.outputPrefix = 'out~'
+    self.setInputExtension(['xml'])
+
+  def __findInputFile(self,inputFiles):
+    """
+      Method to return the index of the RAVEN input file (error out in case it is not found)
+      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs that have been added in the Step is running this code)
+      @ Out, index, int, index of the RAVEN input file
+    """
+    found = False
+    for index, inputFile in enumerate(inputFiles):
+      if inputFile.getType().lower() == 'raven':
+        inputFileIndex = index
+        if found:
+          raise IOError(self.printTag+" ERROR: Currently the RAVEN interface allows only one input file (xml). ExternalXML and Merging Files will be added in the future!")
+        found = True
+    if not found:
+      raise IOError(self.printTag+' ERROR: None of the input files are tagged with the "type" "raven" (e.g. <Input name="aName" type="raven">inputFileName.xml</Input>)')
+    return index
 
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
@@ -47,16 +65,9 @@ class RAVEN(CodeInterfaceBase):
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-    found = False
-    self.mooseVPPFile = ''
-    for index, inputFile in enumerate(inputFiles):
-      if inputFile.getExt() in self.getInputExtension():
-        found = True
-        break
-    if not found:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    index = self.__findInputFile(inputFiles)
     outputfile = self.outputPrefix+inputFiles[index].getBase()
-    executeCommand = [('parallel',executable+' -i '+inputFiles[index].getFilename())]
+    executeCommand = [('parallel',executable+ ' '+inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
@@ -71,46 +82,20 @@ class RAVEN(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     import RAVENparser
-    #self._samplersDictionary                = {}
     if 'dynamiceventtree' in str(samplerType).strip().lower():
       raise IOError(self.printTag+' ERROR: DynamicEventTree-based sampling not supported!')
-
-    found = False
-    for index, inputFile in enumerate(currentInputFiles):
-      if inputFile.getType().lower() == 'raven':
-        inputFileIndex = index
-        if found:
-          raise IOError(self.printTag+" ERROR: Currently the RAVEN interface allows only one input file (xml). ExternalXML and Merging Files will be added in the future!")
-        found = True
-        break
-    if not found:
-      raise IOError('None of the input files are tagged with the "type" "raven" (e.g. <Input name="aName" type="raven">inputFileName.xml</Input>)')
+    index = self.__findInputFile(currentInputFiles)
     outName = self.outputPrefix+currentInputFiles[index].getBase()
-    parser = RAVENparser.RAVENparser(currentInputFiles[inputFileIndex].getAbsFile())
+    parser = RAVENparser.RAVENparser(currentInputFiles[index].getAbsFile())
     modifDict = Kwargs['SampledVars']
     # we set the workind directory to the current working dir
     modifDict['RunInfo|WorkingDir'] = '.'
     #make tree
-    parser.modifyOrAdd(modifDict,False)
+    modifiedRoot = parser.modifyOrAdd(modifDict,False)
     #make input
-    parser.printInput(currentInputFiles[index].getAbsFile())
-    self.vectorPPFound, self.vectorPPDict = parser.vectorPostProcessor()
+    parser.printInput(modifiedRoot,currentInputFiles[index].getAbsFile())
+
     return currentInputFiles
-
-  def pointSamplerForMooseBasedApp(self,**Kwargs):
-    """
-      This method is used to create a list of dictionaries that can be interpreted by the input Parser
-      in order to change the input file based on the information present in the Kwargs dictionary.
-      This is specific for point samplers (Grid, Stratified, etc.)
-      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
-      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
-    """
-    # the position in, eventually, a vector variable is not available yet...
-    # the MOOSEparser needs to be modified in order to accept this variable type
-    # for now the position (i.e. ':' at the end of a variable name) is discarded
-    listDict = self._expandVarNames(**Kwargs)
-    return listDict
-
 
   def finalizeCodeOutput(self,command,output,workingDir):
     """
@@ -126,16 +111,4 @@ class RAVEN(CodeInterfaceBase):
       returnOut = self.__mergeTime(output,workingDir)[0]
     return returnOut
 
-  def __mergeTime(self,output,workingDir):
-    """
-      Merges the vector PP output files created with the MooseApp
-      @ In, output, string, the Output name root
-      @ In, workingDir, string, current working dir
-      @ Out, vppFiles, list, the list of files merged from the outputs of the vector PP
-    """
-    files2Merge, vppFiles  = [], []
-    for time in range(int(self.vectorPPDict['timeStep'][0])):
-      files2Merge.append(os.path.join(workingDir,str(output+self.mooseVPPFile+("%04d" % (time+1))+'.csv')))
-      outputObj = MooseData.mooseData(files2Merge,workingDir,output,self.mooseVPPFile)
-      vppFiles.append(os.path.join(workingDir,str(outputObj.vppFiles)))
-    return vppFiles
+
