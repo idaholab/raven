@@ -504,6 +504,10 @@ class MultiRun(SingleRun):
     #generate lambda function list to collect the output without checking the type
     self._outputCollectionLambda = []
     self._outputDictCollectionLambda = []
+
+    # reset maxQueueSize in jobHandler
+    inDictionary['jobHandler'].maxQueueSize = inDictionary['jobHandler'].runInfoDict['batchSize']
+
     # set up output collection lambdas
     for outIndex, output in enumerate(inDictionary['Output']):
       if output.type not in ['OutStreamPlot','OutStreamPrint']:
@@ -548,6 +552,7 @@ class MultiRun(SingleRun):
     inputs     = inDictionary['Input'     ]
     outputs    = inDictionary['Output'    ]
     sampler    = inDictionary[self.samplerType]
+
     # check to make sure model can be run
     ## first, if it's a ROM, check that it's trained
     if isinstance(model,Models.ROM):
@@ -587,6 +592,7 @@ class MultiRun(SingleRun):
               self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
         # finalize actual sampler
         sampler.finalizeActualSampling(finishedJob,model,inputs)
+        # add the number of failed job to sampler.inputInfo
         # add new job
 
         isEnsemble = isinstance(model, Models.EnsembleModel)
@@ -605,6 +611,7 @@ class MultiRun(SingleRun):
                 model.submitAsClient(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
               else:
                 model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+              self.raiseADebug('Submitted input ', sampler.inputInfo['prefix'])
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
               break

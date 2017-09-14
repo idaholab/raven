@@ -265,7 +265,7 @@ class Code(Model):
       this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
       after this call the next one will be run
       @ In, runInfo, dict, it is the run info from the jobHandler
-      @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
+      @ In, inputFiles, list, list of input file objects
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
