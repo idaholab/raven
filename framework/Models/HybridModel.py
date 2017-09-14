@@ -300,37 +300,7 @@ class HybridModel(Dummy):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-    for mm in utils.returnImportModuleString(jobHandler):
-      if mm not in self.mods:
-        self.mods.append(mm)
-
-    prefix = kwargs['prefix']
-    self.tempOutputs['uncollectedJobIds'].append(prefix)
-    self.counter = kwargs['counter']
-
-    if not self.romConverged:
-      trainingSize = self.checkTrainingSize()
-      if trainingSize == self.romTrainStartSize:
-        self.trainRom()
-        self.romConverged = self.checkRomConvergence()
-      elif trainingSize > self.romTrainStartSize and (trainingSize-self.romTrainStartSize)%self.romTrainStepSize == 0 and trainingSize <= self.romTrainMaxSize:
-        self.trainRom()
-        self.romConverged = self.checkRomConvergence()
-      elif trainingSize > self.romTrainMaxSize:
-        self.raiseAnError(IOError, "Maximum training size is reached, but ROMs are still not converged!")
-    else:
-      self.romValid = self.checkRomValidity()
-
-    ## Ensemble models need access to the job handler, so let's stuff it in our
-    ## catch all kwargs where evaluateSample can pick it up, not great, but
-    ## will suffice until we can better redesign this whole process.
-    kwargs['jobHandler'] = jobHandler
-
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+    self.submitAsClient(myInput, samplerType, jobHandler, **kwargs)
 
   def submitAsClient(self,myInput,samplerType,jobHandler,**kwargs):
     """
@@ -391,7 +361,7 @@ class HybridModel(Dummy):
     """
     self.raiseADebug("Evaluate Sample")
     jobHandler = kwargs.pop('jobHandler')
-    Input = self.createNewInput(myInput[0], samplerType, **kwargs)
+    Input = self.createNewInput(myInput, samplerType, **kwargs)
 
     ## Unpack the specifics for this class, namely just the jobHandler
     returnValue = (Input,self._externalRun(Input,jobHandler))
@@ -447,7 +417,7 @@ class HybridModel(Dummy):
           moveOn = True
         else:
           time.sleep(1.0e-3)
-        finishedRun = jobHandler.getFinished(jobIdentifier = identifier, uniqueHandler = uniqueHandler)
+        finishedRun = jobHandler.getFinished(jobIdentifier = inputKwargs['prefix'], uniqueHandler = uniqueHandler)
         evaluation = finishedRun[0].getEvaluation()
         if isinstance(evaluation, Runners.Error):
           self.raiseAnError(RuntimeError, "The model "+self.modelInstance.name+" identified by "+finishedRun[0].identifier+" failed!")

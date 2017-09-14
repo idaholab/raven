@@ -116,7 +116,7 @@
     </PointSet>
     <PointSet name="metaModelOutputTest">
       <Input>leftTemperature,rightTemperature</Input>
-      <Output>k,solution</Output>
+      <Output>k</Output>
     </PointSet>
   </DataObjects>
 
