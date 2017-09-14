@@ -318,6 +318,8 @@ class EnsembleModel(Dummy):
       if len(self.initialConditions.keys()) == 0:
         self.raiseAnError(IOError,"Picard's iterations mode activated but no intial conditions provided!")
     else:
+      if len(self.initialStartModels) !=0:
+        self.raiseAnError(IOError, "The 'initialStartModels' xml node is not needed for non-Picard calculations, since the running sequence can be automatically determined by the code! Please delete this node to avoid a mistake.")
       self.raiseAMessage("EnsembleModel connections determined a linear system. Picard's iterations not activated!")
 
     self.allOutputs = []
