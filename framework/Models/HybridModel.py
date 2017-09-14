@@ -386,23 +386,33 @@ class HybridModel(Dummy):
       # run roms
       exportDict = {}
       self.raiseADebug("Switch to ROMs")
+      # submit all the roms
       for romName, romInfo in self.romsDictionary.items():
         nextRom = False
         while not nextRom:
           if jobHandler.availability() > 0:
             romInfo['Instance'].submit(originalInput, samplerType, jobHandler, **inputKwargs[romName])
-            while not jobHandler.isThisJobFinished(romName+utils.returnIdSeparator()+identifier):
-              time.sleep(1.0e-3)
+            self.raiseADebug("Job ", romName, " with identifier ", identifier, " is submitted")
             nextRom = True
           else:
             time.sleep(1.0e-3)
-        finishedRun = jobHandler.getFinished(jobIdentifier = romName+utils.returnIdSeparator()+identifier, uniqueHandler = uniqueHandler)
-        evaluation = finishedRun[0].getEvaluation()
-        if isinstance(evaluation, Runners.Error):
-          self.raiseAnError(RuntimeError, "The rom "+romName+" identified by "+finishedRun[0].identifier+" failed!")
-        # collect output in temporary data object
-        tempExportDict = romInfo['Instance'].createExportDictionaryFromFinishedJob(finishedRun[0], True)
-        exportDict = self.__mergeDict(exportDict, tempExportDict)
+      # collect the outputs from the runs of ROMs
+      while True:
+        finishedJobs = jobHandler.getFinished(uniqueHandler=uniqueHandler)
+        for finishedRun in finishedJobs:
+          self.raiseADebug("collect job with identifier ", identifier)
+          evaluation = finishedRun.getEvaluation()
+          if isinstance(evaluation, Runners.Error):
+            self.raiseAnError(RuntimeError, "The job identified by "+finishedRun.identifier+" failed!")
+          # collect output in temporary data object
+          tempExportDict = self.createExportDictionaryFromFinishedJob(finishedRun, False)
+          exportDict = self.__mergeDict(exportDict, tempExportDict)
+        if jobHandler.areTheseJobsFinished(uniqueHandler=uniqueHandler):
+          self.raiseADebug("Jobs with uniqueHandler ", uniqueHandler, "are collected!")
+          break
+        time.sleep(1.0e-3)
+      exportDict['prefix'] = identifier
+
     else:
       # run model
       inputKwargs['prefix'] = self.modelInstance.name+utils.returnIdSeparator()+identifier
@@ -412,12 +422,12 @@ class HybridModel(Dummy):
         if jobHandler.availability() > 0:
           self.modelInstance.submit(originalInput, samplerType, jobHandler, **inputKwargs)
           self.raiseADebug("Job submitted for model ", self.modelInstance.name, " with identifier ", identifier)
-          while not jobHandler.isThisJobFinished(self.modelInstance.name+utils.returnIdSeparator()+identifier):
-            time.sleep(1.0e-3)
-          self.raiseADebug("Job finished ", self.modelInstance.name, " with identifier ", identifier)
           moveOn = True
         else:
           time.sleep(1.0e-3)
+      while not jobHandler.isThisJobFinished(self.modelInstance.name+utils.returnIdSeparator()+identifier):
+        time.sleep(1.0e-3)
+      self.raiseADebug("Job finished ", self.modelInstance.name, " with identifier ", identifier)
       finishedRun = jobHandler.getFinished(jobIdentifier = inputKwargs['prefix'], uniqueHandler = uniqueHandler)
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, Runners.Error):
