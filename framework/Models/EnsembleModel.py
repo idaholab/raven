@@ -313,6 +313,8 @@ class EnsembleModel(Dummy):
     self.activatePicard = self.ensembleModelGraph.isALoop()
     if self.activatePicard:
       self.raiseAMessage("EnsembleModel connections determined a non-linear system. Picard's iterations activated!")
+      if len(self.initialStartModels) == 0:
+        self.raiseAnError(IOError, "The 'initialStartModels' xml node is missing, this is required siince the Picard's iteration is activated!")
       if len(self.initialConditions.keys()) == 0:
         self.raiseAnError(IOError,"Picard's iterations mode activated but no intial conditions provided!")
     else:
