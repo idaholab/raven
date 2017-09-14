@@ -97,7 +97,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.inputInfo['SampledVars']       = self.values               # this is the location where to get the values of the sampled variables
     self.constants                      = {}                        # dictionary of constants variables
     self.printTag                       = self.type                 # prefix for all prints (optimizer type)
-    self.submissionQueue                = {}                        # by traj, a place (deque) to store points that should be submitted some time after they are discovered
+    self.optSubmissionQueue             = {}                        # by traj, a place (deque) to store points that should be submitted some time after they are discovered
+    # REWORK grad shouldn't be part of main optimizer
+    self.gradSubmissionQueue            = {}                        # by traj, a place (deque) to store points that should be submitted some time after they are discovered
+    self.jobsToTerminate                = deque()                   # queue of jobs that need to be terminated, by prefix
     #functions and dataojbects
     self.constraintFunction             = None                      # External constraint function, could be not present
     self.preconditioners                = {}                        # by name, Models that might be used as preconditioners
@@ -145,12 +148,37 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # example usage:
     #   self.status[traj]['process'] == 'submitting grad eval points' and self.status[traj]['reason'] == 'rejecting bad opt point'
     #
+    # See comment body in SPSA.localStillReady for the workflow use of these processes and reasons.
     ### END explanation
     self.addAssemblerObject('Restart' ,'-n',True)
     self.addAssemblerObject('TargetEvaluation','1')
     self.addAssemblerObject('Function','-1')
     self.addAssemblerObject('Preconditioner','-n')
     self.addAssemblerObject('Sampler','-1')   #This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
+
+  def getPrefixToTerminate(self):
+    """
+      Method that allows the Step to terminate any runs that are no longer desired by the sampler.
+      Errors with IndexError if nothing is on the list.
+      @ In, None
+      @ Out, prefix, str, metadata prefix identifier for job to terminate
+    """
+    return self.jobsToTerminate.popleft()
+
+  def setPrefixToTerminate(self,prefix=None,prefixes=None):
+    """
+      Adds a prefix to the elimination queue, for the Step to collect later.
+      Can add either a single (prefix) or multiple (prefixes) to the queue
+      @ In, prefix, str, optional, metadata prefix identifier for job to terminate
+      @ In, prefixes, list(str), optional, metadata prefix identifiers for jobs to terminate
+      @ Out, None
+    """
+    if prefix is not None:
+      self.raiseADebug('Flagging run "{}" for termination.'.format(prefix))
+      self.jobsToTerminate.append(prefix)
+    if prefixes is not None:
+      self.jobsToTerminate.extend(prefixes)
+      self.raiseADebug('Flagging runs "{}" for termination.'.format(prefixes))
 
   def _localGenerateAssembler(self,initDict):
     """
@@ -506,7 +534,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.mlDepth[traj]            = None
       self.mlStaticValues[traj]     = {}
       self.mlActiveSpaceSteps[traj] = 0
-      self.submissionQueue[traj]    = deque()
+      self.optSubmissionQueue[traj]    = deque()
+      self.gradSubmissionQueue[traj]   = deque()
     for batch in self.mlBatches.keys():
       self.mlBatchInfo[batch]       = {}
     # line up preconditioners with their batches

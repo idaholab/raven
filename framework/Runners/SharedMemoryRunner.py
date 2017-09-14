@@ -146,5 +146,9 @@ class SharedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    self.raiseAWarning("Terminating "+self.thread.pid+ " Identifier " + self.identifier)
+    # TODO it seems that it is not trivial to simply kill a thread without hardlocking python.  We need
+    #    to investigate a good solution here.
+    self.raiseAWarning('NotImplemented: Thread termination does not currently operate as expected.  Allowing thread to run....')
+    return
+    self.raiseAWarning("Terminating "+self.thread.get_ident()+ " Identifier " + self.identifier)
     os.kill(self.thread.pid, signal.SIGTERM)

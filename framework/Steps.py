@@ -610,6 +610,13 @@ class MultiRun(SingleRun):
               break
           else:
             break
+        # if the sampling instance has jobs that need terminating, collect them and terminate them
+        while len(sampler.jobsToTerminate) > 0:
+          prefix = sampler.getPrefixToTerminate()
+          self.raiseADebug('Terminating run "{}" at the request of the sampler.'.format(prefix))
+          jobHandler.terminateRun(prefix)
+          # TODO FIXME unimplemented on the jobhandler side
+
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():

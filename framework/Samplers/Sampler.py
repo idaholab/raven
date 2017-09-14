@@ -29,6 +29,7 @@ import sys
 import copy
 import abc
 import json
+import collections
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -112,6 +113,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
+    self.jobsToTerminate               = collections.deque()       #queue of jobs that need to be terminated because they are no longer needed by the sampler, by prefix
     ######
     self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'reducedDim': 1,'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; reducedDim = dimension of the variable in the transformed space; totDim = total dimensionality of its associated distribution
     self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
@@ -123,6 +125,31 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
     self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
     self.entitiesToRemove               = []                       # This variable is used in order to make sure the transformation info is printed once in the output xml file.
+
+  def getPrefixToTerminate(self):
+    """
+      Method that allows the Step to terminate any runs that are no longer desired by the sampler.
+      Errors with IndexError if nothing is on the list.
+      @ In, None
+      @ Out, prefix, str, metadata prefix identifier for job to terminate
+    """
+    return self.jobsToTerminate.popleft()
+
+  def setPrefixToTerminate(self,prefix=None,prefixes=None):
+    """
+      Adds a prefix to the elimination queue, for the Step to collect later.
+      Can add either a single (prefix) or multiple (prefixes) to the queue
+      @ In, prefix, str, optional, metadata prefix identifier for job to terminate
+      @ In, prefixes, list(str), optional, metadata prefix identifiers for jobs to terminate
+      @ Out, None
+    """
+    if prefix is not None:
+      self.raiseADebug('Flagging run "{}" for termination.'.format(prefix))
+      self.jobsToTerminate.append(prefix)
+    if prefixes is not None:
+      for pref in prefixes:
+        self.raiseADebug('Flagging run "{}" for termination.'.format(pref))
+        self.jobsToTerminate.append(pref)
 
   def _localGenerateAssembler(self,initDict):
     """
