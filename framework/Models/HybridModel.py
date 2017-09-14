@@ -385,6 +385,7 @@ class HybridModel(Dummy):
     if self.romValid:
       # run roms
       exportDict = {}
+      self.raiseADebug("Switch to ROMs")
       for romName, romInfo in self.romsDictionary.items():
         nextRom = False
         while not nextRom:
@@ -395,13 +396,13 @@ class HybridModel(Dummy):
             nextRom = True
           else:
             time.sleep(1.0e-3)
-          finishedRun = jobHandler.getFinished(jobIdentifier = romName+utils.returnIdSeparator()+identifier, uniqueHandler = uniqueHandler)
-          evaluation = finishedRun[0].getEvaluation()
-          if isinstance(evaluation, Runners.Error):
-            self.raiseAnError(RuntimeError, "The rom "+romName+" identified by "+finishedRun[0].identifier+" failed!")
-          # collect output in temporary data object
-          tempExportDict = romInfo['Instance'].createExportDictionaryFromFinishedJob(finishedRun[0], True)
-          self.__mergeDict(exportDict, tempExportDict)
+        finishedRun = jobHandler.getFinished(jobIdentifier = romName+utils.returnIdSeparator()+identifier, uniqueHandler = uniqueHandler)
+        evaluation = finishedRun[0].getEvaluation()
+        if isinstance(evaluation, Runners.Error):
+          self.raiseAnError(RuntimeError, "The rom "+romName+" identified by "+finishedRun[0].identifier+" failed!")
+        # collect output in temporary data object
+        tempExportDict = romInfo['Instance'].createExportDictionaryFromFinishedJob(finishedRun[0], True)
+        exportDict = self.__mergeDict(exportDict, tempExportDict)
     else:
       # run model
       inputKwargs['prefix'] = self.modelInstance.name+utils.returnIdSeparator()+identifier
@@ -417,13 +418,13 @@ class HybridModel(Dummy):
           moveOn = True
         else:
           time.sleep(1.0e-3)
-        finishedRun = jobHandler.getFinished(jobIdentifier = inputKwargs['prefix'], uniqueHandler = uniqueHandler)
-        evaluation = finishedRun[0].getEvaluation()
-        if isinstance(evaluation, Runners.Error):
-          self.raiseAnError(RuntimeError, "The model "+self.modelInstance.name+" identified by "+finishedRun[0].identifier+" failed!")
-        # collect output in temporary data object
-        exportDict = self.modelInstance.createExportDictionaryFromFinishedJob(finishedRun[0], True)
-        self.raiseADebug("Create exportDict")
+      finishedRun = jobHandler.getFinished(jobIdentifier = inputKwargs['prefix'], uniqueHandler = uniqueHandler)
+      evaluation = finishedRun[0].getEvaluation()
+      if isinstance(evaluation, Runners.Error):
+        self.raiseAnError(RuntimeError, "The model "+self.modelInstance.name+" identified by "+finishedRun[0].identifier+" failed!")
+      # collect output in temporary data object
+      exportDict = self.modelInstance.createExportDictionaryFromFinishedJob(finishedRun[0], True)
+      self.raiseADebug("Create exportDict")
 
     return exportDict
 
@@ -479,20 +480,23 @@ class HybridModel(Dummy):
       This function will combine two dicts into one
       @ In, exportDict, dict, dictionary stores the input, output and metadata
       @ In, tempExportDict, dict, dictionary stores the input, output and metadata
+      @ Out,
     """
     if not exportDict:
-      exportDict = copy.deepcopy(tempExportDict)
+      outputDict = copy.deepcopy(tempExportDict)
     else:
+      outputDict = copy.deepcopy(exportDict)
       inKey = 'inputSpaceParams'
       outKey = 'outputSpaceParams'
       for key, value in tempExportDict[inKey].items():
-        exportDict[inKey][key] = value
+        outputDict[inKey][key] = value
       for key, value in tempExportDict[outKey].items():
-        exportDict[outKey][key] = value
+        output[outKey][key] = value
       for key, value in tempExportDict['metadata'].items():
-        exportDict['metadata'][key] = value
+        output['metadata'][key] = value
 
     self.raiseADebug("The exportDict has been updated")
+    return outputDict
 
 
 
