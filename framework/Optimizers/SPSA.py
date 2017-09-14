@@ -234,12 +234,14 @@ class SPSA(GradientBasedOptimizer):
           # collect output values for perturbed points
           for i in self.perturbationIndices:
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
+            print('DEBUGG looking in',self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar])
             outval = self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar][evalIndex]
             print('DEBUGG outval:',outval)
             print('DEBUGG gradDict:',self.gradDict['pertPoints'][traj])
             self.gradDict['pertPoints'][traj][i]['output'] = outval
-          # reset per-opt-point counters, forward the varsUpdate
+          # reset per-opt-point counters
           self.counter['perturbation'][traj] = 0
+          # DEBUGG wrong place to do an update:
           self.counter['varsUpdate'][traj] += 1
           # evaluate the gradient
           gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj],traj)

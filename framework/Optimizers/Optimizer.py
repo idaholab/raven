@@ -83,6 +83,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
     self.initializationSampler          = None                      # Sampler that can be used to initialize the optimizer trajectories
     self.optVarsInitialized             = {}                        # Dict {var1:<initial> present?,var2:<initial> present?}
+    self.flushTargetEvaluation          = False                     # if True, then minimized lasting entries in TargetEvaluation
     #convergence tools
     self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
     self.thresholdTrajRemoval           = None                      # Threshold used to determine the convergence of parallel optimization trajectories
@@ -276,6 +277,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.initSeed = int(childChild.text)
           elif childChild.tag == 'thresholdTrajRemoval':
             self.thresholdTrajRemoval = float(childChild.text)
+          elif childChild.tag == 'flushTargetEvaluation':
+            self.flushTargetEvaluation = childChild.text.strip().lower() in utils.stringsThatMeanTrue()
           else:
             self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
 

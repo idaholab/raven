@@ -53,6 +53,7 @@
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
+        <flushTargetEvaluation>True</flushTargetEvaluation>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
