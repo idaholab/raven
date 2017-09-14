@@ -1,0 +1,106 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.testExternalModel</name>
+    <author>mandd</author>
+    <created>2013-10-24</created>
+    <classesTested>Models.ExternalModel</classesTested>
+    <description>
+       This test is aimed to check the functionality of RAVEN to use ExternalModel entities.     
+    </description>
+  </TestInfo>
+  <!-- RUNINFO -->
+  <RunInfo>
+    <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/raven_running_raven_internal_models</WorkingDir>
+    <Sequence>FirstMRun</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+<Files>
+    <Input name="test_rom_trainer.xml" type="raven" >test_rom_trainer.xml</Input>
+</Files>
+
+  <!-- STEPS -->
+  <Steps>
+    <MultiRun name="FirstMRun" re-seeding="1">
+      <Input class="Files" type="raven">test_rom_trainer.xml</Input>
+      <Model class="Models" type="Code">raven_running_rom</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
+      <Output class="Databases" type="HDF5">test_external_db</Output>
+      <Output class="OutStreams" type="Print">testPrintHistorySet_dump</Output>
+      <Output class="DataObjects" type="PointSet">testPointSet</Output>
+      <Output class="OutStreams" type="Print">testPointSet_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <!-- MODELS -->
+  <Models>
+    <Code name="raven_running_rom" subType="RAVEN">
+        <executable>/Users/alfoa/projects/raven_github/raven/raven_framework</executable>
+        <alias variable="loss_factor" type="input">Models|ROM@subType:SciKitLearn@name:ROM1|C</alias>
+        <alias variable="tollerance"  type="input">Models|ROM@subType:SciKitLearn@name:ROM1|tol</alias>
+    </Code>
+  </Models>
+
+  <!-- DISTRIBUTIONS -->
+  <Distributions>
+    <Normal name="C_distrib">
+      <mean>4</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+    <Normal name="toll_distrib">
+      <mean>0.0001</mean>
+      <sigma>0.000001</sigma>
+    </Normal>
+  </Distributions>
+
+  <!-- SAMPLERS -->
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>5</limit>
+      </samplerInit>
+      <variable name="Models|ROM@subType:SciKitLearn@name:ROM1|C">
+        <distribution>C_distrib</distribution>
+      </variable>
+      <variable name="Models|ROM@subType:SciKitLearn@name:ROM1|tol">
+        <distribution>toll_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <!-- DATABASES -->
+  <Databases>
+    <HDF5 name="test_external_db" readMode="overwrite"/>
+  </Databases>
+
+  <!-- OUTSTREAMS -->
+  <OutStreams>
+    <Print name="testPrintHistorySet_dump">
+      <type>csv</type>
+      <source>testPrintHistorySet</source>
+    </Print>
+    <Print name="testPointSet_dump">
+      <type>csv</type>
+      <source>testPointSet</source>
+    </Print>
+  </OutStreams>
+
+  <!-- DATA OBJECTS -->
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>loss_factor,tollerance</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="testPointSet">
+      <Input>loss_factor,tollerance</Input>
+      <Output>CladTempThreshold,DeltaTimeScramToAux,DG1recoveryTime</Output>
+    </PointSet>
+    <HistorySet name="testPrintHistorySet">
+      <Input>loss_factor,tollerance</Input>
+      <Output>CladTempThreshold,DeltaTimeScramToAux,DG1recoveryTime</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>
