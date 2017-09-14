@@ -167,11 +167,12 @@ class SPSA(GradientBasedOptimizer):
           #for i in range(1,self.gradDict['numIterForAve']*2,2):
           for i in self.perturbationIndices:
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
+            print('DEBUGG looking in',self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar])
             outval = self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar][evalIndex]
             self.gradDict['pertPoints'][traj][i]['output'] = outval
-          # reset per-opt-point counters, forward the varsUpdate
+          # reset per-opt-point counters
           self.counter['perturbation'][traj] = 0
-          self.counter['varsUpdate'][traj] += 1
+          # DEBUGG wrong place to do an update: self.counter['varsUpdate'][traj] += 1
           # evaluate the gradient
           gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj],traj)
           # establish a new point, if found; FIXME otherwise?

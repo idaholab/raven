@@ -165,9 +165,11 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, _checkModelFinish, tuple(bool, int), (1,realization dictionary),
             (indicating whether the Model has finished the evaluation over input identified by traj+updateKey+evalID, the index of the location of the input in dataobject)
     """
+    print('DEBUGG checking for',traj,updateKey,evalID)
     if self.mdlEvalHist.isItEmpty():
       return (False,-1)
     prefix = self.mdlEvalHist.getMetadata('prefix')
+    print('DEBUGG available indices in TE:',prefix)
     for index, pr in enumerate(prefix):
       pr = pr.split(utils.returnIdSeparator())[-1].split('_')
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
@@ -300,8 +302,14 @@ class GradientBasedOptimizer(Optimizer):
     pointFromRecommendation = self.status[traj]['reason'] == 'received recommended point'
     # if improved, keep it and move forward; otherwise, reject it and recommend cutting step size
     if newerIsBetter:
-      self.status[traj]['reason'] = 'found new opt point'
       self.raiseADebug('Accepting potential opt point for improved loss value')
+      self.status[traj]['reason'] = 'found new opt point'
+      self.counter['varsUpdate'][traj]+=1
+      # TODO FIXME flush target evaluation
+      if self.flushTargetEvaluation:
+        print('DEBUGG flagging for deletion:',traj,self.counter['varsUpdate'][traj])
+        self.clearTargetEvaluation(traj,self.counter['varsUpdate'][traj]-1)
+
       #TODO REWORK this belongs in the base class optimizer; grad shouldn't know about multilevel!!
       #  -> this parameter is how multilevel knows that a successful perturbation of an outer loop has been performed
       #  maybe implement a "acceptPoint" method in base class?
@@ -309,6 +317,7 @@ class GradientBasedOptimizer(Optimizer):
     else:
       self.status[traj]['reason'] = 'rejecting bad opt point'
       self.raiseADebug('Rejecting potential opt point for worse loss value. old: "{}", new: "{}"'.format(oldLossVal,currentLossVal))
+      self.clearTargetEvaluation(traj,self.counter['varsUpdate'][traj],onlyGrads=True)
       # cut the next step size to hopefully stay in the valley instead of climb up the other side
       self.recommendToGain[traj] = 'cut'
 
@@ -594,6 +603,24 @@ class GradientBasedOptimizer(Optimizer):
             self.counter['solutionUpdate'][traj] += 1
           else: #not ready to update solutionExport
             break
+
+  def clearTargetEvaluation(self,traj,iteration,onlyGrads=False):
+    """
+      Wipes entries from the TargetEvaluation.
+      @ In, traj, int, the trajectory for whom entries can be removed
+      @ In, iteration, int, the iteration within the trajectory that can be removed
+      @ In, onlyGrads, bool, if true then only neighbor points will be cleared
+      @ Out, None
+    """
+    prefixes = []
+    if onlyGrads:
+      toRemove = self.perturbationIndices
+    else:
+      #includes the opt point evaluations
+      toRemove = range(self.perturbationIndices[-1]+1)
+    for i in toRemove:
+      prefixes.append(self._createEvaluationIdentifier(traj,iteration,i))
+    self.mdlEvalHist.removeRealizationsByPrefix(prefixes)
 
   def fractionalStepChangeFromGradHistory(self,traj):
     """
