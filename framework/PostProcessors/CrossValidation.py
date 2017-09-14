@@ -215,7 +215,7 @@ class CrossValidation(PostProcessor):
       #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
       newInput = currentInput
 
-    if newInput.values().count(None) != 0:
+    if any(x is None for x in newInput.values()):
       varName = newInput.keys()[list(newInput.values()).index(None)]
       self.raiseAnError(IOError, "The variable: ", varName, " is not exist in the input: ", currentInput.name, " which is required for model: ", cvEstimator.name)
 
