@@ -39,6 +39,7 @@ class CDFAreaDifference(Metric):
       @ Out, None
     """
     self.acceptsProbability = True
+    self.acceptsDistribution = True
 
   def distance(self,x,y,**kwargs):
     """

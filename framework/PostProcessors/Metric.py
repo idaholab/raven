@@ -23,8 +23,8 @@ warnings.simplefilter('default', DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import os
-import six
 from collections import OrderedDict
+import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ from utils import InputData
 import Files
 import Metrics
 import Runners
+import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Metric(PostProcessor):
@@ -94,18 +95,22 @@ class Metric(PostProcessor):
       currentInputs = [currentInputs]
 
     inputDict = {'features':OrderedDict(), 'targets':OrderedDict(),
-            'features_prob':OrderedDict(), 'targets_prob':OrderedDict()}
+                 'features_prob':OrderedDict(), 'targets_prob':OrderedDict(),
+                 'distributions':[]}
     for currentInput in currentInputs:
-      metadata = currentInput.getAllMetadata()
       inputType = None
       if hasattr(currentInput, 'type'):
         inputType = currentInput.type
 
+      print("inputType",inputType,"type",type(currentInput))
       if isinstance(currentInput, Files.File):
         self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
+      elif isinstance(currentInput, Distributions.Distribution):
+        inputDict['distributions'].append(currentInput)
       elif inputType == 'HDF5':
         self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
       elif inputType == 'PointSet':
+        metadata = currentInput.getAllMetadata()
         for feature in self.features:
           if feature in currentInput.getParaKeys('input'):
             if feature in inputDict['features'].keys():
@@ -281,6 +286,8 @@ class Metric(PostProcessor):
       @ Out, outputDict, dict, Dictionary containing the results
     """
     inputDict = self.inputToInternal(inputIn)
+    #print("inputDict",inputDict)
+    print(str([x.name for x in inputDict['distributions']]))
     outputDict = OrderedDict()
     if not self.dynamic:
       for cnt in range(len(self.features)):
@@ -301,6 +308,42 @@ class Metric(PostProcessor):
           else:
             metricName = metricInstance.type
           outputDict[nodeName][metricName] = output
+      if len(inputDict['distributions']) > 0:
+        for dist in inputDict['distributions']:
+          for cnt in range(len(self.features)):
+            for metricInstance in self.metricsDict.values():
+              if not metricInstance.acceptsDistribution:
+                continue #Skip this metric
+              inData = []
+              for inputKey, subKey in [('features',self.features[cnt]),
+                                         ('targets',self.targets[cnt])]:
+                if metricInstance.acceptsProbability and subKey in inputDict[inputKey+"_prob"]:
+                  inData.append(((inputDict[inputKey][subKey],
+                                  inputDict[inputKey+"_prob"][subKey]),subKey))
+                else:
+                  inData.append((inputDict[inputKey][subKey],subKey))
+              if hasattr(metricInstance, 'metricType'):
+                metricName = metricInstance.metricType
+              else:
+                metricName = metricInstance.type
+              for data, dataName in inData:
+                nodeName = dist.name + '-' + dataName
+                if nodeName not in outputDict:
+                  outputDict[nodeName] = {}
+                outputDict[nodeName][metricName] = metricInstance.distance(dist, data)
+      if len(inputDict['distributions']) > 1:
+        for a,b in itertools.combinations(inputDict['distributions'],2):
+          nodeName = a.name + '-' + b.name
+          print("nodeName",nodeName)
+          outputDict[nodeName] = {}
+          for metricInstance in self.metricsDict.values():
+            if metricInstance.acceptsDistribution:
+              if hasattr(metricInstance, 'metricType'):
+                metricName = metricInstance.metricType
+              else:
+                metricName = metricInstance.type
+              outputDict[nodeName][metricName] = metricInstance.distance(a,b)
+      print(outputDict)
     else:
       self.raiseAnError(IOError, "Not implemented yet")
     return outputDict
