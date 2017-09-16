@@ -21,6 +21,7 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import os
+from  __builtin__ import any as b_any
 import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
 #import RavenData
@@ -89,13 +90,36 @@ class RAVEN(CodeInterfaceBase):
     parser = RAVENparser.RAVENparser(currentInputFiles[index].getAbsFile())
     modifDict = Kwargs['SampledVars']
     # we set the workind directory to the current working dir
-    modifDict['RunInfo|WorkingDir'] = '.'
+    #modifDict['RunInfo|WorkingDir'] = '.'
     #make tree
     modifiedRoot = parser.modifyOrAdd(modifDict,False)
     #make input
     parser.printInput(modifiedRoot,currentInputFiles[index].getAbsFile())
-
+    # copy slave files
+    parser.copySlaveFiles(currentInputFiles[index].getPath())
     return currentInputFiles
+
+  def checkForOutputFailure(self,output,workingDir):
+    """
+      This method is called by the RAVEN code at the end of each run  if the return code is == 0.
+      This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
+      This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
+      This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
+      (e.g. in RAVEN would be the keyword "raise")
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, failure, bool, True if the job is failed, False otherwise
+    """
+    failure = True
+    try:
+      outputToRead = open(os.path.join(workingDir,output),"r")
+    except:
+      return failure
+    readLines = outputToRead.readlines()
+    if not b_any("raise" in x for x in readLines[-20:]):
+      failure = False
+    del readLines
+    return failure
 
   def finalizeCodeOutput(self,command,output,workingDir):
     """
@@ -107,8 +131,7 @@ class RAVEN(CodeInterfaceBase):
       @ Out, returnOut, string, optional, present in case the root of the output file gets changed in this method.
     """
     returnOut = output
-    if self.vectorPPFound:
-      returnOut = self.__mergeTime(output,workingDir)[0]
+ 
     return returnOut
 
 

@@ -25,6 +25,7 @@ if not 'xrange' in dir(__builtins__):
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
 import os
+import shutil
 import copy
 from collections import OrderedDict
 #from utils.utils import toBytes, toStrish, compare
@@ -81,7 +82,57 @@ class RAVENparser():
         else:
           self.slaveInputFiles.append(child.text.strip())
 
+    externalModels = self.tree.findall('.//Models/ExternalModel')
+    if len(externalModels) > 0:
+      for extModel in externalModels:
+        if 'ModuleToLoad' in extModel.attrib:
+          moduleToLoad = extModel.attrib['ModuleToLoad']
+          if not moduleToLoad.endswith("py"):
+            moduleToLoad += ".py"
+          if self.workingDir not in moduleToLoad:
+            self.slaveInputFiles.append(os.path.join(self.workingDir,moduleToLoad))
+          else:
+            self.slaveInputFiles.append(moduleToLoad)
+        else:
+          raise IOError(self.printTag+' ERROR: ExternalModel "'+extModel.attrib['name']+'" does not have any attribute named "ModuleToLoad"!!') 
+     
+    externalFunctions = self.tree.findall('.//Functions/External')
+    if len(externalFunctions) > 0:
+      for extFunct in externalFunctions:
+        if 'file' in extFunct.attrib:
+          moduleToLoad = extFunct.attrib['file']
+          if not moduleToLoad.endswith("py"):
+            moduleToLoad += ".py"
+          if self.workingDir not in moduleToLoad:
+            self.slaveInputFiles.append(os.path.join(self.workingDir,moduleToLoad))
+          else:
+            self.slaveInputFiles.append(moduleToLoad)
+        else:
+          raise IOError(self.printTag+' ERROR: Functions/External ' +extFunct.attrib['name']+ ' does not have any attribute named "file"!!') 
+
     print(self.slaveInputFiles)
+  
+  def copySlaveFiles(self,currentDirName):
+    """
+      Method to copy the slave input files 
+      @ In, currentDirName, str, the current directory (destination of the copy procedure)
+      @ Out, None
+    """
+    # the dirName is actually in workingDir/StepName/prefix => we need to go back 2 dirs
+    dirName = os.path.join(currentDirName,"../../")
+    # copy SLAVE raven files in case they are needed
+    for slaveInput in self.slaveInputFiles:
+      # full path
+      slaveInputFullPath = os.path.abspath(os.path.join(dirName,slaveInput))
+      # check if exists
+      if os.path.exists(slaveInputFullPath):
+        slaveInputBaseDir = os.path.dirname(slaveInput)
+        slaveDir = os.path.join(currentDirName,slaveInputBaseDir.replace(currentDirName,""))
+        if not os.path.exists(slaveDir):
+          os.makedirs(slaveDir)
+        shutil.copy(slaveInputFullPath,slaveDir) 
+      else:
+        raise IOError(self.printTag+' ERROR: File "' +slaveInputFullPath+'" has not been found!!!')
 
 
   def printInput(self,rootToPrint,outfile=None):
@@ -99,21 +150,6 @@ class RAVENparser():
     IOfile = open(outfile,'wb')
     IOfile.write(inputAsString)
     IOfile.close()
-    # get location of input file
-    dirName = os.path.dirname(outfile)
-    # the dirName is actually in workingDir/StepName/prefix => we need to go back 2 dirs
-    dirName = os.path.join(dirName,"../../")
-
-#    # copy SLAVE raven files in case they are needed
-#    for slaveInput in self.slaveInputFiles:
-#      #fileDirName = os.path.dirname(slaveInput)
-#      if os.pathsep in slaveInput:
-#        components = slaveInput.split(os.pathsep)
-#        # we have a directory to create (if does not exist)
-#        for component in components:
-#      os.path.join(dirName,slaveInput)
-#      shutil.copy(inputFile.getAbsFile(),subSubDirectory)
-
 
   def modifyOrAdd(self,modiDictionary={},save=True, allowAdd = False):
     """
