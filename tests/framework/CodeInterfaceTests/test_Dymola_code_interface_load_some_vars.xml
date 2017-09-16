@@ -29,7 +29,7 @@
       <executable>
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
-      <outputVariablesToLoad>e,g,h</outputVariablesToLoad>
+      <outputVariablesToLoad>e g h</outputVariablesToLoad>
     </Code>
   </Models>
 

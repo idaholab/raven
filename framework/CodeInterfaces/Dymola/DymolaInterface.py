@@ -117,7 +117,7 @@ class Dymola(CodeInterfaceBase):
       @ In, None
       @ Out, None
     """
-    self.variablesToLoad = []
+    self.variablesToLoad = [] # the variables that should be loaded from the mat file (by default, all of them)
 
   def _readMoreXML(self,xmlNode):
     """
@@ -130,9 +130,7 @@ class Dymola(CodeInterfaceBase):
     """
     for child in xmlNode:
       if child.tag == 'outputVariablesToLoad':
-        self.variablesToLoad = [var.strip() for var in child.text.split(",")]
-        #if 'Time' not in self.variablesToLoad:
-        #  self.variablesToLoad.append("Time")
+        self.variablesToLoad = [var.strip() for var in child.text.split()]
 
   #  Generate the command to run Dymola. The form of the command is:
   #
@@ -467,6 +465,4 @@ class Dymola(CodeInterfaceBase):
     del Data1Array
     del timeSeriesData1
     del timeSeriesData2
-
-
     return os.path.splitext(destFileName)[0]   # Return the name without the .csv on it as RAVEN will add it later.
