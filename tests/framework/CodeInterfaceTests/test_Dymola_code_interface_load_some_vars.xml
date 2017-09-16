@@ -19,7 +19,7 @@
     <Input name="dsin.txt" type="DymolaInitialisation">dsin.txt</Input>
   </Files>
   <RunInfo>
-    <WorkingDir>DMInterfaceTest</WorkingDir>
+    <WorkingDir>DMInterfaceTestLoadSomeVars</WorkingDir>
     <Sequence>testDummyStep</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -29,6 +29,7 @@
       <executable>
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
+      <outputVariablesToLoad>e,g,h</outputVariablesToLoad>
     </Code>
   </Models>
 
