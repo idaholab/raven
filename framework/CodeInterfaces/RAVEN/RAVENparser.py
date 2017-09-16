@@ -78,9 +78,9 @@ class RAVENparser():
       for child in self.tree.find('.//Files'):
         subDirectory = child.attrib['subDirectory'] if 'subDirectory' in child.attrib else None
         if subDirectory:
-          self.slaveInputFiles.append(os.path.join(subDirectory,child.text.strip()))
+          self.slaveInputFiles.append(os.path.expanduser(os.path.join(subDirectory,child.text.strip())))
         else:
-          self.slaveInputFiles.append(child.text.strip())
+          self.slaveInputFiles.append(os.path.expanduser(child.text.strip()))
 
     externalModels = self.tree.findall('.//Models/ExternalModel')
     if len(externalModels) > 0:
@@ -90,12 +90,12 @@ class RAVENparser():
           if not moduleToLoad.endswith("py"):
             moduleToLoad += ".py"
           if self.workingDir not in moduleToLoad:
-            self.slaveInputFiles.append(os.path.join(self.workingDir,moduleToLoad))
+            self.slaveInputFiles.append(os.path.expanduser(os.path.join(self.workingDir,moduleToLoad)))
           else:
-            self.slaveInputFiles.append(moduleToLoad)
+            self.slaveInputFiles.append(os.path.expanduser(moduleToLoad))
         else:
-          raise IOError(self.printTag+' ERROR: ExternalModel "'+extModel.attrib['name']+'" does not have any attribute named "ModuleToLoad"!!') 
-     
+          raise IOError(self.printTag+' ERROR: ExternalModel "'+extModel.attrib['name']+'" does not have any attribute named "ModuleToLoad"!!')
+
     externalFunctions = self.tree.findall('.//Functions/External')
     if len(externalFunctions) > 0:
       for extFunct in externalFunctions:
@@ -104,17 +104,17 @@ class RAVENparser():
           if not moduleToLoad.endswith("py"):
             moduleToLoad += ".py"
           if self.workingDir not in moduleToLoad:
-            self.slaveInputFiles.append(os.path.join(self.workingDir,moduleToLoad))
+            self.slaveInputFiles.append(os.path.expanduser(os.path.join(self.workingDir,moduleToLoad)))
           else:
-            self.slaveInputFiles.append(moduleToLoad)
+            self.slaveInputFiles.append(os.path.expanduser(moduleToLoad))
         else:
-          raise IOError(self.printTag+' ERROR: Functions/External ' +extFunct.attrib['name']+ ' does not have any attribute named "file"!!') 
+          raise IOError(self.printTag+' ERROR: Functions/External ' +extFunct.attrib['name']+ ' does not have any attribute named "file"!!')
 
     print(self.slaveInputFiles)
-  
+
   def copySlaveFiles(self,currentDirName):
     """
-      Method to copy the slave input files 
+      Method to copy the slave input files
       @ In, currentDirName, str, the current directory (destination of the copy procedure)
       @ Out, None
     """
@@ -130,7 +130,7 @@ class RAVENparser():
         slaveDir = os.path.join(currentDirName,slaveInputBaseDir.replace(currentDirName,""))
         if not os.path.exists(slaveDir):
           os.makedirs(slaveDir)
-        shutil.copy(slaveInputFullPath,slaveDir) 
+        shutil.copy(slaveInputFullPath,slaveDir)
       else:
         raise IOError(self.printTag+' ERROR: File "' +slaveInputFullPath+'" has not been found!!!')
 

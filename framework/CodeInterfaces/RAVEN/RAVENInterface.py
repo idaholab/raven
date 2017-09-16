@@ -23,6 +23,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 from  __builtin__ import any as b_any
 import copy
+from utils import utils
 from CodeInterfaceBaseClass import CodeInterfaceBase
 #import RavenData
 import csvUtilities
@@ -36,6 +37,43 @@ class RAVEN(CodeInterfaceBase):
     self.printTag  = 'RAVEN INTERFACE'
     self.outputPrefix = 'out~'
     self.setInputExtension(['xml'])
+    # pointer to the module that contains the function to modify and convert the sampled vars (optional)
+    # 2 methods are going to be inquired (if present and needed):
+    # - convertNotScalarSampledVariables
+    # - manipulateScalarSampledVariables
+    self.extModForVarsManipulation = None
+    self.hasMethods                = {'noscalar':False, 'scalar':False}
+
+  def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class and initialize
+      some members based on inputs. This can be overloaded in specialize code interface in order to
+      read specific flags.
+      In this case, this is used for locating an external python module where the variables can be modified and the "vector" variables
+      can be splitted in multiple single variables
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None.
+    """
+    child = xmlNode.find("conversionModule")
+    if child is not None:
+      extModForVarsManipulationPath = os.path.expanduser(child.text.strip())
+    if not os.path.isabs(extModForVarsManipulationPath):
+      extModForVarsManipulationPath = os.path.abspath(extModForVarsManipulationPath)
+    # check if it exist
+    if not os.path.exists(extModForVarsManipulationPath):
+      raise IOError(self.printTag+' ERROR: the conversionModule "'+extModForVarsManipulationPath+'" has not been found!')
+    self.extModForVarsManipulation = utils.importFromPath(extModForVarsManipulationPath)
+    if self.extModForVarsManipulation is None:
+      raise IOError(self.printTag+' ERROR: the conversionModule "'+extModForVarsManipulationPath+'" failed to be imported!')
+    # check if the methods are there
+    if 'convertNotScalarSampledVariables' in self.extModForVarsManipulation__dict__.keys():
+      self.hasMethods['noscalar'] = True
+    if 'manipulateScalarSampledVariables' in self.extModForVarsManipulation__dict__.keys():
+      self.hasMethods['scalar'  ] = True
+    if not self.hasMethods['scalar'] and not self.hasMethods['noscalar']:
+      raise IOError(self.printTag+' ERROR: the conversionModule "'+extModForVarsManipulationPath
+                                    +'" does not contain any of the usable methods! Expected at least '
+                                    +'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
 
   def __findInputFile(self,inputFiles):
     """
@@ -86,7 +124,7 @@ class RAVEN(CodeInterfaceBase):
     if 'dynamiceventtree' in str(samplerType).strip().lower():
       raise IOError(self.printTag+' ERROR: DynamicEventTree-based sampling not supported!')
     index = self.__findInputFile(currentInputFiles)
-    outName = self.outputPrefix+currentInputFiles[index].getBase()
+    #outName = self.outputPrefix+currentInputFiles[index].getBase()
     parser = RAVENparser.RAVENparser(currentInputFiles[index].getAbsFile())
     modifDict = Kwargs['SampledVars']
     # we set the workind directory to the current working dir
@@ -131,7 +169,7 @@ class RAVEN(CodeInterfaceBase):
       @ Out, returnOut, string, optional, present in case the root of the output file gets changed in this method.
     """
     returnOut = output
- 
+
     return returnOut
 
 
