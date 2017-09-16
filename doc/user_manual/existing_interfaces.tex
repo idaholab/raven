@@ -1116,14 +1116,16 @@ RAVEN works best with Comma-Separated Value (CSV) files.  Therefore, the default
 The Dymola interface will automatically convert the .mat output to human-readable 
 forms, i.e., .csv output, through its implementation of the finalizeCodeOutput function.
 \\In order to speed up the reading and conversion of the .mat file, the user can specify
-the list of variables that need to be imported and converted into a csv file minimizing 
-the IO memory usage as much as possible. Within the \xmlNode{Code} the following XML 
+the list of variables (in addition to the Time variable) that need to be imported and 
+converted into a csv file minimizing 
+the IO memory usage as much as possible. Within the \xmlNode{Code} the following 
+XML 
 node (in addition ot the \xmlNode{executable} one) can be inputted:
 
 \begin{itemize}
    \item \xmlNode{outputVariablesToLoad}, \xmlDesc{space separated list, optional 
    parameter}, a space separated list of variables that need be exported from the .mat 
-   file. \default{all the variables in the .mat file}.
+   file (in addition to the Time variable). \default{all the variables in the .mat file}.
 \end{itemize}
 For example:
 \begin{lstlisting}[style=XML]

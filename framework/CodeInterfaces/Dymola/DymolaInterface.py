@@ -128,9 +128,9 @@ class Dymola(CodeInterfaceBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
-    for child in xmlNode:
-      if child.tag == 'outputVariablesToLoad':
-        self.variablesToLoad = [var.strip() for var in child.text.split()]
+    child = xmlNode.find("outputVariablesToLoad")
+    if child is not None:
+      self.variablesToLoad = [var.strip() for var in child.text.split()]
 
   #  Generate the command to run Dymola. The form of the command is:
   #
