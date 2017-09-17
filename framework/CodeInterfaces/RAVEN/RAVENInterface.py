@@ -127,6 +127,37 @@ class RAVEN(CodeInterfaceBase):
     #outName = self.outputPrefix+currentInputFiles[index].getBase()
     parser = RAVENparser.RAVENparser(currentInputFiles[index].getAbsFile())
     modifDict = Kwargs['SampledVars']
+
+    # check if there are noscalar variables
+    noscalarVars, totSizeExpected = {}, 0
+    for var, value in modifDict.items():
+      if len(np.asarray(value)) > 1:
+        noscalarVars[var] = np.asarray(value)
+        totSizeExpected += len(noscalarVars[var])
+    if len(noscalarVars) > 0 and not self.hasMethods['noscalar']:
+      raise IOError(self.printTag+' ERROR: No scalar variables ('+','.join(noscalarVars.keys())
+                                  + ') have been detected but no convertNotScalarSampledVariables has been inputted!')
+    # check if ext module has been inputted
+    if self.hasMethods['noscalar']:
+      if len(noscalarVars) > 0:
+        try:
+          newVars = self.extModForVarsManipulation.convertNotScalarSampledVariables(noscalarVars)
+          if type(newVars).__name__ != 'dict':
+            raise IOError(self.printTag+' ERROR: convertNotScalarSampledVariables must return a dictionary!')
+          if len(newVars) != totSizeExpected:
+            raise IOError(self.printTag+' ERROR: The total number of variables expected from method convertNotScalarSampledVariables is "'+str(totSizeExpected)+'". Got:"'+str(len(newVars))+'"!')
+          modifDict.update(newVars)
+        except TypeError:
+          raise IOError(self.printTag+' ERROR: convertNotScalarSampledVariables accept only one argument convertNotScalarSampledVariables(variableDict)')
+      else:
+        print(self.printTag+' Warning: method "convertNotScalarSampledVariables" has been inputted but no "no scalar" variables have been found!')
+    # check if ext module has the method to manipulate the variables
+    if self.hasMethods['scalar']:
+      try:
+        self.extModForVarsManipulation.manipulateScalarSampledVariables(modifDict)
+      except TypeError:
+        raise IOError(self.printTag+' ERROR: manipulateScalarSampledVariables accept only one argument manipulateScalarSampledVariables(variableDict)')
+
     # we set the workind directory to the current working dir
     #modifDict['RunInfo|WorkingDir'] = '.'
     #make tree

@@ -40,8 +40,9 @@ class RAVENparser():
       @ In, inputFile, string, input file name
       @ Out, None
     """
-    self.printTag  = 'RAVEN_PARSER'
-    self.inputFile = inputFile
+    self.printTag  = 'RAVEN_PARSER' # print tag
+    self.inputFile = inputFile      # input file name
+    self.outStreamsNames = {}       # {'outStreamName':[DataObjectName,DataObjectType]}
     if not os.path.exists(inputFile):
       raise IOError(self.printTag+' ERROR: Not found RAVEN input file')
     try:
@@ -65,8 +66,20 @@ class RAVENparser():
           if role.tag.strip() == 'Output':
             mainClass, subType = role.attrib['class'].strip(), role.attrib['type'].strip()
             if mainClass == 'OutStreams' and subType == 'Print':
+              outStream = self.tree.find('.//OutStreams/Print[@name="'+role.text.strip()+ '"]'+'/source')
+              if outStream is None:
+                raise IOError(self.printTag+' ERROR: The OutStream of type "Print" named "'+role.text.strip()+'" has not been found!')
+              dataObjectType = None
+              linkedDataObjectPointSet = self.tree.find('.//DataObjects/PointSet[@name="'+outStream.text.strip()+ '"]')
+              if linkedDataObjectPointSet is None:
+                linkedDataObjectHistorySet = self.tree.find('.//DataObjects/PointSet[@name="'+outStream.text.strip()+ '"]')
+                if linkedDataObjectHistorySet is None:
+                  raise IOError(self.printTag+' ERROR: The OutStream of type "Print" named "'+role.text.strip()+'" is linked to not existing DataObject!')
+                dataObjectType = "HistorySet"
+              else:
+                dataObjectType = "PointSet"
+              self.outStreamsNames[role.text.strip()] = [outStream.text.strip(),dataObjectType]
               foundOutStreams = True
-              break
     if not foundOutStreams:
       raise IOError(self.printTag+' ERROR: at least one <OutStreams> of type "Print" needs to be inputted in the active Steps!!')
     # Now we grep the paths of all the inputs the SLAVE RAVEN contains in the workind directory.
@@ -110,7 +123,15 @@ class RAVENparser():
         else:
           raise IOError(self.printTag+' ERROR: Functions/External ' +extFunct.attrib['name']+ ' does not have any attribute named "file"!!')
 
-    print(self.slaveInputFiles)
+  def returnOutstreamsNamesAnType(self):
+
+    """
+      Method to return the Outstreams names and linked DataObject name
+      @ In, None
+      @ Out, outStreamsNames, dict, the dictionary of outstreams of type print {'outStreamName':[DataObjectName,DataObjectType]}
+    """
+    return self.outStreamsNames
+
 
   def copySlaveFiles(self,currentDirName):
     """
