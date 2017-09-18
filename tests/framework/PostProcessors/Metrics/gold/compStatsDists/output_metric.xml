@@ -9,8 +9,8 @@
     <CDFAreaDifference>0.999999893389</CDFAreaDifference>
   </dist1-dist2>
 
-  <dist1-ans2>
+  <dist1-outputDataMC_Output_ans2>
     <PDFCommonArea>0.600533382814</PDFCommonArea>
     <CDFAreaDifference>0.786633235261</CDFAreaDifference>
-  </dist1-ans2>
+  </dist1-outputDataMC_Output_ans2>
 </MetricPostProcessor>

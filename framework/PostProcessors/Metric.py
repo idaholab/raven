@@ -314,7 +314,7 @@ class Metric(PostProcessor):
     if not self.dynamic:
       assert len(self.features) == len(measureList)
       for cnt in range(len(self.features)):
-        nodeName = str(self.features[cnt]) + '-' + str(self.targets[cnt])
+        nodeName = (str(self.features[cnt]) + '-' + str(self.targets[cnt])).replace("|","_")
         outputDict[nodeName] = {}
         for metricInstance in self.metricsDict.values():
           inData = list(measureList[cnt])
