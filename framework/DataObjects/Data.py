@@ -1166,3 +1166,35 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       valueType = None if utils.checkTypeRecursively(value) not in ['str','unicode','bytes'] else object
       self._dataParameters['typeMetadata'][name] = valueType
     return valueType
+
+  def removeRealizationsByPrefix(self,prefixes):
+    """
+      Removes a "row" from this data object.
+      @ In, prefixes, list(str), the list of matches searched for in metadata whose indices will be used to remove rows
+      @ Out, None
+    """
+    print('DEBUGG removing',prefixes)
+    if self.isItEmpty():
+      self.raiseAWarning('Asked to remove prefixes "{}", but DataObject is empty!'.format(prefixes))
+      return
+    found = False
+    havePrefixes = self.getMetadata('prefix')
+    removalIndices = []
+    for prefix in prefixes:
+      for i,p in enumerate(havePrefixes):
+        if p == prefix:
+          found = True
+          break
+      if found:
+        removalIndices.append(i)
+      else:
+        self.raiseAWarning('Asked to remove prefix "{}", but prefix not found in DataObject!'.format(prefix))
+    #remove inputs
+    for var,inp in self._dataContainer['inputs'].items():
+      self._dataContainer['inputs'][var] = c1darray(values=np.delete(self._dataContainer['inputs'][var],removalIndices))
+    #remove outputs
+    for var,inp in self._dataContainer['outputs'].items():
+      self._dataContainer['outputs'][var] = c1darray(values=np.delete(self._dataContainer['outputs'][var],removalIndices))
+    # TODO remove metadata?
+    for key,value in self._dataContainer['metadata'].items():
+      self._dataContainer['metadata'][key] = c1darray(values=np.delete(self._dataContainer['metadata'][key],removalIndices))

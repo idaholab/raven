@@ -215,3 +215,4 @@ class SharedMemoryRunner(InternalRunner):
     while self.thread.isAlive():
         time.sleep( 0.1 )
         self.thread.raiseException( RuntimeError )
+
