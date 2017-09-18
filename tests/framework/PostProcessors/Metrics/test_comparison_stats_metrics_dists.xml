@@ -25,8 +25,8 @@
       <variables>x1,x2,ans,ans2</variables>
     </ExternalModel>
     <PostProcessor name="pp1" subType="Metric">
-      <Features type="variable">ans</Features>
-      <Targets type="variable">ans2</Targets>
+      <Features type="variable">ans, dist1, dist1</Features>
+      <Targets type="variable">ans2, dist2, ans2</Targets>
       <Metric class="Metrics" type="CDFAreaDifference">cdf_diff</Metric>
       <Metric class="Metrics" type="PDFCommonArea">pdf_area</Metric>
     </PostProcessor>

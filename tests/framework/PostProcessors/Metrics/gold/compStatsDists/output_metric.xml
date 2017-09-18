@@ -1,0 +1,16 @@
+<MetricPostProcessor type="Static">
+  <ans-ans2>
+    <PDFCommonArea>0.694777866537</PDFCommonArea>
+    <CDFAreaDifference>0.826811583049</CDFAreaDifference>
+  </ans-ans2>
+
+  <dist1-dist2>
+    <PDFCommonArea>0.617075075479</PDFCommonArea>
+    <CDFAreaDifference>0.999999893389</CDFAreaDifference>
+  </dist1-dist2>
+
+  <dist1-ans2>
+    <PDFCommonArea>0.600533382814</PDFCommonArea>
+    <CDFAreaDifference>0.786633235261</CDFAreaDifference>
+  </dist1-ans2>
+</MetricPostProcessor>
