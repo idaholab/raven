@@ -240,7 +240,7 @@ class HybridModel(Dummy):
     return (myInput, samplerType, newKwargs)
 
 
-  def trainRom(self):
+  def trainRom(self, samplerType, kwargs):
     """
       This function will train all ROMs if they are not converged
       @ In, None
@@ -250,11 +250,10 @@ class HybridModel(Dummy):
     self.raiseADebug("Current sample: ", self.counter)
     for romInfo in self.romsDictionary.values():
       if not romInfo['Converged']:
-        romInfo['Instance'].train(self.targetEvaluationInstance)
-        #outputMetrics = self.cvInstance.run([romInfo['Instance'], self.targetEvaluationInstance])
-        outputMetrics = {}
+        outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], self.targetEvaluationInstance], samplerType, kwargs)
         converged = self.isRomConverged(outputMetrics)
         if converged:
+          romInfo['Instance'].train(self.targetEvaluationInstance)
           romInfo['Converged'] = True
           self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
 
@@ -361,10 +360,10 @@ class HybridModel(Dummy):
     if not self.romConverged:
       trainingSize = self.checkTrainingSize()
       if trainingSize == self.romTrainStartSize:
-        self.trainRom()
+        self.trainRom(samplerType, kwargs)
         self.romConverged = self.checkRomConvergence()
       elif trainingSize > self.romTrainStartSize and (trainingSize-self.romTrainStartSize)%self.romTrainStepSize == 0 and trainingSize <= self.romTrainMaxSize:
-        self.trainRom()
+        self.trainRom(samplerType, kwargs)
         self.romConverged = self.checkRomConvergence()
       elif trainingSize > self.romTrainMaxSize:
         self.raiseAnError(IOError, "Maximum training size is reached, but ROMs are still not converged!")

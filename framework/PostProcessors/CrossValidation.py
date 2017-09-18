@@ -111,7 +111,6 @@ class CrossValidation(PostProcessor):
     for child in xmlNode:
       if child.tag == 'SciKitLearn':
         self.initializationOptionDict[child.tag] = self._localInputAndCheck(child)
-        self.CVEngine = CrossValidations.returnInstance(child.tag, self, **self.initializationOptionDict[child.tag])
       elif child.tag == 'Metric':
         if 'type' not in child.attrib.keys() or 'class' not in child.attrib.keys():
           self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
@@ -252,6 +251,15 @@ class CrossValidation(PostProcessor):
 
     if self.dynamic:
       self.raiseAnError(IOError, "Not implemented yet")
+
+    for key, value in self.initializationOptionDict.items():
+      if key == "SciKitLearn":
+        # reset the 'n' to the size of given data
+        dataSize = np.asarray(inputDict.values()[0]).size
+        if 'n' in value.keys() and value['n'] != dataSize:
+          self.raiseAWarning("Reset the value of parameter 'n':", value['n'], " to the actual data size: ", dataSize)
+          value['n'] = dataSize
+        self.CVEngine = CrossValidations.returnInstance(key, self, **value)
 
     for trainIndex, testIndex in self.CVEngine.generateTrainTestIndices():
       trainDict, testDict = self.__generateTrainTestInputs(inputDict, trainIndex, testIndex)
