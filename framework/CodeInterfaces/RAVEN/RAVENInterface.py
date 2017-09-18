@@ -23,8 +23,10 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 from  __builtin__ import any as b_any
 import copy
+import numpy as np
 from utils import utils
 from CodeInterfaceBaseClass import CodeInterfaceBase
+import DataObjects
 #import RavenData
 import csvUtilities
 
@@ -37,12 +39,19 @@ class RAVEN(CodeInterfaceBase):
     self.printTag  = 'RAVEN INTERFACE'
     self.outputPrefix = 'out~'
     self.setInputExtension(['xml'])
+    self.outStreamsNamesAndType = {} # Outstreams names and type {'outStreamName':[DataObjectName,DataObjectType]}
     # pointer to the module that contains the function to modify and convert the sampled vars (optional)
     # 2 methods are going to be inquired (if present and needed):
     # - convertNotScalarSampledVariables
     # - manipulateScalarSampledVariables
     self.extModForVarsManipulation = None
+    # 'noscalar' = True if convertNotScalarSampledVariables exists in self.extModForVarsManipulation module
+    # 'scalar'   = True if manipulateScalarSampledVariables exists in self.extModForVarsManipulation module
     self.hasMethods                = {'noscalar':False, 'scalar':False}
+    # inner workind directory
+    self.innerWorkingDir = ''
+    # linked DataObjects
+    self.linkedDataObjectOutStreamsNames = None
 
   def _readMoreXML(self,xmlNode):
     """
@@ -54,24 +63,31 @@ class RAVEN(CodeInterfaceBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
+    linkedDataObjects = xmlNode.find("outputExportOutStreams")
+    if linkedDataObjects is None:
+      raise IOError(self.printTag+' ERROR: outputExportOutStreams node not present. You must input at least one OutStream (max 2)!')
+    self.linkedDataObjectOutStreamsNames = linkedDataObjects.text.split(",")
+    if len(self.linkedDataObjectOutStreamsNames) > 2:
+      raise IOError(self.printTag+' ERROR: outputExportOutStreams node. The maximum number of linked OutStreams are 2 (1 for PointSet and 1 for HistorySet)!')
+
     child = xmlNode.find("conversionModule")
     if child is not None:
       extModForVarsManipulationPath = os.path.expanduser(child.text.strip())
-    if not os.path.isabs(extModForVarsManipulationPath):
-      extModForVarsManipulationPath = os.path.abspath(extModForVarsManipulationPath)
-    # check if it exist
-    if not os.path.exists(extModForVarsManipulationPath):
-      raise IOError(self.printTag+' ERROR: the conversionModule "'+extModForVarsManipulationPath+'" has not been found!')
-    self.extModForVarsManipulation = utils.importFromPath(extModForVarsManipulationPath)
-    if self.extModForVarsManipulation is None:
-      raise IOError(self.printTag+' ERROR: the conversionModule "'+extModForVarsManipulationPath+'" failed to be imported!')
-    # check if the methods are there
-    if 'convertNotScalarSampledVariables' in self.extModForVarsManipulation__dict__.keys():
-      self.hasMethods['noscalar'] = True
-    if 'manipulateScalarSampledVariables' in self.extModForVarsManipulation__dict__.keys():
-      self.hasMethods['scalar'  ] = True
-    if not self.hasMethods['scalar'] and not self.hasMethods['noscalar']:
-      raise IOError(self.printTag+' ERROR: the conversionModule "'+extModForVarsManipulationPath
+      if not os.path.isabs(extModForVarsManipulationPath):
+        extModForVarsManipulationPath = os.path.abspath(extModForVarsManipulationPath)
+      # check if it exist
+      if not os.path.exists(extModForVarsManipulationPath):
+        raise IOError(self.printTag+' ERROR: the conversionModule "'+extModForVarsManipulationPath+'" has not been found!')
+      self.extModForVarsManipulation = utils.importFromPath(extModForVarsManipulationPath)
+      if self.extModForVarsManipulation is None:
+        raise IOError(self.printTag+' ERROR: the conversionModule "'+extModForVarsManipulationPath+'" failed to be imported!')
+      # check if the methods are there
+      if 'convertNotScalarSampledVariables' in self.extModForVarsManipulation__dict__.keys():
+        self.hasMethods['noscalar'] = True
+      if 'manipulateScalarSampledVariables' in self.extModForVarsManipulation__dict__.keys():
+        self.hasMethods['scalar'  ] = True
+      if not self.hasMethods['scalar'] and not self.hasMethods['noscalar']:
+        raise IOError(self.printTag +' ERROR: the conversionModule "'+extModForVarsManipulationPath
                                     +'" does not contain any of the usable methods! Expected at least '
                                     +'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
 
@@ -126,14 +142,32 @@ class RAVEN(CodeInterfaceBase):
     index = self.__findInputFile(currentInputFiles)
     #outName = self.outputPrefix+currentInputFiles[index].getBase()
     parser = RAVENparser.RAVENparser(currentInputFiles[index].getAbsFile())
+    # get the OutStreams names
+    self.outStreamsNamesAndType = parser.returnOutstreamsNamesAnType()
+    # check if the linked DataObjects are among the Outstreams
+    pointSetNumber, historySetNumber = 0, 0
+    for outstream, dataObj in self.outStreamsNamesAndType.items():
+      if outstream in self.linkedDataObjectOutStreamsNames:
+        if dataObj[1].strip() == 'PointSet':
+          pointSetNumber+=1
+        else:
+          historySetNumber+=1
+        if pointSetNumber > 1 or historySetNumber > 1:
+          raise IOError(self.printTag+' ERROR: Only one OutStream for PointSet and/or one for HistorySet can be linked as output export!')
+    if pointSetNumber == 0 and historySetNumber == 0:
+      raise IOError(self.printTag+' ERROR: No one of the OutStreams linked to this interface have been found in the SLAVE RAVEN!'
+                                 +' Expected: "'+' '.join(self.linkedDataObjectOutStreamsNames)+'" but found "'
+                                 +' '.join(self.outStreamsNamesAndType.keys())+'"!')
+    # get inner working dir
+    self.innerWorkingDir = parser.workingDir
+    # get sampled variables
     modifDict = Kwargs['SampledVars']
-
     # check if there are noscalar variables
     noscalarVars, totSizeExpected = {}, 0
     for var, value in modifDict.items():
-      if len(np.asarray(value)) > 1:
+      if np.asarray(value).size > 1:
         noscalarVars[var] = np.asarray(value)
-        totSizeExpected += len(noscalarVars[var])
+        totSizeExpected += noscalarVars[var].size
     if len(noscalarVars) > 0 and not self.hasMethods['noscalar']:
       raise IOError(self.printTag+' ERROR: No scalar variables ('+','.join(noscalarVars.keys())
                                   + ') have been detected but no convertNotScalarSampledVariables has been inputted!')
@@ -159,7 +193,6 @@ class RAVEN(CodeInterfaceBase):
         raise IOError(self.printTag+' ERROR: manipulateScalarSampledVariables accept only one argument manipulateScalarSampledVariables(variableDict)')
 
     # we set the workind directory to the current working dir
-    #modifDict['RunInfo|WorkingDir'] = '.'
     #make tree
     modifiedRoot = parser.modifyOrAdd(modifDict,False)
     #make input
@@ -197,10 +230,16 @@ class RAVEN(CodeInterfaceBase):
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, returnOut, string, optional, present in case the root of the output file gets changed in this method.
+      @ Out, dataObjectsToReturn, dict, optional, this is a special case for RAVEN only. It returns the constructed dataobjects
+                                                 (internally we check if the return variable is a dict and if it is returned by RAVEN (if not, we error out))
     """
-    returnOut = output
-
-    return returnOut
+    dataObjectsToReturn = {}
+    for filename in self.linkedDataObjectOutStreamsNames:
+      dataObjectInfo = self.outStreamsNamesAndType[filename]
+      dataObjectsToReturn[dataObjectInfo[0]] = DataObjects.returnInstance(dataObjectInfo[1],None)
+      dataObjectsToReturn[dataObjectInfo[0]]._readMoreXML(dataObjectInfo[2])
+      dataObjectsToReturn[dataObjectInfo[0]].name = filename
+      dataObjectsToReturn[dataObjectInfo[0]].loadXMLandCSV(os.path.join(workingDir,self.innerWorkingDir))
+    return dataObjectsToReturn
 
 

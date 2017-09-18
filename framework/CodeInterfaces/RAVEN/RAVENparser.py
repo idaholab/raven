@@ -72,13 +72,13 @@ class RAVENparser():
               dataObjectType = None
               linkedDataObjectPointSet = self.tree.find('.//DataObjects/PointSet[@name="'+outStream.text.strip()+ '"]')
               if linkedDataObjectPointSet is None:
-                linkedDataObjectHistorySet = self.tree.find('.//DataObjects/PointSet[@name="'+outStream.text.strip()+ '"]')
+                linkedDataObjectHistorySet = self.tree.find('.//DataObjects/HistorySet[@name="'+outStream.text.strip()+ '"]')
                 if linkedDataObjectHistorySet is None:
                   raise IOError(self.printTag+' ERROR: The OutStream of type "Print" named "'+role.text.strip()+'" is linked to not existing DataObject!')
-                dataObjectType = "HistorySet"
+                dataObjectType, xmlNode = "HistorySet", linkedDataObjectHistorySet
               else:
-                dataObjectType = "PointSet"
-              self.outStreamsNames[role.text.strip()] = [outStream.text.strip(),dataObjectType]
+                dataObjectType, xmlNode = "PointSet", linkedDataObjectPointSet
+              self.outStreamsNames[role.text.strip()] = [outStream.text.strip(),dataObjectType,xmlNode]
               foundOutStreams = True
     if not foundOutStreams:
       raise IOError(self.printTag+' ERROR: at least one <OutStreams> of type "Print" needs to be inputted in the active Steps!!')

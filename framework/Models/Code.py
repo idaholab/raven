@@ -513,10 +513,18 @@ class Code(Model):
 
     ## If the run was successful
     if returnCode == 0:
-
       returnDict = {}
+      ## Special case for RAVEN interface --ALFOA 09/17/17
+      ravenCase = False
+      if type(outputFile).__name__ == 'dict':
+        ravenCase = True
+      if ravenCase and self.code.__class__.__name__ != 'RAVEN':
+        self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be a str containing the new output file root!')
+
+
       ## This may be a tautology at this point --DPM 4/12/17
-      if outputFile is not None:
+      ## Special case for RAVEN interface. Added ravenCase flag --ALFOA 09/17/17
+      if outputFile is not None and not ravenCase:
         outFile = Files.CSV()
         ## Should we be adding the file extension here?
         outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])
@@ -530,10 +538,16 @@ class Code(Model):
         ## dictionary.
         for header,data in zip(headers, csvData.T):
           returnDict[header] = data
-
-      self._replaceVariablesNamesWithAliasSystem(returnDict, 'input', True)
-      self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
-
+      if not ravenCase:
+        self._replaceVariablesNamesWithAliasSystem(returnDict, 'input', True)
+        self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
+      else:
+        # we have the DataObjects
+        for dataObj in outputFile.values():
+          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('inputs',nodeId='RecontructEnding'), 'input', True)
+          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('unstructuredinputs',nodeId='RecontructEnding'), 'input', True)
+          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('outputs',nodeId='RecontructEnding'), 'output', True)
+        returnDict = outputFile
       ## The last thing before returning should be to delete the temporary log
       ## file and any other file the user requests to be cleared
       if deleteSuccessfulLogFiles:
@@ -590,8 +604,72 @@ class Code(Model):
     metadata = exportDict['metadata']
     if metadata:
       options['metadata'] = metadata
+    listDict = self.collectOutputFromDataObject(exportDict,output)
+    for cnt, exportDictionary in enumerate(listDict):
+      identifier = finishedJob.identifier if len(listDict) == 1 else finishedJob.identifier+"_"+str(cnt)
+      exportDictionary['prefix'] = identifier
+      self.addOutputFromExportDictionary(exportDictionary, output, options, identifier)
 
-    self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
+  def collectOutputFromDataObject(self,exportDict,output):
+    """
+      Method to collect the output from a DataObject
+      @ In, exportDict, dict,
+    """
+    returnList = []
+    if exportDict['outputSpaceParams'].values()[0].__class__.__base__.__name__ != 'Data':
+      returnList.append(exportDict)
+    else:
+      # get the DataObject that is compatible with this output
+      compatibleDataObject = None
+      for dataObj in exportDict['outputSpaceParams'].values():
+        if output.type == dataObj.type:
+          compatibleDataObject = dataObj
+          break
+      if compatibleDataObject is None:
+        # if none found (e.g. => we are filling an HistorySet with a PointSet), we take the first one
+        compatibleDataObject = exportDict['outputSpaceParams'].values()[0]
+      # get the values
+      inputs = compatibleDataObject.getParametersValues('inputs',nodeId = 'RecontructEnding')
+      unstructuredInputs = compatibleDataObject.getParametersValues('unstructuredinputs',nodeId = 'RecontructEnding')
+      outputs = compatibleDataObject.getParametersValues('outputs',nodeId = 'RecontructEnding')
+      metadata = compatibleDataObject.getAllMetadata(nodeId = 'RecontructEnding')
+      inputKeys = inputs.keys() if compatibleDataObject.type == 'PointSet' else inputs.values()[0].keys()
+      # expand inputspace of current RAVEN
+      for i in range(len(compatibleDataObject)):
+        appendDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
+        appendDict['inputSpaceParams'].update(exportDict['inputSpaceParams'])
+        appendDict['metadata'].update(exportDict['metadata'])
+        if compatibleDataObject.type == 'PointSet':
+          for inKey, value in inputs.items():
+            appendDict['inputSpaceParams'][inKey] = value[i]
+          for inKey, value in unstructuredInputs.items():
+            appendDict['inputSpaceParams'][inKey] = value[i]
+          for outKey, value in outputs.items():
+            appendDict['outputSpaceParams'][outKey] = value[i]
+        else:
+          for inKey, value in inputs.values()[i].items():
+            appendDict['inputSpaceParams'][inKey] = value
+          if len(unstructuredInputs) > 0:
+            for inKey, value in unstructuredInputs.values()[i].items():
+              appendDict['inputSpaceParams'][inKey] = value
+          for outKey, value in outputs.values()[i].items():
+            appendDict['outputSpaceParams'][outKey] = value
+        # add metadata for both dataobject types
+        for metadataToExport in ['SampledVars','SampledVarsPb']:
+          if metadataToExport in metadata:
+            appendDict['metadata'][metadataToExport].update(metadata[metadataToExport][i])
+        weightForVars = ['ProbabilityWeight-'+var.strip()  for var in inputKeys]
+        for metadataToMerge in ['ProbabilityWeight', 'PointProbability']+weightForVars:
+          if metadataToMerge in appendDict['metadata']:
+            if metadataToMerge in metadata:
+              appendDict['metadata'][metadataToMerge]*= metadata[metadataToMerge][i]
+          else:
+            if metadataToMerge in metadata:
+              appendDict['metadata'][metadataToMerge] = metadata[metadataToMerge][i]
+        returnList.append(appendDict)
+    return returnList
+
+
 
   def collectOutputFromDict(self,exportDict,output,options=None):
     """

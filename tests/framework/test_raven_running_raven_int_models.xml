@@ -38,6 +38,7 @@
   <Models>
     <Code name="raven_running_rom" subType="RAVEN">
         <executable>/Users/alfoa/projects/raven_github/raven/raven_framework</executable>
+        <outputExportOutStreams>outputMontecarloRom_dump,outputMontecarloRomHS_dump</outputExportOutStreams>
         <alias variable="loss_factor" type="input">Models|ROM@subType:SciKitLearn@name:ROM1|C</alias>
         <alias variable="tollerance"  type="input">Models|ROM@subType:SciKitLearn@name:ROM1|tol</alias>
     </Code>
@@ -94,12 +95,12 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="testPointSet">
-      <Input>loss_factor,tollerance</Input>
-      <Output>CladTempThreshold,DeltaTimeScramToAux,DG1recoveryTime</Output>
+      <Input>loss_factor,tollerance,DeltaTimeScramToAux,DG1recoveryTime</Input>
+      <Output>CladTempThreshold</Output>
     </PointSet>
     <HistorySet name="testPrintHistorySet">
-      <Input>loss_factor,tollerance</Input>
-      <Output>CladTempThreshold,DeltaTimeScramToAux,DG1recoveryTime</Output>
+      <Input>loss_factor,tollerance,DeltaTimeScramToAux,DG1recoveryTime</Input>
+      <Output>CladTempThreshold</Output>
     </HistorySet>
   </DataObjects>
 
