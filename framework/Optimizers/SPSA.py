@@ -442,9 +442,9 @@ class SPSA(GradientBasedOptimizer):
       @ Out, convertedValue, float, the modified value in case the boundaries are violated
     """
     convertedValue = currentValue
-    if currentValue >= upperBound:
+    if currentValue > upperBound:
       convertedValue = pertUp*varRange + lowerBound
-    if currentValue <= lowerBound:
+    if currentValue < lowerBound:
       convertedValue = pertLow*varRange + lowerBound
     return convertedValue
 
