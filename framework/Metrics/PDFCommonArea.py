@@ -24,7 +24,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
-import PostProcessors.ComparisonStatisticsModule
+import Metrics.MetricUtilities
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PDFCommonArea(Metric):
@@ -48,5 +48,5 @@ class PDFCommonArea(Metric):
       @ In, y, something that can be converted into a PDF
       @ Out, value, float, CDF Area Difference
     """
-    value = PostProcessors.ComparisonStatisticsModule._getPDFCommonArea(x,y)
+    value = Metrics.MetricUtilities._getPDFCommonArea(x,y)
     return float(value)

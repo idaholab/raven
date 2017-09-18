@@ -32,12 +32,12 @@ import utils.utils
 
 utils.utils.find_crow(frameworkDir)
 
-import PostProcessors.ComparisonStatisticsModule
+import Metrics.MetricUtilities
 import Distributions
 
-print(dir(PostProcessors.ComparisonStatisticsModule))
+print(dir(Metrics.MetricUtilities))
 
-count = PostProcessors.ComparisonStatisticsModule._countWeightInBins([(1.0,0.5),(2.0,0.5)],[1.5])
+count = Metrics.MetricUtilities._countWeightInBins([(1.0,0.5),(2.0,0.5)],[1.5])
 
 print(count)
 
@@ -46,29 +46,29 @@ assert count == [0.5, 0.5]
 simple = range(64)
 simple_prob = [1.0/64.0]*64
 
-stats, cdf, pdf = PostProcessors.ComparisonStatisticsModule._getPDFandCDFfromWeightedData(simple,simple_prob,3,False,"linear")
+stats, cdf, pdf = Metrics.MetricUtilities._getPDFandCDFfromWeightedData(simple,simple_prob,3,False,"linear")
 print(stats)
 print(cdf(0.0),cdf(32.0),cdf(64.0))
 assert 0.3 < cdf(32.0) < 0.7
 
-stats, cdf, pdf = PostProcessors.ComparisonStatisticsModule._getPDFandCDFfromWeightedData(simple,simple_prob,3,True,"linear")
+stats, cdf, pdf = Metrics.MetricUtilities._getPDFandCDFfromWeightedData(simple,simple_prob,3,True,"linear")
 print(stats)
 print(cdf(0.0),cdf(32.0),cdf(64.0))
 assert 0.3 < cdf(32.0) < 0.7
 
 
-stats, cdf, pdf = PostProcessors.ComparisonStatisticsModule._getPDFandCDFfromWeightedData(simple,simple_prob,12,False,"linear")
+stats, cdf, pdf = Metrics.MetricUtilities._getPDFandCDFfromWeightedData(simple,simple_prob,12,False,"linear")
 print(stats)
 print(cdf(0.0),cdf(32.0),cdf(64.0))
 assert 0.4 < cdf(32.0) < 0.6
 
 
-stats, cdf, pdf = PostProcessors.ComparisonStatisticsModule._getPDFandCDFfromWeightedData(simple,simple_prob,12,True,"linear")
+stats, cdf, pdf = Metrics.MetricUtilities._getPDFandCDFfromWeightedData(simple,simple_prob,12,True,"linear")
 print(stats)
 print(cdf(0.0),cdf(32.0),cdf(64.0))
 assert 0.4 < cdf(32.0) < 0.6
 
-low, high = PostProcessors.ComparisonStatisticsModule._getBounds({"low":1.0,"high":3.0},{"low":2.0,"high":2.5})
+low, high = Metrics.MetricUtilities._getBounds({"low":1.0,"high":3.0},{"low":2.0,"high":2.5})
 assert low == 1.0
 assert high == 3.0
 
@@ -79,23 +79,23 @@ dist2 = Distributions.Normal(1.0, 1.0)
 dist2.initializeDistribution()
 
 #Test same
-cdfAreaDifference = PostProcessors.ComparisonStatisticsModule._getCDFAreaDifference(dist1, dist1)
+cdfAreaDifference = Metrics.MetricUtilities._getCDFAreaDifference(dist1, dist1)
 
 print("cdfAreaDifference same",cdfAreaDifference)
 assert -1e-3 < cdfAreaDifference < 1e-3
 
-pdfCommonArea = PostProcessors.ComparisonStatisticsModule._getPDFCommonArea(dist1, dist1)
+pdfCommonArea = Metrics.MetricUtilities._getPDFCommonArea(dist1, dist1)
 
 print("pdfCommonArea same",pdfCommonArea)
 assert 0.99 < pdfCommonArea < 1.01
 
 #Test different
-cdfAreaDifference = PostProcessors.ComparisonStatisticsModule._getCDFAreaDifference(dist1, dist2)
+cdfAreaDifference = Metrics.MetricUtilities._getCDFAreaDifference(dist1, dist2)
 
 print("cdfAreaDifference different",cdfAreaDifference)
 assert 0.99 < cdfAreaDifference < 1.01
 
-pdfCommonArea = PostProcessors.ComparisonStatisticsModule._getPDFCommonArea(dist1, dist2)
+pdfCommonArea = Metrics.MetricUtilities._getPDFCommonArea(dist1, dist2)
 
 print("pdfCommonArea different",pdfCommonArea)
 assert 0.60 < pdfCommonArea < 0.62

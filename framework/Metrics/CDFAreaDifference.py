@@ -24,7 +24,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
-import PostProcessors.ComparisonStatisticsModule
+import Metrics.MetricUtilities
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CDFAreaDifference(Metric):
@@ -48,5 +48,5 @@ class CDFAreaDifference(Metric):
       @ In, y, something that can be converted into a CDF
       @ Out, value, float, CDF Area Difference
     """
-    value = PostProcessors.ComparisonStatisticsModule._getCDFAreaDifference(x,y)
+    value = Metrics.MetricUtilities._getCDFAreaDifference(x,y)
     return float(value)
