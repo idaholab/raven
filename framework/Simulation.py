@@ -805,28 +805,6 @@ class Simulation(MessageHandler.MessageUser):
         # needs to have the format {'internal':[(None,'variableName'),(None,'variable name')]}
         for stp in stepindict:
           self.generateAllAssemblers(stp)
-          #if "whatDoINeed" in dir(stp):
-          #  neededobjs    = {}
-          #  neededObjects = stp.whatDoINeed()
-          #  for mainClassStr in neededObjects.keys():
-          #    if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal':
-          #      self.raiseAnError(IOError,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
-          #    neededobjs[mainClassStr] = {}
-          #    for obj in neededObjects[mainClassStr]:
-          #      if obj[1] in vars(self):
-          #        neededobjs[mainClassStr][obj[1]] = vars(self)[obj[1]]
-          #      elif obj[1] in self.whichDict[mainClassStr].keys():
-          #        if obj[0]:
-          #          if obj[0] not in self.whichDict[mainClassStr][obj[1]].type:
-          #            self.raiseAnError(IOError,'Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.whichDict[mainClassStr][obj[1]].type)
-          #        neededobjs[mainClassStr][obj[1]] = self.whichDict[mainClassStr][obj[1]]
-          #      elif obj[1] in 'all':
-          #        # if 'all' we get all the objects of a certain 'mainClassStr'
-          #        for allObject in self.whichDict[mainClassStr]:
-          #          neededobjs[mainClassStr][allObject] = self.whichDict[mainClassStr][allObject]
-          #      else:
-          #        self.raiseAnError(IOError,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
-          #  stp.generateAssembler(neededobjs)
       #if 'Sampler' in stepInputDict.keys(): stepInputDict['Sampler'].generateDistributions(self.distributionsDict)
       #running a step
       stepInstance.takeAstep(stepInputDict)
