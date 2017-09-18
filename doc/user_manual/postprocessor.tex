@@ -919,6 +919,12 @@ The following is a list of acceptable sub-nodes:
   \item \xmlNode{weighted}, \xmlDesc{boolean, optional}, a flag that specifies
   whether the regression models should be probability weighted.
   \default{False}
+  \item \xmlNode{interactive}, if this node is present \emph{and} the user has
+  specified the keyword \texttt{interactive} at the command line, then this will
+  initiate a graphical interface for exploring the different simplification
+  levels of the topological hierarchy. Upon exit of the graphical interface, the
+  specified simplification level will be updated to use the last value of the
+  graphical interface before writing any ``output'' results.
   \item \xmlNode{persistence}, \xmlDesc{string, optional field}, specifies how
   to define the hierarchical simplification by assigning a value to each local
   minimum and maximum according to the one of the strategy options below:
