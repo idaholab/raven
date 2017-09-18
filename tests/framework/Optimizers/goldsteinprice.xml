@@ -8,7 +8,8 @@
     <description>
       This test runs the optimization on the Goldstein-Price function.  It tests analytic optimization values
       as well as the mechanical operation of the test.  Also covers the Bernoulli stochastic distribution, and
-      convergence nodes iterationLimit, absoluteThreshold, and minStepSize.
+      convergence nodes iterationLimit, absoluteThreshold, and minStepSize.  Also covers flushTargetEvaluation
+      option in the initialization node.
     </description>
     <analytic>
       This test uses the Goldstein-Price function, which is documented in the analytic tests documentation under
@@ -31,8 +32,10 @@
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
-      <Input class="DataObjects" type="HistorySet">opt_export</Input>
-      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Input class="DataObjects" type="HistorySet">opt_soln</Input>
+      <Output class="OutStreams" type="Print">opt_TE</Output>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
     </IOStep>
     <PostProcess name="getOptPoint">
       <Input class="DataObjects" type="HistorySet">opt_export</Input>
@@ -47,7 +50,8 @@
       <initialization>
         <limit>4000</limit>
         <initialSeed>42</initialSeed>
-        <thresholdTrajRemoval>1e-3</thresholdTrajRemoval>
+        <thresholdTrajRemoval>1e-2</thresholdTrajRemoval>
+        <flushTargetEvaluation>True</flushTargetEvaluation>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
@@ -107,9 +111,9 @@
   </DataObjects>
 
   <OutStreams>
-    <Print name="opt_export">
+    <Print name="opt_TE">
       <type>csv</type>
-      <source>opt_export</source>
+      <source>optOut</source>
     </Print>
     <Print name="opt_soln">
       <type>csv</type>

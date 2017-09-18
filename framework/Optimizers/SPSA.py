@@ -165,7 +165,6 @@ class SPSA(GradientBasedOptimizer):
       self.optTrajLive.append(traj)
       self.raiseADebug('Checking readiness for traj "{}" ...'.format(traj))
       process = self.status[traj]['process']
-      print('DEBUGG process at start:',process)
       reason = self.status[traj]['reason']
 
       # still in the process of submitting new opt point evaluations (for stochastic denoising)
@@ -219,29 +218,20 @@ class SPSA(GradientBasedOptimizer):
       elif process == 'collecting grad eval points':
         # check to see if the grad evaluation points have all been collected
         evalsFinished = True
-        print('DEBUGG perterbationIndices:',self.perturbationIndices)
         for pertID in self.perturbationIndices: #range(self.gradDict['pertNeeded']):
-          print('DEBUGG checking if "{}_{}_{}" is finished...'.format(traj,self.counter['varsUpdate'][traj],pertID))
           if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:
-            print('DEBUGG ... not finished.')
             evalsFinished = False
             break
-          else: #DEBUGG
-            print('DEBUGG ... finished!')
         # if grad eval pts are finished, then evaluate the gradient
         # workflow step (6)
         if evalsFinished: #if evalsFinished AND optPoint was found -> should be true if 'collecting grad eval points' is status process
           # collect output values for perturbed points
           for i in self.perturbationIndices:
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
-            print('DEBUGG looking in',self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar])
             outval = self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar][evalIndex]
-            print('DEBUGG outval:',outval)
-            print('DEBUGG gradDict:',self.gradDict['pertPoints'][traj])
             self.gradDict['pertPoints'][traj][i]['output'] = outval
           # reset per-opt-point counters
           self.counter['perturbation'][traj] = 0
-          # DEBUGG wrong place to do an update:
           self.counter['varsUpdate'][traj] += 1
           # evaluate the gradient
           gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj],traj)
@@ -317,6 +307,8 @@ class SPSA(GradientBasedOptimizer):
         lossDiff *= -1.0
       for var in self.getOptVars(traj=traj):
         # gradient is calculated in normalized space
+        print('DEBUGG dh parts:',pert, opt)
+        # TODO FIXME pert is missing the input space right after transitioning multilevels; opt has its space
         dh = pert['inputs'][var] - opt['inputs'][var]
         if abs(dh) < 1e-15:
           self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
@@ -397,10 +389,8 @@ class SPSA(GradientBasedOptimizer):
       #get a queued entry to run
       entry = self.gradSubmissionQueue[traj].popleft()
       prefix = entry['prefix']
-      print('DEBUGG adding grad eval point',prefix)
       point = entry['inputs']
       self.gradDict['pertPoints'][traj][int(prefix.split('_')[-1])] = {'inputs':point}#self.normalizeData(point)}
-      print('DEBUGG ... gradDict is',self.gradDict['pertPoints'][traj])
       point = self.denormalizeData(point)
       for var in self.getOptVars(traj=traj):
         self.values[var] = point[var]
@@ -412,7 +402,6 @@ class SPSA(GradientBasedOptimizer):
         self.status[traj]['process'] = 'collecting grad eval points'
 
     elif action == 'add more opt point evaluations':
-      print('DEBUGG adding new opt point evaluation')
       #take a sample from the queue
       prefix,point = self.getQueuedPoint(traj)
       #prep the point for running
@@ -463,7 +452,7 @@ class SPSA(GradientBasedOptimizer):
     #self.gradSubmissionQueue[traj].clear()
     #only clear non-opt points from pertPoints
     for i in self.perturbationIndices:
-      self.gradDict['pertPoints'][traj][i] = 0
+      self.gradDict['pertPoints'][traj][i] = {}
     self.convergeTraj[traj] = False
     self.status[traj] = {'process':'submitting grad eval points','reason':'found new opt point'}
     try:

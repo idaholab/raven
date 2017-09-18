@@ -167,11 +167,9 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, _checkModelFinish, tuple(bool, int), (1,realization dictionary),
             (indicating whether the Model has finished the evaluation over input identified by traj+updateKey+evalID, the index of the location of the input in dataobject)
     """
-    print('DEBUGG checking for',traj,updateKey,evalID)
     if self.mdlEvalHist.isItEmpty():
       return (False,-1)
     prefix = self.mdlEvalHist.getMetadata('prefix')
-    print('DEBUGG available indices in TE:',prefix)
     for index, pr in enumerate(prefix):
       pr = pr.split(utils.returnIdSeparator())[-1].split('_')
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
@@ -339,7 +337,6 @@ class GradientBasedOptimizer(Optimizer):
       self.recommendToGain[traj] = 'cut'
 
     if self.flushTargetEvaluation:
-      print('DEBUGG flagging for deletion:',traj,self.counter['varsUpdate'][traj]-1)
       self.clearTargetEvaluation(traj,self.counter['varsUpdate'][traj]-1)#,onlyGrads=True)
     ## determine convergence
     if pointFromRecommendation:
@@ -500,7 +497,6 @@ class GradientBasedOptimizer(Optimizer):
     for i in range(self.gradDict['numIterForAve']):
       identifier = i
       solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], str(identifier))
-      print('DEBUGG getjobsbyid checking done for',traj, self.counter['solutionUpdate'][traj], str(identifier),':',solutionExportUpdatedFlag)
       solutionUpdateList.append(solutionExportUpdatedFlag)
       solutionIndices.append(index)
     print('solutionexportupdate:',solutionExportUpdatedFlag)
@@ -524,7 +520,6 @@ class GradientBasedOptimizer(Optimizer):
       for traj in self.optTraj:
         if self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
           solutionExportUpdatedFlag, indices = self._getJobsByID(traj)
-          print('DEBUGG solution export update?',solutionExportUpdatedFlag,indices)
           if solutionExportUpdatedFlag:
             #get evaluations (input,output) from the collection of all evaluations
             inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
@@ -692,7 +687,6 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     if not onlyGrad:
-      print('DEBUGG submitting opt points',traj,'_',iteration)
       # TODO sanity check, this could be removed for efficiency later
       if len(self.optSubmissionQueue[traj]) > 0:
         self.raiseAnError(RuntimeError,'Preparing to add opt evals to opt submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.optSubmissionQueue[traj]))
@@ -709,7 +703,6 @@ class GradientBasedOptimizer(Optimizer):
     #dist = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
     dist = self._computeGainSequenceCk(self.paramDict,iteration+1)
     # set up all the neighbor evaluations
-    print('DEBUGG submitting neighbors',traj,'_',iteration)
     for i in self.perturbationIndices:
       direction = self._getPerturbationDirection(i,traj)
       gradPoint = {}
@@ -732,7 +725,6 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, prefix, #_#_#
       @ Out, point, dict, {var:val}
     """
-    print('DEBUGG looking for queued point ...')
     # first try opt queue
     if len(self.optSubmissionQueue[traj]) > 0:
       entry = self.optSubmissionQueue[traj].popleft()
@@ -741,7 +733,6 @@ class GradientBasedOptimizer(Optimizer):
     else:
       self.raiseAnError(RuntimeError,'Tried to get a point from submission queues for trajectory "{}" but they are empty!'.format(traj))
     prefix = entry['prefix']
-    print('DEBUGG ... found',prefix)
     point = entry['inputs']
     if denorm:
       point = self.denormalizeData(point)
