@@ -43,6 +43,70 @@ import MessageHandler
 from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------
 
+
+## The following code is extracted from stack overflow with some minor cosmetic
+## changes in order to adhere to RAVEN code standards:
+## https://stackoverflow.com/questions/323972/is-there-any-way-to-kill-a-thread-in-python
+def _asyncRaise(tid, exceptionType):
+    """
+      Raises an exception in the threads with id tid
+      @ In, tid, integer, this variable represents the id of the thread to
+        raise an exception
+      @ In, exceptionType, Exception, the type of exception to throw
+      @ Out, None
+    """
+    if not inspect.isclass(exceptionType):
+      raise TypeError("Only types can be raised (not instances)")
+
+    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, ctypes.py_object(exceptionType))
+
+    if res == 0:
+      raise ValueError("invalid thread id")
+    elif res != 1:
+      # "if it returns a number greater than one, you're in trouble,
+      # and you should call it again with exc=NULL to revert the effect"
+      ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
+      raise SystemError("PyThreadState_SetAsyncExc failed")
+
+class InterruptibleThread(threading.Thread):
+    """
+      A thread class that supports raising exception in the thread from
+      another thread.
+    """
+    def raiseException(self, exceptionType):
+      """
+        Raises the given exception type in the context of this thread.
+
+        If the thread is busy in a system call (time.sleep(),
+        socket.accept(), ...), the exception is simply ignored.
+
+        If you are sure that your exception should terminate the thread,
+        one way to ensure that it works is:
+
+          t = InterruptibleThread( ... )
+          ...
+          t.raiseException( SomeException )
+          while t.isAlive():
+            time.sleep( 0.1 )
+            t.raiseException( SomeException )
+
+        If the exception is to be caught by the thread, you need a way to
+        check that your thread has caught it.
+
+        CAREFUL : this function is executed in the context of the
+        caller thread, to raise an excpetion in the context of the
+        thread represented by this instance.
+
+        @ In, exceptionType, Exception, the type of exception to raise in
+        this thread
+        @ Out, None
+      """
+      if self.isAlive():
+        ## Assuming Python 2.6+, we can remove the need for the _get_my_tid as
+        ## specifed in the Stack Overflow answer
+        _asyncRaise( self.ident, exceptionType )
+
+
 class SharedMemoryRunner(InternalRunner):
   """
     Class for running internal objects in a threaded fashion using the built-in
@@ -131,7 +195,7 @@ class SharedMemoryRunner(InternalRunner):
       @ Out, None
     """
     try:
-      self.thread = threading.Thread(target = lambda q, *arg : q.append(self.functionToRun(*arg)), name = self.identifier, args=(self.subque,)+tuple(self.args))
+      self.thread = InterruptibleThread(target = lambda q, *arg : q.append(self.functionToRun(*arg)), name = self.identifier, args=(self.subque,)+tuple(self.args))
 
       self.thread.daemon = True
       self.thread.start()
@@ -146,9 +210,9 @@ class SharedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    # TODO it seems that it is not trivial to simply kill a thread without hardlocking python.  We need
-    #    to investigate a good solution here.
-    self.raiseAWarning('NotImplemented: Thread termination does not currently operate as expected.  Allowing thread to run....')
-    return
-    self.raiseAWarning("Terminating "+self.thread.get_ident()+ " Identifier " + self.identifier)
-    os.kill(self.thread.pid, signal.SIGTERM)
+    self.raiseAWarning("Terminating "+self.thread.pid+ " Identifier " + self.identifier)
+    ## Note the docstring on raiseException as to why the need for the loop:
+    while self.thread.isAlive():
+        time.sleep( 0.1 )
+        self.thread.raiseException( RuntimeError )
+
