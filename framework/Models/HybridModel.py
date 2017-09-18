@@ -142,6 +142,7 @@ class HybridModel(Dummy):
     self.tempOutputs['uncollectedJobIds'] = []
     self.modelInstance = self.retrieveObjectFromAssemblerDict('Model', self.modelInstance)
     self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
+    self.cvInstance.initialize(runInfo, inputs, initDict)
     self.targetEvaluationInstance = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self.targetEvaluationInstance)
     if self.modelInstance is None:
       self.raiseAnError(IOError,'Model XML block needs to be inputted!')
@@ -250,7 +251,9 @@ class HybridModel(Dummy):
     for romInfo in self.romsDictionary.values():
       if not romInfo['Converged']:
         romInfo['Instance'].train(self.targetEvaluationInstance)
-        converged = self.isRomConverged()
+        #outputMetrics = self.cvInstance.run([romInfo['Instance'], self.targetEvaluationInstance])
+        outputMetrics = {}
+        converged = self.isRomConverged(outputMetrics)
         if converged:
           romInfo['Converged'] = True
           self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
@@ -288,6 +291,36 @@ class HybridModel(Dummy):
       self.raiseADebug("ROMs  are all valid for given model ", self.modelInstance.name)
     return allValid
 
+  def isRomConverged(self, outputDict):
+    """
+      This function will check the convergence of roms
+      @ In, None
+      @ Out, None
+    """
+    converged = False
+
+    converged = True
+    return converged
+
+  def isRomValid(self):
+    """
+    """
+    valid = False
+
+    valid = True
+    return valid
+
+  def checkTrainingSize(self):
+    """
+      This will check the size of existing training set
+      @ In, None
+      @ Out, existTrainingSize, int, the size of existing training set
+    """
+    existTrainingSize = self.counter - len(self.tempOutputs['uncollectedJobIds'])
+    self.raiseADebug("Existing training size is: ", existTrainingSize)
+    return existTrainingSize
+
+
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
         This will submit an individual sample to be evaluated by this model to a
@@ -323,7 +356,7 @@ class HybridModel(Dummy):
 
     prefix = kwargs['prefix']
     self.tempOutputs['uncollectedJobIds'].append(prefix)
-    self.counter = kwargs['counter']
+    self.counter = int(prefix)
 
     if not self.romConverged:
       trainingSize = self.checkTrainingSize()
@@ -458,32 +491,6 @@ class HybridModel(Dummy):
     self.collectOutputFromDict(exportDict, self.targetEvaluationInstance)
 
     Dummy.collectOutput(self, finishedJob, output, options = {'exportDict':exportDict})
-
-  def isRomConverged(self):
-    """
-    """
-    converged = False
-
-    converged = True
-    return converged
-
-  def isRomValid(self):
-    """
-    """
-    valid = False
-
-    valid = True
-    return valid
-
-  def checkTrainingSize(self):
-    """
-      This will check the size of existing training set
-      @ In, None
-      @ Out, existTrainingSize, int, the size of existing training set
-    """
-    existTrainingSize = self.counter - len(self.tempOutputs['uncollectedJobIds'])
-    self.raiseADebug("Existing training size is: ", existTrainingSize)
-    return existTrainingSize
 
   def __mergeDict(self,exportDict, tempExportDict):
     """

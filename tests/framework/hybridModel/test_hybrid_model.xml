@@ -76,7 +76,7 @@
   <Samplers>
     <MonteCarlo name="MonteCarloTemperature">
       <samplerInit>
-        <limit>100</limit>
+        <limit>20</limit>
       </samplerInit>
       <variable name="leftTemperature">
         <distribution>leftTemperatureDist</distribution>

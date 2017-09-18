@@ -78,7 +78,7 @@ class CrossValidation(PostProcessor):
     self.CVEstimator    = None   # instance of estimator that is used to for Cross Validation
     self.CVEngine       = None   # Engine used for cross validation
 
-  def initialize(self, runInfo, inputs, initDict) :
+  def initialize(self, runInfo, inputs, initDict=None) :
     """
       Method to initialize the pp.
       @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
