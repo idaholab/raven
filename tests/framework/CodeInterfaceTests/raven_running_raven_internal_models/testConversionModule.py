@@ -26,6 +26,6 @@ def manipulateScalarSampledVariables(sampledVars):
   """
   sampledVars['Models|ROM@subType:SciKitLearn@name:ROM1|coef0']  = sampledVars['Models|ROM@subType:SciKitLearn@name:ROM1|C']/10.0
 
-    
-    
+
+
 

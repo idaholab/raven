@@ -38,7 +38,6 @@ class RAVEN(CodeInterfaceBase):
     CodeInterfaceBase.__init__(self)
     self.printTag  = 'RAVEN INTERFACE'
     self.outputPrefix = 'out~'
-    self.setInputExtension(['xml'])
     self.outStreamsNamesAndType = {} # Outstreams names and type {'outStreamName':[DataObjectName,DataObjectType]}
     # pointer to the module that contains the function to modify and convert the sampled vars (optional)
     # 2 methods are going to be inquired (if present and needed):
@@ -52,6 +51,15 @@ class RAVEN(CodeInterfaceBase):
     self.innerWorkingDir = ''
     # linked DataObjects
     self.linkedDataObjectOutStreamsNames = None
+
+  def addDefaultExtension(self):
+    """
+      This method sets a list of default extensions a specific code interface accepts for the input files.
+      This method should be overwritten if these are not acceptable defaults.
+      @ In, None
+      @ Out, None
+    """
+    self.addInputExtension(['xml'])
 
   def _readMoreXML(self,xmlNode):
     """
