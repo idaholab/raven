@@ -37,7 +37,7 @@
   <!-- MODELS -->
   <Models>
     <Code name="raven_running_rom" subType="RAVEN">
-        <executable>/Users/alfoa/projects/raven_github/raven/raven_framework</executable>
+        <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
         <outputExportOutStreams>outputMontecarloRom_dump,outputMontecarloRomHS_dump</outputExportOutStreams>
         <conversionModule>raven_running_raven_internal_models/testConversionModule.py</conversionModule>
         <alias variable="loss_factor" type="input">Models|ROM@subType:SciKitLearn@name:ROM1|C</alias>
