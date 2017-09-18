@@ -63,6 +63,9 @@ class RAVEN(CodeInterfaceBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
+    if os.path.basename(xmlNode.find("executable").text) != 'raven_framework':
+      raise IOError(self.printTag+' ERROR: executable must be "raven_framework" (in whatever location)!')
+
     linkedDataObjects = xmlNode.find("outputExportOutStreams")
     if linkedDataObjects is None:
       raise IOError(self.printTag+' ERROR: outputExportOutStreams node not present. You must input at least one OutStream (max 2)!')
@@ -82,9 +85,9 @@ class RAVEN(CodeInterfaceBase):
       if self.extModForVarsManipulation is None:
         raise IOError(self.printTag+' ERROR: the conversionModule "'+extModForVarsManipulationPath+'" failed to be imported!')
       # check if the methods are there
-      if 'convertNotScalarSampledVariables' in self.extModForVarsManipulation__dict__.keys():
+      if 'convertNotScalarSampledVariables' in self.extModForVarsManipulation.__dict__.keys():
         self.hasMethods['noscalar'] = True
-      if 'manipulateScalarSampledVariables' in self.extModForVarsManipulation__dict__.keys():
+      if 'manipulateScalarSampledVariables' in self.extModForVarsManipulation.__dict__.keys():
         self.hasMethods['scalar'  ] = True
       if not self.hasMethods['scalar'] and not self.hasMethods['noscalar']:
         raise IOError(self.printTag +' ERROR: the conversionModule "'+extModForVarsManipulationPath
@@ -122,6 +125,7 @@ class RAVEN(CodeInterfaceBase):
     """
     index = self.__findInputFile(inputFiles)
     outputfile = self.outputPrefix+inputFiles[index].getBase()
+
     executeCommand = [('parallel',executable+ ' '+inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
     return returnCommand
@@ -194,7 +198,7 @@ class RAVEN(CodeInterfaceBase):
 
     # we set the workind directory to the current working dir
     #make tree
-    modifiedRoot = parser.modifyOrAdd(modifDict,False)
+    modifiedRoot = parser.modifyOrAdd(modifDict,True)
     #make input
     parser.printInput(modifiedRoot,currentInputFiles[index].getAbsFile())
     # copy slave files

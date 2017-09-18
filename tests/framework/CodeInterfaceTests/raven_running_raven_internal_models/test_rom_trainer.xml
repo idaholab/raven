@@ -35,6 +35,7 @@
       <kernel>linear</kernel>
       <C>10.0</C>
       <tol>0.0001</tol>
+      <coef0>0.0</coef0>
     </ROM>
     <ROM name="ROM2" subType="NDinvDistWeight">
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>

@@ -610,10 +610,18 @@ class Code(Model):
       exportDictionary['prefix'] = identifier
       self.addOutputFromExportDictionary(exportDictionary, output, options, identifier)
 
+
+  ###################################################################################
+  ## THIS METHOD NEEDS TO BE REWORKED WHEN THE NEW DATAOBJECT STRUCURE IS IN PLACE ##
+  ###################################################################################
   def collectOutputFromDataObject(self,exportDict,output):
     """
-      Method to collect the output from a DataObject
-      @ In, exportDict, dict,
+      Method to collect the output from a DataObject (if it is not a dataObject, it just returns a list with one single exportDict)
+      @ In, exportDict, dict, the export dictionary
+                               ({'inputSpaceParams':{var1:value1,var2:value2},
+                                 'outputSpaceParams':{outstreamName1:DataObject1,outstreamName2:DataObject2},
+                                 'metadata':{'metadataName1':value1,'metadataName2':value2}})
+      @ Out, returnList, list, list of export dictionaries
     """
     returnList = []
     if exportDict['outputSpaceParams'].values()[0].__class__.__base__.__name__ != 'Data':
@@ -623,6 +631,9 @@ class Code(Model):
       compatibleDataObject = None
       for dataObj in exportDict['outputSpaceParams'].values():
         if output.type == dataObj.type:
+          compatibleDataObject = dataObj
+          break
+        if output.type == 'HDF5' and dataObj.type == 'HistorySet':
           compatibleDataObject = dataObj
           break
       if compatibleDataObject is None:
@@ -668,8 +679,6 @@ class Code(Model):
               appendDict['metadata'][metadataToMerge] = metadata[metadataToMerge][i]
         returnList.append(appendDict)
     return returnList
-
-
 
   def collectOutputFromDict(self,exportDict,output,options=None):
     """

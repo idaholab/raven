@@ -2,16 +2,16 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework.testExternalModel</name>
-    <author>mandd</author>
-    <created>2013-10-24</created>
-    <classesTested>Models.ExternalModel</classesTested>
+    <author>alfoa</author>
+    <created>2017-09-16</created>
+    <classesTested>Models.Code.RAVEN</classesTested>
     <description>
-       This test is aimed to check the functionality of RAVEN to use ExternalModel entities.     
+       This test is aimed to check the functionality of the RAVEN code interface (RAVEN running RAVEN).
     </description>
   </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/raven_running_raven_internal_models</WorkingDir>
+    <WorkingDir>raven_running_raven_internal_models</WorkingDir>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -39,6 +39,7 @@
     <Code name="raven_running_rom" subType="RAVEN">
         <executable>/Users/alfoa/projects/raven_github/raven/raven_framework</executable>
         <outputExportOutStreams>outputMontecarloRom_dump,outputMontecarloRomHS_dump</outputExportOutStreams>
+        <conversionModule>raven_running_raven_internal_models/testConversionModule.py</conversionModule>
         <alias variable="loss_factor" type="input">Models|ROM@subType:SciKitLearn@name:ROM1|C</alias>
         <alias variable="tollerance"  type="input">Models|ROM@subType:SciKitLearn@name:ROM1|tol</alias>
     </Code>
@@ -62,10 +63,10 @@
       <samplerInit>
         <limit>5</limit>
       </samplerInit>
-      <variable name="Models|ROM@subType:SciKitLearn@name:ROM1|C">
+      <variable name="loss_factor">
         <distribution>C_distrib</distribution>
       </variable>
-      <variable name="Models|ROM@subType:SciKitLearn@name:ROM1|tol">
+      <variable name="tollerance">
         <distribution>toll_distrib</distribution>
       </variable>
     </MonteCarlo>
