@@ -104,7 +104,7 @@ class InterruptibleThread(threading.Thread):
       if self.isAlive():
         ## Assuming Python 2.6+, we can remove the need for the _get_my_tid as
         ## specifed in the Stack Overflow answer
-        _asyncRaise( self.get_ident(), exceptionType )
+        _asyncRaise( self.ident, exceptionType )
 
 
 class SharedMemoryRunner(InternalRunner):
