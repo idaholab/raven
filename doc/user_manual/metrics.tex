@@ -7,8 +7,9 @@ The data mining algorithms in RAVEN which accept the definition of a metric are 
 \begin{itemize}
   \item DBSCAN (see Section~\ref{subparagraph:DBSCAN})
   \item Affinity Propagation (see Section~\ref{subparagraph:Affinity})
+  \item Metric post processor (See Secton \ref{MetricPP})
 \end{itemize}
-Both of these algorithms can take as input an $N \times N$ square matrix $D=[d_{ij}]$ where each element $d_{ij}$ of $D$ is the distance between 
+Both of these algorithms can take as input an $N \times N$ square matrix $D=[d_{ij}]$ where each element $d_{ij}$ of $D$ is the distance between
 element $i$ $(i=1,\ldots,N)$ and $j$
 $(j=1,\ldots,N)$.
 
@@ -37,17 +38,17 @@ In the RAVEN input file these metrics are defined as follows:
 \subsection{Minkowski}
 \label{subsection:Minkowski}
 Minkowski distance is the most basic and used metric in any data mining algorithm.
-Given two multi-dimensional vectors $X=(x_1,x_2,\ldots,x_n)$ and $Y=(y_1,y_2,\ldots,y_n)$, the Minkowski distance $d_p$ of order $p$ between these 
+Given two multi-dimensional vectors $X=(x_1,x_2,\ldots,x_n)$ and $Y=(y_1,y_2,\ldots,y_n)$, the Minkowski distance $d_p$ of order $p$ between these
 two vectors is:
 \begin{equation}
 d_p = \left ( \sum_{i=1}^{n} \left \| x_i-y_i \right \|^p \right )^\frac{1}{p}
 \end{equation}
-Minkowski distance is typically used with $p$ being 1 or 2. The latter one is the Euclidean distance, while the former is sometimes known as the 
-Manhattan distance. 
+Minkowski distance is typically used with $p$ being 1 or 2. The latter one is the Euclidean distance, while the former is sometimes known as the
+Manhattan distance.
 Note that this metric can be employed for both PointSets and HistorySets.
 
 Note that this metric can be employed directly on HistorySets.
-For HistorySets, all histories must contain an equal number of samples. Note that, in this respect, the interfaced Post-Processor (see Section~\ref{Interfaced}) 
+For HistorySets, all histories must contain an equal number of samples. Note that, in this respect, the interfaced Post-Processor (see Section~\ref{Interfaced})
 HistorySetSampling can be employed to perform such action. In addition, several more interfaced Post-Processors can be used to manipulate HistorySets.
 
 The specifications of a Minkowski distance must be defined within the XML block
@@ -62,7 +63,7 @@ This XML node needs to contain the attributes:
 
 An example of Minkowski distance defined in RAVEN is provided below:
 \begin{lstlisting}[style=XML]
-<Simulation> 
+<Simulation>
   ...
   <Metrics>
     ...
@@ -88,20 +89,20 @@ This XML node needs to contain the attributes:
 
 
 \begin{itemize}
-  \item \xmlNode{order},          \xmlDesc{int, required field},    order of the DTW calculation: $0$ specifices a classical DTW caluclation and $1$ specifies 
-                                                                    a derivative DTW calculation 
+  \item \xmlNode{order},          \xmlDesc{int, required field},    order of the DTW calculation: $0$ specifices a classical DTW caluclation and $1$ specifies
+                                                                    a derivative DTW calculation
   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, the ID of the temporal variable
-  \item \xmlNode{localDistance},  \xmlDesc{string, optional field}, the ID of the distance function to be employed to determine the local distance 
-                                                                    evaluation of two time series. Available options are provided by the sklearn 
+  \item \xmlNode{localDistance},  \xmlDesc{string, optional field}, the ID of the distance function to be employed to determine the local distance
+                                                                    evaluation of two time series. Available options are provided by the sklearn
                                                                     pairwise\_distances (cityblock, cosine, euclidean, $l1$, $l2$, manhattan,
-                                                                    braycurtis, canberra, chebyshev, correlation, dice, hamming, jaccard, 
-                                                                    kulsinski, mahalanobis, matching, minkowski, rogerstanimoto, russellrao, 
+                                                                    braycurtis, canberra, chebyshev, correlation, dice, hamming, jaccard,
+                                                                    kulsinski, mahalanobis, matching, minkowski, rogerstanimoto, russellrao,
                                                                     seuclidean, sokalmichener, sokalsneath, sqeuclidean, yule)
 \end{itemize}
 
 An example of Minkowski distance defined in RAVEN is provided below:
 \begin{lstlisting}[style=XML]
-<Simulation> 
+<Simulation>
   ...
   <Metrics>
     ...
@@ -127,19 +128,19 @@ The specifications of a SKL metric must be defined within the XML block.
 \xmlNode{SKL}.
 
 Available metrics from SKL are:
-\begin{itemize}  
+\begin{itemize}
   \item   From scikit-learn pairwise kernels:
     \begin{itemize}
-       \item rbf: $k(x, y) = \exp( -\gamma \| x-y \|^2)$, parameters required: gamma  
-       \item sigmoid: $k(x, y) = \tanh( \gamma x^\top y + c_0)$, parameters required: gamma and coef0 
+       \item rbf: $k(x, y) = \exp( -\gamma \| x-y \|^2)$, parameters required: gamma
+       \item sigmoid: $k(x, y) = \tanh( \gamma x^\top y + c_0)$, parameters required: gamma and coef0
        \item polynomial: $k(x, y) = (\gamma x^\top y +c_0)^d$, parameters required: gamma, degree, coef0
-       \item laplacian: $k(x, y) = \exp( -\gamma \| x-y \|_1)$, parameters required: gamma 
-       \item linear: $k(x, y) = x^\top y$ 
+       \item laplacian: $k(x, y) = \exp( -\gamma \| x-y \|_1)$, parameters required: gamma
+       \item linear: $k(x, y) = x^\top y$
        \item cosine: $k(x, y) = \frac{x y^\top}{\|x\| \|y\|}$
-       \item $chi2$: $k(x, y) = \exp \left (-\gamma \sum_i \frac{(x[i] - y[i]) ^ 2}{x[i] + y[i]} \right )$ 
+       \item $chi2$: $k(x, y) = \exp \left (-\gamma \sum_i \frac{(x[i] - y[i]) ^ 2}{x[i] + y[i]} \right )$
        \item $additive\_chi2$: $k(x, y) = -\sum [(x - y)^2 / (x + y)]$
     \end{itemize}
-  
+
   \item   From scikit-learn pairwise distances:
     \begin{itemize}
       \item euclidean: ${||u-v||}_2$
@@ -148,29 +149,29 @@ Available metrics from SKL are:
       \item l1: see cityblock
       \item l2: see euclidean
       \item manhattan: see cityblock
-     
+
 %  \item From scipy.spatial.distance
 %       These are distance metrics available with newer version of sklearn (from 0.18.1)
-%       \item braycurtis: $\sum{|u_i-v_i|} / \sum{|u_i+v_i|}$ 
-%       \item canberra: $ d(u,v) = \sum_i \frac{|u_i-v_i|}{|u_i|+|v_i|}$ 
-%       \item chebyshev: $\max_i {|u_i-v_i|}$       
+%       \item braycurtis: $\sum{|u_i-v_i|} / \sum{|u_i+v_i|}$
+%       \item canberra: $ d(u,v) = \sum_i \frac{|u_i-v_i|}{|u_i|+|v_i|}$
+%       \item chebyshev: $\max_i {|u_i-v_i|}$
 %       \item correlation: $1 - \frac{(u - \bar{u}) \cdot (v - \bar{v})}{{||(u - \bar{u})||}_2 {||(v - \bar{v})||}_2}$ where $\bar{u}$ is the mean of the elements of $u$
 %       and $x \cdot y$ is the dot product of $x$ and $y$
 %       \item dice: $\frac{c_{TF} + c_{FT}}{2c_{TT} + c_{FT} + c_{TF}}$  where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
 %       \item hamming: $\frac{c_{01} + c_{10}}{n}$  where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
 %       \item jaccard: $\frac{c_{TF} + c_{FT}}{c_{TT} + c_{FT} + c_{TF}}$  where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
 %       \item kulsinski $\frac{c_{TF} + c_{FT} - c_{TT} + n}{c_{FT} + c_{TF} + n}$ where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
-%       \item mahalanobis: $\sqrt{ (u-v) V^{-1} (u-v)^T }$ where $V$ is the covariance matrix.  Note that the argument $VI$ is the inverse of $V$ 
+%       \item mahalanobis: $\sqrt{ (u-v) V^{-1} (u-v)^T }$ where $V$ is the covariance matrix.  Note that the argument $VI$ is the inverse of $V$
 %       \item minkowski: ${||u-v||}_p = (\sum{|u_i - v_i|^p})^{1/p}$, parameters required: p
 %       \item wminkowski: $\left(\sum{(|w_i (u_i - v_i)|^p)}\right)^{1/p}$, paramteres required: p
-%       \item rogerstanimoto: $\frac{R}{c_{TT} + c_{FF} + R}$ where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ 
+%       \item rogerstanimoto: $\frac{R}{c_{TT} + c_{FF} + R}$ where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$
 %       for $k < n$ and $R = 2(c_{TF} + c_{FT})$
 %       \item russellrao: $\frac{n - c_{TT}}{n}$  where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
-%       \item seuclidean: $\sqrt{\sum {(u_i-v_i)^2 / V[x_i]}}$ where $V$ is the variance vector; $V[i]$ is the variance computed over all the i'th components of the points. 
+%       \item seuclidean: $\sqrt{\sum {(u_i-v_i)^2 / V[x_i]}}$ where $V$ is the variance vector; $V[i]$ is the variance computed over all the i'th components of the points.
 %        If not passed, it is automatically computed.
 %       \item sokalmichener: $\frac{R}{S + R}$ where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for
 %       $k < n$, $R = 2 * (c_{TF} + c_{FT})$ and $S = c_{FF} + c_{TT}$
-%       \item sokalsneath: $\frac{R}{c_{TT} + R}$ where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ 
+%       \item sokalsneath: $\frac{R}{c_{TT} + R}$ where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$
 %       for $k < n$ and $R = 2(c_{TF} + c_{FT})$
 %       \item sqeuclidean: ${||u-v||}_2^2$
 %       \item yule: $\frac{R}{c_{TT} * c_{FF} + \frac{R}{2}}$ where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for
@@ -244,3 +245,27 @@ In the RAVEN input file these metrics are defined as follows:
 </Simulation>
 \end{lstlisting}
 
+\subsection{CDFAreaDifference}
+
+This calculates the difference in area between the two CDFs.  This
+metric supports using distributions as input.  Other inputs are
+converted to a CDF.
+
+\begin{equation}
+  \text{CDF area difference} = \int_{-\infty}^{\infty}{\|CDF_a(x)-CDF_b(x)\|dx}
+\end{equation}
+
+This has metric has the same units as $x$.  The closer the number is
+to zero, the closer the match.  A perfect match would be 0.0.
+
+\subsection{PDFCommonArea}
+
+This calculates the common area between the two PDFs.  The higher the
+value the closer the PDFs are.  This metric supports distributions as
+inputs.  Other inputs are converted to a PDF.
+
+\begin{equation}
+  \text{PDF common area} = \int_{-\infty}^{\infty}{\min(PDF_a(x),PDF_b(x))}dx
+\end{equation}
+
+A perfect match would be 1.0.
