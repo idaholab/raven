@@ -105,7 +105,7 @@ class RAVEN(CodeInterfaceBase):
     """
       Method to return the index of the RAVEN input file (error out in case it is not found)
       @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs that have been added in the Step is running this code)
-      @ Out, index, int, index of the RAVEN input file
+      @ Out, inputFileIndex, int, index of the RAVEN input file
     """
     found = False
     for index, inputFile in enumerate(inputFiles):
@@ -116,7 +116,7 @@ class RAVEN(CodeInterfaceBase):
         found = True
     if not found:
       raise IOError(self.printTag+' ERROR: None of the input files are tagged with the "type" "raven" (e.g. <Input name="aName" type="raven">inputFileName.xml</Input>)')
-    return index
+    return inputFileIndex
 
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """

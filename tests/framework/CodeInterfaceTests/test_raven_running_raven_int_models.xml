@@ -13,11 +13,11 @@
   </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>
-    <WorkingDir>raven_running_raven_internal_models</WorkingDir>
+    <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/CodeInterfaceTests/raven_running_raven_internal_models</WorkingDir>
     <Sequence>FirstMRun</Sequence>
     <!-- This settings here are going to run 3 SLAVE RAVENs at a time, each of them using 2 processors -->
-    <batchSize>3</batchSize>
-    <NumMPI>2</NumMPI>
+    <batchSize>1</batchSize>
+    <NumMPI>1</NumMPI>
     <mode>mpi</mode>
   </RunInfo>
 
@@ -44,9 +44,11 @@
     <Code name="raven_running_rom" subType="RAVEN">
         <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
         <outputExportOutStreams>outputMontecarloRom_dump,outputMontecarloRomHS_dump</outputExportOutStreams>
-        <conversionModule>raven_running_raven_internal_models/testConversionModule.py</conversionModule>
+        <conversionModule>/Users/alfoa/projects/raven_github/raven/tests/framework/CodeInterfaceTests/raven_running_raven_internal_models/testConversionModule.py</conversionModule>
         <alias variable="loss_factor" type="input">Models|ROM@subType:SciKitLearn@name:ROM1|C</alias>
         <alias variable="tollerance"  type="input">Models|ROM@subType:SciKitLearn@name:ROM1|tol</alias>
+        <alias variable="DG1recoveryTime"  type="input">Samplers|Grid@name:gridRom|constant@name:DG1recoveryTime</alias>
+ 
     </Code>
   </Models>
 
@@ -60,6 +62,10 @@
       <mean>0.0001</mean>
       <sigma>0.000001</sigma>
     </Normal>
+    <Uniform name="DG1backup">
+        <lowerBound>0</lowerBound>
+        <upperBound>1000</upperBound>
+    </Uniform>
   </Distributions>
 
   <!-- SAMPLERS -->
@@ -73,6 +79,9 @@
       </variable>
       <variable name="tollerance">
         <distribution>toll_distrib</distribution>
+      </variable>
+      <variable name="DG1recoveryTime">
+          <distribution>DG1backup</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>

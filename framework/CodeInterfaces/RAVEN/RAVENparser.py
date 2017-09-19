@@ -27,6 +27,7 @@ import xml.dom.minidom
 import os
 import shutil
 import copy
+import numpy as np
 from collections import OrderedDict
 
 class RAVENparser():
@@ -190,6 +191,8 @@ class RAVENparser():
       returnElement = self.tree                           #otherwise return the original modified
 
     for node, value in modiDictionary.items():
+      val = np.atleast_1d(value)[0]
+
       if "|" not in node:
         raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' does not contain "|" separator and can not be handled!!')
       changeTheNode = True
@@ -233,7 +236,7 @@ class RAVENparser():
             else:
               allowAddNodes.append(None)
             allowAddNodesPath[component.strip()] = attribConstruct
-        if pathNode.endswith("]"):
+        if pathNode.endswith("]") and attribConstruct.values()[-1] is None:
           changeTheNode = False
         else:
           changeTheNode = True
@@ -270,15 +273,15 @@ class RAVENparser():
           getFirstElement.append(subElement)
           getFirstElement = subElement
         if changeTheNode:
-          subElement.text = str(value).strip()
+          subElement.text = str(val).strip()
         else:
-          subElement.attrib[attribConstruct.keys()[-1]] = str(value).strip()
+          subElement.attrib[attribConstruct.keys()[-1]] = str(val).strip()
 
       else:
         nodeToChange = foundNodes[0]
         pathNode     = './/'
         if changeTheNode:
-          nodeToChange.text = str(value).strip()
+          nodeToChange.text = str(val).strip()
         else:
-          nodeToChange.attrib[attribName] = str(value).strip()
+          nodeToChange.attrib[attribName] = str(val).strip()
     return returnElement

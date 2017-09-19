@@ -46,19 +46,14 @@
       <variable name="DeltaTimeScramToAux">
         <distribution>auxbackup</distribution>
       </variable>
-      <variable name="DG1recoveryTime">
-        <distribution>DG1backup</distribution>
-      </variable>
+      <constant name="DG1recoveryTime">500</constant>
     </MonteCarlo>
     <Grid name="gridRom">
         <variable name="DeltaTimeScramToAux">
             <distribution>auxbackup</distribution>
             <grid construction="custom" type="CDF">0.5 1.0 0.0</grid>
         </variable>
-        <variable name="DG1recoveryTime">
-            <distribution>DG1backup</distribution>
-            <grid construction="custom" type="CDF">0.5 1.0 0.0</grid>
-        </variable>
+        <constant name="DG1recoveryTime">500</constant>
     </Grid>
     <MonteCarlo name="RAVENmcCode3">
       <samplerInit>
