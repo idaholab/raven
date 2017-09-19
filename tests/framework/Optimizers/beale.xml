@@ -20,7 +20,7 @@
   <RunInfo>
     <WorkingDir>Beale</WorkingDir>
     <Sequence>optimize,getOptPoint,print</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>8</batchSize>
   </RunInfo>
 
   <Steps>
