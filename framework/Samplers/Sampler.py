@@ -592,7 +592,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       randomUtils.randomSeed(self.auxcnt-1)
     self.inputInfo['prefix'] = str(self.counter)
     # used in HybridModel to identify the number of runs
-    self.inputInfo['counter'] = self.counter
+    #self.inputInfo['counter'] = self.counter
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
 
