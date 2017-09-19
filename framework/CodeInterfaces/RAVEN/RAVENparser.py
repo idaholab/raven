@@ -242,7 +242,7 @@ class RAVENparser():
         pathNode = './/' + node.replace("|","/").strip()
         if allowAdd:
           pathNodeTemp = './/'
-          for component in node.replace("|","/").strip():
+          for component in node.replace("|","/").split("/"):
             pathNodeTemp += component
             if len(returnElement.findall(pathNodeTemp)) > 0:
               allowAddNodes.append(pathNodeTemp)
@@ -258,6 +258,8 @@ class RAVENparser():
       if len(foundNodes) == 0:
         # this means that the allowAdd is true (=> no error message has been raised)
         indexFirstUnknownNode = allowAddNodes.index(None)
+        if indexFirstUnknownNode == 0:
+          raise IOError(self.printTag+' ERROR: at least the main XML node should be present in the RAVEN template input -> '+node.strip()+'. Please check the input!!')
         getFirstElement = returnElement.findall(allowAddNodes[indexFirstUnknownNode-1])[0]
         for i in range(indexFirstUnknownNode,len(allowAddNodes)):
           nodeWithAttributeName = allowAddNodesPath.keys()[i]

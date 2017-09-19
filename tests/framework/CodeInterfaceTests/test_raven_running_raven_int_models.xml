@@ -6,14 +6,19 @@
     <created>2017-09-16</created>
     <classesTested>Models.Code.RAVEN</classesTested>
     <description>
-       This test is aimed to check the functionality of the RAVEN code interface (RAVEN running RAVEN).
+       This test is aimed to check the functionality of the RAVEN code interface (RAVEN running RAVEN). It tests the MPI implementation of the
+       SLAVE RAVEN runs. In this case, 3 simultaneous SLAVE RAVEN (batchSize=3) runs are going to be spawned, each of them using 2 processors (NumMPI=2).
+       The NumMPI XML node MUST BE INPUTTED if the SLAVE RAVEN runs must run in multiple processors!
     </description>
   </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>raven_running_raven_internal_models</WorkingDir>
     <Sequence>FirstMRun</Sequence>
-    <batchSize>1</batchSize>
+    <!-- This settings here are going to run 3 SLAVE RAVENs at a time, each of them using 2 processors -->
+    <batchSize>3</batchSize>
+    <NumMPI>2</NumMPI>
+    <mode>mpi</mode>
   </RunInfo>
 
 <Files>

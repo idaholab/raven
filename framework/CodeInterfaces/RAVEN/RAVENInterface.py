@@ -132,8 +132,8 @@ class RAVEN(CodeInterfaceBase):
     """
     index = self.__findInputFile(inputFiles)
     outputfile = self.outputPrefix+inputFiles[index].getBase()
-
-    executeCommand = [('parallel',executable+ ' '+inputFiles[index].getFilename())]
+    # we set the command type to serial since the SLAVE RAVEN handles the parallel on its own
+    executeCommand = [('serial',executable+ ' '+inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
@@ -151,7 +151,6 @@ class RAVEN(CodeInterfaceBase):
     if 'dynamiceventtree' in str(samplerType).strip().lower():
       raise IOError(self.printTag+' ERROR: DynamicEventTree-based sampling not supported!')
     index = self.__findInputFile(currentInputFiles)
-    #outName = self.outputPrefix+currentInputFiles[index].getBase()
     parser = RAVENparser.RAVENparser(currentInputFiles[index].getAbsFile())
     # get the OutStreams names
     self.outStreamsNamesAndType = parser.returnOutstreamsNamesAnType()
@@ -203,9 +202,20 @@ class RAVEN(CodeInterfaceBase):
       except TypeError:
         raise IOError(self.printTag+' ERROR: manipulateScalarSampledVariables accept only one argument manipulateScalarSampledVariables(variableDict)')
 
-    # we set the workind directory to the current working dir
+    # we work on batchSizes here
+    newBatchSize = Kwargs['NumMPI']
+    internalParallel = Kwargs['internalParallel']
+    if len(Kwargs['Nodes']) > 0:
+      # we are in a distributed memory machine => we allocate a node file
+      nodeFileToUse = os.path.join(Kwargs['BASE_WORKING_DIR'],"node_" +str(Kwargs['INDEX']))
+      modifDict['RunInfo|nodefile'       ] = nodeFileToUse
+    if internalParallel or newBatchSize > 1:
+      # either we have an internal parallel or NumMPI > 1
+      modifDict['RunInfo|batchSize'       ] = newBatchSize
+    modifDict['RunInfo|internalParallel'] = internalParallel
+
     #make tree
-    modifiedRoot = parser.modifyOrAdd(modifDict,True)
+    modifiedRoot = parser.modifyOrAdd(modifDict,save=True,allowAdd = True)
     #make input
     parser.printInput(modifiedRoot,currentInputFiles[index].getAbsFile())
     # copy slave files
