@@ -211,6 +211,7 @@ class SharedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
+    # WARNING: this is implemented but largely untested.  There is an issue "Terminate unnecessary jobs" that addresses this concern.
     self.raiseAWarning("Terminating "+self.thread.pid+ " Identifier " + self.identifier)
     ## Note the docstring on raiseException as to why the need for the loop:
     while self.thread.isAlive():
