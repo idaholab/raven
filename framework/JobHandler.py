@@ -77,9 +77,10 @@ class JobHandler(MessageHandler.MessageUser):
     self.sleepTime  = 0.005
     self.completed = False
 
-    ## Stops the pending queue from getting too big. TODO: expose this to the
-    ## user
-    self.maxQueueSize = 1000
+    ## Prevents the pending queue from growing indefinitely, but also allowing
+    ## extra jobs to be queued to prevent starving parallelized environments of
+    ## jobs.
+    self.maxQueueSize = None
 
     ############################################################################
     ## The following variables are protected by the __queueLock
@@ -117,7 +118,7 @@ class JobHandler(MessageHandler.MessageUser):
 
     #self.__noResourcesJobs = []
 
-  def initialize(self,runInfoDict,messageHandler):
+  def initialize(self, runInfoDict, messageHandler):
     """
       Method to initialize the JobHandler
       @ In, runInfoDict, dict, dictionary of run info settings
@@ -127,6 +128,7 @@ class JobHandler(MessageHandler.MessageUser):
     """
     self.runInfoDict = runInfoDict
     self.messageHandler = messageHandler
+    self.maxQueueSize = self.runInfoDict['maxQueueSize']
 
     #initialize PBS
     with self.__queueLock:
@@ -401,12 +403,20 @@ class JobHandler(MessageHandler.MessageUser):
     ## that list within a reasonable amount of time. The issue on the main thread
     ## should also be addressed, but at least we can prevent it on this end since
     ## the main thread's issue may be legitimate.
+
+    maxCount = self.maxQueueSize
+    finishedCount = len(self.__finished)
+
     if client:
-      #availability = self.maxQueueSize - len(self.__clientQueue) - len(self.__finished)
-      availability = self.__clientRunning.count(None) - len(self.__clientQueue) - len(self.__finished)
+      if maxCount is None:
+        maxCount = self.__clientRunning.count(None)
+      queueCount = len(self.__clientQueue)
     else:
-      #availability = self.maxQueueSize - len(self.__queue) - len(self.__finished)
-      availability = self.__running.count(None) - len(self.__queue) - len(self.__finished)
+      if maxCount is None:
+        maxCount = self.__running.count(None)
+      queueCount = len(self.__queue)
+
+    availability = maxCount - queueCount - finishedCount
     return availability
 
   def isThisJobFinished(self, identifier):
