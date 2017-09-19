@@ -17,6 +17,7 @@
     <WorkingDir>MTMLwithEnsembleAndModelHolding</WorkingDir>
     <Sequence>optimize,print,getOptPoint</Sequence>
     <batchSize>1</batchSize>
+    <maxQueueSize>1000</maxQueueSize>
   </RunInfo>
 
   <Steps>
