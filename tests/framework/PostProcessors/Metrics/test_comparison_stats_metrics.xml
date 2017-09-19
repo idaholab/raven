@@ -39,10 +39,8 @@
   </Models>
 
   <Metrics>
-    <CDFAreaDifference name="cdf_diff">
-    </CDFAreaDifference>
-    <PDFCommonArea name="pdf_area">
-    </PDFCommonArea>
+    <CDFAreaDifference name="cdf_diff" />
+    <PDFCommonArea name="pdf_area" />
   </Metrics>
 
   <Distributions>
