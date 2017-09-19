@@ -139,7 +139,7 @@ class RAVENparser():
       @ Out, None
     """
     # the dirName is actually in workingDir/StepName/prefix => we need to go back 2 dirs
-    dirName = os.path.join(currentDirName,"../../")
+    dirName = os.path.join(currentDirName, ".."+os.path.sep+".."+os.path.sep)
     # copy SLAVE raven files in case they are needed
     for slaveInput in self.slaveInputFiles:
       # full path
@@ -167,7 +167,7 @@ class RAVENparser():
     inputAsString = "".join([s for s in inputAsString.strip().splitlines(True) if s.strip()])
     if outfile==None:
       outfile =self.inputfile
-    IOfile = open(outfile,'wb')
+    IOfile = open(outfile,'w+')
     IOfile.write(inputAsString)
     IOfile.close()
 
