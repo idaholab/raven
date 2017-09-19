@@ -641,6 +641,17 @@ class JobHandler(MessageHandler.MessageUser):
     """
     self.completed = True
 
+  def clearRunning(self,queue,index):
+    """
+      Resets a spot in a running queue without regards for what is currently there
+      @ In, queue, deque, the queue whose member should be reset
+      @ In, index, int, the index of the member who needs to be reset
+      @ Out, None
+    """
+    if queue[index] is not None:
+      queue[index].kill()
+    queue[index] = None
+
   def terminateRun(self,prefix):
     """
       Method to end a single run prematurely.
@@ -665,13 +676,13 @@ class JobHandler(MessageHandler.MessageUser):
       for r in toRemove:
         self.__clientQueue.remove(r)
       # if it's running, kill it
-      for run in self.__running:
+      for r,run in enumerate(self.__running):
         if run is not None and run.getMetadata().get('prefix',None) == prefix:
-          run.kill()
+          self.clearRunning(self.__running,r)
       # ditto client running
       for run in self.__clientRunning:
         if run is not None and run.getMetadata().get('prefix',None) == prefix:
-          run.kill()
+          self.clearRunning(self.__clientRunning,r)
 
   def terminateAll(self):
     """
