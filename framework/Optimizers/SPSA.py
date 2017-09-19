@@ -186,6 +186,10 @@ class SPSA(GradientBasedOptimizer):
           self.nextActionNeeded = ('add new grad evaluation point',traj)
           break
         else:
+          if reason == 'rejecting bad opt point':
+            #queue up new grad evaluation
+            self.nextActionNeeded = ('add new grad evaluation point',traj)
+            break
           #all necessary grad evals have already been sent out, so we're collecting
           self.status[traj]['process'] = 'collecting grad eval points'
           continue
@@ -218,13 +222,15 @@ class SPSA(GradientBasedOptimizer):
       elif process == 'collecting grad eval points':
         # check to see if the grad evaluation points have all been collected
         evalsFinished = True
-        for pertID in self.perturbationIndices: #range(self.gradDict['pertNeeded']):
+        for pertID in self.perturbationIndices:
+          print('DEBUGG looking for finished grad evals:',traj,self.counter['varsUpdate'][traj])
           if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:
             evalsFinished = False
             break
         # if grad eval pts are finished, then evaluate the gradient
         # workflow step (6)
         if evalsFinished: #if evalsFinished AND optPoint was found -> should be true if 'collecting grad eval points' is status process
+          print('DEBUGG found them all!')
           # collect output values for perturbed points
           for i in self.perturbationIndices:
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
@@ -386,10 +392,16 @@ class SPSA(GradientBasedOptimizer):
       #    self.submissionQueue[traj].append({'inputs':point,'prefix':prefix})
       ##end if-first-time conditional
       ##### END initialization moved #####
+      if len(self.gradSubmissionQueue[traj]) == 0 and self.status[traj]['reason'] == 'rejecting bad opt point':
+        iteration = self.counter['varsUpdate'][traj]
+        print('DEBUGG rejection queueing, iteration is',self.counter['varsUpdate'][traj])
+        self.queueUpOptPointRuns(traj,iteration,self.counter['recentOptHist'][traj][0]['inputs'],onlyGrad=True)
+        self.status[traj]['reason'] = 'seeking new opt point'
       #get a queued entry to run
-      entry = self.gradSubmissionQueue[traj].popleft()
-      prefix = entry['prefix']
-      point = entry['inputs']
+      #entry = self.gradSubmissionQueue[traj].popleft()
+      #prefix = entry['prefix']
+      #point = entry['inputs']
+      prefix,point = self.getQueuedPoint(traj,kind='grad')
       self.gradDict['pertPoints'][traj][int(prefix.split('_')[-1])] = {'inputs':point}#self.normalizeData(point)}
       point = self.denormalizeData(point)
       for var in self.getOptVars(traj=traj):
@@ -403,9 +415,10 @@ class SPSA(GradientBasedOptimizer):
 
     elif action == 'add more opt point evaluations':
       #take a sample from the queue
-      prefix,point = self.getQueuedPoint(traj)
+      print('DEBUGG taking from queue')
+      prefix,point = self.getQueuedPoint(traj,kind='opt')
       #prep the point for running
-      for var in self.getOptVars(traj=traj):
+      for var in self.getOptVars(traj):
         self.values[var] = point[var]
       self.updateVariableHistory(self.values,traj)
       # use 'prefix' to locate the input sent out

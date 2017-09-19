@@ -133,8 +133,12 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    self.raiseAWarning('Terminating process "{}" with job ID "{}"'.format(self.thread.tid ,self.identifier))
+    self.raiseAMessage('Terminating process "{}" with job ID "{}"'.format(self.thread.tid ,self.identifier))
+    # FIXME we're not confident this is actually terminating the remote job.
+    ## The self.thread is a "Task", which has no methods that allow us to terminate it.  It's possible
+    ## that if we accessed the "Worker" doing the task, he could terminate the job.
     del self.thread
     self.thread = None
     self.returnCode = -1
+    #old method; this kills the Worker (it seems).
     #os.kill(self.thread.tid, signal.SIGTERM)

@@ -17,7 +17,8 @@
   <RunInfo>
     <WorkingDir>StochasticFiniteDifference</WorkingDir>
     <Sequence>optimize,getOptPoint,print</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>2</batchSize>
+    <internalParallel>True</internalParallel>
   </RunInfo>
 
   <Steps>

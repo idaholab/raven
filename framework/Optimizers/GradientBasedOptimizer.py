@@ -77,7 +77,6 @@ class GradientBasedOptimizer(Optimizer):
     self.gainGrowthFactor            = 2.              # max step growth factor
     self.gainShrinkFactor            = 2.              # max step shrinking factor
     self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation. It is not ideal but it is quick and dirty now
-    self.rejectedOptPoints           = {}              # by traj, stores list of rejected opt iterations, so we don't look for them anymore
 
   def localInputAndChecks(self, xmlNode):
     """
@@ -131,7 +130,6 @@ class GradientBasedOptimizer(Optimizer):
       self.status[traj]                      = {'process':'submitting new opt points', 'reason':'just started'}
       self.counter['recentOptHist'][traj]    = [{},{}]
       self.trajectoriesKilled[traj]          = []
-      self.rejectedOptPoints[traj]           = []
     # end job runnable equal to number of trajectory
     self._endJobRunnable = len(self.optTraj)
     # compute perturbation indeces
@@ -277,13 +275,12 @@ class GradientBasedOptimizer(Optimizer):
 
   def acceptNewOptPoint(self,traj):
     """
-      Local method to update convergence vector.
+      Local method to update convergence vector.  While it doesn't do much now, we keep this for extension
+      in the future.
       @ In, traj, int, identifier of the trajector to update
       @ Out, None
     """
     self.status[traj]['reason'] = 'found new opt point'
-    #self.status[traj]['process'] = 'submitting new opt points'
-    #self.counter['varsUpdate'][traj]+=1
 
   def _updateConvergenceVector(self, traj, varsUpdate, currentLossVal):
     """
@@ -315,8 +312,6 @@ class GradientBasedOptimizer(Optimizer):
       self.raiseADebug('Accepting potential opt point for improved loss value')
       self.acceptNewOptPoint(traj)
       # flush target evaluation
-      #if self.flushTargetEvaluation:
-      #  self.clearTargetEvaluation(traj,self.counter['varsUpdate'][traj]-1)
       #TODO REWORK this belongs in the base class optimizer; grad shouldn't know about multilevel!!
       #  -> this parameter is how multilevel knows that a successful perturbation of an outer loop has been performed
       #  maybe implement a "acceptPoint" method in base class?
@@ -325,19 +320,15 @@ class GradientBasedOptimizer(Optimizer):
       self.raiseADebug('Rejecting potential opt point for worse loss value. old: "{}", new: "{}"'.format(oldLossVal,currentLossVal))
       self.status[traj]['reason'] = 'rejecting bad opt point'
       self.status[traj]['process'] = 'submitting grad eval points'
-      # TODO implement soon ... kill grad eval runs for the rejected neighbor
-      #self.terminateGradEvals(traj,self.counter['varsUpdate'][traj])
-      # unused self.rejectedOptPoints[traj].append(self.counter['varsUpdate'][traj])
-      # increment counter since we rejected a point
-      #self.counter['varsUpdate'][traj]+=1
-      #we've skipped this solution export update, since it was a reject
-      #self.counter['solutionUpdate'][traj]+=1
-      # queue up a new set of gradient evaluation runs
+      # queue up grad eval reruns
+      print('DEBUGG current iteration:',self.counter['varsUpdate'][traj])
+      # kill grad eval runs for the rejected potential opt point
+      self.terminateGradEvals(traj,self.counter['varsUpdate'][traj])
       # cut the next step size to hopefully stay in the valley instead of climb up the other side
       self.recommendToGain[traj] = 'cut'
 
     if self.flushTargetEvaluation:
-      self.clearTargetEvaluation(traj,self.counter['varsUpdate'][traj]-1)#,onlyGrads=True)
+      self.clearTargetEvaluation(traj,self.counter['varsUpdate'][traj]-1)
     ## determine convergence
     if pointFromRecommendation:
       self.raiseAMessage('Setting convergence for Trajectory "{}" to "False" because of preconditioning.'.format(traj))
@@ -499,7 +490,6 @@ class GradientBasedOptimizer(Optimizer):
       solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], str(identifier))
       solutionUpdateList.append(solutionExportUpdatedFlag)
       solutionIndices.append(index)
-    print('solutionexportupdate:',solutionExportUpdatedFlag)
     solutionExportUpdatedFlag = all(solutionUpdateList)
     return solutionExportUpdatedFlag,solutionIndices
 
@@ -534,7 +524,7 @@ class GradientBasedOptimizer(Optimizer):
             # get output values corresponding to evaluations of the opt point
             # also add opt points to the grad perturbation list
             # this doesn't work, you don't get dicts: self.gradDict['pertPoints'][traj] = np.zeros((1+self.paramDict['pertSingleGrad'])*self.gradDict['numIterForAve'],dtype=dict)
-            #self.gradDict['pertPoints'][traj] = np.asarray(list({} for _ in range((1+self.paramDict['pertSingleGrad'])*self.gradDict['numIterForAve'])))
+            # instead, do ...
             for i, index in enumerate(indices):
               for outvar in outputs.keys():
                 outputs[outvar][i] = outputeval[outvar][index]
@@ -686,6 +676,7 @@ class GradientBasedOptimizer(Optimizer):
       @ In, onlyGrad, bool, if True then only gradient eval points will be submitted
       @ Out, None
     """
+    print('DEBUGG requesting queue up jobs of',traj,iteration,optPoint)
     if not onlyGrad:
       # TODO sanity check, this could be removed for efficiency later
       if len(self.optSubmissionQueue[traj]) > 0:
@@ -700,7 +691,6 @@ class GradientBasedOptimizer(Optimizer):
     if len(self.gradSubmissionQueue[traj]) > 0:
       self.raiseAnError(RuntimeError,'Preparing to add grad evals to grad submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.gradSubmissionQueue[traj]))
     # get neighbor distance to use
-    #dist = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
     dist = self._computeGainSequenceCk(self.paramDict,iteration+1)
     # set up all the neighbor evaluations
     for i in self.perturbationIndices:
@@ -717,19 +707,23 @@ class GradientBasedOptimizer(Optimizer):
       self.gradSubmissionQueue[traj].append({'inputs':gradPoint,'prefix':prefix})
       self.counter['perturbation'][traj] += 1
 
-  def getQueuedPoint(self,traj,denorm=True):
+  def getQueuedPoint(self,traj,denorm=True,kind=None):
     """
       Pops the first point off the submission queue (or errors if empty).  By default denormalized the point before returning.
       @ In, traj, int, the trajectory from whose queue we should obtain an entry
       @ In, denorm, bool, optional, if True the input data will be denormalized before returning
+      @ In, kind, str, opttional, used to specity 'opt', 'grad', or None (for either)
       @ Out, prefix, #_#_#
       @ Out, point, dict, {var:val}
     """
     # first try opt queue
-    if len(self.optSubmissionQueue[traj]) > 0:
+    if len(self.optSubmissionQueue[traj]) > 0 and kind in ['opt',None]:
       entry = self.optSubmissionQueue[traj].popleft()
-    elif len(self.gradSubmissionQueue[traj]) > 0:
+      print('DEBUGG found opt:',entry)
+    # then try gradient queue
+    elif len(self.gradSubmissionQueue[traj]) > 0 and kind in ['grad',None]:
       entry = self.gradSubmissionQueue[traj].popleft()
+      print('DEBUGG found grad:',entry)
     else:
       self.raiseAnError(RuntimeError,'Tried to get a point from submission queues for trajectory "{}" but they are empty!'.format(traj))
     prefix = entry['prefix']

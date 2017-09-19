@@ -556,6 +556,9 @@ class MultiRun(SingleRun):
                                         ' Use a RomTrainer step to train it.')
     # run step loop
     while True:
+      print('DEBUGG'+'*'*80)
+      print('DEBUGG STEP LOOP')
+      print('DEBUGG'+'*'*80)
       # collect finished jobs
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
@@ -602,6 +605,7 @@ class MultiRun(SingleRun):
         ## employ a threshold on the number of jobs the jobHandler can take,
         ## in addition, we cannot provide more jobs than the sampler can provide.
         ## So, we take the minimum of these two values.
+        print('DEBUGG available spots:',jobHandler.availability(isEnsemble))
         for _ in range(min(jobHandler.availability(isEnsemble),sampler.endJobRunnable())):
           self.raiseADebug('Testing if the sampler is ready to generate a new input')
 

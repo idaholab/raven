@@ -12,5 +12,4 @@ def evaluate(x,y):
 
 def run(self,Inputs):
   self.ans = evaluate(self.x,self.y)
-  time.sleep(1)
 
