@@ -184,6 +184,7 @@ class RAVEN(CodeInterfaceBase):
     # check if ext module has been inputted
     if self.hasMethods['noscalar']:
       if len(noscalarVars) > 0:
+        toPopOut = noscalarVars.keys()
         try:
           newVars = self.extModForVarsManipulation.convertNotScalarSampledVariables(noscalarVars)
           if type(newVars).__name__ != 'dict':
@@ -191,6 +192,8 @@ class RAVEN(CodeInterfaceBase):
           if len(newVars) != totSizeExpected:
             raise IOError(self.printTag+' ERROR: The total number of variables expected from method convertNotScalarSampledVariables is "'+str(totSizeExpected)+'". Got:"'+str(len(newVars))+'"!')
           modifDict.update(newVars)
+          for noscalarVar in toPopOut:
+            modifDict.pop(noscalarVar)
         except TypeError:
           raise IOError(self.printTag+' ERROR: convertNotScalarSampledVariables accept only one argument convertNotScalarSampledVariables(variableDict)')
       else:
