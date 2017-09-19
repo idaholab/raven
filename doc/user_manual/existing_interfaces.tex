@@ -111,17 +111,17 @@ Where,
 The RAVEN interface is meant to provide the possibility to execute a RAVEN input file
 driving a set of SLAVE RAVEN calculations. For example, if the user wants to optimize the parameters
 of a surrogate model (e.g. minimizing the distance between the surrogate predictions and the real data), he 
-can achieve this task setting up a RAVEN input file (master) that performs an optimization on the feature
+can achieve this task by setting up  a RAVEN input file (master) that performs an optimization on the feature
 space characterized by the surrogate model parameters, whose training and validation assessment  is performed in the SLAVE 
 RAVEN runs.
-// There are some limitations for this interface:
+\\ There are some limitations for this interface:
 \begin{itemize}
 \item only one  sub-level of RAVEN can be executed (i.e. if the SLAVE RAVEN input file contains the run of another RAVEN SLAVE, the MASTER RAVEN will error out)
 \item only data from Outstreams of type Print can be collected by the MASTER RAVEN
 \item only a maximum of two Outstreams can be collected (1 PointSet and 1 HistorySet)
 \end{itemize}
 
-Like for every other interface, most of the RAVEN workflow stays the same independently on the type of Model (i.e. Code) is used.
+Like for every other interface, most of the RAVEN workflow stays the same independently of which type of Model (i.e. Code) is used.
 \\ Similarly to any other code interface, the user provides paths to executables and aliases for sampled variables within the
 \xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes \xmlAttr{name} and
 \xmlAttr{subType}.  \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and

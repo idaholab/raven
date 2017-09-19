@@ -21,13 +21,12 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import os
-from  __builtin__ import any as b_any
+from  __builtin__ import any
 import copy
 import numpy as np
 from utils import utils
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import DataObjects
-#import RavenData
 import csvUtilities
 
 class RAVEN(CodeInterfaceBase):
@@ -230,7 +229,7 @@ class RAVEN(CodeInterfaceBase):
     except:
       return failure
     readLines = outputToRead.readlines()
-    if not b_any("raise" in x for x in readLines[-20:]):
+    if not any("Traceback " in x for x in readLines[-20:]):
       failure = False
     del readLines
     return failure

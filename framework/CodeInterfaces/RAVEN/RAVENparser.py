@@ -28,7 +28,6 @@ import os
 import shutil
 import copy
 from collections import OrderedDict
-#from utils.utils import toBytes, toStrish, compare
 
 class RAVENparser():
   """
@@ -233,7 +232,6 @@ class RAVENparser():
               allowAddNodes.append(pathNode)
             else:
               allowAddNodes.append(None)
-            #allowAddNodes.append(returnElement.findall(pathNode))
             allowAddNodesPath[component.strip()] = attribConstruct
         if pathNode.endswith("]"):
           changeTheNode = False
@@ -250,7 +248,6 @@ class RAVENparser():
               allowAddNodes.append(pathNodeTemp)
             else:
               allowAddNodes.append(None)
-            #allowAddNodes.append(returnElement.findall(pathNodeTemp))
             allowAddNodesPath[component.strip()] = None
       # look for the node with XPath directives
       foundNodes = returnElement.findall(pathNode)
@@ -283,13 +280,3 @@ class RAVENparser():
         else:
           nodeToChange.attrib[attribName] = str(value).strip()
     return returnElement
-
-if __name__ == '__main__':
-  parser = RAVENparser("/Users/alfoa/projects/raven_github/raven/tests/framework/test_redundant_inputs.xml")
-  modifyDict = {'Distributions|Uniform@name:a_dist|lowerBound':-1,'RunInfo|batchSize':2,'Models|Code@name:py_script@subType:GenericCode|prepend':"Python"}
-  lupo = parser.modifyOrAdd(modifyDict,allowAdd=False)
-  modifyDict['Distributions|Normal@name:Andrea|mean'] = 22222
-  modifyDict['Distributions|Normal@name:Andrea|sigma'] = 2
-  parser.printInput(lupo,outfile="lupo1.xml")
-  lupo2 = parser.modifyOrAdd(modifyDict,allowAdd=True)
-  parser.printInput(lupo2,outfile="lupo2.xml")

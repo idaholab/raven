@@ -22,7 +22,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
-from  __builtin__ import any as b_any
+from  __builtin__ import any
 import relapdata
 import shutil
 import re
@@ -116,7 +116,7 @@ class Relap5(CodeInterfaceBase):
     readLines = outputToRead.readlines()
 
     for goodMsg in goodWord:
-      if b_any(goodMsg in x for x in readLines[-20:]):
+      if any(goodMsg in x for x in readLines[-20:]):
         failure = False
     return failure
 
