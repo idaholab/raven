@@ -74,16 +74,16 @@ class HybridModel(Dummy):
     self.cvInstance               = None
     self.targetEvaluationInstance = None
     self.romsDictionary        = {}      # dictionary of models that is going to be employed, i.e. {'romName':Instance}
-    self.romTrainStepSize      = 5        # the step size for rom train
+    self.romTrainStepSize      = 1        # the step size for rom train
     self.romTrainStartSize     = 10       # the initial size of training set
-    self.romTrainMaxSize       = 1000     # the maximum size of training set
+    self.romTrainMaxSize       = 1.0e6     # the maximum size of training set
     self.romValidateSize       = 10       # the size of rom validation set
     self.counter               = 0        # record the number of model runs
     self.romTrained            = False    # True if all roms are trained
     self.sleepTime             = 0.005    # waiting time before checking if a run is finished.
     self.romConverged          = False    # True if all roms are converged
     self.romValid              = False    # True if all roms are valid for given input data
-    self.romConvergence        = 0.001
+    self.romConvergence        = 0.01
     self.tempOutputs           = {}
     self.optimizerTypes        = ['SPSA'] # list of types of optimizer
     self.printTag              = 'HYBRIDMODEL MODEL' # print tag
@@ -127,7 +127,7 @@ class HybridModel(Dummy):
       if child.tag == 'maxTrainSize':
         self.romTrainMaxSize = int(child.text)
       if child.tag == 'initialTrainSize':
-        self.romTrainStartSize = 10
+        self.romTrainStartSize = int(child.text)
       if child.tag == 'tolerance':
         self.romConvergence = float(child.text)
 
@@ -250,12 +250,26 @@ class HybridModel(Dummy):
     self.raiseADebug("Current sample: ", self.counter)
     for romInfo in self.romsDictionary.values():
       if not romInfo['Converged']:
-        outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], self.targetEvaluationInstance], samplerType, kwargs)
+        outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], self.targetEvaluationInstance], samplerType, kwargs)[1]
         converged = self.isRomConverged(outputMetrics)
         if converged:
           romInfo['Instance'].train(self.targetEvaluationInstance)
           romInfo['Converged'] = True
           self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
+
+  def isRomConverged(self, outputDict):
+    """
+      This function will check the convergence of rom
+      @ In, outputDict, dict, dictionary contains the metric information
+      @ Out, None
+    """
+    converged = True
+    for targetName, metricInfo in outputDict.items():
+      for metricName, metricValues in metricInfo.items():
+        if max(metricValues) > self.romConvergence:
+          self.raiseADebug("maximum error: ", max(metricValues), " is greater than the given tolerance")
+          converged = False
+    return converged
 
   def checkRomConvergence(self):
     """
@@ -270,7 +284,6 @@ class HybridModel(Dummy):
     if converged:
       self.raiseADebug("All ROMs are converged")
     return converged
-
 
   def checkRomValidity(self):
     """
@@ -290,17 +303,6 @@ class HybridModel(Dummy):
       self.raiseADebug("ROMs  are all valid for given model ", self.modelInstance.name)
     return allValid
 
-  def isRomConverged(self, outputDict):
-    """
-      This function will check the convergence of roms
-      @ In, None
-      @ Out, None
-    """
-    converged = False
-
-    converged = True
-    return converged
-
   def isRomValid(self):
     """
     """
@@ -318,7 +320,6 @@ class HybridModel(Dummy):
     existTrainingSize = self.counter - len(self.tempOutputs['uncollectedJobIds'])
     self.raiseADebug("Existing training size is: ", existTrainingSize)
     return existTrainingSize
-
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
@@ -486,8 +487,6 @@ class HybridModel(Dummy):
       self.tempOutputs['uncollectedJobIds'].pop(jobIndex)
     except ValueError:
       jobIndex = None
-    # save the data into targetEvaluation
-    self.collectOutputFromDict(exportDict, self.targetEvaluationInstance)
 
     Dummy.collectOutput(self, finishedJob, output, options = {'exportDict':exportDict})
 

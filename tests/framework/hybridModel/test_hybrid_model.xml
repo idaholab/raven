@@ -65,8 +65,8 @@
         <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
         <CV class="Models" type="PostProcessor">pp1</CV>
         <settings>
-            <tolerance>0.001</tolerance>
-            <trainStep>5</trainStep>
+            <tolerance>0.01</tolerance>
+            <trainStep>1</trainStep>
             <maxTrainSize>1000</maxTrainSize>
             <initialTrainSize>10</initialTrainSize>
         </settings>
@@ -76,7 +76,7 @@
   <Samplers>
     <MonteCarlo name="MonteCarloTemperature">
       <samplerInit>
-        <limit>20</limit>
+        <limit>50</limit>
       </samplerInit>
       <variable name="leftTemperature">
         <distribution>leftTemperatureDist</distribution>
