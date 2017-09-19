@@ -251,6 +251,7 @@ class Simulation(MessageHandler.MessageUser):
     self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
     self.runInfoDict['clusterParameters' ] = []           # Extra parameters to use with the qsub command.
+    self.runInfoDict['maxQueueSize'      ] = None
 
     #Following a set of dictionaries that, in a manner consistent with their names, collect the instance of all objects needed in the simulation
     #Theirs keywords in the dictionaries are the the user given names of data, sampler, etc.
@@ -678,6 +679,8 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['internalParallel'  ] = utils.interpretBoolean(element.text)
       elif element.tag == 'batchSize':
         self.runInfoDict['batchSize'         ] = int(element.text)
+      elif element.tag.lower() == 'maxqueuesize':
+        self.runInfoDict['maxQueueSize'      ] = int(element.text)
       elif element.tag == 'MaxLogFileSize':
         self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
       elif element.tag == 'precommand':
