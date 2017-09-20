@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation>
-  <!-- TestInfo -->  
+  <!-- TestInfo -->
   <TestInfo>
     <name>framework/adaptive_sampler_ext_model</name>
     <author>@alfoa</author>
@@ -19,7 +19,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="adapt" pauseAtEnd="true">
+    <MultiRun name="adapt" pauseAtEnd="true" sleepTime='2e-5'>
       <Input class="DataObjects" type="PointSet">dummy</Input>
       <Model class="Models" type="ExternalModel">testFunction</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
