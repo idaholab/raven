@@ -102,8 +102,12 @@ class Phisics(CodeInterfaceBase):
         if (child.text.lower() == 't' or child.text.lower() == 'true'):  self.tabulation = True
         if (child.text.lower() == 'f' or child.text.lower() == 'false'): self.tabulation = False 
         if (self.tabulation is None): raise ValueError("\n\n The tabulation node --"+child.tag+"-- only supports the following text (case insensitive): \n True \n T \n False \n F" )
-  
-  
+      if child.tag == 'mrtauStandAlone':
+        self.mrtauStandAlone = None 
+        if (child.text.lower()) == 't' or child.text.lower() == 'true'):  self.mrtauStandAlone = True 
+        if (child.text.lower()) == 'f' or child.text.lower() == 'false'): self.mrtauStandAlone = False 
+        if (self.tabulation is None): raise ValueError("\n\n The flag activating MRTAU standalone mode --"+child.tag+"-- only supports the following text (case insensitive): \n True \n T \n False \n F. Default Value is False" )
+        
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
@@ -215,7 +219,9 @@ class Phisics(CodeInterfaceBase):
     #print (distributedPerturbedVars)
     #print (currentInputFiles)
     #print (self.tabulation)
+    print self.mrtauStandeAlone
     booleanTab = self.tabulation 
+    
     for i in distributedPerturbedVars.iterkeys():
       if i == 'DECAY'         : decayParser        = DecayParser.DecayParser(currentInputFiles[keyWordDict['decay']].getAbsFile(), **distributedPerturbedVars[i])
       if i == 'DENSITY'       : materialParser     = MaterialParser.MaterialParser(currentInputFiles[keyWordDict['material']].getAbsFile(), **distributedPerturbedVars[i])
