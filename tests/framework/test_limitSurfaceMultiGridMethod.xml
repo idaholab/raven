@@ -24,7 +24,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="GoalOrientedStep" pauseAtEnd="False">
+    <MultiRun name="GoalOrientedStep" sleepTime='1e-4' pauseAtEnd="False">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">workshopAdaptive</Sampler>
@@ -73,6 +73,7 @@
       <Function class="Functions" type="External">goalFunction</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">outAdaptive</TargetEvaluation>
       <Convergence forceIteration="False" limit="50000" persistence="10" subGridTol="0.0001" weight="CDF">0.0004</Convergence>
+      <maxBatchSize>1</maxBatchSize>
       <variable name="x1">
         <distribution>normal_trunc</distribution>
       </variable>
