@@ -176,7 +176,7 @@ class RAVEN(CodeInterfaceBase):
         inputNode = self.outStreamsNamesAndType[outstream][2].find("Input")
         outputNode = self.outStreamsNamesAndType[outstream][2].find("Output")
         inputVariables = inputNode.text.split(",") if inputNode is not None else []
-        outputVariables =  outputNode.find("Output").text.split(",") if outputNode is not None else []
+        outputVariables =  outputNode.text.split(",") if outputNode is not None else []
         if any (varGroupName in inputVariables+outputVariables for varGroupName in varGroupNames):
           raise IOError(self.printTag+' ERROR: The VariableGroup system is not supported in the current ' +
                                       'implementation of the interface for the DataObjects specified in the '+
