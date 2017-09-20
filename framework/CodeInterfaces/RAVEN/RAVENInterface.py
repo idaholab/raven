@@ -260,7 +260,7 @@ class RAVEN(CodeInterfaceBase):
       return failure
     readLines = outputToRead.readlines()
     for badMessage in ["Traceback ","raise","IOError"]:
-      if not any(badMessage in x for x in readLines[-30:]):
+      if not any(badMessage in x for x in readLines):
         failure = False
     del readLines
     return failure
