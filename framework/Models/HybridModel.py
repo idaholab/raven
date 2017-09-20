@@ -89,6 +89,7 @@ class HybridModel(Dummy):
     self.tempOutputs           = {}
     self.optimizerTypes        = ['SPSA'] # list of types of optimizer
     self.modelSelection        = 'CrowdingDistance'
+    self.existTrainSize        = 0
     self.printTag              = 'HYBRIDMODEL MODEL' # print tag
     # assembler objects to be requested
     self.addAssemblerObject('Model','1',True)
@@ -149,6 +150,9 @@ class HybridModel(Dummy):
     self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
     self.cvInstance.initialize(runInfo, inputs, initDict)
     self.targetEvaluationInstance = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self.targetEvaluationInstance)
+    if not self.targetEvaluationInstance.isItEmpty():
+      self.raiseAWarning("The provided TargetEvaluation data object is not empty, the existing data will also be used to train the ROMs!")
+      self.existTrainSize = len(self.targetEvaluationInstance)
     self.tempTargetEvaluation = copy.deepcopy(self.targetEvaluationInstance)
     if self.modelInstance is None:
       self.raiseAnError(IOError,'Model XML block needs to be inputted!')
@@ -382,11 +386,11 @@ class HybridModel(Dummy):
     """
       This function will check the size of existing training set
       @ In, None
-      @ Out, existTrainingSize, int, the size of existing training set
+      @ Out, newGeneratedTrainingSize, int, the size of existing training set
     """
-    existTrainingSize = self.counter - len(self.tempOutputs['uncollectedJobIds'])
-    self.raiseADebug("Existing training size is: ", existTrainingSize)
-    return existTrainingSize
+    newGeneratedTrainingSize = len(self.tempTargetEvaluation) - self.existTrainSize
+    self.raiseADebug("New generated training size is: ", newGeneratedTrainingSize)
+    return newGeneratedTrainingSize
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
@@ -429,12 +433,11 @@ class HybridModel(Dummy):
       trainingSize = self.checkTrainingSize()
       if trainingSize == self.romTrainStartSize:
         self.trainRom(samplerType, kwargs)
-        self.romConverged = self.checkRomConvergence()
       elif trainingSize > self.romTrainStartSize and (trainingSize-self.romTrainStartSize)%self.romTrainStepSize == 0 and trainingSize <= self.romTrainMaxSize:
         self.trainRom(samplerType, kwargs)
-        self.romConverged = self.checkRomConvergence()
       elif trainingSize > self.romTrainMaxSize:
         self.raiseAnError(IOError, "Maximum training size is reached, but ROMs are still not converged!")
+      self.romConverged = self.checkRomConvergence()
     if self.romConverged:
       self.romValid = self.checkRomValidity(kwargs)
       if not self.romValid:
