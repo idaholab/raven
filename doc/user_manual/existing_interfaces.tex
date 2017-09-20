@@ -177,7 +177,7 @@ def manipulateScalarSampledVariables(sampledVariables):
        contained in "noScalarVariables" dictionary
   """
   oneDimensionalArray =
-      sampledVariables['temperatureHistory']
+      noScalarVariables['temperatureHistory']
   newVars = {}
   for cnt, value in enumerate(oneDimensionalArray):
     newVars['Samplers|MonteCarlo@name:myMC|constant'+
