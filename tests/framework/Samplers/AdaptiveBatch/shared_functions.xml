@@ -1,0 +1,5 @@
+<Functions>
+	<External file="goal" name="label">
+		<variable>y</variable>
+	</External>
+</Functions>
