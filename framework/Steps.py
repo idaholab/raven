@@ -558,15 +558,20 @@ class MultiRun(SingleRun):
     while not self.finished(jobHandler,sampler):
       self.raiseADebug('')
       self.raiseADebug('Entering the STEP main loop.')
+
       # collect jobs
       self.raiseADebug('Collecting finished jobs ...')
       self.collectDone(jobHandler,sampler,model,inputs,outputs)
+
       # submit new jobs
       self.raiseADebug('Submitting new jobs ...')
       self.submitNew(jobHandler,sampler,model,inputs,outputs)
+
       # wait for next update
       time.sleep(self.sleepTime)
+
     ##### END MAIN LOOP #####
+
     # handle failed runs
     sampler.handleFailedRuns(self.failedRuns)
     # print basic run statistics
