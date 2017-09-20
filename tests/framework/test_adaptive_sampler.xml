@@ -10,6 +10,9 @@
         This  test is aimed to test the capability of RAVEN to employ a goal oriented sampling. It tests the
         LimitSurfaceSearch algorithm using an external model as ``system code''
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2017-09-20">increased sleep time to maintain linearity</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
