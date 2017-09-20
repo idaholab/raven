@@ -507,18 +507,16 @@ class Code(Model):
     ## below always adds .csv to the filename and the standard output file does
     ## not have an extension. - (DPM 4/6/2017)
     outputFile = codeLogFile
-    if 'finalizeCodeOutput' in dir(self.code):
+    if 'finalizeCodeOutput' in dir(self.code) and returnCode == 0:
       finalCodeOutputFile = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
-      if finalCodeOutputFile:
+      ## Special case for RAVEN interface --ALFOA 09/17/17
+      ravenCase = False
+      if type(finalCodeOutputFile).__name__ == 'dict':
+        ravenCase = True
+      if ravenCase and self.code.__class__.__name__ != 'RAVEN':
+        self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be a str containing the new output file root!')
+      if finalCodeOutputFile and not ravenCase:
         outputFile = finalCodeOutputFile
-
-    ## Special case for RAVEN interface --ALFOA 09/17/17
-    ravenCase = False
-    if type(outputFile).__name__ == 'tuple':
-      ravenCase = True
-      outputObj, outputFile = outputFile
-    if ravenCase and self.code.__class__.__name__ != 'RAVEN':
-      self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be a str containing the new output file root!')
 
     ## If the run was successful
     if returnCode == 0:

@@ -274,7 +274,7 @@ class RAVEN(CodeInterfaceBase):
       @ Out, dataObjectsToReturn, dict, optional, this is a special case for RAVEN only. It returns the constructed dataobjects
                                                  (internally we check if the return variable is a dict and if it is returned by RAVEN (if not, we error out))
     """
-    outputFile = os.path.join(workingDir,output)
+
     dataObjectsToReturn = {}
     for filename in self.linkedDataObjectOutStreamsNames:
       dataObjectInfo = self.outStreamsNamesAndType[filename]
@@ -282,6 +282,6 @@ class RAVEN(CodeInterfaceBase):
       dataObjectsToReturn[dataObjectInfo[0]]._readMoreXML(dataObjectInfo[2])
       dataObjectsToReturn[dataObjectInfo[0]].name = filename
       dataObjectsToReturn[dataObjectInfo[0]].loadXMLandCSV(os.path.join(workingDir,self.innerWorkingDir))
-    return dataObjectsToReturn, outputFile
+    return dataObjectsToReturn
 
 
