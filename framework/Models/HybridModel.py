@@ -25,6 +25,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import copy
 import numpy as np
+from numpy import linalg
 import time
 from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
@@ -239,7 +240,6 @@ class HybridModel(Dummy):
 
     return (myInput, samplerType, newKwargs)
 
-
   def trainRom(self, samplerType, kwargs):
     """
       This function will train all ROMs if they are not converged
@@ -285,15 +285,20 @@ class HybridModel(Dummy):
       self.raiseADebug("All ROMs are converged")
     return converged
 
-  def checkRomValidity(self):
+  def checkRomValidity(self, kwargs):
     """
       This function will check the validity of all roms
-      @ In, None
+      @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, None
     """
     allValid = True
     for romInfo in self.romsDictionary.values():
-      valid = self.isRomValid()
+      # generate the data for input parameters
+      paramsList = romInfo['Instance'].getInitParams()['Features']
+      trainInput = self._extractInputs(romInfo['Instance'].trainingSet, paramsList)
+      currentInput = self._extractInputs(kwargs['SampledVars'], paramsList)
+      valid = self.isRomValid(trainInput, currentInput)
       romInfo['Valid'] = valid
       if valid:
         self.raiseADebug("ROM ",romInfo['Instance'].name, " is valid")
@@ -303,17 +308,66 @@ class HybridModel(Dummy):
       self.raiseADebug("ROMs  are all valid for given model ", self.modelInstance.name)
     return allValid
 
-  def isRomValid(self):
+  def _extractInputs(self,dataIn, paramsList):
     """
+      Extract the the parameters in the paramsList from the given data object dataIn
+      @ dataIn, Instance or Dict, data object or dictionary contains the input and output parameters
+      @ paramsList, List, List of parameter names
+      @ localInput, dict,
+    """
+    localInput = dict.fromkeys(paramsList, None)
+    if type(dataIn) == dict:
+      for elem, value in dataIn.items():
+        if elem in paramsList:
+          localInput[elem] = np.atleast_1d(value)
+    else:
+      self.raiseAnError(IOError, "The input type '", inputType, "' can not be accepted!")
+
+    return localInput
+
+  def isRomValid(self, trainDict, currentDict):
+    """
+      This function will check the validity of given ROM
+      @ In, oldDict, dict, dictionary of previous generated input parameters
+      @ In, currentDict, dict, dictionary of current generated input parameters
+      @ Out,
     """
     valid = False
-
-    valid = True
+    print(trainDict)
+    print(currentDict)
+    currentData = np.asarray(currentDict.values())
+    trainData = np.asarray(trainDict.values())
+    coeffCD = self.computeCDCoefficient(trainData, currentData)
+    print("Crowding Distance Coefficient: ", coeffCD)
+    if coeffCD > 0.2:
+      valid = True
     return valid
+
+  def computeCDCoefficient(self, trainSet, newSet):
+    """
+      This function will compute the Crowding distance coefficients among the input parameters
+      @ In,
+      @ Out,
+    """
+    totalSet = np.concatenate((trainSet,newSet), axis=1)
+    dim = totalSet.shape[1]
+    distMat = np.zeros((dim, dim))
+    for i in range(dim):
+      for j in range(dim):
+        distMat[i,j] = linalg.norm(totalSet[:,i] - totalSet[:,j])
+    crowdingDist = np.sum(distMat,axis=1)
+    maxDist = np.amax(crowdingDist)
+    minDist = np.amin(crowdingDist)
+    if maxDist == minDist:
+      crowdingDistCoeff = 1.0
+    else:
+      crowdingDistCoeff = (maxDist - crowdingDist[-1])/(maxDist - minDist)
+
+    return crowdingDistCoeff
 
   def checkTrainingSize(self):
     """
-      This will check the size of existing training set
+      This function will check the size of existing training set
       @ In, None
       @ Out, existTrainingSize, int, the size of existing training set
     """
@@ -323,32 +377,32 @@ class HybridModel(Dummy):
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
-        This will submit an individual sample to be evaluated by this model to a
-        specified jobHandler. Note, some parameters are needed by createNewInput
-        and thus descriptions are copied from there.
-        @ In, myInput, list, the inputs (list) to start from to generate the new one
-        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In,  jobHandler, JobHandler instance, the global job handler instance
-        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, None
+      This will submit an individual sample to be evaluated by this model to a
+      specified jobHandler. Note, some parameters are needed by createNewInput
+      and thus descriptions are copied from there.
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In,  jobHandler, JobHandler instance, the global job handler instance
+      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ Out, None
     """
     self.submitAsClient(myInput, samplerType, jobHandler, **kwargs)
 
   def submitAsClient(self,myInput,samplerType,jobHandler,**kwargs):
     """
-        This will submit an individual sample to be evaluated by this model to a
-        specified jobHandler as a client job. Note, some parameters are needed
-        by createNewInput and thus descriptions are copied from there.
-        @ In, myInput, list, the inputs (list) to start from to generate the new
-          one
-        @ In, samplerType, string, is the type of sampler that is calling to
-          generate a new input
-        @ In,  jobHandler, JobHandler instance, the global job handler instance
-        @ In, **kwargs, dict,  is a dictionary that contains the information
-          coming from the sampler, a mandatory key is the sampledVars' that
-          contains a dictionary {'name variable':value}
-        @ Out, None
+      This will submit an individual sample to be evaluated by this model to a
+      specified jobHandler as a client job. Note, some parameters are needed
+      by createNewInput and thus descriptions are copied from there.
+      @ In, myInput, list, the inputs (list) to start from to generate the new
+        one
+      @ In, samplerType, string, is the type of sampler that is calling to
+        generate a new input
+      @ In,  jobHandler, JobHandler instance, the global job handler instance
+      @ In, **kwargs, dict,  is a dictionary that contains the information
+        coming from the sampler, a mandatory key is the sampledVars' that
+        contains a dictionary {'name variable':value}
+      @ Out, None
     """
     for mm in utils.returnImportModuleString(jobHandler):
       if mm not in self.mods:
@@ -369,7 +423,7 @@ class HybridModel(Dummy):
       elif trainingSize > self.romTrainMaxSize:
         self.raiseAnError(IOError, "Maximum training size is reached, but ROMs are still not converged!")
     else:
-      self.romValid = self.checkRomValidity()
+      self.romValid = self.checkRomValidity(kwargs)
 
     ## Ensemble models need access to the job handler, so let's stuff it in our
     ## catch all kwargs where evaluateSample can pick it up, not great, but
@@ -384,13 +438,13 @@ class HybridModel(Dummy):
 
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
-        This will evaluate an individual sample on this model. Note, parameters
-        are needed by createNewInput and thus descriptions are copied from there.
-        @ In, myInput, list, the inputs (list) to start from to generate the new one
-        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, returnValue, dict, This holds the output information of the evaluated sample.
+      This will evaluate an individual sample on this model. Note, parameters
+      are needed by createNewInput and thus descriptions are copied from there.
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ Out, returnValue, dict, This holds the output information of the evaluated sample.
     """
     self.raiseADebug("Evaluate Sample")
     jobHandler = kwargs.pop('jobHandler')
