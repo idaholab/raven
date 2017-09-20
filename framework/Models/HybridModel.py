@@ -74,6 +74,7 @@ class HybridModel(Dummy):
     self.modelInstance            = None
     self.cvInstance               = None
     self.targetEvaluationInstance = None
+    self.tempTargetEvaluation     = None
     self.romsDictionary        = {}      # dictionary of models that is going to be employed, i.e. {'romName':Instance}
     self.romTrainStepSize      = 1        # the step size for rom train
     self.romTrainStartSize     = 10       # the initial size of training set
@@ -87,7 +88,7 @@ class HybridModel(Dummy):
     self.romConvergence        = 0.01
     self.tempOutputs           = {}
     self.optimizerTypes        = ['SPSA'] # list of types of optimizer
-    self.modelSelection        = "CrowdingDistance"
+    self.modelSelection        = 'CrowdingDistance'
     self.printTag              = 'HYBRIDMODEL MODEL' # print tag
     # assembler objects to be requested
     self.addAssemblerObject('Model','1',True)
@@ -148,6 +149,7 @@ class HybridModel(Dummy):
     self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
     self.cvInstance.initialize(runInfo, inputs, initDict)
     self.targetEvaluationInstance = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self.targetEvaluationInstance)
+    self.tempTargetEvaluation = copy.deepcopy(self.targetEvaluationInstance)
     if self.modelInstance is None:
       self.raiseAnError(IOError,'Model XML block needs to be inputted!')
     if self.cvInstance is None:
@@ -252,13 +254,15 @@ class HybridModel(Dummy):
     self.raiseADebug("Start to train roms")
     self.raiseADebug("Current sample: ", self.counter)
     for romInfo in self.romsDictionary.values():
-      if not romInfo['Converged']:
-        outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], self.targetEvaluationInstance], samplerType, kwargs)[1]
-        converged = self.isRomConverged(outputMetrics)
-        if converged:
-          romInfo['Instance'].train(self.targetEvaluationInstance)
-          romInfo['Converged'] = True
-          self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
+      # reset the rom
+      romInfo['Instance'].amITrained = False
+      # always train the rom even if the rom is converged, we assume the cross validation and rom train are relative cheap
+      outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], self.tempTargetEvaluation], samplerType, kwargs)[1]
+      converged = self.isRomConverged(outputMetrics)
+      romInfo['Converged'] = converged
+      if converged:
+        romInfo['Instance'].train(self.tempTargetEvaluation)
+        self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
 
   def isRomConverged(self, outputDict):
     """
@@ -319,6 +323,8 @@ class HybridModel(Dummy):
       # generate the data for input parameters
       paramsList = romInfo['Instance'].getInitParams()['Features']
       trainInput = np.asarray(self._extractInputs(romInfo['Instance'].trainingSet, paramsList).values())
+      print("Size of training set: ", trainInput.shape[1])
+      print(romInfo['Instance'].trainingSet)
       currentInput = np.asarray(self._extractInputs(kwargs['SampledVars'], paramsList).values())
       coeffCD = self.computeCDCoefficient(trainInput, currentInput)
       self.raiseADebug("Crowding Distance Coefficient: ", coeffCD)
@@ -429,8 +435,10 @@ class HybridModel(Dummy):
         self.romConverged = self.checkRomConvergence()
       elif trainingSize > self.romTrainMaxSize:
         self.raiseAnError(IOError, "Maximum training size is reached, but ROMs are still not converged!")
-    else:
+    if self.romConverged:
       self.romValid = self.checkRomValidity(kwargs)
+      if not self.romValid:
+        self.romConverged = False
 
     ## Ensemble models need access to the job handler, so let's stuff it in our
     ## catch all kwargs where evaluateSample can pick it up, not great, but
@@ -489,7 +497,7 @@ class HybridModel(Dummy):
             self.raiseADebug("Job ", romName, " with identifier ", identifier, " is submitted")
             nextRom = True
           else:
-            time.sleep(1.0e-3)
+            time.sleep(self.sleepTime)
       # collect the outputs from the runs of ROMs
       while True:
         finishedJobs = jobHandler.getFinished(uniqueHandler=uniqueHandler)
@@ -504,7 +512,7 @@ class HybridModel(Dummy):
         if jobHandler.areTheseJobsFinished(uniqueHandler=uniqueHandler):
           self.raiseADebug("Jobs with uniqueHandler ", uniqueHandler, "are collected!")
           break
-        time.sleep(1.0e-3)
+        time.sleep(self.sleepTime)
       exportDict['prefix'] = identifier
 
     else:
@@ -518,9 +526,9 @@ class HybridModel(Dummy):
           self.raiseADebug("Job submitted for model ", self.modelInstance.name, " with identifier ", identifier)
           moveOn = True
         else:
-          time.sleep(1.0e-3)
+          time.sleep(self.sleepTime)
       while not jobHandler.isThisJobFinished(self.modelInstance.name+utils.returnIdSeparator()+identifier):
-        time.sleep(1.0e-3)
+        time.sleep(self.sleepTime)
       self.raiseADebug("Job finished ", self.modelInstance.name, " with identifier ", identifier)
       finishedRun = jobHandler.getFinished(jobIdentifier = inputKwargs['prefix'], uniqueHandler = uniqueHandler)
       evaluation = finishedRun[0].getEvaluation()
@@ -529,6 +537,8 @@ class HybridModel(Dummy):
       # collect output in temporary data object
       exportDict = self.modelInstance.createExportDictionaryFromFinishedJob(finishedRun[0], True)
       self.raiseADebug("Create exportDict")
+
+      self.collectOutputFromDict(exportDict, self.tempTargetEvaluation)
 
     return exportDict
 
