@@ -69,6 +69,7 @@
             <trainStep>1</trainStep>
             <maxTrainSize>1000</maxTrainSize>
             <initialTrainSize>10</initialTrainSize>
+            <selectionMethod>CrowdingDistance</selectionMethod>
         </settings>
     </HybridModel>
   </Models>

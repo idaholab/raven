@@ -87,6 +87,7 @@ class HybridModel(Dummy):
     self.romConvergence        = 0.01
     self.tempOutputs           = {}
     self.optimizerTypes        = ['SPSA'] # list of types of optimizer
+    self.modelSelection        = "CrowdingDistance"
     self.printTag              = 'HYBRIDMODEL MODEL' # print tag
     # assembler objects to be requested
     self.addAssemblerObject('Model','1',True)
@@ -131,6 +132,8 @@ class HybridModel(Dummy):
         self.romTrainStartSize = int(child.text)
       if child.tag == 'tolerance':
         self.romConvergence = float(child.text)
+      if child.tag == 'selectionMethod':
+        self.modelSelection = child.text.strip()
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -292,20 +295,41 @@ class HybridModel(Dummy):
         a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, None
     """
+    allValid = False
+    if self.modelSelection == 'CrowdingDistance':
+      allValid = self.crowdingDistanceMethod(kwargs)
+    else:
+      self.raiseAnError(IOError, "Unknown model selection method ", self.modelSelection, " is given!")
+
+    if allValid:
+      self.raiseADebug("ROMs  are all valid for given model ", self.modelInstance.name)
+
+    return allValid
+
+  def crowdingDistanceMethod(self, kwargs):
+    """
+      This function will check the validity of all roms based on the crowding distance method
+      @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ Out, None
+    """
     allValid = True
     for romInfo in self.romsDictionary.values():
+      valid = False
       # generate the data for input parameters
       paramsList = romInfo['Instance'].getInitParams()['Features']
-      trainInput = self._extractInputs(romInfo['Instance'].trainingSet, paramsList)
-      currentInput = self._extractInputs(kwargs['SampledVars'], paramsList)
-      valid = self.isRomValid(trainInput, currentInput)
+      trainInput = np.asarray(self._extractInputs(romInfo['Instance'].trainingSet, paramsList).values())
+      currentInput = np.asarray(self._extractInputs(kwargs['SampledVars'], paramsList).values())
+      coeffCD = self.computeCDCoefficient(trainInput, currentInput)
+      self.raiseADebug("Crowding Distance Coefficient: ", coeffCD)
+      if coeffCD > 0.2:
+        valid = True
       romInfo['Valid'] = valid
       if valid:
         self.raiseADebug("ROM ",romInfo['Instance'].name, " is valid")
       else:
         allValid = False
-    if allValid:
-      self.raiseADebug("ROMs  are all valid for given model ", self.modelInstance.name)
+
     return allValid
 
   def _extractInputs(self,dataIn, paramsList):
@@ -325,29 +349,12 @@ class HybridModel(Dummy):
 
     return localInput
 
-  def isRomValid(self, trainDict, currentDict):
-    """
-      This function will check the validity of given ROM
-      @ In, oldDict, dict, dictionary of previous generated input parameters
-      @ In, currentDict, dict, dictionary of current generated input parameters
-      @ Out,
-    """
-    valid = False
-    print(trainDict)
-    print(currentDict)
-    currentData = np.asarray(currentDict.values())
-    trainData = np.asarray(trainDict.values())
-    coeffCD = self.computeCDCoefficient(trainData, currentData)
-    print("Crowding Distance Coefficient: ", coeffCD)
-    if coeffCD > 0.2:
-      valid = True
-    return valid
-
   def computeCDCoefficient(self, trainSet, newSet):
     """
       This function will compute the Crowding distance coefficients among the input parameters
-      @ In,
-      @ Out,
+      @ In, trainSet, numpy.array, array contains values of previous generated input parameters
+      @ In, newSet, numpy.array, array contains values of current generated input parameters
+      @ Out, crowdingDistCoeff, float, the coefficient of crowding distance
     """
     totalSet = np.concatenate((trainSet,newSet), axis=1)
     dim = totalSet.shape[1]
