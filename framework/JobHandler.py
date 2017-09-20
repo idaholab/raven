@@ -145,7 +145,10 @@ class JobHandler(MessageHandler.MessageUser):
         ## FIXME: The running.command was always internal now, so I removed it.
         ## We should probably find a way to give more pertinent information.
         self.raiseAMessage(" Process Failed " + str(running) + " internal returnCode " + str(returnCode))
-        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(running.getMetadata()))
+        metadataToCopy = running.getMetadata()
+        if 'jobHandler' in metadataToCopy:
+         metadataToCopy.pop('jobHandler')
+        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metadataToCopy))
 
   def __initializeParallelPython(self):
     """
