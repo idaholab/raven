@@ -224,11 +224,15 @@ class RAVEN(CodeInterfaceBase):
     if len(Kwargs['Nodes']) > 0:
       # we are in a distributed memory machine => we allocate a node file
       nodeFileToUse = os.path.join(Kwargs['BASE_WORKING_DIR'],"node_" +str(Kwargs['INDEX']))
-      modifDict['RunInfo|nodefile'       ] = nodeFileToUse
+      if os.path.exists(nodeFileToUse):
+        modifDict['RunInfo|mode'           ] = 'mpi'
+        modifDict['RunInfo|mode|nodefile'  ] = nodeFileToUse
+      else:
+        raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" does not exist!')
     if internalParallel or newBatchSize > 1:
       # either we have an internal parallel or NumMPI > 1
       modifDict['RunInfo|batchSize'       ] = newBatchSize
-    modifDict['RunInfo|internalParallel'] = internalParallel
+    #modifDict['RunInfo|internalParallel'] = internalParallel
 
     #make tree
     modifiedRoot = parser.modifyOrAdd(modifDict,save=True,allowAdd = True)
