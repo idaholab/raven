@@ -542,11 +542,11 @@ class Code(Model):
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
       else:
         # we have the DataObjects
-        for dataObj in outputObj.values():
+        for dataObj in finalCodeOutputFile.values():
           self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('inputs',nodeId='RecontructEnding'), 'input', True)
           self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('unstructuredinputs',nodeId='RecontructEnding'), 'input', True)
           self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('outputs',nodeId='RecontructEnding'), 'output', True)
-        returnDict = outputObj
+        returnDict = finalCodeOutputFile
       ## The last thing before returning should be to delete the temporary log
       ## file and any other file the user requests to be cleared
       if deleteSuccessfulLogFiles:
