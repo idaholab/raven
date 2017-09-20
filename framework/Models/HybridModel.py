@@ -33,6 +33,7 @@ from collections import OrderedDict
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
 from .Dummy import Dummy
+import Models
 from utils import InputData
 import Runners
 #Internal Modules End--------------------------------------------------------------------------------
@@ -145,6 +146,8 @@ class HybridModel(Dummy):
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
+    if isinstance(self.modelInstance, Models.Model):
+      self.raiseAnError(IOError, "HybridModel has already been initialized, and it can not be initialized again!")
     self.tempOutputs['uncollectedJobIds'] = []
     self.modelInstance = self.retrieveObjectFromAssemblerDict('Model', self.modelInstance)
     self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
@@ -173,6 +176,9 @@ class HybridModel(Dummy):
 
     for romInfo in self.romsDictionary.values():
       romIn = romInfo['Instance']
+      if romIn.amITrained:
+        self.raiseAWarning("The provided rom ", romIn.name, " is already trained, we will reset it!")
+        romIn.reset()
       romInputs = romIn.getInitParams()['Features']
       romOutputs = romIn.getInitParams()['Target']
       totalRomOutputs.extend(romOutputs)
