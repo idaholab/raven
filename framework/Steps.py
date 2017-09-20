@@ -555,14 +555,15 @@ class MultiRun(SingleRun):
         model.raiseAnError(RuntimeError,'ROM model "%s" has not been trained yet, so it cannot be sampled!' %model.name+\
                                         ' Use a RomTrainer step to train it.')
     ##### MAIN LOOP #####
-    while not self.finished():
+    while not self.finished(jobHandler,sampler):
+      self.raiseADebug('')
+      self.raiseADebug('Entering the STEP main loop.')
       # collect jobs
-      self.collectDone(jobHandler,sampler)
+      self.raiseADebug('Collecting finished jobs ...')
+      self.collectDone(jobHandler,sampler,model,inputs,outputs)
       # submit new jobs
-      ctu = self.submitNew(jobHandler,sampler,model)
-      # if not able to continue, exit
-      if not ctu:
-        break
+      self.raiseADebug('Submitting new jobs ...')
+      self.submitNew(jobHandler,sampler,model,inputs,outputs)
       # wait for next update
       time.sleep(self.sleepTime)
     ##### END MAIN LOOP #####
@@ -571,7 +572,7 @@ class MultiRun(SingleRun):
     # print basic run statistics
     self.raiseADebug('Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
 
-  def collectDone(self,jobHandler,sampler):
+  def collectDone(self,jobHandler,sampler,model,inputs,outputs):
     """
       Collect finished runs from the jobHandler, and sort them by the results.
       @ In, jobHandler, JobHandler, job handler instance
@@ -609,36 +610,42 @@ class MultiRun(SingleRun):
       # finalize actual sampler
       sampler.finalizeActualSampling(finishedJob,model,inputs)
 
-  def submitNew(self,jobHandler,sampler,model):
-  """
-    Aquire new points to run from the sampler and submit them to the job handler.
-    @ In, jobHandler, JobHandler, job handler instance
-    @ In, sampler, Sampler, instance doing the sampling for this multirun
-    @ In, model, Model, model being run for this multirun
-    @ Out, submitNew, bool, True if new samples have been submitted and False if we could not
-  """
-  isEnsemble = isinstance(model, Models.EnsembleModel)
-  ## In order to ensure that the queue does not grow too large, we will
-  ## employ a threshold on the number of jobs the jobHandler can take,
-  ## in addition, we cannot provide more jobs than the sampler can provide.
-  ## So, we take the minimum of these two values.
-  for _ in range(min(jobHandler.availability(isEnsemble),sampler.endJobRunnable())):
-    self.raiseADebug('Testing if the sampler is ready to generate a new input')
-    if sampler.amIreadyToProvideAnInput():
-      # try-catch in case the sampler ends up having insufficient samples to provide
-      try:
-        newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
-        # ensemble model uses a special submission queue
-        if isEnsemble:
-          model.submitAsClient(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
-        # everyone else follows the typical path
-        else:
-          model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
-      except utils.NoMoreSamplesNeeded:
-        self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
-        return False
-    #else:
-    #  break
+  def submitNew(self,jobHandler,sampler,model,inputs,outputs):
+    """
+      Aquire new points to run from the sampler and submit them to the job handler.
+      @ In, jobHandler, JobHandler, job handler instance
+      @ In, sampler, Sampler, instance doing the sampling for this multirun
+      @ In, model, Model, model being run for this multirun
+      @ Out, None
+    """
+    isEnsemble = isinstance(model, Models.EnsembleModel)
+    ## In order to ensure that the queue does not grow too large, we will
+    ## employ a threshold on the number of jobs the jobHandler can take,
+    ## in addition, we cannot provide more jobs than the sampler can provide.
+    ## So, we take the minimum of these two values.
+    maxSubmittable = min(jobHandler.availability(isEnsemble),sampler.endJobRunnable())
+    self.raiseADebug('We can submit up to',maxSubmittable,'points.')
+    self.raiseADebug('Requesting new submission points from the sampler ...')
+    for i in range(maxSubmittable):
+      self.raiseADebug('  Testing submission {}/{} ...'.format(i+1,maxSubmittable))
+      if sampler.amIreadyToProvideAnInput():
+        self.raiseADebug('    Sampler indicated readiness to provide a new submission point ...')
+        # try-catch in case the sampler ends up having insufficient samples to provide
+        try:
+          newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
+          self.raiseADebug('    Obtained new submission point.')
+          # ensemble model uses a special submission queue
+          if isEnsemble:
+            model.submitAsClient(newInput, sampler.type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+          # everyone else follows typical submission
+          else:
+            model.submit(newInput, sampler.type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+        except utils.NoMoreSamplesNeeded:
+          self.raiseAMessage('    Sampler returned "NoMoreSamplesNeeded".  Returning.')
+          return
+      else: #sampler not ready
+        self.raiseADebug('  Sampler currently has no new points to sample.')
+        return
 
   def _findANewInputToRun(self, sampler, model, inputs, outputs):
     """
@@ -674,7 +681,7 @@ class MultiRun(SingleRun):
       @ In, sampler, Sampler, the instance providing samples for this run
       @ Out, finished, bool, True if done and False if not
     """
-      return jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput()
+    return jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput()
 
 #
 #
