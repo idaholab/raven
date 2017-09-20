@@ -24,7 +24,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="GoalOrientedStep" sleepTime='1e-4' pauseAtEnd="False">
+    <MultiRun name="GoalOrientedStep" sleepTime='5e-2' pauseAtEnd="False">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">workshopAdaptive</Sampler>
