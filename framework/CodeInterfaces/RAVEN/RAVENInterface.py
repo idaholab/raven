@@ -173,8 +173,10 @@ class RAVEN(CodeInterfaceBase):
     if len(varGroupNames) > 0:
       # check if they are not present in the linked outstreams
       for outstream in self.linkedDataObjectOutStreamsNames:
-        inputVariables = self.outStreamsNamesAndType[outstream][2].find("Input")
-        outputVariables =  self.outStreamsNamesAndType[outstream][2].find("Output")
+        inputNode = self.outStreamsNamesAndType[outstream][2].find("Input")
+        outputNode = self.outStreamsNamesAndType[outstream][2].find("Output")
+        inputVariables = inputNode.text.split(",") if inputNode is not None else []
+        outputVariables =  outputNode.find("Output").text.split(",") if outputNode is not None else []
         if any (varGroupName in inputVariables+outputVariables for varGroupName in varGroupNames):
           raise IOError(self.printTag+' ERROR: The VariableGroup system is not supported in the current ' +
                                       'implementation of the interface for the DataObjects specified in the '+
