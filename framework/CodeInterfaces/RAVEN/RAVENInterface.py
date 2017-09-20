@@ -233,7 +233,6 @@ class RAVEN(CodeInterfaceBase):
       # either we have an internal parallel or NumMPI > 1
       modifDict['RunInfo|batchSize'       ] = newBatchSize
     #modifDict['RunInfo|internalParallel'] = internalParallel
-
     #make tree
     modifiedRoot = parser.modifyOrAdd(modifDict,save=True,allowAdd = True)
     #make input
@@ -259,6 +258,7 @@ class RAVEN(CodeInterfaceBase):
     except:
       return failure
     readLines = outputToRead.readlines()
+
     for badMessage in ["Traceback ","raise","IOError"]:
       if not any(badMessage in x for x in readLines):
         failure = False
@@ -275,6 +275,7 @@ class RAVEN(CodeInterfaceBase):
       @ Out, dataObjectsToReturn, dict, optional, this is a special case for RAVEN only. It returns the constructed dataobjects
                                                  (internally we check if the return variable is a dict and if it is returned by RAVEN (if not, we error out))
     """
+    outputFile = os.path.join(workingDir,output)
     dataObjectsToReturn = {}
     for filename in self.linkedDataObjectOutStreamsNames:
       dataObjectInfo = self.outStreamsNamesAndType[filename]
@@ -282,6 +283,6 @@ class RAVEN(CodeInterfaceBase):
       dataObjectsToReturn[dataObjectInfo[0]]._readMoreXML(dataObjectInfo[2])
       dataObjectsToReturn[dataObjectInfo[0]].name = filename
       dataObjectsToReturn[dataObjectInfo[0]].loadXMLandCSV(os.path.join(workingDir,self.innerWorkingDir))
-    return dataObjectsToReturn
+    return dataObjectsToReturn, outputFile
 
 

@@ -432,6 +432,7 @@ class Code(Model):
     ## directory after we copy it over. -- DPM 5/5/2017
     sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
     localenv = dict(os.environ)
+
     localenv['PWD'] = str(sampleDirectory)
 
     outFileObject = open(os.path.join(sampleDirectory,codeLogFile), 'w', bufferSize)
@@ -511,16 +512,17 @@ class Code(Model):
       if finalCodeOutputFile:
         outputFile = finalCodeOutputFile
 
+    ## Special case for RAVEN interface --ALFOA 09/17/17
+    ravenCase = False
+    if type(outputFile).__name__ == 'tuple':
+      ravenCase = True
+      outputObj, outputFile = outputFile
+    if ravenCase and self.code.__class__.__name__ != 'RAVEN':
+      self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be a str containing the new output file root!')
+
     ## If the run was successful
     if returnCode == 0:
       returnDict = {}
-      ## Special case for RAVEN interface --ALFOA 09/17/17
-      ravenCase = False
-      if type(outputFile).__name__ == 'dict':
-        ravenCase = True
-      if ravenCase and self.code.__class__.__name__ != 'RAVEN':
-        self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be a str containing the new output file root!')
-
       ## This may be a tautology at this point --DPM 4/12/17
       ## Special case for RAVEN interface. Added ravenCase flag --ALFOA 09/17/17
       if outputFile is not None and not ravenCase:
@@ -542,11 +544,11 @@ class Code(Model):
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
       else:
         # we have the DataObjects
-        for dataObj in outputFile.values():
+        for dataObj in outputObj.values():
           self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('inputs',nodeId='RecontructEnding'), 'input', True)
           self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('unstructuredinputs',nodeId='RecontructEnding'), 'input', True)
           self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('outputs',nodeId='RecontructEnding'), 'output', True)
-        returnDict = outputFile
+        returnDict = outputObj
       ## The last thing before returning should be to delete the temporary log
       ## file and any other file the user requests to be cleared
       if deleteSuccessfulLogFiles:

@@ -257,9 +257,9 @@ class RAVENparser():
         # there are no attributes that are needed to track down the node to change
         pathNode = './/' + node.replace("|","/").strip()
         if allowAdd:
-          pathNodeTemp = './/'
+          pathNodeTemp = './'
           for component in node.replace("|","/").split("/"):
-            pathNodeTemp += component
+            pathNodeTemp += '/'+component
             if len(returnElement.findall(pathNodeTemp)) > 0:
               allowAddNodes.append(pathNodeTemp)
             else:
