@@ -168,6 +168,17 @@ class RAVEN(CodeInterfaceBase):
       raise IOError(self.printTag+' ERROR: No one of the OutStreams linked to this interface have been found in the SLAVE RAVEN!'
                                  +' Expected: "'+' '.join(self.linkedDataObjectOutStreamsNames)+'" but found "'
                                  +' '.join(self.outStreamsNamesAndType.keys())+'"!')
+    # get variable groups
+    varGroupNames = parser.returnVarGroups()
+    if len(varGroupNames) > 0:
+      # check if they are not present in the linked outstreams
+      for outstream in self.linkedDataObjectOutStreamsNames:
+        inputVariables = self.outStreamsNamesAndType[outstream][2].find("Input")
+        outputVariables =  self.outStreamsNamesAndType[outstream][2].find("Output")
+        if any (varGroupName in inputVariables+outputVariables for varGroupName in varGroupNames):
+          raise IOError(self.printTag+' ERROR: The VariableGroup system is not supported in the current ' +
+                                      'implementation of the interface for the DataObjects specified in the '+
+                                      '<outputExportOutStreams> XML node!')
     # get inner working dir
     self.innerWorkingDir = parser.workingDir
     # get sampled variables
@@ -242,8 +253,9 @@ class RAVEN(CodeInterfaceBase):
     except:
       return failure
     readLines = outputToRead.readlines()
-    if not any("Traceback " in x for x in readLines[-20:]):
-      failure = False
+    for badMessage in ["Traceback ","raise","IOError"]:
+      if not any(badMessage in x for x in readLines[-30:]):
+        failure = False
     del readLines
     return failure
 

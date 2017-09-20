@@ -43,6 +43,7 @@ class RAVENparser():
     self.printTag  = 'RAVEN_PARSER' # print tag
     self.inputFile = inputFile      # input file name
     self.outStreamsNames = {}       # {'outStreamName':[DataObjectName,DataObjectType]}
+    self.varGroups = []             # variable groups' name (for now it is just used to check that in the linked objects there are none)
     if not os.path.exists(inputFile):
       raise IOError(self.printTag+' ERROR: Not found RAVEN input file')
     try:
@@ -50,6 +51,12 @@ class RAVENparser():
     except ET.InputParsingError as e:
       raise IOError(self.printTag+' ERROR: Input Parsing error!\n' +str(e)+'\n')
     self.tree = tree.getroot()
+    # get the variable groups
+    variableGroup = self.tree.find('VariableGroups')
+    if variableGroup is not None:
+      for child in variableGroup:
+        self.varGroups.append(child.attrib['name'])
+
     # do some sanity checks
     sequence = [step.strip() for step in self.tree.find('.//RunInfo/Sequence').text.split(",")]
     # firstly no multiple sublevels of RAVEN can be handled now
@@ -124,7 +131,6 @@ class RAVENparser():
           raise IOError(self.printTag+' ERROR: Functions/External ' +extFunct.attrib['name']+ ' does not have any attribute named "file"!!')
 
   def returnOutstreamsNamesAnType(self):
-
     """
       Method to return the Outstreams names and linked DataObject name
       @ In, None
@@ -132,6 +138,13 @@ class RAVENparser():
     """
     return self.outStreamsNames
 
+  def returnVarGroups(self):
+    """
+      Method to return the variable groups'
+      @ In, None
+      @ Out, varGroups, list, the list of var group names
+    """
+    return self.varGroups
 
   def copySlaveFiles(self,currentDirName):
     """
