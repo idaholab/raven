@@ -93,6 +93,10 @@ class Phisics(CodeInterfaceBase):
     validPerturbation = ['additive', 'multiplicative', 'absolute']
     self.perturbXS = validPerturbation[1] # default is cross section perturbation multiplicative mode
     setOfPerturbations = set(validPerturbation)
+    #default values if the flag is not in the raven input  
+    self.tabulation = True
+    self.mrtauStandAlone = False
+    self.mrtauExecutable = None 
     for child in xmlNode:
       if child.tag == 'PerturbXS':
         if child.text.lower() in set(validPerturbation): self.perturbXS = child.text.lower()
@@ -101,13 +105,23 @@ class Phisics(CodeInterfaceBase):
         self.tabulation = None
         if (child.text.lower() == 't' or child.text.lower() == 'true'):  self.tabulation = True
         if (child.text.lower() == 'f' or child.text.lower() == 'false'): self.tabulation = False 
-        if (self.tabulation is None): raise ValueError("\n\n The tabulation node --"+child.tag+"-- only supports the following text (case insensitive): \n True \n T \n False \n F" )
+        if (self.tabulation is None): raise ValueError("\n\n The tabulation node -- <"+child.tag+"> -- only supports the following text (case insensitive): \n True \n T \n False \n F" )
       if child.tag == 'mrtauStandAlone':
         self.mrtauStandAlone = None 
-        if (child.text.lower()) == 't' or child.text.lower() == 'true'):  self.mrtauStandAlone = True 
-        if (child.text.lower()) == 'f' or child.text.lower() == 'false'): self.mrtauStandAlone = False 
-        if (self.tabulation is None): raise ValueError("\n\n The flag activating MRTAU standalone mode --"+child.tag+"-- only supports the following text (case insensitive): \n True \n T \n False \n F. Default Value is False" )
+        if (child.text.lower() == 't' or child.text.lower() == 'true'):  self.mrtauStandAlone = True 
+        if (child.text.lower() == 'f' or child.text.lower() == 'false'):  self.mrtauStandAlone = False 
+        if (self.mrtauStandAlone is None): raise ValueError("\n\n The flag activating MRTAU standalone mode -- <"+child.tag+"> -- only supports the following text (case insensitive): \n True \n T \n False \n F. \n Default Value is False" )
+      if child.tag == 'mrtauStandAloneExecutable' and self.mrtauStandAlone == True:
+        self.mrtauExecutable = child.text
         
+  def switchExecutable(self):
+    """
+      This module replaces the executable if the user chooses to use MRTAU in standalone mode. 
+      @ In, None 
+      @ Out, mrtauExecutable, string, absolute path to mrtau executable
+    """
+    return self.mrtauExecutable
+   
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
@@ -120,7 +134,8 @@ class Phisics(CodeInterfaceBase):
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-    #print (executable)
+    if self.mrtauStandAlone == True: 
+      executable = self.switchExecutable()
     found = False
     index = 0
     outputfile = 'out~'+inputFiles[index].getBase()
@@ -148,13 +163,9 @@ class Phisics(CodeInterfaceBase):
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """
     output = 'Dpl_INSTANT.outp-0'
-    #print (command)
-    #print (workingDir)
-    #print (output) 
-    #outfile = os.path.join(workingDir,output+'.o')
     splitWorkDir = workingDir.split('/')
     pertNumber = splitWorkDir[-1]
-    outputobj=phisicsdata.phisicsdata(output, workingDir)
+    outputobj=phisicsdata.phisicsdata(output, workingDir, self.mrtauStandAlone)
     return "keff"+str(pertNumber).strip()
     #if outputobj.hasAtLeastMinorData(): outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
     #else: raise IOError('Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
@@ -204,8 +215,6 @@ class Phisics(CodeInterfaceBase):
     
     keyWordDict = {} 
     count = 0
-    
-    directoryFiles = ['path','library_fiss','input_dpl']
     #print (currentInputFiles)
     #print (Kwargs)
     #print (Kwargs['SampledVars'])
@@ -219,7 +228,6 @@ class Phisics(CodeInterfaceBase):
     #print (distributedPerturbedVars)
     #print (currentInputFiles)
     #print (self.tabulation)
-    print self.mrtauStandeAlone
     booleanTab = self.tabulation 
     
     for i in distributedPerturbedVars.iterkeys():
