@@ -22,7 +22,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="adapt" pauseAtEnd="true" sleepTime='2e-5'>
+    <MultiRun name="adapt" pauseAtEnd="true" sleepTime='5e-2'>
       <Input class="DataObjects" type="PointSet">dummy</Input>
       <Model class="Models" type="ExternalModel">testFunction</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
