@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation>
-  <!-- TestInfo -->  
+  <!-- TestInfo -->
   <TestInfo>
     <name>framework/adaptive_sampler_ext_model</name>
     <author>@alfoa</author>
@@ -10,6 +10,9 @@
         This  test is aimed to test the capability of RAVEN to employ a goal oriented sampling. It tests the
         LimitSurfaceSearch algorithm using an external model as ``system code''
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2017-09-20">increased sleep time to maintain linearity</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -19,7 +22,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="adapt" pauseAtEnd="true">
+    <MultiRun name="adapt" pauseAtEnd="true" sleepTime='5e-2'>
       <Input class="DataObjects" type="PointSet">dummy</Input>
       <Model class="Models" type="ExternalModel">testFunction</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>

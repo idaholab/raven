@@ -37,7 +37,7 @@
       <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
       <Output class="DataObjects" type="PointSet">response</Output>
     </MultiRun>
-    <MultiRun name="adapt">
+    <MultiRun name="adapt" sleepTime='5e-2'>
       <Input class="DataObjects" type="PointSet">response</Input>
       <Model class="Models" type="ExternalModel">function</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
