@@ -40,7 +40,7 @@ import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Code(Model):
-  """
+"""
     This is the generic class that import an external code into the framework
   """
   CodeInterfaces = importlib.import_module("CodeInterfaces")
@@ -432,8 +432,8 @@ class Code(Model):
     ## directory after we copy it over. -- DPM 5/5/2017
     sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
     localenv = dict(os.environ)
-    for key, value in localenv.items():
-      localenv[key] = str(value)
+
+
     localenv['PWD'] = str(sampleDirectory)
 
     outFileObject = open(os.path.join(sampleDirectory,codeLogFile), 'w', bufferSize)
@@ -480,7 +480,8 @@ class Code(Model):
     if platform.system() == 'Windows':
       command = self._expandForWindows(command)
       self.raiseAMessage("modified command to" + repr(command))
-
+      for key, value in localenv.items():
+        localenv[key]=str(value)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
