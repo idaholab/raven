@@ -361,8 +361,6 @@ class HybridModel(Dummy):
       # generate the data for input parameters
       paramsList = romInfo['Instance'].getInitParams()['Features']
       trainInput = np.asarray(self._extractInputs(romInfo['Instance'].trainingSet, paramsList).values())
-      print("Size of training set: ", trainInput.shape[1])
-      print(romInfo['Instance'].trainingSet)
       currentInput = np.asarray(self._extractInputs(kwargs['SampledVars'], paramsList).values())
       coeffCD = self.computeCDCoefficient(trainInput, currentInput)
       self.raiseADebug("Crowding Distance Coefficient: ", coeffCD)
@@ -621,6 +619,3 @@ class HybridModel(Dummy):
 
     self.raiseADebug("The exportDict has been updated")
     return outputDict
-
-
-
