@@ -419,7 +419,7 @@ class Code(Model):
 
     precommand = kwargs['precommand']
     postcommand = kwargs['postcommand']
-    bufferSize = kwargs['logfileBuffer']
+    bufferSize = kwargs['bufferSize']
     fileExtensionsToDelete = kwargs['deleteOutExtension']
     deleteSuccessfulLogFiles = kwargs['delSucLogFiles']
 
@@ -756,12 +756,14 @@ class Code(Model):
     ## These variables should not be part of the metadata, so add them after
     ## we copy this dictionary (Caught this when running an ensemble model)
     ## -- DPM 4/11/17
-    #kwargs['bufferSize'] = jobHandler.runInfoDict['logfileBuffer']
-    #kwargs['precommand'] = jobHandler.runInfoDict['precommand']
-    #kwargs['postcommand'] = jobHandler.runInfoDict['postcommand']
-    #kwargs['delSucLogFiles'] = jobHandler.runInfoDict['delSucLogFiles']
-    #kwargs['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
-    kwargs.update(jobHandler.runInfoDict)
+    nodesList                    = jobHandler.runInfoDict.get('Nodes',[])
+    kwargs['bufferSize'        ] = jobHandler.runInfoDict['logfileBuffer']
+    kwargs['precommand'        ] = jobHandler.runInfoDict['precommand']
+    kwargs['postcommand'       ] = jobHandler.runInfoDict['postcommand']
+    kwargs['delSucLogFiles'    ] = jobHandler.runInfoDict['delSucLogFiles']
+    kwargs['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
+    kwargs['NumMPI'            ] = jobHandler.runInfoDict.get('NumMPI',1)
+    kwargs['numberNodes'       ] = len(nodesList)
     ## This may look a little weird, but due to how the parallel python library
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
