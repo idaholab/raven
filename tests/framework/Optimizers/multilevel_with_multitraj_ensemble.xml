@@ -23,7 +23,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize" sleepTime='1e-1'>
+    <MultiRun name="optimize" sleepTime='2e-1'>
       <Input class="DataObjects" type="PointSet">dummyINbeale</Input>
       <Input class="DataObjects" type="PointSet">dummyINAmplifier</Input>
       <Model class="Models" type="EnsembleModel">Ensemble_with_amplifier</Model>
