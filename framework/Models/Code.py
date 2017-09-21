@@ -437,10 +437,7 @@ class Code(Model):
     ## directory after we copy it over. -- DPM 5/5/2017
     sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
     localenv = dict(os.environ)
-
-
     localenv['PWD'] = str(sampleDirectory)
-
     outFileObject = open(os.path.join(sampleDirectory,codeLogFile), 'w', bufferSize)
 
     found = False
