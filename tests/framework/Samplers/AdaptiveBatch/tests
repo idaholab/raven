@@ -3,7 +3,7 @@
   type = 'RavenFramework'
   input = 'test_greedy_d.xml'
   xml = 'circle/greedy_d_samples.xml circle/greedy_d_ls.xml'
-  UnorderedUnorderedCsv = 'circle/greedy_d_samples.csv circle/greedy_d_ls.csv'
+  UnorderedCsv = 'circle/greedy_d_samples.csv circle/greedy_d_ls.csv'
   required_libraries = 'AMSC'
   remove_unicode_identifier = true
  [../]
