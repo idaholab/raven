@@ -384,7 +384,12 @@ class Code(Model):
           if beginExecutable.startswith("/"):
             beginExecutable = beginExecutable.lstrip("/")
           winExecutable = os.path.join(msysDir, beginExecutable)
-          self.raiseAMessage("winExecutable" + winExecutable)
+          self.raiseAMessage("winExecutable " + winExecutable)
+          if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
+            #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
+            maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
+            if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
+              winExecutable = maybeWinExecutable
           realExecutable[0] = winExecutable
         else:
           self.raiseAWarning("Could not find msys in "+os.getcwd())
