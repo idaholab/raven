@@ -252,16 +252,18 @@ class RAVEN(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
-    failure = True
+    failure = False
     try:
       outputToRead = open(os.path.join(workingDir,output),"r")
-    except:
-      return failure
-    readLines = outputToRead.readlines()
-    for badMessage in ["Traceback ","raise","IOError"]:
-      if not any(badMessage in x for x in readLines):
-        failure = False
-    del readLines
+    except IOError:
+      failure = True
+    if not failure:
+      readLines = outputToRead.readlines()
+      for badMessage in ["Traceback ","raise","IOError"]:
+        if any(badMessage in x for x in readLines):
+          failure = True
+          break
+      del readLines
     return failure
 
   def finalizeCodeOutput(self,command,output,workingDir):
