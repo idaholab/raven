@@ -563,6 +563,10 @@ class MultiRun(SingleRun):
       self.raiseADebug('Collecting finished jobs ...')
       self.collectDone(jobHandler,sampler,model,inputs,outputs)
 
+      # terminate unwanted jobs
+      self.raiseADebug('Terminating unnecessary jobs ...')
+      self.terminateUnneeded(jobHandler,sampler)
+
       # submit new jobs
       self.raiseADebug('Submitting new jobs ...')
       self.submitNew(jobHandler,sampler,model,inputs,outputs)
@@ -614,6 +618,17 @@ class MultiRun(SingleRun):
             self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
       # finalize actual sampler
       sampler.finalizeActualSampling(finishedJob,model,inputs)
+
+  def terminateUnneeded(self,jobHandler,sampler):
+    """
+      Terminates jobs flagged by the sampler for deletion
+      @ In, jobHandler, JobHandler, job handler instance
+      @ In, sampler, Sampler, instance doing the sampling for this multirun
+    """
+    while len(sampler.jobsToTerminate) > 0:
+      prefix = sampler.getPrefixToTerminate()
+      self.raiseADebug('Terminating run "{}" at the request of the sampler.'.format(prefix))
+      jobHandler.terminateRun(prefix)
 
   def submitNew(self,jobHandler,sampler,model,inputs,outputs):
     """
