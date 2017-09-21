@@ -16,40 +16,72 @@ class phisicsdata():
   def __init__(self, output, workingDir, mrtauBoolean):
     """
       read the phisics output
+      @ In, output, string (Instant output)
+      @ In, workingDir, string
+      @ In, mrtauBoolean, Boolean (True if mrtau standalone mode, False is instant coupled to mrtau)
+      @ Out, keff, string, keff coming from Instant output
+      @ Out, errorKeff, string error on keff coming from Instant output
+      @ Out, reactionRateInfo, dictionary, reaction rates coming from Instant output. label and values included
+      @ Out, fissionMatrixInfo, dictionary, fisison matrix coming from instant. label and values included 
+      @ Out, fluxLabelList, list, list of labels relative to the flux cell coming from instant output 
+      @ Out, fluxList, list, list of flux values coming from Instant output 
+      @ Out, matFluxLabelList, list, list of labels relative to the flux within specific material. 
+      @ Out, matFluxList, list, list of flux values within specific materials coming from Instant
+      @ Out, depLabelList, list, list of labels relative to the depletion info, coming from mrtau output
+      @ Out, depList, list, list of depletion values (i.e number densities as a function of time) coming from the mrtau Output
+      @ Out, timeStepList, list of time steps coming from mrtau output
+      @ Out, decayLabelList, list, list of labels relative to decay heat, coming from Instant output 
+      @ Out, decayList, list, list of decay heat values coming from the Instant output 
+      @ Out, timeStepIndex, integers, integers pointing to the index of the timeStep of interest
+      @ Out, matchedTimeSteps, list, list of time step matching both mrtau input and instant output
     """
     #print output
     self.mrtauBoolean = mrtauBoolean
-    self.instantCSVOutput = workingDir+'/'+'Dpl_INSTANT_HTGR_test_flux_mat.csv'
-    if mrtauBoolean == False: self.mrtauCSVOutput = workingDir+'/'+'numbers-0.csv'
-    if mrtauBoolean == True: self.mrtauCSVOutput = workingDir+'/'+'numbers.csv'
+    instantOutput = ['Dpl_INSTANT_HTGR_test_flux_mat.csv', 'numbers-0.csv']
+    mrtauOutput = ['numbers.csv', 'DecayHeat.out']
+    self.instantCSVOutput = workingDir+'/'+instantOutput[0]
+    if mrtauBoolean == False: self.mrtauCSVOutput = workingDir+'/'+instantOutput[1]
+    if mrtauBoolean == True: self.mrtauCSVOutput = workingDir+'/'+mrtauOutput[0]
+    self.decayHeatMrtauOutput = workingDir+'/'+mrtauOutput[1]
     markerList = ['Fission matrices of','Scattering matrices of','Multigroup solver ended!']      
     self.pathToPhisicsOutput    = workingDir+'/'+output 
     self.perturbationNumber     = self.getPertNumber(workingDir)
-    mrtauTimeSteps              = self.getMrtauTimeSteps()
-    if self.mrtauBoolean == False: 
+    if self.mrtauBoolean == False:
+      mrtauTimeSteps              = self.getMrtauInstantTimeSteps()
       instantTimeSteps          = self.getInstantTimeSteps()
       matchedTimeSteps          = self.commonInstantMrtauTimeStep(instantTimeSteps, mrtauTimeSteps)
-    if self.mrtauBoolean == True: matchedTimeSteps = mrtauTimeSteps
+    if self.mrtauBoolean == True: 
+      matchedTimeSteps = self.getMrtauTimeSteps()
     for timeStepIndex in xrange (0,len(matchedTimeSteps)): 
       if self.mrtauBoolean == False:
         keff, errorKeff           = self.getKeff(workingDir, timeStepIndex, matchedTimeSteps)
         reactionRateInfo          = self.getReactionRates(workingDir, timeStepIndex, matchedTimeSteps)
         fissionMatrixInfo         = self.getMatrix(workingDir, markerList[0], markerList[1], 'FissionMatrix', timeStepIndex, matchedTimeSteps)
         fluxLabelList, fluxList, matFluxLabelList, matFluxList     = self.getFluxInfo(timeStepIndex, matchedTimeSteps)
+        decayLabelList, decayList  = self.getDecayHeat(timeStepIndex, matchedTimeSteps, matList)
+      if self.mrtauBoolean == True:
+        decayHeatMrtau = self.getDecayHeatMrtau(timeStepIndex, matchedTimeSteps)
       depLabelList, depList, timeStepList, matList     = self.getDepInfo(timeStepIndex, matchedTimeSteps)
-      decayLabelList, decayList  = self.getDecayHeat(timeStepIndex, matchedTimeSteps, matList)
+      
       if mrtauBoolean == False:
         self.writeCSV(keff, errorKeff, reactionRateInfo, fissionMatrixInfo, workingDir, fluxLabelList, fluxList, matFluxLabelList, matFluxList, depLabelList, depList, timeStepList, decayLabelList, decayList, timeStepIndex, matchedTimeSteps)
       if mrtauBoolean == True:
-        self.writeMrtauCSV(workingDir, depLabelList, depList, timeStepList, decayLabelList, decayList, timeStepIndex, matchedTimeSteps)
+        self.writeMrtauCSV(workingDir, depLabelList, depList, timeStepList, timeStepIndex, matchedTimeSteps)
         
   def removeSpaces(self, line):
+    """
+      removes the spaces. It makes the word splitting cleaner. 
+      @ In, line, string
+      @ Out, line, string 
+    """
     line = re.sub(r' ',r'',line)
     return line 
     
   def getNumberOfGroups(self, workingDir):
     """
       give the number of energy groups used in the Phisics simulations  
+      @ In, WorkingDir, string
+      @ Out, Ngroups, integer under the form of a string 
     """
     with open(self.pathToPhisicsOutput, 'r') as outfile:
       for line in outfile :
@@ -66,9 +98,9 @@ class phisicsdata():
     pertNumber = splitWorkDir[-1]
     return pertNumber 
   
-  def getMrtauTimeSteps(self):
+  def getMrtauInstantTimeSteps(self):
     """
-      get the time steps in the mrtau output
+      get the time steps in the coupled mrtau instant output
       IN: numbers-0.csv
       OUT: timeSteps, list 
     """
@@ -84,6 +116,21 @@ class phisicsdata():
             timeSteps.append(line.split(',')[0])
         if count > 1:
           break 
+    #print timeSteps
+    return timeSteps
+    
+  def getMrtauTimeSteps(self):
+    """
+      get the time steps in the mrtau standalone output 
+      IN: numbers.csv
+      OUT: timeSteps, list 
+    """
+    timeSteps = []
+    with open(self.mrtauCSVOutput, 'r') as outfile:
+      for line in outfile : 
+        stringIsFloatNumber = self.isFloatNumber(line.split(','))
+        if stringIsFloatNumber is True:
+          timeSteps.append(line.split(',')[0])
     #print timeSteps
     return timeSteps
     
@@ -462,7 +509,7 @@ class phisicsdata():
     timeStepList = []
     decayFlag, breakFlag = 0, 0 
     with open(self.pathToPhisicsOutput, 'r') as outfile:
-      for line in outfile :
+      for line in outfile:
         if re.search(r'Decay Heat computed',line):
           self.isDecayHeatPrinted, self.decayHeatUnits = self.findDecayHeat(line)
           if self.isDecayHeatPrinted is False: 
@@ -499,7 +546,28 @@ class phisicsdata():
     #print decayList
     return decayLabelList, decayList
       
-        
+  def getDecayHeatMrtau(self, timeStepIndex, matchedTimeSteps):
+    """
+      get the decay heat from the standalone mrtau output
+    """
+    decayFlag = 0
+    breakFlag = 0
+    isotopeList = []
+    with open(self.decayHeatMrtauOutput, 'r') as outfile:
+      for line in outfile:
+        if re.search(r'INDIVIDUAL DECAY HEAT BLOCK',line):
+          decayFlag = 1
+        if re.search(r'CUMULATIVE DECAY HEAT BLOCK',line):
+          breakFlag = 1
+        if decayFlag == 1: 
+          line = line.split(' ')
+          decayLine = filter(None, line)
+          if re.search(r'TIME',decayLine[0]):
+            line = re.sub(r'\n',r'',decayLine)          
+            self.isotopeListMrtau = decayLine
+            print self.isotopeListMrtau
+          print decayLine
+   
   def writeCSV(self,keff, errorKeff, reactionRateDict, fissionMatrixDict, workingDir, fluxLabelList, fluxList, matFluxLabelList, matFluxList, depLabelList, depList, timeStepList, decayLabelList, decayList, timeStepIndex, matchedTimeSteps):
     """
       print the instant coupled to mrtau data in csv files 
@@ -523,7 +591,7 @@ class phisicsdata():
           keffwriter.writerow(['time'] + ['keff'] + ['errorKeff'] + fissionMatrixNames + fluxLabelList + matFluxLabelList + depLabelList + decayLabelList) 
         keffwriter.writerow([str(matchedTimeSteps[timeStepIndex])] + keff + errorKeff + fissvalues + fluxList + matFluxList + depList + decayList)
       
-  def writeMrtauCSV(self, workingDir, depLabelList, depList, timeStepList, decayLabelList, decayList, timeStepIndex, matchedTimeSteps):
+  def writeMrtauCSV(self, workingDir, depLabelList, depList, timeStepList, timeStepIndex, matchedTimeSteps):
     """
       print the mrtau standalone data in csv files  
     """ 
@@ -531,6 +599,6 @@ class phisicsdata():
     with open(depCSV, 'wb') as csvfile:
       if timeStepIndex == 0:
         depwriter = csv.writer(csvfile, delimiter=',',quotechar=',', quoting=csv.QUOTE_MINIMAL)
-        depwriter.writerow(['time'] + depLabelList + decayLabelList) 
+        depwriter.writerow(['time'] + depLabelList) 
     #  keffwriter.writerow([str(matchedTimeSteps[timeStepIndex])] + depList + decayList)
     
