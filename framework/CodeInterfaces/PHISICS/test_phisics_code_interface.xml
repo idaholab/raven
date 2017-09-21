@@ -54,7 +54,7 @@
        <executable>/home/rouxpn/RAVEN/PHISICS/dpl_instant_run</executable> 
        <PerturbXS>additive</PerturbXS>  
        <tabulation>F</tabulation> 
-       <mrtauStandAlone>F</mrtauStandAlone>
+       <mrtauStandAlone>T</mrtauStandAlone>
         <mrtauStandAloneExecutable>/home/rouxpn/RAVEN/PHISICS/mrtau_standalone</mrtauStandAloneExecutable>
     </Code>
     
@@ -180,7 +180,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>3</limit>
+        <limit>2</limit>
       </samplerInit>
       <variable name="DECAY|BETA|U235">
         <distribution>DECAY|BETA|U235_distrib</distribution>

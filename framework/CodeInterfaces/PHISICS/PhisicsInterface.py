@@ -212,6 +212,7 @@ class Phisics(CodeInterfaceBase):
     import MaterialParser
     import PathParser
     import XSCreator
+    import ControlParser
     
     keyWordDict = {} 
     count = 0
@@ -229,6 +230,7 @@ class Phisics(CodeInterfaceBase):
     #print (currentInputFiles)
     #print (self.tabulation)
     booleanTab = self.tabulation 
+    ControlParser = ControlParser.ControlParser(currentInputFiles[keyWordDict['depletion_input']].getAbsFile(), self.mrtauStandAlone)
     
     for i in distributedPerturbedVars.iterkeys():
       if i == 'DECAY'         : decayParser        = DecayParser.DecayParser(currentInputFiles[keyWordDict['decay']].getAbsFile(), **distributedPerturbedVars[i])
