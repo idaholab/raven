@@ -34,6 +34,7 @@ from collections import OrderedDict
 from utils import utils
 from .Dummy import Dummy
 import Models
+import Files
 from utils import InputData
 import Runners
 #Internal Modules End--------------------------------------------------------------------------------
@@ -92,6 +93,7 @@ class HybridModel(Dummy):
     self.modelSelection        = 'CrowdingDistance'
     self.existTrainSize        = 0
     self.printTag              = 'HYBRIDMODEL MODEL' # print tag
+    self.createWorkingDir      = False
     # assembler objects to be requested
     self.addAssemblerObject('Model','1',True)
     self.addAssemblerObject('ROM','n')
@@ -111,6 +113,8 @@ class HybridModel(Dummy):
         self.__readSettings(child)
       elif child.tag == 'Model':
         self.modelInstance = child.text.strip()
+        if child.attrib['type'] == 'Code':
+          self.createWorkingDir = True
       elif child.tag == 'CV':
         self.cvInstance = child.text.strip()
       elif child.tag == 'TargetEvaluation':
@@ -218,6 +222,15 @@ class HybridModel(Dummy):
     tempDict['ROMs contained in HybridModel are '] = self.romsDictionary.keys()
     return tempDict
 
+  def getAdditionalInputEdits(self,inputInfo):
+    """
+      Collects additional edits for the sampler to use when creating a new input. In this case, it calls all the getAdditionalInputEdits methods
+      of the sub-models
+      @ In, inputInfo, dict, dictionary in which to add edits
+      @ Out, None.
+    """
+    self.modelInstance.getAdditionalInputEdits(inputInfo)
+
   def __selectInputSubset(self,romName, kwargs):
     """
       Method aimed to select the input subset for a certain model
@@ -252,6 +265,21 @@ class HybridModel(Dummy):
         newKwargs[romName]['uniqueHandler'] = self.name+identifier
     else:
       newKwargs = copy.deepcopy(kwargs)
+
+    if self.modelInstance.type == 'Code':
+      codeInput = []
+      romInput = []
+      for elem in myInput:
+        if isinstance(elem, Files.File):
+          codeInput.append(elem)
+        elif elem.type in ['PointSet', 'HistorySet']:
+          romInput.append(elem)
+        else:
+          self.raiseAnError(IOError, "The type of input ", elem.name, " can not be accepted!")
+      if self.romValid:
+        return (romInput, samplerType, newKwargs)
+      else:
+        return (codeInput, samplerType, newKwargs)
 
     return (myInput, samplerType, newKwargs)
 
@@ -529,6 +557,7 @@ class HybridModel(Dummy):
       inputKwargs['prefix'] = self.modelInstance.name+utils.returnIdSeparator()+identifier
       inputKwargs['uniqueHandler'] = self.name + identifier
       moveOn = False
+      self.modelInstance.initialize(jobHandler.runInfoDict, originalInput)
       while not moveOn:
         if jobHandler.availability() > 0:
           self.modelInstance.submit(originalInput, samplerType, jobHandler, **inputKwargs)
