@@ -220,8 +220,8 @@ class RAVEN(CodeInterfaceBase):
 
     # we work on batchSizes here
     newBatchSize = Kwargs['NumMPI']
-    internalParallel = Kwargs['internalParallel']
-    if len(Kwargs['Nodes']) > 0:
+    internalParallel = Kwargs.get('internalParallel',False)
+    if int(Kwargs['numberNodes']) > 0:
       # we are in a distributed memory machine => we allocate a node file
       nodeFileToUse = os.path.join(Kwargs['BASE_WORKING_DIR'],"node_" +str(Kwargs['INDEX']))
       if os.path.exists(nodeFileToUse):

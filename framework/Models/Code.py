@@ -384,7 +384,12 @@ class Code(Model):
           if beginExecutable.startswith("/"):
             beginExecutable = beginExecutable.lstrip("/")
           winExecutable = os.path.join(msysDir, beginExecutable)
-          self.raiseAMessage("winExecutable" + winExecutable)
+          self.raiseAMessage("winExecutable " + winExecutable)
+          if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
+            #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
+            maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
+            if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
+              winExecutable = maybeWinExecutable
           realExecutable[0] = winExecutable
         else:
           self.raiseAWarning("Could not find msys in "+os.getcwd())
@@ -419,7 +424,7 @@ class Code(Model):
 
     precommand = kwargs['precommand']
     postcommand = kwargs['postcommand']
-    bufferSize = kwargs['logfileBuffer']
+    bufferSize = kwargs['bufferSize']
     fileExtensionsToDelete = kwargs['deleteOutExtension']
     deleteSuccessfulLogFiles = kwargs['delSucLogFiles']
 
@@ -432,6 +437,7 @@ class Code(Model):
     ## directory after we copy it over. -- DPM 5/5/2017
     sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
     localenv = dict(os.environ)
+
 
     localenv['PWD'] = str(sampleDirectory)
 
@@ -479,7 +485,8 @@ class Code(Model):
     if platform.system() == 'Windows':
       command = self._expandForWindows(command)
       self.raiseAMessage("modified command to" + repr(command))
-
+      for key, value in localenv.items():
+        localenv[key]=str(value)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
@@ -542,11 +549,11 @@ class Code(Model):
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
       else:
         # we have the DataObjects
-        for dataObj in outputObj.values():
+        for dataObj in finalCodeOutputFile.values():
           self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('inputs',nodeId='RecontructEnding'), 'input', True)
           self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('unstructuredinputs',nodeId='RecontructEnding'), 'input', True)
           self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('outputs',nodeId='RecontructEnding'), 'output', True)
-        returnDict = outputObj
+        returnDict = finalCodeOutputFile
       ## The last thing before returning should be to delete the temporary log
       ## file and any other file the user requests to be cleared
       if deleteSuccessfulLogFiles:
@@ -756,12 +763,14 @@ class Code(Model):
     ## These variables should not be part of the metadata, so add them after
     ## we copy this dictionary (Caught this when running an ensemble model)
     ## -- DPM 4/11/17
-    #kwargs['bufferSize'] = jobHandler.runInfoDict['logfileBuffer']
-    #kwargs['precommand'] = jobHandler.runInfoDict['precommand']
-    #kwargs['postcommand'] = jobHandler.runInfoDict['postcommand']
-    #kwargs['delSucLogFiles'] = jobHandler.runInfoDict['delSucLogFiles']
-    #kwargs['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
-    kwargs.update(jobHandler.runInfoDict)
+    nodesList                    = jobHandler.runInfoDict.get('Nodes',[])
+    kwargs['bufferSize'        ] = jobHandler.runInfoDict['logfileBuffer']
+    kwargs['precommand'        ] = jobHandler.runInfoDict['precommand']
+    kwargs['postcommand'       ] = jobHandler.runInfoDict['postcommand']
+    kwargs['delSucLogFiles'    ] = jobHandler.runInfoDict['delSucLogFiles']
+    kwargs['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
+    kwargs['NumMPI'            ] = jobHandler.runInfoDict.get('NumMPI',1)
+    kwargs['numberNodes'       ] = len(nodesList)
     ## This may look a little weird, but due to how the parallel python library
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
