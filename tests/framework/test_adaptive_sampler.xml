@@ -11,7 +11,7 @@
         LimitSurfaceSearch algorithm using an external model as ``system code''
     </description>
     <revisions>
-      <revision author="talbpaul" date="2017-09-20">increased sleep time to maintain linearity</revision>
+      <revision author="talbpaul" date="2017-09-20">sequential to maintain linearity</revision>
     </revisions>
   </TestInfo>
 
@@ -22,7 +22,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="adapt" pauseAtEnd="true" sleepTime='5e-2'>
+    <MultiRun name="adapt" pauseAtEnd="true" sequential='true'>
       <Input class="DataObjects" type="PointSet">dummy</Input>
       <Model class="Models" type="ExternalModel">testFunction</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
