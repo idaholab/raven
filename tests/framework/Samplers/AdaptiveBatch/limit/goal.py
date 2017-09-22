@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 def __residuumSign(self):
-  if self.y < 0.5:
+  if self.y < 0.:
     return  1
   else:
     return -1
