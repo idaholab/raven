@@ -28,7 +28,6 @@ from  __builtin__ import any as bAny
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import phisicsdata
 import xml.etree.ElementTree as ET
-import tarfile
 
 
 class Phisics(CodeInterfaceBase):
@@ -50,6 +49,50 @@ class Phisics(CodeInterfaceBase):
       @ Out, __base, string path
     """
     return self.__base 
+
+  def getTitle(self, depletionRoot):
+    """
+      get the job title. It will become later the instant output file name. 
+      @ In, self.mrtauStandAlone, True = mrtau is ran standalone, False = mrtau in not ran standalone
+      @ In, depletionRoot, XML tree from the depletion_input.xml
+      @ In, inpRoot, XML tree from the inp.xml
+      @ Out, fileTitle, string 
+    """
+    for child in depletionRoot.findall(".//title"):
+      jobTitle = str(child.text)
+      break 
+    return jobTitle
+    
+  def verifyMrtauFlagsAgree(self, depletionRoot):
+    """
+      Verifies the node "standalone"'s text in the depletion_input xml. if the standalone flag 
+      in the depletion_input disagrees with the mrtau standalone flag in the raven input, 
+      the codes errors out
+      @ In, mrtauStandAlone, True = mrtau is ran standalone, False = mrtau in not ran standalone
+      @ In, depletionRoot, XML tree from the depletion_input.xml
+      @ Out, None
+    """
+    for child in depletionRoot.findall(".//standalone"):
+      isMrtauStandAlone = child.text.lower()
+      tag = child.tag
+      break 
+    if self.mrtauStandAlone == False and isMrtauStandAlone == 'yes':
+      raise  ValueError("\n\n Error. The flags controlling the Mrtau standalone mode are incorrect. The node <standalone> in "+inputFiles+" disagrees with the node <mrtauStandAlone> in the raven input. \n the matching solutions are: <mrtauStandAlone>yes</mrtauStandAlone> and <"+tag+">True<"+tag+">\n <mrtauStandAlone>no</mrtauStandAlone> and <"+tag+">False<"+tag+">")
+    if self.mrtauStandAlone == True and isMrtauStandAlone == 'no':
+      raise  ValueError("\n\n Error. The flags controlling the Mrtau standalone mode are incorrect. The node <standalone> in "+inputFiles+" disagrees with the node <mrtauStandAlone> in the raven input. \n the matching solutions are: <mrtauStandAlone>yes</mrtauStandAlone> and <"+tag+">True<"+tag+">\n <mrtauStandAlone>no</mrtauStandAlone> and <"+tag+">False<"+tag+">")
+  
+  def parseControlOptions(self, depletionFile):
+    """
+      Parse the Material.xml data file and put the isotopes name as key and 
+      the decay constant relative to the isotopes as values 
+      @ In, depletionFile, string, depletion_input file
+      @ In, inpFile, string, Instant input file 
+    """   
+    depletionTree = ET.parse(depletionFile)
+    depletionRoot = depletionTree.getroot()
+    self.verifyMrtauFlagsAgree(depletionRoot)
+    jobTitle = self.getTitle(depletionRoot)
+    return jobTitle 
   
   def distributeVariablesToParsers(self, perturbedVars):
     """
@@ -80,37 +123,6 @@ class Phisics(CodeInterfaceBase):
     #print (distributedPerturbedVars)
     return distributedPerturbedVars
   
-  def mapFile(self, driverXML):
-    """
-      This module map the "type" in the XML tree and locate, and associate the "type" value to a number. 
-      this number is then used as an index to associate the correct files to be perturbed to the corresponding 
-      parsers
-      In: Driver input file (xml file)
-      out: mapDict, dictionary, key is the "type", the value is a number
-    """
-    stepDict = {}
-    fileDict = {}
-    mapDict = {}
-    stepCount = 0 
-    tree = ET.parse(driverXML)
-    root = tree.getroot()
-    for stepsXML in root.getiterator('Steps'):
-      for inputXML in stepsXML.getiterator('Input'): 
-        #print (fileCount)
-        #print (inputXML.attrib)
-        #print (inputXML.text)
-        stepDict[inputXML.text.lower()] = stepCount
-        stepCount = stepCount + 1  
-    for filesXML in root.getiterator('Files'):
-      for inputXML in filesXML.getiterator('Input'): 
-        fileDict[inputXML.attrib.get('type').lower()] = inputXML.text.lower()
-    #for typeName, fileName in fileDict.item():
-    #  for stepName, mapNumber in stepDict():
-    mapDict = {k:stepDict[v] for k,v in fileDict.iteritems()}    
-    #print (fileDict)
-    #print (mapDict)
-    return mapDict
-  
   def addDefaultExtension(self):
     self.addInputExtension(['xml','dat','path'])
   
@@ -126,6 +138,10 @@ class Phisics(CodeInterfaceBase):
     validPerturbation = ['additive', 'multiplicative', 'absolute']
     self.perturbXS = validPerturbation[1] # default is cross section perturbation multiplicative mode
     setOfPerturbations = set(validPerturbation)
+    #default values if the flag is not in the raven input  
+    self.tabulation = True
+    self.mrtauStandAlone = False
+    self.mrtauExecutable = None 
     for child in xmlNode:
       if child.tag == 'PerturbXS':
         if child.text.lower() in set(validPerturbation): self.perturbXS = child.text.lower()
@@ -134,9 +150,23 @@ class Phisics(CodeInterfaceBase):
         self.tabulation = None
         if (child.text.lower() == 't' or child.text.lower() == 'true'):  self.tabulation = True
         if (child.text.lower() == 'f' or child.text.lower() == 'false'): self.tabulation = False 
-        if (self.tabulation is None): raise ValueError("\n\n The tabulation node --"+child.tag+"-- only supports the following text (case insensitive): \n True \n T \n False \n F" )
-  
-  
+        if (self.tabulation is None): raise ValueError("\n\n The tabulation node -- <"+child.tag+"> -- only supports the following text (case insensitive): \n True \n T \n False \n F" )
+      if child.tag == 'mrtauStandAlone':
+        self.mrtauStandAlone = None 
+        if (child.text.lower() == 't' or child.text.lower() == 'true'):  self.mrtauStandAlone = True 
+        if (child.text.lower() == 'f' or child.text.lower() == 'false'):  self.mrtauStandAlone = False 
+        if (self.mrtauStandAlone is None): raise ValueError("\n\n The flag activating MRTAU standalone mode -- <"+child.tag+"> -- only supports the following text (case insensitive): \n True \n T \n False \n F. \n Default Value is False" )
+      if child.tag == 'mrtauStandAloneExecutable' and self.mrtauStandAlone == True:
+        self.mrtauExecutable = child.text
+        
+  def switchExecutable(self):
+    """
+      This module replaces the executable if the user chooses to use MRTAU in standalone mode. 
+      @ In, None 
+      @ Out, mrtauExecutable, string, absolute path to mrtau executable
+    """
+    return self.mrtauExecutable
+   
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
@@ -149,7 +179,8 @@ class Phisics(CodeInterfaceBase):
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-    #print (executable)
+    if self.mrtauStandAlone == True: 
+      executable = self.switchExecutable()
     found = False
     index = 0
     outputfile = 'out~'+inputFiles[index].getBase()
@@ -177,13 +208,9 @@ class Phisics(CodeInterfaceBase):
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """
     output = 'Dpl_INSTANT.outp-0'
-    #print (command)
-    #print (workingDir)
-    #print (output) 
-    #outfile = os.path.join(workingDir,output+'.o')
     splitWorkDir = workingDir.split('/')
     pertNumber = splitWorkDir[-1]
-    outputobj=phisicsdata.phisicsdata(output, workingDir)
+    outputobj=phisicsdata.phisicsdata(output, workingDir, self.mrtauStandAlone, self.jobTitle)
     return "keff"+str(pertNumber).strip()
     #if outputobj.hasAtLeastMinorData(): outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
     #else: raise IOError('Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
@@ -232,20 +259,23 @@ class Phisics(CodeInterfaceBase):
     import XSCreator
     
     keyWordDict = {} 
-    directoryFiles = ['path','library_fiss','input_dpl']
+    count = 0
     #print (currentInputFiles)
-    driverXML = 'test_phisics_code_interface.xml'
-    keyWordDict = self.mapFile(driverXML)
-    #print (keyWordDict)
     #print (Kwargs)
     #print (Kwargs['SampledVars'])
-    #print ("\n\n\n")
     perturbedVars = Kwargs['SampledVars']
+    
+    for inFile in currentInputFiles:
+      keyWordDict[inFile.getType().lower()] = count 
+      count = count + 1
+
     distributedPerturbedVars = self.distributeVariablesToParsers(perturbedVars)
     #print (distributedPerturbedVars)
     #print (currentInputFiles)
     #print (self.tabulation)
     booleanTab = self.tabulation 
+    self.jobTitle = self.parseControlOptions(currentInputFiles[keyWordDict['depletion_input']].getAbsFile())
+    
     for i in distributedPerturbedVars.iterkeys():
       if i == 'DECAY'         : decayParser        = DecayParser.DecayParser(currentInputFiles[keyWordDict['decay']].getAbsFile(), **distributedPerturbedVars[i])
       if i == 'DENSITY'       : materialParser     = MaterialParser.MaterialParser(currentInputFiles[keyWordDict['material']].getAbsFile(), **distributedPerturbedVars[i])
