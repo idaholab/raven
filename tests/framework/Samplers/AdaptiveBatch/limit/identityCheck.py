@@ -5,12 +5,17 @@ import os
 import sys
 import subprocess
 
+######
+# Run by "tests" to test adaptive batch running
+#####
+
 inputFile = sys.argv[1]
 file1 = sys.argv[2]
 eps = float(sys.argv[3])
 
 ## TODO: Find a better way to execute raven
-retCode = subprocess.call(['python','../../../../framework/Driver.py',inputFile])
+retCode = subprocess.call([os.path.join('..','..','..','..','raven_framework'),inputFile])
+#retCode = subprocess.call(['python','../../../../framework/Driver.py',inputFile])
 
 if retCode == 0:
 
