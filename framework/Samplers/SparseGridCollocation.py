@@ -268,6 +268,7 @@ class SparseGridCollocation(Grid):
           self.values[key] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['SampledVarsCdf'][varName] = self.distDict[varName].cdf(pt[v])
       # compute the SampledVarsPb for N-D distribution
       # Assume only one N-D distribution is associated with sparse grid collocation method
       elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] ==1:
@@ -289,6 +290,10 @@ class SparseGridCollocation(Grid):
           for key in var.strip().split(','):
             self.values[key] = pt[location]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
+        if "pca" not in self.transformationMethod.values() and len(self.transformationMethod.values())==1:
+              self.inputInfo['SampledVarsCdf'][varName] = self.distDict[varName].cdf(NDcoordinates)
+            else:
+              self.raiseAWarning("No Cdf available : not yet available")
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
 
     self.inputInfo['ProbabilityWeight'] = weight

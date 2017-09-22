@@ -27,6 +27,15 @@ import copy
 from collections import OrderedDict, defaultdict
 from sklearn.linear_model import LinearRegression
 import six
+from scipy import spatial, interpolate, integrate
+from scipy.spatial.qhull import QhullError
+from scipy.spatial import ConvexHull,Voronoi, voronoi_plot_2d
+from operator import mul
+from collections import defaultdict
+import itertools
+import pyhull as ph
+import pyhull.halfspace as phh
+import sys
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -123,6 +132,60 @@ class BasicStatistics(PostProcessor):
     self.pivotParameter = None # time-dependent statistics pivot parameter
     self.dynamic        = False # is it time-dependent?
 
+
+    self.comparisonVoronoi = False
+    self.voronoi = False
+    self.equallySpaced = False   #If the values are equally spaced, the voronoi will be done on the probability space
+    self.inputsVoronoi = []
+    self.outputsVoronoi = []
+    self.spaceVoronoi = "input"
+    self.voronoiDimensional = []
+    self.proba = {}
+    self.boundariesVoronoi = []   #contain the boundaries of the CrowDist if they were defined.
+    self.verticesVoronoi = []
+    self.sendVerticesVoronoi = False
+
+  def initializeComparison(self,voronoi,parameterSet,inputs=[],outputs=[]):
+    """
+    Method to set up the parameters of BasicStatistics needed to be used in
+    the ComparisonStatistics for the computation of the relevant stats for each
+    data to be compared.
+    @ In, voronoi, Bool, if True the voronoi diagrams are going to be used to
+    compute the probability weight of each points.
+    @In, parameterSet, list of the data whose stats are going to be computed.
+    """
+
+    self.what = ['covariance', 'NormalizedSensitivity',
+     'VarianceDependentSensitivity', 'sensitivity', 'pearson',
+     'expectedValue', 'sigma', 'variationCoefficient', 'variance',
+     'skewness', 'kurtosis', 'median', 'percentile']
+    self.proba={}
+    self.externalFunction = []
+    self.methodToRun = []
+    self.biased = False
+    self.parameters = {}
+    self.voronoi=voronoi
+    self.equallySpaced = False
+    self.inputsVoronoi = inputs
+    self.outputsVoronoi = outputs
+    self.voronoiDimensional='unidimensional'
+    self.parameterSet = parameterSet
+    self.parameters = {'targets':parameterSet}
+    self.comparisonVoronoi = True
+    if len(self.parameters['targets'])==1:
+      toRemove = ['VarianceDependentSensitivity','NormalizedSensitivity','covariance','pearson',] #The computation of these elements gives out some error if the ditribution is 1 dimensionnal.
+      self.what = [ x for x in self.what if x not in toRemove]
+
+  def returnProbaComparison(self):
+    """
+    Method that can return the probability weight calculated with the voronoi
+    tesselation in the "run" method.
+    @Out, proba, list of the probability weight of each point
+    """
+
+    return self.proba
+
+
   def inputToInternal(self, currentInp):
     """
       Method to convert an input object into the internal format that is
@@ -130,7 +193,7 @@ class BasicStatistics(PostProcessor):
       @ In, currentInp, object, an object that needs to be converted
       @ Out, inputDict, dict, dictionary of the converted data
     """
-    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
+    # Each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     self.dynamic = False
     currentInput = currentInp [-1] if type(currentInp) == list else currentInp
     if len(currentInput) == 0:
@@ -327,6 +390,22 @@ class BasicStatistics(PostProcessor):
       elif child.tag == "biased":
         if child.text.lower() in utils.stringsThatMeanTrue():
           self.biased = True
+      if child.tag == "voronoi"      :
+          self.voronoi = True
+          for attrib in child.attrib:
+            if attrib=="inputs"      : self.inputsVoronoi = child.attrib[attrib].split(',')
+            elif attrib=="outputs"   : self.outputsVoronoi = child.attrib[attrib].split(',')
+            elif attrib=="space"     : self.spaceVoronoi = child.attrib[attrib].split(',')
+            else                     : self.raiseAnError(IOError,"Unknown attribute " + attrib + " .Known attribute are inputs, outputs and space.")
+          if child.text.lower()=="unidimensional"    : self.voronoiDimensional = "unidimensional"
+          elif child.text.lower()=="multidimensional": self.voronoiDimensional = "multidimensional"
+          else                                       :self.raiseAnError(IOError,"Unknown text : " + child.text.lower() + " .Expecting unidimensional or multidimensional.")
+      assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
+    #The computation of the elements in the "toRemove" list gives out some error if the ditribution is 1 dimensionnal.
+    if len(self.parameters['targets'])==1:
+      toRemove = ['VarianceDependentSensitivity','NormalizedSensitivity','covariance','pearson']
+      self.what = [ x for x in self.what if x not in toRemove]
+
       elif child.tag == "pivotParameter":
         self.pivotParameter = child.text
       else:
@@ -640,23 +719,82 @@ class BasicStatistics(PostProcessor):
     parameterSet = list(self.allUsedParams)
     if 'metadata' in input.keys():
       pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
-    if not pbPresent:
-      pbWeights['realization'] = None
-      if 'metadata' in input.keys():
-        if 'SamplerType' in input['metadata'].keys():
-          if input['metadata']['SamplerType'][0] != 'MonteCarlo' :
-            self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
-        else:
-          self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights. Assuming unit weights instead...')
+    if self.voronoi:
+      pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
+      if self.voronoiDimensional=='unidimensional':
+        for target in parameterSet:
+          if target in self.outputsVoronoi:
+            if self.spaceVoronoi=='output':
+              points = list(np.column_stack([Input['targets'][target]]))
+              pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(BasicStatistics.constructVoronoi(self,points))
+              self.proba[target] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target]
+            else:
+              for inp in self.inputsVoronoi:
+                if 'GridInfo' in Input['metadata'].keys(): self.equallySpaced = True    #only relevant in 1D.
+                else: self.equallySpaced = True                                         #@jougcj : False if someone find a good way to define the probability weights in the value space
+                if self.equallySpaced:
+                  points = [[Input['metadata']['SampledVarsCdf'][i][inp]]  for i in range(len(Input['metadata']['SampledVarsCdf']))]
+                else:
+                  self.boundariesVoronoi = [[Input['metadata']['Boundaries'][0][inp][0],Input['metadata']['Boundaries'][0][inp][1]]]
+                  points=[[Input['metadata']['SampledVars'][i][inp]] for i in range(len(Input['metadata']['SampledVars']))]
+                pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][inp] = np.asarray(BasicStatistics.constructVoronoi(self,points))
+              pbW = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][self.inputsVoronoi[0]]
+              for inp in range(len(self.inputsVoronoi)-1):
+                pbW=pbW*pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][self.inputsVoronoi[inp+1]]
+              normal = 0
+              for i in pbW:
+                normal = normal + i
+              pbW=pbW/normal
+              pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = pbW
+              self.proba[target] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target]
+          else:
+            if 'GridInfo' in Input['metadata'].keys(): self.equallySpaced = True    #only relevant in 1D.
+            else: self.equallySpaced = True                                         #@jougcj : False if someone find a good way to define the probability weights in the value space.
+            if self.equallySpaced:
+              points = [[Input['metadata']['SampledVarsCdf'][i][target]]  for i in range(len(Input['metadata']['SampledVarsCdf']))]
+            else:
+              self.boundariesVoronoi = [[Input['metadata']['Boundaries'][0][target][0],Input['metadata']['Boundaries'][0][target][1]]]
+              points = list(np.column_stack([Input['targets'][target]]))
+            pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(BasicStatistics.constructVoronoi(self,points))
+            self.proba[target] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target]
+            if any(i in ['VarianceDependentSensitivity','NormalizedSensitivity','covariance','pearson'] for i in self.what):
+              if pbWeights['realization'] is None:
+                if any(i in self.outputsVoronoi for i in parameterSet):
+                  if 'metadata' in Input.keys(): pbPresent = 'ProbabilityWeight' in Input['metadata'].keys() if 'metadata' in Input.keys() else False
+                  if not pbPresent:pbWeights['realization'] = np.asarray([1.0 / len(Input['targets'][self.parameters['targets'][0]])]*len(Input['targets'][self.parameters['targets'][0]]))
+                  else:pbWeights['realization'] = Input['metadata']['ProbabilityWeight']/np.sum(Input['metadata']['ProbabilityWeight'])
+                else:
+                  points = np.column_stack([[[Input['metadata']['SampledVarsCdf'][i][target]]  for i in range(len(Input['metadata']['SampledVarsCdf']))] for target in parameterSet])
+                  self.boundariesVoronoi = [[0,1]]*len(parameterSet)
+                  pbWeights['realization'] = np.asarray(BasicStatistics.constructVoronoi(self,points))
+      else:
+        points = list(np.column_stack([Input['targets'][x] for x in Input['targets'].keys()]))
+        self.boundariesVoronoi = [[Input['metadata']['Boundaries'][0][x][0],Input['metadata']['Boundaries'][0][x][1]] for x in Input['targets'].keys()]
+        pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][','.join(parameterSet)] = np.asarray(BasicStatistics.constructVoronoi(self,points))
+        self.proba[','.join(parameterSet)] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][','.join(parameterSet)]
+      pbPresent = True
+      # if self.comparisonVoronoi:
+      #   self.sendVerticesVoronoi = True
+      #   self.verticesVoronoi = BasicStatistics.constructVoronoi(self,[[Input['targets'][parameterSet[0]][i]] for i in range(len(Input['targets'][parameterSet[0]]))])
+      #   self.sendVerticesVoronoi = False
     else:
-      pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
-    #This section should take the probability weight for each sampling variable
-    pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
-    if 'metadata' in input.keys():
-      for target in parameterSet:
-        if 'ProbabilityWeight-'+target in input['metadata'].keys():
-          pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(input['metadata']['ProbabilityWeight-'+target])
-          pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:]/np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target])
+      if 'metadata' in Input.keys(): pbPresent = 'ProbabilityWeight' in Input['metadata'].keys() if 'metadata' in Input.keys() else False
+      if not pbPresent:
+        if 'metadata' in Input.keys():
+          if 'SamplerType' in Input['metadata'].keys():
+            if Input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+          else: self.raiseAWarning('BasicStatistics can not compute expectedValue without ProbabilityWeights. Use unit weight')
+          pbWeights['realization'] = np.asarray([1.0 / len(Input['targets'][self.parameters['targets'][0]])]*len(Input['targets'][self.parameters['targets'][0]]))
+      else: pbWeights['realization'] = Input['metadata']['ProbabilityWeight']/np.sum(Input['metadata']['ProbabilityWeight'])
+    # This section should take the probability weight for each sampling variable
+    if not self.voronoi:
+      pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
+      if 'metadata' in input.keys():
+        for target in parameterSet:
+          if 'ProbabilityWeight-'+target in Input['metadata'].keys():
+            pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(Input['metadata']['ProbabilityWeight-'+target])
+            pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:]/np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target])
+     # if here because the user could have overwritten the method through the external function
 
     #establish a dict of indices to parameters and vice versa
     parameter2index = dict((param,p) for p,param in enumerate(input['targets'].keys()))
@@ -1183,3 +1321,338 @@ class BasicStatistics(PostProcessor):
       corrMatrix = covM / covM
     # to prevent numerical instability
     return corrMatrix
+
+  def constructVoronoi(self,points):
+    """
+    Method used to compute the probability weight of a set of Input point by using
+    the voronoi tesselation.
+    @In, points, array-like, array of multidimensionnal points to be tesselated.
+    @Out, proba, array-like, list of the probability weight of the different points.
+    """
+
+      # Step1 : Creation of a minimal box containing the Output space, as well as a box #twice# as large to compute a larger voronoi diagram.
+    boundaries=[]
+    realBorder = [] # Size of the smallest box (square,cube,tesseract,etc) in which every points are contained.
+    dataRange = []  # Fore each coordinate (x1,x2,x3,x4,etc) contain the minimum and the maximum of the Input Space.
+    cpt = 0         # Compteur
+
+    self.dimension = len(points[0]) # Dimension of the input space
+    self.length = len(points)       # Number of points in the input space
+
+    while cpt<=self.dimension - 1:
+      maxi = max(p[cpt] for p in points)
+      mini = min(p[cpt] for p in points)
+      dataRange.append([mini,maxi])
+      realBorder.append(maxi-mini)
+      cpt+=1
+    largeBorder=2*max(realBorder)
+
+    for i in self.boundariesVoronoi:
+      if i[1]==sys.float_info.max:del(i[1])
+      if i[0]==-sys.float_info.max:del(i[0])
+
+    ##Step2 : Computation of the Voronoi diagrams
+    # If the input space is one dimensionnal, the data are projected on a two dimmensionnals space so as to be able to compute the tesselation.
+    # Some points are also added so as to be able to define a bounding box (else we would just have a single line)
+    if self.dimension==1:
+      if not self.equallySpaced:
+        self.lowerBoundIndice = []
+        self.upperBoundIndice = []
+        if not len(self.boundariesVoronoi[0])==2:
+          distInf = -1
+          distSup = -1
+          if not self.boundariesVoronoi[0] or (len(self.boundariesVoronoi[0])==1 and self.boundariesVoronoi[0][0]>=max(points)):
+            self.lowerBoundIndice.append(np.argmin(points))
+            self.lowerBound = points[self.lowerBoundIndice[0]]
+            boundaries.append(self.lowerBound[0])
+            points.pop(self.lowerBoundIndice[0])
+            while True:
+              newIndice = np.argmin(points)
+              if boundaries[0]==points[np.argmin(points)][0]:
+                self.lowerBoundIndice.append(newIndice)
+                points.pop(newIndice)
+              else:
+                break
+            distInf = (min(points)[0] - boundaries[0])
+          if not self.boundariesVoronoi[0] or (len(self.boundariesVoronoi[0])==1 and self.boundariesVoronoi[0][0]<=min(points)):
+            self.upperBoundIndice.append(np.argmax(points))
+            self.upperBound = points[self.upperBoundIndice[0]]
+            boundaries.append(self.upperBound[0])
+            points.pop(self.upperBoundIndice[0])
+            while True:
+              newIndice = np.argmax(points)
+              if boundaries[-1]==points[np.argmax(points)][0]:
+                self.upperBoundIndice.append(newIndice)
+                points.pop(newIndice)
+              else:
+                break
+            distSup = (boundaries[-1] - max(points)[0])
+          if distInf<0:
+            boundaries.insert(0,self.boundariesVoronoi[0][0])
+            distInf = 2*(min(points)[0] - self.boundariesVoronoi[0][0])
+          if distSup<0:
+            boundaries.insert(1,self.boundariesVoronoi[0][0])
+            distSup = 2*(min(points)[0] - self.boundariesVoronoi[0][0])
+        else:
+          boundaries = self.boundariesVoronoi[0]
+          distInf = 2*(min(points)[0] - boundaries[0])
+          distSup = 2*(boundaries[-1] - max(points)[0])
+        newLateralPoints = [[min(points)[0]-distInf,0],[min(points)[0]-distInf,20],[min(points)[0]-distInf,40],
+      [max(points)[0]+distSup,0],[max(points)[0]+distSup,20],[max(points)[0]+distSup,40]]
+        newCoord = [20.0]*(self.length - (len(self.lowerBoundIndice)+len(self.upperBoundIndice)))
+        newInfBound = [0.0] * (self.length - (len(self.lowerBoundIndice)+len(self.upperBoundIndice)))
+        newSupBound = [40.0] * (self.length - (len(self.lowerBoundIndice)+len(self.upperBoundIndice)))
+      else:
+        newLateralPoints = [[0,0],[0,20],[0,40],[1,0],[1,20],[1,40]]
+        newCoord = [20.0]*(self.length)
+        newInfBound = [0.0] * (self.length)
+        newSupBound = [40.0] * (self.length)
+      boundariesDiag = np.append(np.column_stack((points,newInfBound)),np.column_stack((points,newSupBound)),axis=0)
+      points2 = np.column_stack((points,newCoord))
+      boundariesDiag = np.append(boundariesDiag,newLateralPoints,axis=0)
+      grandeEnveloppe = boundariesDiag
+      petiteEnveloppe = boundariesDiag  #Useless for the 1 dimenssionnal voronoi
+      largeSetOfPoints = np.append(points2,boundariesDiag,axis=0) #Set of point in a two dimensionnal space containing the input points and the new points used to bound the input data.
+      largeVoronoi = Voronoi (largeSetOfPoints)
+      smallVoronoi = largeVoronoi  #Useless for the 1 dimensionnal voronoi
+      defaut = True #Bool, True if the data is 1 dimmensionnal
+    else:
+      smallVoronoi = Voronoi(points)
+      newPointsList = list(itertools.product((0,1),repeat = self.dimension)) #Creation of a list containing the vertices of a unit box
+      petiteEnveloppe = np.asarray(np.multiply(newPointsList,realBorder)) #Creation of the real bounding box
+      grandeEnveloppe = petiteEnveloppe*2 #Creation of the large Bounding Box, twice the size of the Real Bounding Box.
+      ##Synchronisation of the two boxes with the origin of the input space
+      petiteEnveloppe+=smallVoronoi.min_bound
+      grandeEnveloppe+=smallVoronoi.min_bound
+      ##Modyfing the small boxes to take into account the fact that the boundaries can be given by the users.
+      petiteEnveloppeDeepCopy = copy.deepcopy(petiteEnveloppe)
+      for i in range(len(petiteEnveloppe)):
+        for j in range(self.dimension):
+          if self.boundariesVoronoi[j]:
+            if petiteEnveloppe[i][j]==min([petiteEnveloppeDeepCopy[t][j] for t in range(len(petiteEnveloppe))]):
+              if self.boundariesVoronoi[j][0] and self.boundariesVoronoi[j][0]<petiteEnveloppe[i][j]: petiteEnveloppe[i][j] = self.boundariesVoronoi[j][0]
+            if petiteEnveloppe[i][j]==max([petiteEnveloppeDeepCopy[t][j] for t in range(len(petiteEnveloppe))]):
+              if len(self.boundariesVoronoi[j])==2 and self.boundariesVoronoi[j][1]>petiteEnveloppe[i][j]: petiteEnveloppe[i][j] = self.boundariesVoronoi[j][1]
+              elif len(self.boundariesVoronoi[j])==2 and self.boundariesVoronoi[j][0]>petiteEnveloppe[i][j]: petiteEnveloppe[i][j] = self.boundariesVoronoi[j][0]
+
+      ##Centering of the big box (the small box should already be at the right position)
+      grandeEnveloppe+=(0.5*(smallVoronoi.min_bound+smallVoronoi.max_bound)-smallVoronoi.max_bound)
+      largeSetOfPoints = np.append(points,grandeEnveloppe,axis=0)
+      largeVoronoi = Voronoi(largeSetOfPoints)
+      defaut = False
+      #LCVH = ConvexHull(largeSetOfPoints)
+
+    ##Step 3 : Sorting of the cells between cells to be reduced and good-sized cells
+    cells = {}  # Dictionnary whose keys are the indice of the voronoi cells that are too big, and data are the vertices of these regions.
+    cells2 = {} # Dictionnary whose keys are the indice of the voronoi cells that are not too big and data are the vertices of these regions.
+    for point_region in largeVoronoi.point_region:
+      farAwayVertices = []
+      append = False
+      for vertice in largeVoronoi.regions[point_region]:
+        for coordonate in range(len(largeVoronoi.vertices[vertice])):
+          if largeVoronoi.vertices[vertice][coordonate]<smallVoronoi.min_bound[coordonate] or largeVoronoi.vertices[vertice][coordonate]>smallVoronoi.max_bound[coordonate]:
+            farAwayVertices.append((vertice))
+            append = True
+            break
+      if append:
+        cells.setdefault(point_region,[])
+        cells[point_region] = farAwayVertices
+      else:
+        cells2.setdefault(point_region,[])
+        cells2[point_region] = largeVoronoi.regions[point_region]
+
+    ##Step 4 : Computation of the Convex Hull of each cells, and reduction of the too-big-sized cells.
+    hyperCube = ConvexHull(petiteEnveloppe) # ConvexHull of the bounding box of the Input Space
+    bigConvexHull = {} # Dictionnary that will contain the convexHulls of the cells that are too big before beiing reduced
+    convexHull ={} # Dictionnary whose keys are the indice of the cells and data are the ConvexHull of the vertices of the cells.
+    if self.dimension==1:
+      #In 1 d, there are no cells that are too big (Because of the way new points were added)
+      for indice in cells2:
+        listVertices =[]
+        if all(p !=-1 for p in cells2[indice]):
+          for coord in cells2[indice]:
+            convexHull.setdefault(indice,[])
+            listVertices.append(largeVoronoi.vertices[coord])
+          convexHull[indice] = ConvexHull(listVertices)
+
+    else:
+      listHyperPlanCube = []
+      c = 0
+      b = 0
+      d = 0
+      middlePoint = (petiteEnveloppe[-1:][0] + petiteEnveloppe[0])/2
+      for equation in hyperCube.equations:
+        listHyperPlanCube.append(phh.Halfspace(equation[:-1],equation[-1:][0])) #List of the halfplane forming the bounding box
+
+    ###Computing the ConvexHull of the right-size cells.
+      for indice in cells2:
+        listVertices = []
+        convexHull.setdefault(indice,[])
+        for coord in cells2[indice]:
+          listVertices.append(largeVoronoi.vertices[coord])
+        convexHull[indice] = ConvexHull(listVertices)
+        c+=1
+
+    ###Computing the ConvexHull of the cells that are too big
+      for indice in cells:
+        if all(p != -1 for p in largeVoronoi.regions[indice]):
+
+        #Computing the ConvexHull of these Big Cells
+          convexHull.setdefault(indice,[])
+          bigConvexHull.setdefault(indice,[])
+          listVertices =[]
+          listHyperPlanCellule = []
+          for coord in largeVoronoi.regions[indice]:
+            listVertices.append(largeVoronoi.vertices[coord])
+
+        ##try/except : Sometimes the Qhull algorithm gives out some Qhull precision errors. When that happens the joggle option is used.
+        ##It could be a good idea to later change that by lumping together some points.
+          try:
+            bigConvexHull[indice] = ConvexHull(listVertices) #Computation  of the big ConvexHull
+          except QhullError:
+            bigConvexHull[indice] = ConvexHull(listVertices,qhull_options="QJ")
+
+        #Getting halfplane equations
+          for equations in bigConvexHull[indice].equations:
+            listHyperPlanCellule.append(phh.Halfspace(equations[:-1],equations[-1:][0]))
+          listHyperPlan = list(listHyperPlanCube)
+          listHyperPlan += listHyperPlanCellule       #Add the hyperPlan of the cells
+
+            #Computing halfplanes intersections; delete reccurences, computations of new vertices
+          inputPoint = [i for i,x in enumerate(largeVoronoi.point_region) if x==indice]
+        #Test to take into account the fact that some of the Input points are located on the bounding box, and thus the it is not easy to compute the intersection. So we move the Input point of one eigth of the minimale distance between two points in the direction of this point. Consequently no changes should appear in the vol/aera of the ConvexHull.
+          insidePoints = None
+          minimum = -1
+          for p in range(self.dimension):
+            if any(str(largeVoronoi.points[inputPoint][0][p]) == str(petiteEnveloppe[q][p]) for q in range(len(petiteEnveloppe))):
+          #Check if one of the point is on the border
+              antecedent  = np.asarray(largeVoronoi.points[inputPoint][0]) #Coordinates of the point on the border
+              listNeighbors = []              #List of neighbors.
+              for ridge in largeVoronoi.ridge_points:
+                if inputPoint==ridge[0]:
+                  listNeighbors.append(ridge[1])
+                elif inputPoint==ridge[1]:
+                  listNeighbors.append(ridge[0])
+              for point in listNeighbors:
+                ptsA = np.asarray(largeVoronoi.points[point])
+                dist = np.linalg.norm(antecedent-ptsA)
+                if minimum<0 or dist<minimum:
+                  minimum = dist
+                  plusProche = np.asarray(largeVoronoi.points[point])
+              vec = middlePoint-antecedent
+              vecNorm = BasicStatistics.normalize(self,vec)
+              insidePoints = antecedent + (1.0/8)*minimum*vecNorm    # Move the input point toward the middle to compute the interesection. The distance of the movement is equal to 1/8 of the distance between the point of interest and its closest nieghbors : As such, the input point is still inside his cells.
+              insidePoints = insidePoints.tolist()
+          if insidePoints==None:    #If the point is not on the CVH, then is good
+            insidePoints = largeVoronoi.points[inputPoint][0]
+          intersect = phh.HalfspaceIntersection(listHyperPlan,insidePoints)             #Computing of the intersection
+          try:
+            convexHull[indice] = ConvexHull(intersect.vertices)
+            d+=1
+          except QhullError:
+            convexHull[indice] = ConvexHull(intersect.vertices,qhull_options="QJ")
+            b+=1
+      print("Number of non Joggled points : ",d)
+      print("Number of Joggled points : ",b)
+      print("Number of good sized points : ",c)
+
+
+    if self.sendVerticesVoronoi:
+      self.verticesVoronoi = list(largeVoronoi.vertices)
+      return self.verticesVoronoi
+
+
+    ##Step 5 : Computation of probability weight from the volume of the convexHull of each cells.
+
+    weight = {}
+    weightRescaled = {}
+    totVol = 0
+    sumWeight = 0
+    proba = [0.0]*(len(points))
+    boundMin = False
+    boundMax = False
+    if self.dimension==1:
+      for p in convexHull:
+        totVol+=convexHull[p].volume
+    else:
+      totVol = ConvexHull(petiteEnveloppe).volume
+    if self.equallySpaced:
+      for p,i in enumerate(largeVoronoi.point_region):
+        try:
+          weight.setdefault(p+1,[])
+          weight[p+1] = convexHull[i].volume/totVol  #In cas we are working on the probability space.
+          sumWeight+=weight[p+1]
+        except KeyError:
+          weight.pop(p+1,None)
+      # proba[:] = weight[:]/np.sum(weight)
+      for i in range(len(points)):
+        proba[i] = weight[i+1]/sumWeight
+    else:
+      for p,i in enumerate(largeVoronoi.point_region):
+        try:
+          weight.setdefault(p+1,[])
+          weightRescaled.setdefault(p+1,[])
+          # weight[p+1] = 1 - (convexHull[i].volume/totVol)  ##To give a more important weight to small cells
+          weight[p+1] = totVol/convexHull[i].volume
+          sumWeight+=weight[p+1]
+          weightRescaled[p+1] = convexHull[i].volume
+        except KeyError:
+          weight.pop(p+1,None)
+          weightRescaled.pop(p+1,None)
+      weightRescaled = weightRescaled.values()
+      #dicRedundance = defaultdict(list)
+
+      for i in range(len(points)):
+        proba[i] = weight[i+1]/sumWeight
+
+      if self.dimension==1:
+        if not len(self.boundariesVoronoi[0])==2:
+          approxMean = np.average(points, weights = proba, axis = 0)[0]
+          target = np.asarray(points)
+          approxSigma = self._computeSigma(target[:,0],approxMean,proba)
+
+          if not self.boundariesVoronoi[0] or (len(self.boundariesVoronoi[0])==1 and self.boundariesVoronoi[0][0]>max(points)):
+            lowerBound = approxMean - 3*approxSigma
+            minVertice = min(largeVoronoi.vertices[:,0])
+            volumeLowerBound = 20 * (minVertice - lowerBound)
+            totVol += (volumeLowerBound)
+            boundMin = True
+            boundaries[0] = lowerBound
+          if not self.boundariesVoronoi[0] or (len(self.boundariesVoronoi[0])==1 and self.boundariesVoronoi[0][0]<max(points)):
+            upperBound = approxMean + 3*approxSigma
+            maxVertice = max(largeVoronoi.vertices[:,0])
+            volumeUpperBound = 20 * (upperBound - maxVertice)
+            totVol += (volumeUpperBound)
+            boundMax = True
+            boundaries[1] = upperBound
+          self.upperBoundIndice.reverse()
+          self.lowerBoundIndice.reverse()
+          for p in self.upperBoundIndice:
+            weightRescaled.insert(p,volumeUpperBound)
+            proba.insert(p,0)
+          for p in self.lowerBoundIndice:
+            weightRescaled.insert(p,volumeLowerBound)
+            proba.insert(p,0)
+          sumWeight = 0
+          for p in range(len(weightRescaled)):
+            # weightRescaled[p] = 1 - weightRescaled[p]/totVol
+            weightRescaled[p] = totVol/weightRescaled[p]
+            sumWeight+=weightRescaled[p]
+          for i in range(len(weightRescaled)):
+            proba[i] = weightRescaled[i]/sumWeight
+      ##Storing of the vertices (@jougcj => Useful for PP ComparisonStatistics : the vertices can be seen as the boundaries of a binning.)
+    return proba
+
+
+  def normalize(self,Vector):           #Method to move in math.utils ?
+    """
+    Method used to normalize a given vector
+    @In, array, Vector to be normalized
+    @Out, array, Normalized vector
+    """
+    Norm = np.linalg.norm(Vector)
+    if Norm ==0:
+      return Vector
+    else:
+      VectorNormalisee = Vector/Norm
+    return VectorNormalisee

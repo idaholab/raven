@@ -58,6 +58,7 @@ class Grid(ForwardSampler):
     self.gridCoordinate       = []           # current grid coordinates
     self.gridEntity           = GridEntities.returnInstance('GridEntity',self)
 
+
   def localInputAndChecks(self,xmlNode):
     """
       Class specific xml inputs will be read here and checked for validity.
@@ -157,6 +158,7 @@ class Grid(ForwardSampler):
           self.inputInfo['distributionType'][key] = self.distDict[varName].type
           self.values[key] = coordinates[varName]
           self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
+          self.inputInfo['SampledVarsCdf'][key] = self.distDict[varName].cdf(self.values[key])    #@jougcj : added for the computation of the voronoi in the probability space.
       # compute the SampledVarsPb for N-D distribution
       else:
         if self.variables2distributionsMapping[varName]['reducedDim']==1:
@@ -250,3 +252,4 @@ class Grid(ForwardSampler):
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Grid'
+    self.inputInfo['GridInfo'] = self.gridInfo

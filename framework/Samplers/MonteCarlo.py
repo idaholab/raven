@@ -111,6 +111,7 @@ class MonteCarlo(ForwardSampler):
           else:
             rvsnum = self.distDict[key].rvs()
           self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
+          self.inputInfo['SampledVarsCdf'][key] = self.distDict[key].cdf(rvsnum)
           for kkey in varID.strip().split(','):
             self.values[kkey] = np.atleast_1d(rvsnum)[0]
       elif totDim > 1:
@@ -128,6 +129,11 @@ class MonteCarlo(ForwardSampler):
             self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
           probabilityValue = self.distDict[key].pdf(coordinate)
           self.inputInfo['SampledVarsPb'][key] = probabilityValue
+          # if self.transformationMethod[key] != 'pca':
+          if "pca" not in self.transformationMethod.values() and len(self.transformationMethod.values())==1:
+            self.inputInfo['SampledVarsCdf'][key] = self.distDict[key].cdf(coordinate)
+          else:
+            self.raiseAWarning("No Cdf available : not yet available")
           for var in self.distributions2variablesMapping[dist]:
             varID  = utils.first(var.keys())
             varDim = var[varID]

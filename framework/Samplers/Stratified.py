@@ -178,6 +178,10 @@ class Stratified(Grid):
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(centerCoordinate,dxs)
             weight *= self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")]
             self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
+            if "pca" not in self.transformationMethod.values() and len(self.transformationMethod.values())==1:
+              self.inputInfo['SampledVarsCdf'][varName] = self.distDict[varName].cdf(NDcoordinate)
+            else:
+              self.raiseAWarning("No Cdf available : not yet available")
           else:
             if self.gridInfo[varName] == 'CDF':
               upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
@@ -190,6 +194,7 @@ class Stratified(Grid):
                   self.inputInfo['distributionName'][kkey], self.inputInfo['distributionType'][kkey], self.values[kkey] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
               # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
               self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
+              self.inputInfo['SampledVarsCdf'][varName] = self.distDict[varName].cdf(np.atleast_1d(gridCoordinate).tolist())
               weight *= max(upper,lower) - min(upper,lower)
               self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = max(upper,lower) - min(upper,lower)
             else:
@@ -208,6 +213,7 @@ class Stratified(Grid):
           weight *= self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
           self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
           self.inputInfo['SampledVarsPb'][varName]  = self.distDict[varName].pdf(ppfValue)
+          self.inputInfo['SampledVarsCdf'][varName] = self.distDict[varName].cdf(ppfValue)
         elif self.gridInfo[varName] == 'value':
           coordinateCdf = self.distDict[varName].cdf(min(upper,lower)) + (self.distDict[varName].cdf(max(upper,lower))-self.distDict[varName].cdf(min(upper,lower)))*randomUtils.random()
           if coordinateCdf == 0.0:
@@ -216,6 +222,7 @@ class Stratified(Grid):
           weight *= self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
           self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(coordinate)
+          self.inputInfo['SampledVarsCdf'][varName] = self.distDict[varName].cdf(coordinate)    #@jougcj : added for the computation of the voronoi in the probability space. (if equally spaced distribution)
         for kkey in varName.strip().split(','):
           self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
           self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
@@ -231,3 +238,4 @@ class Stratified(Grid):
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'
+    self.inputInfo['GridInfo'] = self.gridInfo
