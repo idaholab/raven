@@ -73,4 +73,10 @@
    rel_err=1.e-4
  [../]
 
+ [./testEnsembleModelLinearExpectedFailure]
+   type = 'RavenErrors'
+   input = 'test_ensemble_model_linear_expected_failures.xml'
+   expect_err = 'IOError: There were failed runs; aborting RAVEN.'
+ [../]
+
 []
