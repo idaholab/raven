@@ -36,6 +36,7 @@ from .Dummy import Dummy
 import Models
 import Files
 from utils import InputData
+from utils import utils
 import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -54,7 +55,6 @@ class HybridModel(Dummy):
     inputSpecification = super(HybridModel, cls).getInputSpecification()
 
     # fill in the inputSpecification
-
     return inputSpecification
 
   @classmethod
@@ -82,16 +82,14 @@ class HybridModel(Dummy):
     self.romTrainStartSize     = 10       # the initial size of training set
     self.romTrainMaxSize       = 1.0e6     # the maximum size of training set
     self.romValidateSize       = 10       # the size of rom validation set
-    self.counter               = 0        # record the number of model runs
     self.romTrained            = False    # True if all roms are trained
     self.sleepTime             = 0.005    # waiting time before checking if a run is finished.
     self.romConverged          = False    # True if all roms are converged
     self.romValid              = False    # True if all roms are valid for given input data
     self.romConvergence        = 0.01
-    self.tempOutputs           = {}
-    self.optimizerTypes        = ['SPSA'] # list of types of optimizer
     self.modelSelection        = 'CrowdingDistance'
     self.existTrainSize        = 0
+    self.threshold             = 0.2       # the cut off validation criterion of new point using the CrowdingDistance
     self.printTag              = 'HYBRIDMODEL MODEL' # print tag
     self.createWorkingDir      = False
     # assembler objects to be requested
@@ -132,13 +130,13 @@ class HybridModel(Dummy):
     """
     for child in xmlNode:
       if child.tag == 'trainStep':
-        self.romTrainStepSize  = int(child.text)
+        self.romTrainStepSize  = utils.intConversion(child.text)
       if child.tag == 'maxTrainSize':
-        self.romTrainMaxSize = int(child.text)
+        self.romTrainMaxSize = utils.intConversion(child.text)
       if child.tag == 'initialTrainSize':
-        self.romTrainStartSize = int(child.text)
+        self.romTrainStartSize = utils.intConversion(child.text)
       if child.tag == 'tolerance':
-        self.romConvergence = float(child.text)
+        self.romConvergence = utils.floatConversion(child.text)
       if child.tag == 'selectionMethod':
         self.modelSelection = child.text.strip()
 
@@ -152,7 +150,6 @@ class HybridModel(Dummy):
     """
     if isinstance(self.modelInstance, Models.Model):
       self.raiseAnError(IOError, "HybridModel has already been initialized, and it can not be initialized again!")
-    self.tempOutputs['uncollectedJobIds'] = []
     self.modelInstance = self.retrieveObjectFromAssemblerDict('Model', self.modelInstance)
     self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
     self.cvInstance.initialize(runInfo, inputs, initDict)
@@ -240,10 +237,12 @@ class HybridModel(Dummy):
     """
     selectedKwargs = copy.copy(kwargs)
     selectedKwargs['SampledVars'], selectedKwargs['SampledVarsPb'] = {}, {}
-    for key in kwargs["SampledVars"].keys():
-      if key in self.romsDictionary[romName]['Instance'].getInitParams()['Features']:
-        selectedKwargs['SampledVars'][key] = kwargs["SampledVars"][key]
-        selectedKwargs['SampledVarsPb'][key] = kwargs["SampledVarsPb"][key] if 'SampledVarsPb' in kwargs.keys() else 1.0
+    featsList = self.romsDictionary[romName]['Instance'].getInitParams()['Features']
+    selectedKwargs['SampledVars'] = {key: kwargs['SampledVars'][key] for key in featsList}
+    if 'SampledVarsPb' in kwargs.keys():
+      selectedKwargs['SampledVarsPb'] = {key: kwargs['SampledVarsPb'][key] for key in featsList}
+    else:
+      selectedKwargs['SampledVarsPb'] = {key: 1.0 for key in featsList}
     return selectedKwargs
 
   def createNewInput(self,myInput,samplerType,**kwargs):
@@ -286,11 +285,12 @@ class HybridModel(Dummy):
   def trainRom(self, samplerType, kwargs):
     """
       This function will train all ROMs if they are not converged
-      @ In, None
+      @ In, samplerType, string, the type of sampler
+      @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, None
     """
     self.raiseADebug("Start to train roms")
-    self.raiseADebug("Current sample: ", self.counter)
     for romInfo in self.romsDictionary.values():
       # reset the rom
       romInfo['Instance'].amITrained = False
@@ -306,6 +306,7 @@ class HybridModel(Dummy):
     """
       This function will check the convergence of rom
       @ In, outputDict, dict, dictionary contains the metric information
+        e.g. {targetName:{metricName:List of metric values}}, this dict is coming from results of cross validation
       @ Out, None
     """
     converged = True
@@ -339,7 +340,7 @@ class HybridModel(Dummy):
     """
     allValid = False
     if self.modelSelection == 'CrowdingDistance':
-      allValid = self.crowdingDistanceMethod(kwargs)
+      allValid = self.crowdingDistanceMethod(kwargs['SampledVars'])
     else:
       self.raiseAnError(IOError, "Unknown model selection method ", self.modelSelection, " is given!")
 
@@ -348,11 +349,11 @@ class HybridModel(Dummy):
 
     return allValid
 
-  def crowdingDistanceMethod(self, kwargs):
+  def crowdingDistanceMethod(self, varDict):
     """
       This function will check the validity of all roms based on the crowding distance method
-      @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ In, varDict, dict,  is a dictionary that contains the information coming from the sampler,
+        i.e. {'name variable':value}
       @ Out, None
     """
     allValid = True
@@ -361,10 +362,10 @@ class HybridModel(Dummy):
       # generate the data for input parameters
       paramsList = romInfo['Instance'].getInitParams()['Features']
       trainInput = np.asarray(self._extractInputs(romInfo['Instance'].trainingSet, paramsList).values())
-      currentInput = np.asarray(self._extractInputs(kwargs['SampledVars'], paramsList).values())
+      currentInput = np.asarray(self._extractInputs(varDict, paramsList).values())
       coeffCD = self.computeCDCoefficient(trainInput, currentInput)
       self.raiseADebug("Crowding Distance Coefficient: ", coeffCD)
-      if coeffCD > 0.2:
+      if coeffCD > self.threshold:
         valid = True
       romInfo['Valid'] = valid
       if valid:
@@ -379,7 +380,7 @@ class HybridModel(Dummy):
       Extract the the parameters in the paramsList from the given data object dataIn
       @ dataIn, Instance or Dict, data object or dictionary contains the input and output parameters
       @ paramsList, List, List of parameter names
-      @ localInput, dict,
+      @ localInput, dict, dictionary contains the selected input and output parameters and their values
     """
     localInput = dict.fromkeys(paramsList, None)
     if type(dataIn) == dict:
@@ -427,20 +428,6 @@ class HybridModel(Dummy):
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
       This will submit an individual sample to be evaluated by this model to a
-      specified jobHandler. Note, some parameters are needed by createNewInput
-      and thus descriptions are copied from there.
-      @ In, myInput, list, the inputs (list) to start from to generate the new one
-      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In,  jobHandler, JobHandler instance, the global job handler instance
-      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-      @ Out, None
-    """
-    self.submitAsClient(myInput, samplerType, jobHandler, **kwargs)
-
-  def submitAsClient(self,myInput,samplerType,jobHandler,**kwargs):
-    """
-      This will submit an individual sample to be evaluated by this model to a
       specified jobHandler as a client job. Note, some parameters are needed
       by createNewInput and thus descriptions are copied from there.
       @ In, myInput, list, the inputs (list) to start from to generate the new
@@ -458,8 +445,6 @@ class HybridModel(Dummy):
         self.mods.append(mm)
 
     prefix = kwargs['prefix']
-    self.tempOutputs['uncollectedJobIds'].append(prefix)
-    self.counter = int(prefix)
 
     if not self.romConverged:
       trainingSize = self.checkTrainingSize()
@@ -497,9 +482,12 @@ class HybridModel(Dummy):
       @ Out, returnValue, dict, This holds the output information of the evaluated sample.
     """
     self.raiseADebug("Evaluate Sample")
-    jobHandler = kwargs.pop('jobHandler')
-    Input = self.createNewInput(myInput, samplerType, **kwargs)
 
+    kwargsKeys = kwargs.keys()
+    kwargsKeys.pop(kwargsKeys.index("jobHandler"))
+    kwargsToKeep = {keepKey: kwargs[keepKey] for keepKey in kwargsKeys}
+    jobHandler = kwargs['jobHandler']
+    Input = self.createNewInput(myInput, samplerType, **kwargsToKeep)
     ## Unpack the specifics for this class, namely just the jobHandler
     returnValue = (Input,self._externalRun(Input,jobHandler))
     return returnValue
@@ -525,6 +513,7 @@ class HybridModel(Dummy):
       self.raiseADebug("Switch to ROMs")
       # submit all the roms
       for romName, romInfo in self.romsDictionary.items():
+        inputKwargs[romName]['prefix'] = romName+utils.returnIdSeparator()+identifier
         nextRom = False
         while not nextRom:
           if jobHandler.availability() > 0:
@@ -589,11 +578,6 @@ class HybridModel(Dummy):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
     exportDict = evaluation[1]
-    try:
-      jobIndex = self.tempOutputs['uncollectedJobIds'].index(finishedJob.identifier)
-      self.tempOutputs['uncollectedJobIds'].pop(jobIndex)
-    except ValueError:
-      jobIndex = None
 
     Dummy.collectOutput(self, finishedJob, output, options = {'exportDict':exportDict})
 

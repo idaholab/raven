@@ -21,6 +21,19 @@
 }
 
 
+\newcommand{\assemblerAttrDescription}[1]
+{
+    This XML node needs to contain the attributes:
+    \begin{itemize}
+      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
+        ``class'' of the #1.
+        %
+      \item \xmlAttr{type},  \xmlDesc{required string attribute}, the sub-type of the #1.
+        %
+    \end{itemize}
+}
+
+
 \newcommand{\aliasSystemDescription}[1]
 {
   \xmlNode{alias} \xmlDesc{string, optional field} specifies alias for
@@ -1449,7 +1462,7 @@ and the validity of the ROMs will be determined via some local validation metric
 is available, i.e. CrowdingDistance). After these ROMs are trained, the \textbf{HybridModel} can decide which of
 the Model (i.e the ROMs or high-fidelity model) to be executed based on the accuracy and validity of the ROMs.
 
-Currently this model is only able to share information (i.e. data) using both \textbf{PointSet}.
+Currently this model is only able to share information (i.e. data) using \textbf{PointSet}.
 
 The specifications of a HybridModel must be defined within the XML block
 \xmlNode{HybridModel}.
@@ -1478,18 +1491,8 @@ this HybridModel needs to be inputted.
   %
   The text portion of this node needs to contain the name of the Model
   %
-  \\This XML node needs to contain the attributes:
-
-\vspace{-5mm}
-\begin{itemize}
-  \itemsep0em
-  \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this sub-model (e.g. Models)
+  \assemblerAttrDescription{Model}
   %
-  \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Model (e.g. ExternalModel, ROM, Code)
-  %
-\end{itemize}
-\vspace{-5mm}
-
   \item \xmlNode{ROM}, \xmlDesc{XML node, required parameter}.
   %
   The text portion of this node needs to contain the name of the ROM
@@ -1497,56 +1500,25 @@ this HybridModel needs to be inputted.
   \nb The outputs of each ROM should be different, and the total set of ROMs' outputs
   should be the same as the set of \textit{Model's} outputs.
   %
-  \\This XML node needs to contain the attributes:
-
-\vspace{-5mm}
-\begin{itemize}
-  \itemsep0em
-  \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this sub-model (e.g. Models)
+  \assemblerAttrDescription{Model}
   %
-  \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Model (e.g. ROM)
-  %
-\end{itemize}
-\vspace{-5mm}
-
   \item \xmlNode{CV}, \xmlDesc{XML node, required parameter}.
   %
     The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with \xmlAttr{subType}
     ``CrossValidation``.
   %
-  \\This XML node needs to contain the attributes:
-
-\vspace{-5mm}
-\begin{itemize}
-  \itemsep0em
-  \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this sub-model (e.g. Models)
-  %
-  \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Model (e.g. PostProcessor)
-  %
-\end{itemize}
-\vspace{-5mm}
-  
+    \assemblerAttrDescription{Model}
+  % 
   \item \xmlNode{TargetEvaluation}, \xmlDesc{XML node, required parameter}.
   %
     The text portion of this node needs to contain the name of a data object defined in the \xmlNode{DataObjects} block.
-    \nb currently only accept data object wih type ``PointSet``. The \xmlNode{TargetEvaluation} is primary used for
+    \nb currently only accept data object with type ``PointSet``. The \xmlNode{TargetEvaluation} is primary used for
     training ROMs. \nb The linked DataObject should be placed as additional output of the Step where the
     \textbf{HybridModel} is used.
   %
-  \\This XML node needs to contain the attributes:
-
-\vspace{-5mm}
-\begin{itemize}
-  \itemsep0em
-  \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of the DataObjects.
-  %
-  \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of the DataObjects (e.g. ``PointSet``)
+    \assemblerAttrDescription{DataObjects}
   %
 \end{itemize}
-\vspace{-5mm}
-  %
-\end{itemize}
-
 
 An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs to be specified:
 \begin{itemize}
