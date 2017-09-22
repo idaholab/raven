@@ -46,6 +46,7 @@ class CDFAreaDifference(Metric):
       Calculates the CDF Area Difference between two datasets.
       @ In, x, something that can be converted into a CDF
       @ In, y, something that can be converted into a CDF
+      @ In, kwargs, ignored.
       @ Out, value, float, CDF Area Difference
     """
     value = Metrics.MetricUtilities._getCDFAreaDifference(x,y)

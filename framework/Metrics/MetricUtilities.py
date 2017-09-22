@@ -43,16 +43,16 @@ def _countWeightInBins(sortedData, binBoundaries):
     @ In, binBoundaries, list or np.array, the bin boundaries
     @ Out, ret, list, the list containing the number of bins
   """
-  VALUE = 0
-  WEIGHT = 1
+  value = 0 #Read only
+  weight = 1 #Read only
   binIndex = 0
   sortedIndex = 0
   ret = [0]*(len(binBoundaries)+1)
   while sortedIndex < len(sortedData):
     while not binIndex >= len(binBoundaries) and \
-          sortedData[sortedIndex][VALUE] > binBoundaries[binIndex]:
+          sortedData[sortedIndex][value] > binBoundaries[binIndex]:
       binIndex += 1
-    ret[binIndex] += sortedData[sortedIndex][WEIGHT]
+    ret[binIndex] += sortedData[sortedIndex][weight]
     sortedIndex += 1
   return ret
 
@@ -72,11 +72,11 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
   sortedData = zip(data, weights)
   sortedData.sort() #Sort the data.
   weightSum = sum(weights)
-  VALUE = 0
-  WEIGHT = 1
+  value = 0 #Read only
+  weight = 1 #Read only
   # Find data range
-  low = sortedData[0][VALUE]
-  high = sortedData[-1][VALUE]
+  low = sortedData[0][value]
+  high = sortedData[-1][value]
   dataRange = high - low
   #Find the values to use between the histogram bins
   if uniformBins:
@@ -86,26 +86,21 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
     #Equal probability bins
     probPerBin = weightSum/numBins
     probSum = 0.0
-    #nextProb = probPerBin
     bins = [None]*(numBins-1)
     searchIndex = 0
     #Look thru the array, and find the next place where probSum > nextProb
     for i in range(numBins-1):
       nextProb = (i + 1) * probPerBin
-      #print(nextProb)
-      while probSum + sortedData[searchIndex][WEIGHT] < nextProb:
-        #print(probSum, searchIndex)
-        probSum += sortedData[searchIndex][WEIGHT]
+      while probSum + sortedData[searchIndex][weight] < nextProb:
+        probSum += sortedData[searchIndex][weight]
         searchIndex += 1
-      bins[i] = sortedData[searchIndex][VALUE]
+      bins[i] = sortedData[searchIndex][value]
     if len(bins) > 1:
       minBinSize = min(map(lambda x, y: x - y, bins[1:], bins[:-1]))
     else:
       minBinSize = dataRange
   #Count the amount of weight in each bin
-  #print("bins",bins)
   counts = _countWeightInBins(sortedData, bins)
-  #print("counts",counts)
   binBoundaries = [low] + bins + [high]
   countSum = sum(counts)
   assert -1e-4 < countSum - weightSum < 1e-4
@@ -119,7 +114,6 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
     cdf[i] = cdfSum
     midpoints[i] = (binBoundaries[i] + binBoundaries[i + 1]) / 2.0
   cdfFunc = mathUtils.createInterp(midpoints, cdf, 0.0, 1.0, interpolation)
-  #print("cdf",cdf,"midpoints",midpoints)
   #Create PDF
   fPrimeData = [0.0] * len(counts)
   for i in range(len(counts)):
@@ -140,7 +134,6 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
       fPrime = (-1.5 * f0 + 2.0 * f1 + -0.5 * f2) / h
     fPrimeData[i] = fPrime
   pdfFunc = mathUtils.createInterp(midpoints, fPrimeData, 0.0, 0.0, interpolation)
-  #print("fPrimeData",fPrimeData)
   mean = np.average(data, weights = weights)
   dataStats = {"mean":mean,"minBinSize":minBinSize,"low":low,"high":high}
   return dataStats, cdfFunc, pdfFunc

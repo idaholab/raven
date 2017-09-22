@@ -46,6 +46,7 @@ class PDFCommonArea(Metric):
       Calculates the PDF Common Area between two datasets.
       @ In, x, something that can be converted into a PDF
       @ In, y, something that can be converted into a PDF
+      @ In, kwargs, ignored.
       @ Out, value, float, CDF Area Difference
     """
     value = Metrics.MetricUtilities._getPDFCommonArea(x,y)

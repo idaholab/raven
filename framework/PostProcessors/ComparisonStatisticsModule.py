@@ -47,16 +47,15 @@ def _getGraphs(functions, fZStats = False):
   retDict = {}
   dataStats = [x[0] for x in functions]
   means = [x["mean"] for x in dataStats]
-  stddevs = [x["stdev"] for x in dataStats]
+  stdDevs = [x["stdev"] for x in dataStats]
   cdfs = [x[1] for x in functions]
   pdfs = [x[2] for x in functions]
   names = [x[3] for x in functions]
-  low = min([m - 3.0*s for m,s in zip(means,stddevs)])
-  high = max([m + 3.0*s for m,s in zip(means,stddevs)])
-  lowLow = min([m - 5.0*s for m,s in zip(means,stddevs)])
-  highHigh = max([m + 5.0*s for m,s in zip(means,stddevs)])
+  low = min([m - 3.0*s for m,s in zip(means,stdDevs)])
+  high = max([m + 3.0*s for m,s in zip(means,stdDevs)])
+  lowLow = min([m - 5.0*s for m,s in zip(means,stdDevs)])
+  highHigh = max([m + 5.0*s for m,s in zip(means,stdDevs)])
   minBinSize = min([x["minBinSize"] for x in dataStats])
-  print("Graph from ",low,"to",high)
   n = int(math.ceil((high-low)/minBinSize))
   interval = (high - low)/n
 
@@ -114,8 +113,8 @@ def _getGraphs(functions, fZStats = False):
       return mathUtils.simpson(lambda x: pdfs[0](x)*pdfs[1](x-z), lowLow, highHigh, 1000)
 
     midZ = means[0]-means[1]
-    lowZ = midZ - 3.0*max(stddevs[0],stddevs[1])
-    highZ = midZ + 3.0*max(stddevs[0],stddevs[1])
+    lowZ = midZ - 3.0*max(stdDevs[0],stdDevs[1])
+    highZ = midZ + 3.0*max(stdDevs[0],stdDevs[1])
     #print the difference function table.
     fZTable = [["z"],["f_z(z)"]]
     zN = 20
