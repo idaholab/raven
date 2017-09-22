@@ -1,0 +1,12 @@
+<MonteCarlo name="mcSampler">
+  <samplerInit>
+    <limit>20</limit>
+    <initialSeed>0</initialSeed>
+  </samplerInit>
+  <variable name="x1">
+    <distribution>uniform</distribution>
+  </variable>
+  <variable name="x2">
+    <distribution>uniform</distribution>
+  </variable>
+</MonteCarlo>

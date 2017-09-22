@@ -15,7 +15,7 @@
       then making use of the DataMining postprocessor.
     </description>
     <revisions>
-      <revision author="talbpaul" date="2017-09-21">Increased sleep time to normalize testing performance.</revision>
+      <revision author="talbpaul" date="2017-09-21">sequential to normalize testing performance.</revision>
     </revisions>
   </TestInfo>
 
@@ -90,7 +90,7 @@
   </DataObjects>
 
   <Steps>
-    <MultiRun name="sampleMC" sleepTime='5e-2'>
+    <MultiRun name="sampleMC" sequential='true'>
       <Input class="Files" type="input">referenceInput.xml</Input>
       <Model class="Models" type="Code">testModel</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
