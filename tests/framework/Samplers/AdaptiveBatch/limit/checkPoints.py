@@ -19,31 +19,31 @@ retCode = subprocess.call(['python','../../../../framework/Driver.py',inputFile]
 
 if retCode == 0:
   # START metric included here
-	points1 = np.loadtxt(file1, delimiter=',', skiprows=1)
-	points2 = np.loadtxt(file2, delimiter=',', skiprows=1)
+  points1 = np.loadtxt(file1, delimiter=',', skiprows=1)
+  points2 = np.loadtxt(file2, delimiter=',', skiprows=1)
 
-	N = min(points1.shape[0],points2.shape[0])
+  N = min(points1.shape[0],points2.shape[0])
 
-	C = cdist(points1, points2)
+  C = cdist(points1, points2)
 
-	_, assignment = linear_sum_assignment(C)
+  _, assignment = linear_sum_assignment(C)
 
-	minMaxDistance = max(np.linalg.norm(points1[:N] - points2[assignment], axis=1))
-	print(minMaxDistance)
-	## Return zero if passed, non-zero if failed
-	retCode = not (minMaxDistance < eps)
+  minMaxDistance = max(np.linalg.norm(points1[:N] - points2[assignment], axis=1))
+  print(minMaxDistance)
+  ## Return zero if passed, non-zero if failed
+  retCode = not (minMaxDistance < eps)
   # END metric included here
 
-	## I am leaving this here as it can potentially be useful for debugging
-	if retCode:
-		import matplotlib.pyplot as plt
-		plt.plot(points1[:,0], points1[:,1],'bo', markersize = 10)
-		plt.plot(points2[:,0], points2[:,1],'rs',  markersize = 7)
-		for p in range(N):
+  ## I am leaving this here as it can potentially be useful for debugging
+  if retCode:
+    import matplotlib.pyplot as plt
+    plt.plot(points1[:,0], points1[:,1],'bo', markersize = 10)
+    plt.plot(points2[:,0], points2[:,1],'rs',  markersize = 7)
+    for p in range(N):
       plt.plot([points1[p,0], points2[assignment[p],0]], [points1[p,1], points2[assignment[p],1]], 'k')
-		plt.xlim(-1.1,1.1)
-		plt.ylim(-1.1,1.1)
-		plt.axes().set_aspect('equal')
-		plt.show()
+    plt.xlim(-1.1,1.1)
+    plt.ylim(-1.1,1.1)
+    plt.axes().set_aspect('equal')
+    plt.show()
 
 sys.exit(retCode)
