@@ -93,7 +93,8 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #  re-seeding = 'continue' the use the already present random environment
     #If there is no instruction (self.initSeed = None) the sampler will reinitialize
     self.initSeed        = None
-    self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd','fromDirectory','repeatFailureRuns']
+    self.forceSequential = False #if True, then we guarantee that if batch size 1 is used, samples come in the same order, at the cost of efficiency
+    self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd','fromDirectory','repeatFailureRuns','sequential']
     self._excludeFromModelValidation = ['SolutionExport']
     # how to handle failed runs. By default, the step fails.
     # If the attribute "repeatFailureRuns" is inputted, a certain number of repetitions are going to be performed
@@ -125,6 +126,8 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self.sleepTime = float(xmlNode.attrib['sleepTime'])
       except:
         self.raiseAnError(IOError,printString.format(self.type,self.name,xmlNode.attrib['sleepTime'],'sleepTime'))
+    if str(xmlNode.attrib.get('sequential','False')).lower() in utils.stringsThatMeanTrue():
+      self.forceSequential = True
     for child in xmlNode:
       classType, classSubType = child.attrib.get('class'), child.attrib.get('type')
       if None in [classType,classSubType]:
@@ -559,17 +562,19 @@ class MultiRun(SingleRun):
       self.raiseADebug('')
       self.raiseADebug('Entering the STEP main loop.')
 
-      # collect jobs
-      self.raiseADebug('Collecting finished jobs ...')
-      self.collectDone(jobHandler,sampler,model,inputs,outputs)
+      # if user requested forced sequentiality, only submit a new sample if we collected a sample
+      if self.forceSequential:
+        self.collectDone(jobHandler,sampler,model,inputs,outputs,submitNew=True)
 
-      # submit new jobs
-      self.raiseADebug('Submitting new jobs ...')
-      self.submitNew(jobHandler,sampler,model,inputs,outputs)
+      # otherwise, use the more efficient strategy
+      else:
+        # collect jobs
+        self.collectDone(jobHandler,sampler,model,inputs,outputs,submitNew=False)
+        # submit new jobs
+        self.submitNew(jobHandler,sampler,model,inputs,outputs)
 
-      # wait for next update
+      # either way, wait before next update
       time.sleep(self.sleepTime)
-
     ##### END MAIN LOOP #####
 
     # handle failed runs
@@ -577,14 +582,20 @@ class MultiRun(SingleRun):
     # print basic run statistics
     self.raiseADebug('Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
 
-  def collectDone(self,jobHandler,sampler,model,inputs,outputs):
+  def collectDone(self,jobHandler,sampler,model,inputs,outputs,submitNew=False):
     """
       Collect finished runs from the jobHandler, and sort them by the results.
       @ In, jobHandler, JobHandler, job handler instance
       @ In, sampler, Sampler, instance doing the sampling for this multirun
-      @ Out, None
+      @ In, model, Model, model being run for this multirun
+      @ In, inputs, dict, inputs
+      @ In, outputs, dict, outputs
+      @ In, submitNew, bool, optional, if True then will submit jobs for each job collected
+      @ Out, collected, int, number of jobs collected
     """
+    self.raiseADebug('Collecting finished jobs ...')
     finishedJobs = jobHandler.getFinished()
+    collected = len(finishedJobs)
     for finishedJob in finishedJobs:
       # update number of collected runs
       self.counter +=1
@@ -614,6 +625,10 @@ class MultiRun(SingleRun):
             self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
       # finalize actual sampler
       sampler.finalizeActualSampling(finishedJob,model,inputs)
+      # if requested, submit new jobs -> this should only be true for the sequential case
+      if submitNew:
+        self.submitNew(jobHandler,sampler,model,inputs,outputs)
+    return collected
 
   def submitNew(self,jobHandler,sampler,model,inputs,outputs):
     """
@@ -623,6 +638,7 @@ class MultiRun(SingleRun):
       @ In, model, Model, model being run for this multirun
       @ Out, None
     """
+    self.raiseADebug('Submitting new jobs ...')
     isEnsemble = isinstance(model, Models.EnsembleModel)
     ## In order to ensure that the queue does not grow too large, we will
     ## employ a threshold on the number of jobs the jobHandler can take,

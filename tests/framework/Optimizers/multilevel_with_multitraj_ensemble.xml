@@ -11,7 +11,7 @@
       It tests the possibility to block some models (Beale) in the optimization process when multilevel optimization is performed.
     </description>
     <revisions>
-      <revision author="talbpaul" date="2017-09-20">Increased sleep time to ensure reproducability</revision>
+      <revision author="talbpaul" date="2017-09-20">Sequential to ensure reproducability</revision>
     </revisions>
   </TestInfo>
 
@@ -23,7 +23,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize" sleepTime='2e-1'>
+    <MultiRun name="optimize" sequential='True'>
       <Input class="DataObjects" type="PointSet">dummyINbeale</Input>
       <Input class="DataObjects" type="PointSet">dummyINAmplifier</Input>
       <Model class="Models" type="EnsembleModel">Ensemble_with_amplifier</Model>
