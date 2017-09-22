@@ -53,8 +53,36 @@ class HybridModel(Dummy):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
     inputSpecification = super(HybridModel, cls).getInputSpecification()
+    modelInput = InputData.parameterInputFactory("Model", contentType=InputData.StringType)
+    modelInput.addParam("class", InputData.StringType)
+    modelInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(modelInput)
+    romInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
+    romInput.addParam("class", InputData.StringType)
+    romInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(romInput)
+    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputData.StringType)
+    targetEvaluationInput.addParam("class", InputData.StringType)
+    targetEvaluationInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(targetEvaluationInput)
+    cvInput = InputData.parameterInputFactory("CV", contentType=InputData.StringType)
+    cvInput.addParam("class", InputData.StringType)
+    cvInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(cvInput)
+    # add settings block
+    tolInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
+    trainStepInput = InputData.parameterInputFactory("trainStep", contentType=InputData.IntegerType)
+    maxTrainStepInput = InputData.parameterInputFactory("maxTrainSize", contentType=InputData.IntegerType)
+    initialTrainStepInput = InputData.parameterInputFactory("initialTrainSize", contentType=InputData.IntegerType)
+    selectionMethod = InputData.parameterInputFactory("selectionMethod", contentType=InputData.StringType)
+    settingsInput = InputData.parameterInputFactory("settings", contentType=InputData.StringType)
+    settingsInput.addSub(tolInput)
+    settingsInput.addSub(trainStepInput)
+    settingsInput.addSub(maxTrainStepInput)
+    settingsInput.addSub(initialTrainStepInput)
+    settingsInput.addSub(selectionMethod)
+    inputSpecification.addSub(settingsInput)
 
-    # fill in the inputSpecification
     return inputSpecification
 
   @classmethod
@@ -106,39 +134,33 @@ class HybridModel(Dummy):
       @ Out, None
     """
     Dummy.localInputAndChecks(self, xmlNode)
-    for child in xmlNode:
-      if child.tag == 'settings':
-        self.__readSettings(child)
-      elif child.tag == 'Model':
-        self.modelInstance = child.text.strip()
-        if child.attrib['type'] == 'Code':
-          self.createWorkingDir = True
-      elif child.tag == 'CV':
-        self.cvInstance = child.text.strip()
-      elif child.tag == 'TargetEvaluation':
-        self.targetEvaluationInstance = child.text.strip()
-      elif child.tag == 'ROM':
-        romName = child.text.strip()
-        # 'useRom': [converged, validated]
-        self.romsDictionary[romName] = {'Instance':None,'Converged':False,'Valid':False}
+    paramInput = HybridModel.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
 
-  def __readSettings(self, xmlNode):
-    """
-      Method to read the model settings from XML input files
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-      @ Out, None
-    """
-    for child in xmlNode:
-      if child.tag == 'trainStep':
-        self.romTrainStepSize  = utils.intConversion(child.text)
-      if child.tag == 'maxTrainSize':
-        self.romTrainMaxSize = utils.intConversion(child.text)
-      if child.tag == 'initialTrainSize':
-        self.romTrainStartSize = utils.intConversion(child.text)
-      if child.tag == 'tolerance':
-        self.romConvergence = utils.floatConversion(child.text)
-      if child.tag == 'selectionMethod':
-        self.modelSelection = child.text.strip()
+    for child in paramInput.subparts:
+      if child.getName() == 'Model':
+        self.modelInstance = child.value.strip()
+        if child.parameterValues['type'] == 'Code':
+          self.createWorkingDir = True
+      if child.getName() == 'CV':
+        self.cvInstance = child.value.strip()
+      if child.getName() == 'TargetEvaluation':
+        self.targetEvaluationInstance = child.value.strip()
+      if child.getName() == 'ROM':
+        romName = child.value.strip()
+        self.romsDictionary[romName] = {'Instance': None, 'Converged': False, 'Valid': False}
+      if child.getName() == 'settings':
+        for childChild in child.subparts:
+          if childChild.getName() == 'trainStep':
+            self.romTrainStepSize  = utils.intConversion(childChild.value)
+          if childChild.getName() == 'maxTrainSize':
+            self.romTrainMaxSize = utils.intConversion(childChild.value)
+          if childChild.getName() == 'initialTrainSize':
+            self.romTrainStartSize = utils.intConversion(childChild.value)
+          if childChild.getName() == 'tolerance':
+            self.romConvergence = utils.floatConversion(childChild.value)
+          if childChild.getName == 'selectionMethod':
+            self.modelSelection = childChild.value.strip()
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
