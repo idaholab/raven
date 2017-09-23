@@ -257,13 +257,26 @@ class RAVEN(CodeInterfaceBase):
       outputToRead = open(os.path.join(workingDir,output),"r")
     except IOError:
       failure = True
+      print(self.printTag+' ERROR: The RAVEN SLAVE log file  "'+str(os.path.join(workingDir,output))+'" does not exist!')
     if not failure:
       readLines = outputToRead.readlines()
-      for badMessage in ["Traceback ","raise","IOError"]:
-        if any(badMessage in x for x in readLines):
-          failure = True
-          break
+      if not any("Run complete" in x for x in readLines[-20:]):
+        failure = True
       del readLines
+    if not failure:
+     for filename in self.linkedDataObjectOutStreamsNames:
+       outstreamFile = os.path.join(workingDir,self.innerWorkingDir,filename+".csv")
+       try:
+         fileObj = open(outstreamFile,"r")
+       except IOError:
+         print(self.printTag+' ERROR: The RAVEN SLAVE output file "'+str(outstreamFile)+'" does not exist!')
+         failure = True
+       if not failure:
+         readLines = fileObj.readlines()
+         if any("nan" in x.lower() for x in readLines):
+          failure = True
+          print(self.printTag+' ERROR: Found nan in RAVEN SLAVE output "'+str(outstreamFile)+'!')
+          break
     return failure
 
   def finalizeCodeOutput(self,command,output,workingDir):
