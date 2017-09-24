@@ -14,6 +14,9 @@
       This test is an example for the user guide to draw from.  It demonstrates a typical workflow for sampling
       then making use of the DataMining postprocessor.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2017-09-21">sequential to normalize testing performance.</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
@@ -87,7 +90,7 @@
   </DataObjects>
 
   <Steps>
-    <MultiRun name="sampleMC">
+    <MultiRun name="sampleMC" sequential='true'>
       <Input class="Files" type="input">referenceInput.xml</Input>
       <Model class="Models" type="Code">testModel</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>

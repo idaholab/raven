@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="quiet">
+<Simulation verbosity="debug">
 
   <TestInfo>
     <name>framework/Samplers/AdaptiveBatch.InvalidPostRankingSimplification</name>
@@ -21,77 +21,22 @@
       <revision author="talbpaul" date="2016-02-08">First update, looking for more failing tests to add.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="maljdan" date="2017-01-18">Adding test description.</revision>
+      <revision author="maljdan" date="2017-09-20">Simplifying test case to use a linear limit surface with a linear kernel svm and abstracting common components of test cases</revision>
     </revisions>
   </TestInfo>
 
-  <RunInfo>
-    <WorkingDir>circle</WorkingDir>
-    <Sequence>sample,adapt,dump</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
-
-  <Steps>
-    <MultiRun name="sample" sleepTime="1e-5">
-      <Input class="DataObjects" type="PointSet">dummyIn</Input>
-      <Model class="Models" type="ExternalModel">function</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">response</Output>
-    </MultiRun>
-    <MultiRun name="adapt">
-      <Input class="DataObjects" type="PointSet">response</Input>
-      <Model class="Models" type="ExternalModel">function</Model>
-      <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
-      <SolutionExport class="DataObjects" type="PointSet">limit_surface</SolutionExport>
-      <Output class="DataObjects" type="PointSet">response</Output>
-    </MultiRun>
-    <IOStep name="dump">
-      <Input class="DataObjects" type="PointSet">limit_surface</Input>
-      <Input class="DataObjects" type="PointSet">response</Input>
-      <Output class="OutStreams" type="Print">invalid_post_ls</Output>
-      <Output class="OutStreams" type="Print">invalid_post_samples</Output>
-    </IOStep>
-  </Steps>
-
-  <DataObjects>
-    <PointSet name="dummyIn">
-      <Input>x1,x2</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
-    <PointSet name="response">
-      <Input>x1,x2</Input>
-      <Output>y</Output>
-    </PointSet>
-    <PointSet name="limit_surface">
-      <Input>x1,x2</Input>
-      <Output>label</Output>
-    </PointSet>
-  </DataObjects>
-
-  <Distributions>
-    <Uniform name="uniform">
-      <upperBound>1</upperBound>
-      <lowerBound>-1</lowerBound>
-    </Uniform>
-  </Distributions>
+  <ExternalXML node="RunInfo" xmlToLoad="shared_run_info.xml"/>
+  <ExternalXML node="Steps" xmlToLoad="shared_steps.xml"/>
+  <ExternalXML node="DataObjects" xmlToLoad="shared_data_objects.xml"/>
+  <ExternalXML node="Distributions" xmlToLoad="shared_distributions.xml"/>
 
   <Samplers>
-    <MonteCarlo name="mcSampler">
-      <samplerInit>
-        <limit>20</limit>
-        <initialSeed>0</initialSeed>
-      </samplerInit>
-      <variable name="x1">
-        <distribution>uniform</distribution>
-      </variable>
-      <variable name="x2">
-        <distribution>uniform</distribution>
-      </variable>
-    </MonteCarlo>
+    <ExternalXML node="MonteCarlo" xmlToLoad="shared_initial_sampler.xml"/>
     <LimitSurfaceSearch name="adaptiveSearch">
       <ROM class="Models" type="ROM">mySVM</ROM>
       <Function class="Functions" type="External">label</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">response</TargetEvaluation>
-      <Convergence forceIteration="False" limit="16" persistence="25" weight="value">9e-5</Convergence>
+      <ExternalXML node="Convergence" xmlToLoad="shared_convergence.xml"/>
       <!--
         <generateCSVs/>
       -->
@@ -109,34 +54,18 @@
     </LimitSurfaceSearch>
   </Samplers>
 
-  <Models>
-    <ExternalModel ModuleToLoad="function" name="function" subType="">
-      <variables>x1,x2,y</variables>
-    </ExternalModel>
-    <ROM name="mySVM" subType="SciKitLearn">
-      <Features>x1,x2</Features>
-      <Target>label</Target>
-      <SKLtype>svm|SVC</SKLtype>
-      <kernel>rbf</kernel>
-      <gamma>10</gamma>
-      <tol>1e-5</tol>
-      <C>50</C>
-      <random_state>1</random_state>
-    </ROM>
-  </Models>
-
-  <Functions>
-    <External file="goal" name="label">
-      <variable>y</variable>
-    </External>
-  </Functions>
+  <ExternalXML node="Models" xmlToLoad="shared_models.xml"/>
+  <ExternalXML node="Functions" xmlToLoad="shared_functions.xml"/>
 
   <OutStreams>
-    <Print name="invalid_post_ls">
+    <Print name="outfile_limit">
+      <filename>invalid_post_ls</filename>
+      <what>Input|x1,Input|x2</what>
       <type>csv</type>
       <source>limit_surface</source>
     </Print>
-    <Print name="invalid_post_samples">
+    <Print name="outfile_samples">
+      <filename>invalid_post_samples</filename>
       <type>csv</type>
       <source>response</source>
     </Print>

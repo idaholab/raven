@@ -16,6 +16,9 @@
       for using the LimitSurface capabilities of RAVEN (both the LimitSurfaceSearch sampler and the
       LimitSurfaceIntegral postprocessor.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2017-09-20">Added sleep time to sampling to ensure testability.</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
@@ -84,7 +87,7 @@
 </Functions>
 
   <Steps>
-    <MultiRun name="sample">
+    <MultiRun name="sample" sleepTime='5e-2'>
       <Input          class="Files"       type="input">referenceInput.xml</Input>
       <Model          class="Models"      type="Code">testModel</Model>
       <Sampler        class="Samplers"    type="LimitSurfaceSearch">LSsearchSampler</Sampler>

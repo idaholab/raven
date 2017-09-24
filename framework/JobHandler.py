@@ -647,6 +647,49 @@ class JobHandler(MessageHandler.MessageUser):
     """
     self.completed = True
 
+  def clearRunning(self,queue,index):
+    """
+      Resets a spot in a running queue without regards for what is currently there
+      @ In, queue, deque, the queue whose member should be reset
+      @ In, index, int, the index of the member who needs to be reset
+      @ Out, None
+    """
+    if queue[index] is not None:
+      queue[index].kill()
+    queue[index] = None
+
+  def terminateRun(self,prefix):
+    """
+      Method to end a single run prematurely.
+      @ In, run, Runner, optional, run instance to terminate
+      @ In, prefix, str, optional, metadata prefix that identifies run
+      @ Out, None
+    """
+    #FIXME this is a lot of "for" loops that probably aren't very fast.
+    with self.__queueLock:
+      # if it's in the queue, just clear it out
+      toRemove = []
+      for run in self.__queue:
+        if run.getMetadata().get('prefix',None) == prefix:
+          toRemove.append(run) #TODO could this trigger false positives?
+      for r in toRemove:
+        self.__queue.remove(r)
+      # ditto client queue
+      toRemove = []
+      for run in self.__clientQueue:
+        if run.getMetadata.get('prefix',None) == prefix:
+          toRemove.append(run) #TODO could this trigger false positives?
+      for r in toRemove:
+        self.__clientQueue.remove(r)
+      # if it's running, kill it
+      for r,run in enumerate(self.__running):
+        if run is not None and run.getMetadata().get('prefix',None) == prefix:
+          self.clearRunning(self.__running,r)
+      # ditto client running
+      for run in self.__clientRunning:
+        if run is not None and run.getMetadata().get('prefix',None) == prefix:
+          self.clearRunning(self.__clientRunning,r)
+
   def terminateAll(self):
     """
       Method to clear out the queue by killing all running processes.

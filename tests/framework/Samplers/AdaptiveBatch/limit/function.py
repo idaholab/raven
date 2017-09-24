@@ -23,7 +23,7 @@ import time
 import random
 
 def eval(inp):
-  retVal = math.sqrt(inp[0]*inp[0] + inp[1]*inp[1])
+  retVal = inp[1] - inp[0]
   # time.sleep(random.unif(10,60))
   # time.sleep(1)
   return float('%.8f' % retVal)

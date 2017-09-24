@@ -118,6 +118,36 @@ class SPSA(GradientBasedOptimizer):
       @ Out, ready, bool, variable indicating whether the caller is prepared for another input.
     """
     self.nextActionNeeded = (None,None) #prevents carrying over from previous run
+    #
+    # General workflow, for any one trajectory (wth corresponds statuses), ignoring multilevel:
+    # Acronyms:
+    #    HOP   -> History of Optimal Points, array with history of points
+    #    i     -> Iteration number, also indexes HOP
+    #    COP   -> Current Optimal Point, the latest non-rejected point in the algorithm, same as HOP[-1]
+    #    CPOP  -> Current Proposed Optimal Point, the guessed new optimal point based on the grad and step size
+    #    NCPOP -> Neighbors of CPOP, the grad eval points surrounding the CPOP
+    #    P#    -> Indicates this step can be run in parallel with step #
+    #                      ACTION                                        PROCESS                   REASON
+    #  0) Set the COP and CPOP to the initial point, set i=0     submitting new opt points      just started
+    #  1) Run the CPOP (times denoising)                         submitting new opt points
+    #  2) Run NCPOP for grad eval (P1) (times denoising)         submitting grad eval points
+    #  3) Collect all CPOP (and any NCPOP)                       collecting new opt points
+    #  4) Check acceptability of CPOP
+    #    4_) If initial, then accept, set HOP[i+1] = CPOP                                       found new opt point
+    #    4a) If worse than COP, reject, set HOP[i+1] = COP                                      rejecting bad opt point
+    #    4b) If better than COP, accept, set HOP[i+1] = CPOP                                    found new opt point
+    #    4c) Either way, i+=1
+    #    4d) If following another traj, kill run                 following traj <#>             removed as redundant
+    #    4e) Check convergence
+    #    4e_i) If converged, exit                                                               converged
+    #    4e_ii) Else if rejected, loop back to (2), kill NCPOP
+    #    4e_iii) Else, go to (5)
+    #  5a) Finish submitting all NCPOP                           submitting grad eval points    seeking new opt point
+    #  5b) Finish collecting all NCPOP                           collecting grad eval points
+    #  6) Calculate new grad using COP - NCPOP                   evaluate gradient
+    #  7) Pick new CPOP using grad
+    #  8) Loop back to (1)
+    #
     #get readiness from parent
     ready = ready and GradientBasedOptimizer.localStillReady(self,ready,convergence)
     #if not ready, just return that
@@ -137,13 +167,9 @@ class SPSA(GradientBasedOptimizer):
       process = self.status[traj]['process']
       reason = self.status[traj]['reason']
 
-      # still in the process of submitting new points for evaluating the gradient
-      if process == 'submitting grad eval points':
-        self.nextActionNeeded = ('add new grad evaluation point',traj)
-        break
-
       # still in the process of submitting new opt point evaluations (for stochastic denoising)
-      elif process == 'submitting new opt points':
+      # workflow step (1)
+      if process == 'submitting new opt points':
         if reason == 'just started':
           self.nextActionNeeded = ('start new trajectory',traj)
           break
@@ -153,29 +179,71 @@ class SPSA(GradientBasedOptimizer):
         else:
           self.raiseAnError(RuntimeError,'unexpected reason for submitting new opt points:',reason)
 
+      # still in the process of submitting new points for evaluating the gradient
+      # workflow step (2) or (5a)
+      elif process == 'submitting grad eval points':
+        if len(self.gradSubmissionQueue[traj]) > 0:
+          self.nextActionNeeded = ('add new grad evaluation point',traj)
+          break
+        else:
+          if reason == 'rejecting bad opt point':
+            #queue up new grad evaluation
+            self.nextActionNeeded = ('add new grad evaluation point',traj)
+            break
+          #all necessary grad evals have already been sent out, so we're collecting
+          self.status[traj]['process'] = 'collecting grad eval points'
+          continue
+
+      # all opt/grad point evaluations have been submitted, but waiting for them to be collected
+      # workflow step (3)
+      elif process == 'collecting new opt points':
+        self.raiseADebug('    Traj "{}": Waiting on collection of new optimization point.'.format(traj))
+        # in the mean time attempt to submit new grad eval points
+        if len(self.gradSubmissionQueue[traj]) > 0:
+          self.nextActionNeeded = ('add new grad evaluation point',traj)
+          break
+        else:
+          continue
+
+      # trajectory didn't converge, but was killed because of redundancy
+      # workflow step (4d)
+      elif reason == 'removed as redundant':
+        self.raiseADebug('    Traj "{}": Trajectory is removed for redundancy.'.format(traj))
+        continue
+
+      # trajectory has already converged, so there's no work to do for it.
+      # workflow step (4e_i)
+      elif reason == 'converged':
+        self.raiseADebug('    Traj "{}": Trajectory is marked as converged.'.format(traj))
+        continue
+
       # all gradient evaluation points submitted, but waiting for them to be collected
+      # workflow step (5b)
       elif process == 'collecting grad eval points':
         # check to see if the grad evaluation points have all been collected
         evalsFinished = True
-        for pertID in range(self.gradDict['pertNeeded']):
+        for pertID in self.perturbationIndices:
+          print('DEBUGG looking for finished grad evals:',traj,self.counter['varsUpdate'][traj])
           if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:
             evalsFinished = False
             break
         # if grad eval pts are finished, then evaluate the gradient
-        if evalsFinished:
+        # workflow step (6)
+        if evalsFinished: #if evalsFinished AND optPoint was found -> should be true if 'collecting grad eval points' is status process
+          print('DEBUGG found them all!')
           # collect output values for perturbed points
-          #for i in range(1,self.gradDict['numIterForAve']*2,2):
           for i in self.perturbationIndices:
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
             outval = self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar][evalIndex]
             self.gradDict['pertPoints'][traj][i]['output'] = outval
-          # reset per-opt-point counters, forward the varsUpdate
+          # reset per-opt-point counters
           self.counter['perturbation'][traj] = 0
           self.counter['varsUpdate'][traj] += 1
           # evaluate the gradient
           gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj],traj)
-          # establish a new point, if found; FIXME otherwise?
-          if len(self.submissionQueue[traj]) == 0:
+          # establish a new point
+          # workflow step (7)
+          if len(self.optSubmissionQueue[traj]) == 0: #FIXME I don't know if this check on queue size is a good choice
             ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
             varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs'])
@@ -190,33 +258,21 @@ class SPSA(GradientBasedOptimizer):
             if modded:
               del self.counter['lastStepSize'][traj]
               self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
-            self.queueUpOptPointRuns(traj,varKPlus)
+            self.queueUpOptPointRuns(traj,self.counter['varsUpdate'][traj],varKPlus)
           self.nextActionNeeded = ('add more opt point evaluations',traj)
           self.status[traj]['process'] = 'submitting new opt points'
           self.status[traj]['reason'] = 'seeking new opt point'
           break
         # otherwise, we're not ready to sample yet
+        # workflow step (5b)
         else:
           self.raiseADebug('    Traj "{}": Waiting on collection of gradient evaluation points.'.format(traj))
           continue
 
-      # all opt point evaluations have been submitted, but waiting for them to be collected
-      elif process == 'collecting new opt points':
-        self.raiseADebug('    Traj "{}": Waiting on collection of new optimization point.'.format(traj))
-        continue
-
-      # trajectory has already converged, so there's no work to do for it.
-      elif reason == 'converged':
-        self.raiseADebug('    Traj "{}": Trajectory is marked as converged.'.format(traj))
-        continue
-
-      # trajectory didn't converge, but was killed because of redundancy
-      elif reason == 'removed as redundant':
-        self.raiseADebug('    Traj "{}": Trajectory is removed for redundancy.'.format(traj))
-        continue
       # unknown status
       else:
         self.raiseAnError(RuntimeError,'Unrecognized status:'.format(traj),self.status[traj])
+
     # end loop through trajectories looking for new actions
 
     # if we did not find an action, we're not ready to provide an input
@@ -257,6 +313,8 @@ class SPSA(GradientBasedOptimizer):
         lossDiff *= -1.0
       for var in self.getOptVars(traj=traj):
         # gradient is calculated in normalized space
+        print('DEBUGG dh parts:',pert, opt)
+        # TODO FIXME pert is missing the input space right after transitioning multilevels; opt has its space
         dh = pert['inputs'][var] - opt['inputs'][var]
         if abs(dh) < 1e-15:
           self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
@@ -282,7 +340,7 @@ class SPSA(GradientBasedOptimizer):
     #"traj" is the trajectory that is in need of the action
 
     if action == 'start new trajectory':
-      if len(self.submissionQueue[traj]) == 0:
+      if len(self.optSubmissionQueue[traj]) == 0:
         self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
         values = {}
         for var in self.getOptVars(traj=traj):
@@ -295,46 +353,55 @@ class SPSA(GradientBasedOptimizer):
         data = self.normalizeData(values)
         self.updateVariableHistory(values,traj)
         # set up a new batch of runs on the new optimal point (batch size 1 unless more requested by user)
-        self.queueUpOptPointRuns(traj,data)
+        self.queueUpOptPointRuns(traj,self.counter['varsUpdate'][traj],data)
+        # TODO FIXME also submit gradient runs here
       #"submit" the next queued point
       prefix,point = self.getQueuedPoint(traj)
       for var in self.getOptVars(traj=traj):
         self.values[var] = point[var]
       self.inputInfo['prefix'] = prefix
       # if all iterations have been submitted, the optimizer is now in collection mode.
-      if len(self.submissionQueue[traj]) == 0:
+      if len(self.optSubmissionQueue[traj]) == 0:
         self.status[traj]['process'] = 'collecting new opt points'
 
     elif action == 'add new grad evaluation point':
       #increment submission number
-      self.counter['perturbation'][traj] += 1
-      #if this is the first perturbation, prep all the perturbation (aka gradient evaluation) points we need to run
-      #note that currently we use the opt point as half of the perturbation point, so each gradient eval will be between
-      #   the opt point and a different perturbed point
-      if self.counter['perturbation'][traj] == 1:
-        # Generate all the perturbations at once, then we can submit them one at a time
-        ck = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
-        varK = self.counter['recentOptHist'][traj][0]['inputs']
-        #check the submission queue is empty; otherwise something went wrong # TODO this is a sanity check, might be removed for efficiency
-        #TODO this same check is in GradientBasedOptimizer.queueUpOptPointRuns, they might benefit from abstracting
-        if len(self.submissionQueue[traj]) > 0:
-          self.raiseAnError(RuntimeError,'Preparing to add grad evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
-        for i in self.perturbationIndices: #perturbation points are odd, not even
-          direction = self._getPerturbationDirection(i, traj)
-          point = {}
-          for varID, var in enumerate(self.getOptVars(traj=traj)):
-            val = varK[var] + ck*direction[varID]
-            val = self._checkBoundariesAndModify(1.0, 0.0, 1.0, val, 0.9999, 0.0001)
-            point[var] = val
-          #create identifier
-          prefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i)
-          #queue it up
-          self.submissionQueue[traj].append({'inputs':point,'prefix':prefix})
-      #end if-first-time conditional
+      #self.counter['perturbation'][traj] += 1
+      ##### ALL the initialization moved into queueUpOptPointRuns() and is called when a new potential opt point is found #####
+      ##if this is the first perturbation, prep all the perturbation (aka gradient evaluation) points we need to run
+      ##note that currently we use the opt point as half of the perturbation point, so each gradient eval will be between
+      ##   the opt point and a different perturbed point
+      #if self.counter['perturbation'][traj] == 1:
+      #  # Generate all the perturbations at once, then we can submit them one at a time
+      #  ck = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
+      #  varK = self.counter['recentOptHist'][traj][0]['inputs']
+      #  #check the submission queue is empty; otherwise something went wrong # TODO this is a sanity check, might be removed for efficiency
+      #  #TODO this same check is in GradientBasedOptimizer.queueUpOptPointRuns, they might benefit from abstracting
+      #  if len(self.submissionQueue[traj]) > 0:
+      #    self.raiseAnError(RuntimeError,'Preparing to add grad evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
+      #  for i in self.perturbationIndices:
+      #    direction = self._getPerturbationDirection(i, traj)
+      #    point = {}
+      #    for varID, var in enumerate(self.getOptVars(traj=traj)):
+      #      val = varK[var] + ck*direction[varID]
+      #      val = self._checkBoundariesAndModify(1.0, 0.0, 1.0, val, 0.9999, 0.0001)
+      #      point[var] = val
+      #    #create identifier
+      #    prefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i)
+      #    #queue it up
+      #    self.submissionQueue[traj].append({'inputs':point,'prefix':prefix})
+      ##end if-first-time conditional
+      ##### END initialization moved #####
+      if len(self.gradSubmissionQueue[traj]) == 0 and self.status[traj]['reason'] == 'rejecting bad opt point':
+        iteration = self.counter['varsUpdate'][traj]
+        print('DEBUGG rejection queueing, iteration is',self.counter['varsUpdate'][traj])
+        self.queueUpOptPointRuns(traj,iteration,self.counter['recentOptHist'][traj][0]['inputs'],onlyGrad=True)
+        self.status[traj]['reason'] = 'seeking new opt point'
       #get a queued entry to run
-      entry = self.submissionQueue[traj].popleft()
-      prefix = entry['prefix']
-      point = entry['inputs']
+      #entry = self.gradSubmissionQueue[traj].popleft()
+      #prefix = entry['prefix']
+      #point = entry['inputs']
+      prefix,point = self.getQueuedPoint(traj,kind='grad')
       self.gradDict['pertPoints'][traj][int(prefix.split('_')[-1])] = {'inputs':point}#self.normalizeData(point)}
       point = self.denormalizeData(point)
       for var in self.getOptVars(traj=traj):
@@ -342,20 +409,22 @@ class SPSA(GradientBasedOptimizer):
       # use 'prefix' to locate the input sent out, as <traj>_<varUpdate>_<eval number>, as 0_0_2
       self.inputInfo['prefix'] = prefix
       # if all required points are submitted, switch into collection mode
-      if len(self.submissionQueue[traj]) == 0:
+      #  (unless we've submitted all neighbors before we finish collecting and checking the new potential opt point)
+      if len(self.gradSubmissionQueue[traj]) == 0 and self.status[traj]['process'] == 'submitting grad eval points':
         self.status[traj]['process'] = 'collecting grad eval points'
 
     elif action == 'add more opt point evaluations':
       #take a sample from the queue
-      prefix,point = self.getQueuedPoint(traj)
+      print('DEBUGG taking from queue')
+      prefix,point = self.getQueuedPoint(traj,kind='opt')
       #prep the point for running
-      for var in self.getOptVars(traj=traj):
+      for var in self.getOptVars(traj):
         self.values[var] = point[var]
       self.updateVariableHistory(self.values,traj)
       # use 'prefix' to locate the input sent out
       self.inputInfo['prefix'] = prefix
       # if all points submitted (after current one gets submitted), switch to collection mode
-      if len(self.submissionQueue[traj]) == 0:
+      if len(self.optSubmissionQueue[traj]) == 0:
         self.status[traj]['process'] = 'collecting new opt points'
 
     #unrecognized action
@@ -375,9 +444,9 @@ class SPSA(GradientBasedOptimizer):
       @ Out, convertedValue, float, the modified value in case the boundaries are violated
     """
     convertedValue = currentValue
-    if currentValue >= upperBound:
+    if currentValue > upperBound:
       convertedValue = pertUp*varRange + lowerBound
-    if currentValue <= lowerBound:
+    if currentValue < lowerBound:
       convertedValue = pertLow*varRange + lowerBound
     return convertedValue
 
@@ -392,9 +461,11 @@ class SPSA(GradientBasedOptimizer):
     self.counter ['perturbation'   ][traj] = 0
     self.counter ['gradientHistory'][traj] = [{},{}]
     self.counter ['gradNormHistory'][traj] = [0,0]
+    self.optSubmissionQueue[traj].clear()
+    #self.gradSubmissionQueue[traj].clear()
     #only clear non-opt points from pertPoints
     for i in self.perturbationIndices:
-      self.gradDict['pertPoints'][traj][i] = 0
+      self.gradDict['pertPoints'][traj][i] = {}
     self.convergeTraj[traj] = False
     self.status[traj] = {'process':'submitting grad eval points','reason':'found new opt point'}
     try:
@@ -684,3 +755,23 @@ class SPSA(GradientBasedOptimizer):
       # in order to perform the de-noising we keep the same perturbation direction and we repeat the evaluation multiple times
       direction = self.currentDirection
     return direction
+
+  def terminateGradEvals(self,traj,iteration):
+    """
+      Queues all neighbors for a particular trajectory's potential opt point to be terminated.
+      @ In, traj, int, trajectory on whom we are acting
+      @ In, iteration, int, varsUpdate identifier whose neighbors should be terminated
+      @ Out, None
+    """
+    #identify runs that should be terminated
+    ids = list(self._createEvaluationIdentifier(traj,iteration,i) for i in self.perturbationIndices)
+    #terminate runs that have already been submitted to the job handler
+    self.setPrefixToTerminate(prefixes=ids)
+    #clear runs that are still in the gradSubmissionQueue
+    # TODO can we just do gradSubmissionQueue[traj].clear()?
+    toRemove = []
+    for entry in self.gradSubmissionQueue[traj]:
+      if entry['prefix'] in ids:
+        toRemove.append(entry)
+    for entry in toRemove:
+      self.gradSubmissionQueue[traj].remove(entry)
