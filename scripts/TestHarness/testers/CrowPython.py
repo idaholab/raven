@@ -66,17 +66,16 @@ class CrowPython(Tester):
       return (False, 'skipped (No swig 2.0 found)')
     return (True, '')
 
-  def processResults(self, moose_dir,retcode, options, output):
+  def processResults(self, moose_dir, options, output):
     """ Handle the results of test case.
         @ In, moose_dir: the root directory where MOOSE resides on the current
                          system.
-        @ In, retcode: Return code of the test case.
         @ In, options: options (unused)
         @ In, output: the output from the test case.
         @ Out: a tuple with the error return code and the output passed in.
     """
-    if retcode != 0:
-      self.setStatus(str(retcode), self.bucket_fail)
+    if self.exit_code != 0:
+      self.setStatus(str(self.exit_code), self.bucket_fail)
       return output
     self.setStatus(self.success_message, self.bucket_success)
     return output

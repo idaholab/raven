@@ -89,7 +89,7 @@ class RavenErrors(Tester):
         return (False,'skipped (found environmental variable "'+env_var+'")')
     return (True, '')
 
-  def processResults(self, moose_dir,retcode, options, output):
+  def processResults(self, moose_dir, options, output):
     """This method processes results. It checks if the expected error messgae keyword exists in the output stream."""
     for line in output.split('\n'):
       if self.specs['expect_err'] in line:
