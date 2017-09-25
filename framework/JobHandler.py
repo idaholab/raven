@@ -142,10 +142,16 @@ class JobHandler(MessageHandler.MessageUser):
     with self.__queueLock:
       returnCode = running.getReturnCode()
       if returnCode != 0:
+        metadataFailedRun = running.getMetadata()
+        metaDataKeys      = metadataFailedRun.keys()
+        metaDataToKeep    = metadataFailedRun
+        if 'jobHandler' in metaDataKeys:
+          metaDataKeys.pop(metaDataKeys.index("jobHandler"))
+          metaDataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metaDataKeys }
         ## FIXME: The running.command was always internal now, so I removed it.
         ## We should probably find a way to give more pertinent information.
         self.raiseAMessage(" Process Failed " + str(running) + " internal returnCode " + str(returnCode))
-        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(running.getMetadata()))
+        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metaDataToKeep))
 
   def __initializeParallelPython(self):
     """
@@ -256,7 +262,7 @@ class JobHandler(MessageHandler.MessageUser):
         #subprocess.Popen(['ssh', nodeId, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
 
         ## Instead, let's build the command and then call the os-agnostic version
-        command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"])
+        command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
         utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         ## e.g., ssh nodeId COMMAND='python ppserverScript -w stuff'
 

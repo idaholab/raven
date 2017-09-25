@@ -512,39 +512,3 @@ class PointSet(Data):
         self._dataContainer["outputs"][key] = c1darray(values=np.array(inoutDict[key]))
       else:
         self._dataContainer["outputs"][key].append(c1darray(values=np.array(inoutDict[key])))
-
-#   COMMENTED BECUASE NOT USED. NEED TO BE REMOVED IN THE FUTURE
-#   def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
-#     """
-#       specialization of extractValue for this data type
-#       @ In, inOutType, string, the type of data to extract (input or output)
-#       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
-#       @ In, varName, string, is the name of the variable that should be recovered
-#       @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
-#         if varID.type!=tuple only one point along sampling of that variable is retrieved
-#           else:
-#             if varID=(int,int) the slicing is [varID[0]:varID[1]]
-#             if varID=(int,None) the slicing is [varID[0]:]
-#       @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
-#           if stepID.type!=tuple only one point along the history is retrieved
-#           else:
-#             if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
-#             if stepID=(int,None) the slicing is [stepID[0]:]
-#       @ In, nodeId, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
-#       @ Out, value, varTyp, the requested value
-#     """
-#     if stepID!=None: self.raiseAnError(RuntimeError,'seeking to extract a history slice over an PointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
-#     if varTyp!='numpy.ndarray':
-#       if varID!=None:
-#         if self._dataParameters['hierarchical']: exec('extractedValue ='+varTyp +'(self.getHierParam(inOutType,nodeId,varName,serialize=False)[nodeId])')
-#         else: exec('extractedValue ='+varTyp +'(self.getParam(inOutType,varName)[varID])')
-#         return extractedValue
-#       #if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID])')
-#       else: self.raiseAnError(RuntimeError,'trying to extract a scalar value from a time point set without an index')
-#     else:
-#       if self._dataParameters['hierarchical']:
-#         paramss = self.getHierParam(inOutType,nodeId,varName,serialize=True)
-#         extractedValue = np.zeros(len(paramss[nodeId]))
-#         for index in range(len(paramss[nodeId])): extractedValue[index] = paramss[nodeId][index]
-#         return extractedValue
-#       else: return self.getParam(inOutType,varName)
