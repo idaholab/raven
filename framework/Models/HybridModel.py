@@ -316,12 +316,13 @@ class HybridModel(Dummy):
     for romInfo in self.romsDictionary.values():
       # reset the rom
       romInfo['Instance'].amITrained = False
+      tempTargetEvaluation = copy.deepcopy(self.tempTargetEvaluation)
       # always train the rom even if the rom is converged, we assume the cross validation and rom train are relative cheap
-      outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], self.tempTargetEvaluation], samplerType, kwargs)[1]
+      outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], tempTargetEvaluation], samplerType, kwargs)[1]
       converged = self.isRomConverged(outputMetrics)
       romInfo['Converged'] = converged
       if converged:
-        romInfo['Instance'].train(self.tempTargetEvaluation)
+        romInfo['Instance'].train(tempTargetEvaluation)
         self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
 
   def isRomConverged(self, outputDict):

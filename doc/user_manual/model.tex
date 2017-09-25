@@ -1532,6 +1532,8 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
        \default{10};
      \item \xmlNode{tolerance}, \xmlDesc{float, optional field}, ROMs convergence criterion. This tolerance will
        be compared with the results from the cross validation to determine whether the ROMs are converged or not.
+       \nb Currently, this tolerance can be only used for cross validations with SKL Metrics: \textit{euclidean},
+       \textit{cityblock}, \textit{l1}, \textit{l2} and \textit{manhattan}.
         \default{0.01};
      \item \xmlNode{trainStep}, \xmlDesc{XML node, optional field}, the number of additional high-fidelity model
        runs before performing cross validation on the ROMs.
