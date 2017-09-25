@@ -29,8 +29,6 @@ from scipy.spatial import ConvexHull,Voronoi, voronoi_plot_2d
 from operator import mul
 from collections import defaultdict
 import itertools
-import pyhull as ph
-import pyhull.halfspace as phh
 import sys
 #External Modules End--------------------------------------------------------------------------------
 
@@ -248,20 +246,20 @@ class ComparisonStatistics(PostProcessor):
       dataDict[aInput.name] = aInput
     self.dataDict = dataDict
     dataToProcess = []
-     for compareGroup in self.compareGroups:
-       dataPulls = compareGroup.dataPulls
-       reference = compareGroup.referenceData
-       foundDataObjects = []
+    for compareGroup in self.compareGroups:
+      dataPulls = compareGroup.dataPulls
+      reference = compareGroup.referenceData
+      foundDataObjects = []
       #self.dataDict : the input data should be able to be multidimensionnal. (a numpy array of a list of pointCoordinate. Cf np.random.rand(10,4))
-       coordTemp=[]
-       for distribution in dataPulls:
-         for coord in distribution:
-           for name, kind, rest in [coord]:
-             data = self.dataDict[name].getParametersValues(kind)
-             if len(rest) == 1:
-               foundDataObjects.append(data[rest[0]])
-               coordTemp.append(coord)
-       dataToProcess.append((coordTemp, foundDataObjects, reference))
+      coordTemp=[]
+      for distribution in dataPulls:
+        for coord in distribution:
+          for name, kind, rest in [coord]:
+            data = self.dataDict[name].getParametersValues(kind)
+            if len(rest) == 1:
+              foundDataObjects.append(data[rest[0]])
+              coordTemp.append(coord)
+      dataToProcess.append((coordTemp, foundDataObjects, reference))
     for dataPulls, datas, reference in dataToProcess:
       compareGroupName = '__'.join([dataPulls[i][2][0] for i in range(len(dataPulls))])
       outputDict[compareGroupName] = {}

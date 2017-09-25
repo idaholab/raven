@@ -33,8 +33,11 @@ from scipy.spatial import ConvexHull,Voronoi, voronoi_plot_2d
 from operator import mul
 from collections import defaultdict
 import itertools
-import pyhull as ph
-import pyhull.halfspace as phh
+try:
+  import pyhull as ph
+  import pyhull.halfspace as phh
+except ImportError:
+  print("Unable to import pyhull")
 import sys
 #External Modules End-----------------------------------------------------------
 
@@ -390,7 +393,9 @@ class BasicStatistics(PostProcessor):
       elif child.tag == "biased":
         if child.text.lower() in utils.stringsThatMeanTrue():
           self.biased = True
-      if child.tag == "voronoi"      :
+      elif child.tag == "pivotParameter":
+        self.pivotParameter = child.text
+      elif child.tag == "voronoi"      :
           self.voronoi = True
           for attrib in child.attrib:
             if attrib=="inputs"      : self.inputsVoronoi = child.attrib[attrib].split(',')
@@ -400,17 +405,16 @@ class BasicStatistics(PostProcessor):
           if child.text.lower()=="unidimensional"    : self.voronoiDimensional = "unidimensional"
           elif child.text.lower()=="multidimensional": self.voronoiDimensional = "multidimensional"
           else                                       :self.raiseAnError(IOError,"Unknown text : " + child.text.lower() + " .Expecting unidimensional or multidimensional.")
+      else:
+        self.raiseAWarning('Unrecognized node in BasicStatistics "',child.tag,'" has been ignored!')
+
       assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
     #The computation of the elements in the "toRemove" list gives out some error if the ditribution is 1 dimensionnal.
+    assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
     if len(self.parameters['targets'])==1:
       toRemove = ['VarianceDependentSensitivity','NormalizedSensitivity','covariance','pearson']
       self.what = [ x for x in self.what if x not in toRemove]
 
-      elif child.tag == "pivotParameter":
-        self.pivotParameter = child.text
-      else:
-        self.raiseAWarning('Unrecognized node in BasicStatistics "',child.tag,'" has been ignored!')
-    assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
 
   def collectOutput(self, finishedJob, output):
     """
