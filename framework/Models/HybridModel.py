@@ -120,6 +120,7 @@ class HybridModel(Dummy):
     self.threshold             = 0.2       # the cut off validation criterion of new point using the CrowdingDistance
     self.printTag              = 'HYBRIDMODEL MODEL' # print tag
     self.createWorkingDir      = False
+    self.tempOutputs           = {}
     # assembler objects to be requested
     self.addAssemblerObject('Model','1',True)
     self.addAssemblerObject('ROM','n')
@@ -231,6 +232,8 @@ class HybridModel(Dummy):
     if unknownList:
       self.raiseAnError(IOError, "The following outputs: ", ','.join(str(e) for e in unknownList), " used in Model: ", modelName, "but not used in the paired ROMs.")
 
+    self.tempOutputs['uncollectedJobIds'] = []
+
   def getInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
@@ -316,13 +319,13 @@ class HybridModel(Dummy):
     for romInfo in self.romsDictionary.values():
       # reset the rom
       romInfo['Instance'].amITrained = False
-      tempTargetEvaluation = copy.deepcopy(self.tempTargetEvaluation)
+      #tempTargetEvaluation = copy.deepcopy(self.tempTargetEvaluation)
       # always train the rom even if the rom is converged, we assume the cross validation and rom train are relative cheap
-      outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], tempTargetEvaluation], samplerType, kwargs)[1]
+      outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], self.tempTargetEvaluation], samplerType, kwargs)[1]
       converged = self.isRomConverged(outputMetrics)
       romInfo['Converged'] = converged
       if converged:
-        romInfo['Instance'].train(tempTargetEvaluation)
+        romInfo['Instance'].train(self.tempTargetEvaluation)
         self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
 
   def isRomConverged(self, outputDict):
@@ -468,6 +471,7 @@ class HybridModel(Dummy):
         self.mods.append(mm)
 
     prefix = kwargs['prefix']
+    self.tempOutputs['uncollectedJobIds'].append(prefix)
 
     if not self.romConverged:
       trainingSize = self.checkTrainingSize()
@@ -586,8 +590,6 @@ class HybridModel(Dummy):
       exportDict = self.modelInstance.createExportDictionaryFromFinishedJob(finishedRun[0], True)
       self.raiseADebug("Create exportDict")
 
-      self.collectOutputFromDict(exportDict, self.tempTargetEvaluation)
-
     return exportDict
 
   def collectOutput(self,finishedJob,output):
@@ -601,6 +603,15 @@ class HybridModel(Dummy):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
     exportDict = evaluation[1]
+
+    try:
+      jobIndex = self.tempOutputs['uncollectedJobIds'].index(finishedJob.identifier)
+      self.tempOutputs['uncollectedJobIds'].pop(jobIndex)
+    except ValueError:
+      jobIndex = None
+
+    if jobIndex is not None and not self.romValid:
+      self.collectOutputFromDict(exportDict, self.tempTargetEvaluation)
 
     Dummy.collectOutput(self, finishedJob, output, options = {'exportDict':exportDict})
 
