@@ -174,6 +174,12 @@ class HybridModel(Dummy):
     if isinstance(self.modelInstance, Models.Model):
       self.raiseAnError(IOError, "HybridModel has already been initialized, and it can not be initialized again!")
     self.modelInstance = self.retrieveObjectFromAssemblerDict('Model', self.modelInstance)
+    if self.modelInstance.type == 'Code':
+      codeInput = []
+      for elem in inputs:
+        if isinstance(elem, Files.File):
+          codeInput.append(elem)
+      self.modelInstance.initialize(runInfo, codeInput, initDict)
     self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
     self.cvInstance.initialize(runInfo, inputs, initDict)
     self.targetEvaluationInstance = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self.targetEvaluationInstance)
@@ -279,6 +285,8 @@ class HybridModel(Dummy):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
+    print("C counter: {} prefix: {} useROM: {}".format(self.counter, kwargs['prefix'], self.romValid))
+
     self.raiseADebug("Create New Input")
     if self.romValid:
       identifier = kwargs['prefix']
@@ -289,6 +297,7 @@ class HybridModel(Dummy):
         newKwargs[romName]['uniqueHandler'] = self.name+identifier
     else:
       newKwargs = copy.deepcopy(kwargs)
+      #print(self.counter, newKwargs)
 
     if self.modelInstance.type == 'Code':
       codeInput = []
@@ -471,6 +480,7 @@ class HybridModel(Dummy):
         self.mods.append(mm)
 
     prefix = kwargs['prefix']
+    self.counter = prefix
     self.tempOutputs['uncollectedJobIds'].append(prefix)
 
     if not self.romConverged:
@@ -492,6 +502,7 @@ class HybridModel(Dummy):
     ## will suffice until we can better redesign this whole process.
     kwargs['jobHandler'] = jobHandler
 
+    print("S counter: {} prefix: {} useROM: {} ".format(self.counter, kwargs['prefix'], self.romValid))
     ## This may look a little weird, but due to how the parallel python library
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
@@ -514,9 +525,9 @@ class HybridModel(Dummy):
     kwargsKeys.pop(kwargsKeys.index("jobHandler"))
     kwargsToKeep = {keepKey: kwargs[keepKey] for keepKey in kwargsKeys}
     jobHandler = kwargs['jobHandler']
-    Input = self.createNewInput(myInput, samplerType, **kwargsToKeep)
+    newInput = self.createNewInput(myInput, samplerType, **kwargsToKeep)
     ## Unpack the specifics for this class, namely just the jobHandler
-    returnValue = (Input,self._externalRun(Input,jobHandler))
+    returnValue = (newInput,self._externalRun(newInput,jobHandler))
     return returnValue
 
   def _externalRun(self,inRun, jobHandler):
@@ -571,7 +582,6 @@ class HybridModel(Dummy):
       inputKwargs['prefix'] = self.modelInstance.name+utils.returnIdSeparator()+identifier
       inputKwargs['uniqueHandler'] = self.name + identifier
       moveOn = False
-      self.modelInstance.initialize(jobHandler.runInfoDict, originalInput)
       while not moveOn:
         if jobHandler.availability() > 0:
           self.modelInstance.submit(originalInput, samplerType, jobHandler, **inputKwargs)

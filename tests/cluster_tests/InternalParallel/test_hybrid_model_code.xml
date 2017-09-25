@@ -1,19 +1,11 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
-  <TestInfo>
-    <name>framework/CodeInterfaceTests.genericInterfaceIO</name>
-    <author>wangc</author>
-    <created>2017-09-21</created>
-    <classesTested>Models.HybridModel, Models.Code.GenericCode</classesTested>
-    <description>
-       This test is aimed to test the HybridModel system with the generic code system.
-    </description>
-  </TestInfo>
+<Simulation verbosity="silent">
   <RunInfo>
-    <JobName>testGenericCode</JobName>
+    <JobName>testHybridModelCode</JobName>
     <Sequence>hybridModelCode</Sequence>
-    <WorkingDir>runCode</WorkingDir>
-    <batchSize>1</batchSize>
+    <WorkingDir>hybridModelCode</WorkingDir>
+    <batchSize>3</batchSize>
+    <internalParallel>False</internalParallel>
   </RunInfo>
 
   <Files>
@@ -29,23 +21,27 @@
 
   <Models>
     <Code name="poly" subType="GenericCode">
-      <executable>runCode/poly_inp_io.py</executable>
+      <executable>hybridModelCode/poly_inp_io.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="-i" extension=".one" type="input"/>
       <fileargs arg="aux" extension=".two" type="input"/>
       <fileargs arg="output" type="output"/>
       <prepend>python</prepend>
     </Code>
-    <ROM name="knr" subType="SciKitLearn">
-      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
-      <Features>x, y</Features>
+    <ROM name="svr" subType="SciKitLearn">
+      <SKLtype>svm|SVR</SKLtype>
+      <Features>x,y</Features>
       <Target>poly</Target>
-      <n_neighbors>5</n_neighbors>
-      <weights>uniform</weights>
-      <algorithm>auto</algorithm>
-      <leaf_size>30</leaf_size>
-      <metric>minkowski</metric>
-      <p>2</p>
+      <C>1.0</C>
+      <epsilon>0.1</epsilon>
+      <kernel>rbf</kernel>
+      <degree>3</degree>
+      <coef0>0.0</coef0>
+      <shrinking>True</shrinking>
+      <tol>1e-3</tol>
+      <cache_size>200</cache_size>
+      <verbose>False</verbose>
+      <max_iter>-1</max_iter>
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
@@ -59,11 +55,11 @@
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
         <Model class="Models" type="Code">poly</Model>
-        <ROM class="Models" type="ROM">knr</ROM>
+        <ROM class="Models" type="ROM">svr</ROM>
         <TargetEvaluation class="DataObjects" type="PointSet">samples</TargetEvaluation>
         <CV class="Models" type="PostProcessor">pp1</CV>
         <settings>
-            <tolerance>0.2</tolerance>
+            <tolerance>0.5</tolerance>
             <trainStep>1</trainStep>
             <maxTrainSize>1000</maxTrainSize>
             <initialTrainSize>10</initialTrainSize>
