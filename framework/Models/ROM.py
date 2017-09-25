@@ -215,7 +215,7 @@ class ROM(Dummy):
     self.initializationOptionDict['name'] = self.name
     # FIXME this is bypassing the intended method, find the right way to do this
     if 'reseed' in xmlNode.attrib.keys():
-        self.initializationOptionDict['reseedInt'] = int(xmlNode.attrib['reseed')
+      self.initializationOptionDict['reseedInt'] = int(xmlNode.attrib['reseed'])
     paramInput = ROM.getInputSpecification()()
     paramInput.parseNode(xmlNode)
     def tryStrParse(s):
