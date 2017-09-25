@@ -411,10 +411,6 @@ class BasicStatistics(PostProcessor):
       assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
     #The computation of the elements in the "toRemove" list gives out some error if the ditribution is 1 dimensionnal.
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
-    if len(self.parameters['targets'])==1:
-      toRemove = ['VarianceDependentSensitivity','NormalizedSensitivity','covariance','pearson']
-      self.what = [ x for x in self.what if x not in toRemove]
-
 
   def collectOutput(self, finishedJob, output):
     """
@@ -729,18 +725,18 @@ class BasicStatistics(PostProcessor):
         for target in parameterSet:
           if target in self.outputsVoronoi:
             if self.spaceVoronoi=='output':
-              points = list(np.column_stack([Input['targets'][target]]))
+              points = list(np.column_stack([input['targets'][target]]))
               pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(BasicStatistics.constructVoronoi(self,points))
               self.proba[target] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target]
             else:
               for inp in self.inputsVoronoi:
-                if 'GridInfo' in Input['metadata'].keys(): self.equallySpaced = True    #only relevant in 1D.
+                if 'GridInfo' in input['metadata'].keys(): self.equallySpaced = True    #only relevant in 1D.
                 else: self.equallySpaced = True                                         #@jougcj : False if someone find a good way to define the probability weights in the value space
                 if self.equallySpaced:
-                  points = [[Input['metadata']['SampledVarsCdf'][i][inp]]  for i in range(len(Input['metadata']['SampledVarsCdf']))]
+                  points = [[input['metadata']['SampledVarsCdf'][i][inp]]  for i in range(len(input['metadata']['SampledVarsCdf']))]
                 else:
-                  self.boundariesVoronoi = [[Input['metadata']['Boundaries'][0][inp][0],Input['metadata']['Boundaries'][0][inp][1]]]
-                  points=[[Input['metadata']['SampledVars'][i][inp]] for i in range(len(Input['metadata']['SampledVars']))]
+                  self.boundariesVoronoi = [[input['metadata']['Boundaries'][0][inp][0],input['metadata']['Boundaries'][0][inp][1]]]
+                  points=[[input['metadata']['SampledVars'][i][inp]] for i in range(len(input['metadata']['SampledVars']))]
                 pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][inp] = np.asarray(BasicStatistics.constructVoronoi(self,points))
               pbW = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][self.inputsVoronoi[0]]
               for inp in range(len(self.inputsVoronoi)-1):
@@ -752,51 +748,51 @@ class BasicStatistics(PostProcessor):
               pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = pbW
               self.proba[target] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target]
           else:
-            if 'GridInfo' in Input['metadata'].keys(): self.equallySpaced = True    #only relevant in 1D.
+            if 'GridInfo' in input['metadata'].keys(): self.equallySpaced = True    #only relevant in 1D.
             else: self.equallySpaced = True                                         #@jougcj : False if someone find a good way to define the probability weights in the value space.
             if self.equallySpaced:
-              points = [[Input['metadata']['SampledVarsCdf'][i][target]]  for i in range(len(Input['metadata']['SampledVarsCdf']))]
+              points = [[input['metadata']['SampledVarsCdf'][i][target]]  for i in range(len(input['metadata']['SampledVarsCdf']))]
             else:
-              self.boundariesVoronoi = [[Input['metadata']['Boundaries'][0][target][0],Input['metadata']['Boundaries'][0][target][1]]]
-              points = list(np.column_stack([Input['targets'][target]]))
+              self.boundariesVoronoi = [[input['metadata']['Boundaries'][0][target][0],input['metadata']['Boundaries'][0][target][1]]]
+              points = list(np.column_stack([input['targets'][target]]))
             pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(BasicStatistics.constructVoronoi(self,points))
             self.proba[target] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target]
             if any(i in ['VarianceDependentSensitivity','NormalizedSensitivity','covariance','pearson'] for i in self.what):
               if pbWeights['realization'] is None:
                 if any(i in self.outputsVoronoi for i in parameterSet):
-                  if 'metadata' in Input.keys(): pbPresent = 'ProbabilityWeight' in Input['metadata'].keys() if 'metadata' in Input.keys() else False
-                  if not pbPresent:pbWeights['realization'] = np.asarray([1.0 / len(Input['targets'][self.parameters['targets'][0]])]*len(Input['targets'][self.parameters['targets'][0]]))
-                  else:pbWeights['realization'] = Input['metadata']['ProbabilityWeight']/np.sum(Input['metadata']['ProbabilityWeight'])
+                  if 'metadata' in input.keys(): pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
+                  if not pbPresent:pbWeights['realization'] = np.asarray([1.0 / len(input['targets'][self.parameters['targets'][0]])]*len(input['targets'][self.parameters['targets'][0]]))
+                  else:pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
                 else:
-                  points = np.column_stack([[[Input['metadata']['SampledVarsCdf'][i][target]]  for i in range(len(Input['metadata']['SampledVarsCdf']))] for target in parameterSet])
+                  points = np.column_stack([[[input['metadata']['SampledVarsCdf'][i][target]]  for i in range(len(input['metadata']['SampledVarsCdf']))] for target in parameterSet])
                   self.boundariesVoronoi = [[0,1]]*len(parameterSet)
                   pbWeights['realization'] = np.asarray(BasicStatistics.constructVoronoi(self,points))
       else:
-        points = list(np.column_stack([Input['targets'][x] for x in Input['targets'].keys()]))
-        self.boundariesVoronoi = [[Input['metadata']['Boundaries'][0][x][0],Input['metadata']['Boundaries'][0][x][1]] for x in Input['targets'].keys()]
+        points = list(np.column_stack([input['targets'][x] for x in input['targets'].keys()]))
+        self.boundariesVoronoi = [[input['metadata']['Boundaries'][0][x][0],input['metadata']['Boundaries'][0][x][1]] for x in input['targets'].keys()]
         pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][','.join(parameterSet)] = np.asarray(BasicStatistics.constructVoronoi(self,points))
         self.proba[','.join(parameterSet)] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][','.join(parameterSet)]
       pbPresent = True
       # if self.comparisonVoronoi:
       #   self.sendVerticesVoronoi = True
-      #   self.verticesVoronoi = BasicStatistics.constructVoronoi(self,[[Input['targets'][parameterSet[0]][i]] for i in range(len(Input['targets'][parameterSet[0]]))])
+      #   self.verticesVoronoi = BasicStatistics.constructVoronoi(self,[[input['targets'][parameterSet[0]][i]] for i in range(len(input['targets'][parameterSet[0]]))])
       #   self.sendVerticesVoronoi = False
     else:
-      if 'metadata' in Input.keys(): pbPresent = 'ProbabilityWeight' in Input['metadata'].keys() if 'metadata' in Input.keys() else False
+      if 'metadata' in input.keys(): pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
       if not pbPresent:
-        if 'metadata' in Input.keys():
-          if 'SamplerType' in Input['metadata'].keys():
-            if Input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+        if 'metadata' in input.keys():
+          if 'SamplerType' in input['metadata'].keys():
+            if input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
           else: self.raiseAWarning('BasicStatistics can not compute expectedValue without ProbabilityWeights. Use unit weight')
-          pbWeights['realization'] = np.asarray([1.0 / len(Input['targets'][self.parameters['targets'][0]])]*len(Input['targets'][self.parameters['targets'][0]]))
-      else: pbWeights['realization'] = Input['metadata']['ProbabilityWeight']/np.sum(Input['metadata']['ProbabilityWeight'])
+          pbWeights['realization'] = np.asarray([1.0 / len(input['targets'][self.parameters['targets'][0]])]*len(input['targets'][self.parameters['targets'][0]]))
+      else: pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
     # This section should take the probability weight for each sampling variable
     if not self.voronoi:
       pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
       if 'metadata' in input.keys():
         for target in parameterSet:
-          if 'ProbabilityWeight-'+target in Input['metadata'].keys():
-            pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(Input['metadata']['ProbabilityWeight-'+target])
+          if 'ProbabilityWeight-'+target in input['metadata'].keys():
+            pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(input['metadata']['ProbabilityWeight-'+target])
             pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:]/np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target])
      # if here because the user could have overwritten the method through the external function
 
