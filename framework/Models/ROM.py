@@ -168,6 +168,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reseedValue", InputData.IntegerType))
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
@@ -213,9 +214,6 @@ class ROM(Dummy):
     """
     Dummy._readMoreXML(self, xmlNode)
     self.initializationOptionDict['name'] = self.name
-    # FIXME this is bypassing the intended method, find the right way to do this
-    if 'reseed' in xmlNode.attrib.keys():
-      self.initializationOptionDict['reseedInt'] = int(xmlNode.attrib['reseed'])
     paramInput = ROM.getInputSpecification()()
     paramInput.parseNode(xmlNode)
     def tryStrParse(s):
