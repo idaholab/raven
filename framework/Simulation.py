@@ -819,8 +819,8 @@ class Simulation(MessageHandler.MessageUser):
           output.finalize()
       self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
     self.jobHandler.shutdown()
-    self.raiseAMessage('Run complete!')
     self.messageHandler.printWarnings()
+    self.raiseAMessage('Run complete!',forcePrint=True)
 
   def generateAllAssemblers(self, objectInstance):
     """
@@ -851,5 +851,3 @@ class Simulation(MessageHandler.MessageUser):
           else:
             self.raiseAnError(IOError,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
       objectInstance.generateAssembler(neededobjs)
-
-

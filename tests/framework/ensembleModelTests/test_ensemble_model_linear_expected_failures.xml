@@ -1,0 +1,97 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ensembleModelTests.testEnsembleModelLinearExpectedFailure</name>
+    <author>alfoa</author>
+    <created>2017-09-22</created>
+    <classesTested>Models.EnsembleModel, Models.ExternalModel, JobHandler.Thread</classesTested>
+    <description>
+        Mechanic TEST: This test is aimed to check that the failures from the EnsembleModel are correctly collected without abnormal
+       termination of RAVEN.
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>metaModelLinearExpectedFailure</WorkingDir>
+    <Sequence>failStep</Sequence>
+    <batchSize>2</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Uniform name="leftTemperatureDist">
+      <lowerBound>500</lowerBound>
+      <upperBound>1700</upperBound>
+    </Uniform>
+    <Uniform name="rightTemperatureDist">
+      <lowerBound>500</lowerBound>
+      <upperBound>1700</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Models>
+    <!-- EM1faulty will allways fail -->
+    <ExternalModel ModuleToLoad="metaModelLinearExpectedFailure/EM1faulty" name="heatTransfer" subType="">
+      <variables>leftTemperature,rightTemperature,k,solution</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
+      <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
+    </ExternalModel>
+    <EnsembleModel name="heatTransferEnsembleModel" subType="">
+      <Model class="Models" type="ExternalModel">
+        thermalConductivityComputation
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="ExternalModel">
+          heatTransfer
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <Samplers>
+    <Grid name="myGrid">
+      <variable name="leftTemperature">
+        <distribution>leftTemperatureDist</distribution>
+        <grid construction="equal" steps="2" type="value">500 600</grid>
+      </variable>
+      <variable name="rightTemperature">
+        <distribution>rightTemperatureDist</distribution>
+        <grid construction="equal" steps="2" type="value">500 600</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="failStep" repeatFailureRuns="3">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="EnsembleModel">heatTransferEnsembleModel</Model>
+      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
+      <Output class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Output>
+      <Output class="DataObjects" type="PointSet">heatTransferContainer</Output>
+    </MultiRun>
+  </Steps>
+
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="heatTransferContainer">
+      <Input>leftTemperature,rightTemperature,k</Input>
+      <Output>solution</Output>
+    </PointSet>
+    <PointSet name="thermalConductivityComputationContainer">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>k</Output>
+    </PointSet>
+    <PointSet name="metaModelOutputTest">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>k,solution</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
