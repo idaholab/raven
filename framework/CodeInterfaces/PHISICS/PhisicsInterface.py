@@ -27,6 +27,7 @@ import re
 from  __builtin__ import any as bAny
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import phisicsdata
+import xml.etree.ElementTree as ET
 
 
 class Phisics(CodeInterfaceBase):
@@ -48,6 +49,50 @@ class Phisics(CodeInterfaceBase):
       @ Out, __base, string path
     """
     return self.__base 
+
+  def getTitle(self, depletionRoot):
+    """
+      get the job title. It will become later the instant output file name. 
+      @ In, self.mrtauStandAlone, True = mrtau is ran standalone, False = mrtau in not ran standalone
+      @ In, depletionRoot, XML tree from the depletion_input.xml
+      @ In, inpRoot, XML tree from the inp.xml
+      @ Out, fileTitle, string 
+    """
+    for child in depletionRoot.findall(".//title"):
+      jobTitle = str(child.text)
+      break 
+    return jobTitle
+    
+  def verifyMrtauFlagsAgree(self, depletionRoot):
+    """
+      Verifies the node "standalone"'s text in the depletion_input xml. if the standalone flag 
+      in the depletion_input disagrees with the mrtau standalone flag in the raven input, 
+      the codes errors out
+      @ In, mrtauStandAlone, True = mrtau is ran standalone, False = mrtau in not ran standalone
+      @ In, depletionRoot, XML tree from the depletion_input.xml
+      @ Out, None
+    """
+    for child in depletionRoot.findall(".//standalone"):
+      isMrtauStandAlone = child.text.lower()
+      tag = child.tag
+      break 
+    if self.mrtauStandAlone == False and isMrtauStandAlone == 'yes':
+      raise  ValueError("\n\n Error. The flags controlling the Mrtau standalone mode are incorrect. The node <standalone> in depletion_input file disagrees with the node <mrtauStandAlone> in the raven input. \n the matching solutions are: <mrtauStandAlone>yes</mrtauStandAlone> and <"+tag+">True<"+tag+">\n <mrtauStandAlone>no</mrtauStandAlone> and <"+tag+">False<"+tag+">")
+    if self.mrtauStandAlone == True and isMrtauStandAlone == 'no':
+      raise  ValueError("\n\n Error. The flags controlling the Mrtau standalone mode are incorrect. The node <standalone> in depletion_input file disagrees with the node <mrtauStandAlone> in the raven input. \n the matching solutions are: <mrtauStandAlone>yes</mrtauStandAlone> and <"+tag+">True<"+tag+">\n <mrtauStandAlone>no</mrtauStandAlone> and <"+tag+">False<"+tag+">")
+  
+  def parseControlOptions(self, depletionFile):
+    """
+      Parse the Material.xml data file and put the isotopes name as key and 
+      the decay constant relative to the isotopes as values 
+      @ In, depletionFile, string, depletion_input file
+      @ In, inpFile, string, Instant input file 
+    """   
+    depletionTree = ET.parse(depletionFile)
+    depletionRoot = depletionTree.getroot()
+    self.verifyMrtauFlagsAgree(depletionRoot)
+    jobTitle = self.getTitle(depletionRoot)
+    return jobTitle 
   
   def distributeVariablesToParsers(self, perturbedVars):
     """
@@ -165,7 +210,7 @@ class Phisics(CodeInterfaceBase):
     output = 'Dpl_INSTANT.outp-0'
     splitWorkDir = workingDir.split('/')
     pertNumber = splitWorkDir[-1]
-    outputobj=phisicsdata.phisicsdata(output, workingDir, self.mrtauStandAlone)
+    outputobj=phisicsdata.phisicsdata(output, workingDir, self.mrtauStandAlone, self.jobTitle)
     return "keff"+str(pertNumber).strip()
     #if outputobj.hasAtLeastMinorData(): outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
     #else: raise IOError('Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
@@ -212,7 +257,6 @@ class Phisics(CodeInterfaceBase):
     import MaterialParser
     import PathParser
     import XSCreator
-    import ControlParser
     
     keyWordDict = {} 
     count = 0
@@ -230,7 +274,7 @@ class Phisics(CodeInterfaceBase):
     #print (currentInputFiles)
     #print (self.tabulation)
     booleanTab = self.tabulation 
-    ControlParser = ControlParser.ControlParser(currentInputFiles[keyWordDict['depletion_input']].getAbsFile(), self.mrtauStandAlone)
+    self.jobTitle = self.parseControlOptions(currentInputFiles[keyWordDict['depletion_input']].getAbsFile())
     
     for i in distributedPerturbedVars.iterkeys():
       if i == 'DECAY'         : decayParser        = DecayParser.DecayParser(currentInputFiles[keyWordDict['decay']].getAbsFile(), **distributedPerturbedVars[i])
