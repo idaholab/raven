@@ -32,6 +32,7 @@ from BaseClasses import BaseType
 from utils import utils
 from Assembler import Assembler
 from utils import InputData
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
@@ -121,7 +122,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type']         = ['SPSA']
+  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifferenceGradientOptimizer']
 
   @classmethod
   def generateValidateDict(cls):
@@ -178,7 +179,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
-        raise IOError('It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
+        raise IOError('It is not possible to use '+anItem['class']+' type = ' +anItem['type']+' as '+who)
     return True
 
   def __init__(self,runInfoDict):
@@ -208,7 +209,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     try:
       self.subType = xmlNode.attrib['subType']
     except KeyError:
-      self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
+      self.raiseADebug("Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
     for child in xmlNode:
       if child.tag =='alias':
@@ -235,6 +236,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.raiseAnError(IOError,'not found the attribute "variable" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
     # read local information
     self.localInputAndChecks(xmlNode)
+    #################
+
+
 
   def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
     """
@@ -274,7 +278,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     if "subType" in paramInput.parameterValues:
-      self.subType = paraminput.parameterValues["subType"]
+      self.subType = paramInput.parameterValues["subType"]
     else:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
@@ -377,6 +381,115 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## class and pass self in as the first parameter
     jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
 
+  def submitAsClient(self, myInput, samplerType, jobHandler, **kwargs):
+    """
+        This will submit an individual sample to be evaluated by this model to a
+        specified jobHandler as a client job. Note, some parameters are needed
+        by createNewInput and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new
+          one
+        @ In, samplerType, string, is the type of sampler that is calling to
+          generate a new input
+        @ In,  jobHandler, JobHandler instance, the global job handler instance
+        @ In, **kwargs, dict,  is a dictionary that contains the information
+          coming from the sampler, a mandatory key is the sampledVars' that
+          contains a dictionary {'name variable':value}
+        @ Out, None
+    """
+    prefix = kwargs['prefix'] if 'prefix' in kwargs else None
+    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
+
+    ## These kwargs are updated by createNewInput, so the job either should not
+    ## have access to the metadata, or it needs to be updated from within the
+    ## evaluateSample function, which currently is not possible since that
+    ## function does not know about the job instance.
+    metadata = kwargs
+
+    ## This may look a little weird, but due to how the parallel python library
+    ## works, we are unable to pass a member function as a job because the
+    ## pp library loses track of what self is, so instead we call it from the
+    ## class and pass self in as the first parameter
+    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+
+  def createExportDictionaryFromFinishedJob(self,finishedJob, addJobId = False, inputParams = None):
+    """
+      Method that is aimed to create a dictionary with the sampled and output variables that can be collected by the different
+      output objects.
+      @ In, finishedJob, InternalRunner object, instance of the run just finished
+      @ In, addJobId, bool, optional, add prefix in the exportDictionary? Default: False
+      @ In, inputParams, list, optional, list of input space parameters in the output object? Default: None
+      @ Out, exportDict, dict, dictionary containing the output/input values: {'inputSpaceParams':dict(sampled variables),
+                                                                               'outputSpaceParams':dict(output variables),
+                                                                               'metadata':dict(metadata)}
+    """
+    if inputParams is None:
+      inputParams = []
+
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(AttributeError,"No available Output to collect")
+
+    sampledVars,outputDict = evaluation
+
+    if type(outputDict).__name__ == "tuple":
+      outputEval = outputDict[0]
+    else:
+      outputEval = outputDict
+    ## The single run does not perturb data, however RAVEN expects something in
+    ## the input space, so let's just put a 0 entry for the inputPlaceHolder
+    ## - DPM 5/4/2017
+    if len(sampledVars) == 0:
+      sampledVars = {'InputPlaceHolder': 0.}
+
+    ## What happens if the code modified the input parameter space? Well,
+    ## let's grab any input fields existing in the output file and to ensure
+    ## that we have the correct information that the code actually ran.
+    if len(inputParams) > 0:
+      for key,value in outputEval.items():
+        if key in sampledVars:
+          ## This will change with the reworking of the data objects, but for now
+          ## inputs can only be scalar, so we should only be grabbing the first
+          ## item (at this point the values should not change, but I did observe
+          ## a RELAP7 case where it did, but the gold file uses the first value)
+          ## -- DPM 5/2/17
+          if value[0] != sampledVars[key]:
+            self.raiseAWarning('The model '+self.type+' reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the code (%f).' % (value[0], key, sampledVars[key], value[0]))
+            sampledVars[key] = value[0]
+        ## If the key value is not one of the sampled variables listed in sampledVars,
+        ## then double check that it was not one of the user-requested variables
+        ## that just so happened to be placed in the output file. This can happen
+        ## with interfaces like RELAP7 where the sampledVars can contain other
+        ## information. This may need reworked at some point to be more consisent
+        ## with how data is handled by the rest of RAVEN -- DPM 5/1/17
+        elif key in inputParams:
+          sampledVars[key] = value[0]
+
+    exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputEval,'metadata':finishedJob.getMetadata()})
+    if addJobId:
+      exportDict['prefix'] = finishedJob.identifier
+    self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
+
+    return exportDict
+
+  def addOutputFromExportDictionary(self,exportDict,output,options,jobIdentifier):
+    """
+      Method that collects the outputs from them export dictionary
+      @ In, exportDict, dict, dictionary containing the output/input values: {'inputSpaceParams':dict(sampled variables),
+                                                                              'outputSpaceParams':dict(output variables),
+                                                                              'metadata':dict(metadata)}
+      @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, options, dict, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
+      @ In, jobIdentifier, str, job identifier
+      @ Out, None
+    """
+    if output.type == 'HDF5':
+      optionsIn = {'group':self.name+str(jobIdentifier)}
+      if options is not None:
+        optionsIn.update(options)
+      output.addGroupDataObjects(optionsIn,exportDict,False)
+    else:
+      self.collectOutputFromDict(exportDict,output,options)
+
   def collectOutput(self,collectFrom,storeTo,options=None):
     """
       Method that collects the outputs from the previous run
@@ -398,3 +511,11 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None.
     """
     pass
+
+  def acceptHoldOutputSpace(self):
+    """
+      This method returns True if a certain output space can be kept on hold (so far, just the EnsembelModel can do that)
+      @ In, None
+      @ Out, acceptHoldOutputSpace, bool, True if a certain output space can be kept on hold
+    """
+    return False

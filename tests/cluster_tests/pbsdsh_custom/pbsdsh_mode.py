@@ -15,6 +15,45 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 import Simulation
+import string
+
+def createAndRunQSUB(runInfoDict):
+  """
+    Generates a PBS qsub command to run the simulation
+    @ In, runInfoDict, dict, dictionary of run info.
+    @ Out, remoteRunCommand, dict, dictionary of command.
+  """
+  # Check if the simulation has been run in PBS mode and, in case, construct the proper command
+  #while true, this is not the number that we want to select
+  coresNeeded = runInfoDict['batchSize']*runInfoDict['NumMPI']
+  #batchSize = runInfoDict['batchSize']
+  frameworkDir = runInfoDict["FrameworkDir"]
+  ncpus = runInfoDict['NumThreads']
+  jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
+  #check invalid characters
+  validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
+  if any(char not in validChars for char in jobName):
+    raise IOError('JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
+  #check jobName for length
+  if len(jobName) > 15:
+    jobName = jobName[:10]+'-'+jobName[-4:]
+    print('JobName is limited to 15 characters; truncating to '+jobName)
+  #Generate the qsub command needed to run input
+  command = ["qsub","-N",jobName]+\
+            runInfoDict["clusterParameters"]+\
+            ["-l",
+             "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1",
+             "-l","walltime="+runInfoDict["expectedTime"],
+             "-l","place=free","-v",
+             'COMMAND="../raven_framework '+
+             " ".join(runInfoDict["SimulationFiles"])+'"',
+             runInfoDict['RemoteRunCommand']]
+  #Change to frameworkDir so we find raven_qsub_command.sh
+  remoteRunCommand = {}
+  remoteRunCommand["cwd"] = frameworkDir
+  remoteRunCommand["args"] = command
+  print("remoteRunCommand",remoteRunCommand)
+  return remoteRunCommand
 
 
 class PBSDSHSimulationMode(Simulation.SimulationMode):
@@ -22,48 +61,47 @@ class PBSDSHSimulationMode(Simulation.SimulationMode):
   In this mode, the pbs pbsdsh command is used to run new commands.
   """
 
-  def __init__(self,simulation):
+  def __init__(self,messageHandler):
     """Create a new PBSDSHSimulationMode instance.
     simulation: the Simulation.Simulation object
     """
-    self.__simulation = simulation
+    Simulation.SimulationMode.__init__(self, messageHandler)
     #Check if in pbs by seeing if environmental variable exists
     self.__in_pbs = "PBS_NODEFILE" in os.environ
     #self.printTag = returnPrintTag('PBSDSH SIMULATION MODE')
 
-  def doOverrideRun(self):
-    """ Check if the simulation has been run in PBS mode and
-    if not the run needs to be overridden so qsub can be called.
+  def remoteRunCommand(self, runInfoDict):
     """
-    return not self.__in_pbs
+      return a command to run remotely or not.
+    """
+    if self.__in_pbs:
+      return None
+    return createAndRunQSUB(runInfoDict)
 
-  def runOverride(self):
-    """ If not in pbs mode, qsub needs to be called. """
-    #Check and see if this is being accidently run
-    assert self.__simulation.runInfoDict['mode'] == 'pbsdsh' and not self.__in_pbs
-    Simulation.createAndRunQSUB(self.__simulation)
-
-  def modifySimulation(self):
+  def modifyInfo(self, runInfoDict):
     """ Change the simulation to use pbsdsh as the precommand so that
     pbsdsh is called each time a command is done.
     """
+    newRunInfo = {}
+    newRunInfo['batchSize'] = runInfoDict['batchSize']
     if self.__in_pbs:
       #Figure out number of nodes and use for batchsize
       nodefile = os.environ["PBS_NODEFILE"]
       lines = open(nodefile,"r").readlines()
-      self.__simulation.runInfoDict['Nodes'] = list(lines)
-      oldBatchsize =  self.__simulation.runInfoDict['batchSize']
+      #XXX this is an undocumented way to pass information back
+      newRunInfo['Nodes'] = list(lines)
+      oldBatchsize =  runInfoDict['batchSize']
       newBatchsize = len(lines) #the batchsize is just the number of nodes
       # of which there are one per line in the nodefile
       if newBatchsize != oldBatchsize:
-        self.__simulation.runInfoDict['batchSize'] = newBatchsize
+        newRunInfo['batchSize'] = newBatchsize
         print("changing batchsize from "+ str(oldBatchsize)+" to " +str(newBatchsize))
-      print("Using Nodefile to set batchSize:"+str(self.__simulation.runInfoDict['batchSize']))
+      print("Using Nodefile to set batchSize:"+str(newRunInfo['batchSize']))
       #Add pbsdsh command to run.  pbsdsh runs a command remotely with pbs
-      print('DEBUG precommand',self.__simulation.runInfoDict['precommand'])
-      self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %BASE_WORKING_DIR%/pbsdsh_custom/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+ str(self.__simulation.runInfoDict['logfileBuffer'])+" "+self.__simulation.runInfoDict['precommand']
-      self.__simulation.runInfoDict['logfilePBS'] = 'out_%CURRENT_ID%'
-      if(self.__simulation.runInfoDict['NumThreads'] > 1):
+      print('DEBUG precommand',runInfoDict['precommand'])
+      newRunInfo['precommand'] = "pbsdsh -v -n %INDEX1% -- %BASE_WORKING_DIR%/pbsdsh_custom/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+ str(runInfoDict['logfileBuffer'])+" "+runInfoDict['precommand']
+      newRunInfo['logfilePBS'] = 'out_%CURRENT_ID%'
+      if(runInfoDict['NumThreads'] > 1):
         #Add the MOOSE --n-threads command afterwards
-        self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
-      #print('DEBUG precommand',self.__simulation.runInfoDict['precommand'],'postcommand',self.__simulation.runInfoDict['postcommand'])
+        newRunInfo['postcommand'] = " --n-threads=%NUM_CPUS% "+runInfoDict['postcommand']
+    return newRunInfo

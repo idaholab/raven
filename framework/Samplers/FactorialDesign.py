@@ -133,7 +133,7 @@ class FactorialDesign(Grid):
       self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
     elif self.factOpt['algorithmType'] == 'pb':
       self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
-    if self.designMatrix != None:
+    if self.designMatrix is not None:
       self.designMatrix[self.designMatrix == -1] = 0 # convert all -1 in 0 => we can access to the grid info directly
       self.limit = self.designMatrix.shape[0]        # the limit is the number of rows
 

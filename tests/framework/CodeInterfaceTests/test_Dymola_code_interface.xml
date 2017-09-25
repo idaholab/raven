@@ -59,13 +59,6 @@
     </MultiRun>
   </Steps>
 
-  <DataObjects>
-    <HistorySet name="BBHistorySet">
-      <Input>hstart</Input>
-      <Output>Time,v,flying,impact</Output>
-    </HistorySet>
-  </DataObjects>
-
   <Databases>
     <HDF5 name="DB_BouncingBall" readMode="overwrite"/>
   </Databases>

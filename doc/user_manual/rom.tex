@@ -2833,6 +2833,9 @@ below).
   \default{Time}
   \item \xmlNode{Features}, \xmlDesc{string, required field}, defines the features (e.g., scaling). Note that only one feature is allowed for \xmlString{ARMA} and in current implementation this is used for evaluation only.
   \item \xmlNode{Target}, \xmlDesc{string, required field}, defines the variables of the time series.
+  \item \xmlNode{reseedCopies}, \xmlDesc{boolean, optional field}, if True then whenever the ARMA is copied, a
+    random reseeding will be performed to ensure different histories.
+  \default{True}
   \item \xmlNode{Pmax}, \xmlDesc{integer, optional field}, defines the maximum value of $p$.
   \default{3}
   \item \xmlNode{Pmin}, \xmlDesc{integer, optional field}, defines the minimum value of $p$.

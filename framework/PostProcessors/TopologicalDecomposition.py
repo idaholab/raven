@@ -29,6 +29,7 @@ import time
 from .PostProcessor import PostProcessor
 from utils import InputData
 import Files
+import Runners
 #Internal Modules End-----------------------------------------------------------
 
 class TopologicalDecomposition(PostProcessor):
@@ -64,6 +65,9 @@ class TopologicalDecomposition(PostProcessor):
 
     TDWeightedInput = InputData.parameterInputFactory("weighted", contentType=InputData.StringType) #bool
     inputSpecification.addSub(TDWeightedInput)
+
+    TDInteractiveInput = InputData.parameterInputFactory("interactive", contentType=InputData.StringType) #bool
+    inputSpecification.addSub(TDInteractiveInput)
 
     TDPersistenceInput = InputData.parameterInputFactory("persistence", contentType=InputData.StringType)
     inputSpecification.addSub(TDPersistenceInput)
@@ -214,10 +218,11 @@ class TopologicalDecomposition(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      # TODO This does not feel right
-      self.raiseAnError(RuntimeError,'No available output to collect (run probably did not finish yet)')
-    inputList,outputDict = finishedJob.getEvaluation()
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
+    inputList,outputDict = evaluation
 
     if output.type == 'PointSet':
       requestedInput = output.getParaKeys('input')
@@ -349,7 +354,7 @@ class TopologicalDecomposition(PostProcessor):
     return outputDict
 
 try:
-  import qtpy.QtCore as qtc
+  import PySide.QtCore as qtc
   class QTopologicalDecomposition(TopologicalDecomposition,qtc.QObject):
     """
       TopologicalDecomposition class - Computes an approximated hierarchical

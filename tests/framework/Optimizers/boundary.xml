@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers/Boundary</name>
+    <name>framework/Optimizers.Boundary</name>
     <author>talbpaul</author>
     <created>2017-06-15</created>
     <classesTested>Optimizer</classesTested>
@@ -58,6 +58,7 @@
       <variable name='x'>
         <upperBound>2</upperBound>
         <lowerBound>1</lowerBound>
+        <initial>1.5</initial>
       </variable>
       <objectVar>ans</objectVar>
     </SPSA>

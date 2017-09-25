@@ -1,0 +1,112 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.BealeFiniteDifference</name>
+    <author>alfoa</author>
+    <created>2017-09-11</created>
+    <classesTested>Optimizer.FiniteDifferenceGradientOptimizer</classesTested>
+    <description>
+      This test runs the optimization (Finite difference forward) on Beale's function.  It tests analytic optimization values
+      as well as the mechanical operation of the Finite Difference optimizer.     </description>
+    <analytic>
+      This test uses Beale's function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>BealeFiniteDifference</WorkingDir>
+    <Sequence>optimize,getOptPoint,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">beale</Model>
+      <Optimizer class="Optimizers" type="FiniteDifferenceGradientOptimizer">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">opt_soln</Input>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
+    </IOStep>
+    <PostProcess name="getOptPoint">
+      <Input class="DataObjects" type="HistorySet">opt_export</Input>
+      <Model class="Models" type="PostProcessor">snapshot</Model>
+      <Output class="DataObjects" type="PointSet">opt_soln</Output>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
+    </PostProcess>
+  </Steps>
+
+  <Optimizers>
+    <FiniteDifferenceGradientOptimizer name="opter">
+      <initialization>
+        <limit>2000</limit>
+        <initialSeed>42</initialSeed>
+        <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <convergence>
+          <gradientThreshold>1e-1</gradientThreshold>
+          <gainGrowthFactor>1.5</gainGrowthFactor>
+          <gainShrinkFactor>1.25</gainShrinkFactor>
+      </convergence>
+      <variable name='x'>
+        <upperBound>4.5</upperBound>
+        <lowerBound>-4.5</lowerBound>
+        <initial>3,0</initial>
+      </variable>
+      <variable name='y'>
+        <upperBound>4.5</upperBound>
+        <lowerBound>-4.5</lowerBound>
+        <initial>0,0</initial>
+      </variable>
+      <objectVar>ans</objectVar>
+    </FiniteDifferenceGradientOptimizer>
+  </Optimizers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+    <PostProcessor name="snapshot" subType="InterfacedPostProcessor">
+      <method>HistorySetSnapShot</method>
+      <type>max</type>
+      <pivotVar>varsUpdate</pivotVar>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_soln">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </PointSet>
+    <HistorySet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+    </Print>
+    <Print name="opt_soln">
+      <type>csv</type>
+      <source>opt_soln</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <!-- Test info -->
   <TestInfo>
-    <name>framework/Optimizers/multitrajlevelBeale</name>
+    <name>framework/Optimizers.multitrajlevelBeale</name>
     <author>talbpaul</author>
     <created>2017-06-02</created>
     <classesTested>Optimizer</classesTested>

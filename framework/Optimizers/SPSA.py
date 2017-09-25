@@ -49,6 +49,8 @@ class SPSA(GradientBasedOptimizer):
       Default Constructor
     """
     GradientBasedOptimizer.__init__(self)
+    self.paramDict['pertSingleGrad'] = 1
+    self.currentDirection = None
     self.stochasticDistribution = None                        # Distribution used to generate perturbations
     self.stochasticEngine = None                              # Random number generator used to generate perturbations
     self.stochasticEngineForConstraintHandling = Distributions.returnInstance('Normal',self)
@@ -63,6 +65,7 @@ class SPSA(GradientBasedOptimizer):
       @ Out, None
     """
     GradientBasedOptimizer.localInputAndChecks(self, xmlNode)
+    self.currentDirection   = None
     self.paramDict['alpha'] = float(self.paramDict.get('alpha', 0.602))
     self.paramDict['gamma'] = float(self.paramDict.get('gamma', 0.101))
     self.paramDict['A']     = float(self.paramDict.get('A', self.limit['mdlEval']/10.))
@@ -83,7 +86,7 @@ class SPSA(GradientBasedOptimizer):
     self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
     self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
 
-    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
+    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)
 
     stochDist = self.paramDict.get('stochasticDistribution', 'Hypersphere')
     if stochDist == 'Bernoulli':
@@ -95,17 +98,16 @@ class SPSA(GradientBasedOptimizer):
       self.stochasticEngine = lambda: [(0.5+randomUtils.random()*(1.+randomUtils.random()/1000.*randomUtils.randomIntegers(-1, 1, self))) if self.stochasticDistribution.rvs() == 1 else
                                    -1.*(0.5+randomUtils.random()*(1.+randomUtils.random()/1000.*randomUtils.randomIntegers(-1, 1, self))) for _ in range(len(self.getOptVars()))]
     elif stochDist == 'Hypersphere':
-      self.stochasticEngine = lambda: randomUtils.randPointsOnHypersphere(len(self.getOptVars()))
+      self.stochasticEngine = lambda: randomUtils.randPointsOnHypersphere(len(self.getOptVars())) if len(self.getOptVars()) > 1 else [randomUtils.randPointsOnHypersphere(len(self.getOptVars()))]
     else:
       self.raiseAnError(IOError, self.paramDict['stochasticEngine']+'is currently not supported for SPSA')
 
-  def localLocalInitialize(self, solutionExport = None):
+  def localLocalInitialize(self, solutionExport):
     """
       Method to initialize local settings.
-      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      @ In, solutionExport, DataObject, a PointSet to hold the solution
       @ Out, None
     """
-    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
     self._endJobRunnable        = (self._endJobRunnable*self.gradDict['pertNeeded'])+len(self.optTraj)
 
   def localStillReady(self, ready, convergence = False):
@@ -145,7 +147,7 @@ class SPSA(GradientBasedOptimizer):
         if reason == 'just started':
           self.nextActionNeeded = ('start new trajectory',traj)
           break
-        elif reason in ['seeking new opt point']:
+        elif reason in ['seeking new opt point','received recommended point']:
           self.nextActionNeeded = ('add more opt point evaluations',traj)
           break
         else:
@@ -156,13 +158,14 @@ class SPSA(GradientBasedOptimizer):
         # check to see if the grad evaluation points have all been collected
         evalsFinished = True
         for pertID in range(self.gradDict['pertNeeded']):
-          if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:#[0]:
+          if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:
             evalsFinished = False
             break
         # if grad eval pts are finished, then evaluate the gradient
         if evalsFinished:
           # collect output values for perturbed points
-          for i in range(1,self.gradDict['numIterForAve']*2,2):
+          #for i in range(1,self.gradDict['numIterForAve']*2,2):
+          for i in self.perturbationIndices:
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
             outval = self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar][evalIndex]
             self.gradDict['pertPoints'][traj][i]['output'] = outval
@@ -175,7 +178,7 @@ class SPSA(GradientBasedOptimizer):
           if len(self.submissionQueue[traj]) == 0:
             ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
-            varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs']) #copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
+            varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs'])
             varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
             #check for redundant paths
             if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
@@ -223,6 +226,45 @@ class SPSA(GradientBasedOptimizer):
     else:
       self.raiseADebug('Next action needed: "%s" on trajectory "%i"' %self.nextActionNeeded)
       return True
+
+  def localEvaluateGradient(self, optVarsValues, traj,  gradient = None):
+    """
+      Local method to evaluate gradient.
+      @ In, optVarsValues, dict, dictionary containing perturbed points.
+                                 optVarsValues should have the form {pertIndex: {varName: [varValue1 varValue2]}}
+                                 Therefore, each optVarsValues[pertIndex] should return a dict of variable values
+                                 that is sufficient for gradient evaluation for at least one variable
+                                 (depending on specific optimization algorithm)
+      @ In, traj, int, the trajectory id
+      @ In, gradient, dict, optional, dictionary containing gradient estimation by the caller.
+                                      gradient should have the form {varName: gradEstimation}
+      @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
+    """
+    gradArray = {}
+    for var in self.getOptVars(traj=traj):
+      gradArray[var] = np.zeros(0)
+    # Evaluate gradient at each point
+    for i in range(self.gradDict['numIterForAve']):
+      opt  = optVarsValues[i]                                  #the latest opt point
+      pert = optVarsValues[i + self.gradDict['numIterForAve']] #the perturbed point
+      # calculate grad(F) wrt each input variable
+      # fix infinities!
+      lossDiff = mathUtils.diffWithInfinites(pert['output'],opt['output'])
+      #cover "max" problems
+      # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
+      #   sign flipping was only called when evaluating the gradient.
+      if self.optType == 'max':
+        lossDiff *= -1.0
+      for var in self.getOptVars(traj=traj):
+        # gradient is calculated in normalized space
+        dh = pert['inputs'][var] - opt['inputs'][var]
+        if abs(dh) < 1e-15:
+          self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
+        gradArray[var] = np.append(gradArray[var], lossDiff/dh)
+    gradient = {}
+    for var in self.getOptVars(traj=traj):
+      gradient[var] = gradArray[var].mean()
+    return gradient
 
   def localGenerateInput(self,model,oldInput):
     """
@@ -277,14 +319,11 @@ class SPSA(GradientBasedOptimizer):
         #TODO this same check is in GradientBasedOptimizer.queueUpOptPointRuns, they might benefit from abstracting
         if len(self.submissionQueue[traj]) > 0:
           self.raiseAnError(RuntimeError,'Preparing to add grad evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
-        for i in range(1,2*self.gradDict['numIterForAve'],2): #perturbation points are odd, not even
+        for i in self.perturbationIndices: #perturbation points are odd, not even
+          direction = self._getPerturbationDirection(i, traj)
           point = {}
-          direction = self.stochasticEngine() #the deltas for each dimension
           for varID, var in enumerate(self.getOptVars(traj=traj)):
-            try:
-              val = varK[var] + ck*direction[varID]
-            except IndexError: #only occurs when dimensionality is 1
-              val = varK[var] + ck*direction
+            val = varK[var] + ck*direction[varID]
             val = self._checkBoundariesAndModify(1.0, 0.0, 1.0, val, 0.9999, 0.0001)
             point[var] = val
           #create identifier
@@ -352,10 +391,10 @@ class SPSA(GradientBasedOptimizer):
     self.raiseADebug('Clearing current optimization efforts ...')
     self.counter ['perturbation'   ][traj] = 0
     self.counter ['gradientHistory'][traj] = [{},{}]
-    self.counter ['gradNormHistory'][traj] = [{},{}]
+    self.counter ['gradNormHistory'][traj] = [0,0]
     #only clear non-opt points from pertPoints
-    for i in range(self.gradDict['numIterForAve']):
-      self.gradDict['pertPoints'][traj][i*2+1] = 0
+    for i in self.perturbationIndices:
+      self.gradDict['pertPoints'][traj][i] = 0
     self.convergeTraj[traj] = False
     self.status[traj] = {'process':'submitting grad eval points','reason':'found new opt point'}
     try:
@@ -413,41 +452,49 @@ class SPSA(GradientBasedOptimizer):
       @ In, traj, int, trajectory label for whom we are generating variables with constraint consideration
       @ In, ak, float or array, it is gain for variable update (if array, different gain for each variable)
       @ In, gradient, dictionary, contains the gradient information for variable update
-      @ In, varK, dictionary, current variable values
-      @ Out, tempVarKPlus, dictionary, variable values for next iteration.
+      @ In, varK, dictionary, current variable values (normalized)
+      @ Out, varKPlus, dictionary, variable values for next iteration.
       @ Out, modded, bool, if True the point was modified by the constraint
     """
-    tempVarKPlus = {}
+    varKPlus = {}
     try:
       gain = ak[:]
     except (TypeError,IndexError):
       gain = [ak]*len(self.getOptVars()) #technically incorrect, but missing ones will be *0 anyway just below here
     gain = np.asarray(gain)
     for index,var in enumerate(self.getOptVars()): #get full opt vars so all variables carried through
-      tempVarKPlus[var] = varK[var]-gain[index]*gradient.get(var,0.0)*1.0
-    satisfied, activeConstraints = self.checkConstraint(tempVarKPlus)
-    #satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempVarKPlus))
+      varKPlus[var] = varK[var]-gain[index]*gradient.get(var,0.0)*1.0
+    satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(varKPlus))
     if satisfied:
-      return tempVarKPlus, False
+      return varKPlus, False
     # else if not satisfied ...
-    # check if the active constraints are the boundary ones. In case, project the gradient
+    # check if the active constraints are the boundary ones. In this case, try to project the gradient at an angle
     modded = False
     if len(activeConstraints['internal']) > 0:
+      modded = True
       projectedOnBoundary= {}
       for activeConstraint in activeConstraints['internal']:
         projectedOnBoundary[activeConstraint[0]] = activeConstraint[1]
-      tempVarKPlus.update(self.normalizeData(projectedOnBoundary))
-      modded = True
+        gradient[activeConstraint[0]] = 0.0 # remove this component
+      varKPlus.update(self.normalizeData(projectedOnBoundary))
+      newNormWithoutComponents = LA.norm(gradient.values())
+      for var in gradient.keys():
+        gradient[var] = gradient[var]/newNormWithoutComponents if newNormWithoutComponents != 0.0 else gradient[var]
+
     if len(activeConstraints['external']) == 0:
-      return tempVarKPlus, modded
+      return varKPlus, modded
 
     # Try to find varKPlus by shorten the gradient vector
-    foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(traj,varK, ak, gradient)
+    self.raiseADebug('Trajectory "{}" hit constraints ...'.format(traj))
+    self.raiseADebug('  Attempting to shorten step length ...')
+    foundVarsUpdate, varKPlus = self._bisectionForConstrainedInput(traj,varK, ak, gradient)
     if foundVarsUpdate:
-      return tempVarKPlus, True
+      self.raiseADebug('   ... successfully found new point by shortening length.')
+      return varKPlus, True
 
     # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
     # with respect to the constraints hyper-surface
+    self.raiseADebug('  Attempting instead to rotate trajectory ...')
     innerLoopLimit = self.constraintHandlingPara['innerLoopLimit']
     if innerLoopLimit < 0:
       self.raiseAnError(IOError, 'Limit for internal loop for constraint handling shall be nonnegative')
@@ -455,7 +502,7 @@ class SPSA(GradientBasedOptimizer):
     foundPendVector = False
     while not foundPendVector and loopCounter < innerLoopLimit:
       loopCounter += 1
-      depVarPos = Distributions.randomIntegers(0,self.nVar-1,self)
+      depVarPos = randomUtils.randomIntegers(0,len(self.getOptVars(traj=traj))-1,self)
       pendVector = {}
       npDot = 0
       for varID, var in enumerate(self.getOptVars(traj=traj)):
@@ -465,16 +512,16 @@ class SPSA(GradientBasedOptimizer):
         if varID == depVarPos:
           pendVector[var] = -npDot/gradient[var]
 
-      r = LA.norm(np.asarray([gradient[var] for var in self.optVars]))/LA.norm(np.asarray([pendVector[var] for var in self.getOptVars(traj=traj)]))
+      r = LA.norm(np.asarray([gradient[var] for var in self.getOptVars(traj=traj)]))/LA.norm(np.asarray([pendVector[var] for var in self.getOptVars(traj=traj)]))
       for var in self.getOptVars(traj=traj):
         pendVector[var] = copy.deepcopy(pendVector[var])*r
 
-      tempVarKPlus = {}
+      varKPlus = {}
       for index, var in enumerate(self.getOptVars(traj=traj)):
-        tempVarKPlus[var] = copy.copy(varK[var]-gain[index]*pendVector[var]*1.0)
-      foundPendVector, activeConstraints = self.checkConstraint(tempVarKPlus)
+        varKPlus[var] = copy.copy(varK[var]-gain[index]*pendVector[var]*1.0)
+      foundPendVector, activeConstraints = self.checkConstraint(self.denormalizeData(varKPlus))
       if not foundPendVector:
-        foundPendVector, tempVarKPlus = self._bisectionForConstrainedInput(traj,varK, gain, pendVector)
+        foundPendVector, varKPlus = self._bisectionForConstrainedInput(traj,varK, gain, pendVector)
       gain = gain/2.
 
     if foundPendVector:
@@ -494,24 +541,27 @@ class SPSA(GradientBasedOptimizer):
         for index, var in enumerate(self.getOptVars(traj=traj)):
           sumVector[var] = copy.deepcopy(sumVector[var]/np.sqrt(lenSumVector)*lenPendVector)
           tempTempVarKPlus[var] = copy.copy(varK[var]-gain[index]*sumVector[var]*1.0)
-        satisfied, activeConstraints = self.checkConstraint(tempTempVarKPlus)
+        satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempTempVarKPlus))
         if satisfied:
-          tempVarKPlus = copy.deepcopy(tempTempVarKPlus)
+          varKPlus = copy.deepcopy(tempTempVarKPlus)
           pendVector = copy.deepcopy(sumVector)
         else:
           gradient = copy.deepcopy(sumVector)
-      return tempVarKPlus, True
-    tempVarKPlus = varK
-    return tempVarKPlus, True
+      self.raiseADebug('   ... successfully found new point by rotating trajectory.')
+      return varKPlus, True
+    varKPlus = varK
+    self.raiseADebug('   ... did not successfully find new point.')
+    return varKPlus, False
 
   def _bisectionForConstrainedInput(self,traj,varK,ak,vector):
     """
-      Method to find the maximum fraction of 'vector' that, when using as gradient, the input can satisfy the constraint
+      Method to find the maximum fraction of the step size "ak" such that taking a step of size "ak" in
+      the direction of "vector" starting from current input point "varK" will not violate the constraint function.
       @ In, traj, int, trajectory label for whom we are working
       @ In, varK, dictionary, current variable values
-      @ In, ak, float or array, it is gain for variable update (if array, different gain for each variable)
-      @ In, vector, dictionary, contains the gradient information for variable update
-      @ Out, _bisectionForConstrainedInput, tuple(bool,dict), (indicating whether a fraction vector is found, contains the fraction of gradient that satisfies constraint)
+      @ In, ak, float or array, it is step size (gain) for variable update (if array, different gain for each variable)
+      @ In, vector, dictionary, contains the gradient information as a unit vector
+      @ Out, _bisectionForConstrainedInput, tuple(bool,dict), (indicating whether a fractional step is found, contains the fraction of step that satisfies constraint)
     """
     try:
       gain = ak[:]
@@ -519,7 +569,7 @@ class SPSA(GradientBasedOptimizer):
       gain = [ak]*len(self.getOptVars(traj=traj))
 
     innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
-    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1:
+    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1: #FIXME REWORK this is an input check, not a runtime check
       self.raiseAnError(ValueError, 'The innerBisectionThreshold shall be greater than 0 and less than 1')
     bounds = [0, 1.0]
     tempVarNew = {}
@@ -547,7 +597,8 @@ class SPSA(GradientBasedOptimizer):
       @ In, d2, dict, second vector
       @ Out, angleD, float, angle between d1 and d2 with unit of degree
     """
-    v1, v2 = np.zeros(shape=[self.nVar,]), np.zeros(shape=[self.nVar,])
+    nVar = len(self.getOptVars())
+    v1, v2 = np.zeros(shape=[nVar,]), np.zeros(shape=[nVar,])
     for cnt, var in enumerate(self.getOptVars(traj=traj)):
       v1[cnt], v2[cnt] = copy.deepcopy(d1[var]), copy.deepcopy(d2[var])
     angle = np.arccos(np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2))
@@ -619,3 +670,17 @@ class SPSA(GradientBasedOptimizer):
     if state['recommendToGain'] is not None:
       self.recommendToGain[traj] = state['recommendToGain']
 
+  def _getPerturbationDirection(self,perturbationIndex, traj):
+    """
+      This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
+      @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
+      @ In, traj, int, the trajectory id
+      @ Out, direction, list, the versor for each optimization dimension
+    """
+    if perturbationIndex == self.perturbationIndices[0]:
+      direction = self.stochasticEngine()
+      self.currentDirection = direction
+    else:
+      # in order to perform the de-noising we keep the same perturbation direction and we repeat the evaluation multiple times
+      direction = self.currentDirection
+    return direction

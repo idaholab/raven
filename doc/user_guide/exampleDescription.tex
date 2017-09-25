@@ -1,0 +1,57 @@
+\subsection{Example Model: Analytic Bateman}\label{sec:analyticalbateman}
+This section is intended for the new users to familiarize them with how to perform their studies through RAVEN.
+A simple example, conventionally called \textbf{AnalyticBateman}, has been developed. It solves a system of
+ordinary differential equations (ODEs), of the form:
+
+\begin{equation}
+\begin{dcases}
+\frac{\mathrm{d} \mathbf{X}}{\mathrm{d} t} = \mathbf{S}-\mathbf{L} \\
+ \mathbf{X}(t=0)= \mathbf{X_{0}}
+\end{dcases}
+\end{equation}
+   where:
+  \begin{itemize}
+     \item $\mathbf{X_{0}}$, initial conditions
+     \item $\mathbf{S}$, source terms
+     \item $\mathbf{L}$, loss terms
+   \end{itemize}
+
+For example, this  code is able to solve a system of two ODEs as follows:
+\begin{equation}
+  \begin{dcases}
+    \frac{\mathrm{d} x_{1}}{\mathrm{d} t} = \phi (t)\times \sigma_{x_{1}}-\lambda_{x_{1}}\times x_{1}(t) \\
+    \frac{\mathrm{d} x_{2}}{\mathrm{d} t} = \phi (t)\times \sigma_{x_{2}}-\lambda_{x_{2}} \times x_{2}(t) + x_{1}(t)\times\lambda_{x_{1}} \\
+    x_{1}(t=0)= x_{1}^{0} \\
+    x_{2}(t=0)= 0.0
+  \end{dcases}
+\end{equation}
+
+The input of the \textbf{AnalyticBateman} code is in XML format.
+For example, the following is the reference input for a system of 4 Ordinary Differential Equations (ODEs)
+that is going to be used for as an example in this guide. All the files required for this system are  located at
+``\textit{raven/tests/framework/user\textunderscore guide/physicalCode}''. 
+
+\xmlExample{framework/user_guide/physicalCode/analyticalbateman/Input.xml}{AnalyticalBateman}
+The code outputs the time evolution of the 4 variables ($A,B,C,D$) in a CSV file, producing the following output:
+\begin{table}[ht]
+\centering
+\caption{Reference case sample results.}
+\label{referenceResults}
+\begin{tabular}{lllll}
+\textbf{time} & \textbf{A}     & \textbf{C}     & \textbf{B}    & \textbf{D}     \\
+0                  & 1.0                       & 1.0                       & 1.0                     & 1.0           \\
+2880000.0   & 0.983434738239 & 0.977851848235 & 1.01011506729 & 1.01013172275 \\
+5760000.0   & 0.967143884376 & 0.956202457404 & 1.01936231677 & 1.02036100400   \\
+8640000.0   & 0.951122892771 & 0.935040450532 & 1.02777406275 & 1.03067925987 \\
+10368000.0 & 0.941637968936 & 0.922572556179 & 1.03243314106 & 1.03690947068 \\
+12096000.0 & 0.932247632016 & 0.910273757371 & 1.03680933440 & 1.04316700086 \\
+13824000.0 & 0.922950938758 & 0.898141730426 & 1.04090912054 & 1.04945015916 \\
+15552000.0 & 0.913746955315 & 0.886174183908 & 1.04473885709 & 1.05575729317 \\
+17280000.0 & 0.904634757153 & 0.874368858183 & 1.04830478357 & 1.06208678854 \\
+20736000.0 & 0.886682064542 & 0.851235986899 & 1.05466958557 & 1.07480659230  \\
+24192000.0 & 0.869085647400 & 0.828725658721 & 1.06005115510 & 1.08759739100   \\
+27648000.0 & 0.851838435355 & 0.806820896763 & 1.06449535534 & 1.10044757060  \\
+31104000.0 & 0.834933498348 & 0.785505191756 & 1.06804634347 & 1.11334606143 \\
+34560000.0 & 0.818364043850 & 0.764762489077 & 1.07074662835 & 1.12628231792
+\end{tabular}
+\end{table}

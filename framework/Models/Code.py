@@ -33,7 +33,7 @@ import shlex
 from .Model import Model
 from utils import utils
 from utils import InputData
-from Csv_loader import CsvLoader
+import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 import Files
 from DataObjects import Data
 import Runners
@@ -55,6 +55,7 @@ class Code(Model):
         specifying input of cls.
     """
     inputSpecification = super(Code, cls).getInputSpecification()
+    inputSpecification.setStrictMode(False) #Code interfaces can allow new elements.
     inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
 
@@ -269,12 +270,19 @@ class Code(Model):
     """
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
-    for inputFile in inputFiles:
-      shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.oriInputFiles = []
-    for i in range(len(inputFiles)):
-      self.oriInputFiles.append(copy.deepcopy(inputFiles[i]))
-      self.oriInputFiles[-1].setPath(self.workingDir)
+    for inputFile in inputFiles:
+      subSubDirectory = os.path.join(self.workingDir,inputFile.subDirectory)
+      ## Currently, there are no tests that verify the lines below can be hit
+      ## It appears that the folders already exist by the time we get here,
+      ## this could change, so we will leave this code here.
+      ## -- DPM 8/2/17
+      if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
+        os.mkdir(subSubDirectory)
+      ##########################################################################
+      shutil.copy(inputFile.getAbsFile(),subSubDirectory)
+      self.oriInputFiles.append(copy.deepcopy(inputFile))
+      self.oriInputFiles[-1].setPath(subSubDirectory)
     self.currentInputFiles        = None
     self.outFileRoot              = None
 
@@ -308,8 +316,16 @@ class Code(Model):
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
     for index in range(len(newInputSet)):
-      newInputSet[index].setPath(subDirectory)
-      shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
+      subSubDirectory = os.path.join(subDirectory,newInputSet[index].subDirectory)
+      ## Currently, there are no tests that verify the lines below can be hit
+      ## It appears that the folders already exist by the time we get here,
+      ## this could change, so we will leave this code here.
+      ## -- DPM 8/2/17
+      if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
+        os.mkdir(subSubDirectory)
+      ##########################################################################
+      newInputSet[index].setPath(subSubDirectory)
+      shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)
 
     kwargs['subDirectory'] = subDirectory
 
@@ -323,7 +339,7 @@ class Code(Model):
 
     return (newInput,kwargs)
 
-  def __expandForWindows(self, origCommand):
+  def _expandForWindows(self, origCommand):
     """
       Function to expand a command that has a #! to a windows runnable command
       @ In, origCommand, string, The command to check for expantion
@@ -460,7 +476,7 @@ class Code(Model):
 
     self.raiseAMessage('Execution command submitted:',command)
     if platform.system() == 'Windows':
-      command = self.__expandForWindows(command)
+      command = self._expandForWindows(command)
       self.raiseAMessage("modified command to" + repr(command))
 
     ## This code should be evaluated by the job handler, so it is fine to wait
@@ -505,7 +521,7 @@ class Code(Model):
         ## Should we be adding the file extension here?
         outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])
 
-        csvLoader = CsvLoader(self.messageHandler)
+        csvLoader = CsvLoader.CsvLoader(self.messageHandler)
         csvData = csvLoader.loadCsvFile(outFile)
         headers = csvLoader.getAllFieldNames()
 
@@ -557,70 +573,25 @@ class Code(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(AttributeError,"No available Output to collect")
-
-    sampledVars,outputDict = evaluation
-
-    ## The single run does not perturb data, however RAVEN expects something in
-    ## the input space, so let's just put a 0 entry for the inputPlaceHolder
-    ## - DPM 5/4/2017
-    if len(sampledVars) == 0:
-      sampledVars = {'InputPlaceHolder': 0.}
-      # for key,value in outputDict.items():
-      #   sampledVars[key] = value[0]
-
-    ## What happens if the code modified the input parameter space? Well,
-    ## let's grab any input fields existing in the output file and to ensure
-    ## that we have the correct information that the code actually ran.
-
     ## First, if the output is a data object, let's see what inputs it requests
+    if options is None:
+        options = {}
     if isinstance(output,Data):
       inputParams = output.getParaKeys('input')
+      options["inputFile"] = self.currentInputFiles
     else:
       inputParams = []
-
-    for key,value in outputDict.items():
-      if key in sampledVars:
-        ## This will change with the reworking of the data objects, but for now
-        ## inputs can only be scalar, so we should only be grabbing the first
-        ## item (at this point the values should not change, but I did observe
-        ## a RELAP7 case where it did, but the gold file uses the first value)
-        ## -- DPM 5/2/17
-        if value[0] != sampledVars[key]:
-          self.raiseAWarning('The code reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the code (%f).' % (value[0], key, sampledVars[key], value[0]))
-          sampledVars[key] = value[0]
-      ## If the key value is not one of the sampled variables listed in sampledVars,
-      ## then double check that it was not one of the user-requested variables
-      ## that just so happened to be placed in the output file. This can happen
-      ## with interfaces like RELAP7 where the sampledVars can contain other
-      ## information. This may need reworked at some point to be more consisent
-      ## with how data is handled by the rest of RAVEN -- DPM 5/1/17
-      elif key in inputParams:
-        # self.raiseAWarning('Input data found in the output.')
-        sampledVars[key] = value[0]
-
-
-    if options is None:
-      options = {}
+    # create the export dictionary
+    if 'exportDict' in options:
+      exportDict = options['exportDict']
+    else:
+      exportDict = self.createExportDictionaryFromFinishedJob(finishedJob, True, inputParams)
     options['alias'] = self.alias
-
-    metadata = finishedJob.getMetadata()
+    metadata = exportDict['metadata']
     if metadata:
       options['metadata'] = metadata
 
-    exportDict = copy.deepcopy({'inputSpaceParams':sampledVars,'outputSpaceParams':outputDict,'metadata':metadata, 'prefix':finishedJob.identifier})
-    self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
-    if output.type == 'HDF5':
-      optionsIn = {'group':self.name+str(finishedJob.identifier)}
-      if options is not None:
-        optionsIn.update(options)
-      output.addGroupDataObjects(optionsIn,exportDict,False)
-      # output.addGroup(optionsIn,optionsIn)
-    else:
-      options["inputFile"] = self.currentInputFiles
-      self.collectOutputFromDict(exportDict,output,options)
+    self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
 
   def collectOutputFromDict(self,exportDict,output,options=None):
     """
