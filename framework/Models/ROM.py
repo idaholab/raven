@@ -213,6 +213,9 @@ class ROM(Dummy):
     """
     Dummy._readMoreXML(self, xmlNode)
     self.initializationOptionDict['name'] = self.name
+    # FIXME this is bypassing the intended method, find the right way to do this
+    if 'reseed' in xmlNode.attrib.keys():
+        self.initializationOptionDict['reseedInt'] = int(xmlNode.attrib['reseed')
     paramInput = ROM.getInputSpecification()()
     paramInput.parseNode(xmlNode)
     def tryStrParse(s):
@@ -391,3 +394,11 @@ class ROM(Dummy):
     inRun = self._manipulateInput(Input[0])
     returnValue = inRun,self._externalRun(inRun)
     return returnValue
+
+  def reseed(self,seed):
+    """
+      Used to reset the seed of the underlying ROM.
+      @ In, seed, int, new seed to use
+      @ Out, None
+    """
+    self.supervisedEngine.reseed(seed)
