@@ -63,8 +63,9 @@ class CrowPython(Tester):
   def checkRunnable(self, option):
     """ Checks if a test case is capable of being run on the current system. """
     if self.specs['requires_swig2'] and not CrowPython.has_swig2:
-      return (False, 'skipped (No swig 2.0 found)')
-    return (True, '')
+      self.setStatus('skipped (No swig 2.0 found)', self.bucket_skip)
+      return False
+    return True
 
   def processResults(self, moose_dir, options, output):
     """ Handle the results of test case.
