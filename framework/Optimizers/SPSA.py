@@ -110,6 +110,27 @@ class SPSA(GradientBasedOptimizer):
     """
     self._endJobRunnable        = (self._endJobRunnable*self.gradDict['pertNeeded'])+len(self.optTraj)
 
+  def _newOptPointAdd(self, gradient, traj):
+    """
+      This local method add a new opt point based on the gradient
+      @ In, gradient, dict, dictionary containing the gradient
+      @ In, traj, int, trajectory
+      @ Out, None
+    """
+    ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
+    self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
+    varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs'])
+    varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
+    #check for redundant paths
+    if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
+      self._removeRedundantTraj(traj, varKPlus)
+    #if the new point was modified by the constraint, reset the step size
+    if modded:
+      del self.counter['lastStepSize'][traj]
+      self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
+    self.queueUpOptPointRuns(traj,varKPlus)
+
+
   def localStillReady(self, ready, convergence = False):
     """
       Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
@@ -117,25 +138,6 @@ class SPSA(GradientBasedOptimizer):
       @ In, convergence, bool, optional, variable indicating whether the convergence criteria has been met.
       @ Out, ready, bool, variable indicating whether the caller is prepared for another input.
     """
-    def newOptPointAdd(self, gradient):
-      """
-        This local method add a new opt point based on the gradient
-        @ In, gradient, dict, dictionary containing the gradient
-        @ Out, None
-      """
-      ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
-      self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
-      varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs'])
-      varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
-      #check for redundant paths
-      if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
-        self._removeRedundantTraj(traj, varKPlus)
-      #if the new point was modified by the constraint, reset the step size
-      if modded:
-        del self.counter['lastStepSize'][traj]
-        self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
-      self.queueUpOptPointRuns(traj,varKPlus)
-
     self.nextActionNeeded = (None,None) #prevents carrying over from previous run
     #get readiness from parent
     ready = ready and GradientBasedOptimizer.localStillReady(self,ready,convergence)
@@ -173,7 +175,7 @@ class SPSA(GradientBasedOptimizer):
           self.nextActionNeeded = ('add more opt point evaluations',traj)
           if len(self.submissionQueue[traj]) == 0:
             gradient = self.counter['gradientHistory'][traj][0]
-            self.newOptPointAdd(gradient)
+            self._newOptPointAdd(gradient,traj)
         else:
           self.raiseAnError(RuntimeError,'unexpected reason for submitting new opt points:',reason)
 
@@ -200,7 +202,7 @@ class SPSA(GradientBasedOptimizer):
           gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj],traj)
           # establish a new point, if found; FIXME otherwise?
           if len(self.submissionQueue[traj]) == 0:
-            self.newOptPointAdd(gradient)
+            self._newOptPointAdd(gradient,traj)
             # if trajectory was killed for redundancy, continue on to check next trajectory for readiness
             if self.status[traj]['reason'] == 'removed as redundant':
               continue # loops back to the next opt traj
