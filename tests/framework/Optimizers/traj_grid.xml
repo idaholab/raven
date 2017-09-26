@@ -92,7 +92,7 @@
   </Samplers>
 
   <Models>
-    <ExternalModel ModuleToLoad="parabola" name="mod" subType="">
+    <ExternalModel ModuleToLoad="../Persistence/parabola" name="mod" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
     <PostProcessor name="snapshot" subType="InterfacedPostProcessor">

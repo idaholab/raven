@@ -139,3 +139,17 @@ user_guide/ForwardSamplingStrategies/RunDir/Stratified/sample/
 user_guide/SingleRuns/sectionVI.I/single/
 user_guide/SingleRuns/sectionVI.II/single/
 GridTestSameHDF5/MonteCarloRestarted/
+CodeInterfaceTests/GenericInterfaceParallel/sample/
+ROM/TimeSeries/ARMAparallel/
+ensembleModelTests/metaModelWith2CodesAndSelectiveOutputs/sampleMC/
+CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/1/dsin.txt
+CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/1/rawout~dsin
+CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/2/dsin.txt
+CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/2/rawout~dsin
+CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/3/dsin.txt
+CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/3/rawout~dsin
+CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/4/dsin.txt
+CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/4/rawout~dsin
+CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/5/dsin.txt
+CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/5/rawout~dsin
+CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/dsin.txt
