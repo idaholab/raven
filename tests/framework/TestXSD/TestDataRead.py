@@ -25,9 +25,9 @@ import sys, os
 
 ravenDir = os.path.dirname(os.path.dirname(os.getcwd()))
 frameworkDir = os.path.join(ravenDir,"framework")
-sys.path.append(os.path.join(frameworkDir,'utils'))
+sys.path.append(frameworkDir)
 
-import InputData
+from utils import InputData
 import test_classes
 
 
