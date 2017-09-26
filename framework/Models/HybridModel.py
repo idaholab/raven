@@ -285,19 +285,17 @@ class HybridModel(Dummy):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
-    print("C counter: {} prefix: {} useROM: {}".format(self.counter, kwargs['prefix'], self.romValid))
-
     self.raiseADebug("Create New Input")
-    if self.romValid:
+    useROM = kwargs['useROM']
+    if useROM:
       identifier = kwargs['prefix']
-      newKwargs = {'prefix':identifier}
+      newKwargs = {'prefix':identifier, 'useROM':useROM}
       for romName in self.romsDictionary.keys():
         newKwargs[romName] = self.__selectInputSubset(romName, kwargs)
         newKwargs[romName]['prefix'] = romName+utils.returnIdSeparator()+identifier
         newKwargs[romName]['uniqueHandler'] = self.name+identifier
     else:
       newKwargs = copy.deepcopy(kwargs)
-      #print(self.counter, newKwargs)
 
     if self.modelInstance.type == 'Code':
       codeInput = []
@@ -309,7 +307,7 @@ class HybridModel(Dummy):
           romInput.append(elem)
         else:
           self.raiseAnError(IOError, "The type of input ", elem.name, " can not be accepted!")
-      if self.romValid:
+      if useROM:
         return (romInput, samplerType, newKwargs)
       else:
         return (codeInput, samplerType, newKwargs)
@@ -326,9 +324,13 @@ class HybridModel(Dummy):
     """
     self.raiseADebug("Start to train roms")
     for romInfo in self.romsDictionary.values():
+      # Should we check the size of existing data object self.tempTargetEvaluation
+      # and compared to the size of trainingSet in the ROM, the reason is that
+      # we may end up using the same data to train the rom, the outputs may not be
+      # collected yet!
+
       # reset the rom
       romInfo['Instance'].amITrained = False
-      #tempTargetEvaluation = copy.deepcopy(self.tempTargetEvaluation)
       # always train the rom even if the rom is converged, we assume the cross validation and rom train are relative cheap
       outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], self.tempTargetEvaluation], samplerType, kwargs)[1]
       converged = self.isRomConverged(outputMetrics)
@@ -502,7 +504,8 @@ class HybridModel(Dummy):
     ## will suffice until we can better redesign this whole process.
     kwargs['jobHandler'] = jobHandler
 
-    print("S counter: {} prefix: {} useROM: {} ".format(self.counter, kwargs['prefix'], self.romValid))
+    self.raiseADebug("Submit job with job identifier: {},  Runing ROM: {} ".format(kwargs['prefix'], self.romValid))
+    kwargs['useROM'] = self.romValid
     ## This may look a little weird, but due to how the parallel python library
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
@@ -543,9 +546,10 @@ class HybridModel(Dummy):
     samplerType = inRun[1]
     inputKwargs = inRun[2]
     identifier = inputKwargs.pop('prefix')
+    useROM = inputKwargs.pop('useROM')
     uniqueHandler = self.name + identifier
 
-    if self.romValid:
+    if useROM:
       # run roms
       exportDict = {}
       self.raiseADebug("Switch to ROMs")
@@ -600,6 +604,9 @@ class HybridModel(Dummy):
       exportDict = self.modelInstance.createExportDictionaryFromFinishedJob(finishedRun[0], True)
       self.raiseADebug("Create exportDict")
 
+    # used in the collectOutput
+    exportDict['useROM'] = useROM
+
     return exportDict
 
   def collectOutput(self,finishedJob,output):
@@ -613,6 +620,7 @@ class HybridModel(Dummy):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
     exportDict = evaluation[1]
+    useROM = exportDict['useROM']
 
     try:
       jobIndex = self.tempOutputs['uncollectedJobIds'].index(finishedJob.identifier)
@@ -620,8 +628,9 @@ class HybridModel(Dummy):
     except ValueError:
       jobIndex = None
 
-    if jobIndex is not None and not self.romValid:
+    if jobIndex is not None and not useROM:
       self.collectOutputFromDict(exportDict, self.tempTargetEvaluation)
+      self.raiseADebug("ROM is invalid, collect ouptuts of Model with job identifier: {}".format(finishedJob.identifier))
 
     Dummy.collectOutput(self, finishedJob, output, options = {'exportDict':exportDict})
 
