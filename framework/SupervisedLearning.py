@@ -2736,6 +2736,7 @@ class ARMA(superVisedLearning):
 
     numTimeStep = len(self.pivotParameterValues)
     tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
+    # TODO This could probably be vectorized for speed gains
     for t in range(numTimeStep):
       for n in range(self.armaPara['dimension']):
         tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult['sig'][0,n]
@@ -2805,6 +2806,7 @@ class ARMA(superVisedLearning):
       @ In, seed, int, new seed to use
       @ Out, None
     """
+    print('DEBUGG here SVL arma:',seed)
     randomUtils.randomSeed(seed)
 
 __interfaceDict                         = {}

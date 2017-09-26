@@ -399,4 +399,5 @@ class ROM(Dummy):
       @ In, seed, int, new seed to use
       @ Out, None
     """
+    print('DEBUGG HERE model rom:',seed)
     self.supervisedEngine.reseed(seed)
