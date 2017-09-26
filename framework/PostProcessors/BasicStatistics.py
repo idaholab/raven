@@ -33,11 +33,6 @@ from scipy.spatial import ConvexHull,Voronoi, voronoi_plot_2d
 from operator import mul
 from collections import defaultdict
 import itertools
-try:
-  import pyhull as ph
-  import pyhull.halfspace as phh
-except ImportError:
-  print("Unable to import pyhull")
 import sys
 #External Modules End-----------------------------------------------------------
 
@@ -1482,7 +1477,7 @@ class BasicStatistics(PostProcessor):
       d = 0
       middlePoint = (petiteEnveloppe[-1:][0] + petiteEnveloppe[0])/2
       for equation in hyperCube.equations:
-        listHyperPlanCube.append(phh.Halfspace(equation[:-1],equation[-1:][0])) #List of the halfplane forming the bounding box
+        listHyperPlanCube.append(equation) #List of the halfplane forming the bounding box
 
     ###Computing the ConvexHull of the right-size cells.
       for indice in cells2:
@@ -1514,7 +1509,7 @@ class BasicStatistics(PostProcessor):
 
         #Getting halfplane equations
           for equations in bigConvexHull[indice].equations:
-            listHyperPlanCellule.append(phh.Halfspace(equations[:-1],equations[-1:][0]))
+            listHyperPlanCellule.append(equations)
           listHyperPlan = list(listHyperPlanCube)
           listHyperPlan += listHyperPlanCellule       #Add the hyperPlan of the cells
 
@@ -1545,12 +1540,12 @@ class BasicStatistics(PostProcessor):
               insidePoints = insidePoints.tolist()
           if insidePoints==None:    #If the point is not on the CVH, then is good
             insidePoints = largeVoronoi.points[inputPoint][0]
-          intersect = phh.HalfspaceIntersection(listHyperPlan,insidePoints)             #Computing of the intersection
+          hs = spatial.HalfspaceIntersection(np.array(listHyperPlan),np.array(insidePoints))             #Computing of the intersection
           try:
-            convexHull[indice] = ConvexHull(intersect.vertices)
+            convexHull[indice] = ConvexHull(hs.dual_points)
             d+=1
           except QhullError:
-            convexHull[indice] = ConvexHull(intersect.vertices,qhull_options="QJ")
+            convexHull[indice] = ConvexHull(hs.dual_points,qhull_options="QJ")
             b+=1
       print("Number of non Joggled points : ",d)
       print("Number of Joggled points : ",b)
