@@ -34,6 +34,7 @@ import sys
 
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
+from .BasicStatistics import BasicStatistics
 from utils import utils
 from utils import mathUtils
 from utils import InputData
@@ -124,8 +125,7 @@ class ComparisonStatistics(PostProcessor):
 
 
     ##To be able to call the BasicStatistics.run method to get the stats.
-    self.BS = BasicStatistics(BasePostProcessor)
-    self.BS.__init__(messageHandler)
+    self.BS = BasicStatistics(messageHandler)
     self.dimensionVariable = []
     self.voronoi = False
     self.inputsVoronoi = []
