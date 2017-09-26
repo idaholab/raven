@@ -130,9 +130,6 @@ class SPSA(GradientBasedOptimizer):
       #check for redundant paths
       if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
         self._removeRedundantTraj(traj, varKPlus)
-      # if trajectory was killed for redundancy, continue on to check next trajectory for readiness
-      if self.status[traj]['reason'] == 'removed as redundant':
-        continue # loops back to the next opt traj
       #if the new point was modified by the constraint, reset the step size
       if modded:
         del self.counter['lastStepSize'][traj]
@@ -204,6 +201,9 @@ class SPSA(GradientBasedOptimizer):
           # establish a new point, if found; FIXME otherwise?
           if len(self.submissionQueue[traj]) == 0:
             self.newOptPointAdd(gradient)
+            # if trajectory was killed for redundancy, continue on to check next trajectory for readiness
+            if self.status[traj]['reason'] == 'removed as redundant':
+              continue # loops back to the next opt traj
           self.nextActionNeeded = ('add more opt point evaluations',traj)
           self.status[traj]['process'] = 'submitting new opt points'
           self.status[traj]['reason'] = 'seeking new opt point'
