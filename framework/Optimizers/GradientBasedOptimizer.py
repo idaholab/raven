@@ -56,6 +56,7 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     Optimizer.__init__(self)
+    self.ableToHandelFailedRuns      = True            # is this optimizer able to handle failed runs?
     self.constraintHandlingPara      = {}              # Dict containing parameters for parameters related to constraints handling
     self.gradientNormTolerance       = 1.e-3           # tolerance on the L2 norm of the gradient
     self.gradDict                    = {}              # Dict containing information for gradient related operations
@@ -115,7 +116,6 @@ class GradientBasedOptimizer(Optimizer):
       @ In, solutionExport, DataObject, a PointSet to hold the solution
       @ Out, None
     """
-
     for traj in self.optTraj:
       self.gradDict['pertPoints'][traj]      = {}
       self.counter['perturbation'][traj]     = 0
@@ -486,47 +486,62 @@ class GradientBasedOptimizer(Optimizer):
     """
     # for some reason, Ensemble Model doesn't preserve this information, so wrap this debug in a try:
     prefix = jobObject.getMetadata()['prefix']
-    self.raiseADebug('Collected sample "{}"'.format(prefix))
-
+    failed = jobObject.getReturnCode() != 0
+    failedTrajectory = - 1
+    if not failed:
+      self.raiseADebug('Collected sample "{}"'.format(prefix))
+    else:
+      # failed trajectory
+      failedTrajectory = int(prefix.split("_")[0])
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
     if len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
+        failedTraj = traj == failedTrajectory
         if self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
           solutionExportUpdatedFlag, indices = self._getJobsByID(traj)
-          if solutionExportUpdatedFlag:
+          if solutionExportUpdatedFlag or failedTraj:
             #get evaluations (input,output) from the collection of all evaluations
-            inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
-            outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
-            #TODO this might be faster for non-stochastic if we do an "if" here on gradDict['numIterForAve']
-            #make a place to store distinct evaluation values
-            outputs = {}
-            for outvar in self.solutionExport.getParaKeys('outputs'):
-              if outvar not in outputeval.keys():
-                continue
-              outputs[outvar] = np.zeros(self.gradDict['numIterForAve'])
-            # get output values corresponding to evaluations of the opt point
-            # also add opt points to the grad perturbation list
-            self.gradDict['pertPoints'][traj] = np.zeros((1+self.paramDict['pertSingleGrad'])*self.gradDict['numIterForAve'],dtype=dict)
-            for i, index in enumerate(indices):
-              for outvar in outputs.keys():
-                outputs[outvar][i] = outputeval[outvar][index]
-                if outvar == self.objVar:
-                  self.gradDict['pertPoints'][traj][i] = {'inputs':self.normalizeData(dict((k,v[index]) for k,v in inputeval.items())),
+            if not failedTraj:
+              inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
+              outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
+              #TODO this might be faster for non-stochastic if we do an "if" here on gradDict['numIterForAve']
+              #make a place to store distinct evaluation values
+              outputs = {}
+              for outvar in self.solutionExport.getParaKeys('outputs'):
+                if outvar not in outputeval.keys():
+                  continue
+                outputs[outvar] = np.zeros(self.gradDict['numIterForAve'])
+              # get output values corresponding to evaluations of the opt point
+              # also add opt points to the grad perturbation list
+              self.gradDict['pertPoints'][traj] = np.zeros((1+self.paramDict['pertSingleGrad'])*self.gradDict['numIterForAve'],dtype=dict)
+              for i, index in enumerate(indices):
+                for outvar in outputs.keys():
+                  outputs[outvar][i] = outputeval[outvar][index]
+                  if outvar == self.objVar:
+                    self.gradDict['pertPoints'][traj][i] = {'inputs':self.normalizeData(dict((k,v[index]) for k,v in inputeval.items())),
                                                             'output':outputs[self.objVar][i]}
-            # assumed output value is the mean of sampled values
-            for outvar,vals in outputs.items():
-              outputs[outvar] = vals.mean()
-            currentObjectiveValue = outputs[self.objVar]#.mean()
-            # check convergence
-            # TODO REWORK move this to localStillReady, along with the gradient evaluation
-            self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], currentObjectiveValue)
+              # assumed output value is the mean of sampled values
+              for outvar,vals in outputs.items():
+                outputs[outvar] = vals.mean()
+              currentObjectiveValue = outputs[self.objVar]#.mean()
+              # check convergence
+              # TODO REWORK move this to localStillReady, along with the gradient evaluation
+              self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], currentObjectiveValue)
+            else:
+              self.raiseAMessage('Rejecting opt point for trajectory "'+str(failedTrajectory)+'" since the model failed!')
+              self.convergeTraj[traj]     = False
+              self.status[traj]['reason'] =  'failed run'
+              self.recommendToGain[traj]  = 'cut'
             if self.convergeTraj[traj]:
               self.status[traj] = {'process':None, 'reason':'converged'}
             else:
               # update status to submitting grad eval points
-              self.status[traj]['process'] = 'submitting grad eval points'
+              if failedTraj:
+                self.status[traj]['process'] = 'submitting new opt points'
+              else:
+                self.status[traj]['process'] = 'submitting grad eval points'
             # if rejecting bad point, keep the old point as the new point; otherwise, add the new one
-            if self.status[traj]['reason'] != 'rejecting bad opt point':
+            if self.status[traj]['reason'] not in  ['rejecting bad opt point','failed run']:
               try:
                 self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
               except KeyError:
@@ -538,60 +553,59 @@ class GradientBasedOptimizer(Optimizer):
               if traj not in self.counter['prefixHistory']:
                 self.counter['prefixHistory'][traj] = []
               self.counter['prefixHistory'][traj].append(prefix)
-
             # update solution export
             #FIXME much of this should move to the base class!
-            if 'trajID' not in self.solutionExport.getParaKeys('inputs'):
-              self.raiseAnError(IOError, 'trajID is not in the <inputs> space of the solutionExport data object specified for this optimization step!  Please add it.')
-            trajID = traj+1 # This is needed to be compatible with historySet object
-            self.solutionExport.updateInputValue([trajID,'trajID'], traj)
-            #otherOutVars = self.solutionExport.getParaKeys('outputs')
-            output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding').get(trajID,{})
-            badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
-            for var in self.solutionExport.getParaKeys('outputs'):
-              old = copy.deepcopy(output.get(var, np.asarray([])))
-              new = None #prevents accidental data copying
-              if var in self.getOptVars():
-                new = self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs'])[var] #inputeval[var][index]
-              elif var == self.objVar:
-                new = self.counter['recentOptHist'][traj][0]['output']
-              elif var in outputs.keys():
-                new = outputs[var]
-              elif var == 'varsUpdate':
-                new = [self.counter['solutionUpdate'][traj]]
-              elif var == 'stepSize':
-                try:
-                  new = [self.counter['lastStepSize'][traj]]
-                except KeyError:
-                  new = badValue
-              elif var.startswith( 'gradient_'):
-                varName = var[9:]
-                vec = self.counter['gradientHistory'][traj][0].get(varName,None)
-                if vec is not None:
-                  new = vec*self.counter['gradNormHistory'][traj][0]
+            if not failedTraj:
+              if 'trajID' not in self.solutionExport.getParaKeys('inputs'):
+                self.raiseAnError(IOError, 'trajID is not in the <inputs> space of the solutionExport data object specified for this optimization step!  Please add it.')
+              trajID = traj+1 # This is needed to be compatible with historySet object
+              self.solutionExport.updateInputValue([trajID,'trajID'], traj)
+              #otherOutVars = self.solutionExport.getParaKeys('outputs')
+              output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding').get(trajID,{})
+              badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
+              for var in self.solutionExport.getParaKeys('outputs'):
+                old = copy.deepcopy(output.get(var, np.asarray([])))
+                new = None #prevents accidental data copying
+                if var in self.getOptVars():
+                  new = self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs'])[var] #inputeval[var][index]
+                elif var == self.objVar:
+                  new = self.counter['recentOptHist'][traj][0]['output']
+                elif var in outputs.keys():
+                  new = outputs[var]
+                elif var == 'varsUpdate':
+                  new = [self.counter['solutionUpdate'][traj]]
+                elif var == 'stepSize':
+                  try:
+                    new = [self.counter['lastStepSize'][traj]]
+                  except KeyError:
+                    new = badValue
+                elif var.startswith( 'gradient_'):
+                  varName = var[9:]
+                  vec = self.counter['gradientHistory'][traj][0].get(varName,None)
+                  if vec is not None:
+                    new = vec*self.counter['gradNormHistory'][traj][0]
+                  else:
+                    new = badValue
+                elif var.startswith( 'convergenceAbs'):
+                  try:
+                    new = self.convergenceProgress[traj].get('abs',badValue)
+                  except KeyError:
+                    new = badValue
+                elif var.startswith( 'convergenceRel'):
+                  try:
+                    new = self.convergenceProgress[traj].get('rel',badValue)
+                  except KeyError:
+                    new = badValue
+                elif var.startswith( 'convergenceGrad'):
+                  try:
+                    new = self.convergenceProgress[traj].get('grad',badValue)
+                  except KeyError:
+                    new = badValue
                 else:
-                  new = badValue
-              elif var.startswith( 'convergenceAbs'):
-                try:
-                  new = self.convergenceProgress[traj].get('abs',badValue)
-                except KeyError:
-                  new = badValue
-              elif var.startswith( 'convergenceRel'):
-                try:
-                  new = self.convergenceProgress[traj].get('rel',badValue)
-                except KeyError:
-                  new = badValue
-              elif var.startswith( 'convergenceGrad'):
-                try:
-                  new = self.convergenceProgress[traj].get('grad',badValue)
-                except KeyError:
-                  new = badValue
-              else:
-                self.raiseAnError(IOError,'Unrecognized output request:',var)
-              new = np.asarray(new)
-              self.solutionExport.updateOutputValue([trajID,var],np.append(old,new))
-
-            self.counter['solutionUpdate'][traj] += 1
+                  self.raiseAnError(IOError,'Unrecognized output request:',var)
+                new = np.asarray(new)
+                self.solutionExport.updateOutputValue([trajID,var],np.append(old,new))
+              self.counter['solutionUpdate'][traj] += 1
           else: #not ready to update solutionExport
             break
 
