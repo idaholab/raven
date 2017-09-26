@@ -144,13 +144,33 @@ wait_lines 'metaModelNonLinearParallel/*.png' 3 parallelEnsemblePicard
 
 cd ..
 
-# fifth test (Ensamble Model Picard in parallel)
+# sixth test (Ensamble Model Linear Picard in parallel)
 cd InternalParallel/
 rm -Rf metaModelLinearParallel/*.png
 
 python ../../../framework/Driver.py test_ensemble_model_linear_internal_parallel.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
 wait_lines 'metaModelLinearParallel/*.png' 2 parallelEnsembleLinear
+
+cd ..
+
+# seven test (HybridModel Code in parallel)
+cd InternalParallel/
+rm -Rf hybridModelCode/*.csv
+
+python ../../../framework/Driver.py test_hybrid_model_code.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
+
+wait_lines 'hybridModelCode/*.csv' 26 parallelHybridModelCode
+
+cd ..
+
+# eighth test (HybridModel External Model in parallel)
+cd InternalParallel/
+rm -Rf hybridModelExternal/*.csv
+
+python ../../../framework/Driver.py test_hybrid_model_external.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
+
+wait_lines 'hybridModelExternal/*.csv' 51 parallelHybridModelExternal
 
 cd ..
 

@@ -6,6 +6,7 @@
     <WorkingDir>hybridModelCode</WorkingDir>
     <batchSize>3</batchSize>
     <internalParallel>True</internalParallel>
+    <expectedTime>00:10:00</expectedTime>
   </RunInfo>
 
   <Files>
