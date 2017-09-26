@@ -714,6 +714,16 @@ class BasicStatistics(PostProcessor):
     parameterSet = list(self.allUsedParams)
     if 'metadata' in input.keys():
       pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
+    if not pbPresent:
+      pbWeights['realization'] = None
+      if 'metadata' in input.keys():
+        if 'SamplerType' in input['metadata'].keys():
+          if input['metadata']['SamplerType'][0] != 'MonteCarlo' :
+            self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
+        else:
+          self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights. Assuming unit weights instead...')
+    else:
+      pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
     if self.voronoi:
       pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
       if self.voronoiDimensional=='unidimensional':
@@ -762,7 +772,7 @@ class BasicStatistics(PostProcessor):
                   points = np.column_stack([[[input['metadata']['SampledVarsCdf'][i][target]]  for i in range(len(input['metadata']['SampledVarsCdf']))] for target in parameterSet])
                   self.boundariesVoronoi = [[0,1]]*len(parameterSet)
                   pbWeights['realization'] = np.asarray(BasicStatistics.constructVoronoi(self,points))
-      else:
+      else: #multidimentional
         points = list(np.column_stack([input['targets'][x] for x in input['targets'].keys()]))
         self.boundariesVoronoi = [[input['metadata']['Boundaries'][0][x][0],input['metadata']['Boundaries'][0][x][1]] for x in input['targets'].keys()]
         pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][','.join(parameterSet)] = np.asarray(BasicStatistics.constructVoronoi(self,points))
@@ -772,15 +782,6 @@ class BasicStatistics(PostProcessor):
       #   self.sendVerticesVoronoi = True
       #   self.verticesVoronoi = BasicStatistics.constructVoronoi(self,[[input['targets'][parameterSet[0]][i]] for i in range(len(input['targets'][parameterSet[0]]))])
       #   self.sendVerticesVoronoi = False
-    else:
-      if 'metadata' in input.keys(): pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
-      if not pbPresent:
-        if 'metadata' in input.keys():
-          if 'SamplerType' in input['metadata'].keys():
-            if input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
-          else: self.raiseAWarning('BasicStatistics can not compute expectedValue without ProbabilityWeights. Use unit weight')
-          pbWeights['realization'] = np.asarray([1.0 / len(input['targets'][self.parameters['targets'][0]])]*len(input['targets'][self.parameters['targets'][0]]))
-      else: pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
     # This section should take the probability weight for each sampling variable
     if not self.voronoi:
       pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
