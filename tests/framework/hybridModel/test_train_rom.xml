@@ -65,9 +65,8 @@
         <CV class="Models" type="PostProcessor">pp1</CV>
         <settings>
             <tolerance>0.01</tolerance>
-            <trainStep>1</trainStep>
             <maxTrainSize>1000</maxTrainSize>
-            <initialTrainSize>10</initialTrainSize>
+            <minInitialTrainSize>10</minInitialTrainSize>
             <selectionMethod>CrowdingDistance</selectionMethod>
         </settings>
     </HybridModel>

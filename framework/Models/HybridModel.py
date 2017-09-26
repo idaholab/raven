@@ -71,13 +71,11 @@ class HybridModel(Dummy):
     inputSpecification.addSub(cvInput)
     # add settings block
     tolInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
-    trainStepInput = InputData.parameterInputFactory("trainStep", contentType=InputData.IntegerType)
     maxTrainStepInput = InputData.parameterInputFactory("maxTrainSize", contentType=InputData.IntegerType)
-    initialTrainStepInput = InputData.parameterInputFactory("initialTrainSize", contentType=InputData.IntegerType)
+    initialTrainStepInput = InputData.parameterInputFactory("minInitialTrainSize", contentType=InputData.IntegerType)
     selectionMethod = InputData.parameterInputFactory("selectionMethod", contentType=InputData.StringType)
     settingsInput = InputData.parameterInputFactory("settings", contentType=InputData.StringType)
     settingsInput.addSub(tolInput)
-    settingsInput.addSub(trainStepInput)
     settingsInput.addSub(maxTrainStepInput)
     settingsInput.addSub(initialTrainStepInput)
     settingsInput.addSub(selectionMethod)
@@ -106,7 +104,6 @@ class HybridModel(Dummy):
     self.targetEvaluationInstance = None
     self.tempTargetEvaluation     = None
     self.romsDictionary        = {}      # dictionary of models that is going to be employed, i.e. {'romName':Instance}
-    self.romTrainStepSize      = 1        # the step size for rom train
     self.romTrainStartSize     = 10       # the initial size of training set
     self.romTrainMaxSize       = 1.0e6     # the maximum size of training set
     self.romValidateSize       = 10       # the size of rom validation set
@@ -121,6 +118,7 @@ class HybridModel(Dummy):
     self.printTag              = 'HYBRIDMODEL MODEL' # print tag
     self.createWorkingDir      = False
     self.tempOutputs           = {}
+    self.oldTrainingSize       = 0
     # assembler objects to be requested
     self.addAssemblerObject('Model','1',True)
     self.addAssemblerObject('ROM','n')
@@ -152,11 +150,9 @@ class HybridModel(Dummy):
         self.romsDictionary[romName] = {'Instance': None, 'Converged': False, 'Valid': False}
       if child.getName() == 'settings':
         for childChild in child.subparts:
-          if childChild.getName() == 'trainStep':
-            self.romTrainStepSize  = utils.intConversion(childChild.value)
           if childChild.getName() == 'maxTrainSize':
             self.romTrainMaxSize = utils.intConversion(childChild.value)
-          if childChild.getName() == 'initialTrainSize':
+          if childChild.getName() == 'minInitialTrainSize':
             self.romTrainStartSize = utils.intConversion(childChild.value)
           if childChild.getName() == 'tolerance':
             self.romConvergence = utils.floatConversion(childChild.value)
@@ -338,6 +334,7 @@ class HybridModel(Dummy):
       if converged:
         romInfo['Instance'].train(self.tempTargetEvaluation)
         self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
+      self.oldTrainingSize = len(self.tempTargetEvaluation)
 
   def isRomConverged(self, outputDict):
     """
@@ -452,15 +449,23 @@ class HybridModel(Dummy):
 
     return crowdingDistCoeff
 
-  def checkTrainingSize(self):
+  def amIReadyToTrainROM(self):
     """
-      This function will check the size of existing training set
+      This will check the status of training data object, if the data object is updated,
+      This function will return true
       @ In, None
-      @ Out, newGeneratedTrainingSize, int, the size of existing training set
+      @ Out, ready, bool, is this HybridModel ready to retrain the ROM?
     """
+    ready = False
     newGeneratedTrainingSize = len(self.tempTargetEvaluation) - self.existTrainSize
-    self.raiseADebug("New generated training size is: ", newGeneratedTrainingSize)
-    return newGeneratedTrainingSize
+    if newGeneratedTrainingSize > self.romTrainMaxSize:
+      self.raiseAMessage("Maximum training size is reached, ROMs will not be trained anymore!")
+      return ready
+    trainingStepSize = len(self.tempTargetEvaluation) - self.oldTrainingSize
+    if newGeneratedTrainingSize >= self.romTrainStartSize and trainingStepSize > 0:
+      ready = True
+
+    return ready
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
@@ -485,19 +490,13 @@ class HybridModel(Dummy):
     self.counter = prefix
     self.tempOutputs['uncollectedJobIds'].append(prefix)
 
-    if not self.romConverged:
-      trainingSize = self.checkTrainingSize()
-      if trainingSize == self.romTrainStartSize:
-        self.trainRom(samplerType, kwargs)
-      elif trainingSize > self.romTrainStartSize and (trainingSize-self.romTrainStartSize)%self.romTrainStepSize == 0 and trainingSize <= self.romTrainMaxSize:
-        self.trainRom(samplerType, kwargs)
-      elif trainingSize > self.romTrainMaxSize:
-        self.raiseAnError(IOError, "Maximum training size is reached, but ROMs are still not converged!")
+    if self.amIReadyToTrainROM():
+      self.trainRom(samplerType, kwargs)
       self.romConverged = self.checkRomConvergence()
     if self.romConverged:
       self.romValid = self.checkRomValidity(kwargs)
-      if not self.romValid:
-        self.romConverged = False
+    else:
+      self.romValid = False
 
     ## Ensemble models need access to the job handler, so let's stuff it in our
     ## catch all kwargs where evaluateSample can pick it up, not great, but

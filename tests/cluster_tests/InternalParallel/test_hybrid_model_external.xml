@@ -5,7 +5,7 @@
     <WorkingDir>hybridModelExternal</WorkingDir>
     <Sequence>testAdaptiveRom</Sequence>
     <batchSize>3</batchSize>
-    <internalParallel>False</internalParallel>
+    <internalParallel>True</internalParallel>
   </RunInfo>
 
   <Distributions>
@@ -57,9 +57,8 @@
         <CV class="Models" type="PostProcessor">pp1</CV>
         <settings>
             <tolerance>0.05</tolerance>
-            <trainStep>1</trainStep>
             <maxTrainSize>1000</maxTrainSize>
-            <initialTrainSize>10</initialTrainSize>
+            <minInitialTrainSize>10</minInitialTrainSize>
             <selectionMethod>CrowdingDistance</selectionMethod>
         </settings>
     </HybridModel>

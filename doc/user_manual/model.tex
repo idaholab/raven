@@ -1527,7 +1527,7 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
   The body of this sub-node  contains the following XML sub-nodes:
   %
   \begin{itemize}
-     \item \xmlNode{initialTrainSize}, \xmlDesc{integer, optional field}, the initial number of high-fidelity
+     \item \xmlNode{minInitialTrainSize}, \xmlDesc{integer, optional field}, the minimum initial number of high-fidelity
        model runs before starting train the ROMs.
        \default{10};
      \item \xmlNode{tolerance}, \xmlDesc{float, optional field}, ROMs convergence criterion. This tolerance will
@@ -1535,9 +1535,6 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
        \nb Currently, this tolerance can be only used for cross validations with SKL Metrics: \textit{euclidean},
        \textit{cityblock}, \textit{l1}, \textit{l2} and \textit{manhattan}.
         \default{0.01};
-     \item \xmlNode{trainStep}, \xmlDesc{XML node, optional field}, the number of additional high-fidelity model
-       runs before performing cross validation on the ROMs.
-       \default{1}
      \item \xmlNode{maxTrainSize}, \xmlDesc{XML node, optional field}, the maximum size of training set of ROMs.
        \default{1.0E6}
      \item \xmlNode{selectionMethod}, \xmlDesc{XML node, optional field}, the validity methods that are used to
