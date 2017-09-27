@@ -184,12 +184,12 @@ class RavenFramework(Tester):
       if os.path.exists(filename):
         os.remove(filename)
 
-  def processResults(self, moose_dir, retcode, options, output):
+  def processResults(self, moose_dir,  options, output):
     expectedFail = self.specs['expected_fail'].lower().strip() == 'true'
     if not expectedFail:
-      return self.rawProcessResults(moose_dir, retcode, options, output)
+      return self.rawProcessResults(moose_dir, options, output)
     else:
-      output = self.rawProcessResults(moose_dir, retcode, options, output)
+      output = self.rawProcessResults(moose_dir, options, output)
       if self.didPass():
         self.setStatus('Unexpected success',self.bucket_fail)
         return output
@@ -197,7 +197,7 @@ class RavenFramework(Tester):
         self.setStatus(self.success_message, self.bucket_success)
         return output
 
-  def rawProcessResults(self, moose_dir, retcode, options, output):
+  def rawProcessResults(self, moose_dir, options, output):
     missing = []
     for filename in self.check_files:
       if not os.path.exists(filename):
