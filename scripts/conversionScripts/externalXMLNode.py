@@ -45,14 +45,16 @@ def XMLpreprocess(xmlNode,xmlFileName=None):
     @ In, xmlFileName, the raven input file name
   """
   for element in xmlNode.iter():
-    for subElement in element:
+    for s,subElement in enumerate(element):
       if subElement.tag == 'ExternalXML':
         print('-'*2+' Loading external xml within block '+ element.tag+ ' for: {0:15}'.format(str(subElement.attrib['node']))+2*'-')
         nodeName = subElement.attrib['node']
         xmlToLoad = subElement.attrib['xmlToLoad'].strip()
         newElement = ExternalXMLread(xmlToLoad,nodeName,xmlFileName)
-        element.append(newElement)
-        element.remove(subElement)
+        # append/remove destroys the order of the entries.  Instead, replace in place
+        #element.append(newElement)
+        #element.remove(subElement)
+        element[s] = newElement
         XMLpreprocess(xmlNode,xmlFileName)
 
 def convert(tree,fileName=None):
