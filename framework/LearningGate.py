@@ -211,9 +211,8 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       @ In, seed, int, new seed to use
       @ Out, None
     """
-    print('DEBUGG here gate:',seed)
     for rom in self.supervisedContainer:
-        rom.reseed(seed)
+      rom.reseed(seed)
 
 __interfaceDict                         = {}
 __interfaceDict['SupervisedGate'      ] = supervisedLearningGate

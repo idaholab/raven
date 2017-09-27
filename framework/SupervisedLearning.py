@@ -2806,7 +2806,6 @@ class ARMA(superVisedLearning):
       @ In, seed, int, new seed to use
       @ Out, None
     """
-    print('DEBUGG here SVL arma:',seed)
     randomUtils.randomSeed(seed)
 
 __interfaceDict                         = {}
