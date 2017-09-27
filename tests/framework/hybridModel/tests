@@ -22,4 +22,12 @@
   rel_err = 0.00001
   remove_unicode_identifier = true
  [../]
+ 
+ [./romTrainRom]
+  type = 'RavenFramework'
+  input = 'test_rom_rom.xml'
+  csv = 'romTrainRom/metaModelOutputTestDump.csv'
+  rel_err = 0.00001
+  remove_unicode_identifier = true
+ [../]
 ]

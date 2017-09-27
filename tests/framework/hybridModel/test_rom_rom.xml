@@ -1,18 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/hybridModel.hybridModel</name>
+    <name>framework/hybridModel.rom_rom</name>
     <author>wangc</author>
     <created>2017-09-13</created>
-    <classesTested>Models.HybridModel, Models.ExternalModel, Models.ROM</classesTested>
+    <classesTested>Models.HybridModel, Models.ROM</classesTested>
     <description>
        Example of usage of the Hybrid Model capability in RAVEN
        This test is intended to check the functionality of Hybrid Model.
+       Use ROM to train ROM
     </description>
   </TestInfo>
   <RunInfo>
-    <WorkingDir>simpleRomAdaptive</WorkingDir>
-    <Sequence>testAdaptiveRom</Sequence>
+    <WorkingDir>romTrainRom</WorkingDir>
+    <Sequence>runModel, trainRom, runHybridModel</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
   </RunInfo>
@@ -38,6 +39,21 @@
     <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
       <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
     </ExternalModel>
+    <ROM name="svr" subType="SciKitLearn">
+      <SKLtype>svm|SVR</SKLtype>
+      <Features>leftTemperature, rightTemperature</Features>
+      <Target>k</Target>
+      <C>1.0</C>
+      <epsilon>0.1</epsilon>
+      <kernel>rbf</kernel>
+      <degree>3</degree>
+      <coef0>0.0</coef0>
+      <shrinking>True</shrinking>
+      <tol>1e-3</tol>
+      <cache_size>200</cache_size>
+      <verbose>False</verbose>
+      <max_iter>-1</max_iter>
+    </ROM>
     <ROM name="knr" subType="SciKitLearn">
       <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
       <Features>leftTemperature, rightTemperature</Features>
@@ -60,12 +76,12 @@
         <Metric class="Metrics" type="SKL">euclidean</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
-        <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>
+        <Model class="Models" type="ROM">svr</Model>
         <ROM class="Models" type="ROM">knr</ROM>
         <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
         <CV class="Models" type="PostProcessor">pp1</CV>
         <settings>
-            <tolerance>0.01</tolerance>
+            <tolerance>0.02</tolerance>
             <maxTrainSize>1000</maxTrainSize>
             <minInitialTrainSize>10</minInitialTrainSize>
             <selectionMethod>CrowdingDistance</selectionMethod>
@@ -74,9 +90,19 @@
   </Models>
 
   <Samplers>
-    <MonteCarlo name="MonteCarloTemperature">
+    <Stratified name="LHS">
+      <variable name="leftTemperature">
+          <distribution>leftTemperatureDist</distribution>
+          <grid type='CDF' construction='equal' steps='50'>0.3 0.7</grid>
+      </variable>
+      <variable name="rightTemperature">
+        <distribution>rightTemperatureDist</distribution>
+          <grid type='CDF' construction='equal' steps='50'>0.2 0.8</grid>
+      </variable>
+    </Stratified>
+    <MonteCarlo name="MonteCarlo">
       <samplerInit>
-        <limit>50</limit>
+        <limit>40</limit>
       </samplerInit>
       <variable name="leftTemperature">
         <distribution>leftTemperatureDist</distribution>
@@ -88,10 +114,20 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="testAdaptiveRom">
+    <MultiRun name="runModel">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>
+      <Sampler class="Samplers" type="MonteCarlo">LHS</Sampler>
+      <Output class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Output>
+    </MultiRun>
+    <RomTrainer name="trainRom" verbosity="debug">
+      <Input class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Input>
+      <Output class="Models" type="ROM">svr</Output>
+    </RomTrainer>
+    <MultiRun name="runHybridModel">
       <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="HybridModel">hybrid</Model>
-      <Sampler class="Samplers" type="MonteCarlo">MonteCarloTemperature</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">MonteCarlo</Sampler>
       <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
       <Output class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Output>
       <Output class="OutStreams" type="Print">metaModelOutputTestDump</Output>

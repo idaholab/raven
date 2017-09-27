@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ensembleModelTests.adaptiveROM.adaptive_rom</name>
+    <name>framework/hybridModel.romTrain</name>
     <author>wangc</author>
     <created>2017-09-20</created>
     <classesTested>Models.HybridModel, Models.ExternalModel, Models.ROM</classesTested>

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests.genericInterfaceIO</name>
+    <name>framework/hybridModel.runCode</name>
     <author>wangc</author>
     <created>2017-09-21</created>
     <classesTested>Models.HybridModel, Models.Code.GenericCode</classesTested>
