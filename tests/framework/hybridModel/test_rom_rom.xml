@@ -90,16 +90,6 @@
   </Models>
 
   <Samplers>
-    <Stratified name="LHS">
-      <variable name="leftTemperature">
-          <distribution>leftTemperatureDist</distribution>
-          <grid type='CDF' construction='equal' steps='50'>0.3 0.7</grid>
-      </variable>
-      <variable name="rightTemperature">
-        <distribution>rightTemperatureDist</distribution>
-          <grid type='CDF' construction='equal' steps='50'>0.2 0.8</grid>
-      </variable>
-    </Stratified>
     <MonteCarlo name="MonteCarlo">
       <samplerInit>
         <limit>40</limit>
@@ -111,6 +101,16 @@
         <distribution>rightTemperatureDist</distribution>
       </variable>
     </MonteCarlo>
+    <Stratified name="LHS">
+      <variable name="leftTemperature">
+          <distribution>leftTemperatureDist</distribution>
+          <grid type='CDF' construction='equal' steps='50'>0.3 0.7</grid>
+      </variable>
+      <variable name="rightTemperature">
+        <distribution>rightTemperatureDist</distribution>
+          <grid type='CDF' construction='equal' steps='50'>0.2 0.8</grid>
+      </variable>
+    </Stratified>
   </Samplers>
 
   <Steps>
