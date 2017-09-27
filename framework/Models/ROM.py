@@ -168,6 +168,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reseedValue", InputData.IntegerType))
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
@@ -391,3 +392,11 @@ class ROM(Dummy):
     inRun = self._manipulateInput(Input[0])
     returnValue = inRun,self._externalRun(inRun)
     return returnValue
+
+  def reseed(self,seed):
+    """
+      Used to reset the seed of the underlying ROM.
+      @ In, seed, int, new seed to use
+      @ Out, None
+    """
+    self.supervisedEngine.reseed(seed)
