@@ -500,29 +500,22 @@ class GradientBasedOptimizer(Optimizer):
       for traj in self.optTraj:
         failedTraj = traj == failedTrajectory
         if failedTraj:
-          # TODO stuff here
-            self.raiseAMessage('Rejecting opt point for trajectory "'+str(failedTrajectory)+'" since the model failed!')
-            self.convergeTraj[traj]     = False
-            self.status[traj]['reason'] =  'failed run'
-            self.recommendToGain[traj]  = 'cut'
-            # check if failure was grad or opt
-            failIndex = int(prefix.split('_')[2])
-            if failIndex in self.perturbationIndices:
-              self.status[traj]['process'] = 'submitting grad eval points'
-              self._addAGradientEval(traj,failIndex)
-            else:
-              self.status[traj]['process'] = 'submitting new opt points'
-            continue #no more action for failed runs
+          self.raiseAMessage('Rejecting opt point for trajectory "'+str(failedTrajectory)+'" since the model failed!')
+          self.convergeTraj[traj]     = False
+          self.status[traj]['reason'] =  'failed run'
+          self.recommendToGain[traj]  = 'cut'
+          # check if failure was grad or opt
+          failIndex = int(prefix.split('_')[2])
+          if failIndex in self.perturbationIndices:
+            self.status[traj]['process'] = 'submitting grad eval points'
+            self._addAGradientEval(traj,failIndex)
+          else:
+            self.status[traj]['process'] = 'submitting new opt points'
+          continue #no more action for failed runs
         if self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
           solutionExportUpdatedFlag, indices = self._getJobsByID(traj)
           if solutionExportUpdatedFlag or failedTraj:
             #get evaluations (input,output) from the collection of all evaluations
-            #if failedTraj:
-            #  self.raiseAMessage('Rejecting opt point for trajectory "'+str(failedTrajectory)+'" since the model failed!')
-            #  self.convergeTraj[traj]     = False
-            #  self.status[traj]['reason'] =  'failed run'
-            #  self.recommendToGain[traj]  = 'cut'
-            #else:
             inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
             outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
             #TODO this might be faster for non-stochastic if we do an "if" here on gradDict['numIterForAve']
@@ -552,9 +545,6 @@ class GradientBasedOptimizer(Optimizer):
               self.status[traj] = {'process':None, 'reason':'converged'}
             else:
               # update status to submitting grad eval points
-              #if failedTraj:
-              #  self.status[traj]['process'] = 'submitting new opt points'
-              #else:
               self.status[traj]['process'] = 'submitting grad eval points'
             # if rejecting bad point, keep the old point as the new point; otherwise, add the new one
             if self.status[traj]['reason'] not in ['rejecting bad opt point','failed run']:
@@ -575,7 +565,6 @@ class GradientBasedOptimizer(Optimizer):
               self.raiseAnError(IOError, 'trajID is not in the <inputs> space of the solutionExport data object specified for this optimization step!  Please add it.')
             trajID = traj+1 # This is needed to be compatible with historySet object
             self.solutionExport.updateInputValue([trajID,'trajID'], traj)
-            #otherOutVars = self.solutionExport.getParaKeys('outputs')
             output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding').get(trajID,{})
             badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
             for var in self.solutionExport.getParaKeys('outputs'):
