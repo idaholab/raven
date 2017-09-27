@@ -22,7 +22,7 @@
 
   <Models>
     <Code name="poly" subType="GenericCode">
-      <executable>hybridModelCode/poly_inp_io.py</executable>
+      <executable>%BASE_WORKING_DIR%/poly_inp_io.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="-i" extension=".one" type="input"/>
       <fileargs arg="aux" extension=".two" type="input"/>

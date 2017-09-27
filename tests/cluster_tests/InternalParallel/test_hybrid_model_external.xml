@@ -27,7 +27,7 @@
   </Metrics>
 
   <Models>
-    <ExternalModel ModuleToLoad="InternalParallelExtModel/EM2linear" name="thermalConductivityComputation" subType="">
+    <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
       <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
     </ExternalModel>
     <ROM name="knr" subType="SciKitLearn">
