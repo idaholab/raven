@@ -160,7 +160,7 @@ rm -Rf hybridModelCode/*.csv
 
 python ../../../framework/Driver.py test_hybrid_model_code.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
-wait_lines 'hybridModelCode/*.csv' 26 parallelHybridModelCode
+wait_lines 'hybridModelCode/*.csv' 1 parallelHybridModelCode
 
 cd ..
 
@@ -170,7 +170,7 @@ rm -Rf hybridModelExternal/*.csv
 
 python ../../../framework/Driver.py test_hybrid_model_external.xml ../pbspro_mpi.xml ../cluster_runinfo.xml
 
-wait_lines 'hybridModelExternal/*.csv' 51 parallelHybridModelExternal
+wait_lines 'hybridModelExternal/*.csv' 1 parallelHybridModelExternal
 
 cd ..
 
