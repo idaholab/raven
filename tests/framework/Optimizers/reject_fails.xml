@@ -1,17 +1,20 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers.BealeFailureRejection</name>
+    <name>framework/Optimizers.RejectFails</name>
     <author>alfoa</author>
     <created>2017-09-25</created>
     <classesTested>Optimizer</classesTested>
     <description>
       This test is aimed to test the ability of the Optimizer to handle failed runs, rejecting the point and cutting the learning rate
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2017-09-27">extended to cover failing grad eval points</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>BealeFailureRejection</WorkingDir>
+    <WorkingDir>RejectFails</WorkingDir>
     <Sequence>optimize,getOptPoint,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -26,7 +29,11 @@
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">opt_soln</Input>
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_soln</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">opt_TE</Output>
     </IOStep>
     <PostProcess name="getOptPoint">
       <Input class="DataObjects" type="HistorySet">opt_export</Input>
@@ -95,6 +102,10 @@
   </DataObjects>
 
   <OutStreams>
+    <Print name="opt_TE">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>

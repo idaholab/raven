@@ -110,7 +110,7 @@ class SPSA(GradientBasedOptimizer):
     """
     self._endJobRunnable        = (self._endJobRunnable*self.gradDict['pertNeeded'])+len(self.optTraj)
 
-  def _newOptPointAdd(self, gradient, traj):
+  def _addNewOptPoint(self, gradient, traj):
     """
       This local method add a new opt point based on the gradient
       @ In, gradient, dict, dictionary containing the gradient
@@ -130,6 +130,26 @@ class SPSA(GradientBasedOptimizer):
       self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
     self.queueUpOptPointRuns(traj,varKPlus)
 
+  def _addAGradientEval(self,traj,pertIndex,ck=None,varK=None):
+    """
+      This local method sets up new gradient evaluations
+      @ In, traj, int, trajectory
+      @ Out, None
+    """
+    if ck is None:
+      ck = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
+    if varK is None:
+      varK = self.counter['recentOptHist'][traj][0]['inputs']
+    direction = self._getPerturbationDirection(pertIndex, traj)
+    point = {}
+    for varID, var in enumerate(self.getOptVars(traj=traj)):
+      val = varK[var] + ck*direction[varID]
+      val = self._checkBoundariesAndModify(1.0, 0.0, 1.0, val, 0.9999, 0.0001)
+      point[var] = val
+    #create identifier
+    prefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],pertIndex)
+    #queue it up
+    self.submissionQueue[traj].append({'inputs':point,'prefix':prefix})
 
   def localStillReady(self, ready, convergence = False):
     """
@@ -175,7 +195,7 @@ class SPSA(GradientBasedOptimizer):
           self.nextActionNeeded = ('add more opt point evaluations',traj)
           if len(self.submissionQueue[traj]) == 0:
             gradient = self.counter['gradientHistory'][traj][0]
-            self._newOptPointAdd(gradient,traj)
+            self._addNewOptPoint(gradient,traj)
         else:
           self.raiseAnError(RuntimeError,'unexpected reason for submitting new opt points:',reason)
 
@@ -190,7 +210,6 @@ class SPSA(GradientBasedOptimizer):
         # if grad eval pts are finished, then evaluate the gradient
         if evalsFinished:
           # collect output values for perturbed points
-          #for i in range(1,self.gradDict['numIterForAve']*2,2):
           for i in self.perturbationIndices:
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
             outval = self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar][evalIndex]
@@ -202,7 +221,7 @@ class SPSA(GradientBasedOptimizer):
           gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj],traj)
           # establish a new point, if found; FIXME otherwise?
           if len(self.submissionQueue[traj]) == 0:
-            self._newOptPointAdd(gradient,traj)
+            self._addNewOptPoint(gradient,traj)
             # if trajectory was killed for redundancy, continue on to check next trajectory for readiness
             if self.status[traj]['reason'] == 'removed as redundant':
               continue # loops back to the next opt traj
@@ -335,16 +354,7 @@ class SPSA(GradientBasedOptimizer):
         if len(self.submissionQueue[traj]) > 0:
           self.raiseAnError(RuntimeError,'Preparing to add grad evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
         for i in self.perturbationIndices: #perturbation points are odd, not even
-          direction = self._getPerturbationDirection(i, traj)
-          point = {}
-          for varID, var in enumerate(self.getOptVars(traj=traj)):
-            val = varK[var] + ck*direction[varID]
-            val = self._checkBoundariesAndModify(1.0, 0.0, 1.0, val, 0.9999, 0.0001)
-            point[var] = val
-          #create identifier
-          prefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i)
-          #queue it up
-          self.submissionQueue[traj].append({'inputs':point,'prefix':prefix})
+          self._addAGradientEval(traj,i,ck=ck,varK=varK)
       #end if-first-time conditional
       #get a queued entry to run
       entry = self.submissionQueue[traj].popleft()
