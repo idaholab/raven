@@ -390,16 +390,23 @@ class BasicStatistics(PostProcessor):
           self.biased = True
       elif child.tag == "pivotParameter":
         self.pivotParameter = child.text
-      elif child.tag == "voronoi"      :
+      elif child.tag == "voronoi":
           self.voronoi = True
           for attrib in child.attrib:
-            if attrib=="inputs"      : self.inputsVoronoi = child.attrib[attrib].split(',')
-            elif attrib=="outputs"   : self.outputsVoronoi = child.attrib[attrib].split(',')
-            elif attrib=="space"     : self.spaceVoronoi = child.attrib[attrib].split(',')
-            else                     : self.raiseAnError(IOError,"Unknown attribute " + attrib + " .Known attribute are inputs, outputs and space.")
-          if child.text.lower()=="unidimensional"    : self.voronoiDimensional = "unidimensional"
-          elif child.text.lower()=="multidimensional": self.voronoiDimensional = "multidimensional"
-          else                                       :self.raiseAnError(IOError,"Unknown text : " + child.text.lower() + " .Expecting unidimensional or multidimensional.")
+            if attrib=="inputs":
+              self.inputsVoronoi = child.attrib[attrib].split(',')
+            elif attrib=="outputs":
+              self.outputsVoronoi = child.attrib[attrib].split(',')
+            elif attrib=="space":
+              self.spaceVoronoi = child.attrib[attrib].split(',')
+            else:
+              self.raiseAnError(IOError,"Unknown attribute " + attrib + " .Known attribute are inputs, outputs and space.")
+          if child.text.lower()=="unidimensional":
+            self.voronoiDimensional = "unidimensional"
+          elif child.text.lower()=="multidimensional":
+            self.voronoiDimensional = "multidimensional"
+          else:
+            self.raiseAnError(IOError,"Unknown text : " + child.text.lower() + " .Expecting unidimensional or multidimensional.")
       else:
         self.raiseAWarning('Unrecognized node in BasicStatistics "',child.tag,'" has been ignored!')
 
@@ -735,8 +742,10 @@ class BasicStatistics(PostProcessor):
               self.proba[target] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target]
             else:
               for inp in self.inputsVoronoi:
-                if 'GridInfo' in input['metadata'].keys(): self.equallySpaced = True    #only relevant in 1D.
-                else: self.equallySpaced = True                                         #@jougcj : False if someone find a good way to define the probability weights in the value space
+                if 'GridInfo' in input['metadata'].keys():
+                  self.equallySpaced = True    #only relevant in 1D.
+                else:
+                  self.equallySpaced = True                                         #@jougcj : False if someone find a good way to define the probability weights in the value space
                 if self.equallySpaced:
                   points = [[input['metadata']['SampledVarsCdf'][i][inp]]  for i in range(len(input['metadata']['SampledVarsCdf']))]
                 else:
@@ -753,7 +762,8 @@ class BasicStatistics(PostProcessor):
               pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = pbW
               self.proba[target] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target]
           else:
-            if 'GridInfo' in input['metadata'].keys(): self.equallySpaced = True    #only relevant in 1D.
+            if 'GridInfo' in input['metadata'].keys():
+              self.equallySpaced = True    #only relevant in 1D.
             else: self.equallySpaced = True                                         #@jougcj : False if someone find a good way to define the probability weights in the value space.
             if self.equallySpaced:
               points = [[input['metadata']['SampledVarsCdf'][i][target]]  for i in range(len(input['metadata']['SampledVarsCdf']))]
@@ -765,9 +775,12 @@ class BasicStatistics(PostProcessor):
             if any(i in ['VarianceDependentSensitivity','NormalizedSensitivity','covariance','pearson'] for i in self.what):
               if pbWeights['realization'] is None:
                 if any(i in self.outputsVoronoi for i in parameterSet):
-                  if 'metadata' in input.keys(): pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
-                  if not pbPresent:pbWeights['realization'] = np.asarray([1.0 / len(input['targets'][self.parameters['targets'][0]])]*len(input['targets'][self.parameters['targets'][0]]))
-                  else:pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
+                  if 'metadata' in input.keys():
+                    pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
+                  if not pbPresent:
+                    pbWeights['realization'] = np.asarray([1.0 / len(input['targets'][self.parameters['targets'][0]])]*len(input['targets'][self.parameters['targets'][0]]))
+                  else:
+                    pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
                 else:
                   points = np.column_stack([[[input['metadata']['SampledVarsCdf'][i][target]]  for i in range(len(input['metadata']['SampledVarsCdf']))] for target in parameterSet])
                   self.boundariesVoronoi = [[0,1]]*len(parameterSet)
@@ -1344,8 +1357,10 @@ class BasicStatistics(PostProcessor):
     largeBorder=2*max(realBorder)
 
     for i in self.boundariesVoronoi:
-      if i[1]==sys.float_info.max:del(i[1])
-      if i[0]==-sys.float_info.max:del(i[0])
+      if i[1]==sys.float_info.max:
+        del(i[1])
+      if i[0]==-sys.float_info.max:
+        del(i[0])
 
     ##Step2 : Computation of the Voronoi diagrams
     # If the input space is one dimensionnal, the data are projected on a two dimmensionnals space so as to be able to compute the tesselation.
@@ -1426,10 +1441,13 @@ class BasicStatistics(PostProcessor):
         for j in range(self.dimension):
           if self.boundariesVoronoi[j]:
             if petiteEnveloppe[i][j]==min([petiteEnveloppeDeepCopy[t][j] for t in range(len(petiteEnveloppe))]):
-              if self.boundariesVoronoi[j][0] and self.boundariesVoronoi[j][0]<petiteEnveloppe[i][j]: petiteEnveloppe[i][j] = self.boundariesVoronoi[j][0]
+              if self.boundariesVoronoi[j][0] and self.boundariesVoronoi[j][0]<petiteEnveloppe[i][j]:
+                petiteEnveloppe[i][j] = self.boundariesVoronoi[j][0]
             if petiteEnveloppe[i][j]==max([petiteEnveloppeDeepCopy[t][j] for t in range(len(petiteEnveloppe))]):
-              if len(self.boundariesVoronoi[j])==2 and self.boundariesVoronoi[j][1]>petiteEnveloppe[i][j]: petiteEnveloppe[i][j] = self.boundariesVoronoi[j][1]
-              elif len(self.boundariesVoronoi[j])==2 and self.boundariesVoronoi[j][0]>petiteEnveloppe[i][j]: petiteEnveloppe[i][j] = self.boundariesVoronoi[j][0]
+              if len(self.boundariesVoronoi[j])==2 and self.boundariesVoronoi[j][1]>petiteEnveloppe[i][j]:
+                petiteEnveloppe[i][j] = self.boundariesVoronoi[j][1]
+              elif len(self.boundariesVoronoi[j])==2 and self.boundariesVoronoi[j][0]>petiteEnveloppe[i][j]:
+                petiteEnveloppe[i][j] = self.boundariesVoronoi[j][0]
 
       ##Centering of the big box (the small box should already be at the right position)
       grandeEnveloppe+=(0.5*(smallVoronoi.min_bound+smallVoronoi.max_bound)-smallVoronoi.max_bound)
