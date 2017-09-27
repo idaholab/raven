@@ -608,8 +608,10 @@ class MultiRun(SingleRun):
       else:
         self.raiseADebug('the job "'+finishedJob.identifier+'" has failed.')
         if self.failureHandling['fail']:
-          #add run to a pool that can be sent to the sampler later
-          self.failedRuns.append(copy.copy(finishedJob))
+          # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
+          if not sampler.ableToHandelFailedRuns:
+            #add run to a pool that can be sent to the sampler later
+            self.failedRuns.append(copy.copy(finishedJob))
         else:
           if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
             self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
@@ -620,9 +622,13 @@ class MultiRun(SingleRun):
                              str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
             self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
           else:
-            #add run to a pool that can be sent to the sampler later
-            self.failedRuns.append(copy.copy(finishedJob))
+            # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
+            if not sampler.ableToHandelFailedRuns:
+              #add run to a pool that can be sent to the sampler later
+              self.failedRuns.append(copy.copy(finishedJob))
             self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
+        if sampler.ableToHandelFailedRuns:
+          self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
       # finalize actual sampler
       sampler.finalizeActualSampling(finishedJob,model,inputs)
       # if requested, submit new jobs -> this should only be true for the sequential case

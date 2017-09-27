@@ -1,19 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers.TrajGrid</name>
-    <author>talbpaul</author>
-    <created>2017-09-07</created>
-    <classesTested>Optimizer.SPSA,Samplers.Grid</classesTested>
+    <name>framework/Optimizers.BealeFailureRejection</name>
+    <author>alfoa</author>
+    <created>2017-09-25</created>
+    <classesTested>Optimizer</classesTested>
     <description>
-      This tests using the Grid sampler as a seeding chooser for the GradientBasedOptimizer class.
+      This test is aimed to test the ability of the Optimizer to handle failed runs, rejecting the point and cutting the learning rate
     </description>
-    <analytic>
-      This test uses an inverted 2-dimensional parabola with maximum at (0,0) of 1.0.
-    </analytic>
   </TestInfo>
+
   <RunInfo>
-    <WorkingDir>TrajGrid</WorkingDir>
+    <WorkingDir>BealeFailureRejection</WorkingDir>
     <Sequence>optimize,getOptPoint,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -21,7 +19,7 @@
   <Steps>
     <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">mod</Model>
+      <Model class="Models" type="ExternalModel">beale</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
@@ -35,7 +33,6 @@
       <Model class="Models" type="PostProcessor">snapshot</Model>
       <Output class="DataObjects" type="PointSet">opt_soln</Output>
       <Output class="OutStreams" type="Print">opt_soln</Output>
-      <Output class="OutStreams" type="Print">opt_export</Output>
     </PostProcess>
   </Steps>
 
@@ -45,54 +42,30 @@
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
-        <type>max</type>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-      <!-- Initialization Sampler -->
-      <Sampler          class="Samplers"    type="Grid">initialPointsSampler</Sampler>
       <convergence>
-          <gradientThreshold>1e-4</gradientThreshold>
+          <gradientThreshold>1e-1</gradientThreshold>
           <gainGrowthFactor>1.5</gainGrowthFactor>
           <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
       <variable name='x'>
-        <upperBound>1</upperBound>
-        <lowerBound>-1</lowerBound>
+        <upperBound>4.5</upperBound>
+        <lowerBound>-4.5</lowerBound>
+        <initial>2,2,0,-2,-2</initial>
       </variable>
       <variable name='y'>
-        <upperBound>1</upperBound>
-        <lowerBound>-1</lowerBound>
+        <upperBound>4.5</upperBound>
+        <lowerBound>-4.5</lowerBound>
+        <initial>2,-2,0,2,-2</initial>
       </variable>
       <objectVar>ans</objectVar>
-
     </SPSA>
   </Optimizers>
-  <Distributions>
-      <Uniform name="xdist">
-        <lowerBound>-1</lowerBound>
-        <upperBound>0</upperBound>
-      </Uniform>
-      <Uniform name="ydist">
-        <lowerBound>0</lowerBound>
-        <upperBound>1</upperBound>
-      </Uniform>
-  </Distributions>
-
-  <Samplers>
-    <Grid name="initialPointsSampler">
-      <variable name="x">
-        <distribution>xdist</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0.01 0.99</grid>
-      </variable>
-      <variable name="y">
-        <distribution>ydist</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0.01 0.99</grid>
-      </variable>
-    </Grid>
-  </Samplers>
 
   <Models>
-    <ExternalModel ModuleToLoad="../Persistence/parabola" name="mod" subType="">
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="bealeRejection" name="beale" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
     <PostProcessor name="snapshot" subType="InterfacedPostProcessor">

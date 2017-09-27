@@ -103,6 +103,174 @@ Where,
   \item  \texttt{|}, the value that is going to be replaced by the Generic Interface, will be left- justified with a string length of ``10'';
 \end{itemize}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% RAVEN  INTERFACE  (RAVEN running RAVEN) %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{RAVEN Interface}
+\label{subsec:RAVENInterface}
+The RAVEN interface is meant to provide the possibility to execute a RAVEN input file
+driving a set of SLAVE RAVEN calculations. For example, if the user wants to optimize the parameters
+of a surrogate model (e.g. minimizing the distance between the surrogate predictions and the real data), he 
+can achieve this task by setting up  a RAVEN input file (master) that performs an optimization on the feature
+space characterized by the surrogate model parameters, whose training and validation assessment  is performed in the SLAVE 
+RAVEN runs.
+\\ There are some limitations for this interface:
+\begin{itemize}
+\item only one  sub-level of RAVEN can be executed (i.e. if the SLAVE RAVEN input file contains the run of another RAVEN SLAVE, the MASTER RAVEN will error out)
+\item only data from Outstreams of type Print can be collected by the MASTER RAVEN
+\item only a maximum of two Outstreams can be collected (1 PointSet and 1 HistorySet)
+\end{itemize}
+
+
+Like for every other interface, most of the RAVEN workflow stays the same independently of which type of Model (i.e. Code) is used.
+\\ Similarly to any other code interface, the user provides paths to executables and aliases for sampled variables within the
+\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes \xmlAttr{name} and
+\xmlAttr{subType}.  \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
+\xmlAttr{subType} specifies which code interface the model will use (In this case \xmlAttr{subType}=``RAVEN''). 
+The \xmlNode{executable}
+block should contain the absolute or relative (with respect to the current working
+directory) path to the RAVEN framework script (\textbf{raven\_framework}).
+\\ In addition to the attributes and xml nodes reported above, the RAVEN accepts the following XML nodes (required and optional):
+\begin{itemize}
+  \item  \xmlNode{outputExportOutStreams}, \xmlDesc{comma separated list,
+  required parameter} will specify the  \xmlNode{OutStreams} that will be loaded as outputs of the SLAVE RAVEN.
+  Maximum two  \xmlNode{OutStreams} can be listed here (1 for PointSet and/or 1 for HistorySet).
+  \item  \xmlNode{conversionModule}, \xmlDesc{string,
+  optional parameter} will specify the path to a \textit{Python} module that can contain two methods:
+      \begin{itemize}
+         \item \textbf{\textit{manipulateScalarSampledVariables}}, a method that is aimed to manipulate sampled variables and to create more in case needed.
+         Example:
+          \begin{lstlisting}[language=python]
+def manipulateScalarSampledVariables(sampledVariables):
+  """
+  This method is aimed to manipulate scalar variables. 
+  The user can create new variables based on the 
+  variables sampled by RAVEN
+   @ In, sampledVariables, dict, dictionary of 
+       sampled variables ({"var1":value1,"var2":value2})
+   @ Out, None, the new variables should be 
+                 added in the "sampledVariables" dictionary
+  """
+  newVariableValue = 
+    sampledVariables['Distributions|Uniform@name:a_dist|lowerBound'] 
+    + 1.0
+  sampledVariables['Distributions|Uniform@name:a_dist|upperBound'] = 
+    newVariableValue
+  return
+           \end{lstlisting}
+
+         \item \textbf{\textit{convertNotScalarSampledVariables}}, a method that is aimed to convert not scalar variables (e.g. 1D arrays) into multiple scalar variables 
+         (e.g.  \xmlNode{constant}(s) in a sampling strategy).
+          This method is going to be required in case not scalar variables are detected by the interface. 
+          Example:
+          \begin{lstlisting}[language=python]
+ def convertNotScalarSampledVariables(noScalarVariables):
+  """
+  This method is aimed to convert not scalar 
+  variables into multiple scalar variables. The user MUST
+   create new variables based on the not Scalar Variables
+    sampled (and passed in) by RAVEN
+  @ In, noScalarVariables, dict, dictionary of sampled 
+       variables that are not scalar ({"var1":1Darray1,"var2":1Darray2})
+  @ Out, newVars, dict,  the new variables that have 
+       been created based on the not scalar variables 
+       contained in "noScalarVariables" dictionary
+  """
+  oneDimensionalArray =
+      noScalarVariables['temperatureHistory']
+  newVars = {}
+  for cnt, value in enumerate(oneDimensionalArray):
+    newVars['Samplers|MonteCarlo@name:myMC|constant'+
+               '@name=temperatureHistory'+str(cnt)] = 
+               oneDimensionalArray[cnt]
+  return newVars
+           \end{lstlisting}
+      \end{itemize}
+\end{itemize}
+
+Code input example:
+\begin{lstlisting}[style=XML]
+    <Code name="RAVENrunningRAVEN" subType="RAVEN">
+      <executable>../../../raven_framework</executable>
+      <outputExportOutStreams>
+         HistorySetOutStream,PointSetOutStream
+      </outputExportOutStreams>
+      <conversionModule>
+        ~/Users/username/whateverConversionModule.py
+      </conversionModule>
+    </Code>
+\end{lstlisting}
+
+Like for every other interface,  the syntax of the variable names is important to make the parser understand how to perturb an input file. 
+\\ For the RAVEN interface, a syntax inspired by the XPath nomenclature is used.
+\begin{lstlisting}[style=XML]
+  <Samplers>
+    <MonteCarlo name="MC_external">
+       ...
+      <variable name="Models|ROM@subType:SciKitLearn@name:ROM1|C">
+        <distribution>C_distrib</distribution>
+      </variable>
+      <variable name="Models|ROM@subType:SciKitLearn@name:ROM1|tol">
+        <distribution>toll_distrib</distribution>
+      </variable>
+      <variable name="Samplers|Grid@name:'+
+            'GridName|variable@name:var1|grid@construction:equal@type:value@steps">
+        <distribution>categorical_step_distrib</distribution>
+      </variable>
+      ...
+    </MonteCarlo>
+  </Samplers>
+\end{lstlisting}
+In the above example, it can be inferred that each XML node (subnode) needs to be separated by a ``|'' separator. In addition,
+every time an XML node has attributes, the user can specify them using the ``@'' separator to specify a value for them.
+The first variable above will be pointing to the following XML sub-node ( \xmlNode{C}):
+\begin{lstlisting}[style=XML]
+      <Models>
+        <ROM name="ROM1" subType="SciKitLearn">
+           ...   
+           <C>10.0</C>
+          ...
+       </ROM>
+      </Models>
+\end{lstlisting}
+The second variable above will be pointing to the following XML sub-node ( \xmlNode{tol}):
+\begin{lstlisting}[style=XML]
+      <Models>
+        <ROM name="ROM1" subType="SciKitLearn">
+           ...   
+           <tol>0.0001</tol>
+          ...
+       </ROM>
+      </Models>
+\end{lstlisting}
+The third variable above will be pointing to the following XML attribute ( \xmlAttr{steps}):
+\begin{lstlisting}[style=XML]
+  <Samplers>
+    <Grid name="GridName">
+       ...
+      <variable name="var1">
+         ...
+        <grid construction="equal" type="value" steps="1">0 1</grid>
+         ... 
+      </variable>
+ 
+      ...
+    </MonteCarlo>
+  </Samplers>
+\end{lstlisting}
+
+The above nomenclature must be used for all the variables to be sampled and for the variables generated by the two methods contained, in case, in
+the module that gets specified by the \xmlNode{conversionModule} in the \xmlNode{Code} section.
+\\ Finally the SLAVE RAVEN input file (s) must be ``tagged'' with the attribute  \xmlAttr{type="raven"} in the Files section. For example,
+
+\begin{lstlisting}[style=XML]
+<Files>
+    <Input name="slaveRavenInputFile" type="raven" >
+      test_rom_trainer.xml
+    </Input>
+</Files>
+\end{lstlisting}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% RELAP5  INTERFACE  %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%

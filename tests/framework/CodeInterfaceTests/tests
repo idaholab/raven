@@ -317,5 +317,11 @@
    rel_err = 0.0001
  [../]
 
-
+ [./RAVENrunningRAVEN]
+   type = 'RavenFramework'
+   input = 'test_raven_running_raven_int_models.xml'
+   output = 'raven_running_raven_internal_models/testPrintHistorySet_dump_11.csv'
+   UnorderedCsv = 'raven_running_raven_internal_models/testPointSet_dump.csv'
+   rel_err = 0.0001
+ [../]
 []
