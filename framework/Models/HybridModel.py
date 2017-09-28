@@ -99,26 +99,27 @@ class HybridModel(Dummy):
       @ Out, None
     """
     Dummy.__init__(self,runInfoDict)
-    self.modelInstance            = None
-    self.cvInstance               = None
-    self.targetEvaluationInstance = None
-    self.tempTargetEvaluation     = None
-    self.romsDictionary        = {}      # dictionary of models that is going to be employed, i.e. {'romName':Instance}
-    self.romTrainStartSize     = 10       # the initial size of training set
-    self.romTrainMaxSize       = 1.0e6     # the maximum size of training set
-    self.romValidateSize       = 10       # the size of rom validation set
-    self.romTrained            = False    # True if all roms are trained
-    self.sleepTime             = 0.005    # waiting time before checking if a run is finished.
-    self.romConverged          = False    # True if all roms are converged
-    self.romValid              = False    # True if all roms are valid for given input data
-    self.romConvergence        = 0.01
-    self.modelSelection        = 'CrowdingDistance'
-    self.existTrainSize        = 0
-    self.threshold             = 0.2       # the cut off validation criterion of new point using the CrowdingDistance
+    self.modelInstance            = None             # Instance of given model
+    self.cvInstance               = None             # Instance of provided cross validation
+    self.targetEvaluationInstance = None             # Instance of data object used to store the inputs and outputs of HybridModel
+    self.tempTargetEvaluation     = None             # Instance of data object that are used to store the training set
+    self.romsDictionary        = {}                  # dictionary of models that is going to be employed, i.e. {'romName':Instance}
+    self.romTrainStartSize     = 10                  # the initial size of training set
+    self.romTrainMaxSize       = 1.0e6               # the maximum size of training set
+    self.romValidateSize       = 10                  # the size of rom validation set
+    self.romTrained            = False               # True if all roms are trained
+    self.sleepTime             = 0.005               # waiting time before checking if a run is finished.
+    self.romConverged          = False               # True if all roms are converged
+    self.romValid              = False               # True if all roms are valid for given input data
+    self.romConvergence        = 0.01                # The criterion used to check ROM convergence
+    self.modelSelection        = 'CrowdingDistance'  # The validation methods used to select model between high-fidelity model and surrogate
+    self.existTrainSize        = 0                   # The size of existing training set in the provided data object via 'TargetEvaluation'
+    self.threshold             = 0.2                 # the cut off validation criterion of new point using the CrowdingDistance
     self.printTag              = 'HYBRIDMODEL MODEL' # print tag
-    self.createWorkingDir      = False
-    self.tempOutputs           = {}
-    self.oldTrainingSize       = 0
+    self.createWorkingDir      = False               # If the type of model is 'Code', this will set to true
+    self.tempOutputs           = {}                  # Indicators used to collect model inputs/outputs for rom training
+    self.oldTrainingSize       = 0                   # The size of training set that is previous used to train the rom
+    self.modelIndicator        = {}                  # a dict i.e. {jobPrefix: 1 or 0} used to indicate the runs: model or rom. '1' indicates ROM run, and '0' indicates Code run
     # assembler objects to be requested
     self.addAssemblerObject('Model','1',True)
     self.addAssemblerObject('ROM','n')
@@ -497,6 +498,11 @@ class HybridModel(Dummy):
       self.romValid = self.checkRomValidity(kwargs)
     else:
       self.romValid = False
+
+    if self.romValid:
+      self.modelIndicator[prefix] = 1
+    else:
+      self.modelIndicator[prefix] = 0
 
     ## Ensemble models need access to the job handler, so let's stuff it in our
     ## catch all kwargs where evaluateSample can pick it up, not great, but
