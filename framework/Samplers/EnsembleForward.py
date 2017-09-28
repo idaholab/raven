@@ -61,12 +61,14 @@ class EnsembleForwardSampler(ForwardSampler):
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
       @ Out, None
     """
-    ForwardSampler.readSamplerInit(self,xmlNode)
     # this import happens here because a recursive call is made if we attempt it in the header
     from .Factory import returnInstance,knownTypes
     for child in xmlNode:
+      #sampler initialization
+      if child.tag == 'samplerInit':
+        ForwardSampler.readSamplerInit(self,xmlNode)
       # read in samplers
-      if child.tag in self.acceptableSamplers:
+      elif child.tag in self.acceptableSamplers:
         child.attrib['name'] = child.tag
         self.instanciatedSamplers[child.tag] = returnInstance(child.tag,self)
         #FIXME the variableGroups needs to be fixed
