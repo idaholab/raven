@@ -1,0 +1,96 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>basicStatsGridVoronoiFull</WorkingDir>
+    <Sequence>SamplingMirrowModelGrid,PP1grid</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/grid_analytic</name>
+    <author>alfoa</author>
+    <created>2015-11-21</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This test checks all the basic statistics on analytic values using a grid sampling; however, the analytic models are not
+      yet documented.
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="output_basicStatistics_PP1grid.csv" type="">output_basicStatistics_PP1grid.csv</Input>
+    <Input name="output_basicStatistics_PP1grid.xml" type="">output_basicStatistics_PP1grid.xml</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="simpleNonlinear" name="nonlinearModel" subType="">
+      <variables>x,y,x1,y1</variables>
+    </ExternalModel>
+    <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
+      <all>
+        <targets>x,y,x1,y1</targets>
+        <features>x,y,x1,y1</features>
+      </all>
+      <voronoi>multidimensional</voronoi>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="Grid_external">
+      <variable name="x">
+        <distribution>x0_distrib</distribution>
+        <grid construction="equal" steps="20" type="CDF">0.002 0.998</grid>
+      </variable>
+      <variable name="y">
+        <distribution>y0_distrib</distribution>
+        <grid construction="equal" steps="20" type="CDF">0.002 0.998</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="SamplingMirrowModelGrid" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">nonlinearModel</Model>
+      <Sampler class="Samplers" type="Grid">Grid_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
+    </MultiRun>
+    <PostProcess name="PP1grid">
+      <Input class="DataObjects" type="PointSet">outputDataGrid</Input>
+      <Model class="Models" type="PostProcessor">analyticalTest</Model>
+      <Output class="Files" type="">output_basicStatistics_PP1grid.csv</Output>
+      <Output class="Files" type="">output_basicStatistics_PP1grid.xml</Output>
+      <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
+      <Output class="OutStreams" type="Print">outputDatagrid_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="outputDatagrid_dump">
+      <type>csv</type>
+      <source>outputDataGrid</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataGrid">
+      <Input>x,y</Input>
+      <Output>x1,y1</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

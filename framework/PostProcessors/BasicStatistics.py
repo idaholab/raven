@@ -787,7 +787,13 @@ class BasicStatistics(PostProcessor):
                   pbWeights['realization'] = np.asarray(BasicStatistics.constructVoronoi(self,points))
       else: #multidimentional
         points = list(np.column_stack([input['targets'][x] for x in input['targets'].keys()]))
-        self.boundariesVoronoi = [[input['metadata']['Boundaries'][0][x][0],input['metadata']['Boundaries'][0][x][1]] for x in input['targets'].keys()]
+        self.boundariesVoronoi = [[input['metadata']['Boundaries'][0][x][0]
+                                   if x in input['metadata']['Boundaries'][0]
+                                   else -sys.float_info.max,
+                                   input['metadata']['Boundaries'][0][x][1]
+                                   if x in input['metadata']['Boundaries'][0]
+                                   else sys.float_info.max]
+                                  for x in input['targets'].keys()]
         pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][','.join(parameterSet)] = np.asarray(BasicStatistics.constructVoronoi(self,points))
         self.proba[','.join(parameterSet)] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][','.join(parameterSet)]
       pbPresent = True
