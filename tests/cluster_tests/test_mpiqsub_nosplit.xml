@@ -17,7 +17,7 @@
     <clusterParameters>-W block=true</clusterParameters>
     <NumThreads>1</NumThreads>
     <mode>
-      mpi
+      mpilegacy
       <runQSUB/>
       <NoSplitNode maxOnNode="4"/>
     </mode>

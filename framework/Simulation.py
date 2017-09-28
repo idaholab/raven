@@ -39,7 +39,6 @@ import Files
 import Samplers
 import Optimizers
 import Models
-
 import Metrics
 import Distributions
 import Databases
@@ -61,52 +60,46 @@ class SimulationMode(MessageHandler.MessageUser):
   """
     SimulationMode allows changes to the how the simulation
     runs are done.  modifySimulation lets the mode change runInfoDict
-    and other parameters.  runOverride lets the mode do the running instead
-    of simulation.
+    and other parameters.  remoteRunCommand lets a command to run RAVEN
+    remotely be specified.
   """
-  def __init__(self,simulation):
+  def __init__(self,messageHandler):
     """
       Constructor
-      @ In, simulation, instance, instance of the simulation class
+      @ In, messageHandler, instance, instance of the MessageHandler class
       @ Out, None
     """
-    self.__simulation = simulation
-    self.messageHandler = simulation.messageHandler
+    self.messageHandler = messageHandler
     self.printTag = 'SIMULATION MODE'
 
-  def doOverrideRun(self):
+  def remoteRunCommand(self, runInfoDict):
     """
-      If doOverrideRun is true, then use runOverride instead of
-      running the simulation normally.  This method should call
-      simulation.run somehow
-      @ In, None
-      @ Out, doOverrideRun, bool, does the override?
+      If this returns None, do nothing. If it returns a dictionary,
+      use the dictionary to run raven remotely.
+      @ In, runInfoDict, dict, the run info
+      @ Out, remoteRunCommand, dict, the information for the remote command.
+      The dictionary should have a "args" key that is used as a command to
+      a subprocess.call.  It optionally can have a "cwd" for the current
+      working directory and a "env" for the environment to use for the command.
     """
-    return False
+    return None
 
-  def runOverride(self):
-    """
-      This  method can completely override the Simulation's run method
-      @ In, None
-      @ Out, None
-    """
-    pass
-
-  def modifySimulation(self):
+  def modifyInfo(self, runInfoDict):
     """
       modifySimulation is called after the runInfoDict has been setup.
       This allows the mode to change any parameters that need changing.
       This typically modifies the precommand and the postcommand that
       are put infront of the command and after the command.
-      @ In, None
-      @ Out, None
+      @ In, runInfoDict, dict, the run info
+      @ Out, dictionary to use for modifications.  If empty, no changes
     """
     import multiprocessing
     try:
-      if multiprocessing.cpu_count() < self.__simulation.runInfoDict['batchSize']:
-        self.raiseAWarning("cpu_count",multiprocessing.cpu_count(),"< batchSize",self.__simulation.runInfoDict['batchSize'])
+      if multiprocessing.cpu_count() < runInfoDict['batchSize']:
+        self.raiseAWarning("cpu_count",multiprocessing.cpu_count(),"< batchSize",runInfoDict['batchSize'])
     except NotImplementedError:
       pass
+    return {}
 
   def XMLread(self,xmlNode):
     """
@@ -116,6 +109,10 @@ class SimulationMode(MessageHandler.MessageUser):
       @ Out, None
     """
     pass
+
+#Note that this has to be after SimulationMode is defined or the CustomModes
+#don't see SimulationMode when they import Simulation
+import CustomModes
 
 def splitCommand(s):
   """
@@ -149,236 +146,8 @@ def splitCommand(s):
     retList.append(buffer)
   return retList
 
-def createAndRunQSUB(simulation):
-  """
-    Generates a PBS qsub command to run the simulation
-    @ In, simulation, instance, instance of the simulation class
-    @ Out, None
-  """
-  # Check if the simulation has been run in PBS mode and, in case, construct the proper command
-  #while true, this is not the number that we want to select
-  coresNeeded = simulation.runInfoDict['batchSize']*simulation.runInfoDict['NumMPI']
-  #batchSize = simulation.runInfoDict['batchSize']
-  frameworkDir = simulation.runInfoDict["FrameworkDir"]
-  ncpus = simulation.runInfoDict['NumThreads']
-  jobName = simulation.runInfoDict['JobName'] if 'JobName' in simulation.runInfoDict.keys() else 'raven_qsub'
-  #check invalid characters
-  validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
-  if any(char not in validChars for char in jobName):
-    simulation.raiseAnError(IOError,'JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
-  #check jobName for length
-  if len(jobName) > 15:
-    jobName = jobName[:10]+'-'+jobName[-4:]
-    simulation.raiseAMessage('JobName is limited to 15 characters; truncating to '+jobName)
-  #Generate the qsub command needed to run input
-  command = ["qsub","-N",jobName]+\
-            simulation.runInfoDict["clusterParameters"]+\
-            ["-l",
-             "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1",
-             "-l","walltime="+simulation.runInfoDict["expectedTime"],
-             "-l","place=free","-v",
-             'COMMAND="python Driver.py '+
-             " ".join(simulation.runInfoDict["SimulationFiles"])+'"',
-             simulation.runInfoDict['RemoteRunCommand']]
-  #Change to frameworkDir so we find raven_qsub_command.sh
-  os.chdir(frameworkDir)
-  simulation.raiseAMessage(os.getcwd()+' '+str(command))
-  subprocess.call(command)
-
-
 #----------------------------------------------------------------------
 
-class MPISimulationMode(SimulationMode):
-  """
-    MPISimulationMode is a specialized class of SimulationMode.
-    It is aimed to distribute the runs using the MPI protocol
-  """
-  def __init__(self,simulation):
-    """
-      Constructor
-      @ In, simulation, instance, instance of the simulation class
-      @ Out, None
-    """
-    SimulationMode.__init__(self,simulation)
-    self.__simulation = simulation
-    self.messageHandler = simulation.messageHandler
-    #Figure out if we are in PBS
-    self.__inPbs = "PBS_NODEFILE" in os.environ
-    self.__nodefile = False
-    self.__runQsub = False
-    self.__noSplitNode = False #If true, don't split mpi processes across nodes
-    self.__limitNode = False #If true, fiddle with max on Node
-    self.__maxOnNode = None #Used with __noSplitNode and __limitNode to limit number on a node
-    self.__noOverlap = False #Used with __limitNode to prevent multiple batches from being on one node
-    # If (__noSplitNode or __limitNode) and  __maxOnNode is not None,
-    # don't put more than that on on single shared memory node
-    self.printTag = 'MPI SIMULATION MODE'
-
-  def modifySimulation(self):
-    """
-      This method is aimed to modify the Simulation instance in
-      order to distribute the jobs using the MPI protocol
-      @ In, None
-      @ Out, None
-    """
-    if self.__nodefile or self.__inPbs:
-      if not self.__nodefile:
-        #Figure out number of nodes and use for batchsize
-        nodefile = os.environ["PBS_NODEFILE"]
-      else:
-        nodefile = self.__nodefile
-      lines = open(nodefile,"r").readlines()
-      self.__simulation.runInfoDict['Nodes'] = list(lines)
-      numMPI = self.__simulation.runInfoDict['NumMPI']
-      oldBatchsize = self.__simulation.runInfoDict['batchSize']
-      #the batchsize is just the number of nodes of which there is one
-      # per line in the nodefile divided by the numMPI (which is per run)
-      # and the floor and int and max make sure that the numbers are reasonable
-      maxBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
-      if maxBatchsize < oldBatchsize:
-        self.__simulation.runInfoDict['batchSize'] = maxBatchsize
-        self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
-      newBatchsize = self.__simulation.runInfoDict['batchSize']
-      if newBatchsize > 1:
-        #need to split node lines so that numMPI nodes are available per run
-        workingDir = self.__simulation.runInfoDict['WorkingDir']
-        if not (self.__noSplitNode or self.__limitNode):
-          for i in range(newBatchsize):
-            nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
-            for line in lines[i*numMPI:
-              (i+1)*numMPI]:
-              nodeFile.write(line)
-            nodeFile.close()
-        else:
-          #self.__noSplitNode == True or self.__limitNode == True
-          nodes = []
-          for line in lines:
-            nodes.append(line.strip())
-
-          nodes.sort()
-
-          currentNode = ""
-          countOnNode = 0
-          nodeUsed = False
-
-          if self.__noSplitNode:
-            groups = []
-          else:
-            groups = [[]]
-
-          for i in range(len(nodes)):
-            node = nodes[i]
-            if node != currentNode:
-              currentNode = node
-              countOnNode = 0
-              nodeUsed = False
-              if self.__noSplitNode:
-                #When switching node, make new group
-                groups.append([])
-            if self.__maxOnNode is None or countOnNode < self.__maxOnNode:
-              countOnNode += 1
-              if len(groups[-1]) >= numMPI:
-                groups.append([])
-                nodeUsed = True
-              if not self.__noOverlap or not nodeUsed:
-                groups[-1].append(node)
-
-          fullGroupCount = 0
-          for group in groups:
-            if len(group) < numMPI:
-              self.raiseAWarning("not using part of node because of partial group: "+str(group))
-            else:
-              nodeFile = open(os.path.join(workingDir,"node_"+str(fullGroupCount)),"w")
-              for node in group:
-                print(node,file=nodeFile)
-              nodeFile.close()
-              fullGroupCount += 1
-          if fullGroupCount == 0:
-            self.raiseAnError(IOError, "Cannot run with given parameters because no nodes have numMPI "+str(numMPI)+" available and NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode))
-          if fullGroupCount != self.__simulation.runInfoDict['batchSize']:
-            self.raiseAWarning("changing batchsize to "+str(fullGroupCount)+" because NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode)+" and some nodes could not be used.")
-            self.__simulation.runInfoDict['batchSize'] = fullGroupCount
-
-        #then give each index a separate file.
-        nodeCommand = self.__simulation.runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
-      else:
-        #If only one batch just use original node file
-        nodeCommand = self.__simulation.runInfoDict["NodeParameter"]+" "+nodefile
-    else:
-      #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
-      newBatchsize = self.__simulation.runInfoDict['batchSize']
-      numMPI = self.__simulation.runInfoDict['NumMPI']
-      #TODO, we don't have a way to know which machines it can run on
-      # when not in PBS so just distribute it over the local machine:
-      nodeCommand = " "
-
-    #Disable MPI processor affinity, which causes multiple processes
-    # to be forced to the same thread.
-    os.environ["MV2_ENABLE_AFFINITY"] = "0"
-
-    # Create the mpiexec pre command
-    # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
-    self.__simulation.runInfoDict['precommand'] = self.__simulation.runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+self.__simulation.runInfoDict['precommand']
-    if(self.__simulation.runInfoDict['NumThreads'] > 1):
-      #add number of threads to the post command.
-      self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
-    self.raiseAMessage("precommand: "+self.__simulation.runInfoDict['precommand']+", postcommand: "+self.__simulation.runInfoDict['postcommand'])
-
-  def doOverrideRun(self):
-    """
-      If doOverrideRun is true, then use runOverride instead of
-      running the simulation normally.  This method should call
-      simulation.run
-      @ In, None
-      @ Out, doOverrRun, bool, does the override?
-    """
-    # Check if the simulation has been run in PBS mode and if run QSUB
-    # has been requested, in case, construct the proper command
-    doOverrRun = (not self.__inPbs) and self.__runQsub
-    return doOverrRun
-
-  def runOverride(self):
-    """
-      This  method completely overrides the Simulation's run method
-      @ In, None
-      @ Out, None
-    """
-    #Check and see if this is being accidently run
-    assert self.__runQsub and not self.__inPbs
-    createAndRunQSUB(self.__simulation)
-
-  def XMLread(self, xmlNode):
-    """
-      XMLread is called with the mode node, and is used here to
-      get extra parameters needed for the simulation mode MPI.
-      @ In, xmlNode, xml.etree.ElementTree.Element, the xml node that belongs to this class instance
-      @ Out, None
-    """
-    for child in xmlNode:
-      if child.tag == "nodefileenv":
-        self.__nodefile = os.environ[child.text.strip()]
-      elif child.tag == "nodefile":
-        self.__nodefile = child.text.strip()
-      elif child.tag.lower() == "runqsub":
-        self.__runQsub = True
-      elif child.tag.lower() == "nosplitnode":
-        self.__noSplitNode = True
-        self.__maxOnNode = child.attrib.get("maxOnNode",None)
-        if self.__maxOnNode is not None:
-          self.__maxOnNode = int(self.__maxOnNode)
-        if "noOverlap" in child.attrib:
-          self.__noOverlap = True
-      elif child.tag.lower() == "limitnode":
-        self.__limitNode = True
-        self.__maxOnNode = child.attrib.get("maxOnNode",None)
-        if self.__maxOnNode is not None:
-          self.__maxOnNode = int(self.__maxOnNode)
-        else:
-          self.raiseAnError(IOError, "maxOnNode must be specified with LimitNode")
-        if "noOverlap" in child.attrib and child.attrib["noOverlap"].lower() in utils.stringsThatMeanTrue():
-          self.__noOverlap = True
-      else:
-        self.raiseADebug("We should do something with child "+str(child))
 #
 #
 #
@@ -505,8 +274,9 @@ class Simulation(MessageHandler.MessageUser):
     self.knownQueueingSoftware.append('PBS Professional')
 
     #Dictionary of mode handlers for the
-    self.__modeHandlerDict           = {}
-    self.__modeHandlerDict['mpi']    = MPISimulationMode
+    self.__modeHandlerDict           = CustomModes.modeHandlers
+    #self.__modeHandlerDict['mpi']    = CustomModes.MPISimulationMode
+    #self.__modeHandlerDict['mpilegacy'] = CustomModes.MPILegacySimulationMode
 
     #this dictionary contain the static factory that return the instance of one of the allowed entities in the simulation
     #the keywords are the name of the module that contains the specialization of that specific entity
@@ -555,7 +325,7 @@ class Simulation(MessageHandler.MessageUser):
     #the handler of the runs within each step
     self.jobHandler    = JobHandler()
     #handle the setting of how the jobHandler act
-    self.__modeHandler = SimulationMode(self)
+    self.__modeHandler = SimulationMode(self.messageHandler)
     self.printTag = 'SIMULATION'
     self.raiseAMessage('Simulation started at',readtime,verbosity='silent')
 
@@ -754,7 +524,7 @@ class Simulation(MessageHandler.MessageUser):
       else:
         #tag not in whichDict, check if it's a documentation tag
         if child.tag not in ['TestInfo']:
-          self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
+          self.raiseAnError(IOError,'<'+child.tag+'> is not among the known simulation components '+repr(child))
     # If requested, duplicate input
     # ###NOTE: All substitutions to the XML input tree should be done BEFORE this point!!
     if self.runInfoDict.get('printInput',False):
@@ -791,7 +561,10 @@ class Simulation(MessageHandler.MessageUser):
     for key in self.filesDict.keys():
       self.__createAbsPath(key)
     #Let the mode handler do any modification here
-    self.__modeHandler.modifySimulation()
+    newRunInfo = self.__modeHandler.modifyInfo(dict(self.runInfoDict))
+    for key in newRunInfo:
+      #Copy in all the new keys
+      self.runInfoDict[key] = newRunInfo[key]
     self.jobHandler.initialize(self.runInfoDict,self.messageHandler)
     # only print the dictionaries when the verbosity is set to debug
     #if self.verbosity == 'debug': self.printDicts()
@@ -926,7 +699,7 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment
         if self.runInfoDict['mode'] in self.__modeHandlerDict:
-          self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self)
+          self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self.messageHandler)
           self.__modeHandler.XMLread(element)
         else:
           self.raiseAnError(IOError,"Unknown mode "+self.runInfoDict['mode'])
@@ -996,8 +769,11 @@ class Simulation(MessageHandler.MessageUser):
     #can we remove the check on the esistence of the file, it might make more sense just to check in case they are input and before the step they are used
     self.raiseADebug('entering the run')
     #controlling the PBS environment
-    if self.__modeHandler.doOverrideRun():
-      self.__modeHandler.runOverride()
+    remoteRunCommand = self.__modeHandler.remoteRunCommand(dict(self.runInfoDict))
+    if remoteRunCommand is not None:
+      subprocess.call(args=remoteRunCommand["args"],
+                      cwd=remoteRunCommand.get("cwd", None),
+                      env=remoteRunCommand.get("env", None))
       return
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:
@@ -1043,6 +819,10 @@ class Simulation(MessageHandler.MessageUser):
                     if obj[0] not in self.whichDict[mainClassStr][obj[1]].type:
                       self.raiseAnError(IOError,'Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.whichDict[mainClassStr][obj[1]].type)
                   neededobjs[mainClassStr][obj[1]] = self.whichDict[mainClassStr][obj[1]]
+                elif obj[1] in 'all':
+                  # if 'all' we get all the objects of a certain 'mainClassStr'
+                  for allObject in self.whichDict[mainClassStr]:
+                    neededobjs[mainClassStr][allObject] = self.whichDict[mainClassStr][allObject]
                 else:
                   self.raiseAnError(IOError,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
             stp.generateAssembler(neededobjs)
@@ -1057,5 +837,6 @@ class Simulation(MessageHandler.MessageUser):
           output.finalize()
       self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
     self.jobHandler.shutdown()
-    self.raiseAMessage('Run complete!')
     self.messageHandler.printWarnings()
+    self.raiseAMessage('Run complete!',forcePrint=True)
+

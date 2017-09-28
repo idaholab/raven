@@ -492,6 +492,23 @@ usually work):
 
 \goToRavenInstallation
 
+\subsection{How RAVEN finds Dependencies}
+
+RAVEN, when run from either \texttt{raven\_framework} or in 
+\texttt{run\_tests} runs a script called\\ \texttt{setup\_raven\_libs}
+which sets the up the dependencies if they are not already present.
+
+If conda is available, it will try and activate a conda environment
+called \texttt{raven\_libraries}
+
+Otherwise, the \texttt{setup\_raven\_libs} bash script will try and
+source a script:\\
+\verb'$HOME/.raven/environments/raven_libs_profile'
+or if that is not available:\\
+\verb'/opt/raven_libs/environments/raven_libs_profile' These scripts
+can be created if alternative ways of finding the dependencies are
+needed.
+
 \section{RAVEN Installation}
 \label{raven_installation}
 

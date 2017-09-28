@@ -57,7 +57,10 @@ to define the optimizer:
     upper and lower bounds of the variable, which will give the optimizer some general expectations for
     finding the optimal point; it will never try to sample a value smaller than the lower bound or larger than
     the upper bound.  In the example we define variables \emph{x} and \emph{y} as our input variables, and
-    both of them coincidentally range between -4.5 and 4.5.
+    both of them coincidentally range between -4.5 and 4.5.  We set the initial values for both variables to 0
+    through the \xmlNode{initial} block, which is required in most cases; the exception is when a
+    preconditioner sets them in mulitlevel optimization, but we're not concerned with that feature at this
+    point.
   \item \xmlNode{objectVar}, which is where you indicate the variable for which you want to find the minimum (or,
     if you change the default, maximum).  As listed here, we want to minimize the value of \emph{ans} given a
     range of possible values for {x} and {y}.
@@ -126,8 +129,10 @@ parameters as well as step size growth and shrink factors, all of which can be f
 many of which we'll discuss in the rest of this section.
 
 \subsection{Initial Conditions and Parallel Trajectories} \label{subsec:opt parallel traj}
-Notice that the optimization search started at $(0,0)$.  By default, RAVEN chooses the center
-point of the input space as an initial value.  You can change this initial value, however, through
+Notice we set the optimization search to start at $(0,0)$.
+%By default, RAVEN chooses the center
+%point of the input space as an initial value.
+You can change this initial value through
 the \xmlNode{initial} block within the \xmlNode{variable} definition node.
 
 Furthermore, RAVEN offers the possibility to run multiple optimization paths in parallel.  Because many

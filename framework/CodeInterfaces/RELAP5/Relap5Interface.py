@@ -22,6 +22,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
+from  __builtin__ import any
 import relapdata
 import shutil
 import re
@@ -107,16 +108,16 @@ class Relap5(CodeInterfaceBase):
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
     failure = True
-    errorWord = ["Transient terminated by end of time step cards","Transient terminated by trip"]
+    goodWord  = ["Transient terminated by end of time step cards","Transient terminated by trip"]
     try:
       outputToRead = open(os.path.join(workingDir,output+'.o'),"r")
     except:
       return failure
     readLines = outputToRead.readlines()
-    for goodMsg in errorWord:
-      if any(goodMsg in x for x in readLines):
+
+    for goodMsg in goodWord:
+      if any(goodMsg in x for x in readLines[-20:]):
         failure = False
-        break
     return failure
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):

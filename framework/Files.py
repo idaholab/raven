@@ -99,7 +99,8 @@ class File(BaseType):
     statedict={'path':self.__path,
                'base':self.__base,
                'ext' :self.__ext,
-               'type':self.type}
+               'type':self.type,
+               'linkedModel':self.__linkedModel}
     return statedict
 
   def __setstate__(self,statedict):
@@ -108,11 +109,12 @@ class File(BaseType):
       @ In, statedict, dict, of objets needed to restore instance
       @ Out, None
     """
+    self.__file  = None
     self.__path  = statedict['path']
     self.__base  = statedict['base']
     self.__ext   = statedict['ext' ]
     self.type    = statedict['type' ]
-    self.updateFilename()
+    self.__linkedModel = statedict['linkedModel' ]
 
   def __repr__(self):
     """
@@ -755,10 +757,35 @@ class UserGenerated(File):
     #used to be node.tag, but this caused issues, since many things in raven
     #access "type" directly instead of through an accessor like getType
     self.printTag = self.type+' File'
-    self.setAbsFile(node.text.strip())
     self.__linkedModel = node.attrib.get('linkedCode' ,None)
     self.perturbed     = node.attrib.get('perturbable',True)
+    self.subDirectory  = node.attrib.get('subDirectory',"")
+    self.setAbsFile(os.path.join(self.subDirectory,node.text.strip()))
     self.alias         = node.attrib.get('name'       ,self.getFilename())
+
+  def __getstate__(self):
+    """
+      Pickle dump method hook.
+      @ In, None
+      @ Out, statedict, dict, dict of objets needed to restore instance
+    """
+    statedict = File.__getstate__(self)
+    statedict['perturbed'   ] = self.perturbed
+    statedict['subDirectory'] = self.subDirectory
+    statedict['alias'       ] = self.alias
+    return statedict
+
+  def __setstate__(self,statedict):
+    """
+      Pickle load method hook.
+      @ In, statedict, dict, of objets needed to restore instance
+      @ Out, None
+    """
+    File.__setstate__(self,statedict)
+    self.perturbed     = statedict['perturbed'   ]
+    self.subDirectory  = statedict['subDirectory']
+    self.alias         = statedict['alias'       ]
+
 
 #
 #

@@ -49,6 +49,7 @@ class ExternalModel(Dummy):
         specifying input of cls.
     """
     inputSpecification = super(ExternalModel, cls).getInputSpecification()
+    inputSpecification.setStrictMode(False) #External models can allow new elements
     inputSpecification.addParam("ModuleToLoad", InputData.StringType, True)
     inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringType))
 
@@ -112,16 +113,25 @@ class ExternalModel(Dummy):
     if 'createNewInput' in dir(self.sim):
       if 'SampledVars' in kwargs.keys():
         sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
-      extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**kwargs)
+      extCreateNewInput = self.sim.createNewInput(self.initExtSelf,myInput,samplerType,**kwargs)
       if extCreateNewInput== None:
         self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
+      if type(extCreateNewInput).__name__ != "dict":
+        self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+ ' the method createNewInput must return a dictionary. Got type: ' +type(extCreateNewInput).__name__)
       if 'SampledVars' in kwargs.keys() and len(self.alias['input'].keys()) != 0:
         kwargs['SampledVars'] = sampledVars
+      # add sampled vars
+      if 'SampledVars' in kwargs:
+        for key in kwargs['SampledVars']:
+          if key not in extCreateNewInput:
+            extCreateNewInput[key] =   kwargs['SampledVars'][key]
+
       newInput = ([(extCreateNewInput)],copy.deepcopy(kwargs))
     else:
       newInput =  Dummy.createNewInput(self, myInput,samplerType,**kwargs)
-    for key in kwargs['SampledVars'].keys():
-      modelVariableValues[key] = kwargs['SampledVars'][key]
+    if 'SampledVars' in kwargs.keys():
+      for key in kwargs['SampledVars'].keys():
+        modelVariableValues[key] = kwargs['SampledVars'][key]
     return newInput, copy.copy(modelVariableValues)
 
   def localInputAndChecks(self,xmlNode):
@@ -176,13 +186,18 @@ class ExternalModel(Dummy):
       if key in modelVariableValues.keys():
         modelVariableValues[key] = copy.copy(Input[key])
     if 'createNewInput' not in dir(self.sim):
-      for key in Input.keys():
-        if key in modelVariables.keys():
-          modelVariableValues[key] = copy.copy(Input[key])
-      for key in self.modelVariableType.keys():
-        CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
+      InputDict = {}
+    else:
+      InputDict = Input
+    #if 'createNewInput' not in dir(self.sim):
+    for key in Input.keys():
+      if key in modelVariables.keys():
+        modelVariableValues[key] = copy.copy(Input[key])
+    for key in self.modelVariableType.keys():
+      CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
+    #else:
+    #  InputDict = Input
     # only pass the variables and their values according to the model itself.
-    InputDict = {}
     for key in Input.keys():
       if key in self.modelVariableType.keys():
         InputDict[key] = Input[key]

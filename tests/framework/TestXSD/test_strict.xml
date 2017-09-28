@@ -1,0 +1,18 @@
+<outer>
+  <inner data_1="value_1" int_value="42" required_string="hi">
+    <sub_1>sub_value_1</sub_1>
+    <sub_2>sub_value_2</sub_2>
+    <sub_3>23</sub_3>
+    <sub_4>3.09e13</sub_4>
+  </inner>
+  <inner  />
+  <inner required_string="bye" no_such_element="no supposed to be here" />
+  <ordered>
+    <sub_2>sub_value_2</sub_2>
+    <sub_3>24</sub_3>
+    <sub_3>25</sub_3>
+    <sub_bool>True</sub_bool>
+    <sub_bool>False</sub_bool>
+    <no_such_sub />
+  </ordered>
+</outer>

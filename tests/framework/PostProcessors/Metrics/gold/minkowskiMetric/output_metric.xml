@@ -1,0 +1,5 @@
+<MetricPostProcessor type="Static">
+  <ans-ans2>
+    <Minkowski>8.15320610438</Minkowski>
+  </ans-ans2>
+</MetricPostProcessor>

@@ -8,6 +8,9 @@
     <description>
       Tests clustering with Agglomerative model with Minkowski metric.
     </description>
+    <revisions>
+      <revision author="maljdan" date="2017-08-07">Modifying this test case to exercise putting the data into a new data object different than the input of to the clustering algorithm</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -52,39 +55,39 @@
 
   <Steps>
     <MultiRun name="FirstMRun">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="DataObjects" type="HistorySet">outMC</Output>
+      <Input    class="DataObjects"      type="PointSet"       >inputPlaceHolder</Input>
+      <Model    class="Models"           type="ExternalModel"  >PythonModule</Model>
+      <Sampler  class="Samplers"         type="MonteCarlo"     >MC_external</Sampler>
+      <Output   class="DataObjects"      type="HistorySet"     >dataIn</Output>
     </MultiRun>
     <IOStep name="plotAllHists">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Output class="OutStreams" type="Plot">plot1</Output>
+      <Input    class="DataObjects"      type="HistorySet"     >dataOut</Input>
+      <Output   class="OutStreams"       type="Plot"           >plot1</Output>
     </IOStep>
     <PostProcess name="clustering">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Model class="Models" type="PostProcessor">agglomerative</Model>
-      <Output class="DataObjects" type="HistorySet">outMC</Output>
-      <Output class="OutStreams" type="Print">printAll</Output>
+      <Input    class="DataObjects"      type="HistorySet"     >dataIn</Input>
+      <Model    class="Models"           type="PostProcessor"  >agglomerative</Model>
+      <Output   class="DataObjects"      type="HistorySet"     >dataOut</Output>
+      <Output   class="OutStreams"       type="Print"          >printAll</Output>
     </PostProcess>
     <PostProcess name="filter0">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Model class="Models" type="PostProcessor">filter0</Model>
-      <Output class="DataObjects" type="HistorySet">outMC0</Output>
-      <Output class="OutStreams" type="Plot">Cluster_0</Output>
+      <Input    class="DataObjects"      type="HistorySet"     >dataOut</Input>
+      <Model    class="Models"           type="PostProcessor"  >filter0</Model>
+      <Output   class="DataObjects"      type="HistorySet"     >cluster0</Output>
+      <Output   class="OutStreams"       type="Plot"           >Cluster_0</Output>
     </PostProcess>
     <PostProcess name="filter1">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Model class="Models" type="PostProcessor">filter1</Model>
-      <Output class="DataObjects" type="HistorySet">outMC1</Output>
-      <Output class="OutStreams" type="Plot">Cluster_1</Output>
+      <Input    class="DataObjects"      type="HistorySet"     >dataOut</Input>
+      <Model    class="Models"           type="PostProcessor"  >filter1</Model>
+      <Output   class="DataObjects"      type="HistorySet"     >cluster1</Output>
+      <Output   class="OutStreams"       type="Plot"           >Cluster_1</Output>
     </PostProcess>
   </Steps>
 
   <OutStreams>
     <Print name="printAll">
       <type>csv</type>
-      <source>outMC</source>
+      <source>dataOut</source>
     </Print>
     <Plot name="plot1" overwrite="false" verbosity="debug">
       <plotSettings>
@@ -92,9 +95,9 @@
           <type>line</type>
           <interpolationType>cubic</interpolationType>
           <interpPointsX>100</interpPointsX>
-          <x>outMC|Output|time</x>
-          <y>outMC|Output|y</y>
-          <z>outMC|Output|z</z>
+          <x>dataOut|Output|time</x>
+          <y>dataOut|Output|y</y>
+          <z>dataOut|Output|z</z>
         </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
@@ -109,10 +112,10 @@
           <type>line</type>
           <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
-          <x>outMC|Output|time</x>
-          <y>outMC|Output|y</y>
-          <z>outMC|Output|z</z>
-          <colorMap>outMC|Output|labels</colorMap>
+          <x>dataOut|Output|time</x>
+          <y>dataOut|Output|y</y>
+          <z>dataOut|Output|z</z>
+          <colorMap>dataOut|Output|labels</colorMap>
         </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
@@ -136,9 +139,9 @@
           <type>line</type>
           <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
-          <x>outMC0|Output|time</x>
-          <y>outMC0|Output|y</y>
-          <z>outMC0|Output|z</z>
+          <x>cluster0|Output|time</x>
+          <y>cluster0|Output|y</y>
+          <z>cluster0|Output|z</z>
         </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
@@ -162,9 +165,9 @@
           <type>line</type>
           <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
-          <x>outMC1|Output|time</x>
-          <y>outMC1|Output|y</y>
-          <z>outMC1|Output|z</z>
+          <x>cluster1|Output|time</x>
+          <y>cluster1|Output|y</y>
+          <z>cluster1|Output|z</z>
         </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
@@ -189,15 +192,19 @@
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <HistorySet name="outMC">
+    <HistorySet name="dataIn">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
-    <HistorySet name="outMC0">
+    <HistorySet name="dataOut">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
-    <HistorySet name="outMC1">
+    <HistorySet name="cluster0">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="cluster1">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>

@@ -142,10 +142,16 @@ class JobHandler(MessageHandler.MessageUser):
     with self.__queueLock:
       returnCode = running.getReturnCode()
       if returnCode != 0:
+        metadataFailedRun = running.getMetadata()
+        metaDataKeys      = metadataFailedRun.keys()
+        metaDataToKeep    = metadataFailedRun
+        if 'jobHandler' in metaDataKeys:
+          metaDataKeys.pop(metaDataKeys.index("jobHandler"))
+          metaDataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metaDataKeys }
         ## FIXME: The running.command was always internal now, so I removed it.
         ## We should probably find a way to give more pertinent information.
         self.raiseAMessage(" Process Failed " + str(running) + " internal returnCode " + str(returnCode))
-        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(running.getMetadata()))
+        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metaDataToKeep))
 
   def __initializeParallelPython(self):
     """
@@ -256,7 +262,7 @@ class JobHandler(MessageHandler.MessageUser):
         #subprocess.Popen(['ssh', nodeId, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
 
         ## Instead, let's build the command and then call the os-agnostic version
-        command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"])
+        command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
         utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         ## e.g., ssh nodeId COMMAND='python ppserverScript -w stuff'
 
@@ -319,14 +325,26 @@ class JobHandler(MessageHandler.MessageUser):
                                                     modulesToImport, identifier,
                                                     metadata, skipFunctions,
                                                     uniqueHandler)
-    with self.__queueLock:
-      if not clientQueue:
-        self.__queue.append(internalJob)
-      else:
-        self.__clientQueue.append(internalJob)
-      self.__submittedJobs.append(identifier)
 
-  def addClientJob(self, args, functionToRun,identifier,metadata=None, uniqueHandler="any"):
+    # set the client info
+    internalJob.clientRunner = clientQueue
+    # add the runner in the Queue
+    self.reAddJob(internalJob)
+
+  def reAddJob(self, runner):
+    """
+      Method to add a runner object in the queue
+      @ In, runner, Runner Instance, this is the instance of the runner that we want to readd in the queque
+      @ Out, None
+    """
+    with self.__queueLock:
+      if not runner.clientRunner:
+        self.__queue.append(runner)
+      else:
+        self.__clientQueue.append(runner)
+      self.__submittedJobs.append(runner.identifier)
+
+  def addClientJob(self, args, functionToRun, identifier, metadata=None, modulesToImport = [], uniqueHandler="any"):
     """
       Method to add an internal run (function execution), without consuming
       resources (free spots). This can be used for client handling (see
@@ -345,7 +363,7 @@ class JobHandler(MessageHandler.MessageUser):
         If uniqueHandler == 'any', every "client" can get this runner.
       @ Out, None
     """
-    self.addJob(args, functionToRun, identifier, metadata,
+    self.addJob(args, functionToRun, identifier, metadata, modulesToImport,
                 forceUseThreads = True, uniqueHandler = uniqueHandler,
                 clientQueue = True)
 

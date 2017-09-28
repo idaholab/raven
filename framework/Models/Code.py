@@ -33,7 +33,7 @@ import shlex
 from .Model import Model
 from utils import utils
 from utils import InputData
-from Csv_loader import CsvLoader
+import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 import Files
 from DataObjects import Data
 import Runners
@@ -55,6 +55,7 @@ class Code(Model):
         specifying input of cls.
     """
     inputSpecification = super(Code, cls).getInputSpecification()
+    inputSpecification.setStrictMode(False) #Code interfaces can allow new elements.
     inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
 
@@ -269,12 +270,19 @@ class Code(Model):
     """
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
-    for inputFile in inputFiles:
-      shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.oriInputFiles = []
-    for i in range(len(inputFiles)):
-      self.oriInputFiles.append(copy.deepcopy(inputFiles[i]))
-      self.oriInputFiles[-1].setPath(self.workingDir)
+    for inputFile in inputFiles:
+      subSubDirectory = os.path.join(self.workingDir,inputFile.subDirectory)
+      ## Currently, there are no tests that verify the lines below can be hit
+      ## It appears that the folders already exist by the time we get here,
+      ## this could change, so we will leave this code here.
+      ## -- DPM 8/2/17
+      if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
+        os.mkdir(subSubDirectory)
+      ##########################################################################
+      shutil.copy(inputFile.getAbsFile(),subSubDirectory)
+      self.oriInputFiles.append(copy.deepcopy(inputFile))
+      self.oriInputFiles[-1].setPath(subSubDirectory)
     self.currentInputFiles        = None
     self.outFileRoot              = None
 
@@ -308,8 +316,16 @@ class Code(Model):
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
     for index in range(len(newInputSet)):
-      newInputSet[index].setPath(subDirectory)
-      shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
+      subSubDirectory = os.path.join(subDirectory,newInputSet[index].subDirectory)
+      ## Currently, there are no tests that verify the lines below can be hit
+      ## It appears that the folders already exist by the time we get here,
+      ## this could change, so we will leave this code here.
+      ## -- DPM 8/2/17
+      if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
+        os.mkdir(subSubDirectory)
+      ##########################################################################
+      newInputSet[index].setPath(subSubDirectory)
+      shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)
 
     kwargs['subDirectory'] = subDirectory
 
@@ -323,7 +339,7 @@ class Code(Model):
 
     return (newInput,kwargs)
 
-  def __expandForWindows(self, origCommand):
+  def _expandForWindows(self, origCommand):
     """
       Function to expand a command that has a #! to a windows runnable command
       @ In, origCommand, string, The command to check for expantion
@@ -368,7 +384,12 @@ class Code(Model):
           if beginExecutable.startswith("/"):
             beginExecutable = beginExecutable.lstrip("/")
           winExecutable = os.path.join(msysDir, beginExecutable)
-          self.raiseAMessage("winExecutable" + winExecutable)
+          self.raiseAMessage("winExecutable " + winExecutable)
+          if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
+            #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
+            maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
+            if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
+              winExecutable = maybeWinExecutable
           realExecutable[0] = winExecutable
         else:
           self.raiseAWarning("Could not find msys in "+os.getcwd())
@@ -417,7 +438,6 @@ class Code(Model):
     sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
     localenv = dict(os.environ)
     localenv['PWD'] = str(sampleDirectory)
-
     outFileObject = open(os.path.join(sampleDirectory,codeLogFile), 'w', bufferSize)
 
     found = False
@@ -460,9 +480,10 @@ class Code(Model):
 
     self.raiseAMessage('Execution command submitted:',command)
     if platform.system() == 'Windows':
-      command = self.__expandForWindows(command)
+      command = self._expandForWindows(command)
       self.raiseAMessage("modified command to" + repr(command))
-
+      for key, value in localenv.items():
+        localenv[key]=str(value)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
@@ -490,22 +511,28 @@ class Code(Model):
     ## below always adds .csv to the filename and the standard output file does
     ## not have an extension. - (DPM 4/6/2017)
     outputFile = codeLogFile
-    if 'finalizeCodeOutput' in dir(self.code):
+    if 'finalizeCodeOutput' in dir(self.code) and returnCode == 0:
       finalCodeOutputFile = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
-      if finalCodeOutputFile:
+      ## Special case for RAVEN interface --ALFOA 09/17/17
+      ravenCase = False
+      if type(finalCodeOutputFile).__name__ == 'dict':
+        ravenCase = True
+      if ravenCase and self.code.__class__.__name__ != 'RAVEN':
+        self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be a str containing the new output file root!')
+      if finalCodeOutputFile and not ravenCase:
         outputFile = finalCodeOutputFile
 
     ## If the run was successful
     if returnCode == 0:
-
       returnDict = {}
       ## This may be a tautology at this point --DPM 4/12/17
-      if outputFile is not None:
+      ## Special case for RAVEN interface. Added ravenCase flag --ALFOA 09/17/17
+      if outputFile is not None and not ravenCase:
         outFile = Files.CSV()
         ## Should we be adding the file extension here?
         outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])
 
-        csvLoader = CsvLoader(self.messageHandler)
+        csvLoader = CsvLoader.CsvLoader(self.messageHandler)
         csvData = csvLoader.loadCsvFile(outFile)
         headers = csvLoader.getAllFieldNames()
 
@@ -514,10 +541,16 @@ class Code(Model):
         ## dictionary.
         for header,data in zip(headers, csvData.T):
           returnDict[header] = data
-
-      self._replaceVariablesNamesWithAliasSystem(returnDict, 'input', True)
-      self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
-
+      if not ravenCase:
+        self._replaceVariablesNamesWithAliasSystem(returnDict, 'input', True)
+        self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
+      else:
+        # we have the DataObjects
+        for dataObj in finalCodeOutputFile.values():
+          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('inputs',nodeId='RecontructEnding'), 'input', True)
+          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('unstructuredinputs',nodeId='RecontructEnding'), 'input', True)
+          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('outputs',nodeId='RecontructEnding'), 'output', True)
+        returnDict = finalCodeOutputFile
       ## The last thing before returning should be to delete the temporary log
       ## file and any other file the user requests to be cleared
       if deleteSuccessfulLogFiles:
@@ -574,8 +607,81 @@ class Code(Model):
     metadata = exportDict['metadata']
     if metadata:
       options['metadata'] = metadata
+    listDict = self.collectOutputFromDataObject(exportDict,output)
+    for cnt, exportDictionary in enumerate(listDict):
+      identifier = finishedJob.identifier if len(listDict) == 1 else finishedJob.identifier+"_"+str(cnt)
+      exportDictionary['prefix'] = identifier
+      self.addOutputFromExportDictionary(exportDictionary, output, options, identifier)
 
-    self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
+
+  ###################################################################################
+  ## THIS METHOD NEEDS TO BE REWORKED WHEN THE NEW DATAOBJECT STRUCURE IS IN PLACE ##
+  ###################################################################################
+  def collectOutputFromDataObject(self,exportDict,output):
+    """
+      Method to collect the output from a DataObject (if it is not a dataObject, it just returns a list with one single exportDict)
+      @ In, exportDict, dict, the export dictionary
+                               ({'inputSpaceParams':{var1:value1,var2:value2},
+                                 'outputSpaceParams':{outstreamName1:DataObject1,outstreamName2:DataObject2},
+                                 'metadata':{'metadataName1':value1,'metadataName2':value2}})
+      @ Out, returnList, list, list of export dictionaries
+    """
+    returnList = []
+    if exportDict['outputSpaceParams'].values()[0].__class__.__base__.__name__ != 'Data':
+      returnList.append(exportDict)
+    else:
+      # get the DataObject that is compatible with this output
+      compatibleDataObject = None
+      for dataObj in exportDict['outputSpaceParams'].values():
+        if output.type == dataObj.type:
+          compatibleDataObject = dataObj
+          break
+        if output.type == 'HDF5' and dataObj.type == 'HistorySet':
+          compatibleDataObject = dataObj
+          break
+      if compatibleDataObject is None:
+        # if none found (e.g. => we are filling an HistorySet with a PointSet), we take the first one
+        compatibleDataObject = exportDict['outputSpaceParams'].values()[0]
+      # get the values
+      inputs = compatibleDataObject.getParametersValues('inputs',nodeId = 'RecontructEnding')
+      unstructuredInputs = compatibleDataObject.getParametersValues('unstructuredinputs',nodeId = 'RecontructEnding')
+      outputs = compatibleDataObject.getParametersValues('outputs',nodeId = 'RecontructEnding')
+      metadata = compatibleDataObject.getAllMetadata(nodeId = 'RecontructEnding')
+      inputKeys = inputs.keys() if compatibleDataObject.type == 'PointSet' else inputs.values()[0].keys()
+      # expand inputspace of current RAVEN
+      for i in range(len(compatibleDataObject)):
+        appendDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
+        appendDict['inputSpaceParams'].update(exportDict['inputSpaceParams'])
+        appendDict['metadata'].update(exportDict['metadata'])
+        if compatibleDataObject.type == 'PointSet':
+          for inKey, value in inputs.items():
+            appendDict['inputSpaceParams'][inKey] = value[i]
+          for inKey, value in unstructuredInputs.items():
+            appendDict['inputSpaceParams'][inKey] = value[i]
+          for outKey, value in outputs.items():
+            appendDict['outputSpaceParams'][outKey] = value[i]
+        else:
+          for inKey, value in inputs.values()[i].items():
+            appendDict['inputSpaceParams'][inKey] = value
+          if len(unstructuredInputs) > 0:
+            for inKey, value in unstructuredInputs.values()[i].items():
+              appendDict['inputSpaceParams'][inKey] = value
+          for outKey, value in outputs.values()[i].items():
+            appendDict['outputSpaceParams'][outKey] = value
+        # add metadata for both dataobject types
+        for metadataToExport in ['SampledVars','SampledVarsPb']:
+          if metadataToExport in metadata:
+            appendDict['metadata'][metadataToExport].update(metadata[metadataToExport][i])
+        weightForVars = ['ProbabilityWeight-'+var.strip()  for var in inputKeys]
+        for metadataToMerge in ['ProbabilityWeight', 'PointProbability']+weightForVars:
+          if metadataToMerge in appendDict['metadata']:
+            if metadataToMerge in metadata:
+              appendDict['metadata'][metadataToMerge]*= metadata[metadataToMerge][i]
+          else:
+            if metadataToMerge in metadata:
+              appendDict['metadata'][metadataToMerge] = metadata[metadataToMerge][i]
+        returnList.append(appendDict)
+    return returnList
 
   def collectOutputFromDict(self,exportDict,output,options=None):
     """
@@ -654,12 +760,14 @@ class Code(Model):
     ## These variables should not be part of the metadata, so add them after
     ## we copy this dictionary (Caught this when running an ensemble model)
     ## -- DPM 4/11/17
-    kwargs['bufferSize'] = jobHandler.runInfoDict['logfileBuffer']
-    kwargs['precommand'] = jobHandler.runInfoDict['precommand']
-    kwargs['postcommand'] = jobHandler.runInfoDict['postcommand']
-    kwargs['delSucLogFiles'] = jobHandler.runInfoDict['delSucLogFiles']
+    nodesList                    = jobHandler.runInfoDict.get('Nodes',[])
+    kwargs['bufferSize'        ] = jobHandler.runInfoDict['logfileBuffer']
+    kwargs['precommand'        ] = jobHandler.runInfoDict['precommand']
+    kwargs['postcommand'       ] = jobHandler.runInfoDict['postcommand']
+    kwargs['delSucLogFiles'    ] = jobHandler.runInfoDict['delSucLogFiles']
     kwargs['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
-
+    kwargs['NumMPI'            ] = jobHandler.runInfoDict.get('NumMPI',1)
+    kwargs['numberNodes'       ] = len(nodesList)
     ## This may look a little weird, but due to how the parallel python library
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the

@@ -953,14 +953,14 @@ Independent of the plot type, some keywords are mandatory:
 \begin{itemize}
   \item \xmlNode{type}, \xmlDesc{string, required parameter}, the plot type (for
   example, line, scatter, wireframe, etc.).
-  \item \xmlNode{x}, \xmlDesc{string, required parameter}, this parameter needs
-  to be considered as the x coordinate.
-  \item \xmlNode{y}, \xmlDesc{string, required parameter}, this parameter needs
-  to be considered as the y coordinate.
-  \item \xmlNode{z}, \xmlDesc{string required parameter (3D plots only)}, this
-  parameter needs to be considered as the z coordinate.
-  %
+  \item \xmlNode{x}, \xmlDesc{string, required parameter}, specifies the DataObject parameter to be plotted as the x coordinate.   
+	This parameter must be described in a specific manner, see Section \ref{subpara:plotVariables} below for details.
+  \item \xmlNode{y}, \xmlDesc{string, required parameter}, specifies the DataObject parameter to be plotted as the y coordinate.
+	This parameter must be described in a specific manner, see Section \ref{subpara:plotVariables} below for details.
+  \item \xmlNode{z}, \xmlDesc{string, required parameter for plots with three dimensions}, specifies the DataObject parameter to be plotted as the z coordinate.
+	This parameter must be described in a specific manner, see Section \ref{subpara:plotVariables} below for details.
 \end{itemize}
+%
 In addition, other plot-dependent keywords, reported in
 Section~\ref{sec:23Dplotting}, can be provided.
 
@@ -984,19 +984,34 @@ Under the \xmlNode{plot} sub-block other optional keywords can be specified, suc
         the second integer represents the number of nodes that this subplot occupies, i.e. in the example above the
         first subplot occupies a single node at the zero node in y direction.
   \end{itemize}
-  \item \xmlNode{colorMap}, \xmlDesc{string, optional parameter}, this parameter will be used to
-  define a color map.
+  \item \xmlNode{colorMap}, \xmlDesc{string, optional parameter}, specifies a DataObject parameter whose value will be used 
+	to vary the color of plotted points.  This parameter must be described in a specific manner, see Section \ref{subpara:plotVariables} 
+	below for details.
  \end{itemize}
 
+\subparagraph{Specifying What Values to Plot \label{subpara:plotVariables}}
 As already mentioned, the Plot system accepts as input for the visual parameters
 (i.e., x, y, z, colorMap), data only from a \textbf{DataObjects} object.
 %
-Considering the structure of ``DataObjects,'' the parameters are inputted as follows:
-\texttt{DataObjectName|Input(or)Output|variableName}.
+Considering the structure of "DataObjects", the parameters are specified as three values separated by the
+vertical bar character ('\texttt{|}') as follows:
+\\* \\* \centerline{\texttt{DataObject Name|Parameter Type|Parameter Name}}
+\\ \\  Where: 
+\begin{center}
+\begin{tabular}{ll}
+Value & Description \\ \hline
+\multicolumn{1}{|l|}{\texttt{DataObject Name}} & \multicolumn{1}{l|}{Name of the DataObject that contains the parameter} \\ \hline
+\multicolumn{1}{|l|}{\texttt{Parameter Type}} & \multicolumn{1}{l|}{
+	\begin{tabular}[c]{@{}l@{}}Either \texttt{Input} or \texttt{Output} depending on whether the parameter \\
+		is defined in the \xmlNode{Input} or \xmlNode{Output} part of the DataObject \end{tabular}} \\ \hline
 
-If the ``variableName'' contains the symbol \texttt{|}, it must be surrounded by
-brackets:
-\texttt{[DataObjectName|Input(or)Output|(whatever|variableName)]}.
+\multicolumn{1}{|l|}{\texttt{Parameter Name}} & \multicolumn{1}{l|}{The name of the parameter in the DataObject to plot} \\ \hline
+\end{tabular}
+\end{center}
+\textbf{Note:}  If the \texttt{Parameter Name} part of the variable specification itself contains the vertical bar character (`\texttt{|}`) used to separate 
+the three values, it must be enclosed in parenthesis to be interpreted properly.  For example:
+\\* \\* \centerline{\texttt{DataObject Name|Parameter Type|(parameter|name)}}
+
 %%%%%%%%%%%%%
 %Predefined Plotting System block sub-sub-sub section
 %%%%%%%%%%%%%

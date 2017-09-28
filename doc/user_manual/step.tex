@@ -103,6 +103,9 @@ this \textbf{Step}. \nb This name is used to reference this specific entity
 in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name
 of this \textbf{Step} is not listed in the  \xmlNode{Sequence} block, its action is not
 going to be performed.
+\item \xmlAttr{repeatFailureRuns}, \xmlDesc{optional integer attribute}, this optional 
+attribute could be used to set a certain number of repetitions that need to be performed 
+when a realization (i.e. run) fails (e.g. \xmlAttr{repeatFailureRuns} = ``3'', 3 tries).
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute (case insensitive)}, if True
 (True values = True, yes, y, t), the code will pause at the end of
 the step, waiting for a user signal to continue. This is used in case one or
@@ -215,6 +218,15 @@ this Step.
 in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name
 of this \textbf{Step} is not listed in the  \xmlNode{Sequence} block, its action is not
 going to be performed.
+\item \xmlAttr{re-seeding}, \xmlDesc{optional integer/string attribute}, this optional 
+attribute could be used to control the seeding of the random number generator (RNG). 
+If inputted, the RNG can be reseeded. The value of this attribute
+can be: either 1) an integer value with the seed to be used (e.g. \xmlAttr{re-seeding} = 
+``20021986''), or 2) string value named ``continue'' where the RNG is not re-initialized
+\item \xmlAttr{repeatFailureRuns}, \xmlDesc{optional integer attribute}, this optional 
+attribute could be used to set a certain number of repetitions that need to be performed 
+when a realization (i.e. run) fails (e.g. \xmlAttr{repeatFailureRuns} = ``3'', 3 tries).
+
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute}, if True
 (True values = True, yes, y, t), the code will pause at the end of
 the step, waiting for a user signal to continue. This is used in case one or

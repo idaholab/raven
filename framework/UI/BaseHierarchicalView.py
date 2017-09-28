@@ -22,8 +22,8 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-from qtpy.QtCore import QSize
-from qtpy.QtWidgets import QWidget
+from PySide.QtCore import QSize
+from PySide.QtGui import QWidget
 
 from .ZoomableGraphicsView import ZoomableGraphicsView
 
@@ -37,11 +37,11 @@ class BaseHierarchicalView(QWidget):
         @ In, mainWindow, an optional QWidget that will be the parent of this widget
         @ In, title, an optional string specifying the title of this widget.
     """
-
     ## This is a stupid hack around the problem of multiple inheritance, maybe
     ## I should rethink the class hierarchy here?
-    if not isinstance(self, ZoomableGraphicsView):
-      super(BaseHierarchicalView, self).__init__(mainWindow)
+    #if not isinstance(self, ZoomableGraphicsView):
+    #  super(BaseHierarchicalView, self).__init__(mainWindow)
+    QWidget.__init__(self, mainWindow)
 
     if title is None:
       self.setWindowTitle(self.__class__.__name__)

@@ -146,13 +146,13 @@ if __name__ == '__main__':
       if __QtAvailable:
         interactive = Interaction.Yes
       else:
-        print('\Qt is not available, disabling interactive mode.\n')
+        print('Qt is not available, disabling interactive mode.\n')
       itemsToRemove.append(item)
     elif item.lower() == 'interactivecheck':
       if __QtAvailable:
         interactive = Interaction.Test
       else:
-        print('\Qt is not available, disabling interactive check.\n')
+        print('Qt is not available, disabling interactive check.\n')
       itemsToRemove.append(item)
 
   ## Now outside of the loop iterating on the object we want to modify, we are

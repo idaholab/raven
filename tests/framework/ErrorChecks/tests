@@ -30,6 +30,12 @@
         expect_err = 'IOError: No variables were specified!  Check for the "variables" block in ExternalModel definition.'
  [../]
 
+ [./badInSimulation]
+        type = 'RavenErrors'
+        input = 'badInSimulation.xml'
+        expect_err = 'IOError: <steps> is not among the known simulation components'
+ [../]
+
  [./unsyncedTypicalHistory]
         type = 'RavenErrors'
         input = 'unsyncedTypicalHistory.xml'

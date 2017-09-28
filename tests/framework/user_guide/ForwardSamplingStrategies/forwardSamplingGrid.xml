@@ -4,7 +4,7 @@
     <JobName>RunDir/Grid</JobName>
     <Sequence>sample,writeHistories</Sequence>
     <WorkingDir>RunDir/Grid</WorkingDir>
-    <batchSize>8</batchSize>
+    <batchSize>2</batchSize>
   </RunInfo>
 
   <TestInfo>

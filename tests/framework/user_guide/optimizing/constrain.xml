@@ -50,10 +50,12 @@
       <variable name="x">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
+        <initial>0</initial>
       </variable>
       <variable name="y">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
+        <initial>0</initial>
       </variable>
       <objectVar>ans</objectVar>
     </SPSA>

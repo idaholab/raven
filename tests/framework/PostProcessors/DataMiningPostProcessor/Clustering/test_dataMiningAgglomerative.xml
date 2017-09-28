@@ -8,6 +8,9 @@
     <description>
       Tests clustering using the Agglomerative model.
     </description>
+    <revisions>
+      <revision author="maljdan" date="2017-08-07">Modifying this test case to exercise putting the data into a new data object different than the input of to the clustering algorithm</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -34,19 +37,19 @@
   <Steps>
     <IOStep name="input" pauseAtEnd="True">
       <Input class="Files" type="">dataFile</Input>
-      <Output class="DataObjects" type="PointSet">data</Output>
+      <Output class="DataObjects" type="PointSet">dataIn</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">data</Input>
+      <Input class="DataObjects" type="PointSet">dataOut</Input>
       <Input class="DataObjects" type="PointSet">clusterInfo</Input>
       <Output class="OutStreams" type="Plot">plot</Output>
       <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
     <PostProcess name="cluster" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">data</Input>
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
       <Model class="Models" type="PostProcessor">agglomerative</Model>
       <SolutionExport class="DataObjects" type="PointSet">clusterInfo</SolutionExport>
-      <Output class="DataObjects" type="PointSet">data</Output>
+      <Output class="DataObjects" type="PointSet">dataOut</Output>
       <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
   </Steps>
@@ -58,17 +61,17 @@
     </Print>
     <Print name="dummy">
       <type>csv</type>
-      <source>data</source>
+      <source>dataOut</source>
       <what>Output|labels</what>
     </Print>
     <Plot name="plot" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>data|input|x1</x>
-          <y>data|input|x2</y>
+          <x>dataOut|input|x1</x>
+          <y>dataOut|input|x2</y>
           <cmap>Set1</cmap>
-          <colorMap>data|Output|labels</colorMap>
+          <colorMap>dataOut|Output|labels</colorMap>
           <kwargs>
             <edgecolor>None</edgecolor>
           </kwargs>
@@ -92,7 +95,11 @@
   </OutStreams>
 
   <DataObjects>
-    <PointSet name="data">
+    <PointSet name="dataIn">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output</Output>
+    </PointSet>
+    <PointSet name="dataOut">
       <Input>x1,x2,y1,y2,z1,z2</Input>
       <Output>Output</Output>
     </PointSet>

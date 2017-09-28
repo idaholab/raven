@@ -1,0 +1,128 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <JobName>subPlot</JobName>
+    <Sequence>single,writehistory</Sequence>
+    <WorkingDir>subPlot</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/user_guide/singleRunSubPlot</name>
+    <author>wangc</author>
+    <created>2017-07-28</created>
+    <classesTested>Steps.SingleRun,OutStreams.Print</classesTested>
+    <description>
+      This test is an example for the user guide to draw from.  This advances the simplest SingleRun example
+      by selectively printing and plotting only parts of the data.
+    </description>
+  </TestInfo>
+
+  <Files>
+      <Input name="referenceInput.xml" type="input">../commonFiles/referenceInput.xml</Input>
+  </Files>
+
+  <Models>
+    <Code name="testModel" subType="GenericCode">
+      <executable>../physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg=" " extension=".csv" type="output"/>
+      <prepend>python</prepend>
+    </Code>
+  </Models>
+
+  <Steps>
+    <SingleRun name="single">
+      <Input class="Files" type="input">referenceInput.xml</Input>
+      <Model class="Models" type="Code">testModel</Model>
+      <Output class="DataObjects" type="PointSet">pointValues</Output>
+      <Output class="DataObjects" type="HistorySet">history</Output>
+    </SingleRun>
+    <IOStep name="writehistory" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">pointValues</Input>
+      <Input class="DataObjects" type="HistorySet">history</Input>
+      <Output class="OutStreams" type="Print">history</Output>
+      <Output class="OutStreams" type="Plot">historyPlot</Output>
+      <Output class="OutStreams" type="Print">pointValues</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="pointValues">
+      <Input>InputPlaceHolder</Input>
+      <Output>A,B,C,D</Output>
+    </PointSet>
+    <HistorySet name="history">
+      <Input>InputPlaceHolder</Input>
+      <Output>A,B,C,D,time</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="pointValues">
+      <type>csv</type>
+      <source>pointValues</source>
+      <what>Output</what>
+    </Print>
+    <Print name="history">
+      <type>csv</type>
+      <source>history</source>
+      <what>Output|A,Output|D</what>
+    </Print>
+    <Plot name="historyPlot" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <gridSpace>2 2</gridSpace>
+        <plot>
+          <type>line</type>
+          <x>history|Output|time</x>
+          <y>history|Output|A</y>
+          <color>blue</color>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>history|Output|time</x>
+          <y>history|Output|B</y>
+          <color>red</color>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>history|Output|time</x>
+          <y>history|Output|C</y>
+          <color>yellow</color>
+          <gridLocation>
+            <x>0</x>
+            <y>1</y>
+          </gridLocation>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>history|Output|time</x>
+          <y>history|Output|D</y>
+          <color>black</color>
+          <gridLocation>
+            <x>1</x>
+            <y>1</y>
+          </gridLocation>
+        </plot>
+        <xlabel>time (s)</xlabel>
+        <ylabel>evolution (kg)</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

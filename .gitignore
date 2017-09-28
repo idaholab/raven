@@ -77,6 +77,8 @@ tests/framework/htmlcov/
 node_*[0-9]
 *.[oe][0-9][0-9][0-9][0-9][0-9]
 *.[oe][0-9][0-9][0-9][0-9][0-9][0-9]
+*.[oe][0-9][0-9][0-9][0-9][0-9][0-9][0-9]
+framework/states.txt
 
 #OSX
 .DS_Store

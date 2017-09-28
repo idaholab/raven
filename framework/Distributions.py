@@ -41,6 +41,7 @@ from utils import utils
 from utils.randomUtils import random
 distribution1D = utils.find_distribution1D()
 from utils import InputData
+from utils import mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 def factorial(x):
@@ -473,7 +474,7 @@ class Uniform(BoostDistribution):
     Uniform univariate distribution
   """
 
-  def __init__(self):
+  def __init__(self, lowerBound = None, upperBound = None):
     """
       Constructor
       @ In, None
@@ -488,6 +489,17 @@ class Uniform(BoostDistribution):
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature = 'Legendre'
     self.preferredPolynomials = 'Legendre'
+    if upperBound is not None:
+      self.upperBound = upperBound
+      self.upperBoundUsed = True
+      print("upperBound", self.upperBound)
+    if lowerBound is not None:
+      self.lowerBound = lowerBound
+      self.lowerBoundUsed = True
+      print("lowerBound", self.lowerBound)
+    if self.lowerBoundUsed and self.upperBoundUsed:
+      self.range = self.upperBound - self.lowerBound
+
 
   def _localSetState(self,pdict):
     """
@@ -1738,8 +1750,8 @@ class Categorical(Distribution):
     totPsum = 0.0
     for element in self.mapping:
       totPsum += self.mapping[element]
-    if totPsum!=1.0:
-      self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
+    if not mathUtils.compareFloats(totPsum,1.0):
+      self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is '+repr(totPsum)+', not 1.0')
 
   def pdf(self,x):
     """

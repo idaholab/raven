@@ -58,6 +58,7 @@
       <variable name="x">
         <upperBound>2</upperBound>
         <lowerBound>1</lowerBound>
+        <initial>1.5</initial>
       </variable>
       <objectVar>ans</objectVar>
     </SPSA>

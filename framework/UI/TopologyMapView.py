@@ -30,10 +30,10 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-import qtpy.QtCore as qtc
-import qtpy.QtGui as qtg
-import qtpy.QtWidgets as qtw
-import qtpy.QtSvg as qts
+from PySide import QtCore as qtc
+from PySide import QtGui as qtg
+from PySide import QtGui as qtw
+from PySide import QtSvg as qts
 
 from .BaseTopologicalView import BaseTopologicalView
 
@@ -199,7 +199,7 @@ class CustomPathItem(qtw.QGraphicsPathItem):
           y = boxY+boxH - h
           cDimHist.addRect(x,y,w,h)
         gDimHist = self.scene().addPath(cDimHist)
-        gDimHist.setPen(qtc.Qt.NoPen)#qtg.QPen(qtg.QColor('#CCCCCC')))
+        gDimHist.setPen(qtg.QPen(qtc.Qt.NoPen)) #qtg.QPen(qtg.QColor('#CCCCCC')))
         gDimHist.setBrush(qtg.QBrush(qtg.QColor('#333333')))
         gDimHist.setVisible(False)
         self.graphics.append((cDimHist,gDimHist))
@@ -219,7 +219,7 @@ class CustomPathItem(qtw.QGraphicsPathItem):
           h = .2
           cDimScatter.addRect(x,y,w,h)
         gDimScatter = self.scene().addPath(cDimScatter)
-        gDimScatter.setPen(qtc.Qt.NoPen)#qtg.QPen(qtg.QColor('#CCCCCC')))
+        gDimScatter.setPen(qtg.QPen(qtc.Qt.NoPen)) #qtg.QPen(qtg.QColor('#CCCCCC')))
         gDimScatter.setBrush(qtg.QBrush(qtg.QColor('#333333')))
         gDimScatter.setVisible(False)
         self.graphics.append((cDimScatter,gDimScatter))
@@ -245,7 +245,7 @@ class CustomPathItem(qtw.QGraphicsPathItem):
     """
     if self.isSelected():
       selectedOption = qtw.QStyleOptionGraphicsItem(option)
-      selectedOption.state &=  (not qtg.QStyle.State_Selected)
+      selectedOption.state &=  (not qtw.QStyle.State_Selected)
       originalPen = self.pen()
       selectedPen = qtg.QPen(originalPen)
       selectedPen.setDashPattern([2,1])
@@ -391,7 +391,8 @@ class TopologyMapView(BaseTopologicalView):
     """
     # Try to apply a new layout, if one already exists then make sure to grab
     # it for updating
-    self.setLayout(qtw.QGridLayout())
+    if self.layout() is None:
+      self.setLayout(qtw.QGridLayout())
     layout = self.layout()
     self.clearLayout(layout)
 
@@ -794,7 +795,7 @@ class TopologyMapView(BaseTopologicalView):
       ys = self.amsc.Y[np.array(items)]
       lineWidth = (self.maxDiameter+self.minDiameter)/2.
 
-      pen = qtc.Qt.NoPen#qtg.QPen(qtc.Qt.black)
+      pen = qtg.QPen(qtc.Qt.NoPen) #qtg.QPen(qtc.Qt.black)
 
       fillColor = qtg.QColor(colorMap[extPair])
       fillColor.setAlpha(200)

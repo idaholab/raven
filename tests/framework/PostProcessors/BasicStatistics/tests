@@ -83,6 +83,14 @@
   UnorderedXml = 'basicStatsSensitivity/stats.xml'
   rel_err = 0.0000001
  [../]
+ [./sensitivityOnly]
+  type = 'RavenFramework'
+  input = 'sensitivity_only.xml'
+  output = 'basicStatsSensitivityOnly/csv_database.xml basicStatsSensitivityOnly/output_basicStatistics.csv'
+  csv = 'basicStatsSensitivityOnly/csv_database.csv'
+  UnorderedXml = 'basicStatsSensitivityOnly/stats.xml'
+  rel_err = 0.0000001
+ [../]
  [./timeDependent]
   type = 'RavenFramework'
   input = 'time_dep.xml'

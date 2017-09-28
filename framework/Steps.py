@@ -93,8 +93,11 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #  re-seeding = 'continue' the use the already present random environment
     #If there is no instruction (self.initSeed = None) the sampler will reinitialize
     self.initSeed        = None
-    self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd','fromDirectory']
+    self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd','fromDirectory','repeatFailureRuns']
     self._excludeFromModelValidation = ['SolutionExport']
+    # how to handle failed runs. By default, the step fails.
+    # If the attribute "repeatFailureRuns" is inputted, a certain number of repetitions are going to be performed
+    self.failureHandling = {"fail":True, "repetitions":0, "perturbationFactor":0.0, "jobRepetitionPerformed":{}}
     self.printTag = 'STEPS'
 
   def _readMoreXML(self,xmlNode):
@@ -136,6 +139,22 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self.pauseEndStep = False
       else:
         self.raiseAnError(IOError,printString.format(self.type,self.name,xmlNode.attrib['pauseAtEnd'],'pauseAtEnd'))
+    if 'repeatFailureRuns' in xmlNode.attrib.keys():
+      failureSettings = str(xmlNode.attrib['repeatFailureRuns']).split("|")
+      self.failureHandling['fail'] = False
+      #failureSettings = str(xmlNode.attrib['repeatFailureRuns']).split("|")
+      #if len(failureSettings) not in [1,2]: (for future usage)
+      #  self.raiseAnError(IOError,'repeatFailureRuns format error. Expecting either the repetition number only ' +
+      #                            'or the repetition number and the perturbation factor separated by "|" symbol')
+      if len(failureSettings) != 1:
+        self.raiseAnError(IOError,'repeatFailureRuns format error. Expecting the repetition number only ')
+      self.failureHandling['repetitions'] = utils.intConversion(failureSettings[0])
+      #if len(failureSettings) == 2:
+      #  self.failureHandling['perturbationFactor'] = utils.floatConversion(failureSettings[1])
+      if self.failureHandling['repetitions'] is None:
+        self.raiseAnError(IOError,'In Step named '+self.name+' it was not possible to cast "repetitions" attribute into an integer!')
+      #if self.failureHandling['perturbationFactor'] is None:
+      #  self.raiseAnError(IOError,'In Step named '+self.name+' it was not possible to cast "perturbationFactor" attribute into a float!')
     self._localInputAndChecks(xmlNode)
     if None in self.parList:
       self.raiseAnError(IOError,'A problem was found in  the definition of the step '+str(self.name))
@@ -291,6 +310,10 @@ class SingleRun(Step):
     if self.type == 'SingleRun':
       if self.parList[modelIndex][2] != 'Code':
         self.raiseAnError(IOError,'<SingleRun> steps only support running "Code" model types!  Consider using a <MultiRun> step using a "Custom" sampler for other models.')
+      if 'Optimizer' in roles or 'Sampler' in roles:
+        self.raiseAnError(IOError,'<SingleRun> steps does not allow the usage of <Sampler> or <Optimizer>!  Consider using a <MultiRun> step.')
+      if 'SolutionExport' in roles:
+        self.raiseAnError(IOError,'<SingleRun> steps does not allow the usage of <SolutionExport>!  Consider using a <MultiRun> step with a <Sampler>/<Optimizer> that allows its usage.')
     #build entry list for verification of correct input types
     toBeTested = {}
     for role in roles:
@@ -386,8 +409,23 @@ class SingleRun(Step):
               output.addOutput()
             #else: model.collectOutput(finishedJob,output)
         else:
-          self.raiseADebug('the failed jobs are tracked in the JobHandler... we can retrieve and treat them separately. Andrea')
-          self.raiseADebug('a job failed... call the handler for this situation')
+          self.raiseADebug('the job "'+finishedJob.identifier+'" has failed.')
+          if self.failureHandling['fail']:
+            #add run to a pool that can be sent to the sampler later
+            self.failedRuns.append(copy.copy(finishedJob))
+          else:
+            if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
+              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
+            if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
+              # we re-add the failed job
+              jobHandler.reAddJob(finishedJob)
+              self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+finishedJob.identifier+'". Trial '+
+                               str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
+              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
+            else:
+              #add run to a pool that can be sent to the sampler later
+              self.failedRuns.append(copy.copy(finishedJob))
+              self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
       time.sleep(self.sleepTime)
@@ -491,7 +529,10 @@ class MultiRun(SingleRun):
       if inDictionary[self.samplerType].amIreadyToProvideAnInput():
         try:
           newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'])
-          inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
+          if isinstance(inDictionary["Model"], Models.EnsembleModel):
+            inDictionary["Model"].submitAsClient(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
+          else:
+            inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
           self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
@@ -527,26 +568,48 @@ class MultiRun(SingleRun):
             self.raiseADebug('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
         # pool it if it failed, before we loop back to "while True" we'll check for these again
         else:
-          #add run to a pool that can be sent to the sampler later
-          self.failedRuns.append(copy.copy(finishedJob))
-          self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
-
+          self.raiseADebug('the job "'+finishedJob.identifier+'" has failed.')
+          if self.failureHandling['fail']:
+            # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
+            if not sampler.ableToHandelFailedRuns:
+              #add run to a pool that can be sent to the sampler later
+              self.failedRuns.append(copy.copy(finishedJob))
+          else:
+            if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
+              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
+            if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
+              # we re-add the failed job
+              jobHandler.reAddJob(finishedJob)
+              self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+finishedJob.identifier+'". Trial '+
+                               str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
+              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
+            else:
+              # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
+              if not sampler.ableToHandelFailedRuns:
+                self.failedRuns.append(copy.copy(finishedJob))
+              self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
+          if sampler.ableToHandelFailedRuns:
+            self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
         # finalize actual sampler
         sampler.finalizeActualSampling(finishedJob,model,inputs)
         # add new job
 
+        isEnsemble = isinstance(model, Models.EnsembleModel)
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
         ## In order to ensure that the queue does not grow too large, we will
         ## employ a threshold on the number of jobs the jobHandler can take,
         ## in addition, we cannot provide more jobs than the sampler can provide.
         ## So, we take the minimum of these two values.
-        for _ in range(min(jobHandler.availability(),sampler.endJobRunnable())):
+        for _ in range(min(jobHandler.availability(isEnsemble),sampler.endJobRunnable())):
           self.raiseADebug('Testing if the sampler is ready to generate a new input')
 
           if sampler.amIreadyToProvideAnInput():
             try:
               newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
-              model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+              if isEnsemble:
+                model.submitAsClient(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+              else:
+                model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
               break
@@ -784,7 +847,13 @@ class IOStep(Step):
           self.raiseAnError(RuntimeError,'Pickled object in "%s" is not a ROM.  Exiting ...' %str(fileobj))
         if not unpickledObj.amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %unpickledObj.name)
+        # save reseeding parameter from pickledROM
+        reseedInt = outputs[i].initializationOptionDict.get('reseedValue',None)
+        # train the ROM from the unpickled object
         outputs[i].train(unpickledObj)
+        # reseed as requested
+        if reseedInt is not None:
+          outputs[i].reseed(reseedInt)
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]

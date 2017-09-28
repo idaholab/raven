@@ -45,16 +45,16 @@
   <Optimizers>
     <SPSA name="opter">
       <initialization>
-        <limit>2000</limit>
+        <limit>4000</limit>
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-3</thresholdTrajRemoval>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <iterationLimit>100</iterationLimit>
-        <relativeThreshold>1e-6</relativeThreshold>
+        <iterationLimit>400</iterationLimit>
+        <relativeThreshold>1e-8</relativeThreshold>
         <absoluteThreshold>1e-6</absoluteThreshold>
-        <gradientThreshold>1e-2</gradientThreshold>
+        <gradientThreshold>1e-3</gradientThreshold>
         <minStepSize>1e-7</minStepSize>
       </convergence>
       <variable name="x">

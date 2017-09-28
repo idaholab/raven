@@ -79,7 +79,7 @@ An example of Minkowski distance defined in RAVEN is provided below:
 
 \subsection{Dynamic Time Warping}
 \label{subsection:DTW}
-The Dynamic Time Warping (DTW) is a distanc metrice that can be employed only for HistorySets (i.e., time dependent data).
+The Dynamic Time Warping (DTW) is a distance metrice that can be employed only for HistorySets (i.e., time dependent data).
 
 The specifications of a DTW distance must be defined within the XML block.
 \xmlNode{DTW}.
@@ -137,18 +137,19 @@ Available metrics from SKL are:
        \item linear: $k(x, y) = x^\top y$ 
        \item cosine: $k(x, y) = \frac{x y^\top}{\|x\| \|y\|}$
        \item $chi2$: $k(x, y) = \exp \left (-\gamma \sum_i \frac{(x[i] - y[i]) ^ 2}{x[i] + y[i]} \right )$ 
-       \item $additive_chi2$: $k(x, y) = -\sum [(x - y)^2 / (x + y)]$
+       \item $additive\_chi2$: $k(x, y) = -\sum [(x - y)^2 / (x + y)]$
     \end{itemize}
   
-  \item From scipy.spatial.distance
+  \item   From scikit-learn pairwise distances:
     \begin{itemize}
       \item euclidean: ${||u-v||}_2$
-      \item cosine: $1 - \frac{u \cdot v}{||u||_2 ||v||_2}$ where $u \cdot v$ is the dot product of $u$ and $v$
+      %\item cosine: $1 - \frac{u \cdot v}{||u||_2 ||v||_2}$ where $u \cdot v$ is the dot product of $u$ and $v$
       \item cityblock: $\sum_i {\left| u_i - v_i \right|}$
       \item l1: see cityblock
       \item l2: see euclidean
       \item manhattan: see cityblock
      
+%  \item From scipy.spatial.distance
 %       These are distance metrics available with newer version of sklearn (from 0.18.1)
 %       \item braycurtis: $\sum{|u_i-v_i|} / \sum{|u_i+v_i|}$ 
 %       \item canberra: $ d(u,v) = \sum_i \frac{|u_i-v_i|}{|u_i|+|v_i|}$ 
@@ -176,4 +177,70 @@ Available metrics from SKL are:
 %       $k < n$ and $R = 2.0 * c_{TF} * c_{FT}$
     \end{itemize}
 \end{itemize}
+
+In the RAVEN input file these metrics are defined as follows:
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Metrics>
+    <SKL name="euclidean">
+        <metricType>euclidean</metricType>
+    </SKL>
+    <SKL name="laplacian">
+        <metricType>laplacian</metricType>
+        <gamma>0.5</gamma>
+    </SKL>
+    <SKL name="rbf">
+        <metricType>rbf</metricType>
+        <gamma>0.5</gamma>
+    </SKL>
+    <SKL name="poly">
+        <metricType>poly</metricType>
+        <gamma>1.0</gamma>
+        <degree>2.0</degree>
+        <coef0>1.0</coef0>
+    </SKL>
+    <SKL name="sigmoid">
+        <metricType>sigmoid</metricType>
+        <gamma>1.0</gamma>
+        <coef0>1.0</coef0>
+    </SKL>
+    <SKL name="polynomial">
+        <metricType>polynomial</metricType>
+        <gamma>1.0</gamma>
+        <degree>2.0</degree>
+        <coef0>1.0</coef0>
+    </SKL>
+    <SKL name="linear">
+        <metricType>linear</metricType>
+    </SKL>
+    <SKL name="cosine">
+        <metricType>cosine</metricType>
+        <dense_output>True</dense_output>
+    </SKL>
+    <SKL name="cityblock">
+        <metricType>cityblock</metricType>
+    </SKL>
+    <SKL name="l1">
+        <metricType>l1</metricType>
+    </SKL>
+    <SKL name="l2">
+        <metricType>l2</metricType>
+    </SKL>
+    <SKL name="manhattan">
+        <metricType>manhattan</metricType>
+        <sum_over_features>True</sum_over_features>
+        <size_threshold>5e8</size_threshold>
+    </SKL>
+    <SKL name="additive_chi2">
+        <metricType>additive_chi2</metricType>
+    </SKL>
+    <SKL name="chi2">
+        <metricType>chi2</metricType>
+        <gamma>1.0</gamma>
+    </SKL>
+  </Metrics>
+  ...
+</Simulation>
+\end{lstlisting}
 

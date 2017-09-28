@@ -28,6 +28,7 @@
     <Input name="one.xml" type="">one.xml</Input>
     <Input name="inp.two" type="">inp.two</Input>
     <Input name="mesh" type="">dummy.e</Input>
+    <Input name="a_dummy_file_for_subdirectory" type="" subDirectory="testSubDirectory">dummy_file_for_subdirectory.dummy</Input>
   </Files>
 
   <Models>
@@ -70,6 +71,7 @@
       <Input class="Files" type="">inp.two</Input>
       <Input class="Files" type="">one.xml</Input>
       <Input class="Files" type="">mesh</Input>
+      <Input class="Files" type="">a_dummy_file_for_subdirectory</Input>
       <Model class="Models" type="Code">poly</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">samples</Output>

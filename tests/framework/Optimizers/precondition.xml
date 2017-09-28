@@ -13,6 +13,9 @@
       This test uses the analytic function labeled Maljovec, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
+    <revisions>
+      <revision date='2017-08-08' author='talbpaul'>added preconditioning to initialization, also now tests constants available to preconditioner</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -59,13 +62,13 @@
       <variable name="x">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
-        <initial>-2</initial>
+        <initial>-3</initial>
       </variable>
       <variable name="y">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
-        <initial>-2</initial>
       </variable>
+      <constant name="samplerConstant">3.14159</constant>
       <objectVar>ans</objectVar>
       <multilevel>
         <subspace name="xgroup">x</subspace>
@@ -80,8 +83,11 @@
     <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/sine_valley.py" name="sine" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/diagonal.py" name="precond" subType="">
-      <variables>x,y</variables>
+    <ExternalModel ModuleToLoad="diagonal.py" name="precond" subType="">
+      <variables>x,y,samplerConstant</variables>
+      <arbitraryRoot>
+        <arbitraryData>42</arbitraryData>
+      </arbitraryRoot>
     </ExternalModel>
     <PostProcessor name="snapshot" subType="InterfacedPostProcessor">
       <method>HistorySetSnapShot</method>

@@ -703,7 +703,7 @@ class OutStreamPlot(OutStreamManager):
             customFunctionCall = getattr(self.plt3D, key)
           self.actPlot = customFunctionCall(**kwargs)
         except AttributeError as ae:
-          self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\n ' + self.printTag + ' command has been called in the following way: ' + 'plt.' + key + '(' + commandArgs + ')')
+          self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\n ' + self.printTag + ' command has been called in the following way: ' + 'plt.' + key + '(**' + str(kwargs) + ')')
 
   ####################
   #  PUBLIC METHODS  #
@@ -1772,12 +1772,54 @@ class OutStreamPlot(OutStreamManager):
                   for k, col in zip(range(int(clusterDict[pltindex]['noClusters'])), colors):
                     myMembers = self.clusterValues[pltindex][1][0] == k
                     self.actPlot = plt.scatter(clusterDict[pltindex]['clusterValues'][myMembers, 0], clusterDict[pltindex]['clusterValues'][myMembers, 1] , color = col, **dataMiningPlotOptions)
+
+                  ## Handle all of the outlying data
+                  myMembers = self.clusterValues[pltindex][1][0] == -1
+                  ## resize the points
+                  dataMiningPlotOptions['s'] /= 2
+                  ## and hollow out their markers
+                  if 'facecolors' in dataMiningPlotOptions:
+                    faceColors = dataMiningPlotOptions['facecolors']
+                  else:
+                    faceColors = None
+                  dataMiningPlotOptions['facecolors'] = 'none'
+
+                  self.actPlot = plt.scatter(clusterDict[pltindex]['clusterValues'][myMembers, 0], clusterDict[pltindex]['clusterValues'][myMembers, 1] , color = '#000000', **dataMiningPlotOptions)
+
+                  ## Restore the plot options to their original values
+                  dataMiningPlotOptions['s'] *= 2
+                  if faceColors is not None:
+                    dataMiningPlotOptions['facecolors'] = faceColors
+                  else:
+                    del dataMiningPlotOptions['facecolors']
+
                 elif self.dim == 3:
                   for zIndex in range(len(self.zValues[pltindex][key])):
                     clusterDict[pltindex]['clusterValues'][:, 2] = self.zValues[pltindex][key][zIndex]
                   for k, col in zip(range(clusterDict[pltindex]['noClusters']), colors):
                     myMembers = self.clusterValues[pltindex][1][0] == k
                     self.actPlot = self.plt3D.scatter(clusterDict[pltindex]['clusterValues'][myMembers, 0], clusterDict[pltindex]['clusterValues'][myMembers, 1], clusterDict[pltindex]['clusterValues'][myMembers, 2], color = col, **dataMiningPlotOptions)
+
+                  ## Handle all of the outlying data
+                  myMembers = self.clusterValues[pltindex][1][0] == -1
+                  ## resize the points
+                  dataMiningPlotOptions['s'] /= 2
+                  ## and hollow out their markers
+                  if 'facecolors' in dataMiningPlotOptions:
+                    faceColors = dataMiningPlotOptions['facecolors']
+                  else:
+                    faceColors = None
+                  dataMiningPlotOptions['facecolors'] = 'none'
+
+                  self.actPlot = self.plt3D.scatter(clusterDict[pltindex]['clusterValues'][myMembers, 0], clusterDict[pltindex]['clusterValues'][myMembers, 1], clusterDict[pltindex]['clusterValues'][myMembers, 2], color = '#000000', **dataMiningPlotOptions)
+
+                  ## Restore the plot options to their original values
+                  dataMiningPlotOptions['s'] *= 2
+                  if faceColors is not None:
+                    dataMiningPlotOptions['facecolors'] = faceColors
+                  else:
+                    del dataMiningPlotOptions['facecolors']
+
               elif 'bicluster' == plotSettings['SKLtype']:
                 self.raiseAnError(IOError, 'SKLType Bi-Cluster Plots are not implemented yet!..')
               elif 'mixture' == plotSettings['SKLtype']:
@@ -1908,7 +1950,7 @@ class OutStreamPlot(OutStreamManager):
     # self.plt3D.draw(self.fig.canvas.renderer)
 
     if 'screen' in self.destinations and displayAvailable:
-      if platform.system() == 'Linux':
+      if platform.system() in ['Linux','Windows']:
         # XXX For some reason, this is required on Linux, but causes
         # OSX to fail.  Which is correct for windows has not been determined.
         def handle_close(event):

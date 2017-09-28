@@ -1,0 +1,102 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>cluster_tests/test_mpiqsub</name>
+    <author>cogljj</author>
+    <created>2015-02-26</created>
+    <classesTested>MPISimulationMode</classesTested>
+    <description>
+      This tests running with mpi and a qsub.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>FirstMForcedRun</Sequence>
+    <batchSize>3</batchSize>
+    <NumThreads>4</NumThreads>
+    <NumMPI>2</NumMPI>
+    <expectedTime>0:10:00</expectedTime>
+    <JobName>test_qsub</JobName>
+    <clusterParameters>-W block=true</clusterParameters>
+    <mode>
+      mpi
+      <place>shared</place>
+      <memory>1gb</memory>
+      <coresneeded>2</coresneeded>
+      <runQSUB/>
+    </mode>
+  </RunInfo>
+
+  <Files>
+    <Input name="simple_gp_test.i" type="">simple_gp_test.i</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyRAVEN" subType="RELAP7">
+      <executable>%FRAMEWORK_DIR%/../tests/cluster_tests/simple_gp.py </executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Normal name="auxBackUpTimeDist">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Normal name="Gauss2">
+      <mean>1</mean>
+      <sigma>0.4</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Triangular name="CladFailureDist">
+      <apex>1</apex>
+      <min>-0.1</min>
+      <max>3</max>
+      <!--
+        <lowerBound>0</lowerBound>
+         This is not yet supported
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+      -->
+    </Triangular>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="RAVENmc6">
+      <samplerInit>
+        <limit>6</limit>
+      </samplerInit>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMForcedRun">
+      <Input class="Files" type="">simple_gp_test.i</Input>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
+      <Output class="Databases" type="HDF5">testDatabase</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="testDatabase" readMode="overwrite"/>
+  </Databases>
+
+  <DataObjects>
+    <HistorySet name="stories">
+      <Input>pipe_Area</Input>
+      <Output>pipe_Hw,pipe_Tw</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

@@ -9,12 +9,15 @@
       This tests running with mpi and a qsub.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstMQRun</Sequence>
     <batchSize>1</batchSize>
     <RemoteRunCommand>raven_qsub_torque.sh</RemoteRunCommand>
-    <!-- <clusterParameters>-W block=true</clusterParameters> -->
+    <!--
+      <clusterParameters>-W block=true</clusterParameters>
+    -->
     <NumThreads>4</NumThreads>
     <CustomMode class="TorqueSimulationMode" file="%BASE_WORKING_DIR%/torque_custom/torque_mode.py">torque</CustomMode>
     <mode>

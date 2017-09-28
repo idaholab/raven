@@ -24,10 +24,10 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-from qtpy import QtCore as qtc
-from qtpy import QtGui as qtg
-from qtpy import QtWidgets as qtw
-from qtpy import QtSvg as qts
+from PySide import QtCore as qtc
+from PySide import QtGui as qtg
+from PySide import QtGui as qtw
+from PySide import QtSvg as qts
 import os
 
 ################################################################################
@@ -92,8 +92,8 @@ class OverlayButton(qtw.QPushButton):
 # handIcon = qta.icon('fa.hand-paper-o', color=defaultIconColor)
 # mouseIcon = qta.icon('fa.mouse-pointer', color=defaultIconColor)
 # screenshotIcon = qta.icon('fa.camera', color=defaultIconColor)
-resourceLocation = os.path.join(os.path.dirname(os.path.abspath(__file__)),'resources')
 
+resourceLocation = os.path.join(os.path.dirname(os.path.abspath(__file__)),'resources')
 resetIcon      = qtg.QIcon(os.path.join(resourceLocation,'fa-rotate-left_32.png'))
 handIcon       = qtg.QIcon(os.path.join(resourceLocation,'fa-hand-paper-o_32.png'))
 mouseIcon      = qtg.QIcon(os.path.join(resourceLocation,'fa-mouse-pointer_32.png'))
@@ -113,7 +113,8 @@ class ZoomableGraphicsView(qtw.QGraphicsView):
       Initializer that will set L&F defaults and initialize the UI elements
       @ In, parent, PySide.QtGui.QWidget, the parent widget of this widget.
     """
-    super(ZoomableGraphicsView, self).__init__(parent)
+    #super(ZoomableGraphicsView, self).__init__(parent)
+    qtw.QGraphicsView.__init__(self, parent)
     self._zoom = 0
     self.padding = 10
     self.setTransformationAnchor(qtw.QGraphicsView.AnchorUnderMouse)

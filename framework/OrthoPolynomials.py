@@ -233,15 +233,7 @@ class Legendre(OrthogonalPolynomial):
       @ In, None
       @ Out, None
     """
-    uniformElement = ET.Element("Uniform")
-    element = ET.Element("lowerBound",{})
-    element.text = "-1"
-    uniformElement.append(element)
-    element = ET.Element("upperBound",{})
-    element.text = "1"
-    uniformElement.append(element)
-    uniform = Distributions.Uniform()
-    uniform._readMoreXML(uniformElement)
+    uniform = Distributions.Uniform(-1.0, 1.0)
     uniform.initializeDistribution()
     return uniform
 

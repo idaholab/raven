@@ -25,10 +25,10 @@ warnings.simplefilter('default',DeprecationWarning)
 import numpy as np
 import sys
 
-from qtpy import QtCore as qtc
-from qtpy import QtGui as qtg
-from qtpy import QtSvg as qts
-from qtpy import QtWidgets as qtw
+from PySide import QtCore as qtc
+from PySide import QtGui as qtg
+from PySide import QtGui as qtw
+from PySide import QtSvg as qts
 
 from .BaseHierarchicalView import BaseHierarchicalView
 from .ZoomableGraphicsView import ZoomableGraphicsView
@@ -112,8 +112,13 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       @In, mainWindow, HierarchicalWindow, the parent window of this view
       @Out, None
     """
+    # BaseHierarchicalView.__init__(self, mainWindow)
     ZoomableGraphicsView.__init__(self, mainWindow)
-    BaseHierarchicalView.__init__(self, mainWindow)
+
+    self.setWindowTitle(self.__class__.__name__)
+    self.scrollable = False
+    self.mainWindow = mainWindow
+
 
     self.tree = linakgeToTree(self.mainWindow.engine.linkage)
 
@@ -504,7 +509,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       for idx,(x,y) in newNodes:
         color = self.getColor(idx)
         brush = qtg.QBrush(color)
-        pen = qtc.Qt.NoPen
+        pen = qtg.QPen(qtc.Qt.NoPen)
 
         ## Don't worry about placing or sizing the ellipse, we will do that
         ## below according to current settings of the view, right now we want
@@ -546,7 +551,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       if self.nodes[idx].isSelected():
         pen = qtg.QPen(black)
       else:
-        pen = qtc.Qt.NoPen
+        pen = qtg.QPen(qtc.Qt.NoPen)
 
       newX = glyph.rawX*self.usableWidth + self.padding - diameter/2.
       newY = height - self.usableHeight * glyph.rawY - self.padding - diameter/2.
@@ -621,7 +626,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       parent = pathGraphic.source
       child = pathGraphic.sink
       if parent.level > currentLevel and child.level <= currentLevel:
-        pathGraphic.setPen(qtg.QPen(self.getColor(idx2),min(2,rect2.width()),c=qtc.Qt.RoundCap))
+        pathGraphic.setPen(qtg.QPen(self.getColor(idx2),min(2,rect2.width()),cap=qtc.Qt.RoundCap))
       else:
         pathGraphic.setPen(qtg.QPen(gray,0))
       pathGraphic.setPath(path)

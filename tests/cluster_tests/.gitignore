@@ -6,6 +6,7 @@ FirstMQRun/
 FirstPRun/
 FirstMFRun/
 FirstMLRun/
+FirstMForcedRun/
 DatabaseStorage/
 *.log
 InternalParallel/InternalParallelExtModel/test*Set_dump.xml
@@ -14,3 +15,5 @@ InternalParallel/InternalParallelPostProcessorLS/*_dump.xml
 InternalParallel/InternalParallelScikit/PrintDataData*.xml
 *.png
 InternalParallel/metaModel*LinearParallel/*Dump.xml
+run_mpi_test.sh.e*
+run_mpi_test.sh.o*
