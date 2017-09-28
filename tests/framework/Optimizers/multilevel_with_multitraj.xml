@@ -18,6 +18,7 @@
     <WorkingDir>MTML</WorkingDir>
     <Sequence>optimize,print,getOptPoint</Sequence>
     <batchSize>1</batchSize>
+    <maxQueueSize>1000</maxQueueSize>
   </RunInfo>
 
   <Steps>
@@ -30,7 +31,9 @@
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">opt_soln</Input>
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
       <Output class="OutStreams" type="Print">opt_soln</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
     </IOStep>
     <PostProcess name="getOptPoint">
       <Input class="DataObjects" type="HistorySet">opt_export</Input>

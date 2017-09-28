@@ -128,6 +128,7 @@ class JobHandler(MessageHandler.MessageUser):
     self.runInfoDict = runInfoDict
     self.messageHandler = messageHandler
     self.maxQueueSize = runInfoDict.get('maxQueueSize',runInfoDict.get('batchSize'))
+    self.raiseADebug('Setting maxQueueSize to',self.maxQueueSize)
 
     #initialize PBS
     with self.__queueLock:
