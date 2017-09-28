@@ -1,77 +1,90 @@
 [Tests]
   [./GreedyDistance]
-  type = 'RavenPython'
-  input = 'limit/identityCheck.py test_greedy_d.xml limit/greedy_d_ls.csv 1e-1'
-  required_libraries = 'AMSC'
- [../]
- [./GreedyDistancePersistence]
-  type = 'RavenPython'
-  input = 'limit/identityCheck.py test_greedy_dp.xml limit/greedy_dp_ls.csv  1e-1'
-  required_libraries = 'AMSC'
- [../]
- [./MaxPDistance]
-  type = 'RavenPython'
-  input = 'limit/identityCheck.py test_maxp_d.xml limit/maxP_d_ls.csv 1e-1'
-  required_libraries = 'AMSC'
- [../]
- [./MaxPDistancePersistence]
-  type = 'RavenPython'
-  input = 'limit/identityCheck.py test_maxp_dp.xml limit/maxP_dp_ls.csv 1e-1'
-  required_libraries = 'AMSC'
- [../]
- [./InvalidScoringStrategy]
-  type = 'RavenFramework'
-  input = 'test_invalid_score.xml'
-  xml = ''
- [../]
- [./InvalidBatchStrategy]
-  type = 'RavenFramework'
-  input = 'test_invalid_batch.xml'
-  xml = ''
- [../]
- [./MaxVDistance]
-  type = 'RavenPython'
-  input = 'limit/identityCheck.py test_maxv_d.xml limit/maxV_d_ls.csv 1e-1'
-  required_libraries = 'AMSC'
- [../]
- [./MaxVDistancePersistence]
-  type = 'RavenPython'
-  input = 'limit/identityCheck.py test_maxv_dp.xml limit/maxV_dp_ls.csv 1e-1'
-  required_libraries = 'AMSC'
- [../]
- [./PreRankingSimplification]
-  type = 'RavenPython'
-  input = 'limit/identityCheck.py test_pre.xml limit/pre_ls.csv 1e-1'
-  required_libraries = 'AMSC'
- [../]
- [./PostRankingThresholding]
-  type = 'RavenPython'
-  input = 'limit/identityCheck.py test_post.xml limit/post_ls.csv 1e-1'
-  required_libraries = 'AMSC'
- [../]
- [./ThickenedBand]
-  type = 'RavenPython'
-  input = 'limit/identityCheck.py test_thick.xml limit/thick_ls.csv 1e-1'
-  required_libraries = 'AMSC'
- [../]
- [./InvalidPreRankingSimplification]
-  type = 'RavenPython'
-  input = 'limit/identityCheck.py test_invalid_pre.xml limit/invalid_pre_ls.csv 1e-1'
-  required_libraries = 'AMSC'
- [../]
- [./InvalidPostRankingSimplification]
-  type = 'RavenPython'
-  input = 'limit/identityCheck.py test_invalid_post.xml limit/invalid_post_ls.csv 1e-1'
-  required_libraries = 'AMSC'
- [../]
- [./InvalidMaxBatchSize]
-  type = 'RavenPython'
-  input = 'limit/identityCheck.py test_invalid_mbs.xml limit/invalid_mbs_ls.csv 1e-1'
-  required_libraries = 'AMSC'
- [../]
- [./InvalidThickness]
-  type = 'RavenPython'
-  input = 'limit/identityCheck.py test_invalid_thick.xml limit/invalid_thick_ls.csv 1e-1'
-  required_libraries = 'AMSC'
- [../]
+    type = 'RavenFramework'
+    input = 'test_greedy_d.xml'
+    UnorderedCsv = 'limit/greedy_d_ls.csv'
+    required_libraries = 'AMSC'
+  [../]
+  [./GreedyDistancePersistence]
+    type = 'RavenFramework'
+    input = 'test_greedy_dp.xml'
+    UnorderedCsv = 'limit/greedy_dp_ls.csv'
+    required_libraries = 'AMSC'
+  [../]
+  [./MaxPDistance]
+    type = 'RavenFramework'
+    input = 'test_greedy_dp.xml'
+    UnorderedCsv = 'limit/greedy_dp_ls.csv'
+    required_libraries = 'AMSC'
+  [../]
+  [./MaxPDistancePersistence]
+    type = 'RavenFramework'
+    input = 'test_maxp_dp.xml'
+    UnorderedCsv = 'limit/maxP_dp_ls.csv'
+    required_libraries = 'AMSC'
+  [../]
+  [./InvalidScoringStrategy]
+    type = 'RavenErrors'
+    input = 'test_invalid_score.xml'
+    expect_err = 'IOError: Requested unknown scoring type:'
+  [../]
+  [./InvalidBatchStrategy]
+    type = 'RavenErrors'
+    input = 'test_invalid_batch.xml'
+    expect_err = 'IOError: Requested unknown batch strategy:'
+  [../]
+  [./MaxVDistance]
+    type = 'RavenFramework'
+    input = 'test_maxv_d.xml'
+    UnorderedCsv = 'limit/maxV_d_ls.csv'
+    required_libraries = 'AMSC'
+  [../]
+  [./MaxVDistancePersistence]
+    type = 'RavenFramework'
+    input = 'test_maxv_dp.xml'
+    UnorderedCsv = 'limit/maxV_dp_ls.csv'
+    required_libraries = 'AMSC'
+  [../]
+  [./PreRankingSimplification]
+    type = 'RavenFramework'
+    input = 'test_pre.xml'
+    UnorderedCsv = 'limit/pre_ls.csv'
+    required_libraries = 'AMSC'
+  [../]
+  [./PostRankingThresholding]
+    type = 'RavenFramework'
+    input = 'test_post.xml'
+    UnorderedCsv = 'limit/post_ls.csv'
+    required_libraries = 'AMSC'
+  [../]
+  [./ThickenedBand]
+    type = 'RavenFramework'
+    input = 'test_thick.xml'
+    UnorderedCsv = 'limit/thick_ls.csv'
+    required_libraries = 'AMSC'
+  [../]
+  [./InvalidPreRankingSimplification]
+    type = 'RavenFramework'
+    input = 'test_invalid_pre.xml'
+    UnorderedCsv = 'limit/invalid_pre_ls.csv'
+    required_libraries = 'AMSC'
+  [../]
+  [./InvalidPostRankingSimplification]
+    type = 'RavenFramework'
+    input = 'test_invalid_post.xml'
+    UnorderedCsv = 'limit/invalid_post_ls.csv'
+    required_libraries = 'AMSC'
+  [../]
+  [./InvalidMaxBatchSize]
+    type = 'RavenFramework'
+    input = 'test_invalid_mbs.xml'
+    UnorderedCsv = 'limit/invalid_mbs_ls.csv'
+    required_libraries = 'AMSC'
+  [../]
+  [./InvalidThickness]
+    type = 'RavenFramework'
+    input = 'test_invalid_thick.xml'
+    UnorderedCsv = 'limit/invalid_thick_ls.csv'
+    required_libraries = 'AMSC'
+  [../]
 []
