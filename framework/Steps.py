@@ -908,7 +908,13 @@ class IOStep(Step):
           self.raiseAnError(RuntimeError,'Pickled object in "%s" is not a ROM.  Exiting ...' %str(fileobj))
         if not unpickledObj.amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %unpickledObj.name)
+        # save reseeding parameter from pickledROM
+        reseedInt = outputs[i].initializationOptionDict.get('reseedValue',None)
+        # train the ROM from the unpickled object
         outputs[i].train(unpickledObj)
+        # reseed as requested
+        if reseedInt is not None:
+          outputs[i].reseed(reseedInt)
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]

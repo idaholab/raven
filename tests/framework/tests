@@ -281,6 +281,7 @@
   input = 'TestXSD/TestFails.py'
   requires_swig2 = True
   required_libraries = lxml
+  prereq = test_xsd_input_data
  [../]
 
  [./test_xml_differ]
