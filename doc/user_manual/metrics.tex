@@ -123,10 +123,13 @@ This Metric class interfaces directly with the metric distances available within
 Note that these distance metrics apply only to PointSets. However, note that this distance metrics can be applied to HistorySets after the HistorySets are converted into PointSets.
 In this respect, the HSPS interfaced Post-Processor (see Section~\ref{Interfaced}) can be employed to perform such conversion.
 
-The specifications of a SKL metric must be defined within the XML block.
-\xmlNode{SKL}.
+The specifications of a SKL metric must be defined within the XML block \xmlNode{SKL}.
+This XML node needs to contain the subnode:
+\begin{itemize}
+  \item \xmlNode{metricType}, \xmlDesc{string, required field}, the type of \textbf{SKL} metrics from the SciKit-Learn.
+\end{itemize}
 
-Available metrics from SKL are:
+Available types of metrics are:
 \begin{itemize}  
   \item   From scikit-learn pairwise kernels:
     \begin{itemize}
@@ -148,6 +151,16 @@ Available metrics from SKL are:
       \item l1: see cityblock
       \item l2: see euclidean
       \item manhattan: see cityblock
+    \end{itemize}
+
+  \item   From scikit-learn regression metrics:
+    \begin{itemize}
+      \item explained\_variance\_score: $1.0 - \frac{Var[x-y]}{Var[x]}$
+      \item mean\_absolute\_error: $\frac{1}{n_{samples}}\sum_{i=0}^{n_{samples}-1}|x_i-y_i|$
+      \item mean\_squared\_error: $\frac{1}{n_{samples}}\sum_{i=0}^{n_{samples}-1}(x_i-y_i)^2$
+      \item median\_absolute\_error: $median(|x_i-y_i|, \cdots, |x_n-y_n|)$
+      \item r2\_score: $1.0-\frac{\sum_{i=0}^{n_{samples}-1}(x_i-y_i)^2}{\sum_{i=0}^{n_{samples}-1}(x_i-mean[x])^2}$
+    \end{itemize}
      
 %  \item From scipy.spatial.distance
 %       These are distance metrics available with newer version of sklearn (from 0.18.1)
@@ -175,7 +188,6 @@ Available metrics from SKL are:
 %       \item sqeuclidean: ${||u-v||}_2^2$
 %       \item yule: $\frac{R}{c_{TT} * c_{FF} + \frac{R}{2}}$ where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for
 %       $k < n$ and $R = 2.0 * c_{TF} * c_{FT}$
-    \end{itemize}
 \end{itemize}
 
 In the RAVEN input file these metrics are defined as follows:
@@ -238,6 +250,25 @@ In the RAVEN input file these metrics are defined as follows:
     <SKL name="chi2">
         <metricType>chi2</metricType>
         <gamma>1.0</gamma>
+    </SKL>
+    <SKL name="explained_variance_score">
+        <metricType>explained_variance_score</metricType>
+        <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
+    </SKL>
+    <SKL name="mean_absolute_error">
+        <metricType>mean_absolute_error</metricType>
+        <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
+    </SKL>
+    <SKL name="r2_score">
+        <metricType>r2_score</metricType>
+        <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
+    </SKL>
+    <SKL name="mean_squared_error">
+        <metricType>mean_squared_error</metricType>
+        <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
+    </SKL>
+    <SKL name="median_absolute_error">
+        <metricType>median_absolute_error</metricType>
     </SKL>
   </Metrics>
   ...
