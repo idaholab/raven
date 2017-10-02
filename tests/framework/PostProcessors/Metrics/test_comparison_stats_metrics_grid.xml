@@ -58,11 +58,11 @@
     <Grid name="grid_external">
       <variable name="x1">
         <distribution>dist1</distribution>
-        <grid type='value' construction='equal' steps='20'>-1 3</grid>
+        <grid type='value' construction='equal' steps='15'>-1 3</grid>
       </variable>
       <variable name="x2">
         <distribution>dist2</distribution>
-        <grid type='value' construction='equal' steps='20'>0 4</grid>
+        <grid type='value' construction='equal' steps='15'>0 4</grid>
       </variable>
     </Grid>
   </Samplers>
