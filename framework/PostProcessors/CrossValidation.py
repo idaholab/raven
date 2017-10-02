@@ -73,6 +73,7 @@ class CrossValidation(PostProcessor):
     self.dynamic        = False # is it time-dependent?
     self.metricsDict    = {}    # dictionary of metrics that are going to be assembled
     self.pivotParameter = None
+    self.averageScores  = False
     # assembler objects to be requested
     self.addAssemblerObject('Metric', 'n', True)
     self.CVEstimator    = None   # instance of estimator that is used to for Cross Validation
@@ -107,10 +108,18 @@ class CrossValidation(PostProcessor):
     #paramInput.parseNode(xmlNode)
 
     self.initializationOptionDict = {}
-
+    average = None
+    cvNode = xmlNode.find('SciKitLearn')
+    for child in cvNode:
+      if child.tag == 'average':
+        average = child
+        break
+    if average is not None:
+      self.averageScores = average.text.lower() in utils.stringsThatMeanTrue()
     for child in xmlNode:
       if child.tag == 'SciKitLearn':
         self.initializationOptionDict[child.tag] = self._localInputAndCheck(child)
+        self.initializationOptionDict[child.tag].pop("average",'False')
         self.CVEngine = CrossValidations.returnInstance(child.tag, self, **self.initializationOptionDict[child.tag])
       elif child.tag == 'Metric':
         if 'type' not in child.attrib.keys() or 'class' not in child.attrib.keys():
@@ -234,10 +243,9 @@ class CrossValidation(PostProcessor):
     testInput = dict.fromkeys(inputDict.keys(), None)
     for key, value in inputDict.items():
       if np.asarray(value).size != trainIndex.size + testIndex.size:
-        self.raiseAnError(IOError, "The number of samples provided in the input is not equal the number of samples used in the cross-validation")
+        self.raiseAnError(IOError, "The number of samples provided in the input is not equal the number of samples used in the cross-validation: "+str(np.asarray(value).size) +"!="+str(trainIndex.size + testIndex.size))
       trainInput[key] = np.asarray(value)[trainIndex]
       testInput[key] = np.asarray(value)[testIndex]
-
     trainTest = trainInput, testInput
     return trainTest
 
@@ -272,8 +280,12 @@ class CrossValidation(PostProcessor):
             metricName = metricInstance.type
           if metricName not in outputDict[targetName].keys():
             outputDict[targetName][metricName] = []
-          outputDict[targetName][metricName].append(metricValue[0])
-
+          outputDict[targetName][metricName].append(metricValue[0]) 
+    if self.averageScores:
+      for targetName in outputEvaluation.keys():
+        for metricInstance in self.metricsDict.values():
+          metricName = metricInstance.metricType if hasattr(metricInstance, 'metricType') else metricInstance.type       
+          outputDict[targetName][metricName] = [np.atleast_1d(outputDict[targetName][metricName]).mean()]
     return outputDict
 
   def collectOutput(self,finishedJob, output):
@@ -301,6 +313,8 @@ class CrossValidation(PostProcessor):
       else:
         separator = ' ' if outputExtension != 'csv' else ','
         self._writeText(output, outputDict, separator)
+    elif output.type == 'PointSet':
+      self._writeDataObject(output, outputDict)
     else:
       self.raiseAnError(IOError, 'Output type ', str(output.type), ' can not be used for postprocessor', self.name)
 
@@ -327,7 +341,6 @@ class CrossValidation(PostProcessor):
           cvRuns = ['cv-' + str(i) for i in range(len(metricValues))]
           valueDict = dict(zip(cvRuns, metricValues))
           outputInstance.addVector(nodeName, metricName, valueDict, pivotVal = pivotVal)
-
     outputInstance.writeFile()
 
   def _writeText(self,output,outputDictionary, separator=' '):
@@ -360,3 +373,49 @@ class CrossValidation(PostProcessor):
             output.write(separator+str(valueDict[metricName][cvRunNum]))
         output.write(os.linesep)
 
+  def _writeDataObject(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a a PointSet
+      @ In, output, PointSet object, PointSet to dumpt the results to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    if self.dynamic:
+      self.raiseAnError(IOError, 'The method to dump the dynamic cross validation results into a HistorySet file is not implemented yet')
+
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    outputKeys = output.getParaKeys('outputs')
+    inputKeys  = output.getParaKeys('inputs')
+    keysToFill = dict.fromkeys(outputKeys+inputKeys)
+    if 'CV-Run-Number' not in outputKeys + inputKeys:
+      self.raiseAnError(Exception, "CV-Run-Number key is present neither in the <Input> nor <Output> nodes of the DataObject! Check your input!")        
+    keysToFill['CV-Run-Number'] = True
+    for ts, outputDict in enumerate(outputResults):
+      nodeNames, nodeValues = outputDict.keys(), outputDict.values()
+      metricNames = nodeValues[0].keys()
+      parameterNames = []
+      for nodeName in nodeNames:
+        for metricName in metricNames:
+          parameterNames.append(nodeName + '-' + metricName)
+      for cvRunNum in range(len(nodeValues[0].values()[0])):
+        if 'CV-Run-Number' in outputKeys:
+          output.updateOutputValue('CV-Run-Number',cvRunNum)
+        else:
+          output.updateInputValue('CV-Run-Number',cvRunNum)
+        cnt = 0
+        for valueDict in nodeValues:
+          for metricName in metricNames:
+            keysToFill[parameterNames[cnt]] = True
+            if parameterNames[cnt] in outputKeys:
+              output.updateOutputValue(parameterNames[cnt],valueDict[metricName][cvRunNum])
+            elif parameterNames[cnt] in inputKeys:
+              output.updateInputValue(parameterNames[cnt],valueDict[metricName][cvRunNum])
+            else:
+              keysToFill[parameterNames[cnt]] = False
+            cnt+=1
+    keysNotFilled = []
+    for key, value in keysToFill.items():
+      if not value:
+        keysNotFilled.append(key)
+    if len(keysNotFilled) > 0:
+      self.raiseAnError(Exception, "The following keys are present in the DataObject but are not filled by the PostProcessor: "+",".join(keysNotFilled))

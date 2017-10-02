@@ -143,11 +143,12 @@ class JobHandler(MessageHandler.MessageUser):
       returnCode = running.getReturnCode()
       if returnCode != 0:
         metadataFailedRun = running.getMetadata()
-        metaDataKeys      = metadataFailedRun.keys()
         metaDataToKeep    = metadataFailedRun
-        if 'jobHandler' in metaDataKeys:
-          metaDataKeys.pop(metaDataKeys.index("jobHandler"))
-          metaDataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metaDataKeys }
+        if metadataFailedRun is not None:
+          metaDataKeys      = metadataFailedRun.keys()
+          if 'jobHandler' in metaDataKeys:
+            metaDataKeys.pop(metaDataKeys.index("jobHandler"))
+            metaDataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metaDataKeys }
         ## FIXME: The running.command was always internal now, so I removed it.
         ## We should probably find a way to give more pertinent information.
         self.raiseAMessage(" Process Failed " + str(running) + " internal returnCode " + str(returnCode))
