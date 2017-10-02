@@ -1,5 +1,13 @@
 #!/bin/bash
 
+#This is a test for testing the cluster features on a torque cluster.
+#Depending on the cluster it is used on,
+#$HOME/.raven/environments/raven_libs_profile and
+#$HOME/.raven/default_runinfo.xml may need to be created or modified
+#to setup the correct environment and provide required cluster
+#parameters.
+
+
 num_fails=0
 fails=''
 

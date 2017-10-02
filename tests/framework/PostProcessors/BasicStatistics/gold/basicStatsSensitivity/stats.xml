@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <BasicStatisticsPP type="Static">
   <ans>
     <expectedValue>705.908673207</expectedValue>
@@ -329,5 +328,4 @@
       <x5>1.0</x5>
     </VarianceDependentSensitivity>
   </x5>
-
 </BasicStatisticsPP>

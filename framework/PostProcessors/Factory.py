@@ -26,6 +26,7 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
+from utils import utils
 from .PostProcessor import PostProcessor
 from .BasicStatistics import BasicStatistics
 from .ComparisonStatistics import ComparisonStatistics
@@ -39,7 +40,8 @@ from .SafestPoint import SafestPoint
 
 from .TopologicalDecomposition import TopologicalDecomposition
 from .DataMining import DataMining
-
+from .Metric import Metric
+from .CrossValidation import CrossValidation
 ## These utilize the optional prequisite library PySide, so don't error if they
 ## do not import appropriately.
 try:
@@ -65,12 +67,18 @@ except ImportError:
 __base = 'PostProcessor'
 __interFaceDict = {}
 
-for classObj in eval(__base).__subclasses__():
+for classObj in utils.getAllSubclasses(eval(__base)):
   key = classObj.__name__
   __interFaceDict[key] = classObj
 
 ## Adding aliases for certain classes that are exposed to the user.
 __interFaceDict['External'] = ExternalPostProcessor
+try:
+  __interFaceDict['TopologicalDecomposition' ] = QTopologicalDecomposition
+  __interFaceDict['DataMining'               ] = QDataMining
+except NameError:
+  ## The correct names should already be used for these classes otherwise
+  pass
 
 def knownTypes():
   """

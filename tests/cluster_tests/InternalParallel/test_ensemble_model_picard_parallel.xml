@@ -31,17 +31,17 @@
         <settings>
             <initialConditions>
                 <averageTemperature>1000.0</averageTemperature>
-                <k>10.0</k>
             </initialConditions>
+            <initialStartModels>thermalConductivityComputation</initialStartModels>
         </settings>
       <Model class="Models"  type="ExternalModel">
         thermalConductivityComputation
-        <Input class="DataObjects" type="PointSet">inputHolder</Input>
+        <Input class="DataObjects" type="PointSet">inputThermalConductivity</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
           heatTransfer
-          <Input class="DataObjects" type="PointSet">inputHolder</Input>
+          <Input class="DataObjects" type="PointSet">inputHeatTransfer</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
       </Model>
     </EnsembleModel>
@@ -62,7 +62,8 @@
 
   <Steps verbosity="debug">
     <MultiRun name="testMetamodelHeatTransfer" sleepTime="0.01" verbosity="debug">
-      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputThermalConductivity</Input>
+      <Input class="DataObjects" type="PointSet">inputHeatTransfer</Input>
       <Model class="Models" type="EnsembleModel">heatTransferEnsembleModel</Model>
       <Sampler class="Samplers" type="Grid">MonteCarloTemperature</Sampler>
       <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
@@ -180,8 +181,12 @@
   </OutStreams>
 
   <DataObjects>
-    <PointSet name="inputHolder">
-      <Input>leftTemperature,rightTemperature</Input>
+    <PointSet name="inputHeatTransfer">
+      <Input>leftTemperature,rightTemperature,k</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputThermalConductivity">
+      <Input>averageTemperature</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="heatTransferContainer">

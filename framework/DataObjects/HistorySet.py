@@ -255,7 +255,7 @@ class HistorySet(Data):
       @ Out, None
     """
     if isinstance(value,np.ndarray):
-      self.raiseADebug('FIXME: Converted np.ndarray into c1darray in HistorySet!')
+      #self.raiseADebug('FIXME: Converted np.ndarray into c1darray in HistorySet!')
       value = c1darray(values=value)
     if not isinstance(value,c1darray):
       self.raiseAnError(NotConsistentData,'HistorySet Data accepts only cached_ndarray as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
@@ -295,7 +295,7 @@ class HistorySet(Data):
         self._dataContainer = tsnode.get('dataContainer')
       if namep in self._dataContainer['outputs'].keys():
         self._dataContainer['outputs'].pop(namep)
-      if namep not in self._dataParameters['inParam']:
+      if namep not in self._dataParameters['outParam']:
         self._dataParameters['outParam'].append(namep)
       self._dataContainer['outputs'][namep] = c1darray(values=np.atleast_1d(np.array(value,dtype=float)))
       self.addNodeInTreeMode(tsnode,options)
@@ -531,24 +531,34 @@ class HistorySet(Data):
       inpValues.append(inpValues_h)
       dataFilename = mainLineList[-1]
       subCSVFilename = os.path.join(filenameRoot,dataFilename)
-      myDataFile = open(subCSVFilename, "rU")
       subCSVFile = Files.returnInstance("CSV", self)
       subCSVFile.setFilename(subCSVFilename)
       self._toLoadFromList.append(subCSVFile)
-      header = myDataFile.readline().rstrip()
-      outKeys_h = header.split(",")
-      outValues_h = [[] for a in range(len(outKeys_h))]
-      for line in myDataFile.readlines():
-        lineList = line.rstrip().split(",")
-        for i in range(len(outKeys_h)):
-          outValues_h[i].append(utils.partialEval(lineList[i]))
-      myDataFile.close()
+      with open(subCSVFilename, "rU") as myDataFile:
+        header = myDataFile.readline().rstrip()
+        outKeys_h = header.split(",")
+        outValues_h = [[] for a in range(len(outKeys_h))]
+        for lineNumber,line in enumerate(myDataFile.readlines(),2):
+          lineList = line.rstrip().split(",")
+          for i in range(len(outKeys_h)):
+            datum = utils.partialEval(lineList[i])
+            if datum == '':
+              self.raiseAnError(IOError, 'Invalid data in input file: {} at line {}: "{}"'.format(subCSVFilename,lineNumber,line.rstrip()))
+            outValues_h[i].append(datum)
+        myDataFile.close()
       outKeys.append(outKeys_h)
       outValues.append(outValues_h)
-    self._dataContainer['inputs'] = {} #XXX these are indexed by 1,2,...
-    self._dataContainer['outputs'] = {} #XXX these are indexed by 1,2,...
+
+
+    ## Do not reset these containers because it will wipe whatever information
+    ## already exists in this HistorySet. This is not one of the use cases for
+    ## our data objects. We claim in the manual to construct or update
+    ## information. These should be non-destructive operations. -- DPM 6/26/17
+    # self._dataContainer['inputs'] = {} #XXX these are indexed by 1,2,...
+    # self._dataContainer['outputs'] = {} #XXX these are indexed by 1,2,...
+    startKey = len(self._dataContainer['inputs'].keys())
     for i in range(len(inpValues)):
-      mainKey = i + 1
+      mainKey = startKey + i + 1
       subInput = {}
       subOutput = {}
       for key,value in zip(inpKeys,inpValues[i]):
@@ -558,10 +568,12 @@ class HistorySet(Data):
       for key,value in zip(outKeys[i],outValues[i]):
         if key in self.getParaKeys('outputs'):
           subOutput[key] = c1darray(values=np.array(value))
+
       self._dataContainer['inputs'][mainKey] = subInput
       self._dataContainer['outputs'][mainKey] = subOutput
+
     #extend the expected size of this point set
-    self.numAdditionalLoadPoints = len(allLines) #used in checkConsistency
+    self.numAdditionalLoadPoints += len(allLines) #used in checkConsistency
 
     self.checkConsistency()
 

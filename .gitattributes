@@ -1,0 +1,4 @@
+include/contrib/* linguist-vendored
+src/contrib/* linguist-vendored
+crow/contrib/* linguist-vendored
+framework/contrib/* linguist-vendored

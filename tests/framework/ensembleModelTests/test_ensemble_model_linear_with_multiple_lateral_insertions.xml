@@ -52,27 +52,27 @@
     <EnsembleModel name="testConfig" subType="">
       <Model class="Models" type="ExternalModel">
         Alpha
-        <Input   class="DataObjects" type="PointSet"      >inputHolder</Input>
+        <Input   class="DataObjects" type="PointSet"      >inputAlpha</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataC</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         Beta
-        <Input   class="DataObjects" type="PointSet"      >inputHolder</Input>
+        <Input   class="DataObjects" type="PointSet"      >inputBeta</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataD</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         Delta
-        <Input   class="DataObjects" type="PointSet"      >inputHolder</Input>
+        <Input   class="DataObjects" type="PointSet"      >inputDelta</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataF</TargetEvaluation>
       </Model>
       <Model class="Models"  type="ExternalModel">
         Gamma
-        <Input   class="DataObjects" type="PointSet"      >inputHolder</Input>
+        <Input   class="DataObjects" type="PointSet"      >inputGamma</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataE</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         Epsilon
-        <Input            class="DataObjects" type="PointSet">inputHolder</Input>
+        <Input            class="DataObjects" type="PointSet">inputEpsilon</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataG</TargetEvaluation>
       </Model>
     </EnsembleModel>
@@ -93,7 +93,11 @@
 
   <Steps>
     <MultiRun name="testMetamodelHeatTransfer">
-      <Input   class="DataObjects" type="PointSet"      >inputHolder</Input>
+      <Input   class="DataObjects" type="PointSet"      >inputAlpha</Input>
+      <Input   class="DataObjects" type="PointSet"      >inputBeta</Input>
+      <Input   class="DataObjects" type="PointSet"      >inputGamma</Input>
+      <Input   class="DataObjects" type="PointSet"      >inputDelta</Input>
+      <Input   class="DataObjects" type="PointSet"      >inputEpsilon</Input>
       <Model   class="Models"      type="EnsembleModel" >testConfig</Model>
       <Sampler class="Samplers"    type="Grid"          >grid</Sampler>
       <Output  class="DataObjects" type="PointSet"      >metaModelData</Output>
@@ -124,10 +128,27 @@
   </OutStreams>
 
   <DataObjects>
-    <PointSet name="inputHolder">
-      <Input>leftTemperature,rightTemperature</Input>
+    <PointSet name="inputAlpha">
+      <Input>A,B</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+    <PointSet name="inputBeta">
+      <Input>C</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputDelta">
+      <Input>D</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputGamma">
+      <Input>C</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputEpsilon">
+      <Input>E,F</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+
     <PointSet name="dataC">
       <Input>A,B</Input>
       <Output>C</Output>

@@ -26,6 +26,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
+from PySide import QtGui as qtw
 from PySide import QtSvg as qts
 import os
 
@@ -41,7 +42,7 @@ import os
 ## large enough button to select with relative ease.
 ################################################################################
 
-class OverlayButton(qtg.QPushButton):
+class OverlayButton(qtw.QPushButton):
   """
     A UI element that can be overlayed on top of other UI elements and will
     render transparently until a user's mouse hovers over it.
@@ -91,15 +92,15 @@ class OverlayButton(qtg.QPushButton):
 # handIcon = qta.icon('fa.hand-paper-o', color=defaultIconColor)
 # mouseIcon = qta.icon('fa.mouse-pointer', color=defaultIconColor)
 # screenshotIcon = qta.icon('fa.camera', color=defaultIconColor)
-resourceLocation = os.path.join(os.path.dirname(os.path.abspath(__file__)),'resources')
 
+resourceLocation = os.path.join(os.path.dirname(os.path.abspath(__file__)),'resources')
 resetIcon      = qtg.QIcon(os.path.join(resourceLocation,'fa-rotate-left_32.png'))
 handIcon       = qtg.QIcon(os.path.join(resourceLocation,'fa-hand-paper-o_32.png'))
 mouseIcon      = qtg.QIcon(os.path.join(resourceLocation,'fa-mouse-pointer_32.png'))
 screenshotIcon = qtg.QIcon(os.path.join(resourceLocation,'fa-camera_32.png'))
 ################################################################################
 
-class ZoomableGraphicsView(qtg.QGraphicsView):
+class ZoomableGraphicsView(qtw.QGraphicsView):
   """
     This is a generic class for providing some basic UI functionality that can
     be inherited by other classes. It provides functionality such as
@@ -112,24 +113,25 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
       Initializer that will set L&F defaults and initialize the UI elements
       @ In, parent, PySide.QtGui.QWidget, the parent widget of this widget.
     """
-    super(ZoomableGraphicsView, self).__init__(parent)
+    #super(ZoomableGraphicsView, self).__init__(parent)
+    qtw.QGraphicsView.__init__(self, parent)
     self._zoom = 0
     self.padding = 10
-    self.setTransformationAnchor(qtg.QGraphicsView.AnchorUnderMouse)
-    self.setResizeAnchor(qtg.QGraphicsView.AnchorUnderMouse)
+    self.setTransformationAnchor(qtw.QGraphicsView.AnchorUnderMouse)
+    self.setResizeAnchor(qtw.QGraphicsView.AnchorUnderMouse)
     self.setVerticalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
     self.setHorizontalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
-    self.setFrameShape(qtg.QFrame.NoFrame)
-    self.setDragMode(qtg.QGraphicsView.ScrollHandDrag)
+    self.setFrameShape(qtw.QFrame.NoFrame)
+    self.setDragMode(qtw.QGraphicsView.ScrollHandDrag)
 
     self.setRenderHints(qtg.QPainter.Antialiasing |
                         qtg.QPainter.SmoothPixmapTransform)
 
-    scene = qtg.QGraphicsScene(self)
+    scene = qtw.QGraphicsScene(self)
     scene.setSceneRect(0,0,ZoomableGraphicsView.defaultSceneDimension,ZoomableGraphicsView.defaultSceneDimension)
     self.setScene(scene)
 
-    self.rightClickMenu = qtg.QMenu()
+    self.rightClickMenu = qtw.QMenu()
     self.fillAction = self.rightClickMenu.addAction('Fill viewport')
     self.fillAction.setVisible(False)
     self.fillAction.setCheckable(True)
@@ -182,11 +184,11 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
       @ Out, None
     """
     if filename is None:
-      dialog = qtg.QFileDialog(self)
-      dialog.setFileMode(qtg.QFileDialog.AnyFile)
-      dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
+      dialog = qtw.QFileDialog(self)
+      dialog.setFileMode(qtw.QFileDialog.AnyFile)
+      dialog.setAcceptMode(qtw.QFileDialog.AcceptSave)
       dialog.exec_()
-      if dialog.result() == qtg.QFileDialog.Accepted:
+      if dialog.result() == qtw.QFileDialog.Accepted:
         myFile = dialog.selectedFiles()[0]
       else:
         return
@@ -266,12 +268,12 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
       @ In, None
       @ Out, None
     """
-    if self.dragMode() == qtg.QGraphicsView.ScrollHandDrag:
-      self.setDragMode(qtg.QGraphicsView.RubberBandDrag)
+    if self.dragMode() == qtw.QGraphicsView.ScrollHandDrag:
+      self.setDragMode(qtw.QGraphicsView.RubberBandDrag)
       toolTipText = 'Switch to Pan and Zoom'
       icon = mouseIcon
     else:
-      self.setDragMode(qtg.QGraphicsView.ScrollHandDrag)
+      self.setDragMode(qtw.QGraphicsView.ScrollHandDrag)
       toolTipText = 'Switch to Selection Mode'
       icon = handIcon
 
@@ -284,7 +286,7 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
       @ In, event, PySide.QtGui.QWheelEvent, event that triggered this callback
       @ Out, None
     """
-    if self.dragMode() != qtg.QGraphicsView.ScrollHandDrag:
+    if self.dragMode() != qtw.QGraphicsView.ScrollHandDrag:
       return ## Ignore if we are not in pan and zoom mode
     if event.delta() > 0:
       factor = 1.1
@@ -307,10 +309,6 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
       right mouse button click.
       @ In, event, PySide.QtGui.QContextMenuEvent, the triggering event
     """
-    # if self.dragMode() == qtg.QGraphicsView.ScrollHandDrag:
-    #   ## Do something else with the right clicks
-    #   pass
-    # else:
     self.rightClickMenu.popup(event.globalPos())
 
 

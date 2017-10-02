@@ -15,8 +15,8 @@ from __future__ import print_function
 import sys, os, time
 import xml.etree.ElementTree as ET
 #load XML navigation tools
-sys.path.append(os.path.join(os.getcwd(),'..','..','framework','utils'))
-import xmlUtils
+sys.path.append(os.path.join(os.getcwd(),'..','..','framework'))
+from utils import xmlUtils
 
 def getNode(fname,nodepath):
   """
@@ -80,8 +80,15 @@ if __name__=='__main__':
   fname = os.path.join(*fname.split('/'))
   print('reading dynamic XML from',fname)
   strNode = getNode(fname,nname)
-  outFile = file('raven_temp_tex_xml.tex','w')
-  printName = os.path.join('raven',fname.replace('../','')).replace('_','\_')
+  # In most cases, when writing text files 'w' should be used.  However, in this case the file is being fed directly to
+  #   a LaTeX processor.  On Windows, using 'w' mode will cause an extra line feed to be added which will be result in extra
+  #   line feeds when the XML is rendered into the user guide.
+  outFile = file('raven_temp_tex_xml.tex','wb')
+  # On windows the output of os.path.join will use backslashes as path separators, which gives LaTeX a problem.  Since printName is
+  #   being used to display the original file name, lets just convert it back to forward slashes.  That means we also have to
+  #   remove '..\' as well as '../'.
+  printName = os.path.join('raven',fname.replace('../','')).replace('..\\','')
+  printName = printName.replace('\\','/').replace('_','\_')
   toWrite = '\\FloatBarrier\n'+\
             chooseSize(printName)+'\n\\texttt{'+printName+'}\n'+\
             chooseSize(strNode)+'\n'+\
@@ -94,4 +101,3 @@ if __name__=='__main__':
              '\\normalsize'
   outFile.writelines(toWrite)
   outFile.close()
-

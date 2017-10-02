@@ -1,0 +1,106 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <JobName>RomTrain</JobName>
+    <Sequence>sample, trainROM, dumpROM, writeHistories</Sequence>
+    <WorkingDir>ROM</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/user_guide/ravenTutorial/RomTrain</name>
+    <author>wangc</author>
+    <created>2017-07-26</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>
+      This test is an example for the user guide to draw from.  It demonstrates the workflow
+      for obtaining samples, then constructing the ROM and dumping the ROM .
+    </description>
+  </TestInfo>
+
+  <Files>
+      <Input name="referenceInput.xml" type="input">
+          ../commonFiles/referenceInput_generic_CI.xml
+      </Input>
+      <Input name="rom_inv" type="">inverseRom.pk</Input>
+  </Files>
+
+  <Models>
+    <Code name="testModel" subType="GenericCode">
+      <executable>../physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg="" extension=".csv" type="output"/>
+    </Code>
+    <ROM name="rom" subType="NDinvDistWeight">
+      <Features>sigma-A,decay-A</Features>
+      <Target>A, time</Target>
+      <p>3</p>
+    </ROM>
+  </Models>
+
+  <Distributions>
+      <Uniform name="sigma">
+          <lowerBound>1</lowerBound>
+          <upperBound>10</upperBound>
+      </Uniform>
+      <Uniform name="decayConstant">
+          <lowerBound>0.000000005</lowerBound>
+          <upperBound>0.000000010</upperBound>
+      </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="monteCarlo">
+      <samplerInit>
+          <limit>10</limit>
+          <reseedEachIteration>True</reseedEachIteration>
+          <initialSeed>130168</initialSeed>
+      </samplerInit>
+      <variable name="sigma-A">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay-A">
+        <distribution>decayConstant</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input 	class="Files" 			 type="input">referenceInput.xml</Input>
+      <Model 	class="Models" 			 type="Code">testModel</Model>
+      <Sampler 	class="Samplers" 		 type="MonteCarlo">monteCarlo</Sampler>
+      <Output 	class="DataObjects" 	 type="HistorySet">histories</Output>
+    </MultiRun>
+    <RomTrainer name="trainROM">
+      <Input class="DataObjects" type="HistorySet">histories</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
+    <IOStep name="dumpROM">
+        <Input class="Models" type="ROM">rom</Input>
+        <Output class="Files" type="">rom_inv</Output>
+    </IOStep>
+    <IOStep name="writeHistories" pauseAtEnd="True">
+        <Input class="DataObjects" type="HistorySet">histories</Input>
+        <Output 	class="OutStreams" type="Print">histories</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="histories">
+        <Input>sigma-A,decay-A</Input>
+        <Output>A,B,C,D,time</Output>
+        <options>
+            <pivotParameter>time</pivotParameter>
+        </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="histories">
+      <type>csv</type>
+      <source>histories</source>
+    </Print>
+  </OutStreams>
+</Simulation>

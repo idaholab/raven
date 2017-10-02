@@ -1,4 +1,4 @@
-<data name="fullprint_Pointset" type="Pointset"><input>var1,var2</input><output>cosine,square,sine,time</output><inputFilename>fullprint_Pointset.csv</inputFilename><metadata><ProbabilityWeight-var1>array([ 0.20357143,  0.20357143,  0.20357143,  0.20357143,  0.20357143,
+<data name="fullprint_Pointset" type="Pointset"><input>var1,var2</input><output>cosine,sine,square,time</output><inputFilename>fullprint_Pointset.csv</inputFilename><metadata><ProbabilityWeight-var1>array([ 0.20357143,  0.20357143,  0.20357143,  0.20357143,  0.20357143,
         0.20357143,  0.20357143,  0.20357143,  0.10714286,  0.10714286,
         0.10714286,  0.10714286,  0.10714286,  0.10714286,  0.10714286,
         0.10714286,  0.10714286,  0.10714286,  0.10714286,  0.10714286,

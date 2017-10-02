@@ -25,6 +25,7 @@ import xml.etree.ElementTree as ET
 import xml.dom.minidom as pxml
 import re
 import os
+from .utils import isString
 
 #define type checking
 def isComment(node):
@@ -206,16 +207,16 @@ def fixXmlText(msg):
     @ Out, msg, string, fixed string
   """
   #if not a string, pass it back through
-  if not isinstance(msg,basestring):
+  if not isString(msg):
     return msg
   #otherwise, replace illegal characters with "?"
   # from http://boodebr.org/main/python/all-about-python-and-unicode#UNI_XML
   RE_XML_ILLEGAL = u'([\u0000-\u0008\u000b-\u000c\u000e-\u001f\ufffe-\uffff])' + \
                  u'|' + \
                  u'([%s-%s][^%s-%s])|([^%s-%s][%s-%s])|([%s-%s]$)|(^[%s-%s])' % \
-                  (unichr(0xd800),unichr(0xdbff),unichr(0xdc00),unichr(0xdfff),
-                   unichr(0xd800),unichr(0xdbff),unichr(0xdc00),unichr(0xdfff),
-                   unichr(0xd800),unichr(0xdbff),unichr(0xdc00),unichr(0xdfff))
+                  ('\ud800','\udbff','\udc00','\udfff',
+                   '\ud800','\udbff','\udc00','\udfff',
+                   '\ud800','\udbff','\udc00','\udfff')
   msg = re.sub(RE_XML_ILLEGAL, "?", msg)
   return msg
 
@@ -226,7 +227,7 @@ def fixXmlTag(msg):
     @ Out, msg, string, fixed string
   """
   #if not a string, pass it back through
-  if not isinstance(msg,basestring):
+  if not isString(msg):
     return msg
   #define some presets
   letters = u'([a-zA-Z])'

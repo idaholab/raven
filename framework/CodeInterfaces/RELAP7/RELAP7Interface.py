@@ -73,6 +73,7 @@ class RELAP7(CodeInterfaceBase):
     """
     MOOSEparser = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MOOSEparser.py'),False)
     self._samplersDictionary                             = {}
+    self._samplersDictionary[samplerType]                = self.gridForRELAP7
     self._samplersDictionary['MonteCarlo'              ] = self.monteCarloForRELAP7
     self._samplersDictionary['Grid'                    ] = self.gridForRELAP7
     self._samplersDictionary['LimitSurfaceSearch'      ] = self.gridForRELAP7 # same Grid Fashion. It forces a dist to give a particular value
@@ -80,9 +81,10 @@ class RELAP7(CodeInterfaceBase):
     self._samplersDictionary['DynamicEventTree'        ] = self.dynamicEventTreeForRELAP7
     self._samplersDictionary['FactorialDesign'         ] = self.gridForRELAP7
     self._samplersDictionary['ResponseSurfaceDesign'   ] = self.gridForRELAP7
-    self._samplersDictionary['AdaptiveDynamicEventTree'] = self.adaptiveDynamicEventTreeForRELAP7
+    self._samplersDictionary['AdaptiveDynamicEventTree'] = self.dynamicEventTreeForRELAP7
     self._samplersDictionary['StochasticCollocation'   ] = self.gridForRELAP7
     self._samplersDictionary['CustomSampler'           ] = self.gridForRELAP7
+
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       if inputFile.getExt() in self.getInputExtension():
@@ -126,17 +128,6 @@ class RELAP7(CodeInterfaceBase):
     RNGSeed = int(counter) + int(initSeed) - 1
     modifDict[b'RNG_seed'] = str(RNGSeed)
     listDict.append(modifDict)
-    return listDict
-
-  def adaptiveDynamicEventTreeForRELAP7(self,**Kwargs):
-    """
-      This method is used to create a list of dictionaries that can be interpreted by the input Parser
-      in order to change the input file based on the information present in the Kwargs dictionary.
-      This is specific for Adaptive DET sampler
-      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
-      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
-    """
-    listDict = self.dynamicEventTreeForRELAP7(**Kwargs)
     return listDict
 
   def dynamicEventTreeForRELAP7(self,**Kwargs):

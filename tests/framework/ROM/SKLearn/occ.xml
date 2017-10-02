@@ -42,7 +42,7 @@
       <Features>X,Y</Features>
       <Target>Z</Target>
       <estimator>
-        <SKLtype>linear_model|LinearRegression</SKLtype>
+        <SKLtype>svm|SVC</SKLtype>
         <fit_intercept>True</fit_intercept>
         <normalize>True</normalize>
       </estimator>

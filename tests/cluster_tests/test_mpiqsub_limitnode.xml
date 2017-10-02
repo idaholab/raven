@@ -9,6 +9,7 @@
       Tests using the limit node with a max on node.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstMLRun</Sequence>
@@ -16,7 +17,7 @@
     <clusterParameters>-W block=true</clusterParameters>
     <NumThreads>1</NumThreads>
     <mode>
-      mpi
+      mpilegacy
       <runQSUB/>
       <LimitNode maxOnNode="2"/>
     </mode>

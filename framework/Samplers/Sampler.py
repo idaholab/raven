@@ -32,10 +32,9 @@ import json
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
+from utils import utils,randomUtils
 from BaseClasses import BaseType
 from Assembler import Assembler
-import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
@@ -90,6 +89,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     BaseType.__init__(self)
     Assembler.__init__(self)
+    self.ableToHandelFailedRuns        = False                     # is this sampler able to handle failed runs?
     self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.auxcnt                        = 0                         # Aux counter of samples performed (for its usage check initialize method)
     self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
@@ -246,7 +246,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                   ' '.join([i if i in self.toBeSampled.keys() else "" for i in self.constants.keys()])  )
 
     if self.initSeed == None:
-      self.initSeed = Distributions.randomIntegers(0,2**31,self)
+      self.initSeed = randomUtils.randomIntegers(0,2**31,self)
     # Creation of the self.distributions2variablesMapping dictionary: {'distName': ({'variable_name1': dim1}, {'variable_name2': dim2})}
     for variable in self.variables2distributionsMapping.keys():
       distName = self.variables2distributionsMapping[variable]['name']
@@ -295,7 +295,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.raiseAnError(IOError,'The following are duplicated variables indices listed in the manifestVariablesIndex: ' + str(dups))
         listElement = self.distributions2variablesMapping[dist]
         for var in listElement:
-          self.variables2distributionsMapping[var.keys()[0]]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
+          self.variables2distributionsMapping[utils.first(var.keys())]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
         tempListElement = {k.strip():v for x in listElement for ks,v in x.items() for k in list(ks.strip().split(','))}
         listIndex = []
         for var in listLatentElement:
@@ -319,7 +319,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     for child in xmlNode:
       if child.tag == "samplerInit":
-        self.initSeed = Distributions.randomIntegers(0,2**31,self)
+        self.initSeed = randomUtils.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
             try:
@@ -374,7 +374,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     paramDict = {}
     for variable in self.toBeSampled.items():
-      paramDict[variable[0]] = 'is sampled using the distribution ' +variable[1]
+      paramDict["sampled variable: "+variable[0]] = 'is sampled using the distribution ' +variable[1]
     paramDict['limit' ]        = self.limit
     paramDict['initial seed' ] = self.initSeed
     paramDict.update(self.localGetInitParams())
@@ -428,7 +428,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     if self.initSeed != None:
-      Distributions.randomSeed(self.initSeed)
+      randomUtils.randomSeed(self.initSeed)
     for key in self.toBeSampled.keys():
       if self.toBeSampled[key] not in availableDist.keys():
         self.raiseAnError(IOError,'Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!')
@@ -450,15 +450,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     if self.initSeed == None:
-      self.initSeed = Distributions.randomIntegers(0,2**31,self)
+      self.initSeed = randomUtils.randomIntegers(0,2**31,self)
     self.counter = 0
     if   not externalSeeding          :
-      Distributions.randomSeed(self.initSeed)       #use the sampler initialization seed
+      randomUtils.randomSeed(self.initSeed)       #use the sampler initialization seed
       self.auxcnt = self.initSeed
     elif externalSeeding=='continue':
       pass        #in this case the random sequence needs to be preserved
     else                              :
-      Distributions.randomSeed(externalSeeding)     #the external seeding is used
+      randomUtils.randomSeed(externalSeeding)     #the external seeding is used
       self.auxcnt = externalSeeding
     #grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.
     if 'Restart' in self.assemblerDict.keys():
@@ -590,10 +590,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       for key in self.entitiesToRemove:
         self.inputInfo.pop(key,None)
     if self.reseedAtEachIteration:
-      Distributions.randomSeed(self.auxcnt-1)
+      randomUtils.randomSeed(self.auxcnt-1)
     self.inputInfo['prefix'] = str(self.counter)
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
+
     ##### TRANSFORMATION #####
     # add latent variables and original variables to self.inputInfo
     if self.variablesTransformationDict:

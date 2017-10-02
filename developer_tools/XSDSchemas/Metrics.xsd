@@ -12,7 +12,7 @@
     <xsd:complexType name="MinkowskiMetrics">
         <xsd:all>
             <xsd:element name="p"                type="xsd:float"     minOccurs="1"/>
-            <xsd:element name="pivotParameter"   type="xsd:string"    minOccurs="1"/>
+            <xsd:element name="pivotParameter"   type="xsd:string"    minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
@@ -28,10 +28,13 @@
     
     <xsd:complexType name="SKLMetrics">
         <xsd:all>
-            <xsd:element name="metricType"       type="xsd:string"    minOccurs="1"/>
-            <xsd:element name="gamma"            type="xsd:string"    minOccurs="0"/>
-            <xsd:element name="degree"           type="xsd:string"    minOccurs="0"/>
-            <xsd:element name="coef0"            type="xsd:string"    minOccurs="0"/>
+            <xsd:element name="metricType"        type="xsd:string"    minOccurs="1"/>
+            <xsd:element name="gamma"             type="xsd:string"    minOccurs="0"/>
+            <xsd:element name="degree"            type="xsd:string"    minOccurs="0"/>
+            <xsd:element name="coef0"             type="xsd:string"    minOccurs="0"/>
+            <xsd:element name="dense_output"      type="xsd:string"    minOccurs="0"/>
+            <xsd:element name="sum_over_features" type="xsd:string"    minOccurs="0"/>
+            <xsd:element name="size_threshold"    type="xsd:float"     minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>

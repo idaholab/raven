@@ -33,6 +33,7 @@ import abc
 import ast
 import copy
 import numpy as np
+import itertools
 from scipy import spatial
 import xml.etree.ElementTree as ET
 #External Modules End--------------------------------------------------------------------------------
@@ -40,7 +41,7 @@ import xml.etree.ElementTree as ET
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from utils.cached_ndarray import c1darray
-from Csv_loader import CsvLoader as ld
+from CsvLoader import CsvLoader as ld
 import Files
 import utils.TreeStructure as TS
 from utils import utils
@@ -639,7 +640,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       if typeVar.lower() in ['input','inputs','unstructuredInput']:
         returnDict = {}
-        if keyword in self._dataContainer['inputs'].keys() + self._dataContainer['unstructuredInputs'].keys():
+        if keyword in itertools.chain(self._dataContainer['inputs'].keys(),self._dataContainer['unstructuredInputs'].keys()):
           returnDict[keyword] = {}
           if self.type == 'HistorySet':
             for key in self._dataContainer['inputs'][keyword].keys():
@@ -820,7 +821,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if self._dataParameters['hierarchical']:
       self.TSData, self.rootToBranch = None, {}
     else:
-      self._dataContainer                  = {'inputs':{},'unstructuredInputs':{},'outputs':{}}
+      # we get the type of the metadata
+      typeMetadata = self._dataParameters.get("typeMetadata",{})
+      self._dataContainer                  = {'inputs':{},'unstructuredInputs':{},'outputs':{},'typeMetadata':typeMetadata}
       self._dataContainer['metadata'     ] = {}
     self.inputKDTree = None
     self.treeScalingFactors = {}

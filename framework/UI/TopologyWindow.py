@@ -25,7 +25,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
 from PySide import QtCore as qtc
-from PySide import QtGui as qtg
+from PySide import QtGui as qtw
 
 from sys import path
 
@@ -44,7 +44,7 @@ import re
 import random
 import numpy as np
 
-class TopologyWindow(qtg.QMainWindow):
+class TopologyWindow(qtw.QMainWindow):
   """
       A Main Window container for holding various subwindows related to the
       visualization and analysis of a dataset according to the approximate
@@ -97,7 +97,7 @@ class TopologyWindow(qtg.QMainWindow):
     super(TopologyWindow,self).__init__()
     self.resize(800,600)
     self.setCentralWidget(None)
-    self.setDockOptions(qtg.QMainWindow.AllowNestedDocks)
+    self.setDockOptions(qtw.QMainWindow.AllowNestedDocks)
     self.debug = debug
     self.amsc = None
 
@@ -149,6 +149,13 @@ class TopologyWindow(qtg.QMainWindow):
       view.weightsChanged()
 
       view.test()
+
+    ## Reset the persistence level to the value used by our test case.
+    ## Note, if we require multiple test cases, we could remember this state
+    ## from before, but as this function should capture all of the functionality
+    ## this is a low priority fix and might require persistent storage of this
+    ## value on the object.
+    self.amsc.Persistence(1.0)
 
   def BuildAMSC(self, X=None, Y=None, w=None, names=None, graph='beta skeleton',
                 gradient='steepest', knn=-1, beta=1.0, normalization=None):
@@ -216,11 +223,11 @@ class TopologyWindow(qtg.QMainWindow):
         @ In, view, an object belonging to a subclass of BaseTopologicalView
           that will be added to this window.
     """
-    dockWidget = qtg.QDockWidget()
+    dockWidget = qtw.QDockWidget()
     dockWidget.setWindowTitle(view.windowTitle())
 
     if view.scrollable:
-      scroller = qtg.QScrollArea()
+      scroller = qtw.QScrollArea()
       scroller.setWidget(view)
       scroller.setWidgetResizable(True)
       dockWidget.setWidget(scroller)
@@ -267,16 +274,3 @@ class TopologyWindow(qtg.QMainWindow):
     """
     self.closed.emit(self)
     return super(TopologyWindow,self).closeEvent(event)
-
-## We will not support external running of this UI, it shall be run from RAVEN
-# if __name__ == '__main__':
-#   app = qtg.QApplication(sys.argv)
-
-#   X = None
-#   Y = None
-#   if len(sys.argv) > 1:
-#     print('\tYou probably want me to load a file...')
-#     print('\tThe Maker has not included this in my programming.')
-#   main = TopologyWindow(X,Y)
-#   main.show()
-#   sys.exit(app.exec_())

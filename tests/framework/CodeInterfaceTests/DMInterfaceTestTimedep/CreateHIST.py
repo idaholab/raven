@@ -31,5 +31,5 @@ def initialize(self, runInfoDict, inputFiles):
 def run(self, Inputs):
 
   print "=============== Inside CreateHIST ================="
-  self.G_vect = np.array([Inputs['G_a'], Inputs['G_b'], Inputs['G_c']])
+  self.G_vect = np.array([Inputs['G_a'][0], Inputs['G_b'][0], Inputs['G_c'][0]])
   print "=============== End CreateHIST ================="

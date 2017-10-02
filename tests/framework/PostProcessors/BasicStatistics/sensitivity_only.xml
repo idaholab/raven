@@ -1,0 +1,118 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <RunInfo>
+    <WorkingDir>basicStatsSensitivityOnly</WorkingDir>
+    <batchSize>1</batchSize>
+    <Sequence>sample,PP</Sequence>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics.sensitivityOnly</name>
+    <author>alfoa</author>
+    <created>2017-07-18</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This test checks the sensitivities only calculated by basic statistics PP
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="output_basicStatistics.csv" type="">output_basicStatistics.csv</Input>
+    <Input name="stats.xml" type="">stats.xml</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2,x3,x4,x5</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="collset">
+      <Input>x1,x2,x3,x4,x5</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+    <Normal name="NDist1">
+      <mean>0.5</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+    <Normal name="NDist2">
+      <mean>-0.4</mean>
+      <sigma>1.8</sigma>
+    </Normal>
+    <Normal name="NDist3">
+      <mean>0.3</mean>
+      <sigma>3</sigma>
+    </Normal>
+    <Normal name="NDist4">
+      <mean>-0.2</mean>
+      <sigma>1.0</sigma>
+    </Normal>
+    <Normal name="NDist5">
+      <mean>0.1</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>1234</initialSeed>
+        <reseedEachIteration>True</reseedEachIteration>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>NDist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>NDist2</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>NDist3</distribution>
+      </variable>
+      <variable name="x4">
+        <distribution>NDist4</distribution>
+      </variable>
+      <variable name="x5">
+        <distribution>NDist5</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../basicStatsSensitivity/poly.py" name="poly" subType="">
+      <variables>x1,x2,x3,x4,x5,ans</variables>
+    </ExternalModel>
+    <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
+      <sensitivity>
+        <targets>ans,x1,x2,x3,x4,x5</targets>
+        <features>ans,x1,x2,x3,x4,x5</features>
+      </sensitivity>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-4">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">collset</Output>
+    </MultiRun>
+    <PostProcess name="PP">
+      <Input class="DataObjects" type="PointSet">collset</Input>
+      <Model class="Models" type="PostProcessor">InputOutput</Model>
+      <Output class="Files" type="">output_basicStatistics.csv</Output>
+      <Output class="Files" type="">stats.xml</Output>
+      <Output class="DataObjects" type="PointSet">collset</Output>
+      <Output class="OutStreams" type="Print">csv_database</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="csv_database">
+      <type>csv</type>
+      <source>collset</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  The Runners module includes the different ways of parallelizing the MultiRuns
-  of RAVEN.
+  The PostProcessors module includes the different ways of manipulating data in
+  RAVEN.
 
   Created on May 9, 2017
   @author: maljdp
@@ -37,6 +37,8 @@ from .SafestPoint import SafestPoint
 
 from .TopologicalDecomposition import TopologicalDecomposition
 from .DataMining import DataMining
+from .Metric import Metric
+from .CrossValidation import CrossValidation
 
 additionalModules = []
 ## These utilize the optional prequisite library PySide, so don't error if they
@@ -66,4 +68,6 @@ __all__ = ['PostProcessor',
            'RavenOutput',
            'SafestPoint',
            'TopologicalDecomposition',
-           'DataMining'] + additionalModules
+           'DataMining',
+           'Metric',
+           'CrossValidation'] + additionalModules

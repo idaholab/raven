@@ -33,8 +33,7 @@ from functools import reduce
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import utils
-import Distributions
+from utils import utils,randomUtils
 distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -104,7 +103,7 @@ class MonteCarlo(ForwardSampler):
               self.raiseAnError(IOError,"In the Monte-Carlo sampler a uniform sampling type has been chosen; however, one or more distributions have not specified either the lowerBound or the upperBound")
             lower = distData['xMin']
             upper = distData['xMax']
-            rvsnum = lower + (upper - lower) * Distributions.random()
+            rvsnum = lower + (upper - lower) * randomUtils.random()
             epsilon = (upper-lower)/self.limit
             midPlusCDF  = self.distDict[key].cdf(rvsnum + epsilon)
             midMinusCDF = self.distDict[key].cdf(rvsnum - epsilon)
@@ -124,7 +123,7 @@ class MonteCarlo(ForwardSampler):
             for i in range(totDim):
               lower = self.distDict[key].returnLowerBound(i)
               upper = self.distDict[key].returnUpperBound(i)
-              coordinate[i] = lower + (upper - lower) * Distributions.random()
+              coordinate[i] = lower + (upper - lower) * randomUtils.random()
           if reducedDim > len(coordinate):
             self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
           probabilityValue = self.distDict[key].pdf(coordinate)

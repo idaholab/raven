@@ -250,23 +250,20 @@ XML block \xmlNode{HDF5}, that recognizes the following attributes:
   entity from other input blocks in the XML.
   \item \xmlAttr{readMode}, \xmlDesc{required string attribute}, defines whether an existing database should
     be read when loaded (\xmlString{read}) or overwritten (\xmlString{overwrite}).
+    \nb if in \xmlString{read} mode and the database is not found, RAVEN will read in
+    the data as empty and raise a warning, NOT an error.
   %
   \item \xmlAttr{directory}, \xmlDesc{optional string attribute}, this attribute
   can be used to specify a particular directory path where the database will be
-  created, if no \textit{filename} is specified, or where to find an already
-  existing one if \textit{filename} is provided.
-%  \item \xmlAttr{directory}, \xmlDesc{optional string attribute}, this attribute
-%  can be used to specify a particular directory path where to create the
-%  database, if no \textit{filename} is specified, or from where open an already
-%  existing one, if \textit{filename} is provided. \maljdan{Huh?}
+  created or read from.  If an absolute path is given, RAVEN will respect it; otherwise,
+  the path will be assumed to be relative to the \xmlNode{WorkingDir} from the \xmlNode{RunInfo} block.
+  RAVEN recognizes path expansion tools such as tildes (\emph{user dir}), single dots (\emph{current dir}),
+  and double dots (\emph{parent dir}).
   %
-  \default{workingDir/framework/DatabaseStorage}.  The \xmlNode{workingDir} is
+  \default{workingDir/DatabaseStorage}.  The \xmlNode{workingDir} is
    the one defined within the \xmlNode{RunInfo} XML block (see Section~\ref{sec:RunInfo}).
   \item \xmlAttr{filename}, \xmlDesc{optional string attribute}, specifies the
-  filename of an HDF5 that already exists in the \xmlAttr{directory}.
-  %
-  This is the only way to let RAVEN know that an HDF5 should be opened and not
-  overwritten.
+  filename of the HDF5 that will be created in the \xmlAttr{directory}.
   %
   \nb When this attribute is not specified, the newer database filename will be
   named \texttt{name}.h5, where \textit{name} corresponds to the \xmlAttr{name}
@@ -288,6 +285,21 @@ XML block \xmlNode{HDF5}, that recognizes the following attributes:
   \default{None}
 \end{itemize}
 
+In addition, the \xmlNode{HDF5} recognizes the following subnodes:
+\begin{itemize}
+  \itemsep0em
+  \item \xmlNode{variables}, \xmlDesc{optional, comma-separated string}, allows only a pre-specified set of variables to be
+    included in the HDF5 when it is written to.  If this node is not included, by default the HDF5 will
+    include ALL of the input/output variables as a result of the step it is part of.  If included, only the
+    comma-separated variable names will be included if found.
+
+    \nb RAVEN will not error if one of the requested variables is not found; instead, it will silently pass.
+    It is recommended that a small trial run is performed, loading the HDF5 back into a data object, to check
+    that the correct variables are saved to the HDF5 before performing large-scale calculations.
+\end{itemize}
+
+
+Example:
 \begin{lstlisting}[style=XML,morekeywords={directory,filename}]
 <Databases>
   <HDF5 name="aDatabaseName1" directory=''path_to_a_dir'' compression=''lzf'' readMode='overwrite'/>

@@ -25,6 +25,7 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
+from utils import utils
 from .Metric import Metric
 from .Minkowski import Minkowski
 from .DTW import DTW
@@ -43,7 +44,7 @@ from .SklMetric import SKL
 __base = 'Metric'
 __interFaceDict = {}
 
-for classObj in eval(__base).__subclasses__():
+for classObj in utils.getAllSubclasses(eval(__base)):
   __interFaceDict[classObj.__name__] = classObj
 
 def knownTypes():

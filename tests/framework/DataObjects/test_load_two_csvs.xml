@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/DataObjects.load_two_csvs</name>
+    <author>maljdan</author>
+    <created>2017-06-26</created>
+    <classesTested>DataObjects.PointSet</classesTested>
+    <description>
+       This test verifies that multiple files can be loaded into a single point
+       set without destroying the information from each other.
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>csv</WorkingDir>
+    <Sequence>in,out</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="input">./input.csv</Input>
+    <Input name="input2">./input2.csv</Input>
+  </Files>
+
+  <Models>
+  </Models>
+
+  <Steps>
+    <IOStep name="in">
+      <Input class="Files" type="">input</Input>
+      <Input class="Files" type="">input2</Input>
+      <Output class="DataObjects" type="PointSet">data</Output>
+      <Output class="DataObjects" type="PointSet">data</Output>      
+    </IOStep>
+    <IOStep name="out">
+      <Input class="DataObjects" type="PointSet">data</Input>
+      <Output class="OutStreams" type="Print">output</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="output">
+      <filename>output2</filename>
+      <type>csv</type>
+      <source>data</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="data">
+      <Input>a,b,c</Input>
+      <Output>1</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

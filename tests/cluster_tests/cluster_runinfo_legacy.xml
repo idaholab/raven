@@ -1,0 +1,6 @@
+<Simulation>
+  <RunInfo>
+    <clusterParameters>-P moose</clusterParameters>
+    <RemoteRunCommand>raven_qsub_command_legacy.sh</RemoteRunCommand>
+  </RunInfo>
+</Simulation>

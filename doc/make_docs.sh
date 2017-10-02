@@ -22,8 +22,21 @@ done
 
 rm -Rvf pdfs
 
+
 # add custom, collective inputs to TEXINPUTS
-export TEXINPUTS=.:$SCRIPT_DIR/tex_inputs/:$TEXINPUTS
+#
+# Since on Windows we use MikTeX (which is a native Windows program), the TEXTINPUTS variable used i
+#   to tell the LaTeX processor where to look for .sty files must be set using Windows-style paths 
+#   (not the Unix-style ones used on other platforms).  This also means semi-colons need to be used 
+#   to separate terms instead of the Unix colon.
+#
+if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]
+then
+  export TEXINPUTS=.\;`cygpath -w $SCRIPT_DIR/tex_inputs`\;$TEXINPUTS
+else
+  export TEXINPUTS=.:$SCRIPT_DIR/tex_inputs/:$TEXINPUTS
+fi
+
 
 if git describe
 then

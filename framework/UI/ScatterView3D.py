@@ -24,12 +24,12 @@ warnings.simplefilter('default',DeprecationWarning)
 
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
+from PySide import QtGui as qtw
 
 from .BaseTopologicalView import BaseTopologicalView
 
 import matplotlib
 matplotlib.use('Qt4Agg')
-matplotlib.rcParams['backend.qt4']='PySide'
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -66,11 +66,12 @@ class ScatterView3D(BaseTopologicalView):
     """
     # Try to apply a new layout, if one already exists then make sure to grab
     # it for updating
-    self.setLayout(qtg.QVBoxLayout())
+    if self.layout() is None:
+      self.setLayout(qtw.QVBoxLayout())
     layout = self.layout()
     self.clearLayout(layout)
 
-    mySplitter = qtg.QSplitter()
+    mySplitter = qtw.QSplitter()
     mySplitter.setOrientation(qtc.Qt.Vertical)
     layout.addWidget(mySplitter)
 
@@ -83,19 +84,19 @@ class ScatterView3D(BaseTopologicalView):
 
     mySplitter.addWidget(self.mplCanvas)
 
-    controls = qtg.QGroupBox()
-    controls.setLayout(qtg.QGridLayout())
+    controls = qtw.QGroupBox()
+    controls.setLayout(qtw.QGridLayout())
     subLayout = controls.layout()
     row = 0
     col = 0
 
-    self.rightClickMenu = qtg.QMenu()
+    self.rightClickMenu = qtw.QMenu()
     self.axesLabelAction = self.rightClickMenu.addAction('Show Axis Labels')
     self.axesLabelAction.setCheckable(True)
     self.axesLabelAction.setChecked(True)
     self.axesLabelAction.triggered.connect(self.updateScene)
 
-    self.chkExts = qtg.QCheckBox('Show Extrema')
+    self.chkExts = qtw.QCheckBox('Show Extrema')
     self.chkExts.setTristate(True)
     self.chkExts.setCheckState(qtc.Qt.PartiallyChecked)
     self.chkExts.stateChanged.connect(self.updateScene)
@@ -103,7 +104,7 @@ class ScatterView3D(BaseTopologicalView):
     row += 1
     col = 0
 
-    self.chkEdges = qtg.QCheckBox('Show Edges')
+    self.chkEdges = qtw.QCheckBox('Show Edges')
     self.chkEdges.setChecked(False)
     self.chkEdges.stateChanged.connect(self.updateScene)
     subLayout.addWidget(self.chkEdges,row,col)
@@ -113,7 +114,7 @@ class ScatterView3D(BaseTopologicalView):
     self.cmbVars = {}
     for i,name in enumerate(['X','Y','Z','Color']):
       varLabel = name + ' variable:'
-      self.cmbVars[name] = qtg.QComboBox()
+      self.cmbVars[name] = qtw.QComboBox()
       dimNames = self.amsc.GetNames()
       self.cmbVars[name].addItems(dimNames)
       if name == 'Color':
@@ -130,17 +131,17 @@ class ScatterView3D(BaseTopologicalView):
 
       self.cmbVars[name].currentIndexChanged.connect(self.updateScene)
 
-      subLayout.addWidget(qtg.QLabel(varLabel),row,col)
+      subLayout.addWidget(qtw.QLabel(varLabel),row,col)
       col += 1
       subLayout.addWidget(self.cmbVars[name],row,col)
       row += 1
       col = 0
 
-    self.cmbColorMaps = qtg.QComboBox()
+    self.cmbColorMaps = qtw.QComboBox()
     self.cmbColorMaps.addItems(matplotlib.pyplot.colormaps())
     self.cmbColorMaps.setCurrentIndex(self.cmbColorMaps.findText('coolwarm'))
     self.cmbColorMaps.currentIndexChanged.connect(self.updateScene)
-    subLayout.addWidget(qtg.QLabel('Colormap'),row,col)
+    subLayout.addWidget(qtw.QLabel('Colormap'),row,col)
     col += 1
     subLayout.addWidget(self.cmbColorMaps,row,col)
     mySplitter.addWidget(controls)

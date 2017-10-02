@@ -48,14 +48,12 @@ class DateBase(BaseType):
       @ In, None
       @ Out, None
     """
-    # Base Class
-    BaseType.__init__(self)
-    # Database object
-    self.database = None
-    # Database directory. Default = working directory.
-    self.databaseDir = ''
-    self.workingDir = ''
-    self.printTag = 'DATABASE'
+    BaseType.__init__(self)     # Base Class
+    self.database = None        # Database object
+    self.databaseDir = ''       # Database directory. Default = working directory.
+    self.workingDir = ''        #
+    self.printTag = 'DATABASE'  # For printing verbosity labels
+    self.variables = None       # if not None, list of specific variables requested to be stored by user
 
   def _readMoreXML(self,xmlNode):
     """
@@ -69,6 +67,10 @@ class DateBase(BaseType):
       self.databaseDir = copy.copy(xmlNode.attrib['directory'])
     else:
       self.databaseDir = os.path.join(self.workingDir,'DatabaseStorage')
+    # Check for variables listing
+    varsNode = xmlNode.find('variables')
+    if varsNode is not None:
+      self.variables = list(v.strip() for v in varsNode.text.split(','))
 
   @abc.abstractmethod
   def addGroup(self,attributes,loadFrom):
@@ -140,8 +142,9 @@ class HDF5(DateBase):
       @ Out, None
     """
     self.__dict__.update(newstate)
-    self.database = h5Data(self.name,self.databaseDir,self.filename)
     self.exist    = True
+    self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist)
+
 
   def _readMoreXML(self,xmlNode):
     """
@@ -154,13 +157,19 @@ class HDF5(DateBase):
     # Check if database directory exist, otherwise create it
     if '~' in self.databaseDir:
       self.databaseDir = copy.copy(os.path.expanduser(self.databaseDir))
+    # Determine RELATIVE location for HDF5.
+    # - if a full path is given, accept it as given, else ...
+    if not os.path.isabs(self.databaseDir):
+      # use working dir as base
+      self.databaseDir = os.path.join(self.workingDir,self.databaseDir)
+    self.databaseDir = os.path.normpath(self.databaseDir)
+
     utils.makeDir(self.databaseDir)
-    self.raiseAMessage('Database Directory is',self.databaseDir,'.')
+    self.raiseADebug('Database Directory is:',self.databaseDir)
     # Check if a filename has been provided
     # if yes, we assume the user wants to load the data from there
     # or update it
     #try:
-    #if 'filename' in xmlNode.attrib.keys():
     self.filename = xmlNode.attrib.get('filename',self.name+'.h5')
     if 'readMode' not in xmlNode.attrib.keys():
       self.raiseAnError(IOError,'No "readMode" attribute was specified for hdf5 database',self.name)
@@ -173,16 +182,16 @@ class HDF5(DateBase):
     if os.path.isfile(fullpath):
       if self.readMode == 'read':
         self.exist = True
-        self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename)
       elif self.readMode == 'overwrite':
         self.exist = False
-        self.database = h5Data(self.name,self.databaseDir,self.messageHandler)
+      self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist)
     else:
       #file does not exist in path
       if self.readMode == 'read':
-        self.raiseAWarning('Requested to read from database, but it does not exist:',fullpath,'so continuing without reading...')
+        self.raiseAWarning('Requested to read from database, but it does not exist at:',fullpath,'; continuing without reading...')
       self.exist = False
-      self.database  = h5Data(self.name,self.databaseDir,self.messageHandler)
+      self.database  = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist)
+    self.raiseAMessage('Database is located at:',fullpath)
 
   def getInitParams(self):
     """
@@ -244,7 +253,7 @@ class HDF5(DateBase):
         self.raiseAnError(IOError,'addGroupDataObjects function needs to have a Data(s) as input source')
       source['type'] = 'DataObjects'
     source['name'] = loadFrom
-    self.database.addGroupDataObjects(attributes['group'],attributes,source,upGroup)
+    self.database.addGroupDataObjects(attributes['group'],attributes,source,upGroup,specificVars=self.variables)
     self.built = True
 
   def initialize(self,gname,attributes=None,upGroup=False):

@@ -24,6 +24,9 @@
   </xsd:simpleType>
 
   <xsd:complexType name="HDF5Type">
+    <xsd:all>
+      <xsd:element name="variables" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    </xsd:all>
     <xsd:attribute name="name"        type="xsd:string" use="required" />
     <xsd:attribute name="readMode"    type="readModeAttr" use="required" />
     <xsd:attribute name="directory"   type="xsd:string" />

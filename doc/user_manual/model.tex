@@ -1158,6 +1158,7 @@ framework, during the employment of a calculation flow, and use them to
 construct a new input that is going to be transferred to the ``run'' method.
 %
 The new input created needs to be returned to RAVEN (i.e. ``return NewInput'').
+\\This method expects that the new input is returned in a Python ``dictionary''.
 %
 RAVEN communicates, thorough a set of method attributes, all the information
 that are generally needed to create a new input:
@@ -1235,7 +1236,6 @@ def run(self,Input):
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{postprocessor.tex}
 
-
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%  EnsembleModel  Model   %%%%%%
@@ -1311,12 +1311,16 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         \nb All the inputs here specified need to be listed in the Steps where the EnsembleModel
         is used.
      \item \xmlNode{Output}, \xmlDesc{string, optional field},
-        represents the output entities that need to be linked to this sub-model.  \nb The \xmlNode{Output}s here specified are not part 
+        represents the output entities that need to be linked to this sub-model.  \nb The \xmlNode{Output}s here specified are not part
         of the determination of the EnsembleModel execution but represent an additional storage of results from the
-        sub-models. For example, if the \xmlNode{TargetEvaluation} is of type PointSet (since just scalar data needs to be transferred to other 
+        sub-models. For example, if the \xmlNode{TargetEvaluation} is of type PointSet (since just scalar data needs to be transferred to other
         models) and the sub-model is able to also output history-type data, this Output can be of type HistorySet.
+        Note that the structure of each Output dataObject must include only variables (either input or output) that are defined among the model.
+        As an example, the Output dataObjects cannot contained variables that are defined at the Ensemble model level.
         %
-        The user can specify as many \xmlNode{Output} as needed.
+        The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of both classes ``DataObjects'' and ``Databases''
+        (e.g. PointSet, HistorySet, HDF5).
+        \nb \textbf{The \xmlNode{Output} (s) here specified MUST be listed in the Step in which the EnsembleModel is used.}
     \end{itemize}
   %
 \end{itemize}
@@ -1341,7 +1345,10 @@ It is important to notice that when the EnsembleModel detects a chain of models 
         \xmlNode{varName} contains the value of the initial conditions (scalar or arrays, depending of the
         type of variable). If an array needs to be inputted, the user can specify the attribute  \xmlAttr{repeat}
         and the code is going to repeat for  \xmlAttr{repeat}-times the value inputted in the body.
-    \end{itemize}
+     \item \xmlNode{initialStartModels}, xmlDesc{XML node, only required parameter when Picard's iteration is activated},
+        specifies the list of models that will be initially executed. \nb Do not input this node for non-Picard calculations,
+        otherwise an error will be raised.
+  \end{itemize}
 \end{itemize}
 \textbf{Example (Linear System):}
 \begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
@@ -1369,7 +1376,10 @@ It is important to notice that when the EnsembleModel detects a chain of models 
         </Input>
         <Output class="DataObjects" type="HistorySet">
           thisModelLinkedOutput
-        </Input>
+        </Output>
+        <Output class="Databases" type="HDF5">
+          thisModelLinkedHDF5
+        </Output>
       </Model>
     </EnsembleModel>
     ...

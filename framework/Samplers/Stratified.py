@@ -35,8 +35,7 @@ from functools import reduce
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
 from .Sampler import Sampler
-from utils import utils
-import Distributions
+from utils import utils,randomUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -88,7 +87,7 @@ class Stratified(Grid):
       tempFillingCheck = [[None]*(self.pointByVar-1)]*len(self.gridEntity.returnParameter("dimensionNames")) #for all variables
       self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
       for i in range(len(tempFillingCheck)):
-        tempFillingCheck[i]  = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
+        tempFillingCheck[i]  = randomUtils.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
       mappingIdVarName = {}
       for cnt, varName in enumerate(self.axisName):
         mappingIdVarName[varName] = cnt
@@ -104,7 +103,7 @@ class Stratified(Grid):
       tempFillingCheck = [[None]*(self.pointByVar-1)]*(len(self.gridEntity.returnParameter("dimensionNames"))+diff) #for all variables
       self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
       for i in range(len(tempFillingCheck)):
-        tempFillingCheck[i]  = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
+        tempFillingCheck[i]  = randomUtils.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
       cnt = 0
       mappingIdVarName = {}
       for varName in self.axisName:
@@ -158,7 +157,7 @@ class Stratified(Grid):
               lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{variable:self.sampledCoordinate[self.counter-1][varCount]})[variable]
               varCount += 1
               if self.gridInfo[variable] == 'CDF':
-                coordinate = lower + (upper-lower)*Distributions.random()
+                coordinate = lower + (upper-lower)*randomUtils.random()
                 ndCoordinate[positionList.index(position)] = self.distDict[variable].inverseMarginalDistribution(coordinate,variable)
                 dxs[positionList.index(position)] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)-self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
                 centerCoordinate[positionList.index(position)] = (self.distDict[variable].inverseMarginalDistribution(upper,variable)+self.distDict[variable].inverseMarginalDistribution(lower,variable))/2.0
@@ -169,7 +168,7 @@ class Stratified(Grid):
               elif self.gridInfo[variable] == 'value':
                 dxs[positionList.index(position)] = max(upper,lower) - min(upper,lower)
                 centerCoordinate[positionList.index(position)] = (upper + lower)/2.0
-                coordinateCdf = self.distDict[variable].marginalCdf(lower) + (self.distDict[variable].marginalCdf(upper) - self.distDict[variable].marginalCdf(lower))*Distributions.random()
+                coordinateCdf = self.distDict[variable].marginalCdf(lower) + (self.distDict[variable].marginalCdf(upper) - self.distDict[variable].marginalCdf(lower))*randomUtils.random()
                 coordinate = self.distDict[variable].inverseMarginalDistribution(coordinateCdf,variable)
                 ndCoordinate[positionList.index(position)] = coordinate
                 for kkey in variable.strip().split(','):
@@ -184,7 +183,7 @@ class Stratified(Grid):
               upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
               lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]})[varName]
               varCount += 1
-              coordinate = lower + (upper-lower)*Distributions.random()
+              coordinate = lower + (upper-lower)*randomUtils.random()
               gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
               for distVarName in self.distributions2variablesMapping[distName]:
                 for kkey in utils.first(distVarName.keys()).strip().split(','):
@@ -202,7 +201,7 @@ class Stratified(Grid):
         lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]})[varName]
         varCount += 1
         if self.gridInfo[varName] =='CDF':
-          coordinate = lower + (upper-lower)*Distributions.random()
+          coordinate = lower + (upper-lower)*randomUtils.random()
           ppfValue = self.distDict[varName].ppf(coordinate)
           ppfLower = self.distDict[varName].ppf(min(upper,lower))
           ppfUpper = self.distDict[varName].ppf(max(upper,lower))
@@ -210,7 +209,7 @@ class Stratified(Grid):
           self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
           self.inputInfo['SampledVarsPb'][varName]  = self.distDict[varName].pdf(ppfValue)
         elif self.gridInfo[varName] == 'value':
-          coordinateCdf = self.distDict[varName].cdf(min(upper,lower)) + (self.distDict[varName].cdf(max(upper,lower))-self.distDict[varName].cdf(min(upper,lower)))*Distributions.random()
+          coordinateCdf = self.distDict[varName].cdf(min(upper,lower)) + (self.distDict[varName].cdf(max(upper,lower))-self.distDict[varName].cdf(min(upper,lower)))*randomUtils.random()
           if coordinateCdf == 0.0:
             self.raiseAWarning(IOError,"The grid lower bound and upper bound in value will generate ZERO cdf value!!!")
           coordinate = self.distDict[varName].ppf(coordinateCdf)

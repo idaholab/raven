@@ -22,20 +22,29 @@
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-from numpy import average
-from crow_modules.distribution1Dpy2 import CDF
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
+from numpy import average
+import sys
+if sys.version_info.major > 2:
+  from crow_modules.distribution1Dpy3 import CDF
+else:
+  from crow_modules.distribution1Dpy2 import CDF
+
 #External Modules------------------------------------------------------------------------------------
+import sklearn
 from sklearn import linear_model
 from sklearn import svm
 from sklearn import multiclass
 from sklearn import naive_bayes
 from sklearn import neighbors
-
-from sklearn import qda
-from sklearn import lda
+if int(sklearn.__version__.split(".")[1]) > 16:
+  # FIXME: to be removed when the supported minimum version of sklearn is moved to 0.17
+  from sklearn import discriminant_analysis as da
+else:
+  from sklearn import qda
+  from sklearn import lda
 # from sklearn import discriminant_analysis
 
 from sklearn import tree
@@ -57,8 +66,7 @@ from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from utils import mathUtils
+from utils import utils,mathUtils,randomUtils
 import sys
 import MessageHandler
 import Distributions
@@ -305,6 +313,14 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, isDynamic, bool, True if the ROM is able to treat dynamic data, False otherwise
     """
     return self._dynamicHandling
+
+  def reseed(self,seed):
+    """
+      Used to reset the seed of the ROM.  By default does nothing; overwrite in the inheriting classes as needed.
+      @ In, seed, int, new seed to use
+      @ Out, None
+    """
+    return
 
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
@@ -1986,8 +2002,7 @@ class NDinvDistWeight(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    for index in range(len(self.target)):
-      self.interpolator[index].reset(float(self.initOptionDict['p']))
+    self.__initLocal__()
 #
 #
 #
@@ -2023,8 +2038,14 @@ class SciKitLearn(superVisedLearning):
 
   availImpl                                                 = {}                                                            # dictionary of available ROMs {mainClass:{subtype:(classPointer,Output type (float or int), boolean -> External Z-normalization needed)}
   availImpl['lda']                                          = {}                                                            #Linear Discriminant Analysis
-  availImpl['lda']['LDA']                                   = (lda.LDA                                  , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
-  # availImpl['lda']['LDA']                                   = (discriminant_analysis.LinearDiscriminantAnalysis, 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+  availImpl['qda']                                          = {}                                                            #Quadratic Discriminant Analysis
+  if int(sklearn.__version__.split(".")[1]) > 16:
+    availImpl['lda']['LDA']                                 = (da.LinearDiscriminantAnalysis            , 'int'    , False) #Linear Discriminant Analysis (LDA)
+    availImpl['qda']['QDA']                                 = (da.QuadraticDiscriminantAnalysis         , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+  else:
+    availImpl['lda']['LDA']                                 = (lda.LDA                                  , 'int'    , False) #Linear Discriminant Analysis (LDA)
+    availImpl['qda']['QDA']                                 = (qda.QDA                                  , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+
   availImpl['linear_model']                                 = {}                                                            #Generalized Linear Models
   availImpl['linear_model']['ARDRegression'               ] = (linear_model.ARDRegression               , 'float'  , False) #Bayesian ARD regression.
   availImpl['linear_model']['BayesianRidge'               ] = (linear_model.BayesianRidge               , 'float'  , False) #Bayesian ridge regression
@@ -2077,10 +2098,6 @@ class SciKitLearn(superVisedLearning):
   availImpl['neighbors']['NearestCentroid'                ] = (neighbors.NearestCentroid                , 'int'   ,  True )# Nearest centroid classifier.
   availImpl['neighbors']['BallTree'                       ] = (neighbors.BallTree                       , 'float' ,  True )# BallTree for fast generalized N-point problems
   availImpl['neighbors']['KDTree'                         ] = (neighbors.KDTree                         , 'float' ,  True )# KDTree for fast generalized N-point problems
-
-  availImpl['qda'] = {}
-  availImpl['qda']['QDA'                                  ] = (qda.QDA                                  , 'int'   ,  False) #Quadratic Discriminant Analysis (QDA)
-  # availImpl['qda']['QDA'                                  ] = (discriminant_analysis.QuadraticDiscriminantAnalysis, 'int'   ,  False) #Quadratic Discriminant Analysis (QDA)
 
   availImpl['tree'] = {}
   availImpl['tree']['DecisionTreeClassifier'              ] = (tree.DecisionTreeClassifier              , 'int'   ,  True )# A decision tree classifier.
@@ -2296,6 +2313,7 @@ class ARMA(superVisedLearning):
     self.armaPara['Qmax']      = kwargs.get('Qmax', 3)
     self.armaPara['Qmin']      = kwargs.get('Qmin', 0)
     self.armaPara['dimension'] = len(self.features)
+    self.reseedCopies          = kwargs.get('reseedCopies',True)
     self.outTruncation         = kwargs.get('outTruncation', None)     # Additional parameters to allow user to specify the time series to be all positive or all negative
     self.pivotParameterID      = kwargs.get('pivotParameter', 'Time')
     self.pivotParameterValues  = None                                  # In here we store the values of the pivot parameter (e.g. Time)
@@ -2321,6 +2339,30 @@ class ARMA(superVisedLearning):
           self.fourierPara['FourierOrder'][basePeriod] = int(temps[index])
       if len(self.fourierPara['basePeriod']) != len(self.fourierPara['FourierOrder']):
         self.raiseAnError(ValueError, 'Length of FourierOrder should be ' + str(len(self.fourierPara['basePeriod'])))
+
+  def __getstate__(self):
+    """
+      Obtains state of object for pickling.
+      @ In, None
+      @ Out, d, dict, stateful dictionary
+    """
+    d = copy.copy(self.__dict__)
+    # set up a seed for the next pickled iteration
+    if self.reseedCopies:
+      rand = randomUtils.randomIntegers(1,int(2**20),self)
+      d['random seed'] = rand
+    return d
+
+  def __setstate__(self,d):
+    """
+      Sets state of object from pickling.
+      @ In, d, dict, stateful dictionary
+      @ Out, None
+    """
+    seed = d.pop('random seed',None)
+    if seed is not None:
+      self.reseed(seed)
+    self.__dict__ = d
 
   def _localNormalizeData(self,values,names,feat): # This function is not used in this class and can be removed
     """
@@ -2353,9 +2395,9 @@ class ARMA(superVisedLearning):
     else:
       self.armaPara['rSeries'] = self.timeSeriesDatabase
 
-#     Transform data to obatain normal distrbuted series. See
-#     J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
-#     Applied Energy, 87(2010) 843-855
+    # Transform data to obatain normal distrbuted series. See
+    # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
+    # Applied Energy, 87(2010) 843-855
     self.__generateCDF__(self.armaPara['rSeries'])
     self.armaPara['rSeriesNorm'] = self.__dataConversion__(self.armaPara['rSeries'], obj='normalize')
 
@@ -2484,6 +2526,8 @@ class ARMA(superVisedLearning):
       @ Out, numBin, int, number of bins determined by Freedman Diaconis rule
     """
     IQR = np.percentile(data, 75) - np.percentile(data, 25)
+    if IQR <= 0.0:
+      self.raiseAnError(RuntimeError,"IQR is <= zero. Percentile 75% and Percentile 25% are the same: "+str(np.percentile(data, 25)))
     binSize = 2.0*IQR*(data.size**(-1.0/3.0))
     numBin = int((max(data)-min(data))/binSize)
     return numBin
@@ -2629,7 +2673,7 @@ class ARMA(superVisedLearning):
     Phi, Theta, Cov = self.__armaParamAssemb__(x,p,q,N)
     for n1 in range(N):
       for n2 in range(N):
-        if Cov[n1,n2] <0:
+        if Cov[n1,n2] < 0:
           lkHood = sys.float_info.max
           return lkHood
 
@@ -2692,6 +2736,7 @@ class ARMA(superVisedLearning):
 
     numTimeStep = len(self.pivotParameterValues)
     tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
+    # TODO This could probably be vectorized for speed gains
     for t in range(numTimeStep):
       for n in range(self.armaPara['dimension']):
         tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult['sig'][0,n]
@@ -2754,6 +2799,14 @@ class ARMA(superVisedLearning):
       Currently not implemented for ARMA
     """
     pass
+
+  def reseed(self,seed):
+    """
+      Used to set the underlying random seed.
+      @ In, seed, int, new seed to use
+      @ Out, None
+    """
+    randomUtils.randomSeed(seed)
 
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom

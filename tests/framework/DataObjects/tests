@@ -25,9 +25,21 @@
  [./load_csv_history]
    type = 'RavenFramework'
    input = 'test_load_csv_history.xml'
-   xml = 'csv/td_output.xml'
    csv = 'csv/td_output_0.csv csv/td_output_1.csv csv/td_output_2.csv csv/td_output_3.csv'
  [../]
+
+ [./load_two_csvs]
+   type = 'RavenFramework'
+   input = 'test_load_two_csvs.xml'
+   csv = 'csv/output2.csv'
+ [../]
+
+ [./load_two_csv_histories]
+   type = 'RavenFramework'
+   input = 'test_load_two_csv_histories.xml'
+   csv = 'csv/td_output2.csv'
+ [../]
+
 []
 
 

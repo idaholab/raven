@@ -43,7 +43,7 @@ class BaseType(MessageHandler.MessageUser):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=None)
+    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=InputData.RavenBase)
     inputSpecification.addParam("name", InputData.StringType, True)
 
     return inputSpecification
@@ -59,6 +59,8 @@ class BaseType(MessageHandler.MessageUser):
     self.messageHandler   = None                                                        # message handling object
     self.variableGroups   = {}                                                          # the variables this class needs to be aware of
     self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
+    for baseClass in self.__class__.__mro__:
+      self.mods.extend(utils.returnImportModuleString(inspect.getmodule(baseClass),True))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self),True))
 
   def readXML(self,xmlNode,messageHandler,variableGroups={},globalAttributes=None):

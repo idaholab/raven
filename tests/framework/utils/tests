@@ -7,6 +7,10 @@
   type = 'RavenPython'
   input = 'testMathUtils.py'
  [../]
+ [./randomUtils]
+  type = 'RavenPython'
+  input = 'testRandomUtils.py'
+ [../]
  [./xmlUtils]
   type = 'RavenPython'
   input = 'testXmlUtils.py'

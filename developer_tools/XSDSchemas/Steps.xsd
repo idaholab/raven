@@ -91,11 +91,12 @@
         </xsd:complexType>
       </xsd:element>
     </xsd:sequence>
-    <xsd:attribute name="name"       type="xsd:string" use="required"/>
-    <xsd:attribute name="pauseAtEnd" type="RavenBool" />
-    <xsd:attribute name="sleepTime"  type="xsd:float"  default="0.05" />
-    <xsd:attribute name="verbosity" type="xsd:string" default="all"/>
-    <xsd:attribute name="re-seeding" type="xsd:string" />
+    <xsd:attribute name="name"              type="xsd:string" use="required"/>
+    <xsd:attribute name="pauseAtEnd"        type="RavenBool" />
+    <xsd:attribute name="sleepTime"         type="xsd:float"  default="0.05" />
+    <xsd:attribute name="verbosity"         type="xsd:string" default="all"/>
+    <xsd:attribute name="re-seeding"        type="xsd:string" />
+    <xsd:attribute name="repeatFailureRuns" type="xsd:integer" />
   </xsd:complexType>
 
   <xsd:complexType name="IOStepType">

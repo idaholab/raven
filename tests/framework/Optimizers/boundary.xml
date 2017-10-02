@@ -1,0 +1,109 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.Boundary</name>
+    <author>talbpaul</author>
+    <created>2017-06-15</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      This test runs optimization where the preferred solution is past the limits of the input variable.
+      The model is an upside-down parabola $y=-x^2$ with the input constrained to [1,2].
+      This test checks opearation of solutions on a boundary.
+    </description>
+    <analytic>
+      This test uses an inverse parabola, whose minimum is outside the domain and expected solution is
+      at the lowest possible input value (1.0).
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Boundary</WorkingDir>
+    <Sequence>optimize,getOptPoint,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">parabola</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">opt_soln</Input>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
+    </IOStep>
+    <PostProcess name="getOptPoint">
+      <Input class="DataObjects" type="HistorySet">opt_export</Input>
+      <Model class="Models" type="PostProcessor">snapshot</Model>
+      <Output class="DataObjects" type="PointSet">opt_soln</Output>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
+    </PostProcess>
+  </Steps>
+
+  <Optimizers>
+    <SPSA name="opter">
+      <initialization>
+        <limit>2000</limit>
+        <initialSeed>42</initialSeed>
+        <type>max</type>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <convergence>
+          <gradientThreshold>1e-1</gradientThreshold>
+          <gainGrowthFactor>1.5</gainGrowthFactor>
+          <gainShrinkFactor>1.25</gainShrinkFactor>
+      </convergence>
+      <variable name='x'>
+        <upperBound>2</upperBound>
+        <lowerBound>1</lowerBound>
+        <initial>1.5</initial>
+      </variable>
+      <objectVar>ans</objectVar>
+    </SPSA>
+  </Optimizers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/parabolas" name="parabola" subType="">
+      <variables>x,ans</variables>
+    </ExternalModel>
+    <PostProcessor name="snapshot" subType="InterfacedPostProcessor">
+      <method>HistorySetSnapShot</method>
+      <type>max</type>
+      <pivotVar>varsUpdate</pivotVar>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="optOut">
+      <Input>x</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_soln">
+      <Input>trajID</Input>
+      <Output>x,ans,varsUpdate</Output>
+    </PointSet>
+    <HistorySet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,ans,varsUpdate</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+    </Print>
+    <Print name="opt_soln">
+      <type>csv</type>
+      <source>opt_soln</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

@@ -25,6 +25,7 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
+from utils import utils
 from DataObjects.Data import Data
 from DataObjects.PointSet import PointSet
 from DataObjects.HistorySet import HistorySet
@@ -42,7 +43,7 @@ from DataObjects.HistorySet import HistorySet
 __base = 'Data'
 __interFaceDict = {}
 
-for classObj in eval(__base).__subclasses__():
+for classObj in utils.getAllSubclasses(eval(__base)):
   __interFaceDict[classObj.__name__] = classObj
 
 def knownTypes():

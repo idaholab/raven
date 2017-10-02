@@ -1,0 +1,92 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <!-- Test info -->
+  <TestInfo>
+    <name>framework/Optimizers.Verbose</name>
+    <author>talbpaul</author>
+    <created>2017-06-01</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      This tests the output of preset verbosity options (_stepSize, etc) for optimizer runs.
+    </description>
+  </TestInfo>
+
+  <!-- actual RAVEN input -->
+  <RunInfo>
+    <WorkingDir>Verbose</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">beale</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </IOStep>
+  </Steps>
+
+  <Optimizers>
+    <SPSA name="opter">
+      <initialization>
+        <limit>2000</limit>
+        <initialSeed>42</initialSeed>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <convergence>
+          <gradientThreshold>1e-1</gradientThreshold>
+      </convergence>
+      <variable name='x'>
+        <upperBound>4.5</upperBound>
+        <lowerBound>-4.5</lowerBound>
+        <initial>0</initial>
+      </variable>
+      <variable name='y'>
+        <upperBound>4.5</upperBound>
+        <lowerBound>-4.5</lowerBound>
+        <initial>0</initial>
+      </variable>
+      <objectVar>ans</objectVar>
+    </SPSA>
+  </Optimizers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_soln">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </PointSet>
+    <HistorySet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate,stepSize,gradient_x,gradient_y,convergenceAbs,convergenceRel,convergenceGrad</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

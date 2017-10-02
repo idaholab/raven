@@ -253,6 +253,13 @@
 
     <xsd:complexType name="EnsembleForwardSampler">
         <xsd:sequence>
+            <xsd:element name="samplerInit" type="samplerInitType"         minOccurs="0"/>
+            <xsd:element name="variable"     type="variableType"    minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
+                <xsd:complexType mixed="true">
+                    <xsd:attribute name="name" type="xsd:string" use="required"/>
+                </xsd:complexType>
+            </xsd:element>
             <xsd:element name="MonteCarlo" type="MonteCarloSampler" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="Grid" type="GridSampler" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="Stratified" type="GridSampler" minOccurs="0" maxOccurs="1"/>

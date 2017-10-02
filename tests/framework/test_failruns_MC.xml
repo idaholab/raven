@@ -32,7 +32,7 @@
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
-    <MultiRun name="csample">
+    <MultiRun name="csample" repeatFailureRuns="3">
       <Input class="Files" type="">infile.inp</Input>
       <Model class="Models" type="ExternalModel">codefailer</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
@@ -79,7 +79,7 @@
       <executable>RunFailures/codeFailer.py</executable>
       <inputExtensions>inp</inputExtensions>
       <clargs arg="python" type="prepend"/>
-      <clargs args="" extension=".inp" type="input"/>
+      <clargs arg="" extension=".inp" type="input"/>
       <fileargs arg="out" type="output"/>
       <prepend>python</prepend>
     </Code>

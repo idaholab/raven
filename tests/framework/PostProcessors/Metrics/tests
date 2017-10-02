@@ -1,0 +1,36 @@
+[Tests]
+  [./simpleMetric]
+    type = 'RavenFramework'
+    input = 'test_metric.xml'
+    UnorderedXml = 'mcMetricRun/output_metric.xml'
+    UnorderedCsv = 'mcMetricRun/dumpMC.csv'
+    output = 'mcMetricRun/output_metric.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./multipleInputs]
+    type = 'RavenFramework'
+    input = 'test_metric_multiple_input_objects.xml'
+    UnorderedXml = 'multipleInputObjects/output_metric.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./sklMetric]
+    type = 'RavenFramework'
+    input = 'test_metric_skl.xml'
+    UnorderedXml = 'sklMetrics/output_metric.xml sklMetrics/chi2_metric.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./minkowskiMetric]
+    type = 'RavenFramework'
+    input = 'test_Minkowski.xml'
+    UnorderedXml = 'minkowskiMetric/output_metric.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+[]

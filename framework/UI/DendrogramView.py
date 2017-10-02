@@ -27,6 +27,7 @@ import sys
 
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
+from PySide import QtGui as qtw
 from PySide import QtSvg as qts
 
 from .BaseHierarchicalView import BaseHierarchicalView
@@ -111,8 +112,13 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       @In, mainWindow, HierarchicalWindow, the parent window of this view
       @Out, None
     """
+    # BaseHierarchicalView.__init__(self, mainWindow)
     ZoomableGraphicsView.__init__(self, mainWindow)
-    BaseHierarchicalView.__init__(self, mainWindow)
+
+    self.setWindowTitle(self.__class__.__name__)
+    self.scrollable = False
+    self.mainWindow = mainWindow
+
 
     self.tree = linakgeToTree(self.mainWindow.engine.linkage)
 
@@ -157,20 +163,20 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       @In, None
       @Out, None
     """
-    dialog = qtg.QDialog(self)
-    layout = qtg.QVBoxLayout()
+    dialog = qtw.QDialog(self)
+    layout = qtw.QVBoxLayout()
     dialog.setLayout(layout)
 
     ## Put the label and its associated value label in one row using a sublayout
-    sublayout = qtg.QHBoxLayout()
+    sublayout = qtw.QHBoxLayout()
     layout.addLayout(sublayout)
 
-    sublayout.addWidget(qtg.QLabel('Minimum Node Size:'))
-    nodeSize = qtg.QLabel('%d' % self.truncationSize)
+    sublayout.addWidget(qtw.QLabel('Minimum Node Size:'))
+    nodeSize = qtw.QLabel('%d' % self.truncationSize)
     sublayout.addWidget(nodeSize)
 
     ## Next place the associated slider underneath that
-    minNodeSizeSlider = qtg.QSlider(qtc.Qt.Horizontal)
+    minNodeSizeSlider = qtw.QSlider(qtc.Qt.Horizontal)
     minNodeSizeSlider.setMinimum(1)
     minNodeSizeSlider.setMaximum(self.tree.size)
     ## Use a lambda function to keep the label in sync with the slider
@@ -179,20 +185,20 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     layout.addWidget(minNodeSizeSlider)
 
     ## Next item, do the same thing, first put the two labels on one row.
-    sublayout = qtg.QHBoxLayout()
+    sublayout = qtw.QHBoxLayout()
     layout.addLayout(sublayout)
 
-    sublayout.addWidget(qtg.QLabel('Minimum Level:'))
+    sublayout.addWidget(qtw.QLabel('Minimum Level:'))
     levels = self.getLevels()
     for i,lvl in enumerate(reversed(levels)):
       if lvl < self.truncationLevel:
         break
     idx = len(levels)-1-i
-    minLevel = qtg.QLabel('%f' % lvl)
+    minLevel = qtw.QLabel('%f' % lvl)
     sublayout.addWidget(minLevel)
 
     ## Next, create the slider to go underneath them
-    minLevelSlider = qtg.QSlider(qtc.Qt.Horizontal)
+    minLevelSlider = qtw.QSlider(qtc.Qt.Horizontal)
     minLevelSlider.setMinimum(0)
     minLevelSlider.setMaximum(len(levels)-1)
     minLevelSlider.setSliderPosition(idx)
@@ -202,8 +208,8 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     layout.addWidget(minLevelSlider)
 
     ## Add the buttons for accepting/rejecting the proposed values
-    buttons = qtg.QDialogButtonBox(qtg.QDialogButtonBox.Ok |
-                                   qtg.QDialogButtonBox.Cancel,
+    buttons = qtw.QDialogButtonBox(qtw.QDialogButtonBox.Ok |
+                                   qtw.QDialogButtonBox.Cancel,
                                    qtc.Qt.Horizontal, dialog)
 
     def localAccept():
@@ -227,7 +233,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
 
     ## Using .open() creates a modal window, but does not block, so thus why
     ## we have registered the callback above, otherwise we could call exec_(),
-    ## and then have something like: if dialog.result() == qtg.QDialog.Accepted:
+    ## and then have something like: if dialog.result() == qtw.QDialog.Accepted:
     ## that has the same code as localAccept.
     dialog.open()
 
@@ -243,14 +249,14 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     ## dialog in setTruncation, so use that function as a model, and I will
     ## forego the verbosity here.
 
-    dialog = qtg.QDialog(self)
-    layout = qtg.QVBoxLayout()
+    dialog = qtw.QDialog(self)
+    layout = qtw.QVBoxLayout()
 
-    sublayout = qtg.QHBoxLayout()
-    staticLabel = qtg.QLabel('Maximum Point Diameter (%% of Window Width):')
+    sublayout = qtw.QHBoxLayout()
+    staticLabel = qtw.QLabel('Maximum Point Diameter (%% of Window Width):')
     sublayout.addWidget(staticLabel)
 
-    pointSizeSpinner = qtg.QDoubleSpinBox()
+    pointSizeSpinner = qtw.QDoubleSpinBox()
     pointSizeSpinner.setMinimum(0.01)
     pointSizeSpinner.setMaximum(0.25)
     pointSizeSpinner.setSingleStep(0.01)
@@ -259,8 +265,8 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
 
     layout.addLayout(sublayout)
 
-    buttons = qtg.QDialogButtonBox(qtg.QDialogButtonBox.Ok |
-                                   qtg.QDialogButtonBox.Cancel,
+    buttons = qtw.QDialogButtonBox(qtw.QDialogButtonBox.Ok |
+                                   qtw.QDialogButtonBox.Cancel,
                                    qtc.Qt.Horizontal, dialog)
 
     def localAccept():
@@ -318,7 +324,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     onSomething = False
     for idx,graphic in self.nodes.items():
       if graphic.contains(mousePt):
-        menu = qtg.QMenu()
+        menu = qtw.QMenu()
         colorAction = menu.addAction('Change Color')
 
         def pickColor():
@@ -328,10 +334,10 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
             @ In, None
             @ Out, None
           """
-          dialog = qtg.QColorDialog()
+          dialog = qtw.QColorDialog()
           dialog.setCurrentColor(self.getColor(idx))
           dialog.exec_()
-          if dialog.result() == qtg.QDialog.Accepted:
+          if dialog.result() == qtw.QDialog.Accepted:
             self.setColor(idx, dialog.currentColor())
             self.updateScene()
 
@@ -503,13 +509,13 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       for idx,(x,y) in newNodes:
         color = self.getColor(idx)
         brush = qtg.QBrush(color)
-        pen = qtc.Qt.NoPen
+        pen = qtg.QPen(qtc.Qt.NoPen)
 
         ## Don't worry about placing or sizing the ellipse, we will do that
         ## below according to current settings of the view, right now we want
         ## to establish the non-transient properties.
         self.nodes[idx] = self.scene().addEllipse(0,0,0,0,pen,brush)
-        self.nodes[idx].setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+        self.nodes[idx].setFlag(qtw.QGraphicsItem.ItemIsSelectable)
         ## Dynamically adding some members to the class to make this easier to
         ## recompute in case the usable screen area changes as in the case when
         ## the user adjusts the size of the ellipses.
@@ -534,18 +540,18 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       if node.parent != self.tree and node.parent.level <= currentLevel or (node.level > currentLevel and node.getLeafCount(self.truncationSize, self.truncationLevel) > 1):
         color.setAlpha(64)
         diameter = self.minDiameter
-        glyph.setFlag(qtg.QGraphicsItem.ItemIsSelectable, False)
+        glyph.setFlag(qtw.QGraphicsItem.ItemIsSelectable, False)
         glyph.setToolTip('   id: %d\nlevel: %f\nInactive' %(idx, node.level))
       else:
         color.setAlpha(255)
-        glyph.setFlag(qtg.QGraphicsItem.ItemIsSelectable, True)
+        glyph.setFlag(qtw.QGraphicsItem.ItemIsSelectable, True)
         glyph.setToolTip('   id: %d\nlevel: %f\ncount: %d' %(idx, node.level, int(count)))
       brush = qtg.QBrush(color)
 
       if self.nodes[idx].isSelected():
         pen = qtg.QPen(black)
       else:
-        pen = qtc.Qt.NoPen
+        pen = qtg.QPen(qtc.Qt.NoPen)
 
       newX = glyph.rawX*self.usableWidth + self.padding - diameter/2.
       newY = height - self.usableHeight * glyph.rawY - self.padding - diameter/2.
@@ -620,7 +626,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       parent = pathGraphic.source
       child = pathGraphic.sink
       if parent.level > currentLevel and child.level <= currentLevel:
-        pathGraphic.setPen(qtg.QPen(self.getColor(idx2),min(2,rect2.width()),c=qtc.Qt.RoundCap))
+        pathGraphic.setPen(qtg.QPen(self.getColor(idx2),min(2,rect2.width()),cap=qtc.Qt.RoundCap))
       else:
         pathGraphic.setPen(qtg.QPen(gray,0))
       pathGraphic.setPath(path)

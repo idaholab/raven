@@ -29,6 +29,19 @@ Each \xmlNode{Input} node has the following attributes:
   directly use this attribute, but it is availabe in the CodeInterface.
   If not provided, defaults to True.
   %
+  
+  \item \xmlAttr{subDirectory}, \xmlDesc{optional string attribute}, sub-directory
+  that should be created in the perturbation process. The file specified in the body of the 
+  XML node should be located in the  \xmlAttr{subDirectory} under the  \xmlAttr{workingDir} specified
+  in the \xmlNode{RunInfo} XML block (i.e. $workingDir/subDirectory$).
+  If specified, the file will be
+  placed in the sub-directory. For example, in a \textit{MultiRun} step, 
+  the file will be copied into \\$workingDir/stepName/\%counter\%/subDirectory$, where $workingDir$
+  is the working directory specified in the \textit{RunInfo} XML block, $stepName$ is the name of the step, 
+  $/\%counter\%$ is the realization identifier (e.g. $1$,$2$, etc.) and $subDirectory$ is the sub-directory here
+  specified.
+  If not provided, defaults to an empty string.
+  %
 \end{itemize}
 \vspace{-5mm}
 For example, if the files \texttt{templateInput.i, materials.i, history.i, mesh.e}
@@ -41,6 +54,7 @@ For example, if the files \texttt{templateInput.i, materials.i, history.i, mesh.
     <Input name='mat'  type='mtlinput' >materials.i</Input>
     <Input name='hist' type='histinput'>history.i</Input>
     <Input name='mesh' type='mesh' perturbable='false'>mesh.e</Input>
+    <Input name='fileInSubDir' type='' subDirectory="theSubDirectory">theFileInTheSubDir.inp</Input>
   </Files>
    ...
 </Simulation>

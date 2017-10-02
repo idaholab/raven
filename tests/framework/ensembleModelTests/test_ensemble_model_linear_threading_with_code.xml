@@ -111,7 +111,7 @@
     </PointSet>
     <PointSet name="inputPlaceHolderForInternalObjects">
       <Input>A,B,C,D</Input>
-      <Output>outputPlaceHolder</Output>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="sumData">
       <Input>A,B,C,D</Input>

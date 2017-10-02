@@ -25,17 +25,19 @@ import xml.etree.ElementTree as ET
 import sys, os
 from lxml import etree
 
-ravenDir = os.path.dirname(os.path.dirname(os.getcwd()))
+testDir = os.getcwd()
+print("testDir", testDir)
+ravenDir = os.path.dirname(os.path.dirname(testDir))
 frameworkDir = os.path.join(ravenDir,"framework")
-sys.path.append(os.path.join(frameworkDir,'utils'))
+sys.path.append(frameworkDir)
 
 
-import InputData
+from utils import InputData
 import test_classes
 
 
 
-schemaDoc = etree.parse(open(os.path.join("TestXSD","test_more.xsd"),"r"))
+schemaDoc = etree.parse(open(os.path.join(testDir,"TestXSD","test_more.xsd"),"r"))
 
 schema = etree.XMLSchema(schemaDoc)
 

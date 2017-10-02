@@ -1,0 +1,47 @@
+InputData is a library for describing data and checking and reading it.
+
+Generally it is used by creating subclasses of InputData.ParameterInput
+
+Example:
+class DistributionClass(InputData.ParameterInput):
+   """
+     Description of class
+   """
+
+After they are created they need to be initialized by calling the class
+method createClass.
+
+Example:
+DistributionClass.createClass("DistributionClass",
+                              contentType=InputData.StringType)
+
+Alternatively, InputData.parameterInputFactory can be used to both
+subclass ParameterInput and to call createClass.
+
+Example:
+DistributionClass = InputData.parameterInputFactory("DistributionClass",
+                                            contentType=InputData.String)
+
+
+After that the subclasses of ParameterInput can have subnodes and parameters
+added.
+
+Parameters are added with the addParam that takes the name and the type.
+
+Example:
+DistributionClass.addParam("distribution_name", InputData.StringType)
+
+The content type and the parameter type are subclasses of InputData.InputType.
+
+There are several predefined types including InputData.StringType and
+InputData.IntegerType and InputData.FloatType.
+
+There is an enum type maker that can be used to create types that only
+allow from a list of strings.
+
+Example:
+YesOrNoType = InputData.makeEnumType("YesOrNo","YesOrNoType",["yes","no"])
+
+
+
+

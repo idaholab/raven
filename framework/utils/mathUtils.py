@@ -206,7 +206,6 @@ def getGraphs(functions, fZStats = False):
     retDict['variance_function_diff'] = varianceFunctionDiff
   return retDict
 
-
 def countBins(sortedData, binBoundaries):
   """
     This method counts the number of data items in the sorted_data
@@ -365,8 +364,6 @@ def normalizationFactors(values, mode='z'):
     scale = 1.0
 
   return (offset, scale)
-
-
 
 #
 # I need to convert it in multi-dimensional
@@ -529,13 +526,12 @@ def numpyNearestMatch(findIn,val):
   returnMatch = idx,findIn[idx]
   return returnMatch
 
-def compareFloats(f1,f2,tol=1e-6):
+def relativeDiff(f1,f2):
   """
-    Given two floats, safely compares them to determine equality to provided relative tolerance.
+    Given two floats, safely compares them to determine relative difference.
     @ In, f1, float, first value (the value to compare to f2, "measured")
     @ In, f2, float, second value (the value being compared to, "actual")
-    @ In, tol, float, optional, relative tolerance to determine match
-    @ Out, compareFloats, bool, True if floats close enough else False
+    @ Out, relativeDiff, float, (safe) relative difference
   """
   if not isinstance(f1,float):
     try:
@@ -547,7 +543,7 @@ def compareFloats(f1,f2,tol=1e-6):
       f2 = float(f2)
     except ValueError:
       raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  Second argument is %s type %s' %(str(f2),type(f2)))
-  diff = abs(f1-f2)
+  diff = abs(diffWithInfinites(f1,f2))
   #"scale" is the relative scaling factor
   scale = f2
   #protect against div 0
@@ -558,7 +554,24 @@ def compareFloats(f1,f2,tol=1e-6):
     #at this point, they're both equal to zero, so just divide by 1.0
     else:
       scale = 1.0
-  return diff/abs(scale) < tol
+  if abs(scale) == np.inf:
+    #no mathematical rigor here, but typical algorithmic use cases
+    if diff == np.inf:
+      return np.inf # assumption: inf/inf = 1
+    else:
+      return 0.0 # assumption: x/inf = 0 for all finite x
+  return diff/abs(scale)
+
+def compareFloats(f1,f2,tol=1e-6):
+  """
+    Given two floats, safely compares them to determine equality to provided relative tolerance.
+    @ In, f1, float, first value (the value to compare to f2, "measured")
+    @ In, f2, float, second value (the value being compared to, "actual")
+    @ In, tol, float, optional, relative tolerance to determine match
+    @ Out, compareFloats, bool, True if floats close enough else False
+  """
+  diff = relativeDiff(f1,f2)
+  return diff < tol
 
 def NDInArray(findIn,val,tol=1e-12):
   """
@@ -604,3 +617,22 @@ def numBinsDraconis(data):
   numBins = int((max(data)-min(data))/binSize)
   binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
   return numBins,binEdges
+
+def diffWithInfinites(a,b):
+  """
+    Calculates the difference a-b and treats infinites.  We consider infinites to have equal values, but
+    inf - (- inf) = inf.
+    @ In, a, float, first value (could be infinite)
+    @ In, b, float, second value (could be infinite)
+    @ Out, res, float, b-a (could be infinite)
+  """
+  if abs(a) == np.inf or abs(b) == np.inf:
+    if a == b:
+      res = 0 #not mathematically rigorous, but useful algorithmically
+    elif a > b:
+      res = np.inf
+    else: # b > a
+      res = -np.inf
+  else:
+    res = a-b
+  return res

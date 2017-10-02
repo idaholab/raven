@@ -1,0 +1,66 @@
+\section{Optimization Functions}
+
+The functions in this section are models with analytic optimal points.
+
+\subsection{General}
+
+\subsubsection{Beale's Function}
+Beale's function has a two-dimensional input space and a single global/local minimum.
+See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
+
+\begin{itemize}
+  \item Function: $f(x,y) = (1.5-x+xy)^2+(2.25-x+xy^2)^2+(2.625-x+xy^3)^2$
+  \item Domain: $-4.5 \leq x,y \leq 4.5$
+  \item Global Minimum: $f(3,0.5)=0$
+\end{itemize}
+
+
+\subsubsection{Rosenbrock Function}
+The Rosenbrock function can take a varying number of inputs.  For up to three inputs, a single global minimum
+exists.  For four to seven inputs, there is one local minimum and one global maximum.
+See \url{https://en.wikipedia.org/wiki/Rosenbrock_function}.
+
+\begin{itemize}
+  \item Function: $f(\vec x) = \sum_{i=1}^{n-1}\left[100\left(x_{i+1}-x_i^2\right)^2+\left(x_i-1)^2\right) \right]$
+  \item Domain: $ -\infty \leq x_i \leq \infty \hspace{10pt} \forall \hspace{10pt} 1\leq i \leq n$
+  \item Global Minimum: $f(1,1,\cdots,1,1)=0$
+  \item Local minimum ($n\geq4$): near $f(-1,1,\cdots,1)$
+\end{itemize}
+
+
+\subsubsection{Goldstein-Price Function}
+The Goldstein-Price function is a two-dimensional input function with a single global minimum.
+See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
+
+\begin{itemize}
+  \item Function:
+    \begin{align}
+      f(x,y) =& \left[1+(x+y+1)^2\left(19-14x+3x^2-14y+6xy+3y^2\right)\right] \\ \nonumber
+        & \cdot\left[30+(2x-3y)^2(18-32x+12x^2+48y-36xy+27y^2)\right]
+    \end{align}
+  \item Domain: $-2 \leq x,y \leq 2$
+  \item Global Minimum: $f(0,-1)=3$
+\end{itemize}
+
+\subsubsection{McCormick Function}
+The McCormick function is a two-dimensional input function with a single global minimum.
+See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
+
+\begin{itemize}
+  \item Function: $f(x,y) = \sin(x+y) + (x-y)^2 - 1.5x + 2.5y + 1$
+  \item Domain: $-1.5 \leq x \leq 4$, $-3 \leq y \leq 4$
+  \item Global Minimum: $f(-0.54719,-1.54719) = -1.9133$
+\end{itemize}
+
+\subsection{Constrained}
+\subsubsection{Mishra's Bird Function}
+The Mishra bird function offers a constrained problem with multiple peaks, local minima, and one steep global
+minimum.
+See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
+
+\begin{itemize}
+  \item Function: $f(x,y) = \sin(y)\exp[1-\cos(x)]^2 + \cos(x)\exp[1-\sin(y)]^2 + (x-y)^2$
+  \item Constraint: $(x+5)^2 + (y+5)^2 < 25$
+  \item Domain: $-10 \leq x \leq 0$, $-6.5 \leq y \leq 0$
+  \item Global Minimum: $f(-3.1302468, -1.5821422) = -106.7645367$
+\end{itemize}

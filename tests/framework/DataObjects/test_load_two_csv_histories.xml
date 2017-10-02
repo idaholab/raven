@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/DataObjects.load_two_csv_histories</name>
+    <author>maljdan</author>
+    <created>2017-06-26</created>
+    <classesTested>DataObjects.HistorySet</classesTested>
+    <description>
+       This test verifies that multiple csv files can be loaded into a single
+       history set without destroying the information from each other.
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>csv</WorkingDir>
+    <Sequence>in,out</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="input">./td_input.csv</Input>
+    <Input name="input2">./td_input2.csv</Input>
+  </Files>
+
+  <Models>
+  </Models>
+
+  <Steps>
+    <IOStep name="in">
+      <Input class="Files" type="">input</Input>
+      <Input class="Files" type="">input2</Input>
+      <Output class="DataObjects" type="HistorySet">data</Output>
+      <Output class="DataObjects" type="HistorySet">data</Output>
+    </IOStep>
+    <IOStep name="out">
+      <Input class="DataObjects" type="HistorySet">data</Input>
+      <Output class="OutStreams" type="Print">td_output</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="td_output">
+      <filename>td_output2</filename>
+      <type>csv</type>
+      <source>data</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <HistorySet name="data">
+      <Input>b,c</Input>
+      <Output>1,Time</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

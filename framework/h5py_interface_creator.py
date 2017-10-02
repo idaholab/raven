@@ -52,13 +52,15 @@ class hdf5Database(MessageHandler.MessageUser):
   """
     class to create a h5py (hdf5) database
   """
-  def __init__(self,name, databaseDir, messageHandler,filename=None):
+  def __init__(self,name, databaseDir, messageHandler,filename,exist):
     """
       Constructor
       @ In, name, string, name of this database
       @ In, databaseDir, string, database directory (full path)
       @ In, messageHandler, MessageHandler, global message handler
-      @ In, filename, string, optional, the existing database filename
+      @ In, filename, string, the database filename
+      @ In, exist, bool, does it exist?
+      @ Out, None
     """
     # database name (i.e. arbitrary name).
     # It is the database name that has been found in the xml input
@@ -71,15 +73,11 @@ class hdf5Database(MessageHandler.MessageUser):
     # specialize printTag (THIS IS THE CORRECT WAY TO DO THIS)
     self.printTag = 'DATABASE HDF5'
     self.messageHandler = messageHandler
+    # does it exist?
+    self.fileExist = exist
     # .H5 file name (to be created or read)
-    if filename:
-      # File name on disk (file exists => fileExist flag is True)
-      self.onDiskFile = filename
-      self.fileExist  = True
-    else:
-      # File name on disk (file does not exist => it will create => fileExist flag is False)
-      self.onDiskFile = name + ".h5"
-      self.fileExist  = False
+    # File name on disk
+    self.onDiskFile = filename
     # Database directory
     self.databaseDir =  databaseDir
     # Create file name and path
@@ -160,7 +158,6 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, upGroup, bool, optional, updated group?
       @ Out, None
     """
-
     if source['type'] == 'DataObjects':
       self.addGroupDataObjects(groupName,attributes,source)
       self.h5FileW.flush()
@@ -341,13 +338,14 @@ class hdf5Database(MessageHandler.MessageUser):
       self.allGroupPaths.append("/" + groupName)
       self.allGroupEnds["/" + groupName] = True
 
-  def addGroupDataObjects(self,groupName,attributes,source,upGroup=False):
+  def addGroupDataObjects(self,groupName,attributes,source,upGroup=False,specificVars=None):
     """
       Function to add a data (class DataObjects) or Dictionary into the Database
       @ In, groupName, string, group name
       @ In, attributes, dict, dictionary of attributes that must be added as metadata
       @ In, source, dataObject, source data
       @ In, upGroup, bool, optional, updated group?
+      @ In, specificVars, list(str), if not None then indicates a selective list of variables to include in DB
       @ Out, None
     """
     if not upGroup:
@@ -386,14 +384,33 @@ class hdf5Database(MessageHandler.MessageUser):
       groups.attrs[b'mainClass' ] = b'PythonType'
       groups.attrs[b'sourceType'] = b'Dictionary'
       # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
+      # use ONLY the subset of variables if requested
       if set(['inputSpaceParams']).issubset(set(source['name'].keys())):
-        groups.attrs[b'inputSpaceHeaders' ] = list(utils.toBytesIterative(source['name']['inputSpaceParams'].keys()))
+        sourceInputs = source['name']['inputSpaceParams'].keys()
+        if specificVars is not None:
+          inputHeaders = list(var for var in sourceInputs if var in specificVars)
+        else:
+          inputHeaders = sourceInputs
+        inputHeaders = list(utils.toBytesIterative(inputHeaders))
+        groups.attrs[b'inputSpaceHeaders' ] = inputHeaders
 
-        groups.attrs[b'inputSpaceValues'  ] = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(utils.toBytesIterative(source['name']['inputSpaceParams'].values())))))
+        if specificVars is not None:
+          inputValues = list(source['name']['inputSpaceParams'][var] for var in sourceInputs if var in specificVars)
+        else:
+          inputValues = source['name']['inputSpaceParams'].values()
+        inputValues = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(utils.toBytesIterative(inputValues)))))
+        groups.attrs[b'inputSpaceValues'  ] = inputValues
+
       if set(['outputSpaceParams']).issubset(set(source['name'].keys())):
-        outDict = source['name']['outputSpaceParams']
+        if specificVars is not None:
+          outDict = dict((k,v) for k,v in source['name']['outputSpaceParams'].items() if k in specificVars)
+        else:
+          outDict = source['name']['outputSpaceParams']
       else:
-        outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'])
+        if specificVars is not None:
+          outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'] and key in specificVars)
+        else:
+          outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'])
       outHeaders = utils.toBytesIterative(list(outDict.keys()))
       outValues  = utils.toBytesIterative(list(outDict.values()))
       groups.attrs[b'nParams'   ] = len(outHeaders)
@@ -435,13 +452,24 @@ class hdf5Database(MessageHandler.MessageUser):
     else:
       # Data(structure)
       # Retrieve the headers from the data (inputs and outputs)
-      headersIn              = list(source['name'].getInpParametersValues().keys())
-      headersOut             = list(source['name'].getOutParametersValues().keys())
+      inpParams = source['name'].getInpParametersValues().keys()
+      outParams = source['name'].getOutParametersValues().keys()
+      if specificVars is not None:
+        headersIn  = list(v for v in inpParams if v in specificVars)
+        headersOut = list(v for v in outParams if v in specificVars)
+      else:
+        headersIn  = list(inpParams)
+        headersOut = list(outParams)
       # for a "HistorySet" type we create a number of groups = number of HistorySet (compatibility with loading structure)
-      dataIn  = list(source['name'].getInpParametersValues().values())
-      dataOut = list(source['name'].getOutParametersValues().values())
-      headersInUnstructured = list(source['name'].getInpParametersValues(self,unstructuredInputs=True).keys())
-      dataInUnstructured    = list(source['name'].getInpParametersValues(self,unstructuredInputs=True).values())
+      if specificVars is not None:
+        dataIn  = list(source['name'].getInpParametersValues()[v] for v in inpParams if v in specificVars)
+        dataOut = list(source['name'].getOutParametersValues()[v] for v in outParams if v in specificVars)
+      else:
+        dataIn  = list(source['name'].getInpParametersValues().values())
+        dataOut = list(source['name'].getOutParametersValues().values())
+      # FIXME unused, but left commented because I'm not sure why they're unused.  PT
+      #headersInUnstructured = list(source['name'].getInpParametersValues(self,unstructuredInputs=True).keys())
+      #dataInUnstructured    = list(source['name'].getInpParametersValues(self,unstructuredInputs=True).values())
       metadata = source['name'].getAllMetadata()
       if source['name'].type in ['HistorySet','PointSet']:
         groups = []

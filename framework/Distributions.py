@@ -38,8 +38,10 @@ from scipy.interpolate import UnivariateSpline
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from utils import utils
+from utils.randomUtils import random
 distribution1D = utils.find_distribution1D()
 from utils import InputData
+from utils import mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 def factorial(x):
@@ -237,7 +239,7 @@ class Distribution(BaseType):
       @ In, upperBound, float, upper bound
       @ Out,randResult, float, random number
     """
-    randResult = self._distribution.inverseCdf(float(np.random.rand(1))*(upperBound-lowerBound)+lowerBound)
+    randResult = self._distribution.inverseCdf(float(random(1))*(upperBound-lowerBound)+lowerBound)
     return randResult
 
   def rvsWithinbounds(self,lowerBound,upperBound):
@@ -363,51 +365,6 @@ class Distribution(BaseType):
     """
     return self.disttype
 
-
-def random():
-  """
-    Function to get a random number <1<
-    @ In, None
-    @ Out, random, float, random number
-  """
-  return stochasticEnv.random()
-
-def randomSeed(value):
-  """
-    Function to get a random seed
-    @ In, value, float, the seed
-    @ Out, seed, int, the random seed
-  """
-  return stochasticEnv.seedRandom(value)
-
-def randomIntegers(low,high,caller):
-  """
-    Function to get a random integer
-    @ In, low, int, low boundary
-    @ In, high, int, upper boundary
-    @ Out, rawInt, int, random int
-  """
-  intRange = high-low
-  rawNum = low + random()*intRange
-  rawInt = int(round(rawNum))
-  if rawInt < low or rawInt > high:
-    caller.raiseAMessage("Random int out of range")
-    rawInt = max(low,min(rawInt,high))
-  return rawInt
-
-def randomPermutation(l,caller):
-  """
-    Function to get a random permutation
-    @ In, l, list, list to be permuted
-    @ In, caller, instance, the caller
-    @ Out, newList, list, randomly permuted list
-  """
-  newList = []
-  oldList = l[:]
-  while len(oldList) > 0:
-    newList.append(oldList.pop(randomIntegers(0,len(oldList)-1,caller)))
-  return newList
-
 class BoostDistribution(Distribution):
   """
     Base distribution class based on boost
@@ -517,7 +474,7 @@ class Uniform(BoostDistribution):
     Uniform univariate distribution
   """
 
-  def __init__(self):
+  def __init__(self, lowerBound = None, upperBound = None):
     """
       Constructor
       @ In, None
@@ -532,6 +489,17 @@ class Uniform(BoostDistribution):
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature = 'Legendre'
     self.preferredPolynomials = 'Legendre'
+    if upperBound is not None:
+      self.upperBound = upperBound
+      self.upperBoundUsed = True
+      print("upperBound", self.upperBound)
+    if lowerBound is not None:
+      self.lowerBound = lowerBound
+      self.lowerBoundUsed = True
+      print("lowerBound", self.lowerBound)
+    if self.lowerBoundUsed and self.upperBoundUsed:
+      self.range = self.upperBound - self.lowerBound
+
 
   def _localSetState(self,pdict):
     """
@@ -1782,8 +1750,8 @@ class Categorical(Distribution):
     totPsum = 0.0
     for element in self.mapping:
       totPsum += self.mapping[element]
-    if totPsum!=1.0:
-      self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
+    if not mathUtils.compareFloats(totPsum,1.0):
+      self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is '+repr(totPsum)+', not 1.0')
 
   def pdf(self,x):
     """

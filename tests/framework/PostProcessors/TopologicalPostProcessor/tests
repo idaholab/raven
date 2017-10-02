@@ -66,6 +66,7 @@
   [./interactive_UI]
     type = 'RavenFramework'
     input = 'test_topology_ui.xml'
+    skip = 'Requires windowing system'
     csv = 'data/interactive.csv'
     output = 'data/interactive.xml'
     required_libraries = 'AMSC PySide'

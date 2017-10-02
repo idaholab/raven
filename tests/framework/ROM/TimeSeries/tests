@@ -13,4 +13,16 @@
    #csv = 'ARMAparallel/writeSynDataOut_0.csv'
    #rel_err = 0.1
   [../]
+  [./ARMAreseedPrecursor]
+   type = 'RavenFramework'
+   input = 'arma_reseed_precursor.xml'
+   output = 'ARMAparallel/arma.pk'
+  [../]
+  [./ARMAreseedTest]
+   type = 'RavenFramework'
+   input = 'arma_reseed_test.xml'
+   csv = 'ARMAparallel/results_0.csv''
+   expected_fail = true
+   prereq = ARMAreseedPrecursor
+  [../]
 []

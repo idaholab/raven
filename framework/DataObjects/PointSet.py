@@ -157,7 +157,7 @@ class PointSet(Data):
       #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:
-      if name in self._dataContainer['inputs'].keys()+self._dataContainer['unstructuredInputs'].keys():
+      if name in itertools.chain(self._dataContainer['inputs'].keys(),self._dataContainer['unstructuredInputs'].keys()):
         #popped = self._dataContainer['inputs'].pop(name)
         if not unstructuredInput:
           self._dataContainer['inputs'][name].append(np.atleast_1d(np.ravel(value)[-1]))
@@ -236,7 +236,7 @@ class PointSet(Data):
         operator = None
       else:
         ## Not sure if any of these are necessary, but I am trying to replicate
-        ## the magic that takes place in the Csv_loader -- DPM 5/3/2017
+        ## the magic that takes place in the CsvLoader -- DPM 5/3/2017
         outputRow = copy.deepcopy(options.get('outputRow',-1))
         outputPivotVal = options.get('outputPivotValue',None)
         operator = options.get('operator',None)
@@ -474,57 +474,41 @@ class PointSet(Data):
     inoutKeys = header.split(",")
     inoutValues = [[] for _ in range(len(inoutKeys))]
 
-    for line in myFile.readlines():
+    for lineNumber,line in enumerate(myFile.readlines(),2):
       lineList = line.rstrip().split(",")
       for i in range(len(inoutKeys)):
+        datum = utils.partialEval(lineList[i])
+        if datum == '':
+          self.raiseAnError(IOError, 'Invalid data in input file: {} at line {}: "{}"'.format(filenameLocal, lineNumber, line.rstrip()))
         inoutValues[i].append(utils.partialEval(lineList[i]))
 
     #extend the expected size of this point set
-    self.numAdditionalLoadPoints = len(inoutValues[0]) #used in checkConsistency
-    self._dataContainer['inputs'] = {}
-    self._dataContainer['outputs'] = {}
+    self.numAdditionalLoadPoints += len(inoutValues[0]) #used in checkConsistency
+
+    ## Do not reset these containers because it will wipe whatever information
+    ## already exists in this PointSet. This is not one of the use cases for our
+    ## data objects. We claim in the manual to construct or update information.
+    ## These should be non-destructive operations. -- DPM 6/26/17
+    # self._dataContainer['inputs'] = {}
+    # self._dataContainer['outputs'] = {}
     inoutDict = {}
     for key,value in zip(inoutKeys,inoutValues):
       inoutDict[key] = value
 
     for key in self.getParaKeys('inputs'):
-      self._dataContainer["inputs"][key] = c1darray(values=np.array(inoutDict[key]))
+      ## Again, in order to be non-destructive we should only initialize on the
+      ## first go-around, subsequent loads should append to the existing list.
+      ## -- DPM 6/26/17
+      if key not in self._dataContainer["inputs"]:
+        self._dataContainer["inputs"][key] = c1darray(values=np.array(inoutDict[key]))
+      else:
+        self._dataContainer["inputs"][key].append(c1darray(values=np.array(inoutDict[key])))
 
     for key in self.getParaKeys('outputs'):
-      self._dataContainer["outputs"][key] = c1darray(values=np.array(inoutDict[key]))
-
-#   COMMENTED BECUASE NOT USED. NEED TO BE REMOVED IN THE FUTURE
-#   def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
-#     """
-#       specialization of extractValue for this data type
-#       @ In, inOutType, string, the type of data to extract (input or output)
-#       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
-#       @ In, varName, string, is the name of the variable that should be recovered
-#       @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
-#         if varID.type!=tuple only one point along sampling of that variable is retrieved
-#           else:
-#             if varID=(int,int) the slicing is [varID[0]:varID[1]]
-#             if varID=(int,None) the slicing is [varID[0]:]
-#       @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
-#           if stepID.type!=tuple only one point along the history is retrieved
-#           else:
-#             if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
-#             if stepID=(int,None) the slicing is [stepID[0]:]
-#       @ In, nodeId, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
-#       @ Out, value, varTyp, the requested value
-#     """
-#     if stepID!=None: self.raiseAnError(RuntimeError,'seeking to extract a history slice over an PointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
-#     if varTyp!='numpy.ndarray':
-#       if varID!=None:
-#         if self._dataParameters['hierarchical']: exec('extractedValue ='+varTyp +'(self.getHierParam(inOutType,nodeId,varName,serialize=False)[nodeId])')
-#         else: exec('extractedValue ='+varTyp +'(self.getParam(inOutType,varName)[varID])')
-#         return extractedValue
-#       #if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID])')
-#       else: self.raiseAnError(RuntimeError,'trying to extract a scalar value from a time point set without an index')
-#     else:
-#       if self._dataParameters['hierarchical']:
-#         paramss = self.getHierParam(inOutType,nodeId,varName,serialize=True)
-#         extractedValue = np.zeros(len(paramss[nodeId]))
-#         for index in range(len(paramss[nodeId])): extractedValue[index] = paramss[nodeId][index]
-#         return extractedValue
-#       else: return self.getParam(inOutType,varName)
+      ## Again, in order to be non-destructive we should only initialize on the
+      ## first go-around, subsequent loads should append to the existing list.
+      ## -- DPM 6/26/17
+      if key not in self._dataContainer["outputs"]:
+        self._dataContainer["outputs"][key] = c1darray(values=np.array(inoutDict[key]))
+      else:
+        self._dataContainer["outputs"][key].append(c1darray(values=np.array(inoutDict[key])))

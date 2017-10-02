@@ -81,7 +81,7 @@ class MAAP5(GenericCode):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     self.samplerType=samplerType
-    if 'DynamicEventTree' in samplerType:
+    if 'dynamiceventtree' in str(samplerType).lower():
       if Kwargs['parentID'] == 'root':
         self.oriInput(oriInputFiles) #original input files are checked only the first time
       self.stopSimulation(currentInputFiles, Kwargs)

@@ -66,7 +66,8 @@ def parse(inFile,dType=None):
       raise InputParsingError('Unrecognized file type for:',inFile,' | Expected .xml, .i, .in, or .inp')
   if dType.lower()=='xml':
     #try:
-    xmltree = ET.parse(inFile,parser=XMLCommentParser()) #parser is defined below, under XMLCommentParser
+    parser = ET.XMLParser(target=CommentedTreeBuilder())
+    xmltree = ET.parse(inFile,parser=parser) #parser is defined below, under XMLCommentParser
     tree = xmlToInputTree(xmltree)
     #except Exception as e:
     #  print('ERROR: Input parsing error!')
@@ -321,32 +322,32 @@ def inputTreeToGetpot(ts,fromNode=False):
 ###########
 # PARSERS #
 ###########
-class XMLCommentParser(ET.XMLTreeBuilder):
+## Extracted from: https://stackoverflow.com/questions/33573807/faithfully-preserve-comments-in-parsed-xml-python-2-7
+## As mentioned on this post, we could also potentially use lxml to handle this
+## automatically without the need for a special class
+class CommentedTreeBuilder(ET.TreeBuilder):
   """
-    An XML parser that expands on the default to preserves comments
+      A class for preserving comments faithfully when parsing XML
   """
-  def __init__(self):
+  def __init__(self, *args, **kwargs):
     """
-      Constructor.
-      @ In, None
-      @ Out, None
+        The constructor that passes arguments to the
+        xml.etree.ElementTree.TreeBuilder class.
+        See the relevant documentation for the arguments accepted by the
+        base class's __init__ function.
     """
-    ET.XMLTreeBuilder.__init__(self)
-    self._parser.CommentHandler = self.handleComment
+    super(CommentedTreeBuilder, self).__init__(*args, **kwargs)
 
-  def handleComment(self,data):
+  def comment(self, data):
     """
-      Constructor.
-      @ In, data, string object to parse into comment
-      @ Out, None
+        A function for appropriately surrounding data with the necessary
+        markers to establish it as a comment.
+        @ In, data, string, the text that needs to be wrapped in a comment.
+        @ Out, None
     """
-    self._target.start(ET.Comment,{})
-    self._target.data(data)
-    self._target.end(ET.Comment)
-
-#set up a parser for this module
-parser = XMLCommentParser()
-
+    self.start(ET.Comment, {})
+    self.data(data)
+    self.end(ET.Comment)
 
 #########
 # NODES #
@@ -405,7 +406,7 @@ class InputNode:
       @ In, None
       @ Out, hash, tuple, name and values and text
     """
-    return hash(tuple(self.tag,tuple(sorted(self.attrib.items())),self.texxt))
+    return hash(tuple((self.tag,tuple(sorted(self.attrib.items())),self.text)))
 
   def __iter__(self):
     """
@@ -425,6 +426,14 @@ class InputNode:
       @ Out, __len__, int, number of children
     """
     return len(self.children)
+
+  def __getitem__(self, index):
+    """
+      Returns a specific child node.
+      @ In, index, int, the index for the child
+      @ Out, __getitem__, InputNode, the child
+    """
+    return self.children[index]
 
   def __repr__(self):
     """
@@ -539,6 +548,14 @@ class InputNode:
       @ Out, None
     """
     self.children.remove(node)
+
+  def items(self):
+    """
+      Gets all the children in the tree.
+      @ In, None
+      @ Out, children, list, list of all the children.
+    """
+    return self.children
 
 class HierarchicalNode(MessageHandler.MessageUser):
   """

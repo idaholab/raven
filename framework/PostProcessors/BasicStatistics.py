@@ -33,6 +33,7 @@ import six
 from .PostProcessor import PostProcessor
 from utils import utils
 import Files
+import Runners
 #Internal Modules End-----------------------------------------------------------
 
 
@@ -215,7 +216,6 @@ class BasicStatistics(PostProcessor):
     #for backward compatibility, compile the full list of parameters used in Basic Statistics calculations
     self.parameters['targets'] = list(self.allUsedParams)
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -340,9 +340,12 @@ class BasicStatistics(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, ' No available Output to collect (run possibly not finished yet)')
-    outputDictionary = finishedJob.getEvaluation()[1]
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
+    outputDictionary = evaluation[1]
+
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam:
@@ -352,7 +355,7 @@ class BasicStatistics(PostProcessor):
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
         self.raiseAMessage('BasicStatistics did not recognize extension ".'+str(outputExtension)+'" as ".xml", so writing text output...')
-      output.setPath(self.__workingDir)
+      output.setPath(self._workingDir)
       self.raiseADebug('Writing statistics output in file named ' + output.getAbsFile())
       output.open('w')
       if outputExtension == 'xml':
@@ -407,10 +410,10 @@ class BasicStatistics(PostProcessor):
       haveScalars = list(scalar for scalar in self.scalarVals if scalar in outputDict.keys())
       if 'percentile_map' in self.parameters and len(self.parameters['percentile_map']) >0 :
         haveScalars = haveScalars + ['percentile_'+val for val in self.parameters['percentile_map'].values()]
+      valueStrFormat = ('{:^22.22}').format
+      valueFormat    = '{:+.15e}'.format
       if len(haveScalars) > 0:
         longestScalar = max(18,max(len(scalar) for scalar in haveScalars))
-        valueStrFormat = ('{:^22.22}').format
-        valueFormat = '{:+.15e}'.format
         output.write(paramFormat('Metric:') + separator)
         output.write(separator.join(valueStrFormat(scalar) for scalar in haveScalars) + os.linesep)
         #body
@@ -748,7 +751,7 @@ class BasicStatistics(PostProcessor):
     metric = 'samples'
     startMetric(metric)
     for targetP in needed[metric]:
-      calculations[metric][targetP] = len(input['targets'].values()[0])
+      calculations[metric][targetP] = len(utils.first(input['targets'].values()))
     #
     # expected value
     #
@@ -935,7 +938,9 @@ class BasicStatistics(PostProcessor):
         paramSamples[p,:] = input['targets'][param][:]
         pbWeightsList[p] = pbWeights['realization'] if param not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][param]
       pbWeightsList.append(pbWeights['realization'])
-      if None in pbWeightsList:
+      #Note: this is basically "None in pbWeightsList", but
+      # using "is None" instead of "== None", which is more reliable
+      if True in [x is None for x in pbWeightsList]:
         covar = self.covariance(paramSamples)
       else:
         covar = self.covariance(paramSamples, weights = pbWeightsList)
@@ -1085,16 +1090,18 @@ class BasicStatistics(PostProcessor):
       @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
       @ Out, outputDict, dict, Dictionary containing the results
     """
-    input = self.inputToInternal(inputIn)
+    inputAdapted = self.inputToInternal(inputIn)
     if not self.dynamic:
-      outputDict = self.__runLocal(input)
+      outputDict = self.__runLocal(inputAdapted)
     else:
       # time dependent (actually pivot-dependent)
       outputDict = OrderedDict()
       self.raiseADebug('BasicStatistics Pivot-Dependent output:')
-      for pivotParamValue in input['timeDepData'].keys():
+      for pivotParamValue in inputAdapted['timeDepData'].keys():
         self.raiseADebug('Pivot Parameter Value: ' + str(pivotParamValue))
-        outputDict[pivotParamValue] = self.__runLocal(input['timeDepData'][pivotParamValue])
+        outputDict[pivotParamValue] = self.__runLocal(inputAdapted['timeDepData'][pivotParamValue])
+
+
     return outputDict
 
   def covariance(self, feature, weights = None, rowVar = 1):

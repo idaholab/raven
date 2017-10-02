@@ -20,7 +20,6 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import os
-from  __builtin__ import any as bAny
 import GenericParser
 from utils import utils
 from CodeInterfaceBaseClass import CodeInterfaceBase
@@ -116,7 +115,7 @@ class MelgenApp(CodeInterfaceBase):
       return failure
     readLines = outputToRead.readlines()
     for goodMsg in errorWord:
-      if bAny(goodMsg in x for x in readLines):
+      if any(goodMsg in x for x in readLines):
         failure = False
         break
     return failure

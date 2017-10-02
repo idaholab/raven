@@ -1,0 +1,9 @@
+<CrossValidationPostProcessor type="Static">
+  <ans>
+    <euclidean>
+      <cv-0>0.733310608846</cv-0>
+      <cv-1>0.889041066706</cv-1>
+      <cv-2>0.620822445466</cv-2>
+    </euclidean>
+  </ans>
+</CrossValidationPostProcessor>

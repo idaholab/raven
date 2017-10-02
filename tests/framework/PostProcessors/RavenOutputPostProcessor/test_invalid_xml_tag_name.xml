@@ -17,7 +17,7 @@
   </TestInfo>
 <Databases>
      <!-- Path and file name of the HDF5 -->
-    <HDF5 directory="invalidXMLtagName" filename="DataB_REL5_1.h5" name="EXISTING_DATABASE" readMode="read"/>
+     <HDF5 directory="../invalidXMLtagName" filename="DataB_REL5_1.h5" name="EXISTING_DATABASE" readMode="read"/>
 </Databases>
 
   <Files>
@@ -46,7 +46,7 @@
   </Models>
 
   <Steps>
-    
+
     <IOStep name="load_existing_database">
         <Input class="Databases" type="HDF5">EXISTING_DATABASE</Input>
         <Input class="Databases" type="HDF5">EXISTING_DATABASE</Input>

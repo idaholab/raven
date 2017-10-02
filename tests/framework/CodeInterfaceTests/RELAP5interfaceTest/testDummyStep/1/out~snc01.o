@@ -8298,6 +8298,11 @@
 0System  3   secnd-2  mass=   94578.     lb mass error=   0.0000     lb err.est.=   0.0000    
 0   Vol.no.  pressure      voidf        voidg        voidgo        tempf      tempg     satt-part   uf           ug       vol-flag
              (psia)                                                (degF)     (degF)     (degF)   (Btu/lb)     (Btu/lb)    tlpvbfe
+0####################################################################################################################################
+   jprop(3) Diagnostic, sys   1, timehy =   8131.620    , dt =  6.0000000E-02, ncount =    186239, help = -1, lsuces =  5, fail = T
+            vlflip =  1, wpack =  0, airap =  0          dto =  6.0000000E-02       lpackr =  0, lhtsol =  0, succes =  0
+0Junction donored properties, icheck =  3
+ ==================================================================================================================================== 
  bsgs rsr pipe    
  270-010000   706.87      0.66292      0.33708      0.33708        504.210    504.142    504.172   490.27       1116.8     0000000
  270-020000   705.26      0.38253      0.61747      0.61747        503.944    503.880    503.917   489.96       1116.8     0000000

@@ -3,7 +3,7 @@
   \textcolor{red}{\\It is important to NOTE that RAVEN uses a Z-score normalization of the training data before
   constructing the \textit{#1} ROM:
 \begin{equation}
-  \mathit{\mathbf{X}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
+  \mathit{\mathbf{X'}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
 \end{equation}
  }
 }
@@ -104,7 +104,7 @@ Note that if an HistorySet is provided in the training step then a temporal ROM 
 \textcolor{red}{\\\textbf{It is important to NOTE that RAVEN uses a Z-score normalization of the training data before constructing most of the
 Reduced Order Models (e.g. most of the SciKitLearn-based ROMs):}}
 \begin{equation}
-  \mathit{\mathbf{X}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
+  \mathit{\mathbf{X'}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
 \end{equation}
 \\In the following sections the specifications of each ROM type are reported, highlighting when a \textbf{Z-score normalization} is performed by RAVEN before constructing the ROM or when it is not performed.
 
@@ -2833,6 +2833,9 @@ below).
   \default{Time}
   \item \xmlNode{Features}, \xmlDesc{string, required field}, defines the features (e.g., scaling). Note that only one feature is allowed for \xmlString{ARMA} and in current implementation this is used for evaluation only.
   \item \xmlNode{Target}, \xmlDesc{string, required field}, defines the variables of the time series.
+  \item \xmlNode{reseedCopies}, \xmlDesc{boolean, optional field}, if True then whenever the ARMA is copied, a
+    random reseeding will be performed to ensure different histories.
+  \default{True}
   \item \xmlNode{Pmax}, \xmlDesc{integer, optional field}, defines the maximum value of $p$.
   \default{3}
   \item \xmlNode{Pmin}, \xmlDesc{integer, optional field}, defines the minimum value of $p$.
