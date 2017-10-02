@@ -24,12 +24,13 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
+import ast
 from utils import utils
 import sklearn.metrics.pairwise as pairwise
-from sklearn.metrics import explained_variance_score 
-from sklearn.metrics import mean_absolute_error 
-from sklearn.metrics import mean_squared_error 
-from sklearn.metrics import median_absolute_error 
+from sklearn.metrics import explained_variance_score
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import median_absolute_error
 from sklearn.metrics import r2_score
 scores = {'explained_variance_score':explained_variance_score,
           'mean_absolute_error':mean_absolute_error,
@@ -71,6 +72,15 @@ class SKL(Metric):
     if self.metricType not in availableMetrics:
       metricList = ', '.join(availableMetrics[:-1]) + ', or ' + availableMetrics[-1]
       self.raiseAnError(IOError,'Metric SKL error: metricType ' + str(self.metricType) + ' is not available. Available metrics are: ' + metricList + '.')
+
+    for key, value in self.distParams.items():
+      try:
+        newValue = ast.literal_eval(value)
+        if type(newValue) == list:
+          newValue = np.asarray(newValue)
+        self.distParams[key] = newValue
+      except:
+        self.distParams[key] = value
 
   def distance(self, x, y=None, **kwargs):
     """

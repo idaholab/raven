@@ -1,16 +1,21 @@
 <MetricPostProcessor type="Static">
   <ans-ans2>
+    <r2_score>-0.697606406772</r2_score>
     <linear>-6.33553438043</linear>
     <sigmoid>-0.999953587641</sigmoid>
+    <median_absolute_error>1.42711900943</median_absolute_error>
     <poly>28.4679271247</poly>
     <euclidean>8.15320610438</euclidean>
     <cosine>-0.295652333689</cosine>
     <l2>8.15320610438</l2>
     <laplacian>8.81761659522e-05</laplacian>
     <l1>18.6723477175</l1>
-    <polynomial>28.4679271247</polynomial>
+    <mean_squared_error>7.06621390422</mean_squared_error>
     <cityblock>18.6723477175</cityblock>
+    <explained_variance_score>-0.490588326927</explained_variance_score>
+    <mean_absolute_error>2.01729705995</mean_absolute_error>
     <manhattan>18.6723477175</manhattan>
+    <polynomial>28.4679271247</polynomial>
     <rbf>3.67440606512e-15</rbf>
   </ans-ans2>
 </MetricPostProcessor>
