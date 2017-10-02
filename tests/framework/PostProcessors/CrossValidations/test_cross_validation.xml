@@ -2,7 +2,7 @@
 <Simulation verbosity="all">
   <RunInfo>
     <WorkingDir>simpleCrossValidation</WorkingDir>
-    <Sequence>mcRun, PP1</Sequence>
+    <Sequence>mcRun, PP1, ravenout</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
@@ -40,6 +40,19 @@
             <random_state>None</random_state>
         </SciKitLearn>
         <Metric class="Metrics" type="SKL">euclidean</Metric>
+    </PostProcessor>
+    <PostProcessor name="ravenout" subType="RavenOutput">
+        <File ID="1" name="output_cv">
+            <output name="ans-euclidean-cv-1">ans|euclidean|cv-1</output>
+            <output name="ans-euclidean-cv-2">ans|euclidean|cv-2</output>
+            <output name="ans-euclidean-cv-3">ans|euclidean|cv-3</output>
+            <output name="ans-euclidean-cv-4">ans|euclidean|cv-4</output>
+            <output name="ans-euclidean-cv-5">ans|euclidean|cv-5</output>
+            <output name="ans-euclidean-cv-6">ans|euclidean|cv-6</output>
+            <output name="ans-euclidean-cv-7">ans|euclidean|cv-7</output>
+            <output name="ans-euclidean-cv-8">ans|euclidean|cv-8</output>
+            <output name="ans-euclidean-cv-9">ans|euclidean|cv-9</output>
+        </File>
     </PostProcessor>
   </Models>
   
@@ -89,6 +102,12 @@
         <Output class="Files" type="">output_cv</Output>
         <Output class="Files" type="">output_cv.csv</Output>
     </PostProcess>
+    <PostProcess name="ravenout">
+        <Input class="Files" type="">output_cv</Input>
+        <Model class="Models" type="PostProcessor">ravenout</Model>
+        <Output class="DataObjects" type="PointSet">outRaven</Output>
+        <Output class="OutStreams" type="Print">outRaven</Output>
+    </PostProcess>
   </Steps>
 
   <DataObjects>
@@ -100,12 +119,30 @@
       <Input>x1,x2</Input>
       <Output>ans,ans2</Output>
     </PointSet>
+    <PointSet name="outRaven">
+        <Input>ID</Input>
+        <Output>
+            ans-euclidean-cv-1,
+            ans-euclidean-cv-2,
+            ans-euclidean-cv-3,
+            ans-euclidean-cv-4,
+            ans-euclidean-cv-5,
+            ans-euclidean-cv-6,
+            ans-euclidean-cv-7,
+            ans-euclidean-cv-8,
+            ans-euclidean-cv-9
+        </Output>
+    </PointSet>
   </DataObjects>
   
   <OutStreams>
       <Print name="dumpMC">
           <type>csv</type>
           <source>outputDataMC</source>
+      </Print>
+      <Print name="outRaven">
+          <type>csv</type>
+          <source>outRaven</source>
       </Print>
   </OutStreams>
 
