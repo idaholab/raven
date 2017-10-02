@@ -49,6 +49,7 @@ class ExternalModel(Dummy):
         specifying input of cls.
     """
     inputSpecification = super(ExternalModel, cls).getInputSpecification()
+    inputSpecification.setStrictMode(False) #External models can allow new elements
     inputSpecification.addParam("ModuleToLoad", InputData.StringType, True)
     inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringType))
 

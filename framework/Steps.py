@@ -529,7 +529,10 @@ class MultiRun(SingleRun):
       if inDictionary[self.samplerType].amIreadyToProvideAnInput():
         try:
           newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'])
-          inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
+          if isinstance(inDictionary["Model"], Models.EnsembleModel):
+            inDictionary["Model"].submitAsClient(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
+          else:
+            inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
           self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
@@ -567,8 +570,10 @@ class MultiRun(SingleRun):
         else:
           self.raiseADebug('the job "'+finishedJob.identifier+'" has failed.')
           if self.failureHandling['fail']:
-            #add run to a pool that can be sent to the sampler later
-            self.failedRuns.append(copy.copy(finishedJob))
+            # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
+            if not sampler.ableToHandelFailedRuns:
+              #add run to a pool that can be sent to the sampler later
+              self.failedRuns.append(copy.copy(finishedJob))
           else:
             if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
               self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
@@ -579,25 +584,32 @@ class MultiRun(SingleRun):
                                str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
               self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
             else:
-              #add run to a pool that can be sent to the sampler later
-              self.failedRuns.append(copy.copy(finishedJob))
+              # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
+              if not sampler.ableToHandelFailedRuns:
+                self.failedRuns.append(copy.copy(finishedJob))
               self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
+          if sampler.ableToHandelFailedRuns:
+            self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
         # finalize actual sampler
         sampler.finalizeActualSampling(finishedJob,model,inputs)
         # add new job
 
+        isEnsemble = isinstance(model, Models.EnsembleModel)
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
         ## In order to ensure that the queue does not grow too large, we will
         ## employ a threshold on the number of jobs the jobHandler can take,
         ## in addition, we cannot provide more jobs than the sampler can provide.
         ## So, we take the minimum of these two values.
-        for _ in range(min(jobHandler.availability(),sampler.endJobRunnable())):
+        for _ in range(min(jobHandler.availability(isEnsemble),sampler.endJobRunnable())):
           self.raiseADebug('Testing if the sampler is ready to generate a new input')
 
           if sampler.amIreadyToProvideAnInput():
             try:
               newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
-              model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+              if isEnsemble:
+                model.submitAsClient(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+              else:
+                model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
               break
@@ -835,7 +847,13 @@ class IOStep(Step):
           self.raiseAnError(RuntimeError,'Pickled object in "%s" is not a ROM.  Exiting ...' %str(fileobj))
         if not unpickledObj.amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %unpickledObj.name)
+        # save reseeding parameter from pickledROM
+        reseedInt = outputs[i].initializationOptionDict.get('reseedValue',None)
+        # train the ROM from the unpickled object
         outputs[i].train(unpickledObj)
+        # reseed as requested
+        if reseedInt is not None:
+          outputs[i].reseed(reseedInt)
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]

@@ -17,6 +17,7 @@
       <revision author="alfoa" date="2016-09-01">Close #650</revision>
       <revision author="alfoa" date="2016-11-14">New syntax ensemble</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="wangc" date="2017-09-11">add new sub-node 'initialStartModels'</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -48,8 +49,8 @@
       <settings>
         <initialConditions>
           <averageTemperature>1000.0</averageTemperature>
-          <k>10.0</k>
         </initialConditions>
+        <initialStartModels>thermalConductivityComputation</initialStartModels>
       </settings>
       <Model class="Models" type="ExternalModel">
         thermalConductivityComputation

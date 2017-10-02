@@ -543,7 +543,7 @@ def relativeDiff(f1,f2):
       f2 = float(f2)
     except ValueError:
       raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  Second argument is %s type %s' %(str(f2),type(f2)))
-  diff = abs(f1-f2)
+  diff = abs(diffWithInfinites(f1,f2))
   #"scale" is the relative scaling factor
   scale = f2
   #protect against div 0
@@ -554,6 +554,12 @@ def relativeDiff(f1,f2):
     #at this point, they're both equal to zero, so just divide by 1.0
     else:
       scale = 1.0
+  if abs(scale) == np.inf:
+    #no mathematical rigor here, but typical algorithmic use cases
+    if diff == np.inf:
+      return np.inf # assumption: inf/inf = 1
+    else:
+      return 0.0 # assumption: x/inf = 0 for all finite x
   return diff/abs(scale)
 
 def compareFloats(f1,f2,tol=1e-6):
@@ -611,3 +617,22 @@ def numBinsDraconis(data):
   numBins = int((max(data)-min(data))/binSize)
   binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
   return numBins,binEdges
+
+def diffWithInfinites(a,b):
+  """
+    Calculates the difference a-b and treats infinites.  We consider infinites to have equal values, but
+    inf - (- inf) = inf.
+    @ In, a, float, first value (could be infinite)
+    @ In, b, float, second value (could be infinite)
+    @ Out, res, float, b-a (could be infinite)
+  """
+  if abs(a) == np.inf or abs(b) == np.inf:
+    if a == b:
+      res = 0 #not mathematically rigorous, but useful algorithmically
+    elif a > b:
+      res = np.inf
+    else: # b > a
+      res = -np.inf
+  else:
+    res = a-b
+  return res

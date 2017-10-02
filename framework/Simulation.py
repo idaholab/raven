@@ -819,6 +819,10 @@ class Simulation(MessageHandler.MessageUser):
                     if obj[0] not in self.whichDict[mainClassStr][obj[1]].type:
                       self.raiseAnError(IOError,'Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.whichDict[mainClassStr][obj[1]].type)
                   neededobjs[mainClassStr][obj[1]] = self.whichDict[mainClassStr][obj[1]]
+                elif obj[1] in 'all':
+                  # if 'all' we get all the objects of a certain 'mainClassStr'
+                  for allObject in self.whichDict[mainClassStr]:
+                    neededobjs[mainClassStr][allObject] = self.whichDict[mainClassStr][allObject]
                 else:
                   self.raiseAnError(IOError,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
             stp.generateAssembler(neededobjs)
@@ -833,5 +837,6 @@ class Simulation(MessageHandler.MessageUser):
           output.finalize()
       self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
     self.jobHandler.shutdown()
-    self.raiseAMessage('Run complete!')
     self.messageHandler.printWarnings()
+    self.raiseAMessage('Run complete!',forcePrint=True)
+

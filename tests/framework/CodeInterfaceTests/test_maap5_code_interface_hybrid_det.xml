@@ -55,7 +55,7 @@
   </Distributions>
 
   <Samplers>
-    <DynamicEventTree name="hybdet" printEndXmlSummary="True">
+    <DynamicEventTree name="hybdet" printEndXmlSummary="True" removeXmlBranchInfo="False">
       <HybridSampler type="MonteCarlo">
         <samplerInit>
           <limit>2</limit>

@@ -31,6 +31,7 @@ from .BasicStatistics import BasicStatistics
 from utils import InputData
 import LearningGate
 import Files
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -255,11 +256,12 @@ class LimitSurfaceIntegral(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, 'no available output to collect.')
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
     else:
-      pb = finishedJob.getEvaluation()[1]
-      lms = finishedJob.getEvaluation()[0][0]
+      pb = evaluation[1]
+      lms = evaluation[0][0]
       if output.type == 'PointSet':
         # we store back the limitsurface
         for key, value in lms.getParametersValues('input').items():

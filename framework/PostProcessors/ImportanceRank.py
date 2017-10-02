@@ -32,6 +32,7 @@ from .PostProcessor import PostProcessor
 from utils import InputData
 import Files
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ImportanceRank(PostProcessor):
@@ -282,9 +283,10 @@ class ImportanceRank(PostProcessor):
       @ In, output, object, the object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
-    outputDict = finishedJob.getEvaluation()[-1]
+    outputDict = evaluation[1]
     # Output to file
     if isinstance(output, Files.File):
       availExtens = ['xml','csv']
@@ -294,7 +296,7 @@ class ImportanceRank(PostProcessor):
         self.raiseAWarning('Available are ' + str(availExtens) + '. Converting extension to ' + str(availExtens[0]) + '!')
         outputExtensions = availExtens[0]
         output.setExtension(outputExtensions)
-      output.setPath(self.__workingDir)
+      output.setPath(self._workingDir)
       self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
       if outputExtension == 'csv':
@@ -413,7 +415,6 @@ class ImportanceRank(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
 
   def inputToInternal(self, currentInp):
     """

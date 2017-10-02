@@ -1,0 +1,63 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.DymolaTestLoadSomeVarsNoExecutable</name>
+    <author>@alfoa</author>
+    <created>2017-09-16</created>
+    <classesTested>CodeInterfaces.Dymola</classesTested>
+    <description>
+       The purpose of this test is to exercise the Dymola external code interface without needing to have a built 
+         executable.  This special case shows how to load just few output varibles from the Dymola outputs (e.g. .mat files).
+         In this case only the variables e,g and h will be loaded
+    </description>
+  </TestInfo>
+  <Files>
+    <Input name="dsin.txt" type="DymolaInitialisation">dsin.txt</Input>
+  </Files>
+  <RunInfo>
+    <WorkingDir>DMInterfaceTestLoadSomeVars</WorkingDir>
+    <Sequence>testDummyStep</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Code name="BouncingBall" subType="Dymola">
+      <executable>
+        <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
+      </executable>
+      <outputVariablesToLoad>e g h</outputVariablesToLoad>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="h_dist">
+      <lowerBound>1.0</lowerBound>
+      <upperBound>5.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC">
+      <samplerInit>
+        <limit>5</limit>
+      </samplerInit>
+      <variable name="hstart">
+        <distribution>h_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="testDummyStep" re-seeding="1">
+      <Input class="Files" type="DymolaInitialisation">dsin.txt</Input>
+      <Model class="Models" type="Code">BouncingBall</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
+      <Output class="Databases" type="HDF5">DB_BouncingBall</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="DB_BouncingBall" readMode="overwrite"/>
+  </Databases>
+
+</Simulation>

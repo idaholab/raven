@@ -33,6 +33,7 @@ import six
 from .PostProcessor import PostProcessor
 from utils import utils
 import Files
+import Runners
 #Internal Modules End-----------------------------------------------------------
 
 
@@ -215,7 +216,6 @@ class BasicStatistics(PostProcessor):
     #for backward compatibility, compile the full list of parameters used in Basic Statistics calculations
     self.parameters['targets'] = list(self.allUsedParams)
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -340,9 +340,12 @@ class BasicStatistics(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, ' No available Output to collect (run possibly not finished yet)')
-    outputDictionary = finishedJob.getEvaluation()[1]
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
+    outputDictionary = evaluation[1]
+
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam:
@@ -352,7 +355,7 @@ class BasicStatistics(PostProcessor):
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
         self.raiseAMessage('BasicStatistics did not recognize extension ".'+str(outputExtension)+'" as ".xml", so writing text output...')
-      output.setPath(self.__workingDir)
+      output.setPath(self._workingDir)
       self.raiseADebug('Writing statistics output in file named ' + output.getAbsFile())
       output.open('w')
       if outputExtension == 'xml':

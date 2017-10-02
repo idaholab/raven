@@ -41,7 +41,7 @@ import xml.etree.ElementTree as ET
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from utils.cached_ndarray import c1darray
-from Csv_loader import CsvLoader as ld
+from CsvLoader import CsvLoader as ld
 import Files
 import utils.TreeStructure as TS
 from utils import utils

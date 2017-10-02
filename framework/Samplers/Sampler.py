@@ -89,6 +89,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     BaseType.__init__(self)
     Assembler.__init__(self)
+    self.ableToHandelFailedRuns        = False                     # is this sampler able to handle failed runs?
     self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.auxcnt                        = 0                         # Aux counter of samples performed (for its usage check initialize method)
     self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
@@ -373,7 +374,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     paramDict = {}
     for variable in self.toBeSampled.items():
-      paramDict[variable[0]] = 'is sampled using the distribution ' +variable[1]
+      paramDict["sampled variable: "+variable[0]] = 'is sampled using the distribution ' +variable[1]
     paramDict['limit' ]        = self.limit
     paramDict['initial seed' ] = self.initSeed
     paramDict.update(self.localGetInitParams())

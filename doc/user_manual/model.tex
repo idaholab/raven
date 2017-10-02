@@ -1236,7 +1236,6 @@ def run(self,Input):
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{postprocessor.tex}
 
-
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%  EnsembleModel  Model   %%%%%%
@@ -1346,7 +1345,10 @@ It is important to notice that when the EnsembleModel detects a chain of models 
         \xmlNode{varName} contains the value of the initial conditions (scalar or arrays, depending of the
         type of variable). If an array needs to be inputted, the user can specify the attribute  \xmlAttr{repeat}
         and the code is going to repeat for  \xmlAttr{repeat}-times the value inputted in the body.
-    \end{itemize}
+     \item \xmlNode{initialStartModels}, xmlDesc{XML node, only required parameter when Picard's iteration is activated},
+        specifies the list of models that will be initially executed. \nb Do not input this node for non-Picard calculations,
+        otherwise an error will be raised.
+  \end{itemize}
 \end{itemize}
 \textbf{Example (Linear System):}
 \begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]

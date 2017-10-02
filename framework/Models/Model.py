@@ -122,7 +122,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type']         = ['SPSA']
+  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifferenceGradientOptimizer']
 
   @classmethod
   def generateValidateDict(cls):
@@ -179,7 +179,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
-        raise IOError('It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
+        raise IOError('It is not possible to use '+anItem['class']+' type = ' +anItem['type']+' as '+who)
     return True
 
   def __init__(self,runInfoDict):
@@ -278,7 +278,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     if "subType" in paramInput.parameterValues:
-      self.subType = paraminput.parameterValues["subType"]
+      self.subType = paramInput.parameterValues["subType"]
     else:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
@@ -380,6 +380,36 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
     jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+
+  def submitAsClient(self, myInput, samplerType, jobHandler, **kwargs):
+    """
+        This will submit an individual sample to be evaluated by this model to a
+        specified jobHandler as a client job. Note, some parameters are needed
+        by createNewInput and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new
+          one
+        @ In, samplerType, string, is the type of sampler that is calling to
+          generate a new input
+        @ In,  jobHandler, JobHandler instance, the global job handler instance
+        @ In, **kwargs, dict,  is a dictionary that contains the information
+          coming from the sampler, a mandatory key is the sampledVars' that
+          contains a dictionary {'name variable':value}
+        @ Out, None
+    """
+    prefix = kwargs['prefix'] if 'prefix' in kwargs else None
+    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
+
+    ## These kwargs are updated by createNewInput, so the job either should not
+    ## have access to the metadata, or it needs to be updated from within the
+    ## evaluateSample function, which currently is not possible since that
+    ## function does not know about the job instance.
+    metadata = kwargs
+
+    ## This may look a little weird, but due to how the parallel python library
+    ## works, we are unable to pass a member function as a job because the
+    ## pp library loses track of what self is, so instead we call it from the
+    ## class and pass self in as the first parameter
+    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
 
   def createExportDictionaryFromFinishedJob(self,finishedJob, addJobId = False, inputParams = None):
     """

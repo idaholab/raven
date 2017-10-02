@@ -1,0 +1,101 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>leaveOneLabelOut</WorkingDir>
+    <Sequence>mcRun, PP1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/Metric/test_leaveOneLabelOut</name>
+    <author>wangc</author>
+    <created>2017-09-07</created>
+    <classesTested>PostProcessors.CrossValidation</classesTested>
+    <description>
+      This test checks the CrossValidation PostProcessor with LeaveOneLabelOut method
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="output_cv" type="">output_cv.xml</Input>
+    <Input name="output_cv.csv" type="">output_cv.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
+      <variables>x1,x2,ans,ans2</variables>
+    </ExternalModel>
+    <ROM name="surrogate" subType="SciKitLearn">
+      <SKLtype>linear_model|LinearRegression</SKLtype>
+      <Features>x1,x2</Features>
+      <Target>ans</Target>
+      <fit_intercept>True</fit_intercept>
+      <normalize>True</normalize>
+    </ROM>
+    <PostProcessor name="pp1" subType="CrossValidation">
+        <SciKitLearn>
+            <SKLtype>LeaveOneLabelOut</SKLtype>
+            <labels>[0,0,1,1,1,1,1,2,2,2]</labels>
+        </SciKitLearn>
+        <Metric class="Metrics" type="SKL">euclidean</Metric>
+    </PostProcessor>
+  </Models>
+  
+  <Metrics>
+    <SKL name="euclidean">
+      <metricType>euclidean</metricType>
+    </SKL>
+  </Metrics>
+
+  <Distributions>
+    <Normal name="dist1">
+      <mean>1</mean>
+      <sigma>0.5</sigma>
+    </Normal>
+    <Normal name="dist2">
+      <mean>-1</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>dist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>dist2</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mcRun" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC</Output>
+    </MultiRun>
+    <PostProcess name="PP1">
+        <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+        <Input class="Models" type="ROM">surrogate</Input>
+        <Model class="Models" type="PostProcessor">pp1</Model>
+        <Output class="Files" type="">output_cv</Output>
+        <Output class="Files" type="">output_cv.csv</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataMC">
+      <Input>x1,x2</Input>
+      <Output>ans,ans2</Output>
+    </PointSet>
+  </DataObjects>
+  
+</Simulation>

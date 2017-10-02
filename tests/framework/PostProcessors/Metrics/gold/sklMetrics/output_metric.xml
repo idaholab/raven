@@ -1,0 +1,16 @@
+<MetricPostProcessor type="Static">
+  <ans-ans2>
+    <linear>-6.33553438043</linear>
+    <sigmoid>-0.999953587641</sigmoid>
+    <poly>28.4679271247</poly>
+    <euclidean>8.15320610438</euclidean>
+    <cosine>-0.295652333689</cosine>
+    <l2>8.15320610438</l2>
+    <laplacian>8.81761659522e-05</laplacian>
+    <l1>18.6723477175</l1>
+    <polynomial>28.4679271247</polynomial>
+    <cityblock>18.6723477175</cityblock>
+    <manhattan>18.6723477175</manhattan>
+    <rbf>3.67440606512e-15</rbf>
+  </ans-ans2>
+</MetricPostProcessor>

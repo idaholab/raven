@@ -46,7 +46,7 @@
     csv = 'ROMLoad/historiesROM_0.csv'
     image = 'ROMLoad/1-historyROMPlot_line.png'
     required_libraries = 'PIL'
-    rel_err = 0.000001
+    rel_err = 0.005
   [../]
   
   [./PostProcess]

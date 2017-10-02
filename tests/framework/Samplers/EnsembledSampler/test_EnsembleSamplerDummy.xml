@@ -8,7 +8,7 @@
     <description>
        An example of using the EnsembleForward sampler aimed to combine multiple
        forward sampling tecniques (MonteCarlo, Grid, Stratified, etc.). This test
-       uses a Dummy Model in order to check that the sampled values are correcly 
+       uses a Dummy Model in order to check that the sampled values are correcly
        passed to the Model entity.
     </description>
     <revisions>
@@ -16,9 +16,10 @@
       <revision author="alfoa" date="2016-05-25">Finalized merge request. Closes #559</revision>
       <revision author="talbpaul" date="2016-09-15">Test updates</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="talbpaul" date="2017-09-27">Added seed to samplerInit for testing</revision>
     </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>EnsembleForwardTest</WorkingDir>
     <Sequence>EnsembleForwardStep,EnsembleForwardOutstreamStep</Sequence>
@@ -53,6 +54,9 @@
 
   <Samplers>
     <EnsembleForward name="testEnsembleForward">
+      <samplerInit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
       <MonteCarlo name="notNeeded">
         <samplerInit>
           <limit>2</limit>
