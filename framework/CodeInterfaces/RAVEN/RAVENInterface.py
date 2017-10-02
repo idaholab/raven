@@ -265,17 +265,17 @@ class RAVEN(CodeInterfaceBase):
       del readLines
     if not failure:
       for filename in self.linkedDataObjectOutStreamsNames:
-        outstreamFile = os.path.join(workingDir,self.innerWorkingDir,filename+".csv")
+        outStreamFile = os.path.join(workingDir,self.innerWorkingDir,filename+".csv")
         try:
-          fileObj = open(outstreamFile,"r")
+          fileObj = open(outStreamFile,"r")
         except IOError:
-          print(self.printTag+' ERROR: The RAVEN SLAVE output file "'+str(outstreamFile)+'" does not exist!')
+          print(self.printTag+' ERROR: The RAVEN SLAVE output file "'+str(outStreamFile)+'" does not exist!')
           failure = True
         if not failure:
           readLines = fileObj.readlines()
           if any("nan" in x.lower() for x in readLines):
             failure = True
-            print(self.printTag+' ERROR: Found nan in RAVEN SLAVE output "'+str(outstreamFile)+'!')
+            print(self.printTag+' ERROR: Found nan in RAVEN SLAVE output "'+str(outStreamFile)+'!')
             break
           del readLines
     return failure

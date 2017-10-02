@@ -280,11 +280,11 @@ class CrossValidation(PostProcessor):
             metricName = metricInstance.type
           if metricName not in outputDict[targetName].keys():
             outputDict[targetName][metricName] = []
-          outputDict[targetName][metricName].append(metricValue[0]) 
+          outputDict[targetName][metricName].append(metricValue[0])
     if self.averageScores:
       for targetName in outputEvaluation.keys():
         for metricInstance in self.metricsDict.values():
-          metricName = metricInstance.metricType if hasattr(metricInstance, 'metricType') else metricInstance.type       
+          metricName = metricInstance.metricType if hasattr(metricInstance, 'metricType') else metricInstance.type
           outputDict[targetName][metricName] = [np.atleast_1d(outputDict[targetName][metricName]).mean()]
     return outputDict
 
@@ -347,7 +347,7 @@ class CrossValidation(PostProcessor):
     """
       Defines the method for writing the post-processor to a .csv file
       @ In, output, File object, file to write to
-      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ In, outputDictionary, dict, dictionary stores metrics' results of outputs
       @ In, separator, string, optional, separator string
       @ Out, None
     """
@@ -376,8 +376,8 @@ class CrossValidation(PostProcessor):
   def _writeDataObject(self,output,outputDictionary):
     """
       Defines the method for writing the post-processor to a a PointSet
-      @ In, output, PointSet object, PointSet to dumpt the results to
-      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ In, output, PointSet object, PointSet to dump the results to
+      @ In, outputDictionary, dict, dictionary stores metics' results of outputs
       @ Out, None
     """
     if self.dynamic:
@@ -388,7 +388,7 @@ class CrossValidation(PostProcessor):
     inputKeys  = output.getParaKeys('inputs')
     keysToFill = dict.fromkeys(outputKeys+inputKeys)
     if 'CV-Run-Number' not in outputKeys + inputKeys:
-      self.raiseAnError(Exception, "CV-Run-Number key is present neither in the <Input> nor <Output> nodes of the DataObject! Check your input!")        
+      self.raiseAnError(Exception, "CV-Run-Number key is present neither in the <Input> nor <Output> nodes of the DataObject! Check your input!")
     keysToFill['CV-Run-Number'] = True
     for ts, outputDict in enumerate(outputResults):
       nodeNames, nodeValues = outputDict.keys(), outputDict.values()
