@@ -96,6 +96,10 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
         probSum += sortedData[searchIndex][weight]
         searchIndex += 1
       bins[i] = sortedData[searchIndex][value]
+    #Remove duplicates
+    for i in reversed(range(len(bins))):
+      if i > 1 and bins[i-1] == bins[i]:
+        bins.pop(i)
     if len(bins) > 1:
       minBinSize = min(map(lambda x, y: x - y, bins[1:], bins[:-1]))
     else:
