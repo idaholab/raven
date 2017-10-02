@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation>
-  <!-- TestInfo -->  
+  <!-- TestInfo -->
   <TestInfo>
     <name>framework/adaptive_sampler_ext_model</name>
     <author>@alfoa</author>
@@ -16,6 +16,7 @@
     <WorkingDir>Adapt</WorkingDir>
     <Sequence>adapt,adaptdump</Sequence>
     <batchSize>1</batchSize>
+    <maxQueueSize>1</maxQueueSize>
   </RunInfo>
 
   <Steps>
