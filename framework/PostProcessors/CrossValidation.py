@@ -336,7 +336,10 @@ class CrossValidation(PostProcessor):
       pivotVal = outputDictionary.keys()[ts]
       for nodeName, nodeValues in outputDict.items():
         for metricName, metricValues in nodeValues.items():
-          cvRuns = ['cv-' + str(i) for i in range(len(metricValues))]
+          if self.averageScores:
+            cvRuns = ['average']
+          else:
+            cvRuns = ['cv-' + str(i) for i in range(len(metricValues))]
           valueDict = dict(zip(cvRuns, metricValues))
           outputInstance.addVector(nodeName, metricName, valueDict, pivotVal = pivotVal)
     outputInstance.writeFile()

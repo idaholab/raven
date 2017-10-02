@@ -33,6 +33,7 @@
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
+            <average>True</average>
             <SKLtype>LeavePOut</SKLtype>
             <n>10</n>
             <p>2</p>
