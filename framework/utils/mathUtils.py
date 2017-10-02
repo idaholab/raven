@@ -24,6 +24,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import math
 import copy
+import scipy
 from scipy import interpolate, stats, integrate
 import numpy as np
 from utils.utils import UreturnPrintTag,UreturnPrintPostTag
@@ -70,6 +71,10 @@ def createInterp(x, y, lowFill, highFill, kind='linear'):
      @ In, kind, string, optional, interpolation type (default=linear)
      @ Out, interp, function(float) returns float, an interpolation function that takes a single float value and return its interpolated value using lowFill or highFill when the input value is outside of the interpolation range.
   """
+  sv = str(scipy.__version__).split('.')
+  if int(sv[0])> 0 or int(sv[1]) >= 17:
+    interp = interpolate.interp1d(x, y, kind, bounds_error=False, fill_value=([lowFill], [highFill]))
+    return interp
   interp = interpolate.interp1d(x, y, kind)
   # interp = interpolate.interp1d(x, y, kind, bounds_error=False, fill_value=lowFill)
   low = x[0]
