@@ -35,6 +35,7 @@
             <xsd:element name="dense_output"      type="xsd:string"    minOccurs="0"/>
             <xsd:element name="sum_over_features" type="xsd:string"    minOccurs="0"/>
             <xsd:element name="size_threshold"    type="xsd:float"     minOccurs="0"/>
+            <xsd:element name="sample_weight"     type="xsd:string"    minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
