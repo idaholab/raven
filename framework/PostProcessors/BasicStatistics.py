@@ -258,10 +258,14 @@ class BasicStatistics(PostProcessor):
     """
     paramInput = self.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
 
-    # paramInput = BasicStatistics.getInputSpecification()()
-    # paramInput.parseNode(xmlNode)
-
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     self.toDo = {}
     for child in paramInput.subparts:
       tag = child.getName()
