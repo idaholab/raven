@@ -76,7 +76,6 @@ def createInterp(x, y, lowFill, highFill, kind='linear'):
     interp = interpolate.interp1d(x, y, kind, bounds_error=False, fill_value=([lowFill], [highFill]))
     return interp
   interp = interpolate.interp1d(x, y, kind)
-  # interp = interpolate.interp1d(x, y, kind, bounds_error=False, fill_value=lowFill)
   low = x[0]
   def myInterp(value):
     """
