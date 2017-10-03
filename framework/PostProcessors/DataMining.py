@@ -29,6 +29,7 @@ import time
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
+from utils import InputData
 import Files
 import unSupervisedLearning
 import Runners
@@ -51,9 +52,119 @@ class DataMining(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(RavenOutput, cls).getInputSpecification()
+    inputSpecification = super(DataMining, cls).getInputSpecification()
 
-    ## TODO: Fill this in with the appropriate tags
+    preProcessorInput = InputData.parameterInputFactory("PreProcessor", contentType=InputData.StringType)
+    preProcessorInput.addParam("class", InputData.StringType)
+    preProcessorInput.addParam("type", InputData.StringType)
+
+    pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+
+    inputSpecification.addSub(pivotParameterInput)
+
+    dataObjectInput = InputData.parameterInputFactory("DataObject", contentType=InputData.StringType)
+    dataObjectInput.addParam("class", InputData.StringType)
+    dataObjectInput.addParam("type", InputData.StringType)
+
+    inputSpecification.addSub(dataObjectInput)
+
+    metricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
+    metricInput.addParam("class", InputData.StringType)
+    metricInput.addParam("type", InputData.StringType)
+
+    inputSpecification.addSub(metricInput)
+
+    kddInput = InputData.parameterInputFactory("KDD")
+    kddInput.addParam("lib", InputData.StringType)
+    kddInput.addParam("labelFeature", InputData.StringType)
+
+
+    sklTypeInput = InputData.parameterInputFactory("SKLtype", contentType=InputData.StringType)
+    kddInput.addSub(sklTypeInput)
+    sciPyTypeInput = InputData.parameterInputFactory("SCIPYtype", contentType=InputData.StringType)
+    kddInput.addSub(sciPyTypeInput)
+
+    for name, inputType in [("Features",InputData.StringType),
+                            ("n_components",InputData.StringType),
+                            ("covariance_type",InputData.StringType),
+                            ("random_state",InputData.StringType),
+                            ("min_covar",InputData.FloatType),
+                            ("thresh",InputData.FloatType),
+                            ("n_iter",InputData.IntegerType),
+                            ("n_init",InputData.IntegerType),
+                            ("params",InputData.StringType),
+                            ("init_params",InputData.StringType),
+                            ("alpha",InputData.FloatType),
+                            ("n_clusters",InputData.IntegerType),
+                            ("max_iter",InputData.IntegerType),
+                            ("init",InputData.StringType),
+                            ("precompute_distances",InputData.StringType),
+                            ("tol",InputData.FloatType),
+                            ("n_jobs",InputData.IntegerType),
+                            ("max_no_improvement",InputData.IntegerType),
+                            ("batch_size",InputData.IntegerType),
+                            ("compute_labels",InputData.StringType),
+                            ("reassignment_ratio",InputData.FloatType),
+                            ("damping",InputData.StringType),
+                            ("convergence_iter",InputData.IntegerType),
+                            ("copy",InputData.StringType),
+                            ("preference",InputData.StringType),
+                            ("affinity",InputData.StringType),
+                            ("verbose",InputData.StringType),
+                            ("bandwidth",InputData.FloatType),
+                            ("seeds",InputData.StringType),
+                            ("bin_seeding",InputData.StringType),
+                            ("min_bin_freq",InputData.IntegerType),
+                            ("cluster_all",InputData.StringType),
+                            ("gamma",InputData.FloatType),
+                            ("degree",InputData.StringType),
+                            ("coef0",InputData.FloatType),
+                            ("n_neighbors",InputData.IntegerType),
+                            ("eigen_solver",InputData.StringType),
+                            ("eigen_tol",InputData.FloatType),
+                            ("assign_labels",InputData.StringType),
+                            ("kernel_params",InputData.StringType),
+                            ("eps",InputData.StringType),
+                            ("min_samples",InputData.IntegerType),
+                            ("metric", InputData.StringType),
+                            ("connectivity",InputData.StringType),
+                            ("linkage",InputData.StringType),
+                            ("whiten",InputData.StringType),
+                            ("iterated_power",InputData.StringType),
+                            ("kernel",InputData.StringType),
+                            ("fit_inverse_transform",InputData.StringType),
+                            ("remove_zero_eig",InputData.StringType),
+                            ("ridge_alpha",InputData.FloatType),
+                            ("method",InputData.StringType),
+                            ("U_init",InputData.StringType),
+                            ("V_init",InputData.StringType),
+                            ("callback",InputData.StringType),
+                            ("shuffle",InputData.StringType),
+                            ("algorithm",InputData.StringType),
+                            ("fun",InputData.StringType),
+                            ("fun_args",InputData.StringType),
+                            ("w_init",InputData.StringType),
+                            ("path_method",InputData.StringType),
+                            ("neighbors_algorithm",InputData.StringType),
+                            ("reg",InputData.FloatType),
+                            ("hessian_tol",InputData.FloatType),
+                            ("modified_tol",InputData.FloatType),
+                            ("dissimilarity",InputData.StringType),
+                            ("level",InputData.StringType),
+                            ("criterion",InputData.StringType),
+                            ("dendrogram",InputData.StringType),
+                            ("truncationMode",InputData.StringType),
+                            ("p",InputData.IntegerType),
+                            ("leafCounts",InputData.StringType),
+                            ("showContracted",InputData.StringType),
+                            ("annotatedAbove",InputData.FloatType),
+                            ("dendFileID",InputData.StringType)]:
+      dataType = InputData.parameterInputFactory(name, contentType=inputType)
+      kddInput.addSub(dataType)
+
+    inputSpecification.addSub(kddInput)
+
+    inputSpecification.addSub(preProcessorInput)
 
     return inputSpecification
 
@@ -287,39 +398,46 @@ class DataMining(PostProcessor):
       @ Out, None
     """
 
-    # paramInput = DataMining.getInputSpecification()()
-    # paramInput.parseNode(xmlNode)
+    paramInput = self.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
 
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     ## By default, we want to name the 'labels' by the name of this
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information
     self.initializationOptionDict = {}
 
-    for child in xmlNode:
-      if child.tag == 'KDD':
-        if child.attrib:
+    for child in paramInput.subparts:
+      if child.getName() == 'KDD':
+        if len(child.parameterValues) > 0:
           ## I'm not sure what this thing is used for, but it seems to make more
           ## sense to only put data that is not otherwise handled rather than
           ## put all of the information and then to remove the ones we process.
           ## - dpm 6/8/16
-          self.initializationOptionDict[child.tag] = {}
-          for key,value in child.attrib.iteritems():
+          self.initializationOptionDict[child.getName()] = {}
+          for key,value in child.parameterValues.iteritems():
             if key == 'lib':
               self.type = value
             elif key == 'labelFeature':
               self.labelFeature = value
             else:
-              self.initializationOptionDict[child.tag][key] = value
+              self.initializationOptionDict[child.getName()][key] = value
         else:
-          self.initializationOptionDict[child.tag] = utils.tryParse(child.text)
+          self.initializationOptionDict[child.getName()] = utils.tryParse(child.value)
 
-        for childChild in child:
-          if childChild.attrib and not childChild.tag == 'PreProcessor':
-            self.initializationOptionDict[child.tag][childChild.tag] = dict(childChild.attrib)
+        for childChild in child.subparts:
+          if len(childChild.parameterValues) > 0 and not childChild.getName() == 'PreProcessor':
+            self.initializationOptionDict[child.getName()][childChild.getName()] = dict(childChild.parameterValues)
           else:
-            self.initializationOptionDict[child.tag][childChild.tag] = utils.tryParse(childChild.text)
-      elif child.tag == 'pivotParameter':
-        self.pivotParameter = child.text
+            self.initializationOptionDict[child.getName()][childChild.getName()] = utils.tryParse(childChild.value)
+      elif child.getName() == 'pivotParameter':
+        self.pivotParameter = child.value
 
     if not hasattr(self, 'pivotParameter'):
       #TODO, if doing time dependent data mining that needs this, an error
