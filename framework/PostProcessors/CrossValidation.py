@@ -112,10 +112,8 @@ class CrossValidation(PostProcessor):
     cvNode = xmlNode.find('SciKitLearn')
     for child in cvNode:
       if child.tag == 'average':
-        average = child
+        self.averageScores = child.text.lower() in utils.stringsThatMeanTrue()
         break
-    if average is not None:
-      self.averageScores = average.text.lower() in utils.stringsThatMeanTrue()
     for child in xmlNode:
       if child.tag == 'SciKitLearn':
         self.initializationOptionDict[child.tag] = self._localInputAndCheck(child)
