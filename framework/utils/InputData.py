@@ -121,6 +121,24 @@ class FloatType(InputType):
 
 FloatType.createClass("float","xsd:double")
 
+class StringListType(InputType):
+  """
+    A type for string lists "1, abc, 3" -> ["1","abc","3"]
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a string list.
+      @ In, value, string, the value to convert
+      @ Out, convert, list, the converted value
+    """
+    return [x.strip() for x in value.split(",")]
+
+#Note, XSD's list type is split by spaces, not commas, so using xsd:string
+StringListType.createClass("stringtype","xsd:string")
+
+
 class EnumBaseType(InputType):
   """
     A type that allows a set list of strings
