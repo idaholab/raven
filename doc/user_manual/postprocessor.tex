@@ -97,8 +97,8 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{variance}: variance
     \item \textbf{sigma}: standard deviation
     \item \textbf{percentile}: the percentile. If this quantity is inputted as \textit{percentile} the $5\%$ and $95\%$ percentile(s) are going to be computed.
-                               Otherwise the user can specify this quantity as \textit{percentile\_$X\%$}, where \textit{X} represents the requested
-                               percentile (an integer value between 1 and 100)
+                               Otherwise the user can specify this quantity with a parameter \textit{percent='X'}, where the \textit{X} represents the requested
+                               percentile (a floating point value between 0.0 and 100.0)
     \item \textbf{variationCoefficient}: coefficient of variation, i.e. \textbf{sigma}/\textbf{expectedValue}. \nb If the \textbf{expectedValue} is zero,
     the \textbf{variationCoefficient} will be \textbf{INF}.
     \item \textbf{skewness}: skewness
