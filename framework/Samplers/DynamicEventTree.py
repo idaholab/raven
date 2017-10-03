@@ -588,6 +588,7 @@ class DynamicEventTree(Grid):
           self.inputInfo['ValueThreshold'].append(self.branchValues[key][branchedLevel[key]])
       self.inputInfo['SampledVars']   = {}
       self.inputInfo['SampledVarsPb'] = {}
+      self.inputInfo['SampledVarsCdf']= {}
       for varname in self.standardDETvariables:
         self.inputInfo['SampledVars'][varname]   = self.branchValues[varname][branchedLevel[varname]]
         self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname]]

@@ -138,5 +138,15 @@
     output = 'timeDepOutCsv/fileOut.csv timeDepOutCsv/1-PlotStatsT2_scatter-scatter-scatter.png'
     max_time = 200
   [../]
+  [./grid_voronoi]
+    type = 'RavenFramework'
+    input = 'grid_voronoi.xml'
+    UnorderedCsv = 'basicStatsGridVoronoi/outputDatagrid_dump.csv'
+    UnorderedXml = 'basicStatsGridVoronoi/output_basicStatistics_PP1grid.xml'
+    output = 'basicStatsGridVoronoi/outputDatagrid_dump.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
 
 []

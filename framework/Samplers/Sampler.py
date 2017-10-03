@@ -102,8 +102,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.initSeed                      = None                      # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
     self.inputInfo['SampledVars'     ] = self.values               # this is the location where to get the values of the sampled variables
     self.inputInfo['SampledVarsPb'   ] = {}                        # this is the location where to get the probability of the sampled variables
+    self.inputInfo['SampledVarsCdf'  ] = {}                        # this is the location where to get the cumulative probability of the sampled variables (@jougcj)
     self.inputInfo['PointProbability'] = None                      # this is the location where the point wise probability is stored (probability associated to a sampled point)
     self.inputInfo['crowDist']         = {}                        # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
+    self.inputInfo['Boundaries']       = {}                        # Stores a dictionary that contains the upper and lower bound of the crow distribution
     self.constants                     = {}                        # In this dictionary
     self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
     self.FIXME                         = False                     # FIXME flag
@@ -434,6 +436,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.raiseAnError(IOError,'Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!')
       self.distDict[key] = availableDist[self.toBeSampled[key]]
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
+      self.inputInfo['Boundaries'][key] = (self.distDict[key].lowerBound,self.distDict[key].upperBound)
     for key,val in self.dependentSample.items():
       if val not in availableFunc.keys():
         self.raiseAnError('Function',val,'was not found among the available functions:',availableFunc.keys())

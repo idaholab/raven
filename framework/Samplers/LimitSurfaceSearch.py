@@ -560,6 +560,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
           for varIndex, _ in enumerate([key.replace('<distribution>','') for key in self.axisName]):
             self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[maxGridId][maxId,varIndex]))
             self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+            self.inputInfo['SampledVarsCdf'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+
           varSet=True
         else:
           self.raiseADebug('Maximum score is 0.0')
@@ -624,6 +626,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         for varIndex, varName in enumerate(axisNames):
           self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+          self.inputInfo['SampledVarsCdf'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
       elif self.batchStrategy == 'naive':
         ########################################################################
@@ -655,6 +658,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.inputInfo['distributionName'][key]  = self.toBeSampled[key]
         self.inputInfo['distributionType'][key]  = self.distDict[key].type
         self.inputInfo['SampledVarsPb'   ][key]  = self.distDict[key].pdf(self.values[key])
+        self.inputInfo['SampledVarsCdf'  ][key]  = self.distDict[key].cdf(self.values[key])
         self.inputInfo['ProbabilityWeight-'+key] = self.distDict[key].pdf(self.values[key])
     self.inputInfo['PointProbability'    ]      = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation

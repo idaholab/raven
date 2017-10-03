@@ -91,6 +91,33 @@ def createInterp(x, y, lowFill, highFill, kind='linear'):
         return highFill
   return myInterp
 
+def createInterpV2(x, y, low_fill, high_fill, kind='linear',tyype='CDF'):
+  interp = interpolate.interp1d(x, y, kind)
+  low = x[0]
+  high = x[-1]
+  if tyype=='CDF':
+    upper=1.0
+    lower=0.0
+  elif tyype=='PDF':
+    upper=sys.float_info.max
+    lower=0.0
+  else:
+    self.raiseAnError(IOError,'Only type CDF and PDF implemeted for this interpolating function. Use "createInterp"')
+  def myInterp(x):
+    try:
+      if interp(x)>upper:
+        return high_fill
+      if interp(x)<lower:
+        return low_fill
+      return interp(x)+0.0
+    except ValueError:
+      if x <= low:
+        return low_fill
+      else:
+        return high_fill
+  return myInterp
+
+
 def simpson(f, a, b, n):
   """
     Simpson integration rule
@@ -119,8 +146,14 @@ def getGraphs(functions, fZStats = False):
   """
   retDict = {}
   dataStats = [x[0] for x in functions]
-  means = [x["mean"] for x in dataStats]
-  stddevs = [x["stdev"] for x in dataStats]
+  try:
+    means = [x["mean"] for x in dataStats]
+  except KeyError:
+    means = [x["expectedValue"].values()[0] for x in dataStats]
+  try:
+    stddevs = [x["stdev"] for x in dataStats]
+  except KeyError:
+    stddevs = [x["sigma"].values()[0] for x in dataStats]
   cdfs = [x[1] for x in functions]
   pdfs = [x[2] for x in functions]
   names = [x[3] for x in functions]
@@ -131,6 +164,8 @@ def getGraphs(functions, fZStats = False):
   minBinSize = min([x["minBinSize"] for x in dataStats])
   print("Graph from ",low,"to",high)
   n = int(math.ceil((high-low)/minBinSize))
+  if n>1000:
+    n=1000
   interval = (high - low)/n
 
   #Print the cdfs and pdfs of the data to be compared.
