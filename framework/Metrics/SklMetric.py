@@ -98,13 +98,17 @@ class SKL(Metric):
           y = y.reshape(1,-1)
           #self.raiseAWarning(self, "1D array is provided. For consistence, this array is reshaped via y.reshape(1,-1) ")
         dictTemp = utils.mergeDictionaries(kwargs,self.distParams)
-        if self.metricType in pairwise.kernel_metrics().keys():
-          value = pairwise.pairwise_kernels(X=x, Y=y, metric=self.metricType, **dictTemp)
-        elif self.metricType in pairwise.distance_metrics():
-          value = pairwise.pairwise_distances(X=x, Y=y, metric=self.metricType, **dictTemp)
-        elif self.metricType in scores.keys():
-          value = np.zeros((1,1))
-          value[:,:] = scores[self.metricType](x,y,**dictTemp)
+        try:
+          if self.metricType in pairwise.kernel_metrics().keys():
+            value = pairwise.pairwise_kernels(X=x, Y=y, metric=self.metricType, **dictTemp)
+          elif self.metricType in pairwise.distance_metrics():
+            value = pairwise.pairwise_distances(X=x, Y=y, metric=self.metricType, **dictTemp)
+          elif self.metricType in scores.keys():
+            value = np.zeros((1,1))
+            value[:,:] = scores[self.metricType](x,y,**dictTemp)
+        except TypeError as e:
+          self.raiseAWarning('There are some unexpected keyword arguments found in Metric with type "', self.metricType, '"!')
+          self.raiseAnError(TypeError,'Input parameters error:\n', str(e), '\n')
         if value.shape == (1,1):
           return value[0]
         else:
@@ -116,10 +120,14 @@ class SKL(Metric):
         covMAtrix = np.cov(x.T)
         kwargs['VI'] = np.linalg.inv(covMAtrix)
       dictTemp = utils.mergeDictionaries(kwargs,self.distParams)
-      if self.metricType in pairwise.kernel_metrics().keys():
-        value = pairwise.pairwise_kernels(X=x, metric=self.metricType, **dictTemp)
-      elif self.metricType in pairwise.distance_metrics().keys():
-        value = pairwise.pairwise_distances(X=x, metric=self.metricType, **dictTemp)
+      try:
+        if self.metricType in pairwise.kernel_metrics().keys():
+          value = pairwise.pairwise_kernels(X=x, metric=self.metricType, **dictTemp)
+        elif self.metricType in pairwise.distance_metrics().keys():
+          value = pairwise.pairwise_distances(X=x, metric=self.metricType, **dictTemp)
+      except TypeError as e:
+        self.raiseAWarning('There are some unexpected keyword arguments found in Metric with type "', self.metricType, '"!')
+        self.raiseAnError(TypeError,'Input parameters error:\n', str(e), '\n')
       if value.shape == (1,1):
         return value[0]
       else:
