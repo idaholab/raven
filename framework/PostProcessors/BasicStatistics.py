@@ -92,7 +92,7 @@ class BasicStatistics(PostProcessor):
     inputSpecification = super(BasicStatistics, cls).getInputSpecification()
 
     for scalar in cls.scalarVals:
-      scalarSpecification = InputData.parameterInputFactory(scalar, contentType=InputData.StringType)
+      scalarSpecification = InputData.parameterInputFactory(scalar, contentType=InputData.StringListType)
       if scalar == 'percentile':
         #percent is a string type because otherwise we can't tell 95.0 from 95
         # which matters because the number is used in output.
@@ -102,10 +102,10 @@ class BasicStatistics(PostProcessor):
     for vector in cls.vectorVals:
       vectorSpecification = InputData.parameterInputFactory(vector)
       features = InputData.parameterInputFactory('features',
-                                contentType=InputData.StringType)
+                                contentType=InputData.StringListType)
       vectorSpecification.addSub(features)
       targets = InputData.parameterInputFactory('targets',
-                                contentType=InputData.StringType)
+                                contentType=InputData.StringListType)
       vectorSpecification.addSub(targets)
       inputSpecification.addSub(vectorSpecification)
 
@@ -268,7 +268,7 @@ class BasicStatistics(PostProcessor):
       #because percentile is strange (has an attached parameter), we address it first
       if tag == 'percentile':
         #get targets
-        targets = set(a.strip() for a in child.value.split(','))
+        targets = set(child.value)
         #what if user didn't give any targets?
         if len(targets)<1:
           self.raiseAWarning('No targets were specified in text of <'+tag+'>!  Skipping metric...')
@@ -293,9 +293,9 @@ class BasicStatistics(PostProcessor):
             self.toDo['percentile'][reqPercent] = set(targets)
       elif tag in self.scalarVals:
         if tag in self.toDo.keys():
-          self.toDo[tag].update(set(a.strip() for a in child.value.split(',')))
+          self.toDo[tag].update(set(child.value))
         else:
-          self.toDo[tag] = set(a.strip() for a in child.value.split(','))
+          self.toDo[tag] = set(child.value)
       elif tag in self.vectorVals:
         self.toDo[tag] = [] #'inputs':[],'outputs':[]}
         tnode = child.findFirst('targets')
@@ -309,11 +309,11 @@ class BasicStatistics(PostProcessor):
           #   nodes with the same metric (tag), but with different targets and features.  For instance, the user might
           #   want the sensitivity of A and B to X and Y, and the sensitivity of C to W and Z, but not the sensitivity
           #   of A to W.  If we didn't keep them separate, we could potentially waste a fair number of calculations.
-          self.toDo[tag].append({'targets':set(a.strip() for a in fnode.value.split(',')),
-                            'features':set(a.strip() for a in tnode.value.split(','))})
+          self.toDo[tag].append({'targets':set(fnode.value),
+                            'features':set(tnode.value)})
         else:
-          self.toDo[tag] = [{'targets':set(a.strip() for a in fnode.value.split(',')),
-                            'features':set(a.strip() for a in tnode.value.split(','))}]
+          self.toDo[tag] = [{'targets':set(fnode.value),
+                            'features':set(tnode.value)}]
       elif tag == 'all':
         #do all the metrics
         #establish targets and features
@@ -325,8 +325,8 @@ class BasicStatistics(PostProcessor):
         fnode = child.findFirst('features')
         if fnode is None:
           self.raiseAnError(IOError,'When using "all" node, you must specify a "targets" and a "features" node!  "features" is missing.')
-        targets = set(a.strip() for a in tnode.value.split(','))
-        features = set(a.strip() for a in fnode.value.split(','))
+        targets = set(tnode.value)
+        features = set(fnode.value)
         for scalar in self.scalarVals:
           #percentile is a little different
           if scalar == 'percentile':
@@ -343,12 +343,12 @@ class BasicStatistics(PostProcessor):
           else:
             if scalar not in self.toDo.keys():
               self.toDo[scalar] = set()
-            self.toDo[scalar].update(set(a.strip() for a in tnode.value.split(',')))
+            self.toDo[scalar].update(set(tnode.value))
         for vector in self.vectorVals:
           if vector not in self.toDo.keys():
             self.toDo[vector] = []
-          self.toDo[vector].append({'targets':set(a.strip() for a in fnode.value.split(',')),
-                                 'features':set(a.strip() for a in tnode.value.split(','))})
+          self.toDo[vector].append({'targets':set(fnode.value),
+                                 'features':set(tnode.value)})
       elif tag == "biased":
         if child.value.lower() in utils.stringsThatMeanTrue():
           self.biased = True
