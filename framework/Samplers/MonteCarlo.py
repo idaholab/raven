@@ -33,7 +33,7 @@ from functools import reduce
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import utils,randomUtils
+from utils import utils,randomUtils,InputData
 distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -43,6 +43,42 @@ class MonteCarlo(ForwardSampler):
   """
     MONTE CARLO Sampler
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(MonteCarlo, cls).getInputSpecification()
+
+    samplerInitInput = InputData.parameterInputFactory("samplerInit")
+    limitInput = InputData.parameterInputFactory("limit", contentType=InputData.IntegerType)
+    samplerInitInput.addSub(limitInput)
+    initialSeedInput = InputData.parameterInputFactory("initialSeed", contentType=InputData.IntegerType)
+    samplerInitInput.addSub(initialSeedInput)
+    distInitInput = InputData.parameterInputFactory("distInit", contentType=InputData.StringType)
+    distSubInput = InputData.parameterInputFactory("distribution")
+    distSubInput.addParam("name", InputData.StringType)
+    distSubInput.addSub(InputData.parameterInputFactory("initialGridDisc", contentType=InputData.IntegerType))
+    distSubInput.addSub(InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType))
+
+    distInitInput.addSub(distSubInput)
+    samplerInitInput.addSub(distInitInput)
+    samplingTypeInput = InputData.parameterInputFactory("samplingType", contentType=InputData.StringType)
+    samplerInitInput.addSub(samplingTypeInput)
+    reseedEachIterationInput = InputData.parameterInputFactory("reseedEachIteration", contentType=InputData.StringType)
+    samplerInitInput.addSub(reseedEachIterationInput)
+
+
+    inputSpecification.addSub(samplerInitInput)
+
+    return inputSpecification
+
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable

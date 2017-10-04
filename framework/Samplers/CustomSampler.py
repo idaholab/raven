@@ -30,12 +30,31 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
+from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CustomSampler(ForwardSampler):
   """
     Custom Sampler
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(CustomSampler, cls).getInputSpecification()
+    sourceInput = InputData.parameterInputFactory("Source", contentType=InputData.StringType)
+    sourceInput.addParam("type", InputData.StringType)
+    sourceInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(sourceInput)
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable

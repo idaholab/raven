@@ -33,14 +33,49 @@ from functools import reduce
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ForwardSampler import ForwardSampler
+from utils import InputData
+from .ForwardSampler        import ForwardSampler
+from .MonteCarlo            import MonteCarlo
+from .Grid                  import Grid
+from .Stratified            import Stratified
+from .FactorialDesign       import FactorialDesign
+from .ResponseSurfaceDesign import ResponseSurfaceDesign
+from .CustomSampler         import CustomSampler
 import GridEntities
 #Internal Modules End--------------------------------------------------------------------------------
 
-class EnsembleForwardSampler(ForwardSampler):
+class EnsembleForward(ForwardSampler):
   """
     Ensemble Forward sampler. This sampler is aimed to combine Forward Sampling strategies
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(EnsembleForward, cls).getInputSpecification()
+
+    #It would be nice if Factory.knownTypes could be used to do that,
+    # but that seems to cause recursive problems
+    inputSpecification.addSub(MonteCarlo.getInputSpecification())
+    inputSpecification.addSub(Grid.getInputSpecification())
+    inputSpecification.addSub(Stratified.getInputSpecification())
+    inputSpecification.addSub(FactorialDesign.getInputSpecification())
+    inputSpecification.addSub(ResponseSurfaceDesign.getInputSpecification())
+    inputSpecification.addSub(CustomSampler.getInputSpecification())
+
+    samplerInitInput = InputData.parameterInputFactory("samplerInit")
+
+    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputData.IntegerType))
+
+    inputSpecification.addSub(samplerInitInput)
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -132,7 +167,7 @@ class EnsembleForwardSampler(ForwardSampler):
 
   def localInitialize(self):
     """
-      Initialize the EnsembleForwardSampler sampler. It calls the localInitialize method of all the Samplers defined in this input
+      Initialize the EnsembleForward sampler. It calls the localInitialize method of all the Samplers defined in this input
       @ In, None
       @ Out, None
     """

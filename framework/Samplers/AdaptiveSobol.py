@@ -40,6 +40,7 @@ import itertools
 from .Sobol import Sobol
 from .AdaptiveSparseGrid import AdaptiveSparseGrid
 from utils import utils
+from utils import InputData
 import DataObjects
 import SupervisedLearning
 import Quadratures
@@ -52,6 +53,43 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
   """
     Adaptive Sobol sampler to obtain points adaptively for training a HDMR ROM.
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(AdaptiveSobol, cls).getInputSpecification()
+
+    #Remove old convergence and convergenceStudy from AdaptiveSparseGrid
+    inputSpecification.popSub("Convergence")
+    inputSpecification.popSub("convergenceStudy")
+    convergenceInput = InputData.parameterInputFactory("Convergence")
+
+    convergenceInput.addSub(InputData.parameterInputFactory("relTolerance", contentType=InputData.FloatType))
+    convergenceInput.addSub(InputData.parameterInputFactory("maxRuns", contentType=InputData.IntegerType))
+    convergenceInput.addSub(InputData.parameterInputFactory("maxSobolOrder", contentType=InputData.IntegerType))
+    convergenceInput.addSub(InputData.parameterInputFactory("progressParam", contentType=InputData.FloatType))
+    convergenceInput.addSub(InputData.parameterInputFactory("logFile", contentType=InputData.StringType))
+    convergenceInput.addSub(InputData.parameterInputFactory("subsetVerbosity", contentType=InputData.StringType))
+
+    inputSpecification.addSub(convergenceInput)
+
+    convergenceStudyInput = InputData.parameterInputFactory("convergenceStudy")
+
+    convergenceStudyInput.addSub(InputData.parameterInputFactory("runStatePoints", contentType=InputData.StringType))
+    convergenceStudyInput.addSub(InputData.parameterInputFactory("baseFilename", contentType=InputData.StringType))
+    convergenceStudyInput.addSub(InputData.parameterInputFactory("pickle"))
+    print(convergenceStudyInput.subs)
+
+    inputSpecification.addSub(convergenceStudyInput)
+
+    return inputSpecification
+
   def __init__(self):
     """
       The constructor.

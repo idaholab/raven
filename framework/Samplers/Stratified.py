@@ -35,7 +35,7 @@ from functools import reduce
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
 from .Sampler import Sampler
-from utils import utils,randomUtils
+from utils import utils,randomUtils,InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -44,6 +44,39 @@ class Stratified(Grid):
     Stratified sampler, also known as Latin Hypercube Sampling (LHS). Currently no
     special filling methods are implemented
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Stratified, cls).getInputSpecification()
+
+    samplerInitInput = InputData.parameterInputFactory("samplerInit")
+    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputData.IntegerType))
+    samplerInitInput.addSub(InputData.parameterInputFactory("distInit", contentType=InputData.IntegerType))
+
+    inputSpecification.addSub(samplerInitInput)
+
+    globalGridInput = InputData.parameterInputFactory("globalGrid", contentType=InputData.StringType)
+
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
+    gridInput.addParam("name", InputData.StringType)
+    gridInput.addParam("type", InputData.StringType)
+    gridInput.addParam("construction", InputData.StringType)
+    gridInput.addParam("steps", InputData.IntegerType)
+
+    globalGridInput.addSub(gridInput)
+
+    inputSpecification.addSub(globalGridInput)
+
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable

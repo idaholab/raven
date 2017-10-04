@@ -297,6 +297,30 @@ class ParameterInput(object):
             sub.getName()," in ",cls.getName())
 
   @classmethod
+  def popSub(cls, subname):
+    """
+      Removes a subnode from this class, and returns it.
+      @ In, subname, string, the name of the subnode to remove
+      @ Out, popedSub, subclass of ParameterInput, the removed subnode, or None if not found.
+    """
+    popedSub = None
+    for sub in cls.subs:
+      if sub.getName() == subname:
+        popedSub = sub
+    if popedSub is not None:
+      cls.subs.remove(popedSub)
+    else:
+      return None
+    if cls.subOrder is not None:
+      toRemoveList = []
+      for (sub,quantity) in cls.subOrder:
+        if popedSub == sub:
+          toRemoveList.append((sub,quantity))
+      for toRemove in toRemoveList:
+        cls.subOrder.remove(toRemove)
+    return popedSub
+
+  @classmethod
   def setContentType(cls, contentType):
     """
       Sets the content type for the node.

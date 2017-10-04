@@ -33,12 +33,35 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
 import pyDOE as doe
+from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ResponseSurfaceDesign(Grid):
   """
     Samples the model on a given (by input) set of points
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(ResponseSurfaceDesign, cls).getInputSpecification()
+    responseSurfaceDesignSettingsInput = InputData.parameterInputFactory("ResponseSurfaceDesignSettings")
+
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("algorithmType", contentType=InputData.StringType))
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("ncenters", contentType=InputData.IntegerType))
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("centers", contentType=InputData.StringListType))
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("alpha", contentType=InputData.StringType))
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("face", contentType=InputData.StringType))
+
+    inputSpecification.addSub(responseSurfaceDesignSettingsInput)
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable

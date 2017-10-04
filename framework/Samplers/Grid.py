@@ -36,6 +36,7 @@ from functools import reduce
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
 from utils import utils
+from utils import InputData
 import GridEntities
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -43,6 +44,31 @@ class Grid(ForwardSampler):
   """
     Samples the model on a given (by input) set of points
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Grid, cls).getInputSpecification()
+
+    oldSub = inputSpecification.popSub("variable")
+    newVariableInput = InputData.parameterInputFactory("variable", baseNode=oldSub)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
+    gridInput.addParam("type", InputData.StringType)
+    gridInput.addParam("construction", InputData.StringType)
+    gridInput.addParam("steps", InputData.IntegerType)
+
+    newVariableInput.addSub(gridInput)
+
+    inputSpecification.addSub(newVariableInput)
+
+    return inputSpecification
+
   def __init__(self):
     """
     Default Constructor that will initialize member variables with reasonable

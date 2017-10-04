@@ -32,7 +32,7 @@ import json
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils,randomUtils
+from utils import utils,randomUtils,InputData
 from BaseClasses import BaseType
 from Assembler import Assembler
 #Internal Modules End--------------------------------------------------------------------------------
@@ -79,6 +79,62 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localStillReady(ready)
     self.localFinalizeActualSampling(jobObject,model,myInput)
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Sampler, cls).getInputSpecification()
+    inputSpecification.addParam("name", InputData.StringType)
+
+    outerDistributionInput = InputData.parameterInputFactory("Distribution")
+    outerDistributionInput.addParam("name", InputData.StringType)
+    outerDistributionInput.addSub(InputData.parameterInputFactory("distribution", contentType=InputData.StringType))
+    inputSpecification.addSub(outerDistributionInput)
+
+    variableInput = InputData.parameterInputFactory("variable")
+    variableInput.addParam("name", InputData.StringType)
+    distributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
+    distributionInput.addParam("dim", InputData.IntegerType)
+
+    variableInput.addSub(distributionInput)
+
+    functionInput = InputData.parameterInputFactory("function", contentType=InputData.StringType)
+
+    variableInput.addSub(functionInput)
+
+    inputSpecification.addSub(variableInput)
+
+    variablesTransformationInput = InputData.parameterInputFactory("variablesTransformation")
+    variablesTransformationInput.addParam('distribution', InputData.StringType)
+
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("latentVariables", contentType=InputData.StringListType))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariables", contentType=InputData.StringListType))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariablesIndex", contentType=InputData.StringListType))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("method", contentType=InputData.StringType))
+
+    inputSpecification.addSub(variablesTransformationInput)
+
+    constantInput = InputData.parameterInputFactory("constant", contentType=InputData.StringType)
+    constantInput.addParam("name", InputData.StringType)
+
+    inputSpecification.addSub(constantInput)
+
+    restartToleranceInput = InputData.parameterInputFactory("restartTolerance", contentType=InputData.FloatType)
+    inputSpecification.addSub(restartToleranceInput)
+
+    restartInput = InputData.parameterInputFactory("Restart", contentType=InputData.StringType)
+    restartInput.addParam("type", InputData.StringType)
+    restartInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(restartInput)
+
+    return inputSpecification
+
 
   def __init__(self):
     """
@@ -174,6 +230,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node1
       @ Out, None
     """
+    paramInput = self.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+
     for child in xmlNode:
       prefix = ""
       if child.tag == 'Distribution':

@@ -40,14 +40,29 @@ from sklearn import neighbors
 from .DynamicEventTree import DynamicEventTree
 from .LimitSurfaceSearch import LimitSurfaceSearch
 from utils import utils
+from utils import InputData
 import utils.TreeStructure as ETS
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
+class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
   """
     This class is aimed to perform a supervised Adaptive Dynamic Event Tree sampling strategy
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(AdaptiveDynamicEventTree, cls).getInputSpecification()
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
