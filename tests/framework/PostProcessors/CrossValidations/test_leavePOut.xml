@@ -35,7 +35,6 @@
         <SciKitLearn>
             <average>True</average>
             <SKLtype>LeavePOut</SKLtype>
-            <n>10</n>
             <p>2</p>
         </SciKitLearn>
         <Metric class="Metrics" type="SKL">euclidean</Metric>

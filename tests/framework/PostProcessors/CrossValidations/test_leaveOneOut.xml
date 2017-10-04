@@ -34,7 +34,6 @@
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
             <SKLtype>LeaveOneOut</SKLtype>
-            <n>20</n>
         </SciKitLearn>
         <Metric class="Metrics" type="SKL">euclidean</Metric>
     </PostProcessor>

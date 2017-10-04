@@ -34,7 +34,6 @@
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
             <SKLtype>ShuffleSplit</SKLtype>
-            <n>100</n>
             <n_iter>10</n_iter>
             <test_size>0.1</test_size>
             <train_size>None</train_size>

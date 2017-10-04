@@ -76,10 +76,12 @@ class CrossValidation(PostProcessor):
     self.averageScores  = False
     # assembler objects to be requested
     self.addAssemblerObject('Metric', 'n', True)
-    self.CVEstimator    = None   # instance of estimator that is used to for Cross Validation
-    self.CVEngine       = None   # Engine used for cross validation
+    # The list of cross validation engine that require the parameter 'n'
+    # This will be removed if we updated the scikit-learn to version 0.20
+    # We will rely on the code to decide the value for the parameter 'n'
+    self.CVList = ['KFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit']
 
-  def initialize(self, runInfo, inputs, initDict) :
+  def initialize(self, runInfo, inputs, initDict=None) :
     """
       Method to initialize the pp.
       @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
@@ -118,7 +120,6 @@ class CrossValidation(PostProcessor):
       if child.tag == 'SciKitLearn':
         self.initializationOptionDict[child.tag] = self._localInputAndCheck(child)
         self.initializationOptionDict[child.tag].pop("average",'False')
-        self.CVEngine = CrossValidations.returnInstance(child.tag, self, **self.initializationOptionDict[child.tag])
       elif child.tag == 'Metric':
         if 'type' not in child.attrib.keys() or 'class' not in child.attrib.keys():
           self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
@@ -253,15 +254,27 @@ class CrossValidation(PostProcessor):
       @ In, inputIn, list, list of objects, i.e. the object contained the data to process, the instance of model.
       @ Out, outputDict, dict, Dictionary containing the results
     """
-    inputDict, self.CVEstimator = self.inputToInternal(inputIn, full = True)
+    inputDict, cvEstimator = self.inputToInternal(inputIn, full = True)
     outputDict = {}
 
     if self.dynamic:
       self.raiseAnError(IOError, "Not implemented yet")
 
-    for trainIndex, testIndex in self.CVEngine.generateTrainTestIndices():
+    initDict = copy.deepcopy(self.initializationOptionDict)
+
+    cvEngine = None
+    for key, value in initDict.items():
+      if key == "SciKitLearn":
+        if value['SKLtype'] in self.CVList:
+          dataSize = np.asarray(inputDict.values()[0]).size
+          value['n'] = dataSize
+        cvEngine = CrossValidations.returnInstance(key, self, **value)
+        break
+    if cvEngine is None:
+      self.raiseAnError(IOError, "No cross validation engine is provided!")
+
+    for trainIndex, testIndex in cvEngine.generateTrainTestIndices():
       trainDict, testDict = self.__generateTrainTestInputs(inputDict, trainIndex, testIndex)
-      cvEstimator = copy.deepcopy(self.CVEstimator)
       ## Train the rom
       cvEstimator.train(trainDict)
       ## evaluate the rom

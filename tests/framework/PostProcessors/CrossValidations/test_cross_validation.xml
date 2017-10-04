@@ -34,7 +34,6 @@
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
             <SKLtype>KFold</SKLtype>
-            <n>100</n>
             <n_splits>10</n_splits>
             <shuffle>False</shuffle>
             <random_state>None</random_state>
