@@ -46,6 +46,7 @@ import Files
 import utils.TreeStructure as TS
 from utils import utils
 from utils import mathUtils
+from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 # Custom exceptions
@@ -67,6 +68,37 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     This object is "understood" by all the "active" modules (e.g. postprocessors, models, etc) and represents the way
     RAVEN shares the information among the framework
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Data, cls).getInputSpecification()
+    inputSpecification.addParam("hierarchical", InputData.StringType)
+    inputSpecification.addParam("inputTs", InputData.StringType)
+    inputSpecification.addParam("historyName", InputData.StringType)
+
+    inputInput = InputData.parameterInputFactory("Input", contentType=InputData.StringListType)
+
+    inputSpecification.addSub(inputInput)
+
+    outputInput = InputData.parameterInputFactory("Output", contentType=InputData.StringListType)
+
+    inputSpecification.addSub(outputInput)
+
+    optionsInput = InputData.parameterInputFactory("options")
+    for option in ['inputRow','inputPivotValue','outputRow','outputPivotValue','operator','pivotParameter']:
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.StringType)
+      optionsInput.addSub(optionSubInput)
+    inputSpecification.addSub(optionsInput)
+
+    return inputSpecification
+
   ## Special Overloaded Methods
 
   def __init__(self):
@@ -1022,12 +1054,24 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, xmlNode, xml.etree.ElementTree.Element, xml node
       @ Out, None
     """
+    paramInput = self.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     # retrieve input/outputs parameters' keywords
-    if xmlNode.find('Input' ) is None and xmlNode.find('Output' ) is None:
+    inputFind = paramInput.findFirst('Input' )
+    outputFind =  paramInput.findFirst('Output' )
+    if inputFind is None and outputFind is None:
       self.raiseAnError(IOError,"At least one of the Input or Output XML block needs to be inputted!")
     # we allow to avoid to have an <Input> block if not needed (InputPlaceHolder) or a <Output> block if not needed (OutputPlaceHolder)
-    self._dataParameters['inParam']  = list(inp.strip() for inp in xmlNode.find('Input' ).text.strip().split(',')) if xmlNode.find('Input' ) is not None else ['InputPlaceHolder']
-    self._dataParameters['outParam'] = list(out.strip() for out in xmlNode.find('Output').text.strip().split(',')) if xmlNode.find('Output') is not None else ['OutputPlaceHolder']
+    self._dataParameters['inParam']  = list(inputFind.value) if inputFind is not None else ['InputPlaceHolder']
+    self._dataParameters['outParam'] = list(outputFind.value) if outputFind is not None else ['OutputPlaceHolder']
     if '' in self._dataParameters['inParam']:
       self.raiseAnError(IOError, 'In DataObject  ' +self.name+' there is a trailing comma in the "Input" XML block!')
     if '' in self._dataParameters['outParam']:
@@ -1047,17 +1091,17 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #test for same input/output variables name
     if len(set(self._dataParameters['inParam'])&set(self._dataParameters['outParam']))!=0:
       self.raiseAnError(IOError,'It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
-    optionsData = xmlNode.find('options')
+    optionsData = paramInput.findFirst('options')
     if optionsData != None:
-      for child in optionsData:
-        self._dataParameters[child.tag] = child.text
+      for child in optionsData.subparts:
+        self._dataParameters[child.getName()] = child.value
     if set(self._dataParameters.keys()).issubset(['inputRow','inputPivotValue']):
       self.raiseAnError(IOError,'It is not allowed to simultaneously specify the nodes: inputRow and inputPivotValue!')
     if set(self._dataParameters.keys()).issubset(['outputRow','outputPivotValue','operator']):
       self.raiseAnError(IOError,'It is not allowed to simultaneously specify the nodes: outputRow, outputPivotValue and operator!')
-    self._specializedInputCheck(xmlNode)
-    if 'hierarchical' in xmlNode.attrib.keys():
-      if xmlNode.attrib['hierarchical'].lower() in utils.stringsThatMeanTrue():
+    self._specializedInputCheckParam(paramInput)
+    if 'hierarchical' in paramInput.parameterValues:
+      if paramInput.parameterValues['hierarchical'].lower() in utils.stringsThatMeanTrue():
         self._dataParameters['hierarchical'] = True
       else:
         self._dataParameters['hierarchical'] = False
@@ -1066,10 +1110,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       self._dataParameters['hierarchical'] = False
 
-  def _specializedInputCheck(self,xmlNode):
+  def _specializedInputCheckParam(self,paramInput):
     """
       Function to check the input parameters that have been read for each DataObject subtype
-      @ In, xmlNode, xml.etree.ElementTree.Element, xml node
+      @ In, paramInput, ParameterInput, the input
       @ Out, None
     """
     pass
