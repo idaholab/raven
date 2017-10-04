@@ -45,6 +45,8 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     BaseType.__init__(self)
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
+    self.acceptsProbability = False #If True the metric needs to be able to handle (value,probability) where value and probability are lists
+    self.acceptsDistribution = False #If True the metric needs to be able to handle a passed in Distribution
 
   def initialize(self,inputDict):
     """
