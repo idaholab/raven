@@ -32,7 +32,228 @@ from utils import mathUtils
 from utils import InputData
 import Files
 import Runners
+import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
+
+def _getGraphs(functions, fZStats = False):
+  """
+    Returns the graphs of the functions.
+    The functions are a list of (dataStats, cdf_function, pdf_function,name)
+    It returns a dictionary with the graphs and other statistics calculated.
+    @ In, functions, list, list of functions (data_stats_dict, cdf_function, pdf_function,name)
+    @ In, fZStats, bool, optional, true if the F(z) (cdf) needs to be computed
+    @ Out, retDict, dict, the return dictionary
+  """
+  retDict = {}
+  dataStats = [x[0] for x in functions]
+  means = [x["mean"] for x in dataStats]
+  stdDevs = [x["stdev"] for x in dataStats]
+  cdfs = [x[1] for x in functions]
+  pdfs = [x[2] for x in functions]
+  names = [x[3] for x in functions]
+  low = min([m - 3.0*s for m,s in zip(means,stdDevs)])
+  high = max([m + 3.0*s for m,s in zip(means,stdDevs)])
+  lowLow = min([m - 5.0*s for m,s in zip(means,stdDevs)])
+  highHigh = max([m + 5.0*s for m,s in zip(means,stdDevs)])
+  minBinSize = min([x["minBinSize"] for x in dataStats])
+  n = int(math.ceil((high-low)/minBinSize))
+  interval = (high - low)/n
+
+  #Print the cdfs and pdfs of the data to be compared.
+  origCdfAndPdfArray = []
+  origCdfAndPdfArray.append(["x"])
+  for name in names:
+    origCdfAndPdfArray.append([name+'_cdf'])
+    origCdfAndPdfArray.append([name+'_pdf'])
+
+  for i in range(n):
+    x = low+interval*i
+    origCdfAndPdfArray[0].append(x)
+    k = 1
+    for stats, cdf, pdf, name in functions:
+      origCdfAndPdfArray[k].append(cdf(x))
+      origCdfAndPdfArray[k+1].append(pdf(x))
+      k += 2
+  retDict["cdf_and_pdf_arrays"] = origCdfAndPdfArray
+
+  if len(means) < 2:
+    return
+
+  cdfAreaDifference = mathUtils.simpson(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh,100000)
+
+  def firstMomentSimpson(f, a, b, n):
+    """
+      Compute the first simpson method
+      @ In, f, method, the function f(x)
+      @ In, a, float, lower bound
+      @ In, b, float, upper bound
+      @ In, n, int, the number of discretizations
+      @ Out, firstMomentSimpson, float, the moment
+    """
+    return mathUtils.simpson(lambda x:x*f(x), a, b, n)
+
+  #print a bunch of comparison statistics
+  pdfCommonArea = mathUtils.simpson(lambda x:min(pdfs[0](x),pdfs[1](x)),
+                            lowLow,highHigh,100000)
+  for i in range(len(pdfs)):
+    pdfArea = mathUtils.simpson(pdfs[i],lowLow,highHigh,100000)
+    retDict['pdf_area_'+names[i]] = pdfArea
+    dataStats[i]["pdf_area"] = pdfArea
+  retDict['cdf_area_difference'] = cdfAreaDifference
+  retDict['pdf_common_area'] = pdfCommonArea
+  dataStats[0]["cdf_area_difference"] = cdfAreaDifference
+  dataStats[0]["pdf_common_area"] = pdfCommonArea
+  if fZStats:
+    def fZ(z):
+      """
+        Compute f(z) with a simpson rule
+        @ In, z, float, the coordinate
+        @ Out, fZ, the f(z)
+      """
+      return mathUtils.simpson(lambda x: pdfs[0](x)*pdfs[1](x-z), lowLow, highHigh, 1000)
+
+    midZ = means[0]-means[1]
+    lowZ = midZ - 3.0*max(stdDevs[0],stdDevs[1])
+    highZ = midZ + 3.0*max(stdDevs[0],stdDevs[1])
+    #print the difference function table.
+    fZTable = [["z"],["f_z(z)"]]
+    zN = 20
+    intervalZ = (highZ - lowZ)/zN
+    for i in range(zN):
+      z = lowZ + intervalZ*i
+      fZTable[0].append(z)
+      fZTable[1].append(fZ(z))
+    retDict["f_z_table"] = fZTable
+    sumFunctionDiff = mathUtils.simpson(fZ, lowZ, highZ, 1000)
+    firstMomentFunctionDiff = firstMomentSimpson(fZ, lowZ,highZ, 1000)
+    varianceFunctionDiff = mathUtils.simpson(lambda x:((x-firstMomentFunctionDiff)**2)*fZ(x),lowZ,highZ, 1000)
+    retDict['sum_function_diff'] = sumFunctionDiff
+    retDict['first_moment_function_diff'] = firstMomentFunctionDiff
+    retDict['variance_function_diff'] = varianceFunctionDiff
+  return retDict
+
+def __processData(data, methodInfo):
+  """
+    Method to process the computed data
+    @ In, data, np.array, the data to process
+    @ In, methodInfo, dict, the info about which processing method needs to be used
+    @ Out, ret, dict, the processed data including the counts of the bins
+  """
+  ret = {}
+  if hasattr(data,'tolist'):
+    sortedData = data.tolist()
+  else:
+    sortedData = list(data)
+  sortedData.sort()
+  low = sortedData[0]
+  high = sortedData[-1]
+  dataRange = high - low
+  ret['low'] = low
+  ret['high'] = high
+  if not 'binMethod' in methodInfo:
+    numBins = methodInfo.get("numBins", 10)
+  else:
+    binMethod = methodInfo['binMethod']
+    dataN = len(sortedData)
+    if binMethod == 'square-root':
+      numBins = int(math.ceil(math.sqrt(dataN)))
+    elif binMethod == 'sturges':
+      numBins = int(math.ceil(mathUtils.log2(dataN) + 1))
+    else:
+      self.raiseADebug("Unknown binMethod " + binMethod, 'ExceptedError')
+      numBins = 5
+  ret['numBins'] = numBins
+  kind = methodInfo.get("kind", "uniformBins")
+  if kind == "uniformBins":
+    bins = [low + x * dataRange / numBins for x in range(1, numBins)]
+    ret['minBinSize'] = dataRange / numBins
+  elif kind == "equalProbability":
+    stride = len(sortedData) // numBins
+    bins = [sortedData[x] for x in range(stride - 1, len(sortedData) - stride + 1, stride)]
+    if len(bins) > 1:
+      ret['minBinSize'] = min(map(lambda x, y: x - y, bins[1:], bins[:-1]))
+    else:
+      ret['minBinSize'] = dataRange
+  counts = mathUtils.countBins(sortedData, bins)
+  ret['bins'] = bins
+  ret['counts'] = counts
+  ret.update(mathUtils.calculateStats(sortedData))
+  skewness = ret["skewness"]
+  delta = math.sqrt((math.pi / 2.0) * (abs(skewness) ** (2.0 / 3.0)) /
+                    (abs(skewness) ** (2.0 / 3.0) + ((4.0 - math.pi) / 2.0) ** (2.0 / 3.0)))
+  delta = math.copysign(delta, skewness)
+  alpha = delta / math.sqrt(1.0 - delta ** 2)
+  variance = ret["sampleVariance"]
+  omega = variance / (1.0 - 2 * delta ** 2 / math.pi)
+  mean = ret['mean']
+  xi = mean - omega * delta * math.sqrt(2.0 / math.pi)
+  ret['alpha'] = alpha
+  ret['omega'] = omega
+  ret['xi'] = xi
+  return ret
+
+
+
+def _getPDFandCDFfromData(dataName, data, csv, methodInfo, interpolation,
+                         generateCSV):
+  """
+    This method is used to convert some data into a PDF and CDF function.
+    Note, it might be better done by scipy.stats.gaussian_kde
+    @ In, dataName, str, The name of the data.
+    @ In, data, np.array, one dimentional array of the data to process
+    @ In, csv, File, file to write out information on data.
+    @ In, methodInfo, dict, the info about which processing method needs to be used
+    @ In, interpolation, str, "linear" or "quadratic", depending on which interpolation is used
+    @ In, generateCSV, bool, True if the csv should be written
+    @ Out, (dataStats, cdfFunc, pdfFunc), tuple, dataStats is dictionary with things like "mean" and "stdev", cdfFunction is a function that returns the CDF value and pdfFunc is a function that returns the PDF value.
+  """
+  #Convert data to pdf and cdf.
+  dataStats = __processData( data, methodInfo)
+  dataKeys = set(dataStats.keys())
+  counts = dataStats['counts']
+  bins = dataStats['bins']
+  countSum = sum(counts)
+  binBoundaries = [dataStats['low']] + bins + [dataStats['high']]
+  if generateCSV:
+    utils.printCsv(csv, '"' + dataName + '"')
+    utils.printCsv(csv, '"numBins"', dataStats['numBins'])
+    utils.printCsv(csv, '"binBoundary"', '"binMidpoint"', '"binCount"', '"normalizedBinCount"', '"f_prime"', '"cdf"')
+  cdf = [0.0] * len(counts)
+  midpoints = [0.0] * len(counts)
+  cdfSum = 0.0
+  for i in range(len(counts)):
+    f0 = counts[i] / countSum
+    cdfSum += f0
+    cdf[i] = cdfSum
+    midpoints[i] = (binBoundaries[i] + binBoundaries[i + 1]) / 2.0
+  cdfFunc = mathUtils.createInterp(midpoints, cdf, 0.0, 1.0, interpolation)
+  fPrimeData = [0.0] * len(counts)
+  for i in range(len(counts)):
+    h = binBoundaries[i + 1] - binBoundaries[i]
+    nCount = counts[i] / countSum  # normalized count
+    f0 = cdf[i]
+    if i + 1 < len(counts):
+      f1 = cdf[i + 1]
+    else:
+      f1 = 1.0
+    if i + 2 < len(counts):
+      f2 = cdf[i + 2]
+    else:
+      f2 = 1.0
+    if interpolation == 'linear':
+      fPrime = (f1 - f0) / h
+    else:
+      fPrime = (-1.5 * f0 + 2.0 * f1 + -0.5 * f2) / h
+    fPrimeData[i] = fPrime
+    if generateCSV:
+      utils.printCsv(csv, binBoundaries[i + 1], midpoints[i], counts[i], nCount, fPrime, cdf[i])
+  pdfFunc = mathUtils.createInterp(midpoints, fPrimeData, 0.0, 0.0, interpolation)
+  dataKeys -= set({'numBins', 'counts', 'bins'})
+  if generateCSV:
+    for key in dataKeys:
+      utils.printCsv(csv, '"' + key + '"', dataStats[key])
+  return dataStats, cdfFunc, pdfFunc
+
 
 class ComparisonStatistics(PostProcessor):
   """
@@ -249,53 +470,15 @@ class ComparisonStatistics(PostProcessor):
         refCdf = lambda x:distribution.cdf(x)
         graphData.append((refDataStats, refCdf, refPdf, "ref_" + distributionName))
       for dataPull, data in zip(dataPulls, datas):
-        dataStats = self.__processData( data, self.methodInfo)
-        dataKeys = set(dataStats.keys())
-        counts = dataStats['counts']
-        bins = dataStats['bins']
-        countSum = sum(counts)
-        binBoundaries = [dataStats['low']] + bins + [dataStats['high']]
-        if generateCSV:
-          utils.printCsv(csv, '"' + str(dataPull) + '"')
-          utils.printCsv(csv, '"numBins"', dataStats['numBins'])
-          utils.printCsv(csv, '"binBoundary"', '"binMidpoint"', '"binCount"', '"normalizedBinCount"', '"f_prime"', '"cdf"')
-        cdf = [0.0] * len(counts)
-        midpoints = [0.0] * len(counts)
-        cdfSum = 0.0
-        for i in range(len(counts)):
-          f0 = counts[i] / countSum
-          cdfSum += f0
-          cdf[i] = cdfSum
-          midpoints[i] = (binBoundaries[i] + binBoundaries[i + 1]) / 2.0
-        cdfFunc = mathUtils.createInterp(midpoints, cdf, 0.0, 1.0, self.interpolation)
-        fPrimeData = [0.0] * len(counts)
-        for i in range(len(counts)):
-          h = binBoundaries[i + 1] - binBoundaries[i]
-          nCount = counts[i] / countSum  # normalized count
-          f0 = cdf[i]
-          if i + 1 < len(counts):
-            f1 = cdf[i + 1]
-          else:
-            f1 = 1.0
-          if i + 2 < len(counts):
-            f2 = cdf[i + 2]
-          else:
-            f2 = 1.0
-          if self.interpolation == 'linear':
-            fPrime = (f1 - f0) / h
-          else:
-            fPrime = (-1.5 * f0 + 2.0 * f1 + -0.5 * f2) / h
-          fPrimeData[i] = fPrime
-          if generateCSV:
-            utils.printCsv(csv, binBoundaries[i + 1], midpoints[i], counts[i], nCount, fPrime, cdf[i])
-        pdfFunc = mathUtils.createInterp(midpoints, fPrimeData, 0.0, 0.0, self.interpolation)
-        dataKeys -= set({'numBins', 'counts', 'bins'})
-        if generateCSV:
-          for key in dataKeys:
-            utils.printCsv(csv, '"' + key + '"', dataStats[key])
+        dataStats, cdfFunc, pdfFunc = _getPDFandCDFfromData(str(dataPull),
+                                                            data,
+                                                            csv,
+                                                            self.methodInfo,
+                                                            self.interpolation,
+                                                            generateCSV)
         self.raiseADebug("dataStats: " + str(dataStats))
         graphData.append((dataStats, cdfFunc, pdfFunc, str(dataPull)))
-      graphDataDict = mathUtils.getGraphs(graphData, self.fZStats)
+      graphDataDict = _getGraphs(graphData, self.fZStats)
       if generateCSV:
         for key in graphDataDict:
           value = graphDataDict[key]
@@ -350,62 +533,3 @@ class ComparisonStatistics(PostProcessor):
           extraCsv.close()
         utils.printCsv(csv)
 
-  def __processData(self, data, methodInfo):
-    """
-      Method to process the computed data
-      @ In, data, np.array, the data to process
-      @ In, methodInfo, dict, the info about which processing method needs to be used
-      @ Out, ret, dict, the processed data
-    """
-    ret = {}
-    if hasattr(data,'tolist'):
-      sortedData = data.tolist()
-    else:
-      sortedData = list(data)
-    sortedData.sort()
-    low = sortedData[0]
-    high = sortedData[-1]
-    dataRange = high - low
-    ret['low'] = low
-    ret['high'] = high
-    if not 'binMethod' in methodInfo:
-      numBins = methodInfo.get("numBins", 10)
-    else:
-      binMethod = methodInfo['binMethod']
-      dataN = len(sortedData)
-      if binMethod == 'square-root':
-        numBins = int(math.ceil(math.sqrt(dataN)))
-      elif binMethod == 'sturges':
-        numBins = int(math.ceil(mathUtils.log2(dataN) + 1))
-      else:
-        self.raiseADebug("Unknown binMethod " + binMethod, 'ExceptedError')
-        numBins = 5
-    ret['numBins'] = numBins
-    kind = methodInfo.get("kind", "uniformBins")
-    if kind == "uniformBins":
-      bins = [low + x * dataRange / numBins for x in range(1, numBins)]
-      ret['minBinSize'] = dataRange / numBins
-    elif kind == "equalProbability":
-      stride = len(sortedData) // numBins
-      bins = [sortedData[x] for x in range(stride - 1, len(sortedData) - stride + 1, stride)]
-      if len(bins) > 1:
-        ret['minBinSize'] = min(map(lambda x, y: x - y, bins[1:], bins[:-1]))
-      else:
-        ret['minBinSize'] = dataRange
-    counts = mathUtils.countBins(sortedData, bins)
-    ret['bins'] = bins
-    ret['counts'] = counts
-    ret.update(mathUtils.calculateStats(sortedData))
-    skewness = ret["skewness"]
-    delta = math.sqrt((math.pi / 2.0) * (abs(skewness) ** (2.0 / 3.0)) /
-                      (abs(skewness) ** (2.0 / 3.0) + ((4.0 - math.pi) / 2.0) ** (2.0 / 3.0)))
-    delta = math.copysign(delta, skewness)
-    alpha = delta / math.sqrt(1.0 - delta ** 2)
-    variance = ret["sampleVariance"]
-    omega = variance / (1.0 - 2 * delta ** 2 / math.pi)
-    mean = ret['mean']
-    xi = mean - omega * delta * math.sqrt(2.0 / math.pi)
-    ret['alpha'] = alpha
-    ret['omega'] = omega
-    ret['xi'] = xi
-    return ret
