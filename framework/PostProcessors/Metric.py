@@ -286,6 +286,7 @@ class Metric(PostProcessor):
             metricName = metricInstance.metricType
           else:
             metricName = metricInstance.type
+          metricName = metricInstance.name + '_' + metricName
           outputDict[nodeName][metricName] = output
     else:
       self.raiseAnError(IOError, "Not implemented yet")

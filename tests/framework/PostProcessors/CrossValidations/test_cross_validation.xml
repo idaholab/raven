@@ -38,27 +38,31 @@
             <shuffle>False</shuffle>
             <random_state>None</random_state>
         </SciKitLearn>
-        <Metric class="Metrics" type="SKL">euclidean</Metric>
+        <Metric class="Metrics" type="SKL">m1</Metric>
+        <Metric class="Metrics" type="SKL">m2</Metric>
     </PostProcessor>
     <PostProcessor name="ravenout" subType="RavenOutput">
         <File ID="1" name="output_cv">
-            <output name="ans-euclidean-cv-1">ans|euclidean|cv-1</output>
-            <output name="ans-euclidean-cv-2">ans|euclidean|cv-2</output>
-            <output name="ans-euclidean-cv-3">ans|euclidean|cv-3</output>
-            <output name="ans-euclidean-cv-4">ans|euclidean|cv-4</output>
-            <output name="ans-euclidean-cv-5">ans|euclidean|cv-5</output>
-            <output name="ans-euclidean-cv-6">ans|euclidean|cv-6</output>
-            <output name="ans-euclidean-cv-7">ans|euclidean|cv-7</output>
-            <output name="ans-euclidean-cv-8">ans|euclidean|cv-8</output>
-            <output name="ans-euclidean-cv-9">ans|euclidean|cv-9</output>
+            <output name="ans-m1_mean_absolute_error-cv-1">ans|m1_mean_absolute_error|cv-1</output>
+            <output name="ans-m1_mean_absolute_error-cv-2">ans|m1_mean_absolute_error|cv-2</output>
+            <output name="ans-m1_mean_absolute_error-cv-3">ans|m1_mean_absolute_error|cv-3</output>
+            <output name="ans-m1_mean_absolute_error-cv-4">ans|m1_mean_absolute_error|cv-4</output>
+            <output name="ans-m1_mean_absolute_error-cv-5">ans|m1_mean_absolute_error|cv-5</output>
+            <output name="ans-m1_mean_absolute_error-cv-6">ans|m1_mean_absolute_error|cv-6</output>
+            <output name="ans-m1_mean_absolute_error-cv-7">ans|m1_mean_absolute_error|cv-7</output>
+            <output name="ans-m1_mean_absolute_error-cv-8">ans|m1_mean_absolute_error|cv-8</output>
+            <output name="ans-m1_mean_absolute_error-cv-9">ans|m1_mean_absolute_error|cv-9</output>
         </File>
     </PostProcessor>
   </Models>
   
   <Metrics>
-    <SKL name="euclidean">
-      <metricType>euclidean</metricType>
-    </SKL>
+      <SKL name="m1">
+          <metricType>mean_absolute_error</metricType>
+      </SKL>
+      <SKL name="m2">
+          <metricType>mean_absolute_error</metricType>
+      </SKL>
   </Metrics>
 
   <Distributions>
@@ -121,15 +125,15 @@
     <PointSet name="outRaven">
         <Input>ID</Input>
         <Output>
-            ans-euclidean-cv-1,
-            ans-euclidean-cv-2,
-            ans-euclidean-cv-3,
-            ans-euclidean-cv-4,
-            ans-euclidean-cv-5,
-            ans-euclidean-cv-6,
-            ans-euclidean-cv-7,
-            ans-euclidean-cv-8,
-            ans-euclidean-cv-9
+            ans-m1_mean_absolute_error-cv-1,
+            ans-m1_mean_absolute_error-cv-2,
+            ans-m1_mean_absolute_error-cv-3,
+            ans-m1_mean_absolute_error-cv-4,
+            ans-m1_mean_absolute_error-cv-5,
+            ans-m1_mean_absolute_error-cv-6,
+            ans-m1_mean_absolute_error-cv-7,
+            ans-m1_mean_absolute_error-cv-8,
+            ans-m1_mean_absolute_error-cv-9
         </Output>
     </PointSet>
   </DataObjects>

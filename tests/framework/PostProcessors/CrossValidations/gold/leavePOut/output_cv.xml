@@ -1,7 +1,7 @@
 <CrossValidationPostProcessor type="Static">
   <ans>
-    <euclidean>
-      <average>0.345181729342</average>
-    </euclidean>
+    <m1_mean_absolute_error>
+      <average>0.207689217296</average>
+    </m1_mean_absolute_error>
   </ans>
 </CrossValidationPostProcessor>

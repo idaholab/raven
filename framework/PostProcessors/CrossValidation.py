@@ -80,6 +80,7 @@ class CrossValidation(PostProcessor):
     # This will be removed if we updated the scikit-learn to version 0.20
     # We will rely on the code to decide the value for the parameter 'n'
     self.CVList = ['KFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit']
+    self.validMetrics = ['mean_absolute_error', 'explained_variance_score', 'r2_score', 'mean_squared_error', 'median_absolute_error']
 
   def initialize(self, runInfo, inputs, initDict=None) :
     """
@@ -286,16 +287,25 @@ class CrossValidation(PostProcessor):
         for metricInstance in self.metricsDict.values():
           metricValue = metricInstance.distance(targetValue, testDict[targetName])
           if hasattr(metricInstance, 'metricType'):
+            if metricInstance.metricType not in self.validMetrics:
+              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType, " can not be used, the accepted metric types are: ", str(self.validMetrics))
             metricName = metricInstance.metricType
           else:
             metricName = metricInstance.type
+          metricName = metricInstance.name + '_' + metricName
           if metricName not in outputDict[targetName].keys():
             outputDict[targetName][metricName] = []
           outputDict[targetName][metricName].append(metricValue[0])
     if self.averageScores:
       for targetName in outputEvaluation.keys():
         for metricInstance in self.metricsDict.values():
-          metricName = metricInstance.metricType if hasattr(metricInstance, 'metricType') else metricInstance.type
+          if hasattr(metricInstance, 'metricType'):
+            if metricInstance.metricType not in self.validMetrics:
+              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType, " can not be used, the accepted metric types are: ", str(self.validMetrics))
+            metricName = metricInstance.metricType
+          else:
+            metricName = metricInstance.type
+          metricName = metricInstance.name + '_' + metricName
           outputDict[targetName][metricName] = [np.atleast_1d(outputDict[targetName][metricName]).mean()]
     return outputDict
 
