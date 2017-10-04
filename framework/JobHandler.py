@@ -77,9 +77,8 @@ class JobHandler(MessageHandler.MessageUser):
     self.sleepTime  = 0.005
     self.completed = False
 
-    ## Stops the pending queue from getting too big. TODO: expose this to the
-    ## user
-    self.maxQueueSize = 1000
+    ## Stops the pending queue from getting too big.  Defaults to batch size in "initialize".
+    self.maxQueueSize = None
 
     ############################################################################
     ## The following variables are protected by the __queueLock
@@ -127,6 +126,11 @@ class JobHandler(MessageHandler.MessageUser):
     """
     self.runInfoDict = runInfoDict
     self.messageHandler = messageHandler
+    self.maxQueueSize = runInfoDict.get('maxQueueSize',runInfoDict.get('batchSize'))
+    if self.maxQueueSize < 1:
+      self.raiseAWarning('maxQueueSize was set to be less than 1!  Setting to 1...')
+      self.maxQueueSize = 1
+    self.raiseADebug('Setting maxQueueSize to',self.maxQueueSize)
 
     #initialize PBS
     with self.__queueLock:
