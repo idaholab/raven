@@ -56,9 +56,6 @@
 
   <Samplers>
     <Grid name="gridSampler">
-      <samplerInit>
-         <limit>150</limit>
-      </samplerInit>
       <variable name="n">
         <distribution>uniDist</distribution>
                 <grid type='value' construction='equal' steps='149'>0.0 149.0</grid>
