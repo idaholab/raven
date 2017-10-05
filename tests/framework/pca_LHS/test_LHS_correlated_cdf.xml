@@ -5,6 +5,7 @@
     <Sequence>LHSRun,Dump,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_LHS/LHSCorrelated</name>
     <author>wangc</author>

@@ -6,7 +6,7 @@
     <created>2016-08-29</created>
     <classesTested>Models.Code.MAMMOTH</classesTested>
     <description>
-       An example of using the MAMMOTH code interface. 
+       An example of using the MAMMOTH code interface.
        This test is designed to ensure the MAMMOTH interface runs correctly.
        It runs BISON and RattleSnake.
     </description>
@@ -15,6 +15,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>MammothInterface/Rattlesnake_Bison</WorkingDir>
     <Sequence>MCTestMammoth,print</Sequence>
@@ -79,6 +80,7 @@
     <MonteCarlo name="MC1">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="Rattlesnake@AuxVariables|Temp|initial_condition">
         <distribution>G1</distribution>

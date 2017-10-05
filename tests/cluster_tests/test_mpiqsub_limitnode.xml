@@ -71,6 +71,7 @@
     <MonteCarlo name="RAVENmc6">
       <samplerInit>
         <limit>6</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
     </MonteCarlo>
   </Samplers>

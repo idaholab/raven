@@ -149,6 +149,7 @@ class SPSA(GradientBasedOptimizer):
     self.raiseADebug('Reviewing status of trajectories:')
     for traj in self.optTraj:
       self.raiseADebug('   Traj: "{:^n}": Process: "{:^30.30}", Reason: "{:^30.30}"'.format(traj,self.status[traj].get('process','None'),self.status[traj].get('reason','None'),n=len(str(max(self.optTraj)))))
+      self.raiseADebug('             Length of submission queue:',len(self.submissionQueue[traj]))
     for _ in range(len(self.optTrajLive)):
       # despite several attempts, this is the most elegant solution I've found to assure each
       #   trajectory gets even treatment.

@@ -5,6 +5,7 @@
     <Sequence>load,make,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/Restart/CSV</name>
     <author>talbpaul</author>
@@ -12,8 +13,8 @@
     <classesTested>Files</classesTested>
     <description>
       This test demonstrates that a restart can be performed from a loaded CSV file, not just an internal data object
-      from an earlier step.  As with the other restart tests, in output data objects samples from "course" have an
-      output of 1, while samples from "fine" have an output of 2.
+      from an earlier step.  As with the other restart tests, in output data objects samples from &quot;course&quot; have an
+      output of 1, while samples from &quot;fine&quot; have an output of 2.
     </description>
   </TestInfo>
 

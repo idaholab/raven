@@ -14,6 +14,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>SimulationTags</WorkingDir>
     <Sequence>sample</Sequence>
@@ -34,6 +35,7 @@
     <MonteCarlo name="MC">
       <samplerInit>
         <limit>5</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="x">
         <distribution>d</distribution>

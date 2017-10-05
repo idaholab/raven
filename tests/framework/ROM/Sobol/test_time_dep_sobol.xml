@@ -5,6 +5,7 @@
     <Sequence>sample,train,dump,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/TimeDependent</name>
     <author>talbpaul</author>

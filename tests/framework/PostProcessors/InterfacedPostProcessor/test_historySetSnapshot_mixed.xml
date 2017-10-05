@@ -9,7 +9,7 @@
       Tests of HistorySetSnapShot and its mixed type of snapshot techniques
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>HistorySetSnapShotMixed</WorkingDir>
     <Sequence>FirstMRun,snap,snap2</Sequence>
@@ -52,8 +52,8 @@
       <method>HistorySetSnapShot</method>
       <type>mixed</type>
       <average>x</average>
-      <value pivotVar="time" pivotVal="0.245">y</value>
-      <value pivotVar="x" pivotVal="4.0">z</value>
+      <value pivotVal="0.245" pivotVar="time">y</value>
+      <value pivotVal="4.0" pivotVar="x">z</value>
       <pivotParameter>time</pivotParameter>
       <extension>zeroed</extension>
       <numberOfSamples>5</numberOfSamples>
@@ -79,6 +79,7 @@
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>2</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>

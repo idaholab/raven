@@ -1,21 +1,19 @@
-<?xml version="1.0" ?>
-<BasicStatisticsPP>
+<BasicStatisticsPP type="Static">
+  <ans>
+    <expectedValue>0.610563613546</expectedValue>
+    <variance>0.0231570620988</variance>
+    <kurtosis>1.7619600422</kurtosis>
+  </ans>
+
   <x2>
-    <variance>0.0858930631925</variance>
-    <kurtosis>1.52175627046</kurtosis>
-    <expectedValue>0.52372430645</expectedValue>
+    <expectedValue>0.655923209865</expectedValue>
+    <variance>0.0967588971126</variance>
+    <kurtosis>-0.0330885251433</kurtosis>
   </x2>
 
   <x1>
-    <variance>0.019336079951</variance>
-    <kurtosis>-2.20860116838</kurtosis>
-    <expectedValue>0.6838788463</expectedValue>
+    <expectedValue>0.372971390927</expectedValue>
+    <variance>0.0598380928372</variance>
+    <kurtosis>-2.58997357572</kurtosis>
   </x1>
-
-  <ans>
-    <variance>0.0128217548886</variance>
-    <kurtosis>1.04912155031</kurtosis>
-    <expectedValue>0.55485571918</expectedValue>
-  </ans>
-
 </BasicStatisticsPP>

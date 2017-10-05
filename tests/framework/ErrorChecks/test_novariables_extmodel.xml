@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ErrorChecks.testExtModelNoVars</name>
+    <author>talbpaul</author>
+    <created>2017-07-18</created>
+    <classesTested>Sampler.MonteCarlo</classesTested>
+    <description>
+      Tests for an error when ExternalModel.variables is misspelled.
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>externalModel</WorkingDir>
+    <Sequence>FirstMRun</Sequence>
+    <batchSize>3</batchSize>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="Functions" name="PythonModule" subType="">
+      <variabels>sigma,rho,beta,x,y,z,time,x0,y0,z0</variabels>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>1234</initialSeed>
+        <reseedEachIteration>True</reseedEachIteration>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMRun" re-seeding="200286">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
+      <Output class="Databases" type="HDF5">test_external_db</Output>
+      <Output class="OutStreams" type="Print">testPrintHistorySet_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="test_external_db" readMode="overwrite"/>
+  </Databases>
+
+  <OutStreams>
+    <Print name="testPrintHistorySet_dump">
+      <type>csv</type>
+      <source>testPrintHistorySet</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="testPrintHistorySet">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

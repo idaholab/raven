@@ -6,7 +6,7 @@
     <created>2013-10-24</created>
     <classesTested>Models.ExternalModel</classesTested>
     <description>
-       This test is aimed to check the functionality of RAVEN to use ExternalModel entities.     
+       This test is aimed to check the functionality of RAVEN to use ExternalModel entities.
     </description>
     <revisions>
       <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
@@ -16,6 +16,7 @@
     </revisions>
     <requirements>R-IS-4</requirements>
   </TestInfo>
+
   <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
@@ -76,6 +77,7 @@
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>100</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>

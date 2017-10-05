@@ -87,7 +87,7 @@
     <Print name="rom_stats_2">
       <type>xml</type>
       <source>scgpc_rom</source>
-      <what>mean,variance,sobolIndices</what>
+      <what>mean,variance,sobolIndices,polyCoeffs</what>
     </Print>
   </OutStreams>
 

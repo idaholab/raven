@@ -10,8 +10,8 @@
     <Normal name="Normal">
       <mean>0</mean>
       <sigma>0.2</sigma>
-      <lowerBound>-1</lowerBound>
-      <upperBound>1</upperBound>
+      <lowerBound>1.5</lowerBound>
+      <upperBound>2</upperBound>
     </Normal>
     <Uniform name="Uniform">
       <lowerBound>0</lowerBound>

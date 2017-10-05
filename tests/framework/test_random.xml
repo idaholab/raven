@@ -17,6 +17,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>RandomTest</WorkingDir>
     <Sequence>Sampler1,Sampler2,Sampler3,Sampler4,Sampler5</Sequence>
@@ -38,6 +39,7 @@
     <MonteCarlo name="MC1">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="simple_var">
         <distribution>simple</distribution>
@@ -46,6 +48,7 @@
     <MonteCarlo name="MC2">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="simple_var">
         <distribution>simple</distribution>
@@ -54,6 +57,7 @@
     <MonteCarlo name="MC3">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="simple_var">
         <distribution>simple</distribution>
@@ -62,6 +66,7 @@
     <MonteCarlo name="MC4">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="simple_var">
         <distribution>simple</distribution>
@@ -70,6 +75,7 @@
     <MonteCarlo name="MC5">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="simple_var">
         <distribution>simple</distribution>

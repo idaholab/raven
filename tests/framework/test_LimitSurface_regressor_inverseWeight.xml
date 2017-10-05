@@ -15,6 +15,7 @@
       <revision author="alfoa" date="2017-06-02">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>limitSurfaceWithRegressor</WorkingDir>
     <Sequence>FirstMRun,ComputeLimitSurfacePositive,ComputeLimitSurfaceNegative,ComputeLimitSurfacePositiveNegative</Sequence>
@@ -37,8 +38,6 @@
       <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
-    
-
     <PostProcessor name="computeLimitSurfaceNegative" subType="LimitSurface">
       <parameters>x0,y0</parameters>
       <side>negative</side>
@@ -54,9 +53,9 @@
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <ROM name="Acc" subType="NDinvDistWeight">
-        <Features>x0,y0</Features>
-        <Target>goalFunctionForLimitSurface</Target>
-        <p>3</p>
+      <Features>x0,y0</Features>
+      <Target>goalFunctionForLimitSurface</Target>
+      <p>3</p>
     </ROM>
   </Models>
 
@@ -85,6 +84,7 @@
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>150</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>

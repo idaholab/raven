@@ -5,6 +5,7 @@
     <Sequence>Bmake,Btrain,Btest,Bprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/SparseGrid/beta</name>
     <author>talbpaul</author>

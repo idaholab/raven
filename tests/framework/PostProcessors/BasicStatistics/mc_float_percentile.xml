@@ -5,6 +5,7 @@
     <Sequence>SamplingMirrowModelMC,PP1mc</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics.mcFloatPercentile</name>
     <author>alfoa</author>
@@ -14,7 +15,7 @@
       This test checks basic statistics on Monte Carlo samples, requesting percentiles less than 1 percent
     </description>
   </TestInfo>
-  
+
   <Files>
     <Input name="output_basicStatistics_PP1mc.csv" type="">output_basicStatistics_PP1mc.csv</Input>
     <Input name="output_basicStatistics_PP1mc.xml" type="">output_basicStatistics_PP1mc.xml</Input>
@@ -45,6 +46,7 @@
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>1100</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="x">
         <distribution>x0_distrib</distribution>

@@ -236,7 +236,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.objVar = child.text
 
       elif child.tag == "initialization":
-        self.initSeed = randomUtils.randomIntegers(0,2**31,self)
+        self.initSeed = np.random.randint(0,2**31)
         for childChild in child:
           if childChild.tag == "limit":
             self.limit['mdlEval'] = int(childChild.text)

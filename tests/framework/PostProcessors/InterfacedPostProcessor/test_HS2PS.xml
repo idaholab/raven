@@ -9,7 +9,7 @@
       Tests of the HS2PS interfaced post-processor
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>HS2PS</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
@@ -66,6 +66,7 @@
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>2</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>
@@ -92,7 +93,7 @@
       <type>csv</type>
       <source>outMC_PP</source>
     </Print>
-    <Plot  name="plot1" overwrite="False">
+    <Plot name="plot1" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>

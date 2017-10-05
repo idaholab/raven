@@ -18,6 +18,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>RELAP5interfaceTest</WorkingDir>
     <Sequence>testDummyStep</Sequence>
@@ -25,8 +26,8 @@
   </RunInfo>
 
   <Files>
-    <Input name="snc01.i" type="" >snc01.i</Input>
-    <Input name="tpfh2o"  type="" >tpfh2o</Input>
+    <Input name="snc01.i" type="">snc01.i</Input>
+    <Input name="tpfh2o" type="">tpfh2o</Input>
   </Files>
 
   <Models>
@@ -75,6 +76,7 @@
     <MonteCarlo name="MC_samp">
       <samplerInit>
         <limit>5</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="20100154:2">
         <distribution>heat_capacity_154</distribution>

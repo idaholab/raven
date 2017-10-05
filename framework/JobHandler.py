@@ -542,6 +542,9 @@ class JobHandler(MessageHandler.MessageUser):
     """
     return len(self.__submittedJobs)
 
+  def numQueued(self):
+    return len(self.__queue)
+
   def fillJobQueue(self):
     """
       Method to start running the jobs in queue.  If there are empty slots

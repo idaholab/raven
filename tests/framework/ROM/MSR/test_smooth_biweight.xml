@@ -10,7 +10,6 @@
        a biweight kernel function for the kernel density estimator.
        This is a smoothed version of MSR where local models are blended
        together.
-
        Note, all of the tests in MSR operate on a 2D input domain with
        the goal of fitting a single Gaussian bump. The input dimensions are
        of largely different scales and one dimension is off-centered from the
@@ -24,6 +23,7 @@
       <revision author="maljdan" date="2017-01-19">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>

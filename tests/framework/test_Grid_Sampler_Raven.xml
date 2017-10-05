@@ -24,6 +24,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>GridTestRaven</WorkingDir>
     <Sequence>FirstMRun,maxFromHDF5</Sequence>
@@ -90,7 +91,7 @@
     <IOStep name="maxFromHDF5">
       <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
       <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
-      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input> 
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
       <Output class="DataObjects" type="PointSet">outGridMaxFromHDF5</Output>
       <Output class="DataObjects" type="PointSet">outGridMinFromHDF5</Output>
       <Output class="DataObjects" type="PointSet">outGridAverageFromHDF5</Output>
@@ -121,7 +122,7 @@
       <type>csv</type>
       <source>outGridAverage</source>
     </Print>
-     <Print name="outGridMaxFromHDF5_dump">
+    <Print name="outGridMaxFromHDF5_dump">
       <type>csv</type>
       <source>outGridMaxFromHDF5</source>
     </Print>

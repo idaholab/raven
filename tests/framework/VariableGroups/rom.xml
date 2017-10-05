@@ -5,6 +5,7 @@
     <Sequence>sample,train,samprom,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/VariableGroups/ROM</name>
     <author>talbpaul</author>

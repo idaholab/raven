@@ -20,6 +20,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>dists_vars/</WorkingDir>
     <Sequence>FirstMRun</Sequence>
@@ -63,6 +64,7 @@
             <tolerance>0.2</tolerance>
           </distribution>
         </distInit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="t1">
         <distribution>t1_distrib</distribution>

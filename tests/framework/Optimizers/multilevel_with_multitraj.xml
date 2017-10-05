@@ -49,16 +49,16 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <iterationLimit>100</iterationLimit>
-          <gradientThreshold>1e-2</gradientThreshold>
-          <relativeThreshold>1e-5</relativeThreshold>
+        <iterationLimit>100</iterationLimit>
+        <gradientThreshold>1e-2</gradientThreshold>
+        <relativeThreshold>1e-5</relativeThreshold>
       </convergence>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
         <initial>-2,-2,0,2,2</initial>
       </variable>
-      <variable name='y'>
+      <variable name="y">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
         <initial>-2,2,0,-2,2</initial>
@@ -68,8 +68,8 @@
         <c>1e-3</c>
       </parameter>
       <multilevel>
-        <subspace name='first'>x</subspace>
-        <subspace name='second'>y</subspace>
+        <subspace name="first">x</subspace>
+        <subspace name="second">y</subspace>
         <sequence>first,second</sequence>
       </multilevel>
     </SPSA>

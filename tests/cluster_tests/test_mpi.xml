@@ -10,6 +10,7 @@
       a qsub.  This could be used in pbs interactive mode.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstMRun</Sequence>
@@ -74,6 +75,7 @@
     <MonteCarlo name="RAVENmc6">
       <samplerInit>
         <limit>6</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
     </MonteCarlo>
   </Samplers>

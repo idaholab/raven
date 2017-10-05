@@ -1,16 +1,1 @@
-<data name="PrintPPPointSetSet_dump" type="Pointset"><input>y0,x0,z0</input><output>y,x,z,time</output><inputFilename>PrintPPPointSetSet_dump.csv</inputFilename><metadata><SamplerType>array([u'MC', u'MC', u'MC', u'MC', u'MC'], 
-      dtype='&lt;U2')</SamplerType><crowDist>array([ {u'y0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'z0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}'},
-       {u'y0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'z0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}'},
-       {u'y0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'z0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}'},
-       {u'y0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'z0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}'},
-       {u'y0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'z0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}'}], dtype=object)</crowDist><SampledVars>array([ {u'y0': 4.3435977886887782, u'x0': 3.2434673864645989, u'z0': 4.156263053292979},
-       {u'y0': 5.0553520196775059, u'x0': 5.2406591398342215, u'z0': 5.7195901943333993},
-       {u'y0': 4.3620460036449247, u'x0': 4.0535280961372866, u'z0': 3.7838358056462047},
-       {u'y0': 0.48356827063958319, u'x0': 1.6657918837215693, u'z0': 4.1673927724469291},
-       {u'y0': 4.6634948033462509, u'x0': 4.0378445609588338, u'z0': 4.5144694580405202}], dtype=object)</SampledVars><prefix>array(['1', '2', '3', '4', '5'], 
-      dtype='|S1')</prefix><SampledVarsPb>array([ {u'y0': 0.37607441106613404, u'x0': 0.29965923571548186, u'z0': 0.39410117862255684},
-       {u'y0': 0.22859063940982766, u'x0': 0.18478614716146574, u'z0': 0.09095105708066203},
-       {u'y0': 0.37363451664725317, u'x0': 0.39837115350952335, u'z0': 0.3897296393601599},
-       {u'y0': 0.000823798508207695, u'x0': 0.02616841059199835, u'z0': 0.3933920021368623},
-       {u'y0': 0.32012260682616467, u'x0': 0.39865669794708497, u'z0': 0.34949083360034}], dtype=object)</SampledVarsPb><PointProbability>array([  4.44129055e-02,   3.84180753e-03,   5.80093913e-02,
-         8.48054715e-06,   4.46016782e-02])</PointProbability></metadata></data>
+<data name="PrintPPPointSetSet_dump" type="Pointset"><input>y0,x0,z0</input><output>y,x,z,time</output><inputFilename>PrintPPPointSetSet_dump.csv</inputFilename><metadata><SamplerType>array([None, None, None, None, None], dtype=object)</SamplerType><crowDist>array([None, None, None, None, None], dtype=object)</crowDist><SampledVars>array([None, None, None, None, None], dtype=object)</SampledVars><ProbabilityWeight>array([ 1.,  1.,  1.,  1.,  1.])</ProbabilityWeight><prefix>array([None, None, None, None, None], dtype=object)</prefix><SampledVarsPb>array([None, None, None, None, None], dtype=object)</SampledVarsPb><PointProbability>array([ 0.0141444 ,  0.03944326,  0.03555316,  0.0078922 ,  0.01272949])</PointProbability></metadata></data>

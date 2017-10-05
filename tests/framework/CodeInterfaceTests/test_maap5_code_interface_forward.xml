@@ -17,6 +17,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>MAAP5_Forward_test</WorkingDir>
     <Sequence>testDummyStep</Sequence>
@@ -52,6 +53,7 @@
     <MonteCarlo name="MC">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="TIMELOCA">
         <distribution>normal</distribution>

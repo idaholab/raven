@@ -5,6 +5,7 @@
     <Sequence>Nmake,Ntrain,Ntest,Nprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/SparseGrid/normal</name>
     <author>talbpaul</author>

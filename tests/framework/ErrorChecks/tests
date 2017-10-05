@@ -24,6 +24,11 @@
         input = 'loadBadPointSet.xml'
         expect_err = 'IOError: Invalid data in input file:'
  [../]
+ [./testExtModelNoVars]
+        type = 'RavenErrors'
+        input = 'test_novariables_extmodel.xml'
+        expect_err = 'IOError: No variables were specified!  Check for the "variables" block in ExternalModel definition.'
+ [../]
 
  [./badInSimulation]
         type = 'RavenErrors'

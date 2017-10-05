@@ -34,17 +34,17 @@
 
   <Steps>
     <SingleRun name="single">
-      <Input  class="Files"       type="input">referenceInput.xml</Input>
-      <Model  class="Models"      type="Code">testModel</Model>
+      <Input class="Files" type="input">referenceInput.xml</Input>
+      <Model class="Models" type="Code">testModel</Model>
       <Output class="DataObjects" type="PointSet">pointValues</Output>
       <Output class="DataObjects" type="HistorySet">history</Output>
     </SingleRun>
     <IOStep name="writehistory" pauseAtEnd="True">
-        <Input  class="DataObjects"      type="PointSet">pointValues</Input>
-        <Input  class="DataObjects"      type="HistorySet">history</Input>
-        <Output class="OutStreams" type="Print">history</Output>
-        <Output class="OutStreams" type="Plot">historyPlot</Output>
-        <Output class="OutStreams" type="Print">pointValues</Output>
+      <Input class="DataObjects" type="PointSet">pointValues</Input>
+      <Input class="DataObjects" type="HistorySet">history</Input>
+      <Output class="OutStreams" type="Print">history</Output>
+      <Output class="OutStreams" type="Plot">historyPlot</Output>
+      <Output class="OutStreams" type="Print">pointValues</Output>
     </IOStep>
   </Steps>
 
@@ -54,8 +54,8 @@
       <Output>A,B,C,D</Output>
     </PointSet>
     <HistorySet name="history">
-        <Input>InputPlaceHolder</Input>
-        <Output>A,B,C,D,time</Output>
+      <Input>InputPlaceHolder</Input>
+      <Output>A,B,C,D,time</Output>
     </HistorySet>
   </DataObjects>
 
@@ -66,62 +66,62 @@
       <what>Output</what>
     </Print>
     <Print name="history">
-        <type>csv</type>
-        <source>history</source>
-        <what>Output|A,Output|D</what>
+      <type>csv</type>
+      <source>history</source>
+      <what>Output|A,Output|D</what>
     </Print>
-    <Plot   name="historyPlot" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <gridSpace>2 2</gridSpace>
-            <plot>
-                <type>line</type>
-                <x>history|Output|time</x>
-                <y>history|Output|A</y>
-                <color>blue</color>
-                <gridLocation>
-                  <x>0</x>
-                  <y>0</y>
-                </gridLocation>
-            </plot>
-            <plot>
-                <type>line</type>
-                <x>history|Output|time</x>
-                <y>history|Output|B</y>
-                <color>red</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-            </plot>
-            <plot>
-                <type>line</type>
-                <x>history|Output|time</x>
-                <y>history|Output|C</y>
-                <color>yellow</color>
-                <gridLocation>
-                    <x>0</x>
-                    <y>1</y>
-                </gridLocation>
-            </plot>
-            <plot>
-                <type>line</type>
-                <x>history|Output|time</x>
-                <y>history|Output|D</y>
-                <color>black</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>1</y>
-                </gridLocation>
-            </plot>
-            <xlabel>time (s)</xlabel>
-            <ylabel>evolution (kg)</ylabel>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+    <Plot name="historyPlot" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <gridSpace>2 2</gridSpace>
+        <plot>
+          <type>line</type>
+          <x>history|Output|time</x>
+          <y>history|Output|A</y>
+          <color>blue</color>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>history|Output|time</x>
+          <y>history|Output|B</y>
+          <color>red</color>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>history|Output|time</x>
+          <y>history|Output|C</y>
+          <color>yellow</color>
+          <gridLocation>
+            <x>0</x>
+            <y>1</y>
+          </gridLocation>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>history|Output|time</x>
+          <y>history|Output|D</y>
+          <color>black</color>
+          <gridLocation>
+            <x>1</x>
+            <y>1</y>
+          </gridLocation>
+        </plot>
+        <xlabel>time (s)</xlabel>
+        <ylabel>evolution (kg)</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
   </OutStreams>
 

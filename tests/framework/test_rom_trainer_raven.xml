@@ -6,7 +6,7 @@
     <created>2015-10-12</created>
     <classesTested>Models.ROM.SKLearn, Models.ROM.NDinvDistWeight, Steps.RomTrainer</classesTested>
     <description>
-       This test is aimed to check the functionality of the Step RomTrainer, 
+       This test is aimed to check the functionality of the Step RomTrainer,
        for training ROM (external library imported and internal ones)
     </description>
     <revisions>
@@ -19,6 +19,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>
@@ -67,6 +68,7 @@
     <MonteCarlo name="RAVENmc3">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="DeltaTimeScramToAux">
         <distribution>auxbackup</distribution>
@@ -78,6 +80,7 @@
     <MonteCarlo name="RAVENmcCode3">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
     </MonteCarlo>
     <MonteCarlo name="RAVENmcND">

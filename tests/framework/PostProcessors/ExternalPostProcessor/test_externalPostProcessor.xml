@@ -8,7 +8,6 @@
     <description>
       A simple example of writing an external python function and using it
       inside RAVEN.
-
       Here we are testing several things:
       1.  We can handle data from multiple input files.
       2.  We can handle methods defined in multiple .py files.

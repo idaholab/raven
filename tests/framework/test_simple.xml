@@ -16,6 +16,7 @@
     </revisions>
     <requirements>R-IS-2</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>revirD_tset</WorkingDir>
     <Sequence>FirstMRun</Sequence>
@@ -63,6 +64,7 @@
     <MonteCarlo name="RAVENmc6">
       <samplerInit>
         <limit>6</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
     </MonteCarlo>
   </Samplers>

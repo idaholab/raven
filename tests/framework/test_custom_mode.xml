@@ -16,6 +16,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>./mode_test</WorkingDir>
     <Sequence>FirstMRun</Sequence>
@@ -75,6 +76,7 @@
     <MonteCarlo name="RAVENmc6">
       <samplerInit>
         <limit>2</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
     </MonteCarlo>
   </Samplers>

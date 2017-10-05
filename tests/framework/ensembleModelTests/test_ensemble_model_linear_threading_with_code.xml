@@ -15,8 +15,10 @@
       <revision author="alfoa" date="2016-04-21">Modified number of processors</revision>
       <revision author="alfoa" date="2016-11-14">New syntax ensemble</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="talbpaul" date="2017-07-19">Added seed to mc</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <JobName>metaModelWithCode</JobName>
     <Sequence>
@@ -70,6 +72,7 @@
     <MonteCarlo name="mc">
       <samplerInit>
         <limit>100</limit>
+        <initialSeed>42</initialSeed>
       </samplerInit>
       <variable name="sigma-A">
         <distribution>sigma</distribution>

@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/CodeInterfaceTests.testMCMammothNoExecutableBisonRelap7WithHDF5restart</name>
@@ -5,7 +6,7 @@
     <created>2016-12-15</created>
     <classesTested>Models.Code.MAMMOTH, Model.AliasSystem</classesTested>
     <description>
-       An example of using the MAMMOTH code interface (no executable). 
+       An example of using the MAMMOTH code interface (no executable).
        This test is designed to ensure the MAMMOTH interface mechanics is correctly functional.
        In addition, the alias system is used
     </description>
@@ -14,6 +15,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>MammothBisonRelap7NoExeWithHDF5restart</WorkingDir>
     <Sequence>riaRun1,importPrevResults,riaRun2</Sequence>
@@ -22,40 +24,42 @@
   </RunInfo>
 
   <Files>
-    <Input name="mammothInput"     type="mammothInput|bisonInput">bison_uo2_zry_ria.i</Input>
-    <Input name="relap7Input"      type="relap7Input">relap_uo2_zry_ria.i</Input>
-    <Input name="relap7Control"    type="ancillaryInput">control.py</Input>
+    <Input name="mammothInput" type="mammothInput|bisonInput">bison_uo2_zry_ria.i</Input>
+    <Input name="relap7Input" type="relap7Input">relap_uo2_zry_ria.i</Input>
+    <Input name="relap7Control" type="ancillaryInput">control.py</Input>
   </Files>
 
   <Models>
     <Code name="Mammoth" subType="MAMMOTH">
-      <executable><!-- no executable test--> </executable>
+      <executable>
+        <!-- no executable test-->
+      </executable>
       <!-- BISON Variable Aliases -->
-      <alias variable='fuel_k_scale_fac'  type='input'>Bison@Materials|fuel_thermal|thcond_scalef</alias>
-      <alias variable='fuel_cp_scale_fac' type='input'>Bison@Materials|fuel_thermal|cp_scalef</alias>
+      <alias type="input" variable="fuel_k_scale_fac">Bison@Materials|fuel_thermal|thcond_scalef</alias>
+      <alias type="input" variable="fuel_cp_scale_fac">Bison@Materials|fuel_thermal|cp_scalef</alias>
     </Code>
   </Models>
 
   <Distributions>
-    <Normal name='clad_inner_diam_dist'>
+    <Normal name="clad_inner_diam_dist">
       <mean>8.26e-3</mean>
       <sigma>0.01e-3</sigma>
       <lowerBound>8.24e-3</lowerBound>
       <upperBound>8.28e-3</upperBound>
     </Normal>
-    <Normal name='clad_outer_diam_dist'>
+    <Normal name="clad_outer_diam_dist">
       <mean>9.4e-3</mean>
       <sigma>0.01e-3</sigma>
       <lowerBound>9.38e-3</lowerBound>
       <upperBound>9.42e-3</upperBound>
     </Normal>
-    <Normal name='fuel_k_scale_fac_dist'>
+    <Normal name="fuel_k_scale_fac_dist">
       <mean>1.0</mean>
       <sigma>0.05</sigma>
       <lowerBound>0.90</lowerBound>
       <upperBound>1.10</upperBound>
     </Normal>
-    <Normal name='fuel_cp_scale_fac_dist'>
+    <Normal name="fuel_cp_scale_fac_dist">
       <mean>1.00</mean>
       <sigma>0.05</sigma>
       <lowerBound>0.90</lowerBound>
@@ -67,9 +71,10 @@
     <MonteCarlo name="MCSampler">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="fuel_k_scale_fac">
-        <distribution>fuel_k_scale_fac_dist</distribution> 
+        <distribution>fuel_k_scale_fac_dist</distribution>
       </variable>
       <variable name="fuel_cp_scale_fac">
         <distribution>fuel_cp_scale_fac_dist</distribution>
@@ -103,16 +108,16 @@
       <Output class="Databases" type="HDF5">lssRIAResultsDB</Output>
     </MultiRun>
     <MultiRun name="riaRun2">
-        <Input class="Files" type="">mammothInput</Input>
-        <Input class="Files" type="">relap7Input</Input>
-        <Input class="Files" type="">relap7Control</Input>
-        <Model class="Models" type="Code">Mammoth</Model>
-        <Sampler class="Samplers" type="MonteCarlo">MCSampler</Sampler>
-        <Output class="DataObjects" type="PointSet">max_clad_results</Output>
-        <Output class="DataObjects" type="HistorySet">max_clad_results_history</Output>
-        <Output class="OutStreams" type="Print">max_clad_temp_out</Output>
-        <Output class="OutStreams" type="Print">max_clad_temp_hist_out</Output>
-        <Output class="Databases" type="HDF5">lssRIAResultsDB</Output>
+      <Input class="Files" type="">mammothInput</Input>
+      <Input class="Files" type="">relap7Input</Input>
+      <Input class="Files" type="">relap7Control</Input>
+      <Model class="Models" type="Code">Mammoth</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MCSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">max_clad_results</Output>
+      <Output class="DataObjects" type="HistorySet">max_clad_results_history</Output>
+      <Output class="OutStreams" type="Print">max_clad_temp_out</Output>
+      <Output class="OutStreams" type="Print">max_clad_temp_hist_out</Output>
+      <Output class="Databases" type="HDF5">lssRIAResultsDB</Output>
     </MultiRun>
   </Steps>
 
@@ -127,11 +132,11 @@
       <filename>maxCladOutTempResults</filename>
     </Print>
     <Print name="max_clad_temp_hist_out">
-        <type>csv</type>
-        <source>max_clad_results_history</source>
-        <filename>maxCladOutTempResultsHistory</filename>
+      <type>csv</type>
+      <source>max_clad_results_history</source>
+      <filename>maxCladOutTempResultsHistory</filename>
     </Print>
-</OutStreams>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="max_clad_results">
@@ -143,8 +148,8 @@
       </options>
     </PointSet>
     <HistorySet name="max_clad_results_history">
-        <Input>clad_outer_diam,clad_inner_diam,fuel_k_scale_fac,fuel_cp_scale_fac</Input>
-        <Output>max_clad_outer_surface_temp</Output>
+      <Input>clad_outer_diam,clad_inner_diam,fuel_k_scale_fac,fuel_cp_scale_fac</Input>
+      <Output>max_clad_outer_surface_temp</Output>
     </HistorySet>
   </DataObjects>
 

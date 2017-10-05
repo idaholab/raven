@@ -51,11 +51,11 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <gradientThreshold>1e-1</gradientThreshold>
-          <gainGrowthFactor>1.5</gainGrowthFactor>
-          <gainShrinkFactor>1.25</gainShrinkFactor>
+        <gradientThreshold>1e-1</gradientThreshold>
+        <gainGrowthFactor>1.5</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>2</upperBound>
         <lowerBound>1</lowerBound>
         <initial>1.5</initial>

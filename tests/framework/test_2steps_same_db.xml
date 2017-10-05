@@ -6,7 +6,7 @@
     <author>@alfoa</author>
     <created>2015-05-01</created>
     <revisions>
-        <revision date="2016-05-20" author="@maljdan">Updating the test cases to remove references to Point or History</revision>
+      <revision author="@maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History</revision>
     </revisions>
     <classesTested>Databases.HDF5</classesTested>
     <description>
@@ -15,21 +15,21 @@
     </description>
     <requirements>R-IS-3</requirements>
   </TestInfo>
-    
+
   <!-- RunInfo. 2 Steps are performed in this case -->
   <RunInfo>
     <WorkingDir>test_2steps</WorkingDir>
     <Sequence>FirstStep,SecondStep</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-  
+
   <!-- Models. One single external model -->
   <Models>
     <ExternalModel ModuleToLoad="two_steps" name="TwoStep" subType="">
       <variables>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist,time,out1,out2,time</variables>
     </ExternalModel>
   </Models>
-  
+
   <!-- Distributions. 4 Distributions -->
   <Distributions>
     <Normal name="Gauss1">
@@ -56,12 +56,13 @@
       <max>3</max>
     </Triangular>
   </Distributions>
-  
+
   <!-- Samplers. 2 different samplers since we want to test the possibility to add different data in the same HDF5 -->
   <Samplers>
     <MonteCarlo name="RAVENmc6">
       <samplerInit>
         <limit>6</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="Gauss1">
         <distribution>Gauss1</distribution>
@@ -79,6 +80,7 @@
     <MonteCarlo name="RAVENmc2">
       <samplerInit>
         <limit>2</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="Gauss1">
         <distribution>Gauss1</distribution>
@@ -94,7 +96,7 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-  
+
   <!-- Steps. 2 steps that dump the results in the same HDF5 -->
   <Steps>
     <MultiRun name="FirstStep" re-seeding="200286">
@@ -113,12 +115,12 @@
       <Output class="OutStreams" type="Print">fullprint_HistorySet</Output>
     </MultiRun>
   </Steps>
-  
+
   <!-- Databases. 1 database used as dumper -->
   <Databases>
     <HDF5 name="test2StepsDatabase" readMode="overwrite"/>
   </Databases>
-  
+
   <!-- DataObjects. 1 input data object and 1 output dataobject -->
   <DataObjects>
     <PointSet name="inputHolder">
@@ -130,7 +132,7 @@
       <Output>out1,out2,time</Output>
     </HistorySet>
   </DataObjects>
-  
+
   <!-- OutStreams. Print object (dataobject dumping) -->
   <OutStreams>
     <Print name="fullprint_HistorySet">

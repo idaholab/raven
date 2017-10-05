@@ -7,16 +7,17 @@
     <classesTested>OutStreams.Print, DataObjects.PointSet, Databases.HDF5, Steps.MultiRun, Samplers.Stratified </classesTested>
     <description>
        This test is aimed to check the capability of RAVEN to perform a Stratified Sampling strategy of large size [(16 uncertanties and 2 nodes each)
-       and (16 uncertanties and 161 nodes each)]. An external model is used, the results are  stored the results into a Database of type 
+       and (16 uncertanties and 161 nodes each)]. An external model is used, the results are  stored the results into a Database of type
        HDF5 and Dataobjects of type PointSet. In addition, it prints the results (contained in
-       the DataObjects) in a CSV file (OutStreams of type Print) 
+       the DataObjects) in a CSV file (OutStreams of type Print)
     </description>
     <revisions>
-      <revision author="alfoa" date="2016-04-13">new syntax for OutStreamManger -> OutStreams</revision>
+      <revision author="alfoa" date="2016-04-13">new syntax for OutStreamManger -&gt; OutStreams</revision>
       <revision author="talbpaul" date="2016-04-26">added check for pre-existing backup files when validating</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>stratifiedLargeGridSize</WorkingDir>
     <Sequence>2x16,16x1,16x160,write_results</Sequence>
@@ -44,6 +45,9 @@
         <distribution>norm</distribution>
         <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
+      <samplerInit>
+        <initialSeed>66</initialSeed>
+      </samplerInit>
     </Stratified>
     <Stratified name="16var1step">
       <variable name="x1">
@@ -110,6 +114,9 @@
         <distribution>norm</distribution>
         <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
+      <samplerInit>
+        <initialSeed>66</initialSeed>
+      </samplerInit>
     </Stratified>
     <Stratified name="16var160step">
       <variable name="x1">
@@ -176,6 +183,9 @@
         <distribution>norm</distribution>
         <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
+      <samplerInit>
+        <initialSeed>66</initialSeed>
+      </samplerInit>
     </Stratified>
   </Samplers>
 

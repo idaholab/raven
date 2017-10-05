@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>randomSeedCheck</WorkingDir>
+    <Sequence>load,compare,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/Samplers.noseed</name>
+    <author>talbpaul</author>
+    <created>2017-07-14</created>
+    <classesTested>Samplers.MonteCarlo</classesTested>
+    <description>
+      Checks that not specifying a seed for MC results in two different data sets.
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="first">first.csv</Input>
+    <Input name="second">second.csv</Input>
+  </Files>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">first</Input>
+      <Input class="Files" type="">second</Input>
+      <Output class="DataObjects" type="PointSet">first</Output>
+      <Output class="DataObjects" type="PointSet">second</Output>
+    </IOStep>
+    <PostProcess name="compare">
+      <Input class="DataObjects" type="PointSet">first</Input>
+      <Input class="DataObjects" type="PointSet">second</Input>
+      <Model class="Models" type="PostProcessor">compare</Model>
+      <Output class="DataObjects" type="PointSet">results</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Output class="OutStreams" type="Print">results</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="u1">
+      <lowerBound>1</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+    <Uniform name="u2">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Models>
+    <PostProcessor name="compare" subType="ComparisonStatistics">
+      <kind binMethod="sturges">uniformBins</kind>
+      <interpolation>linear</interpolation>
+      <compare>
+        <data>first|inputs|x1</data>
+        <data>second|inputs|x1</data>
+      </compare>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="first">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="second">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="results">
+      <Input>DummyIn</Input>
+      <Output>DummyOut</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="results">
+      <type>csv</type>
+      <source>results</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

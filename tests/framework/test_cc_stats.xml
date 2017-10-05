@@ -10,6 +10,7 @@
       and PointSet to distribution.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>test_cc_stats</WorkingDir>
     <Sequence>test_read_in,test_stats_step,dump_data</Sequence>

@@ -9,7 +9,7 @@
       Tests of the HistorySetSync interfaced post-processor
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>HistorySetSync</WorkingDir>
     <Sequence>FirstMRun,PP1,plot1,PP2,plot2</Sequence>
@@ -93,6 +93,7 @@
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>2</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>
@@ -123,7 +124,7 @@
       <type>csv</type>
       <source>outMC_PP2</source>
     </Print>
-    <Plot  name="plot1" overwrite="False">
+    <Plot name="plot1" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -147,7 +148,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot  name="plot2" overwrite="False">
+    <Plot name="plot2" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>

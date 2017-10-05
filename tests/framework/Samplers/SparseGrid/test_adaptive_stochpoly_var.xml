@@ -5,6 +5,7 @@
     <Sequence>make,train,print,print2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/SparseGrid/AdaptiveOnVariance</name>
     <author>talbpaul</author>

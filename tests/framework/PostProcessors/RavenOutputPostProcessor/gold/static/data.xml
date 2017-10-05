@@ -1,3 +1,2 @@
 <data name="data" type="Pointset"><input>ID</input><output>variance,mean</output><inputFilename>data.csv</inputFilename><metadata><loadedFromRavenFile>array([ '(FILE) /Users/talbpw/projects/raven/tests/framework/PostProcessors/RavenOutputPostProcessor/static/basic.xml (END FILE)',
-       '(FILE) /Users/talbpw/projects/raven/tests/framework/PostProcessors/RavenOutputPostProcessor/static/collocation.xml (END'], 
-      dtype='|S119')</loadedFromRavenFile></metadata></data>
+       '(FILE) /Users/talbpw/projects/raven/tests/framework/PostProcessors/RavenOutputPostProcessor/static/collocation.xml (END FILE)'], dtype=object)</loadedFromRavenFile></metadata></data>

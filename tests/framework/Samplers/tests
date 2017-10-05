@@ -1,0 +1,20 @@
+[Tests]
+ [./prerunReseed1]
+  type = 'RavenFramework'
+  input = 'prerun_noseed_mc_1.xml'
+  output = 'randomSeedCheck/first.csv'
+ [../]
+ [./prerunReseed2]
+  type = 'RavenFramework'
+  input = 'prerun_noseed_mc_2.xml'
+  output = 'randomSeedCheck/second.csv'
+  prereq = prerunReseed1
+ [../]
+ [./noseed]
+  type = 'RavenFramework'
+  input = 'noseed.xml'
+  csv = 'randomSeedCheck/results.csv'
+  expected_fail = true
+  prereq = prerunReseed2
+ [../]
+[]

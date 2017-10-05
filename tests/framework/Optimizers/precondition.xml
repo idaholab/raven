@@ -55,24 +55,24 @@
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Preconditioner class="Models" type="ExternalModel">precond</Preconditioner>
       <convergence>
-          <gradientThreshold>1e-3</gradientThreshold>
-          <gainGrowthFactor>1.5</gainGrowthFactor>
-          <gainShrinkFactor>1.25</gainShrinkFactor>
+        <gradientThreshold>1e-3</gradientThreshold>
+        <gainGrowthFactor>1.5</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
         <initial>-3</initial>
       </variable>
-      <variable name='y'>
+      <variable name="y">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
       </variable>
       <constant name="samplerConstant">3.14159</constant>
       <objectVar>ans</objectVar>
       <multilevel>
-        <subspace name='xgroup'>x</subspace>
-        <subspace name='ygroup' precond="precond">y</subspace>
+        <subspace name="xgroup">x</subspace>
+        <subspace name="ygroup" precond="precond">y</subspace>
         <sequence>xgroup,ygroup</sequence>
       </multilevel>
     </SPSA>

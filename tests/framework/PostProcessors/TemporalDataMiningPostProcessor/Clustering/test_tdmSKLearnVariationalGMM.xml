@@ -9,6 +9,7 @@
       Testing clustering with VBGMM (Variational Bayesian Gaussian Mixture Modeling) and pivot parameter.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>VariationalGMM</WorkingDir>
     <Sequence>sampleGen,pp1,writeOut</Sequence>
@@ -46,6 +47,7 @@
     <MonteCarlo name="useless">
       <samplerInit>
         <limit>100</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="cluster">
         <distribution>cluster</distribution>
@@ -116,8 +118,7 @@
       <type>csv</type>
       <source>clusterInfo</source>
     </Print>
-
-    <Plot  name="plotRawData" overwrite="True" >
+    <Plot name="plotRawData" overwrite="True">
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
@@ -149,7 +150,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="plotPPDataLabel" overwrite="True" >
+    <Plot name="plotPPDataLabel" overwrite="True">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -162,8 +163,7 @@
         <how>png</how>
       </actions>
     </Plot>
-
-    <Plot  name="plotPPDataCentroid" overwrite="True" >
+    <Plot name="plotPPDataCentroid" overwrite="True">
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>

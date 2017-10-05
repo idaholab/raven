@@ -5,6 +5,7 @@
     <Sequence>MC,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/mc_uniform</name>
     <author>mandd</author>
@@ -13,6 +14,9 @@
     <description>
       Tests basic statistics on uniformly-sampled normally-distributed Monte Carlo sampling.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2017_07_19">Provided seed to MC sampler</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
@@ -42,6 +46,7 @@
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>5</limit>
+        <initialSeed>42</initialSeed>
         <samplingType>uniform</samplingType>
       </samplerInit>
       <variable name="x1">
@@ -55,17 +60,17 @@
 
   <Steps>
     <MultiRun name="MC">
-      <Input   class="DataObjects"  type="PointSet"       >inputPlaceHolder</Input>
-      <Model   class="Models"       type="ExternalModel"  >piModel</Model>
-      <Sampler class="Samplers"     type="MonteCarlo"     >MC_external</Sampler>
-      <Output  class="DataObjects"  type="PointSet"       >outputDataMC</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">piModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC</Output>
     </MultiRun>
     <PostProcess name="PP">
-      <Input   class="DataObjects"  type="PointSet"       >outputDataMC</Input>
-      <Model   class="Models"       type="PostProcessor"  >analyticalTest</Model>
-      <Output  class="OutStreams"   type="Print"           >outputDataMC_dump</Output>
-      <Output  class="Files"        type=""               >output_basicStatistics_PP.csv</Output>
-      <Output  class="Files"        type=""               >output_basicStatistics_PP.xml</Output>
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Model class="Models" type="PostProcessor">analyticalTest</Model>
+      <Output class="OutStreams" type="Print">outputDataMC_dump</Output>
+      <Output class="Files" type="">output_basicStatistics_PP.csv</Output>
+      <Output class="Files" type="">output_basicStatistics_PP.xml</Output>
     </PostProcess>
   </Steps>
 

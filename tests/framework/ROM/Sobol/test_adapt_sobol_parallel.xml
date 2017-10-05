@@ -6,6 +6,7 @@
     <batchSize>8</batchSize>
     <internalParallel>True</internalParallel>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/AdaptiveSobolParallel</name>
     <author>talbpaul</author>

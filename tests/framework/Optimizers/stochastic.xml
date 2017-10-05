@@ -20,6 +20,7 @@
       <revision author="talbpaul" date="2017-07-18">added additional model output for testing mechanics</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>Stochastic</WorkingDir>
     <Sequence>optimize,getOptPoint,print</Sequence>
@@ -57,11 +58,11 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <gradientThreshold>1e-3</gradientThreshold>
-          <gainGrowthFactor>1.5</gainGrowthFactor>
-          <gainShrinkFactor>1.25</gainShrinkFactor>
+        <gradientThreshold>1e-3</gradientThreshold>
+        <gainGrowthFactor>1.5</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>1</upperBound>
         <lowerBound>-1</lowerBound>
         <initial>-0.75</initial>

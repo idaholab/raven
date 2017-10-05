@@ -17,6 +17,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>test_merge_2_databases</WorkingDir>
     <Sequence>MonteCarlo,test_extract,test_push_in,test_extract_again</Sequence>

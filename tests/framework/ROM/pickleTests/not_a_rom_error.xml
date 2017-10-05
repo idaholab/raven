@@ -1,10 +1,11 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='all'>
+<Simulation verbosity="all">
   <RunInfo>
     <WorkingDir>UntrainedError</WorkingDir>
     <Sequence>pkLoad</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/ROM/pickleTests/loadNorROMError</name>
     <author>talbpaul</author>

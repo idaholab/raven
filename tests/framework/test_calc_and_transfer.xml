@@ -63,6 +63,7 @@
     <MonteCarlo name="theMonteCarlo">
       <samplerInit>
         <limit>200</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="gauss">
         <distribution>gauss</distribution>

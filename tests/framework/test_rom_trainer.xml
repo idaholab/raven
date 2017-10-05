@@ -21,9 +21,11 @@
       <revision author="cogljj" date="2015-11-17">Updating to work with scikit-learn 0.17. In the new version of sklearn the rom can not use a classifier anymore.</revision>
       <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="talbpaul" date="2017-07-19">Added seeds to MC</revision>
     </revisions>
     <requirements>R-RA-4</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>
@@ -70,6 +72,7 @@
     <MonteCarlo name="RAVENmc3">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>42</initialSeed>
       </samplerInit>
       <variable name="DeltaTimeScramToAux">
         <distribution>auxbackup</distribution>
@@ -81,6 +84,7 @@
     <MonteCarlo name="RAVENmcCode3">
       <samplerInit>
         <limit>3</limit>
+        <initialSeed>42</initialSeed>
       </samplerInit>
       <variable name="DeltaTimeScramToAux">
         <distribution>auxbackup</distribution>

@@ -5,6 +5,7 @@
     <Sequence>FirstMRun,PP1,PP2,PP3,PP4,PP5,PP6</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/general</name>
     <author>alfoa</author>
@@ -18,12 +19,12 @@
 
   <Files>
     <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
-    <Input name="autoCorrelated.xml"    type="">autoCorrelated.xml</Input>
-    <Input name="unCorrelated.xml"      type="">unCorrelated.xml</Input>
+    <Input name="autoCorrelated.xml" type="">autoCorrelated.xml</Input>
+    <Input name="unCorrelated.xml" type="">unCorrelated.xml</Input>
     <Input name="inverseCorrelated.xml" type="">inverseCorrelated.xml</Input>
-    <Input name="inputOutput.xml"       type="">inputOutput.xml</Input>
-    <Input name="infinite.xml"          type="">infinite.xml</Input>
-    <Input name="matrixComputable.xml"  type="">matrixComputable.xml</Input>
+    <Input name="inputOutput.xml" type="">inputOutput.xml</Input>
+    <Input name="infinite.xml" type="">infinite.xml</Input>
+    <Input name="matrixComputable.xml" type="">matrixComputable.xml</Input>
   </Files>
 
   <Models>
@@ -96,6 +97,7 @@
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>4</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>

@@ -153,15 +153,15 @@ class ExternalModel(Dummy):
     self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
     # check if there are variables and, in case, load them
     for child in paramInput.subparts:
-      if child.getName() =='variable':
-        self.raiseAnError(IOError,'"variable" node included but has been depreciated!  Please list variables in a "variables" node instead.  Remove this message by Dec 2016.')
-      elif child.getName() == 'variables':
+      if child.getName() == 'variables':
         if len(child.parameterValues) > 0:
           self.raiseAnError(IOError,'the block '+child.getName()+' named '+child.value+' should not have attributes!!!!!')
         for var in child.value.split(','):
           var = var.strip()
           self.modelVariableType[var] = None
     self.listOfRavenAwareVars.extend(self.modelVariableType.keys())
+    if len(self.listOfRavenAwareVars)<1:
+      self.raiseAnError(IOError,'No variables were specified!  Check for the "variables" block in ExternalModel definition.')
     # check if there are other information that the external module wants to load
     #TODO this needs to be converted to work with paramInput
     if '_readMoreXML' in dir(self.sim):

@@ -14,6 +14,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>RELAP5interfaceTestMultiDeckChoosingDeck</WorkingDir>
     <Sequence>testDummyStep</Sequence>
@@ -66,6 +67,7 @@
     <MonteCarlo name="MC_samp">
       <samplerInit>
         <limit>5</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="1|20100154:2">
         <distribution>heat_capacity_154</distribution>

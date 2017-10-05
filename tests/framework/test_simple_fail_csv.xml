@@ -12,6 +12,7 @@
       test.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>fail_csv</WorkingDir>
     <Sequence>External_Model,MakeSet</Sequence>
@@ -34,6 +35,7 @@
     <MonteCarlo name="theMonteCarlo">
       <samplerInit>
         <limit>20</limit>
+        <initialSeed>66</initialSeed>
       </samplerInit>
       <variable name="uniform">
         <distribution>uniform</distribution>
