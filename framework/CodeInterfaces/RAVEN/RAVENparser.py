@@ -48,7 +48,7 @@ class RAVENparser():
       raise IOError(self.printTag+' ERROR: Not found RAVEN input file')
     try:
       tree = ET.parse(file(inputFile,'r'))
-    except ET.InputParsingError as e:
+    except IOError as e:
       raise IOError(self.printTag+' ERROR: Input Parsing error!\n' +str(e)+'\n')
     self.tree = tree.getroot()
     # get the variable groups

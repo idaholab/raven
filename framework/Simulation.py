@@ -649,6 +649,11 @@ class Simulation(MessageHandler.MessageUser):
           rawRelativeWorkingDir = element.text.strip()
           self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
         utils.makeDir(self.runInfoDict['WorkingDir'])
+      elif element.tag == 'maxQueueSize':
+        try:
+          self.runInfoDict['maxQueueSize'] = int(element.text)
+        except ValueError:
+          self.raiseAnError('Value give for RunInfo.maxQueueSize could not be converted to integer: {}'.format(element.text))
       elif element.tag == 'RemoteRunCommand':
         tempName = element.text
         if '~' in tempName:

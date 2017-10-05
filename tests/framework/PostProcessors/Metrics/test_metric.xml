@@ -28,11 +28,15 @@
       <Features type="variable">ans</Features>
       <Targets type="variable">ans2</Targets>
       <Metric class="Metrics" type="SKL">euclidean</Metric>
+      <Metric class="Metrics" type="SKL">euclidean2</Metric>
     </PostProcessor>
   </Models>
   
   <Metrics>
     <SKL name="euclidean">
+      <metricType>euclidean</metricType>
+    </SKL>
+    <SKL name="euclidean2">
       <metricType>euclidean</metricType>
     </SKL>
   </Metrics>

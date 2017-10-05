@@ -161,9 +161,9 @@ If this flag is set to:
 \begin{itemize}
  \item  \textbf{\texttt{False}}, the internal parallelism is employed using multi-threading (i.e. 1 processor, multiple threads equal to the \xmlNode{batchSize}).
 \\\nb This ``parallelism mode'' runs multiple instances of the Model in a single processor. If the evaluation of the model is memory intensive (i.e. it uses a lot of memory) or computational intensive (i.e. a lot of computation operations evolving in a $CPUt  \approx >  0.1\frac{sec}{evaluation}$) the single processor might get over-loaded determining a degradation of performance. In such cases, the internal parallelism needs to be used (see the following);
- \item  \textbf{\texttt{True}}, the internal parallelism is employed using a internally-developed multi-processor approach (i.e. \xmlNode{batchSize} processors, 1 single thread). This approach works for both Shared Memory Systems (e.g. PC, laptops, workstations, etc.) and Distributed Memory Machines (e.g. High Performance Computing Systems, etc.). 
+ \item  \textbf{\texttt{True}}, the internal parallelism is employed using a internally-developed multi-processor approach (i.e. \xmlNode{batchSize} processors, 1 single thread). This approach works for both Shared Memory Systems (e.g. PC, laptops, workstations, etc.) and Distributed Memory Machines (e.g. High Performance Computing Systems, etc.).
  \\\nb This ``parallelism mode'' runs multiple instances of the Model in multiple processors. Since the parallelism is employed
- in Python, some overhead is present. This ``mode'' needs to be used when: 
+ in Python, some overhead is present. This ``mode'' needs to be used when:
  \begin{itemize}
   \item the Model evaluation is memory intensive (i.e. the multi-threading approach will cause the over-load of a single processor);
   \item the Model evaluation is computation intensive (i.e. $CPUt  \approx >  0.1\frac{sec}{evaluation}$).

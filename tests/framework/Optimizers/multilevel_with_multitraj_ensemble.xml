@@ -17,7 +17,7 @@
     <WorkingDir>MTMLwithEnsembleAndModelHolding</WorkingDir>
     <Sequence>optimize,print,getOptPoint</Sequence>
     <batchSize>1</batchSize>
-    <maxQueueSize>1000</maxQueueSize>
+    <maxQueueSize>0</maxQueueSize>
   </RunInfo>
 
   <Steps>
@@ -90,7 +90,7 @@
         <!-- This model just aplify the ans with the z value that is actually part of the optimization space... "z" should converge to 0 -->
         <variables>z,ans,objAns</variables>
     </ExternalModel>
-    
+
     <EnsembleModel name="Ensemble_with_amplifier" subType="">
         <Model class="Models" type="ExternalModel">
             beale
@@ -134,7 +134,7 @@
         <Input>z,ans</Input>
         <Output>objAns</Output>
     </PointSet>
-    
+
     <PointSet name="optOut">
         <Input>x,y,z</Input>
         <Output>objAns</Output>
