@@ -73,13 +73,17 @@ class HybridModel(Dummy):
     tolInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
     maxTrainStepInput = InputData.parameterInputFactory("maxTrainSize", contentType=InputData.IntegerType)
     initialTrainStepInput = InputData.parameterInputFactory("minInitialTrainSize", contentType=InputData.IntegerType)
-    selectionMethod = InputData.parameterInputFactory("selectionMethod", contentType=InputData.StringType)
     settingsInput = InputData.parameterInputFactory("settings", contentType=InputData.StringType)
     settingsInput.addSub(tolInput)
     settingsInput.addSub(maxTrainStepInput)
     settingsInput.addSub(initialTrainStepInput)
-    settingsInput.addSub(selectionMethod)
     inputSpecification.addSub(settingsInput)
+    # add validationMethod block
+    threshold = InputData.parameterInputFactory("threshold", contentType=InputData.FloatType)
+    validationMethodInput = InputData.parameterInputFactory("validationMethod", contentType=InputData.StringType)
+    validationMethodInput.addParam("name", InputData.StringType)
+    validationMethodInput.addSub(threshold)
+    inputSpecification.addSub(validationMethodInput)
 
     return inputSpecification
 
@@ -112,7 +116,7 @@ class HybridModel(Dummy):
     self.romConverged          = False               # True if all roms are converged
     self.romValid              = False               # True if all roms are valid for given input data
     self.romConvergence        = 0.01                # The criterion used to check ROM convergence
-    self.modelSelection        = 'CrowdingDistance'  # The validation methods used to select model between high-fidelity model and surrogate
+    self.validationMethod      = {}                  # dict used to store the validation methods and their settings
     self.existTrainSize        = 0                   # The size of existing training set in the provided data object via 'TargetEvaluation'
     self.threshold             = 0.2                 # the cut off validation criterion of new point using the CrowdingDistance
     self.printTag              = 'HYBRIDMODEL MODEL' # print tag
@@ -158,8 +162,14 @@ class HybridModel(Dummy):
             self.romTrainStartSize = utils.intConversion(childChild.value)
           if childChild.getName() == 'tolerance':
             self.romConvergence = utils.floatConversion(childChild.value)
-          if childChild.getName == 'selectionMethod':
-            self.modelSelection = childChild.value.strip()
+      if child.getName() == 'validationMethod':
+        name = child.parameterValues['name']
+        self.validationMethod[name] = {}
+        for childChild in child.subparts:
+          self.validationMethod[name][childChild.getName()] = utils.tryParse(childChild.value)
+        if name == 'CrowdingDistance' and'threshold' not in self.validationMethod[name].keys():
+          self.validationMethod[name]['threshold'] = 0.2
+          self.raiseAWarning("No threshold is provided for ", name, ", default value 0.2 is used!")
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -409,22 +419,24 @@ class HybridModel(Dummy):
       @ Out, None
     """
     allValid = False
-    if self.modelSelection == 'CrowdingDistance':
-      allValid = self.crowdingDistanceMethod(kwargs['SampledVars'])
-    else:
-      self.raiseAnError(IOError, "Unknown model selection method ", self.modelSelection, " is given!")
+    for selectionMethod, params in self.validationMethod.items():
+      if selectionMethod == 'CrowdingDistance':
+        allValid = self.crowdingDistanceMethod(params, kwargs['SampledVars'])
+      else:
+        self.raiseAnError(IOError, "Unknown model selection method ", selectionMethod, " is given!")
 
     if allValid:
       self.raiseADebug("ROMs  are all valid for given model ", self.modelInstance.name)
 
     return allValid
 
-  def crowdingDistanceMethod(self, varDict):
+  def crowdingDistanceMethod(self, settingDict, varDict):
     """
       This function will check the validity of all roms based on the crowding distance method
+      @ In, settingDict, dict, stores the setting information for the crowding distance method
       @ In, varDict, dict,  is a dictionary that contains the information coming from the sampler,
         i.e. {'name variable':value}
-      @ Out, None
+      @ Out, allValid, bool, True if the  given sampled point is valid for all roms, otherwise False
     """
     allValid = True
     for romInfo in self.romsDictionary.values():
@@ -435,7 +447,7 @@ class HybridModel(Dummy):
       currentInput = np.asarray(self._extractInputs(varDict, paramsList).values())
       coeffCD = self.computeCDCoefficient(trainInput, currentInput)
       self.raiseADebug("Crowding Distance Coefficient: ", coeffCD)
-      if coeffCD > self.threshold:
+      if coeffCD > settingDict['threshold']:
         valid = True
       romInfo['Valid'] = valid
       if valid:
