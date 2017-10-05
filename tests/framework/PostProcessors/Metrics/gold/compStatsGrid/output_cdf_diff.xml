@@ -1,5 +1,5 @@
 <MetricPostProcessor type="Static">
   <ans-ans2>
-    <CDFAreaDifference>0.860450563801</CDFAreaDifference>
+    <cdf_diff_CDFAreaDifference>0.860450563801</cdf_diff_CDFAreaDifference>
   </ans-ans2>
 </MetricPostProcessor>
