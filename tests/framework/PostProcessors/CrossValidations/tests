@@ -4,7 +4,7 @@
     input = 'test_cross_validation.xml'
     UnorderedXml = 'simpleCrossValidation/output_cv.xml'
     output = 'simpleCrossValidation/output_cv.csv'
-    UnorderedCsv = 'simpleCrossValidation/dumpMC.csv'
+    UnorderedCsv = 'simpleCrossValidation/dumpMC.csv simpleCrossValidation/outRaven.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
     remove_whitespace = True

@@ -323,6 +323,7 @@ class Metric(PostProcessor):
             metricName = metricInstance.metricType
           else:
             metricName = metricInstance.type
+          metricName = metricInstance.name + '_' + metricName
           for i in range(len(inData)):
             if not metricInstance.acceptsProbability and type(inData[i]) == tuple:
               #Strip off the probability data if it can't be used

@@ -37,14 +37,14 @@
             <labels>[0,0,0,1,1,1,1,2,2,2]</labels>
             <n_splits>3</n_splits>
         </SciKitLearn>
-        <Metric class="Metrics" type="SKL">euclidean</Metric>
+        <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
   </Models>
   
   <Metrics>
-    <SKL name="euclidean">
-      <metricType>euclidean</metricType>
-    </SKL>
+      <SKL name="m1">
+          <metricType>mean_absolute_error</metricType>
+      </SKL>
   </Metrics>
 
   <Distributions>

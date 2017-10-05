@@ -34,20 +34,19 @@
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
             <SKLtype>ShuffleSplit</SKLtype>
-            <n>100</n>
             <n_iter>10</n_iter>
             <test_size>0.1</test_size>
             <train_size>None</train_size>
             <random_state>10</random_state>
         </SciKitLearn>
-        <Metric class="Metrics" type="SKL">euclidean</Metric>
+        <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
   </Models>
   
   <Metrics>
-    <SKL name="euclidean">
-      <metricType>euclidean</metricType>
-    </SKL>
+      <SKL name="m1">
+          <metricType>mean_absolute_error</metricType>
+      </SKL>
   </Metrics>
 
   <Distributions>
