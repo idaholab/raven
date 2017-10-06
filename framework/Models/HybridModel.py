@@ -337,15 +337,34 @@ class HybridModel(Dummy):
       # collected yet!
 
       # reset the rom
-      romInfo['Instance'].amITrained = False
-      # always train the rom even if the rom is converged, we assume the cross validation and rom train are relative cheap
-      outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], self.tempTargetEvaluation], samplerType, kwargs)[1]
-      converged = self.isRomConverged(outputMetrics)
-      romInfo['Converged'] = converged
-      if converged:
-        romInfo['Instance'].train(self.tempTargetEvaluation)
-        self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
-      self.oldTrainingSize = len(self.tempTargetEvaluation)
+      romInfo['Instance'].reset()
+      useCV = self.checkCV(len(self.tempTargetEvaluation))
+      if useCV:
+        # always train the rom even if the rom is converged, we assume the cross validation and rom train are relative cheap
+        outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], self.tempTargetEvaluation], samplerType, kwargs)[1]
+        converged = self.isRomConverged(outputMetrics)
+        romInfo['Converged'] = converged
+        if converged:
+          romInfo['Instance'].train(self.tempTargetEvaluation)
+          self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
+      else:
+        self.raiseAMessage("Minimum initial training size is met, but the training size is not enough to be used to perform cross validation")
+
+    self.oldTrainingSize = len(self.tempTargetEvaluation)
+
+  def checkCV(self, trainingSize):
+    """
+      The function will check whether we can use Cross Validation or not
+      @ In, trainingSize, int, the size of current training size
+      @ Out, None
+    """
+    useCV = True
+    initDict =  self.cvInstance.interface.initializationOptionDict
+    if 'SciKitLearn' in initDict.keys() and 'n_splits' in initDict['SciKitLearn'].keys():
+      if trainingSize < utils.intConversion(initDict['SciKitLearn']['n_splits']):
+        useCV = False
+
+    return useCV
 
   def isRomConverged(self, outputDict):
     """
