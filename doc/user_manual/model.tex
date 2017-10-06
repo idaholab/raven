@@ -1532,15 +1532,33 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
        \default{10};
      \item \xmlNode{tolerance}, \xmlDesc{float, optional field}, ROMs convergence criterion. This tolerance will
        be compared with the results from the cross validation to determine whether the ROMs are converged or not.
-       \nb Currently, this tolerance can be only used for cross validations with SKL Metrics: \textit{euclidean},
-       \textit{cityblock}, \textit{l1}, \textit{l2} and \textit{manhattan}.
-        \default{0.01};
+       \nb Currently, this tolerance can be only used for cross validations with SKL Metrics: \textit{explained\_variance\_score},
+       \textit{r2\_score}, \textit{median\_absolute\_error}, \textit{mean\_squared\_error} and \textit{mean\_absolute\_error}.
+       if \textit{explained\_variance\_score} and \textit{r2\_error} are used, the best possible score is ``1.0``, and
+       lower values are worse. The \xmlNode{tolerance} should be selected close to ``1.0``.
+       if \textit{mean\_squared\_error}, \textit{mean\_absolute\_error} and \textit{median\_absolute\_error}
+       are used, the best possible score is ``0.0``, larger values are worse. Thus, the \xmlNode{tolerance} should be
+       selected close to ``0.0``.
+       \default{0.01};
      \item \xmlNode{maxTrainSize}, \xmlDesc{XML node, optional field}, the maximum size of training set of ROMs.
        \default{1.0E6}
-     \item \xmlNode{selectionMethod}, \xmlDesc{XML node, optional field}, the validity methods that are used to
-       determine which model to run (i.e. ROMs or high-fidelity Model).
-       \nb Currently, only one method is available, ie. ``CrowdingDistance``.
-       \default{``CrowdingDistance``}
+  \end{itemize}
+  \item \xmlNode{validationMethod}, \xmlDesc{XML node, optional parameter}.
+  %
+  The validity methods that are used to determine which model to run (i.e. ROMs or high-fidelity Model).
+  This XML node needs to contain the attributes:
+  %
+  \begin{itemize}
+    \itemsep0em
+    \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
+      of this \xmlNode{validationMethod}.
+      \nb Currently, only one method is available, ie. ``CrowdingDistance``.
+  \end{itemize}
+  %
+  The body of this sub-node  contains the following XML sub-nodes:
+  %
+  \begin{itemize}
+     \item \xmlNode{threshold}, \xmlDesc{XML node, required field}, the threshold that is used for ``CrowdingDistance`` method.
   \end{itemize}
 \end{itemize}
 
@@ -1550,8 +1568,8 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
 <Simulation>
   ...
   <Metrics>
-    <SKL name="euclidean">
-      <metricType>euclidean</metricType>
+    <SKL name="m1">
+      <metricType>mean_absolute_error</metricType>
     </SKL>
   </Metrics>
 
@@ -1573,12 +1591,11 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
             <SKLtype>KFold</SKLtype>
-            <n>20</n>
             <n_splits>10</n_splits>
             <shuffle>False</shuffle>
             <random_state>None</random_state>
         </SciKitLearn>
-        <Metric class="Metrics" type="SKL">euclidean</Metric>
+        <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
         <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>
@@ -1590,8 +1607,10 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
             <trainStep>1</trainStep>
             <maxTrainSize>1000</maxTrainSize>
             <initialTrainSize>10</initialTrainSize>
-            <selectionMethod>CrowdingDistance</selectionMethod>
         </settings>
+        <validationMethod name="CrowdingDistance">
+            <threshold>0.2</threshold>
+        </validationMethod>
     </HybridModel>
   </Models>
   ...
@@ -1604,8 +1623,8 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
 <Simulation>
   ...
   <Metrics>
-    <SKL name="euclidean">
-      <metricType>euclidean</metricType>
+    <SKL name="m1">
+      <metricType>mean_absolute_error</metricType>
     </SKL>
   </Metrics>
 
@@ -1632,12 +1651,11 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
             <SKLtype>KFold</SKLtype>
-            <n>20</n>
             <n_splits>10</n_splits>
             <shuffle>False</shuffle>
             <random_state>None</random_state>
         </SciKitLearn>
-        <Metric class="Metrics" type="SKL">euclidean</Metric>
+        <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
         <Model class="Models" type="Code">poly</Model>
@@ -1649,8 +1667,10 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
             <trainStep>1</trainStep>
             <maxTrainSize>1000</maxTrainSize>
             <initialTrainSize>10</initialTrainSize>
-            <selectionMethod>CrowdingDistance</selectionMethod>
         </settings>
+        <validationMethod name="CrowdingDistance">
+            <threshold>0.2</threshold>
+        </validationMethod>
     </HybridModel>
   </Models>
   ...
