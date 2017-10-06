@@ -72,7 +72,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localGenerateInput(model,oldInput)  : this is where the step happens, after this call the output is ready
 
     the following methods could be overrode:
-    self.localInputAndChecks(xmlNode)
+    self.localInputAndChecks(xmlNode, paramInput)
     self.localGetInitParams()
     self.localGetCurrentSetting()
     self.localInitialize()
@@ -121,7 +121,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     inputSpecification.addSub(variablesTransformationInput)
 
     constantInput = InputData.parameterInputFactory("constant", contentType=InputData.StringType)
-    constantInput.addParam("name", InputData.StringType)
+    constantInput.addParam("name", InputData.StringType, True)
 
     inputSpecification.addSub(constantInput)
 
@@ -217,9 +217,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
+    #TODO remove using xmlNode
     Assembler._readMoreXML(self,xmlNode)
-    self._readMoreXMLbase(xmlNode)
-    self.localInputAndChecks(xmlNode)
+    paramInput = self._readMoreXMLbase(xmlNode)
+    self.localInputAndChecks(xmlNode, paramInput)
 
   def _readMoreXMLbase(self,xmlNode):
     """
@@ -228,75 +229,75 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       The text is supposed to contain the info where and which variable to change.
       In case of a code the syntax is specified by the code interface itself
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node1
-      @ Out, None
+      @ Out, paramInput, InputData.ParameterInput the parsed paramInput
     """
     paramInput = self.getInputSpecification()()
     paramInput.parseNode(xmlNode)
 
-    for child in xmlNode:
+    for child in paramInput.subparts:
       prefix = ""
-      if child.tag == 'Distribution':
-        for childChild in child:
-          if childChild.tag =='distribution':
+      if child.getName() == 'Distribution':
+        for childChild in child.subparts:
+          if childChild.getName() =='distribution':
             prefix = "<distribution>"
-            tobesampled = childChild.text
-        self.toBeSampled[prefix+child.attrib['name']] = tobesampled
+            tobesampled = childChild.value
+        self.toBeSampled[prefix+child.parameterValues['name']] = tobesampled
         #if child.attrib['name'] != tobesampled:self.raiseAnError(IOError,"name of the <Distribution> node and <distribution> mismatches for node named "+ child.attrib['name'])
-      elif child.tag == 'variable':
+      elif child.getName() == 'variable':
         foundDistOrFunc = False
-        for childChild in child:
-          if childChild.tag =='distribution':
+        for childChild in child.subparts:
+          if childChild.getName() =='distribution':
             if not foundDistOrFunc:
               foundDistOrFunc = True
             else:
               self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
-            tobesampled = childChild.text
+            tobesampled = childChild.value
             varData={}
-            varData['name']=childChild.text
-            if childChild.get('dim') == None:
+            varData['name']=childChild.value
+            if 'dim' not in childChild.parameterValues:
               dim=1
             else:
-              dim=childChild.attrib['dim']
-            varData['dim']=int(dim)
-            self.variables2distributionsMapping[child.attrib['name']] = varData
-            self.toBeSampled[prefix+child.attrib['name']] = tobesampled
-          elif childChild.tag == 'function':
+              dim=childChild.parameterValues['dim']
+            varData['dim']=dim
+            self.variables2distributionsMapping[child.parameterValues['name']] = varData
+            self.toBeSampled[prefix+child.parameterValues['name']] = tobesampled
+          elif childChild.getName() == 'function':
             if not foundDistOrFunc:
               foundDistOrFunc = True
             else:
               self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
-            tobesampled = childChild.text
-            self.dependentSample[prefix+child.attrib['name']] = tobesampled
+            tobesampled = childChild.value
+            self.dependentSample[prefix+child.parameterValues['name']] = tobesampled
         if not foundDistOrFunc:
-          self.raiseAnError(IOError,'Sampled variable',child.attrib['name'],'has neither a <distribution> nor <function> node specified!')
-      elif child.tag == "variablesTransformation":
+          self.raiseAnError(IOError,'Sampled variable',child.parameterValues['name'],'has neither a <distribution> nor <function> node specified!')
+      elif child.getName() == "variablesTransformation":
         transformationDict = {}
         listIndex = None
-        for childChild in child:
-          if childChild.tag == "latentVariables":
-            transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
-          elif childChild.tag == "manifestVariables":
-            transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
-          elif childChild.tag == "manifestVariablesIndex":
+        for childChild in child.subparts:
+          if childChild.getName() == "latentVariables":
+            transformationDict[childChild.getName()] = list(childChild.value)
+          elif childChild.getName() == "manifestVariables":
+            transformationDict[childChild.getName()] = list(childChild.value)
+          elif childChild.getName() == "manifestVariablesIndex":
             # the index provided by the input file starts from 1, but the index used by the code starts from 0.
-            listIndex = list(int(inp.strip()) - 1  for inp in childChild.text.strip().split(','))
-          elif childChild.tag == "method":
-            self.transformationMethod[child.attrib['distribution']] = childChild.text
+            listIndex = list(int(inp) - 1  for inp in childChild.value)
+          elif childChild.getName() == "method":
+            self.transformationMethod[child.parameterValues['distribution']] = childChild.value
         if listIndex == None:
           self.raiseAWarning('Index is not provided for manifestVariables, default index will be used instead!')
           listIndex = range(len(transformationDict["manifestVariables"]))
         transformationDict["manifestVariablesIndex"] = listIndex
-        self.variablesTransformationDict[child.attrib['distribution']] = transformationDict
-      elif child.tag == "constant":
-        value = utils.partialEval(child.text)
+        self.variablesTransformationDict[child.parameterValues['distribution']] = transformationDict
+      elif child.getName() == "constant":
+        value = utils.partialEval(child.value)
         if value is None:
-          self.raiseAnError(IOError,'The body of "constant" XML block should be a number. Got: ' +child.text)
+          self.raiseAnError(IOError,'The body of "constant" XML block should be a number. Got: ' +child.value)
         try:
-          self.constants[child.attrib['name']] = value
+          self.constants[child.parameterValues['name']] = value
         except KeyError:
-          self.raiseAnError(KeyError,child.tag+' must have the attribute "name"!!!')
-      elif child.tag == "restartTolerance":
-        self.restartTolerance = float(child.text)
+          self.raiseAnError(KeyError,child.getName()+' must have the attribute "name"!!!')
+      elif child.getName() == "restartTolerance":
+        self.restartTolerance = child.value
 
     if len(self.constants) > 0:
       # check if constant variables are also part of the sampled space. In case, error out
@@ -368,6 +369,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.raiseAnError(IOError,'Each of the following dimensions  are assigned to multiple latent variables in Samplers: ' + str(dups))
         # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
+    return paramInput
 
   def readSamplerInit(self,xmlNode):
     """
@@ -376,34 +378,38 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == "samplerInit":
+    #TODO, this is redundant and paramInput should be directly passed in.
+    paramInput = self.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+
+    for child in paramInput.subparts:
+      if child.getName() == "samplerInit":
         self.initSeed = randomUtils.randomIntegers(0,2**31,self)
-        for childChild in child:
-          if childChild.tag == "limit":
+        for childChild in child.subparts:
+          if childChild.getName() == "limit":
             try:
-              self.limit = int(childChild.text)
+              self.limit = int(childChild.value)
             except ValueError:
-              self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value ' + str(childChild.text))
-          if childChild.tag == "initialSeed":
+              self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value ' + str(childChild.value))
+          if childChild.getName() == "initialSeed":
             try:
-              self.initSeed = int(childChild.text)
+              self.initSeed = int(childChild.value)
             except ValueError:
-              self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute initialSeed with value ' + str(childChild.text))
-          elif childChild.tag == "reseedEachIteration":
-            if childChild.text.lower() in utils.stringsThatMeanTrue():
+              self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute initialSeed with value ' + str(childChild.value))
+          elif childChild.getName() == "reseedEachIteration":
+            if childChild.value.lower() in utils.stringsThatMeanTrue():
               self.reseedAtEachIteration = True
-          elif childChild.tag == "distInit":
-            for childChildChild in childChild:
+          elif childChild.getName() == "distInit":
+            for childChildChild in childChild.subparts:
               NDdistData = {}
-              for childChildChildChild in childChildChild:
-                if childChildChildChild.tag == 'initialGridDisc':
-                  NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
-                elif childChildChildChild.tag == 'tolerance':
-                  NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
+              for childChildChildChild in childChildChild.subparts:
+                if childChildChildChild.getName() == 'initialGridDisc':
+                  NDdistData[childChildChildChild.getName()] = int(childChildChildChild.value)
+                elif childChildChildChild.getName() == 'tolerance':
+                  NDdistData[childChildChildChild.getName()] = float(childChildChildChild.value)
                 else:
-                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
-              self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
+                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.getName()+' .Available are: initialGridDisc and tolerance!')
+              self.NDSamplingParams[childChildChild.parameterValues['name']] = NDdistData
 
   def endJobRunnable(self):
     """
@@ -414,10 +420,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     return self._endJobRunnable
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Local method. Place here the additional reading, remember to add initial parameters in the method localGetInitParams
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
     pass

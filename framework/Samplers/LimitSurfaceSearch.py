@@ -192,12 +192,14 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if isinstance(dist,Distributions.NDimensionalDistributions):
         self.raiseAnError(IOError,'ND Dists not supported for this sampler (yet)!')
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    #TODO remove using xmlNode
     if 'limit' in xmlNode.attrib.keys():
       try:
         self.limit = int(xmlNode.attrib['limit'])

@@ -90,12 +90,14 @@ class EnsembleForward(ForwardSampler):
     self.samplersCombinations = {}
     self.dependentSample      = {}
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    #TODO remove using xmlNode
     # this import happens here because a recursive call is made if we attempt it in the header
     from .Factory import returnInstance,knownTypes
     for child in xmlNode:

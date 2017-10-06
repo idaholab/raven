@@ -153,13 +153,15 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
 
     self.addAssemblerObject('TargetEvaluation','1')
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    Sobol.localInputAndChecks(self,xmlNode)
+    #TODO remove using xmlNode
+    Sobol.localInputAndChecks(self,xmlNode, paramInput)
     conv = xmlNode.find('Convergence')
     studyNode = xmlNode.find('convergenceStudy')
     if conv is None:

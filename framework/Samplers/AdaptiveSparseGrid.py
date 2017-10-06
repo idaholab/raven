@@ -133,13 +133,15 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
 
     self.addAssemblerObject('TargetEvaluation','1')
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    SparseGridCollocation.localInputAndChecks(self,xmlNode)
+    #TODO remove using xmlNode
+    SparseGridCollocation.localInputAndChecks(self,xmlNode, paramInput)
     if 'Convergence' not in list(c.tag for c in xmlNode):
       self.raiseAnError(IOError,'Convergence node not found in input!')
     convnode  = xmlNode.find('Convergence')

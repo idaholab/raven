@@ -91,18 +91,20 @@ class MonteCarlo(ForwardSampler):
     self.samplingType = None
     self.limit = None
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    #TODO remove using xmlNode
     ForwardSampler.readSamplerInit(self,xmlNode)
-    if xmlNode.find('samplerInit') != None:
+    if paramInput.findFirst('samplerInit') != None:
       if self.limit is None:
         self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
-      if xmlNode.find('samplerInit').find('samplingType')!= None:
-        self.samplingType = xmlNode.find('samplerInit').find('samplingType').text
+      if paramInput.findFirst('samplerInit').findFirst('samplingType')!= None:
+        self.samplingType = paramInput.findFirst('samplerInit').findFirst('samplingType').value
         if self.samplingType not in ['uniform']:
           self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+': specified type of samplingType is not recognized. Allowed type is: uniform')
       else:

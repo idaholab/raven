@@ -747,23 +747,26 @@ class DynamicEventTree(Grid):
     for hybridsampler in self.hybridStrategyToApply.values():
       hybridsampler._generateDistributions(availableDist,availableFunc)
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    self._localInputAndChecksDET(xmlNode)
-    self._localInputAndChecksHybrid(xmlNode)
+    #TODO remove using xmlNode
+    self._localInputAndChecksDET(xmlNode, paramInput)
+    self._localInputAndChecksHybrid(xmlNode, paramInput)
 
-  def _localInputAndChecksDET(self,xmlNode):
+  def _localInputAndChecksDET(self,xmlNode, paramInput):
     """
       Class specific inputs will be read here and checked for validity.
       This method reads the standard DET portion only (no hybrid)
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    Grid.localInputAndChecks(self,xmlNode)
+    Grid.localInputAndChecks(self,xmlNode, paramInput)
     if 'printEndXmlSummary'  in xmlNode.attrib.keys():
       self.printEndXmlSummary  = xmlNode.attrib['printEndXmlSummary'].lower()  in utils.stringsThatMeanTrue()
     if 'removeXmlBranchInfo' in xmlNode.attrib.keys():
@@ -830,11 +833,12 @@ class DynamicEventTree(Grid):
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)
 
-  def _localInputAndChecksHybrid(self,xmlNode):
+  def _localInputAndChecksHybrid(self,xmlNode, paramInput):
     """
       Class specific inputs will be read here and checked for validity.
       This method reads the hybrid det portion only
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
     for child in xmlNode:

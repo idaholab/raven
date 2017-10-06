@@ -89,14 +89,16 @@ class Stratified(Grid):
     self.printTag = 'SAMPLER Stratified'
     self.globalGrid          = {}    # Dictionary for the globalGrid. These grids are used only for Stratified for ND distributions.
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    #TODO Remove using xmlNode
     Sampler.readSamplerInit(self,xmlNode)
-    Grid.localInputAndChecks(self,xmlNode)
+    Grid.localInputAndChecks(self,xmlNode, paramInput)
     pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
     if len(set(pointByVar))!=1:
       self.raiseAnError(IOError,'the latin Hyper Cube requires the same number of point in each dimension')

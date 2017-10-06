@@ -74,6 +74,7 @@ class CustomSampler(ForwardSampler):
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
       @ Out, None
     """
+    #TODO remove using xmlNode
     self.readSamplerInit(xmlNode)
     for child in xmlNode:
       if child.tag == 'variable':

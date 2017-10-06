@@ -80,13 +80,15 @@ class ResponseSurfaceDesign(Grid):
     # dictionary of accepted types and options (required True, optional False)
     self.acceptedOptions = {'boxbehnken':['ncenters'], 'centralcomposite':['centers','alpha','face']}
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    Grid.localInputAndChecks(self,xmlNode)
+    #TODO remove using xmlNode
+    Grid.localInputAndChecks(self,xmlNode, paramInput)
     factsettings = xmlNode.find("ResponseSurfaceDesignSettings")
     if factsettings == None:
       self.raiseAnError(IOError,'ResponseSurfaceDesignSettings xml node not found!')
