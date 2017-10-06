@@ -118,7 +118,6 @@ class HybridModel(Dummy):
     self.romConvergence        = 0.01                # The criterion used to check ROM convergence
     self.validationMethod      = {}                  # dict used to store the validation methods and their settings
     self.existTrainSize        = 0                   # The size of existing training set in the provided data object via 'TargetEvaluation'
-    self.threshold             = 0.2                 # the cut off validation criterion of new point using the CrowdingDistance
     self.printTag              = 'HYBRIDMODEL MODEL' # print tag
     self.createWorkingDir      = False               # If the type of model is 'Code', this will set to true
     self.tempOutputs           = {}                  # Indicators used to collect model inputs/outputs for rom training
@@ -166,10 +165,10 @@ class HybridModel(Dummy):
         name = child.parameterValues['name']
         self.validationMethod[name] = {}
         for childChild in child.subparts:
-          self.validationMethod[name][childChild.getName()] = utils.tryParse(childChild.value)
-        if name == 'CrowdingDistance' and'threshold' not in self.validationMethod[name].keys():
-          self.validationMethod[name]['threshold'] = 0.2
-          self.raiseAWarning("No threshold is provided for ", name, ", default value 0.2 is used!")
+          if childChild.getName() == 'threshold':
+            self.validationMethod[name]['threshold'] = utils.floatConversion(childChild.value)
+        if name != 'CrowdingDistance':
+          self.raiseAnError(IOError, "Validation method ", name, " is not implemented yet!")
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -395,6 +394,8 @@ class HybridModel(Dummy):
       self.raiseAnError(IOError, "Metric %s used for cross validation can not be handled by the HybridModel." %metricName)
     if not converged:
       self.raiseADebug("The current error: ", str(error), " is not met with the given tolerance ", str(self.romConvergence))
+    else:
+      self.raiseADebug("The current error: ", str(error), " is met with the given tolerance ", str(self.romConvergence))
     return converged
 
   def checkRomConvergence(self):
@@ -447,7 +448,7 @@ class HybridModel(Dummy):
       currentInput = np.asarray(self._extractInputs(varDict, paramsList).values())
       coeffCD = self.computeCDCoefficient(trainInput, currentInput)
       self.raiseADebug("Crowding Distance Coefficient: ", coeffCD)
-      if coeffCD > settingDict['threshold']:
+      if coeffCD >= settingDict['threshold']:
         valid = True
       romInfo['Valid'] = valid
       if valid:

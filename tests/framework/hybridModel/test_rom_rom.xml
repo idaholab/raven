@@ -30,9 +30,9 @@
   </Distributions>
 
   <Metrics>
-    <SKL name="euclidean">
-      <metricType>euclidean</metricType>
-    </SKL>
+      <SKL name="m1">
+          <metricType>median_absolute_error</metricType>
+      </SKL>
   </Metrics>
 
   <Models>
@@ -68,12 +68,11 @@
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
             <SKLtype>KFold</SKLtype>
-            <n>20</n>
             <n_splits>10</n_splits>
             <shuffle>False</shuffle>
             <random_state>None</random_state>
         </SciKitLearn>
-        <Metric class="Metrics" type="SKL">euclidean</Metric>
+        <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
         <Model class="Models" type="ROM">svr</Model>
@@ -81,11 +80,13 @@
         <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
         <CV class="Models" type="PostProcessor">pp1</CV>
         <settings>
-            <tolerance>0.02</tolerance>
+            <tolerance>0.002</tolerance>
             <maxTrainSize>1000</maxTrainSize>
             <minInitialTrainSize>10</minInitialTrainSize>
-            <selectionMethod>CrowdingDistance</selectionMethod>
         </settings>
+        <validationMethod name="CrowdingDistance">
+            <threshold>0.2</threshold>
+        </validationMethod>
     </HybridModel>
   </Models>
 
