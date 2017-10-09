@@ -77,9 +77,8 @@ class JobHandler(MessageHandler.MessageUser):
     self.sleepTime  = 0.005
     self.completed = False
 
-    ## Stops the pending queue from getting too big. TODO: expose this to the
-    ## user
-    self.maxQueueSize = 1000
+    ## Stops the pending queue from getting too big.  Defaults to batch size in "initialize".
+    self.maxQueueSize = None
 
     ############################################################################
     ## The following variables are protected by the __queueLock
@@ -127,6 +126,11 @@ class JobHandler(MessageHandler.MessageUser):
     """
     self.runInfoDict = runInfoDict
     self.messageHandler = messageHandler
+    self.maxQueueSize = runInfoDict.get('maxQueueSize',runInfoDict.get('batchSize'))
+    if self.maxQueueSize < 1:
+      self.raiseAWarning('maxQueueSize was set to be less than 1!  Setting to 1...')
+      self.maxQueueSize = 1
+    self.raiseADebug('Setting maxQueueSize to',self.maxQueueSize)
 
     #initialize PBS
     with self.__queueLock:
@@ -143,15 +147,16 @@ class JobHandler(MessageHandler.MessageUser):
       returnCode = running.getReturnCode()
       if returnCode != 0:
         metadataFailedRun = running.getMetadata()
-        metaDataKeys      = metadataFailedRun.keys()
-        metaDataToKeep    = metadataFailedRun
-        if 'jobHandler' in metaDataKeys:
-          metaDataKeys.pop(metaDataKeys.index("jobHandler"))
-          metaDataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metaDataKeys }
+        metadataToKeep    = metadataFailedRun
+        if metadataFailedRun is not None:
+          metadataKeys      = metadataFailedRun.keys()
+          if 'jobHandler' in metadataKeys:
+            metadataKeys.pop(metadataKeys.index("jobHandler"))
+            metadataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metadataKeys }
         ## FIXME: The running.command was always internal now, so I removed it.
         ## We should probably find a way to give more pertinent information.
         self.raiseAMessage(" Process Failed " + str(running) + " internal returnCode " + str(returnCode))
-        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metaDataToKeep))
+        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metadataToKeep))
 
   def __initializeParallelPython(self):
     """

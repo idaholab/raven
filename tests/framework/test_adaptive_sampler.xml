@@ -19,6 +19,7 @@
     <WorkingDir>Adapt</WorkingDir>
     <Sequence>adapt,adaptdump</Sequence>
     <batchSize>1</batchSize>
+    <maxQueueSize>1</maxQueueSize>
   </RunInfo>
 
   <Steps>

@@ -22,6 +22,7 @@ Currently, the following types are available in RAVEN:
   \item \textbf{RavenOutput}
   \item \textbf{DataMining}
   \item \textbf{Metric}
+  \item \textbf{CrossValidation}
   %\item \textbf{PrintCSV}
   %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
@@ -1621,9 +1622,9 @@ The resulting PointSet has \emph{time} as an input and \emph{first} as an output
 \subsubsection{Metric}
 \label{MetricPP}
 The \textbf{Metric} post-processor is specifically used to calculate the distance values among points and histories,
-while the \textbf{Metrics} block allows the user to specify the similarity/dissimilarity metrics to be used in this
+while the \textbf{Metrics} block (See Chapter \ref{sec:Metrics}) allows the user to specify the similarity/dissimilarity metrics to be used in this
 post-processor. It is important to notice that this post-processor currently can only accept \textbf{PointSet} data
-object.
+object and does not accept \textbf{HistorySet} data.  If the name of the variable is unique, it can be used, otherwise the variable can be specified with DataObjectName|InputOrOutput|variablename like other places in RAVEN.  Some of the Metrics also accept distributions to calculate the distance against.  These are specified by using the name of the distribution.
 %
 \ppType{Metric}{Metric}
 %
@@ -1709,13 +1710,17 @@ only accept \textbf{PointSet} data object.
 \paragraph{SciKitLearn}
 
 The algorithm for cross-validation is chosen by the subnode \xmlNode{SKLtype} under the parent node \xmlNode{SciKitLearn}.
+In addition, a special subnode \xmlNode{average} can be used to obtain the average cross validation results.
 
 \begin{itemize}
   \item \xmlNode{SKLtype}, \xmlDesc{string, required field}, contains a string that
     represents the cross-validation algorithm to be used. As mentioned, its format is:
     
     \xmlNode{SKLtype}algorithm\xmlNode{/SKLtype}.
+  \item \xmlNode{average}, \xmlDesc{boolean, optional field}, if `True`, dump the average cross validation results into the
+    output files.
 \end{itemize}
+
 
 Based on the \xmlNode{SKLtype} several different algorithms are available. In the following paragraphs a brief
 explanation and the input requirements are reported for each of them.

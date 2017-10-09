@@ -21,6 +21,7 @@
     <WorkingDir>MTML</WorkingDir>
     <Sequence>optimize,print,getOptPoint</Sequence>
     <batchSize>1</batchSize>
+    <maxQueueSize>1</maxQueueSize>
   </RunInfo>
 
   <Steps>
