@@ -44,7 +44,7 @@ def checkAnswer(comment,value,expected,tol=1e-10,updateResults=True):
     @ Out, None
   """
   if abs(value - expected) > tol:
-    print("checking answer",comment,value,"!=",expected)
+    print("checking answer",comment,'|',value,"!=",expected)
     if updateResults:
       results["fail"] += 1
     return False
@@ -53,6 +53,10 @@ def checkAnswer(comment,value,expected,tol=1e-10,updateResults=True):
       results["pass"] += 1
     return True
 
+
+##################
+# 1D Array Tests #
+##################
 
 #establish test array
 origin = np.array([-3.14,2.99792,2.718,8.987,0.618])
@@ -97,6 +101,56 @@ if msg == right:
 else:
   print('checking string representation does not match:\n'+msg,'\n!=\n'+right)
   results['fail']+=1
+
+##################
+# ND Array Tests #
+##################
+
+# default construction
+testArray = cached_ndarray.cNDarray(width=3,length=10)
+checkAnswer('initial capacity',testArray.capacity,10)
+checkAnswer('initial width',testArray.shape[1],3)
+checkAnswer('initial size',testArray.size,0)
+checkAnswer('initial len',len(testArray),0)
+
+#get empty
+checkAnswer('getData empty size',testArray.getData().size,0)
+
+#append entry
+vals = np.array([[1.0,2.0,3.0]])
+testArray.append(vals)
+#check values
+aValues = testArray.getData()
+for v,val in enumerate(vals):
+  checkAnswer('appended[{}]'.format(v),aValues[0,v],vals[0,v])
+
+#iter
+for aValues in testArray:
+  for v,val in enumerate(vals):
+    checkAnswer('iter[{}]'.format(v),aValues[v],vals[0,v])
+
+# append more
+vals = [0,0]
+vals[0] = [11.0,12.0,13.0]
+testArray.append(np.array([vals[0]]))
+vals[1] = [21.0,22.0,23.0]
+testArray.append(np.array([vals[1]]))
+#test slicing
+for a,ar in enumerate(testArray[1:]):
+  for i in range(3):
+    checkAnswer('slicing [{},{}]'.format(a,i),ar[i],vals[a][i])
+
+
+# construction via values
+values = np.array(
+             [[ 1.0,  2.0,  3.0],
+              [11.0, 12.0, 13.0],
+              [21.0, 22.0, 23.0]]
+             )
+testArray = cached_ndarray.cNDarray(values=values)
+for i in range(values.shape[0]):
+  for j in range(values.shape[1]):
+    checkAnswer('initialize by value: [{},{}]'.format(i,j),values[i][j],testArray.values[i][j])
 
 print(results)
 

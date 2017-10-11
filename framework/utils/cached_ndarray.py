@@ -213,3 +213,103 @@ class c1darray(object):
       @ Out, __repr__, string, the representation string
     """
     return repr(self.values[:self.size])
+
+#
+#
+#
+#
+class cNDarray(object):
+  """
+    Higher-dimension caching of numpy arrays.  Might include c1darray as a subset if designed right.
+  """
+  #def __init__(self,shape=None,values=None,dtype=float,buff=None,offset=0,strides=None,order=None):
+  def __init__(self,values=None,width=None,length=None,dtype=float,buff=None,offset=0,strides=None,order=None):
+    """
+      Constructor.
+      @ In, values, np.ndarray, optional, matrix of initial values with shape (# samples, # entities)
+      @ In, width, int, optional, if not using "values" then this is the number of entities to allocate
+      @ In, length, int, optional, if not using "values" then this is the initial capacity (number of samples) to allocate
+      @ In, dtype, type, optional, sets the type of the content of the array
+      @ In, buff, int, optional, buffer size
+      @ In, offset, int, optional, array offeset
+      @ In, strides, object, optional, strides (see docs for np.ndarray)
+      @ In, order, string, optional, array ordering (fortran, c, etc) (see docs for np.ndarray)
+      @ Out, None
+    """
+    # priorities: initialize with values; if not, use shape
+    if length is None:
+      length = 100
+    if values is not None:
+      if type(values) != np.ndarray:
+        raise IOError('Only np.ndarray can be used to set "values" in "cNDarrray".  Got '+type(values).__name__)
+      self.values = values
+      self.shape = values.shape
+      self.size = values.shape[0]
+    else:
+      self.values = ndarray((length,width),dtype,buff,offset,strides,order)
+      self.size = 0
+      self.shape = (0,width)
+      # TODO make a method to do this automatically
+      # TODO what about the high-dimensional data for ND sets?
+    self.capacity = self.shape[0]
+    # TODO self.ndim
+
+  def __iter__(self):
+    """
+      Overload of iterator
+      @ In, None
+      @ Out, __iter__, iterator, iterator
+    """
+    return self.values[:self.size].__iter()
+
+  def __getitem__(self,val):
+    """
+      Get item method.  Slicing should work as expected.
+      @ In, val, slice object, the slicing object (e.g. 1, :, :2, 1:3, etc.)
+      @ Out, __getitem__, np.ndarray, the element(s)
+    """
+    return self.values[:self.size].__getitem__(val)
+
+  def __len__(self):
+    """
+      Return size, which is the number of samples, independent of entities.  Identical to self.values.shape[0]
+      @ In, None
+      @ Out, __len__, integer, size
+    """
+    return self.size
+
+  def append(self,entry):
+    """
+      Append method. call format c1darrayInstance.append(value)
+      @ In, entry, np.ndarray, the entries to append.  Must have shape (x, # entities), where x can be any nonzero number of samples.
+      @ Out, None
+    """
+    # TODO extend to include sending in a (width,) shape np.ndarray to append a single sample.
+    # entry.shape[0] is the number of new entries, entry.shape[1] is the number of variables being entered
+    # entry must match width and be at least 1 entry long
+    if type(entry) not in [np.ndarray]: #TODO pandas object?
+      raise IOError('Tried to add new data to cNDarray.  Can only accept np.ndarray, but got '+type(entry).__name__)
+    # for now require full correct shape, later handle the single entry case
+    if len(entry.shape)<2:
+      # TODO single entry case
+      raise IOError('Tried to add new data to cNDarray.  Need shape (#,{}) but got ({},{})!'.format(self.shape[1],*entry.shape))
+    # must have matching width (fix for single entry case)
+    if entry.shape[1] != self.shape[1]:
+      raise IOError('Tried to add new data to cNDarray.  Need {} variables per entry, but got '.format(self.shape[1])+str(entry.shape[1]))
+    #check self-extension
+    if self.size + entry.shape[0] > self.capacity:
+      self.capacity += max(self.capacity*4,entry.shape[0]) #TODO user parameter?
+      newdata = np.zeros((self.capacity,self.shape[1]),dtype=self.values.dtype)
+      newdata[:self.size] = self.values[:self.size]
+      self.values = newdata
+    self.values[self.size:self.size+entry.shape[0]][:] = entry[:]
+    self.size += entry.shape[0]
+    self.shape = (self.size,self.shape[1])
+
+  def getData(self):
+    """
+      Returns the underlying data structure.
+      @ In, None
+      @ Out, getData, np.ndarray, underlying data up to the used size
+    """
+    return self.values[:self.size]
