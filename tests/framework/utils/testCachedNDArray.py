@@ -23,6 +23,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os,sys
 import numpy as np
+import xarray as xr
 
 frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,'framework'))
 sys.path.append(frameworkDir)
@@ -106,6 +107,8 @@ else:
 # ND Array Tests #
 ##################
 
+## POINT SET ##
+
 # default construction
 testArray = cached_ndarray.cNDarray(width=3,length=10)
 checkAnswer('initial capacity',testArray.capacity,10)
@@ -151,6 +154,78 @@ testArray = cached_ndarray.cNDarray(values=values)
 for i in range(values.shape[0]):
   for j in range(values.shape[1]):
     checkAnswer('initialize by value: [{},{}]'.format(i,j),values[i][j],testArray.values[i][j])
+
+
+## ND SET ##
+
+#default construction
+testArray = cached_ndarray.cNDarray(width=3,length=10,dtype=object)
+checkAnswer('initial capacity',testArray.capacity,10)
+checkAnswer('initial width',testArray.shape[1],3)
+checkAnswer('initial size',testArray.size,0)
+checkAnswer('initial len',len(testArray),0)
+
+#append entry
+vals = np.array([[1.0,
+                 xr.DataArray([ 2.0, 2.1, 2.2],dims=['time'],coords={'time':[1e-6,2e-6,3e-6]}),
+                 xr.DataArray([[ 3.00, 3.01, 3.02],[ 3.10, 3.11, 3.12]],dims=['space','time'],coords={'space':[1e-3,2e-3],'time':[1e-6,2e-6,3e-6]})
+                 ]],dtype=object)
+testArray.append(vals)
+checkAnswer('ND append, point',testArray.values[0,0],1.0)
+checkAnswer('ND append, hist, time 0',testArray.values[0,1][0],2.0)
+checkAnswer('ND append, nd, time 0, location 0',testArray.values[0,2][0,0], 3.00)
+
+#values construction
+values = np.ndarray([3,3],dtype=object)
+values[0,0] = 1.0
+values[1,0] =11.0
+values[2,0] =21.0
+
+values[0,1] = xr.DataArray([ 2.0, 2.1, 2.2],dims=['time'],coords={'time':[1e-6,2e-6,3e-6]})
+values[1,1] = xr.DataArray([12.0,12.1,12.2],dims=['time'],coords={'time':[1e-6,2e-6,3e-6]})
+values[2,1] = xr.DataArray([22.0,22.1,22.2],dims=['time'],coords={'time':[1e-6,2e-6,3e-6]})
+
+values[0,2] = xr.DataArray([[ 3.00, 3.01, 3.02],[ 3.10, 3.11, 3.12]],dims=['space','time'],coords={'space':[1e-3,2e-3],'time':[1e-6,2e-6,3e-6]})
+values[1,2] = xr.DataArray([[13.00,13.01,13.02],[13.10,13.11,13.12]],dims=['space','time'],coords={'space':[1e-3,2e-3],'time':[1e-6,2e-6,3e-6]})
+values[2,2] = xr.DataArray([[23.00,23.01,23.02],[23.10,23.11,23.12]],dims=['space','time'],coords={'space':[1e-3,2e-3],'time':[1e-6,2e-6,3e-6]})
+
+testArray = cached_ndarray.cNDarray(values=values)
+checkAnswer('ND by value, point, sample 0',testArray.values[0,0],1.0)
+checkAnswer('ND by value, point, sample 1',testArray.values[1,0],11.0)
+checkAnswer('ND by value, point, sample 2',testArray.values[2,0],21.0)
+
+checkAnswer('ND by value, hist, sample 0, time 0 (access index)',testArray.values[0,1][0],2.0)
+checkAnswer('ND by value, hist, sample 0, time 0 (access label)',testArray.values[0,1].loc[dict(time=1e-6)],2.0)
+checkAnswer('ND by value, hist, sample 1, time 1',testArray.values[1,1][1],12.1)
+checkAnswer('ND by value, hist, sample 2, time 2',testArray.values[2,1][2],22.2)
+
+checkAnswer('ND by value, nd, sample 0, time 0, location 0 (access index)',testArray.values[0,2][0,0], 3.00)
+checkAnswer('ND by value, nd, sample 0, time 0, location 0 (access label)',testArray.values[0,2].loc[dict(time=1e-6,space=1e-3)], 3.00)
+checkAnswer('ND by value, nd, sample 1, time 0, location 1',testArray.values[1,2][0,1],13.01)
+checkAnswer('ND by value, nd, sample 2, time 1, location 2',testArray.values[2,2][1,2],23.12)
+
+
+
+#################
+# LIST OF LISTS #
+#################
+# default constructor
+testArray = cached_ndarray.listOfLists(width=3)
+checkAnswer('initial width',testArray.shape[1],3)
+checkAnswer('initial size',testArray.size,0)
+checkAnswer('initial len',len(testArray),0)
+
+vals = [ [1.0,
+          xr.DataArray([ 2.0, 2.1, 2.2],dims=['time'],coords={'time':[1e-6,2e-6,3e-6]}),
+          xr.DataArray([[ 3.00, 3.01, 3.02],[ 3.10, 3.11, 3.12]],dims=['space','time'],coords={'space':[1e-3,2e-3],'time':[1e-6,2e-6,3e-6]})
+         ]
+       ]
+testArray.append(vals)
+checkAnswer('NList append, point',testArray.values[0][0],1.0)
+checkAnswer('NList append, hist, time 0',testArray.values[0][1][0],2.0)
+checkAnswer('NList append, nd, time 0, location 0',testArray.values[0][2][0,0], 3.00)
+
+# TODO values construction
 
 print(results)
 

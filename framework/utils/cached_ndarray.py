@@ -248,7 +248,7 @@ class cNDarray(object):
     else:
       self.values = ndarray((length,width),dtype,buff,offset,strides,order)
       self.size = 0
-      self.shape = (0,width)
+      self.shape = (length,width)
       # TODO make a method to do this automatically
       # TODO what about the high-dimensional data for ND sets?
     self.capacity = self.shape[0]
@@ -260,7 +260,7 @@ class cNDarray(object):
       @ In, None
       @ Out, __iter__, iterator, iterator
     """
-    return self.values[:self.size].__iter()
+    return self.values[:self.size].__iter__()
 
   def __getitem__(self,val):
     """
@@ -313,3 +313,69 @@ class cNDarray(object):
       @ Out, getData, np.ndarray, underlying data up to the used size
     """
     return self.values[:self.size]
+
+#
+#
+#
+#
+class listOfLists(object):
+  """
+    Alternative to cNDarray when some entities need to be arbitrary objects.
+  """
+  def __init__(self,values=None,width=None):
+    """
+      Constructor. TODO fixme
+      @ In, values, np.ndarray, optional, matrix of initial values with shape (# samples, # entities)
+      @ In, width, int, optional, if not using "values" then this is the number of entities to allocate
+      @ Out, None
+    """
+    if values is None:
+      if width is None:
+        raise IOError('Must either supply "values" or "width" to listOfLists constructor!')
+      self.values = []
+      self.shape = (0,width)
+      self.size = 0
+    else:
+      pass #TODO
+
+  def __getitem__(self,val):
+    """
+      Get item method.  Slicing should work as expected.
+      @ In, val, slice object, the slicing object (e.g. 1, :, :2, 1:3, etc.)
+      @ Out, __getitem__, np.ndarray, the element(s)
+    """
+    # TODO slicing?
+    return list(ent[val] for ent in self.values)
+
+  def __len__(self):
+    """
+      Return size, which is the number of samples, independent of entities.  Identical to self.values.shape[0]
+      @ In, None
+      @ Out, __len__, integer, size
+    """
+    return self.size
+
+  def append(self,entries):
+    """
+      Append method. call format c1darrayInstance.append(value)
+      @ In, entry, list(list), list of lists of entry values to append
+      @ Out, None
+    """
+    #loops
+    #for entry in entries:
+    #  for e,val in enumerate(entry):
+    #    self.values[e].append(val)
+    #equivalent
+    #list(self.values[e].append(val) for entry in entries for e,val in enumerate(entry))
+    # the above do the wrong dimension ordering
+    self.values.extend(entries)
+    self.size += len(entries)
+    self.shape = (self.size, len(self.values[0]))
+
+  def getData(self):
+    """
+      Returns the underlying data structure.
+      @ In, None
+      @ Out, getData, list(list), underlying data up to the used size
+    """
+    return self.values
