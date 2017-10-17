@@ -190,7 +190,7 @@ def __processData(data, methodInfo):
   variance = ret["sampleVariance"]
   omega = math.sqrt(variance / (1.0 - 2 * delta_alpha ** 2 / math.pi))
   mean = ret['mean']
-  xi = mean - omega * delta * math.sqrt(2.0 / math.pi)
+  xi = mean - omega * delta_alpha * math.sqrt(2.0 / math.pi)
   ret['alpha'] = alpha
   ret['omega'] = omega
   ret['xi'] = xi
