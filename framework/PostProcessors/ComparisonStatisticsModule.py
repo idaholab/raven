@@ -182,7 +182,7 @@ def __processData(data, methodInfo):
   delta_func = lambda skewness: math.sqrt((math.pi / 2.0) * (abs(skewness) ** (2.0 / 3.0)) /
                                 (abs(skewness) ** (2.0 / 3.0) + ((4.0 - math.pi) / 2.0) ** (2.0 / 3.0)))
   # see https://en.wikipedia.org/wiki/Skew_normal_distribution (Estimation)
-  delta_alpha = delta_func(min(0.9952717,ret["skewness"]))
+  delta_alpha = delta_func(min(0.9952717,skewness))
   delta_alpha = math.copysign(delta_alpha, skewness)
   alpha       = delta_alpha / math.sqrt(1.0 - delta_alpha ** 2)
   variance = ret["sampleVariance"]
