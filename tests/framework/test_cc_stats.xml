@@ -15,7 +15,7 @@
   </TestInfo>
   <RunInfo>
     <WorkingDir>test_cc_stats</WorkingDir>
-    <Sequence>test_read_in,test_stats_step,dump_data</Sequence>
+    <Sequence>test_read_in,test_stats_step</Sequence>
     <batchSize>3</batchSize>
   </RunInfo>
 
@@ -76,10 +76,6 @@
     <IOStep fromDirectory="../input_for_test_cc" name="test_read_in">
       <Input class="DataObjects" type="PointSet">fullprint_Pointset</Input>
       <Output class="Databases" type="HDF5">MC_TEST_REWRITE</Output>
-    </IOStep>
-    <IOStep name="dump_data">
-      <Input class="DataObjects" type="PointSet">out_data</Input>
-      <Output class="OutStreams" type="Print">out_data</Output>
     </IOStep>
     <PostProcess name="test_stats_step">
       <Input class="DataObjects" type="PointSet">fullprint_Pointset</Input>
