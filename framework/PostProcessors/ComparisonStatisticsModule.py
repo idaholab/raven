@@ -448,16 +448,8 @@ class ComparisonStatistics(PostProcessor):
         if len(rest) == 1:
           foundDataObjects.append(data[rest[0]])
       dataToProcess.append((dataPulls, foundDataObjects, reference))
-    generateCSV = False
-    generatePointSet = False
-    if isinstance(output,Files.File):
-      generateCSV = True
-    elif output.type == 'PointSet':
-      generatePointSet = True
-    else:
+    if not isinstance(output,Files.File):
       self.raiseAnError(IOError, 'unsupported type ' + str(type(output)))
-    if generateCSV:
-      csv = output
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
       if "name" in reference:
@@ -476,64 +468,49 @@ class ComparisonStatistics(PostProcessor):
       for dataPull, data in zip(dataPulls, datas):
         dataStats, cdfFunc, pdfFunc = _getPDFandCDFfromData(str(dataPull),
                                                             data,
-                                                            csv,
+                                                            output,
                                                             self.methodInfo,
                                                             self.interpolation,
-                                                            generateCSV)
+                                                            True)
         self.raiseADebug("dataStats: " + str(dataStats))
         graphData.append((dataStats, cdfFunc, pdfFunc, str(dataPull)))
       graphDataDict = _getGraphs(graphData, self.fZStats)
-      if generateCSV:
-        for key in graphDataDict:
-          value = graphDataDict[key]
-          if type(value).__name__ == 'list':
-            utils.printCsv(csv, *(['"' + l[0] + '"' for l in value]))
-            for i in range(1, len(value[0])):
-              utils.printCsv(csv, *([l[i] for l in value]))
+      for key in graphDataDict:
+        value = graphDataDict[key]
+        if type(value).__name__ == 'list':
+          utils.printCsv(csv, *(['"' + l[0] + '"' for l in value]))
+          for i in range(1, len(value[0])):
+            utils.printCsv(csv, *([l[i] for l in value]))
+        else:
+          utils.printCsv(csv, '"' + key + '"', value)
+      for i in range(len(graphData)):
+        dataStat = graphData[i][0]
+        def delist(l):
+          """
+            Method to create a string out of a list l
+            @ In, l, list, the list to be 'stringed' out
+            @ Out, delist, string, the string representing the list
+          """
+          if type(l).__name__ == 'list':
+            return '_'.join([delist(x) for x in l])
           else:
-            utils.printCsv(csv, '"' + key + '"', value)
-      if generatePointSet:
-        for key in graphDataDict:
-          value = graphDataDict[key]
-          if type(value).__name__ == 'list':
-            for i in range(len(value)):
-              subvalue = value[i]
-              name = subvalue[0]
-              subdata = subvalue[1:]
-              if i == 0:
-                output.updateInputValue(name, subdata)
-              else:
-                output.updateOutputValue(name, subdata)
-            break  # XXX Need to figure out way to specify which data to return
-      if generateCSV:
-        for i in range(len(graphData)):
-          dataStat = graphData[i][0]
-          def delist(l):
-            """
-              Method to create a string out of a list l
-              @ In, l, list, the list to be 'stringed' out
-              @ Out, delist, string, the string representing the list
-            """
-            if type(l).__name__ == 'list':
-              return '_'.join([delist(x) for x in l])
-            else:
-              return str(l)
-          newFileName = output.getBase() + "_" + delist(dataPulls) + "_" + str(i) + ".csv"
-          if type(dataStat).__name__ != 'dict':
-            assert(False)
-            continue
-          dataPairs = []
-          for key in sorted(dataStat.keys()):
-            value = dataStat[key]
-            if np.isscalar(value):
-              dataPairs.append((key, value))
-          extraCsv = Files.returnInstance('CSV',self)
-          extraCsv.initialize(newFileName,self.messageHandler)
-          extraCsv.open("w")
-          extraCsv.write(",".join(['"' + str(x[0]) + '"' for x in dataPairs]))
-          extraCsv.write("\n")
-          extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
-          extraCsv.write("\n")
-          extraCsv.close()
-        utils.printCsv(csv)
+            return str(l)
+        newFileName = output.getBase() + "_" + delist(dataPulls) + "_" + str(i) + ".csv"
+        if type(dataStat).__name__ != 'dict':
+          assert(False)
+          continue
+        dataPairs = []
+        for key in sorted(dataStat.keys()):
+          value = dataStat[key]
+          if np.isscalar(value):
+            dataPairs.append((key, value))
+        extraCsv = Files.returnInstance('CSV',self)
+        extraCsv.initialize(newFileName,self.messageHandler)
+        extraCsv.open("w")
+        extraCsv.write(",".join(['"' + str(x[0]) + '"' for x in dataPairs]))
+        extraCsv.write("\n")
+        extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
+        extraCsv.write("\n")
+        extraCsv.close()
+      utils.printCsv(csv)
 

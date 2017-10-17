@@ -9,6 +9,9 @@
       Tests the comparison statistics class including both two PointSets
       and PointSet to distribution.
     </description>
+    <revisions>
+        <revision author="alfoa" date="2017-10-17">Removed support for PointSet output for ComparisonStatisticsModule</revision>
+    </revisions>
   </TestInfo>
   <RunInfo>
     <WorkingDir>test_cc_stats</WorkingDir>
@@ -85,7 +88,6 @@
       -->
       <Model class="Models" type="PostProcessor">test_stats</Model>
       <Output class="Files" type="">output.csv</Output>
-      <Output class="DataObjects" type="PointSet">out_data</Output>
     </PostProcess>
   </Steps>
 
@@ -101,10 +103,6 @@
     <Print name="Pointset_IN_database_dump">
       <type>csv</type>
       <source>Pointset_IN_database</source>
-    </Print>
-    <Print name="out_data">
-      <type>csv</type>
-      <source>out_data</source>
     </Print>
   </OutStreams>
 
