@@ -1,0 +1,124 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/hybridModel.hybridModel</name>
+    <author>wangc</author>
+    <created>2017-09-13</created>
+    <classesTested>Models.HybridModel, Models.ExternalModel, Models.ROM</classesTested>
+    <description>
+       Example of usage of the Hybrid Model capability in RAVEN
+       This test is intended to check the functionality of Hybrid Model.
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>simpleRomAdaptive</WorkingDir>
+    <Sequence>testAdaptiveRom</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Uniform name="leftTemperatureDist">
+      <lowerBound>500</lowerBound>
+      <upperBound>1700</upperBound>
+    </Uniform>
+    <Uniform name="rightTemperatureDist">
+      <lowerBound>500</lowerBound>
+      <upperBound>1700</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Metrics>
+      <SKL name="m1">
+          <metricType>mean_absolute_error</metricType>
+      </SKL>
+  </Metrics>
+
+  <Models>
+    <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
+      <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
+    </ExternalModel>
+    <ROM name="knr" subType="SciKitLearn">
+      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+      <Features>leftTemperature, rightTemperature</Features>
+      <Target>k</Target>
+      <n_neighbors>5</n_neighbors>
+      <weights>uniform</weights>
+      <algorithm>auto</algorithm>
+      <leaf_size>30</leaf_size>
+      <metric>minkowski</metric>
+      <p>2</p>
+    </ROM>
+    <PostProcessor name="pp1" subType="CrossValidation">
+        <SciKitLearn>
+            <SKLtype>KFold</SKLtype>
+            <n_splits>10</n_splits>
+            <shuffle>False</shuffle>
+            <random_state>None</random_state>
+        </SciKitLearn>
+        <Metric class="Metrics" type="SKL">m1</Metric>
+    </PostProcessor>
+    <HybridModel name="hybrid" subType="">
+        <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>
+        <ROM class="Models" type="ROM">knr</ROM>
+        <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
+        <CV class="Models" type="PostProcessor">pp1</CV>
+        <settings>
+            <tolerance>0.005</tolerance>
+            <maxTrainSize>1000</maxTrainSize>
+            <minInitialTrainSize>10</minInitialTrainSize>
+        </settings>
+        <validationMethod name="CrowdingDistance">
+            <threshold>0.2</threshold>
+        </validationMethod>
+    </HybridModel>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="MonteCarloTemperature">
+      <samplerInit>
+        <limit>50</limit>
+      </samplerInit>
+      <variable name="leftTemperature">
+        <distribution>leftTemperatureDist</distribution>
+      </variable>
+      <variable name="rightTemperature">
+        <distribution>rightTemperatureDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="testAdaptiveRom">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="HybridModel">hybrid</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MonteCarloTemperature</Sampler>
+      <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
+      <Output class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Output>
+      <Output class="OutStreams" type="Print">metaModelOutputTestDump</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="metaModelOutputTestDump">
+      <type>csv</type>
+      <source>metaModelOutputTest</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="thermalConductivityComputationContainer">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>k</Output>
+    </PointSet>
+    <PointSet name="metaModelOutputTest">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>k</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
