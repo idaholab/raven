@@ -478,11 +478,11 @@ class ComparisonStatistics(PostProcessor):
       for key in graphDataDict:
         value = graphDataDict[key]
         if type(value).__name__ == 'list':
-          utils.printCsv(csv, *(['"' + l[0] + '"' for l in value]))
+          utils.printCsv(output, *(['"' + l[0] + '"' for l in value]))
           for i in range(1, len(value[0])):
-            utils.printCsv(csv, *([l[i] for l in value]))
+            utils.printCsv(output, *([l[i] for l in value]))
         else:
-          utils.printCsv(csv, '"' + key + '"', value)
+          utils.printCsv(output, '"' + key + '"', value)
       for i in range(len(graphData)):
         dataStat = graphData[i][0]
         def delist(l):
@@ -512,5 +512,5 @@ class ComparisonStatistics(PostProcessor):
         extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
         extraCsv.write("\n")
         extraCsv.close()
-      utils.printCsv(csv)
+      utils.printCsv(output)
 
