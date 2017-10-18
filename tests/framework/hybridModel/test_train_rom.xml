@@ -64,7 +64,7 @@
         <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
         <CV class="Models" type="PostProcessor">pp1</CV>
         <settings>
-            <tolerance>0.9</tolerance>
+            <tolerance>0.1</tolerance>
             <maxTrainSize>1000</maxTrainSize>
             <minInitialTrainSize>10</minInitialTrainSize>
         </settings>

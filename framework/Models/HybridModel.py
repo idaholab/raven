@@ -124,6 +124,7 @@ class HybridModel(Dummy):
     self.oldTrainingSize       = 0                   # The size of training set that is previous used to train the rom
     self.modelIndicator        = {}                  # a dict i.e. {jobPrefix: 1 or 0} used to indicate the runs: model or rom. '1' indicates ROM run, and '0' indicates Code run
     self.metricCategories      = {'find_min':['explained_variance_score', 'r2_score'], 'find_max':['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']}
+    self.crowdingDistance      = None
     # assembler objects to be requested
     self.addAssemblerObject('Model','1',True)
     self.addAssemblerObject('ROM','n')
@@ -140,7 +141,6 @@ class HybridModel(Dummy):
     Dummy.localInputAndChecks(self, xmlNode)
     paramInput = HybridModel.getInputSpecification()()
     paramInput.parseNode(xmlNode)
-
     for child in paramInput.subparts:
       if child.getName() == 'Model':
         self.modelInstance = child.value.strip()
@@ -200,17 +200,14 @@ class HybridModel(Dummy):
       self.raiseAnError(IOError, 'CV XML block needs to be inputted!')
     if self.targetEvaluationInstance is None:
       self.raiseAnError(IOError, 'TargetEvaluation XML block needs to be inputted!')
-
     for romName, romInfo in self.romsDictionary.items():
       romInfo['Instance'] = self.retrieveObjectFromAssemblerDict('ROM', romName)
       if romInfo['Instance']  is None:
         self.raiseAnError(IOError, 'ROM XML block needs to be inputted!')
-
     modelInputs = self.targetEvaluationInstance.getParaKeys("inputs")
     modelOutputs = self.targetEvaluationInstance.getParaKeys("outputs")
     modelName = self.modelInstance.name
     totalRomOutputs = []
-
     for romInfo in self.romsDictionary.values():
       romIn = romInfo['Instance']
       if romIn.amITrained:
@@ -231,7 +228,6 @@ class HybridModel(Dummy):
       if romIn.amITrained:
         # Only untrained roms are allowed
         self.raiseAnError(IOError,'HybridModel only accepts untrained ROM, but rom "', romIn.name, '" is already trained')
-
     # check: we require that the union of ROMs outputs is the same as the paired model in order to use the ROM
     # to replace the paired model.
     if len(set(totalRomOutputs)) != len(totalRomOutputs):
@@ -244,7 +240,6 @@ class HybridModel(Dummy):
     unknownList = utils.checkIfUnknowElementsinList(totalRomOutputs,modelOutputs)
     if unknownList:
       self.raiseAnError(IOError, "The following outputs: ", ','.join(str(e) for e in unknownList), " used in Model: ", modelName, "but not used in the paired ROMs.")
-
     self.tempOutputs['uncollectedJobIds'] = []
 
   def getInitParams(self):
@@ -303,7 +298,6 @@ class HybridModel(Dummy):
         newKwargs[romName]['uniqueHandler'] = self.name+identifier
     else:
       newKwargs = copy.deepcopy(kwargs)
-
     if self.modelInstance.type == 'Code':
       codeInput = []
       romInput = []
@@ -318,7 +312,6 @@ class HybridModel(Dummy):
         return (romInput, samplerType, newKwargs)
       else:
         return (codeInput, samplerType, newKwargs)
-
     return (myInput, samplerType, newKwargs)
 
   def trainRom(self, samplerType, kwargs):
@@ -335,7 +328,6 @@ class HybridModel(Dummy):
       # and compared to the size of trainingSet in the ROM, the reason is that
       # we may end up using the same data to train the rom, the outputs may not be
       # collected yet!
-
       # reset the rom
       romInfo['Instance'].reset()
       useCV = self.checkCV(len(self.tempTargetEvaluation))
@@ -349,7 +341,6 @@ class HybridModel(Dummy):
           self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
       else:
         self.raiseAMessage("Minimum initial training size is met, but the training size is not enough to be used to perform cross validation")
-
     self.oldTrainingSize = len(self.tempTargetEvaluation)
 
   def checkCV(self, trainingSize):
@@ -381,7 +372,6 @@ class HybridModel(Dummy):
         name = self.cvInstance.interface.metricsDict.keys()[0]
         metricType = metricName[len(name)+1:]
         converged = self.checkErrors(metricType, metricValues)
-
     return converged
 
   def checkErrors(self, metricType, metricResults):
@@ -403,11 +393,11 @@ class HybridModel(Dummy):
     for key, metricList in self.metricCategories.items():
       if metricType in metricList:
         if key == 'find_min':
-          error = np.amin(errorList)
-          converged = True if error >= self.romConvergence else False
+          # use displacement from the optimum to indicate tolerance
+          error = 1.0 - np.amin(errorList)
         elif key == 'find_max':
           error = np.amax(errorList)
-          converged = True if error <= self.romConvergence else False
+        converged = True if error <= self.romConvergence else False
         break
     if error is None:
       self.raiseAnError(IOError, "Metric %s used for cross validation can not be handled by the HybridModel." %metricName)
@@ -444,10 +434,8 @@ class HybridModel(Dummy):
         allValid = self.crowdingDistanceMethod(params, kwargs['SampledVars'])
       else:
         self.raiseAnError(IOError, "Unknown model selection method ", selectionMethod, " is given!")
-
     if allValid:
       self.raiseADebug("ROMs  are all valid for given model ", self.modelInstance.name)
-
     return allValid
 
   def crowdingDistanceMethod(self, settingDict, varDict):
@@ -463,9 +451,20 @@ class HybridModel(Dummy):
       valid = False
       # generate the data for input parameters
       paramsList = romInfo['Instance'].getInitParams()['Features']
-      trainInput = np.asarray(self._extractInputs(romInfo['Instance'].trainingSet, paramsList).values())
-      currentInput = np.asarray(self._extractInputs(varDict, paramsList).values())
-      coeffCD = self.computeCDCoefficient(trainInput, currentInput)
+      trainInput = self._extractInputs(romInfo['Instance'].trainingSet, paramsList)
+      currentInput = self._extractInputs(varDict, paramsList)
+      if self.crowdingDistance is None:
+        self.crowdingDistance = self.computeCrowdingDistance(trainInput)
+      sizeCD = len(self.crowdingDistance)
+      if sizeCD != trainInput.shape[1]:
+        self.crowdingDistance = self.updateCrowdingDistance(trainInput[:,0:sizeCD], trainInput[:,sizeCD:], self.crowdingDistance)
+      crowdingDistance = self.updateCrowdingDistance(trainInput, currentInput, self.crowdingDistance)
+      maxDist = np.amax(crowdingDistance)
+      minDist = np.amin(crowdingDistance)
+      if maxDist == minDist:
+        coeffCD = 1.0
+      else:
+        coeffCD = (maxDist - crowdingDistance[-1])/(maxDist - minDist)
       self.raiseADebug("Crowding Distance Coefficient: ", coeffCD)
       if coeffCD >= settingDict['threshold']:
         valid = True
@@ -474,7 +473,6 @@ class HybridModel(Dummy):
         self.raiseADebug("ROM ",romInfo['Instance'].name, " is valid")
       else:
         allValid = False
-
     return allValid
 
   def _extractInputs(self,dataIn, paramsList):
@@ -482,40 +480,58 @@ class HybridModel(Dummy):
       Extract the the parameters in the paramsList from the given data object dataIn
       @ dataIn, Instance or Dict, data object or dictionary contains the input and output parameters
       @ paramsList, List, List of parameter names
-      @ localInput, dict, dictionary contains the selected input and output parameters and their values
+      @ localInput, numpy.array, array contains the values of selected input and output parameters
     """
-    localInput = dict.fromkeys(paramsList, None)
+    localInput = []
     if type(dataIn) == dict:
-      for elem, value in dataIn.items():
-        if elem in paramsList:
-          localInput[elem] = np.atleast_1d(value)
+      for elem in paramsList:
+        if elem in dataIn.keys():
+          localInput.append(np.atleast_1d(dataIn[elem]))
+        else:
+          self.raiseAnError(IOError, "Parameter ", elem, " is not found!")
     else:
       self.raiseAnError(IOError, "The input type '", inputType, "' can not be accepted!")
+    return np.asarray(localInput)
 
-    return localInput
-
-  def computeCDCoefficient(self, trainSet, newSet):
+  def computeCrowdingDistance(self, trainSet):
     """
       This function will compute the Crowding distance coefficients among the input parameters
-      @ In, trainSet, numpy.array, array contains values of previous generated input parameters
-      @ In, newSet, numpy.array, array contains values of current generated input parameters
-      @ Out, crowdingDistCoeff, float, the coefficient of crowding distance
+      @ In, trainSet, numpy.array, array contains values of input parameters
+      @ Out, crowdingDist, numpy.array, crowding distances for given input parameters
     """
-    totalSet = np.concatenate((trainSet,newSet), axis=1)
-    dim = totalSet.shape[1]
+    dim = trainSet.shape[1]
     distMat = np.zeros((dim, dim))
     for i in range(dim):
-      for j in range(dim):
-        distMat[i,j] = linalg.norm(totalSet[:,i] - totalSet[:,j])
+      for j in range(i):
+        distMat[i,j] = linalg.norm(trainSet[:,i] - trainSet[:,j])
+        distMat[j,i] = distMat[i,j]
     crowdingDist = np.sum(distMat,axis=1)
-    maxDist = np.amax(crowdingDist)
-    minDist = np.amin(crowdingDist)
-    if maxDist == minDist:
-      crowdingDistCoeff = 1.0
-    else:
-      crowdingDistCoeff = (maxDist - crowdingDist[-1])/(maxDist - minDist)
+    return crowdingDist
 
-    return crowdingDistCoeff
+  def updateCrowdingDistance(self, oldSet, newSet, crowdingDistance):
+    """
+      This function will compute the Crowding distance coefficients among the input parameters
+      @ In, oldSet, numpy.array, array contains values of input parameters that have been already used
+      @ In, newSet, numpy.array, array contains values of input parameters that will be used for computing the
+      @ In, crowdingDistance, numpy.array, the crowding distances for oldSet
+      @ Out, newCrowdingDistance, numpy.array, the updated crowding distances for both oldSet and newSet
+    """
+    oldSize = oldSet.shape[1]
+    newSize = newSet.shape[1]
+    totSize = oldSize + newSize
+    if oldSize != crowdingDistance.size:
+      self.raiseAnError(IOError, "The old crowding distances is not match the old data set!")
+    newCrowdingDistance = np.zeros(totSize)
+    distMatAppend = np.zeros((oldSize,newSize))
+    for i in range(oldSize):
+      for j in range(newSize):
+        distMatAppend[i,j] = linalg.norm(oldSet[:,i] - newSet[:,j])
+    distMatNew = self.computeCrowdingDistance(newSet)
+    for i in range(oldSize):
+      newCrowdingDistance[i] = crowdingDistance[i] + np.sum(distMatAppend[i,:])
+    for i in range(newSize):
+      newCrowdingDistance[i+oldSize] = distMatNew[i] + np.sum(distMatAppend[:,i])
+    return newCrowdingDistance
 
   def amIReadyToTrainROM(self):
     """
@@ -532,7 +548,6 @@ class HybridModel(Dummy):
     trainingStepSize = len(self.tempTargetEvaluation) - self.oldTrainingSize
     if newGeneratedTrainingSize >= self.romTrainStartSize and trainingStepSize > 0:
       ready = True
-
     return ready
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
@@ -553,11 +568,9 @@ class HybridModel(Dummy):
     for mm in utils.returnImportModuleString(jobHandler):
       if mm not in self.mods:
         self.mods.append(mm)
-
     prefix = kwargs['prefix']
     self.counter = prefix
     self.tempOutputs['uncollectedJobIds'].append(prefix)
-
     if self.amIReadyToTrainROM():
       self.trainRom(samplerType, kwargs)
       self.romConverged = self.checkRomConvergence()
@@ -565,17 +578,14 @@ class HybridModel(Dummy):
       self.romValid = self.checkRomValidity(kwargs)
     else:
       self.romValid = False
-
     if self.romValid:
       self.modelIndicator[prefix] = 1
     else:
       self.modelIndicator[prefix] = 0
-
     ## Ensemble models need access to the job handler, so let's stuff it in our
     ## catch all kwargs where evaluateSample can pick it up, not great, but
     ## will suffice until we can better redesign this whole process.
     kwargs['jobHandler'] = jobHandler
-
     self.raiseADebug("Submit job with job identifier: {},  Runing ROM: {} ".format(kwargs['prefix'], self.romValid))
     kwargs['useROM'] = self.romValid
     ## This may look a little weird, but due to how the parallel python library
@@ -595,7 +605,6 @@ class HybridModel(Dummy):
       @ Out, returnValue, dict, This holds the output information of the evaluated sample.
     """
     self.raiseADebug("Evaluate Sample")
-
     kwargsKeys = kwargs.keys()
     kwargsKeys.pop(kwargsKeys.index("jobHandler"))
     kwargsToKeep = {keepKey: kwargs[keepKey] for keepKey in kwargsKeys}
@@ -620,7 +629,6 @@ class HybridModel(Dummy):
     identifier = inputKwargs.pop('prefix')
     useROM = inputKwargs.pop('useROM')
     uniqueHandler = self.name + identifier
-
     if useROM:
       # run roms
       exportDict = {}
@@ -652,7 +660,6 @@ class HybridModel(Dummy):
           break
         time.sleep(self.sleepTime)
       exportDict['prefix'] = identifier
-
     else:
       # run model
       inputKwargs['prefix'] = self.modelInstance.name+utils.returnIdSeparator()+identifier
@@ -675,10 +682,8 @@ class HybridModel(Dummy):
       # collect output in temporary data object
       exportDict = self.modelInstance.createExportDictionaryFromFinishedJob(finishedRun[0], True)
       self.raiseADebug("Create exportDict")
-
     # used in the collectOutput
     exportDict['useROM'] = useROM
-
     return exportDict
 
   def collectOutput(self,finishedJob,output):
@@ -693,17 +698,14 @@ class HybridModel(Dummy):
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
     exportDict = evaluation[1]
     useROM = exportDict['useROM']
-
     try:
       jobIndex = self.tempOutputs['uncollectedJobIds'].index(finishedJob.identifier)
       self.tempOutputs['uncollectedJobIds'].pop(jobIndex)
     except ValueError:
       jobIndex = None
-
     if jobIndex is not None and not useROM:
       self.collectOutputFromDict(exportDict, self.tempTargetEvaluation)
       self.raiseADebug("ROM is invalid, collect ouptuts of Model with job identifier: {}".format(finishedJob.identifier))
-
     Dummy.collectOutput(self, finishedJob, output, options = {'exportDict':exportDict})
 
   def __mergeDict(self,exportDict, tempExportDict):
@@ -725,6 +727,5 @@ class HybridModel(Dummy):
         output[outKey][key] = value
       for key, value in tempExportDict['metadata'].items():
         output['metadata'][key] = value
-
     self.raiseADebug("The exportDict has been updated")
     return outputDict

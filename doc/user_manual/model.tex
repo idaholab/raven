@@ -1530,15 +1530,11 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
      \item \xmlNode{minInitialTrainSize}, \xmlDesc{integer, optional field}, the minimum initial number of high-fidelity
        model runs before starting train the ROMs.
        \default{10};
-     \item \xmlNode{tolerance}, \xmlDesc{float, optional field}, ROMs convergence criterion. This tolerance will
-       be compared with the results from the cross validation to determine whether the ROMs are converged or not.
+     \item \xmlNode{tolerance}, \xmlDesc{float, optional field}, ROMs convergence criterion indicates the displacement
+       from the optimum results of cross validation. In other words, small tolerance indicates tight convergence criterion
+       of the ROMs, while large tolerance indicates loose convergence criterion of the ROMs.
        \nb Currently, this tolerance can be only used for cross validations with SKL Metrics: \textit{explained\_variance\_score},
        \textit{r2\_score}, \textit{median\_absolute\_error}, \textit{mean\_squared\_error} and \textit{mean\_absolute\_error}.
-       if \textit{explained\_variance\_score} and \textit{r2\_error} are used, the best possible score is ``1.0``, and
-       lower values are worse. The \xmlNode{tolerance} should be selected close to ``1.0``.
-       if \textit{mean\_squared\_error}, \textit{mean\_absolute\_error} and \textit{median\_absolute\_error}
-       are used, the best possible score is ``0.0``, larger values are worse. Thus, the \xmlNode{tolerance} should be
-       selected close to ``0.0``.
        \default{0.01};
      \item \xmlNode{maxTrainSize}, \xmlDesc{XML node, optional field}, the maximum size of training set of ROMs.
        \default{1.0E6}

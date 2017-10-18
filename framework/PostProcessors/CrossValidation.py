@@ -120,7 +120,7 @@ class CrossValidation(PostProcessor):
           if score in scoreList:
             self.cvScores.append(score)
           else:
-            self.raiseAnError(IOError, "Unexpected input '", score, "' for XML node 'scores'! Valid inputs include: ", str(scoreList))
+            self.raiseAnError(IOError, "Unexpected input '", score, "' for XML node 'scores'! Valid inputs include: ", ",".join(scoreList))
         break
     for child in xmlNode:
       if child.tag == 'SciKitLearn':

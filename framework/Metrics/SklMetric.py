@@ -32,11 +32,6 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import median_absolute_error
 from sklearn.metrics import r2_score
-scores = {'explained_variance_score':explained_variance_score,
-          'mean_absolute_error':mean_absolute_error,
-          'r2_score':r2_score,
-          'mean_squared_error':mean_squared_error,
-          'median_absolute_error':median_absolute_error}
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
