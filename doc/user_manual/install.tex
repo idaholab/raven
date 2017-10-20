@@ -50,6 +50,7 @@ which must  be installed before it will function properly:
     \hline scipy &  Scientific computing package for Python \\
     \hline scikit-learn & Machine learning library for Python \\
     \hline matplotlib & Plotting library for Python \\
+    \hline xarray & High-dimension field data containers for Python \\
     \hline
     \end{tabular}
 \end{center}
@@ -64,7 +65,7 @@ to run RAVEN varies.
 \label{sysprep_linux}
 
 The installation of RAVEN dependencies on a Linux system  can be performed
-using two alternative methods: 
+using two alternative methods:
 
 \begin{itemize}
     \item Native distribution's package manager
@@ -73,7 +74,7 @@ using two alternative methods:
 
 Using one of the above automates the process and automatically includes any needed
 dependencies of the requested packages.  Below are instructions for
-doing so for two popular Linux distributions, Ubuntu and Fedora.  
+doing so for two popular Linux distributions, Ubuntu and Fedora.
 
 \subsubsection{Ubuntu}
 
@@ -91,7 +92,7 @@ needed dependencies not already on the system:
 
 
 \paragraph{Miniconda}
-The Minoconda package manager is a cross platform installation package specifically 
+The Minoconda package manager is a cross platform installation package specifically
 used for Python dependencies installation.
 The package manager can be downloaded and installed from \url{https://conda.io/miniconda.html}.
 After the installation of Minconda, the following command needs to be executed for the installation of
@@ -126,12 +127,15 @@ dnf install swig libtool gcc-c++ redhat-rpm-config python-devel \
   python3-devel numpy h5py scipy python-scikit-learn \
   python-matplotlib-qt4
 \end{lstlisting}
+\begin{lstlisting}[language=bash]
+pip install pandas xarray
+\end{lstlisting}
 
 Note: The 'dnf' command replaces 'yum' used on older versions of
 Fedora Linux.
 
 \paragraph{Miniconda}
-The Minoconda package manager is a cross platform installation package specifically 
+The Minoconda package manager is a cross platform installation package specifically
 used for Python dependencies installation.
 The package manager can be downloaded and installed from \url{https://conda.io/miniconda.html}.
 After the installation of Minconda, the following command needs to be executed for the installation of
@@ -174,7 +178,7 @@ It is freely available from the Apple store. In order to obtain it the following
 
 \subsubsection{Installing XQuartz}
 XQuartz is an implementation of the X Server for the Mac OSX operating system.
-XQuartz is freely available on the web and can be downloaded from the link 
+XQuartz is freely available on the web and can be downloaded from the link
  \url{https://dl.bintray.com/xquartz/downloads/XQuartz-2.7.9.dmg}.
  \\After downloaded, install the package.
 
@@ -194,7 +198,7 @@ conda create --name raven_libraries -y numpy=1.11.0 \
  matplotlib=1.5.1 python=2.7 hdf5 swig pylint lxml
 \end{lstlisting}
 
-This command will install all the libraries and dependencies needed for executing RAVEN 
+This command will install all the libraries and dependencies needed for executing RAVEN
 in a Miniconda enviroment called ``raven\_libraries''.
 
 \goToRavenInstallation
@@ -227,8 +231,8 @@ provide this functionality.  More information about MSYS2 is available at
     \item Obtain and run the latest basic 64-bit MSYS2 installer from \url{ https://msys2.github.io/} (As of this writing it is named
 	msys2-x86\_64-20161025.exe and is approximately 67 Megabytes in size).
     \item The page with the download also contains installation instructions. Perform the steps described there up to
-	step 6 to install a minimal MSYS2 system and bring it up to date. Make sure that you install to path 
-        C:\textbackslash{}msys64.  This installation will create shortcuts in the Windows start menu that may be used 
+	step 6 to install a minimal MSYS2 system and bring it up to date. Make sure that you install to path
+        C:\textbackslash{}msys64.  This installation will create shortcuts in the Windows start menu that may be used
         to start UNIX-Like shells:
 		\begin{itemize}
 	    		\item MSYS2 Shell
@@ -242,18 +246,18 @@ provide this functionality.  More information about MSYS2 is available at
 USER@HOSTNAME MINGW64 ~
 $ pacman -S git winpty make
 \end{lstlisting}
-	The package manager will then download and install those packages (and their dependencies) from the MSYS2 
+	The package manager will then download and install those packages (and their dependencies) from the MSYS2
 	repository.
 \end{enumerate}
 
 \subsubsection{Install Python Language and Package Support}
 \begin{enumerate}
-	\item Download the latest 64-bit installer for Windows Python 2.7 from 
-		\url{https://conda.io/miniconda.html} and install it.  \item The installer 
+	\item Download the latest 64-bit installer for Windows Python 2.7 from
+		\url{https://conda.io/miniconda.html} and install it.  \item The installer
 		will ask whether Python should be installed for only the logged in user or
 		for all users.  Either option will work for RAVEN.
-	\item Locate and test the Python installation.   Open a Windows command prompt and enter the 
-		command "{\it where python}", which attempts to locate a the Python language interpreter 
+	\item Locate and test the Python installation.   Open a Windows command prompt and enter the
+		command "{\it where python}", which attempts to locate a the Python language interpreter
 		in the current system path.  This looks like:
 
 \begin{lstlisting}[language=bash, basicstyle=\small]
@@ -261,14 +265,14 @@ C:\Users\USERID> where python
 C:\Users\USERID\AppData\Local\Continuum\Miniconda2\python.exe
 \end{lstlisting}
 
-	\item Setup MSYS2 to find Python.  MSYS2 has its own separate PATH which must also be adjusted 
-		so that Python and its associated tools may be found. This is done by converting the 
-		file system location of Python determined in the previous step to its MSYS2-compatible 
+	\item Setup MSYS2 to find Python.  MSYS2 has its own separate PATH which must also be adjusted
+		so that Python and its associated tools may be found. This is done by converting the
+		file system location of Python determined in the previous step to its MSYS2-compatible
 		equivalent and using the result to setup MSYS2 so that it too can find it in the future.
 		\newline \newline
-		This is done by turning all backslashes ('\textbackslash') in the path to be converted to 
-		forward slashes ('/'), and changing the drive letter from its '\textless letter\textgreater:' 
-		form to '/ \textless letter\textgreater'. In addition, any spaces in the path must 
+		This is done by turning all backslashes ('\textbackslash') in the path to be converted to
+		forward slashes ('/'), and changing the drive letter from its '\textless letter\textgreater:'
+		form to '/ \textless letter\textgreater'. In addition, any spaces in the path must
 		be escaped using a backslash ('\textbackslash') when converted.
 		\newline \newline
 		For example:
@@ -289,13 +293,13 @@ C:\Program Files\Common Files
 /c/Program\ Files/Common\ Files
 \end{lstlisting}
 		\medskip
-		Three separate paths must be added to MSYS2 to enable all of the Python tools needed 
+		Three separate paths must be added to MSYS2 to enable all of the Python tools needed
 		to be found.  These are:
 
 		\smallskip
 \begin{tabular}{| l | l |}
 	\hline
-	{\bf Path} & {\bf Purpose} \\\hline			
+	{\bf Path} & {\bf Purpose} \\\hline
 	\textless Converted path from above\textgreater	& Python executable \\\hline
 	\textless Converted path from above\textgreater /Scripts &	Conda (Needed to manage Python packages) \\\hline
 	\textless Converted path from above\textgreater /Library/bin &	Swig (Needed to build RAVEN) \\\hline
@@ -310,20 +314,20 @@ export PATH=/c/Users/USERID/AppData/Local/Continuum/Miniconda2:$PATH
 export PATH=/c/Users/USERID/AppData/Local/Continuum/Miniconda2/Scripts:$PATH
 export PATH=/c/Users/USERID/AppData/Local/Continuum/Miniconda2/Library/bin:$PATH
 \end{lstlisting}
-		
+
 		To configure these needed paths in MSYS2 so that they persist, file "~/.bashrc" will need
-		to be edited.  This may be done either using an MSYS2-based editor such as {\it vim} 
-		(VI-iMproved, which is included in the installation) or a Windows-based editor like 
-		{\it Wordpad} (included with Windows).  Another excellent open source editor for 
+		to be edited.  This may be done either using an MSYS2-based editor such as {\it vim}
+		(VI-iMproved, which is included in the installation) or a Windows-based editor like
+		{\it Wordpad} (included with Windows).  Another excellent open source editor for
 		Windows is {\it Notepad++} \url{https://notepad-plus-plus.org/}, which is also good
 		for editing RAVEN input files.
 
-	\item Test Python in MSYS2.  At this point open a new MSYS2 shell window and see if Python is 
+	\item Test Python in MSYS2.  At this point open a new MSYS2 shell window and see if Python is
 		now found in the PATH:
-		\newline 
-		Note: Due to the way that Python interacts with the MSYS2 shell, when using Python by 
-		itself in MSYS2 the {\it winpty} utility is provided. (If Python is run without winpty, 
-		it may appear to sit there and do nothing. Pressing \textless Ctrl\textgreater -C will 
+		\newline
+		Note: Due to the way that Python interacts with the MSYS2 shell, when using Python by
+		itself in MSYS2 the {\it winpty} utility is provided. (If Python is run without winpty,
+		it may appear to sit there and do nothing. Pressing \textless Ctrl\textgreater -C will
 		interrupt it.)
 
 
@@ -339,9 +343,9 @@ Please check out: http://continuum.io/thanks and https://anaconda.org
 
 \end{lstlisting}
 
-	\item Install needed Python packages.  RAVEN requires several Python packages to function properly. 
-		Now the {\it conda} command will be used to download and install them in an automated manner. The 
-		following asks {\it conda} to obtain the specified versions of the listed packages, as well as all 
+	\item Install needed Python packages.  RAVEN requires several Python packages to function properly.
+		Now the {\it conda} command will be used to download and install them in an automated manner. The
+		following asks {\it conda} to obtain the specified versions of the listed packages, as well as all
 		of their dependencies.
 		\smallskip
 
@@ -355,35 +359,35 @@ conda install numpy=1.11.0 h5py=2.6.0 scipy=0.17.1 \
 
 \subsubsection{Compiler Installation and Configuration}
 \begin{enumerate}
-	\item Download and install Visual Studio.  A C++ language compiler that supports C++11 features 
-		is needed to perform this step. Microsoft's Visual Studio Community Edition is free and 
-		available from \url{https://www.visualstudio.com/downloads/}.  
+	\item Download and install Visual Studio.  A C++ language compiler that supports C++11 features
+		is needed to perform this step. Microsoft's Visual Studio Community Edition is free and
+		available from \url{https://www.visualstudio.com/downloads/}.
 
-		The current version (as of this writing) is 2017. The 2015 and 2017 versions have been 
-		successfully used to build RAVEN. Professional and Enterprise versions of these will 
-		also work. If one of these is already present on your system, it is not necessary to 
-		obtain another one. Note that because C++11 language features are required, the 
+		The current version (as of this writing) is 2017. The 2015 and 2017 versions have been
+		successfully used to build RAVEN. Professional and Enterprise versions of these will
+		also work. If one of these is already present on your system, it is not necessary to
+		obtain another one. Note that because C++11 language features are required, the
 		"Microsoft Visual C++ Compiler for Python 2.7" often used for building Python
 		add-ons will {\bf not} work.
 
-		After downloading and running the Visual Studio installer, it will ask what features 
-		to install. For building RAVEN, "Desktop development with C++" is needed at a minimum. 
+		After downloading and running the Visual Studio installer, it will ask what features
+		to install. For building RAVEN, "Desktop development with C++" is needed at a minimum.
 		Installation of other Visual Studio features should be fine.
 
-	\item Let the build system know where to find the compiler.  When the build system attempts 
-		to search for an installed compiler, this process often fails with the error message 
-		"Unable to find vcvarsall.bat".  This happens because Python version 2.7 has not been 
-		updated to automatically locate modern Visual Studio installations. To solve this it 
-		is necessary to help the Python build system find the C++ compiler on the system. 
-		The easiest way to do this is create a Windows batch (.BAT) file that will redirect 
-		the build system to the information it needs. First, locate the file VCVARSALL.BAT 
-		file installed as part of Visual Studio on your system. This location will usually 
-		be something like the following: 
+	\item Let the build system know where to find the compiler.  When the build system attempts
+		to search for an installed compiler, this process often fails with the error message
+		"Unable to find vcvarsall.bat".  This happens because Python version 2.7 has not been
+		updated to automatically locate modern Visual Studio installations. To solve this it
+		is necessary to help the Python build system find the C++ compiler on the system.
+		The easiest way to do this is create a Windows batch (.BAT) file that will redirect
+		the build system to the information it needs. First, locate the file VCVARSALL.BAT
+		file installed as part of Visual Studio on your system. This location will usually
+		be something like the following:
 		\smallskip
 
 \begin{tabular}{| l | l |}
 	\hline
-	{\bf Visual Studio Version} & {\bf Directory containing VCVARSALL.BAT} \\\hline			
+	{\bf Visual Studio Version} & {\bf Directory containing VCVARSALL.BAT} \\\hline
 	2015 & C:\textbackslash Program Files (x86)\textbackslash Microsoft Visual Studio 14.0\textbackslash VC \\\hline
 	2017 & C:\textbackslash Program Files (x86)\textbackslash Microsoft Visual \\
                & Studio\textbackslash 2017\textbackslash Community\textbackslash VC\textbackslash
@@ -391,8 +395,8 @@ conda install numpy=1.11.0 h5py=2.6.0 scipy=0.17.1 \
 \end{tabular}
 
 		\medskip
-		Once the target file has been located it is necessary to create a couple of directories 
-		and one file. The first directory created must be named "VC" and should be created 
+		Once the target file has been located it is necessary to create a couple of directories
+		and one file. The first directory created must be named "VC" and should be created
 		somewhere outside of the RAVEN source tree (such as your MinGW home directory):
 
 \begin{lstlisting}[language=bash]
@@ -400,7 +404,7 @@ USER@HOSTNAME MINGW64 ~
 $ mkdir VC
 \end{lstlisting}
 
-		The next directory to be created must be inside the one just created. It is suggested 
+		The next directory to be created must be inside the one just created. It is suggested
 		to name it "target", because it is there that we will point the Python build system:
 
 \begin{lstlisting}[language=bash]
@@ -416,9 +420,9 @@ target
 
 \end{lstlisting}
 
-		The file to be created is named "VCVARSALL.BAT", and it must be written in the VC 
-		directory that was just made. The Python build system will be configured to find this 
-		file, which then redirects it to the actual file. Use a text editor (such as 
+		The file to be created is named "VCVARSALL.BAT", and it must be written in the VC
+		directory that was just made. The Python build system will be configured to find this
+		file, which then redirects it to the actual file. Use a text editor (such as
 		{\it vim} or {\it notepad} as described above) to create the file VCVARSALL.BAT:
 
 \begin{lstlisting}[language=bash]
@@ -439,24 +443,24 @@ $ notepad VCVARSALL.BAT
 CALL "<Full Path To VCVARSALL.BAT File Installed by Visual Studio>" %1 %2 %3 %4 %5
 \end{lstlisting}
 
-		For example, in the case of Visual Studio 2017 Community installed in the default 
+		For example, in the case of Visual Studio 2017 Community installed in the default
 		location this would be:
 
 \begin{lstlisting}[language=bash, basicstyle=\tiny]
 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\VCVARSALL.BAT" %1 %2 %3 %4 %5
 \end{lstlisting}
 
-		Note the double quotes around the path and file name. These are necessary because 
-		there are spaces in some of the directory names that make up the full location of 
+		Note the double quotes around the path and file name. These are necessary because
+		there are spaces in some of the directory names that make up the full location of
 		VCVARSALL.BAT.
 
-		After creating the new {\it VCVARSALL.BAT} in the directory {\it VC}, one more thing 
-		needs to be done to inform the Python build system where this file just created is. 
-		During the build process, an {\it environment variable} "VS90COMNTOOLS" will be checked. 
-		The value of VS90COMNTOOLS will need to be set to the {\it target} directory just below 
-		the location of VCVARSALL.BAT file just created. 
+		After creating the new {\it VCVARSALL.BAT} in the directory {\it VC}, one more thing
+		needs to be done to inform the Python build system where this file just created is.
+		During the build process, an {\it environment variable} "VS90COMNTOOLS" will be checked.
+		The value of VS90COMNTOOLS will need to be set to the {\it target} directory just below
+		the location of VCVARSALL.BAT file just created.
 
-		For example, if VCVARSALL.BAT was created in directory VC under your MinGW home 
+		For example, if VCVARSALL.BAT was created in directory VC under your MinGW home
 		directory, the variable VS90COMNTOOLS should point to \textasciitilde /VC/target.
 
 \begin{lstlisting}[language=bash]
@@ -494,7 +498,7 @@ usually work):
 
 \subsection{How RAVEN finds Dependencies}
 
-RAVEN, when run from either \texttt{raven\_framework} or in 
+RAVEN, when run from either \texttt{raven\_framework} or in
 \texttt{run\_tests} runs a script called\\ \texttt{setup\_raven\_libs}
 which sets the up the dependencies if they are not already present.
 

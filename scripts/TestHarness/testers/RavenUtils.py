@@ -31,11 +31,12 @@ def inPython3():
 
 #This list is made of (module, how to check the version, minimum version,
 # quality assurance module version, maximum version)
-modules_to_try = [("numpy",'numpy.version.version',"1.8.0","1.11.0",None),
-                  ("h5py",'h5py.__version__','2.4.0','2.6.0',None),
-                  ("scipy",'scipy.__version__',"0.14.0","0.17.1",None),
-                  ("sklearn",'sklearn.__version__',"0.16.1","0.17.1",None),
-                  ("matplotlib",'matplotlib.__version__',"1.3.1","1.5.3",None)]
+modules_to_try = [("numpy"     ,'numpy.version.version' ,"1.8.0" , "1.11.0", None    ),
+                  ("h5py"      ,'h5py.__version__'      ,'2.4.0' , '2.6.0' , None    ),
+                  ("scipy"     ,'scipy.__version__'     ,"0.14.0", "0.17.1", None    ),
+                  ("sklearn"   ,'sklearn.__version__'   ,"0.16.1", "0.17.1", None    ),
+                  ("matplotlib",'matplotlib.__version__',"1.3.1" , "1.5.3" , None    ),
+                  ("xarray"    ,'xarray.__version__'    ,"0.9.5" , "0.9.5" , None    )]
 
 def __lookUpPreferredVersion(name):
   """
@@ -43,29 +44,28 @@ def __lookUpPreferredVersion(name):
     @In, name, string, the name of the module
     @Out, result, string, returns the version as a string or "" if unknown
   """
-  for  i,fv,ev,qa,mv in modules_to_try:
+  for i,fv,ev,qa,mv in modules_to_try:
     if name == i:
       return qa
   return ""
 
-__condaList = [("numpy",__lookUpPreferredVersion("numpy")),
-               ("h5py",__lookUpPreferredVersion("h5py")),
-               ("scipy",__lookUpPreferredVersion("scipy")),
-               ("scikit-learn",__lookUpPreferredVersion("sklearn")),
-               ("matplotlib",__lookUpPreferredVersion("matplotlib")),
-               ("pyside",""),
-               ("python","2.7"),
-               ("hdf5",""),
-               ("swig",""),
-               ("pylint",""),
-               ("coverage",""),
-               ("lxml","")]
+# some names are different between the Module and the Pip names
+__moduleNameToPipName = {'sklearn':'scikit-learn'}
 
-__pipList = [("numpy",__lookUpPreferredVersion("numpy")),
-             ("h5py",__lookUpPreferredVersion("h5py")),
-             ("scipy",__lookUpPreferredVersion("scipy")),
-             ("scikit-learn",__lookUpPreferredVersion("sklearn")),
-             ("matplotlib",__lookUpPreferredVersion("matplotlib"))]
+__pipList = []
+__condaList = []
+for entry in modules_to_try:
+  version = __lookUpPreferredVersion(entry[0])
+  __condaList.append((__moduleNameToPipName.get(entry[0],entry[0]),version))
+  __pipList.append((__moduleNameToPipName.get(entry[0],entry[0]),version))
+
+__condaList += [("python"  , "2.7"),
+                ("pyside"  , ""),
+                ("hdf5"    , ""),
+                ("swig"    , ""),
+                ("pylint"  , ""),
+                ("coverage", ""),
+                ("lxml"    , "")]
 
 def moduleReport(module,version=''):
   """Checks if the module exists.
