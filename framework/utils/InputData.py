@@ -81,6 +81,10 @@ class InputType(object):
     """
     return value
 
+#
+#
+#
+#
 class StringType(InputType):
   """
     A type for arbitrary string data.
@@ -89,6 +93,10 @@ class StringType(InputType):
 
 StringType.createClass("string","xsd:string")
 
+#
+#
+#
+#
 class IntegerType(InputType):
   """
     A type for integer data.
@@ -105,6 +113,10 @@ class IntegerType(InputType):
 
 IntegerType.createClass("integer","xsd:integer")
 
+#
+#
+#
+#
 class FloatType(InputType):
   """
     A type for floating point data.
@@ -121,6 +133,10 @@ class FloatType(InputType):
 
 FloatType.createClass("float","xsd:double")
 
+#
+#
+#
+#
 class EnumBaseType(InputType):
   """
     A type that allows a set list of strings
@@ -160,6 +176,10 @@ class EnumBaseType(InputType):
       enumNode = ET.SubElement(restriction, 'xsd:enumeration')
       enumNode.set('value',enum)
 
+#
+#
+#
+#
 class BoolType(EnumBaseType):
   """
     A type that allows True or False
@@ -168,6 +188,10 @@ class BoolType(EnumBaseType):
 
 BoolType.createClass("bool","boolType",["True","False"])
 
+#
+#
+#
+#
 class Quantity:
   """
     A class that allows the quantity of a node to be specified.
@@ -178,7 +202,10 @@ class Quantity:
   one = (1,1)
   one_to_infinity = (1,2)
 
-
+#
+#
+#
+#
 class ParameterInput(object):
   """
     This class is for a node for inputing parameters

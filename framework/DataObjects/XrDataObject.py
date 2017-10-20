@@ -1,41 +1,71 @@
 import sys,os
 import __builtin__
+
+import abc
 import numpy as np
 import pandas as pd
 import xarray as xr
 from netCDF4 import Dataset as ncDS
 
-# add raven framework to path
-#frameworkDir = os.path.expanduser('~/projects/raven/framework')
-#sys.path.append(frameworkDir)
+from BaseClasses import BaseType
+from utils import utils, cached_ndarray, InputData
 
-# go to raven for loading environment
-#origDir = os.getcwd()
-#os.chdir(frameworkDir)
-# set up environment
-#import Driver
-
-# go back to original dir
-#os.chdir(origDir)
-
-# load cached xarray module
-#from utils import CachedXArray as CXA
-import CachedXArray as CXA
-import cached_ndarray as CND
-
+# for profiling with kernprof
 try:
   __builtin__.profile
 except AttributeError:
   # profiler not preset, so pass through
   def profile(func): return func
 
-class DataObject:
-  """base class"""
-  def __init__(self,in_vars,out_vars,dynamic=False):
-    self.in_vars = in_vars
-    self.out_vars = out_vars
-    self.dynamic = dynamic
-    self._data = None
+class DataObjectsCollection(InputData.ParameterInput):
+  """
+    Class for reading in a collection of data objects.
+  """
+DataObjectsCollection.createClass("DataObjects")
+
+class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
+  """
+    Base class.  Data objects are RAVEN's method for storing data internally and passing it from one
+    RAVEN entity to another.  Fundamentally, they consist of a collection of realizations, each of
+    which contains inputs, outputs, and pointwise metadata.  In addition, the data object has global
+    metadata.  The pointwise inputs and outputs could be floats, time-dependent, or ND-dependent variables.
+  """
+  ### INPUT SPECIFICATION ###
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class "cls".
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    inputSpecification = super(DataObject,cls).getInputSpecification()
+    inputSpecification.addParam('type', param_type = InputData.StringType, required = False)
+    inputSpecification.addSub(InputData.parameterInputFactory('Input',contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory('Output',contentType=InputData.StringType))
+    return inputSpecification
+    # TODO on-disk, etc
+
+  def __init__(self): #TODO message handler
+    """
+      Constructor.
+      @ In, None
+      @ Out, None
+    """
+    BaseType.__init__(self)
+    self._inputs     = []     # list(str) if input variables
+    self._outputs    = []     # list(str) of output variables
+    self._metavars   = []     # list(str) of POINTWISE metadata variables
+    self._data       = None   # underlying data structure
+    self._collector  = None   # object used to collect samples
+    self._heirarchal = False  # if True, non-traditional format (not yet implemented)
+
+  def _readMoreXML(self,xmlNode):
+    """
+      Initializes data object based on XML input
+      @ In, xmlNode, xml.etree.ElementTree.Element, input information
+      @ Out, None
+    """
+    pass
 
   def add_realization(self,info_dict):
     pass
@@ -43,224 +73,171 @@ class DataObject:
   def get_data(self):
     return self._data
 
+  def read(self,fname):
+    return xr.open_dataset(fname)
 #
 #
 #
 #
-class XarrDO(DataObject):
-  # covers both of the cached methods, depending on if "prealloc" is True
-  def __init__(self, in_vars, out_vars, dynamic=False, var_dims=None,cacheSize=100,prealloc=False):
-    DataObject.__init__(self,in_vars,out_vars,dynamic=dynamic)
-    self.vars = self.in_vars + self.out_vars
-    self.var_dims = var_dims #dictionary of dimensions used
-    if prealloc:
-      self._data = CXA.CachedDataset(cacheSize=cacheSize,prealloc=prealloc,entries=in_vars)
-    else:
-      self._data = CXA.CachedDataset(cacheSize=cacheSize)
+class DataSet(DataObject):
+  """
+    DataObject developed Oct 2017 to obtain linear performance from data objects when appending, over
+    thousands of variables and millions of samples.  Wraps np.ndarray for collecting and uses xarray.Dataset
+    for final form.
+  """
+  def __init__(self):#, in_vars, out_vars, meta_vars=None, dynamic=False, var_dims=None,cacheSize=100,prealloc=False):
+    """
+      Constructor.
+    """
+    DataObject.__init__(self)
+    #self.vars = self.in_vars + self.out_vars
+    #if self.dynamic:
+    #  self._data = cached_ndarray.cNDarray(width=len(self.vars),dtype=object)
+    #else:
+    #  self._data = cached_ndarray.cNDarray(width=len(self.vars))
 
-  @profile
-  def add_realization(self,real_dict):
-    #real_dict is of form {var:DataArray, var:DataArray}
-    rlz = xr.Dataset(data_vars = real_dict)
-    self._data.append(rlz)
+  @property
+  def vars(self):
+    """
+      Property to access all the pointwise variables being controlled by this data object.
+      @ In, None
+      @ Out, vars, list(str), variable names list
+    """
+    return self._inputs + self._outputs + self._metavars
 
-  @profile
-  def asDataset(self):
-    return self._data.asDataset()
+  def __len__(self):
+    """
+      Overloads the len() operator.
+      @ In, None
+      @ Out, int, number of samples in this dataset
+    """
+    pass #TODO
 
-  @profile
-  def toNetCDF4(self,fname,**kwargs):
-    self._data.asDataset().to_netcdf(fname,**kwargs)
+  def _readMoreXML(self,xmlNode):
+    """
+      Initializes data object based on XML input
+      @ In, xmlNode, xml.etree.ElementTree.Element, input information
+      @ Out, None
+    """
+    inp = DataSet.getInputSpecification()()
+    print('Node:',xmlNode)
+    inp.parseNode(xmlNode)
+    for child in inp.subparts:
+      if child.getName() == 'Input':
+        self._inputs.extend(list(x for x in child.value.split(',')))
+      elif child.getName() == 'Output':
+        self._outputs.extend(list(x for x in child.value.split(',')))
 
-#
-#
-#
-#
-#
-class NDCached(DataObject):
-  def __init__(self, in_vars, out_vars, dynamic=False, var_dims=None,cacheSize=100,prealloc=False):
-    DataObject.__init__(self,in_vars,out_vars,dynamic=dynamic)
-    self.vars = self.in_vars + self.out_vars
+  # API TRANSLATION
+  #  OLD                               |    NEW
+  # addOutput                          | ? load from values
+  # getAllMetadata                     | ? -remove-
+  # getHierParam                       | ? heirarchal only
+  # getInitParams                      | ? useful?
+  # getInpParametersValues             | ? getInputValues
+  # getMatchingRealization             | ? same
+  # getMetadata                        | ? getPointMeta, getGeneralMeta
+  # getOutParametersValues             | ? getOutputValues
+  # getParaKeys                        | ? getInputs, getOutputs, getPointMeta, getGeneralMeta
+  # getParam                           | ? getVarValues
+  # getParametersValues                | ? getInputs, getOutputs, getPointMeta, getGeneralMeta
+  # getRealization                     | ? by index, by value, also asDataset or NOT (for reading)
+  # isItEmpty                          | ? size
+  # loadXMLandCSV                      | ? loadFromCSV
+  # printCSV                           | ? writeCSV
+  # _writeUnstructuredInputInXML       | ? writeMetaXML
+  # remoteInputValue                   | ? removeVariable
+  # removeOutputValue                  | ? removeVariable
+  # resetData                          | ? reset
+  # retrieveNodeInTreeMode             | ? hierarchal only
+  # sizeData                           | ? size
+  # updateInputValue                   | addRealization
+  # updateOutputValue                  | addRealization
+  # updateMetadata                     | addRealization, addGlobalMeta
+  # addNodeInTreeMode                  | ? hierarchal only
+  # _createXMLFile                     | ? writeMetaXML
+  # _loadXMLFile                       | ? readMetaXML
+  # _readMoreXML                       | same
+  # _specializedInputCheck             | ? remove
+  # _specializedLoadXMLandCSV          | ? loadFromCSV
+  # __getVariablesToPrint              | ? remove
+  # __getMetadataType                  | ? remve
+
+  ### NEW API ###
+  def addRealization(self,rlz):
+    """
+      Adds a "row" (or "sample") to this data object.
+      This is the preferred method to add data to this data object.
+      @ In, rlz, dict, {var:val} format where
+                         "var" is the variable name as a string,
+                         "val" can be either a float (pointset) or xr.DataArray object (ndset)
+      @ Out, None
+    """
+    # FIXME TODO dynamic
     if self.dynamic:
-      self._data = CND.cNDarray(width=len(self.vars),dtype=object)
+      self._data.append(np.asarray([list(rlz[var] for var in self.vars)],dtype=object))
     else:
-      self._data = CND.cNDarray(width=len(self.vars))
-
-  def add_realization(self,real_dict):
-    if self.dynamic:
-      self._data.append(np.asarray([list(real_dict[var] for var in self.vars)],dtype=object))
-    else:
-      self._data.append(np.asarray([list(real_dict[var] for var in self.vars)]))
+      self._data.append(np.asarray([list(rlz[var] for var in self.vars)]))
 
   def asDataset(self):
+    """
+      Casts this dataobject as an xr.Dataset.
+      Functionally, typically collects the data from self._collector and places it in self._data.
+      Efficiency note: this is the slowest part of typical data collection.
+      @ In, None
+      @ Out, xarray.Dataset, all the data from this data object.
+    """
+    # FIXME for collector / data management system
+    # if nothing to collect, do nothing TODO
     if type(self._data) != xr.Dataset:
       data = self._data.getData()
-      arrs = {} #TODO how to get it all converted correctly...
+      method = 'once' # internal flag to switch method.  "once" is generally faster, but "split" can be parallelized.
+      arrs = {}
       for v,var in enumerate(self.vars):
         if type(data[0,v]) == float:
           arrs[var] = xr.DataArray(data[:,v],
                                    dims=['sample'],
                                    coords={'sample':range(len(self._data))},
-                                   name=var)
+                                   name=var) # THIS is very fast
         elif type(data[0,v]) == xr.DataArray:
-          #arrs[var] = xr.merge(dat.rename(str(i)) for i,dat in enumerate(data[:,v]))
-          arrs[var] = xr.concat(data[:,v], pd.Index(range(len(data[:,v])), name='sample'))
+          # ONCE #
+          if method == 'once':
+            val = dict((i,data[i,v]) for i in range(len(self._data)))
+            val = xr.Dataset(data_vars=val)
+            val = val.to_array(dim='sample')
+          # SPLIT # currently unused, but could be for parallel performance
+          elif method == 'split':
+            chunk = 150
+            start = 0
+            N = len(self._data)
+            vals = []
+            while start < N-1:
+              stop = min(start+chunk+1,N)
+              ival = dict((i,data[i,v]) for i in range(start,stop))
+              ival = xr.Dataset(data_vars=ival)
+              ival = ival.to_array(dim='sample')
+              vals.append(ival)
+              start = stop
+            val = xr.concat(vals,dim='sample')
+          # END #
+          arrs[var] = val
           arrs[var].rename(var)
         else:
           raise IOError('Unrecognized data type for var "{}": "{}"'.format(var,type(data[0,v])))
+      # FIXME currently MAKING not APPENDING!  This needs to be fixed.
       self._data = xr.Dataset(arrs)
     return self._data
 
   def toNetCDF4(self,fname,**kwargs):
-    self.asDataset().to_netcdf(fname)
-
-#
-#
-#
-#
-class PureLists(DataObject):
-  def __init__(self, in_vars, out_vars, dynamic=False, var_dims=None,cacheSize=100,prealloc=False):
-    DataObject.__init__(self,in_vars,out_vars,dynamic=dynamic)
-    self.vars = self.in_vars + self.out_vars
-    self._data = CND.listOfLists(width=len(self.vars))
-
-  def add_realization(self,real_dict):
-    self._data.append([list(real_dict[var] for var in self.vars)])
-
-  def asDataset(self):
-    if type(self._data) != xr.Dataset:
-      data = self._data.getData()
-      arrs = {}
-      for v,var in enumerate(self.vars):
-        column = list(data[i][v] for i in range(len(self._data)))
-        if type(column[0]) == float:
-          arrs[var] = xr.DataArray(np.asarray(column),
-                                   dims=['sample'],
-                                   coords={'sample':range(len(self._data))},
-                                   name=var)
-        elif type(column[0]) == xr.DataArray:
-          arrs[var] = xr.concat(column,pd.Index(range(len(self._data)), name='sample'))
-        else:
-          raise IOError('Unrecognized data type for var "{}": "{}"'.format(var,type(data[0][v])))
-      self._data = xr.Dataset(arrs)
-    return self._data
-
-  def toNetCDF4(self,fname,**kwargs):
-    self.asDataset().to_netcdf(fname)
-
-#
-#
-#
-#
-class NpPrealloc(DataObject):
-  def __init__(self, in_vars, out_vars, expectedSamples):
-    DataObject.__init__(self,in_vars,out_vars)
-    self.vars = self.in_vars + self.out_vars
-    self.expectedSamples = expectedSamples
-    self._data = np.zeros([len(self.vars),expectedSamples])
-    self.counter = 0
-
-  def add_realization(self,real_dict):
-    #real_dict is of form {var:val}
-    self._data[:,self.counter] = list(real_dict[v] for v in self.vars)
-
-  def asDataset(self):
-    if type(self._data) == np.ndarray:
-      arrs = dict((var,xr.DataArray(self._data[v],
-                                    dims=['sample'],
-                                    coords={'sample':range(self.expectedSamples)}))
-                                    for v,var in enumerate(self.vars))
-      self._data = xr.Dataset(arrs)
-    return self._data
-
-  def toNetCDF4(self,fname,**kwargs):
-    self.asDataset().to_netcdf(fname)
-#
-#
-#
-#
-class XarrPreAlloc(DataObject):
-  # FULL preallocation
-  def __init__(self, in_vars, out_vars, expectedSamples, dynamic=False, var_dims=None):
-    DataObject.__init__(self,in_vars,out_vars,dynamic=dynamic)
-    self.vars = self.in_vars + self.out_vars
-    self.var_dims = var_dims #dictionary of dimensions used
-    set_data = dict((v,xr.DataArray(np.zeros(expectedSamples),
-                                             dims=['sample'],
-                                             coords={'sample':range(expectedSamples)})) for v in in_vars)
-    self._data = xr.Dataset(set_data)
-    self.counter = 0
-
-  def add_realization(self,real_dict):
-    #real_dict is of form {var:val}
-    for var,val in real_dict.items():
-      self._data[var].loc[{'sample':self.counter}] = val
-    self.counter += 1
-
-    #print '*'*80
-    #print 'TESTING'
-    #print self._data
-    #new_arrs = dict((var,xr.DataArray([val],dims=['sample'],coords={'sample':[self.counter]})) for var,val in real_dict.items())
-    #new_arrs = dict((var,xr.DataArray(val,dims=[],coords={})) for var,val in real_dict.items())
-    #new = xr.Dataset(data_vars = new_arrs)
-    #print ''
-    #print 'new:'
-    #print new
-    #print ''
-    #print 'dbg:'
-    #self._data[dict(sample=self.counter)] = new
-    #print self._data[dict(sample=self.counter)] = new#.update(new,inplace=True)
-    #print ''
-    #print 'after:'
-    #print self._data
-    #import sys;sys.exit()
-    #self._data[dict(sample=self.counter)].update(real_dict,inplace=True)
-
-  def asDataset(self):
-    return self._data
-
-  def toNetCDF4(self,fname,**kwargs):
+    """
+      Writes this data object to file in netCDF4.
+      @ In, fname, str, path/name to write file
+      @ In, kwargs, dict, optional, keywords to pass to netCDF4 writing
+      @ Out, None
+    """
+    self.raiseADebug(' ... collecting dataset ...')
+    self.asDataset()
+    self.raiseADebug(' ... writing to file ...')
     self._data.to_netcdf(fname,**kwargs)
 
-
-#
-#
-#
-#
-class XarrOnDisc(DataObject):
-  def __init__(self,inv,outv,name):
-    DataObject.__init__(self,inv,outv)
-    self._data = name
-    self.counter = 0
-    self.rid = 'RAVENsampleCounter'
-    try:
-      os.system('rm '+self._data)
-    except:
-      pass
-    data = self._load()
-    data.createDimension(self.rid)
-    data.createVariable(self.rid,'u8')
-    for v in inv+outv:
-      data.createVariable(v,'f8',(self.rid,))
-    data.close() #FIXME
-
-  def _load(self):
-    try:
-      return ncDS(self._data,'a')
-    except IOError:
-      return ncDS(self._data,'w',format='NETCDF4')
-
-  def add_realization(self,real_dict):
-    data = self._load()
-    for var,val in real_dict.items():
-      data.variables[var][self.counter] = val
-    data.variables[self.rid][self.counter] = self.counter
-    self.counter += 1
-    #data.close() #FIXME
-
-  def asDataset(self):
-    return xr.open_dataset(self._data,drop_variables=[self.rid])
-
-  def toNetCDF4(self,*args,**kwargs):
-    pass #already on file!
-
+  ### OLD API ###
