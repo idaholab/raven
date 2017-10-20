@@ -19,10 +19,6 @@
   type = 'RavenPython'
   input = 'testCachedNDArray.py'
  [../]
- [./cachedXArray]
-  type = 'RavenPython'
-  input = 'testCachedXArray.py'
- [../]
  [./treeStructure]
   type = 'RavenPython'
   input = 'testTreeStructure.py'
