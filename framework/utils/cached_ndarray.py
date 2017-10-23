@@ -257,7 +257,11 @@ class cNDarray(object):
         raise IOError('Only np.ndarray can be used to set "values" in "cNDarray".  Got '+type(values).__name__)
       self.values = values         # underlying data structure
       self.size = values.shape[0]
-      self.width = values.shape[1]
+      try:
+        self.width = values.shape[1]
+      except IndexError:
+        ## TODO NEEDS TO BE DEPRECATED should always have a width, in real usage
+        self.width = 0
       # if setting by value, initialize capacity to existing data length
       self.capacity = self.size
     else:
@@ -352,6 +356,27 @@ class cNDarray(object):
     self.values[self.size:self.size+entry.shape[0]][:] = entry[:]
     self.size += entry.shape[0]
 
+  def addEntity(self,vals,firstEver=False):
+    """
+      Adds a column to the dataset.
+      @ In, vals, list of np.array([ [#],[#],[#] ], dtype = float or xr.DataArray), fill values (each entry must be shape==(self.size,num new entites))
+      @ Out, None
+    """
+    # example 1: for 1 new entity with sample values [1,2,3], "vals" should be:
+    # [ np.array([[1],[2],[3]]) ] (note expecially the outermost list)
+    # example 2: for 2 new entities with sample values [1,2,3] and [4,5,6], "vals" should be:
+    # [ np.array([[1],[2],[3]]), np.array([[4],[5],[6]]) ]
+    for i,v in enumerate(vals):
+      # FIXME slow assertion check
+      if len(v) != self.size:
+        raise IOError('Wrong number ({}) of initial values passed to add entity!  Need {}.'.format(len(v),self.size))
+      # FIXME slow reshaping
+      new = np.ndarray((self.capacity,1),dtype=object)
+      new[:self.size] = v[:]
+      vals[i] = new
+    self.values = np.hstack([self.values] + vals)
+    self.width += 1
+
   def getData(self):
     """
       Returns the underlying data structure.
@@ -359,3 +384,18 @@ class cNDarray(object):
       @ Out, getData, np.ndarray, underlying data up to the used size
     """
     return self.values[:self.size]
+
+  ### LEGACY METHODS, only used for old data object compatability ###
+  def _addOneEntry(self,column,val):
+    """
+      NEEDS TO BE DEPRECATED
+      Adds a single entry to "column" to be "val"
+      This is only for legacy data object APIs; the correct method is "append" with a full realization.
+    """
+    # check if new row already added and is waitng for an entry
+    if self.values[self.size-1,column] is not None:
+      # need to add a new realization
+      # placehold with "None"s (append will automatically increment size)
+      self.append(np.array([np.array([None]*self.width,dtype=object)],dtype=object))
+    # finally, put the entry in
+    self.values[self.size-1,column] = val
