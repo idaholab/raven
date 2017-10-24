@@ -190,8 +190,16 @@ class DataSet(DataObject):
                          "val" can be either a float (pointset) or xr.DataArray object (ndset)
       @ Out, None
     """
-    # TODO error check on realization length
-    self._data.append(np.asarray([list(rlz[var] for var in self._allvars)],dtype=object))
+    # TODO more error check on realization length, contents
+    # check and order data to be stored
+    try:
+      newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
+    except KeyError as e:
+      self.raiseAnError(KeyError,'Provided realization does not have all requisite values: "{}"'.format(e.args[0]))
+    # if data storage isn't set up, set it up
+    if self._collector is None:
+      self._collector = cached_ndarray.cNDarray(width=len(rlz),dtype=object)
+    self._collector.append(newData)
 
   def getVars(self,subset=None):
     """
@@ -211,8 +219,30 @@ class DataSet(DataObject):
     else:
       self.raiseAnError(KeyError,'Unrecognized subset choice: "{}"'.format(subset))
 
-  def getMeta():
-    raise NotImplementedError
+  def getMeta(self,keys=None,pointwise=False,general=False):
+    """
+      Method to obtain entries in the metadata.  If niether pointwise nor general, then returns an empty dict.
+       @ In, keys, list(str), optional, the keys (or XPath) to search for.  If None, return all.
+       @ In, pointwise, bool, optional, if True then matches will be searched in the pointwise metadata
+       @ In, general, bool, optional, if True then matches will be searched in the general metadata
+       @ Out, meta, dict, key variables/xpaths to data object entries (column if pointwise, XML if general)
+    """
+    meta = {}
+    if pointwise:
+      # TODO slow key crawl
+      for var in self._metavars:
+        if keys is None or var in keys:
+          # TODO if still collecting, an option to NOT freeze
+          meta[var] = self._asDataset()[var]#[self._allvars.index(var),:]
+    if general:
+      pass # TODO implement general meta
+    # TODO error on missing matches
+    # TODO if only one variable requested, return values directly
+    #if len(meta) == 1:
+    #  return meta.values()
+    # otherwise, return dictionary
+    #else:
+    return meta
 
   def getOutputs():
     raise NotImplementedError
@@ -220,8 +250,29 @@ class DataSet(DataObject):
   def getVarValues():
     raise NotImplementedError
 
-  def getRealization():
-    raise NotImplementedError
+  def getRealization(self,index=None,matchDict=None,readCollector=False):
+    """
+      Method to obtain a realization from the data, either by index or matching value.
+      Either "index" or "matchDict" must be supplied.
+      @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
+      @ In, matchDict, dict, optional, {key:val} to search for matches
+      @ In, readCollector, bool, if True then read out of collector instead of data
+      @ Out, rlz, dict, realization requested (errors if not found)
+    """
+    # TODO convert input space to KD tree for faster searching
+    # TODO option to read both collector and data for matches/indices
+    if (index is None and matchDict is None) or (index is not None and matchDict is not None):
+      self.raiseAnError(TypeError,'Either "index" OR "matchDict" (not both) must be specified to use "getRealization!"')
+    if index is not None:
+      if readCollector:
+        rlz = self._getRealizationFromCollectorByIndex(index)
+      else:
+        rlz = self._getRealizationFromDataByIndex(index)
+    else: #because of check above, this means matchDict is not None
+      if readCollector:
+        rlz = self._getRealizationFromCollectorByValue(matchDict)
+      else:
+        rlz = self._getRealizationFromDataByValue(matchDict)
 
   def load():
     raise NotImplementedError
@@ -248,16 +299,6 @@ class DataSet(DataObject):
     self.deprecated = self._deprecatedWarning
     ## for errors:
     #self.deprecated = self._deprecatedError
-
-    # NOTES about data structure
-    # has the form:
-    # /////  INP1  INP2  INP3  OUT1 OUT2 OUT3 META1 META2 META3
-    # samp1
-    # samp2
-    # samp3
-    #
-    # The order of the inputs/outputs matter, so when adding one, the underlying dataset needs to
-    # perform an INSERT operation instead of an HSTACK (I don't like this very much).
 
   def _readMoreXML(self,xmlNode):
     """
@@ -298,7 +339,14 @@ class DataSet(DataObject):
       @ Out, size, int, number of samples
     """
     # TODO update for collected/finalized structures
-    return self._data.size if self._data is not None else 0
+    if type(self._data) == cached_ndarray.cNDarray:
+      return self._data.size
+    elif type(self._data) == xr.Dataset:
+      return len(self._data['sample'])
+    elif self._data is None:
+      return 0
+    else:
+      self.raiseAnError(TypeError,'DataObject member "_data" is not a recognized type:',type(self._data))
 
   ### INTERNAL USE FUNCTIONS ###
   def _asDataset(self):
@@ -316,7 +364,7 @@ class DataSet(DataObject):
       method = 'once' # internal flag to switch method.  "once" is generally faster, but "split" can be parallelized.
       arrs = {}
       for v,var in enumerate(self._allvars):
-        if type(data[0,v]) == float:
+        if isinstance(data[0,v],float) or isinstance(data[0,v],str):
           arrs[var] = xr.DataArray(data[:,v],
                                    dims=['sample'],
                                    coords={'sample':range(len(self._data))},
@@ -349,6 +397,17 @@ class DataSet(DataObject):
       # FIXME currently MAKING not APPENDING!  This needs to be fixed.
       self._data = xr.Dataset(arrs)
     return self._data
+
+  def _getRealizationFromCollectorByIndex(self,index):
+    """
+      Obtains a realization from the collector storage using the provided index.
+      @ In, index, int, index to return
+      @ Out, rlz, dict, realization as {var:value}
+    """
+    if self._collector is None:
+      self.raiseAnError(IndexError,'Requested index "{}" but collector is empty!')
+    if index >= len(self._collector):
+      self.raiseAnError(IndexError,'Requested index "{}" but collector only has {} entries!'.format(len(self._collector)))
 
   def _getVariableIndex(self,var):
     """
@@ -473,6 +532,7 @@ class DataSet(DataObject):
       @ In, options, dict, optional, dictionary of options
       @ Out, None
     """
+    self.deprecated('updateMetadata')
     # global
     if name in ['SamplerType','crowDist']:
       pass # TODO
@@ -490,3 +550,27 @@ class DataSet(DataObject):
     # unneeded
     elif name in ['SampledVarsPb','PointProbability']:
       pass
+
+  def getAllMetadata(self,nodeId=None,serialize=False):
+    """
+      Function to get all the metadata
+      @ In, nodeId, str, optional, id of the node if hierarchal
+      @ In, serialize, bool, optional, serialize the tree if in hierarchal mode
+      @ Out, dictionary, dict, return the metadata dictionary
+    """
+    self.deprecated('getAllMetadata')
+    return self.getMeta(pointwise=True,general=True)
+
+  def getInpParametersValues(self,nodeId=None,serialize=False,unstructuredInputs=False):
+    """
+      Function to get a reference to the input parameter dictionary
+      @, In, nodeId, string, optional, in hierarchical mode, if nodeId is provided, the data for that node is returned,
+                                  otherwise check explanation for getHierParam
+      @ In, serialize, bool, optional, in hierarchical mode, if serialize is provided and is true a serialized data is returned
+                                  PLEASE check explanation for getHierParam
+      @ In, unstructuredInputs, bool, optional, True if the unstructured input space needs to be returned
+      @, Out, dictionary, dict, Reference to self._dataContainer['inputs'] or something else in hierarchical
+    """
+    self.deprecated('getInpParametersValues')
+    res = {}
+

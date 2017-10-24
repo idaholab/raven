@@ -333,38 +333,40 @@ class ParameterInput(object):
         errorList.append(s)
 
     if node.tag != self.name:
-      handleError(node.tag + "!=" + self.name)
+      #should this be an error or a warning?
+      #handleError('XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
+      print('WARNING: XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
+    #else: #FIXME
+    if self.contentType:
+      self.value = self.contentType.convert(node.text)
     else:
-      if self.contentType:
-        self.value = self.contentType.convert(node.text)
-      else:
-        self.value = node.text
-      for parameter in self.parameters:
-        if parameter in node.attrib:
-          param_type = self.parameters[parameter]["type"]
-          self.parameterValues[parameter] = param_type.convert(node.attrib[parameter])
-        elif self.parameters[parameter]["required"]:
-          handleError("Required parameter " + parameter + " not in " + node.tag)
-      if self.strictMode:
-        for parameter in node.attrib:
-          if not parameter in self.parameters:
-            handleError(parameter + " not in attributes and strict mode on in "+node.tag)
-      if self.subOrder is not None:
-        subs = [sub[0] for sub in self.subOrder]
-      else:
-        subs = self.subs
-      subNames = set()
-      for sub in subs:
-        subName = sub.getName()
-        subNames.add(subName)
-        for subNode in node.findall(subName):
-          subInstance = sub()
-          subInstance.parseNode(subNode, errorList)
-          self.subparts.append(subInstance)
-      if self.strictMode:
-        for child in node:
-          if child.tag not in subNames:
-            handleError("Child "+child.tag+" not in allowed sub elements in "+node.tag)
+      self.value = node.text
+    for parameter in self.parameters:
+      if parameter in node.attrib:
+        param_type = self.parameters[parameter]["type"]
+        self.parameterValues[parameter] = param_type.convert(node.attrib[parameter])
+      elif self.parameters[parameter]["required"]:
+        handleError("Required parameter " + parameter + " not in " + node.tag)
+    if self.strictMode:
+      for parameter in node.attrib:
+        if not parameter in self.parameters:
+          handleError(parameter + " not in attributes and strict mode on in "+node.tag)
+    if self.subOrder is not None:
+      subs = [sub[0] for sub in self.subOrder]
+    else:
+      subs = self.subs
+    subNames = set()
+    for sub in subs:
+      subName = sub.getName()
+      subNames.add(subName)
+      for subNode in node.findall(subName):
+        subInstance = sub()
+        subInstance.parseNode(subNode, errorList)
+        self.subparts.append(subInstance)
+    if self.strictMode:
+      for child in node:
+        if child.tag not in subNames:
+          handleError("Child "+child.tag+" not in allowed sub elements in "+node.tag)
 
 
   def findFirst(self, name):

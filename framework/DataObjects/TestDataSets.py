@@ -25,6 +25,7 @@ import xml.etree.ElementTree as ET
 import sys, os
 import pickle as pk
 import numpy as np
+import xarray as xr
 frameworkDir = os.path.dirname(os.path.abspath(os.path.join(sys.argv[0],'..')))
 
 sys.path.append(frameworkDir)
@@ -36,9 +37,12 @@ import XrDataObject # FIXME
 import MessageHandler
 
 mh = MessageHandler.MessageHandler()
-mh.initialize({'verbosity':'debug'})
+mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
+print('Module undergoing testing:')
 print (XrDataObject )
+print('')
+
 def createElement(tag,attrib=None,text=None):
   """
     Method to create a dummy xml element readable by the distribution classes
@@ -56,20 +60,104 @@ def createElement(tag,attrib=None,text=None):
 
 results = {"pass":0,"fail":0}
 
-def checkAnswer(comment,value,expected,tol=1e-10):
+def checkFloat(comment,value,expected,tol=1e-10,update=True):
   """
     This method is aimed to compare two floats given a certain tolerance
     @ In, comment, string, a comment printed out if it fails
     @ In, value, float, the value to compare
     @ In, expected, float, the expected value
     @ In, tol, float, optional, the tolerance
-    @ Out, None
+    @ Out, res, bool, True if same
   """
-  if abs(value - expected) > tol:
-    print("checking answer",comment,value,"!=",expected)
-    results["fail"] += 1
+  res = abs(value - expected) <= tol
+  if update:
+    if res:
+      print("checking answer",comment,'|',value,"!=",expected)
+      results["fail"] += 1
+    else:
+      results["pass"] += 1
+  return res
+
+def checkString(comment,value,expected,update=True):
+  """
+    This method is aimed to compare two strings
+    @ In, comment, string, a comment printed out if it fails
+    @ In, value, float, the value to compare
+    @ In, expected, float, the expected value
+    @ Out, res, bool, True if same
+  """
+  res = value == expected
+  if update:
+    if res:
+      results["pass"] += 1
+    else:
+      print("checking answer",comment,'|',value,"!=",expected)
+      results["fail"] += 1
+  return res
+
+def checkArray(comment,first,second,dtype,tol=1e-10,update=True):
+  """
+    This method is aimed to compare two arrays
+    @ In, comment, string, a comment printed out if it fails
+    @ In, value, float, the value to compare
+    @ In, expected, float, the expected value
+    @ In, tol, float, optional, the tolerance
+    @ Out, res, bool, True if same
+  """
+  res = True
+  if len(first) != len(second):
+    res = False
+    print("checking answer",comment,'|','lengths do not match:',len(first),len(second))
   else:
-    results["pass"] += 1
+    for i in range(len(first)):
+      if dtype == float:
+        pres = checkFloat('',first[i],second[i],tol,update=False)
+      elif dtype == str:
+        pres = checkString('',first[i],second[i],update=False)
+      if not pres:
+        print('checking answer',comment,'|','entry "{}" does not match: {} != {}'.format(i,first[i],second[i]))
+        res = False
+  if update:
+    if res:
+      results["pass"] += 1
+    else:
+      results["fail"] += 1
+  return res
+
+def checkNone(comment,entry,update=True):
+  res = entry is None
+  if update:
+    if res:
+      results["pass"] += 1
+    else:
+      print("checking answer",comment,'|','"{}" is not None!'.format(entry))
+      results["fail"] += 1
+
+def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
+  print('Error testing ...')
+  if args is None:
+    args = []
+  if kwargs is None:
+    kwargs = {}
+  try:
+    function(*args,**kwargs)
+    res = False
+    msg = 'Function call did not error!'
+  except Exception as e:
+    res = checkString('',e.args[0],errstr,update=False)
+    if not res:
+      msg = 'Unexpected error message.  \n    Received: "{}"\n    Expected: "{}"'.format(e.args[0],errstr)
+  if update:
+    if res:
+      results["pass"] += 1
+    else:
+      print("checking error",comment,'|',msg)
+      results["fail"] += 1
+  print(' ... end Error testing')
+  print('')
+  return res
+
+
 
 #Test module methods #TODO
 #print(Distributions.knownTypes())
@@ -79,15 +167,51 @@ def checkAnswer(comment,value,expected,tol=1e-10):
 #except:
 #  print("error worked")
 
-#############
-# Point Set #
-#############
-
 xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a,b,c'))
 xml.append(createElement('Output',text='x,y,z'))
 
 # check construction
+data = XrDataObject.DataSet()
+# inputs, outputs
+checkString('DataSet __init__ name',data.name,'DataSet')
+checkString('DataSet __init__ print tag',data.printTag,'DataSet')
+checkNone('DataSet __init__ _data',data._data)
+checkNone('DataSet __init__ _collector',data._collector)
+
+# check initialization
+data._readMoreXML(xml)
+data.messageHandler = mh
+checkArray('DataSet __init__ inp',data._inputs,['a','b','c'],str)
+checkArray('DataSet __init__ out',data._outputs,['x','y','z'],str)
+checkArray('DataSet __init__ all',data._allvars,['a','b','c','x','y','z'],str)
+checkNone('DataSet __init__ _data',data._data)
+checkNone('DataSet __init__ _collector',data._collector)
+
+# append some data to get started
+rlz1 = {'a': 1.0,
+        'b': 2.0,
+        'c': xr.DataArray([3.0, 3.1, 3.2],dims=['time'],coords={'time':[3.1e-6,3.2e-6,3.3e-6]}),
+        'x': 4.0,
+        'y': xr.DataArray([5.0, 5.1, 5.2],dims=['time'],coords={'time':[5.1e-6,5.2e-6,5.3e-6]}),
+       }
+rlz2 = {'a' :11.0,
+        'b': 12.0,
+        'c': xr.DataArray([13.0, 13.1, 13.2],dims=['time'],coords={'time':[13.1e-6,13.2e-6,13.3e-6]}),
+        'x': 14.0,
+        'y': xr.DataArray([15.0, 15.1, 15.2],dims=['time'],coords={'time':[15.1e-6,15.2e-6,15.3e-6]}),
+        'z': 16.0
+       }
+# test missing data
+checkFails('DataSet addRealization err','Provided realization does not have all requisite values: \"z\"',data.addRealization,args=[rlz1])
+rlz1['z'] = 6.0
+# test appending
+data.addRealization(rlz1)
+# test contents after first append
+print(data.getRealization(index=0))
+data.addRealization(rlz2)
+
+
 # check builtins
 # check basic property getters
 
