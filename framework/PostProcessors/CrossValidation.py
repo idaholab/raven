@@ -81,6 +81,7 @@ class CrossValidation(PostProcessor):
     # We will rely on the code to decide the value for the parameter 'n'
     self.CVList = ['KFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit']
     self.validMetrics = ['mean_absolute_error', 'explained_variance_score', 'r2_score', 'mean_squared_error', 'median_absolute_error']
+    self.invalidRom = ['GaussPolynomialRom', 'HDMRRom']
 
   def initialize(self, runInfo, inputs, initDict=None) :
     """
@@ -261,10 +262,10 @@ class CrossValidation(PostProcessor):
       @ Out, outputDict, dict, Dictionary containing the results
     """
     inputDict, cvEstimator = self.inputToInternal(inputIn, full = True)
-
+    if cvEstimator.subType in self.invalidRom:
+      self.raiseAnError(IOError, cvEstimator.subType, " can not be retrained, thus can not be used in Cross Validation post-processor ", self.name)
     if self.dynamic:
       self.raiseAnError(IOError, "Not implemented yet")
-
     initDict = copy.deepcopy(self.initializationOptionDict)
     cvEngine = None
     for key, value in initDict.items():
@@ -276,7 +277,6 @@ class CrossValidation(PostProcessor):
         break
     if cvEngine is None:
       self.raiseAnError(IOError, "No cross validation engine is provided!")
-
     outputDict = {}
     for trainIndex, testIndex in cvEngine.generateTrainTestIndices():
       trainDict, testDict = self.__generateTrainTestInputs(inputDict, trainIndex, testIndex)
@@ -300,7 +300,6 @@ class CrossValidation(PostProcessor):
           if metricName not in outputDict[targetName].keys():
             outputDict[targetName][metricName] = []
           outputDict[targetName][metricName].append(metricValue[0])
-
     scoreDict = {}
     if not self.cvScores:
       return outputDict
