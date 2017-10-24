@@ -1,0 +1,21 @@
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-5" sequential="True">
+      <Input class="DataObjects" type="PointSet">dummyIn</Input>
+      <Model class="Models" type="ExternalModel">function</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">response</Output>
+    </MultiRun>
+    <MultiRun name="adapt" sequential="True">
+      <Input class="DataObjects" type="PointSet">response</Input>
+      <Model class="Models" type="ExternalModel">function</Model>
+      <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">limit_surface</SolutionExport>
+      <Output class="DataObjects" type="PointSet">response</Output>
+    </MultiRun>
+    <IOStep name="dump">
+      <Input class="DataObjects" type="PointSet">limit_surface</Input>
+      <Input class="DataObjects" type="PointSet">response</Input>
+      <Output class="OutStreams" type="Print">outfile_limit</Output>
+      <Output class="OutStreams" type="Print">outfile_samples</Output>
+    </IOStep>
+  </Steps>

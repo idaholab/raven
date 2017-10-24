@@ -10,6 +10,9 @@
         This  test is aimed to test the capability of RAVEN to employ a goal oriented sampling. It tests the
         LimitSurfaceSearch algorithm using an external model as ``system code''
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2017-09-20">sequential to maintain linearity</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -20,7 +23,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="adapt" pauseAtEnd="true">
+    <MultiRun name="adapt" pauseAtEnd="true" sequential='true'>
       <Input class="DataObjects" type="PointSet">dummy</Input>
       <Model class="Models" type="ExternalModel">testFunction</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>

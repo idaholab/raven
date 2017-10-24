@@ -15,6 +15,7 @@
       <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
       <revision author="maljdan" date="2016-11-08">Serializing the adaptive tests and regolding the multigrid case since I can validate the results look good. I am still trying to understand what the correct results for the 3D case are.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="talbpaul" date="2017-09-20">Sequential to maintain linearity</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -24,7 +25,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="GoalOrientedStep" pauseAtEnd="False">
+    <MultiRun name="GoalOrientedStep" sequential='true'>
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">workshopAdaptive</Sampler>
@@ -73,6 +74,7 @@
       <Function class="Functions" type="External">goalFunction</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">outAdaptive</TargetEvaluation>
       <Convergence forceIteration="False" limit="50000" persistence="10" subGridTol="0.0001" weight="CDF">0.0004</Convergence>
+      <maxBatchSize>1</maxBatchSize>
       <variable name="x1">
         <distribution>normal_trunc</distribution>
       </variable>

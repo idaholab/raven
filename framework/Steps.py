@@ -93,7 +93,8 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #  re-seeding = 'continue' the use the already present random environment
     #If there is no instruction (self.initSeed = None) the sampler will reinitialize
     self.initSeed        = None
-    self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd','fromDirectory','repeatFailureRuns']
+    self.forceSequential = False #if True, then we guarantee that if batch size 1 is used, samples come in the same order, at the cost of efficiency
+    self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd','fromDirectory','repeatFailureRuns','sequential']
     self._excludeFromModelValidation = ['SolutionExport']
     # how to handle failed runs. By default, the step fails.
     # If the attribute "repeatFailureRuns" is inputted, a certain number of repetitions are going to be performed
@@ -125,6 +126,8 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self.sleepTime = float(xmlNode.attrib['sleepTime'])
       except:
         self.raiseAnError(IOError,printString.format(self.type,self.name,xmlNode.attrib['sleepTime'],'sleepTime'))
+    if str(xmlNode.attrib.get('sequential','False')).lower() in utils.stringsThatMeanTrue():
+      self.forceSequential = True
     for child in xmlNode:
       classType, classSubType = child.attrib.get('class'), child.attrib.get('type')
       if None in [classType,classSubType]:
@@ -554,75 +557,122 @@ class MultiRun(SingleRun):
       if not model.amITrained:
         model.raiseAnError(RuntimeError,'ROM model "%s" has not been trained yet, so it cannot be sampled!' %model.name+\
                                         ' Use a RomTrainer step to train it.')
-    # run step loop
-    while True:
-      # collect finished jobs
-      finishedJobs = jobHandler.getFinished()
-      for finishedJob in finishedJobs:
-        # update number of collected runs
-        self.counter +=1
-        # collect run if it succeeded
-        if finishedJob.getReturnCode() == 0:
-          for myLambda, outIndex in self._outputCollectionLambda:
-            myLambda([finishedJob,outputs[outIndex]])
-            self.raiseADebug('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
-        # pool it if it failed, before we loop back to "while True" we'll check for these again
+    ##### MAIN LOOP #####
+    while not self.finished(jobHandler,sampler):
+      self.raiseADebug('')
+      self.raiseADebug('Entering the STEP main loop.')
+
+      # if user requested forced sequentiality, only submit a new sample if we collected a sample
+      if self.forceSequential:
+        self.collectDone(jobHandler,sampler,model,inputs,outputs,submitNew=True)
+
+      # otherwise, use the more efficient strategy
+      else:
+        # collect jobs
+        self.collectDone(jobHandler,sampler,model,inputs,outputs,submitNew=False)
+        # submit new jobs
+        self.submitNew(jobHandler,sampler,model,inputs,outputs)
+
+      # either way, wait before next update
+      time.sleep(self.sleepTime)
+    ##### END MAIN LOOP #####
+
+    # handle failed runs
+    sampler.handleFailedRuns(self.failedRuns)
+    # print basic run statistics
+    self.raiseADebug('Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
+
+  def collectDone(self,jobHandler,sampler,model,inputs,outputs,submitNew=False):
+    """
+      Collect finished runs from the jobHandler, and sort them by the results.
+      @ In, jobHandler, JobHandler, job handler instance
+      @ In, sampler, Sampler, instance doing the sampling for this multirun
+      @ In, model, Model, model being run for this multirun
+      @ In, inputs, dict, inputs
+      @ In, outputs, dict, outputs
+      @ In, submitNew, bool, optional, if True then will submit jobs for each job collected
+      @ Out, collected, int, number of jobs collected
+    """
+    self.raiseADebug('Collecting finished jobs ...')
+    finishedJobs = jobHandler.getFinished()
+    collected = len(finishedJobs)
+    for finishedJob in finishedJobs:
+      # update number of collected runs
+      self.counter +=1
+      # collect run if it succeeded
+      if finishedJob.getReturnCode() == 0:
+        for myLambda, outIndex in self._outputCollectionLambda:
+          myLambda([finishedJob,outputs[outIndex]])
+          self.raiseADebug('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
+      # pool it if it failed, resubmit if in resample mode
+      else:
+        self.raiseADebug('the job "'+finishedJob.identifier+'" has failed.')
+        if self.failureHandling['fail']:
+          # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
+          if not sampler.ableToHandelFailedRuns:
+            #add run to a pool that can be sent to the sampler later
+            self.failedRuns.append(copy.copy(finishedJob))
         else:
-          self.raiseADebug('the job "'+finishedJob.identifier+'" has failed.')
-          if self.failureHandling['fail']:
+          if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
+            self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
+          if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
+            # we re-add the failed job
+            jobHandler.reAddJob(finishedJob)
+            self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+finishedJob.identifier+'". Trial '+
+                             str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
+            self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
+          else:
             # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
             if not sampler.ableToHandelFailedRuns:
               #add run to a pool that can be sent to the sampler later
               self.failedRuns.append(copy.copy(finishedJob))
-          else:
-            if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
-              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
-            if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
-              # we re-add the failed job
-              jobHandler.reAddJob(finishedJob)
-              self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+finishedJob.identifier+'". Trial '+
-                               str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
-              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
-            else:
-              # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
-              if not sampler.ableToHandelFailedRuns:
-                self.failedRuns.append(copy.copy(finishedJob))
-              self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
-          if sampler.ableToHandelFailedRuns:
-            self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
-        # finalize actual sampler
-        sampler.finalizeActualSampling(finishedJob,model,inputs)
-        # add new job
+            self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
+        if sampler.ableToHandelFailedRuns:
+          self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
+      # finalize actual sampler
+      sampler.finalizeActualSampling(finishedJob,model,inputs)
+      # if requested, submit new jobs -> this should only be true for the sequential case
+      if submitNew:
+        self.submitNew(jobHandler,sampler,model,inputs,outputs)
+    return collected
 
-        isEnsemble = isinstance(model, Models.EnsembleModel)
-        # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
-        ## In order to ensure that the queue does not grow too large, we will
-        ## employ a threshold on the number of jobs the jobHandler can take,
-        ## in addition, we cannot provide more jobs than the sampler can provide.
-        ## So, we take the minimum of these two values.
-        for _ in range(min(jobHandler.availability(isEnsemble),sampler.endJobRunnable())):
-          self.raiseADebug('Testing if the sampler is ready to generate a new input')
-
-          if sampler.amIreadyToProvideAnInput():
-            try:
-              newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
-              if isEnsemble:
-                model.submitAsClient(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
-              else:
-                model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
-            except utils.NoMoreSamplesNeeded:
-              self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
-              break
+  def submitNew(self,jobHandler,sampler,model,inputs,outputs):
+    """
+      Aquire new points to run from the sampler and submit them to the job handler.
+      @ In, jobHandler, JobHandler, job handler instance
+      @ In, sampler, Sampler, instance doing the sampling for this multirun
+      @ In, model, Model, model being run for this multirun
+      @ Out, None
+    """
+    self.raiseADebug('Submitting new jobs ...')
+    isEnsemble = isinstance(model, Models.EnsembleModel)
+    ## In order to ensure that the queue does not grow too large, we will
+    ## employ a threshold on the number of jobs the jobHandler can take,
+    ## in addition, we cannot provide more jobs than the sampler can provide.
+    ## So, we take the minimum of these two values.
+    maxSubmittable = min(jobHandler.availability(isEnsemble),sampler.endJobRunnable())
+    self.raiseADebug('We can submit up to',maxSubmittable,'points.')
+    self.raiseADebug('Requesting new submission points from the sampler ...')
+    for i in range(maxSubmittable):
+      self.raiseADebug('  Testing submission {}/{} ...'.format(i+1,maxSubmittable))
+      if sampler.amIreadyToProvideAnInput():
+        self.raiseADebug('    Sampler indicated readiness to provide a new submission point ...')
+        # try-catch in case the sampler ends up having insufficient samples to provide
+        try:
+          newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
+          self.raiseADebug('    Obtained new submission point.')
+          # ensemble model uses a special submission queue
+          if isEnsemble:
+            model.submitAsClient(newInput, sampler.type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+          # everyone else follows typical submission
           else:
-            break
-      ## If all of the jobs given to the job handler have finished, and the sampler
-      ## has nothing else to provide, then we are done with this step.
-      if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
-        self.raiseADebug('Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
-        break
-      time.sleep(self.sleepTime)
-    # if any new collected runs failed, let the sampler treat them appropriately
-    sampler.handleFailedRuns(self.failedRuns)
+            model.submit(newInput, sampler.type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+        except utils.NoMoreSamplesNeeded:
+          self.raiseAMessage('    Sampler returned "NoMoreSamplesNeeded".  Returning.')
+          return
+      else: #sampler not ready
+        self.raiseADebug('  Sampler currently has no new points to sample.')
+        return
 
   def _findANewInputToRun(self, sampler, model, inputs, outputs):
     """
@@ -649,6 +699,17 @@ class MultiRun(SingleRun):
         for collector, outIndex in self._outputDictCollectionLambda:
           collector([newInp,outputs[outIndex]])
     return newInp
+
+  def finished(self,jobHandler,sampler):
+    """
+      Determines if step has completed its mission.  Currently evaluated by
+      determing if job handler is done running and the sampler has nothing new to do.
+      @ In, jobHandler, JobHandler, job handler instance
+      @ In, sampler, Sampler, the instance providing samples for this run
+      @ Out, finished, bool, True if done and False if not
+    """
+    return jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput()
+
 #
 #
 #

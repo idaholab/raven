@@ -1,0 +1,6 @@
+<Distributions>
+	<Uniform name="uniform">
+		<upperBound>1</upperBound>
+		<lowerBound>-1</lowerBound>
+	</Uniform>
+</Distributions>

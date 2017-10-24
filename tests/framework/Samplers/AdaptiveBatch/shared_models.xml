@@ -1,0 +1,13 @@
+<Models>
+  <ExternalModel ModuleToLoad="function" name="function" subType="">
+    <variables>x1,x2,y</variables>
+  </ExternalModel>
+  <ROM name="mySVM" subType="SciKitLearn">
+    <Features>x1,x2</Features>
+    <Target>label</Target>
+    <SKLtype>svm|LinearSVC</SKLtype>
+    <tol>1e-5</tol>
+    <C>50</C>
+    <random_state>1</random_state>
+  </ROM>
+</Models>

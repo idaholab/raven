@@ -11,6 +11,9 @@
       It tests analytic optimization values
       as well as the mechanical operation of the test, using both multilevel and mutlitrajectory.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2017-09-20">Sequential to ensure reproducability</revision>
+    </revisions>
   </TestInfo>
 
   <!-- actual RAVEN input -->
@@ -22,7 +25,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize">
+    <MultiRun name="optimize" sequential='true'>
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>

@@ -10,6 +10,9 @@
       This test runs the multilevel optimization with multiple trajectories on Beale's function and an amplifier (EnsembleModel)
       It tests the possibility to block some models (Beale) in the optimization process when multilevel optimization is performed.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2017-09-20">Sequential to ensure reproducability</revision>
+    </revisions>
   </TestInfo>
 
   <!-- actual RAVEN input -->
@@ -21,7 +24,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize">
+    <MultiRun name="optimize" sequential='True'>
       <Input class="DataObjects" type="PointSet">dummyINbeale</Input>
       <Input class="DataObjects" type="PointSet">dummyINAmplifier</Input>
       <Model class="Models" type="EnsembleModel">Ensemble_with_amplifier</Model>

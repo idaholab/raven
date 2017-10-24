@@ -1,0 +1,5 @@
+<RunInfo>
+  <WorkingDir>limit</WorkingDir>
+  <Sequence>sample,adapt</Sequence>
+  <batchSize>1</batchSize>
+</RunInfo>
