@@ -11,5 +11,54 @@ SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
 source $SCRIPT_DIR/scripts/setup_raven_libs
 
-python $SCRIPT_DIR/framework/Driver.py "$@"
+# set up run keywords
+# "ARGS" stores command line arguments not treated in this file (passed through)
+declare -a ARGS
+# by default run in "opt" mode
+MODE='opt'
+# loop through arguments and look for those that are handled before Python is called
+for var in "$@"; do
+  if [ "$var" = '-D' ]; then
+    # run in development mode (assertions not stripped)
+    MODE='dev'
+    continue
+  elif [ "$var" = 'help' ]; then
+    # display "help" print
+    MODE='help'
+    continue
+  fi
+  # otherwise, pass through arguments
+  ARGS[${#ARGS[@]}]="$var"
+done
+
+# run Driver.py based on the mode chosen
+if [ "$MODE" = 'help' ]; then
+  echo ''
+  echo 'Usage:'
+  echo '  raven_framework [-D][interfaceCheck][interactive][interactiveCheck] file'
+  echo ''
+  echo 'Description:'
+  echo '  Runs RAVEN using the input file given by "file".'
+  echo ''
+  echo 'Options:'
+  echo '  -D'
+  echo '    Development mode.  Turns Python "assert" statements on.'
+  echo ''
+  echo '  help'
+  echo '    Shows this description and exits.'
+  echo ''
+  echo '  interfaceCheck'
+  echo '    Do not attempt to run the model executable, but read from existing output files.'
+  echo ''
+  echo '  interactive'
+  echo '    Run RAVEN in GUI mode if possible.'
+  echo ''
+  echo '  interactiveCheck'
+  echo '    Run tests on interactive GUI.'
+  echo ''
+elif [ "$MODE" = 'opt' ]; then
+  python -O $SCRIPT_DIR/framework/Driver.py "$ARGS"
+else
+  python $SCRIPT_DIR/framework/Driver.py "$ARGS"
+fi
 

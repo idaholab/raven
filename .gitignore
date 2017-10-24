@@ -67,7 +67,11 @@ build/
 
 # python
 *.pyc
+*.pyo
+
+# vim
 *~
+*.swp
 
 #coverage
 tests/framework/.coverage
