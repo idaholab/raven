@@ -9,7 +9,7 @@ import xarray as xr
 from netCDF4 import Dataset as ncDS
 
 from BaseClasses import BaseType
-from utils import utils, cached_ndarray, InputData
+from utils import utils, cached_ndarray, InputData, mathUtils
 
 # for profiling with kernprof
 try:
@@ -68,6 +68,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
     self.name        = 'BaseDataObject'
     self.printTag    = self.name
+    self.sampleTag   = 'RAVEN_sample_ID' # column name to track samples
 
   def _readMoreXML(self,xmlNode):
     """
@@ -97,87 +98,12 @@ class DataSet(DataObject):
     thousands of variables and millions of samples.  Wraps np.ndarray for collecting and uses xarray.Dataset
     for final form.
   """
-  # API TRANSLATION
-  #  OLD                               |    NEW
-  # addOutput                          | ? load from values
-  # getAllMetadata                     | ? -remove-
-  # getHierParam                       | ? heirarchal only
-  # getInitParams                      | ? useful?
-  # getInpParametersValues             | ? getVarValues
-  # getMatchingRealization             | ? getRealization
-  # getMetadata                        | ? getMeta
-  # getOutParametersValues             | ? getVarValues
-  # getParaKeys                        | ? getInputs, getOutputs, getMetaKeys
-  # getParam                           | ? getVarValues
-  # getParametersValues                | ? getInputs, getOutputs, getMeta
-  # getRealization                     | ? by index, by value, also asDataset or NOT (for reading)
-  # isItEmpty                          | ? size
-  # loadXMLandCSV                      | ? loadFromCSV
-  # printCSV                           | ? writeCSV
-  # _writeUnstructuredInputInXML       | ? writeMetaXML
-  # remoteInputValue                   | ? removeVariable
-  # removeOutputValue                  | ? removeVariable
-  # resetData                          | ? reset
-  # retrieveNodeInTreeMode             | ? hierarchal only
-  # sizeData                           | ? size
-  # updateInputValue                   | addRealization
-  # updateOutputValue                  | addRealization
-  # updateMetadata                     | addRealization, addGlobalMeta
-  # addNodeInTreeMode                  | ? hierarchal only
-  # _createXMLFile                     | ? writeMetaXML
-  # _loadXMLFile                       | ? readMetaXML
-  # _readMoreXML                       | same
-  # _specializedInputCheck             | ? remove
-  # _specializedLoadXMLandCSV          | ? loadFromCSV
-  # __getVariablesToPrint              | ? remove
-  # __getMetadataType                  | ? remve
-  #
-  #
-  # BUILTINS AND PROPERTIES
-  # size (property)         # number of samples
-  # shape (property)        # dimensionality as (num samples, num entities)
-  # _readMoreXML            # initialization from input
-  # _firstSampleInit        # initialization once one sample is obtained
-  #
-  # SUMMARY list of new, API only:
-  # addMeta                 # adds general meta (not pointwise)
-  # addRealization          # add a single row
-  # getInputs               # only var names
-  # getMeta                 # column values in global or point
-  # getOutputs              # only var names
-  # getVarValues            # column values; input, output, or meta values for a variable
-  # getRealization          # by keyed values or by index
-  # load                    # reads netCDF, CSVs in all their variety, np.ndarrays, dicts?
-  # remove                  # removes by index, value matching, or metadata matching; or variable
-  # reset                   # empties data object
-  # write                   # writes CSVs in all their variety
-  #
-  # HELPER FUNCTIONS
-  # _asDataset              # if needed, converts data to finalized storage type
-  # _getMetaPointwise       # get column of values from metadata
-  #     -->                 # also option for reading non-finalized results
-  # _getMetaGeneral         # get specific values from XML metadata
-  #     -->                 # also option for reading non-finalized results
-  # _getRealizationByIndex  # obtains "ith" sample row
-  #     -->                 # also option for reading non-finalized results
-  # _getRealizationByValue  # obtains row with matching data
-  #     -->                 # also option for reading non-finalized results
-  # _getRealizationByMeta   # obtains row with matching metadata (pointwise)
-  #     -->                 # also option for reading non-finalized results
-  # _loadCSV                # read in data from csv
-  # _loadNetCDF             # read in netCDF
-  # _loadValues             # read in np.ndarray, maybe dict?
-  # _readMetaXML            # reads RAVEN-written XML general metadata
-  # _writeCSV               # writes standard CSVs
-  # _writeMetaXML           # writes meta XML to accompany CSV
-  # _writeNdCSV             # writes higher-dimensional CSVs
-  # _writeNetCDF            # writes netCDF
-
   ############################################################################################
   ### NEW API
   ############################################################################################
 
   ### EXTERNAL API ###
+  # These are the methods that RAVEN entities should call to interact with the data object
   def addMeta():
     raise NotImplementedError
 
@@ -191,15 +117,85 @@ class DataSet(DataObject):
       @ Out, None
     """
     # TODO more error check on realization length, contents
+    # if collector/data not yet started, expand entries that aren't I/O as metadata
+    if self._data is None and self._collector is None:
+      unrecognized = set(rlz.keys()).difference(set(self._allvars))
+      self._metavars = list(unrecognized)
+      self._allvars += self._metavars
     # check and order data to be stored
     try:
       newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
+      # WHAT ABOUT METADATA KEYS -> for now assume all unrecognized are metadata
     except KeyError as e:
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values: "{}"'.format(e.args[0]))
     # if data storage isn't set up, set it up
     if self._collector is None:
       self._collector = cached_ndarray.cNDarray(width=len(rlz),dtype=object)
     self._collector.append(newData)
+
+  def asDataset(self):
+    """
+      Casts this dataobject as an xr.Dataset.
+      Functionally, typically collects the data from self._collector and places it in self._data.
+      Efficiency note: this is the slowest part of typical data collection.
+      @ In, None
+      @ Out, xarray.Dataset, all the data from this data object.
+    """
+    # if we have collected data, collapse it
+    if self._collector is not None and len(self._collector) > 0:
+      data = self._collector.getData()
+      method = 'once' # internal flag to switch method.  "once" is generally faster, but "split" can be parallelized.
+      firstSample = int(self._data[self.sampleTag][-1])+1 if self._data is not None else 0
+      arrs = {}
+      for v,var in enumerate(self._allvars):
+        # first case: single entry per node: floats, strings, ints, etc
+        if isinstance(data[0,v],(float,str,unicode,int)): #TODO expand the list of types as needed, isinstance means np.float64 is covered by float
+          # convert all entries into a single datarray keyed on "sample" #TODO what value to start at?
+          arrs[var] = xr.DataArray(data[:,v],
+                                   dims=[self.sampleTag],
+                                   coords={self.sampleTag:range(len(data))},
+                                   name=var) # THIS is very fast
+        # second case: ND set (history set or higher dimension)
+        elif type(data[0,v]) == xr.DataArray:
+          # two methods: all at "once" or "split" into multiple parts.  "once" is faster, but not parallelizable.
+          # ONCE #
+          if method == 'once':
+            val = dict((i,data[i,v]) for i in range(len(data)))
+            val = xr.Dataset(data_vars=val)
+            val = val.to_array(dim=self.sampleTag)
+          # SPLIT # currently unused, but could be for parallel performance
+          elif method == 'split':
+            chunk = 150
+            start = 0
+            N = len(data)
+            vals = []
+            # TODO can be parallelized
+            while start < N-1:
+              stop = min(start+chunk+1,N)
+              ival = dict((i,data[i,v]) for i in range(start,stop))
+              ival = xr.Dataset(data_vars=ival)
+              ival = ival.to_array(dim=self.sampleTag) # TODO does this end up indexed correctly?
+              vals.append(ival)
+              start = stop
+            val = xr.concat(vals,dim=self.sampleTag)
+          # END #
+          arrs[var] = val
+        else:
+          raise IOError('Unrecognized data type for var "{}": "{}"'.format(var,type(data[0,v])))
+        # re-index samples
+        arrs[var][self.sampleTag] += firstSample
+        arrs[var].rename(var)
+      # collect all data into dataset, and update self._data
+      new = xr.Dataset(arrs)
+      # TODO general metadata
+      if self._data is None:
+        self._data = new
+        self._data.attrs['sampleTag'] = self.sampleTag
+      else:
+        # TODO compatability check!
+        self._data.merge(new,inplace=True)
+      self._collector = cached_ndarray.cNDarray(width=self._collector.width,dtype=self._collector.values.dtype)
+    return self._data
 
   def getVars(self,subset=None):
     """
@@ -257,6 +253,7 @@ class DataSet(DataObject):
       @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
       @ In, matchDict, dict, optional, {key:val} to search for matches
       @ In, readCollector, bool, if True then read out of collector instead of data
+      @ Out, index, int, optional, index where found (only returned if using matchDict not index)
       @ Out, rlz, dict, realization requested (errors if not found)
     """
     # TODO convert input space to KD tree for faster searching
@@ -268,14 +265,28 @@ class DataSet(DataObject):
         rlz = self._getRealizationFromCollectorByIndex(index)
       else:
         rlz = self._getRealizationFromDataByIndex(index)
+      return rlz
     else: #because of check above, this means matchDict is not None
       if readCollector:
-        rlz = self._getRealizationFromCollectorByValue(matchDict)
+        index,rlz = self._getRealizationFromCollectorByValue(matchDict)
       else:
-        rlz = self._getRealizationFromDataByValue(matchDict)
+        index,rlz = self._getRealizationFromDataByValue(matchDict)
+      return index,rlz
 
-  def load():
-    raise NotImplementedError
+  def load(self,fname,style='netCDF',**kwargs):
+    """
+      Reads this dataset from disk based on the format.
+      @ In, fname, str, path and name of file to read
+      @ In, style, str, optional, options are enumerated below
+      @ In, kwargs, dict, optional, additional arguments to pass to reading function
+      @ Out, None
+    """
+    if style.lower() == 'netcdf':
+      self._fromNetCDF(fname,**kwargs)
+    # TODO CSV
+    # TODO dask
+    else:
+      self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
 
   def remove():
     raise NotImplementedError
@@ -283,10 +294,24 @@ class DataSet(DataObject):
   def reset():
     raise NotImplementedError
 
-  def write():
-    raise NotImplementedError
+  def write(self,fname,style='netCDF',**kwargs):
+    """
+      Writes this dataset to disk based on the format.
+      @ In, fname, str, path and name of file to write
+      @ In, style, str, optional, options are enumerated below
+      @ In, kwargs, dict, optional, additional arguments to pass to writing function
+      @ Out, None
+    """
+    if style.lower() == 'netcdf':
+      self._toNetCDF(fname,**kwargs)
+    # TODO CSV in its variety
+    # TODO dask?
+    else:
+      self.raiseAnError(NotImplementedError,'Unrecognized write style: "{}"'.format(style))
+
 
   ### INITIALIZATION ###
+  # These are the necessary functions to construct and initialize this data object
   def __init__(self):#, in_vars, out_vars, meta_vars=None, dynamic=False, var_dims=None,cacheSize=100,prealloc=False):
     """
       Constructor.
@@ -313,6 +338,7 @@ class DataSet(DataObject):
     # any additional custom reading below
 
   ### BUIlTINS AND PROPERTIES ###
+  # These are special commands that RAVEN entities can use to interact with the data object
   def __len__(self):
     """
       Overloads the len() operator.
@@ -349,54 +375,25 @@ class DataSet(DataObject):
       self.raiseAnError(TypeError,'DataObject member "_data" is not a recognized type:',type(self._data))
 
   ### INTERNAL USE FUNCTIONS ###
-  def _asDataset(self):
+  def _convertFinalizedDataRealizationToDict(self,rlz):
     """
-      Casts this dataobject as an xr.Dataset.
-      Functionally, typically collects the data from self._collector and places it in self._data.
-      Efficiency note: this is the slowest part of typical data collection.
-      @ In, None
-      @ Out, xarray.Dataset, all the data from this data object.
+      After collapsing into xr.Dataset, all entries are stored as xr.DataArrays.
+      This converts them into a dictionary like the realization sent in.
+      @ In, rlz, dict(varname:xr.DataArray), "row" from self._data
+      @ Out, new, dict(varname:value), where "value" could be singular (float,str) or xr.DataArray
     """
-    # FIXME for collector / data management system
-    # if nothing to collect, do nothing TODO
-    if type(self._data) != xr.Dataset:
-      data = self._data.getData()
-      method = 'once' # internal flag to switch method.  "once" is generally faster, but "split" can be parallelized.
-      arrs = {}
-      for v,var in enumerate(self._allvars):
-        if isinstance(data[0,v],float) or isinstance(data[0,v],str):
-          arrs[var] = xr.DataArray(data[:,v],
-                                   dims=['sample'],
-                                   coords={'sample':range(len(self._data))},
-                                   name=var) # THIS is very fast
-        elif type(data[0,v]) == xr.DataArray:
-          # ONCE #
-          if method == 'once':
-            val = dict((i,data[i,v]) for i in range(len(self._data)))
-            val = xr.Dataset(data_vars=val)
-            val = val.to_array(dim='sample')
-          # SPLIT # currently unused, but could be for parallel performance
-          elif method == 'split':
-            chunk = 150
-            start = 0
-            N = len(self._data)
-            vals = []
-            while start < N-1:
-              stop = min(start+chunk+1,N)
-              ival = dict((i,data[i,v]) for i in range(start,stop))
-              ival = xr.Dataset(data_vars=ival)
-              ival = ival.to_array(dim='sample')
-              vals.append(ival)
-              start = stop
-            val = xr.concat(vals,dim='sample')
-          # END #
-          arrs[var] = val
-          arrs[var].rename(var)
-        else:
-          raise IOError('Unrecognized data type for var "{}": "{}"'.format(var,type(data[0,v])))
-      # FIXME currently MAKING not APPENDING!  This needs to be fixed.
-      self._data = xr.Dataset(arrs)
-    return self._data
+    # TODO this has a lot of looping and might be slow for many variables.  Bypass or rewrite where possible.
+    new = {}
+    for k,v in rlz.items():
+      # if singular, eliminate dataarray container
+      if len(v.dims)==0:
+        new[k] = v.item(0)
+      # otherwise, trim NaN entries before returning
+      else:
+        for dim in v.dims[:]:
+          v = v.dropna(dim)
+        new[k] = v
+    return new
 
   def _getRealizationFromCollectorByIndex(self,index):
     """
@@ -404,10 +401,63 @@ class DataSet(DataObject):
       @ In, index, int, index to return
       @ Out, rlz, dict, realization as {var:value}
     """
-    if self._collector is None:
-      self.raiseAnError(IndexError,'Requested index "{}" but collector is empty!')
-    if index >= len(self._collector):
-      self.raiseAnError(IndexError,'Requested index "{}" but collector only has {} entries!'.format(len(self._collector)))
+    assert(self._collector is not None)
+    assert(index < len(self._collector))
+    return dict(zip(self._allvars,self._collector[index]))
+
+  def _getRealizationFromCollectorByValue(self,match):
+    """
+      Obtains a realization from the collector storage matching the provided index
+      @ In, match, dict, elements to match
+      @ Out, r, int, index where match was found
+      @ Out, rlz, dict, realization as {var:value}
+    """
+    assert(self._collector is not None)
+    # TODO KD Tree for faster values -> still want in collector?
+    # TODO slow double loop
+    lookingFor = match.values()
+    for r,row in enumerate(self._collector[:,tuple(self._allvars.index(var) for var in match.keys())]):
+      match = True
+      for e,element in enumerate(row):
+        if isinstance(element,float):
+          # TODO use math util
+          # TODO arbitrary tolerance
+          match *= mathUtils.compareFloats(lookingFor[e],element,tol=1e-10)
+          if not match:
+            break
+      if match:
+        break
+    if match:
+      return r,self._getRealizationFromCollectorByIndex(r)
+    else:
+      self.raiseAnError(ValueError,'No matching value found!') # TODO return something else instead of erroring?
+
+  def _getRealizationFromDataByIndex(self,index):
+    """
+      Obtains a realization from the data storage using the provided index.
+      @ In, index, int, index to return
+      @ Out, rlz, dict, realization as {var:value} where value is a DataArray with only coordinate dimensions
+    """
+    assert(self._data is not None)
+    assert(index < len(self._data[self.sampleTag]))
+    rlz = self._data[{self.sampleTag:index}].drop(self.sampleTag).data_vars
+    rlz = self._convertFinalizedDataRealizationToDict(rlz)
+    return rlz
+
+  def _getRealizationFromDataByValue(self,match):
+    """
+      Obtains a realization from the data storage using the provided index.
+      @ In, match, dict, elements to match
+      @ Out, r, int, index where match was found
+      @ Out, rlz, dict, realization as {var:value}
+    """
+    assert(self._data is not None)
+    # TODO this could be slow, should do KD tree instead
+    mask = list(self._data[var] == val for var,val in match.items())[0]#.values
+    rlz = self._data.where(mask,drop=True)
+    idx = rlz[self.sampleTag].item(0)
+    return idx,self._getRealizationFromDataByIndex(idx)
+    #return idx,self._convertFinalizedDataRealizationToDict(rlz[{self.sampleTag:0}].drop(self.sampleTag).data_vars)
 
   def _getVariableIndex(self,var):
     """
@@ -417,16 +467,32 @@ class DataSet(DataObject):
     """
     return self._allvars.index(var)
 
-  def _toNetCDF4(self,fname,**kwargs):
+  def _fromNetCDF(self,fname, **kwargs):
+    """
+      Reads this data object from file that is netCDF.  If not netCDF4, this could be slow.
+      Loads data lazily; it won't be pulled into memory until operations are attempted on the specific data
+      @ In, fname, str, path/name to read file
+      @ In, kwargs, dict, optional, keywords to pass to netCDF4 reading
+                                    See http://xarray.pydata.org/en/stable/io.html#netcdf for options
+      @ Out, None
+    """
+    # TODO set up to use dask for on-disk operations -> or is that a different data object?
+    # TODO are these fair assertions?
+    assert(self._data is None)
+    assert(self._collector is None)
+    self._data = xr.open_dataset(fname)
+
+  def _toNetCDF(self,fname,**kwargs):
     """
       Writes this data object to file in netCDF4.
       @ In, fname, str, path/name to write file
       @ In, kwargs, dict, optional, keywords to pass to netCDF4 writing
+                                    One good option is format='NETCDF4' to assure netCDF4 is used
+                                    See http://xarray.pydata.org/en/stable/io.html#netcdf for options
       @ Out, None
     """
-    self.raiseADebug(' ... collecting dataset ...')
-    self.asDataset()
-    self.raiseADebug(' ... writing to file ...')
+    # TODO set up to use dask for on-disk operations -> or is that a different data object?
+    self.asDataset() #just in case there is stuff left in the collector
     self._data.to_netcdf(fname,**kwargs)
 
 
