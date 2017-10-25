@@ -29,6 +29,7 @@ from utils import utils
 from DataObjects.Data import Data
 from DataObjects.PointSet import PointSet
 from DataObjects.HistorySet import HistorySet
+from DataObjects.XrDataObject import DataSet
 ## [ Add new class here ]
 ################################################################################
 ## Alternatively, to fully automate this file:
@@ -45,6 +46,8 @@ __interFaceDict = {}
 
 for classObj in utils.getAllSubclasses(eval(__base)):
   __interFaceDict[classObj.__name__] = classObj
+# TODO hack add-on
+__interFaceDict['DataSet'] = DataSet
 
 def knownTypes():
   """

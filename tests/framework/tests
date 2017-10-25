@@ -264,6 +264,11 @@
   requires_swig2 = True
  [../]
 
+ [./test_datasets]
+  type = 'RavenPython'
+  input = '../../framework/DataObjects/TestDataSets.py'
+ [../]
+
  [./test_xsd_input_data]
   type = 'RavenPython'
   input = 'TestXSD/TestDataRead.py'

@@ -22,7 +22,9 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import os,sys
+import copy
 import numpy as np
+import xarray as xr
 
 frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,'framework'))
 sys.path.append(frameworkDir)
@@ -32,6 +34,25 @@ print (cached_ndarray)
 
 results = {"pass":0,"fail":0}
 
+
+def checkSame(comment,value,expected,updateResults=True):
+  """
+    This method is aimed to compare two floats given a certain tolerance
+    @ In, comment, string, a comment printed out if it fails
+    @ In, value, float, the value to compare
+    @ In, expected, float, the expected value
+    @ In, updateResults, bool, optional, if True updates global results
+    @ Out, None
+  """
+  if value != expected:
+    print("checking answer",comment,'|',value,"!=",expected)
+    if updateResults:
+      results["fail"] += 1
+    return False
+  else:
+    if updateResults:
+      results["pass"] += 1
+    return True
 
 def checkAnswer(comment,value,expected,tol=1e-10,updateResults=True):
   """
@@ -44,7 +65,7 @@ def checkAnswer(comment,value,expected,tol=1e-10,updateResults=True):
     @ Out, None
   """
   if abs(value - expected) > tol:
-    print("checking answer",comment,value,"!=",expected)
+    print("checking answer",comment,'|',value,"!=",expected)
     if updateResults:
       results["fail"] += 1
     return False
@@ -53,6 +74,10 @@ def checkAnswer(comment,value,expected,tol=1e-10,updateResults=True):
       results["pass"] += 1
     return True
 
+
+##################
+# 1D Array Tests #
+##################
 
 #establish test array
 origin = np.array([-3.14,2.99792,2.718,8.987,0.618])
@@ -97,6 +122,140 @@ if msg == right:
 else:
   print('checking string representation does not match:\n'+msg,'\n!=\n'+right)
   results['fail']+=1
+
+##################
+# ND Array Tests #
+##################
+
+## POINT SET ##
+
+# default construction
+testArray = cached_ndarray.cNDarray(width=3,length=10)
+checkAnswer('initial capacity',testArray.capacity,10)
+checkAnswer('initial width',testArray.shape[1],3)
+checkAnswer('initial size',testArray.size,0)
+checkAnswer('initial len',len(testArray),0)
+
+#get empty
+checkAnswer('getData empty size',testArray.getData().size,0)
+
+#append entry
+vals = np.array([[1.0,2.0,3.0]])
+testArray.append(vals)
+#check values
+aValues = testArray.getData()
+for v,val in enumerate(vals):
+  checkAnswer('appended[{}]'.format(v),aValues[0,v],vals[0,v])
+
+#iter
+for aValues in testArray:
+  for v,val in enumerate(vals):
+    checkAnswer('iter[{}]'.format(v),aValues[v],vals[0,v])
+
+# append more
+vals = [0,0]
+vals[0] = [11.0,12.0,13.0]
+testArray.append(np.array([vals[0]]))
+vals[1] = [21.0,22.0,23.0]
+testArray.append(np.array([vals[1]]))
+#test slicing
+for a,ar in enumerate(testArray[1:]):
+  for i in range(3):
+    checkAnswer('slicing [{},{}]'.format(a,i),ar[i],vals[a][i])
+
+# construction via values
+values = np.array(
+             [[ 1.0,  2.0,  3.0],
+              [11.0, 12.0, 13.0],
+              [21.0, 22.0, 23.0]]
+             )
+testArray = cached_ndarray.cNDarray(values=values)
+for i in range(values.shape[0]):
+  for j in range(values.shape[1]):
+    checkAnswer('initialize by value: [{},{}]'.format(i,j),values[i][j],testArray.values[i][j])
+
+
+## ND SET ##
+
+#default construction, __init__()
+testArray = cached_ndarray.cNDarray(width=3,length=10,dtype=object)
+checkAnswer('initial capacity',testArray.capacity,10)
+checkAnswer('initial width'   ,testArray.width,3)
+checkAnswer('initial size'    ,testArray.size,0)
+
+#append entry, append()
+vals = np.array([[1.0,
+                 xr.DataArray([ 2.0, 2.1, 2.2],dims=['time'],coords={'time':[1e-6,2e-6,3e-6]}),
+                 xr.DataArray([[ 3.00, 3.01, 3.02],[ 3.10, 3.11, 3.12]],dims=['space','time'],coords={'space':[1e-3,2e-3],'time':[1e-6,2e-6,3e-6]})
+                 ]],dtype=object)
+testArray.append(vals)
+checkAnswer('ND append, point',testArray.values[0,0],1.0)
+checkAnswer('ND append, hist, time 0',testArray.values[0,1][0],2.0)
+checkAnswer('ND append, nd, time 0, location 0',testArray.values[0,2][0,0], 3.00)
+
+# shape, shape() (property)
+checkAnswer('ND shape 0'     ,testArray.shape[0],1)
+checkAnswer('ND shape 1'     ,testArray.shape[1],3)
+
+# as array, __array__()
+b = np.asarray(testArray)
+checkAnswer('ND as array, point',b[0,0]     ,1.0)
+checkAnswer('ND as array, hist' ,b[0,1][0]  ,2.0)
+checkAnswer('ND as array, nd'   ,b[0,2][0,0],3.0)
+
+# __getitem__()
+checkAnswer('ND getitem, point',testArray[0,0],1.0)
+checkAnswer('ND getitem, hist, time 0',testArray[0,1][0],2.0)
+checkAnswer('ND getitem, nd, time 0, location 0',testArray[0,2][0,0], 3.00)
+
+# __iter__()
+for i,entry in enumerate(testArray):
+  checkAnswer('ND iter, point',entry[0]     , 1.0)
+  checkAnswer('ND iter, hist,',entry[1][0]  , 2.0)
+  checkAnswer('ND iter, nd'   ,entry[2][0,0], 3.0)
+
+# repr, __repr__()
+string = repr(testArray).replace('\n','')
+correct = 'array([[1.0,        <xarray.DataArray (time: 3)>array([ 2. ,  2.1,  2.2])Coordinates:  * time     (time) float64 1e-06 2e-06 3e-06,        <xarray.DataArray (space: 2, time: 3)>array([[ 3.  ,  3.01,  3.02],       [ 3.1 ,  3.11,  3.12]])Coordinates:  * time     (time) float64 1e-06 2e-06 3e-06  * space    (space) float64 0.001 0.002]], dtype=object)'
+checkSame('ND repr',string==correct,True)
+
+# append a few more for testing purposes
+for i in range(3):
+  testArray.append(vals)
+
+# __len__()
+checkAnswer('ND len',len(testArray),4)
+
+
+#values construction
+values = np.ndarray([3,3],dtype=object)
+values[0,0] =  1.0
+values[1,0] = 11.0
+values[2,0] = 21.0
+
+values[0,1] = xr.DataArray([ 2.0, 2.1, 2.2],dims=['time'],coords={'time':[1e-6,2e-6,3e-6]})
+values[1,1] = xr.DataArray([12.0,12.1,12.2],dims=['time'],coords={'time':[1e-6,2e-6,3e-6]})
+values[2,1] = xr.DataArray([22.0,22.1,22.2],dims=['time'],coords={'time':[1e-6,2e-6,3e-6]})
+
+values[0,2] = xr.DataArray([[ 3.00, 3.01, 3.02],[ 3.10, 3.11, 3.12]],dims=['space','time'],coords={'space':[1e-3,2e-3],'time':[1e-6,2e-6,3e-6]})
+values[1,2] = xr.DataArray([[13.00,13.01,13.02],[13.10,13.11,13.12]],dims=['space','time'],coords={'space':[1e-3,2e-3],'time':[1e-6,2e-6,3e-6]})
+values[2,2] = xr.DataArray([[23.00,23.01,23.02],[23.10,23.11,23.12]],dims=['space','time'],coords={'space':[1e-3,2e-3],'time':[1e-6,2e-6,3e-6]})
+
+testArray = cached_ndarray.cNDarray(values=values)
+checkAnswer('ND by value, point, sample 0',testArray.values[0,0],1.0)
+checkAnswer('ND by value, point, sample 1',testArray.values[1,0],11.0)
+checkAnswer('ND by value, point, sample 2',testArray.values[2,0],21.0)
+
+checkAnswer('ND by value, hist, sample 0, time 0 (access index)',testArray.values[0,1][0],2.0)
+checkAnswer('ND by value, hist, sample 0, time 0 (access label)',testArray.values[0,1].loc[dict(time=1e-6)],2.0)
+checkAnswer('ND by value, hist, sample 1, time 1',testArray.values[1,1][1],12.1)
+checkAnswer('ND by value, hist, sample 2, time 2',testArray.values[2,1][2],22.2)
+
+checkAnswer('ND by value, nd, sample 0, time 0, location 0 (access index)',testArray.values[0,2][0,0], 3.00)
+checkAnswer('ND by value, nd, sample 0, time 0, location 0 (access label)',testArray.values[0,2].loc[dict(time=1e-6,space=1e-3)], 3.00)
+checkAnswer('ND by value, nd, sample 1, time 0, location 1',testArray.values[1,2][0,1],13.01)
+checkAnswer('ND by value, nd, sample 2, time 1, location 2',testArray.values[2,2][1,2],23.12)
+
 
 print(results)
 
