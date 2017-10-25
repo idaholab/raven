@@ -125,7 +125,6 @@ class DataSet(DataObject):
     # check and order data to be stored
     try:
       newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
-      # WHAT ABOUT METADATA KEYS -> for now assume all unrecognized are metadata
     except KeyError as e:
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values: "{}"'.format(e.args[0]))
     # if data storage isn't set up, set it up
@@ -150,7 +149,6 @@ class DataSet(DataObject):
       for v,var in enumerate(self._allvars):
         # first case: single entry per node: floats, strings, ints, etc
         if isinstance(data[0,v],(float,str,unicode,int)): #TODO expand the list of types as needed, isinstance means np.float64 is covered by float
-          # convert all entries into a single datarray keyed on "sample" #TODO what value to start at?
           arrs[var] = xr.DataArray(data[:,v],
                                    dims=[self.sampleTag],
                                    coords={self.sampleTag:range(len(data))},
@@ -229,7 +227,7 @@ class DataSet(DataObject):
       for var in self._metavars:
         if keys is None or var in keys:
           # TODO if still collecting, an option to NOT freeze
-          meta[var] = self._asDataset()[var]#[self._allvars.index(var),:]
+          meta[var] = self.asDataset()[var]#[self._allvars.index(var),:]
     if general:
       pass # TODO implement general meta
     # TODO error on missing matches
@@ -243,10 +241,20 @@ class DataSet(DataObject):
   def getOutputs():
     raise NotImplementedError
 
-  def getVarValues():
-    raise NotImplementedError
+  def getVarValues(self,var):
+    """
+      Returns the sampled values of "var"
+      @ In, var, str, name of variable
+      @ Out, res, xr.DataArray, samples
+    """
+    # TODO have to convert here?
+    self.asDataset()
+    res = self._data[var]
+    for dim in res.dims:
+      res = res.dropna(dim)
+    return self._data[var]
 
-  def getRealization(self,index=None,matchDict=None,readCollector=False):
+  def realization(self,index=None,matchDict=None,readCollector=False):
     """
       Method to obtain a realization from the data, either by index or matching value.
       Either "index" or "matchDict" must be supplied.
@@ -259,7 +267,7 @@ class DataSet(DataObject):
     # TODO convert input space to KD tree for faster searching
     # TODO option to read both collector and data for matches/indices
     if (index is None and matchDict is None) or (index is not None and matchDict is not None):
-      self.raiseAnError(TypeError,'Either "index" OR "matchDict" (not both) must be specified to use "getRealization!"')
+      self.raiseAnError(TypeError,'Either "index" OR "matchDict" (not both) must be specified to use "realization!"')
     if index is not None:
       if readCollector:
         rlz = self._getRealizationFromCollectorByIndex(index)
@@ -309,7 +317,6 @@ class DataSet(DataObject):
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized write style: "{}"'.format(style))
 
-
   ### INITIALIZATION ###
   # These are the necessary functions to construct and initialize this data object
   def __init__(self):#, in_vars, out_vars, meta_vars=None, dynamic=False, var_dims=None,cacheSize=100,prealloc=False):
@@ -319,11 +326,6 @@ class DataSet(DataObject):
     DataObject.__init__(self)
     self.name      = 'DataSet'
     self.printTag  = self.name
-    # change this line to change behavior of accessing the legacy API
-    ## for warnings:
-    self.deprecated = self._deprecatedWarning
-    ## for errors:
-    #self.deprecated = self._deprecatedError
 
   def _readMoreXML(self,xmlNode):
     """
@@ -345,7 +347,7 @@ class DataSet(DataObject):
       @ In, None
       @ Out, int, number of samples in this dataset
     """
-    pass #TODO
+    return self.size
 
   @property
   def vars(self):
@@ -368,7 +370,7 @@ class DataSet(DataObject):
     if type(self._data) == cached_ndarray.cNDarray:
       return self._data.size
     elif type(self._data) == xr.Dataset:
-      return len(self._data['sample'])
+      return len(self._data[self.sampleTag])
     elif self._data is None:
       return 0
     else:
@@ -409,8 +411,8 @@ class DataSet(DataObject):
     """
       Obtains a realization from the collector storage matching the provided index
       @ In, match, dict, elements to match
-      @ Out, r, int, index where match was found
-      @ Out, rlz, dict, realization as {var:value}
+      @ Out, r, int, index where match was found OR size of data if not found
+      @ Out, rlz, dict, realization as {var:value} OR None if not found
     """
     assert(self._collector is not None)
     # TODO KD Tree for faster values -> still want in collector?
@@ -430,7 +432,7 @@ class DataSet(DataObject):
     if match:
       return r,self._getRealizationFromCollectorByIndex(r)
     else:
-      self.raiseAnError(ValueError,'No matching value found!') # TODO return something else instead of erroring?
+      return len(self),None
 
   def _getRealizationFromDataByIndex(self,index):
     """
@@ -448,16 +450,18 @@ class DataSet(DataObject):
     """
       Obtains a realization from the data storage using the provided index.
       @ In, match, dict, elements to match
-      @ Out, r, int, index where match was found
-      @ Out, rlz, dict, realization as {var:value}
+      @ Out, r, int, index where match was found OR size of data if not found
+      @ Out, rlz, dict, realization as {var:value} OR None if not found
     """
     assert(self._data is not None)
     # TODO this could be slow, should do KD tree instead
     mask = list(self._data[var] == val for var,val in match.items())[0]#.values
     rlz = self._data.where(mask,drop=True)
-    idx = rlz[self.sampleTag].item(0)
+    try:
+      idx = rlz[self.sampleTag].item(0)
+    except IndexError:
+      return len(self),None
     return idx,self._getRealizationFromDataByIndex(idx)
-    #return idx,self._convertFinalizedDataRealizationToDict(rlz[{self.sampleTag:0}].drop(self.sampleTag).data_vars)
 
   def _getVariableIndex(self,var):
     """
@@ -497,30 +501,8 @@ class DataSet(DataObject):
 
 
   ############################################################################################
-  ### OLD API
+  ### LEGACY API
   ############################################################################################
-  def _deprecatedError(self,add=None):
-    """
-      Raises an error when deprecated methods are used.
-      @ In, add, object, additional information to print
-      @ Out, None
-    """
-    msg = 'Using DEPRECATED data object API!'
-    if add is not None:
-      msg += ' "{}"'.format(add)
-    self.raiseAnError(SyntaxError,msg)
-
-  def _deprecatedWarning(self,add=None):
-    """
-      Raises a warning when deprecated methods are used.
-      @ In, add, object, additional information to print
-      @ Out, None
-    """
-    msg = 'Using DEPRECATED data object API!'
-    if add is not None:
-      msg += ' "{}"'.format(add)
-    self.raiseAWarning(msg)
-
   def getParaKeys(self,typePara):
     """
       Function to get the parameter keys
@@ -554,18 +536,18 @@ class DataSet(DataObject):
       @ Out, None
     """
     self.deprecated('updateInputValue')
-    if self._data is None:
-      self._data = cached_ndarray.cNDarray(width = len(self.vars),length=4,dtype=object)
-      self._data.size = 1
-      self._data.width = len(self.vars)
+    if self._collector is None:
+      self._collector = cached_ndarray.cNDarray(width = len(self.vars),length=4,dtype=object)
+      self._collector.size = 1
+      self._collector.width = len(self.vars)
     #try:
     column = self._getVariableIndex(name)
-    self._data._addOneEntry(column,value[0])
+    self._collector._addOneEntry(column,value[0])
     if False:
     #except ValueError:
         #self._data._addOneEntry(column,value[0])
         #self._data.addEntity(np.array([value]), firstEver = True)
-      self._data.addEntity([np.array([value])])
+      self._collector.addEntity([np.array([value])])
       # FIXME this could be a costly check (not necessary in non-deprecated API)
       if name not in self._inputs:
         self._allvars.append(name)
@@ -582,9 +564,9 @@ class DataSet(DataObject):
     self.deprecated('updateOutputValue')
     try:
       column = self._getVariableIndex(name)
-      self._data._addOneEntry(column,value)
+      self._collector._addOneEntry(column,value)
     except ValueError:
-      self._data.addEntity([np.array([[value]])]) #WHY should there be an extra [] in here....
+      self._collector.addEntity([np.array([[value]])]) #WHY should there be an extra [] in here....
       # FIXME this could be a costly check (not necessary in non-deprecated API)
       if name not in self._outputs:
         self._allvars.append(name)
@@ -606,9 +588,9 @@ class DataSet(DataObject):
     elif name in ['ProbabilityWeight','prefix']: #TODO only add prefix if it's needed, don't default
       try:
         column = self._getVariableIndex(name)
-        self._data._addOneEntry(column,value)
+        self._collector._addOneEntry(column,value)
       except ValueError:
-        self._data.addEntity([np.array([[value]])]) #WHY should there be an extra [] in here....
+        self._collector.addEntity([np.array([[value]])]) #WHY should there be an extra [] in here....
         # FIXME this could be a costly check (not necessary in non-deprecated API)
         if name not in self._metavars:
           self._allvars.append(name)
@@ -638,5 +620,83 @@ class DataSet(DataObject):
       @, Out, dictionary, dict, Reference to self._dataContainer['inputs'] or something else in hierarchical
     """
     self.deprecated('getInpParametersValues')
-    res = {}
+    res = dict((var,self.getVarValues(var)) for var in self._inputs)
+    for key, val in res.items():
+      res[key] = val.values
+    return res
 
+  def getMatchingRealization(self,requested,tol=1e-15):
+    """
+      Finds first appropriate match within tolerance and return it.
+      @ In, requested, dict, {var:val}
+      @ In, tol, float, relative tolerance
+      @ Out, realization, dict, match
+    """
+    self.deprecated('getMatchingRealization')
+    self.asDataset()
+    idx,match = self.realization(matchDict=requested)
+    if match is None:
+      # no match found
+      return None
+    realization = {'inputs':{},'outputs':{}}
+    for key in self._inputs:
+      realization['inputs'][key] = [match[key]]
+    for key in self._outputs:
+      realization['outputs'][key] = [match[key]]
+    return realization
+
+  def getOutParametersValues(self,nodeId=None,serialize=False):
+    """
+      Function to get a reference to the output parameter dictionary
+      @, In, nodeId, string, optional, in hierarchical mode, if nodeId is provided, the data for that node is returned,
+                                  otherwise check explanation for getHierParam
+      @ In, serialize, bool, optional, in hierarchical mode, if serialize is provided and is true a serialized data is returned
+                                  PLEASE check explanation for getHierParam
+      @ In, unstructuredInputs, bool, optional, True if the unstructured input space needs to be returned
+      @, Out, dictionary, dict, Reference to self._dataContainer['inputs'] or something else in hierarchical
+    """
+    self.deprecated('getInpParametersValues')
+    return dict((var,self.getVarValues(var)) for var in self._outputs)
+
+  def getRealization(self,index):
+    """
+      Returns the indexed entry of inputs and outputs
+      @ In, index, int, index to retrieve
+      @ Out, realization, dict {'inputs':{var:val},'outputs':{var:val}}
+    """
+    self.deprecated('getRealization')
+    self.asDataset()
+    match = self.realization(index=index)
+    realization = {'inputs':{},'outputs':{}}
+    for key in self._inputs:
+      realization['inputs'][key] = [match[key]]
+    for key in self._outputs:
+      realization['outputs'][key] = [match[key]]
+    return realization
+
+  def printCSV(self,options=None):
+    """
+      Dump to CSV
+      @ In, options, dict, optional, dictionary of options such as filename, parameters, etc
+      @ Out, None
+    """
+    self.deprecated('printCSV')
+    if options is None:
+      options = {}
+    # TODO only working for history sets
+    self.asDataset()
+    filenameLocal = options.get('filenameroot','_dump')
+    data = self._data#.drop(self.sampleTag)
+    if 'what' in options.keys():
+      keep = list(v.split('|')[-1].strip() for v in options['what'].split(','))
+    else:
+      keep = self._allvars + [self.sampleTag]
+    for var in self._allvars:
+      if var not in keep:
+        data = data.drop(var)
+    self.raiseADebug('Printing to CSV: "{}"'.format(filenameLocal))
+    data = data.to_dataframe()
+    if self.sampleTag not in keep:
+      data.to_csv(filenameLocal+'.csv',index=False)
+    else:
+      data.to_csv(filenameLocal+'.csv')

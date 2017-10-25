@@ -277,10 +277,10 @@ rlz0['z'] = 6.0
 # test appending
 data.addRealization(rlz0)
 # get realization by index, from collector
-checkRlz('Dataset append 0',data.getRealization(index=0,readCollector=True),rlz0)
+checkRlz('Dataset append 0',data.realization(index=0,readCollector=True),rlz0)
 # try to access the inaccessible
 try:
-  data.getRealization(index=1,readCollector=True)
+  data.realization(index=1,readCollector=True)
   print('Checking error Dataset append 0 | Accessed inaccessible index!')
   results['fail'] += 1
 except AssertionError:
@@ -289,16 +289,16 @@ except AssertionError:
 data.addRealization(rlz1)
 data.addRealization(rlz2)
 # get realization by index
-checkRlz('Dataset append 1 idx 0',data.getRealization(index=0,readCollector=True),rlz0)
-checkRlz('Dataset append 1 idx 1',data.getRealization(index=1,readCollector=True),rlz1)
-checkRlz('Dataset append 1 idx 2',data.getRealization(index=2,readCollector=True),rlz2)
+checkRlz('Dataset append 1 idx 0',data.realization(index=0,readCollector=True),rlz0)
+checkRlz('Dataset append 1 idx 1',data.realization(index=1,readCollector=True),rlz1)
+checkRlz('Dataset append 1 idx 2',data.realization(index=2,readCollector=True),rlz2)
 ######################################
 #      GET MATCHING REALIZATION      #
 ######################################
-m,match = data.getRealization(matchDict={'a':11.0},readCollector=True)
+m,match = data.realization(matchDict={'a':11.0},readCollector=True)
 checkSame('Dataset append 1 match index',m,1)
 checkRlz('Dataset append 1 match',match,rlz1)
-checkFails('DataSet find bogus match','No matching value found!',data.getRealization,kwargs={'matchDict':{'x':0.0},'readCollector':True})
+checkFails('DataSet find bogus match','No matching value found!',data.realization,kwargs={'matchDict':{'x':0.0},'readCollector':True})
 # TODO more checks on reading collector, writing to file, etc
 
 ######################################
@@ -349,7 +349,7 @@ rlz3 = {'a' :31.0,
         'prefix': 'fourth',
        }
 data.addRealization(rlz3)
-checkRlz('Dataset append 2 idx 0',data.getRealization(index=0,readCollector=True),rlz3)
+checkRlz('Dataset append 2 idx 0',data.realization(index=0,readCollector=True),rlz3)
 # TODO test reading from both main and collector
 
 data.asDataset()
@@ -394,13 +394,13 @@ dataNET.load(netname,style='netcdf')
 ######################################
 # test contents of data in parallel
 # by index
-checkRlz('Dataset full origin idx 1',data.getRealization(index=1),rlz1)
-checkRlz('Dataset full netcdf idx 1',dataNET.getRealization(index=1),rlz1)
+checkRlz('Dataset full origin idx 1',data.realization(index=1),rlz1)
+checkRlz('Dataset full netcdf idx 1',dataNET.realization(index=1),rlz1)
 # by match
-idx,rlz = data.getRealization(matchDict={'prefix':'third'})
+idx,rlz = data.realization(matchDict={'prefix':'third'})
 checkSame('Dataset full origin match idx',idx,2)
 checkRlz('Dataset full origin match',rlz,rlz2)
-idx,rlz = dataNET.getRealization(matchDict={'prefix':'third'})
+idx,rlz = dataNET.realization(matchDict={'prefix':'third'})
 checkSame('Dataset full netcdf match idx',idx,2)
 checkRlz('Dataset full netCDF match',rlz,rlz2)
 

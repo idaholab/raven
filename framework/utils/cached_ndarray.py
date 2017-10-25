@@ -396,5 +396,8 @@ class cNDarray(object):
       # need to add a new realization
       # placehold with "None"s (append will automatically increment size)
       self.append(np.array([np.array([None]*self.width,dtype=object)],dtype=object))
+    # if a one-entry array, take that one entry
+    if type(val) in [np.ndarray,list]:
+      val = np.array(val).item(0)
     # finally, put the entry in
     self.values[self.size-1,column] = val
