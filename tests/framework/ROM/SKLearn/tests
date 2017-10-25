@@ -109,6 +109,12 @@
     csv = 'data/outETC.csv'
     output = 'data/outETC.xml'
   [../]
+  [./MLPC]
+    type = 'RavenFramework'
+    input = 'mlpClassifier.xml'
+    csv = 'data/outMLPClassifier.csv'
+    output = 'data/outMLPClassifier.xml'
+  [../]
 
   ##############################################################################
   ## Regressors
@@ -273,6 +279,12 @@
     input = 'linearSGDR.xml'
     csv = 'data/outLinearSGDR.csv'
     output = 'data/outLinearSGDR.xml'
+  [../]
+  [./MLPR]
+    type = 'RavenFramework'
+    input = 'mlpRegressor.xml'
+    csv = 'data/outMLPRegressor.csv'
+    output = 'data/outMLPRegressor.xml data/outMLPRegressor.csv'
   [../]
   ##############################################################################
   ## Inconsistent Results
