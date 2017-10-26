@@ -23,27 +23,27 @@
 
   <Steps>
     <MultiRun name="makeCoarse">
-      <Input class="DataObjects" type="DataSet">dummyIN</Input>
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">coarsemod</Model>
       <Sampler class="Samplers" type="MonteCarlo">coarse</Sampler>
-      <Output class="DataObjects" type="DataSet">solns</Output>
+      <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
     <MultiRun name="makeFine">
-      <Input class="DataObjects" type="DataSet">dummyIN</Input>
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">finemod</Model>
       <Sampler class="Samplers" type="MonteCarlo">fine</Sampler>
-      <Output class="DataObjects" type="DataSet">solnsFine</Output>
+      <Output class="DataObjects" type="PointSet">solnsFine</Output>
     </MultiRun>
     <MultiRun name="makeRestart">
-      <Input class="DataObjects" type="DataSet">solns</Input>
+      <Input class="DataObjects" type="PointSet">solns</Input>
       <Model class="Models" type="ExternalModel">finemod</Model>
       <Sampler class="Samplers" type="MonteCarlo">restart</Sampler>
-      <Output class="DataObjects" type="DataSet">solnsRestart</Output>
+      <Output class="DataObjects" type="PointSet">solnsRestart</Output>
     </MultiRun>
     <IOStep name="print">
-      <Input class="DataObjects" type="DataSet">solns</Input>
-      <Input class="DataObjects" type="DataSet">solnsFine</Input>
-      <Input class="DataObjects" type="DataSet">solnsRestart</Input>
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Input class="DataObjects" type="PointSet">solnsFine</Input>
+      <Input class="DataObjects" type="PointSet">solnsRestart</Input>
       <Output class="OutStreams" type="Print">coarse</Output>
       <Output class="OutStreams" type="Print">fine</Output>
       <Output class="OutStreams" type="Print">restart</Output>
@@ -85,7 +85,7 @@
       <variable name="x2">
         <distribution>u2</distribution>
       </variable>
-      <Restart class="DataObjects" type="DataSet">solns</Restart>
+      <Restart class="DataObjects" type="PointSet">solns</Restart>
     </MonteCarlo>
     <MonteCarlo name="fine">
       <samplerInit>
@@ -112,22 +112,22 @@
   </Models>
 
   <DataObjects>
-    <DataSet name="dummyIN">
+    <PointSet name="dummyIN">
       <Input>x1,x2</Input>
       <Output>OutputPlaceHolder</Output>
-    </DataSet>
-    <DataSet name="solns">
+    </PointSet>
+    <PointSet name="solns">
       <Input>x1,x2</Input>
       <Output>ans</Output>
-    </DataSet>
-    <DataSet name="solnsFine">
+    </PointSet>
+    <PointSet name="solnsFine">
       <Input>x1,x2</Input>
       <Output>ans</Output>
-    </DataSet>
-    <DataSet name="solnsRestart">
+    </PointSet>
+    <PointSet name="solnsRestart">
       <Input>x1,x2</Input>
       <Output>ans</Output>
-    </DataSet>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>
@@ -142,7 +142,7 @@
     <Print name="restart">
       <type>csv</type>
       <source>solnsRestart</source>
-      <what>x1,x2,ans</what>
+      <!--what>x1,x2,ans</what-->
     </Print>
   </OutStreams>
 

@@ -25,7 +25,9 @@ from __future__ import absolute_import
 # These lines ensure that we do not have to do something like:
 # 'from DataObjects.Data import Data' outside of this submodule
 from .Data import Data, NotConsistentData, ConstructError
-from .PointSet import PointSet
+#from .PointSet import PointSet # TODO MASKING
+from .XrDataObject import DataSet as PointSet
+from .XrDataObject import DataObject
 from .HistorySet import HistorySet
 
 from .Factory import knownTypes

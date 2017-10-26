@@ -27,7 +27,7 @@ if not 'xrange' in dir(__builtins__):
 ################################################################################
 from utils import utils
 from DataObjects.Data import Data
-from DataObjects.PointSet import PointSet
+#from DataObjects.PointSet import PointSet
 from DataObjects.HistorySet import HistorySet
 from DataObjects.XrDataObject import DataSet
 ## [ Add new class here ]
@@ -46,8 +46,10 @@ __interFaceDict = {}
 
 for classObj in utils.getAllSubclasses(eval(__base)):
   __interFaceDict[classObj.__name__] = classObj
-# TODO hack add-on
+# TODO hack add-on, because XrDataObject defines new basic data object
 __interFaceDict['DataSet'] = DataSet
+# TODO hijacked pointset
+__interFaceDict['PointSet'] = DataSet
 
 def knownTypes():
   """

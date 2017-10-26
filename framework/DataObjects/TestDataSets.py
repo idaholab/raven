@@ -388,6 +388,8 @@ checkTrue('Wrote to netcdf',os.path.isfile(netname))
 # read fresh from netCDF
 dataNET = XrDataObject.DataSet()
 dataNET.load(netname,style='netcdf')
+# remove files, for cleanliness (comment out to debug)
+os.remove(netname) # if this is a problem because of lazy loading, force dataNET to load completely
 # to CSV #TODO
 
 

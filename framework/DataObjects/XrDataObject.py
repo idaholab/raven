@@ -6,10 +6,9 @@ import abc
 import numpy as np
 import pandas as pd
 import xarray as xr
-from netCDF4 import Dataset as ncDS
 
 from BaseClasses import BaseType
-from utils import utils, cached_ndarray, InputData, mathUtils
+from utils import utils, cached_ndarray, InputData, xmlUtils
 
 # for profiling with kernprof
 try:
@@ -57,18 +56,19 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     BaseType.__init__(self)
-    self._inputs     = []     # list(str) if input variables
-    self._outputs    = []     # list(str) of output variables
-    self._metavars   = []     # list(str) of POINTWISE metadata variables
-    self._allvars    = []     # list(str) of vars IN ORDER of their index
+    self._inputs   = []     # list(str) if input variables
+    self._outputs  = []     # list(str) of output variables
+    self._metavars = []     # list(str) of POINTWISE metadata variables
+    self._allvars  = []     # list(str) of vars IN ORDER of their index
 
-    self._data       = None   # underlying data structure
-    self._collector  = None   # object used to collect samples
-    self._heirarchal = False  # if True, non-traditional format (not yet implemented)
+    self._data        = None   # underlying data structure
+    self._collector   = None   # object used to collect samples
+    self._collectMeta = {}     # dictionary to collect meta until data is collapsed
+    self._heirarchal  = False  # if True, non-traditional format (not yet implemented)
 
-    self.name        = 'BaseDataObject'
-    self.printTag    = self.name
-    self.sampleTag   = 'RAVEN_sample_ID' # column name to track samples
+    self.name      = 'BaseDataObject'
+    self.printTag  = self.name
+    self.sampleTag = 'RAVEN_sample_ID' # column name to track samples
 
   def _readMoreXML(self,xmlNode):
     """
@@ -104,8 +104,30 @@ class DataSet(DataObject):
 
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
-  def addMeta():
-    raise NotImplementedError
+  def addMeta(self,**kwargs):
+    """
+      Adds general (not pointwise) metadata to this data object.  If _data is None, collects it locally
+      until conversion.  Otherwise, directly updates _data attributes.
+      @ In, kwargs, dict, {xpath:value} pairs to add to metadata.  "value" should be string-like
+      @ Out, None
+    """
+    if self._data is None:
+      destination = self._collectMeta
+    else:
+      destination = self._data.attrs
+    for key,val in kwargs.items():
+      # TODO check valid xpath for key?
+      assert(isinstance(val,(str,unicode))) # FIXME convert through repr instead?
+      if key in destination.keys():
+        # if the same entry is already there, don't replace it
+        if val == destination[key]:
+          continue
+        else:
+          self.raiseAWarning('Multiple general metadata have the same key:',key)
+          # multiple entries is probably bad, but we can accomodate
+          destination[key] += ','+val
+      else:
+        destination[key] = val
 
   def addRealization(self,rlz):
     """
@@ -185,13 +207,18 @@ class DataSet(DataObject):
         arrs[var].rename(var)
       # collect all data into dataset, and update self._data
       new = xr.Dataset(arrs)
-      # TODO general metadata
       if self._data is None:
         self._data = new
-        self._data.attrs['sampleTag'] = self.sampleTag
+        # general metadata included if first time
+        self._data.attrs.update(self._collectMeta)
+        # clear meta collector
+        self._collectMeta = {}
+        # store sample tag
+        self.addMeta(sampleTag=self.sampleTag)
       else:
         # TODO compatability check!
         self._data.merge(new,inplace=True)
+      # reset collector
       self._collector = cached_ndarray.cNDarray(width=self._collector.width,dtype=self._collector.values.dtype)
     return self._data
 
@@ -229,7 +256,8 @@ class DataSet(DataObject):
           # TODO if still collecting, an option to NOT freeze
           meta[var] = self.asDataset()[var]#[self._allvars.index(var),:]
     if general:
-      pass # TODO implement general meta
+      if keys is None and attrib:
+        return self._data.
     # TODO error on missing matches
     # TODO if only one variable requested, return values directly
     #if len(meta) == 1:
@@ -469,6 +497,9 @@ class DataSet(DataObject):
     """
     return self._allvars.index(var)
 
+  def _fromCSV(self,fname,**kwargs):
+    raise NotImplementedError
+
   def _fromNetCDF(self,fname, **kwargs):
     """
       Reads this data object from file that is netCDF.  If not netCDF4, this could be slow.
@@ -483,6 +514,37 @@ class DataSet(DataObject):
     assert(self._data is None)
     assert(self._collector is None)
     self._data = xr.open_dataset(fname)
+
+  def _toCSV(self,fname,**kwargs):
+    """
+      Writes this data object to CSV/XML coupled files
+      @ In, fname, str, path/name to write file
+      @ In, kwargs, dict, optional, keywords to pass to CSV writing (as per pandas.DataFrame.to_csv)
+      @ Out, None
+    """
+    # TODO only working for point sets
+    self.asDataset()
+    filenameLocal = options.get('filenameroot','_dump')
+    data = self._data
+    if 'what' in options.keys():
+      keep = list(v.split('|')[-1].strip() for v in options['what'].split(','))
+    else:
+      # BY DEFAULT only keep inputs, outputs; if specifically requested, keep metadata by selection
+      keep = self._inputs + self._outputs
+    for var in self._allvars:
+      if var not in keep:
+        data = data.drop(var)
+    self.raiseADebug('Printing to CSV: "{}"'.format(filenameLocal))
+    data = data.to_dataframe()
+    if self.sampleTag not in keep:
+      data.to_csv(filenameLocal+'.csv',index=False)
+    else:
+      data.to_csv(filenameLocal+'.csv')
+    # general XML
+    tree = xmlUtils.newTree('Metadata')
+    root = tree.getroot()
+    for attrib,val in self.getMeta(general=True).items():
+      path = attrib.split('/')
 
   def _toNetCDF(self,fname,**kwargs):
     """
@@ -581,7 +643,8 @@ class DataSet(DataObject):
     self.deprecated('updateMetadata')
     # global
     if name in ['SamplerType','crowDist']:
-      pass # TODO
+      kwargs = {name:value}
+      self.addMeta(**kwargs)
     # pointwise
     elif name in ['ProbabilityWeight','prefix']: #TODO only add prefix if it's needed, don't default
       try:
@@ -681,20 +744,23 @@ class DataSet(DataObject):
     self.deprecated('printCSV')
     if options is None:
       options = {}
-    # TODO only working for history sets
-    self.asDataset()
-    filenameLocal = options.get('filenameroot','_dump')
-    data = self._data#.drop(self.sampleTag)
-    if 'what' in options.keys():
-      keep = list(v.split('|')[-1].strip() for v in options['what'].split(','))
+    self.toCSV
+
+  def loadXMLandCSV(self,fpath,options):
+    """
+      Function to load the xml additional file of the csv for data
+      @ In, fpath, str, file name root
+      @ In, options, dict, dictionary with loading options
+      @ Out, None
+    """
+    self.deprecated('loadXMLandCSV')
+    if options is not None and 'fileToLoad' in options.keys():
+      name = os.path.join(options['fileToLoad'].getPath(),options['fileToLoad'].getBase())
     else:
-      keep = self._allvars + [self.sampleTag]
-    for var in self._allvars:
-      if var not in keep:
-        data = data.drop(var)
-    self.raiseADebug('Printing to CSV: "{}"'.format(filenameLocal))
-    data = data.to_dataframe()
-    if self.sampleTag not in keep:
-      data.to_csv(filenameLocal+'.csv',index=False)
-    else:
-      data.to_csv(filenameLocal+'.csv')
+      name = self.name
+    fname = os.path.join(fpath,name)
+
+    print('fname:',fname)
+    data = pd.read_csv(fname+'.csv')
+    print(data)
+    import sys;sys.exit()
