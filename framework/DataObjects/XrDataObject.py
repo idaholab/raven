@@ -341,7 +341,11 @@ class DataSet(DataObject):
     """
     if style.lower() == 'netcdf':
       self._toNetCDF(fname,**kwargs)
-    # TODO CSV in its variety
+    elif style.lower() == 'csv':
+      #first write the CSV
+      self._toCSV(fname,**kwargs)
+      # then the metaxml
+      self._toCSVXML(fname,**kwargs)
     # TODO dask?
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized write style: "{}"'.format(style))
@@ -517,7 +521,7 @@ class DataSet(DataObject):
 
   def _toCSV(self,fname,**kwargs):
     """
-      Writes this data object to CSV/XML coupled files
+      Writes this data object to CSV file (except the general metadata, see _toCSVXML)
       @ In, fname, str, path/name to write file
       @ In, kwargs, dict, optional, keywords to pass to CSV writing (as per pandas.DataFrame.to_csv)
       @ Out, None
@@ -540,11 +544,20 @@ class DataSet(DataObject):
       data.to_csv(filenameLocal+'.csv',index=False)
     else:
       data.to_csv(filenameLocal+'.csv')
+
+  def _toCSVXML(self,fname,**kwargs):
+    """
+      Writes the general metadata of this data object to XML file
+      @ In, fname, str, path/name to write file
+      @ In, kwargs, dict, optional, keywords to pass to XML writing
+      @ Out, None
+    """
     # general XML
     tree = xmlUtils.newTree('Metadata')
     root = tree.getroot()
-    for attrib,val in self.getMeta(general=True).items():
-      path = attrib.split('/')
+    # make paths that don't exist ... how?
+    #for attrib,val in self.getMeta(general=True).items():
+    #  path = attrib.split('/')
 
   def _toNetCDF(self,fname,**kwargs):
     """
