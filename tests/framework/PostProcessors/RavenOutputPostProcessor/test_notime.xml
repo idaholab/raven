@@ -108,12 +108,12 @@
   <Models>
     <PostProcessor name="ravenout" subType="RavenOutput">
       <File ID="1" name="first">
-        <output name="mean">ans|expectedValue</output>
-        <output name="variance">ans|variance</output>
+        <output name="mean">ans/expectedValue</output>
+        <output name="variance">ans/variance</output>
       </File>
       <File ID="2" name="second">
-        <output name="mean">ans|mean</output>
-        <output name="variance">ans|variance</output>
+        <output name="mean">ans/mean</output>
+        <output name="variance">ans/variance</output>
       </File>
     </PostProcessor>
     <PostProcessor name="stats" subType="BasicStatistics">

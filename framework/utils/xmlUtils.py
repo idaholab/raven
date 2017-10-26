@@ -113,7 +113,7 @@ def prettify(tree,doc=False,docLevel=0,startingTabs=0,addRavenNewlines=True):
   #    toWrite+='\n'
   return toWrite
 
-def newNode(tag,text='',attrib={}):
+def newNode(tag,text='',attrib=None):
   """
     Creates a new node with the desired tag, text, and attributes more simply than can be done natively.
     @ In, tag, string, the name of the node
@@ -121,6 +121,8 @@ def newNode(tag,text='',attrib={}):
     @ In, attrib, dict{string:string}, attribute:value pairs
     @ Out, el, xml.etree.ElementTree.Element, new node
   """
+  if attrib is None:
+    attrib = {}
   tag = fixXmlTag(tag)
   text = str(text)
   cleanAttrib = {}
@@ -131,36 +133,100 @@ def newNode(tag,text='',attrib={}):
   el.text = fixXmlText(text)
   return el
 
-def newTree(name,attrib={}):
+def newTree(name,attrib=None):
   """
     Creates a new tree with named node as its root
     @ In, name, string, name of root node
     @ In, attrib, dict, optional, attributes for root node
     @ Out, tree, xml.etree.ElementTree.ElementTree, tree
   """
+  if attrib is None:
+    attrib = {}
   name = fixXmlTag(name)
   tree = ET.ElementTree(element=newNode(name))
   tree.getroot().attrib = dict(attrib)
   return tree
 
+def fixTagsInXpath(_path):
+  """
+    Fixes tags/attributes/text in an xpath string to use allowable characters
+    @ In, _path, str, xpath string
+    @ Out, out, str, modified string
+  """
+  # XPATH OPTIONS:
+  # tag wildcards: * . // ..
+  # modifiers
+  #  [@attrib]
+  #  [@attrib='value']
+  #  [tag]
+  #  [tag='text']
+  #  [position]  --> same as [tag] for this purpose
+  wildcards = ['*','.','//','..']
+  path = _path[:]
+  found = path.split('/')
+  toRemove = []
+  for i,f in enumerate(found):
+    # modifier?
+    if '[' in f:
+      tag,mod = f.split('[')
+      mod = mod.rstrip(' ]')
+      #find out what type "mod" is
+      if mod.startswith('@'):
+        #dealing with attributes
+        if '=' in mod:
+          # have an attribute and a value
+          attrib,val = mod.split('=')
+          attrib = fixXmlText(attrib[1:])
+          val = fixXmlText(val.strip('\'"'))
+          mod = '[@'+attrib+"='"+val+"']"
+        else:
+          # just an attribute
+          attrib = fixXmlText(mod.strip('[@] '))
+          mod = '[@'+attrib+']'
+      # either tag, tag+text, or position
+      elif '=' in mod:
+        # tag and text
+        tagg,text = mod.split('=')
+        if tagg not in wildcards:
+          tagg = fixXmlTag(tagg.strip())
+        text = fixXmlText(text.strip('\'" '))
+        mod = '['+tagg+'=\''+text+'\']'
+      else:
+        # position or tag
+        try:
+          # position
+          int(mod)
+        except ValueError:
+          # tag
+          mod = fixXmlTag(mod)
+        mod = '['+mod+']'
+    # no mod, just a tag
+    else:
+      tag = f
+      mod = ''
+    # tag could be wildcard
+    if tag not in wildcards:
+      tag = fixXmlTag(tag.strip())
+    found[i] = tag+mod
+  #reconstruct path
+  out = '/'.join(found)
+  return out
+
 def findPath(root,path):
   """
     Navigates path to find a particular element
     @ In, root, xml.etree.ElementTree.Element, the node to start searching along
-    @ In, path, string, |-seperated xml path (as "Simulation|RunInfo|JobName")
-    @ Out, findPath, None or xml.etree.ElementTree.Element, None if not found or element if found
+    @ In, path, string, xpath syntax (see for example https://docs.python.org/2/library/xml.etree.elementtree.html#example)
+    @ Out, findPath, None or xml.etree.ElementTree.Element, None if not found or first matching element if found
   """
-  path = path.split("|")
-  if len(path)>1:
-    oneUp = findPath(root,'|'.join(path[:-1]))
-    if oneUp is not None:
-      toSearch = fixXmlTag(path[-1])
-      return oneUp.find(toSearch)
-    else:
-      return None
+  assert('|' not in path), 'Update XML search to use XPATH syntax!'
+  # edit tags for allowable characters
+  path = fixTagsInXpath(path)
+  found = root.findall(path)
+  if len(found) < 1:
+    return None
   else:
-    toSearch = fixXmlTag(path[-1])
-    return root.find(toSearch)
+    return found[0]
 
 def findPathEllipsesParents(root,path,docLevel=0):
   """
@@ -177,7 +243,6 @@ def findPathEllipsesParents(root,path,docLevel=0):
   curNode = newRoot
   path = path.split('|')[:-1]
   for e,entry in enumerate(path):
-    print('e,entry:',e,entry)
     text = ''
     if e < docLevel:
       text = '...'
@@ -186,8 +251,6 @@ def findPathEllipsesParents(root,path,docLevel=0):
     curNode = nNode
   curNode.append(foundNode)
   return newRoot
-
-
 
 def loadToTree(filename):
   """
