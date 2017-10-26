@@ -148,7 +148,12 @@ def newTree(name,attrib=None):
   return tree
 
 def fixTagsInXpath(_path):
-  # OPTIONS:
+  """
+    Fixes tags/attributes/text in an xpath string to use allowable characters
+    @ In, _path, str, xpath string
+    @ Out, out, str, modified string
+  """
+  # XPATH OPTIONS:
   # tag wildcards: * . // ..
   # modifiers
   #  [@attrib]
