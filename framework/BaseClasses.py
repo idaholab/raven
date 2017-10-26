@@ -65,9 +65,7 @@ class BaseType(MessageHandler.MessageUser):
     self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
     # TODO deprecation should be made accessible from the input file; for now it is hidden
     # however, it should not be removed, as it will be critical in rolling out dataobject transition
-    #self.deprecated       = self._deprecatedSilent                                      # function to call when a deprecation line is hit
-    self.deprecated       = self._deprecatedWarning                                     # function to call when a deprecation line is hit
-    #self.deprecated       = self._deprecatedError                                       # function to call when a deprecation line is hit
+    self.deprecatedAction  = 'warning'                                                   # action to take when a deprecation line is hit
     for baseClass in self.__class__.__mro__:
       self.mods.extend(utils.returnImportModuleString(inspect.getmodule(baseClass),True))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self),True))
@@ -259,29 +257,22 @@ class BaseType(MessageHandler.MessageUser):
     for key in tempDict.keys():
       self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
 
-  def _deprecatedSilent(self,*args):
-    pass
-
-  def _deprecatedWarning(self,comment=None):
+  def deprecated(self,comment=None):
     """
-      Raise a warning when deprecated methods are used.  Deprecate methods by calling self.deprecated() at the
-      top of the method.
-      @ In, comment, str, additional information to print
+      Used to note deprecated methods when used.  Deprecate methods by calling self.deprecated() at the
+      top of the method.  Action to take is changed by modifying "self.deprecatedAction"
+      @ In, comment, str, additional information to print (often the method name)
       @ Out, None
     """
+    # if silent, nothing more
+    if self.deprecatedAction == 'silent':
+      return
+    # prepare message
     msg = 'Using DEPRECATED methods in "{}"!'.format(self.printTag)
     if comment is not None:
       msg += ' "{}"'.format(comment)
-    self.raiseAWarning(msg)
-
-  def _deprecatedError(self,comment=None):
-    """
-      Raise an error when deprecated methods are used.  Deprecate methods by calling self.deprecated() at the
-      top of the method.
-      @ In, comment, str, additional information to print
-      @ Out, None
-    """
-    msg = 'Using DEPRECATED methods in "{}"!'.format(self.printTag)
-    if comment is not None:
-      msg += ' "{}"'.format(comment)
-    self.raiseAnError(DeprecatedError,msg)
+    # take action
+    if self.deprecatedAction == 'error':
+      self.raiseAnError(DeprecatedError,msg)
+    else: # warning by default
+      self.raiseAWarning(msg)

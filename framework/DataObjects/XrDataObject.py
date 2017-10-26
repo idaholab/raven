@@ -258,11 +258,12 @@ class DataSet(DataObject):
     """
       Method to obtain a realization from the data, either by index or matching value.
       Either "index" or "matchDict" must be supplied.
+      If matchDict and no match is found, will return (len(self),None) after the pattern of numpy, scipy
       @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
       @ In, matchDict, dict, optional, {key:val} to search for matches
       @ In, readCollector, bool, if True then read out of collector instead of data
-      @ Out, index, int, optional, index where found (only returned if using matchDict not index)
-      @ Out, rlz, dict, realization requested (errors if not found)
+      @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
+      @ Out, rlz, dict, realization requested (None if not found)
     """
     # TODO convert input space to KD tree for faster searching
     # TODO option to read both collector and data for matches/indices
@@ -366,15 +367,12 @@ class DataSet(DataObject):
       @ In, None
       @ Out, size, int, number of samples
     """
-    # TODO update for collected/finalized structures
-    if type(self._data) == cached_ndarray.cNDarray:
-      return self._data.size
-    elif type(self._data) == xr.Dataset:
-      return len(self._data[self.sampleTag])
-    elif self._data is None:
-      return 0
-    else:
-      self.raiseAnError(TypeError,'DataObject member "_data" is not a recognized type:',type(self._data))
+    s = 0 # counter for size
+    # from collector
+    s += self._collector.size if self._collector is not None else 0
+    # from data
+    s += len(self._data[self.sampleTag]) if self._data is not None else 0
+    return s
 
   ### INTERNAL USE FUNCTIONS ###
   def _convertFinalizedDataRealizationToDict(self,rlz):

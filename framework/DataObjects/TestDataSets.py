@@ -298,7 +298,9 @@ checkRlz('Dataset append 1 idx 2',data.realization(index=2,readCollector=True),r
 m,match = data.realization(matchDict={'a':11.0},readCollector=True)
 checkSame('Dataset append 1 match index',m,1)
 checkRlz('Dataset append 1 match',match,rlz1)
-checkFails('DataSet find bogus match','No matching value found!',data.realization,kwargs={'matchDict':{'x':0.0},'readCollector':True})
+idx,rlz = data.realization(matchDict={'x':1.0},readCollector=True)
+checkSame('Dataset find bogus match index',idx,3)
+checkNone('Dataset find bogus match',rlz)
 # TODO more checks on reading collector, writing to file, etc
 
 ######################################
