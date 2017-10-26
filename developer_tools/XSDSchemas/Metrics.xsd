@@ -6,9 +6,15 @@
             <xsd:element name="Minkowski"  type="MinkowskiMetrics"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="DTW"        type="DtwMetrics"         minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="SKL"        type="SKLMetrics"         minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="CDFAreaDifference" type="EmptyMetricType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="PDFCommonArea" type="EmptyMetricType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:choice>
     </xsd:complexType>
-    
+
+    <xsd:complexType name="EmptyMetricType">
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
     <xsd:complexType name="MinkowskiMetrics">
         <xsd:all>
             <xsd:element name="p"                type="xsd:float"     minOccurs="1"/>
@@ -35,6 +41,7 @@
             <xsd:element name="dense_output"      type="xsd:string"    minOccurs="0"/>
             <xsd:element name="sum_over_features" type="xsd:string"    minOccurs="0"/>
             <xsd:element name="size_threshold"    type="xsd:float"     minOccurs="0"/>
+            <xsd:element name="sample_weight"     type="xsd:string"    minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>

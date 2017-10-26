@@ -22,6 +22,7 @@ Currently, the following types are available in RAVEN:
   \item \textbf{RavenOutput}
   \item \textbf{DataMining}
   \item \textbf{Metric}
+  \item \textbf{CrossValidation}
   %\item \textbf{PrintCSV}
   %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
@@ -305,7 +306,7 @@ and counts the numbers of data points in each bin.  From the numbers
 in each bin, it creates a cdf function numerically, and from the cdf
 takes the derivative to generate a pdf.  It also calculates statistics
 of the data such as mean and standard deviation. The post-processor
-can generate either a CSV file or a PointSet.
+can generate a CSV file only.
 
 The post-processor uses the generated pdf and cdf function to
 calculate various statistics.  The first is the cdf area difference which is:
@@ -1639,9 +1640,9 @@ The resulting PointSet has \emph{time} as an input and \emph{first} as an output
 \subsubsection{Metric}
 \label{MetricPP}
 The \textbf{Metric} post-processor is specifically used to calculate the distance values among points and histories,
-while the \textbf{Metrics} block allows the user to specify the similarity/dissimilarity metrics to be used in this
+while the \textbf{Metrics} block (See Chapter \ref{sec:Metrics}) allows the user to specify the similarity/dissimilarity metrics to be used in this
 post-processor. It is important to notice that this post-processor currently can only accept \textbf{PointSet} data
-object.
+object and does not accept \textbf{HistorySet} data.  If the name of the variable is unique, it can be used, otherwise the variable can be specified with DataObjectName|InputOrOutput|variablename like other places in RAVEN.  Some of the Metrics also accept distributions to calculate the distance against.  These are specified by using the name of the distribution.
 %
 \ppType{Metric}{Metric}
 %
@@ -1722,18 +1723,25 @@ only accept \textbf{PointSet} data object.
       \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this metric (e.g. Metrics)
       \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Metric (e.g. SKL, Minkowski)
     \end{itemize}
+    \nb Currently, cross-validation post-processor only accepts \xmlNode{SKL} metrics with \xmlNode{metricType}
+    \xmlString{mean\_absolute\_error}, \xmlString{explained\_variance\_score}, \xmlString{r2\_score},
+    \xmlString{mean\_squared\_error}, and \xmlString{median\_absolute\_error}.
 \end{itemize}
 
 \paragraph{SciKitLearn}
 
 The algorithm for cross-validation is chosen by the subnode \xmlNode{SKLtype} under the parent node \xmlNode{SciKitLearn}.
+In addition, a special subnode \xmlNode{average} can be used to obtain the average cross validation results.
 
 \begin{itemize}
   \item \xmlNode{SKLtype}, \xmlDesc{string, required field}, contains a string that
     represents the cross-validation algorithm to be used. As mentioned, its format is:
     
     \xmlNode{SKLtype}algorithm\xmlNode{/SKLtype}.
+  \item \xmlNode{average}, \xmlDesc{boolean, optional field}, if `True`, dump the average cross validation results into the
+    output files.
 \end{itemize}
+
 
 Based on the \xmlNode{SKLtype} several different algorithms are available. In the following paragraphs a brief
 explanation and the input requirements are reported for each of them.
@@ -1746,7 +1754,6 @@ In order to use this algorithm, the user needs to set the subnode:
 \xmlNode{SKLtype}KFold\xmlNode{/SKLtype}.
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{n}, \xmlDesc{integer, required field}, total number of elements
   \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3} 
   \item \xmlNode{shuffle}, \xmlDesc{boolean, optional field}, whether to shuffle the data before splitting into
     batches.
@@ -1795,11 +1802,6 @@ In order to use this algorithm, the user needs to set the subnode:
 
 \xmlNode{SKLtype}LeaveOneOut\xmlNode{/SKLtype}.
 
-In addition to this XML node, several others are available:
-\begin{itemize}
-  \item \xmlNode{n}, \xmlDesc{integer, required field}, total number of elements in dataset.
-\end{itemize}
-
 \paragraph{Leave-P-Out - LPO}
 \textbf{LeavePOut} is very similar to \textbf{LeaveOneOut} as it creates all the possible training/test sets by removing
 $p$ samples from the complete set. For $n$ samples, this produces $(^n_p)$ train-test pairs. Unlike \textbf{LeaveOneOut}
@@ -1810,7 +1812,6 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{n}, \xmlDesc{integer, required field}, total number of elements in dataset.
   \item \xmlNode{p}, \xmlDesc{integer, required field}, size of the test sets
 \end{itemize}
 
@@ -1853,7 +1854,6 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{n}, \xmlDesc{integer, required field}, total number of elements in dataset.
   \item \xmlNode{n\_iter}, \xmlDesc{integer, optional field}, number of re-shuffling and splitting iterations
     \default{10}.
   \item \xmlNode{test\_size}, \xmlDesc{float, integer or None}, if float, should be between 0.0 and 1.0 and 
@@ -1911,18 +1911,17 @@ In addition to this XML node, several others are available:
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
             <SKLtype>KFold</SKLtype>
-            <n>10</n>
             <n_splits>3</n_splits>
             <shuffle>False</shuffle>
             <random_state>None</random_state>
         </SciKitLearn>
-        <Metric class="Metrics" type="SKL">euclidean</Metric>
+        <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
     ...
   </Models>
   <Metrics>
-    <SKL name="euclidean">
-      <metricType>euclidean</metricType>
+    <SKL name="m1">
+      <metricType>mean_absolute_error</metricType>
     </SKL>
   </Metrics>
   <Steps>

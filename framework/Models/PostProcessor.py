@@ -66,6 +66,12 @@ class PostProcessor(Model):
     cls.validateDict['Input'  ][4]['type'        ] = ['ROM']
     cls.validateDict['Input'  ][4]['required'    ] = False
     cls.validateDict['Input'  ][4]['multiplicity'] = 'n'
+    #Some metrics can handle distributions
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    cls.validateDict['Input'  ][5]['class'       ] = 'Distributions'
+    cls.validateDict['Input'  ][5]['type'        ] = ['']
+    cls.validateDict['Input'  ][5]['required'    ] = False
+    cls.validateDict['Input'  ][5]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][0]['class'       ] = 'Files'
     cls.validateDict['Output' ][0]['type'        ] = ['']

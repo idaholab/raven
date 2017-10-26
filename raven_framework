@@ -11,5 +11,78 @@ SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
 source $SCRIPT_DIR/scripts/setup_raven_libs
 
-python $SCRIPT_DIR/framework/Driver.py "$@"
+# set up run keywords
+# "ARGS" stores command line arguments not treated in this file (passed through)
+declare -a ARGS
+# by default run in "opt" mode
+MODE='opt'
+# loop through arguments and look for those that are handled before Python is called
+for var in "$@"; do
+  if [ "$var" = '-D' ]; then
+    # run in development mode (assertions not stripped)
+    MODE='dev'
+    continue
+  elif [ "$var" = 'help' ]; then
+    # display "help" print
+    MODE='help'
+    continue
+  fi
+  # otherwise, pass through arguments
+  ARGS[${#ARGS[@]}]="$var"
+done
+
+# if there's no file to run after parsing arguments, run "help" after warning of the problem.
+if [ ${#ARGS[@]} -eq 0 ]; then
+  echo ''
+  echo 'ERROR: No input file specified! See options below.'
+  MODE='help'
+fi
+
+# run Driver.py based on the mode chosen
+case $MODE in
+  'opt' )
+    echo 'Running RAVEN in "opt" mode.'
+    python -O $SCRIPT_DIR/framework/Driver.py "$ARGS"
+    ;;
+  'dev' )
+    echo 'Running RAVEN in "dev" mode.'
+    python $SCRIPT_DIR/framework/Driver.py "$ARGS"
+    ;;
+  'help' )
+    echo ''
+    echo '  ------------------------------------------'
+    echo '  Default usage:'
+    echo '    raven_framework filename.xml'
+    echo ''
+    echo '  Description:'
+    echo '      This will run RAVEN in "opt" mode using "filename.xml" as the input.  This should be'
+    echo '      sufficient for the majority of RAVEN calculations.  For more options, see below.'
+    echo '  ------------------------------------------'
+    echo ''
+    echo '  Advanced usage:'
+    echo '    raven_framework [-D][interfaceCheck][interactive][interactiveCheck] filename'
+    echo ''
+    echo '  Description:'
+    echo '    Runs RAVEN using the input file given by "filename".'
+    echo ''
+    echo '  Options:'
+    echo '    -D'
+    echo '      Development mode.  Turns Python "assert" statements on.'
+    echo ''
+    echo '    help'
+    echo '      Shows this description and exits.'
+    echo ''
+    echo '    interfaceCheck'
+    echo '      Do not attempt to run the model executable, but read from existing output files.'
+    echo ''
+    echo '    interactive'
+    echo '      Run RAVEN in GUI mode if possible.'
+    echo ''
+    echo '    interactiveCheck'
+    echo '      Run tests on interactive GUI.'
+    echo ''
+    ;;
+  *)
+    echo 'Unrecognized MODE "'${MODE}'" in raven_framework! Exiting ...'
+esac
 

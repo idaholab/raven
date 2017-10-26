@@ -33,18 +33,18 @@
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
+            <scores>maximum, median, average</scores>
             <SKLtype>LeavePOut</SKLtype>
-            <n>10</n>
             <p>2</p>
         </SciKitLearn>
-        <Metric class="Metrics" type="SKL">euclidean</Metric>
+        <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
   </Models>
   
   <Metrics>
-    <SKL name="euclidean">
-      <metricType>euclidean</metricType>
-    </SKL>
+      <SKL name="m1">
+          <metricType>mean_absolute_error</metricType>
+      </SKL>
   </Metrics>
 
   <Distributions>
