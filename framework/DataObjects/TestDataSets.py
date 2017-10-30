@@ -203,10 +203,11 @@ def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
   if update:
     if res:
       results["pass"] += 1
+      print(' ... end Error testing (PASSED)')
     else:
       print("checking error",comment,'|',msg)
       results["fail"] += 1
-  print(' ... end Error testing')
+      print(' ... end Error testing (FAILED)')
   print('')
   return res
 
@@ -379,22 +380,143 @@ checkArray('Dataset first collapse "prefix"',data._data['prefix'].values,['first
 
 
 ######################################
+#         GENERAL META DATA          #
+######################################
+# add scalar metadata
+data.addMeta('TestPP',{'firstVar':{'scalarMetric1':10.0,
+                                   'scalarMetric2':'20',
+                                   'vectorMetric':{'a':1,'b':'2','c':u'3','d':4.0}
+                                   },
+                       'secondVar':{'scalarMetric1':100.}
+                      })
+# directly test contents, without using API
+checkSame('Metadata top level entries',len(data._meta),2)
+treePP = data._meta['TestPP'].tree.getroot()
+checkSame('Metadata TestPP',treePP.tag,'TestPP')
+first,second = (c for c in treePP) # TODO always same order?
+
+checkSame('Metadata TestPP/firstVar tag',first.tag,'firstVar')
+sm1,vm,sm2 = (c for c in first) # TODO always same order?
+checkSame('Metadata TestPP/firstVar/scalarMetric1 tag',sm1.tag,'scalarMetric1')
+checkSame('Metadata TestPP/firstVar/scalarMetric1 value',sm1.text,'10.0')
+checkSame('Metadata TestPP/firstVar/scalarMetric2 tag',sm2.tag,'scalarMetric2')
+checkSame('Metadata TestPP/firstVar/scalarMetric2 value',sm2.text,'20')
+checkSame('Metadata TestPP/firstVar/vectorMetric tag',vm.tag,'vectorMetric')
+for child in vm:
+  if child.tag == 'a':
+    checkSame('Metadata TestPP/firstVar/vectorMetric/a value',child.text,'1')
+  elif child.tag == 'b':
+    checkSame('Metadata TestPP/firstVar/vectorMetric/b value',child.text,'2')
+  elif child.tag == 'c':
+    checkSame('Metadata TestPP/firstVar/vectorMetric/c value',child.text,'3')
+  elif child.tag == 'd':
+    checkSame('Metadata TestPP/firstVar/vectorMetric/d value',child.text,'4.0')
+  else:
+    checkTrue('Unexpected node in TestPP/firstVar/vectorMetric nodes: '+child.text,False)
+
+checkSame('Metadata TestPP/secondVar tag',second.tag,'secondVar')
+checkSame('Metadata TestPP/secondVar entries',len(second),1)
+child = second[0]
+checkSame('Metadata TestPP/secondVar/scalarMetric1 tag',child.tag,'scalarMetric1')
+checkSame('Metadata TestPP/secondVar/scalarMetric1 value',child.text,'100.0')
+
+treeDS = data._meta['DataSet'].tree.getroot()
+checkSame('Metadata DataSet',treeDS.tag,'DataSet')
+checkSame('Metadata DataSet entries',len(treeDS),2)
+dims,general = treeDS[:]
+checkSame('Metadata DataSet/dims tag',dims.tag,'dims')
+checkSame('Metadata DataSet/dims entries',len(dims),2)
+y,c = dims[:]
+checkSame('Metadata DataSet/dims/y tag',y.tag,'y')
+checkSame('Metadata DataSet/dims/y value',y.text,'time')
+checkSame('Metadata DataSet/dims/c tag',c.tag,'c')
+checkSame('Metadata DataSet/dims/c value',c.text,'time')
+checkSame('Metadata DataSet/general tag',general.tag,'general')
+checkSame('Metadata DataSet/general entries',len(general),4)
+inputs,pointwise_meta,outputs,sampleTag = general[:]
+checkSame('Metadata DataSet/general/inputs tag',inputs.tag,'inputs')
+checkSame('Metadata DataSet/general/inputs value',inputs.text,'a,b,c')
+checkSame('Metadata DataSet/general/outputs tag',outputs.tag,'outputs')
+checkSame('Metadata DataSet/general/outputs value',outputs.text,'x,y,z')
+checkSame('Metadata DataSet/general/pointwise_meta tag',pointwise_meta.tag,'pointwise_meta')
+checkSame('Metadata DataSet/general/pointwise_meta value',pointwise_meta.text,'prefix')
+checkSame('Metadata DataSet/general/sampleTag tag',sampleTag.tag,'sampleTag')
+checkSame('Metadata DataSet/general/sampleTag value',sampleTag.text,'RAVEN_sample_ID')
+
+# use getters to access contents (using API)
+meta = data.getMeta(pointwise=True,general=True)
+checkArray('Metadata get keys',sorted(meta.keys()),['DataSet','TestPP','prefix'],str)
+# fail to find pointwise in general
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'prefix\'])',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
+# fail to find general in pointwise
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'DataSet\'])',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
+# TODO more value testing, easier "getting" of specific values
+
+
+######################################
 #        READ/WRITE FROM FILE        #
 ######################################
 # to netCDF
 netname = 'DataSetUnitTest.nc'
 data.write(netname,style='netcdf',format='NETCDF4') # WARNING this will fail if netCDF4 not installed
 checkTrue('Wrote to netcdf',os.path.isfile(netname))
-# read fresh from netCDF
+## read fresh from netCDF
 dataNET = XrDataObject.DataSet()
 dataNET.load(netname,style='netcdf')
-# remove files, for cleanliness (comment out to debug)
+## remove files, for cleanliness (comment out to debug)
 os.remove(netname) # if this is a problem because of lazy loading, force dataNET to load completely
-# to CSV #TODO
+
+# to CSV
+## test writing to file
+data.write('tester',style='CSV')
+## test metadata written
+correct = ['<DataObjectMetadata name=DataSet>',
+'  <TestPP type="Static">',
+'    <firstVar>',
+'      <scalarMetric1>10.0</scalarMetric1>',
+'      <vectorMetric>',
+'        <a>1</a>',
+'        <c>3</c>',
+'        <b>2</b>',
+'        <d>4.0</d>',
+'      </vectorMetric>',
+'      <scalarMetric2>20</scalarMetric2>',
+'    </firstVar>',
+'    <secondVar>',
+'      <scalarMetric1>100.0</scalarMetric1>',
+'    </secondVar>',
+'  </TestPP>',
+'  ',
+'  <DataSet type="Static">',
+'    <dims>',
+'      <y>time</y>',
+'      <c>time</c>',
+'    </dims>',
+'    <general>',
+'      <inputs>a,b,c</inputs>',
+'      <pointwise_meta>prefix</pointwise_meta>',
+'      <outputs>x,y,z</outputs>',
+'      <sampleTag>RAVEN_sample_ID</sampleTag>',
+'    </general>',
+'  </DataSet>',
+'  ',
+'</DataObjectMetadata>']
+# read in XML
+lines = file('tester.xml','r').readlines()
+# remove line endings
+for l,line in enumerate(lines):
+  lines[l] = line.rstrip(os.linesep).rstrip('\n')
+# check
+checkArray('CSV XML',lines,correct,str)
+## try loading back in
+
+# clean up temp file
+#os.remove('tester.csv')
+#os.remove('tester.xml')
 
 
 ######################################
-#        ACCESS FROM JUST DATA       #
+#        ACCESS USING GETTERS        #
 ######################################
 # test contents of data in parallel
 # by index
@@ -407,6 +529,7 @@ checkRlz('Dataset full origin match',rlz,rlz2)
 idx,rlz = dataNET.realization(matchDict={'prefix':'third'})
 checkSame('Dataset full netcdf match idx',idx,2)
 checkRlz('Dataset full netCDF match',rlz,rlz2)
+
 
 # TODO more exhaustive tests are needed, but this is sufficient for initial work.
 

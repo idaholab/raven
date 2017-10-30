@@ -8,7 +8,8 @@ import pandas as pd
 import xarray as xr
 
 from BaseClasses import BaseType
-from utils import utils, cached_ndarray, InputData, xmlUtils
+from Files import StaticXMLOutput
+from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 
 # for profiling with kernprof
 try:
@@ -63,7 +64,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
     self._data        = None   # underlying data structure
     self._collector   = None   # object used to collect samples
-    self._collectMeta = {}     # dictionary to collect meta until data is collapsed
+    self._meta        = {}     # dictionary to collect meta until data is collapsed
     self._heirarchal  = False  # if True, non-traditional format (not yet implemented)
 
     self.name      = 'BaseDataObject'
@@ -104,30 +105,6 @@ class DataSet(DataObject):
 
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
-  def addMeta(self,**kwargs):
-    """
-      Adds general (not pointwise) metadata to this data object.  If _data is None, collects it locally
-      until conversion.  Otherwise, directly updates _data attributes.
-      @ In, kwargs, dict, {xpath:value} pairs to add to metadata.  "value" should be string-like
-      @ Out, None
-    """
-    if self._data is None:
-      destination = self._collectMeta
-    else:
-      destination = self._data.attrs
-    for key,val in kwargs.items():
-      # TODO check valid xpath for key?
-      assert(isinstance(val,(str,unicode))) # FIXME convert through repr instead?
-      if key in destination.keys():
-        # if the same entry is already there, don't replace it
-        if val == destination[key]:
-          continue
-        else:
-          self.raiseAWarning('Multiple general metadata have the same key:',key)
-          # multiple entries is probably bad, but we can accomodate
-          destination[key] += ','+val
-      else:
-        destination[key] = val
 
   def addRealization(self,rlz):
     """
@@ -142,8 +119,9 @@ class DataSet(DataObject):
     # if collector/data not yet started, expand entries that aren't I/O as metadata
     if self._data is None and self._collector is None:
       unrecognized = set(rlz.keys()).difference(set(self._allvars))
-      self._metavars = list(unrecognized)
-      self._allvars += self._metavars
+      if len(unrecognized) > 0:
+        self._metavars = list(unrecognized)
+        self._allvars += self._metavars
     # check and order data to be stored
     try:
       newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
@@ -210,11 +188,29 @@ class DataSet(DataObject):
       if self._data is None:
         self._data = new
         # general metadata included if first time
-        self._data.attrs.update(self._collectMeta)
-        # clear meta collector
-        self._collectMeta = {}
-        # store sample tag
-        self.addMeta(sampleTag=self.sampleTag)
+        self._data.attrs = self._meta # TODO reference hopefully? Check that it's a view not a copy
+        # determine dimensions for each variable
+        dimsMeta = {}
+        # TODO potentially slow loop
+        for var in self._inputs + self._outputs:
+          dims = list(new[var].dims)
+          # don't list if only entry is sampleTag
+          if dims == [self.sampleTag]:
+            continue
+          # even then, don't list sampleTag
+          try:
+            dims.remove(self.sampleTag)
+          except ValueError:
+            pass #not there, so didn't need to remove
+          dimsMeta[var] = ','.join(dims)
+        # store sample tag, IO information, coordinates
+        self.addMeta('DataSet',{'general':{'sampleTag':self.sampleTag,
+                                           'inputs':','.join(self._inputs),
+                                           'outputs':','.join(self._outputs),
+                                           'pointwise_meta':','.join(self._metavars),
+                                           },
+                                'dims':dimsMeta,
+                               })
       else:
         # TODO compatability check!
         self._data.merge(new,inplace=True)
@@ -243,27 +239,33 @@ class DataSet(DataObject):
   def getMeta(self,keys=None,pointwise=False,general=False):
     """
       Method to obtain entries in the metadata.  If niether pointwise nor general, then returns an empty dict.
-       @ In, keys, list(str), optional, the keys (or XPath) to search for.  If None, return all.
+       @ In, keys, list(str), optional, the keys (or main tag) to search for.  If None, return all.
        @ In, pointwise, bool, optional, if True then matches will be searched in the pointwise metadata
        @ In, general, bool, optional, if True then matches will be searched in the general metadata
        @ Out, meta, dict, key variables/xpaths to data object entries (column if pointwise, XML if general)
     """
+    # if keys is None, keys is all of them
+    if keys is None:
+      keys = []
+      if pointwise:
+        keys += self._metavars
+      if general:
+        keys += self._meta.keys()
+    gKeys = set([]) if not general else set(self._meta.keys()).intersection(set(keys))
+    pKeys = set([]) if not pointwise else set(self._metavars).intersection(set(keys))
+    # get any left overs
+    missing = set(keys).difference(gKeys.union(pKeys))
+    if len(missing)>0:
+      self.raiseAnError(KeyError,'Some requested keys could not be found in the requested metadata:',missing)
     meta = {}
     if pointwise:
       # TODO slow key crawl
       for var in self._metavars:
-        if keys is None or var in keys:
-          # TODO if still collecting, an option to NOT freeze
+        if var in pKeys:
+          # TODO if still collecting, an option to NOT call asDataset
           meta[var] = self.asDataset()[var]#[self._allvars.index(var),:]
     if general:
-      if keys is None and attrib:
-        return self._data.
-    # TODO error on missing matches
-    # TODO if only one variable requested, return values directly
-    #if len(meta) == 1:
-    #  return meta.values()
-    # otherwise, return dictionary
-    #else:
+      meta.update(dict((key,self._meta[key]) for key in gKeys))
     return meta
 
   def getOutputs():
@@ -280,7 +282,52 @@ class DataSet(DataObject):
     res = self._data[var]
     for dim in res.dims:
       res = res.dropna(dim)
-    return self._data[var]
+    return res
+
+  def addMeta(self,tag,xmlDict):
+    """
+      Adds general (not pointwise) metadata to this data object.  Can add several values at once, collected
+      as a dict keyed by target variables.
+      @ In, tag, str, section to add metadata to, usually the data submitter (BasicStatistics, DataObject, etc)
+      @ In, xmlDict, dict, data to change, of the form {target:{scalarMetric:value,scalarMetric:value,vectorMetric:{wrt:value,wrt:value}}}
+      @ Out, None
+    """
+    # Data ends up being written as follows (see docstrings above for dict structure)
+    #  - A good default for 'target' is 'general' if there's not a specific target
+    # <tag>
+    #   <target>
+    #     <scalarMetric>value</scalarMetric>
+    #     <scalarMetric>value</scalarMetric>
+    #     <vectorMetric>
+    #       <wrt>value</wrt>
+    #       <wrt>value</wrt>
+    #     </vectorMetric>
+    #   </target>
+    #   <target>
+    #     <scalarMetric>value</scalarMetric>
+    #     <vectorMetric>
+    #       <wrt>value</wrt>
+    #     </vectorMetric>
+    #   </target>
+    # </tag>
+    # TODO potentially slow if MANY top level tags
+    if tag not in self._meta.keys():
+      # TODO store elements as Files object XML, for now
+      new = StaticXMLOutput()
+      new.initialize(self.name,self.messageHandler) # TODO replace name when writing later
+      new.newTree(tag)
+      self._meta[tag] = new
+    destination = self._meta[tag]
+    for target in xmlDict.keys():
+      for metric,value in xmlDict[target].items():
+        # Two options: if a dict is given, means vectorMetric case
+        if isinstance(value,dict):
+          destination.addVector(target,metric,value)
+        # Otherwise, scalarMetric
+        else:
+          # sanity check to make sure suitable values are passed in
+          assert(isinstance(value,(str,unicode,float,int)))
+          destination.addScalar(target,metric,value)
 
   def realization(self,index=None,matchDict=None,readCollector=False):
     """
@@ -293,7 +340,7 @@ class DataSet(DataObject):
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
-    # TODO convert input space to KD tree for faster searching
+    # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in
     # TODO option to read both collector and data for matches/indices
     if (index is None and matchDict is None) or (index is not None and matchDict is not None):
       self.raiseAnError(TypeError,'Either "index" OR "matchDict" (not both) must be specified to use "realization!"')
@@ -320,7 +367,6 @@ class DataSet(DataObject):
     """
     if style.lower() == 'netcdf':
       self._fromNetCDF(fname,**kwargs)
-    # TODO CSV
     # TODO dask
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
@@ -528,10 +574,10 @@ class DataSet(DataObject):
     """
     # TODO only working for point sets
     self.asDataset()
-    filenameLocal = options.get('filenameroot','_dump')
+    filenameLocal = fname # TODO path?
     data = self._data
-    if 'what' in options.keys():
-      keep = list(v.split('|')[-1].strip() for v in options['what'].split(','))
+    if 'what' in kwargs.keys():
+      keep = list(v.split('|')[-1].strip() for v in kwargs['what'].split(','))
     else:
       # BY DEFAULT only keep inputs, outputs; if specifically requested, keep metadata by selection
       keep = self._inputs + self._outputs
@@ -539,22 +585,35 @@ class DataSet(DataObject):
       if var not in keep:
         data = data.drop(var)
     self.raiseADebug('Printing to CSV: "{}"'.format(filenameLocal))
+    # Note, this replaces the old history-set-CSV format by including other dimensions explicitly as inputs/outputs
     data = data.to_dataframe()
     if self.sampleTag not in keep:
-      data.to_csv(filenameLocal+'.csv',index=False)
+      # keep other indices if multiindex
+      if isinstance(data.index,pd.MultiIndex):
+        data.index = data.index.droplevel(self.sampleTag)
+        data.to_csv(filenameLocal+'.csv')#,index=False)
+      # otherwise just don't print index
+      else:
+        data.to_csv(filenameLocal+'.csv',index=False)
     else:
       data.to_csv(filenameLocal+'.csv')
 
-  def _toCSVXML(self,fname,**kwargs):
+  def _toCSVXML(self,fname):
     """
       Writes the general metadata of this data object to XML file
       @ In, fname, str, path/name to write file
-      @ In, kwargs, dict, optional, keywords to pass to XML writing
       @ Out, None
     """
     # general XML
-    tree = xmlUtils.newTree('Metadata')
-    root = tree.getroot()
+    with file(fname+'.xml','w') as ofile:
+      #header
+      ofile.writelines('<DataObjectMetadata name='+self.name+'>\n')
+      for name,target in self._meta.items():
+        xml = target.writeFile(asString=True,startingTabs=1,addRavenNewlines=False)
+        ofile.writelines('  '+xml+'\n')
+      ofile.writelines('</DataObjectMetadata>\n')
+    #tree = xmlUtils.newTree('Metadata')
+    #root = tree.getroot()
     # make paths that don't exist ... how?
     #for attrib,val in self.getMeta(general=True).items():
     #  path = attrib.split('/')
@@ -576,103 +635,6 @@ class DataSet(DataObject):
   ############################################################################################
   ### LEGACY API
   ############################################################################################
-  def getParaKeys(self,typePara):
-    """
-      Function to get the parameter keys
-      @ In, typePara, string, variable type (input, output, or metadata)
-      @ Out, keys, list, list of requested keys
-    """
-    self.deprecated('getParaKeys')
-    typePara = typePara.strip().lower().rstrip('s')
-    if typePara in ['input','inp']:
-      return self.getVars('input')
-    elif typePara in ['output','out']:
-      return self.getVars('output')
-    elif typePara in ['meta','metadata']:
-      return self.getVars('meta')
-
-  def isItEmpty(self):
-    """
-      Determines if any samples have been taken.
-      @ In, None
-      @ Out, empty, bool, True if no samples have been taken
-    """
-    self.deprecated('isItEmpty')
-    return True if self.size == 0 else False
-
-  def updateInputValue(self,name,value,options=None):
-    """
-      Function to update a value from the input dictionary
-      @ In, name, string, parameter name
-      @ In, value, float, the new value
-      @ In, options, dict, optional, the dictionary of options to update the value (e.g. parentId, etc.)
-      @ Out, None
-    """
-    self.deprecated('updateInputValue')
-    if self._collector is None:
-      self._collector = cached_ndarray.cNDarray(width = len(self.vars),length=4,dtype=object)
-      self._collector.size = 1
-      self._collector.width = len(self.vars)
-    #try:
-    column = self._getVariableIndex(name)
-    self._collector._addOneEntry(column,value[0])
-    if False:
-    #except ValueError:
-        #self._data._addOneEntry(column,value[0])
-        #self._data.addEntity(np.array([value]), firstEver = True)
-      self._collector.addEntity([np.array([value])])
-      # FIXME this could be a costly check (not necessary in non-deprecated API)
-      if name not in self._inputs:
-        self._allvars.append(name)
-        self._inputs.append(name)
-
-  def updateOutputValue(self,name,value,options=None):
-    """
-      Function to update a value from the output dictionary
-      @ In, name, string, parameter name
-      @ In, value, float, the new value
-      @ In, options, dict, optional, the dictionary of options to update the value (e.g. parentId, etc.)
-      @ Out, None
-    """
-    self.deprecated('updateOutputValue')
-    try:
-      column = self._getVariableIndex(name)
-      self._collector._addOneEntry(column,value)
-    except ValueError:
-      self._collector.addEntity([np.array([[value]])]) #WHY should there be an extra [] in here....
-      # FIXME this could be a costly check (not necessary in non-deprecated API)
-      if name not in self._outputs:
-        self._allvars.append(name)
-        self._outputs.append(name)
-
-  def updateMetadata(self,name,value,options=None):
-    """
-      Function to update a value from the dictionary metadata
-      @ In, name, string, parameter name
-      @ In, value, float, the new value
-      @ In, options, dict, optional, dictionary of options
-      @ Out, None
-    """
-    self.deprecated('updateMetadata')
-    # global
-    if name in ['SamplerType','crowDist']:
-      kwargs = {name:value}
-      self.addMeta(**kwargs)
-    # pointwise
-    elif name in ['ProbabilityWeight','prefix']: #TODO only add prefix if it's needed, don't default
-      try:
-        column = self._getVariableIndex(name)
-        self._collector._addOneEntry(column,value)
-      except ValueError:
-        self._collector.addEntity([np.array([[value]])]) #WHY should there be an extra [] in here....
-        # FIXME this could be a costly check (not necessary in non-deprecated API)
-        if name not in self._metavars:
-          self._allvars.append(name)
-          self._metavars.append(name)
-    # unneeded
-    elif name in ['SampledVarsPb','PointProbability']:
-      pass
-
   def getAllMetadata(self,nodeId=None,serialize=False):
     """
       Function to get all the metadata
@@ -719,6 +681,16 @@ class DataSet(DataObject):
       realization['outputs'][key] = [match[key]]
     return realization
 
+  def getParam(self,typeVar,keyword,**kwargs):
+    """
+      Gets a reference to an input or output parameter.
+      @ In, typeVar, str, var in 'input', 'unstructuredInput', 'output'
+      @ In, keyword, string, keyword
+      @ In, kwargs, dict, arbitrary additional keywords
+      @ Out, getParam, list, reference to parameter
+    """
+    return np.asarray(self.getVarValues(keyword))
+
   def getOutParametersValues(self,nodeId=None,serialize=False):
     """
       Function to get a reference to the output parameter dictionary
@@ -731,6 +703,21 @@ class DataSet(DataObject):
     """
     self.deprecated('getInpParametersValues')
     return dict((var,self.getVarValues(var)) for var in self._outputs)
+
+  def getParaKeys(self,typePara):
+    """
+      Function to get the parameter keys
+      @ In, typePara, string, variable type (input, output, or metadata)
+      @ Out, keys, list, list of requested keys
+    """
+    self.deprecated('getParaKeys')
+    typePara = typePara.strip().lower().rstrip('s')
+    if typePara in ['input','inp']:
+      return self.getVars('input')
+    elif typePara in ['output','out']:
+      return self.getVars('output')
+    elif typePara in ['meta','metadata']:
+      return self.getVars('meta')
 
   def getRealization(self,index):
     """
@@ -748,16 +735,14 @@ class DataSet(DataObject):
       realization['outputs'][key] = [match[key]]
     return realization
 
-  def printCSV(self,options=None):
+  def isItEmpty(self):
     """
-      Dump to CSV
-      @ In, options, dict, optional, dictionary of options such as filename, parameters, etc
-      @ Out, None
+      Determines if any samples have been taken.
+      @ In, None
+      @ Out, empty, bool, True if no samples have been taken
     """
-    self.deprecated('printCSV')
-    if options is None:
-      options = {}
-    self.toCSV
+    self.deprecated('isItEmpty')
+    return True if self.size == 0 else False
 
   def loadXMLandCSV(self,fpath,options):
     """
@@ -777,3 +762,92 @@ class DataSet(DataObject):
     data = pd.read_csv(fname+'.csv')
     print(data)
     import sys;sys.exit()
+
+  def printCSV(self,options=None):
+    """
+      Dump to CSV
+      @ In, options, dict, optional, dictionary of options such as filename, parameters, etc
+      @ Out, None
+    """
+    self.deprecated('printCSV')
+    if options is None:
+      options = {}
+    fname = options.pop('filenameroot',self.name+'_dump')
+    self.write(fname,style='CSV',**options)
+
+  #def toCSV(self):
+  #  self.deprecated('toCSV')
+
+  def updateInputValue(self,name,value,options=None):
+    """
+      Function to update a value from the input dictionary
+      @ In, name, string, parameter name
+      @ In, value, float, the new value
+      @ In, options, dict, optional, the dictionary of options to update the value (e.g. parentId, etc.)
+      @ Out, None
+    """
+    self.deprecated('updateInputValue')
+    if self._collector is None:
+      self._collector = cached_ndarray.cNDarray(width = len(self.vars),length=4,dtype=object)
+      self._collector.size = 1
+      self._collector.width = len(self.vars)
+    #try:
+    column = self._getVariableIndex(name)
+    self._collector._addOneEntry(column,value[0])
+    if False:
+    #except ValueError:
+        #self._data._addOneEntry(column,value[0])
+        #self._data.addEntity(np.array([value]), firstEver = True)
+      self._collector.addEntity([np.array([value])])
+      # FIXME this could be a costly check (not necessary in non-deprecated API)
+      if name not in self._inputs:
+        self._allvars.append(name)
+        self._inputs.append(name)
+
+  def updateMetadata(self,name,value,options=None):
+    """
+      Function to update a value from the dictionary metadata
+      @ In, name, string, parameter name
+      @ In, value, float, the new value
+      @ In, options, dict, optional, dictionary of options
+      @ Out, None
+    """
+    self.deprecated('updateMetadata')
+    # global
+    if name in ['SamplerType','crowDist'] and len(self)<2:
+      meta = {'general':{name:value}}
+      self.addMeta('Sampler',meta)
+    # pointwise
+    elif name in ['ProbabilityWeight','prefix']: #TODO only add prefix if it's needed, don't default
+      try:
+        column = self._getVariableIndex(name)
+        self._collector._addOneEntry(column,value)
+      except ValueError:
+        self._collector.addEntity([np.array([[value]])]) #WHY should there be an extra [] in here....
+        # FIXME this could be a costly check (not necessary in non-deprecated API)
+        if name not in self._metavars:
+          self._allvars.append(name)
+          self._metavars.append(name)
+    # unneeded
+    elif name in ['SampledVarsPb','PointProbability']:
+      pass
+
+  def updateOutputValue(self,name,value,options=None):
+    """
+      Function to update a value from the output dictionary
+      @ In, name, string, parameter name
+      @ In, value, float, the new value
+      @ In, options, dict, optional, the dictionary of options to update the value (e.g. parentId, etc.)
+      @ Out, None
+    """
+    self.deprecated('updateOutputValue')
+    try:
+      column = self._getVariableIndex(name)
+      self._collector._addOneEntry(column,value)
+    except ValueError:
+      self._collector.addEntity([np.array([[value]])]) #WHY should there be an extra [] in here....
+      # FIXME this could be a costly check (not necessary in non-deprecated API)
+      if name not in self._outputs:
+        self._allvars.append(name)
+        self._outputs.append(name)
+
