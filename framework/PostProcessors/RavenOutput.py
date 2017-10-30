@@ -234,8 +234,8 @@ class RavenOutput(PostProcessor):
       @ Out, desiredNode, xml.etree.ElementTree.Element, desired node
     """
     #improve path format
-    path = '|'.join(c.strip() for c in inpPath.strip().split('|'))
+    path = '/'.join(c.strip() for c in inpPath.strip().split('/'))
     desiredNode = xmlUtils.findPath(root,path)
     if desiredNode is None:
-      self.raiseAnError(RuntimeError,'Did not find "%s|%s" in file "%s"' %(root.tag,path,fileName))
+      self.raiseAnError(RuntimeError,'Did not find "%s/%s" in file "%s"' %(root.tag,path,fileName))
     return desiredNode
