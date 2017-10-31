@@ -889,7 +889,7 @@ class HierarchicalNode(MessageHandler.MessageUser):
       dumpFileObj.write(' '+'  '*self.depth +'  </attributes>\n')
     for e in self._branches:
       e.writeNode(dumpFileObj)
-    #if self.numberBranches()>0:
+    #if self.numberBranches()>0: # it's unclear why this conditional was here.  It results in the "branch" tag not closing itself. - talbpaul, 2017-10
     dumpFileObj.write(' '+'  '*self.depth + '</branch>\n')
 
   def stringNode(self,msg=''):
