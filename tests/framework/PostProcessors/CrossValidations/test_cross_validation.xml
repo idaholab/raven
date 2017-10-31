@@ -43,19 +43,19 @@
     </PostProcessor>
     <PostProcessor name="ravenout" subType="RavenOutput">
         <File ID="1" name="output_cv">
-            <output name="ans-m1_mean_absolute_error-cv-1">ans|m1_mean_absolute_error|cv-1</output>
-            <output name="ans-m1_mean_absolute_error-cv-2">ans|m1_mean_absolute_error|cv-2</output>
-            <output name="ans-m1_mean_absolute_error-cv-3">ans|m1_mean_absolute_error|cv-3</output>
-            <output name="ans-m1_mean_absolute_error-cv-4">ans|m1_mean_absolute_error|cv-4</output>
-            <output name="ans-m1_mean_absolute_error-cv-5">ans|m1_mean_absolute_error|cv-5</output>
-            <output name="ans-m1_mean_absolute_error-cv-6">ans|m1_mean_absolute_error|cv-6</output>
-            <output name="ans-m1_mean_absolute_error-cv-7">ans|m1_mean_absolute_error|cv-7</output>
-            <output name="ans-m1_mean_absolute_error-cv-8">ans|m1_mean_absolute_error|cv-8</output>
-            <output name="ans-m1_mean_absolute_error-cv-9">ans|m1_mean_absolute_error|cv-9</output>
+            <output name="ans-m1_mean_absolute_error-cv-1">ans/m1_mean_absolute_error/cv-1</output>
+            <output name="ans-m1_mean_absolute_error-cv-2">ans/m1_mean_absolute_error/cv-2</output>
+            <output name="ans-m1_mean_absolute_error-cv-3">ans/m1_mean_absolute_error/cv-3</output>
+            <output name="ans-m1_mean_absolute_error-cv-4">ans/m1_mean_absolute_error/cv-4</output>
+            <output name="ans-m1_mean_absolute_error-cv-5">ans/m1_mean_absolute_error/cv-5</output>
+            <output name="ans-m1_mean_absolute_error-cv-6">ans/m1_mean_absolute_error/cv-6</output>
+            <output name="ans-m1_mean_absolute_error-cv-7">ans/m1_mean_absolute_error/cv-7</output>
+            <output name="ans-m1_mean_absolute_error-cv-8">ans/m1_mean_absolute_error/cv-8</output>
+            <output name="ans-m1_mean_absolute_error-cv-9">ans/m1_mean_absolute_error/cv-9</output>
         </File>
     </PostProcessor>
   </Models>
-  
+
   <Metrics>
       <SKL name="m1">
           <metricType>mean_absolute_error</metricType>
@@ -137,7 +137,7 @@
         </Output>
     </PointSet>
   </DataObjects>
-  
+
   <OutStreams>
       <Print name="dumpMC">
           <type>csv</type>
