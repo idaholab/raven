@@ -470,7 +470,7 @@ os.remove(netname) # if this is a problem because of lazy loading, force dataNET
 ## test writing to file
 data.write('tester',style='CSV')
 ## test metadata written
-correct = ['<DataObjectMetadata name=DataSet>',
+correct = ['<DataObjectMetadata name="DataSet">',
 '  <TestPP type="Static">',
 '    <firstVar>',
 '      <scalarMetric1>10.0</scalarMetric1>',

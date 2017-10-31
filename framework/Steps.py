@@ -768,11 +768,11 @@ class IOStep(Step):
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
       if inDictionary['Input'][i].type == 'HDF5':
-        if isinstance(outputs[i],Data):
+        if isinstance(outputs[i],(Data,DataObject)):
           self.actionType.append('HDF5-dataObjects')
         else:
           self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
-      elif  isinstance(inDictionary['Input'][i],Data):
+      elif  isinstance(inDictionary['Input'][i],(Data,DataObject)):
         if outputs[i].type == 'HDF5':
           self.actionType.append('dataObjects-HDF5')
         else:
@@ -827,6 +827,7 @@ class IOStep(Step):
     for i in range(len(outputs)):
       if self.actionType[i] == 'HDF5-dataObjects':
         #inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
+        print('DEBUGG:',inDictionary['Input'][i])
         outputs[i].addOutput(inDictionary['Input'][i])
       elif self.actionType[i] == 'dataObjects-HDF5':
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5

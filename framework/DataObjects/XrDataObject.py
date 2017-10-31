@@ -1,6 +1,7 @@
 import sys,os
 import __builtin__
 import functools
+import copy
 
 import abc
 import numpy as np
@@ -44,11 +45,28 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
     inputSpecification = super(DataObject,cls).getInputSpecification()
-    inputSpecification.addParam('type', param_type = InputData.StringType, required = False)
-    inputSpecification.addSub(InputData.parameterInputFactory('Input',contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory('Output',contentType=InputData.StringType))
+    inputSpecification.addParam('hierarchical',InputData.StringType)
+    inputSpecification.addParam('inputTs',InputData.StringType)
+    inputSpecification.addParam('historyName',InputData.StringType)
+
+    inputInput = InputData.parameterInputFactory('Input',contentType=InputData.StringType) #TODO list
+    inputSpecification.addSub(inputInput)
+
+    outputInput = InputData.parameterInputFactory('Output', contentType=InputData.StringType) #TODO list
+    inputSpecification.addSub(outputInput)
+
+    optionsInput = InputData.parameterInputFactory('options')
+    for option in ['inputRow','inputPivotValue','outputRow','outputPivotValue','operator','pivotParameter']:
+      optionSubInput = InputData.parameterInputFactory(option,contentType=InputData.StringType)
+      optionsInput.addSub(optionSubInput)
+    # TODO "operator" has finite options (max, min, average)
+    inputSpecification.addSub(optionsInput)
+
+    #inputSpecification.addParam('type', param_type = InputData.StringType, required = False)
+    #inputSpecification.addSub(InputData.parameterInputFactory('Input',contentType=InputData.StringType))
+    #inputSpecification.addSub(InputData.parameterInputFactory('Output',contentType=InputData.StringType))
+    #inputSpecification.addSub(InputData.parameterInputFactory('options',contentType=InputData.StringType))
     return inputSpecification
-    # TODO on-disk, etc
 
   def __init__(self):
     """
@@ -62,10 +80,14 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._metavars = []     # list(str) of POINTWISE metadata variables
     self._allvars  = []     # list(str) of vars IN ORDER of their index
 
-    self._data        = None   # underlying data structure
-    self._collector   = None   # object used to collect samples
-    self._meta        = {}     # dictionary to collect meta until data is collapsed
-    self._heirarchal  = False  # if True, non-traditional format (not yet implemented)
+    self._data         = None   # underlying data structure
+    self._collector    = None   # object used to collect samples
+    self._meta         = {}     # dictionary to collect meta until data is collapsed
+    self._heirarchal   = False  # if True, non-traditional format (not yet implemented)
+    self._selectInput  = None   # if not None, describes how to collect input data from history
+    self._selectOutput = None   # if not None, describes how to collect output data from history
+    self._pivotParam   = 'time' # FIXME should deprecate or expand for ND; pivot parameter for data selection
+    self._aliases      = {}     # variable aliases
 
     self.name      = 'BaseDataObject'
     self.printTag  = self.name
@@ -83,10 +105,53 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       inp = DataObject.getInputSpecification()()
       inp.parseNode(xmlNode)
     for child in inp.subparts:
+      # TODO check for repeats, "notAllowdInputs", names in both input and output space
       if child.getName() == 'Input':
-        self._inputs.extend(list(x for x in child.value.split(',')))
+        self._inputs.extend(list(x for x in child.value.split(',') if x.strip()!=''))
       elif child.getName() == 'Output':
-        self._outputs.extend(list(x for x in child.value.split(',')))
+        self._outputs.extend(list(x for x in child.value.split(',') if x.strip()!=''))
+      # options node
+      elif child.getName() == 'options':
+        duplicateInp = False # if True, then multiple specification options were used for input
+        duplicateOut = False # if True, then multiple specification options were used for output
+        for cchild in child.subparts:
+          # pivot
+          if cchild.getName() == 'pivotParameter':
+            self._pivotParam = cchild.value.strip()
+          # input pickers
+          elif cchild.getName() == 'inputRow':
+            if self._selectInput is None:
+              self._selectInput = ('inputRow',int(cchild.value))
+            else:
+              duplicateInp = True
+          elif cchild.getName() == 'inputPivotValue':
+            if self._selectInput is None:
+              self._selectInput = ('inputPivotValue',float(cchild.value))
+            else:
+              duplicateInp = True
+          # output pickers
+          elif cchild.getName() == 'outputRow':
+            if self._selectOutput is None:
+              self._selectOutput = ('outputRow',int(cchild.value))
+            else:
+              duplicateOut = True
+          elif cchild.getName() == 'operator':
+            if self._selectOutput is None:
+              self._selectOutput = ('operator',cchild.value.strip().lower())
+            else:
+              duplicateOut= True
+          elif cchild.getName() == 'outputPivotValue':
+            if self._selectOutput is None:
+              self._selectOutput = ('outputPivotValue',float(cchild.value)) # TODO HistSet can be list of floats
+            else:
+              duplicateOut = True
+        # TODO check this in the input checker instead of here?
+        if duplicateInp:
+          self.raiseAnError(IOError,'Multiple options were given to specify the input row to read!  Please choose one.')
+        if duplicateOut:
+          self.raiseAnError(IOError,'Multiple options were given to specify the output row to read!  Please choose one.')
+      # end options node
+    # end input reading
     self._allvars = self._inputs + self._outputs
 
 #
@@ -106,6 +171,51 @@ class DataSet(DataObject):
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
 
+  def addMeta(self,tag,xmlDict):
+    """
+      Adds general (not pointwise) metadata to this data object.  Can add several values at once, collected
+      as a dict keyed by target variables.
+      @ In, tag, str, section to add metadata to, usually the data submitter (BasicStatistics, DataObject, etc)
+      @ In, xmlDict, dict, data to change, of the form {target:{scalarMetric:value,scalarMetric:value,vectorMetric:{wrt:value,wrt:value}}}
+      @ Out, None
+    """
+    # Data ends up being written as follows (see docstrings above for dict structure)
+    #  - A good default for 'target' is 'general' if there's not a specific target
+    # <tag>
+    #   <target>
+    #     <scalarMetric>value</scalarMetric>
+    #     <scalarMetric>value</scalarMetric>
+    #     <vectorMetric>
+    #       <wrt>value</wrt>
+    #       <wrt>value</wrt>
+    #     </vectorMetric>
+    #   </target>
+    #   <target>
+    #     <scalarMetric>value</scalarMetric>
+    #     <vectorMetric>
+    #       <wrt>value</wrt>
+    #     </vectorMetric>
+    #   </target>
+    # </tag>
+    # TODO potentially slow if MANY top level tags
+    if tag not in self._meta.keys():
+      # TODO store elements as Files object XML, for now
+      new = StaticXMLOutput()
+      new.initialize(self.name,self.messageHandler) # TODO replace name when writing later
+      new.newTree(tag)
+      self._meta[tag] = new
+    destination = self._meta[tag]
+    for target in xmlDict.keys():
+      for metric,value in xmlDict[target].items():
+        # Two options: if a dict is given, means vectorMetric case
+        if isinstance(value,dict):
+          destination.addVector(target,metric,value)
+        # Otherwise, scalarMetric
+        else:
+          # sanity check to make sure suitable values are passed in
+          assert(isinstance(value,(str,unicode,float,int)))
+          destination.addScalar(target,metric,value)
+
   def addRealization(self,rlz):
     """
       Adds a "row" (or "sample") to this data object.
@@ -115,6 +225,8 @@ class DataSet(DataObject):
                          "val" can be either a float (pointset) or xr.DataArray object (ndset)
       @ Out, None
     """
+    # first, update realization with selectors
+    rlz = self._selectiveRealization(rlz)
     # TODO more error check on realization length, contents
     # if collector/data not yet started, expand entries that aren't I/O as metadata
     if self._data is None and self._collector is None:
@@ -215,7 +327,7 @@ class DataSet(DataObject):
         # TODO compatability check!
         self._data.merge(new,inplace=True)
       # reset collector
-      self._collector = cached_ndarray.cNDarray(width=self._collector.width,dtype=self._collector.values.dtype)
+      self._collector = cached_ndarray.cNDarray(width=self._collector.width,length=10,dtype=self._collector.values.dtype)
     return self._data
 
   def getVars(self,subset=None):
@@ -284,51 +396,6 @@ class DataSet(DataObject):
       res = res.dropna(dim)
     return res
 
-  def addMeta(self,tag,xmlDict):
-    """
-      Adds general (not pointwise) metadata to this data object.  Can add several values at once, collected
-      as a dict keyed by target variables.
-      @ In, tag, str, section to add metadata to, usually the data submitter (BasicStatistics, DataObject, etc)
-      @ In, xmlDict, dict, data to change, of the form {target:{scalarMetric:value,scalarMetric:value,vectorMetric:{wrt:value,wrt:value}}}
-      @ Out, None
-    """
-    # Data ends up being written as follows (see docstrings above for dict structure)
-    #  - A good default for 'target' is 'general' if there's not a specific target
-    # <tag>
-    #   <target>
-    #     <scalarMetric>value</scalarMetric>
-    #     <scalarMetric>value</scalarMetric>
-    #     <vectorMetric>
-    #       <wrt>value</wrt>
-    #       <wrt>value</wrt>
-    #     </vectorMetric>
-    #   </target>
-    #   <target>
-    #     <scalarMetric>value</scalarMetric>
-    #     <vectorMetric>
-    #       <wrt>value</wrt>
-    #     </vectorMetric>
-    #   </target>
-    # </tag>
-    # TODO potentially slow if MANY top level tags
-    if tag not in self._meta.keys():
-      # TODO store elements as Files object XML, for now
-      new = StaticXMLOutput()
-      new.initialize(self.name,self.messageHandler) # TODO replace name when writing later
-      new.newTree(tag)
-      self._meta[tag] = new
-    destination = self._meta[tag]
-    for target in xmlDict.keys():
-      for metric,value in xmlDict[target].items():
-        # Two options: if a dict is given, means vectorMetric case
-        if isinstance(value,dict):
-          destination.addVector(target,metric,value)
-        # Otherwise, scalarMetric
-        else:
-          # sanity check to make sure suitable values are passed in
-          assert(isinstance(value,(str,unicode,float,int)))
-          destination.addScalar(target,metric,value)
-
   def realization(self,index=None,matchDict=None,readCollector=False):
     """
       Method to obtain a realization from the data, either by index or matching value.
@@ -388,10 +455,11 @@ class DataSet(DataObject):
     if style.lower() == 'netcdf':
       self._toNetCDF(fname,**kwargs)
     elif style.lower() == 'csv':
+      self.asDataset()
       #first write the CSV
       self._toCSV(fname,**kwargs)
       # then the metaxml
-      self._toCSVXML(fname,**kwargs)
+      self._toCSVXML(fname)
     # TODO dask?
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized write style: "{}"'.format(style))
@@ -473,6 +541,24 @@ class DataSet(DataObject):
         new[k] = v
     return new
 
+  def _fromCSV(self,fname,**kwargs):
+    raise NotImplementedError
+
+  def _fromNetCDF(self,fname, **kwargs):
+    """
+      Reads this data object from file that is netCDF.  If not netCDF4, this could be slow.
+      Loads data lazily; it won't be pulled into memory until operations are attempted on the specific data
+      @ In, fname, str, path/name to read file
+      @ In, kwargs, dict, optional, keywords to pass to netCDF4 reading
+                                    See http://xarray.pydata.org/en/stable/io.html#netcdf for options
+      @ Out, None
+    """
+    # TODO set up to use dask for on-disk operations -> or is that a different data object?
+    # TODO are these fair assertions?
+    assert(self._data is None)
+    assert(self._collector is None)
+    self._data = xr.open_dataset(fname)
+
   def _getRealizationFromCollectorByIndex(self,index):
     """
       Obtains a realization from the collector storage using the provided index.
@@ -547,23 +633,37 @@ class DataSet(DataObject):
     """
     return self._allvars.index(var)
 
-  def _fromCSV(self,fname,**kwargs):
-    raise NotImplementedError
-
-  def _fromNetCDF(self,fname, **kwargs):
+  def _selectiveRealization(self,rlz):
     """
-      Reads this data object from file that is netCDF.  If not netCDF4, this could be slow.
-      Loads data lazily; it won't be pulled into memory until operations are attempted on the specific data
-      @ In, fname, str, path/name to read file
-      @ In, kwargs, dict, optional, keywords to pass to netCDF4 reading
-                                    See http://xarray.pydata.org/en/stable/io.html#netcdf for options
-      @ Out, None
+      Uses "options" parameters from input to select part of the collected data
+      @ In, rlz, dict, {var:val} format (see addRealization)
+      @ Out, rlz, dict, {var:val} modified
     """
-    # TODO set up to use dask for on-disk operations -> or is that a different data object?
-    # TODO are these fair assertions?
-    assert(self._data is None)
-    assert(self._collector is None)
-    self._data = xr.open_dataset(fname)
+    # TODO this would be much more efficient on the parallel (finalizeCodeOutput) than on serial
+    # TODO costly for loop
+    for var,val in rlz.items():
+      # only modify it if it 1) isn't already scalar, 2) there is a method given, and 3) inp/out classifier
+      if not isinstance(val,float) and self._selectInput is not None and var in self._inputs:
+        method,indic = self._selectInput
+        if method == 'inputRow':
+          rlz[var] = float(val[:,indic]) # TODO testme, also TODO don't case to float?
+        elif method == 'inputPivotValue':
+          rlz[var] = float(val.sel(**{self._pivotParam:indic, 'method':'nearest'}))
+      elif not isinstance(val,float) and self._selectOutput is not None and var in self._outputs:
+        method,indic = self._selectOutput
+        if method == 'outputRow':
+          rlz[var] = float(val[:,indic]) # TODO testme, also TODO don't case to float?
+        elif method == 'outputPivotValue':
+          rlz[var] = float(val.sel(**{self._pivotParam:indic, 'method':'nearest'}))
+        elif method == 'operator':
+          if indic == 'max':
+            rlz[var] = float(val.max())
+          elif indic == 'min':
+            rlz[var] = float(val.min())
+          elif indic in ['mean','expectedValue','average']:
+            rlz[var] = float(val.mean())
+      # otherwise, leave it alone
+    return rlz
 
   def _toCSV(self,fname,**kwargs):
     """
@@ -587,6 +687,11 @@ class DataSet(DataObject):
     self.raiseADebug('Printing to CSV: "{}"'.format(filenameLocal))
     # Note, this replaces the old history-set-CSV format by including other dimensions explicitly as inputs/outputs
     data = data.to_dataframe()
+    # order data TODO might be time-inefficient, allow user to skip
+    ordered = list(i for i in self._inputs if i in keep)
+    ordered += list(o for o in self._outputs if o in keep)
+    ordered += list(m for m in self._metavars if m in keep)
+    data = data[ordered]
     if self.sampleTag not in keep:
       # keep other indices if multiindex
       if isinstance(data.index,pd.MultiIndex):
@@ -607,7 +712,7 @@ class DataSet(DataObject):
     # general XML
     with file(fname+'.xml','w') as ofile:
       #header
-      ofile.writelines('<DataObjectMetadata name='+self.name+'>\n')
+      ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
       for name,target in self._meta.items():
         xml = target.writeFile(asString=True,startingTabs=1,addRavenNewlines=False)
         ofile.writelines('  '+xml+'\n')
@@ -635,6 +740,61 @@ class DataSet(DataObject):
   ############################################################################################
   ### LEGACY API
   ############################################################################################
+  def addOutput(self,toLoadFrom,options=None):
+    """
+      Function to construct a data from a source.
+      @ In, toLoadFrom, string, loading source (hdf5, csv)
+      @ In, options, dict, optional, options such as metadata or heirarchal information
+      @ Out, None
+    """
+    self.deprecated('addOutput')
+    if options is None:
+      options = {}
+    dataParams = {'inParam'       : self._inputs,
+                  'outParam'      : self._outputs,
+                  'pivotParameter': self._pivotParam,
+                  'type'          : 'PointSet', # TODO Faking it
+                  'HistorySet'    : toLoadFrom.getEndingGroupNames(),
+                  'filter'        : 'whole',
+                 }
+    if self._selectInput is not None:
+      if self._selectInput[0] == 'inputRow':
+        dataParams['inputRow'] = self._selectInput[1]
+      elif self._selectInput[0] == 'inputPivotValue':
+        dataParams['inputPivotValue'] = self._selectInput[1]
+
+    if self._selectOutput is not None:
+      if self._selectOutput[0] == 'outputRow':
+        dataParams['outputRow'] = self._selectOutput[1]
+      elif self._selectOutput[0] == 'outputPivotValue':
+        dataParams['outputPivotValue'] = self._selectOutput[1]
+      elif self._selectOutput[0] == 'operator':
+        dataParams['operator'] = self._selectOutput[1]
+    self._aliases = options.get('alias',{})
+    loadType = toLoadFrom.type
+    self.raiseAMessage('Loading from "{}" which is a "{}"'.format(toLoadFrom.name,loadType))
+
+    if loadType == 'HDF5':
+      tupleVar = toLoadFrom.retrieveData(dataParams)
+    # TODO Files.File (csv)
+
+    # tupleVar is ({inputs},{outputs},{meta})
+    # get number of realizations from input space
+    numEntries = len(tupleVar[0].values()[0])
+    for i in range(numEntries):
+      rlz = {}
+      for var in self._inputs:
+        rlz[var] = tupleVar[0][var][i]
+      for var in self._outputs:
+        rlz[var] = tupleVar[1][var][i]
+      # TODO skip meta for now
+      # TODO need to modify form of time-dependent entries
+      self.addRealization(rlz)
+
+
+
+
+
   def getAllMetadata(self,nodeId=None,serialize=False):
     """
       Function to get all the metadata
@@ -763,6 +923,26 @@ class DataSet(DataObject):
     print(data)
     import sys;sys.exit()
 
+  def getNumAdditionalLoadPoints(self):
+    """
+      Tracks the number of expected samples in the set.
+      @ In, None
+      @ Out, num, int, points
+    """
+    self.deprecated('getNumAdditionalLoadPoints')
+    return 0 #not needed
+
+  def setNumAdditionalLoadPoints(self,value):
+    """
+      Tracks the number of expected samples in the set.
+      @ In, value, int, new value
+      @ Out, None
+    """
+    self.deprecated('setNumAdditionalLoadPoints')
+    return #not needed
+
+  numAdditionalLoadPoints = property(getNumAdditionalLoadPoints,setNumAdditionalLoadPoints)
+
   def printCSV(self,options=None):
     """
       Dump to CSV
@@ -775,9 +955,6 @@ class DataSet(DataObject):
     fname = options.pop('filenameroot',self.name+'_dump')
     self.write(fname,style='CSV',**options)
 
-  #def toCSV(self):
-  #  self.deprecated('toCSV')
-
   def updateInputValue(self,name,value,options=None):
     """
       Function to update a value from the input dictionary
@@ -786,23 +963,18 @@ class DataSet(DataObject):
       @ In, options, dict, optional, the dictionary of options to update the value (e.g. parentId, etc.)
       @ Out, None
     """
+    print('DEBUGG updating',name,'with',value)
     self.deprecated('updateInputValue')
-    if self._collector is None:
+    if self._collector is None or len(self._collector)==0:
       self._collector = cached_ndarray.cNDarray(width = len(self.vars),length=4,dtype=object)
       self._collector.size = 1
       self._collector.width = len(self.vars)
-    #try:
     column = self._getVariableIndex(name)
-    self._collector._addOneEntry(column,value[0])
-    if False:
-    #except ValueError:
-        #self._data._addOneEntry(column,value[0])
-        #self._data.addEntity(np.array([value]), firstEver = True)
-      self._collector.addEntity([np.array([value])])
-      # FIXME this could be a costly check (not necessary in non-deprecated API)
-      if name not in self._inputs:
-        self._allvars.append(name)
-        self._inputs.append(name)
+    print('DEBUGG column is',column)
+    try:
+      self._collector._addOneEntry(column,value[0]) #sometimes "value" is just a scalar though
+    except IndexError:
+      self._collector._addOneEntry(column,value)
 
   def updateMetadata(self,name,value,options=None):
     """

@@ -518,20 +518,21 @@ class hdf5Database(MessageHandler.MessageUser):
             converted = json.dumps(objectToConvert)
             if converted and attr != 'name':
               groups[run].attrs[utils.toBytes(attr)]=converted
-          for attr in metadata.keys():
-            if len(metadata[attr]) == nruns:
-              toProcess = metadata[attr][run]
-            else:
-              toProcess = metadata[attr]
-            if type(toProcess).__name__ == 'list' and 'input' in attr.lower() and isinstance(toProcess[0],Files.File):
-              objectToConvert = list(a.__getstate__() for a in toProcess)
-            elif isinstance(toProcess,Files.File):
-              objectToConvert =toProcess.__getstate__()
-            else:
-              objectToConvert = mathUtils.convertNumpyToLists(toProcess)
-            converted = json.dumps(objectToConvert)
-            if converted and attr != 'name':
-              groups[run].attrs[utils.toBytes(attr)]=converted
+          # FIXME wholesale skip metadata for HDF5 for now; use netCDF instead!
+          #for attr in metadata.keys():
+          #  if len(metadata[attr]) == nruns:
+          #    toProcess = metadata[attr][run]
+          #  else:
+          #    toProcess = metadata[attr]
+          #  if type(toProcess).__name__ == 'list' and 'input' in attr.lower() and isinstance(toProcess[0],Files.File):
+          #    objectToConvert = list(a.__getstate__() for a in toProcess)
+          #  elif isinstance(toProcess,Files.File):
+          #    objectToConvert =toProcess.__getstate__()
+          #  else:
+          #    objectToConvert = mathUtils.convertNumpyToLists(toProcess)
+          #  converted = json.dumps(objectToConvert)
+          #  if converted and attr != 'name':
+          #    groups[run].attrs[utils.toBytes(attr)]=converted
 
           if parentGroupName != "/":
             self.allGroupPaths.append(parentGroupName + "/" + groupName + '|' +str(run))

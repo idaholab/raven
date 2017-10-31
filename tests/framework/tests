@@ -169,7 +169,6 @@
   type = 'RavenFramework'
   input = 'test_LHS_Sampler.xml'
   csv = 'LHStest/outLHS_dump.csv LHStest/samples1D.csv'
-  xml = 'LHStest/outLHS_dump.xml LHStest/samples1D.xml'
   max_time = 500
   rel_err = 0.001
   remove_unicode_identifier = true

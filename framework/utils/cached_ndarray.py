@@ -392,12 +392,16 @@ class cNDarray(object):
       This is only for legacy data object APIs; the correct method is "append" with a full realization.
     """
     # check if new row already added and is waitng for an entry
+    print('currently there:',self.values[self.size-1,column])
     if self.values[self.size-1,column] is not None:
+      print('DEBUGG not none')
       # need to add a new realization
       # placehold with "None"s (append will automatically increment size)
       self.append(np.array([np.array([None]*self.width,dtype=object)],dtype=object))
     # if a one-entry array, take that one entry
     if type(val) in [np.ndarray,list]:
+      print('DEBUGG type is list')
       val = np.array(val).item(0)
     # finally, put the entry in
+    print('DEBUGG setting',self.size-1,column)
     self.values[self.size-1,column] = val
