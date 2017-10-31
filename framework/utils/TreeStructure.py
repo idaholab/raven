@@ -889,8 +889,8 @@ class HierarchicalNode(MessageHandler.MessageUser):
       dumpFileObj.write(' '+'  '*self.depth +'  </attributes>\n')
     for e in self._branches:
       e.writeNode(dumpFileObj)
-    if self.numberBranches()>0:
-      dumpFileObj.write(' '+'  '*self.depth + '</branch>\n')
+    #if self.numberBranches()>0:
+    dumpFileObj.write(' '+'  '*self.depth + '</branch>\n')
 
   def stringNode(self,msg=''):
     """
