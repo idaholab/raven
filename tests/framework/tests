@@ -255,7 +255,7 @@
   csv = 'mode_test/FirstMRun/2/out~pump_fake.csv'
  [../]
 
- [./test_distributions]
+ [./unit_test_Distributions]
   #REQUIREMENT_TEST R-RE-1
   type = 'RavenPython'
   #python_command = python3
@@ -263,9 +263,14 @@
   requires_swig2 = True
  [../]
 
- [./test_datasets]
+ [./unit_test_DataSets]
   type = 'RavenPython'
   input = '../../framework/DataObjects/TestDataSets.py'
+ [../]
+
+ [./unit_test_Files]
+  type = 'RavenPython'
+  input = '../../framework/TestFiles.py'
  [../]
 
  [./test_xsd_input_data]
