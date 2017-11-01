@@ -65,7 +65,7 @@ class BaseType(MessageHandler.MessageUser):
     self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
     # TODO deprecation should be made accessible from the input file; for now it is hidden
     # however, it should not be removed, as it will be critical in rolling out dataobject transition
-    self.deprecatedAction  = 'warning'                                                   # action to take when a deprecation line is hit
+    self.deprecatedAction  = 'silent'                                                   # action to take when a deprecation line is hit
     for baseClass in self.__class__.__mro__:
       self.mods.extend(utils.returnImportModuleString(inspect.getmodule(baseClass),True))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self),True))

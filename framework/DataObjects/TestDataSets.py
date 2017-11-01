@@ -164,7 +164,10 @@ def checkRlz(comment,first,second,tol=1e-10,update=True):
       elif isinstance(val,(str,unicode)):
         pres = checkSame('',val,second[key],update=False)
       elif isinstance(val,xr.DataArray):
-        pres = val.equals(second[key])
+        if isinstance(val.item(0),(float,int)):
+          pres = (val - second[key]).sum()<1e-20 #necessary due to roundoff
+        else:
+          pres = val.equals(second[key])
       else:
         raise TypeError(type(val))
       if not pres:
@@ -462,13 +465,23 @@ data.write(netname,style='netcdf',format='NETCDF4') # WARNING this will fail if 
 checkTrue('Wrote to netcdf',os.path.isfile(netname))
 ## read fresh from netCDF
 dataNET = XrDataObject.DataSet()
+dataNET.messageHandler = mh
 dataNET.load(netname,style='netcdf')
+print('meta:',data._meta)
+for key,value in dataNET._data.attrs.items():
+  print(key,value)
+import cPickle as pk
+msg = pk.dumps(data._meta['DataSet'])
+print(msg)
+ld = pk.loads(msg)
+print(ld.writeFile(asString=True))
 ## remove files, for cleanliness (comment out to debug)
 os.remove(netname) # if this is a problem because of lazy loading, force dataNET to load completely
 
 # to CSV
 ## test writing to file
-data.write('tester',style='CSV')
+csvname = 'DataSetUnitTest'
+data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
 ## test metadata written
 correct = ['<DataObjectMetadata name="DataSet">',
 '  <TestPP type="Static">',
@@ -502,17 +515,25 @@ correct = ['<DataObjectMetadata name="DataSet">',
 '  ',
 '</DataObjectMetadata>']
 # read in XML
-lines = file('tester.xml','r').readlines()
+lines = file(csvname+'.xml','r').readlines()
 # remove line endings
 for l,line in enumerate(lines):
   lines[l] = line.rstrip(os.linesep).rstrip('\n')
 # check
 checkArray('CSV XML',lines,correct,str)
-## try loading back in
+## read from CSV/XML
+dataCSV = XrDataObject.DataSet()
+dataCSV.messageHandler = mh
+dataCSV.load(csvname,style='CSV')
+for var in data.getVars():
+  if isinstance(data.getVarValues(var).item(0),(float,int)):
+    checkTrue('CSV var {}'.format(var),(dataCSV._data[var] - data._data[var]).sum()<1e-20) #necessary due to roundoff
+  else:
+    checkTrue('CSV var {}'.format(var),bool((dataCSV._data[var] == data._data[var]).prod()))
 
-# clean up temp file
-#os.remove('tester.csv')
-#os.remove('tester.xml')
+# clean up temp files
+os.remove(csvname+'.csv')
+os.remove(csvname+'.xml')
 
 
 ######################################
@@ -522,6 +543,7 @@ checkArray('CSV XML',lines,correct,str)
 # by index
 checkRlz('Dataset full origin idx 1',data.realization(index=1),rlz1)
 checkRlz('Dataset full netcdf idx 1',dataNET.realization(index=1),rlz1)
+checkRlz('Dataset full csvxml idx 1',dataCSV.realization(index=1),rlz1)
 # by match
 idx,rlz = data.realization(matchDict={'prefix':'third'})
 checkSame('Dataset full origin match idx',idx,2)
@@ -529,6 +551,9 @@ checkRlz('Dataset full origin match',rlz,rlz2)
 idx,rlz = dataNET.realization(matchDict={'prefix':'third'})
 checkSame('Dataset full netcdf match idx',idx,2)
 checkRlz('Dataset full netCDF match',rlz,rlz2)
+idx,rlz = dataCSV.realization(matchDict={'prefix':'third'})
+checkSame('Dataset full csvxml match idx',idx,2)
+checkRlz('Dataset full csvxml match',rlz,rlz2)
 
 
 # TODO more exhaustive tests are needed, but this is sufficient for initial work.

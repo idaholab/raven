@@ -2,6 +2,7 @@ import sys,os
 import __builtin__
 import functools
 import copy
+import xml.etree.ElementTree as ET
 
 import abc
 import numpy as np
@@ -259,73 +260,15 @@ class DataSet(DataObject):
       firstSample = int(self._data[self.sampleTag][-1])+1 if self._data is not None else 0
       arrs = {}
       for v,var in enumerate(self._allvars):
-        # first case: single entry per node: floats, strings, ints, etc
-        if isinstance(data[0,v],(float,str,unicode,int)): #TODO expand the list of types as needed, isinstance means np.float64 is covered by float
-          arrs[var] = xr.DataArray(data[:,v],
-                                   dims=[self.sampleTag],
-                                   coords={self.sampleTag:range(len(data))},
-                                   name=var) # THIS is very fast
-        # second case: ND set (history set or higher dimension)
-        elif type(data[0,v]) == xr.DataArray:
-          # two methods: all at "once" or "split" into multiple parts.  "once" is faster, but not parallelizable.
-          # ONCE #
-          if method == 'once':
-            val = dict((i,data[i,v]) for i in range(len(data)))
-            val = xr.Dataset(data_vars=val)
-            val = val.to_array(dim=self.sampleTag)
-          # SPLIT # currently unused, but could be for parallel performance
-          elif method == 'split':
-            chunk = 150
-            start = 0
-            N = len(data)
-            vals = []
-            # TODO can be parallelized
-            while start < N-1:
-              stop = min(start+chunk+1,N)
-              ival = dict((i,data[i,v]) for i in range(start,stop))
-              ival = xr.Dataset(data_vars=ival)
-              ival = ival.to_array(dim=self.sampleTag) # TODO does this end up indexed correctly?
-              vals.append(ival)
-              start = stop
-            val = xr.concat(vals,dim=self.sampleTag)
-          # END #
-          arrs[var] = val
-        else:
-          raise IOError('Unrecognized data type for var "{}": "{}"'.format(var,type(data[0,v])))
+        # create single dataarrays
+        arrs[var] = self._collapseNDtoDataArray(data[:,v],var)
         # re-index samples
         arrs[var][self.sampleTag] += firstSample
-        arrs[var].rename(var)
       # collect all data into dataset, and update self._data
-      new = xr.Dataset(arrs)
       if self._data is None:
-        self._data = new
-        # general metadata included if first time
-        self._data.attrs = self._meta # TODO reference hopefully? Check that it's a view not a copy
-        # determine dimensions for each variable
-        dimsMeta = {}
-        # TODO potentially slow loop
-        for var in self._inputs + self._outputs:
-          dims = list(new[var].dims)
-          # don't list if only entry is sampleTag
-          if dims == [self.sampleTag]:
-            continue
-          # even then, don't list sampleTag
-          try:
-            dims.remove(self.sampleTag)
-          except ValueError:
-            pass #not there, so didn't need to remove
-          dimsMeta[var] = ','.join(dims)
-        # store sample tag, IO information, coordinates
-        self.addMeta('DataSet',{'general':{'sampleTag':self.sampleTag,
-                                           'inputs':','.join(self._inputs),
-                                           'outputs':','.join(self._outputs),
-                                           'pointwise_meta':','.join(self._metavars),
-                                           },
-                                'dims':dimsMeta,
-                               })
+        self._convertArrayListToDataset(arrs,action='replace')
       else:
-        # TODO compatability check!
-        self._data.merge(new,inplace=True)
+        self._convertArrayListToDataset(arrs,action='extend')
       # reset collector
       self._collector = cached_ndarray.cNDarray(width=self._collector.width,length=10,dtype=self._collector.values.dtype)
     return self._data
@@ -392,8 +335,8 @@ class DataSet(DataObject):
     # TODO have to convert here?
     self.asDataset()
     res = self._data[var]
-    for dim in res.dims:
-      res = res.dropna(dim)
+    #for dim in res.dims:
+    #  res = res.dropna(dim)
     return res
 
   def realization(self,index=None,matchDict=None,readCollector=False):
@@ -432,8 +375,11 @@ class DataSet(DataObject):
       @ In, kwargs, dict, optional, additional arguments to pass to reading function
       @ Out, None
     """
-    if style.lower() == 'netcdf':
+    style = style.lower()
+    if style == 'netcdf':
       self._fromNetCDF(fname,**kwargs)
+    elif style == 'csv':
+      self._fromCSV(fname,**kwargs)
     # TODO dask
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
@@ -441,8 +387,16 @@ class DataSet(DataObject):
   def remove():
     raise NotImplementedError
 
-  def reset():
-    raise NotImplementedError
+  def reset(self):
+    """
+      Sets this object back to its initial state.
+      @ In, None
+      @ Out, None
+    """
+    self._data = None
+    self._collector = None
+    self._meta = None
+    # TODO others?
 
   def write(self,fname,style='netCDF',**kwargs):
     """
@@ -459,7 +413,7 @@ class DataSet(DataObject):
       #first write the CSV
       self._toCSV(fname,**kwargs)
       # then the metaxml
-      self._toCSVXML(fname)
+      self._toCSVXML(fname,**kwargs)
     # TODO dask?
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized write style: "{}"'.format(style))
@@ -521,6 +475,101 @@ class DataSet(DataObject):
     return s
 
   ### INTERNAL USE FUNCTIONS ###
+  def _collapseNDtoDataArray(self,data,var,labels=None):
+    """
+      Converts a row of numpy samples (float or xr.DataArray) into a single DataArray suitable for a xr.Dataset.
+      @ In, data, np.ndarray, array of either float or xr.DataArray; array must be single-dimension
+      @ In, var, str, name of the variable being acted on
+      @ In, labels, list, list of labels to use for collapsed array under self.sampleTag title
+      @ Out, DataArray, xr.DataArray, single dataarray object
+    """
+    assert(isinstance(data,np.ndarray))
+    assert(len(data.shape) == 1)
+    if labels is None:
+      labels = range(len(data))
+    else:
+      assert(len(labels) == len(data))
+    #method = 'once' # see below, parallelization is possible but not implemented
+    # first case: single entry per node: floats, strings, ints, etc
+    if isinstance(data[0],(float,str,unicode,int)):
+      array = xr.DataArray(data,
+                           dims=[self.sampleTag],
+                           coords={self.sampleTag:labels},
+                           name=var) # THIS is very fast
+    # second case: ND set (history set or higher dimension)
+    elif type(data[0]) == xr.DataArray:
+      # two methods: all at "once" or "split" into multiple parts.  "once" is faster, but not parallelizable.
+      # ONCE #
+      #if method == 'once':
+      val = dict((i,data[i]) for i in range(len(data)))
+      val = xr.Dataset(data_vars=val)
+      val = val.to_array(dim=self.sampleTag) # TODO labels preserved?
+      val.coords[self.sampleTag] = labels
+      # SPLIT # currently unused, but could be for parallel performance
+      #elif method == 'split':
+      #  chunk = 150
+      #  start = 0
+      #  N = len(data)
+      #  vals = []
+      #  # TODO can be parallelized
+      #  while start < N-1:
+      #    stop = min(start+chunk+1,N)
+      #    ival = dict((i,data[i,v]) for i in range(start,stop))
+      #    ival = xr.Dataset(data_vars=ival)
+      #    ival = ival.to_array(dim=self.sampleTag) # TODO does this end up indexed correctly?
+      #    vals.append(ival)
+      #    start = stop
+      #  val = xr.concat(vals,dim=self.sampleTag)
+      # END #
+      array = val
+    else:
+      self.raiseAnError(TypeError,'Unrecognized data type for var "{}": "{}"'.format(var,type(data[0,v])))
+    array.rename(var)
+    return array
+
+  def _convertArrayListToDataset(self,array,action=None):
+    """
+      Converts a 1-D array of xr.DataArrays into a xr.Dataset, then takes action on self._data:
+      action=='replace': replace self._data with the new dataset
+      action=='extend' : add new dataset to self._data using merge
+      else             : only return new dataset
+      @ In, array, list(xr.DataArray), list of variables as samples to turn into dataset
+      @ In, action, str, optional, can be used to specify the action to take with the new dataset
+      @ Out, new, xr.Dataset, single data entity
+    """
+    new = xr.Dataset(array)
+    if action == 'replace': #self._data is None:
+      self._data = new
+      # general metadata included if first time
+      self._data.attrs = self._meta # appears to NOT be a reference
+      # determine dimensions for each variable
+      dimsMeta = {}
+      # TODO potentially slow loop
+      for var in self._inputs + self._outputs:
+        dims = list(new[var].dims)
+        # don't list if only entry is sampleTag
+        if dims == [self.sampleTag]:
+          continue
+        # even then, don't list sampleTag
+        try:
+          dims.remove(self.sampleTag)
+        except ValueError:
+          pass #not there, so didn't need to remove
+        dimsMeta[var] = ','.join(dims)
+      # store sample tag, IO information, coordinates
+      self.addMeta('DataSet',{'general':{'sampleTag':self.sampleTag,
+                                         'inputs':','.join(self._inputs),
+                                         'outputs':','.join(self._outputs),
+                                         'pointwise_meta':','.join(self._metavars),
+                                         },
+                              'dims':dimsMeta,
+                             })
+    elif action == 'extend':
+      # TODO compatability check!
+      # TODO Metadata update?
+      self._data.merge(new,inplace=True)
+    return new
+
   def _convertFinalizedDataRealizationToDict(self,rlz):
     """
       After collapsing into xr.Dataset, all entries are stored as xr.DataArrays.
@@ -542,7 +591,89 @@ class DataSet(DataObject):
     return new
 
   def _fromCSV(self,fname,**kwargs):
-    raise NotImplementedError
+    """
+      Loads a dataset from CSV (preferably one it wrote itself, but maybe not necessarily?
+      @ In, fname, str, filename to load from (not including .csv or .xml)
+      @ In, kwargs, dict, optional arguments
+      @ Out, None
+    """
+    assert(self._data is None)
+    assert(self._collector is None)
+    # first, read in the XML
+    # TODO what if no xml? -> read as point set?
+    # TODO separate _fromCSVXML for clarity and brevity
+    try:
+      meta,_ = xmlUtils.loadToTree(fname+'.xml')
+      self.raiseADebug('Reading metadata from "{}.xml"'.format(fname))
+      haveMeta = True
+    except IOError:
+      haveMeta = False
+    dims = {} # stores the dimensionality of each variable
+    # confirm we have usable meta
+    if haveMeta:
+      # get the sample tag
+      try:
+        self.sampleTag = xmlUtils.findPath(meta,'DataSet/general/sampleTag').text
+      except TypeError:
+        pass # use default
+    # collect essential data from the meta
+    alldims = set([])
+    if haveMeta:
+      # unwrap the dimensions
+      #try:
+      dimsNode = xmlUtils.findPath(meta,'DataSet/dims')
+      if dimsNode is not None:
+        for child in dimsNode:
+          new = child.text.split(',')
+          dims[child.tag] = new
+          alldims.update(new)
+    # replace the IO space # TODO or should we be sticking to user's wishes?  Probably.
+    if haveMeta:
+      # TODO make this into a consistency check instead
+      inputsNode = xmlUtils.findPath(meta,'DataSet/general/inputs')
+      if inputsNode is not None:
+        self._inputs = inputsNode.text.split(',')
+      outputsNode = xmlUtils.findPath(meta,'DataSet/general/outputs')
+      if outputsNode is not None:
+        self._outputs = outputsNode.text.split(',')
+      # these DO have to be read from meta if present
+      metavarsNode = xmlUtils.findPath(meta,'DataSet/general/pointwise_meta')
+      if metavarsNode is not None:
+        self._metavars = metavarsNode.text.split(',')
+    self._allvars = self._inputs + self._outputs + self._metavars
+    # read from csv
+    panda = pd.read_csv(fname+'.csv')
+    self.raiseADebug('Reading data from "{}.csv"'.format(fname))
+    # find distinct number of samples
+    try:
+      samples = list(set(panda[self.sampleTag]))
+    except KeyError:
+      # sample ID wasn't given, so assume each row is sample
+      samples = range(len(panda.index))
+      panda[self.sampleTag] = samples
+    # create arrays from which to create the data set
+    arrays = {}
+    for var in self._allvars:
+      if var in dims.keys():
+        data = panda[[var,self.sampleTag]+dims[var]]
+        data.set_index(self.sampleTag,inplace=True)
+        ndat = np.zeros(len(samples),dtype=object)
+        for s,sample in enumerate(samples):
+          places = data.index.get_loc(sample)
+          vals = data[places].dropna().set_index(dims[var])#.set_index(dims[var]).dropna()
+          #vals.drop('dim_1')
+          # TODO this needs to be improved before ND will work; we need the individual sub-indices (time, space, etc)
+          rlz = xr.DataArray(vals.values[:,0],dims=dims[var],coords=dict((var,vals.index.values) for var in dims[var]))
+          ndat[s] = rlz
+          #rlzdat = xr.DataArray(vals,dims=['time'],coords=dict((var,vals[var].values[0]) for var in dims[var]))
+          #print rlzdat
+        arrays[var] = self._collapseNDtoDataArray(ndat,var,labels=samples)
+      else:
+        # scalar example
+        data = panda[[var,self.sampleTag]].groupby(self.sampleTag).first().values[:,0]
+        arrays[var] = self._collapseNDtoDataArray(data,var,labels=samples)
+    # TODO this is common with "asDataset()", so make a function for this!
+    self._convertArrayListToDataset(arrays,action='replace')
 
   def _fromNetCDF(self,fname, **kwargs):
     """
@@ -558,6 +689,20 @@ class DataSet(DataObject):
     assert(self._data is None)
     assert(self._collector is None)
     self._data = xr.open_dataset(fname)
+    # TODO convert metadata back to XML files
+
+  def _getRequestedElements(self,options):
+    """
+      Obtains a list of the elements to be written, based on defaults and options[what]
+      @ In, options, dict, general list of options for writing output files
+      @ Out, keep, list(str), list of variables that will be written to file
+    """
+    if 'what' in options.keys():
+      keep = list(v.split('|')[-1].strip() for v in options['what'].split(','))
+    else:
+      # TODO need the sampleTag meta to load histories # BY DEFAULT only keep inputs, outputs; if specifically requested, keep metadata by selection
+      keep = self._inputs + self._outputs
+    return keep
 
   def _getRealizationFromCollectorByIndex(self,index):
     """
@@ -617,7 +762,9 @@ class DataSet(DataObject):
     """
     assert(self._data is not None)
     # TODO this could be slow, should do KD tree instead
-    mask = list(self._data[var] == val for var,val in match.items())[0]#.values
+    mask = 1.0
+    for var,val in match.items():
+      mask *= self._data[var] == val
     rlz = self._data.where(mask,drop=True)
     try:
       idx = rlz[self.sampleTag].item(0)
@@ -669,29 +816,28 @@ class DataSet(DataObject):
     """
       Writes this data object to CSV file (except the general metadata, see _toCSVXML)
       @ In, fname, str, path/name to write file
-      @ In, kwargs, dict, optional, keywords to pass to CSV writing (as per pandas.DataFrame.to_csv)
+      @ In, kwargs, dict, optional, keywords for options
       @ Out, None
     """
     # TODO only working for point sets
     self.asDataset()
     filenameLocal = fname # TODO path?
+    keep = self._getRequestedElements(kwargs)
     data = self._data
-    if 'what' in kwargs.keys():
-      keep = list(v.split('|')[-1].strip() for v in kwargs['what'].split(','))
-    else:
-      # BY DEFAULT only keep inputs, outputs; if specifically requested, keep metadata by selection
-      keep = self._inputs + self._outputs
     for var in self._allvars:
       if var not in keep:
         data = data.drop(var)
-    self.raiseADebug('Printing to CSV: "{}"'.format(filenameLocal))
-    # Note, this replaces the old history-set-CSV format by including other dimensions explicitly as inputs/outputs
+    self.raiseADebug('Printing data to CSV: "{}"'.format(filenameLocal+'.csv'))
+    # get the list of elements the user requested to write
+    # make a pandas dataframe, they write to CSV very well
     data = data.to_dataframe()
-    # order data TODO might be time-inefficient, allow user to skip
+    # order data according to user specs # TODO might be time-inefficient, allow user to skip
     ordered = list(i for i in self._inputs if i in keep)
     ordered += list(o for o in self._outputs if o in keep)
     ordered += list(m for m in self._metavars if m in keep)
     data = data[ordered]
+    # write CSV; changes depending on if sampleTag is kept or not.
+    # TODO sampleTag is critical for reading time histories
     if self.sampleTag not in keep:
       # keep other indices if multiindex
       if isinstance(data.index,pd.MultiIndex):
@@ -703,25 +849,51 @@ class DataSet(DataObject):
     else:
       data.to_csv(filenameLocal+'.csv')
 
-  def _toCSVXML(self,fname):
+  def _toCSVXML(self,fname,**kwargs):
     """
       Writes the general metadata of this data object to XML file
       @ In, fname, str, path/name to write file
+      @ In, kwargs, dict, additional options
       @ Out, None
     """
-    # general XML
+    # make copy of XML and modify it
+    meta = copy.deepcopy(self._meta)
+    # remove variables that aren't being "kept" from the meta record
+    keep = self._getRequestedElements(kwargs)
+    ## remove from "dims"
+    dimsNode = xmlUtils.findPath(meta['DataSet'].tree.getroot(),'dims')
+    toRemove = []
+    for child in dimsNode:
+      if child.tag not in keep:
+        toRemove.append(child)
+    for r in toRemove:
+      dimsNode.remove(child)
+    ## remove from "inputs, outputs, pointwise"
+    genNode =  xmlUtils.findPath(meta['DataSet'].tree.getroot(),'general')
+    toRemove = []
+    for child in genNode:
+      if child.tag in ['inputs','outputs','pointwise_meta']:
+        vs = []
+        for var in child.text.split(','):
+          if var.strip() in keep:
+            vs.append(var)
+        if len(vs) == 0:
+          print('Slated for removal:',child)
+          toRemove.append(child)
+        else:
+          child.text = ','.join(vs)
+    for r in toRemove:
+      print('Removing',r)
+      genNode.remove(r)
+
+    self.raiseADebug('Printing metadata XML: "{}"'.format(fname+'.xml'))
     with file(fname+'.xml','w') as ofile:
       #header
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
-      for name,target in self._meta.items():
+      for name,target in meta.items():
         xml = target.writeFile(asString=True,startingTabs=1,addRavenNewlines=False)
         ofile.writelines('  '+xml+'\n')
       ofile.writelines('</DataObjectMetadata>\n')
-    #tree = xmlUtils.newTree('Metadata')
-    #root = tree.getroot()
-    # make paths that don't exist ... how?
-    #for attrib,val in self.getMeta(general=True).items():
-    #  path = attrib.split('/')
 
   def _toNetCDF(self,fname,**kwargs):
     """
@@ -734,6 +906,8 @@ class DataSet(DataObject):
     """
     # TODO set up to use dask for on-disk operations -> or is that a different data object?
     self.asDataset() #just in case there is stuff left in the collector
+    # convert metadata into writeable
+    self._data.attrs = dict((key,val.writeFile(asString=True)) for key,val in self._meta.items())
     self._data.to_netcdf(fname,**kwargs)
 
 
@@ -791,10 +965,6 @@ class DataSet(DataObject):
       # TODO need to modify form of time-dependent entries
       self.addRealization(rlz)
 
-
-
-
-
   def getAllMetadata(self,nodeId=None,serialize=False):
     """
       Function to get all the metadata
@@ -841,16 +1011,6 @@ class DataSet(DataObject):
       realization['outputs'][key] = [match[key]]
     return realization
 
-  def getParam(self,typeVar,keyword,**kwargs):
-    """
-      Gets a reference to an input or output parameter.
-      @ In, typeVar, str, var in 'input', 'unstructuredInput', 'output'
-      @ In, keyword, string, keyword
-      @ In, kwargs, dict, arbitrary additional keywords
-      @ Out, getParam, list, reference to parameter
-    """
-    return np.asarray(self.getVarValues(keyword))
-
   def getOutParametersValues(self,nodeId=None,serialize=False):
     """
       Function to get a reference to the output parameter dictionary
@@ -879,6 +1039,34 @@ class DataSet(DataObject):
     elif typePara in ['meta','metadata']:
       return self.getVars('meta')
 
+  def getParam(self,typeVar,keyword,**kwargs):
+    """
+      Gets a reference to an input or output parameter.
+      @ In, typeVar, str, var in 'input', 'unstructuredInput', 'output'
+      @ In, keyword, string, keyword
+      @ In, kwargs, dict, arbitrary additional keywords
+      @ Out, getParam, list, reference to parameter
+    """
+    return np.asarray(self.getVarValues(keyword))
+
+  def getParametersValues(self,typeVar,*args,**kwargs):
+    """
+      Gets parameter values.
+      @ In, typeVar, string, variable type (input, unstructuredInput, output)
+      @ In, args, list, unneeded compatability args
+      @ In, kwargs, dict, unneeded compatability args
+      @ Out, dictionary, dict, dict of parmater values
+    """
+    typeVar = typeVar.lower()
+    if typeVar in 'inputs':
+      return self.getInpParametersValues()
+    elif typeVar in 'unstructuredinputs':
+      return self.getInpParametersValues(unstructuredInputs=True)
+    elif typeVar in 'outputs':
+      return self.getOutParametersValues()
+    else:
+      self.raiseAnError(RuntimeError, 'type "{}" is not a valid type.'.format(typeVar))
+
   def getRealization(self,index):
     """
       Returns the indexed entry of inputs and outputs
@@ -904,7 +1092,7 @@ class DataSet(DataObject):
     self.deprecated('isItEmpty')
     return True if self.size == 0 else False
 
-  def loadXMLandCSV(self,fpath,options):
+  def loadXMLandCSV(self,fpath,options=None):
     """
       Function to load the xml additional file of the csv for data
       @ In, fpath, str, file name root
@@ -917,11 +1105,8 @@ class DataSet(DataObject):
     else:
       name = self.name
     fname = os.path.join(fpath,name)
+    self.load(fname,style='CSV')
 
-    print('fname:',fname)
-    data = pd.read_csv(fname+'.csv')
-    print(data)
-    import sys;sys.exit()
 
   def getNumAdditionalLoadPoints(self):
     """
@@ -955,6 +1140,14 @@ class DataSet(DataObject):
     fname = options.pop('filenameroot',self.name+'_dump')
     self.write(fname,style='CSV',**options)
 
+  def resetData(self):
+    """
+      Resets.
+      @ In, None
+      @ Out, None
+    """
+    self.reset()
+
   def updateInputValue(self,name,value,options=None):
     """
       Function to update a value from the input dictionary
@@ -963,17 +1156,17 @@ class DataSet(DataObject):
       @ In, options, dict, optional, the dictionary of options to update the value (e.g. parentId, etc.)
       @ Out, None
     """
-    print('DEBUGG updating',name,'with',value)
     self.deprecated('updateInputValue')
     if self._collector is None or len(self._collector)==0:
       self._collector = cached_ndarray.cNDarray(width = len(self.vars),length=4,dtype=object)
       self._collector.size = 1
       self._collector.width = len(self.vars)
     column = self._getVariableIndex(name)
-    print('DEBUGG column is',column)
     try:
       self._collector._addOneEntry(column,value[0]) #sometimes "value" is just a scalar though
     except IndexError:
+      self._collector._addOneEntry(column,value)
+    except TypeError:
       self._collector._addOneEntry(column,value)
 
   def updateMetadata(self,name,value,options=None):

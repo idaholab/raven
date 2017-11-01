@@ -827,7 +827,6 @@ class IOStep(Step):
     for i in range(len(outputs)):
       if self.actionType[i] == 'HDF5-dataObjects':
         #inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
-        print('DEBUGG:',inDictionary['Input'][i])
         outputs[i].addOutput(inDictionary['Input'][i])
       elif self.actionType[i] == 'dataObjects-HDF5':
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
