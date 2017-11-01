@@ -94,27 +94,27 @@ class File(BaseType):
     """
       Pickle dump method hook.
       @ In, None
-      @ Out, statedict, dict, dict of objets needed to restore instance
+      @ Out, stateDict, dict, dict of objets needed to restore instance
     """
-    statedict={'path':self.__path,
+    stateDict={'path':self.__path,
                'base':self.__base,
                'ext' :self.__ext,
                'type':self.type,
                'linkedModel':self.__linkedModel}
-    return statedict
+    return stateDict
 
-  def __setstate__(self,statedict):
+  def __setstate__(self,stateDict):
     """
       Pickle load method hook.
-      @ In, statedict, dict, of objets needed to restore instance
+      @ In, stateDict, dict, of objets needed to restore instance
       @ Out, None
     """
     self.__file  = None
-    self.__path  = statedict['path']
-    self.__base  = statedict['base']
-    self.__ext   = statedict['ext' ]
-    self.type    = statedict['type' ]
-    self.__linkedModel = statedict['linkedModel' ]
+    self.__path  = stateDict['path']
+    self.__base  = stateDict['base']
+    self.__ext   = stateDict['ext' ]
+    self.type    = stateDict['type' ]
+    self.__linkedModel = stateDict['linkedModel' ]
 
   def __repr__(self):
     """
@@ -528,22 +528,22 @@ class StaticXMLOutput(RAVENGenerated):
     """
       Pickle dump method hook.
       @ In, None
-      @ Out, statedict, dict, dict of objects needed to restore instance
+      @ Out, stateDict, dict, dict of objects needed to restore instance
     """
-    statedict = RAVENGenerated.__getstate__(self)
+    stateDict = RAVENGenerated.__getstate__(self)
     if hasattr(self,'tree'):
-      statedict['tree'] = self.tree
-    return statedict
+      stateDict['tree'] = self.tree
+    return stateDict
 
-  def __setstate__(self,statedict):
+  def __setstate__(self,stateDict):
     """
       Pickle load method hook.
-      @ In, statedict, dict, of objects needed to restore instance
+      @ In, stateDict, dict, of objects needed to restore instance
       @ Out, None
     """
-    if 'tree' in statedict.keys():
-      self.tree = statedict.pop('tree')
-    RAVENGenerated.__setstate__(self,statedict)
+    if 'tree' in stateDict.keys():
+      self.tree = stateDict.pop('tree')
+    RAVENGenerated.__setstate__(self,stateDict)
 
   def newTree(self,root,pivotParam=None):
     """
@@ -789,24 +789,24 @@ class UserGenerated(File):
     """
       Pickle dump method hook.
       @ In, None
-      @ Out, statedict, dict, dict of objets needed to restore instance
+      @ Out, stateDict, dict, dict of objets needed to restore instance
     """
-    statedict = File.__getstate__(self)
-    statedict['perturbed'   ] = self.perturbed
-    statedict['subDirectory'] = self.subDirectory
-    statedict['alias'       ] = self.alias
-    return statedict
+    stateDict = File.__getstate__(self)
+    stateDict['perturbed'   ] = self.perturbed
+    stateDict['subDirectory'] = self.subDirectory
+    stateDict['alias'       ] = self.alias
+    return stateDict
 
-  def __setstate__(self,statedict):
+  def __setstate__(self,stateDict):
     """
       Pickle load method hook.
-      @ In, statedict, dict, of objets needed to restore instance
+      @ In, stateDict, dict, of objets needed to restore instance
       @ Out, None
     """
-    File.__setstate__(self,statedict)
-    self.perturbed     = statedict['perturbed'   ]
-    self.subDirectory  = statedict['subDirectory']
-    self.alias         = statedict['alias'       ]
+    File.__setstate__(self,stateDict)
+    self.perturbed     = stateDict['perturbed'   ]
+    self.subDirectory  = stateDict['subDirectory']
+    self.alias         = stateDict['alias'       ]
 
 
 #
