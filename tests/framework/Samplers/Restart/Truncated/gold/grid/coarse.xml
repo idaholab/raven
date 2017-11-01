@@ -1,28 +1,20 @@
-<data name="coarse" type="Pointset"><input>y,x</input><output>a</output><inputFilename>coarse.csv</inputFilename><metadata><ProbabilityWeight-y>array([ 0.5,  0.5,  0.5,  0.5])</ProbabilityWeight-y><ProbabilityWeight-x>array([ 0.5,  0.5,  0.5,  0.5])</ProbabilityWeight-x><executable>array([ '/Users/talbpw/projects/raven/tests/framework/Samplers/Restart/Truncated/model_1.py',
-       '/Users/talbpw/projects/raven/tests/framework/Samplers/Restart/Truncated/model_1.py',
-       '/Users/talbpw/projects/raven/tests/framework/Samplers/Restart/Truncated/model_1.py',
-       '/Users/talbpw/projects/raven/tests/framework/Samplers/Restart/Truncated/model_1.py'], 
-      dtype='|S82')</executable><SamplerType>array([u'Grid', u'Grid', u'Grid', u'Grid'], 
-      dtype='&lt;U4')</SamplerType><crowDist>array([ {u'y': '{"xMin": 10.123456789012344, "type": "UniformDistribution", "xMax": 11.0}', u'x': '{"xMin": 0.123456789012345, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'y': '{"xMin": 10.123456789012344, "type": "UniformDistribution", "xMax": 11.0}', u'x': '{"xMin": 0.123456789012345, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'y': '{"xMin": 10.123456789012344, "type": "UniformDistribution", "xMax": 11.0}', u'x': '{"xMin": 0.123456789012345, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'y': '{"xMin": 10.123456789012344, "type": "UniformDistribution", "xMax": 11.0}', u'x': '{"xMin": 0.123456789012345, "type": "UniformDistribution", "xMax": 1.0}'}], dtype=object)</crowDist><SampledVars>array([{u'y': 10.123456789012344, u'x': 0.123456789012345},
-       {u'y': 11.0, u'x': 0.123456789012345},
-       {u'y': 10.123456789012344, u'x': 1.0}, {u'y': 11.0, u'x': 1.0}], dtype=object)</SampledVars><subDirectory>array([ u'/Users/talbpw/projects/raven/tests/framework/Samplers/Restart/Truncated/grid/makeCoarse/1',
-       u'/Users/talbpw/projects/raven/tests/framework/Samplers/Restart/Truncated/grid/makeCoarse/2',
-       u'/Users/talbpw/projects/raven/tests/framework/Samplers/Restart/Truncated/grid/makeCoarse/3',
-       u'/Users/talbpw/projects/raven/tests/framework/Samplers/Restart/Truncated/grid/makeCoarse/4'], 
-      dtype='&lt;U89')</subDirectory><ProbabilityWeight>array([ 0.25,  0.25,  0.25,  0.25])</ProbabilityWeight><outfile>array([u'out~input_truncated', u'out~input_truncated',
-       u'out~input_truncated', u'out~input_truncated'], 
-      dtype='&lt;U19')</outfile><prefix>array(['1', '2', '3', '4'], 
-      dtype='|S1')</prefix><PointProbability>array([ 1.30152747,  1.30152747,  1.30152747,  1.30152747])</PointProbability><additionalEdits>array([{u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''}], dtype=object)</additionalEdits><distributionType>array([{u'y': 'Uniform', u'x': 'Uniform'},
-       {u'y': 'Uniform', u'x': 'Uniform'},
-       {u'y': 'Uniform', u'x': 'Uniform'},
-       {u'y': 'Uniform', u'x': 'Uniform'}], dtype=object)</distributionType><distributionName>array([{u'y': 'u2', u'x': 'u1'}, {u'y': 'u2', u'x': 'u1'},
-       {u'y': 'u2', u'x': 'u1'}, {u'y': 'u2', u'x': 'u1'}], dtype=object)</distributionName><SampledVarsPb>array([{u'y': 1.1408450689763918, u'x': 1.1408450689763927},
-       {u'y': 1.1408450689763918, u'x': 1.1408450689763927},
-       {u'y': 1.1408450689763918, u'x': 1.1408450689763927},
-       {u'y': 1.1408450689763918, u'x': 1.1408450689763927}], dtype=object)</SampledVarsPb></metadata></data>
+<DataObjectMetadata name="coarse">
+  <Sampler type="Static">
+    <general>
+      <SamplerType>Grid</SamplerType>
+      <crowDist>
+        <y>{"xMin": 10.123456789012344, "type": "UniformDistribution", "xMax": 11.0}</y>
+        <x>{"xMin": 0.123456789012345, "type": "UniformDistribution", "xMax": 1.0}</x>
+      </crowDist>
+    </general>
+  </Sampler>
+  
+  <DataSet type="Static">
+    <general>
+      <inputs>x,y</inputs>
+      <outputs>a</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

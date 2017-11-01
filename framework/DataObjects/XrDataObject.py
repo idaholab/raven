@@ -2,6 +2,7 @@ import sys,os
 import __builtin__
 import functools
 import copy
+import cPickle as pk
 import xml.etree.ElementTree as ET
 
 import abc
@@ -627,7 +628,7 @@ class DataSet(DataObject):
           new = child.text.split(',')
           dims[child.tag] = new
           alldims.update(new)
-    # replace the IO space # TODO or should we be sticking to user's wishes?  Probably.
+    # replace the IO space, default to user input # TODO or should we be sticking to user's wishes?  Probably.
     if haveMeta:
       # TODO make this into a consistency check instead
       inputsNode = xmlUtils.findPath(meta,'DataSet/general/inputs')
@@ -689,7 +690,9 @@ class DataSet(DataObject):
     assert(self._data is None)
     assert(self._collector is None)
     self._data = xr.open_dataset(fname)
-    # TODO convert metadata back to XML files
+    # convert metadata back to XML files
+    for key,val in self._data.attrs.items():
+      self._meta[key] = pk.loads(val.encode('utf-8'))
 
   def _getRequestedElements(self,options):
     """
@@ -761,10 +764,15 @@ class DataSet(DataObject):
       @ Out, rlz, dict, realization as {var:value} OR None if not found
     """
     assert(self._data is not None)
+    #print('*'*80)
+    #print('Looking for',match)
+    #print(self._data)
     # TODO this could be slow, should do KD tree instead
     mask = 1.0
     for var,val in match.items():
-      mask *= self._data[var] == val
+      mask *= abs(self._data[var] - val) < 1e-10
+    print('mask:')
+    print(mask)
     rlz = self._data.where(mask,drop=True)
     try:
       idx = rlz[self.sampleTag].item(0)
@@ -862,12 +870,13 @@ class DataSet(DataObject):
     keep = self._getRequestedElements(kwargs)
     ## remove from "dims"
     dimsNode = xmlUtils.findPath(meta['DataSet'].tree.getroot(),'dims')
-    toRemove = []
-    for child in dimsNode:
-      if child.tag not in keep:
-        toRemove.append(child)
-    for r in toRemove:
-      dimsNode.remove(child)
+    if dimsNode is not None:
+      toRemove = []
+      for child in dimsNode:
+        if child.tag not in keep:
+          toRemove.append(child)
+      for r in toRemove:
+        dimsNode.remove(child)
     ## remove from "inputs, outputs, pointwise"
     genNode =  xmlUtils.findPath(meta['DataSet'].tree.getroot(),'general')
     toRemove = []
@@ -878,12 +887,10 @@ class DataSet(DataObject):
           if var.strip() in keep:
             vs.append(var)
         if len(vs) == 0:
-          print('Slated for removal:',child)
           toRemove.append(child)
         else:
           child.text = ','.join(vs)
     for r in toRemove:
-      print('Removing',r)
       genNode.remove(r)
 
     self.raiseADebug('Printing metadata XML: "{}"'.format(fname+'.xml'))
@@ -907,7 +914,7 @@ class DataSet(DataObject):
     # TODO set up to use dask for on-disk operations -> or is that a different data object?
     self.asDataset() #just in case there is stuff left in the collector
     # convert metadata into writeable
-    self._data.attrs = dict((key,val.writeFile(asString=True)) for key,val in self._meta.items())
+    self._data.attrs = dict((key,pk.dumps(val)) for key,val in self._meta.items())
     self._data.to_netcdf(fname,**kwargs)
 
 
@@ -1107,7 +1114,6 @@ class DataSet(DataObject):
     fname = os.path.join(fpath,name)
     self.load(fname,style='CSV')
 
-
   def getNumAdditionalLoadPoints(self):
     """
       Tracks the number of expected samples in the set.
@@ -1156,6 +1162,7 @@ class DataSet(DataObject):
       @ In, options, dict, optional, the dictionary of options to update the value (e.g. parentId, etc.)
       @ Out, None
     """
+    print('DEBUGG updating {} with {}'.format(name,value))
     self.deprecated('updateInputValue')
     if self._collector is None or len(self._collector)==0:
       self._collector = cached_ndarray.cNDarray(width = len(self.vars),length=4,dtype=object)

@@ -467,14 +467,7 @@ checkTrue('Wrote to netcdf',os.path.isfile(netname))
 dataNET = XrDataObject.DataSet()
 dataNET.messageHandler = mh
 dataNET.load(netname,style='netcdf')
-print('meta:',data._meta)
-for key,value in dataNET._data.attrs.items():
-  print(key,value)
-import cPickle as pk
-msg = pk.dumps(data._meta['DataSet'])
-print(msg)
-ld = pk.loads(msg)
-print(ld.writeFile(asString=True))
+# validity of load is checked below, in ACCESS USING GETTERS section
 ## remove files, for cleanliness (comment out to debug)
 os.remove(netname) # if this is a problem because of lazy loading, force dataNET to load completely
 
@@ -554,6 +547,7 @@ checkRlz('Dataset full netCDF match',rlz,rlz2)
 idx,rlz = dataCSV.realization(matchDict={'prefix':'third'})
 checkSame('Dataset full csvxml match idx',idx,2)
 checkRlz('Dataset full csvxml match',rlz,rlz2)
+# TODO metadata checks?
 
 
 # TODO more exhaustive tests are needed, but this is sufficient for initial work.
