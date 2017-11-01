@@ -523,6 +523,28 @@ class StaticXMLOutput(RAVENGenerated):
   """
     Specialized class for consistent RAVEN XML outputs.  See forms in comments above.
   """
+
+  def __getstate__(self):
+    """
+      Pickle dump method hook.
+      @ In, None
+      @ Out, statedict, dict, dict of objects needed to restore instance
+    """
+    statedict = RAVENGenerated.__getstate__(self)
+    if hasattr(self,'tree'):
+      statedict['tree'] = self.tree
+    return statedict
+
+  def __setstate__(self,statedict):
+    """
+      Pickle load method hook.
+      @ In, statedict, dict, of objects needed to restore instance
+      @ Out, None
+    """
+    if 'tree' in statedict.keys():
+      self.tree = statedict.pop('tree')
+    RAVENGenerated.__setstate__(self,statedict)
+
   def newTree(self,root,pivotParam=None):
     """
       Sets up a new internal tree.
@@ -593,14 +615,17 @@ class StaticXMLOutput(RAVENGenerated):
       root.append(targ)
     return targ
 
-  def writeFile(self):
+  def writeFile(self,asString=False,**kwargs):
     """
       Writes the input file to disk.
-      @ In, None
-      @ Out, None
+      @ In, asString, bool, optional, if indicated then return string instead of writing
+      @ In, kwargs, dict, optional, additional arguments to pass to prettify
+      @ Out, pretty, str, optional, only returned if asString is True
     """
     #prettify tree
-    pretty = xmlUtils.prettify(self.tree)
+    pretty = xmlUtils.prettify(self.tree,**kwargs)
+    if asString:
+      return pretty
     #make sure file is written cleanly and anew
     if self.isOpen():
       self.close()
@@ -622,6 +647,8 @@ class DynamicXMLOutput(StaticXMLOutput):
   """
     Specialized class for consistent RAVEN XML outputs.  See forms in comments above.
   """
+  # TODO may be marginalized as a result of new data object rework.  Check if anyone still uses this file type
+  # after all IO is done through DataObjects.
   def __init__(self):
     StaticXMLOutput.__init__(self)
     # while maintaining two parallel lists is not very pythonic, it's much faster for searching for large lists.

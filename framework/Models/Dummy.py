@@ -107,7 +107,7 @@ class Dummy(Model):
                   localInput[entries] = []
                 localInput[entries].append(realization['outputs'][entries])
           else:
-            realization = dataIn.getRealization(len(dataIn)-1)
+            realization = dataIN.getRealization(len(dataIN)-1)
             for entries in dataIN.getParaKeys('inputs' ):
               localInput[entries] = [realization['inputs'][entries]]
             for entries in dataIN.getParaKeys('outputs' ):

@@ -44,7 +44,7 @@ import Files
 from utils import utils
 import Models
 from OutStreams import OutStreamManager
-from DataObjects import Data
+from DataObjects import Data,DataObject #TODO dual entities
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -768,11 +768,11 @@ class IOStep(Step):
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
       if inDictionary['Input'][i].type == 'HDF5':
-        if isinstance(outputs[i],Data):
+        if isinstance(outputs[i],(Data,DataObject)):
           self.actionType.append('HDF5-dataObjects')
         else:
           self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
-      elif  isinstance(inDictionary['Input'][i],Data):
+      elif  isinstance(inDictionary['Input'][i],(Data,DataObject)):
         if outputs[i].type == 'HDF5':
           self.actionType.append('dataObjects-HDF5')
         else:
@@ -785,10 +785,12 @@ class IOStep(Step):
       elif isinstance(inDictionary['Input'][i],Files.File):
         if   isinstance(outputs[i],Models.ROM):
           self.actionType.append('FILES-ROM')
-        elif isinstance(outputs[i],Data):
+        elif isinstance(outputs[i],(Data,DataObject)):
           self.actionType.append('FILES-dataObjects')
         else:
-          self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
+          self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts '+\
+              'either a DataObject or ROM as Output when the Input is a Files. Got ' +\
+              inDictionary['Output'][i].type)
       else:
         self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
     if self.fromDirectory and len(self.actionType) == 0:

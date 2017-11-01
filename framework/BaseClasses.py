@@ -29,6 +29,10 @@ import MessageHandler
 from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
+class DeprecatedError(Exception):
+  """ Error to throw if erroring on deprecations"""
+  pass
+
 class BaseType(MessageHandler.MessageUser):
   """
     this is the base class for each general type used by the simulation
@@ -59,6 +63,9 @@ class BaseType(MessageHandler.MessageUser):
     self.messageHandler   = None                                                        # message handling object
     self.variableGroups   = {}                                                          # the variables this class needs to be aware of
     self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
+    # TODO deprecation should be made accessible from the input file; for now it is hidden
+    # however, it should not be removed, as it will be critical in rolling out dataobject transition
+    self.deprecatedAction  = 'silent'                                                   # action to take when a deprecation line is hit
     for baseClass in self.__class__.__mro__:
       self.mods.extend(utils.returnImportModuleString(inspect.getmodule(baseClass),True))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self),True))
@@ -86,6 +93,15 @@ class BaseType(MessageHandler.MessageUser):
     if 'verbosity' in xmlNode.attrib.keys():
       self.verbosity = xmlNode.attrib['verbosity'].lower()
       self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
+    if 'deprecation' in xmlNode.attrib.keys():
+      import sys;sys.exit()
+      dep = xmlNode.attrib['deprecation'].strip().lower()
+      if dep == 'warn':
+        self.deprecated = self._deprecatedSilent
+      elif dep == 'error':
+        self.deprecated = self._deprecatedError
+      else: #default, 'ignore'
+        self.deprecated = self._deprecatedSilent
     #search and replace variableGroups where found in texts
     def replaceVariableGroups(node):
       """
@@ -240,3 +256,23 @@ class BaseType(MessageHandler.MessageUser):
     self.raiseADebug('       Current Setting:')
     for key in tempDict.keys():
       self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
+
+  def deprecated(self,comment=None):
+    """
+      Used to note deprecated methods when used.  Deprecate methods by calling self.deprecated() at the
+      top of the method.  Action to take is changed by modifying "self.deprecatedAction"
+      @ In, comment, str, additional information to print (often the method name)
+      @ Out, None
+    """
+    # if silent, nothing more
+    if self.deprecatedAction == 'silent':
+      return
+    # prepare message
+    msg = 'Using DEPRECATED methods in "{}"!'.format(self.printTag)
+    if comment is not None:
+      msg += ' "{}"'.format(comment)
+    # take action
+    if self.deprecatedAction == 'error':
+      self.raiseAnError(DeprecatedError,msg)
+    else: # warning by default
+      self.raiseAWarning(msg)

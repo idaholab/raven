@@ -169,7 +169,6 @@
   type = 'RavenFramework'
   input = 'test_LHS_Sampler.xml'
   csv = 'LHStest/outLHS_dump.csv LHStest/samples1D.csv'
-  xml = 'LHStest/outLHS_dump.xml LHStest/samples1D.xml'
   max_time = 500
   rel_err = 0.001
   remove_unicode_identifier = true
@@ -256,12 +255,22 @@
   csv = 'mode_test/FirstMRun/2/out~pump_fake.csv'
  [../]
 
- [./test_distributions]
+ [./unit_test_Distributions]
   #REQUIREMENT_TEST R-RE-1
   type = 'RavenPython'
   #python_command = python3
   input = '../../framework/TestDistributions.py'
   requires_swig2 = True
+ [../]
+
+ [./unit_test_DataSets]
+  type = 'RavenPython'
+  input = '../../framework/DataObjects/TestDataSets.py'
+ [../]
+
+ [./unit_test_Files]
+  type = 'RavenPython'
+  input = '../../framework/TestFiles.py'
  [../]
 
  [./test_xsd_input_data]

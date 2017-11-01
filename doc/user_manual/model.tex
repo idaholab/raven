@@ -42,13 +42,13 @@
   These aliases can be used anywhere in the RAVEN input to refer to the #1
   variables.
   %
-  In the body of this node the user specifies the name of the variable that the model is going to use 
+  In the body of this node the user specifies the name of the variable that the model is going to use
   (during its execution).
   %
   The actual alias, usable throughout the RAVEN input, is instead defined in the
-  \xmlAttr{variable} attribute of this tag. 
+  \xmlAttr{variable} attribute of this tag.
   \\The user can specify aliases for both the input and the output space. As sanity check, RAVEN
-  requires an additional required attribute \xmlAttr{type}. This attribute can be either ``input'' or ``output''. 
+  requires an additional required attribute \xmlAttr{type}. This attribute can be either ``input'' or ``output''.
   %
   \nb The user can specify as many aliases as needed.
   %
@@ -913,7 +913,7 @@ Section~\ref{sec:steps}).
   <Models>
     ...
     <Dummy name='aUserDefinedName1' subType=''/>
-    
+
     <Dummy name='aUserDefinedName2' subType=''>
       <alias variable="a_RAVEN_input_variable" type="input">
       another_name_for_this_variable_in_the_model
@@ -1324,14 +1324,14 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         \nb All the inputs here specified need to be listed in the Steps where the EnsembleModel
         is used.
      \item \xmlNode{Output}, \xmlDesc{string, optional field},
-        represents the output entities that need to be linked to this sub-model.  \nb The \xmlNode{Output}s here specified are not part 
+        represents the output entities that need to be linked to this sub-model.  \nb The \xmlNode{Output}s here specified are not part
         of the determination of the EnsembleModel execution but represent an additional storage of results from the
-        sub-models. For example, if the \xmlNode{TargetEvaluation} is of type PointSet (since just scalar data needs to be transferred to other 
+        sub-models. For example, if the \xmlNode{TargetEvaluation} is of type PointSet (since just scalar data needs to be transferred to other
         models) and the sub-model is able to also output history-type data, this Output can be of type HistorySet.
         Note that the structure of each Output dataObject must include only variables (either input or output) that are defined among the model.
         As an example, the Output dataObjects cannot contained variables that are defined at the Ensemble model level.
         %
-        The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of both classes ``DataObjects'' and ``Databases'' 
+        The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of both classes ``DataObjects'' and ``Databases''
         (e.g. PointSet, HistorySet, HDF5).
         \nb \textbf{The \xmlNode{Output} (s) here specified MUST be listed in the Step in which the EnsembleModel is used.}
     \end{itemize}
@@ -1347,16 +1347,16 @@ It is important to notice that when the EnsembleModel detects a chain of models 
   %
   \begin{itemize}
      \item \xmlNode{maxIterations}, \xmlDesc{integer, optional field},
-        maximum number of Picard's iteration to be performed (in case the iteration scheme does 
+        maximum number of Picard's iteration to be performed (in case the iteration scheme does
         not previously converge). \default{30};
      \item \xmlNode{tolerance}, \xmlDesc{float, optional field},
-        convergence criterion. It represents the L2 norm residue below which the Picard's iterative scheme is 
+        convergence criterion. It represents the L2 norm residue below which the Picard's iterative scheme is
         considered converged. \default{0.001};
      \item \xmlNode{initialConditions}, \xmlDesc{XML node, required parameter  (if Picard's activated)},
         Within this sub-node, the initial conditions for the input variables (that are part of a loop)  need to
         be specified in sub-nodes named with the variable name (e.g. \xmlNode{varName}). The body of the
-        \xmlNode{varName} contains the value of the initial conditions (scalar or arrays, depending of the 
-        type of variable). If an array needs to be inputted, the user can specify the attribute  \xmlAttr{repeat} 
+        \xmlNode{varName} contains the value of the initial conditions (scalar or arrays, depending of the
+        type of variable). If an array needs to be inputted, the user can specify the attribute  \xmlAttr{repeat}
         and the code is going to repeat for  \xmlAttr{repeat}-times the value inputted in the body.
      \item \xmlNode{initialStartModels}, \xmlDesc{XML node, only required parameter when Picard's iteration is activated},
         specifies the list of models that will be initially executed. \nb Do not input this node for non-Picard calculations,
@@ -1420,7 +1420,7 @@ It is important to notice that when the EnsembleModel detects a chain of models 
            <var3> 45.0</var3>
          </initialConditions>
       </settings>
-          
+
       <Model class="Models" type="ExternalModel">
         thermalConductivityComputation
         <TargetEvaluation class="DataObjects" type="PointSet">

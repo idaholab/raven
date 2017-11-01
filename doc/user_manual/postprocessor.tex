@@ -103,6 +103,7 @@ data objects, depending on the type of statistics the user wants to compute:
     the \textbf{variationCoefficient} will be \textbf{INF}.
     \item \textbf{skewness}: skewness
     \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
+    \item \textbf{samples}: the number of samples in the data set used to determine the statistics.
   \end{itemize}
   The matrix quantities available for request are:
   \begin{itemize}
@@ -112,7 +113,6 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{NormalizedSensitivity}: matrix of normalized sensitivity
     coefficients. \nb{It is the matrix of normalized VarianceDependentSensitivity}
     \item \textbf{VarianceDependentSensitivity}: matrix of sensitivity coefficients dependent on the variance of the variables
-    \item \textbf{samples}: the number of samples in the data set used to determine the statistics.
   \end{itemize}
   If all the quantities need to be computed, this can be done through the \xmlNode{all} node, which
   requires the \xmlNode{targets} and \xmlNode{features} sub-nodes.
@@ -1506,6 +1506,11 @@ be specified.
       file.  This will appear as an entry in the output \xmlNode{DataObject} and the corresponding column are
       the values extracted from this file.  If not specified, RAVEN will attempt to find a suitable integer ID
       to use, and a warning will be raised.
+
+      When defining the \xmlNode{DataObject} that this postprocessor will write to, and when using the static
+      (non-\xmlNode{dynamic}) form of the postprocessor, the \xmlNode{input} space should be given as
+      \xmlString{ID}, and the output variables should be the outputs specified in the postprocessor. See the
+      examples below.  In the data object, the variable values will be keyed on the \xmlString{ID} parameter.
   \end{itemize}
   Each value that needs to be extracted from the file needs to be specified by one of the following
   \xmlNode{output} nodes within the \xmlNode{File} node:
@@ -1549,7 +1554,11 @@ follows.  Note that the name of the variables we want changes slightly between t
   </ans>
 </BasicStatistics>
 \end{lstlisting}
-The RAVEN input to extract this information would appear as follows:
+
+The RAVEN input to extract this information would appear as follows.
+We include an example of defining the \xmlNode{DataObject} that this postprocessor will write out to, for
+further clarity.
+
 \begin{lstlisting}[style=XML]
 <Simulation>
  ...
@@ -1560,7 +1569,7 @@ The RAVEN input to extract this information would appear as follows:
  ...
  <Models>
    ...
-   <PostProcessor name='pp' subType='RavenOut'>
+   <PostProcessor name='pp' subType='RavenOutput'>
      <File name='in1' ID='1'>
        <output name='first'>ans/val1</output>
        <output name='second'>ans/val2</output>
@@ -1572,6 +1581,15 @@ The RAVEN input to extract this information would appear as follows:
    </PostProcessor>
    ...
  </Models>
+ ...
+ <DataObjects>
+   ...
+   <PointSet name='pointSetName'>
+     <input>ID</input>
+     <output>first,second</output>
+   </PointSet>
+   ...
+ </DataObjects>
  ...
 </Simulation>
 \end{lstlisting}
