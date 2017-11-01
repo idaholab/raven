@@ -70,4 +70,5 @@ __all__ = ['PostProcessor',
            'TopologicalDecomposition',
            'DataMining',
            'Metric',
-           'CrossValidation'] + additionalModules
+           'CrossValidation',
+           'ETimporter'] + additionalModules

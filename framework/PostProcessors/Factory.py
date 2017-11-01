@@ -51,6 +51,7 @@ except ImportError:
   pass
 
 ## [ Add new class here ]
+from .ETimporter import ETimporter
 
 ################################################################################
 ## Alternatively, to fully automate this file:

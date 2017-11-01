@@ -20,7 +20,7 @@
   </Files>
   
   <Models>
-    <PostProcessor name="ETimporter" subType="ETimporterPostProcessor">
+    <PostProcessor name="ETimporter" subType="ETimporter">
       <fileFormat>openPSA</fileFormat>
     </PostProcessor>   
   </Models>

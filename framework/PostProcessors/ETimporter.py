@@ -14,48 +14,27 @@
 """
 Created on Nov 1, 2017
 
-@author: maljd, mandd
+@author: maljdan, mandd
 
 """
+
 from __future__ import division, print_function , unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
-#External Modules------------------------------------------------------------------------------------
+#External Modules---------------------------------------------------------------
 import numpy as np
-from scipy import spatial, interpolate
-import os
-from glob import glob
-import copy
-import math
-from collections import OrderedDict, defaultdict
-import time
-from sklearn.linear_model import LinearRegression
-import importlib
-import abc
-import six
-#External Modules End--------------------------------------------------------------------------------
+#External Modules End-----------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+#Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import utils
-from utils import mathUtils
-from utils import xmlUtils
-from utils.RAVENiterators import ravenArrayIterator
-import DataObjects
-from Assembler import Assembler
-import LearningGate
-import MessageHandler
-import GridEntities
+from utils import InputData
 import Files
-import Models
-import unSupervisedLearning
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 import Runners
-#Internal Modules End--------------------------------------------------------------------------------
+#Internal Modules End-----------------------------------------------------------
 
 
-class ETimporterPostProcessor(PostProcessor):
+class ETimporter(PostProcessor):
   """
     This is the base class for postprocessors
   """
