@@ -1,0 +1,54 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>TBA</name>
+    <author>TBA</author>
+    <created>TBA</created>
+    <classesTested>TBA</classesTested>
+    <description>
+      TBA
+    </description>
+  </TestInfo>
+  
+  <RunInfo>
+    <WorkingDir>ETimporter</WorkingDir>
+    <Sequence>import,printOnFile</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="eventTreeTest" type="">eventTreeTest.xml</Input>
+  </Files>
+  
+  <Models>
+    <PostProcessor name="ETimporter" subType="ETimporterPostProcessor">
+      <fileFormat>openPSA</fileFormat>
+    </PostProcessor>   
+  </Models>
+
+  <Steps>
+    <PostProcess name="import">
+      <Input   class="File"         type=""                >eventTreeTest</Input>
+      <Model   class="Models"       type="PostProcessor"   >ETimporter</Model>
+      <Output  class="DataObjects"  type="PointSet"        >ET_PS</Output>
+    </PostProcess>
+    <IOStep name="printOnFile">
+      <Input   class="DataObjects"  type="PointSet"        >ET_PS</Input>
+      <Output  class="OutStreams"   type="Print"           >PrintPPS_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="PrintPPS_dump">
+      <type>csv</type>
+      <source>outPPS</source>
+    </Print>
+  </OutStreams>
+  
+  <DataObjects>
+    <PointSet name="ET_PS">
+      <Input>ACC,LPI,LPR</Input>
+      <Output>out</Output>
+    </PointSet>
+  </DataObjects>
+  
+</Simulation>
