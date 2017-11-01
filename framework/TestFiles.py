@@ -147,14 +147,14 @@ def checkNone(comment,entry,update=True):
 
 def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
   """
-    Checks if entry is None.
+    Checks if function will fail expectedly.
     @ In, comment, string, a comment printed out if it fails
     @ In, errstr, str, message given by error to check against
     @ In, function, method, function to evaluate that is expected to fail
     @ In, update, bool, optional, if True then will update results
     @ In, args, list, additional arguments to pass to function
     @ In, kwargs, dict, additional keyword arguments to pass to function
-    @ Out, res, bool, True if entry is None
+    @ Out, res, bool, True if function fails as expected.
   """
   print('Error testing ...')
   if args is None:
