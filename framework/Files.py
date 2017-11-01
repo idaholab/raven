@@ -523,6 +523,28 @@ class StaticXMLOutput(RAVENGenerated):
   """
     Specialized class for consistent RAVEN XML outputs.  See forms in comments above.
   """
+
+  def __getstate__(self):
+    """
+      Pickle dump method hook.
+      @ In, None
+      @ Out, statedict, dict, dict of objects needed to restore instance
+    """
+    statedict = RAVENGenerated.__getstate__(self)
+    if hasattr(self,'tree'):
+      statedict['tree'] = self.tree
+    return statedict
+
+  def __setstate__(self,statedict):
+    """
+      Pickle load method hook.
+      @ In, statedict, dict, of objects needed to restore instance
+      @ Out, None
+    """
+    if 'tree' in statedict.keys():
+      self.tree = statedict.pop('tree')
+    RAVENGenerated.__setstate__(self,statedict)
+
   def newTree(self,root,pivotParam=None):
     """
       Sets up a new internal tree.
