@@ -77,13 +77,15 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     BaseType.__init__(self)
+    self.name      = 'BaseDataObject'
+    self.printTag  = self.name
+    self.sampleTag = 'RAVEN_sample_ID' # column name to track samples
+
     self._inputs   = []     # list(str) if input variables
     self._outputs  = []     # list(str) of output variables
     self._metavars = []     # list(str) of POINTWISE metadata variables
     self._allvars  = []     # list(str) of vars IN ORDER of their index
 
-    self._data         = None   # underlying data structure
-    self._collector    = None   # object used to collect samples
     self._meta         = {}     # dictionary to collect meta until data is collapsed
     self._heirarchal   = False  # if True, non-traditional format (not yet implemented)
     self._selectInput  = None   # if not None, describes how to collect input data from history
@@ -91,9 +93,11 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._pivotParam   = 'time' # FIXME should deprecate or expand for ND; pivot parameter for data selection
     self._aliases      = {}     # variable aliases
 
-    self.name      = 'BaseDataObject'
-    self.printTag  = self.name
-    self.sampleTag = 'RAVEN_sample_ID' # column name to track samples
+    self._data         = None   # underlying data structure
+    self._collector    = None   # object used to collect samples
+
+    self._inputKDTree  = None   # for finding outputs given inputs (pointset only?)
+    self._scaleFactors = None   # scaling factors inputs as {var:(mean,scale)}
 
   def _readMoreXML(self,xmlNode):
     """
@@ -245,6 +249,8 @@ class DataSet(DataObject):
     if self._collector is None:
       self._collector = cached_ndarray.cNDarray(width=len(rlz),dtype=object)
     self._collector.append(newData)
+    # reset scaling factors, kd tree
+    self._resetScaling()
 
   def asDataset(self):
     """
@@ -257,7 +263,6 @@ class DataSet(DataObject):
     # if we have collected data, collapse it
     if self._collector is not None and len(self._collector) > 0:
       data = self._collector.getData()
-      method = 'once' # internal flag to switch method.  "once" is generally faster, but "split" can be parallelized.
       firstSample = int(self._data[self.sampleTag][-1])+1 if self._data is not None else 0
       arrs = {}
       for v,var in enumerate(self._allvars):
@@ -340,7 +345,7 @@ class DataSet(DataObject):
     #  res = res.dropna(dim)
     return res
 
-  def realization(self,index=None,matchDict=None,readCollector=False):
+  def realization(self,index=None,matchDict=None,readCollector=False,tol=1e-15):
     """
       Method to obtain a realization from the data, either by index or matching value.
       Either "index" or "matchDict" must be supplied.
@@ -348,6 +353,7 @@ class DataSet(DataObject):
       @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
       @ In, matchDict, dict, optional, {key:val} to search for matches
       @ In, readCollector, bool, if True then read out of collector instead of data
+      @ In, tol, float, optional, tolerance to which match should be made
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
@@ -363,9 +369,12 @@ class DataSet(DataObject):
       return rlz
     else: #because of check above, this means matchDict is not None
       if readCollector:
-        index,rlz = self._getRealizationFromCollectorByValue(matchDict)
+        # TODO scaling factors and collector
+        index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
       else:
-        index,rlz = self._getRealizationFromDataByValue(matchDict)
+        if self._scaleFactors is None:
+          self._setScalingFactors()
+        index,rlz = self._getRealizationFromDataByValue(matchDict,tol=tol)
       return index,rlz
 
   def load(self,fname,style='netCDF',**kwargs):
@@ -569,6 +578,8 @@ class DataSet(DataObject):
       # TODO compatability check!
       # TODO Metadata update?
       self._data.merge(new,inplace=True)
+    # set up scaling factors
+    self._setScalingFactors()
     return new
 
   def _convertFinalizedDataRealizationToDict(self,rlz):
@@ -717,10 +728,11 @@ class DataSet(DataObject):
     assert(index < len(self._collector))
     return dict(zip(self._allvars,self._collector[index]))
 
-  def _getRealizationFromCollectorByValue(self,match):
+  def _getRealizationFromCollectorByValue(self,match,tol=1e-15):
     """
       Obtains a realization from the collector storage matching the provided index
       @ In, match, dict, elements to match
+      @ In, tol, float, optional, tolerance to which match should be made
       @ Out, r, int, index where match was found OR size of data if not found
       @ Out, rlz, dict, realization as {var:value} OR None if not found
     """
@@ -732,9 +744,7 @@ class DataSet(DataObject):
       match = True
       for e,element in enumerate(row):
         if isinstance(element,float):
-          # TODO use math util
-          # TODO arbitrary tolerance
-          match *= mathUtils.compareFloats(lookingFor[e],element,tol=1e-10)
+          match *= mathUtils.compareFloats(lookingFor[e],element,tol=tol)
           if not match:
             break
       if match:
@@ -756,10 +766,11 @@ class DataSet(DataObject):
     rlz = self._convertFinalizedDataRealizationToDict(rlz)
     return rlz
 
-  def _getRealizationFromDataByValue(self,match):
+  def _getRealizationFromDataByValue(self,match,tol=1e-15):
     """
       Obtains a realization from the data storage using the provided index.
       @ In, match, dict, elements to match
+      @ In, tol, float, optional, tolerance to which match should be made
       @ Out, r, int, index where match was found OR size of data if not found
       @ Out, rlz, dict, realization as {var:value} OR None if not found
     """
@@ -770,9 +781,19 @@ class DataSet(DataObject):
     # TODO this could be slow, should do KD tree instead
     mask = 1.0
     for var,val in match.items():
-      mask *= abs(self._data[var] - val) < 1e-10
-    print('mask:')
-    print(mask)
+      # float instances are relative, others are absolute
+      if isinstance(val,(float,int)):
+        # scale if we know how
+        try:
+          loc,scale = self._scaleFactors[var]
+        except IndexError:
+          loc = 0.0
+          scale = 1.0
+        scaleVal = (val-loc)/scale
+        # create mask of where the dataarray matches the desired value
+        mask *= abs((self._data[var]-loc)/scale - scaleVal) < tol
+      else:
+        mask *= self._data[var] == val
     rlz = self._data.where(mask,drop=True)
     try:
       idx = rlz[self.sampleTag].item(0)
@@ -787,6 +808,15 @@ class DataSet(DataObject):
       @ Out, index, int, column corresponding to the variable
     """
     return self._allvars.index(var)
+
+  def _resetScaling(self):
+    """
+      Removes the KDTree and scaling factors, usually because the data changed in some way
+      @ In, None
+      @ Out, None
+    """
+    self._scaleFactors = None
+    self._inputKDTree = None
 
   def _selectiveRealization(self,rlz):
     """
@@ -819,6 +849,25 @@ class DataSet(DataObject):
             rlz[var] = float(val.mean())
       # otherwise, leave it alone
     return rlz
+
+  def _setScalingFactors(self):
+    """
+      Sets the scaling factors for the data (mean, scale).
+      @ In, None
+      @ Out, None
+    """
+    # TODO someday make KDTree too!
+    assert(self._data is not None) # TODO check against collector entries?
+    self._scaleFactors = {}
+    for var in self._allvars:
+      # if not a float or int, don't scale it
+      # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
+      first = self._data.groupby(var).first()[var].item(0)
+      if (not isinstance(first,(float,int))) or np.isnan(first):# or self._data[var].isnull().all():
+        continue
+      mean = float(self._data[var].mean())
+      scale = float(self._data[var].std())
+      self._scaleFactors[var] = (mean,scale)
 
   def _toCSV(self,fname,**kwargs):
     """
@@ -1007,7 +1056,7 @@ class DataSet(DataObject):
     """
     self.deprecated('getMatchingRealization')
     self.asDataset()
-    idx,match = self.realization(matchDict=requested)
+    idx,match = self.realization(matchDict=requested,tol=tol)
     if match is None:
       # no match found
       return None
@@ -1162,7 +1211,6 @@ class DataSet(DataObject):
       @ In, options, dict, optional, the dictionary of options to update the value (e.g. parentId, etc.)
       @ Out, None
     """
-    print('DEBUGG updating {} with {}'.format(name,value))
     self.deprecated('updateInputValue')
     if self._collector is None or len(self._collector)==0:
       self._collector = cached_ndarray.cNDarray(width = len(self.vars),length=4,dtype=object)

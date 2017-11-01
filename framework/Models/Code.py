@@ -35,7 +35,7 @@ from utils import utils
 from utils import InputData
 import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 import Files
-from DataObjects import Data
+from DataObjects import Data,DataObject
 import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -593,7 +593,7 @@ class Code(Model):
     ## First, if the output is a data object, let's see what inputs it requests
     if options is None:
         options = {}
-    if isinstance(output,Data):
+    if isinstance(output,(Data,DataObject)):
       inputParams = output.getParaKeys('input')
       options["inputFile"] = self.currentInputFiles
     else:
@@ -705,6 +705,7 @@ class Code(Model):
       #point set
       for key in output.getParaKeys('inputs'):
         if key in exportDict['inputSpaceParams']:
+          print('DEBUGG collected:',key,exportDict['inputSpaceParams'][key])
           output.updateInputValue(key,exportDict['inputSpaceParams'][key],options)
         else:
           self.raiseAnError(Exception, "the input parameter "+key+" requested in the DataObject "+output.name+
