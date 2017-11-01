@@ -129,6 +129,13 @@ def checkArray(comment,first,second,dtype,tol=1e-10,update=True):
   return res
 
 def checkNone(comment,entry,update=True):
+  """
+    Checks if entry is None.
+    @ In, comment, string, a comment printed out if it fails
+    @ In, entry, object, entity to evaluate for None
+    @ In, update, bool, optional, if True then will update results
+    @ Out, res, bool, True if entry is None
+  """
   res = entry is None
   if update:
     if res:
@@ -136,8 +143,19 @@ def checkNone(comment,entry,update=True):
     else:
       print("checking answer",comment,'|','"{}" is not None!'.format(entry))
       results["fail"] += 1
+  return res
 
 def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
+  """
+    Checks if entry is None.
+    @ In, comment, string, a comment printed out if it fails
+    @ In, errstr, str, message given by error to check against
+    @ In, function, method, function to evaluate that is expected to fail
+    @ In, update, bool, optional, if True then will update results
+    @ In, args, list, additional arguments to pass to function
+    @ In, kwargs, dict, additional keyword arguments to pass to function
+    @ Out, res, bool, True if entry is None
+  """
   print('Error testing ...')
   if args is None:
     args = []
@@ -169,6 +187,7 @@ def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
 ######################################
 # create it
 static = Files.StaticXMLOutput()
+static.messageHandler = mh
 # start a new tree
 static.newTree('TestRoot')
 # test instance
@@ -214,12 +233,12 @@ print(results)
 sys.exit(results["fail"])
 """
   <TestInfo>
-    <name>framework.test_datasets</name>
+    <name>framework.unit_test_Files</name>
     <author>talbpaul</author>
-    <created>2017-10-20</created>
-    <classesTested>DataSet</classesTested>
+    <created>2017-11-01</created>
+    <classesTested>Files</classesTested>
     <description>
-       This test is a Unit Test for the DataSet classes.
+       This test is a Unit Test for the Files classes.
     </description>
   </TestInfo>
 """
