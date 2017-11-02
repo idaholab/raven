@@ -87,9 +87,10 @@ class ETimporter(PostProcessor):
     """
     for child in xmlNode:
       if child.tag == 'fileFormat':
-        self.ETformat = child.text
-        if self.ETformat not in self.ETformat:
+        if child.text not in self.allowedFormats:
           self.raiseAnError(IOError, 'ETimporterPostProcessor Post-Processor ' + self.name + ', format ' + child.text + ' : is not supported')
+        else:
+          self.ETformat = child.text
       else:
         self.raiseAnError(IOError, 'ETimporterPostProcessor Post-Processor ' + self.name + ', node ' + child.tag + ' : is not recognized')
 
@@ -112,7 +113,7 @@ class ETimporter(PostProcessor):
     eventTree = root.findall('initial-state')
 
     if len(eventTree) > 1:
-      sys.stderr.write('More than one initial-state identified. I do not know what to do now.\n')
+      sys.stderr.write('More than one initial-state identified. Actions TBD.\n')
       sys.exit(1)
 
     eventTree = eventTree[0]
