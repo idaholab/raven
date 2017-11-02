@@ -459,8 +459,9 @@ class EnsembleModel(Dummy):
       outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1]
       exportDictTargetEvaluation[self.modelsDictionary[modelIn]['TargetEvaluation'].name] = {'inputSpaceParams':inputsValues,'outputSpaceParams':outputsValues,'metadata':metadataValues}
       for typeInfo,values in outcomes[modelIn].items():
-        for key in values.keys():
-          exportDict[typeInfo][key] = np.asarray(values[key])
+        if typeInfo not in ['metadata']:
+          for key in values.keys():
+            exportDict[typeInfo][key] = np.asarray(values[key])
       # collect optional output if present and not already collected
       if jobIndex is not None:
         for optionalModelOutput in self.modelsDictionary[modelIn]['OutputObject']:
@@ -483,8 +484,12 @@ class EnsembleModel(Dummy):
         for key in exportDict['outputSpaceParams'] :
           if key in output.getParaKeys('outputs'):
             output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
-        for key in exportDict['metadata']:
-          output.updateMetadata(key,exportDict['metadata'][key][-1])
+        for key,val in exportDict['metadata'].items():
+          if isinstance(val,np.ndarray):
+            output.updateMetadata(key,exportDict['metadata'][key][-1])
+          else:
+            self.raiseAWarning('skipping metatada:',key)
+
     # collect outputs for "holding"
     # first clear old outputs
     # TODO FIXME this is a flawed implementation, since it requires that the "holdOutputErase" is of
@@ -560,7 +565,6 @@ class EnsembleModel(Dummy):
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
     jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
-
 
   def submitAsClient(self,myInput,samplerType,jobHandler,**kwargs):
     """

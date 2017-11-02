@@ -1,6 +1,21 @@
-<data name="testPrintPointSet_dump" type="Pointset"><input>y0,x0,k0,z0</input><output>y,x,k,z</output><inputFilename>testPrintPointSet_dump.csv</inputFilename><metadata><upper>array([{u'k0': 4.0}, {u'k0': 1.7976931348623157e+308}], dtype=object)</upper><lower>array([{u'k0': -1.7976931348623157e+308}, {u'k0': 4.0}], dtype=object)</lower><SamplerType>array([u'Stratified', u'Stratified'], dtype=object)</SamplerType><crowDist>array([ {u'x0': '{"type": "NDCartesianSplineDistribution"}', u'k0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'y0,z0': '{"type": "NDCartesianSplineDistribution"}'},
-       {u'x0': '{"type": "NDCartesianSplineDistribution"}', u'k0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'y0,z0': '{"type": "NDCartesianSplineDistribution"}'}], dtype=object)</crowDist><SampledVars>array([ {u'y0': 57.001209400445511, u'x0': 0.54942745654620873, u'k0': 0.14213347926613196, u'z0': 57.001209400445511},
-       {u'y0': 56.319263640271799, u'x0': -0.1694114020623759, u'k0': 7.302145055531916, u'z0': 56.319263640271799}], dtype=object)</SampledVars><ProbabilityWeight-k0>array([ 0.5,  0.5])</ProbabilityWeight-k0><prefix>array(['1', '2'], dtype=object)</prefix><ProbabilityWeight>array([ 0.4 ,  0.05])</ProbabilityWeight><ProbabilityWeight-x0>array([ 0.8,  0.1])</ProbabilityWeight-x0><PointProbability>array([  3.89217872e-06,   4.80396936e-05])</PointProbability><distributionType>array([ {u'y0': 'NDCartesianSpline', u'x0': 'NDCartesianSpline', u'k0': 'Normal', u'z0': 'NDCartesianSpline'},
-       {u'y0': 'NDCartesianSpline', u'x0': 'NDCartesianSpline', u'k0': 'Normal', u'z0': 'NDCartesianSpline'}], dtype=object)</distributionType><distributionName>array([ {u'y0': 'ND_CartesianSpline_P', u'x0': 'ND_CartesianSpline_P', u'k0': 'k0_distrib', u'z0': 'ND_CartesianSpline_P'},
-       {u'y0': 'ND_CartesianSpline_P', u'x0': 'ND_CartesianSpline_P', u'k0': 'k0_distrib', u'z0': 'ND_CartesianSpline_P'}], dtype=object)</distributionName><SampledVarsPb>array([{'x0': 0.016638501606883935, 'k0': 0.00023392603575154874},
-       {'x0': 0.028086579289728148, 'k0': 0.0017104145394912515}], dtype=object)</SampledVarsPb></metadata></data>
+<DataObjectMetadata name="testPrintPointSet">
+  <Sampler type="Static">
+    <general>
+      <SamplerType>Stratified</SamplerType>
+      <crowDist>
+        <x0>{"type": "NDCartesianSplineDistribution"}</x0>
+        <k0>{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}</k0>
+        <y0.z0>{"type": "NDCartesianSplineDistribution"}</y0.z0>
+      </crowDist>
+    </general>
+  </Sampler>
+  
+  <DataSet type="Static">
+    <general>
+      <inputs>x0,y0,z0,k0</inputs>
+      <outputs>x,y,z,k</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

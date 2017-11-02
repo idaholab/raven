@@ -20,7 +20,7 @@
   <RunInfo>
     <WorkingDir>metaModelLinearThread</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
   </RunInfo>
 

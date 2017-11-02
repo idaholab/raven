@@ -705,7 +705,6 @@ class Code(Model):
       #point set
       for key in output.getParaKeys('inputs'):
         if key in exportDict['inputSpaceParams']:
-          print('DEBUGG collected:',key,exportDict['inputSpaceParams'][key])
           output.updateInputValue(key,exportDict['inputSpaceParams'][key],options)
         else:
           self.raiseAnError(Exception, "the input parameter "+key+" requested in the DataObject "+output.name+

@@ -1,3 +1,22 @@
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
 import sys,os
 import __builtin__
 import functools
@@ -90,7 +109,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._heirarchal   = False  # if True, non-traditional format (not yet implemented)
     self._selectInput  = None   # if not None, describes how to collect input data from history
     self._selectOutput = None   # if not None, describes how to collect output data from history
-    self._pivotParam   = 'time' # FIXME should deprecate or expand for ND; pivot parameter for data selection
+    self._pivotParam   = None   # FIXME should deprecate or expand for ND; pivot parameter for data selection
     self._aliases      = {}     # variable aliases
 
     self._data         = None   # underlying data structure
@@ -157,6 +176,13 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if duplicateOut:
           self.raiseAnError(IOError,'Multiple options were given to specify the output row to read!  Please choose one.')
       # end options node
+    # default to taking the last entry if selective method not specified
+    if self._selectInput is None:
+      self.raiseAWarning('No input selection method given; defaulting to take-last-entry')
+      self._selectInput = ('inputRow',-1)
+    if self._selectOutput is None:
+      self.raiseAWarning('No output selection method given; defaulting to take-last-entry')
+      self._selectOutput = ('outputRow',-1)
     # end input reading
     self._allvars = self._inputs + self._outputs
 
@@ -405,7 +431,7 @@ class DataSet(DataObject):
     """
     self._data = None
     self._collector = None
-    self._meta = None
+    self._meta = {}
     # TODO others?
 
   def write(self,fname,style='netCDF',**kwargs):
@@ -506,7 +532,7 @@ class DataSet(DataObject):
                            dims=[self.sampleTag],
                            coords={self.sampleTag:labels},
                            name=var) # THIS is very fast
-    # second case: ND set (history set or higher dimension)
+    # second case: ND set (history set or higher dimension) --> CURRENTLY should be unused
     elif type(data[0]) == xr.DataArray:
       # two methods: all at "once" or "split" into multiple parts.  "once" is faster, but not parallelizable.
       # ONCE #
@@ -533,7 +559,7 @@ class DataSet(DataObject):
       # END #
       array = val
     else:
-      self.raiseAnError(TypeError,'Unrecognized data type for var "{}": "{}"'.format(var,type(data[0,v])))
+      self.raiseAnError(TypeError,'Unrecognized data type for var "{}": "{}"'.format(var,type(data[0])))
     array.rename(var)
     return array
 
@@ -624,10 +650,11 @@ class DataSet(DataObject):
     # confirm we have usable meta
     if haveMeta:
       # get the sample tag
-      try:
-        self.sampleTag = xmlUtils.findPath(meta,'DataSet/general/sampleTag').text
-      except TypeError:
-        pass # use default
+      tagNode = xmlUtils.findPath(meta,'DataSet/general/sampleTag')
+      if tagNode is not None:
+        self.sampleTag = tagNode.text
+      #else:
+      #  pass # use default
     # collect essential data from the meta
     alldims = set([])
     if haveMeta:
@@ -712,7 +739,18 @@ class DataSet(DataObject):
       @ Out, keep, list(str), list of variables that will be written to file
     """
     if 'what' in options.keys():
-      keep = list(v.split('|')[-1].strip() for v in options['what'].split(','))
+      elements = options['what'].split(',')
+      keep = []
+      for entry in elements:
+        small = entry.strip().lower()
+        if small == 'input':
+          keep += self._inputs
+          continue
+        elif small == 'output':
+          keep += self._outputs
+          continue
+        else:
+          keep.append(entry.split('|')[-1].strip())
     else:
       # TODO need the sampleTag meta to load histories # BY DEFAULT only keep inputs, outputs; if specifically requested, keep metadata by selection
       keep = self._inputs + self._outputs
@@ -824,29 +862,33 @@ class DataSet(DataObject):
       @ In, rlz, dict, {var:val} format (see addRealization)
       @ Out, rlz, dict, {var:val} modified
     """
-    # TODO this would be much more efficient on the parallel (finalizeCodeOutput) than on serial
+    # TODO this could be much more efficient on the parallel (finalizeCodeOutput) than on serial
     # TODO costly for loop
     for var,val in rlz.items():
-      # only modify it if it 1) isn't already scalar, 2) there is a method given, and 3) inp/out classifier
-      if not isinstance(val,float) and self._selectInput is not None and var in self._inputs:
-        method,indic = self._selectInput
-        if method == 'inputRow':
-          rlz[var] = float(val[:,indic]) # TODO testme, also TODO don't case to float?
-        elif method == 'inputPivotValue':
-          rlz[var] = float(val.sel(**{self._pivotParam:indic, 'method':'nearest'}))
-      elif not isinstance(val,float) and self._selectOutput is not None and var in self._outputs:
-        method,indic = self._selectOutput
-        if method == 'outputRow':
-          rlz[var] = float(val[:,indic]) # TODO testme, also TODO don't case to float?
-        elif method == 'outputPivotValue':
-          rlz[var] = float(val.sel(**{self._pivotParam:indic, 'method':'nearest'}))
-        elif method == 'operator':
-          if indic == 'max':
-            rlz[var] = float(val.max())
-          elif indic == 'min':
-            rlz[var] = float(val.min())
-          elif indic in ['mean','expectedValue','average']:
-            rlz[var] = float(val.mean())
+      # only modify it if it isn't already scalar
+      if not isinstance(val,float):
+        # treat inputs, outputs differently TODO this should extend to per-variable someday
+        if var in self._inputs:
+          method,indic = self._selectInput
+          if method == 'inputRow':
+            rlz[var] = float(val[:,indic])
+          elif method == 'inputPivotValue':
+            assert(self._pivotParam is not None) # TODO defaults to "time" somewhere, which is undesirable
+            rlz[var] = float(val.sel(**{self._pivotParam:indic, 'method':'nearest'}))
+        elif var in self._outputs:
+          method,indic = self._selectOutput
+          if method == 'outputRow':
+            rlz[var] = float(val[:,indic])
+          elif method == 'outputPivotValue':
+            assert(self._pivotParam is not None)
+            rlz[var] = float(val.sel(**{self._pivotParam:indic, 'method':'nearest'}))
+          elif method == 'operator':
+            if indic == 'max':
+              rlz[var] = float(val.max())
+            elif indic == 'min':
+              rlz[var] = float(val.min())
+            elif indic in ['mean','expectedValue','average']:
+              rlz[var] = float(val.mean())
       # otherwise, leave it alone
     return rlz
 
@@ -982,11 +1024,12 @@ class DataSet(DataObject):
       options = {}
     dataParams = {'inParam'       : self._inputs,
                   'outParam'      : self._outputs,
-                  'pivotParameter': self._pivotParam,
                   'type'          : 'PointSet', # TODO Faking it
                   'HistorySet'    : toLoadFrom.getEndingGroupNames(),
                   'filter'        : 'whole',
                  }
+    if self._pivotParam is not None:
+      dataParams['pivotParameter']=self._pivotParam
     if self._selectInput is not None:
       if self._selectInput[0] == 'inputRow':
         dataParams['inputRow'] = self._selectInput[1]
@@ -1233,24 +1276,35 @@ class DataSet(DataObject):
       @ Out, None
     """
     self.deprecated('updateMetadata')
+    floats = ('ProbabilityWeight',) #cast as float type
+    others = ('prefix','uniqueHandler')#,'SampledVars')#,'distributionName','distributionType') #cast as objects
+    globl = ('SamplerType','crowDist')
+    unneeded = ('SampledVars','distributionName','distributionType','PointProbability','SampledVarsPb')
     # global
-    if name in ['SamplerType','crowDist'] and len(self)<2:
+    if name in globl and len(self)<2:
       meta = {'general':{name:value}}
       self.addMeta('Sampler',meta)
-    # pointwise
-    elif name in ['ProbabilityWeight','prefix']: #TODO only add prefix if it's needed, don't default
+    # pointwise # "startswith" is particularly for ensemble model
+    elif name.startswith(floats+others):
       try:
         column = self._getVariableIndex(name)
         self._collector._addOneEntry(column,value)
       except ValueError:
-        self._collector.addEntity([np.array([[value]])]) #WHY should there be an extra [] in here....
+        if name.startswith(floats):
+          self._collector.addEntity([np.array([[value]])]) #WHY should there be an extra [] in here....
+        elif name.startswith(others):
+          self._collector.addEntity([np.array([[value]],dtype=object)]) #WHY should there be an extra [] in here....
+        else:
+          self.raiseAnError(NotImplementedError,'Unrecognized metadata subtype:',name)
         # FIXME this could be a costly check (not necessary in non-deprecated API)
         if name not in self._metavars:
           self._allvars.append(name)
           self._metavars.append(name)
     # unneeded
-    elif name in ['SampledVarsPb','PointProbability']:
+    elif name in unneeded:
       pass
+    else:
+      self.raiseAnError(NotImplementedError,'Unrecognized metadata:',name,value)
 
   def updateOutputValue(self,name,value,options=None):
     """
@@ -1261,6 +1315,11 @@ class DataSet(DataObject):
       @ Out, None
     """
     self.deprecated('updateOutputValue')
+    if isinstance(value,xr.DataArray): #happens with ensemble model
+      value = value.values
+    # apply operator -> have to convert shape slightly first
+    if isinstance(value,np.ndarray):
+      value = self._selectiveRealization({name:np.array([value])})[name]
     try:
       column = self._getVariableIndex(name)
       self._collector._addOneEntry(column,value)

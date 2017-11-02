@@ -76,7 +76,7 @@ def checkFloat(comment,value,expected,tol=1e-10,update=True):
   else:
     res = abs(value - expected) <= tol
   if update:
-    if res:
+    if not res:
       print("checking float",comment,'|',value,"!=",expected)
       results["fail"] += 1
     else:
@@ -228,8 +228,10 @@ def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
 #            CONSTRUCTION            #
 ######################################
 xml = createElement('DataSet',attrib={'name':'test'})
-xml.append(createElement('Input',text='a,b,c'))
-xml.append(createElement('Output',text='x,y,z'))
+xml.append(createElement('Input',text='a,b'))
+xml.append(createElement('Output',text='x,z'))
+#xml.append(createElement('Input',text='a,b,c'))
+#xml.append(createElement('Output',text='x,y,z'))
 
 # check construction
 data = XrDataObject.DataSet()
@@ -240,38 +242,44 @@ checkNone('DataSet __init__ _data',data._data)
 checkNone('DataSet __init__ _collector',data._collector)
 
 # check initialization
-data._readMoreXML(xml)
 data.messageHandler = mh
-checkArray('DataSet __init__ inp',data._inputs,['a','b','c'],str)
-checkArray('DataSet __init__ out',data._outputs,['x','y','z'],str)
-checkArray('DataSet __init__ all',data._allvars,['a','b','c','x','y','z'],str)
+data._readMoreXML(xml)
+# NOTE histories are currently disabled pending future work (c,y are history vars)
+checkArray('DataSet __init__ inp',data._inputs,['a','b'],str)
+checkArray('DataSet __init__ out',data._outputs,['x','z'],str)
+checkArray('DataSet __init__ all',data._allvars,['a','b','x','z'],str)
+#checkArray('DataSet __init__ inp',data._inputs,['a','b','c'],str)
+#checkArray('DataSet __init__ out',data._outputs,['x','y','z'],str)
+#checkArray('DataSet __init__ all',data._allvars,['a','b','c','x','y','z'],str)
 checkNone('DataSet __init__ _data',data._data)
 checkNone('DataSet __init__ _collector',data._collector)
+
 
 ######################################
 #    SAMPLING AND APPENDING DATA     #
 ######################################
 # append some data to get started
+# NOTE histories are currently disabled pending future work
 rlz0 = {'a': 1.0,
         'b': 2.0,
-        'c': xr.DataArray([3.0, 3.1, 3.2],dims=['time'],coords={'time':[3.1e-6,3.2e-6,3.3e-6]}),
+        #'c': xr.DataArray([3.0, 3.1, 3.2],dims=['time'],coords={'time':[3.1e-6,3.2e-6,3.3e-6]}),
         'x': 4.0,
-        'y': xr.DataArray([5.0, 5.1, 5.2],dims=['time'],coords={'time':[5.1e-6,5.2e-6,5.3e-6]}),
+        #'y': xr.DataArray([5.0, 5.1, 5.2],dims=['time'],coords={'time':[5.1e-6,5.2e-6,5.3e-6]}),
         'prefix': 'first',
        }
 rlz1 = {'a' :11.0,
         'b': 12.0,
-        'c': xr.DataArray([13.0, 13.1, 13.2],dims=['time'],coords={'time':[13.1e-6,13.2e-6,13.3e-6]}),
+        #'c': xr.DataArray([13.0, 13.1, 13.2],dims=['time'],coords={'time':[13.1e-6,13.2e-6,13.3e-6]}),
         'x': 14.0,
-        'y': xr.DataArray([15.0, 15.1, 15.2],dims=['time'],coords={'time':[15.1e-6,15.2e-6,15.3e-6]}),
+        #'y': xr.DataArray([15.0, 15.1, 15.2],dims=['time'],coords={'time':[15.1e-6,15.2e-6,15.3e-6]}),
         'z': 16.0,
         'prefix': 'second',
        }
 rlz2 = {'a' :21.0,
         'b': 22.0,
-        'c': xr.DataArray([23.0, 23.1, 23.2],dims=['time'],coords={'time':[23.1e-6,23.2e-6,23.3e-6]}),
+        #'c': xr.DataArray([23.0, 23.1, 23.2],dims=['time'],coords={'time':[23.1e-6,23.2e-6,23.3e-6]}),
         'x': 24.0,
-        'y': xr.DataArray([25.0, 25.1, 25.2],dims=['time'],coords={'time':[25.1e-6,25.2e-6,25.3e-6]}),
+        #'y': xr.DataArray([25.0, 25.1, 25.2],dims=['time'],coords={'time':[25.1e-6,25.2e-6,25.3e-6]}),
         'z': 26.0,
         'prefix': 'third',
        }
@@ -318,25 +326,25 @@ checkArray('Dataset first collapse sample IDs',data._data['RAVEN_sample_ID'].val
 times = [ 3.1e-6, 3.2e-6, 3.3e-6, 5.1e-6, 5.2e-6, 5.3e-6,
          13.1e-6,13.2e-6,13.3e-6,15.1e-6,15.2e-6,15.3e-6,
          23.1e-6,23.2e-6,23.3e-6,25.1e-6,25.2e-6,25.3e-6]
-checkArray('Dataset first collapse "time"',data._data['time'].values,times,float)
+#checkArray('Dataset first collapse "time"',data._data['time'].values,times,float)
 # check values for scalars "a"
 checkArray('Dataset first collapse "a"',data._data['a'].values,[1.0,11.0,21.0],float)
 # check values for timeset "c"
-c = np.array(
-    [            [ 3.0, 3.1, 3.2]+[np.nan]*15,
-     [np.nan]* 6+[13.0,13.1,13.2]+[np.nan]*9,
-     [np.nan]*12+[23.0,23.1,23.2]+[np.nan]*3])
-checkArray('Dataset first collapse "c" 0',data._data['c'].values[0],c[0],float)
-checkArray('Dataset first collapse "c" 1',data._data['c'].values[1],c[1],float)
-checkArray('Dataset first collapse "c" 2',data._data['c'].values[2],c[2],float)
+#c = np.array(
+#    [            [ 3.0, 3.1, 3.2]+[np.nan]*15,
+#     [np.nan]* 6+[13.0,13.1,13.2]+[np.nan]*9,
+#     [np.nan]*12+[23.0,23.1,23.2]+[np.nan]*3])
+#checkArray('Dataset first collapse "c" 0',data._data['c'].values[0],c[0],float)
+#checkArray('Dataset first collapse "c" 1',data._data['c'].values[1],c[1],float)
+#checkArray('Dataset first collapse "c" 2',data._data['c'].values[2],c[2],float)
 # check values for timeset "y"
-y = np.array(
-    [[np.nan]* 3+[ 5.0, 5.1, 5.2]+[np.nan]*12,
-     [np.nan]* 9+[15.0,15.1,15.2]+[np.nan]*6,
-     [np.nan]*15+[25.0,25.1,25.2]           ])
-checkArray('Dataset first collapse "y" 0',data._data['y'].values[0],y[0],float)
-checkArray('Dataset first collapse "y" 1',data._data['y'].values[1],y[1],float)
-checkArray('Dataset first collapse "y" 2',data._data['y'].values[2],y[2],float)
+#y = np.array(
+#    [[np.nan]* 3+[ 5.0, 5.1, 5.2]+[np.nan]*12,
+#     [np.nan]* 9+[15.0,15.1,15.2]+[np.nan]*6,
+#     [np.nan]*15+[25.0,25.1,25.2]           ])
+#checkArray('Dataset first collapse "y" 0',data._data['y'].values[0],y[0],float)
+#checkArray('Dataset first collapse "y" 1',data._data['y'].values[1],y[1],float)
+#checkArray('Dataset first collapse "y" 2',data._data['y'].values[2],y[2],float)
 # check values for metadata prefix (unicode, not float)
 checkArray('Dataset first collapse "prefix"',data._data['prefix'].values,['first','second','third'],str)
 # TODO test "getting" data from _data instead of _collector
@@ -348,9 +356,9 @@ checkArray('Dataset first collapse "prefix"',data._data['prefix'].values,['first
 # use the same time stamps as rlz0 to test same coords
 rlz3 = {'a' :31.0,
         'b': 32.0,
-        'c': xr.DataArray([33.0, 33.1, 33.2],dims=['time'],coords={'time':[ 3.1e-6, 3.2e-6, 3.3e-6]}),
+#        'c': xr.DataArray([33.0, 33.1, 33.2],dims=['time'],coords={'time':[ 3.1e-6, 3.2e-6, 3.3e-6]}),
         'x': 34.0,
-        'y': xr.DataArray([35.0, 35.1, 35.2],dims=['time'],coords={'time':[ 5.1e-6, 5.2e-6, 5.3e-6]}),
+#        'y': xr.DataArray([35.0, 35.1, 35.2],dims=['time'],coords={'time':[ 5.1e-6, 5.2e-6, 5.3e-6]}),
         'z': 36.0,
         'prefix': 'fourth',
        }
@@ -362,22 +370,22 @@ data.asDataset()
 # check new sample IDs
 checkArray('Dataset first collapse sample IDs',data._data['RAVEN_sample_ID'].values,[0,1,2,3],float)
 # "times" should not have changed
-times = [ 3.1e-6, 3.2e-6, 3.3e-6, 5.1e-6, 5.2e-6, 5.3e-6,
-         13.1e-6,13.2e-6,13.3e-6,15.1e-6,15.2e-6,15.3e-6,
-         23.1e-6,23.2e-6,23.3e-6,25.1e-6,25.2e-6,25.3e-6]
-checkArray('Dataset first collapse "time"',data._data['time'].values,times,float)
+#times = [ 3.1e-6, 3.2e-6, 3.3e-6, 5.1e-6, 5.2e-6, 5.3e-6,
+#         13.1e-6,13.2e-6,13.3e-6,15.1e-6,15.2e-6,15.3e-6,
+#         23.1e-6,23.2e-6,23.3e-6,25.1e-6,25.2e-6,25.3e-6]
+#checkArray('Dataset first collapse "time"',data._data['time'].values,times,float)
 # check new "a"
 checkArray('Dataset first collapse "a"',data._data['a'].values,[1.0,11.0,21.0,31.0],float)
 # check new "c"
-c = np.array(
-    [            [ 3.0, 3.1, 3.2]+[np.nan]*15,
-     [np.nan]* 6+[13.0,13.1,13.2]+[np.nan]*9,
-     [np.nan]*12+[23.0,23.1,23.2]+[np.nan]*3,
-                 [33.0,33.1,33.2]+[np.nan]*15])
-checkArray('Dataset first collapse "c" 0',data._data['c'].values[0],c[0],float)
-checkArray('Dataset first collapse "c" 1',data._data['c'].values[1],c[1],float)
-checkArray('Dataset first collapse "c" 2',data._data['c'].values[2],c[2],float)
-checkArray('Dataset first collapse "c" 3',data._data['c'].values[3],c[3],float)
+#c = np.array(
+#    [            [ 3.0, 3.1, 3.2]+[np.nan]*15,
+#     [np.nan]* 6+[13.0,13.1,13.2]+[np.nan]*9,
+#     [np.nan]*12+[23.0,23.1,23.2]+[np.nan]*3,
+#                 [33.0,33.1,33.2]+[np.nan]*15])
+#checkArray('Dataset first collapse "c" 0',data._data['c'].values[0],c[0],float)
+#checkArray('Dataset first collapse "c" 1',data._data['c'].values[1],c[1],float)
+#checkArray('Dataset first collapse "c" 2',data._data['c'].values[2],c[2],float)
+#checkArray('Dataset first collapse "c" 3',data._data['c'].values[3],c[3],float)
 # check string prefix
 checkArray('Dataset first collapse "prefix"',data._data['prefix'].values,['first','second','third','fourth'],str)
 
@@ -425,22 +433,24 @@ checkSame('Metadata TestPP/secondVar/scalarMetric1 value',child.text,'100.0')
 
 treeDS = data._meta['DataSet'].tree.getroot()
 checkSame('Metadata DataSet',treeDS.tag,'DataSet')
-checkSame('Metadata DataSet entries',len(treeDS),2)
-dims,general = treeDS[:]
-checkSame('Metadata DataSet/dims tag',dims.tag,'dims')
-checkSame('Metadata DataSet/dims entries',len(dims),2)
-y,c = dims[:]
-checkSame('Metadata DataSet/dims/y tag',y.tag,'y')
-checkSame('Metadata DataSet/dims/y value',y.text,'time')
-checkSame('Metadata DataSet/dims/c tag',c.tag,'c')
-checkSame('Metadata DataSet/dims/c value',c.text,'time')
+checkSame('Metadata DataSet entries',len(treeDS),1) # 2
+general = treeDS[:][0]
+print('general:',general)
+#dims,general = treeDS[:]
+#checkSame('Metadata DataSet/dims tag',dims.tag,'dims')
+#checkSame('Metadata DataSet/dims entries',len(dims),2)
+#y,c = dims[:]
+#checkSame('Metadata DataSet/dims/y tag',y.tag,'y')
+#checkSame('Metadata DataSet/dims/y value',y.text,'time')
+#checkSame('Metadata DataSet/dims/c tag',c.tag,'c')
+#checkSame('Metadata DataSet/dims/c value',c.text,'time')
 checkSame('Metadata DataSet/general tag',general.tag,'general')
 checkSame('Metadata DataSet/general entries',len(general),4)
 inputs,pointwise_meta,outputs,sampleTag = general[:]
 checkSame('Metadata DataSet/general/inputs tag',inputs.tag,'inputs')
-checkSame('Metadata DataSet/general/inputs value',inputs.text,'a,b,c')
+checkSame('Metadata DataSet/general/inputs value',inputs.text,'a,b')#,c')
 checkSame('Metadata DataSet/general/outputs tag',outputs.tag,'outputs')
-checkSame('Metadata DataSet/general/outputs value',outputs.text,'x,y,z')
+checkSame('Metadata DataSet/general/outputs value',outputs.text,'x,z') # 'y'
 checkSame('Metadata DataSet/general/pointwise_meta tag',pointwise_meta.tag,'pointwise_meta')
 checkSame('Metadata DataSet/general/pointwise_meta value',pointwise_meta.text,'prefix')
 checkSame('Metadata DataSet/general/sampleTag tag',sampleTag.tag,'sampleTag')
@@ -494,19 +504,19 @@ correct = ['<DataObjectMetadata name="DataSet">',
 '  </TestPP>',
 '  ',
 '  <DataSet type="Static">',
-'    <dims>',
-'      <y>time</y>',
-'      <c>time</c>',
-'    </dims>',
 '    <general>',
-'      <inputs>a,b,c</inputs>',
+'      <inputs>a,b</inputs>',
 '      <pointwise_meta>prefix</pointwise_meta>',
-'      <outputs>x,y,z</outputs>',
+'      <outputs>x,z</outputs>',
 '      <sampleTag>RAVEN_sample_ID</sampleTag>',
 '    </general>',
 '  </DataSet>',
 '  ',
 '</DataObjectMetadata>']
+#'    <dims>',
+#'      <y>time</y>',
+#'      <c>time</c>',
+#'    </dims>',
 # read in XML
 lines = file(csvname+'.xml','r').readlines()
 # remove line endings

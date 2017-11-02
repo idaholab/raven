@@ -292,71 +292,71 @@ class OutStreamPlot(OutStreamManager):
           xsplit = self.__splitVariableNames('x', (pltindex, i))
           parame = self.sourceData[pltindex].getParam(xsplit[1], xsplit[2], nodeId = 'ending')
           if type(parame) in [np.ndarray, c1darray]:
-            self.xValues[pltindex][1].append(np.asarray(parame))
+            self.xValues[pltindex][1].append(np.asarray(parame,dtype=float))
           else:
             conarr = np.zeros(len(parame.keys()))
             index = 0
             for item in parame.values():
               conarr[index] = item[0]
               index += 1
-            self.xValues[pltindex][1].append(np.asarray(conarr))
+            self.xValues[pltindex][1].append(np.asarray(conarr,dtype=float))
         if self.yCoordinates :
           for i in range(len(self.yCoordinates [pltindex])):
             ysplit = self.__splitVariableNames('y', (pltindex, i))
             parame = self.sourceData[pltindex].getParam(ysplit[1], ysplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]:
-              self.yValues[pltindex][1].append(np.asarray(parame))
+              self.yValues[pltindex][1].append(np.asarray(parame,dtype=float))
             else:
               conarr = np.zeros(len(parame.keys()))
               index = 0
               for item in parame.values():
                 conarr[index] = item[0]
                 index += 1
-              self.yValues[pltindex][1].append(np.asarray(conarr))
+              self.yValues[pltindex][1].append(np.asarray(conarr,dtype=float))
         if self.zCoordinates  and self.dim > 2:
           for i in range(len(self.zCoordinates [pltindex])):
             zsplit = self.__splitVariableNames('z', (pltindex, i))
             parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]:
-              self.zValues[pltindex][1].append(np.asarray(parame))
+              self.zValues[pltindex][1].append(np.asarray(parame,dtype=float))
             else:
               conarr = np.zeros(len(parame.keys()))
               for index in range(len(parame.values())):
                 conarr[index] = parame.values()[index][0]
-              self.zValues[pltindex][1].append(np.asarray(conarr))
+              self.zValues[pltindex][1].append(np.asarray(conarr,dtype=float))
         if self.clusterLabels:
           for i in range(len(self.clusterLabels [pltindex])):
             clustersplit = self.__splitVariableNames('clusterLabels', (pltindex, i))
             parame = self.sourceData[pltindex].getParam(clustersplit[1], clustersplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]:
-              self.clusterValues[pltindex][1].append(np.asarray(parame))
+              self.clusterValues[pltindex][1].append(np.asarray(parame,dtype=float))
             else:
               conarr = np.zeros(len(parame.keys()))
               for index in range(len(parame.values())):
                 conarr[index] = parame.values()[index][0]
-              self.clusterValues[pltindex][1].append(np.asarray(conarr))
+              self.clusterValues[pltindex][1].append(np.asarray(conarr,dtype=float))
         if self.mixtureLabels:
           for i in range(len(self.mixtureLabels [pltindex])):
             mixturesplit = self.__splitVariableNames('mixtureLabels', (pltindex, i))
             parame = self.sourceData[pltindex].getParam(mixturesplit[1], mixturesplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]:
-              self.mixtureValues[pltindex][1].append(np.asarray(parame))
+              self.mixtureValues[pltindex][1].append(np.asarray(parame,dtype=float))
             else:
               conarr = np.zeros(len(parame.keys()))
               for index in range(len(parame.values())):
                 conarr[index] = parame.values()[index][0]
-              self.clusterValues[pltindex][1].append(np.asarray(conarr))
+              self.clusterValues[pltindex][1].append(np.asarray(conarr,dtype=float))
         if self.colorMapCoordinates[pltindex] != None:
           for i in range(len(self.colorMapCoordinates[pltindex])):
             zsplit = self.__splitVariableNames('colorMap', (pltindex, i))
             parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]:
-              self.colorMapValues[pltindex][1].append(np.asarray(parame))
+              self.colorMapValues[pltindex][1].append(np.asarray(parame,dtype=float))
             else:
               conarr = np.zeros(len(parame.keys()))
               for index in range(len(parame.values())):
                 conarr[index] = parame.values()[index][0]
-              self.colorMapValues[pltindex][1].append(np.asarray(conarr))
+              self.colorMapValues[pltindex][1].append(np.asarray(conarr,dtype=float))
         # check if the array sizes are consistent
         sizeToMatch = self.xValues[pltindex][1][-1].size
         if self.yCoordinates and self.yValues[pltindex][1][-1].size != sizeToMatch:
