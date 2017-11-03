@@ -1,0 +1,25 @@
+<crossSection base="=== test ===">
+  <perturbation type="multiplier">
+    <library lib_name="fuel1">           
+      <isotope id="U235">
+        <Fission g="1">2.00</Fission>
+        <Kappa g="2">3.00</Kappa> 
+        <Scatter g="3" gg="6">4.00</Scatter>        
+      </isotope>
+      <isotope id="U236" fissile="true">
+        <Abs g="8">5.00</Abs>                    
+      </isotope> 
+    </library>  
+  </perturbation> 
+  <perturbation type="multiplier">
+    <library lib_name="fuel2">           
+      <isotope id="U234">
+        <Fission g="4">6.00</Fission>
+        <Kappa g="5">7.00</Kappa>            
+      </isotope>
+      <isotope id="U236" fissile="true">
+        <Abs g="7">8.00</Abs>                    
+      </isotope> 
+    </library>   
+  </perturbation> 
+</crossSection>
