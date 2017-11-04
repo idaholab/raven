@@ -55,6 +55,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #FIXME: Since the similarity of this class with the base sampler, we should merge this
     BaseType.__init__(self)
     Assembler.__init__(self)
+    self.ableToHandelFailedRuns         = False                     # is this optimizer able to handle failed runs?
     #counters
     self.counter                        = {}                        # Dict containing counters used for based and derived class
     self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize

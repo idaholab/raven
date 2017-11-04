@@ -26,7 +26,7 @@ from __future__ import absolute_import
 ## of this submodule
 from .PostProcessor import PostProcessor
 from .BasicStatistics import BasicStatistics
-from .ComparisonStatistics import ComparisonStatistics
+from .ComparisonStatisticsModule import ComparisonStatistics
 from .ExternalPostProcessor import ExternalPostProcessor
 from .ImportanceRank import ImportanceRank
 from .InterfacedPostProcessor import InterfacedPostProcessor

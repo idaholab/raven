@@ -49,6 +49,8 @@ class SPSA(GradientBasedOptimizer):
       Default Constructor
     """
     GradientBasedOptimizer.__init__(self)
+    self.paramDict['pertSingleGrad'] = 1
+    self.currentDirection = None
     self.stochasticDistribution = None                        # Distribution used to generate perturbations
     self.stochasticEngine = None                              # Random number generator used to generate perturbations
     self.stochasticEngineForConstraintHandling = Distributions.returnInstance('Normal',self)
@@ -63,6 +65,7 @@ class SPSA(GradientBasedOptimizer):
       @ Out, None
     """
     GradientBasedOptimizer.localInputAndChecks(self, xmlNode)
+    self.currentDirection   = None
     self.paramDict['alpha'] = float(self.paramDict.get('alpha', 0.602))
     self.paramDict['gamma'] = float(self.paramDict.get('gamma', 0.101))
     self.paramDict['A']     = float(self.paramDict.get('A', self.limit['mdlEval']/10.))
@@ -83,7 +86,7 @@ class SPSA(GradientBasedOptimizer):
     self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
     self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
 
-    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
+    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)
 
     stochDist = self.paramDict.get('stochasticDistribution', 'Hypersphere')
     if stochDist == 'Bernoulli':
@@ -95,7 +98,7 @@ class SPSA(GradientBasedOptimizer):
       self.stochasticEngine = lambda: [(0.5+randomUtils.random()*(1.+randomUtils.random()/1000.*randomUtils.randomIntegers(-1, 1, self))) if self.stochasticDistribution.rvs() == 1 else
                                    -1.*(0.5+randomUtils.random()*(1.+randomUtils.random()/1000.*randomUtils.randomIntegers(-1, 1, self))) for _ in range(len(self.getOptVars()))]
     elif stochDist == 'Hypersphere':
-      self.stochasticEngine = lambda: randomUtils.randPointsOnHypersphere(len(self.getOptVars()))
+      self.stochasticEngine = lambda: randomUtils.randPointsOnHypersphere(len(self.getOptVars())) if len(self.getOptVars()) > 1 else [randomUtils.randPointsOnHypersphere(len(self.getOptVars()))]
     else:
       self.raiseAnError(IOError, self.paramDict['stochasticEngine']+'is currently not supported for SPSA')
 
@@ -105,8 +108,28 @@ class SPSA(GradientBasedOptimizer):
       @ In, solutionExport, DataObject, a PointSet to hold the solution
       @ Out, None
     """
-    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
     self._endJobRunnable        = (self._endJobRunnable*self.gradDict['pertNeeded'])+len(self.optTraj)
+
+  def _newOptPointAdd(self, gradient, traj):
+    """
+      This local method add a new opt point based on the gradient
+      @ In, gradient, dict, dictionary containing the gradient
+      @ In, traj, int, trajectory
+      @ Out, None
+    """
+    ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
+    self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
+    varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs'])
+    varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
+    #check for redundant paths
+    if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
+      self._removeRedundantTraj(traj, varKPlus)
+    #if the new point was modified by the constraint, reset the step size
+    if modded:
+      del self.counter['lastStepSize'][traj]
+      self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
+    self.queueUpOptPointRuns(traj,varKPlus)
+
 
   def localStillReady(self, ready, convergence = False):
     """
@@ -148,6 +171,11 @@ class SPSA(GradientBasedOptimizer):
         elif reason in ['seeking new opt point','received recommended point']:
           self.nextActionNeeded = ('add more opt point evaluations',traj)
           break
+        elif reason in 'failed run':
+          self.nextActionNeeded = ('add more opt point evaluations',traj)
+          if len(self.submissionQueue[traj]) == 0:
+            gradient = self.counter['gradientHistory'][traj][0]
+            self._newOptPointAdd(gradient,traj)
         else:
           self.raiseAnError(RuntimeError,'unexpected reason for submitting new opt points:',reason)
 
@@ -156,13 +184,14 @@ class SPSA(GradientBasedOptimizer):
         # check to see if the grad evaluation points have all been collected
         evalsFinished = True
         for pertID in range(self.gradDict['pertNeeded']):
-          if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:#[0]:
+          if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:
             evalsFinished = False
             break
         # if grad eval pts are finished, then evaluate the gradient
         if evalsFinished:
           # collect output values for perturbed points
-          for i in range(1,self.gradDict['numIterForAve']*2,2):
+          #for i in range(1,self.gradDict['numIterForAve']*2,2):
+          for i in self.perturbationIndices:
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
             outval = self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar][evalIndex]
             self.gradDict['pertPoints'][traj][i]['output'] = outval
@@ -173,21 +202,10 @@ class SPSA(GradientBasedOptimizer):
           gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj],traj)
           # establish a new point, if found; FIXME otherwise?
           if len(self.submissionQueue[traj]) == 0:
-            ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
-            self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
-            varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs'])
-            varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
-            #check for redundant paths
-            if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
-              self._removeRedundantTraj(traj, varKPlus)
+            self._newOptPointAdd(gradient,traj)
             # if trajectory was killed for redundancy, continue on to check next trajectory for readiness
             if self.status[traj]['reason'] == 'removed as redundant':
               continue # loops back to the next opt traj
-            #if the new point was modified by the constraint, reset the step size
-            if modded:
-              del self.counter['lastStepSize'][traj]
-              self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
-            self.queueUpOptPointRuns(traj,varKPlus)
           self.nextActionNeeded = ('add more opt point evaluations',traj)
           self.status[traj]['process'] = 'submitting new opt points'
           self.status[traj]['reason'] = 'seeking new opt point'
@@ -223,6 +241,45 @@ class SPSA(GradientBasedOptimizer):
     else:
       self.raiseADebug('Next action needed: "%s" on trajectory "%i"' %self.nextActionNeeded)
       return True
+
+  def localEvaluateGradient(self, optVarsValues, traj,  gradient = None):
+    """
+      Local method to evaluate gradient.
+      @ In, optVarsValues, dict, dictionary containing perturbed points.
+                                 optVarsValues should have the form {pertIndex: {varName: [varValue1 varValue2]}}
+                                 Therefore, each optVarsValues[pertIndex] should return a dict of variable values
+                                 that is sufficient for gradient evaluation for at least one variable
+                                 (depending on specific optimization algorithm)
+      @ In, traj, int, the trajectory id
+      @ In, gradient, dict, optional, dictionary containing gradient estimation by the caller.
+                                      gradient should have the form {varName: gradEstimation}
+      @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
+    """
+    gradArray = {}
+    for var in self.getOptVars(traj=traj):
+      gradArray[var] = np.zeros(0)
+    # Evaluate gradient at each point
+    for i in range(self.gradDict['numIterForAve']):
+      opt  = optVarsValues[i]                                  #the latest opt point
+      pert = optVarsValues[i + self.gradDict['numIterForAve']] #the perturbed point
+      # calculate grad(F) wrt each input variable
+      # fix infinities!
+      lossDiff = mathUtils.diffWithInfinites(pert['output'],opt['output'])
+      #cover "max" problems
+      # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
+      #   sign flipping was only called when evaluating the gradient.
+      if self.optType == 'max':
+        lossDiff *= -1.0
+      for var in self.getOptVars(traj=traj):
+        # gradient is calculated in normalized space
+        dh = pert['inputs'][var] - opt['inputs'][var]
+        if abs(dh) < 1e-15:
+          self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
+        gradArray[var] = np.append(gradArray[var], lossDiff/dh)
+    gradient = {}
+    for var in self.getOptVars(traj=traj):
+      gradient[var] = gradArray[var].mean()
+    return gradient
 
   def localGenerateInput(self,model,oldInput):
     """
@@ -277,15 +334,11 @@ class SPSA(GradientBasedOptimizer):
         #TODO this same check is in GradientBasedOptimizer.queueUpOptPointRuns, they might benefit from abstracting
         if len(self.submissionQueue[traj]) > 0:
           self.raiseAnError(RuntimeError,'Preparing to add grad evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
-        # in order to perform the de-noising we keep the same perturbation direction and we repeat the evaluation multiple times
-        direction = self.stochasticEngine() #the deltas for each dimension
-        for i in range(1,2*self.gradDict['numIterForAve'],2): #perturbation points are odd, not even
+        for i in self.perturbationIndices: #perturbation points are odd, not even
+          direction = self._getPerturbationDirection(i, traj)
           point = {}
           for varID, var in enumerate(self.getOptVars(traj=traj)):
-            try:
-              val = varK[var] + ck*direction[varID]
-            except IndexError: #only occurs when dimensionality is 1
-              val = varK[var] + ck*direction
+            val = varK[var] + ck*direction[varID]
             val = self._checkBoundariesAndModify(1.0, 0.0, 1.0, val, 0.9999, 0.0001)
             point[var] = val
           #create identifier
@@ -355,8 +408,8 @@ class SPSA(GradientBasedOptimizer):
     self.counter ['gradientHistory'][traj] = [{},{}]
     self.counter ['gradNormHistory'][traj] = [0,0]
     #only clear non-opt points from pertPoints
-    for i in range(self.gradDict['numIterForAve']):
-      self.gradDict['pertPoints'][traj][i*2+1] = 0
+    for i in self.perturbationIndices:
+      self.gradDict['pertPoints'][traj][i] = 0
     self.convergeTraj[traj] = False
     self.status[traj] = {'process':'submitting grad eval points','reason':'found new opt point'}
     try:
@@ -632,3 +685,17 @@ class SPSA(GradientBasedOptimizer):
     if state['recommendToGain'] is not None:
       self.recommendToGain[traj] = state['recommendToGain']
 
+  def _getPerturbationDirection(self,perturbationIndex, traj):
+    """
+      This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
+      @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
+      @ In, traj, int, the trajectory id
+      @ Out, direction, list, the versor for each optimization dimension
+    """
+    if perturbationIndex == self.perturbationIndices[0]:
+      direction = self.stochasticEngine()
+      self.currentDirection = direction
+    else:
+      # in order to perform the de-noising we keep the same perturbation direction and we repeat the evaluation multiple times
+      direction = self.currentDirection
+    return direction

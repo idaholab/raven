@@ -78,7 +78,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
     validSyncMethods = ['all','grid','max','min']
     if self.syncMethod not in validSyncMethods:
       self.raiseAnError(NotImplementedError,'Method for synchronizing was not recognized: \"',self.syncMethod,'\". Options are:',validSyncMethods)
-    if self.syncMethod is 'grid' and not isinstance(self.numberOfSamples, int):
+    if self.syncMethod == 'grid' and not isinstance(self.numberOfSamples, int):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not correctly specified (either not specified or not integer)')
     if self.pivotParameter == None:
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : pivotParameter is not specified')

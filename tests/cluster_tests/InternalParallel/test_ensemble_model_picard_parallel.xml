@@ -31,8 +31,8 @@
         <settings>
             <initialConditions>
                 <averageTemperature>1000.0</averageTemperature>
-                <k>10.0</k>
             </initialConditions>
+            <initialStartModels>thermalConductivityComputation</initialStartModels>
         </settings>
       <Model class="Models"  type="ExternalModel">
         thermalConductivityComputation

@@ -62,34 +62,47 @@ class RavenErrors(Tester):
     """This method checks if the the test is runnable within the current settings"""
     missing,too_old,notQA = RavenUtils.checkForMissingModules()
     if len(missing) > 0:
-      return (False,'skipped (Missing python modules: '+" ".join(missing)+
-              " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+      self.setStatus('skipped (Missing python modules: '+" ".join(missing)+
+                     " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')',
+                     self.bucket_skip)
+      return False
     if len(too_old) > 0:
-      return (False,'skipped (Old version python modules: '+" ".join(too_old)+
-              " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+      self.setStatus('skipped (Old version python modules: '+" ".join(too_old)+
+                     " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')',
+                     self.bucket_skip)
+      return False
     for lib in self.required_libraries:
       if platform.system() == 'Windows':
         lib += '.pyd'
       else:
         lib += '.so'
       if not os.path.exists(lib):
-        return (False,'skipped (Missing library: "'+lib+'")')
+        self.setStatus('skipped (Missing library: "'+lib+'")', self.bucket_skip)
+        return False
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
-      return (False,'skipped (Missing executable: "'+self.required_executable+'")')
+      self.setStatus('skipped (Missing executable: "'+self.required_executable+'")',
+                     self.bucket_skip)
+      return False
     try:
       if len(self.required_executable) > 0 and \
          subprocess.call([self.required_executable],stdout=subprocess.PIPE) != 0:
-        return (False,'skipped (Failing executable: "'+self.required_executable+'")')
+        self.setStatus('skipped (Failing executable: "'+self.required_executable+'")',
+                       self.bucket_skip)
+        return False
     except:
-      return (False,'skipped (Error when trying executable: "'+self.required_executable+'")')
+      self.setStatus('skipped (Error when trying executable: "'+self.required_executable+'")',
+                     self.bucket_skip)
+      return False
     if len(self.specs['skip_if_env']) > 0:
       env_var = self.specs['skip_if_env']
       if env_var in os.environ:
-        return (False,'skipped (found environmental variable "'+env_var+'")')
-    return (True, '')
+        self.setStatus('skipped (found environmental variable "'+env_var+'")',
+                       self.bucket_skip)
+        return False
+    return True
 
-  def processResults(self, moose_dir,retcode, options, output):
+  def processResults(self, moose_dir, options, output):
     """This method processes results. It checks if the expected error messgae keyword exists in the output stream."""
     for line in output.split('\n'):
       if self.specs['expect_err'] in line:

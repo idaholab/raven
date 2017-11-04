@@ -66,6 +66,9 @@ class TopologicalDecomposition(PostProcessor):
     TDWeightedInput = InputData.parameterInputFactory("weighted", contentType=InputData.StringType) #bool
     inputSpecification.addSub(TDWeightedInput)
 
+    TDInteractiveInput = InputData.parameterInputFactory("interactive", contentType=InputData.StringType) #bool
+    inputSpecification.addSub(TDInteractiveInput)
+
     TDPersistenceInput = InputData.parameterInputFactory("persistence", contentType=InputData.StringType)
     inputSpecification.addSub(TDPersistenceInput)
 

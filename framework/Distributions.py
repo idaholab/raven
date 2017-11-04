@@ -614,15 +614,15 @@ class Normal(BoostDistribution):
 
     return inputSpecification
 
-  def __init__(self):
+  def __init__(self, mean=0.0, sigma=1.0):
     """
       Constructor
       @ In, None
       @ Out, None
     """
     BoostDistribution.__init__(self)
-    self.mean  = 0.0
-    self.sigma = 0.0
+    self.mean  = mean
+    self.sigma = sigma
     self.hasInfiniteBound = True
     self.type = 'Normal'
     self.disttype = 'Continuous'

@@ -165,6 +165,15 @@
   test_interface_only = True
  [../]
 
+ [./DymolaTestLoadSomeVarsNoExecutable]
+  type = 'RavenFramework'
+  input = 'test_Dymola_code_interface_load_some_vars.xml'
+  output = 'DMInterfaceTestLoadSomeVars/testDummyStep/1/dsin.txt DMInterfaceTestLoadSomeVars/testDummyStep/2/dsin.txt DMInterfaceTestLoadSomeVars/testDummyStep/3/dsin.txt DMInterfaceTestLoadSomeVars/testDummyStep/4/dsin.txt DMInterfaceTestLoadSomeVars/testDummyStep/5/dsin.txt'
+  csv = 'DMInterfaceTestLoadSomeVars/testDummyStep/1/out~dsin.csv'
+  test_interface_only = True
+ [../]
+
+
 [./DymolaTestTimeDepNoExecutableEnsembleModel]
   type = 'RavenFramework'
   input = 'test_Dymola_code_interface_timedep.xml'
@@ -308,5 +317,11 @@
    rel_err = 0.0001
  [../]
 
-
+ [./RAVENrunningRAVEN]
+   type = 'RavenFramework'
+   input = 'test_raven_running_raven_int_models.xml'
+   output = 'raven_running_raven_internal_models/testPrintHistorySet_dump_11.csv'
+   UnorderedCsv = 'raven_running_raven_internal_models/testPointSet_dump.csv'
+   rel_err = 0.0001
+ [../]
 []
