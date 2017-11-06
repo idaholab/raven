@@ -1,9 +1,24 @@
-<data name="dump_sdiff" type="Pointset"><input>x2,x5</input><output>OutputPlaceHolder</output><inputFilename>dump_sdiff.csv</inputFilename><metadata><SamplerType>array([u'MC', u'MC', u'MC'], 
-      dtype='&lt;U2')</SamplerType><crowDist>array([ {u'x2': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x3': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x1': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x6': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x4': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x5': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}'},
-       {u'x2': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x3': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x1': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x6': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x4': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x5': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}'},
-       {u'x2': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x3': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x1': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x6': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x4': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x5': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}'}], dtype=object)</crowDist><SampledVars>array([ {u'x2': -0.90246666834374634, u'x3': 0.29887295272213393, u'x1': -0.51223795574871989, u'x6': 0.28363035130584746, u'x4': 0.062095065198731522, u'x5': -2.4538748165234008},
-       {u'x2': 1.6341424762971595, u'x3': 1.5735285131908867, u'x1': 1.8201515488580273, u'x6': 0.15931136131812676, u'x4': 0.87200563909867757, u'x5': -0.29128545271488254},
-       {u'x2': 0.75585798300055695, u'x3': -0.12628256349539077, u'x1': 1.5505810269751386, u'x6': -0.26592046570692873, u'x4': 1.2526165221339136, u'x5': 1.4513505372794049}], dtype=object)</SampledVars><prefix>array(['1', '2', '3'], 
-      dtype='|S1')</prefix><SampledVarsPb>array([ {u'x2': 0.29633203211949755, u'x3': 0.17546618950737594, u'x1': 0.225655407388787, u'x6': 0.3354524369534666, u'x4': 0.021408896769044266, u'x5': 0.01964977598888581},
-       {u'x2': 0.38630728759977834, u'x3': 0.30568306159262076, u'x1': 0.38149965635913263, u'x6': 0.22264108555063222, u'x4': 0.03406409256096922, u'x5': 0.3823716870503369},
-       {u'x2': 0.31159579477290206, u'x3': 0.2499848127996119, u'x1': 0.2644373503574394, u'x6': 0.2865340314175622, u'x4': 0.24102886929697345, u'x5': 0.13915766275271477}], dtype=object)</SampledVarsPb><PointProbability>array([  1.65577237e-06,   1.30643043e-04,   1.97961351e-04])</PointProbability></metadata></data>
+<DataObjectMetadata name="sdiff">
+  <Sampler type="Static">
+    <general>
+      <SamplerType>MonteCarlo</SamplerType>
+      <crowDist>
+        <x2>{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}</x2>
+        <x3>{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}</x3>
+        <x1>{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}</x1>
+        <x6>{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}</x6>
+        <x4>{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}</x4>
+        <x5>{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}</x5>
+      </crowDist>
+    </general>
+  </Sampler>
+  
+  <DataSet type="Static">
+    <general>
+      <inputs>x5,x2</inputs>
+      <outputs>OutputPlaceHolder</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

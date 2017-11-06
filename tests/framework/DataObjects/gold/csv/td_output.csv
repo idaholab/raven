@@ -1,5 +1,5 @@
-b,c,filename
+c,b,filename
 0,0,td_output_0.csv
-0,1,td_output_1.csv
-1,0,td_output_2.csv
+1,0,td_output_1.csv
+0,1,td_output_2.csv
 1,1,td_output_3.csv

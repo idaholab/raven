@@ -177,12 +177,13 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           self.raiseAnError(IOError,'Multiple options were given to specify the output row to read!  Please choose one.')
       # end options node
     # default to taking the last entry if selective method not specified
+    # TODO sometimes a message handler hasn't been assigned yet; fix that.
     if self._selectInput is None:
-      self.raiseAWarning('No input selection method given; defaulting to take-last-entry')
       self._selectInput = ('inputRow',-1)
+    #  self.raiseAWarning('No input selection method given; defaulting to take-last-entry')
     if self._selectOutput is None:
-      self.raiseAWarning('No output selection method given; defaulting to take-last-entry')
       self._selectOutput = ('outputRow',-1)
+    #  self.raiseAWarning('No output selection method given; defaulting to take-last-entry')
     # end input reading
     self._allvars = self._inputs + self._outputs
 
@@ -387,6 +388,10 @@ class DataSet(DataObject):
     # TODO option to read both collector and data for matches/indices
     if (index is None and matchDict is None) or (index is not None and matchDict is not None):
       self.raiseAnError(TypeError,'Either "index" OR "matchDict" (not both) must be specified to use "realization!"')
+    if readCollector and (self._collector is None or len(self._collector)==0):
+      return 0,None
+    elif self._data is None or len(self._data)==0:
+      return 0,None
     if index is not None:
       if readCollector:
         rlz = self._getRealizationFromCollectorByIndex(index)
@@ -420,8 +425,27 @@ class DataSet(DataObject):
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
 
-  def remove():
-    raise NotImplementedError
+  def remove(self,realization=None,variable=None):
+    """
+      Used to remove either a realization or a variable from this data object.
+      @ In, realization, dict or int, optional, (matching or index of) realization to remove
+      @ In, variable, str, optional, name of "column" to remove
+      @ Out, None
+    """
+    if self._data is None or len(self._data) == 0: #TODO what about collector?
+      return
+    assert(not (realization is None and variable is None))
+    assert(not (realization is not None and variable is not None))
+    assert(self._data is not None)
+    # TODO what about removing from collector?
+    if realization is not None:
+      # TODO reset scaling factors
+      self.raiseAnError(NotImplementedError,'TODO')
+    elif variable is not None:
+      self._data.drop(variable)
+      self._scaleFactors.pop(variable,None)
+    #either way reset kdtree
+    self.inputKDTree = None
 
   def reset(self):
     """
@@ -446,6 +470,9 @@ class DataSet(DataObject):
       self._toNetCDF(fname,**kwargs)
     elif style.lower() == 'csv':
       self.asDataset()
+      if len(self._data)==0: #TODO what if it's just metadata?
+        self.raiseAWarning('Nothing to write!')
+        return
       #first write the CSV
       self._toCSV(fname,**kwargs)
       # then the metaxml
@@ -1191,6 +1218,18 @@ class DataSet(DataObject):
     self.deprecated('isItEmpty')
     return True if self.size == 0 else False
 
+  def _legacyInitializeCollector(self):
+    """
+      Initializes the collector in a way suitable to the old API where entries are placed one at a time.
+      @ In, None
+      @ Out, None
+    """
+    self.deprecated('_legacyInitializeCollector')
+    if self._collector is None or len(self._collector)==0:
+      self._collector = cached_ndarray.cNDarray(width = len(self.vars),length=4,dtype=object)
+      self._collector.size = 1
+      self._collector.width = len(self.vars)
+
   def loadXMLandCSV(self,fpath,options=None):
     """
       Function to load the xml additional file of the csv for data
@@ -1238,6 +1277,14 @@ class DataSet(DataObject):
     fname = options.pop('filenameroot',self.name+'_dump')
     self.write(fname,style='CSV',**options)
 
+  def removeInputValue(self,name):
+    """
+      Function to remove a value from the dictionary inpParametersValues
+      @ In, name, str, parameter name
+      @ Out, None
+    """
+    self.remove(variable=name)
+
   def resetData(self):
     """
       Resets.
@@ -1255,10 +1302,7 @@ class DataSet(DataObject):
       @ Out, None
     """
     self.deprecated('updateInputValue')
-    if self._collector is None or len(self._collector)==0:
-      self._collector = cached_ndarray.cNDarray(width = len(self.vars),length=4,dtype=object)
-      self._collector.size = 1
-      self._collector.width = len(self.vars)
+    self._legacyInitializeCollector()
     column = self._getVariableIndex(name)
     try:
       self._collector._addOneEntry(column,value[0]) #sometimes "value" is just a scalar though
@@ -1276,14 +1320,19 @@ class DataSet(DataObject):
       @ Out, None
     """
     self.deprecated('updateMetadata')
-    floats = ('ProbabilityWeight',) #cast as float type
-    others = ('prefix','uniqueHandler')#,'SampledVars')#,'distributionName','distributionType') #cast as objects
-    globl = ('SamplerType','crowDist')
-    unneeded = ('SampledVars','distributionName','distributionType','PointProbability','SampledVarsPb')
+    floats = ('ProbabilityWeight','trajectory') #castable as float type
+    others = ('prefix','uniqueHandler','useROM')#,'SampledVars')#,'distributionName','distributionType') #cast as objects
+    globl = ('SamplerType','crowDist','executable','transformation','additionalEdits','loadedFromRavenFile')
+    unneeded = ('SampledVars','distributionName','distributionType','PointProbability','SampledVarsPb',
+                'upper','lower','outfile','ValueThreshold','branchChangedParam','initiatorDistribution',
+                'endTimeStep')
     # global
-    if name in globl and len(self)<2:
-      meta = {'general':{name:value}}
-      self.addMeta('Sampler',meta)
+    if name in globl:
+      if len(self)<2:
+        meta = {'general':{name:value}}
+        self.addMeta('Sampler',meta)
+      else:
+        pass # already recorded once
     # pointwise # "startswith" is particularly for ensemble model
     elif name.startswith(floats+others):
       try:
@@ -1304,7 +1353,7 @@ class DataSet(DataObject):
     elif name in unneeded:
       pass
     else:
-      self.raiseAnError(NotImplementedError,'Unrecognized metadata:',name,value)
+      self.raiseAnError(NotImplementedError,'Unrecognized metadata: "{}": {}'.format(name,value))
 
   def updateOutputValue(self,name,value,options=None):
     """
@@ -1315,6 +1364,8 @@ class DataSet(DataObject):
       @ Out, None
     """
     self.deprecated('updateOutputValue')
+    # rarely an output can be submitted before an input, so here's the initialization in case
+    self._legacyInitializeCollector()
     if isinstance(value,xr.DataArray): #happens with ensemble model
       value = value.values
     # apply operator -> have to convert shape slightly first

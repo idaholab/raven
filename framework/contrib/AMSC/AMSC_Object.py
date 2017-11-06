@@ -84,6 +84,10 @@ def WeightedLinearModel(X,y,w):
   Xw[:,1:] = X
   Xw = Xw * np.sqrt(w)[:, None]
   yw = y * np.sqrt(w)
+  if Xw.dtype != float:
+    Xw = Xw.astype(np.float,copy=False)
+  if yw.dtype != float:
+    yw = yw.astype(np.float,copy=False)
   results = scipy.linalg.lstsq(Xw, yw)[0]
   yIntercept = results[0]
   betaHat = results[1:]
@@ -663,8 +667,14 @@ class AMSC_Object(object):
 
     for key,items in partitions.iteritems():
       X = self.Xnorm[np.array(items),:]
+      if X.dtype != float:
+        X = X.astype(float)
       y = np.array(self.Y[np.array(items)])
+      if y.dtype != float:
+        y = y.astype(float)
       w = self.w[np.array(items)]
+      if w.dtype != float:
+        w = w.astype(float)
 
       (temp_yIntercept,temp_beta_hat) = WeightedLinearModel(X,y,w)
       self.segmentFits[key] = np.hstack((temp_yIntercept,temp_beta_hat))

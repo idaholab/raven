@@ -298,7 +298,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     #self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
     # check if solutionExport is actually a "DataObjects" type "PointSet"
-    if type(solutionExport).__name__ != "PointSet":
+    if type(solutionExport).__name__ not in ["PointSet","DataSet"]:
       self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ type(solutionExport).__name__+'!')
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.oldTestMatrix     = OrderedDict()    #This is the test matrix to use to store the old evaluation of the function

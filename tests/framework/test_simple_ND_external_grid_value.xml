@@ -6,7 +6,7 @@
     <created>2015-03-04</created>
     <classesTested>Distributions.NDInverseWeight, Distrubtions.NDCartesianSpline, Samplers.Grid</classesTested>
     <description>
-       This test is aimed to check the capability of RAVEN to handle ND probability density functions (distributions), when 
+       This test is aimed to check the capability of RAVEN to handle ND probability density functions (distributions), when
        a Grid sampling strategy is performed. In this case, the capability to construct marginal distributions (for each uncertanties of
        the ND distribution domain), when the discretization is performed in VALUE.
     </description>
@@ -17,6 +17,7 @@
       <revision author="wangc" date="2015-09-30">improve efficiency when calculate the SampledVarsPb with N-Dimensional PDF, fix the issue #298</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-11-02">Removed point probability.</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -91,7 +92,7 @@
     <Print name="testPrintPointSet_dump">
       <type>csv</type>
       <source>testPrintPointSet</source>
-      <what>Input,Output,Input|ProbabilityWeight,Input|PointProbability</what>
+      <what>Input,Output,Input|ProbabilityWeight</what>
     </Print>
   </OutStreams>
 

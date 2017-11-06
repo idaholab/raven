@@ -1,0 +1,22 @@
+<DataObjectMetadata name="PointSetExternalModel">
+  <Sampler type="Static">
+    <general>
+      <SamplerType>MonteCarlo</SamplerType>
+      <crowDist>
+        <y0>{"mu": 100.0, "sigma": 1.0, "type": "NormalDistribution"}</y0>
+        <x0>{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}</x0>
+        <z0>{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}</z0>
+      </crowDist>
+    </general>
+  </Sampler>
+  
+  <DataSet type="Static">
+    <general>
+      <inputs>x0,y0,z0</inputs>
+      <pointwise_meta>ProbabilityWeight</pointwise_meta>
+      <outputs>time,x02,y02,z02,x01,y01,z01,x,y,z</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

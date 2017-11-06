@@ -549,6 +549,9 @@ class BasicStatistics(PostProcessor):
         result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr[0]-unbiasCorr[1]*(np.average((arrayIn - expValue)**2))**2.0)/(variance)**2.0
       else:
         result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr)/(variance)**2.0
+    # unwrap container
+    if not isinstance(result,float):
+      result = float(result)
     return result
 
   def _computeSkewness(self,arrayIn,expValue,variance,pbWeight=None):
@@ -566,6 +569,9 @@ class BasicStatistics(PostProcessor):
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(3,len(arrayIn)) if not self.biased else 1.0
       result = ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**3)*unbiasCorr)/np.power(variance,1.5)
+    #unwrap containers
+    if not isinstance(result,float):
+      result = float(result)
     return result
 
   def _computeVariance(self,arrayIn,expValue,pbWeight=None):
@@ -582,6 +588,9 @@ class BasicStatistics(PostProcessor):
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(2,len(arrayIn)) if not self.biased else 1.0
       result = np.average((arrayIn - expValue)**2)*unbiasCorr
+    # if coming from xarray.DataArray, needs to be cast to float
+    if not isinstance(result,float):
+      result = float(result)
     return result
 
   def _computeSigma(self,arrayIn,variance,pbWeight=None):

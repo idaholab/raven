@@ -2212,6 +2212,12 @@ class SciKitLearn(superVisedLearning):
         self.evaluate = self._readdressEvaluateConstResponse
       else:
         for index in range(len(self.ROM)):
+          # if still stuck in "object" type, cast to float -> may error if asking for non-float to be treated as float incorrectly
+          # NB Numpy defines dtype equality such that np.float64 == float
+          if not featureVals.dtype == float:
+            featureVals = featureVals.astype(float,copy=False)
+          if not targetVals.dtype == float:
+            targetVals = targetVals.astype(float,copy=False)
           self.ROM[index].fit(featureVals,targetVals[:,index])
         self.evaluate = self._readdressEvaluateRomResponse
 

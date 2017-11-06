@@ -7,11 +7,12 @@
     <classesTested>DataObjects.PointSet</classesTested>
     <description>
        Test to check the functionalities of DataObjects.PointSet, when metadata need to be dumped out.
-       In this test, the PointProbability generated during the employment of a sampling strategy
+       In this test, the ProbabilityWeight generated during the employment of a sampling strategy
        is dumped in the CSV files, even if it is part of the metadata container.
     </description>
     <revisions>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-11-02">Changed from point probability to probability weight</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -68,15 +69,15 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">PointSetExternalModel</Output>
-      <Output class="OutStreams" type="Print">PointProbability_dump</Output>
+      <Output class="OutStreams" type="Print">ProbabilityWeight_dump</Output>
     </MultiRun>
   </Steps>
 
   <OutStreams>
-    <Print name="PointProbability_dump">
+    <Print name="ProbabilityWeight_dump">
       <type>csv</type>
       <source>PointSetExternalModel</source>
-      <what>input,input|PointProbability,output</what>
+      <what>input,input|ProbabilityWeight,output</what>
     </Print>
   </OutStreams>
 

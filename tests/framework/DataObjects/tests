@@ -11,8 +11,8 @@
  [./dataObject_metadata]
    type = 'RavenFramework'
    input = 'test_DataObject_metadata.xml'
-   xml = 'dataObject_metadata/PointProbability_dump.xml'
-   csv = 'dataObject_metadata/PointProbability_dump.csv'
+   xml = 'dataObject_metadata/ProbabilityWeight_dump.xml'
+   csv = 'dataObject_metadata/ProbabilityWeight_dump.csv'
  [../]
 
  [./load_csv]
