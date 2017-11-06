@@ -1,3 +1,7 @@
 [submodule "moose"]
 	path = moose
 	url = https://github.com/idaholab/moose.git
+[submodule "contrib/plugins/CashFlow"]
+	path = contrib/plugins/CashFlow
+	url = git@hpcgitlab.inl.gov:epinas/CashFlow.git
+	branch = master

@@ -1,6 +1,0 @@
-This folder contains all the RAVEN plugins.
-Currently, RAVEN accepts plugins for the following objects:
-- Models/ExternalModel
-In order to create a plugin, the plugin developer needs to inherit from the
-BaseClass plugin object:
-- Models/ExternalModel -> ExternalModelPlugInBase
