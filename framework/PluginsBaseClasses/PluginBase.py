@@ -24,22 +24,32 @@ warnings.simplefilter('default', DeprecationWarning)
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PluginBase import PluginBase
 #Internal Modules End-----------------------------------------------------------
 
-
-
-class ExternalModelPluginBase(PluginBase):
-  
+class PluginBase(object):
+  """
+    This class represents an abstract class each specialized plugin class should inherit from
+  """
   # List containing the methods that need to be checked in order to assess the 
   # validity of a certain plugin. This list needs to be populated by the derived class
-  _methodsToCheck = ['run','initialize']
-
+  _methodsToCheck = []
+  
   def __init__(self):
     """
       Constructor
       @ In, None
       @ Out, None
     """
-    PluginBase.__init__(self)
-  
+    pass
+
+  @classmethod
+  def isAvalidPlugin(cls):
+    """
+      Method to check if this plugin is a valid one (i.e. contains all the expected API method)
+      @ In, None
+      @ Out, validPlugIn, bool, is this plugin a valid one?
+    """
+    classMethods = [method for method in dir(cls) if callable(getattr(cls, method))]
+    validPlugIn = set(cls._methodsToCheck) <= set(classMethods)
+    return validPlugIn
+   
