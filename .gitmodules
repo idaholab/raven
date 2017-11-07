@@ -4,4 +4,4 @@
 [submodule "contrib/plugins/CashFlow"]
 	path = contrib/plugins/CashFlow
 	url = git@hpcgitlab.inl.gov:epinas/CashFlow.git
-	branch = master
+	branch = alfoa/cash_flow_plugin
