@@ -60,10 +60,7 @@ class ETimporter(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    ## This will replace the lines above
     inputSpecification = super(ETimporter, cls).getInputSpecification()
-
-    ## TODO: Fill this in with the appropriate tags
 
     return inputSpecification
 
@@ -102,13 +99,21 @@ class ETimporter(PostProcessor):
       @ In,  input, object, object containing the data to process. (inputToInternal output)
       @ Out, None
     """
+    if self.ETformat == 'OpenPSA':
+      self.outputDict = self.runOpenPSA(input)
+
+  def runOpenPSA(self, input):
+    """
+      This method executes the postprocessor action.
+      @ In,  input, object, object containing the data to process. (inputToInternal output)
+      @ Out, None
+    """
     fileToOpen = input[0].getPath() + input[0].getFilename()
     root = ET.parse(fileToOpen)
     eventTree = root.findall('initial-state')
 
     if len(eventTree) > 1:
-      sys.stderr.write('More than one initial-state identified. Actions TBD.\n')
-      sys.exit(1)
+      self.raiseAnError(IOError,'ETimporter: more than one initial-state identified')
 
     eventTree = eventTree[0]
 
@@ -145,12 +150,7 @@ class ETimporter(PostProcessor):
       if outcome not in outcomes:
         outcomes.append(outcome)
 
-    print('*' * 80)
-    print('Inputs: {}'.format(self.variables))
-    print('Value Map: {}'.format(values))
-    print('Outputs: {}'.format(outcomes))
-    print('*' * 80)
-    print('\n')
+    self.raiseADebug("ETimporter variables identified: " + str(format(self.variables)))
 
     d = len(self.variables)
     n = len(self.findAllRecursive(eventTree, 'sequence'))
@@ -159,19 +159,18 @@ class ETimporter(PostProcessor):
 
     rowCounter = 0
     for node in eventTree:
-      newRows = self.ConstructPointDFS(node, self.variables, values, outcomes, self.pointSet, rowCounter)
+      newRows = self.constructPointDFS(node, self.variables, values, outcomes, self.pointSet, rowCounter)
       rowCounter += newRows
 
-    print(self.pointSet)
+    outputDict = {}
+    outputDict['inputs']  = {}
+    outputDict['outputs'] = {}
 
-    self.outputDict = {}
-    self.outputDict['inputs']  = {}
-    self.outputDict['outputs'] = {}
+    for index,var in enumerate(self.variables):
+      outputDict['inputs'][var] = self.pointSet[:,index]
 
-    for var,index in self.variables:
-      self.outputDict['inputs'][var] = self.pointSet[:,index]
-
-    self.outputDict['outputs']['label'] = self.pointSet[-1,index]
+    outputDict['outputs']['sequence'] = self.pointSet[:,-1]
+    return outputDict
 
   def collectOutput(self,finishedJob, output):
     """
@@ -183,11 +182,18 @@ class ETimporter(PostProcessor):
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
+    if not set(output.getParaKeys('inputs')) == set(self.variables):
+      self.raiseAnError(RuntimeError, ' ETimporter: set of branching variables in the ET ( ' + str(output.getParaKeys('inputs')) + ' ) is not identical to the set of input variables specified in the PointSet (' + str(self.variables) +')')
+
     outputDict = evaluation[1]
     # Output to file
-    if output.type in ['self.pointSet']:
-      for var in self.variables:
-
+    if output.type in ['PointSet']:
+      for key in output.getParaKeys('inputs'):
+        for value in self.outputDict['inputs'][key]:
+          output.updateInputValue(str(key),value)
+      for key in output.getParaKeys('outputs'):
+        for value in self.outputDict['outputs'][key]:
+          output.updateOutputValue(str(key),value)
     else:
       self.raiseAWarning('Output type ' + str(output.type) + ' is not supported.')
 
@@ -207,7 +213,7 @@ class ETimporter(PostProcessor):
 		self.findAllRecursive(item, element, result)
 	return result
 
-  def ConstructPointDFS(self, node, inputMap, stateMap, outputMap, X, rowCounter):
+  def constructPointDFS(self, node, inputMap, stateMap, outputMap, X, rowCounter):
     """
       Construct a "sequence" using a depth-first search on a node, each call
       will be on a fork except in the base case which will be called on a
@@ -232,12 +238,6 @@ class ETimporter(PostProcessor):
       outcome = node.get('name')
       val = outputMap.index(outcome)
 
-      #print(ET.tostring(node, method='xml'))
-      #try:
-      #    input('X[{},{}] = {} ({}), continue:'.format(rowCounter, col, val, outcome))
-      #except SyntaxError as se:
-      #    pass
-
       X[rowCounter, col] = val
       rowCounter += 1
     elif node.tag == 'fork':
@@ -248,20 +248,13 @@ class ETimporter(PostProcessor):
           state = path.get('state')
           val = stateMap[event].index(state)
 
-          #print(' ===== path ===== ')
-          #print(ET.tostring(node, method='xml'))
-          #try:
-          #    input('X[{},{}] = {} ({}), continue:'.format(rowCounter, col, val, state))
-          #except SyntaxError as se:
-          #    pass
-
           ## Fill in the rest of the data as the recursive nature will only
           ## fill in the details under this branch, later iterations will
           ## correct lower rows if a path does change
           X[rowCounter, col] = val
 
           for fork in path.getchildren():
-              newCounter = self.ConstructPointDFS(fork, inputMap, stateMap, outputMap, X, rowCounter)
+              newCounter = self.constructPointDFS(fork, inputMap, stateMap, outputMap, X, rowCounter)
               for i in range(newCounter-rowCounter):
                   X[rowCounter+i, col] = val
               rowCounter = newCounter

@@ -47,7 +47,7 @@
   <DataObjects>
     <PointSet name="ET_PS">
       <Input>ACC,LPI,LPR</Input>
-      <Output>out</Output>
+      <Output>sequence</Output>
     </PointSet>
   </DataObjects>
   
