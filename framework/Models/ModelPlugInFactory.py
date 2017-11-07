@@ -49,7 +49,7 @@ __basePluginClasses  = {'ExternalModel':'ExternalModelPluginBase'}
  Interface Dictionary (factory) (private)
 """
 __base                          = 'ModelPlugins'
-__interFaceDict                 = defaultdict(list)
+__interFaceDict                 = defaultdict(dict)
 for moduleIndex in range(len(__moduleInterfaceList)):
   if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
     __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex],False))
@@ -57,11 +57,11 @@ for moduleIndex in range(len(__moduleInterfaceList)):
       for base in modClass.__bases__:
         for ravenEntityName, baseClassName in __basePluginClasses.items():
           if base.__name__ == baseClassName:
-            __interFaceDict[ravenEntityName].append(modClass)
+            __interFaceDict[ravenEntityName][key] = modClass
             # check the validity of the plugin
             if not modClass.isAvalidPlugin():
               raise IOError("The plugin based on the class "+ravenEntityName.strip()+" is not valid. Please check with the Plugin developer!") 
-__knownTypes      = [item for sublist in __interFaceDict.values() for item in sublist]
+__knownTypes = [item for sublist in __interFaceDict.values() for item in sublist]
 
 def knownTypes():
   """
