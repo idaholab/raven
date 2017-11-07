@@ -38,7 +38,7 @@ from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 __moduleInterfaceList = []
-startDir = os.path.join(os.path.dirname(__file__),'../../contrib/plugins')
+startDir = os.path.join(os.path.dirname(__file__),'../../plugins')
 for dirr,_,_ in os.walk(startDir):
   __moduleInterfaceList.extend(glob(os.path.join(dirr,"*.py")))
   utils.add_path(dirr)
