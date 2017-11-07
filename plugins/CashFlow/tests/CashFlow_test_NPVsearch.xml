@@ -1,0 +1,71 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>CashFlow_test_NPVsearch</name>
+    <author>A. Epiney</author>
+    <created>2017-10-25</created>
+    <description>
+      This input tests the RAVEN plugin CashFlow.
+      The tested functionality is called NPV search.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>MCrun,printTOfile</Sequence>
+  </RunInfo>
+
+  <VariableGroups>
+    <Group name="GRO_CashFlow_in">BOP_capacity, BOP_TOT_revenueEL, IP_capacity, IP_TOT_revenueBY</Group> 
+    <Group name="GRO_CashFlow_out">NPV_mult</Group>
+  </VariableGroups>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../src/Cash_Flow" name="Cash_Flow" subType="">
+      <variables> GRO_CashFlow_in, GRO_CashFlow_out</variables>
+      <ExternalXML node="Economics" xmlToLoad="Cash_Flow_input_NPVsearch.xml"/>
+    </ExternalModel>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="test_MC">
+      <samplerInit>
+        <limit>1</limit>
+      </samplerInit>
+      <constant name="BOP_capacity">300.0E6</constant>
+      <constant name="BOP_TOT_revenueEL">350.0E6</constant>
+      <constant name="IP_capacity">51.0E6</constant>
+      <constant name="IP_TOT_revenueBY">31.5E6</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="SET_CashFlow_in">
+      <Input>GRO_CashFlow_in</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="SET_CashFlow_out">
+      <Input>GRO_CashFlow_in</Input>
+      <Output>GRO_CashFlow_out</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Steps>
+    <MultiRun name="MCrun" pauseAtEnd="True">
+      <Input          class="DataObjects"   type="PointSet">SET_CashFlow_in</Input>
+      <Model          class="Models"        type="ExternalModel">Cash_Flow</Model>
+      <Sampler        class="Samplers"      type="MonteCarlo">test_MC</Sampler>
+      <Output         class="DataObjects"   type="PointSet">SET_CashFlow_out</Output>
+    </MultiRun>
+    <IOStep name="printTOfile">
+     <Input          class="DataObjects"   type="PointSet">SET_CashFlow_out</Input>
+     <Output         class="OutStreams"    type="Print">dumpNPVsearch</Output>  
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="dumpNPVsearch">
+      <type>csv</type>
+      <source>SET_CashFlow_out</source>
+    </Print>
+  </OutStreams>
+</Simulation>
