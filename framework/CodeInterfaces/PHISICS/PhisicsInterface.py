@@ -28,6 +28,10 @@ from  __builtin__ import any as bAny
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import phisicsdata
 import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import Element, SubElement, Comment
+from xml.dom import minidom
+import fileinput 
+import sys
 
 
 class Phisics(CodeInterfaceBase):
@@ -49,14 +53,60 @@ class Phisics(CodeInterfaceBase):
       @ Out, __base, string path
     """
     return self.__base 
-
+  
+  def outputFileNames(self,pathFile):
+    """
+      Collects the output file names from lib_inp_path xml file
+      @ In, pathFile, string, lib_path_input file 
+      @ Out, outputFileNameDict, dictionary, dictionary containing the output file names
+    """
+    pathTree = ET.parse(pathFile)
+    pathRoot = pathTree.getroot()
+    self.outputFileNameDict = {}
+    xmlNodes = ['reactions','atoms_plot','atoms_csv','decay_heat','bu_power','flux','repository']
+    for xmlNodeNumber in xrange (0,len(xmlNodes)):
+      for xmlNode in pathRoot.getiterator(xmlNodes[xmlNodeNumber]):
+        self.outputFileNameDict[xmlNodes[xmlNodeNumber]] = xmlNode.text
+    #print (self.outputFileNameDict)
+  
+  def syncLibPathFileWithRavenInp(self,pathFile,currentInputFiles,keyWordDict):
+    """
+      parses the lib_file input and writes the correct library path in the lib_path.xml, based in the raven input 
+      @ In, pathFile, string, lib_path_input file
+      @ Out, pathFile, string, lib_path_input file, updated with user-defined path
+    """
+    pathTree = ET.parse(pathFile)
+    pathRoot = pathTree.getroot()
+    typeList = ['IsotopeList','mass','decay','budep','FissionYield','FissQValue','CRAM_coeff_PF','N,G','N,Gx','N,2N','N,P','N,ALPHA','AlphaDecay','BetaDecay','BetaxDecay','Beta+Decay','Beta+xDecay','IntTraDecay']
+    libPathList = ['iso_list_inp','mass_a_weight_inp','decay_lib','xs_sep_lib','fiss_yields_lib','fiss_q_values_lib','cram_lib','n_gamma','n_gamma_ex','n_2n','n_p','n_alpha','alpha','beta','beta_ex','beta_plus','beta_plus_ex','int_tra']
+    
+    for typeNumber in xrange(0,len(typeList)):
+      for libPathText in pathRoot.getiterator(libPathList[typeNumber]):
+        libPathText.text = currentInputFiles[keyWordDict[typeList[typeNumber].lower()]].getAbsFile() 
+    pathTree.write(pathFile)
+    
+  def syncPathToLibFile(self,depletionRoot,depletionFile,depletionTree,libPathFile):
+    """
+      gets the name of the file that contains the path to the libraries. The default name is 
+      @ In, depletionRoot, XML tree from the depletion_input.xml
+      @ In, depletionFile, path to depletion_input.xml
+      @ Out, pathToLibFile, string,  
+    """
+    if depletionTree.find('.//input_files') is None:  
+      for line in fileinput.input(depletionFile, inplace = 1):
+        if '<DEPLETION_INPUT>' in line:
+          line = line.replace('<DEPLETION_INPUT>','<DEPLETION_INPUT>'+'\n\t'+'<input_files>'+libPathFile+'</input_files>')
+        sys.stdout.write(line)
+    else:
+      depletionTree.find('.//input_files').text = libPathFile
+      depletionTree.write(depletionFile)
+    
   def getTitle(self, depletionRoot):
     """
       get the job title. It will become later the instant output file name. 
       @ In, self.mrtauStandAlone, True = mrtau is ran standalone, False = mrtau in not ran standalone
       @ In, depletionRoot, XML tree from the depletion_input.xml
-      @ In, inpRoot, XML tree from the inp.xml
-      @ Out, fileTitle, string 
+      @ Out, jobTitle, string 
     """
     for child in depletionRoot.findall(".//title"):
       jobTitle = str(child.text)
@@ -81,20 +131,22 @@ class Phisics(CodeInterfaceBase):
     if self.mrtauStandAlone == True and isMrtauStandAlone == 'no':
       raise  ValueError("\n\n Error. The flags controlling the Mrtau standalone mode are incorrect. The node <standalone> in depletion_input file disagrees with the node <mrtauStandAlone> in the raven input. \n the matching solutions are: <mrtauStandAlone>yes</mrtauStandAlone> and <"+tag+">True<"+tag+">\n <mrtauStandAlone>no</mrtauStandAlone> and <"+tag+">False<"+tag+">")
   
-  def parseControlOptions(self, depletionFile):
+  def parseControlOptions(self,depletionFile,libPathFile):
     """
       Parse the Material.xml data file and put the isotopes name as key and 
       the decay constant relative to the isotopes as values 
       @ In, depletionFile, string, depletion_input file
+      @ In, libpathFile, string, lib_inp_path file 
       @ In, inpFile, string, Instant input file 
-    """   
+    """  
     depletionTree = ET.parse(depletionFile)
     depletionRoot = depletionTree.getroot()
     self.verifyMrtauFlagsAgree(depletionRoot)
     jobTitle = self.getTitle(depletionRoot)
-    return jobTitle 
+    self.syncPathToLibFile(depletionRoot,depletionFile,depletionTree,libPathFile)
+    return jobTitle
   
-  def distributeVariablesToParsers(self, perturbedVars):
+  def distributeVariablesToParsers(self,perturbedVars):
     """
       This module takes the perturbedVars dictionary. perturbedVars contains all the variables to be perturbed. 
       The module transform the dictionary into dictionary of dictionary. This dictionary renders easy the distribution 
@@ -184,18 +236,10 @@ class Phisics(CodeInterfaceBase):
     found = False
     index = 0
     outputfile = 'out~'+inputFiles[index].getBase()
-    #printprint (outputfile)
-    if clargs: addflags = clargs['text']
-    else     : addflags = ''
-    #commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + ' -r ' + outputfile  + '.r' + addflags
-    #commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' +  addflags
     commandToRun = executable
     commandToRun = commandToRun.replace("\n"," ")
     commandToRun  = re.sub("\s\s+" , " ", commandToRun )
-    #print (commandToRun)
     returnCommand = [('parallel',commandToRun)], outputfile
-    #print (commandToRun)
-    #print (returnCommand)
     return returnCommand
   
   def finalizeCodeOutput(self,command,output,workingDir):
@@ -212,9 +256,7 @@ class Phisics(CodeInterfaceBase):
     pertNumber = splitWorkDir[-1]
     outputobj=phisicsdata.phisicsdata(output, workingDir, self.mrtauStandAlone, self.jobTitle)
     return "keff"+str(pertNumber).strip()
-    #if outputobj.hasAtLeastMinorData(): outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
-    #else: raise IOError('Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
-
+    
   def checkForOutputFailure(self,output,workingDir):
     """
       This method is called by the RAVEN code at the end of each run  if the return code is == 0.
@@ -240,7 +282,20 @@ class Phisics(CodeInterfaceBase):
     
     failure = False
     return failure
-
+  
+  def mapInputFileType(self,currentInputFiles):
+    """
+      Assigns a number to the input file Types 
+      @ In, currentInputFiles,  list,  list of current input files (input files from last this method call)
+      @ Out, keyWordDict, dictionary, dictionary have input file types as keyword, and its related order of appearance (interger) as value
+    """
+    keyWordDict = {} 
+    count = 0
+    for inFile in currentInputFiles:
+      keyWordDict[inFile.getType().lower()] = count 
+      count = count + 1
+    return keyWordDict
+      
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
       this generate a new input file depending on which sampler is chosen
@@ -258,23 +313,22 @@ class Phisics(CodeInterfaceBase):
     import PathParser
     import XSCreator
     
-    keyWordDict = {} 
-    count = 0
     #print (currentInputFiles)
     #print (Kwargs)
     #print (Kwargs['SampledVars'])
     perturbedVars = Kwargs['SampledVars']
     
-    for inFile in currentInputFiles:
-      keyWordDict[inFile.getType().lower()] = count 
-      count = count + 1
-
+    keyWordDict = {}
+    keyWordDict = self.mapInputFileType(currentInputFiles)
+    
     distributedPerturbedVars = self.distributeVariablesToParsers(perturbedVars)
     #print (distributedPerturbedVars)
     #print (currentInputFiles)
     #print (self.tabulation)
     booleanTab = self.tabulation 
-    self.jobTitle = self.parseControlOptions(currentInputFiles[keyWordDict['depletion_input']].getAbsFile())
+    self.jobTitle = self.parseControlOptions(currentInputFiles[keyWordDict['depletion_input']].getAbsFile(), currentInputFiles[keyWordDict['path']].getAbsFile()) 
+    self.syncLibPathFileWithRavenInp(currentInputFiles[keyWordDict['path']].getAbsFile(),currentInputFiles,keyWordDict)
+    self.outputFileNames(currentInputFiles[keyWordDict['path']].getAbsFile())
     
     for i in distributedPerturbedVars.iterkeys():
       if i == 'DECAY'         : decayParser        = DecayParser.DecayParser(currentInputFiles[keyWordDict['decay']].getAbsFile(), **distributedPerturbedVars[i])

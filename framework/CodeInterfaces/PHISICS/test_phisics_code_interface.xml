@@ -7,7 +7,7 @@
        An example of using the PHISICS code interface. it aims to test the executable.
     </description>
     <revisions>
-      <revision author="rouxpn" date="2017-07-20">phisics test case</revision>
+      <revision author="rouxpn" date="2017-11-06">phisics test case</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -19,7 +19,7 @@
   <Files>
     <Input name="decay.dat"           type="decay"             perturbable="True"   subDirectory="library_fiss" >decay.dat</Input>
     <Input name="inp.xml"             type="inp"               perturbable="False"                              >inp.xml</Input>
-    <Input name="lib_inp_path.xml"    type="lib_inp_path"      perturbable="False"                              >lib_inp_path.xml</Input>
+    <Input name="lib_inp_path.xml"    type="path"              perturbable="False"                              >lib_inp_path.xml</Input>
     <Input name="Material.xml"        type="Material"          perturbable="True"                               >Material.xml</Input>
     <Input name="Depletion_input.xml" type="Depletion_input"   perturbable="False"                              >Depletion_input.xml</Input>
     <Input name="Xs-Library.xml"      type="Xs-Library"        perturbable="False"                              >Xs-Library.xml</Input>
@@ -33,31 +33,26 @@
     <Input name="IntTraDecay.path"    type="IntTraDecay"       perturbable="True"  subDirectory="path"          >IntTraDecay.path</Input>
     <Input name="ISOTXS000007"        type="isoXS"             perturbable="False"                              >ISOTXS000007</Input>
     <Input name="XS.xml"              type="XS"                perturbable="True"                               >XS.xml</Input>
-    <Input name="N,2N.path"           type="N,2N.path"         perturbable="False" subDirectory="path"          >N,2N.path</Input>
-    <Input name="N,ALPHA.path"        type="N,ALPHA.path"      perturbable="False" subDirectory="path"          >N,ALPHA.path</Input>
-    <Input name="N,G.path"            type="N,G.path"          perturbable="False" subDirectory="path"          >N,G.path</Input>
-    <Input name="N,Gx.path"           type="N,Gx.path"         perturbable="False" subDirectory="path"          >N,Gx.path</Input>
-    <Input name="N,P.path"            type="N,P.path"          perturbable="False" subDirectory="path"          >N,P.path</Input>  
-    <Input name="budep.inp"           type="budep.inp"         perturbable="False" subDirectory="library_fiss"  >budep.inp</Input>
-    <Input name="CRAM_coeff_PF.dat"   type="CRAM_coeff_PF.dat" perturbable="False" subDirectory="library_fiss"  >CRAM_coeff_PF.dat</Input>
+    <Input name="N,2N.path"           type="N,2N"              perturbable="False" subDirectory="path"          >N,2N.path</Input>
+    <Input name="N,ALPHA.path"        type="N,ALPHA"           perturbable="False" subDirectory="path"          >N,ALPHA.path</Input>
+    <Input name="N,G.path"            type="N,G"               perturbable="False" subDirectory="path"          >N,G.path</Input>
+    <Input name="N,Gx.path"           type="N,Gx"              perturbable="False" subDirectory="path"          >N,Gx.path</Input>
+    <Input name="N,P.path"            type="N,P"               perturbable="False" subDirectory="path"          >N,P.path</Input>  
+    <Input name="budep.inp"           type="budep"             perturbable="False" subDirectory="library_fiss"  >budep.inp</Input>
+    <Input name="CRAM_coeff_PF.dat"   type="CRAM_coeff_PF"     perturbable="False" subDirectory="library_fiss"  >CRAM_coeff_PF.dat</Input>
     <Input name="FissQValues.dat"     type="FissQValues"       perturbable="False" subDirectory="library_fiss"  >FissQValues.dat</Input>
-    <Input name="IsotopeList.dat"     type="IsotopeList.dat"   perturbable="False" subDirectory="input_dpl"     >IsotopeList.dat</Input>
-    <Input name="mass.inp"            type="mass.inp"          perturbable="False" subDirectory="input_dpl"     >mass.inp</Input>
-    
-    <!--Input name="1"                   type="allFilePath"      perturbable="False" subDirectory="path"         >*</Input-->
-    <!--Input name="2"                   type="allFileLib_fiss"  perturbable="False" subDirectory="library_fiss" >*</Input-->
-    <!--Input name="3"                   type="allFileinput_dpl" perturbable="False" subDirectory="input_dpl"    >*</Input-->
+    <Input name="IsotopeList.dat"     type="IsotopeList"       perturbable="False" subDirectory="input_dpl"     >IsotopeList.dat</Input>
+    <Input name="mass.inp"            type="mass"              perturbable="False" subDirectory="input_dpl"     >mass.inp</Input>
   </Files>
 
   <Models>
     <Code name="PHISICS" subType="Phisics">
-       <executable>/home/rouxpn/RAVEN/PHISICS/dpl_instant_run</executable> 
+       <executable>/home/rouxpn/PHISICS/PHISICS-nov17_3/projects/bin/dpl_instant_run</executable> 
        <PerturbXS>additive</PerturbXS>  
        <tabulation>F</tabulation> 
-       <mrtauStandAlone>T</mrtauStandAlone>
-        <mrtauStandAloneExecutable>/home/rouxpn/RAVEN/PHISICS/mrtau_standalone</mrtauStandAloneExecutable>
+       <mrtauStandAlone>F</mrtauStandAlone>
+        <mrtauStandAloneExecutable>/home/rouxpn/PHISICS/PHISICS-nov17_3/projects/bin/mrtau_standalone</mrtauStandAloneExecutable>
     </Code>
-    
   </Models>
 
   <Distributions>
@@ -246,7 +241,7 @@
     <MultiRun name="testDummyStep">
       <Input class="Files" type="decay"             >decay.dat</Input>
       <Input class="Files" type="inp"               >inp.xml</Input>
-      <Input class="Files" type="lib_inp_path"      >lib_inp_path.xml</Input>
+      <Input class="Files" type="path"              >lib_inp_path.xml</Input>
       <Input class="Files" type="Material"          >Material.xml</Input>
       <Input class="Files" type="Depletion_input"   >Depletion_input.xml</Input>
       <Input class="Files" type="Xs-Library"        >Xs-Library.xml</Input>
@@ -260,16 +255,16 @@
       <Input class="Files" type="IntTraDecay"       >IntTraDecay.path</Input>
       <Input class="Files" type="ISOTXS000007"      >ISOTXS000007</Input>
       <Input class="Files" type="XS"                >XS.xml</Input>   
-      <Input class="Files" type="N,2N.path"         >N,2N.path</Input>  
-      <Input class="Files" type="N,ALPHA.path"      >N,ALPHA.path</Input>
-      <Input class="Files" type="N,G.path"          >N,G.path</Input>
-      <Input class="Files" type="N,Gx.path"         >N,Gx.path</Input>
-      <Input class="Files" type="N,P.path"          >N,P.path</Input> 
-      <Input class="Files" type="budep.inp"         >budep.inp</Input>   
-      <Input class="Files" type="CRAM_coeff_PF.dat" >CRAM_coeff_PF.dat</Input> 
-      <Input class="Files" type="FissQValues.dat"   >FissQValues.dat</Input>
-      <Input class="Files" type="IsotopeList.dat"   >IsotopeList.dat</Input> 
-      <Input class="Files" type="mass.inp"          >mass.inp</Input> 
+      <Input class="Files" type="N,2N"              >N,2N.path</Input>  
+      <Input class="Files" type="N,ALPHA"           >N,ALPHA.path</Input>
+      <Input class="Files" type="N,G"               >N,G.path</Input>
+      <Input class="Files" type="N,Gx"              >N,Gx.path</Input>
+      <Input class="Files" type="N,P"               >N,P.path</Input> 
+      <Input class="Files" type="budep"             >budep.inp</Input>   
+      <Input class="Files" type="CRAM_coeff_PF"     >CRAM_coeff_PF.dat</Input> 
+      <Input class="Files" type="FissQValues"       >FissQValues.dat</Input>
+      <Input class="Files" type="IsotopeList"       >IsotopeList.dat</Input> 
+      <Input class="Files" type="mass"              >mass.inp</Input> 
           
       <Model class="Models" type="Code">PHISICS</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
