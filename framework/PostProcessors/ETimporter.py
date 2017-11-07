@@ -24,6 +24,7 @@ warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import numpy as np
+import xml.etree.ElementTree as ET
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -44,7 +45,8 @@ class ETimporter(PostProcessor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-
+    PostProcessor.__init__(self, messageHandler)
+    self.printTag = 'POSTPROCESSOR ET IMPORTER'
     self.ETformat = None
     self.allowedFormats = ['OpenPSA']
 
@@ -59,7 +61,7 @@ class ETimporter(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(RavenOutput, cls).getInputSpecification()
+    inputSpecification = super(ETimporter, cls).getInputSpecification()
 
     ## TODO: Fill this in with the appropriate tags
 
@@ -74,7 +76,7 @@ class ETimporter(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    # if 'externalFunction' in initDict.keys(): self.externalFunction = initDict['externalFunction']
+    PostProcessor.initialize(self, runInfo, inputs, initDict)
     self.inputs = inputs
     self._workingDir = runInfo['WorkingDir']
 
@@ -94,22 +96,14 @@ class ETimporter(PostProcessor):
       else:
         self.raiseAnError(IOError, 'ETimporterPostProcessor Post-Processor ' + self.name + ', node ' + child.tag + ' : is not recognized')
 
-  def inputToInternal(self, currentInput):
-    """
-      Method to convert an input object into the internal format that is
-      understandable by this pp.
-      @ In, currentInput, object, an object that needs to be converted
-      @ Out, inputToInternal, list, list of current inputs
-    """
-    pass
-
   def run(self, input):
     """
       This method executes the postprocessor action.
       @ In,  input, object, object containing the data to process. (inputToInternal output)
       @ Out, None
     """
-    root = ET.parse('eventTree.xml').getroot()
+    fileToOpen = input[0].getPath() + input[0].getFilename()
+    root = ET.parse(fileToOpen)
     eventTree = root.findall('initial-state')
 
     if len(eventTree) > 1:
@@ -121,15 +115,15 @@ class ETimporter(PostProcessor):
     ## These outcomes will be encoded as integers starting at 0
     outcomes = []
 
-    ## These variables will be mapped into an array where there index
-    variables = []
+    ## These self.variables will be mapped into an array where there index
+    self.variables = []
     values = {}
 
     for node in root.findall('define-functional-event'):
       event = node.get('name')
 
       ## First, map the variable to an index by placing it in a list
-      variables.append(event)
+      self.variables.append(event)
 
       ## Also, initialize the dictionary of values for this variable so we can
       ## encode them as integers as well
@@ -137,7 +131,7 @@ class ETimporter(PostProcessor):
 
       ## Iterate through the forks that use this event and gather all of the
       ## possible states
-      for fork in findAllRecursive(eventTree, 'fork'):
+      for fork in self.findAllRecursive(eventTree, 'fork'):
         if fork.get('functional-event') == event:
           for path in fork.findall('path'):
             state = path.get('state')
@@ -152,26 +146,52 @@ class ETimporter(PostProcessor):
         outcomes.append(outcome)
 
     print('*' * 80)
-    print('Inputs: {}'.format(variables))
+    print('Inputs: {}'.format(self.variables))
     print('Value Map: {}'.format(values))
     print('Outputs: {}'.format(outcomes))
     print('*' * 80)
     print('\n')
 
-    d = len(variables)
-    n = len(findAllRecursive(eventTree, 'sequence'))
+    d = len(self.variables)
+    n = len(self.findAllRecursive(eventTree, 'sequence'))
 
-    pointSet = -1 * np.ones((n, d + 1))
+    self.pointSet = -1 * np.ones((n, d + 1))
 
     rowCounter = 0
     for node in eventTree:
-      newRows = ConstructPointDFS(node, variables, values, outcomes, pointSet, rowCounter)
+      newRows = self.ConstructPointDFS(node, self.variables, values, outcomes, self.pointSet, rowCounter)
       rowCounter += newRows
 
-    print(pointSet)
+    print(self.pointSet)
 
+    self.outputDict = {}
+    self.outputDict['inputs']  = {}
+    self.outputDict['outputs'] = {}
 
-  def findAllRecursive(node, element, result = None):
+    for var,index in self.variables:
+      self.outputDict['inputs'][var] = self.pointSet[:,index]
+
+    self.outputDict['outputs']['label'] = self.pointSet[-1,index]
+
+  def collectOutput(self,finishedJob, output):
+    """
+      Function to place all of the computed data into the output object, (DataObjects)
+      @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor
+      @ In, output, object, the object where we want to place our computed results
+      @ Out, None
+    """
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
+    outputDict = evaluation[1]
+    # Output to file
+    if output.type in ['self.pointSet']:
+      for var in self.variables:
+
+    else:
+      self.raiseAWarning('Output type ' + str(output.type) + ' is not supported.')
+
+  def findAllRecursive(self, node, element, result = None):
 	"""
       A function for recursively traversing a node in an elementTree to find
       all instances of a tag
@@ -184,10 +204,10 @@ class ETimporter(PostProcessor):
 	for item in node.getchildren():
 		if item.tag == element:
 			result.append(item)
-		findAllRecursive(item, element, result)
+		self.findAllRecursive(item, element, result)
 	return result
 
-  def ConstructPointDFS(node, inputMap, stateMap, outputMap, X, rowCounter):
+  def ConstructPointDFS(self, node, inputMap, stateMap, outputMap, X, rowCounter):
     """
       Construct a "sequence" using a depth-first search on a node, each call
       will be on a fork except in the base case which will be called on a
@@ -212,11 +232,11 @@ class ETimporter(PostProcessor):
       outcome = node.get('name')
       val = outputMap.index(outcome)
 
-      print(ET.tostring(node, method='xml'))
-      try:
-          input('X[{},{}] = {} ({}), continue:'.format(rowCounter, col, val, outcome))
-      except SyntaxError as se:
-          pass
+      #print(ET.tostring(node, method='xml'))
+      #try:
+      #    input('X[{},{}] = {} ({}), continue:'.format(rowCounter, col, val, outcome))
+      #except SyntaxError as se:
+      #    pass
 
       X[rowCounter, col] = val
       rowCounter += 1
@@ -228,12 +248,12 @@ class ETimporter(PostProcessor):
           state = path.get('state')
           val = stateMap[event].index(state)
 
-          print(' ===== path ===== ')
-          print(ET.tostring(node, method='xml'))
-          try:
-              input('X[{},{}] = {} ({}), continue:'.format(rowCounter, col, val, state))
-          except SyntaxError as se:
-              pass
+          #print(' ===== path ===== ')
+          #print(ET.tostring(node, method='xml'))
+          #try:
+          #    input('X[{},{}] = {} ({}), continue:'.format(rowCounter, col, val, state))
+          #except SyntaxError as se:
+          #    pass
 
           ## Fill in the rest of the data as the recursive nature will only
           ## fill in the details under this branch, later iterations will
@@ -241,7 +261,7 @@ class ETimporter(PostProcessor):
           X[rowCounter, col] = val
 
           for fork in path.getchildren():
-              newCounter = ConstructPointDFS(fork, inputMap, stateMap, outputMap, X, rowCounter)
+              newCounter = self.ConstructPointDFS(fork, inputMap, stateMap, outputMap, X, rowCounter)
               for i in range(newCounter-rowCounter):
                   X[rowCounter+i, col] = val
               rowCounter = newCounter

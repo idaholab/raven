@@ -16,31 +16,31 @@
   </RunInfo>
 
   <Files>
-    <Input name="eventTreeTest" type="">eventTreeTest.xml</Input>
+    <Input name="eventTreeTest" type="">eventTree.xml</Input>
   </Files>
   
   <Models>
     <PostProcessor name="ETimporter" subType="ETimporter">
-      <fileFormat>openPSA</fileFormat>
+      <fileFormat>OpenPSA</fileFormat>
     </PostProcessor>   
   </Models>
 
   <Steps>
     <PostProcess name="import">
-      <Input   class="File"         type=""                >eventTreeTest</Input>
+      <Input   class="Files"        type=""                >eventTreeTest</Input>
       <Model   class="Models"       type="PostProcessor"   >ETimporter</Model>
       <Output  class="DataObjects"  type="PointSet"        >ET_PS</Output>
     </PostProcess>
     <IOStep name="printOnFile">
       <Input   class="DataObjects"  type="PointSet"        >ET_PS</Input>
-      <Output  class="OutStreams"   type="Print"           >PrintPPS_dump</Output>
+      <Output  class="OutStreams"   type="Print"           >PrintPS</Output>
     </IOStep>
   </Steps>
 
   <OutStreams>
-    <Print name="PrintPPS_dump">
+    <Print name="PrintPS">
       <type>csv</type>
-      <source>outPPS</source>
+      <source>ET_PS</source>
     </Print>
   </OutStreams>
   
