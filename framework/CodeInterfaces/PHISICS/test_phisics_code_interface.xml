@@ -4,7 +4,7 @@
     <author>rouxpn</author>
     <created>2017-07-20</created>
     <description>
-       An example of using the PHISICS code interface. it aims to test the executable.
+       An example of using the PHISICS code interface. 
     </description>
     <revisions>
       <revision author="rouxpn" date="2017-11-06">phisics test case</revision>
@@ -13,7 +13,9 @@
   <RunInfo>
     <WorkingDir>./</WorkingDir>
     <Sequence>testDummyStep,extract_data</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>2</batchSize>
+    <NumThreads>2</NumThreads>
+    <NumMPI>2</NumMPI>
   </RunInfo>
 
   <Files>

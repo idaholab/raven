@@ -38,6 +38,17 @@ class Phisics(CodeInterfaceBase):
   """
     this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3
   """ 
+  def getFilename(self):
+    """
+      Retriever for full filename.
+      @ In, None
+      @ Out, __base, string, filename
+    """
+    if self.__ext is not None:
+      return '.'.join([self.__base,self.__ext])
+    else:
+      return self.__base
+      
   def getPath(self):
     """
       Retriever for path.
@@ -108,6 +119,7 @@ class Phisics(CodeInterfaceBase):
       @ In, depletionRoot, XML tree from the depletion_input.xml
       @ Out, jobTitle, string 
     """
+    jobTitle = 'defaultInstant'
     for child in depletionRoot.findall(".//title"):
       jobTitle = str(child.text)
       break 
@@ -231,14 +243,16 @@ class Phisics(CodeInterfaceBase):
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
+    dict = self.mapInputFileType(inputFiles)
     if self.mrtauStandAlone == True: 
       executable = self.switchExecutable()
-    found = False
-    index = 0
-    outputfile = 'out~'+inputFiles[index].getBase()
-    commandToRun = executable
-    commandToRun = commandToRun.replace("\n"," ")
-    commandToRun  = re.sub("\s\s+" , " ", commandToRun )
+      commandToRun = executable
+    outputfile = 'out~'+inputFiles[dict['inp'.lower()]].getBase()
+    self.instantOutput = inputFiles[dict['inp'.lower()]].getBase()+'.o'
+    if self.mrtauStandAlone == False: 
+      commandToRun = executable + ' ' +inputFiles[dict['inp'.lower()]].getFilename() + ' ' + inputFiles[dict['Xs-library'.lower()]].getFilename() + ' ' + inputFiles[dict['Material'.lower()]].getFilename() + ' ' + inputFiles[dict['Depletion_input'.lower()]].getFilename() + ' ' + self.instantOutput
+      commandToRun = commandToRun.replace("\n"," ")
+      commandToRun  = re.sub("\s\s+" , " ", commandToRun )
     returnCommand = [('parallel',commandToRun)], outputfile
     return returnCommand
   
@@ -251,11 +265,13 @@ class Phisics(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """
-    output = 'Dpl_INSTANT.outp-0'
     splitWorkDir = workingDir.split('/')
     pertNumber = splitWorkDir[-1]
-    outputobj=phisicsdata.phisicsdata(output, workingDir, self.mrtauStandAlone, self.jobTitle)
-    return "keff"+str(pertNumber).strip()
+    outputobj=phisicsdata.phisicsdata(self.instantOutput,workingDir,self.mrtauStandAlone,self.jobTitle,self.outputFileNameDict)
+    if self.mrtauStandAlone == False:
+      return self.jobTitle+str(pertNumber).strip()
+    if self.mrtauStandAlone == True:
+      return 'mrtau'+str(pertNumber).strip()
     
   def checkForOutputFailure(self,output,workingDir):
     """
@@ -318,30 +334,30 @@ class Phisics(CodeInterfaceBase):
     #print (Kwargs['SampledVars'])
     perturbedVars = Kwargs['SampledVars']
     
-    keyWordDict = {}
-    keyWordDict = self.mapInputFileType(currentInputFiles)
+    self.typeDict = {}
+    self.typeDict = self.mapInputFileType(currentInputFiles)
     
     distributedPerturbedVars = self.distributeVariablesToParsers(perturbedVars)
     #print (distributedPerturbedVars)
     #print (currentInputFiles)
     #print (self.tabulation)
     booleanTab = self.tabulation 
-    self.jobTitle = self.parseControlOptions(currentInputFiles[keyWordDict['depletion_input']].getAbsFile(), currentInputFiles[keyWordDict['path']].getAbsFile()) 
-    self.syncLibPathFileWithRavenInp(currentInputFiles[keyWordDict['path']].getAbsFile(),currentInputFiles,keyWordDict)
-    self.outputFileNames(currentInputFiles[keyWordDict['path']].getAbsFile())
+    self.jobTitle = self.parseControlOptions(currentInputFiles[self.typeDict['depletion_input']].getAbsFile(), currentInputFiles[self.typeDict['path']].getAbsFile()) 
+    self.syncLibPathFileWithRavenInp(currentInputFiles[self.typeDict['path']].getAbsFile(),currentInputFiles,self.typeDict)
+    self.outputFileNames(currentInputFiles[self.typeDict['path']].getAbsFile())
     
     for i in distributedPerturbedVars.iterkeys():
-      if i == 'DECAY'         : decayParser        = DecayParser.DecayParser(currentInputFiles[keyWordDict['decay']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'DENSITY'       : materialParser     = MaterialParser.MaterialParser(currentInputFiles[keyWordDict['material']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'FY'            : FissionYieldParser = FissionYieldParser.FissionYieldParser(currentInputFiles[keyWordDict['fissionyield']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'QVALUES'       : QValuesParser      = QValuesParser.QValuesParser(currentInputFiles[keyWordDict['fissqvalue']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'ALPHADECAY'    : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['alphadecay']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'BETA+DECAY'    : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['beta+decay']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'BETA+XDECAY'   : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['beta+xdecay']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'BETADECAY'     : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['betadecay']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'BETAXDECAY'    : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['betaxdecay']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'INTTRADECAY'   : BetaDecayParser    = PathParser.PathParser(currentInputFiles[keyWordDict['inttradecay']].getAbsFile(), **distributedPerturbedVars[i])
-      if i == 'XS'            : XSParser           = XSCreator.XSCreator(currentInputFiles[keyWordDict['xs']].getAbsFile(), booleanTab, **distributedPerturbedVars[i])
+      if i == 'DECAY'         : decayParser        = DecayParser.DecayParser(currentInputFiles[self.typeDict['decay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'DENSITY'       : materialParser     = MaterialParser.MaterialParser(currentInputFiles[self.typeDict['material']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'FY'            : FissionYieldParser = FissionYieldParser.FissionYieldParser(currentInputFiles[self.typeDict['fissionyield']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'QVALUES'       : QValuesParser      = QValuesParser.QValuesParser(currentInputFiles[self.typeDict['fissqvalue']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'ALPHADECAY'    : BetaDecayParser    = PathParser.PathParser(currentInputFiles[self.typeDict['alphadecay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'BETA+DECAY'    : BetaDecayParser    = PathParser.PathParser(currentInputFiles[self.typeDict['beta+decay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'BETA+XDECAY'   : BetaDecayParser    = PathParser.PathParser(currentInputFiles[self.typeDict['beta+xdecay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'BETADECAY'     : BetaDecayParser    = PathParser.PathParser(currentInputFiles[self.typeDict['betadecay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'BETAXDECAY'    : BetaDecayParser    = PathParser.PathParser(currentInputFiles[self.typeDict['betaxdecay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'INTTRADECAY'   : BetaDecayParser    = PathParser.PathParser(currentInputFiles[self.typeDict['inttradecay']].getAbsFile(), **distributedPerturbedVars[i])
+      if i == 'XS'            : XSParser           = XSCreator.XSCreator(currentInputFiles[self.typeDict['xs']].getAbsFile(), booleanTab, **distributedPerturbedVars[i])
     return currentInputFiles
     
 

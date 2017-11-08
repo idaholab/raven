@@ -14,7 +14,7 @@ class phisicsdata():
     This class parses the phisics output of interest. The output of interest are placed in the a csv file. 
   """
 
-  def __init__(self, output, workingDir, mrtauBoolean, jobTitle):
+  def __init__(self, instantOutputFile, workingDir, mrtauBoolean, jobTitle, outputFileNameDict):
     """
       read the phisics output
       @ In, output, string (Instant output)
@@ -36,12 +36,11 @@ class phisicsdata():
       @ Out, timeStepIndex, integers, integers pointing to the index of the timeStep of interest
       @ Out, matchedTimeSteps, list, list of time step matching both mrtau input and instant output
     """    
-    #print output
     instantDict = {}
     mrtauDict = {}
     self.mrtauBoolean = mrtauBoolean
-    instantOutput = [output, 'numbers-0.csv', 'Dpl_INSTANT_'+jobTitle+'_flux_mat.csv', 'XSout.xml']
-    mrtauOutput = ['numbers.csv', 'DecayHeat.out']
+    instantOutput = [instantOutputFile, outputFileNameDict['atoms_csv'], 'Dpl_INSTANT_'+jobTitle+'_flux_mat.csv', 'XSout.xml']
+    mrtauOutput = [outputFileNameDict['atoms_csv'], outputFileNameDict['decay_heat']]
     self.instantCSVOutput = os.path.join(workingDir, instantOutput[2])
     if mrtauBoolean == False: self.mrtauCSVOutput = os.path.join(workingDir, instantOutput[1])
     if mrtauBoolean == True: self.mrtauCSVOutput = os.path.join(workingDir, mrtauOutput[0])
@@ -87,7 +86,7 @@ class phisicsdata():
         instantDict['matchedTimeSteps'] = matchedTimeSteps
         instantDict['XSlabelList'] = XSlabelList
         instantDict['XSlist'] = XSlist
-        self.writeCSV(instantDict, timeStepIndex, matchedTimeSteps)
+        self.writeCSV(instantDict, timeStepIndex, matchedTimeSteps,jobTitle)
       
       if self.mrtauBoolean == True:
         decayHeatMrtau = self.getDecayHeatMrtau(timeStepIndex, matchedTimeSteps)
@@ -681,7 +680,7 @@ class phisicsdata():
     #print self.numDensityLabelListMrtau
     return decayListMrtau
   
-  def writeCSV(self,instantDict, timeStepIndex, matchedTimeSteps):
+  def writeCSV(self,instantDict, timeStepIndex, matchedTimeSteps,jobTitle):
     """
       print the instant coupled to mrtau data in csv files 
     """ 
@@ -697,7 +696,7 @@ class phisicsdata():
               fissvalues.append(instantDict.get('reactionRateInfo').get(str(j)).get(str(k)).get(self.paramList[i]))
       #print fissionMatrixNames
       if 'Group' in fissionMatrixNames: fissionMatrixNames.remove('Group')
-      csvOutput = os.path.join(instantDict.get('workingDir'),'keff'+self.perturbationNumber+'.csv')
+      csvOutput = os.path.join(instantDict.get('workingDir'),jobTitle+self.perturbationNumber+'.csv')
       #print instantDict.get('matFluxList')
       #print "\n\n\n"
       with open(csvOutput, 'wb') as f:
@@ -710,7 +709,7 @@ class phisicsdata():
     """
       print the mrtau standalone data in a csv file  
     """ 
-    csvOutput = os.path.join(mrtauDict.get('workingDir'),'keff'+self.perturbationNumber+'.csv')
+    csvOutput = os.path.join(mrtauDict.get('workingDir'),'mrtau'+self.perturbationNumber+'.csv')
     with open(csvOutput, 'a+') as f:
       mrtauWriter = csv.writer(f, delimiter=',',quotechar=',', quoting=csv.QUOTE_MINIMAL)
       if mrtauDict.get('timeStepIndex') == 0:
