@@ -30,10 +30,10 @@ class PluginBase(object):
   """
     This class represents an abstract class each specialized plugin class should inherit from
   """
-  # List containing the methods that need to be checked in order to assess the 
+  # List containing the methods that need to be checked in order to assess the
   # validity of a certain plugin. This list needs to be populated by the derived class
   _methodsToCheck = []
-  
+
   def __init__(self):
     """
       Constructor
@@ -52,4 +52,4 @@ class PluginBase(object):
     classMethods = [method for method in dir(cls) if callable(getattr(cls, method))]
     validPlugIn = set(cls._methodsToCheck) <= set(classMethods)
     return validPlugIn
-   
+

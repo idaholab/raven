@@ -30,8 +30,8 @@ from .PluginBase import PluginBase
 
 
 class ExternalModelPluginBase(PluginBase):
-  
-  # List containing the methods that need to be checked in order to assess the 
+
+  # List containing the methods that need to be checked in order to assess the
   # validity of a certain plugin. This list needs to be populated by the derived class
   _methodsToCheck = ['run','initialize']
 
@@ -42,4 +42,4 @@ class ExternalModelPluginBase(PluginBase):
       @ Out, None
     """
     PluginBase.__init__(self)
-  
+

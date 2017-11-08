@@ -148,7 +148,7 @@ class ExternalModel(Dummy):
       self.ModuleToLoad = paramInput.parameterValues['ModuleToLoad']
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
       # load the external module and point it to self.sim
-      self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)      
+      self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
     elif len(paramInput.parameterValues['subType'].strip()) > 0:
       # it is a plugin. Look for the type in the plugins class list
       if paramInput.parameterValues['subType'] not in ExternalModel.plugins.knownTypes():
@@ -158,7 +158,7 @@ class ExternalModel(Dummy):
       self.sim = ExternalModel.plugins.returnPlugin("ExternalModel",paramInput.parameterValues['subType'],self)
     else:
       self.raiseAnError(IOError,'"ModuleToLoad" attribute or "subType" not provided for Model "ExternalModel" named "'+self.name+'"!')
-    
+
     # check if there are variables and, in case, load them
     for child in paramInput.subparts:
       if child.getName() =='variable':

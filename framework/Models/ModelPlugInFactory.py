@@ -17,7 +17,7 @@ Created on November 6, 2017
 @author: alfoa
 
 comment: The ModelPlugIn Module is an Handler.
-         It inquires all the modules contained in the ./raven/contrib/plugins 
+         It inquires all the modules contained in the ./raven/contrib/plugins
          and load the ones that refer to a model, constructing a '__interFaceDict' on the fly
 """
 #for future compatibility with Python 3--------------------------------------------------------------
@@ -60,7 +60,7 @@ for moduleIndex in range(len(__moduleInterfaceList)):
             __interFaceDict[ravenEntityName][key] = modClass
             # check the validity of the plugin
             if not modClass.isAvalidPlugin():
-              raise IOError("The plugin based on the class "+ravenEntityName.strip()+" is not valid. Please check with the Plugin developer!") 
+              raise IOError("The plugin based on the class "+ravenEntityName.strip()+" is not valid. Please check with the Plugin developer!")
 __knownTypes = [item for sublist in __interFaceDict.values() for item in sublist]
 
 def knownTypes():

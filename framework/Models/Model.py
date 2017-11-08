@@ -43,7 +43,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     externally build and imported by the user
   """
   plugins = importlib.import_module("Models.ModelPlugInFactory")
-  
+
   @classmethod
   def getInputSpecification(cls):
     """
