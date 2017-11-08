@@ -198,20 +198,20 @@ class ETimporter(PostProcessor):
       self.raiseAWarning('Output type ' + str(output.type) + ' is not supported.')
 
   def findAllRecursive(self, node, element, result = None):
-	"""
+    """
       A function for recursively traversing a node in an elementTree to find
       all instances of a tag
       @ In, node, ET.Element, the current node to search under
       @ In, element, str, the string name of the tags to locate
       @ InOut, result, list, a list of the currently recovered results
-	"""
-	if result is None:
-		result = []
-	for item in node.getchildren():
-		if item.tag == element:
-			result.append(item)
-		self.findAllRecursive(item, element, result)
-	return result
+    """
+    if result is None:
+      result = []
+    for item in node.getchildren():
+      if item.tag == element:
+        result.append(item)
+      self.findAllRecursive(item, element, result)
+    return result
 
   def constructPointDFS(self, node, inputMap, stateMap, outputMap, X, rowCounter):
     """
