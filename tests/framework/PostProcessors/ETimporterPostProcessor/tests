@@ -1,0 +1,8 @@
+[Tests]
+  [./ET_importer_OpenPSA]
+    type = 'RavenFramework'
+    input = 'test_ETimporter.xml'
+    csv    = 'ETimporter/PrintPS.csv'
+    output = 'ETimporter/PrintPS.xml'
+  [../]
+[]

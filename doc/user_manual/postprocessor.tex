@@ -1621,8 +1621,8 @@ The resulting PointSet has \emph{time} as an input and \emph{first} as an output
 \subsubsection{ETimporter}
 \label{ETimporterPP}
 The \textbf{ETimporter} post-processor has been designed to import Event-Tree (ETs) object into
-RAVEN. This is performed by saving the structure of the ET (from file) as a \textbf{PointSet} only. 
-Since an ET is a static Boolean logic structure the \textbf{PointSet} is structured as follows:
+RAVEN. This is performed by saving the structure of the ET (from file) as a \textbf{PointSet} (only \textbf{PointSet} are allowed). 
+Since an ET is a static Boolean logic structure, the \textbf{PointSet} is structured as follows:
 \begin{itemize}
   \item Input variables of the \textbf{PointSet} are the branching conditions of the ET. The value of each input variable can be:
   \begin{itemize}
@@ -1635,7 +1635,7 @@ Since an ET is a static Boolean logic structure the \textbf{PointSet} is structu
 Since several ET file formats are available, as of now only the OpenPSA format (see https://open-psa.github.io/joomla1.5/index.php.html) is supported.  
 
 %
-\ppType{Metric}{Metric}
+\ppType{ETimporter}{ETimporter}
 %
 \begin{itemize}
   \item \xmlNode{OpenPSA}, \xmlDesc{string, required field}, specifies the format of the file that contains the ET structure (supported format: OpenPSA).
