@@ -1,11 +1,11 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>TBA</name>
-    <author>TBA</author>
-    <created>TBA</created>
-    <classesTested>TBA</classesTested>
+    <name>framework/PostProcessors/ETimporterPostProcessor</name>
+    <author>mandd</author>
+    <created>2017-11-07</created>
+    <classesTested>ETimporter</classesTested>
     <description>
-      TBA
+      Tests of the ETimporter post-processor
     </description>
   </TestInfo>
   
