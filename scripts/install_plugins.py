@@ -14,6 +14,11 @@
 # limitations under the License.
 
 # This is a utility script to install a plugin in the RAVEN plugin directory
+# It takes the following command line arguments
+# -s, the plugin directory that needs to be installed
+# -f, force the copy if the directory in the destination location already exists
+# to run the script use the following command:
+#  python install_plugins -s path/to/plugin -f
 
 import sys, os, shutil
 # get the location of this script

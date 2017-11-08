@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This is a utility script to install a plugin in the RAVEN plugin directory
+# This is a utility script to copy the plugin directory back
+# from raven/tests/plugins/pluginName/tests location to raven/plugins/pluginName/tests
+# it is a temporary script till the regression system in MOOSE does not allow the possibility
+# to specify folders where look for additional tests
 
 import sys, os, shutil
 from distutils import dir_util
