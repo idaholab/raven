@@ -15,7 +15,7 @@
 
 # This is a utility script to install a plugin in the RAVEN plugin directory
 
-import sys, os, shutil
+import sys, os, shutil, warnings
 # get the location of this script
 app_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
 plugins_directory = os.path.abspath(os.path.join(app_path, "plugins"))
@@ -26,14 +26,16 @@ plugins = [name for name in os.listdir(plugins_directory) if os.path.isdir(os.pa
 for plugin in plugins:
   plugin_dir = os.path.join(plugins_directory,plugin)
   tests_dir = os.path.join(plugin_dir,"tests")
-  if not os.path.exists(tests_dir):
-    raise IOError('The plugin "'+plugin_dir+'" does not contain a "tests" directory!')
-  if not os.path.isdir(tests_dir):
-    raise IOError('In the plugin folder "'+plugin_dir+'" the "tests" target is not a directory!')
   # check if plugin exists
-  destination_plugin = os.path.join(plugins_test_dir,plugin)
-  if os.path.exists(destination_plugin):
-    shutil.rmtree(destination_plugin)
-  # start copying
-  shutil.copytree(tests_dir , destination_plugin ,ignore=shutil.ignore_patterns(".git"))
+  if not os.path.exists(tests_dir):
+    warnings.warn('The plugin "'+plugin_dir+'" does not contain a "tests" directory!')
+  else:
+    if not os.path.isdir(tests_dir):
+      raise IOError('In the plugin folder "'+plugin_dir+'" the "tests" target is not a directory!')
+  if os.path.exists(tests_dir):
+    destination_plugin = os.path.join(plugins_test_dir,plugin)
+    if os.path.exists(destination_plugin):
+      shutil.rmtree(destination_plugin)
+    # start copying
+    shutil.copytree(tests_dir , destination_plugin ,ignore=shutil.ignore_patterns(".git"))
 
