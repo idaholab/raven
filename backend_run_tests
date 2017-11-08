@@ -112,7 +112,6 @@ elif library_report:
 else:
   from TestHarness import TestHarness
   sys.path.append(os.path.join("scripts","TestHarness","testers"))
-  os.system('python ' + os.path.join(RAVEN_DIR,"scripts","copy_plugins_tests.py"))
   import RavenUtils
   missing,outOfRange,notQA = RavenUtils.checkForMissingModules()
   if len(missing) + len(outOfRange) > 0 and RavenUtils.checkVersions():
