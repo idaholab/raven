@@ -28,11 +28,10 @@ for plugin in plugins:
   source_plugin = os.path.join(plugins_test_dir,plugin)
   plugin_dir = os.path.join(plugins_directory,plugin)
   destination_folder = os.path.join(plugins_directory,plugin,"tests")
-  if not os.path.exists(source_plugin):
-    raise IOError('The plugin tests for plugin "'+plugin+'" has not been run!')
-  # check if plugin exists
-  # start copying
-  dir_util.copy_tree(source_plugin,destination_folder)
-  # remove source
-  shutil.rmtree(source_plugin)
+  if os.path.exists(source_plugin):
+    # check if plugin exists
+    # start copying
+    dir_util.copy_tree(source_plugin,destination_folder)
+    # remove source
+    shutil.rmtree(source_plugin)
 
