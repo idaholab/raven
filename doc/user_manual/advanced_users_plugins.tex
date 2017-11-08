@@ -2,20 +2,24 @@
 \label{sec:newExternalModelPlugin}
 \begin{figure}
 \centering
-\includegraphics[width=1.0\textwidth]{pics/CodeInterfaceLocation.png}
-\caption{Code Interface Location.}
-\label{fig:codeinterface}
+\includegraphics[width=1.0\textwidth]{pics/plugins_location.png}
+\caption{Plugins Location}
+\label{fig:pluginsLocation}
 \end{figure}
-The procedure of coupling a new code/application with RAVEN is a straightforward process.
-For all the codes currently supported by RAVEN (e.g. RELAP-7, RELAP5-3D,
-BISON, MOOSE,etc.), the coupling is performed through a Python interface that interprets the information coming from RAVEN and translates them into the
-  input of the driven code.
-The coupling procedure does not require modifying RAVEN itself. Instead, the developer creates a new Python interface that is going to be embedded
- in RAVEN at run-time (no need to introduce  hard-coded coupling statements).
- This interface needs to be placed in a folder (whatever name) located in (see figure~\ref{fig:codeinterface}):
+The procedure of adding a plugin for the ExternalModel is a straightforward  process.
+The addition of a plugin does not require modifying RAVEN itself. 
+Instead, the developer creates a new Python module that is going to be embedded
+ in RAVEN at run-time (no need to introduce  hard-coded statements).
+ This plugin needs to be placed in a folder (whatever name) located in (see figure~\ref{fig:pluginsLocation}):
 \begin{lstlisting}[language=bash]
- path/to/raven/distribution/raven/framework/CodeInterfaces/
+ path/to/raven/distribution/raven/plugins/
 \end{lstlisting}
+In order to install a new plugin, the user can run the script contained in the RAVEN script folder:
+\begin{lstlisting}[language=bash]
+ python path/to/raven/distribution/raven/scripts/install_plugins.py  **directory**
+\end{lstlisting}
+where  $**directory**$ should be replaced with the absolute path to the plugin directory.
+
 At the initialization stage, RAVEN imports all the Interfaces that are contained in this directory and performs some preliminary cross-checks.
 \\It is important to notice that the name of class in the Interface module is the one the user needs to specify when the new interface 
 needs to be used. For example, if the Interface module contains the class 	``NewCode'', the \textit{subType} in the \xmlNode{Code} block will be 	``NewCode'':
