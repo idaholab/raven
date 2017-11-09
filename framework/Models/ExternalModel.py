@@ -50,7 +50,7 @@ class ExternalModel(Dummy):
     """
     inputSpecification = super(ExternalModel, cls).getInputSpecification()
     inputSpecification.setStrictMode(False) #External models can allow new elements
-    inputSpecification.addParam("ModuleToLoad", InputData.StringType, True)
+    inputSpecification.addParam("ModuleToLoad", InputData.StringType, False)
     inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringType))
 
     return inputSpecification
@@ -147,10 +147,18 @@ class ExternalModel(Dummy):
     if 'ModuleToLoad' in paramInput.parameterValues:
       self.ModuleToLoad = paramInput.parameterValues['ModuleToLoad']
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
+      # load the external module and point it to self.sim
+      self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
+    elif len(paramInput.parameterValues['subType'].strip()) > 0:
+      # it is a plugin. Look for the type in the plugins class list
+      if paramInput.parameterValues['subType'] not in ExternalModel.plugins.knownTypes():
+        self.raiseAnError(IOError,'The "subType" named "'+paramInput.parameterValues['subType']+
+                                  '" does not belong to any ExternalModel plugin available. ' +
+                                  'Available plugins are "'+ ','.join(ExternalModel.plugins.knownTypes()))
+      self.sim = ExternalModel.plugins.returnPlugin("ExternalModel",paramInput.parameterValues['subType'],self)
     else:
-      self.raiseAnError(IOError,'ModuleToLoad not provided for module externalModule')
-    # load the external module and point it to self.sim
-    self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
+      self.raiseAnError(IOError,'"ModuleToLoad" attribute or "subType" not provided for Model "ExternalModel" named "'+self.name+'"!')
+
     # check if there are variables and, in case, load them
     for child in paramInput.subparts:
       if child.getName() =='variable':
