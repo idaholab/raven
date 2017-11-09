@@ -245,11 +245,12 @@ class ETimporter(PostProcessor):
 
       for path in node.findall('path'):
           state = path.get('state')
-          if state = 'failure':
-            val = 
-          elif:state='success':
-            val =
-          val = stateMap[event].index(state)
+          if   state == 'failure':
+            val = '+1'
+          elif state =='success':
+            val = '0'
+          else:
+            val = stateMap[event].index(state)
 
           ## Fill in the rest of the data as the recursive nature will only
           ## fill in the details under this branch, later iterations will
