@@ -25,6 +25,7 @@ import copy
 import numpy as np
 import abc
 import sys
+import importlib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -41,6 +42,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     it could as complex as a stand alone code, a reduced order model trained somehow or something
     externally build and imported by the user
   """
+  plugins = importlib.import_module("Models.ModelPlugInFactory")
+
   @classmethod
   def getInputSpecification(cls):
     """
