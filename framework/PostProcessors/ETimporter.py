@@ -14,7 +14,7 @@
 """
 Created on Nov 1, 2017
 
-@author: maljdan, mandd
+@author: dan maljovec, mandd
 
 """
 
@@ -142,7 +142,6 @@ class ETimporter(PostProcessor):
             state = path.get('state')
             if state not in values[event]:
               values[event].append(state)
-
     ## Iterate through the sequences and gather all of the possible outcomes
     ## so we can numerically encode them latter
     for node in root.findall('define-sequence'):
@@ -246,6 +245,10 @@ class ETimporter(PostProcessor):
 
       for path in node.findall('path'):
           state = path.get('state')
+          if state = 'failure':
+            val = 
+          elif:state='success':
+            val =
           val = stateMap[event].index(state)
 
           ## Fill in the rest of the data as the recursive nature will only

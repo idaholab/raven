@@ -25,7 +25,7 @@
                     </path>
                 </fork>
             </path>
-            <path state="+1">
+            <path state="failure">
                 <sequence name="3"/>
             </path>
         </fork>
