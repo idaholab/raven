@@ -13,9 +13,10 @@
   <RunInfo>
     <WorkingDir>./</WorkingDir>
     <Sequence>testDummyStep,extract_data</Sequence>
-    <batchSize>2</batchSize>
-    <NumThreads>2</NumThreads>
-    <NumMPI>2</NumMPI>
+    <mode>mpi</mode>
+    <batchSize>4</batchSize>
+    <NumThreads>4</NumThreads>
+    <NumMPI>4</NumMPI>
   </RunInfo>
 
   <Files>

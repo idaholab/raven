@@ -65,6 +65,14 @@ class Phisics(CodeInterfaceBase):
     """
     return self.__base 
   
+  def getNumberOfMPI(self,string):
+    """
+      gets the number of MPI requested by the user in the RAVEN input
+      @ In, string, string, string from the Kwargs containing the number of MPI
+      @ Out, MPInumber, integer, number of MPI used in the calculation
+    """
+    return int(string.split(" ")[-2])
+    
   def outputFileNames(self,pathFile):
     """
       Collects the output file names from lib_inp_path xml file
@@ -114,7 +122,8 @@ class Phisics(CodeInterfaceBase):
     
   def getTitle(self, depletionRoot):
     """
-      get the job title. It will become later the instant output file name. 
+      get the job title. It will become later the instant output file name. If the title flag is not in the 
+      instant input, the job title is defaulted to 'defaultInstant'
       @ In, self.mrtauStandAlone, True = mrtau is ran standalone, False = mrtau in not ran standalone
       @ In, depletionRoot, XML tree from the depletion_input.xml
       @ Out, jobTitle, string 
@@ -248,18 +257,19 @@ class Phisics(CodeInterfaceBase):
       executable = self.switchExecutable()
       commandToRun = executable
     outputfile = 'out~'+inputFiles[dict['inp'.lower()]].getBase()
-    self.instantOutput = inputFiles[dict['inp'.lower()]].getBase()+'.o'
+    self.instantOutput = self.jobTitle+'.o'
     if self.mrtauStandAlone == False: 
       commandToRun = executable + ' ' +inputFiles[dict['inp'.lower()]].getFilename() + ' ' + inputFiles[dict['Xs-library'.lower()]].getFilename() + ' ' + inputFiles[dict['Material'.lower()]].getFilename() + ' ' + inputFiles[dict['Depletion_input'.lower()]].getFilename() + ' ' + self.instantOutput
       commandToRun = commandToRun.replace("\n"," ")
       commandToRun  = re.sub("\s\s+" , " ", commandToRun )
     returnCommand = [('parallel',commandToRun)], outputfile
     return returnCommand
-  
+    
   def finalizeCodeOutput(self,command,output,workingDir):
     """
       This method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
       It can be used for those codes, that do not create CSV files to convert the whatever output format into a csv
+      This methods also calls the method 'mergeOutput' if MPI mode is used, in order to merge all the output files into one 
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
@@ -267,7 +277,8 @@ class Phisics(CodeInterfaceBase):
     """
     splitWorkDir = workingDir.split('/')
     pertNumber = splitWorkDir[-1]
-    outputobj=phisicsdata.phisicsdata(self.instantOutput,workingDir,self.mrtauStandAlone,self.jobTitle,self.outputFileNameDict)
+    #print (self.numberOfMPI)
+    outputobj=phisicsdata.phisicsdata(self.instantOutput,workingDir,self.mrtauStandAlone,self.jobTitle,self.outputFileNameDict,self.numberOfMPI)
     if self.mrtauStandAlone == False:
       return self.jobTitle+str(pertNumber).strip()
     if self.mrtauStandAlone == True:
@@ -336,7 +347,6 @@ class Phisics(CodeInterfaceBase):
     
     self.typeDict = {}
     self.typeDict = self.mapInputFileType(currentInputFiles)
-    
     distributedPerturbedVars = self.distributeVariablesToParsers(perturbedVars)
     #print (distributedPerturbedVars)
     #print (currentInputFiles)
@@ -345,6 +355,10 @@ class Phisics(CodeInterfaceBase):
     self.jobTitle = self.parseControlOptions(currentInputFiles[self.typeDict['depletion_input']].getAbsFile(), currentInputFiles[self.typeDict['path']].getAbsFile()) 
     self.syncLibPathFileWithRavenInp(currentInputFiles[self.typeDict['path']].getAbsFile(),currentInputFiles,self.typeDict)
     self.outputFileNames(currentInputFiles[self.typeDict['path']].getAbsFile())
+    if Kwargs['precommand'] == '':
+      self.numberOfMPI = 1 
+    else: 
+      self.numberOfMPI = self.getNumberOfMPI(Kwargs['precommand'])   
     
     for i in distributedPerturbedVars.iterkeys():
       if i == 'DECAY'         : decayParser        = DecayParser.DecayParser(currentInputFiles[self.typeDict['decay']].getAbsFile(), **distributedPerturbedVars[i])
