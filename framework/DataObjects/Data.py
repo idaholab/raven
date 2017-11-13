@@ -599,8 +599,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, typePara, string, variable type (input, output or metadata)
       @ Out, keys, list, list of requested keys
     """
-    if typePara.lower() not in ['input','inputs','output','outputs','metadata']:
-      self.raiseAnError(RuntimeError,'type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
+    assert(typePara.lower() in ['input','inputs','output','outputs','metadata'])
     keys = self._dataParameters['inParam' ] if typePara.lower() in 'inputs' else (self._dataParameters['outParam'] if typePara.lower() in 'outputs' else self._dataContainer['metadata'].keys())
     return keys
 

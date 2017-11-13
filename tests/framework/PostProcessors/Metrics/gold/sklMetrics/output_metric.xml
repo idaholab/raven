@@ -1,16 +1,21 @@
 <MetricPostProcessor type="Static">
   <ans-ans2>
-    <linear>-6.33553438043</linear>
-    <sigmoid>-0.999953587641</sigmoid>
-    <poly>28.4679271247</poly>
-    <euclidean>8.15320610438</euclidean>
-    <cosine>-0.295652333689</cosine>
-    <l2>8.15320610438</l2>
-    <laplacian>8.81761659522e-05</laplacian>
-    <l1>18.6723477175</l1>
-    <polynomial>28.4679271247</polynomial>
-    <cityblock>18.6723477175</cityblock>
-    <manhattan>18.6723477175</manhattan>
-    <rbf>3.67440606512e-15</rbf>
+    <rbf_rbf>3.67440606512e-15</rbf_rbf>
+    <r2_score_r2_score>-0.697606406772</r2_score_r2_score>
+    <laplacian_laplacian>8.81761659522e-05</laplacian_laplacian>
+    <l2_l2>8.15320610438</l2_l2>
+    <mean_absolute_error_mean_absolute_error>2.01729705995</mean_absolute_error_mean_absolute_error>
+    <linear_linear>-6.33553438043</linear_linear>
+    <polynomial_polynomial>28.4679271247</polynomial_polynomial>
+    <euclidean_euclidean>8.15320610438</euclidean_euclidean>
+    <manhattan_manhattan>18.6723477175</manhattan_manhattan>
+    <l1_l1>18.6723477175</l1_l1>
+    <cityblock_cityblock>18.6723477175</cityblock_cityblock>
+    <explained_variance_score_explained_variance_score>-0.490588326927</explained_variance_score_explained_variance_score>
+    <mean_squared_error_mean_squared_error>7.06621390422</mean_squared_error_mean_squared_error>
+    <median_absolute_error_median_absolute_error>1.42711900943</median_absolute_error_median_absolute_error>
+    <cosine_cosine>-0.295652333689</cosine_cosine>
+    <poly_poly>28.4679271247</poly_poly>
+    <sigmoid_sigmoid>-0.999953587641</sigmoid_sigmoid>
   </ans-ans2>
 </MetricPostProcessor>

@@ -251,6 +251,7 @@ class Simulation(MessageHandler.MessageUser):
     self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
     self.runInfoDict['clusterParameters' ] = []           # Extra parameters to use with the qsub command.
+    self.runInfoDict['maxQueueSize'      ] = None
 
     #Following a set of dictionaries that, in a manner consistent with their names, collect the instance of all objects needed in the simulation
     #Theirs keywords in the dictionaries are the the user given names of data, sampler, etc.
@@ -648,6 +649,11 @@ class Simulation(MessageHandler.MessageUser):
           rawRelativeWorkingDir = element.text.strip()
           self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
         utils.makeDir(self.runInfoDict['WorkingDir'])
+      elif element.tag == 'maxQueueSize':
+        try:
+          self.runInfoDict['maxQueueSize'] = int(element.text)
+        except ValueError:
+          self.raiseAnError('Value give for RunInfo.maxQueueSize could not be converted to integer: {}'.format(element.text))
       elif element.tag == 'RemoteRunCommand':
         tempName = element.text
         if '~' in tempName:
@@ -678,6 +684,8 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['internalParallel'  ] = utils.interpretBoolean(element.text)
       elif element.tag == 'batchSize':
         self.runInfoDict['batchSize'         ] = int(element.text)
+      elif element.tag.lower() == 'maxqueuesize':
+        self.runInfoDict['maxQueueSize'      ] = int(element.text)
       elif element.tag == 'MaxLogFileSize':
         self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
       elif element.tag == 'precommand':
@@ -804,28 +812,7 @@ class Simulation(MessageHandler.MessageUser):
         # check assembler. NB. If the assembler refers to an internal object the relative dictionary
         # needs to have the format {'internal':[(None,'variableName'),(None,'variable name')]}
         for stp in stepindict:
-          if "whatDoINeed" in dir(stp):
-            neededobjs    = {}
-            neededObjects = stp.whatDoINeed()
-            for mainClassStr in neededObjects.keys():
-              if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal':
-                self.raiseAnError(IOError,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
-              neededobjs[mainClassStr] = {}
-              for obj in neededObjects[mainClassStr]:
-                if obj[1] in vars(self):
-                  neededobjs[mainClassStr][obj[1]] = vars(self)[obj[1]]
-                elif obj[1] in self.whichDict[mainClassStr].keys():
-                  if obj[0]:
-                    if obj[0] not in self.whichDict[mainClassStr][obj[1]].type:
-                      self.raiseAnError(IOError,'Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.whichDict[mainClassStr][obj[1]].type)
-                  neededobjs[mainClassStr][obj[1]] = self.whichDict[mainClassStr][obj[1]]
-                elif obj[1] in 'all':
-                  # if 'all' we get all the objects of a certain 'mainClassStr'
-                  for allObject in self.whichDict[mainClassStr]:
-                    neededobjs[mainClassStr][allObject] = self.whichDict[mainClassStr][allObject]
-                else:
-                  self.raiseAnError(IOError,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
-            stp.generateAssembler(neededobjs)
+          self.generateAllAssemblers(stp)
       #if 'Sampler' in stepInputDict.keys(): stepInputDict['Sampler'].generateDistributions(self.distributionsDict)
       #running a step
       stepInstance.takeAstep(stepInputDict)
@@ -840,3 +827,32 @@ class Simulation(MessageHandler.MessageUser):
     self.messageHandler.printWarnings()
     self.raiseAMessage('Run complete!',forcePrint=True)
 
+  def generateAllAssemblers(self, objectInstance):
+    """
+      This method is used to generate all assembler objects at the Step construction stage
+      @ In, objectInstance, Instance, Instance of RAVEN entity, i.e. Input, Sampler, Model
+      @ Out, None
+    """
+    if "whatDoINeed" in dir(objectInstance):
+      neededobjs    = {}
+      neededObjects = objectInstance.whatDoINeed()
+      for mainClassStr in neededObjects.keys():
+        if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal':
+          self.raiseAnError(IOError,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
+        neededobjs[mainClassStr] = {}
+        for obj in neededObjects[mainClassStr]:
+          if obj[1] in vars(self):
+            neededobjs[mainClassStr][obj[1]] = vars(self)[obj[1]]
+          elif obj[1] in self.whichDict[mainClassStr].keys():
+            if obj[0]:
+              if obj[0] not in self.whichDict[mainClassStr][obj[1]].type:
+                self.raiseAnError(IOError,'Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.whichDict[mainClassStr][obj[1]].type)
+            neededobjs[mainClassStr][obj[1]] = self.whichDict[mainClassStr][obj[1]]
+            self.generateAllAssemblers(neededobjs[mainClassStr][obj[1]])
+          elif obj[1] in 'all':
+            # if 'all' we get all the objects of a certain 'mainClassStr'
+            for allObject in self.whichDict[mainClassStr]:
+              neededobjs[mainClassStr][allObject] = self.whichDict[mainClassStr][allObject]
+          else:
+            self.raiseAnError(IOError,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
+      objectInstance.generateAssembler(neededobjs)

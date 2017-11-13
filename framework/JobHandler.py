@@ -77,9 +77,10 @@ class JobHandler(MessageHandler.MessageUser):
     self.sleepTime  = 0.005
     self.completed = False
 
-    ## Stops the pending queue from getting too big. TODO: expose this to the
-    ## user
-    self.maxQueueSize = 1000
+    ## Prevents the pending queue from growing indefinitely, but also allowing
+    ## extra jobs to be queued to prevent starving parallelized environments of
+    ## jobs.
+    self.maxQueueSize = None
 
     ############################################################################
     ## The following variables are protected by the __queueLock
@@ -117,7 +118,7 @@ class JobHandler(MessageHandler.MessageUser):
 
     #self.__noResourcesJobs = []
 
-  def initialize(self,runInfoDict,messageHandler):
+  def initialize(self, runInfoDict, messageHandler):
     """
       Method to initialize the JobHandler
       @ In, runInfoDict, dict, dictionary of run info settings
@@ -127,6 +128,11 @@ class JobHandler(MessageHandler.MessageUser):
     """
     self.runInfoDict = runInfoDict
     self.messageHandler = messageHandler
+    self.maxQueueSize = runInfoDict.get('maxQueueSize',runInfoDict.get('batchSize'))
+    if self.maxQueueSize < 1:
+      self.raiseAWarning('maxQueueSize was set to be less than 1!  Setting to 1...')
+      self.maxQueueSize = 1
+    self.raiseADebug('Setting maxQueueSize to',self.maxQueueSize)
 
     #initialize PBS
     with self.__queueLock:
@@ -143,15 +149,16 @@ class JobHandler(MessageHandler.MessageUser):
       returnCode = running.getReturnCode()
       if returnCode != 0:
         metadataFailedRun = running.getMetadata()
-        metaDataKeys      = metadataFailedRun.keys()
-        metaDataToKeep    = metadataFailedRun
-        if 'jobHandler' in metaDataKeys:
-          metaDataKeys.pop(metaDataKeys.index("jobHandler"))
-          metaDataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metaDataKeys }
+        metadataToKeep    = metadataFailedRun
+        if metadataFailedRun is not None:
+          metadataKeys      = metadataFailedRun.keys()
+          if 'jobHandler' in metadataKeys:
+            metadataKeys.pop(metadataKeys.index("jobHandler"))
+            metadataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metadataKeys }
         ## FIXME: The running.command was always internal now, so I removed it.
         ## We should probably find a way to give more pertinent information.
         self.raiseAMessage(" Process Failed " + str(running) + " internal returnCode " + str(returnCode))
-        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metaDataToKeep))
+        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metadataToKeep))
 
   def __initializeParallelPython(self):
     """
@@ -407,10 +414,20 @@ class JobHandler(MessageHandler.MessageUser):
     ## that list within a reasonable amount of time. The issue on the main thread
     ## should also be addressed, but at least we can prevent it on this end since
     ## the main thread's issue may be legitimate.
+
+    maxCount = self.maxQueueSize
+    finishedCount = len(self.__finished)
+
     if client:
-      availability = self.maxQueueSize - len(self.__clientQueue) - len(self.__finished)
+      if maxCount is None:
+        maxCount = self.__clientRunning.count(None)
+      queueCount = len(self.__clientQueue)
     else:
-      availability = self.maxQueueSize - len(self.__queue) - len(self.__finished)
+      if maxCount is None:
+        maxCount = self.__running.count(None)
+      queueCount = len(self.__queue)
+
+    availability = maxCount - queueCount - finishedCount
     return availability
 
   def isThisJobFinished(self, identifier):
@@ -444,6 +461,34 @@ class JobHandler(MessageHandler.MessageUser):
     ##  If you made it here and we still have not found anything, we have got
     ## problems.
     self.raiseAnError(RuntimeError,"Job "+identifier+" is unknown!")
+
+  def areTheseJobsFinished(self, uniqueHandler="any"):
+    """
+      Method to check if all the runs in the queue are finished
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to
+        each runner. If provided, just the jobs that have the uniqueIdentifier
+        will be retrieved. By default uniqueHandler = 'any' => all the jobs for
+        which no uniqueIdentifier has been set up are going to be retrieved
+      @ Out, isFinished, bool, True all the runs in the queue are finished
+    """
+    uniqueHandler = uniqueHandler.strip()
+    with self.__queueLock:
+      for run in self.__finished:
+        if run.uniqueHandler == uniqueHandler:
+          return False
+
+      for queue in [self.__queue, self.__clientQueue]:
+        for run in queue:
+          if run.uniqueHandler == uniqueHandler:
+            return False
+
+      for run in self.__running + self.__clientRunning:
+        if run is not None and run.uniqueHandler == uniqueHandler:
+          return False
+
+    self.raiseADebug("The jobs with uniqueHandler ", uniqueHandler, "are finished")
+
+    return True
 
   def getFailedJobs(self):
     """

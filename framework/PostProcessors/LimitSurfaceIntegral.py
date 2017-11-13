@@ -23,6 +23,7 @@ warnings.simplefilter('default', DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import math
+import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -278,6 +279,11 @@ class LimitSurfaceIntegral(PostProcessor):
           headers += ['EventProbability']
         stack = [None] * len(headers)
         output.close()
+        # If the file already exist, we will erase it.
+        if os.path.exists(output.getAbsFile()):
+          self.raiseAWarning('File %s already exists, this file will be erased!' %output.getAbsFile())
+          output.open('w')
+          output.close()
         outIndex = 0
         for key, value in lms.getParametersValues('input').items():
           stack[headers.index(key)] = np.asarray(value).flatten()

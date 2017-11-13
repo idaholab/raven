@@ -73,12 +73,17 @@ class CrossValidation(PostProcessor):
     self.dynamic        = False # is it time-dependent?
     self.metricsDict    = {}    # dictionary of metrics that are going to be assembled
     self.pivotParameter = None
+    self.cvScores       = []
     # assembler objects to be requested
     self.addAssemblerObject('Metric', 'n', True)
-    self.CVEstimator    = None   # instance of estimator that is used to for Cross Validation
-    self.CVEngine       = None   # Engine used for cross validation
+    # The list of cross validation engine that require the parameter 'n'
+    # This will be removed if we updated the scikit-learn to version 0.20
+    # We will rely on the code to decide the value for the parameter 'n'
+    self.CVList = ['KFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit']
+    self.validMetrics = ['mean_absolute_error', 'explained_variance_score', 'r2_score', 'mean_squared_error', 'median_absolute_error']
+    self.invalidRom = ['GaussPolynomialRom', 'HDMRRom']
 
-  def initialize(self, runInfo, inputs, initDict) :
+  def initialize(self, runInfo, inputs, initDict=None) :
     """
       Method to initialize the pp.
       @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
@@ -107,11 +112,21 @@ class CrossValidation(PostProcessor):
     #paramInput.parseNode(xmlNode)
 
     self.initializationOptionDict = {}
-
+    scoreList = ['maximum', 'average', 'median']
+    cvNode = xmlNode.find('SciKitLearn')
+    for child in cvNode:
+      if child.tag == 'scores':
+        for elem in child.text.split(','):
+          score = elem.strip().lower()
+          if score in scoreList:
+            self.cvScores.append(score)
+          else:
+            self.raiseAnError(IOError, "Unexpected input '", score, "' for XML node 'scores'! Valid inputs include: ", ",".join(scoreList))
+        break
     for child in xmlNode:
       if child.tag == 'SciKitLearn':
         self.initializationOptionDict[child.tag] = self._localInputAndCheck(child)
-        self.CVEngine = CrossValidations.returnInstance(child.tag, self, **self.initializationOptionDict[child.tag])
+        self.initializationOptionDict[child.tag].pop("scores",'False')
       elif child.tag == 'Metric':
         if 'type' not in child.attrib.keys() or 'class' not in child.attrib.keys():
           self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
@@ -234,10 +249,9 @@ class CrossValidation(PostProcessor):
     testInput = dict.fromkeys(inputDict.keys(), None)
     for key, value in inputDict.items():
       if np.asarray(value).size != trainIndex.size + testIndex.size:
-        self.raiseAnError(IOError, "The number of samples provided in the input is not equal the number of samples used in the cross-validation")
+        self.raiseAnError(IOError, "The number of samples provided in the input is not equal the number of samples used in the cross-validation: "+str(np.asarray(value).size) +"!="+str(trainIndex.size + testIndex.size))
       trainInput[key] = np.asarray(value)[trainIndex]
       testInput[key] = np.asarray(value)[testIndex]
-
     trainTest = trainInput, testInput
     return trainTest
 
@@ -247,15 +261,25 @@ class CrossValidation(PostProcessor):
       @ In, inputIn, list, list of objects, i.e. the object contained the data to process, the instance of model.
       @ Out, outputDict, dict, Dictionary containing the results
     """
-    inputDict, self.CVEstimator = self.inputToInternal(inputIn, full = True)
-    outputDict = {}
-
+    inputDict, cvEstimator = self.inputToInternal(inputIn, full = True)
+    if cvEstimator.subType in self.invalidRom:
+      self.raiseAnError(IOError, cvEstimator.subType, " can not be retrained, thus can not be used in Cross Validation post-processor ", self.name)
     if self.dynamic:
       self.raiseAnError(IOError, "Not implemented yet")
-
-    for trainIndex, testIndex in self.CVEngine.generateTrainTestIndices():
+    initDict = copy.deepcopy(self.initializationOptionDict)
+    cvEngine = None
+    for key, value in initDict.items():
+      if key == "SciKitLearn":
+        if value['SKLtype'] in self.CVList:
+          dataSize = np.asarray(inputDict.values()[0]).size
+          value['n'] = dataSize
+        cvEngine = CrossValidations.returnInstance(key, self, **value)
+        break
+    if cvEngine is None:
+      self.raiseAnError(IOError, "No cross validation engine is provided!")
+    outputDict = {}
+    for trainIndex, testIndex in cvEngine.generateTrainTestIndices():
       trainDict, testDict = self.__generateTrainTestInputs(inputDict, trainIndex, testIndex)
-      cvEstimator = copy.deepcopy(self.CVEstimator)
       ## Train the rom
       cvEstimator.train(trainDict)
       ## evaluate the rom
@@ -267,14 +291,31 @@ class CrossValidation(PostProcessor):
         for metricInstance in self.metricsDict.values():
           metricValue = metricInstance.distance(targetValue, testDict[targetName])
           if hasattr(metricInstance, 'metricType'):
+            if metricInstance.metricType not in self.validMetrics:
+              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType, " can not be used, the accepted metric types are: ", str(self.validMetrics))
             metricName = metricInstance.metricType
           else:
             metricName = metricInstance.type
+          metricName = metricInstance.name + '_' + metricName
           if metricName not in outputDict[targetName].keys():
             outputDict[targetName][metricName] = []
           outputDict[targetName][metricName].append(metricValue[0])
-
-    return outputDict
+    scoreDict = {}
+    if not self.cvScores:
+      return outputDict
+    else:
+      for targetName, metricInfo in outputDict.items():
+        scoreDict[targetName] = {}
+        for metricName, metricValues in metricInfo.items():
+          scoreDict[targetName][metricName] = {}
+          for cvScore in self.cvScores:
+            if cvScore == 'maximum':
+              scoreDict[targetName][metricName][cvScore] = np.amax(np.atleast_1d(metricValues))
+            elif cvScore == 'median':
+              scoreDict[targetName][metricName][cvScore] = np.median(np.atleast_1d(metricValues))
+            elif cvScore == 'average':
+              scoreDict[targetName][metricName][cvScore] = np.mean(np.atleast_1d(metricValues))
+      return scoreDict
 
   def collectOutput(self,finishedJob, output):
     """
@@ -324,17 +365,19 @@ class CrossValidation(PostProcessor):
       pivotVal = outputDictionary.keys()[ts]
       for nodeName, nodeValues in outputDict.items():
         for metricName, metricValues in nodeValues.items():
-          cvRuns = ['cv-' + str(i) for i in range(len(metricValues))]
-          valueDict = dict(zip(cvRuns, metricValues))
-          outputInstance.addVector(nodeName, metricName, valueDict, pivotVal = pivotVal)
-
+          if self.cvScores:
+            outputInstance.addVector(nodeName, metricName, metricValues, pivotVal = pivotVal)
+          else:
+            cvRuns = ['cv-' + str(i) for i in range(len(metricValues))]
+            valueDict = dict(zip(cvRuns, metricValues))
+            outputInstance.addVector(nodeName, metricName, valueDict, pivotVal = pivotVal)
     outputInstance.writeFile()
 
   def _writeText(self,output,outputDictionary, separator=' '):
     """
       Defines the method for writing the post-processor to a .csv file
       @ In, output, File object, file to write to
-      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ In, outputDictionary, dict, dictionary stores metrics' results of outputs
       @ In, separator, string, optional, separator string
       @ Out, None
     """
@@ -348,15 +391,27 @@ class CrossValidation(PostProcessor):
         output.write('Pivot value', separator, str(outputDictionary.keys()[ts]), os.linesep)
       nodeNames, nodeValues = outputDict.keys(), outputDict.values()
       metricNames = nodeValues[0].keys()
-      output.write('CV-Run-Number')
-      for nodeName in nodeNames:
-        for metricName in metricNames:
-          output.write(separator + nodeName + '-' + metricName)
-      output.write(os.linesep)
-      for cvRunNum in range(len(nodeValues[0].values()[0])):
-        output.write(str(cvRunNum))
-        for valueDict in nodeValues:
+      if not self.cvScores:
+        output.write('CV-Run-Number')
+        for nodeName in nodeNames:
           for metricName in metricNames:
-            output.write(separator+str(valueDict[metricName][cvRunNum]))
+            output.write(separator + nodeName + '-' + metricName)
         output.write(os.linesep)
-
+        for cvRunNum in range(len(nodeValues[0].values()[0])):
+          output.write(str(cvRunNum))
+          for valueDict in nodeValues:
+            for metricName in metricNames:
+              output.write(separator+str(valueDict[metricName][cvRunNum]))
+          output.write(os.linesep)
+      else:
+        output.write('ScoreMetric')
+        for nodeName in nodeNames:
+          for metricName in metricNames:
+            output.write(separator + nodeName + '-' + metricName)
+        output.write(os.linesep)
+        for score in self.cvScores:
+          output.write(score)
+          for valueDict in nodeValues:
+            for metricName in metricNames:
+              output.write(separator+str(valueDict[metricName][score]))
+          output.write(os.linesep)
