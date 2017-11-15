@@ -1,0 +1,52 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='debug'>
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resample
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./testClassifier" name="foo" subType="">
+      <variables>X,Y,Z</variables>
+    </ExternalModel>
+    <ROM name="modelUnderTest" subType="KerasMLPClassifier">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <hidden_layer_sizes>15, 8</hidden_layer_sizes>
+      <hidden_layer_activations>relu, tanh</hidden_layer_activations>
+      <output_layer_activation>sigmoid</output_layer_activation>
+      <loss>mean_squared_error</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>4</batch_size>
+      <epochs>4</epochs>
+      <dropout>0, 0</dropout>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+
+    </ROM>
+  </Models>
+
+  <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
+  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+      <filename>outMLPClassifier</filename>
+    </Print>
+  </OutStreams>
+
+  <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
+</Simulation>

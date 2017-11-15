@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>25</limit>
+        <initialSeed>888</initialSeed>
+      </samplerInit>
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+      </variable>
+    </MonteCarlo>
+    <Grid name="gridSampler">
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+        <grid construction="equal" steps="1" type="value">2 3</grid>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+        <grid construction="equal" steps="1" type="value">-1000 1000</grid>
+      </variable>
+    </Grid>
+  </Samplers>

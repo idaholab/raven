@@ -196,6 +196,31 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("optimized", InputData.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("dmdType", InputData.StringType))
 
+    # for deep learning neural network
+    #inputSpecification.addSub(InputData.parameterInputFactory("DNN", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType)) # list of integer
+    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_activations", InputData.StringType))  #list of strings
+    inputSpecification.addSub(InputData.parameterInputFactory("output_layer_activation", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("metrics", InputData.StringType)) #list of metrics
+    inputSpecification.addSub(InputData.parameterInputFactory("batch_size", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("epochs", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("dropout", InputData.FloatType))
+
+    OptimizerSettingInput = InputData.parameterInputFactory('optimizerSetting', contentType=InputData.StringType)
+    Beta1Input = InputData.parameterInputFactory('beta_1', contentType=InputData.FloatType)
+    Beta2Input = InputData.parameterInputFactory('beta_2', contentType=InputData.FloatType)
+    DecayInput = InputData.parameterInputFactory('decay', contentType=InputData.FloatType)
+    LRInput = InputData.parameterInputFactory('lr', contentType=InputData.FloatType)
+    OptimizerInput = InputData.parameterInputFactory('optimizer', contentType=InputData.StringType)
+    EpsilonInput = InputData.parameterInputFactory('epsilon', contentType=InputData.FloatType)
+    OptimizerSettingInput.addSub(Beta1Input)
+    OptimizerSettingInput.addSub(Beta2Input)
+    OptimizerSettingInput.addSub(DecayInput)
+    OptimizerSettingInput.addSub(LRInput)
+    OptimizerSettingInput.addSub(OptimizerInput)
+    OptimizerSettingInput.addSub(EpsilonInput)
+    inputSpecification.addSub(OptimizerSettingInput)
+
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
     EstimatorInput = InputData.parameterInputFactory('estimator', contentType=InputData.StringType, baseNode=inputSpecification)
@@ -258,7 +283,7 @@ class ROM(Dummy):
           self.initializationOptionDict[child.getName()]={}
         self.initializationOptionDict[child.getName()][child.value]=child.parameterValues
       else:
-        if child.getName() == 'estimator':
+        if child.getName() in ['estimator', 'optimizerSetting']:
           self.initializationOptionDict[child.getName()] = {}
           for node in child.subparts:
             self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
