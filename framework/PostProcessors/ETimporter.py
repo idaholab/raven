@@ -30,6 +30,7 @@ import xml.etree.ElementTree as ET
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import InputData
+from utils import xmlUtils as xmlU
 import Files
 import Runners
 #Internal Modules End-----------------------------------------------------------
@@ -108,68 +109,173 @@ class ETimporter(PostProcessor):
       @ In,  input, object, object containing the data to process. (inputToInternal output)
       @ Out, None
     """
-    fileToOpen = input[0].getPath() + input[0].getFilename()
-    root = ET.parse(fileToOpen)
-    eventTree = root.findall('initial-state')
 
-    if len(eventTree) > 1:
-      self.raiseAnError(IOError,'ETimporter: more than one initial-state identified')
+    ### Check for link to other ET
+    standAloneET   = []
+    dependendentET = []
 
-    eventTree = eventTree[0]
+    '''
+    for ET in input:
+        for node in root.findall('define-sequence'):
+            if node.find('event-tree') is not None:
+                dependendentET.append(ET)
+            else:
+                standAloneET.append(ET)
 
-    ## These outcomes will be encoded as integers starting at 0
-    outcomes = []
+    while len(standAloneET)!= len(input):
+        for ET in standAloneET:
+   '''
+    linkedTree = False
+    for files in input:
+        outcome = self.checkLinkedTree(input[0].getPath() + input[0].getFilename())
+        linkedTree = linkedTree or outcome
 
-    ## These self.variables will be mapped into an array where there index
-    self.variables = []
-    values = {}
+    if linkedTree==True and len(input)>1:
+        #link trees
+        pass
 
-    for node in root.findall('define-functional-event'):
-      event = node.get('name')
+    if linkedTree==False and len(input)>1:
+        self.raiseAnError(IOError, 'Multiple ET files have provided but they are not linked')
 
-      ## First, map the variable to an index by placing it in a list
-      self.variables.append(event)
+    if linkedTree==True and len(input)==1:
+        self.raiseAnError(IOError, 'A single ET files has provided but it contains a link to an additional ET')
 
-      ## Also, initialize the dictionary of values for this variable so we can
-      ## encode them as integers as well
-      values[event] = []
+    if linkedTree == False and len(input)==1:
+        return self.analyzeSingleET(input[0])
 
-      ## Iterate through the forks that use this event and gather all of the
-      ## possible states
-      for fork in self.findAllRecursive(eventTree, 'fork'):
-        if fork.get('functional-event') == event:
-          for path in fork.findall('path'):
-            state = path.get('state')
-            if state not in values[event]:
-              values[event].append(state)
-    ## Iterate through the sequences and gather all of the possible outcomes
-    ## so we can numerically encode them latter
-    for node in root.findall('define-sequence'):
-      outcome = node.get('name')
-      if outcome not in outcomes:
-        outcomes.append(outcome)
 
-    self.raiseADebug("ETimporter variables identified: " + str(format(self.variables)))
+  def analyzeSingleET(self,file):
+      eventTree, root = self.checkSubBranches(file.getPath() + file.getFilename())
 
-    d = len(self.variables)
-    n = len(self.findAllRecursive(eventTree, 'sequence'))
+      ## These outcomes will be encoded as integers starting at 0
+      outcomes = []
 
-    self.pointSet = -1 * np.ones((n, d + 1))
+      ## These self.variables will be mapped into an array where there index
+      self.variables = []
+      values = {}
 
-    rowCounter = 0
-    for node in eventTree:
-      newRows = self.constructPointDFS(node, self.variables, values, outcomes, self.pointSet, rowCounter)
-      rowCounter += newRows
+      for node in root.findall('define-functional-event'):
+          event = node.get('name')
 
-    outputDict = {}
-    outputDict['inputs']  = {}
-    outputDict['outputs'] = {}
+          ## First, map the variable to an index by placing it in a list
+          self.variables.append(event)
 
-    for index,var in enumerate(self.variables):
-      outputDict['inputs'][var] = self.pointSet[:,index]
+          ## Also, initialize the dictionary of values for this variable so we can
+          ## encode them as integers as well
+          values[event] = []
 
-    outputDict['outputs']['sequence'] = self.pointSet[:,-1]
-    return outputDict
+          ## Iterate through the forks that use this event and gather all of the
+          ## possible states
+          for fork in self.findAllRecursive(eventTree, 'fork'):
+              if fork.get('functional-event') == event:
+                  for path in fork.findall('path'):
+                      state = path.get('state')
+                      if state not in values[event]:
+                          values[event].append(state)
+
+      ## Iterate through the sequences and gather all of the possible outcomes
+      ## so we can numerically encode them latter
+      for node in root.findall('define-sequence'):
+          outcome = node.get('name')
+          if outcome not in outcomes:
+              outcomes.append(outcome)
+      map = self.returnMap(outcomes, file.name)
+
+      self.raiseADebug("ETimporter variables identified: " + str(format(self.variables)))
+
+      d = len(self.variables)
+      n = len(self.findAllRecursive(eventTree, 'sequence'))
+
+      self.pointSet = -1 * np.ones((n, d + 1))
+      rowCounter = 0
+      for node in eventTree:
+          newRows = self.constructPointDFS(node, self.variables, values, map, self.pointSet, rowCounter)
+          rowCounter += newRows
+
+      outputDict = {}
+      outputDict['inputs'] = {}
+      outputDict['outputs'] = {}
+
+      for index, var in enumerate(self.variables):
+          outputDict['inputs'][var] = self.pointSet[:, index]
+
+      outputDict['outputs']['sequence'] = self.pointSet[:, -1]
+
+      return outputDict
+
+
+  def checkLinkedTree(self,file):
+      root = ET.parse(file)
+      outcome = False
+      for node in root.findall('define-sequence'):
+          childs = [elem.tag for elem in node.iter() if elem is not node]
+          if 'event-tree' in childs:
+              outcome = outcome or True
+      return outcome
+
+  def checkSubBranches(self,file):
+      root = ET.parse(file)
+
+      eventTree = root.findall('initial-state')
+
+      if len(eventTree) > 1:
+          self.raiseAnError(IOError, 'ETimporter: more than one initial-state identified')
+
+      eventTree = eventTree[0]
+
+      ### Check for sub-branches
+      subBranches = {}
+      for node in root.findall('define-branch'):
+          subBranches[node.get('name')] = node.find('fork')
+          self.raiseADebug("ETimporter branch identified: " + str(node.get('name')))
+      if len(subBranches) > 0:
+          for node in root.findall('.//'):
+              if node.tag == 'path':
+                  for subNode in node.findall('branch'):
+                      linkName = subNode.get('name')
+                      if linkName in subBranches.keys():
+                          node.append(subBranches[linkName])
+                      else:
+                          self.raiseAnError(RuntimeError, ' ETimporter: branch ' + str(
+                              linkName) + ' linked in the ET is not defined; available branches are: ' + str(
+                              subBranches.keys()))
+
+      Root = root.getroot()
+      for child in Root:
+          if child.tag == 'branch':
+              root.remove(child)
+
+      return eventTree,root
+
+  def returnMap(self,outcomes,name):
+      # check if outputMap contains string ID for  at least one sequence
+      # if outputMap contains all numbers then keep the number ID
+      allFloat = True
+      for seq in outcomes:
+          try:
+              float(seq)
+          except ValueError:
+              allFloat = False
+              break
+      map = {}
+      if allFloat == False:
+          # create an integer map, and
+          # create an integer map file
+          root = ET.Element('map')
+          root.set('Tree', name)
+          for seq in outcomes:
+              map[seq] = outcomes.index(seq)
+              # map.append(outcomes.index(seq))
+              ET.SubElement(root, "sequence", ID=str(outcomes.index(seq))).text = str(seq)
+          fileID = name + '_mapping.xml'
+          updatedTreeMap = ET.ElementTree(root)
+          xmlU.prettify(updatedTreeMap)
+          updatedTreeMap.write(fileID)
+      else:
+          for seq in outcomes:
+              map[seq] = float(seq)
+              #map.append(float(seq))
+      return map
 
   def collectOutput(self,finishedJob, output):
     """
@@ -232,10 +338,13 @@ class ETimporter(PostProcessor):
       @ In, rowCounter, int, the row we are currently editing in X
       @ Out, offset, int, the number of rows of X this call has populated
     """
+
+    # Construct point
     if node.tag == 'sequence':
       col = X.shape[1]-1
       outcome = node.get('name')
-      val = outputMap.index(outcome)
+
+      val = outputMap[outcome]
 
       X[rowCounter, col] = val
       rowCounter += 1
@@ -264,3 +373,9 @@ class ETimporter(PostProcessor):
               rowCounter = newCounter
 
     return rowCounter
+
+
+
+
+
+

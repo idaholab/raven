@@ -10,7 +10,7 @@
         <fork functional-event="ACC">
             <path state="0">
                 <fork functional-event="LPI">
-                    <path state="success">
+                    <path state="0">
                         <fork functional-event="LPR">
                             <path state="0">
                                 <sequence name="0"/>
@@ -25,7 +25,7 @@
                     </path>
                 </fork>
             </path>
-            <path state="failure">
+            <path state="+1">
                 <sequence name="3"/>
             </path>
         </fork>

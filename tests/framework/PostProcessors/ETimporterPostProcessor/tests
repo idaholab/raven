@@ -1,8 +1,20 @@
 [Tests]
   [./ET_importer_OpenPSA]
-    type = 'RavenFramework'
-    input = 'test_ETimporter.xml'
+    type   = 'RavenFramework'
+    input  = 'test_ETimporter.xml'
     csv    = 'ETimporter/PrintPS.csv'
     output = 'ETimporter/PrintPS.xml'
+  [../]
+  [./ET_importer_OpenPSA_Symbolic]
+    type   = 'RavenFramework'
+    input  = 'test_ETimporterSymbolic.xml'
+    csv    = 'ETimporterSymbolicSequence/PrintPS.csv'
+    output = 'ETimporterSymbolicSequence/PrintPS.xml ETimporterSymbolicSequence/eventTreeTest_mapping.xml'
+  [../]
+  [./ET_importer_OpenPSA_Define_Branch]
+    type   = 'RavenFramework'
+    input  = 'test_ETimporter_DefineBranch.xml'
+    csv    = 'ETimporterSymbolicSequence/PrintPS.csv'
+    output = 'ETimporterDefineBranch/PrintPS.xml ETimporterDefineBranch/eventTreeTest_mapping.xml'
   [../]
 []

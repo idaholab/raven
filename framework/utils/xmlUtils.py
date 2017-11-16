@@ -143,6 +143,7 @@ def newTree(name,attrib={}):
   tree.getroot().attrib = dict(attrib)
   return tree
 
+
 def findPath(root,path):
   """
     Navigates path to find a particular element
