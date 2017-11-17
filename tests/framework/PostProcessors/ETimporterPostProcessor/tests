@@ -9,12 +9,18 @@
     type   = 'RavenFramework'
     input  = 'test_ETimporterSymbolic.xml'
     csv    = 'ETimporterSymbolicSequence/PrintPS.csv'
-    output = 'ETimporterSymbolicSequence/PrintPS.xml ETimporterSymbolicSequence/eventTreeTest_mapping.xml'
+    output = 'ETimporterSymbolicSequence/PrintPS.xml ETimporterSymbolicSequence/eventTreeMandd_mapping.xml'
   [../]
   [./ET_importer_OpenPSA_Define_Branch]
     type   = 'RavenFramework'
     input  = 'test_ETimporter_DefineBranch.xml'
     csv    = 'ETimporterSymbolicSequence/PrintPS.csv'
-    output = 'ETimporterDefineBranch/PrintPS.xml ETimporterDefineBranch/eventTreeTest_mapping.xml'
+    output = 'ETimporterDefineBranch/PrintPS.xml ETimporterDefineBranch/eventTreeMandd_mapping.xml'
+  [../]
+  [./ET_importer_OpenPSA_coupledET]
+    type   = 'RavenFramework'
+    input  = 'test_ETimporterMultipleET.xml'
+    csv    = 'ETimporterCoupledET/PrintPS.csv'
+    output = 'ETimporterCoupledET/PrintPS.xml ETimporterCoupledET/eventTreeMain_mapping.xml'
   [../]
 []

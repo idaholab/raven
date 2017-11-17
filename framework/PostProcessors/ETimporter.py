@@ -25,6 +25,7 @@ warnings.simplefilter('default', DeprecationWarning)
 #External Modules---------------------------------------------------------------
 import numpy as np
 import xml.etree.ElementTree as ET
+import copy
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -111,41 +112,107 @@ class ETimporter(PostProcessor):
     """
 
     ### Check for link to other ET
-    standAloneET   = []
-    dependendentET = []
+    self.links        = []
+    sizes=(len(input),len(input))
+    self.ConnectivityMatrix = np.zeros(sizes)
+    self.listETs=[]
+    self.listRoots=[]
 
-    '''
-    for ET in input:
-        for node in root.findall('define-sequence'):
-            if node.find('event-tree') is not None:
-                dependendentET.append(ET)
-            else:
-                standAloneET.append(ET)
+    for file in input:
+        EventTree = ET.parse(file.getPath() + file.getFilename())
+        self.listETs.append(EventTree.getroot().get('name'))
+        self.listRoots.append(EventTree.getroot())
+    self.createLinkList()
 
-    while len(standAloneET)!= len(input):
-        for ET in standAloneET:
-   '''
-    linkedTree = False
-    for files in input:
-        outcome = self.checkLinkedTree(input[0].getPath() + input[0].getFilename())
-        linkedTree = linkedTree or outcome
+    if len(input)>0:
+        self.checkETstructure()
 
-    if linkedTree==True and len(input)>1:
-        #link trees
-        pass
+    print(self.ConnectivityMatrix)
+    print('ETs   : ' + str(self.listETs))
+    print('roots : ' + str(self.listRoots))
+    print('links : ' + str(self.links))
 
-    if linkedTree==False and len(input)>1:
+    if len(self.links)>=1 and len(input)>1:
+        finalAssembledTree =  self.analyzeMultipleET(input)
+        return self.analyzeSingleET(finalAssembledTree)
+
+    if len(self.links)==0 and len(input)>1:
         self.raiseAnError(IOError, 'Multiple ET files have provided but they are not linked')
 
-    if linkedTree==True and len(input)==1:
+    if len(self.links)>1 and len(input)==1:
         self.raiseAnError(IOError, 'A single ET files has provided but it contains a link to an additional ET')
 
-    if linkedTree == False and len(input)==1:
-        return self.analyzeSingleET(input[0])
+    if len(self.links)==0 and len(input)==1:
+        EventTree = ET.parse(input[0].getPath() + input[0].getFilename())
+        return self.analyzeSingleET(EventTree.getroot())
+
+  def createLinkList(self):
+      self.links = []
+      for root in self.listRoots:
+          links, seqID = self.checkLinkedTree(root)
+          if len(links) > 0:
+              for idx, val in enumerate(links):
+                  dep = {}
+                  dep['link_seqID'] = copy.deepcopy(seqID[idx])
+                  dep['ET_slave_ID'] = copy.deepcopy(val)
+                  dep['ET_master_ID'] = copy.deepcopy(root.get('name'))
+                  self.links.append(dep)
 
 
-  def analyzeSingleET(self,file):
-      eventTree, root = self.checkSubBranches(file.getPath() + file.getFilename())
+  def checkETstructure(self):
+      for link in self.links:
+          row = self.listETs.index(link['ET_master_ID'])
+          col = self.listETs.index(link['ET_slave_ID'])
+          self.ConnectivityMatrix[row,col]=1.0
+
+      zeroRows    = np.where(~self.ConnectivityMatrix.any(axis=1))[0]
+      zeroColumns = np.where(~self.ConnectivityMatrix.any(axis=0))[0]
+
+      if len(zeroColumns)>1:
+          self.raiseAnError(IOError, 'Multiple root ET')
+      if len(zeroColumns)==0:
+          self.raiseAnError(IOError, 'No root ET')
+      if len(zeroColumns)==1:
+          self.rootET_ID = self.listETs[zeroColumns]
+          self.raiseADebug("ETimporter Root ET: " + str(self.rootET_ID))
+
+      leafs = []
+      for index in np.nditer(zeroRows):
+          leafs.append(self.listETs[index])
+      self.raiseADebug("ETimporter leaf ETs: " + str(leafs))
+
+
+  def analyzeMultipleET(self,input):
+      # 1. for all ET check checkSubBranches
+      ETset = []
+      for file in input:
+          EventTree = ET.parse(file.getPath() + file.getFilename())
+          root = self.checkSubBranches(EventTree.getroot())
+          ETset.append(root)
+
+      # 2. loop on the dependencies until it is empty
+      while len(self.links)>0:
+          for link in self.links:
+              indexMaster = self.listETs.index(link['ET_master_ID'])
+              indexSlave  = self.listETs.index(link['ET_slave_ID'])
+              mergedTree = self.mergeLinkedTrees(self.listRoots[indexMaster],self.listRoots[indexSlave],link['link_seqID'])
+
+              #self.links.remove(link)
+
+              self.listETs.pop(indexMaster)
+              self.listRoots.pop(indexMaster)
+
+              self.listETs.append(link['ET_master_ID'])
+              self.listRoots.append(mergedTree)
+
+              self.createLinkList()
+
+      indexRootET = self.listETs.index(self.rootET_ID)
+      return self.listRoots[indexRootET]
+
+
+  def analyzeSingleET(self,Root):
+      root = self.checkSubBranches(Root)
 
       ## These outcomes will be encoded as integers starting at 0
       outcomes = []
@@ -166,7 +233,7 @@ class ETimporter(PostProcessor):
 
           ## Iterate through the forks that use this event and gather all of the
           ## possible states
-          for fork in self.findAllRecursive(eventTree, 'fork'):
+          for fork in self.findAllRecursive(root.find('initial-state'), 'fork'):
               if fork.get('functional-event') == event:
                   for path in fork.findall('path'):
                       state = path.get('state')
@@ -179,16 +246,16 @@ class ETimporter(PostProcessor):
           outcome = node.get('name')
           if outcome not in outcomes:
               outcomes.append(outcome)
-      map = self.returnMap(outcomes, file.name)
+      map = self.returnMap(outcomes, root.get('name'))
 
       self.raiseADebug("ETimporter variables identified: " + str(format(self.variables)))
 
       d = len(self.variables)
-      n = len(self.findAllRecursive(eventTree, 'sequence'))
+      n = len(self.findAllRecursive(root.find('initial-state'), 'sequence'))
 
       self.pointSet = -1 * np.ones((n, d + 1))
       rowCounter = 0
-      for node in eventTree:
+      for node in root.find('initial-state'):
           newRows = self.constructPointDFS(node, self.variables, values, map, self.pointSet, rowCounter)
           rowCounter += newRows
 
@@ -204,18 +271,41 @@ class ETimporter(PostProcessor):
       return outputDict
 
 
-  def checkLinkedTree(self,file):
-      root = ET.parse(file)
-      outcome = False
+  def checkLinkedTree(self,root):
+      dependencies = []
+      seqID        = []
+
       for node in root.findall('define-sequence'):
-          childs = [elem.tag for elem in node.iter() if elem is not node]
-          if 'event-tree' in childs:
-              outcome = outcome or True
-      return outcome
+          for child in node.getiterator():
+              if 'event-tree' in child.tag:
+                  dependencies.append(child.get('name'))
+                  seqID.append(node.get('name'))
+      return dependencies, seqID
 
-  def checkSubBranches(self,file):
-      root = ET.parse(file)
 
+  def mergeLinkedTrees(self,rootMaster,rootSlave,location):
+      # 1. copy define-functional-event block
+      for node in rootSlave.findall('define-functional-event'):
+          rootMaster.append(node)
+      # 2. copy define-sequence block
+      for node in rootSlave.findall('define-sequence'):
+          rootMaster.append(node)
+      # 3. remove the <define-sequence> that points at the "location"
+      for node in rootMaster.findall('define-sequence'):
+          if node.get('name') == location:
+              rootMaster.remove(node)
+      # 4. copy slave ET into master ET
+      for node in rootMaster.findall('.//'):
+          if node.tag == 'path':
+              for subNode in node.findall('sequence'):
+                  linkName = subNode.get('name')
+                  if linkName == location:
+                      node.append(rootSlave.find('initial-state').find('fork'))
+                      node.remove(subNode)
+      return copy.deepcopy(rootMaster)
+
+
+  def checkSubBranches(self,root):
       eventTree = root.findall('initial-state')
 
       if len(eventTree) > 1:
@@ -240,12 +330,12 @@ class ETimporter(PostProcessor):
                               linkName) + ' linked in the ET is not defined; available branches are: ' + str(
                               subBranches.keys()))
 
-      Root = root.getroot()
-      for child in Root:
+      for child in root:
           if child.tag == 'branch':
               root.remove(child)
 
-      return eventTree,root
+      return root
+
 
   def returnMap(self,outcomes,name):
       # check if outputMap contains string ID for  at least one sequence
@@ -276,6 +366,7 @@ class ETimporter(PostProcessor):
               map[seq] = float(seq)
               #map.append(float(seq))
       return map
+
 
   def collectOutput(self,finishedJob, output):
     """
