@@ -32,10 +32,10 @@
   
   <Metrics>
     <SKL name="euclidean">
-      <metricType>euclidean</metricType>
+      <metricType>paired_distance|euclidean</metricType>
     </SKL>
     <SKL name="euclidean2">
-      <metricType>euclidean</metricType>
+      <metricType>paired_distance|euclidean</metricType>
     </SKL>
   </Metrics>
 

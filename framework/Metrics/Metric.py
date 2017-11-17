@@ -14,7 +14,7 @@
 """
 Created on Jul 18 2016
 
-@author: mandd
+@author: mandd, wangc
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -45,10 +45,11 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     BaseType.__init__(self)
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
-    self.acceptsProbability = False #If True the metric needs to be able to handle (value,probability) where value and probability are lists
+    self.acceptsProbability  = False #If True the metric needs to be able to handle (value,probability) where value and probability are lists
     self.acceptsDistribution = False #If True the metric needs to be able to handle a passed in Distribution
+    self._dynamicHandling    = False #If True the metric needs to be able to handle dynamic data
 
-  def initialize(self,inputDict):
+  def initialize(self, inputDict):
     """
       This method initialize each metric object
       @ In, inputDict, dict, dictionary containing initialization parameters
@@ -56,7 +57,7 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     pass
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Method that reads the portion of the xml input that belongs to this specialized class
       and initialize internal parameters
@@ -65,13 +66,35 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     self._localReadMoreXML(xmlNode)
 
+  def evaluate(self, x, y, weights = None, **kwargs):
+    """
+      This method compute the metric between x and y
+      @ In, x, numpy.array, array containing data of x
+      @ In, y, numpy.array, array containing data of y
+      @ In, weights, None or numpy.array, an array of weights associated with x
+      @ In, kwargs, dictionary of parameters characteristic of each metric
+      @ Out, value, float or numpy.array, metric results between x and y
+    """
+    value = self.__evaluateLocal__(x, y, weights=weights, **kwargs)
 
-  def distance(self,x,y,**kwargs):
+    return value
+
+  def isDynamic(self):
     """
-      This method actually calculates the distance between two dataObjects x and y
-      @ In, x, dict, dictionary containing data of x
-      @ In, y, dict, dictionary containing data of y
-      @ In, kwargs, dictionary of parameters characteristic of each metric (e.g., weights)
-      @ Out, value, float, distance between x and y
+      This method is utility function that tells if the metric is able to
+      treat dynamic data on its own or not
+      @ In, None
+      @ Out, isDynamic, bool, True if the metric is able to treat dynamic data, False otherwise
     """
-    pass
+    return self._dynamicHandling
+
+  @abc.abstractmethod
+  def __evaluateLocal__(self, x, y, weights = None, **kwargs):
+    """
+      This method compute the metric between x and y
+      @ In, x, numpy.array, array containing data of x
+      @ In, y, numpy.array, array containing data of y
+      @ In, weights, None or numpy.array, an array of weights associated with x
+      @ In, kwargs, dictionary of parameters characteristic of each metric
+      @ Out, value, float or numpy.array, metric results between x and y
+    """

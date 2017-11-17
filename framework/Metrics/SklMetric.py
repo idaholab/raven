@@ -26,35 +26,54 @@ warnings.simplefilter('default',DeprecationWarning)
 import numpy as np
 import ast
 from utils import utils
+import sklearn
 import sklearn.metrics.pairwise as pairwise
 from sklearn.metrics import explained_variance_score
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
-from sklearn.metrics import median_absolute_error
+#from sklearn.metrics import median_absolute_error
 from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_log_error
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
 #Internal Modules End--------------------------------------------------------------------------------
 
-scores = {'explained_variance_score':explained_variance_score,
-          'mean_absolute_error':mean_absolute_error,
-          'r2_score':r2_score,
-          'mean_squared_error':mean_squared_error,
-          'median_absolute_error':median_absolute_error}
 
 class SKL(Metric):
   """
-    Scikit-learn metrics which can be employed only for PointSets
+    Scikit-learn metrics
   """
-  def initialize(self,inputDict):
+
+  availMetrics ={}
+  # regression metrics
+  availMetrics['regression'] = {}
+  availMetrics['regression']['explained_variance_score'] = explained_variance_score
+  availMetrics['regression']['mean_absolute_error'] = mean_absolute_error
+  availMetrics['regression']['r2_score'] = r2_score
+  availMetrics['regression']['mean_squared_error'] = mean_squared_error
+  availMetrics['regression']['mean_squared_log_error'] = mean_squared_log_error
+  #availMetrics['regression']['median_absolute_error'] = mean_absolute_error # disabled because this metric only accept 1D array, and not weights associated
+  # paired distance metrics, no weights
+  if int(sklearn.__version__.split(".")[1]) > 17:
+    availMetrics['paired_distance'] = {}
+    availMetrics['paired_distance']['euclidean'] = pairwise.paired_euclidean_distances
+    availMetrics['paired_distance']['manhattan'] = pairwise.paired_manhattan_distances
+    availMetrics['paired_distance']['cosine'] = pairwise.paired_cosine_distances
+  # TODO: add more metrics here
+  # metric from scipy.spatial.distance, for example mahalanobis, minkowski
+
+  def __init__(self):
     """
-      This method initializes the metric object
-      @ In, inputDict, dict, dictionary containing initialization parameters
-      @ Out, none
+      Constructor
+      @ In, None
+      @ Out, NOne
     """
+    Metric.__init__(self)
     self.metricType = None
+    self._dynamicHandling = True
+    self.acceptsProbability = True
 
   def _localReadMoreXML(self,xmlNode):
     """
@@ -66,13 +85,17 @@ class SKL(Metric):
     self.distParams = {}
     for child in xmlNode:
       if child.tag == 'metricType':
-        self.metricType = child.text
+        self.metricType = list(elem.strip() for elem in child.text.split('|'))
+        if len(self.metricType) != 2:
+          self.raiseAnError(IOError, "Metric type: '", child.tag, "' is not correct, please check the user manual for the correct metric type!")
       else:
         self.distParams[str(child.tag)] = utils.tryParse(child.text)
-    availableMetrics = pairwise.kernel_metrics().keys() + pairwise.distance_metrics().keys() + scores.keys()
-    if self.metricType not in availableMetrics:
-      metricList = ', '.join(availableMetrics[:-1]) + ', or ' + availableMetrics[-1]
-      self.raiseAnError(IOError,'Metric SKL error: metricType ' + str(self.metricType) + ' is not available. Available metrics are: ' + metricList + '.')
+
+    if self.metricType[0] not in self.__class__.availMetrics.keys() or self.metricType[1] not in self.__class__.availMetrics[self.metricType[0]].keys():
+      self.raiseAnError(IOError, "Metric '", self.name, "' with metricType '", self.metricType[0], "|", self.metricType[1], "' is not valid!")
+
+    if self.metricType[0] == 'paired_distance' and int(sklearn.__version__.split(".")[1]) < 18:
+      self.raiseAnError(IOError, "paired_distance is not supported in your SciKit-Learn version, if you want to use this metric, please make sure your SciKit-Learn version >= 18!")
 
     for key, value in self.distParams.items():
       try:
@@ -83,53 +106,34 @@ class SKL(Metric):
       except:
         self.distParams[key] = value
 
-  def distance(self, x, y=None, **kwargs):
+  def __evaluateLocal__(self, x, y, weights = None, **kwargs):
     """
-      This method returns the distance between two points x and y. If y is not provided then x is a pointSet and a distance matrix is returned
+      This method compute difference between two points x and y based on given metric
       @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided, the array will be reshaped via x.reshape(1,-1)
       @ In, y, numpy.ndarray, array containing data of y, if 1D array is provided, the array will be reshaped via y.reshape(1,-1)
-      @ Out, value, numpy.ndarray, distance between x and y (if y is provided) or a square distance matrix if y is None
+      @ In, weights, None or array_like (numpy.array or list), weights associated with input
+      @ Out, value, numpy.ndarray, metric result
     """
-    if y is not None:
-      if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
-        if len(x.shape) == 1 and self.metricType not in scores.keys():
-          x = x.reshape(1,-1)
-          #self.raiseAWarning(self, "1D array is provided. For consistence, this array is reshaped via x.reshape(1,-1) ")
-        if len(y.shape) == 1 and self.metricType not in scores.keys():
-          y = y.reshape(1,-1)
-          #self.raiseAWarning(self, "1D array is provided. For consistence, this array is reshaped via y.reshape(1,-1) ")
-        dictTemp = utils.mergeDictionaries(kwargs,self.distParams)
-        try:
-          if self.metricType in pairwise.kernel_metrics().keys():
-            value = pairwise.pairwise_kernels(X=x, Y=y, metric=self.metricType, **dictTemp)
-          elif self.metricType in pairwise.distance_metrics():
-            value = pairwise.pairwise_distances(X=x, Y=y, metric=self.metricType, **dictTemp)
-          elif self.metricType in scores.keys():
-            value = np.zeros((1,1))
-            value[:,:] = scores[self.metricType](x,y,**dictTemp)
-        except TypeError as e:
-          self.raiseAWarning('There are some unexpected keyword arguments found in Metric with type "', self.metricType, '"!')
-          self.raiseAnError(TypeError,'Input parameters error:\n', str(e), '\n')
-        if value.shape == (1,1):
-          return value[0]
-        else:
-          return value
-      else:
-        self.raiseAnError(IOError,'Metric SKL error: SKL metrics support only PointSets and not HistorySets')
-    else:
-      if self.metricType == 'mahalanobis':
-        covMAtrix = np.cov(x.T)
-        kwargs['VI'] = np.linalg.inv(covMAtrix)
+    if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
+      assert(x.shape == y.shape, "Input data x, y should have the same shape")
+      if weights is not None and self.metricType[0] == 'regression' and 'sample_weight' not in self.distParams.keys():
+        self.distParams['sample_weight'] = weights
+      if self.metricType[0] == 'regression':
+        self.distParams['multioutput'] = 'raw_values'
       dictTemp = utils.mergeDictionaries(kwargs,self.distParams)
+      if self.metricType[0] == 'paired_distance':
+        if len(x.shape) == 1:
+          x = x.reshape(-1,1)
+          y = y.reshape(-1,1)
+        else:
+          x = x.T
+          y = y.T
       try:
-        if self.metricType in pairwise.kernel_metrics().keys():
-          value = pairwise.pairwise_kernels(X=x, metric=self.metricType, **dictTemp)
-        elif self.metricType in pairwise.distance_metrics().keys():
-          value = pairwise.pairwise_distances(X=x, metric=self.metricType, **dictTemp)
+        value = self.__class__.availMetrics[self.metricType[0]][self.metricType[1]](x, y, **dictTemp)
       except TypeError as e:
-        self.raiseAWarning('There are some unexpected keyword arguments found in Metric with type "', self.metricType, '"!')
+        self.raiseAWarning('There are some unexpected keyword arguments found in Metric with type "', self.metricType[1], '"!')
         self.raiseAnError(TypeError,'Input parameters error:\n', str(e), '\n')
-      if value.shape == (1,1):
-        return value[0]
-      else:
-        return value
+    else:
+      self.raiseAnError(IOError,'Input data type is not correct!')
+
+    return value

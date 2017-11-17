@@ -32,10 +32,12 @@ import copy
 from .PostProcessor import PostProcessor
 from utils import utils
 from utils import InputData
+from utils.cached_ndarray import c1darray
 import Files
 import Metrics
 import Runners
 import Distributions
+import MetricDistributor
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Metric(PostProcessor):
@@ -97,17 +99,17 @@ class Metric(PostProcessor):
       inputOrOutput = [inputOrOutput.lower()]
     else:
       dataName = None
-      inputOrOutput = ['input','output']
+      inputOrOutput = ['inputs','outputs']
     for currentInput in currentInputs:
       inputType = None
       if hasattr(currentInput, 'type'):
         inputType = currentInput.type
 
+      if dataName is not None and dataName != currentInput.name:
+        #The dataname is not a match
+        continue
 
-      if inputType == 'PointSet':
-        if dataName is not None and dataName != currentInput.name:
-          #The dataname is not a match
-          continue
+      if inputType in ['PointSet', 'HistorySet']:
         dataSet = currentInput.asDataset()
         metadata = currentInput.getMeta(pointwise=True)
         for ioType in inputOrOutput:
@@ -115,13 +117,19 @@ class Metric(PostProcessor):
             if metricData is not None:
               self.raiseAnError(IOError, "Same feature or target variable " + metricDataName + "is found in multiple input objects")
             #Found the data, now put it in the return value.
-            metricData = (copy.copy(dataSet[metricDataName].values), metadata['ProbabilityWeight'].values)
+            requestData = copy.copy(dataSet[metricDataName].values)
+            if len(requestData.shape) == 1:
+              requestData = requestData.reshape(-1,1)
+            # If requested data are from input space, the shape will be (nSamples, 1)
+            # If requested data are from history output space, the shape will be (nSamples, nTimeSteps)
+            metricData = (requestData, metadata['ProbabilityWeight'].values)
       elif isinstance(currentInput, Distributions.Distribution):
         if currentInput.name == metricDataName and dataName is None:
           if metricData is not None:
             self.raiseAnError(IOError, "Same feature or target variable " + metricDataName + "is found in multiple input objects")
           #Found the distribution, now put it in the return value
           metricData = currentInput
+
     if metricData is None:
       self.raiseAnError(IOError, "Feature or target variable " + origMetricDataName + "is not found")
     return metricData
@@ -133,9 +141,6 @@ class Metric(PostProcessor):
       @ In, currentInputs, list or DataObject, data object or a list of data objects
       @ Out, measureList, list of (feature, target), the list of the features and targets to measure the distance between
     """
-    if type(currentInputs) == dict and 'features' in currentInputs.keys():
-      return currentInputs
-
     if type(currentInputs) != list:
       currentInputs = [currentInputs]
 
@@ -154,22 +159,18 @@ class Metric(PostProcessor):
       elif inputType == 'PointSet':
         pass #Allowed type
       elif inputType == 'HistorySet':
-        self.dynamic = True
-        self.raiseAnError(IOError, "Metric can not process HistorySet, because this capability is not implemented yet")
+        pass
       else:
         self.raiseAnError(IOError, "Metric cannot process "+inputType+ " of type "+str(type(currentInput)))
 
     measureList = []
 
-    if not self.dynamic:
-      for cnt in range(len(self.features)):
-        feature = self.features[cnt]
-        target = self.targets[cnt]
-        featureData =  self.__getMetricSide(feature, currentInputs)
-        targetData = self.__getMetricSide(target, currentInputs)
-        measureList.append((featureData, targetData))
-    else:
-      self.raiseAnError(IOError, "Dynamic not implemented yet")
+    for cnt in range(len(self.features)):
+      feature = self.features[cnt]
+      target = self.targets[cnt]
+      featureData =  self.__getMetricSide(feature, currentInputs)
+      targetData = self.__getMetricSide(target, currentInputs)
+      measureList.append((featureData, targetData))
 
     return measureList
 
@@ -230,7 +231,87 @@ class Metric(PostProcessor):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier, "failed!")
     outputDict = evaluation[1]
+    # FIXME store the data in DataObjects
     output.addRealization(outputDict)
+
+    if isinstance(output, Files.File):
+      availExtens = ['xml', 'csv']
+      outputExtension = output.getExt().lower()
+      if outputExtension not in availExtens:
+        self.raiseAMessage('Metric postprocessor did not recognize extension ".', str(outputExtension), '". The output will be dumped to a text file')
+      output.setPath(self._workingDir)
+      self.raiseADebug('Write Metric prostprocessor output in file with name: ', output.getAbsFile())
+      output.open('w')
+      if outputExtension == 'xml':
+        self._writeXML(output, outputDict)
+      else:
+        separator = ' ' if outputExtension != 'csv' else ','
+        self._writeText(output, outputDict, separator)
+    else:
+      self.raiseAnError(IOError, 'Output type ', str(output.type), ' can not be used for postprocessor', self.name)
+
+  def _writeXML(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    if output.isOpen():
+      output.close()
+    if self.dynamic:
+      outputInstance = Files.returnInstance('DynamicXMLOutput', self)
+    else:
+      outputInstance = Files.returnInstance('StaticXMLOutput', self)
+    outputInstance.initialize(output.getFilename(), self.messageHandler, path=output.getPath())
+    outputInstance.newTree('MetricPostProcessor', pivotParam=self.pivotParameter)
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for ts, outputDict in enumerate(outputResults):
+      pivotVal = outputDictionary.keys()[ts]
+      for nodeName, nodeValues in outputDict.items():
+        for metricName, value in nodeValues.items():
+          if type(value) == float:
+            outputInstance.addScalar(nodeName, metricName, value, pivotVal=pivotVal)
+          elif type(value) in [list, np.ndarray]:
+            if len(list(value)) == 1:
+              outputInstance.addScalar(nodeName, metricName, value[0], pivotVal=pivotVal)
+            else:
+              self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
+          elif type(value) == dict:
+            ## FIXME: The following are used to accept timedependent data, and should be checked later.
+            outputInstance.addVector(nodeName, metricName, value, pivotVal=pivotVal)
+          else:
+            self.raiseAnError(IOError, "Unrecognized type of input value '", type(value), "'")
+    outputInstance.writeFile()
+
+  def _writeText(self, output, outputDictionary, separator=' '):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores metric outputs
+      @ In, separator, string, optional, separator string
+      @ Out, None
+    """
+    if self.dynamic:
+      output.write('Dynamic Metric', separator, 'Pivot Parameter', separator, self.pivotParameter, separator, os.linesep)
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for ts, outputDict in enumerate(outputResults):
+      if self.dynamic:
+        output.write('Pivot value', separator, str(outputDictionary.keys()[ts]), os.linesep)
+      for nodeName, nodeValues in outputDict.items():
+        output.write('Metrics' + separator)
+        output.write(nodeName + os.linesep)
+        for metricName, value in nodeValues.items():
+          output.write(metricName+separator)
+          if type(value) == float:
+            output.write(str(value) + os.linesep)
+          elif type(value) in [list, np.ndarray]:
+            if len(list(value)) == 1:
+              output.write(str(value[0]) + os.linesep)
+            else:
+              self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
+          else:
+            self.raiseAnError(IOError, "Unrecognized type of input value '", type(value), "'")
 
   def run(self, inputIn):
     """
@@ -240,25 +321,18 @@ class Metric(PostProcessor):
     """
     measureList = self.inputToInternal(inputIn)
     outputDict = {}
+    assert len(self.features) == len(measureList)
+    for cnt in range(len(self.features)):
+      nodeName = (str(self.features[cnt]) + '-' + str(self.targets[cnt])).replace("|","_")
+      for metricInstance in self.metricsDict.values():
+        if hasattr(metricInstance, 'metricType'):
+          metricName = "_".join(metricInstance.metricType)
+        else:
+          metricName = metricInstance.type
+        metricName = metricInstance.name + '_' + metricName
+        varName = metricName + '|' + nodeName
+        metricEngine = MetricDistributor.returnInstance('MetricDistributor',metricInstance,self)
+        output = metricEngine.evaluate(measureList[cnt], weights=None, multiOutput='mean')
+        outputDict[varName] = np.atleast_1d(output)
 
-    if not self.dynamic:
-      assert len(self.features) == len(measureList)
-      for cnt in range(len(self.targets)):
-        nodeName = (str(self.targets[cnt]) + '_' + str(self.features[cnt])).replace("|","-")
-        for metricInstance in self.metricsDict.values():
-          inData = list(measureList[cnt])
-          metricCanHandleData = True
-          varName = metricInstance.name + '_' + nodeName
-          for i in range(len(inData)):
-            if not metricInstance.acceptsProbability and type(inData[i]) == tuple:
-              #Strip off the probability data if it can't be used
-              inData[i] = inData[i][0]
-            elif not metricInstance.acceptsDistribution and isinstance(inData[i], Distributions.Distribution):
-              metricCanHandleData = False
-              self.raiseAWarning('Cannot handle '+ varName +' because it contains a distribution')
-          if metricCanHandleData:
-            output = metricInstance.distance(inData[0], inData[1])
-            outputDict[varName] = np.atleast_1d(output)
-    else:
-      self.raiseAnError(IOError, "Not implemented yet")
     return outputDict
