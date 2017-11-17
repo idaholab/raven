@@ -1,0 +1,84 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>SumOfExponential_test</name>
+    <author>alfoa</author>
+    <created>2017-11-17</created>
+    <description>
+      This input tests an example of external developed plugin. In this case
+      it is just a plugin that computes a sum of exponentials:
+       \begin{math}
+        Xi(t)=\sum_{i=1}^{n} coef_i*e^{var_i*t}
+       \end{math}
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>simpleTest</WorkingDir>
+    <Sequence>MCrun,printTOfile</Sequence>
+  </RunInfo>
+
+
+  <Models>
+    <ExternalModel name="sum_exp" subType="SumOfExponential">
+      <variables> Xi, monotonicVariable, a, b, c</variables>
+      <!-- xml portion for this plugin only -->
+      <coefficient varName="a">1.1</coefficient>
+      <coefficient varName="b">-1.1</coefficient>
+      <coefficient varName="b">-1.1</coefficient>
+      <startMonotonicVariableValue>0.0</startMonotonicVariableValue>
+      <endMonotonicVariableValue>1e6</endMonotonicVariableValue>
+      <numberCalculationPoints>100000</numberCalculationPoints>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="one">
+        <lowerBound>0.0</lowerBound>
+        <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="test_MC">
+      <samplerInit>
+        <limit>2</limit>
+      </samplerInit>
+      <constant name="a">0.0001</constant>
+      <constant name="b">-0.5</constant>
+      <variable name="c">
+          <distribution>one</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="sumOfExponentialInput">
+      <Input>a,b,c</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="sumOfExponentialOutput">
+      <Input>a,b,c</Input>
+      <Output>Xi,monotonicVariable</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Steps>
+    <MultiRun name="MCrun">
+      <Input          class="DataObjects"   type="PointSet">sumOfExponentialInput</Input>
+      <Model          class="Models"        type="ExternalModel">sum_exp</Model>
+      <Sampler        class="Samplers"      type="MonteCarlo">test_MC</Sampler>
+      <Output         class="DataObjects"   type="PointSet">sumOfExponentialOutput</Output>
+    </MultiRun>
+    <IOStep name="printTOfile">
+     <Input          class="DataObjects"   type="PointSet">sumOfExponentialOutput</Input>
+     <Output         class="OutStreams"    type="Print">dumpSumOfExpOutput</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="dumpSumOfExpOutput">
+      <type>csv</type>
+      <source>sumOfExponentialOutput</source>
+    </Print>
+  </OutStreams>
+</Simulation>

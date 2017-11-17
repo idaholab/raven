@@ -1,0 +1,200 @@
+\section{CashFlow for RAVEN}
+A generalized module (called CashFlow) for economic analysisi within RAVEN has been developed \cite{MSApril2017}. The module is able to compute 
+the NPV (Net Present Value), the IRR (Internal Rate of Return) and the PI (Profitability Index). Furthermore, it is possible to 
+do an NPV, IRR or PI search, i.e. CashFlow will compute a multiplicative value (for example the production cost) so that the 
+NPV, IRR or PI has a desired value (for details see \ref{subsec:NPV_search}, NPV\_search). This CashFlow module has been written using the script language Python. 
+The Python code can be used as an “external model” in RAVEN (for installation and usage instructions, see \ref{sec:Installation}).
+
+The input of CashFlow is an XML file. An example of the input structure is given in Listing \ref{lst:InputExample}. The following section will discuss the
+ different keywords in the input and describe how they are used in the CashFlow module.
+
+\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=Economics input example., label=lst:InputExample]
+<Economics verbosity='0'>
+    <Global>
+        <Indicator name='IRR,NPV_search,NPV' target='0'>
+            Cfname1
+            Cfname2
+            ...
+        </Indicator>
+        <WACC>0.08</WACC>
+        <tax>0.392</tax>
+        <inflation>0.04</inflation>
+    </Global>
+
+    <Component name='Component1'>
+        <Life_time>20</Life_time>
+        <CashFlow name='Cfname1' driver='Cfdriver1' tax='false' inflation='none' multiply='multiplier1' mult_target='false'>
+            <alpha> -4000000000
+                0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+                0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</alpha>
+            <reference>1000000000</reference>
+            <X>1.0</X>
+        </CashFlow>
+
+        <CashFlow name='Cfname2' driver='Cfdriver2' tax='false' inflation='none' multiply='multiplier2' mult_target='true'>
+            ...
+        </CashFlow>
+        ...
+    </Component>
+
+    <Component name='Component2'>
+        ...
+    </Component>
+    ...
+</Economics>
+\end{lstlisting}
+
+As one can see, all the specifications of the CashFlow module are given in the \xmlNode{Economics} block. The block accepts an attribute called \xmlAttr{verbosity}, 
+which can range from 0 to 100, 0 meaning maximum debug verbosity and 100 meaning errors only. Setting the verbosity to 50 will output (in addition to errors) the NPV, IRR, PI or NPV\_mult. Inside the \xmlNode{Economics} block, there are two types of blocks: \xmlNode{Global} and \xmlNode{Component}.
+
+\subsection{\xmlNode{Global}}
+Exactly one \xmlNode{Global} block has to be provided. The \xmlNode{Global} block does not have any attributes. The following sub-blocks can be given in the \xmlNode{Global} block:
+
+\begin{enumerate}
+\item[\xmlNode{Indicator}] List of cash flows considered in the computation of the economic indicator. See later for the definition
+ of the cash flows. Only cash flows listed here are considered, additional cash flows defined, but not listed are ignored. 
+\xmlNode{Indicator} can have two attributes:
+  \begin{enumerate}
+  \item[\xmlAttr{name}] The names of the economic indicators that should be computed. So far, \textbf{'NPV'}, \textbf{'NPV\_search'}, \textbf{'IRR'} and \textbf{'PI'} are supported. More than one indicator can be asked for. 
+The \xmlAttr{name} attribute can contain a comma-separated list as shown in the example in Listing \ref{lst:InputExample}.
+
+\textbf{NPV}: computes the NPV according to Eq. \ref{eq:NPV}.
+\begin{equation}\label{eq:NPV}
+NPV=\sum_{y=0}^{N}\frac{CF_{y}}{(1+WACC)^{y}}
+\end{equation}
+
+The sum runs over the years $y=0$ to $N$. The net cash flows $CF_{y}$ are the sum of all cash flows defined in the indicator block (see later for how to define these cash flows). 
+$N$ is the least common multiple (LCM) of all component life times involved. This guarantees that the NPV is computed for a time span so that all components reach their end of life in the same year. 
+The individual component cash flows are repeated until the LCM is reached. For example, lets assume the calculation involves two components \textit{Component1} and \textit{Component2}
+ with life times of 60 years and 40 years respectively. $N$ will be 120 years where 2 successive \textit{Component1} and 3 successive \textit{Component2} will be build. For every ‘building year’, 
+the cash flow for the last year (of the old component) and the year zero (for the newly built component) will be summed. Table \ref{tbl:cashflows} shows an example for illustration.
+The variable sent back to RAVEN, i.e. what needs to be added to the output data object is 'NPV'.
+
+\begin{table}[]
+\centering
+\caption{Example cash flows for NPV calculation.}
+\label{tbl:cashflows}
+\begin{tabular}{ll|l|l|l|l|l|ll}
+\cline{3-4} \cline{6-7}
+                           &  & \multicolumn{2}{l|}{Compo 1}                                                                                                   &  & \multicolumn{2}{l|}{Compo 2}                                                                                                     &                       &                                                                                                       \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{Year} &  & \begin{tabular}[c]{@{}l@{}}Comp. \\ lifetime\end{tabular} & \begin{tabular}[c]{@{}l@{}}Cash Flow\\ (year)\end{tabular}         &  & \begin{tabular}[c]{@{}l@{}}Compo. \\ Lifetime\end{tabular} & \begin{tabular}[c]{@{}l@{}}  Cash Flow \\ (year) \end{tabular}      & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Total Net Cash flow \\ ($CF_{y}$)         \end{tabular}}   \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{0}    &  & 0                                                         & $CF^{comp1}_{0}$                                                          &  & 0                                                          & $CF^{comp2}_{0}$                                                           & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{$CF^{comp1}_{0} + CF^{comp2}_{0}$ }                                     \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{1}    &  & 1                                                         & $CF^{comp1}_{1}$                                                          &  & 1                                                          & $CF^{comp2}_{1}$                                                           & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{$CF^{comp1}_{1} + CF^{comp2}_{1}$ }                                     \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{…}    &  &                                                           &                                                                    &  &                                                            &                                                                     & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{}                                                                                 \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{39}   &  & 39                                                        & $CF^{comp1}_{39}$                                                         &  & 39                                                         & $CF^{comp2}_{39}$                                                          & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{$CF^{comp1}_{39} + CF^{comp2}_{39}$ }                                   \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{40}   &  & 40                                                        & $CF^{comp1}_{40}$                                                         &  & 40 and 0                                                   & \begin{tabular}[c]{@{}l@{}}$CF^{comp2}_{40}$  \\ $+ CF^{comp2}_{0}$ \end{tabular} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}$CF^{comp1}_{40} + CF^{comp2}_{40}$ \\  $+ CF^{comp2}_{0}$ \end{tabular}} \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{41}   &  & 41                                                        & $CF^{comp1}_{41}$                                                         &  & 1                                                          & $CF^{comp2}_{1}$                                                           & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{$CF^{comp1}_{41} + CF^{comp2}_{1}$ }                                  \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{…}    &  &                                                           &                                                                    &  &                                                            &                                                                     & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{}                                                                                 \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{59}   &  & 59                                                        & $CF^{comp1}_{59}$                                                         &  & 19                                                         & $CF^{comp2}_{19}$                                                          & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{$CF^{comp1}_{59} + CF^{comp2}_{19}$ }                                 \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{60}   &  & 60 and 0                                                  & \begin{tabular}[c]{@{}l@{}}$CF^{comp1}_{60}$ \\ $+ CF^{comp1}_{0}$ \end{tabular} &  & 20                                                         & $CF^{comp2}_{20}$                                                          & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}$CF^{comp1}_{60} + CF^{comp1}_{0}$ \\ $+ CF^{comp2}_{20}$ \end{tabular}} \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{61}   &  & 1                                                         & $CF^{comp1}_{1}$                                                          &  & 21                                                         & $CF^{comp2}_{21}$                                                          & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{$CF^{comp1}_{1} + CF^{comp2}_{21}$ }                                                          \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{…}    &  &                                                           &                                                                    &  &                                                            &                                                                     & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{}                                                                                 \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{79}   &  & 19                                                        & $CF^{comp1}_{19}$                                                         &  & 39                                                         & $CF^{comp2}_{39}$                                                          & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{$CF^{comp1}_{19} + CF^{comp2}_{39}$ }                                                         \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{80}   &  & 20                                                        & $CF^{comp1}_{20}$                                                         &  & 40 and 0                                                   & \begin{tabular}[c]{@{}l@{}}$CF^{comp2}_{40}$ \\  $+ CF^{comp2}_{0}$ \end{tabular} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}$CF^{comp1}_{20} + CF^{comp2}_{40}$ \\ $+ CF^{comp2}_{0}$ \end{tabular}}  \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{81}   &  & 21                                                        & $CF^{comp1}_{21}$                                                         &  & 1                                                          & $CF^{comp2}_{1}$                                                           & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{$CF^{comp1}_{21} + CF^{comp2}_{1}$ }                                                          \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{…}    &  &                                                           &                                                                    &  &                                                            &                                                                     & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{}                                                                                 \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{119}  &  & 59                                                        & $CF^{comp1}_{59}$                                                         &  & 39                                                         & $CF^{comp2}_{39}$                                                          & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{$CF^{comp1}_{59} + CF^{comp2}_{39}$ }                                                         \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\multicolumn{1}{|l|}{120}  &  & 60                                                        & $CF^{comp1}_{60}$                                                         &  & 40                                                         & $CF^{comp2}_{40}$                                                          & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{$CF^{comp1}_{60} + CF^{comp2}_{40}$}                                                         \\ \cline{1-1} \cline{3-4} \cline{6-7} \cline{9-9} 
+\end{tabular}
+\end{table}
+
+\textbf{PI}: computes the PI according to Eq. \ref{eq:PI}. 
+\begin{equation}\label{eq:PI}
+PI=\frac{NPV}{Initial\_investment}
+\end{equation}
+where the NPV is calculated as explained above and the $Initial\_investment$ is the Total Net Cash flow at year zero, i.e. $CF_{0}$ in the example above.
+The variable sent back to RAVEN, i.e. what needs to be added to the output data object is 'PI'.
+
+\textbf{IRR}: computes the IRR according to Eq. \ref{eq:IRR}.
+\begin{equation}\label{eq:IRR}
+0=\sum_{y=0}^{N}\frac{CF_{y}}{(1+IRR)^{y}}
+\end{equation}
+Same as for the NPV, the sum runs over the years $y=0$ to $N$. The net cash flows $CF_{y}$ are the sum of all cash flows defined in the indicator block 
+(see explanation of NPV above for details). $N$ is the least common multiple (LCM) of all component life times involved.
+The variable sent back to RAVEN, i.e. what needs to be added to the output data object is 'IRR'.
+
+\textbf{NPV\_search}: The NPV search finds a multiplier '$x$' that multiplies some of the cash flows, so that the NPV has a desired value (defined by the \xmlAttr{target} attribute). The equation solved is shown in Eq. \ref{eq:NPV_search}.
+\label{subsec:NPV_search}
+\begin{equation}\label{eq:NPV_search}
+'target'=\sum_{y=0}^{N}\frac{CF^{dep\_on\_x}_{y}}{(1+WACC)^{y}}x + \sum_{y=0}^{N}\frac{CF^{not\_dep\_on\_x}_{y}}{(1+WACC)^{y}}  
+\end{equation}
+
+The cash flows that multiply ‘$x$’ have to have the \xmlAttr{mult\_target} attribute equal \textbf{'true'} (see later in cash flow definition). This functionality can be used for
+ example to find a commodity price so that the NPV is zero. In this case, the \xmlAttr{target} will be set to \textbf{'0'} and all cash flows that depend (linearly) on the price will take
+ \xmlAttr{mult\_target}$=$\textbf{'true'}, i.e. for example the revenue, while cash flows that do not depend on the price will have \xmlAttr{mult\_target}$=$\textbf{'false'}, i.e. for example the capital cost.
+The variable sent back to RAVEN, i.e. what needs to be added to the output data object is 'NPV\_mult'.
+
+\textbf{Note on IRR and PI search}: It should be noted that although the only search keyword allowed in \xmlAttr{name} is \textbf{NPV\_search}, it is possible to perform IRR and PI searches as well.
+
+  \begin{itemize}
+  \item To do an IRR search, the WACC is set to the desired IRR and a NPV search with the target of ‘0’ is performed.
+  \item To perform a PI search, an NPV search can be performed where the target PI is multiplied with the initial investment.
+  \end{itemize}
+
+
+  \item[\xmlAttr{Target}] Target value for the NPV search, i.e. \textbf{'0'} will look for ‘$x$’ so that $NPV(x) = 0$.
+
+  \end{enumerate}
+
+\item[\xmlNode{WACC}] The WACC discount rate used to compute the NPV and PI. Not used for the computation of the IRR (although it must be input).
+\item[\xmlNode{tax}] The tax rate used to compute the taxes. See later in the definition of the cash flows for more details how the tax rate is used.
+\item[\xmlNode{inflation}] The inflation rate used to compute the inflation. See later in the definition of the cash flows for more details how the inflation rate is used.
+
+\end{enumerate}
+
+
+\subsection{\xmlNode{Component}}
+
+The user can define as many \xmlNode{Component} blocks as needed. A component is typically a part of the system that has the same lifetime and the same cash flows, 
+i.e. for example a gas turbine, a battery or a nuclear plant. Each component needs to have a \xmlAttr{name} attribute that is unique. Each \xmlNode{Component} has to have
+ one \xmlNode{Life\_time} block and as many \xmlNode{CashFlow} blocks as needed.
+
+\begin{enumerate}
+\item[\xmlNode{Life\_time}] The lifetime of the component in years. This is used to compute the least common multiple (LCM) of all components involved in the
+ computation of the economics indicator. For more details see NPV, IRR and PI explanations above.
+
+\item[\xmlNode{CashFlow}] The user can define any number of 'cash flows' for a component. Each cash flow is of the form given in Eq. \ref{eq:CF} where $y$ is the
+ year from 0 (capital investment) to the end of the \xmlNode{Life\_time} of the component.
+\begin{equation}\label{eq:CF}
+CF_{y}=mult\cdot\alpha_{y}\left ( \frac{driver_{y}}{ref} \right )^{X}
+\end{equation}
+
+  \begin{enumerate}
+  \item[\xmlAttr{name}] The name of the Cash flow. Has to be unique across all components. This is the name that can be listed in the \xmlNode{Indicator} node of the \xmlNode{Global} block.
+  \item[\xmlAttr{driver}] The $driver$ in Eq. \ref{eq:CF} of the cash flow. This can be any variable passed in from RAVEN or the name of another cash flow. If it is passed in from RAVEN, it has to be a scalar;
+ so all $driver_{y}$ in Eq. \ref{eq:CF}  are the same for all years of the project life (this limitation will be lifted in future versions of the CashFlow module). If the driver is another
+ cash flow, the project \xmlNode{Life\_time} of the component to which the driving cash flow belongs has to be the same than the project \xmlNode{Life\_time} of the component to which this
+ cash flow belongs. No loops of cash flows are allowed. The code will error out if there are loops of cash flows, i.e. A is the driver of B and B the driver of A.
+  \item[\xmlAttr{tax}] Can be \textbf{true} or \textbf{false}. If it is \textbf{true}, the cash flow is multiplied by $(1-tax)$, where tax is the tax rate given in \xmlNode{tax} in the \xmlNode{Global}
+ block. As an example, the cash flow of \textit{comp2} for year 119 in Listing \ref{lst:InputExample} would become $CF^{comp2}_{39}(1-tax)$.  If a cash flow with \xmlAttr{tax}$=$\textbf{true} is the driver of another cash flow, the cash flow without the tax is used as driver for the new cash flow. 
+The limitation of having a global tax rate will be lifted in future version of the CashFlow module. It is planned to have the possibility to input different tax rates for each component, since they might be in different tax regions.
+  \item[\xmlAttr{inflation}] Can be \textbf{real, nominal} or \textbf{none}. If it is \textbf{real}, the cash flow is multiplied by $(1+inflation)^{-y}$. If it is \textbf{nominal}, the cash flow is multiplied by $(1+inflation)^y$. 
+In both cases, inflation is given by \xmlNode{inflation} in the \xmlNode{Global} block. Furthermore, $y$ goes from year 0 (capital investment) to the LCM of all component lifetimes.
+This means that the cash flows as expressed in Listing \ref{lst:InputExample} are multiplied with the infloation seen from today, i.e. the cash flow for \textit{comp2} for year 119 assuming it includes \textbf{real}
+inflation would be $CF^{comp2}_{39}(1+inflation)^{-119}$
+ If a cash flow with \xmlAttr{inflation} equal \textbf{real} or \textbf{nominal} is the driver of another cash flow, the cash flow without the inflation is used as driver for the new cash flow.
+  \item[\xmlAttr{multiply}] This is an optional attribute. This can be the name of any scalar variable passed in from RAVEN. This number is $mult$ in Eq. \ref{eq:CF} that multiplies the cash flow.
+  \item[\xmlAttr{mult\_target}] Can be \textbf{true} or \textbf{false}. If \textbf{true}, it means that this cash flow multiplies the search variable '$x$' as explained in the NPV\_search option above.
+ If the NPV\_search option is used, al least one cash flow has to have \xmlAttr{mult\_target}$=$\textbf{true}.
+  \item[\xmlNode{alpha}] $\alpha_{y}$ multiplier of the cash flow (see Eq. \ref{eq:CF}). Exactly \xmlNode{Life\_time}$ + 1$ values are expected. One for $y=0$ to $y=$\xmlNode{Life\_time}.
+  \item[\xmlNode{reference}] The $ref$ value of the cash flow (see Eq. \ref{eq:CF}).
+  \item[\xmlNode{X}] The $X$ exponent (economy of scale factor) of the cash flow (see Eq. \ref{eq:CF}).
+
+  \end{enumerate}
+\end{enumerate}
+
+An example of a cash flow is shown in Listing \ref{lst:CashFlowExample}. In the example, a cash flow called CAPEX is defined. In the example, the capital expenditure for a reference plant of capacity
+ 1'000'000'000 W is \$4 billion. The driver of this cash flow is the actual plant capacity in Watts. Building this plat has some economy of scale, so that a plant double the size does cost 
+less than double the money ($X=0.64$). The example assums an overnight building cost of the reactor, i.e. $\alpha$ is zero for all years of the lifetime of the reactor except year zero, which is the construction year.
+
+\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=CashFlow input example., label=lst:CashFlowExample]
+<CashFlow name='CAPEX' driver='Plant_capacity' tax='false' inflation='none'>
+    <alpha> -4000000000
+        0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+        0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</alpha>
+    <reference>1000000000</reference>
+    <X>0.64</X>
+</CashFlow>
+\end{lstlisting}
+
+
