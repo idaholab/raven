@@ -49,11 +49,11 @@
     <PostProcessor name="readStats" subType="RavenOutput">
       <dynamic/>
       <File ID="0" name="output_basicStatistics_timedep_PP1.xml">
-        <output name="mean">x | expectedValue </output>
-        <output name="median"> x | median </output>
-        <output name="percentile_5"> x | percentile_5 </output>
-        <output name="percentile_95"> x | percentile_95 </output>
-        <output name="sigma"> x | sigma </output>
+        <output name="mean">x / expectedValue </output>
+        <output name="median"> x / median </output>
+        <output name="percentile_5"> x / percentile_5 </output>
+        <output name="percentile_95"> x / percentile_95 </output>
+        <output name="sigma"> x / sigma </output>
       </File>
     </PostProcessor>
   </Models>

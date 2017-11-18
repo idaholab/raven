@@ -21,6 +21,19 @@
 }
 
 
+\newcommand{\assemblerAttrDescription}[1]
+{
+    This XML node needs to contain the attributes:
+    \begin{itemize}
+      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
+        ``class'' of the #1.
+        %
+      \item \xmlAttr{type},  \xmlDesc{required string attribute}, the sub-type of the #1.
+        %
+    \end{itemize}
+}
+
+
 \newcommand{\aliasSystemDescription}[1]
 {
   \xmlNode{alias} \xmlDesc{string, optional field} specifies alias for
@@ -1345,7 +1358,7 @@ It is important to notice that when the EnsembleModel detects a chain of models 
         \xmlNode{varName} contains the value of the initial conditions (scalar or arrays, depending of the 
         type of variable). If an array needs to be inputted, the user can specify the attribute  \xmlAttr{repeat} 
         and the code is going to repeat for  \xmlAttr{repeat}-times the value inputted in the body.
-     \item \xmlNode{initialStartModels}, xmlDesc{XML node, only required parameter when Picard's iteration is activated},
+     \item \xmlNode{initialStartModels}, \xmlDesc{XML node, only required parameter when Picard's iteration is activated},
         specifies the list of models that will be initially executed. \nb Do not input this node for non-Picard calculations,
         otherwise an error will be raised.
   \end{itemize}
@@ -1432,3 +1445,245 @@ It is important to notice that when the EnsembleModel detects a chain of models 
   ...
 </Simulation>
 \end{lstlisting}
+
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%  HybridModel  Model   %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+
+\subsection{HybridModel}
+\label{subsec:models_HybridModel}
+The \textbf{HybridModel} is a new \textit{Model} entity. This new Model is able to combine reduced order model
+(ROMs) and any other high-fidelity Model (i.e. Code, ExternalModel). The ROMs will be trained based on the results
+from the high-fidelity model. The accuracy of the ROMs will be evaluated based on the cross validation scores,
+and the validity of the ROMs will be determined via some local validation metrics (\nb currently only one metric
+is available, i.e. CrowdingDistance). After these ROMs are trained, the \textbf{HybridModel} can decide which of
+the Model (i.e the ROMs or high-fidelity model) to be executed based on the accuracy and validity of the ROMs.
+
+Currently this model is only able to share information (i.e. data) using \textbf{PointSet}.
+
+The specifications of a HybridModel must be defined within the XML block
+\xmlNode{HybridModel}.
+%
+This XML node needs to contain the attributes:
+
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
+  of this HybridModel.
+  %
+  \nb As with the other objects, this is the name that can be used to refer to
+  this specific entity from other input blocks in the XML.
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, must be kept
+  empty.
+  %
+\end{itemize}
+\vspace{-5mm}
+
+Within the \xmlNode{HybridModel} XML node, the multiple entities that constitute
+this HybridModel needs to be inputted. 
+
+\begin{itemize}
+  \item \xmlNode{Model}, \xmlDesc{XML node, required parameter}.
+  %
+  The text portion of this node needs to contain the name of the Model
+  %
+  \assemblerAttrDescription{Model}
+  %
+  \item \xmlNode{ROM}, \xmlDesc{XML node, required parameter}.
+  %
+  The text portion of this node needs to contain the name of the ROM
+  The user can specify as many \xmlNode{ROM} as required by the \xmlNode{Model}.
+  \nb The outputs of each ROM should be different, and the total set of ROMs' outputs
+  should be the same as the set of \textit{Model's} outputs.
+  %
+  \assemblerAttrDescription{Model}
+  %
+  \item \xmlNode{CV}, \xmlDesc{XML node, required parameter}.
+  %
+    The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with \xmlAttr{subType}
+    ``CrossValidation``.
+  %
+    \assemblerAttrDescription{Model}
+  % 
+  \item \xmlNode{TargetEvaluation}, \xmlDesc{XML node, required parameter}.
+  %
+    The text portion of this node needs to contain the name of a data object defined in the \xmlNode{DataObjects} block.
+    \nb currently only accept data object with type ``PointSet``. The \xmlNode{TargetEvaluation} is primary used for
+    training ROMs. \nb The linked DataObject should be placed as additional output of the Step where the
+    \textbf{HybridModel} is used.
+  %
+    \assemblerAttrDescription{DataObjects}
+  %
+\end{itemize}
+
+An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs to be specified:
+\begin{itemize}
+  \item \xmlNode{settings}, \xmlDesc{XML node, optional parameter}.
+  %
+  The body of this sub-node  contains the following XML sub-nodes:
+  %
+  \begin{itemize}
+     \item \xmlNode{minInitialTrainSize}, \xmlDesc{integer, optional field}, the minimum initial number of high-fidelity
+       model runs before starting train the ROMs.
+       \default{10};
+     \item \xmlNode{tolerance}, \xmlDesc{float, optional field}, ROMs convergence criterion indicates the displacement
+       from the optimum results of cross validation. In other words, small tolerance indicates tight convergence criterion
+       of the ROMs, while large tolerance indicates loose convergence criterion of the ROMs.
+       \nb Currently, this tolerance can be only used for cross validations with SKL Metrics: \textit{explained\_variance\_score},
+       \textit{r2\_score}, \textit{median\_absolute\_error}, \textit{mean\_squared\_error} and \textit{mean\_absolute\_error}.
+       \default{0.01};
+     \item \xmlNode{maxTrainSize}, \xmlDesc{XML node, optional field}, the maximum size of training set of ROMs.
+       \default{1.0E6}
+  \end{itemize}
+  \item \xmlNode{validationMethod}, \xmlDesc{XML node, optional parameter}.
+  %
+  The validity methods that are used to determine which model to run (i.e. ROMs or high-fidelity Model).
+  This XML node needs to contain the attributes:
+  %
+  \begin{itemize}
+    \itemsep0em
+    \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
+      of this \xmlNode{validationMethod}.
+      \nb Currently, only one method is available, ie. ``CrowdingDistance``.
+  \end{itemize}
+  %
+  The body of this sub-node  contains the following XML sub-nodes:
+  %
+  \begin{itemize}
+     \item \xmlNode{threshold}, \xmlDesc{XML node, required field}, the threshold that is used for ``CrowdingDistance`` method.
+  \end{itemize}
+\end{itemize}
+
+
+\textbf{Example (ExternalModel):}
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
+<Simulation>
+  ...
+  <Metrics>
+    <SKL name="m1">
+      <metricType>mean_absolute_error</metricType>
+    </SKL>
+  </Metrics>
+
+  <Models>
+    <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
+      <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
+    </ExternalModel>
+    <ROM name="knr" subType="SciKitLearn">
+      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+      <Features>leftTemperature, rightTemperature</Features>
+      <Target>k</Target>
+      <n_neighbors>5</n_neighbors>
+      <weights>uniform</weights>
+      <algorithm>auto</algorithm>
+      <leaf_size>30</leaf_size>
+      <metric>minkowski</metric>
+      <p>2</p>
+    </ROM>
+    <PostProcessor name="pp1" subType="CrossValidation">
+        <SciKitLearn>
+            <SKLtype>KFold</SKLtype>
+            <n_splits>10</n_splits>
+            <shuffle>False</shuffle>
+            <random_state>None</random_state>
+        </SciKitLearn>
+        <Metric class="Metrics" type="SKL">m1</Metric>
+    </PostProcessor>
+    <HybridModel name="hybrid" subType="">
+        <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>
+        <ROM class="Models" type="ROM">knr</ROM>
+        <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
+        <CV class="Models" type="PostProcessor">pp1</CV>
+        <settings>
+            <tolerance>0.01</tolerance>
+            <trainStep>1</trainStep>
+            <maxTrainSize>1000</maxTrainSize>
+            <initialTrainSize>10</initialTrainSize>
+        </settings>
+        <validationMethod name="CrowdingDistance">
+            <threshold>0.2</threshold>
+        </validationMethod>
+    </HybridModel>
+  </Models>
+  ...
+</Simulation>
+
+\end{lstlisting}
+
+\textbf{Example (Code):}
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,repeat,name,class,type}]
+<Simulation>
+  ...
+  <Metrics>
+    <SKL name="m1">
+      <metricType>mean_absolute_error</metricType>
+    </SKL>
+  </Metrics>
+
+  <Models>
+    <Code name="poly" subType="GenericCode">
+      <executable>runCode/poly_inp_io.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".one" type="input"/>
+      <fileargs arg="aux" extension=".two" type="input"/>
+      <fileargs arg="output" type="output"/>
+      <prepend>python</prepend>
+    </Code>
+    <ROM name="knr" subType="SciKitLearn">
+      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+      <Features>x, y</Features>
+      <Target>poly</Target>
+      <n_neighbors>5</n_neighbors>
+      <weights>uniform</weights>
+      <algorithm>auto</algorithm>
+      <leaf_size>30</leaf_size>
+      <metric>minkowski</metric>
+      <p>2</p>
+    </ROM>
+    <PostProcessor name="pp1" subType="CrossValidation">
+        <SciKitLearn>
+            <SKLtype>KFold</SKLtype>
+            <n_splits>10</n_splits>
+            <shuffle>False</shuffle>
+            <random_state>None</random_state>
+        </SciKitLearn>
+        <Metric class="Metrics" type="SKL">m1</Metric>
+    </PostProcessor>
+    <HybridModel name="hybrid" subType="">
+        <Model class="Models" type="Code">poly</Model>
+        <ROM class="Models" type="ROM">knr</ROM>
+        <TargetEvaluation class="DataObjects" type="PointSet">samples</TargetEvaluation>
+        <CV class="Models" type="PostProcessor">pp1</CV>
+        <settings>
+            <tolerance>0.1</tolerance>
+            <trainStep>1</trainStep>
+            <maxTrainSize>1000</maxTrainSize>
+            <initialTrainSize>10</initialTrainSize>
+        </settings>
+        <validationMethod name="CrowdingDistance">
+            <threshold>0.2</threshold>
+        </validationMethod>
+    </HybridModel>
+  </Models>
+  ...
+  <Steps>
+    <MultiRun name="hybridModelCode">
+      <Input class="Files" type="">gen.one</Input>
+      <Input class="Files" type="">gen.two</Input>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="HybridModel">hybrid</Model>
+      <Sampler class="Samplers" type="Stratified">LHS</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+  ...
+</Simulation>
+\end{lstlisting}
+%
+\nb For this example, the user needs to provide all the inputs for the \textbf{HybridModel}, i.e. Files for the
+\textbf{Code} and DataObject for the \textbf{ROM} defined in the \textbf{HybridModel}.

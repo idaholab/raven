@@ -30,6 +30,7 @@ from .ExternalModel import ExternalModel
 from .Code import Code
 from .EnsembleModel import EnsembleModel
 from .PostProcessor import PostProcessor
+from .HybridModel   import HybridModel
 
 ## [ Add new class here ]
 
@@ -45,4 +46,5 @@ __all__ = ['Model',
            'ExternalModel',
            'Code',
            'EnsembleModel',
-           'PostProcessor']
+           'PostProcessor',
+           'HybridModel']
