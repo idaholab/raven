@@ -181,7 +181,7 @@ class ETImporter(PostProcessor):
         @ In,  None
         @ Out, None
       """
-      
+
       # each element (i,j) of the matrix self.connectivityMatrix shows if there is a connection from ET_i to ET_j:
       #   * 0: no connection from i to j
       #   * 1: a connection exists from i to j
