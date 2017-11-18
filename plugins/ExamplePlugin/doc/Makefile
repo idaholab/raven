@@ -17,5 +17,5 @@ clean:
 
 #creating version file
 version.tex : $(MANUAL_FILES)
-	git log -1 --format="%H %an %aD" .. > version.tex
+	git log -1 --format="%H %an %aD"  > version.tex
 
