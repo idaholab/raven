@@ -63,6 +63,7 @@ class ETImporter(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(ETImporter, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
 
     return inputSpecification
 
@@ -471,7 +472,9 @@ class ETImporter(PostProcessor):
   def findAllRecursive(self, node, element, result = None):
     """
       A function for recursively traversing a node in an elementTree to find
-      all instances of a tag
+      all instances of a tag.
+      Note that this method differs from findall() since it goes for all nodes,
+      subnodes, subsubnodes etc.
       @ In, node, ET.Element, the current node to search under
       @ In, element, str, the string name of the tags to locate
       @ InOut, result, list, a list of the currently recovered results
