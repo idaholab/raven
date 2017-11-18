@@ -97,7 +97,7 @@ class ETImporter(PostProcessor):
   def run(self, inputs):
     """
       This method executes the postprocessor action.
-      @ In,  input, list, list of file objects
+      @ In,  inputs, list, list of file objects
       @ Out, None
     """
     self.outputDict = self.runOpenPSA(inputs)
@@ -105,7 +105,7 @@ class ETImporter(PostProcessor):
   def runOpenPSA(self, inputs):
     """
       This method executes the postprocessor action.
-      @ In,  input, list, list of file objects
+      @ In,  inputs, list, list of file objects
       @ Out, None
     """
     ### Check for link to other ET
@@ -140,18 +140,19 @@ class ETImporter(PostProcessor):
 
   def createLinkList(self):
       """
-        This method identifies the links among ET roots. It saves such links in the variable self.links.
+        This method identifies the links among ETs. It saves such links in the variable self.links.
         Note that this method overwrites such variable when it is called. This is because the identification
-        of the links needs to be computed from scratch since the set of ETs has changed.
+        of the links needs to be computed from scratch after every merging step since the structure of ETs has changed.
         The variable self.links=[dep1,...,depN] is a list of connections where each connection dep is a
         dictionary as follows:
+
             dep.keys =
                        * link_seqID  : ID of the link in the master ET
                        * ET_slave_ID : ID of the slave ET that needs to be copied into the master ET
                        * ET_master_ID: ID of the master ET;
 
         The slave ET is merged into the master ET; note the master ET contains the link in at least one
-        <define-sequence> node.
+        <define-sequence> node:
 
            <define-sequence name="Link-to-LP">
              <event-tree name="Link-to-LP-Event-Tree"/>
@@ -174,7 +175,7 @@ class ETImporter(PostProcessor):
 
   def checkETstructure(self):
       """
-        This method check that the structure of the ET is consistent. In particular, it checks that only one root ET
+        This method checks that the structure of the ET is consistent. In particular, it checks that only one root ET
         and at least one leaf ET is provided. As an example consider the following ET structure:
            ET1 ----> ET2 ----> ET3
             |------> ET4 ----> ET5
@@ -244,7 +245,7 @@ class ETImporter(PostProcessor):
 
   def analyzeSingleET(self,masterRoot):
       """
-        This method executes the analysis of the ET if multiple ETs are provided. It merge all ETs onto the root ET
+        This method executes the analysis of the ET if a single ET is provided.
         @ In,  masterRoot, xml.etree.Element, root of the ET
         @ Out, outputDict, dict, dictionary containing the pointSet data
       """
@@ -310,7 +311,7 @@ class ETImporter(PostProcessor):
 
   def checkLinkedTree(self,root):
       """
-        This method chect if the provided root of ET contains links to other ETs.
+        This method checks if the provided root of the ET contains links to other ETs.
         This occurs if a <define-sequence> node contains a <event-tree> sub-node:
             <define-sequence name="Link-to-LP">
               <event-tree name="Link-to-LP-Event-Tree"/>
@@ -410,7 +411,7 @@ class ETImporter(PostProcessor):
   def returnMap(self,outcomes,name):
       """
         This method returns a map if the ET contains symbolic sequences.
-        This is needed since since RAVEN requires numeric values.
+        This is needed since since RAVEN requires numeric values for sequences.
         @ In,  outcomes, list, list that contains all the sequences IDs provided in the ET
         @ In,  name, string, name of the ET
         @ Out, map, dict, dictionary containing the map
@@ -474,7 +475,7 @@ class ETImporter(PostProcessor):
       A function for recursively traversing a node in an elementTree to find
       all instances of a tag.
       Note that this method differs from findall() since it goes for all nodes,
-      subnodes, subsubnodes etc.
+      subnodes, subsubnodes etc. recursively
       @ In, node, ET.Element, the current node to search under
       @ In, element, str, the string name of the tags to locate
       @ InOut, result, list, a list of the currently recovered results
