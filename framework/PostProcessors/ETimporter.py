@@ -39,7 +39,7 @@ import Runners
 
 class ETImporter(PostProcessor):
   """
-    This is the base class for postprocessors
+    This is the base class of the postprocessors that imports Event-Trees (ETs) into RAVEN as a PointSet
   """
   def __init__(self, messageHandler):
     """
@@ -49,7 +49,7 @@ class ETImporter(PostProcessor):
     """
     PostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR ET IMPORTER'
-    self.ETformat = None
+    self.ETFormat = None
     self.allowedFormats = ['OpenPSA']
 
 
@@ -76,8 +76,6 @@ class ETImporter(PostProcessor):
       @ Out, None
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.inputs = inputs
-    self._workingDir = runInfo['WorkingDir']
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -91,58 +89,52 @@ class ETImporter(PostProcessor):
         if child.text not in self.allowedFormats:
           self.raiseAnError(IOError, 'ETImporterPostProcessor Post-Processor ' + self.name + ', format ' + child.text + ' : is not supported')
         else:
-          self.ETformat = child.text
+          self.ETFormat = child.text
       else:
         self.raiseAnError(IOError, 'ETImporterPostProcessor Post-Processor ' + self.name + ', node ' + child.tag + ' : is not recognized')
 
-  def run(self, input):
+  def run(self, inputs):
     """
       This method executes the postprocessor action.
-      @ In,  input, object, object containing the data to process. (inputToInternal output)
+      @ In,  input, list, list of file objects
       @ Out, None
     """
-    if self.ETformat == 'OpenPSA':
-      self.outputDict = self.runOpenPSA(input)
+    self.outputDict = self.runOpenPSA(inputs)
 
-  def runOpenPSA(self, input):
+  def runOpenPSA(self, inputs):
     """
       This method executes the postprocessor action.
-      @ In,  input, object, object containing the data to process. (inputToInternal output)
+      @ In,  input, list, list of file objects
       @ Out, None
     """
     ### Check for link to other ET
     self.links        = []
-    sizes=(len(input),len(input))
+    sizes=(len(inputs),len(inputs))
     self.connectivityMatrix = np.zeros(sizes)
     self.listETs=[]
     self.listRoots=[]
 
-    for file in input:
+    for file in inputs:
         EventTree = ET.parse(file.getPath() + file.getFilename())
         self.listETs.append(EventTree.getroot().get('name'))
         self.listRoots.append(EventTree.getroot())
     self.createLinkList()
 
-    if len(input)>0:
+    if len(inputs)>0:
         self.checkETstructure()
 
-    print(self.connectivityMatrix)
-    print('ETs   : ' + str(self.listETs))
-    print('roots : ' + str(self.listRoots))
-    print('links : ' + str(self.links))
-
-    if len(self.links)>=1 and len(input)>1:
-        finalAssembledTree =  self.analyzeMultipleET(input)
+    if len(self.links)>=1 and len(inputs)>1:
+        finalAssembledTree =  self.analyzeMultipleET(inputs)
         return self.analyzeSingleET(finalAssembledTree)
 
-    if len(self.links)==0 and len(input)>1:
+    if len(self.links)==0 and len(inputs)>1:
         self.raiseAnError(IOError, 'Multiple ET files have provided but they are not linked')
 
-    if len(self.links)>1 and len(input)==1:
+    if len(self.links)>1 and len(inputs)==1:
         self.raiseAnError(IOError, 'A single ET files has provided but it contains a link to an additional ET')
 
-    if len(self.links)==0 and len(input)==1:
-        EventTree = ET.parse(input[0].getPath() + input[0].getFilename())
+    if len(self.links)==0 and len(inputs)==1:
+        EventTree = ET.parse(inputs[0].getPath() + inputs[0].getFilename())
         return self.analyzeSingleET(EventTree.getroot())
 
   def createLinkList(self):
@@ -220,7 +212,7 @@ class ETImporter(PostProcessor):
   def analyzeMultipleET(self,input):
       """
         This method executes the analysis of the ET if multiple ETs are provided. It merge all ETs onto the root ET
-        @ In,  input, object, object containing the data to process. (inputToInternal output)
+        @ In,  input, list, list of file objects
         @ Out, xmlNode, xml.etree.Element, root of the assembled root ET
       """
       # 1. for all ET check if it contains SubBranches
@@ -277,6 +269,7 @@ class ETImporter(PostProcessor):
           ## Iterate through the forks that use this event and gather all of the
           ## possible states
           for fork in self.findAllRecursive(root.find('initial-state'), 'fork'):
+          #for fork in root.findall('initial-state'):
               if fork.get('functional-event') == event:
                   for path in fork.findall('path'):
                       state = path.get('state')
@@ -448,7 +441,7 @@ class ETImporter(PostProcessor):
       return map
 
 
-  def collectOutput(self,finishedJob, output):
+  def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object, (DataObjects)
       @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor
@@ -459,7 +452,9 @@ class ETImporter(PostProcessor):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
     if not set(output.getParaKeys('inputs')) == set(self.variables):
-      self.raiseAnError(RuntimeError, ' ETImporter: set of branching variables in the ET ( ' + str(output.getParaKeys('inputs')) + ' ) is not identical to the set of input variables specified in the PointSet (' + str(self.variables) +')')
+      self.raiseAnError(RuntimeError, ' ETImporter: set of branching variables in the '
+                                      'ET ( ' + str(output.getParaKeys('inputs')) + ' ) is not identical to the'
+                                      ' set of input variables specified in the PointSet (' + str(self.variables) +')')
 
     outputDict = evaluation[1]
     # Output to file
