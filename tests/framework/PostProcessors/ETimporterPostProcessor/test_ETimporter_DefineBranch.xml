@@ -5,7 +5,7 @@
     <created>2017-11-07</created>
     <classesTested>ETimporter</classesTested>
     <description>
-      Tests of the ETimporter post-processor
+      Tests of the ETimporter post-processor with branch defined
     </description>
   </TestInfo>
   
