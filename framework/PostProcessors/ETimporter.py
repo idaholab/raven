@@ -39,7 +39,7 @@ import Runners
 
 class ETImporter(PostProcessor):
   """
-    This is the base class of the postprocessors that imports Event-Trees (ETs) into RAVEN as a PointSet
+    This is the base class of the postprocessor that imports Event-Trees (ETs) into RAVEN as a PointSet
   """
   def __init__(self, messageHandler):
     """
