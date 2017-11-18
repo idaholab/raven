@@ -71,4 +71,4 @@ __all__ = ['PostProcessor',
            'DataMining',
            'Metric',
            'CrossValidation',
-           'ETimporter'] + additionalModules
+           'ETImporter'] + additionalModules
