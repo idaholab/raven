@@ -85,14 +85,17 @@ class ETImporter(PostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == 'fileFormat':
-        if child.text not in self.allowedFormats:
-          self.raiseAnError(IOError, 'ETImporterPostProcessor Post-Processor ' + self.name + ', format ' + child.text + ' : is not supported')
-        else:
-          self.ETFormat = child.text
-      else:
-        self.raiseAnError(IOError, 'ETImporterPostProcessor Post-Processor ' + self.name + ', node ' + child.tag + ' : is not recognized')
+
+    paramInput = ETImporter.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+      fileFormat = paramInput.findFirst('fileFormat')
+      self.fileFormat = fileFormat.value
+      if self.fileFormat not in self.allowedFormats:
+          self.raiseAnError(IOError,
+                            'ETImporterPostProcessor Post-Processor ' + self.name + ', format ' + str(self.fileFormat) + ' : is not supported')
 
   def run(self, inputs):
     """
