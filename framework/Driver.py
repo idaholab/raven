@@ -136,6 +136,7 @@ if __name__ == '__main__':
 
   itemsToRemove = []
   for item in sys.argv:
+    # I don't think these do anything.  - talbpaul, 2017-10
     if item.lower() in ['silent','quiet','all']:
       verbosity = item.lower()
       itemsToRemove.append(item)

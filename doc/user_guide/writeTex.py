@@ -28,13 +28,13 @@ def getNode(fname,nodepath):
   #TODO add option to include parent nodes with ellipses
   root = ET.parse(fname).getroot()
   #format nodepath
-  nodepath = nodepath.replace('.','|')
+  nodepath = nodepath.replace('.','/')
   #check if root is desired node
   if root.tag == nodepath:
     node = root
     docLevel = 0
   else:
-    docLevel = len(nodepath.split('|'))
+    docLevel = len(nodepath.split('/'))
     node = xmlUtils.findPathEllipsesParents(root,nodepath,docLevel)
     if node is None:
       raise IOError('Unable to find '+nodepath+' in '+fname)

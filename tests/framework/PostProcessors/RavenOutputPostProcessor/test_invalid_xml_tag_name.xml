@@ -39,10 +39,10 @@
     <PostProcessor name="statsReader" subType="RavenOutput">
       <dynamic/>
       <File name="statsfile">
-        <output name="mean"> mflowj_635000000 | expectedValue </output>
-        <output name="variance"> mflowj_635000000 | variance </output>
-        <output name="high"> mflowj_635000000 | percentile_5 </output>
-        <output name="low"> mflowj_635000000 | percentile_95 </output>
+        <output name="mean"    > mflowj_635000000 / expectedValue </output>
+        <output name="variance"> mflowj_635000000 / variance </output>
+        <output name="high"    > mflowj_635000000 / percentile_5 </output>
+        <output name="low"     > mflowj_635000000 / percentile_95 </output>
       </File>
     </PostProcessor>
   </Models>

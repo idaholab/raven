@@ -313,11 +313,11 @@ class BasicStatistics(PostProcessor):
           #   nodes with the same metric (tag), but with different targets and features.  For instance, the user might
           #   want the sensitivity of A and B to X and Y, and the sensitivity of C to W and Z, but not the sensitivity
           #   of A to W.  If we didn't keep them separate, we could potentially waste a fair number of calculations.
-          self.toDo[tag].append({'targets':set(fnode.value),
-                            'features':set(tnode.value)})
+          self.toDo[tag].append({'targets':set(tnode.value),
+                            'features':set(fnode.value)})
         else:
-          self.toDo[tag] = [{'targets':set(fnode.value),
-                            'features':set(tnode.value)}]
+          self.toDo[tag] = [{'targets':set(tnode.value),
+                            'features':set(fnode.value)}]
       elif tag == 'all':
         #do all the metrics
         #establish targets and features
@@ -351,8 +351,8 @@ class BasicStatistics(PostProcessor):
         for vector in self.vectorVals:
           if vector not in self.toDo.keys():
             self.toDo[vector] = []
-          self.toDo[vector].append({'targets':set(fnode.value),
-                                 'features':set(tnode.value)})
+          self.toDo[vector].append({'targets':set(tnode.value),
+                                 'features':set(fnode.value)})
       elif tag == "biased":
         if child.value.lower() in utils.stringsThatMeanTrue():
           self.biased = True

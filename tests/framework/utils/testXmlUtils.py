@@ -187,10 +187,41 @@ if okay:
 else:
   results['fail']+=1
 
+# test tag finder for xpath
+inps = []
+outs = []
+exps = []
+inps.append('root/child[@na:me]')
+outs.append(xmlUtils.fixTagsInXpath(inps[0]))
+exps.append('root/child[@na:me]') # no change, not illegal
+
+inps.append('root/child[1cch:ild]')
+outs.append(xmlUtils.fixTagsInXpath(inps[1]))
+exps.append('root/child[_1cch.ild]') # prepend _, : to .
+
+inps.append('root/child[cchi:ld="te:mp"]')
+outs.append(xmlUtils.fixTagsInXpath(inps[2]))
+exps.append('root/child[cchi.ld=\'te:mp\']') # cchi.ld, " to '
+
+inps.append('root/chi:ld/cchild')
+outs.append(xmlUtils.fixTagsInXpath(inps[3]))
+exps.append('root/chi.ld/cchild') # : to .
+
+inps.append('root/child[0]')
+outs.append(xmlUtils.fixTagsInXpath(inps[4]))
+exps.append('root/child[0]') # no change
+
+for i in range(5):
+  if outs[i] == exps[i]:
+    results['pass']+=1
+  else:
+    results['fail']+=1
+    print('ERROR: fixTagsInXpath #{}: expected "{}" but got "{}"'.format(i,exps[i],outs[i]))
+
 
 # test findPath
 ###test successful find
-found = xmlUtils.findPath(xmlTree.getroot(),'child|cchild')
+found = xmlUtils.findPath(xmlTree.getroot(),'child/cchild')
 okay = True
 #  type
 if type(found)!=elemType:
@@ -204,7 +235,7 @@ if okay:
 else:
   results['fail']+=1
 ###test not found
-found = xmlUtils.findPath(xmlTree.getroot(),'child|cchild|notANodeInTheTree')
+found = xmlUtils.findPath(xmlTree.getroot(),'child/cchild/notANodeInTheTree')
 if found is not None:
   print('ERROR: Test of "findPath" failed!  No element should have been found, but found',found)
   results['fail']+=1
@@ -219,7 +250,7 @@ for f in toRemove:
       print('WARNING: In cleaning up, could not remove file',f)
 
 #test findPathEllipsesParents
-found = xmlUtils.findPathEllipsesParents(xmlTree.getroot(),'child|cchild')
+found = xmlUtils.findPathEllipsesParents(xmlTree.getroot(),'child/cchild')
 print ('ellipses')
 print(xmlUtils.prettify(found,doc=True))
 
