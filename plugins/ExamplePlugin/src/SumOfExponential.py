@@ -32,18 +32,25 @@ class SumOfExponential(ExternalModelPluginBase):
     container.startValue   = None
     container.endValue     = None
     container.numberPoints = 10
+    outputVarNode    = xmlNode.find("outputVariable")
+    if outputVarNode is None:
+      raise IOError("ExamplePlugin: <outputVariable> XML block must be inputted!")
+    container.outputVariable = outputVarNode.text.strip()
+    monotonicVarNode = xmlNode.find("monotonicVariable")
+    if monotonicVarNode is None:
+      raise IOError("ExamplePlugin: <monotonicVariable> XML block must be inputted!")
+    container.monotonicVariable = monotonicVarNode.text.strip()
 
     for child in xmlNode:
-      print(child.tag)
       if child.tag.strip() == "variables":
         # get verbosity if it exists
         container.variables = [var.strip() for var in child.text.split(",")]
-        if "Xi" not in container.variables:
-          raise IOError("ExamplePlugin: Xi variable MUST be present in the <variables> definition!")
+        if container.outputVariable not in container.variables:
+          raise IOError("ExamplePlugin: "+container.outputVariable+" variable MUST be present in the <variables> definition!")
         if "monotonicVariable" not in container.variables:
-          raise IOError("ExamplePlugin: time variable MUST be present in the <variables> definition!")
-        if len(container.variables) < 3:
-          raise IOError("ExamplePlugin: at least 1 input and 1 output variable (oneOutputOfThisPlugin) must be listed in the <variables> definition!!")
+          raise IOError("ExamplePlugin: "+container.monotonicVariable+" variable MUST be present in the <variables> definition!")
+        if len(container.variables) < 2:
+          raise IOError("ExamplePlugin: at least 1 input and 1 output variable ("+container.outputVariable+") must be listed in the <variables> definition!!")
       if child.tag.strip() == "coefficient":
         if "varName" not in child.attrib:
           raise IOError("ExamplePlugin: attribute varName must be present in <coefficient> XML node!")
@@ -60,7 +67,7 @@ class SumOfExponential(ExternalModelPluginBase):
       raise IOError("ExamplePlugin: <endMonotonicVariableValue> XML has not been inputted!")
     container.variables.pop(container.variables.index("Xi"))
     container.variables.pop(container.variables.index("monotonicVariable"))
-    
+
   def initialize(self, container,runInfoDict,inputFiles):
     """
       Method to initialize this plugin
@@ -74,7 +81,7 @@ class SumOfExponential(ExternalModelPluginBase):
         container.coefficients[var] = 1.0
         print("ExamplePlugin: not found coefficient for variable "+var+". Default value is 1.0!")
     container.stepSize = (container.endValue - container.startValue)/float(container.numberPoints)
-        
+
   def run(self, container, Inputs):
     """
       This is a simple example of the run method in a plugin.
@@ -84,20 +91,23 @@ class SumOfExponential(ExternalModelPluginBase):
       @ In, Inputs, dict, dictionary of inputs from RAVEN
 
     """
-    container.Xi                = np.zeros(container.numberPoints+1)
-    container.monotonicVariable = np.zeros(container.numberPoints+1)
+    Xi                = np.zeros(container.numberPoints+1)
+    monotonicVariable = np.zeros(container.numberPoints+1)
     monoVarVal = container.startValue
-    container.monotonicVariable[0] = container.startValue
+    monotonicVariable[0] = container.startValue
     varCoeff = np.asarray([container.coefficients[var] for var in container.variables])
     varExponents = np.asarray([Inputs[var]*monoVarVal for var in container.variables])
-    container.Xi[0] = np.sum(varCoeff*np.exp(varExponents))
+    Xi[0] = np.sum(varCoeff*np.exp(varExponents))
     for step in range(container.numberPoints):
       monoVarVal+=container.stepSize
-      container.monotonicVariable[step+1] = monoVarVal
-      varExponents = np.asarray([Inputs[var]*(monoVarVal-container.monotonicVariable[step]) for var in container.variables])
-      container.Xi[step+1] = np.sum(varCoeff*np.exp(varExponents))
-      container.Xi[step+1]+=container.Xi[step]
-
+      monotonicVariable[step+1] = monoVarVal
+      varExponents = np.asarray([Inputs[var]*(monoVarVal-monotonicVariable[step]) for var in container.variables])
+      if np.max(varExponents) >= np.finfo(varExponents.dtype).maxexp:
+        print("ExamplePlugin: the exponents of the exponential cause overflow. Increase the number of <numberCalculationPoints>!")
+      Xi[step+1] = np.sum(varCoeff*np.exp(varExponents))
+      Xi[step+1]+=Xi[step]
+    container.__dict__[container.outputVariable] = Xi
+    container.__dict__[container.monotonicVariable] = monotonicVariable
   ###############################
   #### RAVEN API methods END ####
   ###############################

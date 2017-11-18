@@ -25,6 +25,8 @@
       <coefficient varName="a">1.1</coefficient>
       <coefficient varName="b">-1.1</coefficient>
       <coefficient varName="b">-1.1</coefficient>
+      <outputVariable>Xi</outputVariable>
+      <monotonicVariable>monotonicVariable</monotonicVariable>
       <startMonotonicVariableValue>0.0</startMonotonicVariableValue>
       <endMonotonicVariableValue>1e6</endMonotonicVariableValue>
       <numberCalculationPoints>100000</numberCalculationPoints>
