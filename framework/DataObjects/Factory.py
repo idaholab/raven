@@ -26,9 +26,16 @@ if not 'xrange' in dir(__builtins__):
 
 ################################################################################
 from utils import utils
-from DataObjects.Data import Data
-from DataObjects.PointSet import PointSet
+# OLD data objects
+#from DataObjects.Data import Data
+#from DataObjects.PointSet import PointSet
 from DataObjects.HistorySet import HistorySet
+# NEW data objects
+from DataObjects.XDataObject import DataObject as Data
+from DataObjects.XDataSet import DataSet
+from DataObjects.XPointSet import PointSet
+from DataObjects.XHistorySet import HistorySet
+#from DataObjects.XHistorySet import XHistorySet as HistorySet
 ## [ Add new class here ]
 ################################################################################
 ## Alternatively, to fully automate this file:
@@ -45,6 +52,10 @@ __interFaceDict = {}
 
 for classObj in utils.getAllSubclasses(eval(__base)):
   __interFaceDict[classObj.__name__] = classObj
+# mask old objects as new ones
+__interFaceDict['DataSet'   ] = DataSet
+__interFaceDict['PointSet'  ] = PointSet
+#__interFaceDict['HistorySet'] = HistorySet
 
 def knownTypes():
   """

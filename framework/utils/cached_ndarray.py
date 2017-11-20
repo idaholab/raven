@@ -22,10 +22,12 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #----- end python 2 - 3 compatibility
 #External Modules------------------------------------------------------------------------------------
-from numpy import ndarray
-import numpy as np
 import sys
 import threading
+from numpy import ndarray
+import numpy as np
+import xarray as xr
+import pandas as pd
 lock = threading.Lock()
 #External Modules End--------------------------------------------------------------------------------
 
@@ -213,3 +215,189 @@ class c1darray(object):
       @ Out, __repr__, string, the representation string
     """
     return repr(self.values[:self.size])
+
+#
+#
+#
+#
+class cNDarray(object):
+  """
+    Higher-dimension caching of numpy arrays.  Might include c1darray as a subset if designed right.
+
+    DEV NOTE:
+    When redesigning the DataObjects in RAVEN in 2017, we tried a wide variety of libraries, strategies,
+    and data structures.  For appending one realization (with N entities) at a time, the np.ndarray proved
+    most efficient for dropping in values, particularly when cached as per this class.  Restructuring the data
+    into a more useful form (e.g. xarray.Dataset) should be accomplished in the DataObject; this is just a collecting
+    structure. - talbpw, 2017-10-20
+  """
+  ### CONSTRUCTOR ###
+  def __init__(self,values=None,width=None,length=None,dtype=float,buff=None,offset=0,strides=None,order=None):
+    """
+      Constructor.
+      @ In, values, np.ndarray, optional, matrix of initial values with shape (# samples, # entities)
+      @ In, width, int, optional, if not using "values" then this is the number of entities to allocate
+      @ In, length, int, optional, if not using "values" then this is the initial capacity (number of samples) to allocate
+      @ In, dtype, type, optional, sets the type of the content of the array
+      @ In, buff, int, optional, buffer size
+      @ In, offset, int, optional, array offeset
+      @ In, strides, object, optional, strides (see docs for np.ndarray)
+      @ In, order, string, optional, array ordering (fortran, c, etc) (see docs for np.ndarray)
+      @ Out, None
+    """
+    # members of this class
+    self.values   = None   # underlying data for this structure, np.ndarray with optional dtype (default float)
+    self.size     = None   # number of rows (samples) with actual data (not including empty cached)
+    self.width    = None   # number of entities aka columns
+    self.capacity = None   # cached np.ndarray size
+    # priorities: initialize with values; if not, use width and length
+    if values is not None:
+      if type(values) != np.ndarray:
+        raise IOError('Only np.ndarray can be used to set "values" in "cNDarray".  Got '+type(values).__name__)
+      self.values = values         # underlying data structure
+      self.size = values.shape[0]
+      try:
+        self.width = values.shape[1]
+      except IndexError:
+        ## TODO NEEDS TO BE DEPRECATED should always have a width, in real usage
+        self.width = 0
+      # if setting by value, initialize capacity to existing data length
+      self.capacity = self.size
+    else:
+      if width is None:
+        raise IOError('Creating cNDarray: neither "values" nor "width" was specified!')
+      self.capacity = length if length is not None else 100
+      self.width = width
+      self.size = 0
+      self.values = ndarray((self.capacity,self.width),dtype,buff,offset,strides,order)
+
+  ### PROPERTIES ###
+  @property
+  def shape(self):
+    """
+      Shape property, as used in np.ndarray structures.
+      @ In, None
+      @ Out, (int,int), the (#rows, #columns) of useful data in this cached array
+    """
+    return (self.size,self.width)
+
+  ### BUILTINS ###
+  def __array__(self, dtype = None):
+    """
+      so that numpy's array() returns values
+      @ In, dtype, np.type, the requested type of the array
+      @ Out, __array__, numpy.ndarray, the requested array
+    """
+    if dtype != None:
+      return ndarray((self.size,self.width), dtype, buffer=None, offset=0, strides=None, order=None)
+    else:
+      return self.getData()
+
+  def __getitem__(self,val):
+    """
+      Get item method.  Slicing should work as expected.
+      @ In, val, slice object, the slicing object (e.g. 1, :, :2, 1:3, etc.)
+      @ Out, __getitem__, np.ndarray, the element(s)
+    """
+    return self.values[:self.size].__getitem__(val)
+
+  def __iter__(self):
+    """
+      Overload of iterator
+      @ In, None
+      @ Out, __iter__, iterator, iterator
+    """
+    return self.values[:self.size].__iter__()
+
+  def __len__(self):
+    """
+      Return size, which is the number of samples, independent of entities, containing useful data.
+      Does not include cached entries that have not yet been filled.
+      @ In, None
+      @ Out, __len__, integer, size
+    """
+    return self.size
+
+  def __repr__(self):
+    """
+      overload of __repr__ function
+      @ In, None
+      @ Out, __repr__, string, the representation string
+    """
+    return repr(self.values[:self.size])
+
+  ### UTILITY FUNCTIONS ###
+  def append(self,entry):
+    """
+      Append method. call format c1darrayInstance.append(value)
+      @ In, entry, np.ndarray, the entries to append as [entry, entry, entry].  Must have shape (x, # entities), where x can be any nonzero number of samples.
+      @ Out, None
+    """
+    # TODO extend to include sending in a (width,) shape np.ndarray to append a single sample, rather than have it forced to be a 1-entry array.
+    # entry.shape[0] is the number of new entries, entry.shape[1] is the number of variables being entered
+    # entry must match width and be at least 1 entry long
+    if type(entry) not in [np.ndarray]:
+      raise IOError('Tried to add new data to cNDarray.  Can only accept np.ndarray, but got '+type(entry).__name__)
+    # for now require full correct shape, later handle the single entry case
+    if len(entry.shape)!=2:
+      # TODO single entry case
+      raise IOError('Tried to add new data to cNDarray.  Need shape (#,{}) but got "{}"!'.format(self.width,entry.shape))
+    # must have matching width (fix for single entry case)
+    if entry.shape[1] != self.width:
+      raise IOError('Tried to add new data to cNDarray.  Need {} entities per entry, but got '.format(self.width)+str(entry.shape[1]))
+    # check if there's enough space in cache to append the new entries
+    if self.size + entry.shape[0] > self.capacity:
+      # since there's not enough space, quadruple available space # TODO change growth parameter to be variable?
+      self.capacity += max(self.capacity*4,entry.shape[0])
+      newdata = np.zeros((self.capacity,self.width),dtype=self.values.dtype)
+      newdata[:self.size] = self.values[:self.size]
+      self.values = newdata
+    self.values[self.size:self.size+entry.shape[0]][:] = entry[:]
+    self.size += entry.shape[0]
+
+  def addEntity(self,vals,firstEver=False):
+    """
+      Adds a column to the dataset.
+      @ In, vals, list of np.array([ [#],[#],[#] ], dtype = float or xr.DataArray), fill values (each entry must be shape==(self.size,num new entites))
+      @ Out, None
+    """
+    # example 1: for 1 new entity with sample values [1,2,3], "vals" should be:
+    # [ np.array([[1],[2],[3]]) ] (note expecially the outermost list)
+    # example 2: for 2 new entities with sample values [1,2,3] and [4,5,6], "vals" should be:
+    # [ np.array([[1],[2],[3]]), np.array([[4],[5],[6]]) ]
+    for i,v in enumerate(vals):
+      # FIXME slow assertion check
+      if len(v) != self.size:
+        raise IOError('Wrong number ({}) of initial values passed to add entity!  Need {}.'.format(len(v),self.size))
+      # FIXME slow reshaping
+      new = np.ndarray((self.capacity,1),dtype=object)
+      new[:self.size] = v[:]
+      vals[i] = new
+    self.values = np.hstack([self.values] + vals)
+    self.width += 1
+
+  def getData(self):
+    """
+      Returns the underlying data structure.
+      @ In, None
+      @ Out, getData, np.ndarray, underlying data up to the used size
+    """
+    return self.values[:self.size]
+
+  ### LEGACY METHODS, only used for old data object compatability ###
+  def _addOneEntry(self,column,val):
+    """
+      NEEDS TO BE DEPRECATED
+      Adds a single entry to "column" to be "val"
+      This is only for legacy data object APIs; the correct method is "append" with a full realization.
+    """
+    # check if new row already added and is waitng for an entry
+    if self.values[self.size-1,column] is not None:
+      # need to add a new realization
+      # placehold with "None"s (append will automatically increment size)
+      self.append(np.array([np.array([None]*self.width,dtype=object)],dtype=object))
+    # if a one-entry array, take that one entry
+    if type(val) in [np.ndarray,list]:
+      val = np.array(val).item(0)
+    # finally, put the entry in
+    self.values[self.size-1,column] = val

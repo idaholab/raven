@@ -24,13 +24,17 @@ from __future__ import absolute_import
 
 # These lines ensure that we do not have to do something like:
 # 'from DataObjects.Data import Data' outside of this submodule
-from .Data import Data, NotConsistentData, ConstructError
-from .PointSet import PointSet
-from .HistorySet import HistorySet
+#from .Data import Data, NotConsistentData, ConstructError
+#from .PointSet import PointSet
+#from .HistorySet import HistorySet
+from .XDataSet import DataObject as Data
+from .XDataSet import DataSet
+from .XPointSet import PointSet
+from .XHistorySet import HistorySet
 
 from .Factory import knownTypes
 from .Factory import returnInstance
 from .Factory import returnClass
 
 # We should not really need this as we do not use wildcard imports
-__all__ = ['Data','PointSet','HistorySet']
+__all__ = ['Data','DataSet','PointSet','HistorySet']
