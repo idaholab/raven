@@ -55,15 +55,17 @@ class DataSet(DataObject):
   """
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
-  def addVariable(self,varName,values):
+  def addVariable(self,varName,values,classify='meta'):
     """
       Adds a variable/column to the data.  "values" needs to be as long as self.size.
       @ In, varName, str, name of new variable
       @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
+      @ In, classify, str, optional, either 'input', 'output', or 'meta'
       @ Out, None
     """
     assert(isinstance(values,np.ndarray))
     assert(len(values) == self.size)
+    assert(classify in ['input','output','meta'])
     # first, collapse existing entries
     self.asDataset()
     # format as single data array
@@ -71,6 +73,13 @@ class DataSet(DataObject):
     column = self._collapseNDtoDataArray(values,varName,labels=self._data[self.sampleTag])
     # add to the dataset
     self._data = self._data.assign(**{varName:column})
+    if classify == 'input':
+      self._inputs.append(varName)
+    elif classify == 'output':
+      self._outputs.append(varName)
+    else:
+      self._metavars.append(varName)
+    self._allVars.append(varName)
 
   def addMeta(self,tag,xmlDict):
     """
