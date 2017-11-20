@@ -1,0 +1,16 @@
+<MetricPostProcessor type="Static">
+  <x0-y0>
+    <euclidean2_paired_distance_euclidean>4.47105676931</euclidean2_paired_distance_euclidean>
+    <euclidean_paired_distance_euclidean>4.47105676931</euclidean_paired_distance_euclidean>
+  </x0-y0>
+
+  <x-y>
+    <euclidean2_paired_distance_euclidean>18.1945767017</euclidean2_paired_distance_euclidean>
+    <euclidean_paired_distance_euclidean>18.1945767017</euclidean_paired_distance_euclidean>
+  </x-y>
+
+  <x-z>
+    <euclidean2_paired_distance_euclidean>77.8071978001</euclidean2_paired_distance_euclidean>
+    <euclidean_paired_distance_euclidean>77.8071978001</euclidean_paired_distance_euclidean>
+  </x-z>
+</MetricPostProcessor>

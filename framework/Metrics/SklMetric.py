@@ -33,7 +33,6 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
 #from sklearn.metrics import median_absolute_error
 from sklearn.metrics import r2_score
-from sklearn.metrics import mean_squared_log_error
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -53,7 +52,6 @@ class SKL(Metric):
   availMetrics['regression']['mean_absolute_error'] = mean_absolute_error
   availMetrics['regression']['r2_score'] = r2_score
   availMetrics['regression']['mean_squared_error'] = mean_squared_error
-  availMetrics['regression']['mean_squared_log_error'] = mean_squared_log_error
   #availMetrics['regression']['median_absolute_error'] = mean_absolute_error # disabled because this metric only accept 1D array, and not weights associated
   # paired distance metrics, no weights
   if int(sklearn.__version__.split(".")[1]) > 17:

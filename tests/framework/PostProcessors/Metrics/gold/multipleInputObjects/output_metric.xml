@@ -1,0 +1,5 @@
+<MetricPostProcessor type="Static">
+  <ans-ans2>
+    <euclidean_paired_distance_euclidean>8.15320610438</euclidean_paired_distance_euclidean>
+  </ans-ans2>
+</MetricPostProcessor>

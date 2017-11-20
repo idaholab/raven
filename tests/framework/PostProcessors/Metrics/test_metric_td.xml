@@ -1,0 +1,103 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>metricTD</WorkingDir>
+    <Sequence>mcRun, PP1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/Metric/test_metric_td</name>
+    <author>wangc</author>
+    <created>2017-11-20</created>
+    <classesTested>PostProcessors.Metric</classesTested>
+    <description>
+      This test checks the Metric PostProcessor to handle time-dependent data
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="output_metric" type="">output_metric_td.xml</Input>
+    <Input name="output_metric.csv" type="">output_metric_td.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/lorentzAttractor_disc.py" name="poly" subType="">
+      <variables>x0, y0, z0, time, x, y, z</variables>
+    </ExternalModel>
+    <PostProcessor name="pp1" subType="Metric">
+      <Features type="variable">x0, x, x</Features>
+      <Targets type="variable">y0, y, z</Targets>
+      <Metric class="Metrics" type="SKL">euclidean</Metric>
+      <Metric class="Metrics" type="SKL">euclidean2</Metric>
+    </PostProcessor>
+  </Models>
+  
+  <Metrics>
+    <SKL name="euclidean">
+      <metricType>paired_distance|euclidean</metricType>
+    </SKL>
+    <SKL name="euclidean2">
+      <metricType>paired_distance|euclidean</metricType>
+    </SKL>
+  </Metrics>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>1</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>2</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>3</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+  
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mcRun" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">outHistData</Output>
+    </MultiRun>
+    <PostProcess name="PP1">
+      <Input class="DataObjects" type="HistorySet">outHistData</Input>
+      <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="Files" type="">output_metric</Output>
+      <Output class="Files" type="">output_metric.csv</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="outHistData">
+      <Input>x0,y0,z0</Input>
+      <Output>x,y,z,time</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>
