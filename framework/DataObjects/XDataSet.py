@@ -53,11 +53,25 @@ class DataSet(DataObject):
     The interface for these data objects is specific.  The methods under "EXTERNAL API", "INITIALIZATION",
     and "BUILTINS" are the only methods that should be called to interact with the object.
   """
-  ############################################################################################
-  ### NEW API
-  ############################################################################################
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
+  def addVariable(self,varName,values):
+    """
+      Adds a variable/column to the data.  "values" needs to be as long as self.size.
+      @ In, varName, str, name of new variable
+      @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
+      @ Out, None
+    """
+    assert(isinstance(values,np.ndarray))
+    assert(len(values) == self.size)
+    # first, collapse existing entries
+    self.asDataset()
+    # format as single data array
+    # TODO worry about sampleTag values?
+    column = self._collapseNDtoDataArray(values,varName,labels=self._data[self.sampleTag])
+    # add to the dataset
+    self._data = self._data.assign(**{varName:column})
+
   def addMeta(self,tag,xmlDict):
     """
       Adds general (not pointwise) metadata to this data object.  Can add several values at once, collected
@@ -265,9 +279,6 @@ class DataSet(DataObject):
       meta.update(dict((key,self._meta[key]) for key in gKeys))
     return meta
 
-  def getOutputs():
-    raise NotImplementedError
-
   def getVars(self,subset=None):
     """
       Gives list of variables that are part of this dataset.
@@ -295,7 +306,6 @@ class DataSet(DataObject):
     # TODO have to convert here?
     self.asDataset()
     if isinstance(var,(str,unicode)):
-      # check if var is in var list; otherwise it might be a coordinate -> would it find it anyway?
       val = self._data[var]
       #format as scalar
       if len(val.dims) == 0:

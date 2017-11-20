@@ -610,6 +610,17 @@ checkRlz('Dataset full csvxml match',rlz,rlz2,skip=['time'])
 # TODO metadata checks?
 
 
+######################################
+#        ADDING NEW VARIABLE         #
+######################################
+f = np.array([9., 19., 29., 39.])
+data.addVariable('f',f)
+rlzAdd = dict(rlz2)
+rlzAdd['f'] = np.atleast_1d(29.)
+checkArray('Dataset add variable column',data.asDataset()['f'].values,f,float)
+checkRlz('Dataset add variable rlz 2',data.realization(index=2),rlzAdd,skip='time')
+
+
 # TODO more exhaustive tests are needed, but this is sufficient for initial work.
 
 print(results)
