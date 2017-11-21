@@ -14,7 +14,7 @@
   [./ET_importer_OpenPSA_Define_Branch]
     type   = 'RavenFramework'
     input  = 'test_ETimporter_DefineBranch.xml'
-    csv    = 'ETimporterSymbolicSequence/PrintPS.csv'
+    csv    = 'ETimporterDefineBranch/PrintPS.csv'
     output = 'ETimporterDefineBranch/PrintPS.xml ETimporterDefineBranch/eventTreeMandd_mapping.xml'
   [../]
   [./ET_importer_OpenPSA_coupledET]
