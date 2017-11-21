@@ -35,7 +35,7 @@
       <SKLtype>neural_network|MLPClassifier</SKLtype>
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <hidden_layer_sizes>(15,)</hidden_layer_sizes>
+      <hidden_layer_sizes>(6,4)</hidden_layer_sizes>
       <activation>logistic</activation>
       <solver>adam</solver>
       <alpha>0.0001</alpha>
@@ -43,9 +43,9 @@
       <learning_rate>constant</learning_rate>
       <learning_rate_init>0.001</learning_rate_init>
       <power_t>0.5</power_t>
-      <max_iter>2000</max_iter>
-      <shuffle>True</shuffle>
-      <random_state>None</random_state>
+      <max_iter>200</max_iter>
+      <shuffle>False</shuffle>
+      <random_state>130168</random_state>
       <tol>1e-4</tol>
       <verbose>False</verbose>
       <warm_start>False</warm_start>
