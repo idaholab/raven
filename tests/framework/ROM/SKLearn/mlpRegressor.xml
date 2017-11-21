@@ -36,7 +36,7 @@
       <Features>X,Y</Features>
       <Target>Z</Target>
       <hidden_layer_sizes>(5,2)</hidden_layer_sizes>
-      <activation>logistic</activation>
+      <activation>tanh</activation>
       <solver>lbfgs</solver>
       <alpha>0.0001</alpha>
       <batch_size>auto</batch_size>
@@ -45,7 +45,7 @@
       <power_t>0.5</power_t>
       <max_iter>1000</max_iter>
       <shuffle>False</shuffle>
-      <random_state>None</random_state>
+      <random_state>130168</random_state>
       <tol>1e-4</tol>
       <verbose>False</verbose>
       <warm_start>False</warm_start>
