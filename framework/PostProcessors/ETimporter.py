@@ -32,6 +32,7 @@ import copy
 from .PostProcessor import PostProcessor
 from utils import InputData
 from utils import xmlUtils as xmlU
+from utils import utils
 import Files
 import Runners
 #Internal Modules End-----------------------------------------------------------
@@ -63,7 +64,6 @@ class ETImporter(PostProcessor):
     """
     inputSpecification = super(ETImporter, cls).getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
-
     return inputSpecification
 
   def initialize(self, runInfo, inputs, initDict) :
@@ -106,7 +106,8 @@ class ETImporter(PostProcessor):
       @ In,  inputs, list, list of file objects
       @ Out, None
     """
-    self.outputDict = self.runOpenPSA(inputs)
+    #self.outputDict = self.runOpenPSA(inputs)
+    return self.runOpenPSA(inputs)
 
   def runOpenPSA(self, inputs):
     """
@@ -431,7 +432,7 @@ class ETImporter(PostProcessor):
       updatedTreeMap.write(fileID)
     else:
       for seq in outcomes:
-        etMap[seq] = float(seq)
+        etMap[seq] = utils.floatConversion(seq)
     return etMap
 
   def collectOutput(self, finishedJob, output):
@@ -453,10 +454,10 @@ class ETImporter(PostProcessor):
     # Output to file
     if output.type in ['PointSet']:
       for key in output.getParaKeys('inputs'):
-        for value in self.outputDict['inputs'][key]:
+        for value in outputDict['inputs'][key]:
           output.updateInputValue(str(key),value)
       for key in output.getParaKeys('outputs'):
-        for value in self.outputDict['outputs'][key]:
+        for value in outputDict['outputs'][key]:
           output.updateOutputValue(str(key),value)
     else:
         self.raiseAnError(RuntimeError, 'ETImporter failed: Output type ' + str(output.type) + ' is not supported.')
