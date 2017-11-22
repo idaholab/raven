@@ -51,7 +51,7 @@ except ImportError:
   pass
 
 ## [ Add new class here ]
-from .ETimporter import ETImporter
+from .ETImporter import ETImporter
 
 ################################################################################
 ## Alternatively, to fully automate this file:

@@ -1,11 +1,14 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors/ETimporterPostProcessor</name>
+    <name>framework/PostProcessors.ETimporterPostProcessorMultipleET</name>
     <author>mandd</author>
     <created>2017-11-07</created>
     <classesTested>ETimporter</classesTested>
     <description>
-      Tests of the ETimporter post-processor with multiple ETs
+      Tests of the ETImporter post-processor: it read an event-tree (ET) from multiple .xml files
+      (eventTree1.xml and eventTree2.xml). Note that one single ET is provided but its structure is splitted into two
+      files, i.e., the sub ETs are linked.
+      and it imports the fullET structure into a PointSet. Note that the ETs need to be in an OpenPSA format.
     </description>
   </TestInfo>
   

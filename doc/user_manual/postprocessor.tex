@@ -1660,7 +1660,7 @@ The \xmlNode{collect-formula} are not considered since this node is used to conn
 Fault-Trees to the branch (i.e., fork) point.
 
 %
-\ppType{ETimporter}{ETimporter}
+\ppType{ETImporter}{ETImporter}
 %
 \begin{itemize}
   \item \xmlNode{fileFormat}, \xmlDesc{string, required field}, specifies the format of the file that contains the ET structure (supported format: OpenPSA).
@@ -1673,7 +1673,7 @@ Fault-Trees to the branch (i.e., fork) point.
  ...
   <Models>
     ...
-    <PostProcessor name="ETimporter" subType="ETimporter">
+    <PostProcessor name="ETImporter" subType="ETImporter">
       <fileFormat>OpenPSA</fileFormat>
     </PostProcessor>   
     ...
@@ -1683,7 +1683,7 @@ Fault-Trees to the branch (i.e., fork) point.
     ...
     <PostProcess name="import">
       <Input   class="Files"        type=""                >eventTreeTest</Input>
-      <Model   class="Models"       type="PostProcessor"   >ETimporter</Model>
+      <Model   class="Models"       type="PostProcessor"   >ETImporter</Model>
       <Output  class="DataObjects"  type="PointSet"        >ET_PS</Output>
     </PostProcess>
     ...
