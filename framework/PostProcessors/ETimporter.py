@@ -461,7 +461,7 @@ class ETImporter(PostProcessor):
     else:
         self.raiseAnError(RuntimeError, 'ETImporter failed: Output type ' + str(output.type) + ' is not supported.')
 
-  def findAllRecursive(self, node, element, result = None):
+  def findAllRecursive(self, node, element):
     """
       A function for recursively traversing a node in an elementTree to find
       all instances of a tag.
@@ -471,12 +471,9 @@ class ETImporter(PostProcessor):
       @ In, element, str, the string name of the tags to locate
       @ InOut, result, list, a list of the currently recovered results
     """
-    if result is None:
-      result = []
-    for item in node.getchildren():
-      if item.tag == element:
-        result.append(item)
-      self.findAllRecursive(item, element, result)
+    result=[]
+    for elem in node.iter(tag=element):
+      result.append(elem)
     return result
 
   def constructPointDFS(self, node, inputMap, stateMap, outputMap, X, rowCounter):
