@@ -106,7 +106,6 @@ class ETImporter(PostProcessor):
       @ In,  inputs, list, list of file objects
       @ Out, None
     """
-    #self.outputDict = self.runOpenPSA(inputs)
     return self.runOpenPSA(inputs)
 
   def runOpenPSA(self, inputs):
@@ -165,8 +164,8 @@ class ETImporter(PostProcessor):
            <event-tree name="Link-to-LP-Event-Tree"/>
          </define-sequence>
 
-      @ In,  None
-      @ Out, None
+      @ In,  listRoots, list, list containing the root of all ETs
+      @ Out, linkList, list, list containing the links among the ETs
     """
     linkList = []
     for root in listRoots:
@@ -187,8 +186,9 @@ class ETImporter(PostProcessor):
          ET1 ----> ET2 ----> ET3
           |------> ET4 ----> ET5
       Five ETs have been provided, ET1 is the only root ET while ET3 and ET5 are leaf ET.
-      @ In,  None
-      @ Out, None
+      @ In, listETs, list, list containing the ID of the ETs
+      @ In, connectivityMatrix, np.array, matrix containing connectivity mapping
+      @ Out, rootETID, xml.etree.Element, root of the main ET
     """
 
     # each element (i,j) of the matrix connectivityMatrix shows if there is a connection from ET_i to ET_j:
@@ -219,18 +219,21 @@ class ETImporter(PostProcessor):
 
     return rootETID
 
-
   def analyzeMultipleET(self,inputs,links,listRoots,listETs,rootETID):
     """
       This method executes the analysis of the ET if multiple ETs are provided. It merge all ETs onto the root ET
-      @ In,  input, list, list of file objects
+      @ In, input, list, list of file objects
+      @ In, links, list, list containing the links among the ETs
+      @ In, listRoots, list containing the root of all ETs
+      @ In, listETs, list, list containing the ID of the ETs
+      @ In, rootETID, xml.etree.Element, root of the main ET
       @ Out, xmlNode, xml.etree.Element, root of the assembled root ET
     """
     # 1. for all ET check if it contains SubBranches
     ETset = []
     for fileID in inputs:
-      EventTree = ET.parse(fileID.getPath() + fileID.getFilename())
-      root = self.checkSubBranches(EventTree.getroot())
+      eventTree = ET.parse(fileID.getPath() + fileID.getFilename())
+      root = self.checkSubBranches(eventTree.getroot())
       ETset.append(root)
 
     # 2. loop on the dependencies until it is empty
@@ -261,13 +264,13 @@ class ETImporter(PostProcessor):
 
     ## These outcomes will be encoded as integers starting at 0
     outcomes = []
-    ## These self.variables will be mapped into an array where there index
-    self.variables = []
+    ## These variables will be mapped into an array where there index
+    variables = []
     values = {}
     for node in root.findall('define-functional-event'):
       event = node.get('name')
       ## First, map the variable to an index by placing it in a list
-      self.variables.append(event)
+      variables.append(event)
       ## Also, initialize the dictionary of values for this variable so we can
       ## encode them as integers as well
       values[event] = []
@@ -288,25 +291,25 @@ class ETImporter(PostProcessor):
         outcomes.append(outcome)
     etMap = self.returnMap(outcomes, root.get('name'))
 
-    self.raiseADebug("ETImporter variables identified: " + str(format(self.variables)))
+    self.raiseADebug("ETImporter variables identified: " + str(format(variables)))
 
-    d = len(self.variables)
+    d = len(variables)
     n = len(self.findAllRecursive(root.find('initial-state'), 'sequence'))
-    self.pointSet = -1 * np.ones((n, d + 1))
+    pointSet = -1 * np.ones((n, d + 1))
     rowCounter = 0
     for node in root.find('initial-state'):
-      newRows = self.constructPointDFS(node, self.variables, values, etMap, self.pointSet, rowCounter)
+      newRows = self.constructPointDFS(node, variables, values, etMap, pointSet, rowCounter)
       rowCounter += newRows
     outputDict = {}
     outputDict['inputs'] = {}
     outputDict['outputs'] = {}
-    for index, var in enumerate(self.variables):
-      outputDict['inputs'][var] = self.pointSet[:, index]
-    outputDict['outputs']['sequence'] = self.pointSet[:, -1]
+    for index, var in enumerate(variables):
+      outputDict['inputs'][var] = pointSet[:, index]
+    outputDict['outputs']['sequence'] = pointSet[:, -1]
 
-    return outputDict
+    return outputDict, variables
 
-  def checkLinkedTree(self,root):
+  def checkLinkedTree(self, root):
     """
       This method checks if the provided root of the ET contains links to other ETs.
       This occurs if a <define-sequence> node contains a <event-tree> sub-node:
@@ -443,14 +446,13 @@ class ETImporter(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
+    outputDict, variables = evaluation[1]
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
-    if not set(output.getParaKeys('inputs')) == set(self.variables):
+    if not set(output.getParaKeys('inputs')) == set(variables):
       self.raiseAnError(RuntimeError, ' ETImporter: set of branching variables in the '
                                       'ET ( ' + str(output.getParaKeys('inputs')) + ' ) is not identical to the'
-                                      ' set of input variables specified in the PointSet (' + str(self.variables) +')')
-
-    outputDict = evaluation[1]
+                                      ' set of input variables specified in the PointSet (' + str(variables) +')')
     # Output to file
     if output.type in ['PointSet']:
       for key in output.getParaKeys('inputs'):
