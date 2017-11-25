@@ -75,7 +75,7 @@ class CrossValidation(PostProcessor):
                             ("n_iter",InputData.IntegerType),
                             ("test_size",InputData.StringType),
                             ("train_size",InputData.StringType),
-                            ("average",InputData.StringType)]:
+                            ("scores",InputData.StringListType)]:
       dataType = InputData.parameterInputFactory(name, contentType=inputType)
       sciKitLearnInput.addSub(dataType)
 
@@ -145,7 +145,7 @@ class CrossValidation(PostProcessor):
     cvNode = paramInput.findFirst('SciKitLearn')
     for child in cvNode.subparts:
       if child.getName() == 'scores':
-        for elem in child.value.split(','):
+        for elem in child.value:
           score = elem.strip().lower()
           if score in scoreList:
             self.cvScores.append(score)
