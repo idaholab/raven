@@ -40,14 +40,29 @@ from sklearn import neighbors
 from .DynamicEventTree import DynamicEventTree
 from .LimitSurfaceSearch import LimitSurfaceSearch
 from utils import utils
+from utils import InputData
 import utils.TreeStructure as ETS
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
+class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
   """
     This class is aimed to perform a supervised Adaptive Dynamic Event Tree sampling strategy
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(AdaptiveDynamicEventTree, cls).getInputSpecification()
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -484,12 +499,14 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         self._createRunningQueueBeginOne(self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys()))],branchedLevel, model,myInput)
     return DynamicEventTree.localGenerateInput(self,model,myInput)
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    #TODO remove using xmlNode
     #check if the hybrid DET has been activated, in case remove the nodes and treat them separaterly
     hybridNodes = xmlNode.findall("HybridSampler")
     if len(hybridNodes) != 0:
@@ -511,7 +528,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       if self.hybridDETstrategy == 2:
         self.raiseAnError(IOError, 'The sheaf of LSs for the Adaptive Hybrid DET is not yet available. Use type "LimitSurface"!')
 
-    DynamicEventTree.localInputAndChecks(self,xmlNode)
+    DynamicEventTree.localInputAndChecks(self,xmlNode, paramInput)
     # now we put back the nodes into the xmlNode to initialize the LimitSurfaceSearch with those variables as well
     for elm in hybridNodes:
       for child in elm:
@@ -520,7 +537,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         if child.tag in ['variable','Distribution']:
           self.epistemicVariables[child.attrib['name']] = None
     LimitSurfaceSearch._readMoreXMLbase(self,xmlNode)
-    LimitSurfaceSearch.localInputAndChecks(self,xmlNode)
+    LimitSurfaceSearch.localInputAndChecks(self,xmlNode, paramInput)
     if 'mode' in xmlNode.attrib.keys():
       if   xmlNode.attrib['mode'].lower() == 'online':
         self.detAdaptMode = 2
@@ -580,7 +597,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
             distDict[dist.name.strip()] = self.distDict[varName]
             varNode.append(ET.fromstring('<grid construction="custom" type="value">'+' '.join([str(elm) for elm in gridVector.values()[0][varName.replace('<distribution>','')]])+'</grid>'))
             xmlNode.find("HybridSampler").append(varNode)
-        self._localInputAndChecksHybrid(xmlNode)
+        #TODO, need to pass real paramInput
+        self._localInputAndChecksHybrid(xmlNode, paramInput=None)
         for hybridsampler in self.hybridStrategyToApply.values():
           hybridsampler._generateDistributions(distDict, {})
     DynamicEventTree.localInitialize(self)

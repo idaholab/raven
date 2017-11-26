@@ -27,6 +27,7 @@ warnings.simplefilter('default', DeprecationWarning)
 from .PostProcessor import PostProcessor
 from utils import utils
 from utils import xmlUtils
+from utils import InputData
 import Files
 import Runners
 #Internal Modules End--------------------------------------------------------------------------------
@@ -49,7 +50,15 @@ class RavenOutput(PostProcessor):
     ## This will replace the lines above
     inputSpecification = super(RavenOutput, cls).getInputSpecification()
 
-    ## TODO: Fill this in with the appropriate tags
+    inputSpecification.addSub(InputData.parameterInputFactory("dynamic", contentType=InputData.StringType))
+
+    FileType = InputData.parameterInputFactory("File")
+    FileType.addParam("name", InputData.StringType, required=True)
+    FileType.addParam("ID", InputData.FloatType)
+    OutputType = InputData.parameterInputFactory("output", contentType=InputData.StringType)
+    OutputType.addParam("name", InputData.StringType, required=True)
+    FileType.addSub(OutputType)
+    inputSpecification.addSub(FileType)
 
     return inputSpecification
 
@@ -101,55 +110,59 @@ class RavenOutput(PostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    # paramInput = RavenOutput.getInputSpecification()()
-    # paramInput.parseNode(xmlNode)
+    paramInput = self.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
 
     #check if in dynamic mode; default is False
-    dynamicNode = xmlNode.find('dynamic')
+    dynamicNode = paramInput.findFirst('dynamic')
     if dynamicNode is not None:
       #could specify as true/false or just have the node present
-      text = dynamicNode.text
+      text = dynamicNode.value
       if text is not None:
         if text not in utils.stringsThatMeanFalse():
           self.dynamic = True
       else:
         self.dynamic = True
     numberOfSources = 0
-    for child in xmlNode:
+    for child in paramInput.subparts:
       #if dynamic, accept a single file as <File ID="1" name="myOut.xml">
       #if not dynamic, accept a list of files
-      if child.tag == 'File':
+      if child.getName() == 'File':
         numberOfSources += 1
-        if 'name' not in child.attrib.keys():
-          self.raiseAnError(IOError,'Each "File" must have an associated "name"; missing for',child.tag,child.text)
+        if 'name' not in child.parameterValues:
+          self.raiseAnError(IOError,'Each "File" must have an associated "name"; missing for',child.getName(),child.value)
         #make sure you provide an ID and a file name
-        if 'ID' not in child.attrib.keys():
+        if 'ID' not in child.parameterValues:
           id = 0
           while id in self.files.keys():
             id += 1
-          self.raiseAWarning(IOError,'Each "File" entry must have an associated "ID"; missing for',child.tag,child.attrib['name'],'so ID is set to',id)
+          self.raiseAWarning(IOError,'Each "File" entry must have an associated "ID"; missing for',child.getName(),child.parameterValues['name'],'so ID is set to',id)
         else:
           #assure ID is a number, since it's going into a data object
-          id = child.attrib['ID']
-          try:
-            id = float(id)
-          except ValueError:
-            self.raiseAnError(IOError,'ID for "'+child.text+'" is not a valid number:',id)
+          id = child.parameterValues['ID']
           #if already used, raise an error
           if id in self.files.keys():
-            self.raiseAnError(IOError,'Multiple File nodes have the same ID:',child.attrib('ID'))
+            self.raiseAnError(IOError,'Multiple File nodes have the same ID:',id)
         #store id,filename pair
-        self.files[id] = {'name':child.attrib['name'].strip(), 'fileObject':None, 'paths':{}}
+        self.files[id] = {'name':child.parameterValues['name'].strip(), 'fileObject':None, 'paths':{}}
         #user provides loading information as <output name="variablename">ans|pearson|x</output>
-        for cchild in child:
-          if cchild.tag == 'output':
+        for cchild in child.subparts:
+          if cchild.getName() == 'output':
             #make sure you provide a label for this data array
-            if 'name' not in cchild.attrib.keys():
+            if 'name' not in cchild.parameterValues:
               self.raiseAnError(IOError,'Must specify a "name" for each "output" block!  Missing for:',cchild.text)
-            varName = cchild.attrib['name'].strip()
+            varName = cchild.parameterValues['name'].strip()
             if varName in self.files[id]['paths'].keys():
               self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],varName)
-            self.files[id]['paths'][varName] = cchild.text.strip()
+            self.files[id]['paths'][varName] = cchild.value.strip()
     #if dynamic, only one File can be specified currently; to fix this, how do you handle different-lengthed times in same data object?
     if self.dynamic and numberOfSources > 1:
       self.raiseAnError(IOError,'For Dynamic reading, only one "File" node can be specified!  Got',numberOfSources,'nodes.')

@@ -191,7 +191,14 @@ class Metric(PostProcessor):
     """
     paramInput = Metric.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
 
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     for child in paramInput.subparts:
       if child.getName() == 'Metric':
         if 'type' not in child.parameterValues.keys() or 'class' not in child.parameterValues.keys():

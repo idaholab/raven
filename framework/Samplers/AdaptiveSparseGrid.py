@@ -42,6 +42,7 @@ else:
 from .SparseGridCollocation import SparseGridCollocation
 from .AdaptiveSampler import AdaptiveSampler
 from utils import utils
+from utils import InputData
 import Quadratures
 import IndexSets
 import MessageHandler
@@ -51,6 +52,43 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
   """
    Adaptive Sparse Grid Collocation sampling strategy
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(AdaptiveSparseGrid, cls).getInputSpecification()
+
+    convergenceInput = InputData.parameterInputFactory("Convergence", contentType=InputData.StringType)
+    convergenceInput.addParam("target", InputData.StringType, True)
+    convergenceInput.addParam("maxPolyOrder", InputData.IntegerType)
+    convergenceInput.addParam("persistence", InputData.IntegerType)
+
+    inputSpecification.addSub(convergenceInput)
+
+    convergenceStudyInput = InputData.parameterInputFactory("convergenceStudy")
+    convergenceStudyInput.addSub(InputData.parameterInputFactory("runStatePoints", contentType=InputData.StringType))
+    convergenceStudyInput.addSub(InputData.parameterInputFactory("baseFilename", contentType=InputData.StringType))
+    convergenceStudyInput.addSub(InputData.parameterInputFactory("pickle"))
+
+    inputSpecification.addSub(convergenceStudyInput)
+
+    inputSpecification.addSub(InputData.parameterInputFactory("logFile"))
+    inputSpecification.addSub(InputData.parameterInputFactory("maxRuns"))
+
+    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputData.StringType)
+    targetEvaluationInput.addParam("type", InputData.StringType)
+    targetEvaluationInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(targetEvaluationInput)
+
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -95,13 +133,15 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
 
     self.addAssemblerObject('TargetEvaluation','1')
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    SparseGridCollocation.localInputAndChecks(self,xmlNode)
+    #TODO remove using xmlNode
+    SparseGridCollocation.localInputAndChecks(self,xmlNode, paramInput)
     if 'Convergence' not in list(c.tag for c in xmlNode):
       self.raiseAnError(IOError,'Convergence node not found in input!')
     convnode  = xmlNode.find('Convergence')
