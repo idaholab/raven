@@ -121,6 +121,24 @@ class FloatType(InputType):
 
 FloatType.createClass("float","xsd:double")
 
+class StringListType(InputType):
+  """
+    A type for string lists "1, abc, 3" -> ["1","abc","3"]
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a string list.
+      @ In, value, string, the value to convert
+      @ Out, convert, list, the converted value
+    """
+    return [x.strip() for x in value.split(",")]
+
+#Note, XSD's list type is split by spaces, not commas, so using xsd:string
+StringListType.createClass("stringtype","xsd:string")
+
+
 class EnumBaseType(InputType):
   """
     A type that allows a set list of strings
@@ -277,6 +295,30 @@ class ParameterInput(object):
     elif quantity != Quantity.zero_to_infinity:
       print("ERROR only zero to infinity is supported if Order==False ",
             sub.getName()," in ",cls.getName())
+
+  @classmethod
+  def popSub(cls, subname):
+    """
+      Removes a subnode from this class, and returns it.
+      @ In, subname, string, the name of the subnode to remove
+      @ Out, popedSub, subclass of ParameterInput, the removed subnode, or None if not found.
+    """
+    popedSub = None
+    for sub in cls.subs:
+      if sub.getName() == subname:
+        popedSub = sub
+    if popedSub is not None:
+      cls.subs.remove(popedSub)
+    else:
+      return None
+    if cls.subOrder is not None:
+      toRemoveList = []
+      for (sub,quantity) in cls.subOrder:
+        if popedSub == sub:
+          toRemoveList.append((sub,quantity))
+      for toRemove in toRemoveList:
+        cls.subOrder.remove(toRemove)
+    return popedSub
 
   @classmethod
   def setContentType(cls, contentType):

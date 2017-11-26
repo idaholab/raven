@@ -36,6 +36,7 @@ from functools import reduce
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
 from utils import utils
+from utils import InputData
 import GridEntities
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -43,6 +44,31 @@ class Grid(ForwardSampler):
   """
     Samples the model on a given (by input) set of points
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Grid, cls).getInputSpecification()
+
+    oldSub = inputSpecification.popSub("variable")
+    newVariableInput = InputData.parameterInputFactory("variable", baseNode=oldSub)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
+    gridInput.addParam("type", InputData.StringType)
+    gridInput.addParam("construction", InputData.StringType)
+    gridInput.addParam("steps", InputData.IntegerType)
+
+    newVariableInput.addSub(gridInput)
+
+    inputSpecification.addSub(newVariableInput)
+
+    return inputSpecification
+
   def __init__(self):
     """
     Default Constructor that will initialize member variables with reasonable
@@ -58,13 +84,15 @@ class Grid(ForwardSampler):
     self.gridCoordinate       = []           # current grid coordinates
     self.gridEntity           = GridEntities.returnInstance('GridEntity',self)
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    if 'limit' in xmlNode.attrib.keys():
+    #TODO remove using xmlNode
+    if 'limit' in paramInput.parameterValues:
       self.raiseAnError(IOError,'limit is not used in Grid sampler')
     self.limit = 1
     self.gridEntity._readMoreXml(xmlNode,dimensionTags=["variable","Distribution"],messageHandler=self.messageHandler, dimTagsPrefix={"Distribution":"<distribution>"})

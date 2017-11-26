@@ -165,24 +165,6 @@ class Distribution(BaseType):
     self._localSetState(pdict)
     self.initializeDistribution()
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some variables based on the inputs received.
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
-      @ Out, None
-    """
-    if xmlNode.find('upperBound') is not None:
-      self.upperBound = float(xmlNode.find('upperBound').text)
-      self.upperBoundUsed = True
-    if xmlNode.find('lowerBound') is not None:
-      self.lowerBound = float(xmlNode.find('lowerBound').text)
-      self.lowerBoundUsed = True
-    if xmlNode.find('adjustment') is not None:
-      self.__adjustment = xmlNode.find('adjustment').text
-    else:
-      self.__adjustment = 'scaling'
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -523,16 +505,6 @@ class Uniform(BoostDistribution):
     retDict['xMax'] = self.upperBound
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Uniform.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -652,16 +624,6 @@ class Normal(BoostDistribution):
     retDict['mu'] = self.mean
     retDict['sigma'] = self.sigma
     return retDict
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Normal.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -818,16 +780,6 @@ class Gamma(BoostDistribution):
     retDict['theta'] = 1.0/self.beta
     retDict['low'] = self.low
     return retDict
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Gamma.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -988,16 +940,6 @@ class Beta(BoostDistribution):
     retDict['scale'] = self.high-self.low
     retDict['low'] = self.low
     return retDict
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Beta.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -1169,16 +1111,6 @@ class Triangular(BoostDistribution):
     retDict['upperBound'] = self.max
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Triangular.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -1290,16 +1222,6 @@ class Poisson(BoostDistribution):
     retDict['mu'] = self.mu
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Poisson.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -1397,16 +1319,6 @@ class Binomial(BoostDistribution):
     retDict['n'] = self.n
     retDict['p'] = self.p
     return retDict
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Binomial.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -1507,16 +1419,6 @@ class Bernoulli(BoostDistribution):
     retDict['p'] = self.p
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Bernoulli.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -1610,16 +1512,6 @@ class Geometric(BoostDistribution):
     retDict['p'] = self.p
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Geometric.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -1696,18 +1588,6 @@ class Categorical(Distribution):
     self.type           = 'Categorical'
     self.dimensionality = 1
     self.disttype       = 'Discrete'
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Function that retrieves data to initialize the categorical distribution from the xmlNode
-      @ In, None
-      @ Out, None
-    """
-    #Distribution._readMoreXML(self, xmlNode)
-
-    paramInput = Categorical.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -1862,16 +1742,6 @@ class Logistic(BoostDistribution):
     retDict['location'] = self.location
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Logistic.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -1982,16 +1852,6 @@ class Laplace(BoostDistribution):
     retDict['location'] = self.location
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Laplace.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -2098,16 +1958,6 @@ class Exponential(BoostDistribution):
     retDict['lambda'] = self.lambdaVar
     retDict['low'] = self.low
     return retDict
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Exponential.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -2256,16 +2106,6 @@ class LogNormal(BoostDistribution):
     retDict['low'] = self.low
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = LogNormal.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -2389,16 +2229,6 @@ class Weibull(BoostDistribution):
     retDict['low'] = self.low
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Weibull.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -2503,16 +2333,6 @@ class Custom1D(Distribution):
     self.variableID      = None
     self.dimensionality  = 1
     self.disttype        = 'Continuous'
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the Custom1D distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of Custom1D node.
-      @ Out, None
-    """
-    paramInput = Custom1D.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -2667,16 +2487,6 @@ class NDimensionalDistributions(Distribution):
       self.workingDir = workingDir.value
 
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = NDimensionalDistributions.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def getInitParams(self):
     """
       Function to get the initial values of the input parameters that belong to
@@ -2768,16 +2578,6 @@ class NDInverseWeight(NDimensionalDistributions):
     NDimensionalDistributions.__init__(self)
     self.p  = None
     self.type = 'NDInverseWeight'
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = NDInverseWeight.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -2971,16 +2771,6 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
     NDimensionalDistributions.__init__(self)
     self.type = 'NDCartesianSpline'
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = NDCartesianSpline.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -3187,17 +2977,6 @@ class MultivariateNormal(NDimensionalDistributions):
     self.dimension = None        # the dimension of given problem
     self.rank = None             # the effective rank for the PCA analysis
     self.transformation = False       # flag for input reduction analysis
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    #NDimensionalDistributions._readMoreXML(self, xmlNode)
-    paramInput = MultivariateNormal.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """

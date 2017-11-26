@@ -5,7 +5,7 @@
     <sub_3>23</sub_3>
     <sub_4>3.09e13</sub_4>
   </inner>
-  <inner required_string="bye" />
+  <inner required_string="bye" list_of_strings="1, abc , 3"/>
   <ordered>
     <sub_2>sub_value_2</sub_2>
     <sub_3>24</sub_3>

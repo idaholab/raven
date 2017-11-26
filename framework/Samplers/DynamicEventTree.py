@@ -43,6 +43,7 @@ from .MonteCarlo import MonteCarlo
 from .Stratified import Stratified
 from .Sampler import Sampler
 from utils import utils
+from utils import InputData
 import utils.TreeStructure as ETS
 #Internal Modules End-------------------------------------------------------------------------------
 
@@ -50,6 +51,45 @@ class DynamicEventTree(Grid):
   """
   DYNAMIC EVENT TREE Sampler (DET)
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(DynamicEventTree, cls).getInputSpecification()
+
+    inputSpecification.addParam("printEndXmlSummary", InputData.StringType)
+    inputSpecification.addParam("maxSimulationType", InputData.FloatType)
+    inputSpecification.addParam("removeXmlBranchInfo", InputData.StringType)
+
+    oldSub = inputSpecification.popSub("Distribution")
+    newDistributionInput = InputData.parameterInputFactory("Distribution", baseNode=oldSub)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
+    gridInput.addParam("type", InputData.StringType)
+    gridInput.addParam("construction", InputData.StringType)
+    gridInput.addParam("steps", InputData.IntegerType)
+
+    newDistributionInput.addSub(gridInput)
+    inputSpecification.addSub(newDistributionInput)
+
+    #Strict mode off because basically this allows things to be passed to
+    # sub Samplers, which will be checked later.
+    hybridSamplerInput = InputData.parameterInputFactory("HybridSampler", strictMode=False)
+    hybridSamplerInput.addParam("type", InputData.StringType)
+
+    for nodeName in ['variable','Distribution']:
+      nodeInput = InputData.parameterInputFactory(nodeName, strictMode=False)
+      nodeInput.addParam("name", InputData.StringType)
+      hybridSamplerInput.addSub(nodeInput)
+    inputSpecification.addSub(hybridSamplerInput)
+
+    return inputSpecification
+
   def __init__(self):
     """
     Default Constructor that will initialize member variables with reasonable
@@ -707,23 +747,26 @@ class DynamicEventTree(Grid):
     for hybridsampler in self.hybridStrategyToApply.values():
       hybridsampler._generateDistributions(availableDist,availableFunc)
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    self._localInputAndChecksDET(xmlNode)
-    self._localInputAndChecksHybrid(xmlNode)
+    #TODO remove using xmlNode
+    self._localInputAndChecksDET(xmlNode, paramInput)
+    self._localInputAndChecksHybrid(xmlNode, paramInput)
 
-  def _localInputAndChecksDET(self,xmlNode):
+  def _localInputAndChecksDET(self,xmlNode, paramInput):
     """
       Class specific inputs will be read here and checked for validity.
       This method reads the standard DET portion only (no hybrid)
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    Grid.localInputAndChecks(self,xmlNode)
+    Grid.localInputAndChecks(self,xmlNode, paramInput)
     if 'printEndXmlSummary'  in xmlNode.attrib.keys():
       self.printEndXmlSummary  = xmlNode.attrib['printEndXmlSummary'].lower()  in utils.stringsThatMeanTrue()
     if 'removeXmlBranchInfo' in xmlNode.attrib.keys():
@@ -790,11 +833,12 @@ class DynamicEventTree(Grid):
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)
 
-  def _localInputAndChecksHybrid(self,xmlNode):
+  def _localInputAndChecksHybrid(self,xmlNode, paramInput):
     """
       Class specific inputs will be read here and checked for validity.
       This method reads the hybrid det portion only
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
     for child in xmlNode:
@@ -811,7 +855,10 @@ class DynamicEventTree(Grid):
         # give the hybridsampler sampler the message handler
         self.hybridStrategyToApply[child.attrib['type']].setMessageHandler(self.messageHandler)
         # make the hybridsampler sampler read  its own xml block
-        self.hybridStrategyToApply[child.attrib['type']]._readMoreXML(child)
+        childCopy = copy.deepcopy(child)
+        childCopy.tag = child.attrib['type']
+        childCopy.attrib.pop('type')
+        self.hybridStrategyToApply[child.attrib['type']]._readMoreXML(childCopy)
         # store the variables that represent the epistemic space
         self.epistemicVariables.update(dict.fromkeys(self.hybridStrategyToApply[child.attrib['type']].toBeSampled.keys(),{}))
 
