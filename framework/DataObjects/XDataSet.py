@@ -29,7 +29,11 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from XDataObject import DataObject
+# relative import for RAVEN, local import for unit tests
+try:
+  from .XDataObject import DataObject
+except ImportError:
+  from XDataObject import DataObject
 from Files import StaticXMLOutput
 from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 
