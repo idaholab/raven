@@ -87,8 +87,9 @@ class Dummy(Model):
       if dataIN.type not in self.admittedData:
         self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
     if type(dataIN)!=dict:
-      localInput = dict.fromkeys(dataIN.getParaKeys('inputs' )+dataIN.getParaKeys('outputs' ),None)
-      if not dataIN.isItEmpty():
+      #localInput = dict.fromkeys(dataIN.getParaKeys('inputs' )+dataIN.getParaKeys('outputs' ),None)
+      localInput = dict.fromkeys(dataIN.getVars('input')+dataIN.getVars('output'),None)
+      if not len(dataIN) == 0: #.isItEmpty():
         if dataIN.type == 'PointSet':
           for entries in dataIN.getParaKeys('inputs' ):
             localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[0 if full else -1:])
@@ -114,7 +115,7 @@ class Dummy(Model):
               localInput[entries] = [realization['outputs'][entries]]
 
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
-      if 'OutputPlaceHolder' in dataIN.getParaKeys('outputs'):
+      if 'OutputPlaceHolder' in dataIN.getVars('output'):
         localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
     else:
       localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
@@ -203,13 +204,25 @@ class Dummy(Model):
     #prefix is not generally useful for dummy-related models, so we remove it but store it
     if 'prefix' in exportDict.keys():
       prefix = exportDict.pop('prefix')
-    #check for name usage, depends on where it comes from
     if 'inputSpaceParams' in exportDict.keys():
       inKey = 'inputSpaceParams'
       outKey = 'outputSpaceParams'
     else:
       inKey = 'inputs'
       outKey = 'outputs'
+
+    rlz = {}
+    rlz.update(exportDict[inKey])
+    rlz.update(exportDict[outKey])
+    rlz.update(exportDict['metadata'])
+    for k,v in rlz.items():
+      rlz[k] = np.atleast_1d(v)
+    output.addRealization(rlz)
+    return
+
+
+    ##### OLD ######
+    #check for name usage, depends on where it comes from
     if not set(output.getParaKeys('inputs') + output.getParaKeys('outputs')).issubset(set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))):
       missingParameters = set(output.getParaKeys('inputs') + output.getParaKeys('outputs')) - set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))
       self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")

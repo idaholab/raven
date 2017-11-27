@@ -801,30 +801,6 @@ class DataSet(DataObject):
     for key,val in self._data.attrs.items():
       self._meta[key] = pk.loads(val.encode('utf-8'))
 
-  def _getRequestedElements(self,options):
-    """
-      Obtains a list of the elements to be written, based on defaults and options[what]
-      @ In, options, dict, general list of options for writing output files
-      @ Out, keep, list(str), list of variables that will be written to file
-    """
-    if 'what' in options.keys():
-      elements = options['what'].split(',')
-      keep = []
-      for entry in elements:
-        small = entry.strip().lower()
-        if small == 'input':
-          keep += self._inputs
-          continue
-        elif small == 'output':
-          keep += self._outputs
-          continue
-        else:
-          keep.append(entry.split('|')[-1].strip())
-    else:
-      # TODO need the sampleTag meta to load histories # BY DEFAULT only keep inputs, outputs; if specifically requested, keep metadata by selection
-      keep = self._inputs + self._outputs
-    return keep
-
   def _getRealizationFromCollectorByIndex(self,index):
     """
       Obtains a realization from the collector storage using the provided index.
@@ -905,6 +881,30 @@ class DataSet(DataObject):
     except IndexError:
       return len(self),None
     return idx,self._getRealizationFromDataByIndex(idx)
+
+  def _getRequestedElements(self,options):
+    """
+      Obtains a list of the elements to be written, based on defaults and options[what]
+      @ In, options, dict, general list of options for writing output files
+      @ Out, keep, list(str), list of variables that will be written to file
+    """
+    if 'what' in options.keys():
+      elements = options['what'].split(',')
+      keep = []
+      for entry in elements:
+        small = entry.strip().lower()
+        if small == 'input':
+          keep += self._inputs
+          continue
+        elif small == 'output':
+          keep += self._outputs
+          continue
+        else:
+          keep.append(entry.split('|')[-1].strip())
+    else:
+      # TODO need the sampleTag meta to load histories # BY DEFAULT only keep inputs, outputs; if specifically requested, keep metadata by selection
+      keep = self._inputs + self._outputs
+    return keep
 
   def _getVariableIndex(self,var):
     """
