@@ -6,7 +6,7 @@
     <created>2013-10-24</created>
     <classesTested>Models.ExternalModel</classesTested>
     <description>
-       This test is aimed to check the functionality of RAVEN to use ExternalModel entities.     
+       This test is aimed to check the functionality of RAVEN to use ExternalModel entities.
     </description>
     <revisions>
       <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
@@ -132,7 +132,7 @@
     </PointSet>
     <HistorySet name="testPrintHistorySet">
       <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
+      <Output>x,y,z</Output>
     </HistorySet>
   </DataObjects>
 

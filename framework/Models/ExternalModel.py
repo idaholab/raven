@@ -251,10 +251,11 @@ class ExternalModel(Dummy):
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     result,instSelf = self._externalRun(inRun,Input[1],) # TODO entry [1] is the external model object; do I need it?
-    result['RAVEN_instantiated_self'] = instSelf
+    #result['RAVEN_instantiated_self'] = instSelf
     rlz = {}
     rlz.update(inRun)
     rlz.update(result)
+    print('DEBUGG extmod evaluated:',rlz.keys())
     # OLD returnValue = (inRun,self._externalRun(inRun,Input[1],))
     return rlz
 
@@ -271,17 +272,18 @@ class ExternalModel(Dummy):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"No available Output to collect")
 
-    instanciatedSelf = evaluation.pop('RAVEN_instantiated_self')
+    print('DEBUGG extmod collectOut:',evaluation.keys())
+    #instanciatedSelf = evaluation['RAVEN_instantiated_self']
     # OLD outcomes         = evaluatedOutput[0]
 
     # TODO move this check to the data object instead.
     if output.type in ['HistorySet']:
       outputSize = -1
-      for key in output.getParaKeys('outputs'):
-        if key in instanciatedSelf.modelVariableType.keys():
-          if outputSize == -1:
-            outputSize = len(np.atleast_1d(evaluation[key]))
-          if not utils.sizeMatch(evaluation[key],outputSize):
-            self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(len(np.atleast_1d(outcomes[key]))))
+      for key in output.getVars('output'):
+        # if key in instanciatedSelf.modelVariableType.keys(): #TODO why would it not be in this dict?
+        if outputSize == -1:
+          outputSize = len(np.atleast_1d(evaluation[key]))
+        if not utils.sizeMatch(evaluation[key],outputSize):
+          self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(len(np.atleast_1d(outcomes[key]))))
 
     Dummy.collectOutput(self, finishedJob, output, options)

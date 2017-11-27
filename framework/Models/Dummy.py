@@ -189,10 +189,19 @@ class Dummy(Model):
       @ Out, None
     """
     # TODO START can be abstracted to base class
+    # TODO apparently sometimes "options" can include 'exportDict'; what do we do for this?
+    # TODO consistency with old HDF5
+    if output.type == 'HDF5':
+      exportDict = self.createExportDictionaryFromFinishedJob(finishedJob)
+      self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
+
     result = finishedJob.getEvaluation()
     if isinstance(result,Runners.Error):
       self.raiseAnError(AttributeError,'No available output to collect!')
     self._replaceVariablesNamesWithAliasSystem(result)
+    print('DEBUGG dummy collectout adding rlz:')
+    for k,v in result.items():
+      print('  ',k,v)
     output.addRealization(result)
     return
     # END can be abstracted to base class
