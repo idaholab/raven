@@ -590,6 +590,26 @@ class Code(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(AttributeError,"No available Output to collect")
+
+    exportDict = evaluation[1]
+
+    self._replaceVariablesNamesWithAliasSystem(exportDict, 'input',True)
+
+    if output.type == 'HDF5':
+      self.raiseAnError(IOError, "Not implemented yet")
+    print(exportDict)
+    output.addRealization(exportDict)
+
+    ##TODO How to handle restart?
+    ##TODO How to handle collectOutputFromDataObject
+
+    return
+
+
+    ##### OLD ####
     ## First, if the output is a data object, let's see what inputs it requests
     if options is None:
         options = {}
