@@ -969,7 +969,7 @@ class DataSet(DataObject):
       @ Out, rlz, dict, {var:val} modified
     """
     for var, val in rlz.items():
-      if isinstance(val,np.ndarray)):
+      if isinstance(val,np.ndarray):
         self.raiseAnError(NotImplementedError,'Variable "{}" has no dimensions but has multiple values!  Not implemented for DataSet yet.'.format(var))
     return rlz
 
