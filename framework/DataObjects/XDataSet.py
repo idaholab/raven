@@ -249,16 +249,22 @@ class DataSet(DataObject):
     else:
       indata
 
-  def getDimensions(self,var):
+  def getDimensions(self,var=None):
     """
       Provides the independent dimensions that this variable depends on.
       To get all dimensions at once, use self.indexes property.
-      @ In, var, str, name of variable (if None, give all)
+      @ In, var, str, optional, name of variable (or None, or 'input', or 'output')
       @ Out, dims, dict, {name:values} of independent dimensions
     """
     # TODO add unit tests
     # TODO allow several variables requested at once?
-    dims = list(key for key in self._pivotParams.keys() if var in self._pivotParams[key])
+    if var is None:
+      var = self._allvars
+    elif var in ['input','output']:
+      var = self.getVars(var)
+    else:
+      var = [var]
+    dims = dict((v,list(key for key in self._pivotParams.keys() if v in self._pivotParams[key])) for v in var)
     return dims
 
   def getMeta(self,keys=None,pointwise=False,general=False):
@@ -441,6 +447,8 @@ class DataSet(DataObject):
       self._fromNetCDF(fname,**kwargs)
     elif style == 'csv':
       self._fromCSV(fname,**kwargs)
+    elif style == 'dict':
+      self._fromDict(fname,**kwargs)
     # TODO dask
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
@@ -708,6 +716,7 @@ class DataSet(DataObject):
       dims = self.getDimensions(var)
       ## change dimensionless to floats -> TODO use operator to collapse!
       if dims in [[self.sampleTag], []]:
+        print('DEBUGG FORMATTING',var,len(val),val)
         if len(val) == 1:
           rlz[var] = val[0]
       ## reshape multidimensional entries into dataarrays
@@ -810,6 +819,17 @@ class DataSet(DataObject):
         arrays[var] = self._collapseNDtoDataArray(data,var,labels=samples)
     # TODO this is common with "asDataset()", so make a function for this!
     self._convertArrayListToDataset(arrays,action='replace')
+
+  def _fromDict(self,source,**kwargs):
+    """
+      Loads data from a dictionary with variables as keys and values as np.arrays of realization values
+      @ In, source, dict, as {var:values} with types {str:np.array}
+      @ In, kwargs, dict, optional, additional arguments (currently unused)
+      @ Out, None
+    """
+    assert(self._data is None)
+    assert(self._collector is None)
+
 
   def _fromNetCDF(self,fname, **kwargs):
     """
@@ -969,7 +989,7 @@ class DataSet(DataObject):
       @ Out, rlz, dict, {var:val} modified
     """
     for var, val in rlz.items():
-      if isinstance(val,np.ndarray)):
+      if isinstance(val,np.ndarray):
         self.raiseAnError(NotImplementedError,'Variable "{}" has no dimensions but has multiple values!  Not implemented for DataSet yet.'.format(var))
     return rlz
 

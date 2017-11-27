@@ -394,6 +394,12 @@ checkArray('Dataset first collapse "y" 2',data._data['y'].values[2],y[2],float)
 checkArray('Dataset first collapse "prefix"',data._data['prefix'].values,['first','second','third'],str)
 # TODO test "getting" data from _data instead of _collector
 
+# get dimensions
+print('None:',data.getDimensions())
+print('c   :',data.getDimensions('c'))
+print('inp :',data.getDimensions('input'))
+print('out :',data.getDimensions('output'))
+import sys;sys.exit()
 ######################################
 #     SAMPLING AFTER COLLAPSING      #
 ######################################
