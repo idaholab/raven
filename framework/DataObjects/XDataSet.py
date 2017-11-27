@@ -152,7 +152,6 @@ class DataSet(DataObject):
         self._metavars = list(unrecognized)
         self._allvars += self._metavars
     # check and order data to be stored
-    print('DEBUGG dset addreal rlz:',rlz.keys())
     try:
       newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
     except KeyError as e:
