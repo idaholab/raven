@@ -42,6 +42,56 @@ allow from a list of strings.
 Example:
 YesOrNoType = InputData.makeEnumType("YesOrNo","YesOrNoType",["yes","no"])
 
+Where to put code:
+
+The standard method for defining these is to add a class method called
+getInputSpecification
+
+Example:
+class Something(SomeBase):
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=InputData.RavenBase)
+    inputSpecification.addParam("name", InputData.StringType, True)
+    return inputSpecification
+
+For classes where they should inherit from the base class, they can get the
+parent input specification, and use that as a start.
+
+Example:
+  @classmethod
+  def getInputSpecification(cls):
+    inputSpecification = super(ComparisonStatistics, cls).getInputSpecification()
+    inputSpecification.addParam("something", InputData.IntegerType)
+    return inputSpecification
 
 
 
+Reading data from XML files
+
+First, create a class instance.  Then use the parseNode function on
+the XML node.  After that, the children can be checked with the
+subparts variable, or parameters can be checked with the
+parameterValues variable.  The main data will be stored in the value
+variable.  There are also functions getName() that gets the subnode's
+name and findFirst that finds the first subnode with the given name.
+
+Example XML:
+<NDCartesianSpline>
+   <dataFilename type="PDF">2DgaussianCartesianPDF.txt</dataFilename>
+</NDCartesianSpline>
+
+Example Reading:
+paramInput = NDCartesianSpline.getInputSpecification()()
+paramInput.parseNode(xmlNode)
+dataFilename = paramInput.findFirst('dataFilename')
+if dataFilename != None:
+  self.dataFilename = os.path.join(self.workingDir,dataFilename.value)
+  functionType = dataFilename.parameterValues['type']

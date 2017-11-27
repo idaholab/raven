@@ -143,6 +143,14 @@ class ImportanceRank(PostProcessor):
     """
     paramInput = ImportanceRank.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     for child in paramInput.subparts:
       if child.getName() == 'what':
         what = child.value.strip()

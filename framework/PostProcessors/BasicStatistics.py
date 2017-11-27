@@ -32,6 +32,7 @@ import six
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
+from utils import InputData
 import Files
 import Runners
 #Internal Modules End-----------------------------------------------------------
@@ -61,6 +62,23 @@ class BasicStatistics(PostProcessor):
     BasicStatistics filter class. It computes all the most popular statistics
   """
 
+  scalarVals = ['expectedValue',
+                'minimum',
+                'maximum',
+                'median',
+                'variance',
+                'sigma',
+                'percentile',
+                'variationCoefficient',
+                'skewness',
+                'kurtosis',
+                'samples']
+  vectorVals = ['sensitivity',
+                'covariance',
+                'pearson',
+                'NormalizedSensitivity',
+                'VarianceDependentSensitivity']
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -71,7 +89,39 @@ class BasicStatistics(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(RavenOutput, cls).getInputSpecification()
+    inputSpecification = super(BasicStatistics, cls).getInputSpecification()
+
+    for scalar in cls.scalarVals:
+      scalarSpecification = InputData.parameterInputFactory(scalar, contentType=InputData.StringListType)
+      if scalar == 'percentile':
+        #percent is a string type because otherwise we can't tell 95.0 from 95
+        # which matters because the number is used in output.
+        scalarSpecification.addParam("percent", InputData.StringType)
+      inputSpecification.addSub(scalarSpecification)
+
+    for vector in cls.vectorVals:
+      vectorSpecification = InputData.parameterInputFactory(vector)
+      features = InputData.parameterInputFactory('features',
+                                contentType=InputData.StringListType)
+      vectorSpecification.addSub(features)
+      targets = InputData.parameterInputFactory('targets',
+                                contentType=InputData.StringListType)
+      vectorSpecification.addSub(targets)
+      inputSpecification.addSub(vectorSpecification)
+
+    allInput = InputData.parameterInputFactory('all', contentType=InputData.StringType)
+    allInput.addSub(features)
+    allInput.addSub(targets)
+    inputSpecification.addSub(allInput)
+
+    pivotParameterInput = InputData.parameterInputFactory('pivotParameter', contentType=InputData.StringType)
+    inputSpecification.addSub(pivotParameterInput)
+
+    methodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputData.StringType)
+    inputSpecification.addSub(methodsToRunInput)
+
+    biasedInput = InputData.parameterInputFactory("biased", contentType=InputData.StringType) #bool
+    inputSpecification.addSub(biasedInput)
 
     ## TODO: Fill this in with the appropriate tags
 
@@ -80,8 +130,6 @@ class BasicStatistics(PostProcessor):
     # inputSpecification.addSub(BiasedInput)
     # ParameterInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
     # inputSpecification.addSub(ParameterInput)
-    # MethodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputData.StringType)
-    # inputSpecification.addSub(MethodsToRunInput)
     # FunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
     # inputSpecification.addSub(FunctionInput)
     # PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
@@ -97,22 +145,6 @@ class BasicStatistics(PostProcessor):
     """
     PostProcessor.__init__(self, messageHandler)
     self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.scalarVals = ['expectedValue',
-                       'minimum',
-                       'maximum',
-                       'median',
-                       'variance',
-                       'sigma',
-                       'percentile',
-                       'variationCoefficient',
-                       'skewness',
-                       'kurtosis',
-                       'samples']
-    self.vectorVals = ['sensitivity',
-                       'covariance',
-                       'pearson',
-                       'NormalizedSensitivity',
-                       'VarianceDependentSensitivity']
     self.acceptedCalcParam = self.scalarVals + self.vectorVals
     self.what = self.acceptedCalcParam  # what needs to be computed... default...all
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
@@ -224,17 +256,23 @@ class BasicStatistics(PostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
+    paramInput = self.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
 
-    # paramInput = BasicStatistics.getInputSpecification()()
-    # paramInput.parseNode(xmlNode)
-
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     self.toDo = {}
-    for child in xmlNode:
-      tag = child.tag.strip()
+    for child in paramInput.subparts:
+      tag = child.getName()
       #because percentile is strange (has an attached parameter), we address it first
-      if tag.startswith('percentile'):
+      if tag == 'percentile':
         #get targets
-        targets = set(a.strip() for a in child.text.split(','))
+        targets = set(child.value)
         #what if user didn't give any targets?
         if len(targets)<1:
           self.raiseAWarning('No targets were specified in text of <'+tag+'>!  Skipping metric...')
@@ -243,24 +281,15 @@ class BasicStatistics(PostProcessor):
         if 'percentile' not in self.toDo.keys():
           self.toDo['percentile']={}
           self.parameters['percentile_map'] = {}
-        if tag == 'percentile':
+        if 'percent' not in child.parameterValues:
           floatPercentile = [float(5),float(95)]
           self.parameters['percentile_map'][floatPercentile[0]] = '5'
           self.parameters['percentile_map'][floatPercentile[1]] = '95'
         else:
           #user specified a percentage!
-          splitTag = tag.split('_')
-          if len(splitTag) != 2:
-            self.raiseAWarning('Not able to parse "'+tag+'" to obtain percentile!  Expected "percentile_##%". Using 95% instead...')
-            floatPercentile = [float(95)]
-            self.parameters['percentile_map'][floatPercentile[-1]] = '95'
-          else:
-            floatPercentile = [utils.floatConversion(splitTag[1].replace("%",""))]
-            self.parameters['percentile_map'][floatPercentile[-1]] = splitTag[1]
-            if floatPercentile[0] is None:
-              self.raiseAWarning('Not able to parse "'+tag+'" to obtain percentile!  Could not parse',strPercent,'as a percentile. Using 95% instead...')
-              floatPercentile = [float(95)]
-              self.parameters['percentile_map'][floatPercentile[-1]] = '95'
+          strPercent = child.parameterValues['percent']
+          floatPercentile = [float(strPercent)]
+          self.parameters['percentile_map'][floatPercentile[0]] = strPercent
         for reqPercent in floatPercentile:
           if reqPercent in self.toDo['percentile'].keys():
             self.toDo['percentile'][reqPercent].update(targets)
@@ -268,15 +297,15 @@ class BasicStatistics(PostProcessor):
             self.toDo['percentile'][reqPercent] = set(targets)
       elif tag in self.scalarVals:
         if tag in self.toDo.keys():
-          self.toDo[tag].update(set(a.strip() for a in child.text.split(',')))
+          self.toDo[tag].update(set(child.value))
         else:
-          self.toDo[tag] = set(a.strip() for a in child.text.split(','))
+          self.toDo[tag] = set(child.value)
       elif tag in self.vectorVals:
         self.toDo[tag] = [] #'inputs':[],'outputs':[]}
-        tnode = child.find('targets')
+        tnode = child.findFirst('targets')
         if tnode is None:
           self.raiseAnError('Request for vector value <'+tag+'> requires a "targets" node, and none was found!')
-        fnode = child.find('features')
+        fnode = child.findFirst('features')
         if fnode is None:
           self.raiseAnError('Request for vector value <'+tag+'> requires a "features" node, and none was found!')
         if tag in self.toDo.keys():
@@ -284,24 +313,24 @@ class BasicStatistics(PostProcessor):
           #   nodes with the same metric (tag), but with different targets and features.  For instance, the user might
           #   want the sensitivity of A and B to X and Y, and the sensitivity of C to W and Z, but not the sensitivity
           #   of A to W.  If we didn't keep them separate, we could potentially waste a fair number of calculations.
-          self.toDo[tag].append({'targets':set(a.strip() for a in tnode.text.split(',')),
-                            'features':set(a.strip() for a in fnode.text.split(','))})
+          self.toDo[tag].append({'targets':set(tnode.value),
+                            'features':set(fnode.value)})
         else:
-          self.toDo[tag] = [{'targets':set(a.strip() for a in tnode.text.split(',')),
-                            'features':set(a.strip() for a in fnode.text.split(','))}]
+          self.toDo[tag] = [{'targets':set(tnode.value),
+                            'features':set(fnode.value)}]
       elif tag == 'all':
         #do all the metrics
         #establish targets and features
         # - as currently done, we only do the scalar metrics for the targets
         #   and features are for the matrix operations
-        tnode = child.find('targets')
+        tnode = child.findFirst('targets')
         if tnode is None:
           self.raiseAnError(IOError,'When using "all" node, you must specify a "targets" and a "features" node!  "targets" is missing.')
-        fnode = child.find('features')
+        fnode = child.findFirst('features')
         if fnode is None:
           self.raiseAnError(IOError,'When using "all" node, you must specify a "targets" and a "features" node!  "features" is missing.')
-        targets = set(a.strip() for a in tnode.text.split(','))
-        features = set(a.strip() for a in fnode.text.split(','))
+        targets = set(tnode.value)
+        features = set(fnode.value)
         for scalar in self.scalarVals:
           #percentile is a little different
           if scalar == 'percentile':
@@ -318,19 +347,19 @@ class BasicStatistics(PostProcessor):
           else:
             if scalar not in self.toDo.keys():
               self.toDo[scalar] = set()
-            self.toDo[scalar].update(set(a.strip() for a in tnode.text.split(',')))
+            self.toDo[scalar].update(set(tnode.value))
         for vector in self.vectorVals:
           if vector not in self.toDo.keys():
             self.toDo[vector] = []
-          self.toDo[vector].append({'targets':set(a.strip() for a in tnode.text.split(',')),
-                                 'features':set(a.strip() for a in fnode.text.split(','))})
-      elif child.tag == "biased":
-        if child.text.lower() in utils.stringsThatMeanTrue():
+          self.toDo[vector].append({'targets':set(tnode.value),
+                                 'features':set(fnode.value)})
+      elif tag == "biased":
+        if child.value.lower() in utils.stringsThatMeanTrue():
           self.biased = True
-      elif child.tag == "pivotParameter":
-        self.pivotParameter = child.text
+      elif tag == "pivotParameter":
+        self.pivotParameter = child.value
       else:
-        self.raiseAWarning('Unrecognized node in BasicStatistics "',child.tag,'" has been ignored!')
+        self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
 
   def collectOutput(self, finishedJob, output):
