@@ -6,7 +6,7 @@
     <created>2013-10-15</created>
     <classesTested>Sampler.Grid</classesTested>
     <description>
-       This test is aimed to check the capability in RAVEN to employ a Grid sampling strategy. Since the goal of the test is to testify 
+       This test is aimed to check the capability in RAVEN to employ a Grid sampling strategy. Since the goal of the test is to testify
        that the Grid sampling strategy is functional, a Dummy model is used.
     </description>
     <revisions>
@@ -97,7 +97,7 @@
       <Model class="Models" type="Dummy">MyDummy</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="DataObjects" type="PointSet">outGrid</Output>
-      <Output class="Databases" type="HDF5">test_DummyModel_db</Output>
+      <!--Output class="Databases" type="HDF5">test_DummyModel_db</Output-->
       <Output class="OutStreams" type="Print">outGrid_dump</Output>
     </MultiRun>
   </Steps>
