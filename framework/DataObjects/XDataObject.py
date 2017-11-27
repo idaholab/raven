@@ -52,6 +52,8 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     RAVEN entity to another.  Fundamentally, they consist of a collection of realizations, each of
     which contains inputs, outputs, and pointwise metadata.  In addition, the data object has global
     metadata.  The pointwise inputs and outputs could be floats, time-dependent, or ND-dependent variables.
+
+    This base class is used to force the consistent API between all data containers (in memory as
   """
   ### INPUT SPECIFICATION ###
   @classmethod
@@ -210,7 +212,6 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     for coord in coords:
       self._pivotParams[coord] = list(var for var in params.keys() if coord in params[var])
 
-
   def setSelectiveInput(self,option,value):
     """
       Sets the input selection method for retreiving subset data.
@@ -242,6 +243,51 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       value = value.strip().lower()
     self._selectOutput = (option,value)
     self.raiseADebug('Set selective output to',self._selectOutput)
+
+  ######################
+  # DATA CONTAINER API #
+  ######################
+  @abc.abstractmethod
+  def addVariable(self,varName,values,classify='meta'):
+    """
+      Adds a variable/column to the data.  "values" needs to be as long as self.size.
+      @ In, varName, str, name of new variable
+      @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
+      @ In, classify, str, optional, either 'input', 'output', or 'meta'
+      @ Out, None
+    """
+    pass
+
+  @abc.abstractmethod
+  def addMeta(self,tag,xmlDict):
+
+
+  @abc.abstractmethod
+  def addRealization(self,rlz):
+  @abc.abstractmethod
+  def asDataset(self):
+  @abc.abstractmethod
+  def constructNDSample(self,vals,dims,coords,name=None):
+  @abc.abstractmethod
+  def extendExistingEntry(self,rlz):
+  @abc.abstractmethod
+  def getDimensions(self,var):
+  @abc.abstractmethod
+  def getMeta(self,keys=None,pointwise=False,general=False):
+  @abc.abstractmethod
+  def getVars(self,subset=None):
+  @abc.abstractmethod
+  def getVarValues(self,var):
+  @abc.abstractmethod
+  def realization(self,index=None,matchDict=None,tol=1e-15):
+  @abc.abstractmethod
+  def load(self,fname,style='netCDF',**kwargs):
+  @abc.abstractmethod
+  def remove(self,realization=None,variable=None):
+  @abc.abstractmethod
+  def reset(self):
+  @abc.abstractmethod
+  def write(self,fname,style='netCDF',**kwargs):
 #
 #
 #
