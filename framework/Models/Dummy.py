@@ -175,8 +175,10 @@ class Dummy(Model):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-    returnValue = (inRun,{'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))})
-    return returnValue
+    rlz = {}
+    rlz.update(inRun)
+    rlz['OutputPlaceHolder'] = np.atleast_1d(np.float(Input[1]['prefix']))
+    return rlz
 
   def collectOutput(self,finishedJob,output,options=None):
     """
@@ -186,6 +188,17 @@ class Dummy(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
+    # TODO START can be abstracted to base class
+    result = finishedJob.getEvaluation()
+    if isinstance(result,Runners.Error):
+      self.raiseAnError(AttributeError,'No available output to collect!')
+    self._replaceVariablesNamesWithAliasSystem(result)
+    output.addRealization(result)
+    return
+    # END can be abstracted to base class
+
+
+    #### OLD ####
     # create the export dictionary
     if options is not None and 'exportDict' in options:
       exportDict = options['exportDict']
