@@ -146,4 +146,4 @@ class OutStreamPrint(OutStreamManager):
             self.sourceData[index].printXML(dictOptions)
         except AttributeError:
           self.raiseAnError(IOError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
-            
+

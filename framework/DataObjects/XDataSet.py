@@ -488,7 +488,6 @@ class DataSet(DataObject):
     if style.lower() == 'netcdf':
       self._toNetCDF(fname,**kwargs)
     elif style.lower() == 'csv':
-      self.asDataset()
       if self._data is None or len(self._data)==0: #TODO what if it's just metadata?
         self.raiseAWarning('Nothing to write!')
         return
@@ -972,12 +971,15 @@ class DataSet(DataObject):
     for var in self._allvars:
       # if not a float or int, don't scale it
       # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
-      first = self._data.groupby(var).first()[var].item(0)
-      if (not isinstance(first,(float,int))) or np.isnan(first):# or self._data[var].isnull().all():
-        continue
-      mean = float(self._data[var].mean())
-      scale = float(self._data[var].std())
-      self._scaleFactors[var] = (mean,scale)
+      #first = self._data.groupby(var).first()[var].item(0)
+      #if (not isinstance(first,(float,int))) or np.isnan(first):# or self._data[var].isnull().all():
+      #  continue
+      try:
+        mean = float(self._data[var].mean())
+        scale = float(self._data[var].std())
+        self._scaleFactors[var] = (mean,scale)
+      except TypeError:
+        pass
 
   def _toCSV(self,fname,**kwargs):
     """
