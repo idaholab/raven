@@ -123,10 +123,9 @@ class OutStreamPrint(OutStreamManager):
       @ Out, None
     """
     dictOptions = {}
+    dictOptions['filenameroot'] = self.name
     if len(self.filename) > 0:
       dictOptions['filenameroot'] = self.filename
-    else:
-      dictOptions['filenameroot'] = self.name
 
     if self.what:
       dictOptions['what'] = self.what
@@ -135,26 +134,16 @@ class OutStreamPrint(OutStreamManager):
       dictOptions['target'] = self.options['target']
 
     for index in range(len(self.sourceName)):
-      if self.options['type'] == 'csv':
-        if type(self.sourceData[index]) == DataObjects.Data:
-          empty = self.sourceData[index].isItEmpty()
-        else:
-          empty = False
-        if not empty:
-          #try:
-          self.sourceData[index].write(dictOptions['filenameroot'],style='CSV',**dictOptions)
-            # OLD self.sourceData[index].printCSV(dictOptions)
-          #except AttributeError as e:
-          #  self.raiseAnError(IOError, 'no implementation for source type ' + str(type(self.sourceData[index])) + ' and output type "csv"!  Receieved error:',e)
-      elif self.options['type'] == 'xml':
-        if type(self.sourceData[index]) == DataObjects.Data:
-          empty = self.sourceData[index].isItEmpty()
-        else:
-          empty = False
-        if not empty:
-          # TODO FIXME before merging go back to just try case
-          self.sourceData[index].printXML(dictOptions)
-          try:
+      try:
+        empty = len(self.sourceData[index]) == 0
+      except TypeError:
+        empty = False
+      if not empty:
+        try:
+          if self.options['type'] == 'csv':
+            self.sourceData[index].write(dictOptions['filenameroot'],style='CSV',**dictOptions)
+          elif self.options['type'] == 'xml':
             self.sourceData[index].printXML(dictOptions)
-          except AttributeError:
-            self.raiseAnError(IOError, 'no implementation for source type', type(self.sourceData[index]), 'and output type "xml"!')
+        except AttributeError:
+          self.raiseAnError(IOError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
+            
