@@ -79,7 +79,7 @@ class DataSet(DataObject):
       self._outputs.append(varName)
     else:
       self._metavars.append(varName)
-    self._allVars.append(varName)
+    self._allvars.append(varName)
 
   def addMeta(self,tag,xmlDict):
     """
