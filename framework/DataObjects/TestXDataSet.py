@@ -395,11 +395,15 @@ checkArray('Dataset first collapse "prefix"',data._data['prefix'].values,['first
 # TODO test "getting" data from _data instead of _collector
 
 # get dimensions
-print('None:',data.getDimensions())
-print('c   :',data.getDimensions('c'))
-print('inp :',data.getDimensions('input'))
-print('out :',data.getDimensions('output'))
-import sys;sys.exit()
+print('INP',data.getDimensions('inp'))
+checkSame('Dataset getDimensions "None" num entries',len(data.getDimensions()),7)
+checkArray('Dataset getDimensions "None" entry "c"',data.getDimensions()['c'],['time'],str)
+checkArray('Dataset getDimensions "c"',data.getDimensions('c')['c'],['time'],str)
+checkSame('Dataset getDimensions "inp" num entries',len(data.getDimensions('input')),3)
+checkArray('Dataset getDimensions "inp" entry "c"',data.getDimensions('input')['c'],['time'],str)
+checkSame('Dataset getDimensions "out" num entries',len(data.getDimensions('output')),3)
+checkArray('Dataset getDimensions "out" entry "y"',data.getDimensions('output')['y'],['time'],str)
+checkSame('Dataset getDimensions "dummy" num entries',len(data.getDimensions('dummy')),1)
 ######################################
 #     SAMPLING AFTER COLLAPSING      #
 ######################################

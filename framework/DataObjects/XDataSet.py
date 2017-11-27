@@ -216,8 +216,7 @@ class DataSet(DataObject):
     # modify outputs to be pivot-dependent
     toRemove = []
     # set up index vars for removal
-    allDims = self.getDimensions()
-    for var in rlz.keys():
+    for var in self.indexes:
       if var in allDims:
         toRemove.append(var)
     # dimensionalize outputs
@@ -225,7 +224,7 @@ class DataSet(DataObject):
       # TODO are they always all there?
       # TODO check the right dimensional shape and order
       vals = rlz[var]
-      dims = self.getDimensions(var)
+      dims = self.getDimensions(var)[var]
       coords = dict((dim,rlz[dim]) for dim in dims)
       rlz[var] = self.constructNDSample(vals,dims,coords)
     # remove indexes
@@ -713,10 +712,9 @@ class DataSet(DataObject):
       if var in self._pivotParams.keys():
         indexes.append(var)
         continue
-      dims = self.getDimensions(var)
+      dims = self.getDimensions(var)[var]
       ## change dimensionless to floats -> TODO use operator to collapse!
       if dims in [[self.sampleTag], []]:
-        print('DEBUGG FORMATTING',var,len(val),val)
         if len(val) == 1:
           rlz[var] = val[0]
       ## reshape multidimensional entries into dataarrays
