@@ -175,8 +175,10 @@ class Dummy(Model):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-    returnValue = (inRun,{'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))})
-    return returnValue
+    rlz = {}
+    rlz.update(inRun)
+    rlz['OutputPlaceHolder'] = np.atleast_1d(np.float(Input[1]['prefix']))
+    return rlz
 
   def collectOutput(self,finishedJob,output,options=None):
     """
@@ -186,12 +188,21 @@ class Dummy(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    # create the export dictionary
-    if options is not None and 'exportDict' in options:
-      exportDict = options['exportDict']
-    else:
+    # TODO START can be abstracted to base class
+    # TODO apparently sometimes "options" can include 'exportDict'; what do we do for this?
+    # TODO consistency with old HDF5; fix this when HDF5 api is in place
+    if output.type == 'HDF5':
       exportDict = self.createExportDictionaryFromFinishedJob(finishedJob)
-    self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
+      self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
+
+    # TODO expensive deepcopy prevents modification when sent to multiple outputs
+    result = copy.deepcopy(finishedJob.getEvaluation())
+    if isinstance(result,Runners.Error):
+      self.raiseAnError(AttributeError,'No available output to collect!')
+    self._replaceVariablesNamesWithAliasSystem(result)
+    output.addRealization(result)
+    return
+    # END can be abstracted to base class
 
   def collectOutputFromDict(self,exportDict,output,options=None):
     """
