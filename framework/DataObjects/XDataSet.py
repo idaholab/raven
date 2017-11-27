@@ -144,6 +144,7 @@ class DataSet(DataObject):
     # check consistency, but make it an assertion so it can be passed over
     assert self._checkRealizationFormat(rlz),'Realization was not formatted correctly! See warnings above.'
     # first, update realization with selectors
+    rlz = self._formatRealization(rlz)
     rlz = self._selectiveRealization(rlz)
     # if collector/data not yet started, expand entries that aren't I/O as metadata
     if self._data is None and self._collector is None:
@@ -690,6 +691,33 @@ class DataSet(DataObject):
         new[k] = v
     return new
 
+  def _formatRealization(self,rlz):
+    """
+      Formats realization without truncating data
+      @ In, rlz, dict, {var:val} format (see addRealization)
+      @ Out, rlz, dict, {var:val} modified
+    """
+    # TODO this could be much more efficient on the parallel (finalizeCodeOutput) than on serial
+    # TODO costly for loop
+    indexes = []
+    for var,val in rlz.items():
+      # if an index variable, skip it and mark it for removal
+      if var in self._pivotParams.keys():
+        indexes.append(var)
+        continue
+      dims = self.getDimensions(var)
+      ## change dimensionless to floats -> TODO use operator to collapse!
+      if dims in [[self.sampleTag], []]:
+        if len(val) == 1:
+          rlz[var] = val[0]
+      ## reshape multidimensional entries into dataarrays
+      else:
+        coords = dict((d,rlz[d]) for d in dims)
+        rlz[var] = self.constructNDSample(val,dims,coords,name=var)
+    for var in indexes:
+      del rlz[var]
+    return rlz
+
   def _fromCSV(self,fname,**kwargs):
     """
       Loads a dataset from CSV (preferably one it wrote itself, but maybe not necessarily?
@@ -934,30 +962,15 @@ class DataSet(DataObject):
     self._scaleFactors = None
     self._inputKDTree = None
 
-  def _selectiveRealization(self,rlz):
+  def _selectiveRealization(self,rlz,checkLengthBeforeTruncating=False):
     """
       Formats realization to contain the desired data
       @ In, rlz, dict, {var:val} format (see addRealization)
       @ Out, rlz, dict, {var:val} modified
     """
-    # TODO this could be much more efficient on the parallel (finalizeCodeOutput) than on serial
-    # TODO costly for loop
-    indexes = []
-    for var,val in rlz.items():
-      # if an index variable, skip it and mark it for removal
-      if var in self._pivotParams.keys():
-        indexes.append(var)
-        continue
-      dims = self.getDimensions(var)
-      ## change dimensionless to floats -> TODO use operator to collapse!
-      if dims in [[self.sampleTag], []]:
-        rlz[var] = val[0]
-      ## reshape multidimensional entries into dataarrays
-      else:
-        coords = dict((d,rlz[d]) for d in dims)
-        rlz[var] = self.constructNDSample(val,dims,coords,name=var)
-    for var in indexes:
-      del rlz[var]
+    for var, val in rlz.items():
+      if isinstance(val,np.ndarray)):
+        self.raiseAnError(NotImplementedError,'Variable "{}" has no dimensions but has multiple values!  Not implemented for DataSet yet.'.format(var))
     return rlz
 
   def _setScalingFactors(self):
