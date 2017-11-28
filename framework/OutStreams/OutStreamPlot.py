@@ -35,6 +35,7 @@ import os
 import re
 import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
+from collections import defaultdict
 ## Maybe necessary
 # import _tkinter
 ## External Modules End---------------------------------------------------------
@@ -202,10 +203,10 @@ class OutStreamPlot(OutStreamManager):
       else:
         self.raiseAnError(IOError, 'In Plot ' + self.name + ', the input coordinate ' + what + ' has not specified an "Input" or "Output" (case insensitive). e.g., sourceName|Input|aVariable) in ' + var)
       startLoc, endLoc = match.start(), match.end()
-      result[0], result[1], result[2] = var[:startLoc], var[startLoc + 1:endLoc - 1], var[endLoc:]
+      result[0], result[1], result[2] = var[:startLoc].strip(), var[startLoc + 1:endLoc - 1].strip(), var[endLoc:].strip()
       if '{' in result[-1] and '}' in result[-1]:
         locLower, locUpper = result[-1].find("{"), result[-1].rfind("}")
-        result[-1] = result[-1][locLower + 1:locUpper]
+        result[-1] = result[-1][locLower + 1:locUpper].strip()
     else:
       result = None
     return result
@@ -262,101 +263,57 @@ class OutStreamPlot(OutStreamManager):
       self.mixtureValues = []
     # if self.colorMapCoordinates[pltindex] != None: self.colorMapValues = []
     for pltindex in range(len(self.outStreamTypes)):
-      self.xValues.append(None)
+      self.xValues.append(defaultdict(list))
       if self.yCoordinates:
-        self.yValues.append(None)
+        self.yValues.append(defaultdict(list))
       if self.zCoordinates:
-        self.zValues.append(None)
+        self.zValues.append(defaultdict(list))
       if self.clusterLabels:
-        self.clusterValues.append(None)
+        self.clusterValues.append(defaultdict(list))
       if self.mixtureLabels:
-        self.mixtureValues.append(None)
-      if self.colorMapCoordinates[pltindex] != None:
-        self.colorMapValues[pltindex] = None
+        self.mixtureValues.append(defaultdict(list))
+      if self.colorMapCoordinates[pltindex] is not None:
+        self.colorMapValues[pltindex] = defaultdict(list)
     for pltindex in range(len(self.outStreamTypes)):
-      if self.sourceData[pltindex].isItEmpty():
+      if len(self.sourceData[pltindex]) == 0:
         return False
+      dataSet = self.sourceData[pltindex].asDataset()
       if self.sourceData[pltindex].type.strip() != 'HistorySet':
-        self.xValues[pltindex] = {1:[]}
-        if self.yCoordinates:
-          self.yValues[pltindex] = {1:[]}
-        if self.zCoordinates:
-          self.zValues[pltindex] = {1:[]}
-        if self.clusterLabels:
-          self.clusterValues[pltindex] = {1:[]}
-        if self.mixtureLabels:
-          self.mixtureValues[pltindex] = {1:[]}
-        if self.colorMapCoordinates[pltindex] != None:
-          self.colorMapValues[pltindex] = {1:[]}
         for i in range(len(self.xCoordinates [pltindex])):
           xsplit = self.__splitVariableNames('x', (pltindex, i))
-          parame = self.sourceData[pltindex].getParam(xsplit[1], xsplit[2], nodeId = 'ending')
-          if type(parame) in [np.ndarray, c1darray]:
-            self.xValues[pltindex][1].append(np.asarray(parame))
-          else:
-            conarr = np.zeros(len(parame.keys()))
-            index = 0
-            for item in parame.values():
-              conarr[index] = item[0]
-              index += 1
-            self.xValues[pltindex][1].append(np.asarray(conarr))
+          if xsplit[2].strip() not in self.sourceData[pltindex].getVars(xsplit[1].lower()):
+            self.raiseAnError(IOError, 'Not found variable "'+ xsplit[2] + '" in "'+xsplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
+          self.xValues[pltindex][1].append(np.asarray(dataSet[xsplit[2]].values))
         if self.yCoordinates :
           for i in range(len(self.yCoordinates [pltindex])):
             ysplit = self.__splitVariableNames('y', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(ysplit[1], ysplit[2], nodeId = 'ending')
-            if type(parame) in [np.ndarray, c1darray]:
-              self.yValues[pltindex][1].append(np.asarray(parame))
-            else:
-              conarr = np.zeros(len(parame.keys()))
-              index = 0
-              for item in parame.values():
-                conarr[index] = item[0]
-                index += 1
-              self.yValues[pltindex][1].append(np.asarray(conarr))
+            if ysplit[2].strip() not in self.sourceData[pltindex].getVars(ysplit[1].lower()):
+              self.raiseAnError(IOError, 'Not found variable "'+ ysplit[2] + '" in "'+ysplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
+            self.yValues[pltindex][1].append(np.asarray(dataSet[ysplit[2].strip()].values))
         if self.zCoordinates  and self.dim > 2:
           for i in range(len(self.zCoordinates [pltindex])):
             zsplit = self.__splitVariableNames('z', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2], nodeId = 'ending')
-            if type(parame) in [np.ndarray, c1darray]:
-              self.zValues[pltindex][1].append(np.asarray(parame))
-            else:
-              conarr = np.zeros(len(parame.keys()))
-              for index in range(len(parame.values())):
-                conarr[index] = parame.values()[index][0]
-              self.zValues[pltindex][1].append(np.asarray(conarr))
+            if zsplit[2].strip() not in self.sourceData[pltindex].getVars(zsplit[1].lower()):
+              self.raiseAnError(IOError, 'Not found variable "'+ zsplit[2] + '" in "'+zsplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
+            self.zValues[pltindex][1].append(np.asarray(dataSet[zsplit[2].strip()].values))
         if self.clusterLabels:
           for i in range(len(self.clusterLabels [pltindex])):
             clustersplit = self.__splitVariableNames('clusterLabels', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(clustersplit[1], clustersplit[2], nodeId = 'ending')
-            if type(parame) in [np.ndarray, c1darray]:
-              self.clusterValues[pltindex][1].append(np.asarray(parame))
-            else:
-              conarr = np.zeros(len(parame.keys()))
-              for index in range(len(parame.values())):
-                conarr[index] = parame.values()[index][0]
-              self.clusterValues[pltindex][1].append(np.asarray(conarr))
+            if clustersplit[2].strip() not in self.sourceData[pltindex].getVars(clustersplit[1].lower()):
+              self.raiseAnError(IOError, 'Not found variable "'+ clustersplit[2] + '" in "'+clustersplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
+            self.clusterValues[pltindex][1].append(np.asarray(dataSet[clustersplit[2].strip()].values))
         if self.mixtureLabels:
           for i in range(len(self.mixtureLabels [pltindex])):
             mixturesplit = self.__splitVariableNames('mixtureLabels', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(mixturesplit[1], mixturesplit[2], nodeId = 'ending')
-            if type(parame) in [np.ndarray, c1darray]:
-              self.mixtureValues[pltindex][1].append(np.asarray(parame))
-            else:
-              conarr = np.zeros(len(parame.keys()))
-              for index in range(len(parame.values())):
-                conarr[index] = parame.values()[index][0]
-              self.clusterValues[pltindex][1].append(np.asarray(conarr))
+            if mixturesplit[2].strip() not in self.sourceData[pltindex].getVars(mixturesplit[1].lower()):
+              self.raiseAnError(IOError, 'Not found variable "'+ mixturesplit[2] + '" in "'+mixturesplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
+            self.mixtureValues[pltindex][1].append(np.asarray(dataSet[mixturesplit[2].strip()].values))
         if self.colorMapCoordinates[pltindex] != None:
           for i in range(len(self.colorMapCoordinates[pltindex])):
             zsplit = self.__splitVariableNames('colorMap', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2], nodeId = 'ending')
-            if type(parame) in [np.ndarray, c1darray]:
-              self.colorMapValues[pltindex][1].append(np.asarray(parame))
-            else:
-              conarr = np.zeros(len(parame.keys()))
-              for index in range(len(parame.values())):
-                conarr[index] = parame.values()[index][0]
-              self.colorMapValues[pltindex][1].append(np.asarray(conarr))
+            if zsplit[2].strip() not in self.sourceData[pltindex].getVars(zsplit[1].lower()):
+              self.raiseAnError(IOError, 'Not found variable "'+ zsplit[2] + '" in "'+zsplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
+            self.colorMapValues[pltindex][1].append(np.asarray(dataSet[zsplit[2].strip()].values))
         # check if the array sizes are consistent
         sizeToMatch = self.xValues[pltindex][1][-1].size
         if self.yCoordinates and self.yValues[pltindex][1][-1].size != sizeToMatch:
@@ -367,56 +324,54 @@ class OutStreamPlot(OutStreamManager):
           self.raiseAnError(Exception,"the <colorMap> variable has a size ("+str(self.colorMapValues[pltindex][1][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
       else:
         # HistorySet
-        self.xValues[pltindex] = {}
-        if self.yCoordinates:
-          self.yValues[pltindex] = {}
-        if self.zCoordinates   and self.dim > 2:
-          self.zValues[pltindex] = {}
-        if self.colorMapCoordinates[pltindex] != None:
-          self.colorMapValues[pltindex] = {}
-        for cnt, key in enumerate(self.sourceData[pltindex].getInpParametersValues(nodeId = 'RecontructEnding').keys()):
-          # the key is the actual history number (ie 1, 2 , 3 etc)
-          self.xValues[pltindex][cnt] = []
-          if self.yCoordinates:
-            self.yValues[pltindex][cnt] = []
-          if self.zCoordinates:
-            self.zValues[pltindex][cnt] = []
-          if self.colorMapCoordinates[pltindex] != None:
-            self.colorMapValues[pltindex][cnt] = []
+        for cnt in range(len(self.sourceData[pltindex])):
+          maxSize = 0
           for i in range(len(self.xCoordinates [pltindex])):
             xsplit = self.__splitVariableNames('x', (pltindex, i))
-            datax = self.sourceData[pltindex].getParam(xsplit[1], cnt + 1, nodeId = 'RecontructEnding')
-            if xsplit[2] not in datax.keys():
-              self.raiseAnError(IOError, "Parameter " + xsplit[2] + " not found as " + xsplit[1] + " in DataObject " + xsplit[0])
-            self.xValues[pltindex][cnt].append(np.asarray(datax[xsplit[2]]))
+            outputIndexes = self.sourceData[pltindex].indexes if xsplit[1].lower() == 'output' else []
+            if xsplit[2].strip() not in self.sourceData[pltindex].getVars(xsplit[1].lower())+outputIndexes:
+              self.raiseAnError(IOError, 'Not found variable "'+ xsplit[2] + '" in "'+xsplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
+            self.xValues[pltindex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[xsplit[2]].values)
+            maxSize = len(self.xValues[pltindex][cnt][-1]) if len(self.xValues[pltindex][cnt][-1]) > maxSize else maxSize
           if self.yCoordinates :
             for i in range(len(self.yCoordinates [pltindex])):
               ysplit = self.__splitVariableNames('y', (pltindex, i))
-              datay = self.sourceData[pltindex].getParam(ysplit[1], cnt + 1, nodeId = 'RecontructEnding')
-              if ysplit[2] not in datay.keys():
-                self.raiseAnError(IOError, "Parameter " + ysplit[2] + " not found as " + ysplit[1] + " in DataObject " + ysplit[0])
-              self.yValues[pltindex][cnt].append(np.asarray(datay[ysplit[2]]))
+              outputIndexes = self.sourceData[pltindex].indexes if ysplit[1].lower() == 'output' else []
+              if ysplit[2].strip() not in self.sourceData[pltindex].getVars(ysplit[1].lower())+outputIndexes:
+                self.raiseAnError(IOError, 'Not found variable "'+ ysplit[2] + '" in "'+ysplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
+              self.yValues[pltindex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[ysplit[2]].values)
+              maxSize = len(self.yValues[pltindex][cnt][-1]) if len(self.yValues[pltindex][cnt][-1]) > maxSize else maxSize
           if self.zCoordinates  and self.dim > 2:
             for i in range(len(self.zCoordinates [pltindex])):
               zsplit = self.__splitVariableNames('z', (pltindex, i))
-              dataz = self.sourceData[pltindex].getParam(zsplit[1], cnt + 1, nodeId = 'RecontructEnding')
-              if zsplit[2] not in dataz.keys():
-                self.raiseAnError(IOError, "Parameter " + zsplit[2] + " not found as " + zsplit[1] + " in DataObject " + zsplit[0])
-              self.zValues[pltindex][cnt].append(np.asarray(dataz[zsplit[2]]))
+              outputIndexes = self.sourceData[pltindex].indexes if zsplit[1].lower() == 'output' else []
+              if zsplit[2].strip() not in self.sourceData[pltindex].getVars(zsplit[1].lower())+outputIndexes:
+                self.raiseAnError(IOError, 'Not found variable "'+ zsplit[2] + '" in "'+zsplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
+              self.zValues[pltindex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[zsplit[2]].values)
+              maxSize = len(self.zValues[pltindex][cnt][-1]) if len(self.zValues[pltindex][cnt][-1]) > maxSize else maxSize
           if self.colorMapCoordinates[pltindex] != None:
             for i in range(len(self.colorMapCoordinates[pltindex])):
               colorSplit = self.__splitVariableNames('colorMap', (pltindex, i))
-              dataColor = self.sourceData[pltindex].getParam(colorSplit[1], cnt + 1, nodeId = 'RecontructEnding')
-              if colorSplit[2] not in dataColor.keys():
-                self.raiseAnError(IOError, "Parameter " + colorSplit[2] + " not found as " + colorSplit[1] + " in DataObject " + colorSplit[0])
-              self.colorMapValues[pltindex][cnt].append(np.asarray(dataColor[colorSplit[2]]))
+              outputIndexes = self.sourceData[pltindex].indexes if colorSplit[1].lower() == 'output' else []
+              if colorSplit[2].strip() not in self.sourceData[pltindex].getVars(colorSplit[1].lower())+outputIndexes:
+                self.raiseAnError(IOError, 'Not found variable "'+ colorSplit[2] + '" in "'+colorSplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
+              self.colorMapValues[pltindex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[colorSplit[2]].values)
+              maxSize = len(self.colorMapValues[pltindex][cnt][-1]) if len(self.colorMapValues[pltindex][cnt][-1]) > maxSize else maxSize
+          # expand the scalars in case they need to be plotted against histories
+          if len(self.xValues[pltindex][cnt][-1]) == 1 and maxSize > 1:
+            self.xValues[pltindex][cnt][-1] = np.full(maxSize, self.xValues[pltindex][cnt][-1])
+          if self.yCoordinates and len(self.yValues[pltindex][cnt][-1]) == 1 and maxSize > 1:
+            self.yValues[pltindex][cnt][-1] = np.full(maxSize, self.yValues[pltindex][cnt][-1])
+          if self.zCoordinates and self.dim > 2 and len(self.zValues[pltindex][cnt][-1]) == 1 and maxSize > 1:
+            self.zValues[pltindex][cnt][-1] = np.full(maxSize, self.zValues[pltindex][cnt][-1])
+          if self.colorMapCoordinates[pltindex] is not None and len(self.colorMapValues[pltindex][cnt][-1]) == 1 and maxSize > 1:
+            self.colorMapValues[pltindex][cnt][-1] = np.full(maxSize, self.colorMapValues[pltindex][cnt][-1])
           # check if the array sizes are consistent
-          sizeToMatch = len(self.xValues[pltindex][cnt][-1])
-          if self.yCoordinates and self.yValues[pltindex][cnt][-1].size != sizeToMatch:
+          if self.yCoordinates and self.yValues[pltindex][cnt][-1].size != maxSize:
             self.raiseAnError(Exception,"the <y> variable has a size ("+str(self.yValues[pltindex][cnt][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
-          if self.zCoordinates and self.dim > 2 and self.zValues[pltindex][cnt][-1].size != sizeToMatch:
+          if self.zCoordinates and self.dim > 2 and self.zValues[pltindex][cnt][-1].size != maxSize:
             self.raiseAnError(Exception,"the <z> variable has a size ("+str(self.zValues[pltindex][cnt][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
-          if self.colorMapCoordinates[pltindex] != None and len(self.colorMapValues[pltindex][cnt][-1]) != sizeToMatch:
+          if self.colorMapCoordinates[pltindex] != None and len(self.colorMapValues[pltindex][cnt][-1]) != maxSize:
             self.raiseAnError(Exception,"the <colorMap> variable has a size ("+str(self.colorMapValues[pltindex][cnt][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
 
       # check if something has been got or not
