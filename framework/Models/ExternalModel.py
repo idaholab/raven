@@ -250,10 +250,12 @@ class ExternalModel(Dummy):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
+    print('DEBUG inrun:',inRun)
     result,instSelf = self._externalRun(inRun,Input[1],) # TODO entry [1] is the external model object; do I need it?
     rlz = {}
     rlz.update(inRun)
     rlz.update(result)
+    rlz.update(kwargs)
     return rlz
 
   def collectOutput(self,finishedJob,output,options=None):
@@ -269,6 +271,9 @@ class ExternalModel(Dummy):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"No available Output to collect")
 
+    print('DEBUGG extmod collout:')
+    for k,v in evaluation.items():
+      print('  ',k,v)
     # OLD instanciatedSelf = evaluation['RAVEN_instantiated_self']
     # OLD outcomes         = evaluatedOutput[0]
 

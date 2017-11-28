@@ -129,30 +129,26 @@ class DataSet(DataObject):
                          "val" is either a float or a np.ndarray of values.
       @ Out, None
     """
-    print('DEBUGG rlz:')
-    for k,v in rlz.items():
-      print('  ',k,v)
-    # check consistency, but make it an assertion so it can be passed over
-    assert self._checkRealizationFormat(rlz),'Realization was not formatted correctly! See warnings above.'
-    # first, update realization with selectors
-    rlz = self._formatRealization(rlz)
-    rlz = self._selectiveRealization(rlz)
-    # if collector/data not yet started, expand entries that aren't I/O as metadata
-    # DEBUGG
-    #if self._data is None and self._collector is None:
-      #unrecognized = set(rlz.keys()).difference(set(self._allvars))
-      #if len(unrecognized) > 0:
-      #  print('DEBUGG discarding',unrecognized)
-        #self._metavars = list(unrecognized)
-        #self._allvars += self._metavars
-    # check and order data to be stored
+    # protect against back-changing realization
+    rlz = copy.deepcopy(rlz)
+    # clean out entries that aren't desired
     try:
-      newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
+      rlz = dict((var,rlz[var]) for var in self._allvars+self.indexes)
     except KeyError as e:
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values: "{}"'.format(e.args[0]))
+    # check consistency, but make it an assertion so it can be passed over
+    if not self._checkRealizationFormat(rlz):
+      self.raiseAnError(SyntaxError,'Realization was not formatted correctly! See warnings above.')
+    # format the data
+    rlz = self._formatRealization(rlz)
+    # perform selective collapsing/picking of data
+    rlz = self._selectiveRealization(rlz)
+    # check and order data to be stored
+    newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
     # if data storage isn't set up, set it up
     if self._collector is None:
       self._collector = self._newCollector(width=len(rlz))
+    # append
     self._collector.append(newData)
     # reset scaling factors, kd tree
     self._resetScaling()
@@ -731,6 +727,7 @@ class DataSet(DataObject):
           rlz[var] = val[0]
       ## reshape multidimensional entries into dataarrays
       else:
+        print('DEBUGG dims:',dims,var)
         coords = dict((d,rlz[d]) for d in dims)
         rlz[var] = self.constructNDSample(val,dims,coords,name=var)
     for var in indexes:
