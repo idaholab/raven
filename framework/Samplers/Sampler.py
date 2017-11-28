@@ -29,6 +29,7 @@ import sys
 import copy
 import abc
 import json
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -590,6 +591,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.inputInfo['transformation-'+distName] = transformDict
           self.entitiesToRemove.append('transformation-'+distName)
 
+    # Register expected metadata
+    meta = ['ProbabilityWeight']
+    # TODO more meta needs to be added, this is just for testing so far.
+    self.addMetaKeys(*meta)
+
   def localInitialize(self):
     """
       use this function to add initialization features to the derived class
@@ -696,6 +702,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       ## a copy of the information, otherwise we have to be careful to create a
       ## deep copy of this information when we submit it to a job).
       ## -- DPM 4/18/17
+      # reformat metadata into acceptable format for dataojbect
+      # TODO do it by meta key, as we realize we need them
+      self.inputInfo['ProbabilityWeight'] = np.atleast_1d(self.inputInfo['ProbabilityWeight'])
       return 0,oldInput
     #otherwise, return the restart point
     else:
