@@ -73,8 +73,59 @@ class HS2PS(PostProcessorInterfaceBase):
     if self.pivotParameter == None:
       self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' : pivotParameter is not specified')
 
+  def run_OLD(self,inputDic):
+    """
+    This method performs the actual transformation of the data object from history set to point set
+      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+      @ Out, outputDic, dict, output dictionary
+    """
+    if len(inputDic)>1:
+      self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+    else:
+      inputDict = inputDic[0]
+      outputDic = {}
+      outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
+      outputDic['data'] = {}
 
-  def run(self,inputDic):
+      numSamples = len(inputDict['RAVEN_sample_ID'])
+
+      # generate the input part of the output dictionary
+      for inputVar in inputDict['inpVars']:
+        outputDic['data'][inputVar] = inputDict['data'][inputVar]
+
+      # generate the output part of the output dictionary
+      if self.features == 'all':
+        self.features = inputDict['outVars']
+
+      historyLength = len(inputDic[self.features[0]][0])
+
+      numVariables = historyLength*len(self.features)
+
+      for history in inputDic[self.features[0]]:
+        if len(history) != historyLength:
+          self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' : one or more histories in the historySet have different time scale')
+
+      tempDict = {}
+      matrix = np.zeros(numSamples,numVariables)
+      for i in range(numSamples):
+        temp = np.empty(0)
+        for feature in self.features:
+          temp.append(inputDict[feature][i])
+        matrix[i,:]=temp
+
+      for key in range(numVariables):
+        outputDic['data'][key] = matrix[:,key]
+
+      self.transformationSettings['vars'] = copy.deepcopy(self.features)
+      self.transformationSettings['vars'].remove(self.pivotParameter)
+      self.transformationSettings['timeLength'] = historyLength
+      self.transformationSettings['timeAxis'] = inputDic['data']['output'][1][self.pivotParameter]
+      self.transformationSettings['dimID'] = outputDic['data'].keys()
+
+      return outputDic
+
+
+  def run_OLD(self,inputDic):
     """
     This method performs the actual transformation of the data object from history set to point set
       @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
@@ -108,7 +159,7 @@ class HS2PS(PostProcessorInterfaceBase):
       referenceHistory = inputDic['data']['output'].keys()[0]
       referenceTimeAxis = inputDic['data']['output'][referenceHistory][self.pivotParameter]
       for hist in inputDic['data']['output']:
-        if (str(inputDic['data']['output'][hist][self.pivotParameter]) != str(referenceTimeAxis)):
+        if str(inputDic['data']['output'][hist][self.pivotParameter] != str(referenceTimeAxis)):
           self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' : one or more histories in the historySet have different time scale')
 
       tempDict = {}
