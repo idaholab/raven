@@ -843,13 +843,13 @@ class DataSet(DataObject):
     providedVars = set(source.keys())
     requiredVars = set(self.getVars('input')+self.getVars('output'))
     ## determine what vars are metadata (the "extra" stuff that isn't output or input
+    # TODO don't take "extra", check registered meta explicitly
     extra = list(providedVars - requiredVars)
     self._metavars = extra
     ## figure out who's missing from the IO space
     missing = requiredVars - providedVars
     if len(missing) > 0:
       self.raiseAnError(KeyError,'Variables are missing from "source" that are required for this data object:',missing)
-    # TODO order entries by self._inputs, self._outputs
     for i,var in enumerate(itertools.chain(self._inputs,self._outputs,extra)):
       values = source[var]
       # TODO consistency checking with dimensions requested by the user?  Or override them?
@@ -873,10 +873,6 @@ class DataSet(DataObject):
     self._collector = cached_ndarray.cNDarray(values=data,dtype=object)
     # collapse into xr.Dataset
     self.asDataset()
-
-
-
-
 
   def _fromNetCDF(self,fname, **kwargs):
     """
