@@ -214,11 +214,8 @@ class DataSet(DataObject):
     """
     assert(type(rlz) == dict)
     # modify outputs to be pivot-dependent
-    toRemove = []
     # set up index vars for removal
-    for var in self.indexes:
-      if var in allDims:
-        toRemove.append(var)
+    toRemove = (var for var in self.indexes if var in allDims)
     # dimensionalize outputs
     for var in self._outputs:
       # TODO are they always all there?
