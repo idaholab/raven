@@ -250,8 +250,7 @@ class ExternalModel(Dummy):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
-    print('DEBUG inrun:',inRun)
-    result,instSelf = self._externalRun(inRun,Input[1],) # TODO entry [1] is the external model object; do I need it?
+    result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
     rlz = {}
     rlz.update(inRun)
     rlz.update(result)
