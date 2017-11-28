@@ -1042,8 +1042,9 @@ class DataSet(DataObject):
     assert(self._data is not None) # TODO check against collector entries?
     self._scaleFactors = {}
     for var in self._allvars:
+      ## commented code. We use a try now for speed. It probably needs to be modified for ND arrays
       # if not a float or int, don't scale it
-      # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
+      # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable      
       #first = self._data.groupby(var).first()[var].item(0)
       #if (not isinstance(first,(float,int))) or np.isnan(first):# or self._data[var].isnull().all():
       #  continue
