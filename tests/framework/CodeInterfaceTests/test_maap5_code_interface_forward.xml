@@ -67,7 +67,7 @@
       <Input class="Files" type="">test.inp</Input>
       <Model class="Models" type="Code">MyMAAP</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
-      <Output class="Databases" type="HDF5">DataB_MAAP5_1</Output>
+      <!--Output class="Databases" type="HDF5">DataB_MAAP5_1</Output-->
       <Output class="DataObjects" type="HistorySet">Temporal_Evolution</Output>
       <Output class="OutStreams" type="Print">test_dataobject</Output>
       <Output class="OutStreams" type="Plot">plotWWBBN</Output>
@@ -78,7 +78,10 @@
   <DataObjects>
     <HistorySet name="Temporal_Evolution">
       <Input>TIMELOCA</Input>
-      <Output>TIME, PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1)</Output>
+      <Output>PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1)</Output>
+      <options>
+          <pivotParameter>TIME</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 

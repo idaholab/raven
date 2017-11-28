@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <TestInfo>
     <name>framework/CodeInterfaceTests.testMC</name>
     <author>wangc</author>

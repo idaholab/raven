@@ -27,6 +27,7 @@ import shutil
 import importlib
 import platform
 import shlex
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -569,8 +570,12 @@ class Code(Model):
         for f in fileList:
           os.remove(f)
 
+      returnDict['prefix'] = np.atleast_1d(kwargs['prefix'])
       returnValue = (kwargs['SampledVars'],returnDict)
-      return returnValue
+      exportDict = self.createExportDictionary(returnValue)
+
+      return exportDict
+
     else:
       self.raiseAMessage(" Process Failed "+str(command)+" returnCode "+str(returnCode))
       absOutputFile = os.path.join(sampleDirectory,outputFile)
@@ -581,6 +586,43 @@ class Code(Model):
 
       ## If you made it here, then the run must have failed
       return None
+
+  def createExportDictionary(self, evaluation, inputParams = None):
+    """
+      Method that is aimed to create a dictionary with the sampled and output variables that can be collected by the different
+      output objects.
+      @ In, addJobId, bool, optional, add prefix in the exportDictionary? Default: False
+      @ In, inputParams, list, optional, list of input space parameters in the output object? Default: None
+      @ Out, outputEval, dict, dictionary containing the output/input values: {'varName':value}
+    """
+    if inputParams is None:
+      inputParams = []
+
+    sampledVars,outputDict = evaluation
+
+    if type(outputDict).__name__ == "tuple":
+      outputEval = outputDict[0]
+    else:
+      outputEval = outputDict
+    ## The single run does not perturb data, however RAVEN expects something in
+    ## the input space, so let's just put a 0 entry for the inputPlaceHolder
+    ## - DPM 5/4/2017
+    if len(sampledVars) == 0:
+      sampledVars = {'InputPlaceHolder': 0.}
+
+    for key, value in outputEval.items():
+      outputEval[key] = np.atleast_1d(value)
+
+    for key, value in sampledVars.items():
+      if key in outputEval.keys():
+        self.raiseAWarning('The model '+self.type+' reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the code (%f).' % (outputEval[key][0], key, value, outputEval[key][0]))
+        outputEval[key] = outputEval[key]
+      else:
+        outputEval[key] = np.atleast_1d(value)
+
+    self._replaceVariablesNamesWithAliasSystem(outputEval, 'input',True)
+
+    return outputEval
 
   def collectOutput(self,finishedJob,output,options=None):
     """
@@ -594,20 +636,17 @@ class Code(Model):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(AttributeError,"No available Output to collect")
 
-    exportDict = evaluation[1]
-
-    self._replaceVariablesNamesWithAliasSystem(exportDict, 'input',True)
+    self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
 
     if output.type == 'HDF5':
       self.raiseAnError(IOError, "Not implemented yet")
-    print(exportDict)
-    output.addRealization(exportDict)
+    print("Debug realization: ", evaluation)
+    output.addRealization(evaluation)
 
     ##TODO How to handle restart?
     ##TODO How to handle collectOutputFromDataObject
 
     return
-
 
     ##### OLD ####
     ## First, if the output is a data object, let's see what inputs it requests

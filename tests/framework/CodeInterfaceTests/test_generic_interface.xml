@@ -80,7 +80,7 @@
 
   <DataObjects>
     <PointSet name="samples">
-      <Input>x,y</Input>
+      <Input>y,x</Input>
       <Output>poly</Output>
     </PointSet>
   </DataObjects>

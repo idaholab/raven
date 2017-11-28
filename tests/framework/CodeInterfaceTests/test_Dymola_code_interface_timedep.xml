@@ -100,7 +100,7 @@
       <Model     class="Models"       type="EnsembleModel">Ensemble_Model</Model>
       <Sampler   class="Samplers"     type="EnsembleForward">Ensemble_Sampler</Sampler>
       <Output     class="DataObjects" type="HistorySet">BBHistorySet_out</Output>
-      <Output    class="Databases"    type="HDF5">DB_BouncingBall</Output>
+      <!--Output    class="Databases"    type="HDF5">DB_BouncingBall</Output-->
     </MultiRun>
     <IOStep name="testPrintUnstructuredInputSpace">
        <Input     class="DataObjects" type="HistorySet">BBHistorySet_out</Input>
@@ -121,11 +121,17 @@
     </PointSet>
     <HistorySet name="BBHistorySet_out">
        <Input>hstart, G_vect</Input>
-       <Output>Time,v,flying,impact</Output>
+       <Output>v,flying,impact</Output>
+       <options>
+           <pivotParameter>Time</pivotParameter>
+       </options>
      </HistorySet>
     <HistorySet name="CreateHIST_out">
       <Input>G_a, G_b, G_c</Input>
       <Output>G_vect</Output>
+       <options>
+           <pivotParameter>Time</pivotParameter>
+       </options>
     </HistorySet>
   </DataObjects>
 
