@@ -392,10 +392,8 @@ checkArray('Dataset first collapse "y" 1',data._data['y'].values[1],y[1],float)
 checkArray('Dataset first collapse "y" 2',data._data['y'].values[2],y[2],float)
 # check values for metadata prefix (unicode, not float)
 checkArray('Dataset first collapse "prefix"',data._data['prefix'].values,['first','second','third'],str)
-# TODO test "getting" data from _data instead of _collector
 
 # get dimensions
-print('INP',data.getDimensions('inp'))
 checkSame('Dataset getDimensions "None" num entries',len(data.getDimensions()),7)
 checkArray('Dataset getDimensions "None" entry "c"',data.getDimensions()['c'],['time'],str)
 checkArray('Dataset getDimensions "c"',data.getDimensions('c')['c'],['time'],str)
@@ -631,7 +629,53 @@ checkArray('Dataset add variable column',data.asDataset()['f'].values,f,float)
 checkRlz('Dataset add variable rlz 2',data.realization(index=2),rlzAdd,skip='time')
 
 
-# TODO more exhaustive tests are needed, but this is sufficient for initial work.
+######################################
+#        CONSTRUCT FROM DICT         #
+######################################
+seed = {}
+# vector variable, 10 entries with arbitrary lengths
+seed['b'] = np.array([ np.array([1.00]),
+                       np.array([1.10, 1.11]),
+                       np.array([1.20, 1.21, 1.22]),
+                       np.array([1.30, 1.31, 1.32, 1.33]),
+                       np.array([1.40, 1.41, 1.42, 1.43, 1.44]),
+                       np.array([1.50, 1.51, 1.52, 1.53, 1.54, 1.55]),
+                       np.array([1.60, 1.61, 1.62, 1.63, 1.64, 1.65, 1.66]),
+                       np.array([1.70, 1.71, 1.72, 1.73, 1.74, 1.75, 1.76, 1.77]),
+                       np.array([1.80, 1.81, 1.82, 1.83, 1.84, 1.85, 1.86, 1.87, 1.88]),
+                       np.array([1.90, 1.91, 1.92, 1.93, 1.94, 1.95, 1.96, 1.97, 1.98, 1.99])
+                       ])
+# coordinate, as vector
+seed['t'] = np.array([ np.linspace(0,1,1),
+                       np.linspace(0,1,2),
+                       np.linspace(0,1,3),
+                       np.linspace(0,1,4),
+                       np.linspace(0,1,5),
+                       np.linspace(0,1,6),
+                       np.linspace(0,1,7),
+                       np.linspace(0,1,8),
+                       np.linspace(0,1,9),
+                       np.linspace(0,1,10) ])
+# set up data object
+xml = createElement('DataSet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a'))
+xml.append(createElement('Output',text='b'))
+xml.append(createElement('Index',attrib={'var':'t'},text='b'))
+data = XDataSet.DataSet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+# load with insufficient values
+checkFails('Load from dict missing variable','Variables are missing from "source" that are required for this data object: set([u\'a\'])',data.load,args=[seed],kwargs=dict(style='dict',dims=data.getDimensions()))
+# add a scalar variable, 10 entries
+seed['a'] = np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9])
+# load properly
+data.load(seed,style='dict',dims=data.getDimensions())
+# test contents
+checkArray('load from dict "a"',data.asDataset()['a'].values,seed['a'],float)
+checkArray('load from dict "b"[3]',data.asDataset().isel(True,RAVEN_sample_ID=3)['b'].dropna('t').values,seed['b'][3],float)
+rlz = data.realization(index=2)
+checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
+checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
 
 print(results)
 

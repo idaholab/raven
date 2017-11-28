@@ -19,7 +19,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import sys,os
 import __builtin__
-import functools
+import itertools
 import copy
 import cPickle as pk
 import xml.etree.ElementTree as ET
@@ -818,15 +818,64 @@ class DataSet(DataObject):
     # TODO this is common with "asDataset()", so make a function for this!
     self._convertArrayListToDataset(arrays,action='replace')
 
-  def _fromDict(self,source,**kwargs):
+  def _fromDict(self,source,dims=None,**kwargs):
     """
       Loads data from a dictionary with variables as keys and values as np.arrays of realization values
       @ In, source, dict, as {var:values} with types {str:np.array}
-      @ In, kwargs, dict, optional, additional arguments (currently unused)
+      @ In, dims, dict, optional, ordered list of dimensions that each var depends on as {var:[list]}
+      @ In, kwargs, dict, optional, additional arguments
       @ Out, None
     """
     assert(self._data is None)
     assert(self._collector is None)
+    # not safe to default to dict, so if "dims" not specified set it here
+    if dims is None:
+      dims = {}
+    # data sent in is as follows:
+    #   single-entry (scalars) - np.array([val, val, val])
+    #   histories              - np.array([np.array(vals), np.array(vals), np.array(vals)])
+    #   etc
+    # make a collector from scratch -> start by collecting into ndarray
+    cols = len(source)
+    rows = len(source.values()[0])
+    data = np.zeros([rows,cols],dtype=object)
+    ## check that all inputs, outputs required are provided
+    providedVars = set(source.keys())
+    requiredVars = set(self.getVars('input')+self.getVars('output'))
+    ## determine what vars are metadata (the "extra" stuff that isn't output or input
+    extra = list(providedVars - requiredVars)
+    self._metavars = extra
+    ## figure out who's missing from the IO space
+    missing = requiredVars - providedVars
+    if len(missing) > 0:
+      self.raiseAnError(KeyError,'Variables are missing from "source" that are required for this data object:',missing)
+    # TODO order entries by self._inputs, self._outputs
+    for i,var in enumerate(itertools.chain(self._inputs,self._outputs,extra)):
+      values = source[var]
+      # TODO consistency checking with dimensions requested by the user?  Or override them?
+      #  -> currently overriding them
+      varDims = dims.get(var,[])
+      # format higher-than-one-dimensional variables into a list of xr.DataArray
+      for dim in varDims:
+        ## first, make sure we have all the dimensions for this variable
+        if dim not in source.keys():
+          self.raiseAnError(KeyError,'Variable "{}" depends on dimension "{}" but it was not provided to _fromDict in the "source"!'.format(var,dim))
+        ## construct ND arrays
+        for v,val in enumerate(values):
+          ## coordinates come from each dimension, specific to the "vth" realization
+          coords = dict((dim,source[dim][v]) for dim in varDims)
+          ## swap-in-place the construction; this will likely error if there's inconsistencies
+          values[v] = self.constructNDSample(val,varDims,coords,name=var)
+        #else:
+        #  pass # TODO need to make sure entries are all single entries!
+      data[:,i] = values
+    # set up collector as cached nd array of values
+    self._collector = cached_ndarray.cNDarray(values=data,dtype=object)
+    # collapse into xr.Dataset
+    self.asDataset()
+
+
+
 
 
   def _fromNetCDF(self,fname, **kwargs):
