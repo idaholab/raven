@@ -135,8 +135,7 @@ class PointSet(DataSet):
     # TODO this could be much more efficient on the parallel (finalizeCodeOutput) than on serial
     # TODO costly for loop
     # TODO overwrites rlz by reference; is this okay?
-    # first format using the ND rules
-    rlz = DataSet._selectiveRealization(self,rlz)
+    # data was previously formatted by _formatRealization
     # then select the point we want
     toRemove = []
     for var,val in rlz.items():
