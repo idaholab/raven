@@ -19,7 +19,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import sys,os
 import __builtin__
-import functools
+import itertools
 import copy
 import cPickle as pk
 import xml.etree.ElementTree as ET
@@ -59,31 +59,23 @@ class DataSet(DataObject):
   """
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
-  def addVariable(self,varName,values,classify='meta'):
+  def addExpectedMeta(self,keys):
     """
-      Adds a variable/column to the data.  "values" needs to be as long as self.size.
-      @ In, varName, str, name of new variable
-      @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
-      @ In, classify, str, optional, either 'input', 'output', or 'meta'
+      Registers meta to look for in realizations.
+      @ In, keys, set(str), keys to register
       @ Out, None
     """
-    assert(isinstance(values,np.ndarray))
-    assert(len(values) == self.size)
-    assert(classify in ['input','output','meta'])
-    # first, collapse existing entries
-    self.asDataset()
-    # format as single data array
-    # TODO worry about sampleTag values?
-    column = self._collapseNDtoDataArray(values,varName,labels=self._data[self.sampleTag])
-    # add to the dataset
-    self._data = self._data.assign(**{varName:column})
-    if classify == 'input':
-      self._inputs.append(varName)
-    elif classify == 'output':
-      self._outputs.append(varName)
-    else:
-      self._metavars.append(varName)
-    self._allvars.append(varName)
+    # TODO add option to skip parts of meta if user wants to
+    # remove already existing keys
+    keys = list(key for key in keys if key not in self._allvars)
+    # if no new meta, move along
+    if len(keys) == 0:
+      return
+    # CANNOT add expected meta after samples are started
+    assert(self._data is None)
+    assert(self._collector is None or len(self._collector) == 0)
+    self._metavars.extend(keys)
+    self._allvars.extend(keys)
 
   def addMeta(self,tag,xmlDict):
     """
@@ -141,27 +133,55 @@ class DataSet(DataObject):
                          "val" is either a float or a np.ndarray of values.
       @ Out, None
     """
-    # check consistency, but make it an assertion so it can be passed over
-    assert self._checkRealizationFormat(rlz),'Realization was not formatted correctly! See warnings above.'
-    # first, update realization with selectors
-    rlz = self._selectiveRealization(rlz)
-    # if collector/data not yet started, expand entries that aren't I/O as metadata
-    if self._data is None and self._collector is None:
-      unrecognized = set(rlz.keys()).difference(set(self._allvars))
-      if len(unrecognized) > 0:
-        self._metavars = list(unrecognized)
-        self._allvars += self._metavars
-    # check and order data to be stored
+    # protect against back-changing realization
+    rlz = copy.deepcopy(rlz)
+    # clean out entries that aren't desired
     try:
-      newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
+      rlz = dict((var,rlz[var]) for var in self._allvars+self.indexes)
     except KeyError as e:
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values: "{}"'.format(e.args[0]))
+    # check consistency, but make it an assertion so it can be passed over
+    if not self._checkRealizationFormat(rlz):
+      self.raiseAnError(SyntaxError,'Realization was not formatted correctly! See warnings above.')
+    # format the data
+    rlz = self._formatRealization(rlz)
+    # perform selective collapsing/picking of data
+    rlz = self._selectiveRealization(rlz)
+    # check and order data to be stored
+    newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
     # if data storage isn't set up, set it up
     if self._collector is None:
       self._collector = self._newCollector(width=len(rlz))
+    # append
     self._collector.append(newData)
     # reset scaling factors, kd tree
     self._resetScaling()
+
+  def addVariable(self,varName,values,classify='meta'):
+    """
+      Adds a variable/column to the data.  "values" needs to be as long as self.size.
+      @ In, varName, str, name of new variable
+      @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
+      @ In, classify, str, optional, either 'input', 'output', or 'meta'
+      @ Out, None
+    """
+    assert(isinstance(values,np.ndarray))
+    assert(len(values) == self.size)
+    assert(classify in ['input','output','meta'])
+    # first, collapse existing entries
+    self.asDataset()
+    # format as single data array
+    # TODO worry about sampleTag values?
+    column = self._collapseNDtoDataArray(values,varName,labels=self._data[self.sampleTag])
+    # add to the dataset
+    self._data = self._data.assign(**{varName:column})
+    if classify == 'input':
+      self._inputs.append(varName)
+    elif classify == 'output':
+      self._outputs.append(varName)
+    else:
+      self._metavars.append(varName)
+    self._allvars.append(varName)
 
   def asDataset(self):
     """
@@ -213,18 +233,14 @@ class DataSet(DataObject):
     """
     assert(type(rlz) == dict)
     # modify outputs to be pivot-dependent
-    toRemove = []
     # set up index vars for removal
-    allDims = self.getDimensions()
-    for var in rlz.keys():
-      if var in allDims:
-        toRemove.append(var)
+    toRemove = (var for var in self.indexes if var in allDims)
     # dimensionalize outputs
     for var in self._outputs:
       # TODO are they always all there?
       # TODO check the right dimensional shape and order
       vals = rlz[var]
-      dims = self.getDimensions(var)
+      dims = self.getDimensions(var)[var]
       coords = dict((dim,rlz[dim]) for dim in dims)
       rlz[var] = self.constructNDSample(vals,dims,coords)
     # remove indexes
@@ -248,16 +264,22 @@ class DataSet(DataObject):
     else:
       indata
 
-  def getDimensions(self,var):
+  def getDimensions(self,var=None):
     """
       Provides the independent dimensions that this variable depends on.
       To get all dimensions at once, use self.indexes property.
-      @ In, var, str, name of variable (if None, give all)
+      @ In, var, str, optional, name of variable (or None, or 'input', or 'output')
       @ Out, dims, dict, {name:values} of independent dimensions
     """
     # TODO add unit tests
     # TODO allow several variables requested at once?
-    dims = list(key for key in self._pivotParams.keys() if var in self._pivotParams[key])
+    if var is None:
+      var = self._allvars
+    elif var in ['input','output']:
+      var = self.getVars(var)
+    else:
+      var = [var]
+    dims = dict((v,list(key for key in self._pivotParams.keys() if v in self._pivotParams[key])) for v in var)
     return dims
 
   def getMeta(self,keys=None,pointwise=False,general=False):
@@ -287,7 +309,7 @@ class DataSet(DataObject):
       for var in self._metavars:
         if var in pKeys:
           # TODO if still collecting, an option to NOT call asDataset
-          meta[var] = self.asDataset()[var]#[self._allvars.index(var),:]
+          meta[var] = self.asDataset()[var]
     if general:
       meta.update(dict((key,self._meta[key]) for key in gKeys))
     return meta
@@ -440,6 +462,8 @@ class DataSet(DataObject):
       self._fromNetCDF(fname,**kwargs)
     elif style == 'csv':
       self._fromCSV(fname,**kwargs)
+    elif style == 'dict':
+      self._fromDict(fname,**kwargs)
     # TODO dask
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
@@ -488,8 +512,7 @@ class DataSet(DataObject):
     if style.lower() == 'netcdf':
       self._toNetCDF(fname,**kwargs)
     elif style.lower() == 'csv':
-      self.asDataset()
-      if self._data is None or len(self._data)==0: #TODO what if it's just metadata?
+      if self._data is None or len(self._data[self.sampleTag])==0: #TODO what if it's just metadata?
         self.raiseAWarning('Nothing to write!')
         return
       #first write the CSV
@@ -690,6 +713,33 @@ class DataSet(DataObject):
         new[k] = v
     return new
 
+  def _formatRealization(self,rlz):
+    """
+      Formats realization without truncating data
+      @ In, rlz, dict, {var:val} format (see addRealization)
+      @ Out, rlz, dict, {var:val} modified
+    """
+    # TODO this could be much more efficient on the parallel (finalizeCodeOutput) than on serial
+    # TODO costly for loop
+    indexes = []
+    for var,val in rlz.items():
+      # if an index variable, skip it and mark it for removal
+      if var in self._pivotParams.keys():
+        indexes.append(var)
+        continue
+      dims = self.getDimensions(var)[var]
+      ## change dimensionless to floats -> TODO use operator to collapse!
+      if dims in [[self.sampleTag], []]:
+        if len(val) == 1:
+          rlz[var] = val[0]
+      ## reshape multidimensional entries into dataarrays
+      else:
+        coords = dict((d,rlz[d]) for d in dims)
+        rlz[var] = self.constructNDSample(val,dims,coords,name=var)
+    for var in indexes:
+      del rlz[var]
+    return rlz
+
   def _fromCSV(self,fname,**kwargs):
     """
       Loads a dataset from CSV (preferably one it wrote itself, but maybe not necessarily?
@@ -782,6 +832,62 @@ class DataSet(DataObject):
         arrays[var] = self._collapseNDtoDataArray(data,var,labels=samples)
     # TODO this is common with "asDataset()", so make a function for this!
     self._convertArrayListToDataset(arrays,action='replace')
+
+  def _fromDict(self,source,dims=None,**kwargs):
+    """
+      Loads data from a dictionary with variables as keys and values as np.arrays of realization values
+      @ In, source, dict, as {var:values} with types {str:np.array}
+      @ In, dims, dict, optional, ordered list of dimensions that each var depends on as {var:[list]}
+      @ In, kwargs, dict, optional, additional arguments
+      @ Out, None
+    """
+    assert(self._data is None)
+    assert(self._collector is None)
+    # not safe to default to dict, so if "dims" not specified set it here
+    if dims is None:
+      dims = {}
+    # data sent in is as follows:
+    #   single-entry (scalars) - np.array([val, val, val])
+    #   histories              - np.array([np.array(vals), np.array(vals), np.array(vals)])
+    #   etc
+    # make a collector from scratch -> start by collecting into ndarray
+    cols = len(source)
+    rows = len(source.values()[0])
+    data = np.zeros([rows,cols],dtype=object)
+    ## check that all inputs, outputs required are provided
+    providedVars = set(source.keys())
+    requiredVars = set(self.getVars('input')+self.getVars('output'))
+    ## determine what vars are metadata (the "extra" stuff that isn't output or input
+    # TODO don't take "extra", check registered meta explicitly
+    extra = list(providedVars - requiredVars)
+    self._metavars = extra
+    ## figure out who's missing from the IO space
+    missing = requiredVars - providedVars
+    if len(missing) > 0:
+      self.raiseAnError(KeyError,'Variables are missing from "source" that are required for this data object:',missing)
+    for i,var in enumerate(itertools.chain(self._inputs,self._outputs,extra)):
+      values = source[var]
+      # TODO consistency checking with dimensions requested by the user?  Or override them?
+      #  -> currently overriding them
+      varDims = dims.get(var,[])
+      # format higher-than-one-dimensional variables into a list of xr.DataArray
+      for dim in varDims:
+        ## first, make sure we have all the dimensions for this variable
+        if dim not in source.keys():
+          self.raiseAnError(KeyError,'Variable "{}" depends on dimension "{}" but it was not provided to _fromDict in the "source"!'.format(var,dim))
+        ## construct ND arrays
+        for v,val in enumerate(values):
+          ## coordinates come from each dimension, specific to the "vth" realization
+          coords = dict((dim,source[dim][v]) for dim in varDims)
+          ## swap-in-place the construction; this will likely error if there's inconsistencies
+          values[v] = self.constructNDSample(val,varDims,coords,name=var)
+        #else:
+        #  pass # TODO need to make sure entries are all single entries!
+      data[:,i] = values
+    # set up collector as cached nd array of values
+    self._collector = cached_ndarray.cNDarray(values=data,dtype=object)
+    # collapse into xr.Dataset
+    self.asDataset()
 
   def _fromNetCDF(self,fname, **kwargs):
     """
@@ -934,30 +1040,15 @@ class DataSet(DataObject):
     self._scaleFactors = None
     self._inputKDTree = None
 
-  def _selectiveRealization(self,rlz):
+  def _selectiveRealization(self,rlz,checkLengthBeforeTruncating=False):
     """
       Formats realization to contain the desired data
       @ In, rlz, dict, {var:val} format (see addRealization)
       @ Out, rlz, dict, {var:val} modified
     """
-    # TODO this could be much more efficient on the parallel (finalizeCodeOutput) than on serial
-    # TODO costly for loop
-    indexes = []
-    for var,val in rlz.items():
-      # if an index variable, skip it and mark it for removal
-      if var in self._pivotParams.keys():
-        indexes.append(var)
-        continue
-      dims = self.getDimensions(var)
-      ## change dimensionless to floats -> TODO use operator to collapse!
-      if dims in [[self.sampleTag], []]:
-        rlz[var] = val[0]
-      ## reshape multidimensional entries into dataarrays
-      else:
-        coords = dict((d,rlz[d]) for d in dims)
-        rlz[var] = self.constructNDSample(val,dims,coords,name=var)
-    for var in indexes:
-      del rlz[var]
+    for var, val in rlz.items():
+      if isinstance(val,np.ndarray):
+        self.raiseAnError(NotImplementedError,'Variable "{}" has no dimensions but has multiple values!  Not implemented for DataSet yet.'.format(var))
     return rlz
 
   def _setScalingFactors(self):
@@ -970,14 +1061,18 @@ class DataSet(DataObject):
     assert(self._data is not None) # TODO check against collector entries?
     self._scaleFactors = {}
     for var in self._allvars:
+      ## commented code. We use a try now for speed. It probably needs to be modified for ND arrays
       # if not a float or int, don't scale it
       # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
-      first = self._data.groupby(var).first()[var].item(0)
-      if (not isinstance(first,(float,int))) or np.isnan(first):# or self._data[var].isnull().all():
-        continue
-      mean = float(self._data[var].mean())
-      scale = float(self._data[var].std())
-      self._scaleFactors[var] = (mean,scale)
+      #first = self._data.groupby(var).first()[var].item(0)
+      #if (not isinstance(first,(float,int))) or np.isnan(first):# or self._data[var].isnull().all():
+      #  continue
+      try:
+        mean = float(self._data[var].mean())
+        scale = float(self._data[var].std())
+        self._scaleFactors[var] = (mean,scale)
+      except TypeError:
+        pass
 
   def _toCSV(self,fname,**kwargs):
     """
