@@ -177,6 +177,7 @@ class Dummy(Model):
     inRun = self._manipulateInput(Input[0])
     rlz = {}
     rlz.update(inRun)
+    rlz.update(kwargs)
     rlz['OutputPlaceHolder'] = np.atleast_1d(np.float(Input[1]['prefix']))
     return rlz
 

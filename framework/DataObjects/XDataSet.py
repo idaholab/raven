@@ -59,31 +59,23 @@ class DataSet(DataObject):
   """
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
-  def addVariable(self,varName,values,classify='meta'):
+  def addExpectedMeta(self,keys):
     """
-      Adds a variable/column to the data.  "values" needs to be as long as self.size.
-      @ In, varName, str, name of new variable
-      @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
-      @ In, classify, str, optional, either 'input', 'output', or 'meta'
+      Registers meta to look for in realizations.
+      @ In, keys, set(str), keys to register
       @ Out, None
     """
-    assert(isinstance(values,np.ndarray))
-    assert(len(values) == self.size)
-    assert(classify in ['input','output','meta'])
-    # first, collapse existing entries
-    self.asDataset()
-    # format as single data array
-    # TODO worry about sampleTag values?
-    column = self._collapseNDtoDataArray(values,varName,labels=self._data[self.sampleTag])
-    # add to the dataset
-    self._data = self._data.assign(**{varName:column})
-    if classify == 'input':
-      self._inputs.append(varName)
-    elif classify == 'output':
-      self._outputs.append(varName)
-    else:
-      self._metavars.append(varName)
-    self._allvars.append(varName)
+    # TODO add option to skip parts of meta if user wants to
+    # remove already existing keys
+    keys = list(key for key in keys if key not in self._allvars)
+    # if no new meta, move along
+    if len(keys) == 0:
+      return
+    # CANNOT add expected meta after samples are started
+    assert(self._data is None)
+    assert(self._collector is None or len(self._collector) == 0)
+    self._metavars.extend(keys)
+    self._allvars.extend(keys)
 
   def addMeta(self,tag,xmlDict):
     """
@@ -141,28 +133,55 @@ class DataSet(DataObject):
                          "val" is either a float or a np.ndarray of values.
       @ Out, None
     """
-    # check consistency, but make it an assertion so it can be passed over
-    assert self._checkRealizationFormat(rlz),'Realization was not formatted correctly! See warnings above.'
-    # first, update realization with selectors
-    rlz = self._formatRealization(rlz)
-    rlz = self._selectiveRealization(rlz)
-    # if collector/data not yet started, expand entries that aren't I/O as metadata
-    if self._data is None and self._collector is None:
-      unrecognized = set(rlz.keys()).difference(set(self._allvars))
-      if len(unrecognized) > 0:
-        self._metavars = list(unrecognized)
-        self._allvars += self._metavars
-    # check and order data to be stored
+    # protect against back-changing realization
+    rlz = copy.deepcopy(rlz)
+    # clean out entries that aren't desired
     try:
-      newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
+      rlz = dict((var,rlz[var]) for var in self._allvars+self.indexes)
     except KeyError as e:
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values: "{}"'.format(e.args[0]))
+    # check consistency, but make it an assertion so it can be passed over
+    if not self._checkRealizationFormat(rlz):
+      self.raiseAnError(SyntaxError,'Realization was not formatted correctly! See warnings above.')
+    # format the data
+    rlz = self._formatRealization(rlz)
+    # perform selective collapsing/picking of data
+    rlz = self._selectiveRealization(rlz)
+    # check and order data to be stored
+    newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
     # if data storage isn't set up, set it up
     if self._collector is None:
       self._collector = self._newCollector(width=len(rlz))
+    # append
     self._collector.append(newData)
     # reset scaling factors, kd tree
     self._resetScaling()
+
+  def addVariable(self,varName,values,classify='meta'):
+    """
+      Adds a variable/column to the data.  "values" needs to be as long as self.size.
+      @ In, varName, str, name of new variable
+      @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
+      @ In, classify, str, optional, either 'input', 'output', or 'meta'
+      @ Out, None
+    """
+    assert(isinstance(values,np.ndarray))
+    assert(len(values) == self.size)
+    assert(classify in ['input','output','meta'])
+    # first, collapse existing entries
+    self.asDataset()
+    # format as single data array
+    # TODO worry about sampleTag values?
+    column = self._collapseNDtoDataArray(values,varName,labels=self._data[self.sampleTag])
+    # add to the dataset
+    self._data = self._data.assign(**{varName:column})
+    if classify == 'input':
+      self._inputs.append(varName)
+    elif classify == 'output':
+      self._outputs.append(varName)
+    else:
+      self._metavars.append(varName)
+    self._allvars.append(varName)
 
   def asDataset(self):
     """
@@ -290,7 +309,7 @@ class DataSet(DataObject):
       for var in self._metavars:
         if var in pKeys:
           # TODO if still collecting, an option to NOT call asDataset
-          meta[var] = self.asDataset()[var]#[self._allvars.index(var),:]
+          meta[var] = self.asDataset()[var]
     if general:
       meta.update(dict((key,self._meta[key]) for key in gKeys))
     return meta
@@ -1044,7 +1063,7 @@ class DataSet(DataObject):
     for var in self._allvars:
       ## commented code. We use a try now for speed. It probably needs to be modified for ND arrays
       # if not a float or int, don't scale it
-      # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable      
+      # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
       #first = self._data.groupby(var).first()[var].item(0)
       #if (not isinstance(first,(float,int))) or np.isnan(first):# or self._data[var].isnull().all():
       #  continue
