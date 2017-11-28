@@ -59,31 +59,19 @@ class DataSet(DataObject):
   """
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
-  def addVariable(self,varName,values,classify='meta'):
+  def addExpectedMeta(self,keys):
     """
-      Adds a variable/column to the data.  "values" needs to be as long as self.size.
-      @ In, varName, str, name of new variable
-      @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
-      @ In, classify, str, optional, either 'input', 'output', or 'meta'
+      Registers meta to look for in realizations.
+      @ In, keys, set(str), keys to register
       @ Out, None
     """
-    assert(isinstance(values,np.ndarray))
-    assert(len(values) == self.size)
-    assert(classify in ['input','output','meta'])
-    # first, collapse existing entries
-    self.asDataset()
-    # format as single data array
-    # TODO worry about sampleTag values?
-    column = self._collapseNDtoDataArray(values,varName,labels=self._data[self.sampleTag])
-    # add to the dataset
-    self._data = self._data.assign(**{varName:column})
-    if classify == 'input':
-      self._inputs.append(varName)
-    elif classify == 'output':
-      self._outputs.append(varName)
-    else:
-      self._metavars.append(varName)
-    self._allvars.append(varName)
+    # TODO add option to skip parts of meta if user wants to
+    # CANNOT add expected meta after samples are started
+    assert(self._data is None)
+    assert(self._collector is None)
+    assert(len(self._metavars)==0)
+    self._metavars = list(keys)
+    self._allvars.extend(keys)
 
   def addMeta(self,tag,xmlDict):
     """
@@ -141,17 +129,22 @@ class DataSet(DataObject):
                          "val" is either a float or a np.ndarray of values.
       @ Out, None
     """
+    print('DEBUGG rlz:')
+    for k,v in rlz.items():
+      print('  ',k,v)
     # check consistency, but make it an assertion so it can be passed over
     assert self._checkRealizationFormat(rlz),'Realization was not formatted correctly! See warnings above.'
     # first, update realization with selectors
     rlz = self._formatRealization(rlz)
     rlz = self._selectiveRealization(rlz)
     # if collector/data not yet started, expand entries that aren't I/O as metadata
-    if self._data is None and self._collector is None:
-      unrecognized = set(rlz.keys()).difference(set(self._allvars))
-      if len(unrecognized) > 0:
-        self._metavars = list(unrecognized)
-        self._allvars += self._metavars
+    # DEBUGG
+    #if self._data is None and self._collector is None:
+      #unrecognized = set(rlz.keys()).difference(set(self._allvars))
+      #if len(unrecognized) > 0:
+      #  print('DEBUGG discarding',unrecognized)
+        #self._metavars = list(unrecognized)
+        #self._allvars += self._metavars
     # check and order data to be stored
     try:
       newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
@@ -163,6 +156,32 @@ class DataSet(DataObject):
     self._collector.append(newData)
     # reset scaling factors, kd tree
     self._resetScaling()
+
+  def addVariable(self,varName,values,classify='meta'):
+    """
+      Adds a variable/column to the data.  "values" needs to be as long as self.size.
+      @ In, varName, str, name of new variable
+      @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
+      @ In, classify, str, optional, either 'input', 'output', or 'meta'
+      @ Out, None
+    """
+    assert(isinstance(values,np.ndarray))
+    assert(len(values) == self.size)
+    assert(classify in ['input','output','meta'])
+    # first, collapse existing entries
+    self.asDataset()
+    # format as single data array
+    # TODO worry about sampleTag values?
+    column = self._collapseNDtoDataArray(values,varName,labels=self._data[self.sampleTag])
+    # add to the dataset
+    self._data = self._data.assign(**{varName:column})
+    if classify == 'input':
+      self._inputs.append(varName)
+    elif classify == 'output':
+      self._outputs.append(varName)
+    else:
+      self._metavars.append(varName)
+    self._allvars.append(varName)
 
   def asDataset(self):
     """
@@ -288,7 +307,7 @@ class DataSet(DataObject):
       for var in self._metavars:
         if var in pKeys:
           # TODO if still collecting, an option to NOT call asDataset
-          meta[var] = self.asDataset()[var]#[self._allvars.index(var),:]
+          meta[var] = self.asDataset()[var]
     if general:
       meta.update(dict((key,self._meta[key]) for key in gKeys))
     return meta

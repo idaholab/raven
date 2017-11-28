@@ -58,6 +58,7 @@ class BaseType(MessageHandler.MessageUser):
     self.printTag         = 'BaseType'                                                  # the tag that refers to this class in all the specific printing
     self.messageHandler   = None                                                        # message handling object
     self.variableGroups   = {}                                                          # the variables this class needs to be aware of
+    self.metadataKeys     = set()                                                       # list of registered metadata keys to expect from this entity
     self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
     for baseClass in self.__class__.__mro__:
       self.mods.extend(utils.returnImportModuleString(inspect.getmodule(baseClass),True))
@@ -240,3 +241,20 @@ class BaseType(MessageHandler.MessageUser):
     self.raiseADebug('       Current Setting:')
     for key in tempDict.keys():
       self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
+
+  def provideExpectedMetaKeys(self):
+    """
+      Provides the registered list of metadata keys for this entity.
+      @ In, None
+      @ Out, meta, list(str), expected keys (empty if none)
+    """
+    return self.metadataKeys
+
+  def addMetaKeys(self,*args):
+    """
+      Adds keywords to a list of expected metadata keys.
+      @ In, args, list(str), keywords to register
+      @ Out, None
+    """
+    print('DEBUGG adding meta keys',args)
+    self.metadataKeys = self.metadataKeys.union(set(args))

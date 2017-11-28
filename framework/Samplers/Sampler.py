@@ -590,6 +590,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.inputInfo['transformation-'+distName] = transformDict
           self.entitiesToRemove.append('transformation-'+distName)
 
+    # Register expected metadata
+    meta = ['ProbabilityWeight']
+    # TODO more meta needs to be added, this is just for testing so far.
+    self.addMetaKeys(*meta)
+
   def localInitialize(self):
     """
       use this function to add initialization features to the derived class
