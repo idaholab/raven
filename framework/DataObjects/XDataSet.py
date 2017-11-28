@@ -488,7 +488,7 @@ class DataSet(DataObject):
     if style.lower() == 'netcdf':
       self._toNetCDF(fname,**kwargs)
     elif style.lower() == 'csv':
-      if self._data is None or len(self._data)==0: #TODO what if it's just metadata?
+      if self._data is None or len(self._data[self.sampleTag])==0: #TODO what if it's just metadata?
         self.raiseAWarning('Nothing to write!')
         return
       #first write the CSV
