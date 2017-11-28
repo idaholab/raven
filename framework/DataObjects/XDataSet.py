@@ -139,11 +139,15 @@ class DataSet(DataObject):
     # check consistency, but make it an assertion so it can be passed over
     if not self._checkRealizationFormat(rlz):
       self.raiseAnError(SyntaxError,'Realization was not formatted correctly! See warnings above.')
+    print('DEBUGG addReal is:')
+    for k,v in rlz.items():
+      print(' ',k,v)
     # format the data
     rlz = self._formatRealization(rlz)
     # perform selective collapsing/picking of data
     rlz = self._selectiveRealization(rlz)
     # check and order data to be stored
+    print('DEBUGG allvars:',self._allvars)
     newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
     # if data storage isn't set up, set it up
     if self._collector is None:
@@ -731,7 +735,6 @@ class DataSet(DataObject):
           rlz[var] = val[0]
       ## reshape multidimensional entries into dataarrays
       else:
-        print('DEBUGG dims:',dims,var)
         coords = dict((d,rlz[d]) for d in dims)
         rlz[var] = self.constructNDSample(val,dims,coords,name=var)
     for var in indexes:
