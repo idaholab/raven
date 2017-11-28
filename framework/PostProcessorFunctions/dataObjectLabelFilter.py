@@ -71,8 +71,21 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
       elif child.tag !='method':
         self.raiseAnError(IOError, 'dataObjectLabelFilter Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
-
   def run(self,inputDic):
+    """
+     Method to post-process the dataObjects
+     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+     @ Out, outputDic, dictionary, output dictionary to be provided to the base class
+    """
+    if len(inputDic)>1:
+      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+    else:
+      inputDict = inputDic[0]
+      inputDict['data'] = inputDict['data'].isel(inputDic['data'][self.label] in self.clusterIDs)
+    return inputDic
+
+
+  def run_OLD(self,inputDic):
     """
      Method to post-process the dataObjects
      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
@@ -107,6 +120,5 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
               outputDic['data']['input'][key]  = np.append(outputDic['data']['input'][key],copy.deepcopy(inputDic['data']['input'][key][pos[0]]))
             for key in inputDic['data']['output']:
               outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key],copy.deepcopy(inputDic['data']['output'][key][pos[0]]))
-
 
       return outputDic
