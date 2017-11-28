@@ -66,11 +66,15 @@ class DataSet(DataObject):
       @ Out, None
     """
     # TODO add option to skip parts of meta if user wants to
+    # remove already existing keys
+    keys = list(key for key in keys if key not in self._allvars)
+    # if no new meta, move along
+    if len(keys) == 0:
+      return
     # CANNOT add expected meta after samples are started
     assert(self._data is None)
-    assert(self._collector is None)
-    assert(len(self._metavars)==0)
-    self._metavars = list(keys)
+    assert(self._collector is None or len(self._collector) == 0)
+    self._metavars.extend(keys)
     self._allvars.extend(keys)
 
   def addMeta(self,tag,xmlDict):
@@ -139,15 +143,11 @@ class DataSet(DataObject):
     # check consistency, but make it an assertion so it can be passed over
     if not self._checkRealizationFormat(rlz):
       self.raiseAnError(SyntaxError,'Realization was not formatted correctly! See warnings above.')
-    print('DEBUGG addReal is:')
-    for k,v in rlz.items():
-      print(' ',k,v)
     # format the data
     rlz = self._formatRealization(rlz)
     # perform selective collapsing/picking of data
     rlz = self._selectiveRealization(rlz)
     # check and order data to be stored
-    print('DEBUGG allvars:',self._allvars)
     newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
     # if data storage isn't set up, set it up
     if self._collector is None:
@@ -1063,7 +1063,7 @@ class DataSet(DataObject):
     for var in self._allvars:
       ## commented code. We use a try now for speed. It probably needs to be modified for ND arrays
       # if not a float or int, don't scale it
-      # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable      
+      # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
       #first = self._data.groupby(var).first()[var].item(0)
       #if (not isinstance(first,(float,int))) or np.isnan(first):# or self._data[var].isnull().all():
       #  continue

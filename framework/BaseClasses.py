@@ -256,5 +256,4 @@ class BaseType(MessageHandler.MessageUser):
       @ In, args, list(str), keywords to register
       @ Out, None
     """
-    print('DEBUGG adding meta keys',args)
     self.metadataKeys = self.metadataKeys.union(set(args))

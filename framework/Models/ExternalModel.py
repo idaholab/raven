@@ -271,9 +271,6 @@ class ExternalModel(Dummy):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"No available Output to collect")
 
-    print('DEBUGG extmod collout:')
-    for k,v in evaluation.items():
-      print('  ',k,v)
     # OLD instanciatedSelf = evaluation['RAVEN_instantiated_self']
     # OLD outcomes         = evaluatedOutput[0]
 

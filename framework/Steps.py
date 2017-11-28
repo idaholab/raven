@@ -416,16 +416,13 @@ class SingleRun(Step):
       if isinstance(entities,list):
         for entity in entities:
           if hasattr(entity,'provideExpectedMetaKeys'):
-            print('DEBUGG getting meta from entity:',entity)
             metaKeys = metaKeys.union(entity.provideExpectedMetaKeys())
       else:
         if hasattr(entities,'provideExpectedMetaKeys'):
-          print('DEBUGG getting meta from entity:',entities)
           metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
     ## then give them to the output data objects
     for out in inDictionary['Output']:
       if isinstance(out,DataSet):
-        print('DEBUGG adding expected meta to DO:',metaKeys)
         out.addExpectedMeta(metaKeys)
 
   def _localTakeAstepRun(self,inDictionary):
