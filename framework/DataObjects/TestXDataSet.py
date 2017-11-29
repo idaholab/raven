@@ -736,7 +736,6 @@ rlz = data.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
 
-
 # Here I am testing the functionality that converts the dataObject into a dict
 convertedDict = data.asDataset(outType='dict')
 # check that the dictionary entries are the same
