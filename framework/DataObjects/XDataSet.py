@@ -509,10 +509,11 @@ class DataSet(DataObject):
       @ In, kwargs, dict, optional, additional arguments to pass to writing function
       @ Out, None
     """
+    self.asDataset() #just in case there is stuff left in the collector
     if style.lower() == 'netcdf':
       self._toNetCDF(fname,**kwargs)
     elif style.lower() == 'csv':
-      if self._data is None or len(self._data[self.sampleTag])==0: #TODO what if it's just metadata?
+      if len(self._data[self.sampleTag])==0: #TODO what if it's just metadata?
         self.raiseAWarning('Nothing to write!')
         return
       #first write the CSV
@@ -1082,7 +1083,6 @@ class DataSet(DataObject):
       @ Out, None
     """
     # TODO only working for point sets
-    self.asDataset()
     filenameLocal = fname # TODO path?
     keep = self._getRequestedElements(kwargs)
     data = self._data
@@ -1166,7 +1166,6 @@ class DataSet(DataObject):
       @ Out, None
     """
     # TODO set up to use dask for on-disk operations -> or is that a different data object?
-    self.asDataset() #just in case there is stuff left in the collector
     # convert metadata into writeable
     self._data.attrs = dict((key,pk.dumps(val)) for key,val in self._meta.items())
     self._data.to_netcdf(fname,**kwargs)
