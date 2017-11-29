@@ -423,6 +423,27 @@ class SingleRun(Step):
       self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
     self._registerMetadata(inDictionary)
 
+  def _registerMetadata(self,inDictionary):
+    """
+      collects expected metadata keys and deliver them to output data objects
+      @ In, inDictionary, dict, initialization dictionary
+      @ Out, None
+    """
+    ## first collect them
+    metaKeys = set()
+    for role,entities in inDictionary.items():
+      if isinstance(entities,list):
+        for entity in entities:
+          if hasattr(entity,'provideExpectedMetaKeys'):
+            metaKeys = metaKeys.union(entity.provideExpectedMetaKeys())
+      else:
+        if hasattr(entities,'provideExpectedMetaKeys'):
+          metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
+    ## then give them to the output data objects
+    for out in inDictionary['Output']:
+      if 'addExpectedMeta' in dir(out):
+        out.addExpectedMeta(metaKeys)
+
   def _localTakeAstepRun(self,inDictionary):
     """
       This is the API for the local run of a step for the children classes

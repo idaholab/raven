@@ -223,8 +223,8 @@ class HDF5(DateBase):
 
   def addRealization(self,rlz):
     """
-      Adds a "row" (or "sample") to this database.
-      This is the method to add data to this database.
+      Adds a "row" (or "sample") to this data object.
+      This is the method to add data to this data object.
       Note that rlz can include many more variables than this database actually wants.
       Before actually adding the realization, data is formatted for this data object.
       @ In, rlz, dict, {var:val} format where
