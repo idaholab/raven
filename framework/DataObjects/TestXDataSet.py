@@ -296,6 +296,7 @@ checkTrue('ND instance construction',test.equals(right))
 
 # append some data to get started
 # TODO expand this to ND not just History
+data.addExpectedMeta(['prefix'])
 rlz0 = {'a': 1.0,
         'b': 2.0,
         'c': np.array([3.0, 3.1, 3.2]),
@@ -346,6 +347,16 @@ checkFails('DataSet get nonexistant realization by index','Requested index \"1\"
 data.addRealization(dict(rlz1))
 data.addRealization(dict(rlz2))
 # get realization by index
+print('DEBUGG rlz 1:')
+for k,v in data.realization(index=0).items():
+  print('  ',k,v)
+  print('')
+print('')
+print('DEBUGG rlz:')
+for k,v in rlz0.items():
+  print('  ',k,v)
+  print('')
+print('')
 checkRlz('Dataset append 1 idx 0',data.realization(index=0),rlz0,skip=['time'])
 checkRlz('Dataset append 1 idx 1',data.realization(index=1),rlz1,skip=['time'])
 checkRlz('Dataset append 1 idx 2',data.realization(index=2),rlz2,skip=['time'])
