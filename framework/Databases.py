@@ -157,13 +157,15 @@ class HDF5(DateBase):
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
       @ Out, None
     """
-    DateBase.__init__(self,runInfoDict)
+    DateBase.__init__(self)
     self.subtype   = None
+    self.exist     = False
+    self.built     = False
     self.type      = 'HDF5'
     self._metavars = []
     self._allvars  = []
+    self.filename = ""
     self.printTag = 'DATABASE HDF5'
-
 
   def __getstate__(self):
     """
@@ -223,6 +225,45 @@ class HDF5(DateBase):
     return endingGroups
 
   def addRealization(self,rlz):
+<<<<<<< HEAD
+=======
+    """
+      Adds a "row" (or "sample") to this data object.
+      This is the method to add data to this data object.
+      Note that rlz can include many more variables than this database actually wants.
+      Before actually adding the realization, data is formatted for this data object.
+      @ In, rlz, dict, {var:val} format where
+                         "var" is the variable name as a string,
+                         "val" is either a float or a np.ndarray of values.
+      @ Out, None
+    """
+    if not 'prefix' in rlz:
+      self.raiseAnError(IOError,'addRealization method needs a prefix (ID) for adding a new group to a database!')
+    self.database.addGroup(rlz['prefix'],rlz,rlz,False)
+    self.built = True    
+
+
+  # These are the methods that RAVEN entities should call to interact with the data object
+  def addExpectedMeta(self,keys):
+    """
+      Registers meta to look for in realizations.
+      @ In, keys, set(str), keys to register
+      @ Out, None
+    """
+    # TODO add option to skip parts of meta if user wants to
+    # remove already existing keys
+    keys = list(key for key in keys if key not in self._metavars)
+    # if no new meta, move along
+    if len(keys) == 0:
+      return
+    # CANNOT add expected new meta after database has been used
+    assert(len(self._metavars) == 0)
+    self._metavars.extend(keys)
+    self._allvars.extend(keys)
+
+
+  def addGroup(self,attributes,loadFrom,upGroup=False):
+>>>>>>> starting reworking database
     """
       Adds a "row" (or "sample") to this database.
       This is the method to add data to this database.
