@@ -124,3 +124,21 @@ class HistorySet(DataSet):
     # TODO this could be much more efficient on the parallel (finalizeCodeOutput) than on serial
     # TODO someday needs to be implemented for when ND data is collected!  For now, use base class.
     return DataSet._selectiveRealization(self,rlz)
+
+  def _NEWtoCSV(self,fname,**kwargs):
+    """
+      Writes this data objcet to CSV file (for metadata see _toCSVXML)
+      @ In, fname, str, path/name to write file
+      @ In, kwargs, dict, optional, keywords for options
+      @ Out, None
+    """
+    # specialized to write custom RAVEN-style history CSVs
+    # TODO some overlap with DataSet implementation, but not much.
+    keep = self._getRequestedElements(kwargs)
+    for var in self._allvars:
+      if var not in keep:
+        data = data.drop(var)
+    self.raiseADebug('Printing data to CSV: "{}"'.format(fname+'.csv'))
+    # specific implementation
+    ## write input space CSV with pointers to history CSVs
+    ## TODO WORKING
