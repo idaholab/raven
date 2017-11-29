@@ -143,8 +143,8 @@ class HistorySet(DataSet):
     for inp in self._inputs + self._metavars:
       data[inp] = main[inp].values # TODO dtype?
     ## get the samplerTag values if they're present, in case it's not just range
-    if self.samplerTag in main:
-      labels = main[self.samplerTag].values
+    if self.sampleTag in main:
+      labels = main[self.sampleTag].values
     else:
       labels = None
     # load subfiles for output spaces
@@ -187,20 +187,47 @@ class HistorySet(DataSet):
     # TODO someday needs to be implemented for when ND data is collected!  For now, use base class.
     return DataSet._selectiveRealization(self,rlz)
 
-  def _NEWtoCSV(self,fname,**kwargs):
+  def _toCSV(self,fname,start=0,**kwargs):
     """
       Writes this data objcet to CSV file (for metadata see _toCSVXML)
       @ In, fname, str, path/name to write file
+      @ In, start, int, optional, starting realization to print
       @ In, kwargs, dict, optional, keywords for options
       @ Out, None
     """
     # specialized to write custom RAVEN-style history CSVs
     # TODO some overlap with DataSet implementation, but not much.
     keep = self._getRequestedElements(kwargs)
-    for var in self._allvars:
-      if var not in keep:
-        data = data.drop(var)
+    # don't rewrite everything; if we've written some already, just append (using mode)
+    if start > 0:
+      # slice data starting at "start"
+      sl = slice(start,None,None)
+      data = self._data.isel(**{self.sampleTag:sl})
+      mode = 'a'
+    else:
+      data = self._data
+      mode = 'w'
+    toDrop = list(var for var in self._allvars if var not in keep)
+    data = data.drop(toDrop)
     self.raiseADebug('Printing data to CSV: "{}"'.format(fname+'.csv'))
     # specific implementation
     ## write input space CSV with pointers to history CSVs
-    ## TODO WORKING
+    ### get list of input variables to keep
+    ordered = list(i for i in itertools.chain(self._inputs,self._metavars) if i in keep)
+    ### select input part of dataset
+    inpData = data[ordered]
+    ### add column for realization information, pointing to the appropriate CSV
+    subFiles = np.array(list('{}_{}.csv'.format(fname,rid) for rid in data[self.sampleTag].values),dtype=object)
+    ### add column to dataset
+    column = self._collapseNDtoDataArray(subFiles,'filename',labels=data[self.sampleTag])
+    inpData = inpData.assign(filename=column)
+    ### also add column name to "ordered"
+    ordered += ['filename']
+    ### write CSV
+    self._usePandasWriteCSV(fname,inpData,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
+    ## obtain slices to write subset CSVs
+    ordered = list(o for o in self.getVars('output') if o in keep)
+    for i in range(len(data[self.sampleTag].values)):
+      rlz = data.isel(**{self.sampleTag:i})[ordered].dropna(self.indexes[0])
+      filename = subFiles[i][:-4]
+      self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
