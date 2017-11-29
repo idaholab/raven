@@ -192,15 +192,16 @@ class Dummy(Model):
     # TODO START can be abstracted to base class
     # TODO apparently sometimes "options" can include 'exportDict'; what do we do for this?
     # TODO consistency with old HDF5; fix this when HDF5 api is in place
+    # TODO expensive deepcopy prevents modification when sent to multiple outputs
+    result = copy.deepcopy(finishedJob.getEvaluation())
+    self._replaceVariablesNamesWithAliasSystem(result)
+    if isinstance(result,Runners.Error):
+      self.raiseAnError(Runners.Error,'No available output to collect!')    
+    output.addRealization(result)
     if output.type == 'HDF5':
       exportDict = self.createExportDictionaryFromFinishedJob(finishedJob)
       self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
 
-    # TODO expensive deepcopy prevents modification when sent to multiple outputs
-    result = copy.deepcopy(finishedJob.getEvaluation())
-    if isinstance(result,Runners.Error):
-      self.raiseAnError(AttributeError,'No available output to collect!')
-    self._replaceVariablesNamesWithAliasSystem(result)
     output.addRealization(result)
     return
     # END can be abstracted to base class

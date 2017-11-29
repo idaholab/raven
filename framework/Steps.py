@@ -46,7 +46,7 @@ from utils import utils
 from utils import InputData
 import Models
 from OutStreams import OutStreamManager
-from DataObjects import Data,DataSet
+from DataObjects import Data
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -422,7 +422,7 @@ class SingleRun(Step):
           metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
     ## then give them to the output data objects
     for out in inDictionary['Output']:
-      if isinstance(out,DataSet):
+      if 'addExpectedMeta' in dir(out):
         out.addExpectedMeta(metaKeys)
 
   def _localTakeAstepRun(self,inDictionary):
