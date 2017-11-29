@@ -289,6 +289,7 @@ checkNone('HistorySet __init__ _collector',data._collector)
 #    SAMPLING AND APPENDING DATA     #
 ######################################
 # append some data to get started
+data.addExpectedMeta(['prefix'])
 rlz0 = {'a': 1.0,
         'b': 2.0,
         'y': [5.0, 5.1, 5.2],

@@ -170,7 +170,7 @@ class PointSet(DataSet):
         elif method in ['inputPivotValue','outputPivotValue']:
           pivotParam = self.getDimensions(var)
           assert(len(pivotParam) == 1) # TODO only handle History for now
-          pivotParam = pivotParam[0]
+          pivotParam = pivotParam[var][0]
           rlz[var] = float(val.sel(**{pivotParam:indic, 'method':b'nearest'})) #casting as str not unicode
           # TODO allowing inexact matches; it's finding the nearest
         elif method == 'operator':
