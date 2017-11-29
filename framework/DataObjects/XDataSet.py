@@ -785,46 +785,17 @@ class DataSet(DataObject):
     # then, read in the XML
     # TODO what if no xml? -> read as point set?
     # TODO separate _fromCSVXML for clarity and brevity
-    try:
-      meta,_ = xmlUtils.loadToTree(fname+'.xml')
-      self.raiseADebug('Reading metadata from "{}.xml"'.format(fname))
-      haveMeta = True
-    except IOError:
-      haveMeta = False
-    dims = {} # stores the dimensionality of each variable
-    # confirm we have usable meta
-    if haveMeta:
-      # get the sample tag
-      tagNode = xmlUtils.findPath(meta,'DataSet/general/sampleTag')
-      if tagNode is not None:
-        self.sampleTag = tagNode.text
-      #else:
-      #  pass # use default
-    # collect essential data from the meta
-    alldims = set([])
-    if haveMeta:
-      # unwrap the dimensions
-      #try:
-      dimsNode = xmlUtils.findPath(meta,'DataSet/dims')
-      if dimsNode is not None:
-        for child in dimsNode:
-          new = child.text.split(',')
-          dims[child.tag] = new
-          alldims.update(new)
-        self.setPivotParams(dims)
+    meta = self._fromCSVXML(fname)
+    # apply findings
+    self.sampleTag = meta.get('sampleTag',self.sampleTag)
+    dims = meta.get('pivotParams',{}) # stores the dimensionality of each variable
+    if len(dims)>0:
+      self.setPivotParams(dims)
+    # TODO make this into a consistency check instead?  Selective loading?
+    self._inputs = meta.get('inputs',self._inputs)
+    self._outputs = meta.get('outputs',self._outputs)
+    self._metavars = meta.get('metavars',self._metavars)
     # replace the IO space, default to user input # TODO or should we be sticking to user's wishes?  Probably.
-    if haveMeta:
-      # TODO make this into a consistency check instead
-      inputsNode = xmlUtils.findPath(meta,'DataSet/general/inputs')
-      if inputsNode is not None:
-        self._inputs = inputsNode.text.split(',')
-      outputsNode = xmlUtils.findPath(meta,'DataSet/general/outputs')
-      if outputsNode is not None:
-        self._outputs = outputsNode.text.split(',')
-      # these DO have to be read from meta if present
-      metavarsNode = xmlUtils.findPath(meta,'DataSet/general/pointwise_meta')
-      if metavarsNode is not None:
-        self._metavars = metavarsNode.text.split(',')
     self._allvars = self._inputs + self._outputs + self._metavars
     # find distinct number of samples
     try:
@@ -854,8 +825,46 @@ class DataSet(DataObject):
         # scalar example
         data = panda[[var,self.sampleTag]].groupby(self.sampleTag).first().values[:,0]
         arrays[var] = self._collapseNDtoDataArray(data,var,labels=samples)
-    # TODO this is common with "asDataset()", so make a function for this!
     self._convertArrayListToDataset(arrays,action='replace')
+
+  def _fromCSVXML(self,fname):
+    """
+      Loads in the XML portion of a CSV if it exists.  Returns information found.
+      @ In, fname, str, filename to read as filename.xml
+      @ Out, metadata, dict, metadata discovered
+    """
+    metadata = {}
+    # check if we have anything from which to read
+    try:
+      meta,_ = xmlUtils.loadToTree(fname+'.xml')
+    except IOError:
+      haveMeta = False
+    finally:
+      self.raiseADebug('Reading metadata from "{}.xml"'.format(fname))
+      haveMeta = True
+    # if nothing to load, return nothing
+    if not haveMeta:
+      return metadata
+    tagNode = xmlUtils.findPath(meta,'DataSet/general/sampleTag')
+    # read samplerTag
+    if tagNode is not None:
+      metadata['sampleTag'] = tagNode.text
+    # read dimensional data
+    dimsNode = xmlUtils.findPath(meta,'DataSet/dims')
+    if dimsNode is not None:
+      metadata['pivotParams'] = dict((child.tag,child.text.split(',')) for child in dimsNode)
+    inputsNode = xmlUtils.findPath(meta,'DataSet/general/inputs')
+    if inputsNode is not None:
+      metadata['inputs'] = inputsNode.text.split(',')
+    outputsNode = xmlUtils.findPath(meta,'DataSet/general/outputs')
+    if outputsNode is not None:
+      metadata['outputs'] = outputsNode.text.split(',')
+    # these DO have to be read from meta if present
+    metavarsNode = xmlUtils.findPath(meta,'DataSet/general/pointwise_meta')
+    if metavarsNode is not None:
+      metadata['metavars'] = metavarsNode.text.split(',')
+    # return
+    return metadata
 
   def _fromDict(self,source,dims=None,**kwargs):
     """
@@ -1033,7 +1042,8 @@ class DataSet(DataObject):
           keep.append(entry.split('|')[-1].strip())
     else:
       # TODO need the sampleTag meta to load histories # BY DEFAULT only keep inputs, outputs; if specifically requested, keep metadata by selection
-      keep = self._inputs + self._outputs
+      keep = self._inputs + self._outputs + self._metavars
+      keep.remove(self.sampleTag)
     return keep
 
   def _getVariableIndex(self,var):
@@ -1114,25 +1124,11 @@ class DataSet(DataObject):
         data = data.drop(var)
     self.raiseADebug('Printing data to CSV: "{}"'.format(filenameLocal+'.csv'))
     # get the list of elements the user requested to write
-    # make a pandas dataframe, they write to CSV very well
-    data = data.to_dataframe()
-    # order data according to user specs # TODO might be time-inefficient, allow user to skip
+    # order data according to user specs # TODO might be time-inefficient, allow user to skip?
     ordered = list(i for i in self._inputs if i in keep)
     ordered += list(o for o in self._outputs if o in keep)
     ordered += list(m for m in self._metavars if m in keep)
-    data = data[ordered]
-    # write CSV; changes depending on if sampleTag is kept or not.
-    # TODO sampleTag is critical for reading time histories
-    if self.sampleTag not in keep:
-      # keep other indices if multiindex
-      if isinstance(data.index,pd.MultiIndex):
-        data.index = data.index.droplevel(self.sampleTag)
-        data.to_csv(filenameLocal+'.csv')#,index=False)
-      # otherwise just don't print index
-      else:
-        data.to_csv(filenameLocal+'.csv',index=False)
-    else:
-      data.to_csv(filenameLocal+'.csv')
+    self._usePandasWriteCSV(filenameLocal,data,ordered,keepSampleTag = self.sampleTag in keep)
 
   def _toCSVXML(self,fname,**kwargs):
     """
@@ -1192,3 +1188,33 @@ class DataSet(DataObject):
     # convert metadata into writeable
     self._data.attrs = dict((key,pk.dumps(val)) for key,val in self._meta.items())
     self._data.to_netcdf(fname,**kwargs)
+
+  def _usePandasWriteCSV(self,fname,data,ordered,keepSampleTag=False,keepIndex=False):
+    """
+      Uses Pandas to write a CSV.
+      @ In, fname, str, path/name to write file
+      @ In, data, xr.Dataset, data to write (with only "keep" vars included, plus self.sampleTag)
+      @ In, ordered, list(str), ordered list of headers
+      @ In, keepSampleTag, bool, optional, if True then keep the samplerTag in the CSV
+      @ In, keepIndex, bool, optional, if True then keep indices in the CSV even if not multiindex
+      @ Out, None
+    """
+    # TODO asserts
+    # make a pandas dataframe, they write to CSV very well
+    data = data.to_dataframe()
+    # order entries
+    data = data[ordered]
+    # write, depending on whether to keep sampleTag in index or not
+    if keepSampleTag:
+      data.to_csv(fname+'.csv')
+    else:
+      # if other multiindices included, don't omit them #for ND DataSets only
+      if isinstance(data.index,pd.MultiIndex):
+        data.index = data.index.droplevel(self.sampleTag)
+        data.to_csv(fname+'.csv')
+      # if keepIndex, then print as is
+      elif keepIndex:
+        data.to_csv(fname+'.csv')
+      # if only index was sampleTag and we don't want it, index = False takes care of that
+      else:
+        data.to_csv(fname+'.csv',index=False)

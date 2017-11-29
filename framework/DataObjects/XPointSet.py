@@ -104,7 +104,6 @@ class PointSet(DataSet):
     try:
       assert(isinstance(data[0],(float,str,unicode,int,))) # --> in LimitSurfaceSearch, first can be "None", floats come later
     except AssertionError as e:
-      print('DEBUGG failed on:',var,type(data[0]),data)
       raise e
     array = xr.DataArray(data,
                          dims=[self.sampleTag],
