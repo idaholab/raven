@@ -149,7 +149,7 @@ class hdf5Database(MessageHandler.MessageUser):
         self.raiseAWarning('not found attribute EndGroup in group ' + name + '.Set True.')
     return
 
-  def addGroup(self,groupName,attributes,source,upGroup=False):
+  def addGroup(self,rlz): # groupName,attributes,source,upGroup=False):
     """
       Function to add a group into the database
       @ In, groupName, string, group name
