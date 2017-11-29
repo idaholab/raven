@@ -138,7 +138,7 @@
   <DataObjects>
     <HistorySet name="solns">
       <Input>Rattlesnake@AuxVariables|Temp|initial_condition,Bison@Materials|fuel_solid_mechanics_elastic|poissons_ratio</Input>
-      <Output>TotalReactorPower,burnup,burnup_FIMA_pp,k-eff-correction,k-eff-prediction,power_scaling,raw_total_power,burnup_MWdkg_pp, FuelArea</Output>
+      <Output>TotalReactorPower,burnup,burnup_FIMA_pp,k-eff-correction,k-eff-prediction,power_scaling,raw_total_power</Output>
     </HistorySet>
   </DataObjects>
 

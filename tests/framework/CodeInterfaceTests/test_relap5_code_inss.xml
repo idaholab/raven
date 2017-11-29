@@ -120,6 +120,9 @@
     <HistorySet name="histories">
       <Input>1060110:3,3060110:3,modelpar005,modelpar009,modelpar010</Input>
       <Output>p_503150000,p_220010000,p_420010000,cntrlvar_392,cntrlvar_394,cntrlvar_6006</Output>
+      <options>
+          <pivotParameter>time</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 

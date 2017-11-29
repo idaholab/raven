@@ -185,11 +185,9 @@ class Dummy(Model):
     # TODO apparently sometimes "options" can include 'exportDict'; what do we do for this?
     # TODO consistency with old HDF5; fix this when HDF5 api is in place
     # TODO expensive deepcopy prevents modification when sent to multiple outputs
-    if isinstance(result,Runners.Error):
-      self.raiseAnError(AttributeError,'No available output to collect!')
     self._replaceVariablesNamesWithAliasSystem(result)
     if isinstance(result,Runners.Error):
-      self.raiseAnError(Runners.Error,'No available output to collect!')
+      self.raiseAnError(AttributeError,'No available output to collect!')
     output.addRealization(result)
     # END can be abstracted to base class
 

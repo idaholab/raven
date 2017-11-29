@@ -144,19 +144,9 @@ class DataSet(DataObject):
                          "val" is either a float or a np.ndarray of values.
       @ Out, None
     """
-    # check consistency, but make it an assertion so it can be passed over
+    # protect against back-changing realization
     rlz = copy.deepcopy(rlz)
-    assert self._checkRealizationFormat(rlz),'Realization was not formatted correctly! See warnings above.'
-    # first, update realization with selectors
-    rlz = self._formatRealization(rlz)
-    rlz = self._selectiveRealization(rlz)
-    # if collector/data not yet started, expand entries that aren't I/O as metadata
-    if self._data is None and self._collector is None:
-      unrecognized = set(rlz.keys()).difference(set(self._allvars))
-      if len(unrecognized) > 0:
-        self._metavars = list(unrecognized)
-        self._allvars += self._metavars
-    # check and order data to be stored
+    # clean out entries that arenit desired
     try:
       rlz = dict((var,rlz[var]) for var in self._allvars+self.indexes)
     except KeyError as e:
@@ -1242,7 +1232,7 @@ class DataSet(DataObject):
         if child.tag not in keep:
           toRemove.append(child)
       for r in toRemove:
-        dimsNode.remove(child)
+        dimsNode.remove(r)
     ## remove from "inputs, outputs, pointwise"
     genNode =  xmlUtils.findPath(meta['DataSet'].tree.getroot(),'general')
     toRemove = []
