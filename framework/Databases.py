@@ -235,9 +235,12 @@ class HDF5(DateBase):
                          "val" is either a float or a np.ndarray of values.
       @ Out, None
     """
-    if not 'prefix' in rlz:
-      self.raiseAnError(IOError,'addRealization method needs a prefix (ID) for adding a new group to a database!')
-    self.database.addGroup(rlz['prefix'],rlz,rlz,False)
+    # realization must be a dictionary
+    assert(type(rlz).__name__ == "dict")
+    # prefix must be present
+    assert('prefix' in rlz)
+    
+    self.database.addGroup(rlz)
     self.built = True    
 
 

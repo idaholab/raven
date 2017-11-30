@@ -158,35 +158,27 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, upGroup, bool, optional, updated group?
       @ Out, None
     """
-    if source['type'] == 'DataObjects':
-      self.addGroupDataObjects(groupName,attributes,source)
-      self.h5FileW.flush()
-      return
-    parentID = None
-    if 'metadata' in attributes.keys():
-      if 'parentID' in attributes['metadata'].keys():
-        parentID = attributes['metadata']['parentID']
-      if 'parentID' in attributes.keys():
-        parentID = attributes['parentID']
-    else:
-      if 'parentID' in attributes.keys():
-        parentID = attributes['parentID']
+    parentID  = rlz.get("parentID",None)
+    groupName = rlz.get("prefix")
+    
     if parentID:
       #If Hierarchical structure, firstly add the root group
-      if not self.firstRootGroup or parentID == 'root':
+      if not self.firstRootGroup or parentID == 'root':        
         self.__addGroupRootLevel(groupName,attributes,source,upGroup)
         self.firstRootGroup = True
         self.type = 'DET'
       else:
         # Add sub group in the Hierarchical structure
         self.__addSubGroup(groupName,attributes,source)
+      endif
     else:
       # Parallel structure (always root level)
-      self.__addGroupRootLevel(groupName,attributes,source,upGroup)
+      self.__addGroupRootLevel(groupName,rlz)
       self.firstRootGroup = True
-      self.type = 'MC'
+      self.type = 'MC'      
+    endif
     self.h5FileW.flush()
-    return
+    
 
   def addGroupInit(self,groupName,attributes=None,upGroup=False):
     """
@@ -233,7 +225,7 @@ class hdf5Database(MessageHandler.MessageUser):
     self.allGroupEnds["/" + groupNameInit] = False
     self.h5FileW.flush()
 
-  def __addGroupRootLevel(self,groupName,attributes,source,upGroup=False):
+  def __addGroupRootLevel(self,groupName,rlz):
     """
       Function to add a group into the database (root level)
       @ In, groupName, string, group name
@@ -244,13 +236,110 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     # Check in the "self.allGroupPaths" list if a group is already present...
     # If so, error (Deleting already present information is not desiderable)
-    if not upGroup:
-      for index in xrange(len(self.allGroupPaths)):
-        comparisonName = self.allGroupPaths[index]
-        splittedPath=comparisonName.split('/')
-        for splgroup in splittedPath:
-          if groupName == splgroup and splittedPath[0] == self.parentGroupName:
-            self.raiseAnError(IOError,"Group named " + groupName + " already present in database " + self.name + ". new group " + groupName + " is equal to old group " + comparisonName)
+    for index in xrange(len(self.allGroupPaths)):
+      comparisonName = self.allGroupPaths[index]
+      splittedPath=comparisonName.split('/')
+      for splgroup in splittedPath:
+        if groupName == splgroup and splittedPath[0] == self.parentGroupName:
+          found = True
+          while found:
+            if groupName in splittedPath:
+              found = True
+            else:
+              found = False
+            groupName = groupName + "_"+ str(index)
+            #self.raiseAnError(IOError,"Group named " + groupName + " already present in database " + self.name + ". new group " + groupName + " is equal to old group " + comparisonName)
+    parentName = self.parentGroupName.replace('/', '')
+    # Create the group
+    if parentName != '/':
+      parentGroupName = self.__returnParentGroupPath(parentName)
+      # Retrieve the parent group from the HDF5 database
+      if parentGroupName in self.h5FileW:
+        parentGroupObj = self.h5FileW.require_group(parentGroupName)
+      else:
+        self.raiseAnError(ValueError,'NOT FOUND group named ' + parentGroupObj)
+    else:
+      parentGroupObj = self.h5FileW
+      
+    # create the group
+    groups = parentGroupObj.create_group(groupName)
+    groups.attrs[b'mainClass' ] = b'PythonType'
+    groups.attrs[b'sourceType'] = b'Dictionary'
+    # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
+    # use ONLY the subset of variables if requested
+    for rl in rlz:
+      print(rl)
+    
+    
+    
+    if set(['inputSpaceParams']).issubset(set(source['name'].keys())):
+      sourceInputs = source['name']['inputSpaceParams'].keys()
+      if specificVars is not None:
+        inputHeaders = list(var for var in sourceInputs if var in specificVars)
+      else:
+        inputHeaders = sourceInputs
+      inputHeaders = list(utils.toBytesIterative(inputHeaders))
+      groups.attrs[b'inputSpaceHeaders' ] = inputHeaders
+
+      if specificVars is not None:
+        inputValues = list(source['name']['inputSpaceParams'][var] for var in sourceInputs if var in specificVars)
+      else:
+        inputValues = source['name']['inputSpaceParams'].values()
+      inputValues = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(utils.toBytesIterative(inputValues)))))
+      groups.attrs[b'inputSpaceValues'  ] = inputValues
+
+    if set(['outputSpaceParams']).issubset(set(source['name'].keys())):
+      if specificVars is not None:
+        outDict = dict((k,v) for k,v in source['name']['outputSpaceParams'].items() if k in specificVars)
+      else:
+        outDict = source['name']['outputSpaceParams']
+    else:
+      if specificVars is not None:
+        outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'] and key in specificVars)
+      else:
+        outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'])
+    outHeaders = utils.toBytesIterative(list(outDict.keys()))
+    outValues  = utils.toBytesIterative(list(outDict.values()))
+    groups.attrs[b'nParams'   ] = len(outHeaders)
+    groups.attrs[b'outputSpaceHeaders'] = outHeaders
+    groups.attrs[b'EndGroup'   ] = True
+    groups.attrs[b'parentID'  ] = parentName
+    maxSize = 0
+    for value in outValues:
+      if type(value) == np.ndarray or type(value).__name__ == 'c1darray':
+        if maxSize < value.size:
+          actualOne = np.asarray(value).size
+      elif type(value) in [int,float,bool,np.float64,np.float32,np.float16,np.int64,np.int32,np.int16,np.int8,np.bool8]:
+        actualOne = 1
+      else:
+        self.raiseAnError(IOError,'The type of the dictionary parameters must be within float,bool,int,numpy.ndarray.Got '+type(value).__name__)
+      if maxSize < actualOne:
+        maxSize = actualOne
+    groups.attrs[b'nTimeSteps'  ] = maxSize
+    dataout = np.zeros((maxSize,len(outHeaders)))
+    for index in range(len(outHeaders)):
+      if type(outValues[index]) == np.ndarray or type(value).__name__ == 'c1darray':
+        dataout[0:outValues[index].size,index] =  np.ravel(outValues[index])[:]
+      else:
+        dataout[0,index] = outValues[index]
+    # create the data set
+    groups.create_dataset(groupName + "_data", dtype="float", data=dataout)
+    # add metadata if present
+    for attr in attributes.keys():
+      objectToConvert = mathUtils.convertNumpyToLists(attributes[attr])
+      converted = json.dumps(objectToConvert)
+      if converted and attr != 'name':
+        groups.attrs[utils.toBytes(attr)]=converted
+    if parentGroupName != "/":
+      self.allGroupPaths.append(parentGroupName + "/" + groupName)
+      self.allGroupEnds[parentGroupName + "/" + groupName] = True
+    else:
+      self.allGroupPaths.append("/" + groupName)
+      self.allGroupEnds["/" + groupName] = True
+
+
+
+
 
     if source['type'] == 'csv':
       # Source in CSV format
