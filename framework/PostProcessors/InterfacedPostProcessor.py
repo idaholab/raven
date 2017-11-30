@@ -138,10 +138,12 @@ class InterfacedPostProcessor(PostProcessor):
     inputDic= self.inputToInternal(inputIn)
 
     outputDic = self.postProcessor.run(inputDic)
-    if self.postProcessor.checkGeneratedDicts(outputDic):
-      return outputDic
-    else:
-      self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor '+ self.name +' : function has generated a not valid output dictionary')
+
+    return outputDic
+    #if self.postProcessor.checkGeneratedDicts(outputDic):
+    #  return outputDic
+    #else:
+    #  self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor '+ self.name +' : function has generated a not valid output dictionary')
 
   def _inverse(self, inputIn):
     outputDic = self.postProcessor._inverse(inputIn)
@@ -213,6 +215,9 @@ class InterfacedPostProcessor(PostProcessor):
         inputDictTemp['pivotVars'] = inp.getDimensions('output')
         inputDictTemp['data']      = inp.asDataset()
         inputDictTemp['dims']      = inp.getDimensions()
+        inputDictTemp['type']      = inp.type
+        #### ADD dataObject NAME!!!!!
+        inputDictTemp['name']      = inp.getName()
         inputDict.append(inputDictTemp)
     return inputDict
 
