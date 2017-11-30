@@ -22,6 +22,7 @@ import __builtin__
 import functools
 import copy
 import cPickle as pk
+import itertools
 import xml.etree.ElementTree as ET
 
 import abc
@@ -115,6 +116,53 @@ class HistorySet(DataSet):
       assert(data[0].dims[0] == self._pivotParams.keys()[0])
     return DataSet._collapseNDtoDataArray(self,data,var,labels)
 
+  def _fromCSV(self,fname,**kwargs):
+    """
+      Loads a dataset from custom RAVEN history csv.
+      @ In, fname, str, filename to load from (not including .csv or .xml)
+      @ In, kwargs, dict, optional arguments
+      @ Out, None
+    """
+    # data dict for loading data
+    data = {}
+    # load in XML, if present
+    meta = self._fromCSVXML(fname)
+    self.samplerTag = meta.get('sampleTag',self.sampleTag)
+    # TODO do selective inputs! consistency check here instead
+    dims = meta.get('pivotParams',{})
+    if len(dims)>0:
+      self.setPivotParams(dims)
+    self._inputs = meta.get('inputs',self._inputs)
+    self._outputs = meta.get('outputs',self._outputs)
+    self._metavars = meta.get('metavars',self._metavars)
+    self._allvars = self._inputs + self._outputs + self._metavars
+    # load in main CSV
+    ## read into dataframe
+    main = pd.read_csv(fname+'.csv')
+    nSamples = len(main.index)
+    ## collect input space data
+    for inp in self._inputs + self._metavars:
+      data[inp] = main[inp].values # TODO dtype?
+    ## get the samplerTag values if they're present, in case it's not just range
+    if self.samplerTag in main:
+      labels = main[self.samplerTag].values
+    else:
+      labels = None
+    # load subfiles for output spaces
+    subFiles = main['filename'].values
+    # pre-build realization spots
+    for out in self._outputs + self.indexes:
+      data[out] = np.zeros(nSamples,dtype=object)
+    for i,sub in enumerate(subFiles):
+      # first time create structures
+      subDat = pd.read_csv(sub)
+      for out in self._outputs + self.indexes:
+        data[out][i] = subDat[out].values # TODO dtype?
+
+    self.load(data,style='dict',dims=self.getDimensions())
+    # read in secondary CSVs
+    # construct final data object
+
   def _selectiveRealization(self,rlz):
     """
       Uses "options" parameters from input to select part of the collected data
@@ -124,3 +172,47 @@ class HistorySet(DataSet):
     # TODO this could be much more efficient on the parallel (finalizeCodeOutput) than on serial
     # TODO someday needs to be implemented for when ND data is collected!  For now, use base class.
     return DataSet._selectiveRealization(self,rlz)
+
+  def _toCSV(self,fname,**kwargs):
+    """
+      Writes this data objcet to CSV file (for metadata see _toCSVXML)
+      @ In, fname, str, path/name to write file
+      @ In, kwargs, dict, optional, keywords for options
+      @ Out, None
+    """
+    # specialized to write custom RAVEN-style history CSVs
+    # TODO some overlap with DataSet implementation, but not much.
+    keep = self._getRequestedElements(kwargs)
+    data = self._data
+    for var in self._allvars:
+      if var not in keep:
+        data = data.drop(var)
+    self.raiseADebug('Printing data to CSV: "{}"'.format(fname+'.csv'))
+    # specific implementation
+    ## write input space CSV with pointers to history CSVs
+    ### get list of input variables to keep
+    ordered = list(i for i in itertools.chain(self._inputs,self._metavars) if i in keep)
+    ### select input part of dataset
+    inpData = self.asDataset()[ordered]
+    ### add column for realization information, pointing to the appropriate CSV
+    subFiles = np.array(list('{}_{}.csv'.format(fname,rid) for rid in data[self.sampleTag].values),dtype=object)
+    ### add column to dataset
+    column = self._collapseNDtoDataArray(subFiles,'filename',labels=self._data[self.sampleTag])
+    inpData = inpData.assign(filename=column)
+    ### also add column name to "ordered"
+    ordered += ['filename']
+    ### write CSV
+    self._usePandasWriteCSV(fname,inpData,ordered,keepSampleTag = self.sampleTag in keep)
+    ### convert to dataframe, preparatory to writing to CSV
+    #inpData = inpData.to_dataframe()
+    ### make sure columns are in sensible order
+    #inpData = inpData[ordered]
+    ### write
+    #inpData.to_csv(fname+'.csv',index = self.sampleTag in keep)
+    ## obtain slices to write subset CSVs
+    slices = self.sliceByIndex(self.sampleTag)
+    for i,s in enumerate(slices):
+      filename = subFiles[i][:-4] # removing ".csv"
+      ordered = list(o for o in self.getVars('output') if o in keep)
+      dat = s[ordered].drop(self.sampleTag).dropna(self.indexes[0]) #specifically for history set, only has 1 pivot
+      self._usePandasWriteCSV(filename,dat,ordered,keepIndex=True)
