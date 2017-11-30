@@ -288,20 +288,14 @@ class hdf5Database(MessageHandler.MessageUser):
     # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
     # use ONLY the subset of variables if requested
     
-    
-    
-    metaValues = {}
-    for key in self._metavars:
-      metaValues[key] = rlz[key]
     # add pointwise metadata (in this case, they are group-wise)
-    groups.attrs[b'point-wise-metadata'] = metaValues
-    for var,item in rlz.items():
-      pass
-    
-    for rl in rlz:
-      print(type(rlz[rl]))
-      print(rl)
-    
+    groups.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
+    # get the data
+    data = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray )
+    # get data names
+    groups.attrs[b'data_names'] = json.dumps(data.keys())
+    # get data names
+    groups.attrs[b'data_names'] = json.dumps(data.keys())    
     
     
     if set(['inputSpaceParams']).issubset(set(source['name'].keys())):
