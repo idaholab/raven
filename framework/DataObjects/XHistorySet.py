@@ -71,18 +71,17 @@ class HistorySet(DataSet):
     self.printTag  = self.name
     self._tempPivotParam = None
 
-  def _readMoreXML(self,xmlNode):
+  def _setDefaultPivotParams(self):
     """
-      Initializes data object based on XML input.
-      @ In, xmlNode, xml.etree.ElementTree.Element or InputData.ParameterInput, input specification
+      Sets default pivot parameters.
+      @ In, None
       @ Out, None
     """
-    DataSet._readMoreXML(self,xmlNode)
-    # propagate provided pivot parameter to all variables.
     # If not set, use "time" as default.
     if self._tempPivotParam is None:
       self.raiseAWarning('No pivot parameter provided; defaulting to \"time\".')
       self._tempPivotParam = 'time'
+    # propagate provided pivot parameter to all variables.
     # don't use setter, set directly, since there's only one var
     self._pivotParams = {self._tempPivotParam:self._outputs[:]}
 
