@@ -517,11 +517,8 @@ class DataSet(DataObject):
     if axis not in self.indexes + [self.sampleTag]:
       self.raiseAnError(IOError,'Requested slices along "{}" but that variable is not an index!  Options are: {}'.format(axis,self.indexes))
     numAxisValues = len(data[axis])
-    # TODO potentially slow loop
-    slices = [None]*numAxisValues
-    for i in range(numAxisValues):
-      slices[i] = data.isel(**{axis:i})
-      # NOTE: The slice may include NaN if a variable does not have a value along a different index for this snapshot along "axis"
+    slices = list(data.isel(**{axis:i}) for i in range(numAxisValues))
+    # NOTE: The slice may include NaN if a variable does not have a value along a different index for this snapshot along "axis"
     return slices
 
   def write(self,fname,style='netCDF',**kwargs):
