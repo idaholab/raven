@@ -187,6 +187,8 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           self.raiseAWarning('Multiple options were given to specify the output row to read! Using last entry:',self._selectOutput)
       # end options node
     # end input reading
+    # set default pivot parameters, if needed
+    self._setDefaultPivotParams()
     # remove index variables from input/output spaces, but silently, since we'll still have them available later
     for index in self._pivotParams.keys():
       try:
@@ -200,6 +202,14 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._allvars = self._inputs + self._outputs
     if self.messageHandler is None:
       self.messageHandler = MessageCourier()
+
+  def _setDefaultPivotParams(self):
+    """
+      Allows setting default pivot parameters.  In general, does nothing.
+      @ In, None
+      @ Out, None
+    """
+    pass
 
   def setPivotParams(self,params):
     """
@@ -248,12 +258,10 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   # DATA CONTAINER API #
   ######################
   @abc.abstractmethod
-  def addVariable(self,varName,values,classify='meta'):
+  def addExpectedMeta(self,keys):
     """
-      Adds a variable/column to the data.  "values" needs to be as long as self.size.
-      @ In, varName, str, name of new variable
-      @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
-      @ In, classify, str, optional, either 'input', 'output', or 'meta'
+      Registers meta to look for in realization
+      @ In, keys, set(str), keys to register
       @ Out, None
     """
     pass
@@ -297,6 +305,17 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, rlz, dict, {var:val} format where
                          "var" is the variable name as a string,
                          "val" is either a float or a np.ndarray of values.
+      @ Out, None
+    """
+    pass
+
+  @abc.abstractmethod
+  def addVariable(self,varName,values,classify='meta'):
+    """
+      Adds a variable/column to the data.  "values" needs to be as long as self.size.
+      @ In, varName, str, name of new variable
+      @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
+      @ In, classify, str, optional, either 'input', 'output', or 'meta'
       @ Out, None
     """
     pass
@@ -413,6 +432,15 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       Sets this object back to its initial state.
       @ In, None
       @ Out, None
+    """
+    pass
+
+  @abc.abstractmethod
+  def sliceByIndex(self,axis):
+    """
+      Returns list of realizations at "snapshots" along "axis"
+      @ In, axis, str, name of index along which to obtain slices
+      @ Out, slices, list, list of slices
     """
     pass
 

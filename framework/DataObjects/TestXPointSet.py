@@ -162,7 +162,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True):
       if isinstance(val,float):
         pres = checkFloat('',val,second[key],tol,update=False)
       elif isinstance(val,(str,unicode)):
-        pres = checkSame('',val,second[key],update=False)
+        pres = checkSame('',val,second[key][0],update=False)
       elif isinstance(val,xr.DataArray):
         if isinstance(val.item(0),(float,int)):
           pres = (val - second[key]).sum()<1e-20 #necessary due to roundoff
@@ -261,6 +261,7 @@ checkNone('DataSet __init__ _collector',data._collector)
 ######################################
 # append some data to get started
 # NOTE histories are currently disabled pending future work
+data.addExpectedMeta(['prefix'])
 rlz0 = {'a': 1.0,
         'b': 2.0,
         'x': 4.0,
