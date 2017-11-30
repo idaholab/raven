@@ -253,16 +253,7 @@ class HDF5(DateBase):
       @ In, keys, set(str), keys to register
       @ Out, None
     """
-    # TODO add option to skip parts of meta if user wants to
-    # remove already existing keys
-    keys = list(key for key in keys if key not in self._metavars)
-    # if no new meta, move along
-    if len(keys) == 0:
-      return
-    # CANNOT add expected new meta after database has been used
-    assert(len(self._metavars) == 0)
-    self._metavars.extend(keys)
-    self._allvars.extend(keys)
+    self.database.addExpectedMeta(keys)
 
 
   def addGroup(self,attributes,loadFrom,upGroup=False):
