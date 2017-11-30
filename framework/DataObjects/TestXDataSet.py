@@ -711,14 +711,14 @@ del rlz['b']
 del rlz['t']
 checkArray('Remove variable starting vars',data.getVars(),['a','b'],str)
 data.remove(variable='b')
-print(data._data)
 checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
 checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
 # collapse and re-check
 data.asDataset()
 checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
 checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
-# try to access missing data
+# check we can add a new realization
+data.addRealization({'a':np.array([2.1]), 't':np.array([0])})
 
 
 
