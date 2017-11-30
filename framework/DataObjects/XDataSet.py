@@ -1040,7 +1040,6 @@ class DataSet(DataObject):
     else:
       # TODO need the sampleTag meta to load histories # BY DEFAULT only keep inputs, outputs; if specifically requested, keep metadata by selection
       keep = self._inputs + self._outputs + self._metavars
-      keep.remove(self.sampleTag)
     return keep
 
   def _getVariableIndex(self,var):

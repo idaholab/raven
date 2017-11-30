@@ -296,7 +296,7 @@ class hdf5Database(MessageHandler.MessageUser):
     # add pointwise metadata (in this case, they are group-wise)
     groups.attrs[b'point-wise-metadata'] = metaValues
     for var,item in rlz.items():
-      
+      pass
     
     for rl in rlz:
       print(type(rlz[rl]))
