@@ -132,7 +132,7 @@
     </PointSet>
     <HistorySet name="testPrintHistorySet">
       <Input>x0,y0,z0</Input>
-      <Output>x,y,z</Output>
+      <Output>time,x,y,z</Output>
     </HistorySet>
   </DataObjects>
 
