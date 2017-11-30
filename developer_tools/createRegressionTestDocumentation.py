@@ -251,15 +251,16 @@ class testDescription(object):
     requirementDict  = OrderedDict()
     analyticalDict   = OrderedDict()
     for testFileName, xmlNode in self.__describedFiles.items():
-      if xmlNode.find("requirements") is not None:
-        # requirement
-        requirementDict[testFileName] = xmlNode
-      if xmlNode.find("analytic") is not None:
-        # analytic
-        analyticalDict[testFileName] = xmlNode
-      if xmlNode.find("analytic") is None and xmlNode.find("requirements") is None:
-        # verification
-        verificationDict[testFileName] = xmlNode
+      if xmlNode is not None:
+        if xmlNode.find("requirements") is not None:
+          # requirement
+          requirementDict[testFileName] = xmlNode
+        if xmlNode.find("analytic") is not None:
+          # analytic
+          analyticalDict[testFileName] = xmlNode
+        if xmlNode.find("analytic") is None and xmlNode.find("requirements") is None:
+          # verification
+          verificationDict[testFileName] = xmlNode
     tupleOut = verificationDict, analyticalDict, requirementDict
     return tupleOut
 
