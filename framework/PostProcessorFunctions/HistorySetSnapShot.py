@@ -32,34 +32,32 @@ import HistorySetSync as HSS
 
 class HistorySetSnapShot(PostProcessorInterfaceBase):
   """
-   This Post-Processor performs the conversion from HistorySet to PointSet
-   The conversion is made so that each history H is converted to a single point P.
-   Assume that each history H is a dict of n output variables x_1=[...],x_n=[...], then the resulting point P can be as follows accordingly to the specified type:
-   - type = timeSlice: at time instant t: P=[x_1[t],...,x_n[t]]
-   - type = min, max, average, value
-
+    This Post-Processor performs the conversion from HistorySet to PointSet
+    The conversion is made so that each history H is converted to a single point P.
+    Assume that each history H is a dict of n output variables x_1=[...],x_n=[...], then the resulting point P can be as follows accordingly to the specified type:
+     - type = timeSlice: at time instant t: P=[x_1[t],...,x_n[t]]
+     - type = min, max, average, value
   """
 
   def initialize(self):
     """
-     Method to initialize the Interfaced Post-processor
-     @ In, None,
-     @ Out, None,
-
+      Method to initialize the Interfaced Post-processor
+      @ In, None,
+      @ Out, None,
     """
 
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'PointSet'
 
-    self.type     = None
-    self.pivotParameter   = None
-    self.pivotVar = None
-    self.pivotVal = None
-    self.timeInstant = None
+    self.type            = None
+    self.pivotParameter  = None
+    self.pivotVar        = None
+    self.pivotVal        = None
+    self.timeInstant     = None
 
     self.numberOfSamples = None
-    self.pivotParameter          = None
+    self.pivotParameter  = None
     self.interpolation   = None
 
     self.classifiers = {} #for "mixed" mode
@@ -136,12 +134,65 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
     if self.type not in set(['min','max','average','value','timeSlice','mixed']):
       self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor "' + str(self.name) + '" : type "%s" is not recognized' %self.type)
 
-
   def run(self,inputDic, pivotVal=None):
     """
-     Method to post-process the dataObjects
-     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
-     @ Out, outputPSDic, dict, output dictionary
+      Method to post-process the dataObjects
+      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+      @ Out, outputPSDic, dict, output dictionary
+    """
+    if len(inputDic)>1:
+      self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+    else:
+      inputDic = inputDic[0]
+
+      #for timeSlice we call historySetWindow
+      if self.type == 'timeSlice':
+        outputHSDic = self.HSsyncPP.run([inputDic])
+        outputPSDic = historySetWindow(outputHSDic,self.timeInstant,self.pivotParameter)
+        return outputPSDic
+      #for other non-mixed methods we call historySnapShot
+      elif self.type != 'mixed':
+        outputPSDic = historySnapShot(inputDic,self.pivotVar,self.type,self.pivotVal,self.pivotParameter)
+        return outputPSDic
+      #mixed is more complicated: we pull out values by method instead of a single slice type
+      #   We use the same methods to get slices, then pick out only the requested variables
+      else:
+        #establish the output dict
+        outDict = {'data':{}}
+        #replicate input space
+        for var in inputDic['inpVars']:
+          outDict['data'][var] = inputDic[var]
+        #replicate metadata
+          outDict['metadata'] = inputDic['metadata']
+        #loop over the methods requested to fill output space
+        for method,entries in self.classifiers.items():
+          #min, max take no special effort
+          if method in ['min','max']:
+            for var in entries:
+              getDict = historySnapShot(inputDic,var,method)
+              outDict['data'][var] = getDict['data'][var]
+          #average requires the pivotParameter
+          elif method == 'average':
+            for var in entries:
+              getDict = historySnapShot(inputDic,var,method,tempID=self.pivotParameter)
+              outDict['data'][var] = getDict['data'][var]
+          #timeSlice requires the time value
+          #functionality removed for now until we recall why it's desirable
+          #elif method == 'timeSlice':
+          #  for var,time in entries:
+          #    getDict = historySetWindow(inputDic,time,self.pivotParameter)
+          #value requires the dependent variable and value
+          elif method == 'value':
+            for var,depVar,depVal in entries:
+              getDict = historySnapShot(inputDic,depVar,method,pivotVal=depVal)
+              outDict['data'][var] = getDict['data'][var]
+        return outDict
+
+  def run_OLD(self,inputDic, pivotVal=None):
+    """
+      Method to post-process the dataObjects
+      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+      @ Out, outputPSDic, dict, output dictionary
     """
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
@@ -193,8 +244,50 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
               outDict['data']['output'][var] = getDict['data']['output'][var]
         return outDict
 
-
 def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = None):
+  """
+    Method do to compute a conversion from HistorySet to PointSet using the methods: min,max,average,value
+    @ In, vars, dict, it is an historySet
+    @ In, pivotVar,  string, variable considered
+    @ In, pivotVal,  double, value associated to the variable considered
+    @ In, snapShotType, string, type of snapShot: min, max, average, value
+    @ Out, outputDic, dict, it contains the temporal slice of all histories
+  """
+  numberOfRealizations = len(inputDic['data']['RAVEN_sample_ID'].values)
+
+  outputDic={}
+  outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
+  outputDic['data'] = {}
+  for var in inputDic['outVars'].keys():
+    outputDic['data'][var] = np.zeros(numberOfRealizations)
+
+  for var in inputDic['outVars']:
+    outputDic['data'][var] = np.zeros(0)
+
+  for i in range(numberOfRealizations):
+    rlz = outputDic['data'].isel(RAVEN_sample_ID=i)
+    for var in inputDic['outVars']:
+      if snapShotType == 'min':
+        idx = rlz[pivotVar].values.returnIndexMin()
+        outputDic['data'][var][i] = rlz[pivotVar].values[idx]
+
+      elif snapShotType == 'max':
+        idx = rlz[pivotVar].values.returnIndexMax()
+        outputDic['data'][var][i] = rlz[pivotVar].values[idx]
+
+      elif snapShotType == 'value':
+        idx = rlz[pivotVar].values.returnIndexFirstPassage(pivotVal)
+        outputDic['data'][var][i] = rlz[pivotVar].values[idx]
+
+      elif snapShotType == 'average':
+        varToIntegrate = rlz[var].values
+        timeAxis = rlz[tempID].values
+        integral = np.trapz(varToIntegrate, x=timeAxis)
+        outputDic['data'][var][i] = integral/(timeAxis[-1]-timeAxis[0])
+
+  return outputDic
+
+def historySnapShot_OLD(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = None):
   """
   Method do to compute a conversion from HistorySet to PointSet using the methods: min,max,average,value
   @ In, vars, dict, it is an historySet
@@ -257,8 +350,28 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
 
   return outputDic
 
-
 def historySetWindow(inputDic,timeStepID,pivotParameter):
+  """
+  Method do to compute a conversion from HistorySet to PointSet using the temporal slice of the historySet
+  @ In, inputDic, dict, it is an historySet
+  @ In, timeStepID, int, number of time sample of each history
+  @ In, pivotParameter, string, ID name of the temporal variable
+  @ Out, outDic, dict, it contains the temporal slice of all histories
+  """
+
+  outputDic={}
+  outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
+  outputDic['data'] = {}
+
+  for var in inputDic['inpVars']:
+    outputDic['data'][var] = inputDic['data'].isel(pivotParameter=[timeStepID])[var]
+
+  for var in inputDic['outVars']:
+    outputDic['data'][var] = inputDic['data'].isel(pivotParameter=[timeStepID])[var]
+
+  return outputDic
+
+def historySetWindow_OLD(inputDic,timeStepID,pivotParameter):
   """
   Method do to compute a conversion from HistorySet to PointSet using the temporal slice of the historySet
   @ In, inputDic, dict, it is an historySet

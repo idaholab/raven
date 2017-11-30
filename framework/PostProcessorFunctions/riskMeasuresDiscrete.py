@@ -142,7 +142,6 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                           ' : XML node ' + str(child) + ' is not recognized')
 
-
   def run(self,inputDic):
     """
      This method perform the actual calculation of the risk measures
@@ -152,7 +151,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     # Check how many HistorySets (checkHSs) have been provided
     checkHSs=0
     for inp in inputDic:
-      if inp['type'] == 'HistorySet':
+      if bool([a for a in inp['dims'].values() if a != []]): # inp['dims'] == 'HistorySet':
         timeDepData = copy.deepcopy(inp)
         inputDic.remove(inp)
         checkHSs +=1
@@ -178,8 +177,159 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
                         ' : more than one HistorySet has been provided')
     return outputDic
 
-
   def runStatic(self,inputDic, componentConfig=None):
+    """
+     This method perform the static calculation of the risk measures
+     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+     @ In, componentConfig, dict, dictionary containing the boolean status (0 or 1) of a sub set of the input variables
+     @ Out, outputDic, dict, dictionary which contains the risk measures
+    """
+    if self.temporalID is not None and componentConfig is None:
+      self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
+                        ' : a temporalID variable is specified but an HistorySet is not provided')
+
+    riskImportanceMeasures = {}
+    for variable in self.variables:
+      macroR0     = 0
+      macroRMinus = 0
+      macroRPlus  = 0
+
+      r0Low  = self.variables[variable]['R0low']
+      r0High = self.variables[variable]['R0high']
+      r1Low  = self.variables[variable]['R1low']
+      r1High = self.variables[variable]['R1high']
+
+      for inp in inputDic:
+        ## Get everything out of the inputDic at the outset, the hope is to have no string literals on the interior
+        ## of this function.
+        if componentConfig is None:
+          inputName     = inp['name']
+          inputDataIn   = {key: inp[key] for key in inp['inpVars'] }
+          inputDataOut  = {key: inp[key] for key in inp['outVars'] }
+          targetVar     = np.asarray(inputDataOut[self.target['targetID']])
+          inputMetadata = inp['metadata'] if 'metadata' in inp else None
+        else:
+          # if componentConfig is provided, then only a subset of the original data must be considered
+          # only the data points that contains componentConfig are in fact considered
+          # indexUpdatedData contains the indexes of those data points
+          indexUpdatedData = None
+          for var in componentConfig.keys():
+            if componentConfig[var] == 0:
+              inputVar = np.asarray(inp['data'][var])
+              indexCompOut = np.where(inputVar==1)
+              if indexUpdatedData is None:
+                indexUpdatedData = copy.deepcopy(indexCompOut)
+              else:
+                indexUpdatedData = np.intersect1d(indexUpdatedData,indexCompOut)
+
+          if indexUpdatedData is not None:
+            inputName    = inp['name']
+            inputDataIn  = {}
+            inputDataOut = {}
+            for var in inp['data']['input']:
+              inputDataIn[var]  = inp['data'][var][indexUpdatedData]
+            for var in inp['data']['output']:
+              inputDataOut[var] = inp['data'][var][indexUpdatedData]
+            targetVar = np.asarray(inputDataOut[self.target['targetID']])
+            inputMetadata = {}
+            inputMetadata['ProbabilityWeight'] = inp['metadata']['ProbabilityWeight'][indexUpdatedData]
+          else:
+            inputName     = inp['name']
+            inputDataIn  = {key: inp[key] for key in inp['inpVars']}
+            inputDataOut = {key: inp[key] for key in inp['outVars']}
+            targetVar     = np.asarray(inputDataOut[self.target['targetID']])
+            inputMetadata = inp['metadata'] if 'metadata' in inp else None
+
+        if inputMetadata is not None and 'ProbabilityWeight' in inputMetadata:
+          inputWeights = np.asarray(inputMetadata['ProbabilityWeight'])
+          pbWeights = inputWeights/np.sum(inputWeights)
+        else:
+          ## Any variable will do, so just count the first input. We could also have count the outputs, but this could
+          ## be tricky if the data is a HistorySet and thus multidimensional.
+          pointCount = len(inputDataIn.values()[0])
+          pbWeights  = np.ones(pointCount)/float(pointCount)
+
+        if inputName in self.IEdata.keys():
+          multiplier = self.IEdata[inputName]
+        else:
+          multiplier = 1.0
+          self.raiseAWarning('RiskMeasuresDiscrete Interfaced Post-Processor: the dataObject '
+                             + str (inputName) + ' does not have the frequency of the IE specified. It is assumed that the frequency of the IE is 1.0')
+
+        ## Calculate R0, Rminus, Rplus
+
+        ## Step 1: Retrieve points that contain system failure
+        indexSystemFailure = np.where(np.logical_and(targetVar >= self.target['low'], targetVar <= self.target['high']))[0]
+
+        if variable in inputDataIn.keys():
+          inputVar = np.asarray(inputDataIn[variable])
+
+          ## Step 2: Retrieve points from original dataset that contain component reliability values equal to 1
+          ##         (indexComponentMinus) and 0 (indexComponentPlus)
+          indexComponentMinus = np.where(np.logical_and(inputVar >= r1Low, inputVar <= r1High))[0]
+          indexComponentPlus  = np.where(np.logical_and(inputVar >= r0Low, inputVar <= r0High))[0]
+
+          ## Step 3: Retrieve points from Step 1 that contain component reliability values equal to 1
+          ##         (indexFailureMinus) and 0 (indexFailurePlus)
+          indexFailureMinus = np.intersect1d(indexSystemFailure,indexComponentMinus)
+          indexFailurePlus  = np.intersect1d(indexSystemFailure,indexComponentPlus)
+
+          ## Step 4: Sum pb weights for the subsets retrieved in Steps 1, 2, and 3
+          if componentConfig is None or variable not in componentConfig.keys():
+            # Coordinate BE2
+            ## R0 = pb of system failure
+            R0     = np.sum(pbWeights[indexSystemFailure])
+            Rminus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
+            Rplus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
+          else:
+            # Coordinate BE3
+            R0 = np.sum(pbWeights[indexSystemFailure])
+            if   componentConfig[variable] == 0:
+              Rminus = Rplus = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
+            elif componentConfig[variable] == 1:
+              if indexFailureMinus.size:
+                Rminus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
+              else:
+                Rminus = R0
+              if indexComponentPlus.size:
+                Rplus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
+              else:
+                Rplus = R0
+        else:
+          # Coordinate BE1
+          R0 = Rminus = Rplus = np.sum(pbWeights[indexSystemFailure])
+
+        macroR0     += multiplier * R0
+        macroRMinus += multiplier * Rminus
+        macroRPlus  += multiplier * Rplus
+
+      if 'RRW' in self.measures:
+        RRW = riskImportanceMeasures[variable + '_RRW'] = np.asanyarray([macroR0/macroRMinus])
+        self.raiseADebug(str(variable) + ' RRW = ' + str(RRW))
+
+      if 'RAW' in self.measures:
+        RAW = riskImportanceMeasures[variable + '_RAW'] = np.asanyarray([macroRPlus/macroR0])
+        self.raiseADebug(str(variable) + ' RAW = ' + str(RAW))
+
+      if 'FV' in self.measures:
+        FV = riskImportanceMeasures[variable + '_FV']  = np.asanyarray([(macroR0-macroRMinus)/macroR0])
+        self.raiseADebug( str(variable) + ' FV = ' + str(FV))
+
+      if 'B' in self.measures:
+        B = riskImportanceMeasures[variable + '_B']   = np.asanyarray([macroRPlus-macroRMinus])
+        self.raiseADebug(str(variable) + ' B  = ' + str(B))
+
+      if 'R0' in self.measures:
+        riskImportanceMeasures['R0']   = np.asanyarray([macroR0])
+        self.raiseADebug(' R0  = ' + str(macroR0))
+
+    ## If for whatever reason passing an empty input back causes errors, then you may want to add some sort of dummy
+    ## value.
+    # outputDic['data']['input'] = {} # {'dummy' : np.asanyarray(0)}
+
+    return riskImportanceMeasures
+
+  def runStatic_OLD(self,inputDic, componentConfig=None):
     """
      This method perform the static calculation of the risk measures
      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
@@ -339,6 +489,57 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     return outputDic
 
   def runDynamic(self,inputDic,timeHistory):
+    """
+     This method performs the dynamic calculation of the risk measures
+     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+     @ In, timeHistory, dict, dictionary containing  boolean temporal profiles (0 or 1) of a sub set of the input variables. Note that this
+                              history must contain a single history
+     @ Out, outputDic, dict, dictionary which contains the risk measures
+    """
+    # timeHistory format values:
+    # - 0 component is disconnected
+    # - 1 component is connected
+
+    if self.temporalID is None:
+      self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor: an HistorySet is provided but no temporalID variable is specified')
+
+    if self.temporalID not in timeHistory['data'].keys():
+      self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor: the specified temporalID variable '
+                        + str(self.temporalID) + ' is not part of the HistorySet variables')
+
+    outputDic = {}
+    outputDic['data'] = {}
+
+    for measure in self.measures:
+      if measure=='R0':
+        outputDic['data'][measure] = np.zeros(len(timeHistory['data'][self.temporalID]))
+      else:
+        for var in self.variables:
+          outputDic['data'][var + '_' + measure] = np.zeros(len(timeHistory['data'][self.temporalID]))
+
+    previousSystemConfig = {}
+
+    for index,value in enumerate(timeHistory['data'][self.temporalID]):
+      systemConfig={}
+
+      # Retrieve the system configuration at time instant "index"
+      for var in timeHistory['data'].keys():
+        if var != self.temporalID:
+          systemConfig[var] = timeHistory['data'][index]
+
+      # Do not repeat the calculation if the system configuration is identical to the one of previous time instant
+      if systemConfig == previousSystemConfig:
+        for key in outputDic['data'].keys():
+          outputDic['data'][key][index] = outputDic['data'][key][index-1]
+      else:
+        staticOutputDic = self.runStatic(inputDic,systemConfig)
+        for key in outputDic['data'].keys():
+          outputDic['data'][key][index] = staticOutputDic['data'][key]
+      previousSystemConfig = copy.deepcopy(systemConfig)
+
+    return outputDic
+
+  def runDynamic_OLD(self,inputDic,timeHistory):
     """
      This method performs the dynamic calculation of the risk measures
      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects

@@ -95,7 +95,30 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     """
      Method to post-process the dataObjects
      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
-     @ Out, outputDic, dict, dictionary ofr esampled histories
+     @ Out, outputDic, dict, dictionary of re-sampled histories
+    """
+    if len(inputDic)>1:
+      self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+    else:
+      inputDic = inputDic[0]
+      outputDic={}
+      outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
+      outputDic['data'] = {}
+
+      for rlz in inputDic['data']:
+        if self.samplingType in ['uniform','firstDerivative','secondDerivative']:
+          outputDic['data'] = self.varsTimeInterp(inputDic['data'])
+        elif self.samplingType in ['filteredFirstDerivative','filteredSecondDerivative']:
+          outputDic['data'] = timeSeriesFilter(self.pivotParameter,inputDic['data'],self.samplingType,self.tolerance)
+        else:
+          self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : not recognized samplingType')
+      return outputDic
+
+  def run_OLD(self,inputDic):
+    """
+     Method to post-process the dataObjects
+     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+     @ Out, outputDic, dict, dictionary of resampled histories
     """
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
@@ -118,7 +141,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
 
   def varsTimeInterp(self, vars):
     """
-      This function sample a multi-variate temporal function
+      This function samples a multi-variate temporal function
       @ In, vars, dict, data set that contained the information of the multi-variate temporal function (this is supposed to be a dictionary:
                       {'pivotParameter':time_array, 'var1':var1_array, ..., 'varn':varn_array})
       @ Out, newVars, dict, data set that is a sampled version of vars
