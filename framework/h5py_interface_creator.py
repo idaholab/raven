@@ -292,11 +292,17 @@ class hdf5Database(MessageHandler.MessageUser):
     groups.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
     # get the data
     data = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray )
+    # get size of each data variable
+    varShape = [value.shape for key,value in data.items()]
+    
     # get data names
     groups.attrs[b'data_names'] = json.dumps(data.keys())
+    # get data shapes
+    groups.attrs[b'data_shapes'] = json.dumps(varShape)
     # get data names
-    groups.attrs[b'data_names'] = json.dumps(data.keys())    
-    
+    groups.create_dataset(groupName + "_data", dtype="float", data=np.concatenate( data.values()))
+    # get the data back
+    dataset = groups[groupName + "_data"]    
     
     if set(['inputSpaceParams']).issubset(set(source['name'].keys())):
       sourceInputs = source['name']['inputSpaceParams'].keys()
