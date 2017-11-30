@@ -187,6 +187,8 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           self.raiseAWarning('Multiple options were given to specify the output row to read! Using last entry:',self._selectOutput)
       # end options node
     # end input reading
+    # set default pivot parameters, if needed
+    self._setDefaultPivotParams()
     # remove index variables from input/output spaces, but silently, since we'll still have them available later
     for index in self._pivotParams.keys():
       try:
@@ -200,6 +202,14 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._allvars = self._inputs + self._outputs
     if self.messageHandler is None:
       self.messageHandler = MessageCourier()
+
+  def _setDefaultPivotParams(self):
+    """
+      Allows setting default pivot parameters.  In general, does nothing.
+      @ In, None
+      @ Out, None
+    """
+    pass
 
   def setPivotParams(self,params):
     """
