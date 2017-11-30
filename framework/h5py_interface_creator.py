@@ -70,6 +70,8 @@ class hdf5Database(MessageHandler.MessageUser):
     # * MC  = MonteCarlo => Storing by a Parallel structure
     # * DET = Dynamic Event Tree => Storing by a Hierarchical structure
     self.type       = None
+    self._metavars = []
+    self._allvars  = []
     # specialize printTag (THIS IS THE CORRECT WAY TO DO THIS)
     self.printTag = 'DATABASE HDF5'
     self.messageHandler = messageHandler
@@ -114,7 +116,24 @@ class hdf5Database(MessageHandler.MessageUser):
       self.firstRootGroup = False
       # The root name is / . it can be changed if addGroupInit is called
       self.parentGroupName = b'/'
-
+  
+  def addExpectedMeta(self,keys):
+    """
+      Registers meta to look for in realizations.
+      @ In, keys, set(str), keys to register
+      @ Out, None
+    """
+    # TODO add option to skip parts of meta if user wants to
+    # remove already existing keys
+    keys = list(key for key in keys if key not in self._metavars)
+    # if no new meta, move along
+    if len(keys) == 0:
+      return
+    # CANNOT add expected new meta after database has been used
+    assert(len(self._metavars) == 0)
+    self._metavars.extend(keys)
+    self._allvars.extend(keys)
+  
   def __createObjFromFile(self):
     """
       Function to create the list "self.allGroupPaths" and the dictionary "self.allGroupEnds"
@@ -263,11 +282,24 @@ class hdf5Database(MessageHandler.MessageUser):
       
     # create the group
     groups = parentGroupObj.create_group(groupName)
+    
     groups.attrs[b'mainClass' ] = b'PythonType'
     groups.attrs[b'sourceType'] = b'Dictionary'
     # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
     # use ONLY the subset of variables if requested
+    
+    
+    
+    metaValues = {}
+    for key in self._metavars:
+      metaValues[key] = rlz[key]
+    # add pointwise metadata (in this case, they are group-wise)
+    groups.attrs[b'point-wise-metadata'] = metaValues
+    for var,item in rlz.items():
+      
+    
     for rl in rlz:
+      print(type(rlz[rl]))
       print(rl)
     
     
