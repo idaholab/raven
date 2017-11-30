@@ -22,17 +22,17 @@
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"    >MC_external</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >outMC</Output>
-      <Output  class="OutStreams"  type="Print"         >PrintPointSet_dump</Output>
+      <Input   class="DataObjects"  type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"       type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"     type="MonteCarlo"    >MC_external</Sampler>
+      <Output  class="DataObjects"  type="PointSet"      >outMC</Output>
+      <Output  class="OutStreams"   type="Print"         >PrintPointSet_dump</Output>
     </MultiRun>
     <PostProcess name="PP">
-      <Input   class="DataObjects" type="PointSet"      >outMC</Input>
-      <Model   class="Models"      type="PostProcessor" >interfacedPP1</Model>
-      <Output  class="DataObjects"  type="PointSet"     >outMC_PP</Output>
-      <Output  class="OutStreams"   type="Print"        >PrintPPPointSetSet_dump</Output>
+      <Input   class="DataObjects"  type="PointSet"      >outMC</Input>
+      <Model   class="Models"       type="PostProcessor" >interfacedPP1</Model>
+      <Output  class="DataObjects"  type="PointSet"      >outMC_PP</Output>
+      <Output  class="OutStreams"   type="Print"         >PrintPPPointSetSet_dump</Output>
     </PostProcess>
   </Steps>
 
