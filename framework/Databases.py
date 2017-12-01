@@ -225,8 +225,6 @@ class HDF5(DateBase):
     return endingGroups
 
   def addRealization(self,rlz):
-<<<<<<< HEAD
-=======
     """
       Adds a "row" (or "sample") to this data object.
       This is the method to add data to this data object.
@@ -263,7 +261,6 @@ class HDF5(DateBase):
 
 
   def addGroup(self,attributes,loadFrom,upGroup=False):
->>>>>>> starting reworking database
     """
       Adds a "row" (or "sample") to this database.
       This is the method to add data to this database.
@@ -323,12 +320,12 @@ class HDF5(DateBase):
     allRealizationNames = self.database.retrieveAllHistoryNames()
     allData = [self.realization(name) for name in allRealizationNames]
     return allData
-
+  
   def realization(self,index=None,matchDict=None,tol=1e-15):
     """
       Method to obtain a realization from the data, either by index (e.g. realization number) or matching value.
-      Either "index" or "matchDict" must be supplied. (NOTE: now just "index" can be supplied)
-      @ In, index, int or str, optional, number of row to retrieve (by index, not be "sample") or group name
+      Either "index" or "matchDict" must be supplied. (now just "index" can be supplied)
+      @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
       @ In, matchDict, dict, optional, {key:val} to search for matches
       @ In, tol, float, optional, tolerance to which match should be made
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
@@ -345,7 +342,6 @@ class HDF5(DateBase):
     else:
       rlz,_ = self.database._getRealizationByName(allRealizations[index] if type(index).__name__ == 'int' else index ,{'reconstruct':True})
     return rlz
-
 __base                  = 'Database'
 __interFaceDict         = {}
 __interFaceDict['HDF5'] = HDF5
