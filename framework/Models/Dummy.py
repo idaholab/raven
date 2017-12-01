@@ -198,12 +198,6 @@ class Dummy(Model):
     if isinstance(result,Runners.Error):
       self.raiseAnError(Runners.Error,'No available output to collect!')    
     output.addRealization(result)
-    if output.type == 'HDF5':
-      exportDict = self.createExportDictionaryFromFinishedJob(finishedJob)
-      self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
-
-    output.addRealization(result)
-    return
     # END can be abstracted to base class
 
   def collectOutputFromDict(self,exportDict,output,options=None):
