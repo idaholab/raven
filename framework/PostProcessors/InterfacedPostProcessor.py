@@ -195,7 +195,7 @@ class InterfacedPostProcessor(PostProcessor):
         output.updateMetadata(key,exportDict['metadata'][key])
 
 
-  def inputToInternal(self,input):
+  def inputToInternal_OLD(self,input):
     """
       Function to convert the received input into a format this object can
       understand
@@ -215,3 +215,11 @@ class InterfacedPostProcessor(PostProcessor):
         inputDictTemp['type'] = str(inp.type)
         inputDict.append(inputDictTemp)
     return inputDict
+
+  def inputToInternal(self,input):
+    """
+      Function to convert the received input into a format this object can
+      understand
+      @ In, input, list, list of dataObjects handed to the post-processor
+      @ Out, inputDict, list, list of dictionaries this object can process
+    """
