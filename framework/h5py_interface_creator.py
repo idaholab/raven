@@ -248,26 +248,64 @@ class hdf5Database(MessageHandler.MessageUser):
     self.allGroupPaths.append("/" + groupNameInit)
     self.allGroupEnds["/" + groupNameInit] = False
     self.h5FileW.flush()
-
+  
+  def __populateGroup(self, group, rlz):
+    """
+      This method is a common method between the __addGroupRootLevel and __addSubGroup
+      It is used to populate the group with the info in the rlz
+      @ In, group, h5py.Group, the group instance
+      @ In, rlz, dict, dictionary with the data and metadata to add
+      @ Out, None
+    """
+    # add pointwise metadata (in this case, they are group-wise)
+    group.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
+    # get the data
+    data = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray )
+    # get size of each data variable
+    varKeys = data.keys()
+    varShape = [data[key].shape for key in varKeys]
+    # get data names
+    group.attrs[b'data_names'] = json.dumps(varKeys)
+    # get data shapes
+    group.attrs[b'data_shapes'] = json.dumps(varShape)
+    # get data shapes
+    end   = np.cumsum(varShape)
+    begin = np.concatenate(([0],end[0:-1]))
+    group.attrs[b'data_begin_end'] = json.dumps((begin.tolist(),end.tolist()))    
+    # get data names
+    group.create_dataset(group.name + "_data", dtype="float", data=(np.concatenate( data.values()).ravel()))
+    # add some info
+    group.attrs[b'endGroup'   ] = True
+    group.attrs[b'parentID'   ] = parentName
+    group.attrs[b'nVars'      ] = len(varKeys)
+    ## get the data back
+    ##dataset = group[groupName + "_data"]
+    ### reshape them based on the shapes
+    ##newData = {key : np.reshape(dataset[begin[cnt]:end[cnt]], varShape[cnt]) for cnt,key in enumerate(varKeys)} 
+    if parentGroupName != "/":
+      self.allGroupPaths.append(parentGroupName + "/" + group.name)
+      self.allGroupEnds[parentGroupName + "/" + group.name] = True
+    else:
+      self.allGroupPaths.append("/" + group.name)
+      self.allGroupEnds["/" + group.name] = True
+  
   def __addGroupRootLevel(self,groupName,rlz):
     """
       Function to add a group into the database (root level)
       @ In, groupName, string, group name
-      @ In, attributes, dict, dictionary of attributes that must be added as metadata
-      @ In, source, File object, source file
-      @ In, upGroup, bool, optional, updated group?
+      @ In, rlz, dict, dictionary with the data and metadata to add
       @ Out, None
     """
     # Check in the "self.allGroupPaths" list if a group is already present...
     # If so, error (Deleting already present information is not desiderable)
-    if self.__returnParentGroupPath(groupName) != '-$':
+    if self.__returnGroupPath(groupName) != '-$':
       # the group alread exists 
       groupName = groupName + "_" + groupName
 
     parentName = self.parentGroupName.replace('/', '')
     # Create the group
     if parentName != '/':
-      parentGroupName = self.__returnParentGroupPath(parentName)
+      parentGroupName = self.__returnGroupPath(parentName)
       # Retrieve the parent group from the HDF5 database
       if parentGroupName in self.h5FileW:
         parentGroupObj = self.h5FileW.require_group(parentGroupName)
@@ -276,55 +314,17 @@ class hdf5Database(MessageHandler.MessageUser):
     else:
       parentGroupObj = self.h5FileW
       
-    # create the group
-    groups = parentGroupObj.create_group(groupName)
-    
-    # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
-    # use ONLY the subset of variables if requested
-    
-    # add pointwise metadata (in this case, they are group-wise)
-    groups.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
-    
-    # get the data
-    data = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray )
-    # get size of each data variable
-    varKeys = data.keys()
-    varShape = [data[key].shape for key in varKeys]
-    # get data names
-    groups.attrs[b'data_names'] = json.dumps(varKeys)
-    # get data shapes
-    groups.attrs[b'data_shapes'] = json.dumps(varShape)
-    # get data shapes
-    end   = np.cumsum(varShape)
-    begin = np.concatenate(([0],end[0:-1]))
-    groups.attrs[b'data_begin_end'] = json.dumps((begin.tolist(),end.tolist()))    
-    # get data names
-    groups.create_dataset(groupName + "_data", dtype="float", data=(np.concatenate( data.values()).ravel()))
-    # add some info
-    groups.attrs[b'endGroup'   ] = True
-    groups.attrs[b'parentID'   ] = parentName
-    groups.attrs[b'nVars'      ] = len(varKeys)
-    ## get the data back
-    ##dataset = groups[groupName + "_data"]
-    ### reshape them based on the shapes
-    ##newData = {key : np.reshape(dataset[begin[cnt]:end[cnt]], varShape[cnt]) for cnt,key in enumerate(varKeys)} 
-    if parentGroupName != "/":
-      self.allGroupPaths.append(parentGroupName + "/" + groupName)
-      self.allGroupEnds[parentGroupName + "/" + groupName] = True
-    else:
-      self.allGroupPaths.append("/" + groupName)
-      self.allGroupEnds["/" + groupName] = True
+    # create and populate the group
+    self.__populateGroup(parentGroupObj.create_group(groupName), rlz)
 
-  def __addSubGroup(self,groupName,attributes,source):
+  def __addSubGroup(self,groupName,rlz):
     """
       Function to add a group into the database (Hierarchical)
       @ In, groupName, string, group name
-      @ In, attributes, dict, dictionary of attributes that must be added as metadata
-      @ In, source, File object, source data
+      @ In, rlz, dict, dictionary with the data and metadata to add
       @ Out, None
     """
-    
-    if self.__returnParentGroupPath(groupName) != '-$':
+    if self.__returnGroupPath(groupName) != '-$':
       # the group alread exists 
       groupName = groupName + "_" + groupName
     
@@ -334,7 +334,7 @@ class hdf5Database(MessageHandler.MessageUser):
   
     # Find parent group path
     if parentName != '/':
-      parentGroupName = self.__returnParentGroupPath(parentName)
+      parentGroupName = self.__returnGroupPath(parentName)
     else:
       parentGroupName = parentName
     # Retrieve the parent group from the HDF5 database
@@ -361,36 +361,8 @@ class hdf5Database(MessageHandler.MessageUser):
     parentGroupObj.attrs[b'endGroup'   ] = False  
     # create the sub group
     self.raiseAMessage('Adding group named "' + groupName + '" in Database "'+ self.name +'"')
-    groups = parentGroupObj.create_group(groupName)
-    # add pointwise metadata (in this case, they are group-wise)
-    groups.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
-    # get the data
-    data = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray )
-    # get size of each data variable
-    varKeys = data.keys()
-    varShape = [data[key].shape for key in varKeys]
-    # get data names
-    groups.attrs[b'data_names'] = json.dumps(varKeys)
-    # get data shapes
-    groups.attrs[b'data_shapes'] = json.dumps(varShape)
-    # get data shapes
-    end   = np.cumsum(varShape)
-    begin = np.concatenate(([0],end[0:-1]))
-    groups.attrs[b'data_begin_end'] = json.dumps((begin.tolist(),end.tolist()))    
-    # get data names
-    groups.create_dataset(groupName + "_data", dtype="float", data=(np.concatenate( data.values()).ravel()))
-    # add some info
-    groups.attrs[b'endGroup'   ] = True
-    groups.attrs[b'parentID'   ] = parentName
-    groups.attrs[b'nVars'      ] = len(varKeys)
-    # The sub-group is the new ending group
-    if parentGroupName != "/":
-      self.allGroupPaths.append(parentGroupName + "/" + groupName)
-      self.allGroupEnds[parentGroupName + "/" + groupName] = True
-    else:
-      self.allGroupPaths.append("/" + groupName)
-      self.allGroupEnds["/" + groupName] = True
-    return
+    # create and populate the group
+    self.__populateGroup(parentGroupObj.create_group(groupName), rlz)
 
   #def computeBack(self,nameFrom,nameTo):
     #"""
@@ -429,7 +401,9 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In,  rootName, string, optional, It's the root name, if present, only the groups that have this root are going to be returned
       @ Out, allHistoryPaths, list, List of the HistorySet paths
     """
-    allHistoryPaths = []
+    rname = "-$"
+    if rootName:
+      rname = rootName 
     # Create the "self.allGroupPaths" list from the existing database
     if not self.fileOpen:
       self.__createObjFromFile()
@@ -439,16 +413,10 @@ class hdf5Database(MessageHandler.MessageUser):
       if not rootName:
         allHistoryPaths = self.allGroupPaths
       else:
-        for index in xrange(len(self.allGroupPaths)):
-          if rootName in self.allGroupPaths[index].split('/')[1]:
-            allHistoryPaths.append(self.allGroupPaths[index])
+        allHistoryPaths = [k for k in self.allGroupPaths.keys() if not k.endswith(rname)] 
     else:
       # Tree structure => construct the HistorySet' paths
-      for index in xrange(len(self.allGroupPaths)):
-        if self.allGroupEnds[self.allGroupPaths[index]]:
-          if rootName and not (rootName in self.allGroupPaths[index].split('/')[1]):
-            continue
-          allHistoryPaths.append(self.allGroupPaths[index])
+      allHistoryPaths = [k for k, v in self.allGroupPaths.items() if v and not k.endswith(rname)]           
     return allHistoryPaths
 
   def retrieveAllHistoryNames(self,rootName=None):
@@ -459,15 +427,10 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     if not self.fileOpen:
       self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
-    workingList = []
-    for index in xrange(len(self.allGroupPaths)):
-      if self.allGroupEnds[self.allGroupPaths[index]]:
-        if rootName and not (rootName in self.allGroupPaths[index].split('/')[1]):
-          continue
-        workingList.append(self.allGroupPaths[index].split('/')[len(self.allGroupPaths[index].split('/'))-1])
+    workingList = [k.split('/')[-1] for k, v in self.allGroupPaths.items() if v and not k.endswith(rname)]  
     return workingList
 
-  def retrieveHistory(self,name,filterHist=None,attributes = None):
+  def retrieveHistory(self,name,options = {}):
     """
       Function to retrieve the history whose end group name is "name"
       @ In, name, string, history name => It must correspond to a group name (string)
@@ -478,54 +441,40 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, attributes, dict, optional, dictionary of attributes (options)
       @ Out, (result,attrs), tuple, tuple where position 0 = 2D numpy array (history), 1 = dictionary (metadata)
     """
+    reconstruct = options.get("reconstruct", True)
+    pivotParam  = options.get("pivotParam", "time")
+    
     listStrW = []
     listPath  = []
     path       = ''
     found      = False
     result     = None
     attrs = {}
-    if attributes:
-      if 'inputTs' in attributes.keys():
-        inputTs  = attributes['inputTs' ]
-      if 'operator' in attributes.keys():
-        operator = attributes['operator']
-    else:
-      inputTs  = None
-      operator = None
-
     # Check if the h5 file is already open, if not, open it
     # and create the "self.allGroupPaths" list from the existing database
     if not self.fileOpen:
       self.__createObjFromFile()
     # Find the endGroup that coresponds to the given name
-    for i in xrange(len(self.allGroupPaths)):
-      listStrW = self.allGroupPaths[i].split("/")
-      try:
-        listStrW.remove("")
-      except ValueError:
-        pass
-      if listStrW[len(listStrW)-1] == name:
-        found = True
-        path  = self.allGroupPaths[i]
-        listPath = listStrW
-        break
+    path = self.__returnGroupPath(name)
+    found = path != '-$'
+
     if found:
-      # Check the filter type
-      if not filterHist or filterHist == 0:
-        # Grep only History from group "name"
+      # check the reconstruct flag
+      if not reconstruct:
+        # Grep only history from group "name"
         grp = self.h5FileW.require_group(path)
         # Retrieve dataset
-        dataset = grp.require_dataset(name +'_data', (int(grp.attrs['nTimeSteps']),int(grp.attrs['nParams'])), dtype='float').value
-        # Get numpy array
-        result = dataset[:,:]
-        # Get attributes (metadata)
-        attrs = grp.attrs
-        for attr in attrs.keys():
-          try:
-            attrs[attr] = json.loads(attrs[attr])
-          except:
-            attrs[attr] = attrs[attr]
-      elif  filterHist == 'whole':
+        dataset = group[groupName + "_data"]
+        # Get some variables of interest
+        nVars      = json.loads(group.attrs[b'nVars'])
+        varShape   = json.loads(group.attrs[b'data_shapes'])
+        varKeys    = json.loads(group.attrs[b'data_names'])
+        end, begin = json.loads(group.attrs[b'data_begin_end']) 
+        # Reconstruct the dataset
+        newData = {key : np.reshape(dataset[begin[cnt]:end[cnt]], varShape[cnt]) for cnt,key in enumerate(varKeys)} 
+        # Add the attributes
+        attrs = {'nVars':nVars,'varShape':varShape,'varKeys':varKeys}
+      else:
         # Retrieve the whole history from group "name" to the root
         # Start constructing the merged numpy array
         whereList = []
@@ -648,9 +597,9 @@ class hdf5Database(MessageHandler.MessageUser):
     self.fileOpen       = True
     return fh5
 
-  def __returnParentGroupPath(self,parentName):
+  def __returnGroupPath(self,parentName):
     """
-      Function to return a parent group Path
+      Function to return a group Path
       @ In, parentName, string, parent ID
       @ Out, parentGroupName, string, parent group path
     """
