@@ -170,7 +170,7 @@ class hdf5Database(MessageHandler.MessageUser):
         self.raiseAWarning('not found attribute endGroup in group ' + name + '.Set True.')
     return
 
-  def addGroup(self,rlz): # groupName,attributes,source,upGroup=False):
+  def addGroup(self,rlz):
     """
       Function to add a group into the database
       @ In, groupName, string, group name
@@ -185,12 +185,12 @@ class hdf5Database(MessageHandler.MessageUser):
     if parentID:
       #If Hierarchical structure, firstly add the root group
       if not self.firstRootGroup or parentID == 'root':        
-        self.__addGroupRootLevel(groupName,attributes,source,upGroup)
+        self.__addGroupRootLevel(groupName,rlz)
         self.firstRootGroup = True
         self.type = 'DET'
       else:
         # Add sub group in the Hierarchical structure
-        self.__addSubGroup(groupName,attributes,source)
+        self.__addSubGroup(groupName,rlz)
       endif
     else:
       # Parallel structure (always root level)
@@ -203,7 +203,7 @@ class hdf5Database(MessageHandler.MessageUser):
     self.h5FileW.flush()
     
 
-  def addGroupInit(self,groupName,attributes=None,upGroup=False):
+  def addGroupInit(self,groupName,attributes={},upGroup=False):
     """
       Function to add an empty group to the database
       This function is generally used when the user provides a rootname in the input.
@@ -240,13 +240,13 @@ class hdf5Database(MessageHandler.MessageUser):
     # Create the group
     grp = self.h5FileW.create_group(groupNameInit)
     # Add metadata
-    if attributes:
-      for key in attributes.keys():
-        grp.attrs[key] = attributes[key]
+    grp.attrs.update(attributes)
     grp.attrs['rootname'] = True
     grp.attrs['endGroup'] = False
     self.allGroupPaths.append("/" + groupNameInit)
     self.allGroupEnds["/" + groupNameInit] = False
+    self.h5FileW.attrs['allGroupPaths'] = json.dumps(self.allGroupPaths)
+    self.h5FileW.attrs['allGroupEnds'] = json.dumps(self.allGroupEnds)      
     self.h5FileW.flush()
   
   def __populateGroup(self, group, rlz):
@@ -278,10 +278,6 @@ class hdf5Database(MessageHandler.MessageUser):
     group.attrs[b'endGroup'   ] = True
     group.attrs[b'parentID'   ] = parentName
     group.attrs[b'nVars'      ] = len(varKeys)
-    ## get the data back
-    ##dataset = group[groupName + "_data"]
-    ### reshape them based on the shapes
-    ##newData = {key : np.reshape(dataset[begin[cnt]:end[cnt]], varShape[cnt]) for cnt,key in enumerate(varKeys)} 
     if parentGroupName != "/":
       self.allGroupPaths.append(parentGroupName + "/" + group.name)
       self.allGroupEnds[parentGroupName + "/" + group.name] = True
@@ -364,37 +360,6 @@ class hdf5Database(MessageHandler.MessageUser):
     # create and populate the group
     self.__populateGroup(parentGroupObj.create_group(groupName), rlz)
 
-  #def computeBack(self,nameFrom,nameTo):
-    #"""
-      #Function to compute the number of steps back from a group to another
-      #@ In,  nameFrom, string, group name (from)
-      #@ In,  nameTo, string, group name (to)
-      #@ Out, back, int, number of steps back (integer)
-    #"""
-    ## "listStrW", list in which the path for a particular group is stored (working variable)
-    ## "path", string in which the path of the "to" group is stored
-    ## "found", bolean variable ... I would say...self explanable :D
-    #listStrW = []
-    #path       = ''
-    #found      = False
-    ## Find the path fo the "nameTo" group
-    #for i in xrange(len(self.allGroupPaths)):
-      #listStrW = self.allGroupPaths[i].split("/")
-      #if listStrW[len(listStrW)-1] == nameTo:
-        #found = True
-        #path  = self.allGroupPaths[i]
-        #break
-    #if not found:
-      #self.raiseAnError(NameError,"Group named " + nameTo + " not found in the HDF5 database" + self.filenameAndPath)
-    #else:
-      #listGroups = path.split("/")  # Split the path in order to create a list of the groups in this history
-    ## Retrieve indeces of groups "nameFrom" and "nameTo" v
-    #fr = listGroups.index(nameFrom)
-    #to = listGroups.index(nameTo)
-    ## Compute steps back
-    #back = to - fr
-    #return back
-
   def retrieveAllHistoryPaths(self,rootName=None):
     """
       Function to create a list of all the HistorySet paths present in an existing database
@@ -429,7 +394,18 @@ class hdf5Database(MessageHandler.MessageUser):
       self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
     workingList = [k.split('/')[-1] for k, v in self.allGroupPaths.items() if v and not k.endswith(rname)]  
     return workingList
-
+  
+  def __getListOfParentGroups(self, grp, backGroups = []):
+    """
+      Method to get the list of groups from the deepest to the root, given a certain group
+      @ In, grp, h5py.Group, istance of the starting group
+      @ InOut, backGroups, list, list of group instances (from the deepest to the root)
+    """
+    if grp.parent:
+      backGroups.append(grp.parent)
+      self.__getListOfParentGroups(grp.parent, backGroups)
+    return backGroups
+    
   def retrieveHistory(self,name,options = {}):
     """
       Function to retrieve the history whose end group name is "name"
@@ -460,119 +436,28 @@ class hdf5Database(MessageHandler.MessageUser):
 
     if found:
       # check the reconstruct flag
-      if not reconstruct:
-        # Grep only history from group "name"
-        grp = self.h5FileW.require_group(path)
-        # Retrieve dataset
-        dataset = group[groupName + "_data"]
-        # Get some variables of interest
-        nVars      = json.loads(group.attrs[b'nVars'])
-        varShape   = json.loads(group.attrs[b'data_shapes'])
-        varKeys    = json.loads(group.attrs[b'data_names'])
-        end, begin = json.loads(group.attrs[b'data_begin_end']) 
-        # Reconstruct the dataset
-        newData = {key : np.reshape(dataset[begin[cnt]:end[cnt]], varShape[cnt]) for cnt,key in enumerate(varKeys)} 
-        # Add the attributes
-        attrs = {'nVars':nVars,'varShape':varShape,'varKeys':varKeys}
-      else:
-        # Retrieve the whole history from group "name" to the root
-        # Start constructing the merged numpy array
-        whereList = []
-        nameList  = []
-        # back represents the number of groups back that need to be
-        # included in the construction of the full history.
-        if self.parentGroupName != '/':
-          back = len(listPath)-2
-        else:
-          back = len(listPath)-1
-        if back < 0:
-          back = 0
-        i=0
-        #Question, should all the "" be removed, or just the first?
-        listPath = list(filter(None,listPath))
-        # Find the paths for the completed history
-        while (i <= back):
-          pathW = ''
-          for j in xrange(len(listPath) - i):
-            pathW = pathW + "/" + listPath[j]
-          if pathW != "":
-            whereList.append(pathW)
-          mylist = whereList[i].split("/")
-          nameList.append(mylist[len(mylist)-1])
-          i = i + 1
-        # get the relative groups' data
-        gbRes ={}
-        gbAttrs={}
-        whereList.reverse()
-        nameList.reverse()
-        nToTS = 0
-        nParams = 0
-        # Retrieve every single partial history that will be merged to create the whole history
-        for i in xrange(len(whereList)):
-          grp = self.h5FileW.require_group(whereList[i])
-          namel = nameList[i] +'_data'
-          dataset = grp.require_dataset(namel, (int(grp.attrs['nTimeSteps']),int(grp.attrs['nParams'])), dtype='float').value
-          if i == 0:
-            nParams = int(grp.attrs['nParams'])
-          if nParams != int(grp.attrs['nParams']):
-            self.raiseAnError(TypeError,'Can not merge datasets with different number of parameters')
-          # Get numpy array
-          gbRes[i]   = dataset[:,:]
-          gbAttrs[i] = copy.copy(grp.attrs   )
-          nToTS = nToTS + int(grp.attrs['nTimeSteps'])
-        # Create the numpy array
-        result = np.zeros((nToTS,nParams))
-        ts = 0
-        # Retrieve the metadata
-        for key in gbRes:
-          arr = gbRes[key]
-          result[ts:ts+arr[:,0].size,:] = arr
-          ts = ts + arr[:,0].size
-          # must be checked if overlapping of time (branching for example)
-        try:
-          attrs["outputSpaceHeaders"]   = gbAttrs[len(whereList)-1]["outputSpaceHeaders"].tolist()
-        except:
-          attrs["outputSpaceHeaders"]   = gbAttrs[len(whereList)-1]["outputSpaceHeaders"]
-        try:
-          attrs["inputSpaceHeaders"]    = gbAttrs[len(whereList)-1]["inputSpaceHeaders"].tolist()
-        except:
-          try:
-            attrs["inputSpaceHeaders"]  = gbAttrs[len(whereList)-1]["inputSpaceHeaders"]
-          except:
-            pass
-        try:
-          attrs["inputSpaceValues"]     = list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist())))
-        except:
-          try:
-            attrs["inputSpaceValues"]   = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[len(whereList)-1]["inputSpaceValues"]))))
-          except:
-            pass
-        attrs["nParams"]        = gbAttrs[len(whereList)-1]["nParams"]
-        attrs["parentID"]       = whereList[0]
-        attrs["startTime"]      = result[0,0]
-        attrs["end_time"]       = result[result[:,0].size-1,0]
-        attrs["nTimeSteps"]     = result[:,0].size
-        attrs["sourceType"]     = gbAttrs[len(whereList)-1]["sourceType"]
-        attrs["inputFile"]      = []
-        attrs["sourceFile"]     = []
-        for key in gbRes.keys():
-          for attr in gbAttrs[key].keys():
-            if attr not in ["outputSpaceHeaders","inputSpaceHeaders","inputSpaceValues","nParams","parentID","startTime","end_time","nTimeSteps","sourceType"]:
-              if attr not in attrs.keys():
-                attrs[attr] = []
-              try:
-                attrs[attr].append(json.loads(gbAttrs[key][attr]))
-              except:
-                if type(attrs[attr]) == list:
-                  attrs[attr].append(gbAttrs[key][attr])
-          if attrs["sourceType"] == 'csv' and 'sourceFile' in gbAttrs[key].keys():
-            attrs["sourceFile"].append(gbAttrs[key]["sourceFile"])
       
-
-        else:
-          self.raiseAnError(IOError,'Filter not recognized in hdf5Database.retrieveHistory function. Filter = ' + str(filter))
+      # Grep only history from group "name"
+      grp = self.h5FileW.require_group(path)
+      # Retrieve dataset
+      dataset = group[groupName + "_data"]
+      # Get some variables of interest
+      nVars      = json.loads(group.attrs[b'nVars'])
+      varShape   = json.loads(group.attrs[b'data_shapes'])
+      varKeys    = json.loads(group.attrs[b'data_names'])
+      end, begin = json.loads(group.attrs[b'data_begin_end']) 
+      # Reconstruct the dataset
+      newData = {key : np.reshape(dataset[begin[cnt]:end[cnt]], varShape[cnt]) for cnt,key in enumerate(varKeys)} 
+      # Add the attributes
+      attrs = {'nVars':nVars,'varShape':varShape,'varKeys':varKeys}
+      if reconstruct:
+        # get list of back groups
+        listGroups = self.__getListOfParentGroups(grp)
+        listGroups.reverse()
+        for group in listGroups:
+          print(group.name)
     else:
-      self.raiseAnError(IOError,'History named ' + name + ' not found in database')
+      self.raiseAnError(IOError,'Group named ' + name + ' not found in database "'+self.name+'"!')
 
     return(result,attrs)
 
