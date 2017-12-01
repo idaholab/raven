@@ -251,50 +251,15 @@ class HDF5(DateBase):
     """
     self.database.addExpectedMeta(keys)
 
-  #def addGroup(self,attributes,loadFrom,upGroup=False):
-    #"""
-      #Function used to add a group to the database
-      #@ In, attributes, dict, options
-      #@ In, loadFrom, string, source of the data
-      #@ In, upGroup, bool, optional, the group (if present) needs to be updated?
-      #@ Out, None
-    #"""
-    #if 'metadata' in attributes.keys():
-      #attributes['group'] = attributes['metadata']['prefix']
-    #elif 'prefix' in attributes.keys():
-      #attributes['group'] = attributes['prefix']
-    #else:
-      #self.raiseAnError(IOError,'addGroup function needs a prefix (ID) for adding a new group to a database!')
-    #self.database.addGroup(attributes['group'],attributes,loadFrom,upGroup)
-    #self.built = True
-
-  #def addGroupDataObjects(self,attributes,loadFrom,upGroup=False):
-    #"""
-      #Function to add a group in the HDF5 database
-      #@ In, attributes, dict, options
-      #@ In, loadFrom, DataObjects or dict, source of the data
-      #@ In, upGroup, bool, optional, the group (if present) needs to be updated?
-      #@ Out, None
-    #"""
-    #source = {}
-    #if type(loadFrom) != dict:
-      #if not loadFrom.type in ['PointSet','HistorySet']:
-        #self.raiseAnError(IOError,'addGroupDataObjects function needs to have a Data(s) as input source')
-      #source['type'] = 'DataObjects'
-    #source['name'] = loadFrom
-    #self.database.addGroupDataObjects(attributes['group'],attributes,source,upGroup,specificVars=self.variables)
-    #self.built = True
-
-  def initialize(self,gname,attributes=None,upGroup=False):
+  def initialize(self,gname,options={}):
     """
       Function to add an initial root group into the data base...
       This group will not contain a dataset but, eventually, only metadata
       @ In, gname, string, name of the root group
-      @ In, attributes, dict, options (metadata muste be appended to the root group)
-      @ In, upGroup, bool, optional, the group (if present) needs to be updated?
+      @ In, options, dict, options (metadata muste be appended to the root group)
       @ Out, None
     """
-    self.database.addGroupInit(gname,attributes,upGroup)
+    self.database.addGroupInit(gname,options)
 
   def returnHistory(self,options):
     """
@@ -309,7 +274,22 @@ class HDF5(DateBase):
       self.raiseAnError(IOError,'Can not retrieve an History from data set' + self.name + '.It has not built yet.')
     tupleVar = self.database.retrieveHistory(options['history'],options)
     return tupleVar
-
+  
+  def realization(self,index=None,matchDict=None,tol=1e-15):
+    """
+      Method to obtain a realization from the data, either by index (e.g. realization number) or matching value.
+      Either "index" or "matchDict" must be supplied. (now just "index" can be supplied)
+      @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
+      @ In, matchDict, dict, optional, {key:val} to search for matches
+      @ In, tol, float, optional, tolerance to which match should be made
+      @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
+      @ Out, rlz, dict, realization requested (None if not found)
+    """
+    # matchDict not implemented for Databases
+    assert (matchDict is not None)
+    
+  
+  retrieveHistory(self,name,options = {})
   #def __retrieveDataPointSet(self,attributes):
     #"""
       #Function to retrieve a PointSet from the HDF5 database

@@ -197,7 +197,6 @@ class hdf5Database(MessageHandler.MessageUser):
       self.__addGroupRootLevel(groupName,rlz)
       self.firstRootGroup = True
       self.type = 'MC'      
-    endif
     self.h5FileW.attrs['allGroupPaths'] = json.dumps(self.allGroupPaths)
     self.h5FileW.attrs['allGroupEnds'] = json.dumps(self.allGroupEnds)  
     self.h5FileW.flush()
@@ -276,14 +275,9 @@ class hdf5Database(MessageHandler.MessageUser):
     group.create_dataset(group.name + "_data", dtype="float", data=(np.concatenate( data.values()).ravel()))
     # add some info
     group.attrs[b'endGroup'   ] = True
-    group.attrs[b'parentID'   ] = parentName
+    group.attrs[b'parentID'   ] = group.parent.name
     group.attrs[b'nVars'      ] = len(varKeys)
-    if parentGroupName != "/":
-      self.allGroupPaths.append(parentGroupName + "/" + group.name)
-      self.allGroupEnds[parentGroupName + "/" + group.name] = True
-    else:
-      self.allGroupPaths.append("/" + group.name)
-      self.allGroupEnds["/" + group.name] = True
+
   
   def __addGroupRootLevel(self,groupName,rlz):
     """
@@ -300,18 +294,16 @@ class hdf5Database(MessageHandler.MessageUser):
 
     parentName = self.parentGroupName.replace('/', '')
     # Create the group
-    if parentName != '/':
-      parentGroupName = self.__returnGroupPath(parentName)
-      # Retrieve the parent group from the HDF5 database
-      if parentGroupName in self.h5FileW:
-        parentGroupObj = self.h5FileW.require_group(parentGroupName)
-      else:
-        self.raiseAnError(ValueError,'NOT FOUND group named ' + parentGroupObj)
+    parentGroupName = self.__returnGroupPath(parentName)
+    # Retrieve the parent group from the HDF5 database
+    if parentGroupName in self.h5FileW:
+      parentGroupObj = self.h5FileW.require_group(parentGroupName)
     else:
-      parentGroupObj = self.h5FileW
-      
+      self.raiseAnError(ValueError,'NOT FOUND group named ' + parentGroupObj)
     # create and populate the group
     self.__populateGroup(parentGroupObj.create_group(groupName), rlz)
+    # update lists
+    self.__updateGroupLists(groupName, parentGroupName)
 
   def __addSubGroup(self,groupName,rlz):
     """
@@ -341,9 +333,9 @@ class hdf5Database(MessageHandler.MessageUser):
       closestGroup = difflib.get_close_matches(parentName, self.allGroupPaths, n=1, cutoff=0.01)
       errorOut = False
       if len(closestGroup) > 0:
-        testParentName = closestGroup[0]   
-        if testParentName in self.h5FileW:
-          parentGroupObj = self.h5FileW.require_group(testParentName)   
+        parentGroupName = closestGroup[0]   
+        if parentGroupName in self.h5FileW:
+          parentGroupObj = self.h5FileW.require_group(parentGroupName)   
         else:
           errorOut = True
       else:
@@ -359,14 +351,30 @@ class hdf5Database(MessageHandler.MessageUser):
     self.raiseAMessage('Adding group named "' + groupName + '" in Database "'+ self.name +'"')
     # create and populate the group
     self.__populateGroup(parentGroupObj.create_group(groupName), rlz)
-
+    # update lists
+    self.__updateGroupLists(groupName, parentGroupName)
+    
+  
+  def __updateGroupLists(self,groupName, parentName):
+    """
+      Utility method to update the group lists
+      @ In, groupName, str, the new group added
+      @ In, parentName, str, the parent name
+      @ Out, None
+    """
+    if parentName != "/":
+      self.allGroupPaths.append(parentName + "/" + groupName)
+      self.allGroupEnds[parentName + "/" + groupName] = True
+    else:
+      self.allGroupPaths.append("/" + groupName)
+      self.allGroupEnds["/" + groupName] = True    
+    
   def retrieveAllHistoryPaths(self,rootName=None):
     """
       Function to create a list of all the HistorySet paths present in an existing database
       @ In,  rootName, string, optional, It's the root name, if present, only the groups that have this root are going to be returned
       @ Out, allHistoryPaths, list, List of the HistorySet paths
     """
-    rname = "-$"
     if rootName:
       rname = rootName 
     # Create the "self.allGroupPaths" list from the existing database
@@ -378,10 +386,13 @@ class hdf5Database(MessageHandler.MessageUser):
       if not rootName:
         allHistoryPaths = self.allGroupPaths
       else:
-        allHistoryPaths = [k for k in self.allGroupPaths.keys() if not k.endswith(rname)] 
+        allHistoryPaths = [k for k in self.allGroupPaths.keys() if k.endswith(rname)] 
     else:
       # Tree structure => construct the HistorySet' paths
-      allHistoryPaths = [k for k, v in self.allGroupPaths.items() if v and not k.endswith(rname)]           
+      if not rootName:
+        allHistoryPaths = [k for k, v in self.allGroupPaths.items() if v ]
+      else:
+        allHistoryPaths = [k for k, v in self.allGroupPaths.items() if v and k.endswith(rname)]           
     return allHistoryPaths
 
   def retrieveAllHistoryNames(self,rootName=None):
@@ -390,9 +401,15 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In,  rootName, string, optional, It's the root name, if present, only the history names that have this root are going to be returned
       @ Out, workingList, list, List of the HistorySet names
     """
+    if rootName:
+      rname = rootName     
     if not self.fileOpen:
       self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
-    workingList = [k.split('/')[-1] for k, v in self.allGroupPaths.items() if v and not k.endswith(rname)]  
+    if not rootName:  
+      workingList = [k.split('/')[-1] for k, v in self.allGroupPaths.items() if v ]  
+    else:
+      workingList = [k.split('/')[-1] for k, v in self.allGroupPaths.items() if v and k.endswith(rname)]
+    
     return workingList
   
   def __getListOfParentGroups(self, grp, backGroups = []):
@@ -401,12 +418,12 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, grp, h5py.Group, istance of the starting group
       @ InOut, backGroups, list, list of group instances (from the deepest to the root)
     """
-    if grp.parent:
+    if grp.parent and grp.parent != grp:
       backGroups.append(grp.parent)
       self.__getListOfParentGroups(grp.parent, backGroups)
     return backGroups
     
-  def retrieveHistory(self,name,options = {}):
+  def _(self,name,options = {}):
     """
       Function to retrieve the history whose end group name is "name"
       @ In, name, string, history name => It must correspond to a group name (string)

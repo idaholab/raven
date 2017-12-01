@@ -46,7 +46,7 @@ from utils import utils
 from utils import InputData
 import Models
 from OutStreams import OutStreamManager
-from DataObjects import Data
+from DataObjects import XDataObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -830,11 +830,11 @@ class IOStep(Step):
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
       if inDictionary['Input'][i].type == 'HDF5':
-        if isinstance(outputs[i],Data):
+        if isinstance(outputs[i],XDataObject.DataObject):
           self.actionType.append('HDF5-dataObjects')
         else:
           self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
-      elif  isinstance(inDictionary['Input'][i],Data):
+      elif  isinstance(inDictionary['Input'][i],XDataObject.DataObject):
         if outputs[i].type == 'HDF5':
           self.actionType.append('dataObjects-HDF5')
         else:
@@ -887,6 +887,7 @@ class IOStep(Step):
     for i in range(len(outputs)):
       if self.actionType[i] == 'HDF5-dataObjects':
         #inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
+        inDictionary['Input'][i]
         outputs[i].addOutput(inDictionary['Input'][i])
       elif self.actionType[i] == 'dataObjects-HDF5':
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
