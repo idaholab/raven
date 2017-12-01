@@ -296,6 +296,7 @@ checkTrue('ND instance construction',test.equals(right))
 
 # append some data to get started
 # TODO expand this to ND not just History
+data.addExpectedMeta(['prefix'])
 rlz0 = {'a': 1.0,
         'b': 2.0,
         'c': np.array([3.0, 3.1, 3.2]),
@@ -449,7 +450,16 @@ checkArray('Dataset post collapse "c" 3',data._data['c'].values[3],c[3],float)
 # check string prefix
 checkArray('Dataset post collapse "prefix"',data._data['prefix'].values,['first','second','third','fourth'],str)
 
-
+# check removing variable from collector and data
+rlz4 = {'a' :41.0,
+        'b': 42.0,
+        'c': [43.0, 43.1, 43.2],
+        'x': 44.0,
+        'y': [45.0, 45.1, 45.2],
+        'z': 46.0,
+        'prefix': 'five',
+        'time':[ 4.1e-6, 4.2e-6, 4.3e-6],
+       }
 ######################################
 #         GENERAL META DATA          #
 ######################################
@@ -630,6 +640,19 @@ checkRlz('Dataset add variable rlz 2',data.realization(index=2),rlzAdd,skip='tim
 
 
 ######################################
+#           SLICE BY INDEX           #
+######################################
+slices = data.sliceByIndex('time')
+checkFloat('Index slicing "time" [2] "time"',slices[2]['time'].item(0),3.3e-6)
+checkArray('Index slicing "time" [2] "a"',slices[2]['a'].values,[1.0, 11.0, 21.0, 31.0],float)
+checkArray('Index slicing "time" [2] "c"',slices[2]['c'].values,[3.2, np.nan, np.nan, 33.2],float)
+
+slices = data.sliceByIndex('RAVEN_sample_ID')
+checkFloat('Index slicing sampleTag [3] sampleTag',slices[3]['RAVEN_sample_ID'].item(0),3)
+checkFloat('Index slicing sampleTag [3] "a"',slices[3]['a'].values,31.0,float)
+checkArray('Index slicing sampleTag [3] "c"',slices[3]['c'].values,[33.0,33.1,33.2,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan],float)
+
+######################################
 #        CONSTRUCT FROM DICT         #
 ######################################
 seed = {}
@@ -676,6 +699,26 @@ checkArray('load from dict "b"[3]',data.asDataset().isel(True,RAVEN_sample_ID=3)
 rlz = data.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
+
+######################################
+#        REMOVING VARIABLES          #
+######################################
+# first, add a sample so the variable is also in the collector
+rlz = {'a':np.atleast_1d(2.0), 'b':np.array([2.0,2.1,2.2]), 't':np.linspace(0,1,3)}
+data.addRealization(rlz)
+del rlz['b']
+del rlz['t']
+checkArray('Remove variable starting vars',data.getVars(),['a','b'],str)
+data.remove(variable='b')
+checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
+checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
+# collapse and re-check
+data.asDataset()
+checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
+checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
+# check we can add a new realization
+data.addRealization({'a':np.array([2.1]), 't':np.array([0])})
+
 
 print(results)
 

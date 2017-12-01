@@ -256,3 +256,11 @@ class InterfacedPostProcessor(PostProcessor):
         inputDictTemp['type'] = str(inp.type)
         inputDict.append(inputDictTemp)
     return inputDict
+
+  def inputToInternal(self,input):
+    """
+      Function to convert the received input into a format this object can
+      understand
+      @ In, input, list, list of dataObjects handed to the post-processor
+      @ Out, inputDict, list, list of dictionaries this object can process
+    """

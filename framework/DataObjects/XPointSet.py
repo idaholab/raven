@@ -104,7 +104,6 @@ class PointSet(DataSet):
     try:
       assert(isinstance(data[0],(float,str,unicode,int,))) # --> in LimitSurfaceSearch, first can be "None", floats come later
     except AssertionError as e:
-      print('DEBUGG failed on:',var,type(data[0]),data)
       raise e
     array = xr.DataArray(data,
                          dims=[self.sampleTag],
@@ -170,7 +169,7 @@ class PointSet(DataSet):
         elif method in ['inputPivotValue','outputPivotValue']:
           pivotParam = self.getDimensions(var)
           assert(len(pivotParam) == 1) # TODO only handle History for now
-          pivotParam = pivotParam[0]
+          pivotParam = pivotParam[var][0]
           rlz[var] = float(val.sel(**{pivotParam:indic, 'method':b'nearest'})) #casting as str not unicode
           # TODO allowing inexact matches; it's finding the nearest
         elif method == 'operator':

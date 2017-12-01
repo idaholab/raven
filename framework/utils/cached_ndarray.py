@@ -384,20 +384,12 @@ class cNDarray(object):
     """
     return self.values[:self.size]
 
-  ### LEGACY METHODS, only used for old data object compatability ###
-  def _addOneEntry(self,column,val):
+  def removeEntity(self,index):
     """
-      NEEDS TO BE DEPRECATED
-      Adds a single entry to "column" to be "val"
-      This is only for legacy data object APIs; the correct method is "append" with a full realization.
+      Removes a column from this dataset
+      @ In, index, int, index of entry to remove
+      @ Out, None
     """
-    # check if new row already added and is waitng for an entry
-    if self.values[self.size-1,column] is not None:
-      # need to add a new realization
-      # placehold with "None"s (append will automatically increment size)
-      self.append(np.array([np.array([None]*self.width,dtype=object)],dtype=object))
-    # if a one-entry array, take that one entry
-    if type(val) in [np.ndarray,list]:
-      val = np.array(val).item(0)
-    # finally, put the entry in
-    self.values[self.size-1,column] = val
+    assert(abs(index) < self.width)
+    self.values = np.delete(self.values,index,axis=1)
+    self.width -= 1

@@ -765,18 +765,11 @@ class DataMining(PostProcessor):
         outputObject.addVariable(key,dataMineDict['outputs'][key])
       elif outputObject.type == 'HistorySet':
         if self.PreProcessor is not None or self.metric is not None:
-          for index, value in np.ndenumerate(dataMineDict['outputs'][key]):
-            firstHist = outputObject._dataContainer['outputs'].keys()[0]
-            firstVar = outputObject._dataContainer['outputs'][index[0] + 1].keys()[0]
-            timeLength = outputObject._dataContainer['outputs'][index[0] + 1][firstVar].size
-            arrayBase = value * np.ones(timeLength)
-            outputObject.updateOutputValue([index[0] + 1, key], arrayBase)
+          for keyL in dataMineDict['outputs'].keys():
+            outputObject.addVariable(keyL, dataMineDict['outputs'][key])
         else:
-          outputObject.addVariable(varName,values)
-          historyKey = outputObject.getOutParametersValues().keys()
-          for index, keyH in enumerate(historyKey):
-            for keyL in dataMineDict['outputs'].keys():
-              outputObject.updateOutputValue([keyH, keyL], dataMineDict['outputs'][keyL][index, :])
+          for keyL in dataMineDict['outputs'].keys():
+            outputObject.addVariable(keyL, dataMineDict['outputs'][key])
     ## End data augmentation
     ############################################################################
 

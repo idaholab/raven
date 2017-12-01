@@ -289,6 +289,7 @@ checkNone('HistorySet __init__ _collector',data._collector)
 #    SAMPLING AND APPENDING DATA     #
 ######################################
 # append some data to get started
+data.addExpectedMeta(['prefix'])
 rlz0 = {'a': 1.0,
         'b': 2.0,
         'y': [5.0, 5.1, 5.2],
@@ -571,6 +572,11 @@ for var in data.getVars():
 
 # clean up temp files
 os.remove(csvname+'.csv')
+os.remove(csvname+'_0.csv')
+os.remove(csvname+'_1.csv')
+os.remove(csvname+'_2.csv')
+os.remove(csvname+'_3.csv')
+# TODO cleanup sub-files too
 os.remove(csvname+'.xml')
 
 
