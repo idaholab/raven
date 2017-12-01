@@ -63,6 +63,8 @@ class OutStreamPrint(OutStreamManager):
     self.sourceName = []
     self.sourceData = None
     self.what = None
+    # dictionary of what indices have already been printed, so we don't duplicate writing efforts
+    self.indexPrinted = {} # keys are filenames, which should be reset at the end of every step
 
   def localGetInitParams(self):
     """
@@ -141,9 +143,21 @@ class OutStreamPrint(OutStreamManager):
       if not empty:
         try:
           if self.options['type'] == 'csv':
-            self.sourceData[index].write(dictOptions['filenameroot'],style='CSV',**dictOptions)
+            filename = dictOptions['filenameroot']
+            rlzIndex = self.indexPrinted.get(filename,0)
+            dictOptions['firstIndex'] = rlzIndex
+            rlzIndex = self.sourceData[index].write(filename,style='CSV',**dictOptions)
+            self.indexPrinted[filename] = rlzIndex
           elif self.options['type'] == 'xml':
             self.sourceData[index].printXML(dictOptions)
         except AttributeError:
           self.raiseAnError(IOError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
 
+  def finalize(self):
+    """
+      End-of-step operations for cleanup.
+      @ In, None
+      @ Out, None
+    """
+    # clear history of printed realizations; start fresh for next step
+    self.indexPrinted = {}

@@ -572,6 +572,11 @@ for var in data.getVars():
 
 # clean up temp files
 os.remove(csvname+'.csv')
+os.remove(csvname+'_0.csv')
+os.remove(csvname+'_1.csv')
+os.remove(csvname+'_2.csv')
+os.remove(csvname+'_3.csv')
+# TODO cleanup sub-files too
 os.remove(csvname+'.xml')
 
 
