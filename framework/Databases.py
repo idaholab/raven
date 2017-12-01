@@ -237,12 +237,9 @@ class HDF5(DateBase):
                          "val" is either a float or a np.ndarray of values.
       @ Out, None
     """
-    # realization must be a dictionary
-    assert(type(rlz).__name__ == "dict")
-    # prefix must be present
-    assert('prefix' in rlz)
-    
-    self.database.addGroup(rlz)
+    if not 'prefix' in rlz:
+      self.raiseAnError(IOError,'addRealization method needs a prefix (ID) for adding a new group to a database!')
+    self.database.addGroup(rlz['prefix'],rlz,rlz,False)
     self.built = True    
 
 
@@ -253,7 +250,16 @@ class HDF5(DateBase):
       @ In, keys, set(str), keys to register
       @ Out, None
     """
-    self.database.addExpectedMeta(keys)
+    # TODO add option to skip parts of meta if user wants to
+    # remove already existing keys
+    keys = list(key for key in keys if key not in self._metavars)
+    # if no new meta, move along
+    if len(keys) == 0:
+      return
+    # CANNOT add expected new meta after database has been used
+    assert(len(self._metavars) == 0)
+    self._metavars.extend(keys)
+    self._allvars.extend(keys)
 
 
   def addGroup(self,attributes,loadFrom,upGroup=False):
