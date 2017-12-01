@@ -475,17 +475,34 @@ class DataSet(DataObject):
       @ In, variable, str, optional, name of "column" to remove
       @ Out, None
     """
-    if self._data is None or len(self._data) == 0: #TODO what about collector?
+    if self.size == 0:
+      self.raiseAWarning('Called "remove" on DataObject, but it is empty!')
       return
+    noData = self._data is None or len(self._data) == 0
+    noColl = self._collector is None or len(self._collector) == 0
     assert(not (realization is None and variable is None))
     assert(not (realization is not None and variable is not None))
     assert(self._data is not None)
     # TODO what about removing from collector?
     if realization is not None:
       # TODO reset scaling factors
-      self.raiseAnError(NotImplementedError,'TODO')
+      self.raiseAnError(NotImplementedError,'TODO implementation for removing realizations is not currently implemented!')
     elif variable is not None:
-      self._data.drop(variable)
+      # remove from self._data
+      if not noData:
+        self._data = self._data.drop(variable)
+      # remove from self._collector
+      if not noColl:
+        varIndex = self._allvars.index(variable)
+        self._collector.removeEntity(varIndex)
+      # remove references to variable in lists
+      self._allvars.remove(variable)
+      # TODO potentially slow lookups
+      for varlist in [self._inputs,self._outputs,self._metavars]:
+        if variable in varlist:
+          varlist.remove(variable)
+      # TODO remove references from general metadata?
+    if self._scaleFactors is not None:
       self._scaleFactors.pop(variable,None)
     #either way reset kdtree
     self.inputKDTree = None
@@ -883,22 +900,22 @@ class DataSet(DataObject):
     #   single-entry (scalars) - np.array([val, val, val])
     #   histories              - np.array([np.array(vals), np.array(vals), np.array(vals)])
     #   etc
-    # make a collector from scratch -> start by collecting into ndarray
-    cols = len(source)
-    rows = len(source.values()[0])
-    data = np.zeros([rows,cols],dtype=object)
     ## check that all inputs, outputs required are provided
     providedVars = set(source.keys())
     requiredVars = set(self.getVars('input')+self.getVars('output'))
     ## determine what vars are metadata (the "extra" stuff that isn't output or input
     # TODO don't take "extra", check registered meta explicitly
-    extra = list(providedVars - requiredVars)
+    extra = list(e for e in providedVars - requiredVars if e not in self.indexes)
     self._metavars = extra
     ## figure out who's missing from the IO space
     missing = requiredVars - providedVars
     if len(missing) > 0:
       self.raiseAnError(KeyError,'Variables are missing from "source" that are required for this data object:',missing)
-    for i,var in enumerate(itertools.chain(self._inputs,self._outputs,extra)):
+    # make a collector from scratch -> start by collecting into ndarray
+    rows = len(source.values()[0])
+    cols = len(self.getVars())
+    data = np.zeros([rows,cols],dtype=object)
+    for i,var in enumerate(itertools.chain(self._inputs,self._outputs,self._metavars)):
       values = source[var]
       # TODO consistency checking with dimensions requested by the user?  Or override them?
       #  -> currently overriding them
