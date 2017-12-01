@@ -13,6 +13,11 @@
 # limitations under the License.
 
 #For future compatibility with Python 3
+"""
+  This class outlines the behavior for the basic in-memory DataObject, including support
+  for ND and ragged input/output variable data shapes.  Other in-memory DataObjects are
+  specialized implementations of this class.
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -42,7 +47,13 @@ try:
   __builtin__.profile
 except AttributeError:
   # profiler not preset, so pass through
-  def profile(func): return func
+  def profile(func):
+    """
+      Dummy for when profiler is missing.
+      @ In, func, method, method to run
+      @ Out, func, method, method to run
+    """
+    return func
 
 #
 #
@@ -1164,7 +1175,7 @@ class DataSet(DataObject):
       genNode.remove(r)
 
     self.raiseADebug('Printing metadata XML: "{}"'.format(fName+'.xml'))
-    with file(fName+'.xml','w') as ofile:
+    with open(fName+'.xml','w') as ofile:
       #header
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
       for name,target in meta.items():

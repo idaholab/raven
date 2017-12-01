@@ -554,7 +554,7 @@ correct = ['<DataObjectMetadata name="HistorySet">',
 '  ',
 '</DataObjectMetadata>']
 # read in XML
-lines = file(csvname+'.xml','r').readlines()
+lines = open(csvname+'.xml','r').readlines()
 # remove line endings
 for l,line in enumerate(lines):
   lines[l] = line.rstrip(os.linesep).rstrip('\n')
