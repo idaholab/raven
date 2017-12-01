@@ -571,7 +571,8 @@ for var in data.getVars():
     checkTrue('CSV var {}'.format(var),bool((dataCSV._data[var] == data._data[var]).prod()))
 
 # clean up temp files
-os.remove(csvname+'.csv')
+# os.remove(csvname+'.csv')
+# TODO cleanup sub-files too
 os.remove(csvname+'.xml')
 
 

@@ -700,6 +700,7 @@ rlz = data.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
 
+<<<<<<< HEAD
 
 ######################################
 #        REMOVING VARIABLES          #
@@ -719,9 +720,11 @@ checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
 checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
 # check we can add a new realization
 data.addRealization({'a':np.array([2.1]), 't':np.array([0])})
-
-
-
+print('DEBUGG')
+print(data.asDataset())
+print('')
+print(data._data.isel(**{data.sampleTag:slice(3,None,None)}))
+# progressive CSV writing with appends instead of rewriting each iteration for multiruns
 
 print(results)
 
