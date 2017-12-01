@@ -160,12 +160,12 @@ class hdf5Database(MessageHandler.MessageUser):
     if isinstance(obj,h5.Group):
       self.allGroupPaths.append(name)
       try:
-        self.allGroupEnds[name]  = obj.attrs["EndGroup"]
+        self.allGroupEnds[name]  = obj.attrs["endGroup"]
       except KeyError:
         self.allGroupEnds[name]  = True
       if "rootname" in obj.attrs:
         self.parentGroupName = name
-        self.raiseAWarning('not found attribute EndGroup in group ' + name + '.Set True.')
+        self.raiseAWarning('not found attribute endGroup in group ' + name + '.Set True.')
     return
 
   def addGroup(self,rlz): # groupName,attributes,source,upGroup=False):
@@ -209,6 +209,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, upGroup, bool, optional, updated group?
       @ Out, None
     """
+    
     groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H")
     if not upGroup:
       for index in xrange(len(self.allGroupPaths)):
@@ -239,7 +240,7 @@ class hdf5Database(MessageHandler.MessageUser):
       for key in attributes.keys():
         grp.attrs[key] = attributes[key]
     grp.attrs['rootname'] = True
-    grp.attrs['EndGroup'] = False
+    grp.attrs['endGroup'] = False
     self.allGroupPaths.append("/" + groupNameInit)
     self.allGroupEnds["/" + groupNameInit] = False
     self.h5FileW.flush()
@@ -283,385 +284,41 @@ class hdf5Database(MessageHandler.MessageUser):
     # create the group
     groups = parentGroupObj.create_group(groupName)
     
-    groups.attrs[b'mainClass' ] = b'PythonType'
-    groups.attrs[b'sourceType'] = b'Dictionary'
     # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
     # use ONLY the subset of variables if requested
     
     # add pointwise metadata (in this case, they are group-wise)
     groups.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
+    
     # get the data
     data = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray )
     # get size of each data variable
-    varShape = [value.shape for key,value in data.items()]
-    
+    varKeys = data.keys()
+    varShape = [data[key].shape for key in varKeys]
     # get data names
-    groups.attrs[b'data_names'] = json.dumps(data.keys())
+    groups.attrs[b'data_names'] = json.dumps(varKeys)
     # get data shapes
     groups.attrs[b'data_shapes'] = json.dumps(varShape)
+    # get data shapes
+    end   = np.cumsum(varShape)
+    begin = np.concatenate(([0],end[0:-1]))
+    groups.attrs[b'data_begin_end'] = json.dumps((begin.tolist(),end.tolist()))    
     # get data names
-    groups.create_dataset(groupName + "_data", dtype="float", data=np.concatenate( data.values()))
-    # get the data back
-    dataset = groups[groupName + "_data"]    
-    
-    if set(['inputSpaceParams']).issubset(set(source['name'].keys())):
-      sourceInputs = source['name']['inputSpaceParams'].keys()
-      if specificVars is not None:
-        inputHeaders = list(var for var in sourceInputs if var in specificVars)
-      else:
-        inputHeaders = sourceInputs
-      inputHeaders = list(utils.toBytesIterative(inputHeaders))
-      groups.attrs[b'inputSpaceHeaders' ] = inputHeaders
-
-      if specificVars is not None:
-        inputValues = list(source['name']['inputSpaceParams'][var] for var in sourceInputs if var in specificVars)
-      else:
-        inputValues = source['name']['inputSpaceParams'].values()
-      inputValues = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(utils.toBytesIterative(inputValues)))))
-      groups.attrs[b'inputSpaceValues'  ] = inputValues
-
-    if set(['outputSpaceParams']).issubset(set(source['name'].keys())):
-      if specificVars is not None:
-        outDict = dict((k,v) for k,v in source['name']['outputSpaceParams'].items() if k in specificVars)
-      else:
-        outDict = source['name']['outputSpaceParams']
-    else:
-      if specificVars is not None:
-        outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'] and key in specificVars)
-      else:
-        outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'])
-    outHeaders = utils.toBytesIterative(list(outDict.keys()))
-    outValues  = utils.toBytesIterative(list(outDict.values()))
-    groups.attrs[b'nParams'   ] = len(outHeaders)
-    groups.attrs[b'outputSpaceHeaders'] = outHeaders
-    groups.attrs[b'EndGroup'   ] = True
-    groups.attrs[b'parentID'  ] = parentName
-    maxSize = 0
-    for value in outValues:
-      if type(value) == np.ndarray or type(value).__name__ == 'c1darray':
-        if maxSize < value.size:
-          actualOne = np.asarray(value).size
-      elif type(value) in [int,float,bool,np.float64,np.float32,np.float16,np.int64,np.int32,np.int16,np.int8,np.bool8]:
-        actualOne = 1
-      else:
-        self.raiseAnError(IOError,'The type of the dictionary parameters must be within float,bool,int,numpy.ndarray.Got '+type(value).__name__)
-      if maxSize < actualOne:
-        maxSize = actualOne
-    groups.attrs[b'nTimeSteps'  ] = maxSize
-    dataout = np.zeros((maxSize,len(outHeaders)))
-    for index in range(len(outHeaders)):
-      if type(outValues[index]) == np.ndarray or type(value).__name__ == 'c1darray':
-        dataout[0:outValues[index].size,index] =  np.ravel(outValues[index])[:]
-      else:
-        dataout[0,index] = outValues[index]
-    # create the data set
-    groups.create_dataset(groupName + "_data", dtype="float", data=dataout)
-    # add metadata if present
-    for attr in attributes.keys():
-      objectToConvert = mathUtils.convertNumpyToLists(attributes[attr])
-      converted = json.dumps(objectToConvert)
-      if converted and attr != 'name':
-        groups.attrs[utils.toBytes(attr)]=converted
+    groups.create_dataset(groupName + "_data", dtype="float", data=(np.concatenate( data.values()).ravel()))
+    # add some info
+    groups.attrs[b'endGroup'   ] = True
+    groups.attrs[b'parentID'   ] = parentName
+    groups.attrs[b'nVars'      ] = len(varKeys)
+    ## get the data back
+    ##dataset = groups[groupName + "_data"]
+    ### reshape them based on the shapes
+    ##newData = {key : np.reshape(dataset[begin[cnt]:end[cnt]], varShape[cnt]) for cnt,key in enumerate(varKeys)} 
     if parentGroupName != "/":
       self.allGroupPaths.append(parentGroupName + "/" + groupName)
       self.allGroupEnds[parentGroupName + "/" + groupName] = True
     else:
       self.allGroupPaths.append("/" + groupName)
       self.allGroupEnds["/" + groupName] = True
-
-
-
-
-
-    if source['type'] == 'csv':
-      # Source in CSV format
-      f = open(source['name'],'rb')
-      # Retrieve the headers of the CSV file
-      firstRow = f.readline().strip(b"\r\n")
-      #firstRow = f.readline().translate(None,"\r\n")
-      headers = firstRow.split(b",")
-      # if there is the alias system, replace the variable name
-      if 'alias' in attributes.keys():
-        for aliasType in attributes['alias'].keys():
-          for var in attributes['alias'][aliasType].keys():
-            if attributes['alias'][aliasType][var].strip() in headers:
-              headers[headers.index(attributes['alias'][aliasType][var].strip())] = var.strip()
-            else:
-              metadataPresent = True if 'metadata' in attributes.keys() and 'SampledVars' in attributes['metadata'].keys() else False
-              if not (metadataPresent and var.strip() in attributes['metadata']['SampledVars'].keys()):
-                self.raiseAWarning('the ' + aliasType +' alias"'+var.strip()+'" has been defined but has not been found among the variables!')
-      # Load the csv into a numpy array(n time steps, n parameters)
-      data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
-      # First parent group is the root name
-      parentName = self.parentGroupName.replace('/', '')
-      # Create the group
-      if parentName != '/':
-        parentGroupName = self.__returnParentGroupPath(parentName)
-        # Retrieve the parent group from the HDF5 database
-        if parentGroupName in self.h5FileW:
-          rootgrp = self.h5FileW.require_group(parentGroupName)
-        else:
-          self.raiseAnError(ValueError,'NOT FOUND group named "' + parentGroupName+'" for loading file '+str(source['name']))
-        if upGroup:
-          grp = rootgrp.require_group(groupName)
-          del grp[groupName+"_data"]
-        else:
-          grp = rootgrp.create_group(groupName)
-      else:
-        if upGroup:
-          grp = self.h5FileW.require_group(groupName)
-        else:
-          grp = self.h5FileW.create_group(groupName)
-      self.raiseAMessage('Adding group named "' + groupName + '" in DataBase "'+ self.name +'"')
-      # Create dataset in this newly added group
-      grp.create_dataset(groupName+"_data", dtype="float", data=data)
-      # Add metadata
-      grp.attrs["outputSpaceHeaders"     ] = headers
-      grp.attrs["nParams"                ] = data[0,:].size
-      grp.attrs["parentID"               ] = "root"
-      grp.attrs["startTime"              ] = data[0,0]
-      grp.attrs["end_time"               ] = data[data[:,0].size-1,0]
-      grp.attrs["nTimeSteps"             ] = data[:,0].size
-      grp.attrs["EndGroup"               ] = True
-      grp.attrs["sourceType"             ] = source['type']
-      if source['type'] == 'csv':
-        grp.attrs["sourceFile"] = source['name']
-      for attr in attributes.keys():
-        if attr == 'metadata':
-          if 'SampledVars' in attributes['metadata'].keys():
-            inpHeaders = []
-            inpValues  = []
-            for inkey, invalue in attributes['metadata']['SampledVars'].items():
-              if inkey not in headers:
-                inpHeaders.append(utils.toBytes(inkey))
-                inpValues.append(invalue)
-            if len(inpHeaders) > 0:
-              grp.attrs[b'inputSpaceHeaders'] = inpHeaders
-              grp.attrs[b'inputSpaceValues' ] = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( inpValues))))
-        objectToConvert = mathUtils.convertNumpyToLists(attributes[attr])
-        for o,obj in enumerate(objectToConvert):
-          if isinstance(obj,Files.File):
-            objectToConvert[o]=obj.getFilename()
-        converted = json.dumps(objectToConvert)
-        if converted and attr != 'name':
-          grp.attrs[utils.toBytes(attr)]=converted
-        #decoded = json.loads(grp.attrs[utils.toBytes(attr)])
-      if "inputFile" in attributes.keys():
-        grp.attrs[utils.toString("inputFile")] = utils.toString(" ".join(attributes["inputFile"])) if type(attributes["inputFile"]) == type([]) else utils.toString(attributes["inputFile"])
-    else:
-      self.raiseAnError(ValueError,source['type'] + " unknown!")
-    # Add the group name into the list "self.allGroupPaths" and
-    # set the relative bool flag into the dictionary "self.allGroupEnds"
-    if parentGroupName != "/":
-      self.allGroupPaths.append(parentGroupName + "/" + groupName)
-      self.allGroupEnds[parentGroupName + "/" + groupName] = True
-    else:
-      self.allGroupPaths.append("/" + groupName)
-      self.allGroupEnds["/" + groupName] = True
-
-  def addGroupDataObjects(self,groupName,attributes,source,upGroup=False,specificVars=None):
-    """
-      Function to add a data (class DataObjects) or Dictionary into the Database
-      @ In, groupName, string, group name
-      @ In, attributes, dict, dictionary of attributes that must be added as metadata
-      @ In, source, dataObject, source data
-      @ In, upGroup, bool, optional, updated group?
-      @ In, specificVars, list(str), if not None then indicates a selective list of variables to include in DB
-      @ Out, None
-    """
-    if not upGroup:
-      for index in xrange(len(self.allGroupPaths)):
-        comparisonName = self.allGroupPaths[index]
-        splittedPath=comparisonName.split('/')
-        for splgroup in splittedPath:
-          if groupName == splgroup and splittedPath[0] == self.parentGroupName:
-            found = True
-            while found:
-              if groupName in splittedPath:
-                found = True
-              else:
-                found = False
-              groupName = groupName + "_"+ str(index)
-            #self.raiseAnError(IOError,"Group named " + groupName + " already present in database " + self.name + ". new group " + groupName + " is equal to old group " + comparisonName)
-    parentName = self.parentGroupName.replace('/', '')
-    # Create the group
-    if parentName != '/':
-      parentGroupName = self.__returnParentGroupPath(parentName)
-      # Retrieve the parent group from the HDF5 database
-      if parentGroupName in self.h5FileW:
-        parentGroupObj = self.h5FileW.require_group(parentGroupName)
-      else:
-        self.raiseAnError(ValueError,'NOT FOUND group named ' + parentGroupObj)
-    else:
-      parentGroupObj = self.h5FileW
-
-    if type(source['name']) == dict:
-      # create the group
-      if upGroup:
-        groups = parentGroupObj.require_group(groupName)
-        del groups[groupName+"_data"]
-      else:
-        groups = parentGroupObj.create_group(groupName)
-      groups.attrs[b'mainClass' ] = b'PythonType'
-      groups.attrs[b'sourceType'] = b'Dictionary'
-      # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
-      # use ONLY the subset of variables if requested
-      if set(['inputSpaceParams']).issubset(set(source['name'].keys())):
-        sourceInputs = source['name']['inputSpaceParams'].keys()
-        if specificVars is not None:
-          inputHeaders = list(var for var in sourceInputs if var in specificVars)
-        else:
-          inputHeaders = sourceInputs
-        inputHeaders = list(utils.toBytesIterative(inputHeaders))
-        groups.attrs[b'inputSpaceHeaders' ] = inputHeaders
-
-        if specificVars is not None:
-          inputValues = list(source['name']['inputSpaceParams'][var] for var in sourceInputs if var in specificVars)
-        else:
-          inputValues = source['name']['inputSpaceParams'].values()
-        inputValues = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(utils.toBytesIterative(inputValues)))))
-        groups.attrs[b'inputSpaceValues'  ] = inputValues
-
-      if set(['outputSpaceParams']).issubset(set(source['name'].keys())):
-        if specificVars is not None:
-          outDict = dict((k,v) for k,v in source['name']['outputSpaceParams'].items() if k in specificVars)
-        else:
-          outDict = source['name']['outputSpaceParams']
-      else:
-        if specificVars is not None:
-          outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'] and key in specificVars)
-        else:
-          outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'])
-      outHeaders = utils.toBytesIterative(list(outDict.keys()))
-      outValues  = utils.toBytesIterative(list(outDict.values()))
-      groups.attrs[b'nParams'   ] = len(outHeaders)
-      groups.attrs[b'outputSpaceHeaders'] = outHeaders
-      groups.attrs[b'EndGroup'   ] = True
-      groups.attrs[b'parentID'  ] = parentName
-      maxSize = 0
-      for value in outValues:
-        if type(value) == np.ndarray or type(value).__name__ == 'c1darray':
-          if maxSize < value.size:
-            actualOne = np.asarray(value).size
-        elif type(value) in [int,float,bool,np.float64,np.float32,np.float16,np.int64,np.int32,np.int16,np.int8,np.bool8]:
-          actualOne = 1
-        else:
-          self.raiseAnError(IOError,'The type of the dictionary parameters must be within float,bool,int,numpy.ndarray.Got '+type(value).__name__)
-        if maxSize < actualOne:
-          maxSize = actualOne
-      groups.attrs[b'nTimeSteps'  ] = maxSize
-      dataout = np.zeros((maxSize,len(outHeaders)))
-      for index in range(len(outHeaders)):
-        if type(outValues[index]) == np.ndarray or type(value).__name__ == 'c1darray':
-          dataout[0:outValues[index].size,index] =  np.ravel(outValues[index])[:]
-        else:
-          dataout[0,index] = outValues[index]
-      # create the data set
-      groups.create_dataset(groupName + "_data", dtype="float", data=dataout)
-      # add metadata if present
-      for attr in attributes.keys():
-        objectToConvert = mathUtils.convertNumpyToLists(attributes[attr])
-        converted = json.dumps(objectToConvert)
-        if converted and attr != 'name':
-          groups.attrs[utils.toBytes(attr)]=converted
-      if parentGroupName != "/":
-        self.allGroupPaths.append(parentGroupName + "/" + groupName)
-        self.allGroupEnds[parentGroupName + "/" + groupName] = True
-      else:
-        self.allGroupPaths.append("/" + groupName)
-        self.allGroupEnds["/" + groupName] = True
-    else:
-      # Data(structure)
-      # Retrieve the headers from the data (inputs and outputs)
-      inpParams = source['name'].getInpParametersValues().keys()
-      outParams = source['name'].getOutParametersValues().keys()
-      if specificVars is not None:
-        headersIn  = list(v for v in inpParams if v in specificVars)
-        headersOut = list(v for v in outParams if v in specificVars)
-      else:
-        headersIn  = list(inpParams)
-        headersOut = list(outParams)
-      # for a "HistorySet" type we create a number of groups = number of HistorySet (compatibility with loading structure)
-      if specificVars is not None:
-        dataIn  = list(source['name'].getInpParametersValues()[v] for v in inpParams if v in specificVars)
-        dataOut = list(source['name'].getOutParametersValues()[v] for v in outParams if v in specificVars)
-      else:
-        dataIn  = list(source['name'].getInpParametersValues().values())
-        dataOut = list(source['name'].getOutParametersValues().values())
-      # FIXME unused, but left commented because I'm not sure why they're unused.  PT
-      #headersInUnstructured = list(source['name'].getInpParametersValues(self,unstructuredInputs=True).keys())
-      #dataInUnstructured    = list(source['name'].getInpParametersValues(self,unstructuredInputs=True).values())
-      metadata = source['name'].getAllMetadata()
-      if source['name'].type in ['HistorySet','PointSet']:
-        groups = []
-        if 'HistorySet' in source['name'].type:
-          nruns = len(dataIn)
-        else:
-          nruns = dataIn[0].size
-        for run in range(nruns):
-          if upGroup:
-            groups.append(parentGroupObj.require_group(groupName + b'|' +str(run)))
-            if (groupName + "_data") in groups[run]:
-              del groups[run][groupName+"_data"]
-          else:
-            groups.append(parentGroupObj.create_group(groupName + '|' +str(run)))
-
-          groups[run].attrs[b'sourceType'] = utils.toBytes(source['name'].type)
-          groups[run].attrs[b'mainClass' ] = b'DataObjects'
-          groups[run].attrs[b'EndGroup'   ] = True
-          groups[run].attrs[b'parentID'  ] = parentName
-          if source['name'].type == 'HistorySet':
-            groups[run].attrs[b'inputSpaceHeaders' ] = [utils.toBytes(list(dataIn[run].keys())[i])  for i in range(len(dataIn[run].keys()))]
-            groups[run].attrs[b'outputSpaceHeaders'] = [utils.toBytes(list(dataOut[run].keys())[i])  for i in range(len(dataOut[run].keys()))]
-            json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(dataIn[run].values()))))
-            groups[run].attrs[b'inputSpaceValues'  ] = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(dataIn[run].values()))))
-            groups[run].attrs[b'nParams'            ] = len(dataOut[run].keys())
-            #collect the outputs
-            dataout = np.zeros((next(iter(dataOut[run].values())).size,len(dataOut[run].values())))
-            for param in range(len(dataOut[run].values())):
-              dataout[:,param] = list(dataOut[run].values())[param][:]
-            groups[run].create_dataset(groupName +'|' +str(run)+"_data" , dtype="float", data=dataout)
-            groups[run].attrs[b'nTimeSteps'                ] = next(iter(dataOut[run].values())).size
-          else:
-            groups[run].attrs[b'inputSpaceHeaders' ] = [utils.toBytes(headersIn[i])  for i in range(len(headersIn))]
-            groups[run].attrs[b'outputSpaceHeaders'] = [utils.toBytes(headersOut[i])  for i in range(len(headersOut))]
-            groups[run].attrs[b'inputSpaceValues'  ] = json.dumps([list(utils.toListFromNumpyOrC1arrayIterative(np.atleast_1d(np.array(dataIn[x][run])).tolist())) for x in range(len(dataIn))])
-            groups[run].attrs[b'nParams'            ] = len(headersOut)
-            groups[run].attrs[b'nTimeSteps'                ] = 1
-            #collect the outputs
-            dataout = np.zeros((1,len(dataOut)))
-            for param in range(len(dataOut)):
-              dataout[0,param] = dataOut[param][run]
-            groups[run].create_dataset(groupName +'|' +str(run)+"_data", dtype="float", data=dataout)
-          # add metadata if present
-          for attr in attributes.keys():
-            objectToConvert = mathUtils.convertNumpyToLists(attributes[attr])
-            converted = json.dumps(objectToConvert)
-            if converted and attr != 'name':
-              groups[run].attrs[utils.toBytes(attr)]=converted
-          for attr in metadata.keys():
-            if len(metadata[attr]) == nruns:
-              toProcess = metadata[attr][run]
-            else:
-              toProcess = metadata[attr]
-            if type(toProcess).__name__ == 'list' and 'input' in attr.lower() and isinstance(toProcess[0],Files.File):
-              objectToConvert = list(a.__getstate__() for a in toProcess)
-            elif isinstance(toProcess,Files.File):
-              objectToConvert =toProcess.__getstate__()
-            else:
-              objectToConvert = mathUtils.convertNumpyToLists(toProcess)
-            converted = json.dumps(objectToConvert)
-            if converted and attr != 'name':
-              groups[run].attrs[utils.toBytes(attr)]=converted
-
-          if parentGroupName != "/":
-            self.allGroupPaths.append(parentGroupName + "/" + groupName + '|' +str(run))
-            self.allGroupEnds[parentGroupName + "/" + groupName + '|' +str(run)] = True
-          else:
-            self.allGroupPaths.append("/" + groupName + '|' +str(run))
-            self.allGroupEnds["/" + groupName + '|' +str(run)] = True
-      else:
-        self.raiseAnError(IOError,'The function addGroupDataObjects accepts Data(s) or dictionaries as inputs only!!!!!')
 
   def __addSubGroup(self,groupName,attributes,source):
     """
@@ -718,9 +375,9 @@ class hdf5Database(MessageHandler.MessageUser):
           errorString+= '\n Tried '+str(tail[:-2])+ ' but not found as well. All group paths are:\n -'+'\n -'.join(self.allGroupPaths)
           errorString+= '\n Closest parent group found is "'+str(closestGroup[0] if len(closestGroup) > 0 else 'None')+'"!'
           self.raiseAnError(ValueError,errorString)
-      # The parent group is not the endgroup for this branch
+      # The parent group is not the endGroup for this branch
       self.allGroupEnds[parentGroupName] = False
-      grp.attrs["EndGroup"]   = False
+      grp.attrs["endGroup"]   = False
       self.raiseAMessage('Adding group named "' + groupName + '" in Database "'+ self.name +'"')
       # Create the sub-group
       sgrp = grp.create_group(groupName)
@@ -733,7 +390,7 @@ class hdf5Database(MessageHandler.MessageUser):
       sgrp.attrs["startTime"] = data[0,0]
       sgrp.attrs["end_time"  ] = data[data[:,0].size-1,0]
       sgrp.attrs["nTimeSteps"      ] = data[:,0].size
-      sgrp.attrs["EndGroup"  ] = True
+      sgrp.attrs["endGroup"  ] = True
       sgrp.attrs["sourceType"] = source['type']
       if source['type'] == 'csv':
         sgrp.attrs["sourceFile"] = source['name']
@@ -875,7 +532,7 @@ class hdf5Database(MessageHandler.MessageUser):
     # and create the "self.allGroupPaths" list from the existing database
     if not self.fileOpen:
       self.__createObjFromFile()
-    # Find the endgroup that coresponds to the given name
+    # Find the endGroup that coresponds to the given name
     for i in xrange(len(self.allGroupPaths)):
       listStrW = self.allGroupPaths[i].split("/")
       try:
