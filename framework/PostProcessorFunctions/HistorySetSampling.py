@@ -77,17 +77,17 @@ class HistorySetSampling(PostProcessorInterfaceBase):
 
     if self.samplingType not in set(['uniform','firstDerivative','secondDerivative','filteredFirstDerivative','filteredSecondDerivative']):
       self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : sampling type is not correctly specified')
-    if self.pivotParameter == None:
+    if self.pivotParameter is None:
       self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : time ID is not specified')
 
     if self.samplingType == 'uniform' or self.samplingType == 'firstDerivative' or self.samplingType == 'secondDerivative':
-      if self.numberOfSamples == None or self.numberOfSamples < 0:
+      if self.numberOfSamples is None or self.numberOfSamples < 0:
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not specified or less than 0')
       if self.interpolation not in set(['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'intervalAverage']):
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : interpolation is not correctly specified; possible values: linear, nearest, zero, slinear, quadratic, cubic')
 
     if self.samplingType == 'filteredFirstDerivative' or self.samplingType == 'filteredSecondDerivative':
-      if self.tolerance == None or self.tolerance < 0.0:
+      if self.tolerance is  None or self.tolerance < 0.0:
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : tolerance is not specified or less than 0')
 
 
