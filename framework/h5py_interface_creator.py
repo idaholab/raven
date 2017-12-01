@@ -146,7 +146,11 @@ class hdf5Database(MessageHandler.MessageUser):
     self.allGroupEnds  = {}
     if not self.fileOpen:
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'a')
-    self.h5FileW.visititems(self.__isGroup)
+    if 'allGroupPaths' in self.h5FileW.attrs and 'allGroupEnds' in self.h5FileW.attrs:
+      self.allGroupPaths = json.loads(self.h5FileW.attrs['allGroupPaths'])
+      self.allGroupEnds  = json.loads(self.h5FileW.attrs['allGroupEnds'])
+    else:
+      self.h5FileW.visititems(self.__isGroup)
     self.raiseAMessage('TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
 
   def __isGroup(self,name,obj):
@@ -196,6 +200,8 @@ class hdf5Database(MessageHandler.MessageUser):
       self.firstRootGroup = True
       self.type = 'MC'      
     endif
+    self.h5FileW.attrs['allGroupPaths'] = json.dumps(self.allGroupPaths)
+    self.h5FileW.attrs['allGroupEnds'] = json.dumps(self.allGroupEnds)  
     self.h5FileW.flush()
     
 
@@ -781,12 +787,12 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, parentName, string, parent ID
       @ Out, parentGroupName, string, parent group path
     """
+    parentGroupName = '-$' # control variable
     if parentName != '/':
-      parentGroupName = '-$' # control variable
-      for index in xrange(len(self.allGroupPaths)):
-        testList = self.allGroupPaths[index].split('/')
-        if testList[-1] == parentName:
-          parentGroupName = self.allGroupPaths[index]
+      # this loops takes ~.2 seconds on a 100 milion list (it is accetable)
+      for s in self.allGroupPaths:
+        if s.endswith("/"+parentName.strip()):
+          parentGroupName = s
           break
     else:
       parentGroupName = '/'
