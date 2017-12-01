@@ -194,9 +194,6 @@ class HistorySet(DataSet):
       mode = 'w'
     toDrop = list(var for var in self._allvars if var not in keep)
     data = data.drop(toDrop)
-    #for var in self._allvars:
-    #  if var not in keep:
-    #    data = data.drop(var)
     self.raiseADebug('Printing data to CSV: "{}"'.format(fname+'.csv'))
     # specific implementation
     ## write input space CSV with pointers to history CSVs
@@ -213,21 +210,9 @@ class HistorySet(DataSet):
     ordered += ['filename']
     ### write CSV
     self._usePandasWriteCSV(fname,inpData,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
-    ### convert to dataframe, preparatory to writing to CSV
-    #inpData = inpData.to_dataframe()
-    ### make sure columns are in sensible order
-    #inpData = inpData[ordered]
-    ### write
-    #inpData.to_csv(fname+'.csv',index = self.sampleTag in keep)
     ## obtain slices to write subset CSVs
     ordered = list(o for o in self.getVars('output') if o in keep)
     for i in range(len(data[self.sampleTag].values)):
       rlz = data.isel(**{self.sampleTag:i})[ordered].dropna(self.indexes[0])
       filename = subFiles[i][:-4]
       self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
-    #### OLD ####
-    #slices = self.sliceByIndex(self.sampleTag)
-    #for i,s in enumerate(slices):
-    #  filename = subFiles[i][:-4] # removing ".csv"
-    #  dat = s[ordered].drop(self.sampleTag).dropna(self.indexes[0]) #specifically for history set, only has 1 pivot
-    #  self._usePandasWriteCSV(filename,dat,ordered,keepIndex=True)

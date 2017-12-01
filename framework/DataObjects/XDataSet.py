@@ -527,7 +527,7 @@ class DataSet(DataObject):
       @ In, fName, str, path and name of file to write
       @ In, style, str, optional, options are enumerated below
       @ In, kwargs, dict, optional, additional arguments to pass to writing function
-          Includes:  startAt, int, if included then is the realization index that writing should start from (implies appending instead of rewriting)
+          Includes:  firstIndex, int, optional, if included then is the realization index that writing should start from (implies appending instead of rewriting)
       @ Out, index, int, index of latest rlz to be written, for tracking purposes
     """
     self.asDataset() #just in case there is stuff left in the collector
@@ -542,7 +542,6 @@ class DataSet(DataObject):
       self._toCSV(fName,start=firstIndex,**kwargs)
       # then the metaxml
       self._toCSVXML(fName,**kwargs)
-      # update the counter for already-written CSV data
     # TODO dask?
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized write style: "{}"'.format(style))
@@ -1128,9 +1127,6 @@ class DataSet(DataObject):
     else:
       data = self._data
       mode = 'w'
-    #for var in self._allvars:
-    #  if var not in keep:
-    #    data = data.drop(var)
     data = data.drop(toDrop)
     self.raiseADebug('Printing data to CSV: "{}"'.format(filenameLocal+'.csv'))
     # get the list of elements the user requested to write
