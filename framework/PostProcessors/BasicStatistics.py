@@ -97,10 +97,12 @@ class BasicStatistics(PostProcessor):
         #percent is a string type because otherwise we can't tell 95.0 from 95
         # which matters because the number is used in output.
         scalarSpecification.addParam("percent", InputData.StringType)
+      scalarSpecification.addParam("prefix", InputData.StringType)
       inputSpecification.addSub(scalarSpecification)
 
     for vector in cls.vectorVals:
       vectorSpecification = InputData.parameterInputFactory(vector)
+      vectorSpecification.addParam("prefix", InputData.StringType)
       features = InputData.parameterInputFactory('features',
                                 contentType=InputData.StringListType)
       vectorSpecification.addSub(features)
@@ -108,11 +110,6 @@ class BasicStatistics(PostProcessor):
                                 contentType=InputData.StringListType)
       vectorSpecification.addSub(targets)
       inputSpecification.addSub(vectorSpecification)
-
-    allInput = InputData.parameterInputFactory('all', contentType=InputData.StringType)
-    allInput.addSub(features)
-    allInput.addSub(targets)
-    inputSpecification.addSub(allInput)
 
     pivotParameterInput = InputData.parameterInputFactory('pivotParameter', contentType=InputData.StringType)
     inputSpecification.addSub(pivotParameterInput)
@@ -153,6 +150,7 @@ class BasicStatistics(PostProcessor):
     self.addAssemblerObject('Function','-1', True)
     self.biased = False # biased statistics?
     self.pivotParameter = None # time-dependent statistics pivot parameter
+    self.pivotValue = None # time-dependent statistics pivot parameter values
     self.dynamic        = False # is it time-dependent?
 
   def inputToInternal(self, currentInp):
@@ -174,50 +172,31 @@ class BasicStatistics(PostProcessor):
       return currentInput
     if currentInput.type not in ['PointSet','HistorySet']:
       self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
-    if currentInput.type in ['PointSet']:
-      inputDict = {'targets':{},'metadata':currentInput.getAllMetadata()}
-      for targetP in self.parameters['targets']:
-        if   targetP in currentInput.getParaKeys('input'):
-          inputDict['targets'][targetP] = currentInput.getParam('input' , targetP, nodeId = 'ending')
-        elif targetP in currentInput.getParaKeys('output'):
-          inputDict['targets'][targetP] = currentInput.getParam('output', targetP, nodeId = 'ending')
-        else:
-          self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
-    else:
+
+    metadata =  currentInput.getMeta(pointwise=True)
+    inputList = []
+    if currentInput.type == 'PointSet':
+      inputDict = {}
+      inputDict['targets'] = currentInput.getVarValues(self.parameters['targets'])
+      inputDict['metadata'] =  metadata
+      inputList.append(inputDict)
+    elif currentInput.type == 'HistorySet':
       if self.pivotParameter is None:
         self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter got inputted!')
-      inputs, outputs  = currentInput.getParametersValues('inputs',nodeId = 'ending'), currentInput.getParametersValues('outputs',nodeId = 'ending')
-      nTs, self.dynamic = len(outputs.values()[0].values()[0]), True
-      if self.pivotParameter not in currentInput.getParaKeys('output'):
-        self.raiseAnError(IOError, self, 'Pivot parameter ' + self.pivotParameter + ' has not been found in output space of data object '+currentInput.name)
-      pivotParameter =  six.next(six.itervalues(outputs))[self.pivotParameter]
-      self.raiseAMessage("Starting recasting data for time-dependent statistics")
-      targetInput  = []
-      targetOutput = []
-      for targetP in self.parameters['targets']:
-        if targetP in currentInput.getParaKeys('output'):
-          targetOutput.append(targetP)
-        elif targetP in currentInput.getParaKeys('input'):
-          targetInput.append(targetP)
-        else:
-          self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
-      inputDict = {}
-      inputDict['timeDepData'] = OrderedDict((el,defaultdict(dict)) for el in pivotParameter)
-      for targetP in targetInput:
-        inputValues = np.asarray([val[targetP][-1] for val in inputs.values()])
-        for ts in range(nTs):
-          inputDict['timeDepData'][pivotParameter[ts]]['targets'][targetP] = inputValues
-      metadata = currentInput.getAllMetadata()
-      for cnt, targetP in enumerate(targetOutput):
-        outputValues = np.asarray([val[targetP] for val in outputs.values()])
-        if len(outputValues.shape) != 2:
-          self.raiseAnError(IOError, 'Histories are not syncronized! Please, pre-process the data using Interfaced PostProcessor HistorySetSync!')
-        for ts in range(nTs):
-          inputDict['timeDepData'][pivotParameter[ts]]['targets'][targetP] = outputValues[:,ts]
-          if cnt == 0:
-            inputDict['timeDepData'][pivotParameter[ts]]['metadata'] = metadata
+      self.dynamic = True
+      self.pivotValue = currentInput.asDataset()[self.pivotParameter].values
+      slices = currentInput.sliceByIndex(self.pivotParameter)
+      for sliceData in slices:
+        inputDict = {}
+        inputDict['metadata'] = metadata
+        inputDict['targets'] = dict((target, sliceData[target]) for target in self.parameters['targets'])
+        print("inputDict")
+        print(inputDict['targets'])
+        inputList.append(inputDict)
+
     self.raiseAMessage("Recasting performed")
-    return inputDict
+
+    return inputList
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -230,21 +209,15 @@ class BasicStatistics(PostProcessor):
     """
     #construct a list of all the parameters that have requested values into self.allUsedParams
     self.allUsedParams = set()
-    #first collect parameters for which scalar values were requested
-    for scalar in self.scalarVals:
-      if scalar in self.toDo.keys():
-        #special treatment of percentile since the user can specify the percents directly
-        if scalar == 'percentile':
-          for pct,targs in self.toDo[scalar].items():
-            self.allUsedParams.update(targs)
-        else:
-          self.allUsedParams.update(self.toDo[scalar])
-    #second collect parameters for which matrix values were requested, either as targets or features
-    for vector in self.vectorVals:
-      if vector in self.toDo.keys():
-        for entry in self.toDo[vector]:
+    for metricName in self.scalarVals + self.vectorVals:
+      if metricName in self.toDo.keys():
+        for entry in self.toDo[metricName]:
           self.allUsedParams.update(entry['targets'])
-          self.allUsedParams.update(entry['features'])
+          try:
+            self.allUsedParams.update(entry['features'])
+          except KeyError:
+            pass
+
     #for backward compatibility, compile the full list of parameters used in Basic Statistics calculations
     self.parameters['targets'] = list(self.allUsedParams)
     PostProcessor.initialize(self, runInfo, inputs, initDict)
@@ -270,7 +243,12 @@ class BasicStatistics(PostProcessor):
     for child in paramInput.subparts:
       tag = child.getName()
       #because percentile is strange (has an attached parameter), we address it first
+      if tag in ['percentile'] + self.scalarVals + self.vectorVals:
+        if 'prefix' not in child.parameterValues:
+          self.raiseAnError(IOError, "Not prefix is provided for node: ", tag)
+        prefix = child.parameterValues['prefix']
       if tag == 'percentile':
+        #get the prefix
         #get targets
         targets = set(child.value)
         #what if user didn't give any targets?
@@ -279,80 +257,36 @@ class BasicStatistics(PostProcessor):
           continue
         #prepare storage dictionary, keys are percentiles, values are set(targets)
         if 'percentile' not in self.toDo.keys():
-          self.toDo['percentile']={}
-          self.parameters['percentile_map'] = {}
+          self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'percent':str}
         if 'percent' not in child.parameterValues:
-          floatPercentile = [float(5),float(95)]
-          self.parameters['percentile_map'][floatPercentile[0]] = '5'
-          self.parameters['percentile_map'][floatPercentile[1]] = '95'
+          strPercent = ['5', '95']
         else:
-          #user specified a percentage!
-          strPercent = child.parameterValues['percent']
-          floatPercentile = [float(strPercent)]
-          self.parameters['percentile_map'][floatPercentile[0]] = strPercent
-        for reqPercent in floatPercentile:
-          if reqPercent in self.toDo['percentile'].keys():
-            self.toDo['percentile'][reqPercent].update(targets)
-          else:
-            self.toDo['percentile'][reqPercent] = set(targets)
+          strPercent = [child.parameterValues['percent']]
+        for reqPercent in strPercent:
+          self.toDo[tag].append({'targets':set(targets),
+                                 'prefix':prefix,
+                                 'percent':reqPercent})
+          #TODO: remove
+          #self.parameters['percentile_map'][floatPercentile[0]] = '5'
       elif tag in self.scalarVals:
-        if tag in self.toDo.keys():
-          self.toDo[tag].update(set(child.value))
-        else:
-          self.toDo[tag] = set(child.value)
+        self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
+        self.toDo[tag].append({'targets':set(child.value),
+                               'prefix':prefix})
       elif tag in self.vectorVals:
-        self.toDo[tag] = [] #'inputs':[],'outputs':[]}
+        self.toDo[tag] = [] # list of {'targets':(),'features':(), 'prefix':str}
         tnode = child.findFirst('targets')
         if tnode is None:
           self.raiseAnError('Request for vector value <'+tag+'> requires a "targets" node, and none was found!')
         fnode = child.findFirst('features')
         if fnode is None:
           self.raiseAnError('Request for vector value <'+tag+'> requires a "features" node, and none was found!')
-        if tag in self.toDo.keys():
-          # we're storing toDo[tag] as a list of dictionaries.  This is because the user might specify multiple
-          #   nodes with the same metric (tag), but with different targets and features.  For instance, the user might
-          #   want the sensitivity of A and B to X and Y, and the sensitivity of C to W and Z, but not the sensitivity
-          #   of A to W.  If we didn't keep them separate, we could potentially waste a fair number of calculations.
-          self.toDo[tag].append({'targets':set(tnode.value),
-                            'features':set(fnode.value)})
-        else:
-          self.toDo[tag] = [{'targets':set(tnode.value),
-                            'features':set(fnode.value)}]
-      elif tag == 'all':
-        #do all the metrics
-        #establish targets and features
-        # - as currently done, we only do the scalar metrics for the targets
-        #   and features are for the matrix operations
-        tnode = child.findFirst('targets')
-        if tnode is None:
-          self.raiseAnError(IOError,'When using "all" node, you must specify a "targets" and a "features" node!  "targets" is missing.')
-        fnode = child.findFirst('features')
-        if fnode is None:
-          self.raiseAnError(IOError,'When using "all" node, you must specify a "targets" and a "features" node!  "features" is missing.')
-        targets = set(tnode.value)
-        features = set(fnode.value)
-        for scalar in self.scalarVals:
-          #percentile is a little different
-          if scalar == 'percentile':
-            if scalar not in self.toDo.keys():
-              self.toDo[scalar] = {}
-              self.parameters[scalar+'_map'] = {}
-            for pct in [float(5),float(95)]:
-              self.parameters['percentile_map'][pct] = str(int(pct))
-              if pct in self.toDo[scalar].keys():
-                self.toDo[scalar][pct].update(targets)
-              else:
-                self.toDo[scalar][pct] = set(targets)
-          #other scalars are simple
-          else:
-            if scalar not in self.toDo.keys():
-              self.toDo[scalar] = set()
-            self.toDo[scalar].update(set(tnode.value))
-        for vector in self.vectorVals:
-          if vector not in self.toDo.keys():
-            self.toDo[vector] = []
-          self.toDo[vector].append({'targets':set(tnode.value),
-                                 'features':set(fnode.value)})
+        # we're storing toDo[tag] as a list of dictionaries.  This is because the user might specify multiple
+        #   nodes with the same metric (tag), but with different targets and features.  For instance, the user might
+        #   want the sensitivity of A and B to X and Y, and the sensitivity of C to W and Z, but not the sensitivity
+        #   of A to W.  If we didn't keep them separate, we could potentially waste a fair number of calculations.
+        self.toDo[tag].append({'targets':set(tnode.value),
+                               'features':set(fnode.value),
+                               'prefix':prefix})
       elif tag == "biased":
         if child.value.lower() in utils.stringsThatMeanTrue():
           self.biased = True
@@ -373,146 +307,13 @@ class BasicStatistics(PostProcessor):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
 
-    outputDictionary = evaluation[1]
-
-    methodToTest = []
-    for key in self.methodsToRun:
-      if key not in self.acceptedCalcParam:
-        methodToTest.append(key)
-    if isinstance(output,Files.File):
-      availExtens = ['xml','csv']
-      outputExtension = output.getExt().lower()
-      if outputExtension not in availExtens:
-        self.raiseAMessage('BasicStatistics did not recognize extension ".'+str(outputExtension)+'" as ".xml", so writing text output...')
-      output.setPath(self._workingDir)
-      self.raiseADebug('Writing statistics output in file named ' + output.getAbsFile())
-      output.open('w')
-      if outputExtension == 'xml':
-        self._writeXML(output,outputDictionary,methodToTest)
-      else:
-        separator = '   ' if outputExtension != 'csv' else ','
-        self._writeText(output,outputDictionary,methodToTest,separator)
-    elif output.type in ['PointSet','HistorySet']:
+    outputRealization = evaluation[1]
+    print("Realization", outputRealization)
+    if output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
-      outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
-      for ts, outputDict in enumerate(outputResults):
-        appendix = '-'+self.pivotParameter+'-'+str(outputDictionary.keys()[ts]) if self.dynamic else ''
-        for what in outputDict.keys():
-          if what not in self.vectorVals + methodToTest:
-            for targetP in outputDict[what].keys():
-              self.raiseADebug('Dumping variable ' + targetP + '. Parameter: ' + what + '. Metadata name = ' + targetP + '-' + what)
-              output.updateMetadata(targetP + '-' + what + appendix, outputDict[what][targetP])
-          else:
-            if what not in methodToTest and len(self.allUsedParams) > 1:
-              self.raiseADebug('Dumping vector metric',what)
-              output.updateMetadata(what.replace("|","-") + appendix, outputDict[what])
-        if self.externalFunction:
-          self.raiseADebug('Dumping External Function results')
-          for what in self.methodsToRun:
-            if what not in self.acceptedCalcParam:
-              output.updateMetadata(what + appendix, outputDict[what])
-              self.raiseADebug('Dumping External Function parameter ' + what)
+      output.addRealization(outputRealization)
     else:
       self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
-
-  def _writeText(self,output,outputDictionary,methodToTest,separator='  '):
-    """
-      Defines the method for writing the basic statistics to a text file (space and newline delimited)
-      @ In, output, File object, file to write to
-      @ In, outputDictionary, dict, dictionary of statistics values (or list of the same if self.dynamic)
-      @ In, methodToTest, list, strings of methods to test
-      @ In, separator, string, optional, separator string (e.g. for csv use ",")
-      @ Out, None
-    """
-    if self.dynamic:
-      output.write('Dynamic BasicStatistics'+ separator+ 'Pivot Parameter' + separator + self.pivotParameter + separator + os.linesep)
-    quantitiesToWrite = {}
-    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
-    longestParam = max(list(len(param) for param in self.allUsedParams)+[9]) #9 is for 'Metric:'
-    # use format functions to make writing matrices easier
-    paramFormat = ('{:>'+str(longestParam)+'.'+str(longestParam)+'}').format
-    for ts, outputDict in enumerate(outputResults):
-      if self.dynamic:
-        output.write('Pivot Value' +separator+ str(outputDictionary.keys()[ts]) + os.linesep)
-      # do scalars metrics first
-      #header
-      haveScalars = list(scalar for scalar in self.scalarVals if scalar in outputDict.keys())
-      if 'percentile_map' in self.parameters and len(self.parameters['percentile_map']) >0 :
-        haveScalars = haveScalars + ['percentile_'+val for val in self.parameters['percentile_map'].values()]
-      valueStrFormat = ('{:^22.22}').format
-      valueFormat    = '{:+.15e}'.format
-      if len(haveScalars) > 0:
-        longestScalar = max(18,max(len(scalar) for scalar in haveScalars))
-        output.write(paramFormat('Metric:') + separator)
-        output.write(separator.join(valueStrFormat(scalar) for scalar in haveScalars) + os.linesep)
-        #body
-        for param in self.allUsedParams:
-          output.write(paramFormat(param) + separator)
-          values = [None]*len(haveScalars)
-          for s,scalar in enumerate(haveScalars):
-            if param in outputDict.get(scalar,{}).keys():
-              values[s] = valueFormat(outputDict[scalar][param])
-            else:
-              values[s] = valueStrFormat('---')
-          output.write(separator.join(values) + os.linesep)
-      # then do vector metrics (matrix style)
-      haveVectors = list(vector for vector in self.vectorVals if vector in outputDict.keys())
-      for vector in haveVectors:
-        #label
-        output.write(os.linesep + os.linesep)
-        output.write(vector+':'+os.linesep)
-        #header
-        vecTargets = sorted(outputDict[vector].keys())
-        output.write(separator.join(valueStrFormat(v) for v in [' ']+vecTargets)+os.linesep)
-        #populate feature list
-        vecFeatures = set()
-        list(vecFeatures.update(set(outputDict[vector][t].keys())) for t in vecTargets)
-        vecFeatures = sorted(list(vecFeatures))
-        #body
-        for feature in vecFeatures:
-          output.write(valueStrFormat(feature)+separator)
-          values = [valueStrFormat('---')]*len(vecTargets)
-          for t,target in enumerate(vecTargets):
-            if feature in outputDict[vector][target].keys():
-              values[t] = valueFormat(outputDict[vector][target][feature])
-          output.write(separator.join(values)+os.linesep)
-
-  def _writeXML(self,origOutput,outputDictionary,methodToTest):
-    """
-      Defines the method for writing the basic statistics to a .xml file.
-      @ In, origOutput, File object, file to write
-      @ In, outputDictionary, dict, dictionary of statistics values
-      @ In, methodToTest, list, strings of methods to test
-      @ Out, None
-    """
-    #create XML output with same path as original output
-    if origOutput.isOpen():
-      origOutput.close()
-    if self.dynamic:
-      output = Files.returnInstance('DynamicXMLOutput',self)
-    else:
-      output = Files.returnInstance('StaticXMLOutput',self)
-    output.initialize(origOutput.getFilename(),self.messageHandler,path=origOutput.getPath())
-    output.newTree('BasicStatisticsPP',pivotParam=self.pivotParameter)
-    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
-    for ts, outputDict in enumerate(outputResults):
-      pivotVal = outputDictionary.keys()[ts]
-      for t,target in enumerate(self.allUsedParams):
-        #do scalars first
-        for metric in self.scalarVals:
-          #TODO percentile
-          if metric == 'percentile':
-            for key in outputDict.keys():
-              if key.startswith(metric) and target in outputDict[key].keys():
-                output.addScalar(target,key,outputDict[key][target],pivotVal=pivotVal)
-          elif metric in outputDict.keys() and target in outputDict[metric]:
-            output.addScalar(target,metric,outputDict[metric][target],pivotVal=pivotVal)
-        #do matrix values
-        for metric in self.vectorVals:
-          if metric in outputDict.keys() and target in outputDict[metric]:
-            output.addVector(target,metric,outputDict[metric][target],pivotVal=pivotVal)
-
-    output.writeFile()
 
   def __computeVp(self,p,weights):
     """
@@ -636,6 +437,8 @@ class BasicStatistics(PostProcessor):
     # a percentile that is < that the first pb weight is requested. Otherwise the median
     # is returned (that is wrong).
     sortedWeightsAndPoints = np.insert(np.asarray(zip(pbWeight[idxs],arrayIn[idxs])),0,[0.0,arrayIn[idxs[0]]],axis=0)
+    print("sortedWeights")
+    print(sortedWeightsAndPoints)
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
     try:
       index = utils.find_le_index(weightsCDF,percent)
@@ -644,81 +447,52 @@ class BasicStatistics(PostProcessor):
       result = np.median(arrayIn)
     return result
 
-  def __runLocal(self, input):
+  def __runLocal(self, inputDict):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
-      @ In,  input, object, object contained the data to process. (inputToInternal output)
+      @ In, inputDict, dict, dictionary containing the input, output, and metadata
       @ Out, outputDict, dict, Dictionary containing the results
     """
     pbWeights, pbPresent  = {'realization':None}, False
-    if self.externalFunction:
-      # there is an external function
-      for what in self.methodsToRun:
-        outputDict[what] = self.externalFunction.evaluate(what, input['targets'])
-        # check if "what" corresponds to an internal method
-        if what in self.acceptedCalcParam:
-          if what not in ['pearson', 'covariance', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
-            if type(outputDict[what]) != dict:
-              self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a dictionary!!')
-          else:
-            if type(outputDict[what]) != np.ndarray:
-              self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a numpy.ndarray!!')
-            if len(outputDict[what].shape) != 2:
-              self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a 2D numpy.ndarray!!')
     # setting some convenience values
     parameterSet = list(self.allUsedParams)
-    if 'metadata' in input.keys():
-      pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
+    if 'metadata' in inputDict.keys():
+      pbPresent = 'ProbabilityWeight' in inputDict['metadata'].keys() if 'metadata' in inputDict.keys() else False
     if not pbPresent:
       pbWeights['realization'] = None
-      if 'metadata' in input.keys():
-        if 'SamplerType' in input['metadata'].keys():
-          if input['metadata']['SamplerType'][0] != 'MonteCarlo' :
+      if 'metadata' in inputDict.keys():
+        if 'SamplerType' in inputDict['metadata'].keys():
+          if inputDict['metadata']['SamplerType'].values[0] != 'MonteCarlo' :
             self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
         else:
           self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights. Assuming unit weights instead...')
     else:
-      pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
+      pbWeights['realization'] = inputDict['metadata']['ProbabilityWeight'].values/np.sum(inputDict['metadata']['ProbabilityWeight'].values)
     #This section should take the probability weight for each sampling variable
     pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
-    if 'metadata' in input.keys():
+    if 'metadata' in inputDict.keys():
       for target in parameterSet:
-        if 'ProbabilityWeight-'+target in input['metadata'].keys():
-          pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(input['metadata']['ProbabilityWeight-'+target])
+        if 'ProbabilityWeight-'+target in inputDict['metadata'].keys():
+          pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(inputDict['metadata']['ProbabilityWeight-'+target].values)
           pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:]/np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target])
 
     #establish a dict of indices to parameters and vice versa
-    parameter2index = dict((param,p) for p,param in enumerate(input['targets'].keys()))
-    for p,param in enumerate(input['targets'].keys()):
-      parameter2index[param] = p
+    parameter2index = dict((param,p) for p,param in enumerate(inputDict['targets'].keys()))
 
     #storage dictionary for skipped metrics
     self.skipped = {}
 
     #construct a dict of required computations
-    needed = dict((metric,set()) for metric in self.scalarVals) #for each metric (keys), the list of parameters we need that value for
+    needed = dict((metric,{'targets':set()}) for metric in self.scalarVals)
     needed.update(dict((metric,{'targets':set(),'features':set()}) for metric in self.vectorVals))
-    #percentile is a special exception
-    if 'percentile' in needed.keys():
-      needed['percentile'] = {}
-    #add things requested by the user
-    #start by adding the exact request by the user, then add the dependencies
-    for metric,params in self.toDo.items():
-      #percentile is a special case, and it neither relies on anything nor is relied upon by anything
-      if metric == 'percentile':
-        for pct,targets in params.items():
-          needed[metric][pct] = targets
-      elif type(params) == set:
-        #scalar parameter
-        needed[metric].update(params)
-      elif type(params) == list and type(params[0]) == dict:
-        # vector parameter
-        needed[metric] = {'targets':set(),'features':set()}
-        for entry in params:
-          needed[metric]['targets'].update(entry['targets'])
+    for metric, params in self.toDo.items():
+      for entry in params:
+        needed[metric]['targets'].update(entry['targets'])
+        try:
           needed[metric]['features'].update(entry['features'])
-      else:
-        self.raiseAWarning('Unrecognized format for metric "'+metric+'!  Expected "set" or "dict" but got',type(params))
+        except KeyError:
+          pass
+
     # variable                     | needs                  | needed for
     # --------------------------------------------------------------------
     # skewness needs               | expectedValue,variance |
@@ -735,26 +509,24 @@ class BasicStatistics(PostProcessor):
     # sigma needs                  | variance               | variationCoefficient
     # variance                     | expectedValue          | sigma, skewness, kurtosis
     # expectedValue                |                        | variance, variationCoefficient, skewness, kurtosis
-    needed['sigma'].update(needed.get('variationCoefficient'))
-    needed['variance'].update(needed.get('sigma',set()))
-    needed['expectedValue'].update(needed.get('sigma',set()))
-    needed['expectedValue'].update(needed.get('variationCoefficient',set()))
-    needed['expectedValue'].update(needed.get('variance',set()))
-    needed['expectedValue'].update(needed.get('skewness',set()))
-    needed['expectedValue'].update(needed.get('kurtosis',set()))
-    if 'NormalizedSensitivity' in needed.keys():
-      needed['expectedValue'].update(needed['NormalizedSensitivity']['targets'])
-      needed['expectedValue'].update(needed['NormalizedSensitivity']['features'])
-      needed['covariance']['targets'].update(needed['NormalizedSensitivity']['targets'])
-      needed['covariance']['features'].update(needed['NormalizedSensitivity']['features'])
-      needed['VarianceDependentSensitivity']['targets'].update(needed['NormalizedSensitivity']['targets'])
-      needed['VarianceDependentSensitivity']['features'].update(needed['NormalizedSensitivity']['features'])
-    if 'pearson' in needed.keys():
-      needed['covariance']['targets'].update(needed['pearson']['targets'])
-      needed['covariance']['features'].update(needed['pearson']['features'])
-    if 'VarianceDependentSensitivity' in needed.keys():
-      needed['covariance']['targets'].update(needed['VarianceDependentSensitivity']['targets'])
-      needed['covariance']['features'].update(needed['VarianceDependentSensitivity']['features'])
+    needed['sigma']['targets'].update(needed['variationCoefficient']['targets'])
+    needed['variance']['targets'].update(needed['sigma']['targets'])
+    needed['expectedValue']['targets'].update(needed['sigma']['targets'])
+    needed['expectedValue']['targets'].update(needed['variationCoefficient']['targets'])
+    needed['expectedValue']['targets'].update(needed['variance']['targets'])
+    needed['expectedValue']['targets'].update(needed['skewness']['targets'])
+    needed['expectedValue']['targets'].update(needed['kurtosis']['targets'])
+    needed['expectedValue']['targets'].update(needed['NormalizedSensitivity']['targets'])
+    needed['expectedValue']['targets'].update(needed['NormalizedSensitivity']['features'])
+    needed['covariance']['targets'].update(needed['NormalizedSensitivity']['targets'])
+    needed['covariance']['features'].update(needed['NormalizedSensitivity']['features'])
+    needed['VarianceDependentSensitivity']['targets'].update(needed['NormalizedSensitivity']['targets'])
+    needed['VarianceDependentSensitivity']['features'].update(needed['NormalizedSensitivity']['features'])
+    needed['covariance']['targets'].update(needed['pearson']['targets'])
+    needed['covariance']['features'].update(needed['pearson']['features'])
+    needed['covariance']['targets'].update(needed['VarianceDependentSensitivity']['targets'])
+    needed['covariance']['features'].update(needed['VarianceDependentSensitivity']['features'])
+
     #
     # BEGIN actual calculations
     #
@@ -771,7 +543,7 @@ class BasicStatistics(PostProcessor):
         @ In, metric, string, name of metric
         @ Out, None
       """
-      if len(needed[metric])>0:
+      if len(needed[metric]['targets'])>0:
         self.raiseADebug('Starting "'+metric+'"...')
         calculations[metric]={}
     #
@@ -779,31 +551,35 @@ class BasicStatistics(PostProcessor):
     #
     metric = 'samples'
     startMetric(metric)
-    for targetP in needed[metric]:
-      calculations[metric][targetP] = len(utils.first(input['targets'].values()))
+    for targetP in needed[metric]['targets']:
+      calculations[metric][targetP] = len(inputDict['targets'][targetP].values)
     #
     # expected value
     #
     metric = 'expectedValue'
     startMetric(metric)
-    for targetP in needed[metric]:
+    for targetP in needed[metric]['targets']:
       if pbPresent:
         relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        calculations[metric][targetP] = np.average(input['targets'][targetP], weights = relWeight)
+        calculations[metric][targetP] = np.average(inputDict['targets'][targetP].values, weights = relWeight)
+        print("targetP:", targetP)
+        print(inputDict['targets'][targetP].values)
+        print("Metric: ", metric)
+        print(calculations[metric][targetP])
       else:
         relWeight  = None
-        calculations[metric][targetP] = np.mean(input['targets'][targetP])
+        calculations[metric][targetP] = np.mean(inputDict['targets'][targetP].values)
     #
     # variance
     #
     metric = 'variance'
     startMetric(metric)
-    for targetP in needed[metric]:
+    for targetP in needed[metric]['targets']:
       if pbPresent:
         relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
       else:
         relWeight  = None
-      calculations[metric][targetP] = self._computeVariance(input['targets'][targetP],calculations['expectedValue'][targetP],pbWeight=relWeight)
+      calculations[metric][targetP] = self._computeVariance(inputDict['targets'][targetP].values,calculations['expectedValue'][targetP],pbWeight=relWeight)
       #sanity check
       if (calculations[metric][targetP] == 0):
         self.raiseAWarning('The variable: ' + targetP + ' has zero variance! Please check your input in PP: ' + self.name)
@@ -812,19 +588,19 @@ class BasicStatistics(PostProcessor):
     #
     metric = 'sigma'
     startMetric(metric)
-    for targetP in needed[metric]:
+    for targetP in needed[metric]['targets']:
       if calculations['variance'][targetP] == 0:
         #np.Infinity:
         self.raiseAWarning('The variable: ' + targetP + ' has zero sigma! Please check your input in PP: ' + self.name)
         calculations[metric][targetP] = 0.0
       else:
-        calculations[metric][targetP] = self._computeSigma(input['targets'][targetP],calculations['variance'][targetP])
+        calculations[metric][targetP] = self._computeSigma(inputDict['targets'][targetP].values,calculations['variance'][targetP])
     #
     # coeff of variation (sigma/mu)
     #
     metric = 'variationCoefficient'
     startMetric(metric)
-    for targetP in needed[metric]:
+    for targetP in needed[metric]['targets']:
       if calculations['expectedValue'][targetP] == 0:
         self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient cannot be calculated, so setting as infinite.')
         calculations[metric][targetP] = np.Infinity
@@ -835,61 +611,49 @@ class BasicStatistics(PostProcessor):
     #
     metric = 'skewness'
     startMetric(metric)
-    for targetP in needed[metric]:
+    for targetP in needed[metric]['targets']:
       if pbPresent:
         relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
       else:
         relWeight  = None
-      calculations[metric][targetP] = self._computeSkewness(input['targets'][targetP],calculations['expectedValue'][targetP],calculations['variance'][targetP],pbWeight=relWeight)
+      calculations[metric][targetP] = self._computeSkewness(inputDict['targets'][targetP].values,calculations['expectedValue'][targetP],calculations['variance'][targetP],pbWeight=relWeight)
     #
     # kurtosis
     #
     metric = 'kurtosis'
     startMetric(metric)
-    for targetP in needed[metric]:
+    for targetP in needed[metric]['targets']:
       if pbPresent:
         relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
       else:
         relWeight  = None
-      calculations[metric][targetP] = self._computeKurtosis(input['targets'][targetP],calculations['expectedValue'][targetP],calculations['variance'][targetP],pbWeight=relWeight)
+      calculations[metric][targetP] = self._computeKurtosis(inputDict['targets'][targetP].values,calculations['expectedValue'][targetP],calculations['variance'][targetP],pbWeight=relWeight)
     #
     # median
     #
     metric = 'median'
     startMetric(metric)
-    for targetP in needed[metric]:
+    for targetP in needed[metric]['targets']:
       if pbPresent:
         relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        calculations[metric][targetP] = self._computeWeightedPercentile(input['targets'][targetP],relWeight,percent=0.5)
+        calculations[metric][targetP] = self._computeWeightedPercentile(inputDict['targets'][targetP].values,relWeight,percent=0.5)
       else:
-        calculations[metric][targetP] = np.median(input['targets'][targetP])
+        calculations[metric][targetP] = np.median(inputDict['targets'][targetP].values)
     #
     # maximum
     #
     metric = 'maximum'
     startMetric(metric)
-    for targetP in needed[metric]:
-      calculations[metric][targetP] = np.amax(input['targets'][targetP])
+    for targetP in needed[metric]['targets']:
+      calculations[metric][targetP] = np.amax(inputDict['targets'][targetP].values)
     #
     # minimum
     #
     metric = 'minimum'
     startMetric(metric)
-    for targetP in needed[metric]:
-      calculations[metric][targetP] = np.amin(input['targets'][targetP])
-    #
-    # percentile
-    #
-    metric = 'percentile'
-    self.raiseADebug('Starting "'+metric+'"...')
-    for percent,targets in needed[metric].items():
-      self.raiseADebug('...',str(percent),'...')
-      label = metric+'_'+self.parameters['percentile_map'][percent]
-      calculations[label] = {}
-      for targetP in targets:
-        if pbPresent:
-          relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        calculations[label][targetP] = np.percentile(input['targets'][targetP], percent) if not pbPresent else self._computeWeightedPercentile(input['targets'][targetP],relWeight,percent=float(percent)/100.0)
+    for targetP in needed[metric]['targets']:
+      calculations[metric][targetP] = np.amin(inputDict['targets'][targetP].values)
+
     #################
     # VECTOR VALUES #
     #################
@@ -939,9 +703,9 @@ class BasicStatistics(PostProcessor):
       #so we loop over targets and features
       for t,target in enumerate(targets):
         calculations[metric][target] = {}
-        targetVals = input['targets'][target]
+        targetVals = inputDict['targets'][target].values
         #don't do self-sensitivity
-        inpSamples = np.atleast_2d(np.asarray(list(input['targets'][f] for f in features if f!=target))).T
+        inpSamples = np.atleast_2d(np.asarray(list(inputDict['targets'][f].values for f in features if f!=target))).T
         useFeatures = list(f for f in features if f != target)
         #use regressor coefficients as sensitivity
         regressDict = dict(zip(useFeatures, LinearRegression().fit(inpSamples,targetVals).coef_))
@@ -960,11 +724,11 @@ class BasicStatistics(PostProcessor):
       # IF this is fixed, make sure all the features and targets are requested for all the metrics
       #   dependent on this metric
       params = list(set(targets).union(set(features)))
-      paramSamples = np.zeros((len(params), utils.first(input['targets'].values()).size))
-      pbWeightsList = [None]*len(input['targets'].keys())
+      paramSamples = np.zeros((len(params), inputDict['targets'][params[0]].values.size))
+      pbWeightsList = [None]*len(inputDict['targets'].keys())
       for p,param in enumerate(params):
         dataIndex = parameter2index[param]
-        paramSamples[p,:] = input['targets'][param][:]
+        paramSamples[p,:] = inputDict['targets'][param].values[:]
         pbWeightsList[p] = pbWeights['realization'] if param not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][param]
       pbWeightsList.append(pbWeights['realization'])
       #Note: this is basically "None in pbWeightsList", but
@@ -1012,10 +776,10 @@ class BasicStatistics(PostProcessor):
     if not skip:
       params = list(set(targets).union(set(features)))
       reducedCovar,reducedParams = getCovarianceSubset(params)
-      inputSamples = np.zeros((len(params),utils.first(input['targets'].values()).size))
+      inputSamples = np.zeros((len(params),inputDict['targets'][params[0]].values.size))
       pbWeightsList = [None]*len(params)
       for p,param in enumerate(reducedParams):
-        inputSamples[p,:] = input['targets'][param][:]
+        inputSamples[p,:] = inputDict['targets'][param].values[:]
         pbWeightsList[p] = pbWeights['realization'] if param not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][param]
       pbWeightsList.append(pbWeights['realization'])
       for p,param in enumerate(reducedParams):
@@ -1045,91 +809,80 @@ class BasicStatistics(PostProcessor):
           expValueRatio = calculations['expectedValue'][feature]/calculations['expectedValue'][param]
           calculations[metric][param][feature] = calculations['VarianceDependentSensitivity'][param][feature]*expValueRatio
 
-    #collect only the requested calculations
+    # The following dict is used to collect outputs from calculations
     outputDict = {}
-    for metric,params in self.toDo.items():
-      #TODO someday we might need to expand the "skipped" check to include scalars, but for now
-      #   the only reason to skip is if an invalid matrix is requested
-      #if percentile, special treatment
+    #
+    # percentile, this metric is handled differently
+    #
+    metric = 'percentile'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      for targetDict in self.toDo[metric]:
+        percent = float(targetDict['percent'])
+        prefix = targetDict['prefix'].strip()
+        for targetP in targetDict['targets']:
+          if pbPresent:
+            relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+          varName = prefix + '_' + targetDict['percent'].strip() + '_' + targetP
+          outputDict[varName] = np.atleast_1d(self._computeWeightedPercentile(inputDict['targets'][targetP].values,relWeight,percent=float(percent)/100.0))
+
+    #collect only the requested calculations except percentile, since it has been already collected
+    #in the outputDict.
+    for metric, requestList  in self.toDo.items():
       if metric == 'percentile':
-        for pct,targets in params.items():
-          label = 'percentile_'+self.parameters['percentile_map'][pct]
-          outputDict[label] = dict((target,calculations[label][target]) for target in targets)
-      #if other scalar, just report the result
-      elif metric in self.scalarVals:
-        outputDict[metric] = dict((target,calculations[metric][target]) for target in params)
-      #if a matrix block, extract desired values
-      else:
-        if metric in ['pearson','covariance']:
-          outputDict[metric] = {}
-          for entry in params:
-            #check if it was skipped for some reason
-            if entry == self.skipped.get(metric,None):
-              self.raiseADebug('Metric',metric,'was skipped for parameters',entry,'!  See warnings for details.  Ignoring...')
-              continue
-            for target in entry['targets']:
-              if target not in outputDict[metric].keys():
-                outputDict[metric][target] = {}
-              targetIndex = calculations[metric]['params'].index(target)
-              for feature in entry['features']:
+        continue
+      for targetDict in requestList:
+        prefix = targetDict['prefix'].strip()
+        if metric in self.scalarVals:
+          for targetP in targetDict['targets']:
+            varName = prefix + '_' + targetP
+            outputDict[varName] = np.atleast_1d(calculations[metric][targetP])
+        #TODO someday we might need to expand the "skipped" check to include scalars, but for now
+        #   the only reason to skip is if an invalid matrix is requested
+        #if matrix block, extract desired values
+        else:
+          #check if it was skipped for some reason
+          skip = self.skipped.get(metric, None)
+          if skip is not None:
+            self.raiseADebug('Metric',metric,'was skipped for parameters',targetDict,'!  See warnings for details.  Ignoring...')
+            continue
+          if metric in ['pearson', 'covariance']:
+            for targetP in targetDict['targets']:
+              targetIndex = calculations[metric]['params'].index(targetP)
+              for feature in targetDict['features']:
+                varName = prefix + '_' + targetP + '_' + feature
                 featureIndex = calculations[metric]['params'].index(feature)
-                outputDict[metric][target][feature] = calculations[metric]['matrix'][targetIndex,featureIndex]
-        #if matrix but stored in dictionaries, just grab the values
-        elif metric in ['sensitivity','NormalizedSensitivity','VarianceDependentSensitivity']:
-          outputDict[metric] = {}
-          for entry in params:
-            #check if it was skipped for some reason
-            if entry == self.skipped.get(metric,None):
-              self.raiseADebug('Metric',metric,'was skipped for parameters',entry,'!  See warnings for details.  Ignoring...')
-              continue
-            for target in entry['targets']:
-              outputDict[metric][target] = dict((feature,calculations[metric][target][feature]) for feature in entry['features'])
+                outputDict[varName] = np.atleast_1d(calculations[metric]['matrix'][targetIndex,featureIndex])
+          #if matrix but stored in dictionaries, just grab the values
+          elif metric in ['sensitivity','NormalizedSensitivity','VarianceDependentSensitivity']:
+            for targetP in targetDict['targets']:
+              for feature in targetDict['features']:
+                varName = prefix + '_' + targetP + '_' + feature
+                outputDict[varName] = np.atleast_1d(calculations[metric][targetP][feature])
 
-    # print on screen
-    methodToTest = []
-    for key in self.methodsToRun:
-      if key not in self.acceptedCalcParam:
-        methodToTest.append(key)
-    self.printToScreen(outputDict)
     return outputDict
-
-  def printToScreen(self,outputDict):
-    """
-      Prints all results of BasicStatistics to screen.
-      @ In, outputDict, dict, dictionary of results
-      @ Out, None
-    """
-    self.raiseADebug('BasicStatistics ' + str(self.name) + 'results:')
-    for metric,valueDict in outputDict.items():
-      self.raiseADebug('BasicStatistics Metric:',metric)
-      if metric in self.scalarVals or metric.startswith('percentile'):
-        for target,value in valueDict.items():
-          self.raiseADebug('   ',target+':',value)
-      elif metric in self.vectorVals:
-        for target,wrt in valueDict.items():
-          self.raiseADebug('   ',target,'with respect to:')
-          for feature,value in wrt.items():
-            self.raiseADebug('     ',feature+':',value)
-      else:
-        self.raiseADebug('   ',valueDict)
 
   def run(self, inputIn):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
-      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
+      @ In,  inputIn, object, object contained the data to process. (enputToInternal output)
       @ Out, outputDict, dict, Dictionary containing the results
     """
     inputAdapted = self.inputToInternal(inputIn)
     if not self.dynamic:
-      outputDict = self.__runLocal(inputAdapted)
+      outputDict = self.__runLocal(inputAdapted[0])
     else:
       # time dependent (actually pivot-dependent)
-      outputDict = OrderedDict()
       self.raiseADebug('BasicStatistics Pivot-Dependent output:')
-      for pivotParamValue in inputAdapted['timeDepData'].keys():
-        self.raiseADebug('Pivot Parameter Value: ' + str(pivotParamValue))
-        outputDict[pivotParamValue] = self.__runLocal(inputAdapted['timeDepData'][pivotParamValue])
-
+      outputList = []
+      for inputDict in inputAdapted:
+        outputList.append(self.__runLocal(inputDict))
+      outputDict = dict((var,list()) for var in outputList[0].keys())
+      for output in outputList:
+        for var, value in output.items():
+          outputDict[var] = np.append(outputDict[var], value)
+      # add the pivot parameter and its values
+      outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
 
     return outputDict
 

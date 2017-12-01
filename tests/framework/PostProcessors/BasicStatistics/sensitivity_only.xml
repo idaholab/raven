@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>basicStatsSensitivityOnly</WorkingDir>
     <batchSize>1</batchSize>
@@ -15,11 +15,6 @@
     </description>
   </TestInfo>
 
-  <Files>
-    <Input name="output_basicStatistics.csv" type="">output_basicStatistics.csv</Input>
-    <Input name="stats.xml" type="">stats.xml</Input>
-  </Files>
-
   <DataObjects>
     <PointSet name="dummyIN">
       <Input>x1,x2,x3,x4,x5</Input>
@@ -28,6 +23,9 @@
     <PointSet name="collset">
       <Input>x1,x2,x3,x4,x5</Input>
       <Output>ans</Output>
+    </PointSet>
+    <PointSet name="basicStat">
+      <Output>sen_ans_x1,sen_ans_x2,sen_ans_x3,sen_ans_x4,sen_ans_x5</Output>
     </PointSet>
   </DataObjects>
 
@@ -84,9 +82,9 @@
       <variables>x1,x2,x3,x4,x5,ans</variables>
     </ExternalModel>
     <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
-      <sensitivity>
-        <targets>ans,x1,x2,x3,x4,x5</targets>
-        <features>ans,x1,x2,x3,x4,x5</features>
+      <sensitivity prefix="sen">
+        <targets>ans</targets>
+        <features>x1,x2,x3,x4,x5</features>
       </sensitivity>
     </PostProcessor>
   </Models>
@@ -95,15 +93,13 @@
     <MultiRun name="sample" sleepTime="1e-4">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="SparseGridCollocation">MC_external</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">collset</Output>
     </MultiRun>
     <PostProcess name="PP">
       <Input class="DataObjects" type="PointSet">collset</Input>
       <Model class="Models" type="PostProcessor">InputOutput</Model>
-      <Output class="Files" type="">output_basicStatistics.csv</Output>
-      <Output class="Files" type="">stats.xml</Output>
-      <Output class="DataObjects" type="PointSet">collset</Output>
+      <Output class="DataObjects" type="PointSet">basicStat</Output>
       <Output class="OutStreams" type="Print">csv_database</Output>
     </PostProcess>
   </Steps>
@@ -111,7 +107,7 @@
   <OutStreams>
     <Print name="csv_database">
       <type>csv</type>
-      <source>collset</source>
+      <source>basicStat</source>
     </Print>
   </OutStreams>
 
