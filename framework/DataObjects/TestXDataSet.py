@@ -691,7 +691,10 @@ rlz = data.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
 
-
+print('DEBUGG')
+print(data.asDataset())
+print('')
+print(data._data.isel(**{data.sampleTag:slice(3,None,None)}))
 
 print(results)
 

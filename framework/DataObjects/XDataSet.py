@@ -527,7 +527,8 @@ class DataSet(DataObject):
       @ In, fName, str, path and name of file to write
       @ In, style, str, optional, options are enumerated below
       @ In, kwargs, dict, optional, additional arguments to pass to writing function
-      @ Out, None
+          Includes:  startAt, int, if included then is the realization index that writing should start from (implies appending instead of rewriting)
+      @ Out, index, int, index of latest rlz to be written, for tracking purposes
     """
     self.asDataset() #just in case there is stuff left in the collector
     if style.lower() == 'netcdf':
@@ -537,12 +538,15 @@ class DataSet(DataObject):
         self.raiseAWarning('Nothing to write!')
         return
       #first write the CSV
-      self._toCSV(fName,**kwargs)
+      firstIndex = kwargs.get('firstIndex',0)
+      self._toCSV(fName,start=firstIndex,**kwargs)
       # then the metaxml
       self._toCSVXML(fName,**kwargs)
+      # update the counter for already-written CSV data
     # TODO dask?
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized write style: "{}"'.format(style))
+    return len(self) # so that other entities can track which realization we've written
 
   ### INITIALIZATION ###
   # These are the necessary functions to construct and initialize this data object
@@ -1040,7 +1044,6 @@ class DataSet(DataObject):
     else:
       # TODO need the sampleTag meta to load histories # BY DEFAULT only keep inputs, outputs; if specifically requested, keep metadata by selection
       keep = self._inputs + self._outputs + self._metavars
-      keep.remove(self.sampleTag)
     return keep
 
   def _getVariableIndex(self,var):
@@ -1105,27 +1108,37 @@ class DataSet(DataObject):
       except TypeError:
         pass
 
-  def _toCSV(self,fName,**kwargs):
+  def _toCSV(self,fName,start=0,**kwargs):
     """
       Writes this data object to CSV file (except the general metadata, see _toCSVXML)
       @ In, fName, str, path/name to write file
+      @ In, start, int, optional, first realization to start printing from (if > 0, implies append mode)
       @ In, kwargs, dict, optional, keywords for options
       @ Out, None
     """
-    # TODO only working for point sets
     filenameLocal = fName # TODO path?
     keep = self._getRequestedElements(kwargs)
-    data = self._data
-    for var in self._allvars:
-      if var not in keep:
-        data = data.drop(var)
+    toDrop = list(var for var in self._allvars if var not in keep)
+    # set up data to write
+    if start > 0:
+      # slice data starting from "start"
+      sl = slice(start,None,None)
+      data = self._data.isel(**{self.sampleTag:sl})
+      mode = 'a'
+    else:
+      data = self._data
+      mode = 'w'
+    #for var in self._allvars:
+    #  if var not in keep:
+    #    data = data.drop(var)
+    data = data.drop(toDrop)
     self.raiseADebug('Printing data to CSV: "{}"'.format(filenameLocal+'.csv'))
     # get the list of elements the user requested to write
     # order data according to user specs # TODO might be time-inefficient, allow user to skip?
     ordered = list(i for i in self._inputs if i in keep)
     ordered += list(o for o in self._outputs if o in keep)
     ordered += list(m for m in self._metavars if m in keep)
-    self._usePandasWriteCSV(filenameLocal,data,ordered,keepSampleTag = self.sampleTag in keep)
+    self._usePandasWriteCSV(filenameLocal,data,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
 
   def _toCSVXML(self,fName,**kwargs):
     """
@@ -1186,7 +1199,7 @@ class DataSet(DataObject):
     self._data.attrs = dict((key,pk.dumps(val)) for key,val in self._meta.items())
     self._data.to_netcdf(fName,**kwargs)
 
-  def _usePandasWriteCSV(self,fName,data,ordered,keepSampleTag=False,keepIndex=False):
+  def _usePandasWriteCSV(self,fName,data,ordered,keepSampleTag=False,keepIndex=False,mode='w'):
     """
       Uses Pandas to write a CSV.
       @ In, fName, str, path/name to write file
@@ -1194,6 +1207,7 @@ class DataSet(DataObject):
       @ In, ordered, list(str), ordered list of headers
       @ In, keepSampleTag, bool, optional, if True then keep the samplerTag in the CSV
       @ In, keepIndex, bool, optional, if True then keep indices in the CSV even if not multiindex
+      @ In, mode, str, optional, mode to write CSV in (write, append as 'w','a')
       @ Out, None
     """
     # TODO asserts
@@ -1201,17 +1215,23 @@ class DataSet(DataObject):
     data = data.to_dataframe()
     # order entries
     data = data[ordered]
+    # set up writing mode; if append, don't write headers
+    if mode == 'a':
+      header = False
+    else:
+      header = True
     # write, depending on whether to keep sampleTag in index or not
     if keepSampleTag:
-      data.to_csv(fName+'.csv')
+      data.to_csv(fName+'.csv',mode=mode,header=header)
     else:
       # if other multiindices included, don't omit them #for ND DataSets only
       if isinstance(data.index,pd.MultiIndex):
         data.index = data.index.droplevel(self.sampleTag)
-        data.to_csv(fName+'.csv')
+        data.to_csv(fName+'.csv',mode=mode,header=header)
       # if keepIndex, then print as is
       elif keepIndex:
-        data.to_csv(fName+'.csv')
+        data.to_csv(fName+'.csv',mode=mode,header=header)
       # if only index was sampleTag and we don't want it, index = False takes care of that
       else:
-        data.to_csv(fName+'.csv',index=False)
+        data.to_csv(fName+'.csv',index=False,mode=mode,header=header)
+    #raw_input('Just wrote to CSV "{}.csv", press enter to continue ...'.format(fName))
