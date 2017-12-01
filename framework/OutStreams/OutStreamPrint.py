@@ -141,7 +141,7 @@ class OutStreamPrint(OutStreamManager):
       except TypeError:
         empty = False
       if not empty:
-        #try:
+        try:
           if self.options['type'] == 'csv':
             filename = dictOptions['filenameroot']
             rlzIndex = self.indexPrinted.get(filename,0)
@@ -150,8 +150,8 @@ class OutStreamPrint(OutStreamManager):
             self.indexPrinted[filename] = rlzIndex
           elif self.options['type'] == 'xml':
             self.sourceData[index].printXML(dictOptions)
-        #except AttributeError:
-        #  self.raiseAnError(IOError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
+        except AttributeError:
+          self.raiseAnError(IOError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
 
   def finalize(self):
     """

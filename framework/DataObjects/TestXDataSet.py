@@ -699,9 +699,6 @@ checkArray('load from dict "b"[3]',data.asDataset().isel(True,RAVEN_sample_ID=3)
 rlz = data.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
-
-<<<<<<< HEAD
-
 ######################################
 #        REMOVING VARIABLES          #
 ######################################
@@ -725,7 +722,6 @@ print(data.asDataset())
 print('')
 print(data._data.isel(**{data.sampleTag:slice(3,None,None)}))
 # progressive CSV writing with appends instead of rewriting each iteration for multiruns
-
 print(results)
 
 sys.exit(results["fail"])
