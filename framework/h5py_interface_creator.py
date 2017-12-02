@@ -258,8 +258,8 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     # add pointwise metadata (in this case, they are group-wise)
     group.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
-    # get the data
-    data = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray )
+    # get the data floats
+    data_intfloat = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'])
     # get size of each data variable
     varKeys = data.keys()
     varShape = [data[key].shape for key in varKeys]
@@ -301,7 +301,8 @@ class hdf5Database(MessageHandler.MessageUser):
     else:
       self.raiseAnError(ValueError,'NOT FOUND group named ' + parentGroupObj)
     # create and populate the group
-    self.__populateGroup(parentGroupObj.create_group(groupName), rlz)
+    grp = parentGroupObj.create_group(groupName)
+    self.__populateGroup(grp, rlz)
     # update lists
     self.__updateGroupLists(groupName, parentGroupName)
 
@@ -350,7 +351,8 @@ class hdf5Database(MessageHandler.MessageUser):
     # create the sub group
     self.raiseAMessage('Adding group named "' + groupName + '" in Database "'+ self.name +'"')
     # create and populate the group
-    self.__populateGroup(parentGroupObj.create_group(groupName), rlz)
+    grp = parentGroupObj.create_group(groupName)
+    self.__populateGroup(grp, rlz)
     # update lists
     self.__updateGroupLists(groupName, parentGroupName)
     
@@ -406,9 +408,9 @@ class hdf5Database(MessageHandler.MessageUser):
     if not self.fileOpen:
       self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
     if not rootName:  
-      workingList = [k.split('/')[-1] for k, v in self.allGroupPaths.items() if v ]  
+      workingList = [k.split('/')[-1] for k, v in self.allGroupEnds.items() if v ]  
     else:
-      workingList = [k.split('/')[-1] for k, v in self.allGroupPaths.items() if v and k.endswith(rname)]
+      workingList = [k.split('/')[-1] for k, v in self.allGroupEnds.items() if v and k.endswith(rname)]
     
     return workingList
   
@@ -423,7 +425,7 @@ class hdf5Database(MessageHandler.MessageUser):
       self.__getListOfParentGroups(grp.parent, backGroups)
     return backGroups
     
-  def _(self,name,options = {}):
+  def _getRealizationByName(self,name,options = {}):
     """
       Function to retrieve the history whose end group name is "name"
       @ In, name, string, history name => It must correspond to a group name (string)
@@ -457,7 +459,7 @@ class hdf5Database(MessageHandler.MessageUser):
       # Grep only history from group "name"
       grp = self.h5FileW.require_group(path)
       # Retrieve dataset
-      dataset = group[groupName + "_data"]
+      dataset = grp[name + "_data"]
       # Get some variables of interest
       nVars      = json.loads(group.attrs[b'nVars'])
       varShape   = json.loads(group.attrs[b'data_shapes'])
