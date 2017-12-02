@@ -887,11 +887,16 @@ class IOStep(Step):
     for i in range(len(outputs)):
       if self.actionType[i] == 'HDF5-dataObjects':
         #inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
-        inDictionary['Input'][i]
-        outputs[i].addOutput(inDictionary['Input'][i])
+        allRealizations = inDictionary['Input'][i].allRealizations()
+        ## TODO convert to load function when it can handle unstructured multiple realizations
+        for rlz in allRealizations:
+          outputs[i].addRealization(rlz)
       elif self.actionType[i] == 'dataObjects-HDF5':
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
-        outputs[i].addGroupDataObjects({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
+        ## TODO convert to load function when it can handle unstructured multiple realizations
+        for rlzNo in len(inDictionary['Input'][i]):
+          outputs[i].addRealization(inDictionary['Input'][i].realization(rlzNo))
+
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
         #check the ROM is trained first

@@ -226,8 +226,8 @@ class HDF5(DateBase):
 
   def addRealization(self,rlz):
     """
-      Adds a "row" (or "sample") to this data object.
-      This is the method to add data to this data object.
+      Adds a "row" (or "sample") to this database.
+      This is the method to add data to this database.
       Note that rlz can include many more variables than this database actually wants.
       Before actually adding the realization, data is formatted for this data object.
       @ In, rlz, dict, {var:val} format where
@@ -242,7 +242,6 @@ class HDF5(DateBase):
     self.database.addGroup(rlz)
     self.built = True    
 
-  # These are the methods that RAVEN entities should call to interact with the data object
   def addExpectedMeta(self,keys):
     """
       Registers meta to look for in realizations.
@@ -270,26 +269,43 @@ class HDF5(DateBase):
       # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)
       # MC  => The History named ['group'] (one run)
     """
-    if (not self.exist) and (not self.built):
-      self.raiseAnError(IOError,'Can not retrieve an History from data set' + self.name + '.It has not built yet.')
+    
     tupleVar = self.database.retrieveHistory(options['history'],options)
     return tupleVar
   
+  def allRealizations(self):
+    """
+      Casts this database as an xr.Dataset.
+      Efficiency note: this is the slowest part of typical data collection.
+      @ In, None
+      @ Out, allData, list of arrays, all the data from this data object.
+    """  
+    allRealizationNames = self.database.retrieveAllHistoryNames()
+    allData = [self.realization(name) for name in allRealizationNames]
+    return allData
+    
   def realization(self,index=None,matchDict=None,tol=1e-15):
     """
       Method to obtain a realization from the data, either by index (e.g. realization number) or matching value.
-      Either "index" or "matchDict" must be supplied. (now just "index" can be supplied)
-      @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
+      Either "index" or "matchDict" must be supplied. (NOTE: now just "index" can be supplied)
+      @ In, index, int or str, optional, number of row to retrieve (by index, not be "sample") or group name 
       @ In, matchDict, dict, optional, {key:val} to search for matches
       @ In, tol, float, optional, tolerance to which match should be made
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
     # matchDict not implemented for Databases
-    assert (matchDict is not None)
-    
+    assert (matchDict is None)
+    if (not self.exist) and (not self.built):
+      self.raiseAnError(Exception,'Can not retrieve a realization from Database' + self.name + '.It has not been built yet!')
+      
+    if type(index).__name__ == 'int': allRealizations = self.database.retrieveAllHistoryNames()
+    if type(index).__name__ == 'int' and index > len(allRealizations):
+      rlz = None
+    else:
+      rlz = self.database._getRealizationByName(allRealizations[index] if type(index).__name__ == 'int' else index ,{'reconstruct':True})
+    return rlz
   
-  retrieveHistory(self,name,options = {})
   #def __retrieveDataPointSet(self,attributes):
     #"""
       #Function to retrieve a PointSet from the HDF5 database
