@@ -240,43 +240,67 @@ class hdf5Database(MessageHandler.MessageUser):
     grp = self.h5FileW.create_group(groupNameInit)
     # Add metadata
     grp.attrs.update(attributes)
-    grp.attrs['rootname'] = True
-    grp.attrs['endGroup'] = False
+    grp.attrs['rootname'  ] = True
+    grp.attrs['endGroup'  ] = False
+    grp.attrs[b'groupName'] = groupNameInit
     self.allGroupPaths.append("/" + groupNameInit)
     self.allGroupEnds["/" + groupNameInit] = False
     self.h5FileW.attrs['allGroupPaths'] = json.dumps(self.allGroupPaths)
     self.h5FileW.attrs['allGroupEnds'] = json.dumps(self.allGroupEnds)      
     self.h5FileW.flush()
   
-  def __populateGroup(self, group, rlz):
+  def __populateGroup(self, group, name,  rlz):
     """
       This method is a common method between the __addGroupRootLevel and __addSubGroup
       It is used to populate the group with the info in the rlz
       @ In, group, h5py.Group, the group instance
+      @ In, name, str, the group name (no path)
       @ In, rlz, dict, dictionary with the data and metadata to add
       @ Out, None
     """
     # add pointwise metadata (in this case, they are group-wise)
     group.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
-    # get the data floats
+    group.attrs[b'has_intfloat'] = False 
+    group.attrs[b'has_other'   ] = False 
+    # get the data floats and other types
     data_intfloat = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'])
-    # get size of each data variable
-    varKeys = data.keys()
-    varShape = [data[key].shape for key in varKeys]
-    # get data names
-    group.attrs[b'data_names'] = json.dumps(varKeys)
-    # get data shapes
-    group.attrs[b'data_shapes'] = json.dumps(varShape)
-    # get data shapes
-    end   = np.cumsum(varShape)
-    begin = np.concatenate(([0],end[0:-1]))
-    group.attrs[b'data_begin_end'] = json.dumps((begin.tolist(),end.tolist()))    
-    # get data names
-    group.create_dataset(group.name + "_data", dtype="float", data=(np.concatenate( data.values()).ravel()))
+    data_other    = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'])
+    # get size of each data variable (float)
+    varKeys_intfloat = data_intfloat.keys()
+    if len(varKeys_intfloat) > 0:
+      varShape_intfloat = [data_intfloat[key].shape for key in varKeys_intfloat]
+      # get data names
+      group.attrs[b'data_names_intfloat'] = json.dumps(varKeys_intfloat)
+      # get data shapes
+      group.attrs[b'data_shapes_intfloat'] = json.dumps(varShape_intfloat)
+      # get data shapes
+      end   = np.cumsum(varShape_intfloat)
+      begin = np.concatenate(([0],end[0:-1]))
+      group.attrs[b'data_begin_end_intfloat'] = json.dumps((begin.tolist(),end.tolist()))    
+      # get data names
+      group.create_dataset(name + "_data_intfloat", dtype="float", data=(np.concatenate( data_intfloat.values()).ravel()))
+      group.attrs[b'has_intfloat'] = True 
+    # get size of each data variable (other type)
+    varKeys_other = data_other.keys()
+    if len(varKeys_other) > 0:
+      varShape_other = [data_other[key].shape for key in varKeys_other]
+      # get data names
+      group.attrs[b'data_names_other'] = json.dumps(varKeys_other)
+      # get data shapes
+      group.attrs[b'data_shapes_other'] = json.dumps(varShape_other)
+      # get data shapes
+      end   = np.cumsum(varShape_other)
+      begin = np.concatenate(([0],end[0:-1]))
+      group.attrs[b'data_begin_end_other'] = json.dumps((begin.tolist(),end.tolist()))    
+      # get data names
+      group.create_dataset(name + "_data_other", data=(np.concatenate( data_other.values()).ravel()))    
+      group.attrs[b'has_other'] = True
     # add some info
-    group.attrs[b'endGroup'   ] = True
-    group.attrs[b'parentID'   ] = group.parent.name
-    group.attrs[b'nVars'      ] = len(varKeys)
+    group.attrs[b'groupName'     ] = name
+    group.attrs[b'endGroup'      ] = True
+    group.attrs[b'parentID'      ] = group.parent.name
+    group.attrs[b'nVars_intfloat'] = len(varKeys_intfloat)
+    group.attrs[b'nVars_other'   ] = len(varKeys_other)
 
   
   def __addGroupRootLevel(self,groupName,rlz):
@@ -302,7 +326,7 @@ class hdf5Database(MessageHandler.MessageUser):
       self.raiseAnError(ValueError,'NOT FOUND group named ' + parentGroupObj)
     # create and populate the group
     grp = parentGroupObj.create_group(groupName)
-    self.__populateGroup(grp, rlz)
+    self.__populateGroup(grp, groupName, rlz)
     # update lists
     self.__updateGroupLists(groupName, parentGroupName)
 
@@ -347,16 +371,15 @@ class hdf5Database(MessageHandler.MessageUser):
         errorString+= '\n Closest parent group found is "'+str(closestGroup[0] if len(closestGroup) > 0 else 'None')+'"!'
         self.raiseAnError(ValueError,errorString)    
     
-    parentGroupObj.attrs[b'endGroup'   ] = False  
+    parentGroupObj.attrs[b'endGroup' ] = False 
     # create the sub group
     self.raiseAMessage('Adding group named "' + groupName + '" in Database "'+ self.name +'"')
     # create and populate the group
     grp = parentGroupObj.create_group(groupName)
-    self.__populateGroup(grp, rlz)
+    self.__populateGroup(grp, groupName, rlz)
     # update lists
     self.__updateGroupLists(groupName, parentGroupName)
     
-  
   def __updateGroupLists(self,groupName, parentName):
     """
       Utility method to update the group lists
@@ -424,26 +447,47 @@ class hdf5Database(MessageHandler.MessageUser):
       backGroups.append(grp.parent)
       self.__getListOfParentGroups(grp.parent, backGroups)
     return backGroups
+
+  def __getNewDataFromGroup(self, group, name):
+    """
+      Get the data from the group
+      @ In, group, h5py.Group, the group from which the data needs to be got
+      @ In, name, str, the group name
+      @ Out, newData, dict, the dictionary with the data
+    """
+    has_intfloat = group.attrs['has_intfloat']
+    has_other    = group.attrs['has_other']
+    if has_intfloat:
+      dataset_intfloat = group[name + "_data_intfloat"]
+      # Get some variables of interest
+      nVars_intfloat      = group.attrs[b'nVars_intfloat']
+      varShape_intfloat   = json.loads(group.attrs[b'data_shapes_intfloat'])
+      varKeys_intfloat    = json.loads(group.attrs[b'data_names_intfloat'])
+      begin, end          = json.loads(group.attrs[b'data_begin_end_intfloat']) 
+      # Reconstruct the dataset
+      newData = {key : np.reshape(dataset_intfloat[begin[cnt]:end[cnt]], varShape_intfloat[cnt]) for cnt,key in enumerate(varKeys_intfloat)} 
+    if has_other:
+      dataset_other = group[name + "_data_other"]
+      # Get some variables of interest
+      nVars_other      = group.attrs[b'nVars_other']
+      varShape_other   = json.loads(group.attrs[b'data_shapes_other'])
+      varKeys_other    = json.loads(group.attrs[b'data_names_other'])
+      begin, end       = json.loads(group.attrs[b'data_begin_end_other']) 
+      # Reconstruct the dataset
+      newData.update({key : np.reshape(dataset_other[begin[cnt]:end[cnt]], varShape_other[cnt]) for cnt,key in enumerate(varKeys_other)})
+    return newData
     
   def _getRealizationByName(self,name,options = {}):
     """
       Function to retrieve the history whose end group name is "name"
-      @ In, name, string, history name => It must correspond to a group name (string)
-      @ In, filterHist, string or int, optional, filter for history retrieving
-                      ('whole' = whole history,
-                       integer value = groups back from the group "name",
-                       or None = retrieve only the group "name". Default is None)
+      @ In, name, string, realization name => It must correspond to a group name (string)
+      @ In, options, dict, dictionary of options (now, just "recunstruct" flag)
       @ In, attributes, dict, optional, dictionary of attributes (options)
-      @ Out, (result,attrs), tuple, tuple where position 0 = 2D numpy array (history), 1 = dictionary (metadata)
+      @ Out, (newData,attrs), tuple, tuple where position 0 = dict containing the realization, 1 = dictionary of some attributes
     """
     reconstruct = options.get("reconstruct", True)
-    pivotParam  = options.get("pivotParam", "time")
-    
-    listStrW = []
-    listPath  = []
-    path       = ''
-    found      = False
-    result     = None
+    path  = ''
+    found = False
     attrs = {}
     # Check if the h5 file is already open, if not, open it
     # and create the "self.allGroupPaths" list from the existing database
@@ -452,33 +496,30 @@ class hdf5Database(MessageHandler.MessageUser):
     # Find the endGroup that coresponds to the given name
     path = self.__returnGroupPath(name)
     found = path != '-$'
-
+  
     if found:
-      # check the reconstruct flag
-      
       # Grep only history from group "name"
-      grp = self.h5FileW.require_group(path)
+      group = self.h5FileW.require_group(path)
       # Retrieve dataset
-      dataset = grp[name + "_data"]
-      # Get some variables of interest
-      nVars      = json.loads(group.attrs[b'nVars'])
-      varShape   = json.loads(group.attrs[b'data_shapes'])
-      varKeys    = json.loads(group.attrs[b'data_names'])
-      end, begin = json.loads(group.attrs[b'data_begin_end']) 
-      # Reconstruct the dataset
-      newData = {key : np.reshape(dataset[begin[cnt]:end[cnt]], varShape[cnt]) for cnt,key in enumerate(varKeys)} 
+      newData = self.__getNewDataFromGroup(group, name)
       # Add the attributes
-      attrs = {'nVars':nVars,'varShape':varShape,'varKeys':varKeys}
+      attrs = {'nVars':len(newData.keys()),'varKeys':newData.keys()}
+      # check the reconstruct flag
       if reconstruct:
         # get list of back groups
-        listGroups = self.__getListOfParentGroups(grp)
+        listGroups = self.__getListOfParentGroups(group)
         listGroups.reverse()
-        for group in listGroups:
-          print(group.name)
+        for grp in listGroups:
+          # the root groups get skipped
+          if grp.name not in ["/",self.parentGroupName]:
+            data = self.__getNewDataFromGroup(grp, grp.attrs[b'groupName'])
+            if len(data.keys()) != len(newData.keys()):
+              self.raiseAnError(IOError,'Group named "' + grp.attrs[b'groupName'] + '" has an inconsistent number of variables in database "'+self.name+'"!') 
+            newData = {key : np.concatenate((newData[key],data[key])) for key in newData.keys()}
     else:
       self.raiseAnError(IOError,'Group named ' + name + ' not found in database "'+self.name+'"!')
 
-    return(result,attrs)
+    return(newData,attrs)
 
   def closeDatabaseW(self):
     """
