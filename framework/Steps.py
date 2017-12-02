@@ -144,7 +144,6 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-
     printString = 'For step of type {0:15} and name {1:15} the attribute {3:10} has been assigned to a not understandable value {2:10}'
     self.raiseADebug('move this tests to base class when it is ready for all the classes')
     if not set(paramInput.parameterValues.keys()).issubset(set(self._knownAttribute)):
@@ -264,6 +263,27 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     pass
+
+  def _registerMetadata(self,inDictionary):
+    """
+      collects expected metadata keys and deliver them to output data objects
+      @ In, inDictionary, dict, initialization dictionary
+      @ Out, None
+    """
+    ## first collect them
+    metaKeys = set()
+    for role,entities in inDictionary.items():
+      if isinstance(entities,list):
+        for entity in entities:
+          if hasattr(entity,'provideExpectedMetaKeys'):
+            metaKeys = metaKeys.union(entity.provideExpectedMetaKeys())
+      else:
+        if hasattr(entities,'provideExpectedMetaKeys'):
+          metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
+    ## then give them to the output data objects
+    for out in inDictionary['Output']:
+      if 'addExpectedMeta' in dir(out):
+        out.addExpectedMeta(metaKeys)
 
   def _endStepActions(self,inDictionary):
     """
@@ -400,30 +420,8 @@ class SingleRun(Step):
         inDictionary['Output'][i].initialize(self.name)
       elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:
         inDictionary['Output'][i].initialize(inDictionary)
-
       self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
     self._registerMetadata(inDictionary)
-
-  def _registerMetadata(self,inDictionary):
-    """
-      collects expected metadata keys and deliver them to output data objects
-      @ In, inDictionary, dict, initialization dictionary
-      @ Out, None
-    """
-    ## first collect them
-    metaKeys = set()
-    for role,entities in inDictionary.items():
-      if isinstance(entities,list):
-        for entity in entities:
-          if hasattr(entity,'provideExpectedMetaKeys'):
-            metaKeys = metaKeys.union(entity.provideExpectedMetaKeys())
-      else:
-        if hasattr(entities,'provideExpectedMetaKeys'):
-          metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
-    ## then give them to the output data objects
-    for out in inDictionary['Output']:
-      if 'addExpectedMeta' in dir(out):
-        out.addExpectedMeta(metaKeys)
 
   def _localTakeAstepRun(self,inDictionary):
     """
@@ -876,6 +874,8 @@ class IOStep(Step):
       if type(output).__name__ in ['OutStreamPrint','OutStreamPlot']:
         output.initialize(inDictionary)
         self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
+    # register metadata
+    self._registerMetadata(inDictionary)
 
   def _localTakeAstepRun(self,inDictionary):
     """
