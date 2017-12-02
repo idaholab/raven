@@ -284,10 +284,10 @@ class HDF5(DateBase):
       @ In, keys, set(str), keys to register
       @ Out, None
     """
-    #self.database.addExpectedMeta(keys)
+    self.database.addExpectedMeta(keys)
     self.addMetaKeys(*keys)
-
-  def initialize(self,gname,options=None):
+  
+  def initialize(self,gname,options={}):
     """
       Function to add an initial root group into the data base...
       This group will not contain a dataset but, eventually, only metadata
@@ -349,9 +349,10 @@ class HDF5(DateBase):
     if type(index).__name__ == 'int' and index > len(allRealizations):
       rlz = None
     else:
-      rlz = self.database._getRealizationByName(allRealizations[index] if type(index).__name__ == 'int' else index ,{'reconstruct':True})
+      rlz,_ = self.database._getRealizationByName(allRealizations[index] if type(index).__name__ == 'int' else index ,{'reconstruct':True})
     return rlz
   
+<<<<<<< HEAD
   #def __retrieveDataPointSet(self,attributes):
     #"""
       #Function to retrieve a PointSet from the HDF5 database
@@ -687,7 +688,6 @@ class HDF5(DateBase):
     #gc.collect()
     #return copy.copy(data)
 
->>>>>>> dfloat
 __base                  = 'Database'
 __interFaceDict         = {}
 __interFaceDict['HDF5'] = HDF5
