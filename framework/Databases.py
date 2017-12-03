@@ -35,6 +35,7 @@ from scipy.interpolate import interp1d
 from BaseClasses import BaseType
 from h5py_interface_creator import hdf5Database as h5Data
 from utils import utils
+from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DateBase(BaseType):
@@ -42,6 +43,24 @@ class DateBase(BaseType):
     class to handle a database,
     Used to add and retrieve attributes and values from said database
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(DateBase, cls).getInputSpecification()
+    inputSpecification.addParam("directory", InputData.StringType)
+    inputSpecification.addParam(InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType))
+    inputSpecification.addParam(InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType))
+
+
+    return inputSpecification
+
   def __init__(self):
     """
       Constructor
@@ -240,7 +259,7 @@ class HDF5(DateBase):
     # prefix must be present
     assert('prefix' in rlz)
     self.database.addGroup(rlz)
-    self.built = True    
+    self.built = True
 
   def addExpectedMeta(self,keys):
     """
@@ -250,7 +269,7 @@ class HDF5(DateBase):
     """
     self.database.addExpectedMeta(keys)
     self.addMetaKeys(*keys)
-  
+
   def initialize(self,gname,options={}):
     """
       Function to add an initial root group into the data base...
@@ -270,26 +289,26 @@ class HDF5(DateBase):
       # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)
       # MC  => The History named ['group'] (one run)
     """
-    
+
     tupleVar = self.database.retrieveHistory(options['history'],options)
     return tupleVar
-  
+
   def allRealizations(self):
     """
       Casts this database as an xr.Dataset.
       Efficiency note: this is the slowest part of typical data collection.
       @ In, None
       @ Out, allData, list of arrays, all the data from this data object.
-    """  
+    """
     allRealizationNames = self.database.retrieveAllHistoryNames()
     allData = [self.realization(name) for name in allRealizationNames]
     return allData
-    
+
   def realization(self,index=None,matchDict=None,tol=1e-15):
     """
       Method to obtain a realization from the data, either by index (e.g. realization number) or matching value.
       Either "index" or "matchDict" must be supplied. (NOTE: now just "index" can be supplied)
-      @ In, index, int or str, optional, number of row to retrieve (by index, not be "sample") or group name 
+      @ In, index, int or str, optional, number of row to retrieve (by index, not be "sample") or group name
       @ In, matchDict, dict, optional, {key:val} to search for matches
       @ In, tol, float, optional, tolerance to which match should be made
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
@@ -305,7 +324,7 @@ class HDF5(DateBase):
     else:
       rlz,_ = self.database._getRealizationByName(allRealizations[index] if type(index).__name__ == 'int' else index ,{'reconstruct':True})
     return rlz
-  
+
 __base                  = 'Database'
 __interFaceDict         = {}
 __interFaceDict['HDF5'] = HDF5

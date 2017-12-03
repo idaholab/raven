@@ -90,11 +90,10 @@ class Dummy(Model):
       #localInput = dict.fromkeys(dataIN.getParaKeys('inputs' )+dataIN.getParaKeys('outputs' ),None)
       localInput = dict.fromkeys(dataIN.getVars('input')+dataIN.getVars('output'),None)
       if not len(dataIN) == 0: #.isItEmpty():
+        dataSet = dataIN.asDataset()
         if dataIN.type == 'PointSet':
-          for entries in dataIN.getParaKeys('inputs' ):
-            localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[0 if full else -1:])
-          for entries in dataIN.getParaKeys('outputs'):
-            localInput[entries] = copy.copy(np.array(dataIN.getParam('output',entries))[0 if full else -1:])
+          for entries in dataIN.getVars('input')+dataIN.getVars('output'):
+            localInput[entries] = copy.copy(dataSet[entries].values)
         else:
           if full:
             for hist in range(len(dataIN)):
@@ -196,7 +195,7 @@ class Dummy(Model):
     result = copy.deepcopy(finishedJob.getEvaluation())
     self._replaceVariablesNamesWithAliasSystem(result)
     if isinstance(result,Runners.Error):
-      self.raiseAnError(Runners.Error,'No available output to collect!')    
+      self.raiseAnError(Runners.Error,'No available output to collect!')
     output.addRealization(result)
     # END can be abstracted to base class
 

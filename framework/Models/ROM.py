@@ -383,15 +383,17 @@ class ROM(Dummy):
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
         @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, returnValue, tuple, This will hold two pieces of information,
-          the first item will be the input data used to generate this sample,
-          the second item will be the output of this model given the specified
+        @ Out, rlz, dict, This will hold two pieces of information,
+          the first will be the input data used to generate this sample,
+          the second will be the output of this model given the specified
           inputs
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-    returnValue = inRun,self._externalRun(inRun)
-    return returnValue
+    rlz = self._externalRun(inRun)
+    rlz.update(inRun)
+    rlz.update(kwargs)
+    return rlz
 
   def reseed(self,seed):
     """
