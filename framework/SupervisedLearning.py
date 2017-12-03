@@ -177,6 +177,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     else:
       sl = (slice(None),) * np.asarray(targetValues[0]).ndim + (np.newaxis,)
       targetValues = np.concatenate([np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
+    targetValues = targetValues.astype("float", copy=False)
     # construct the evaluation matrixes
     featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
     for cnt, feat in enumerate(self.features):
@@ -2211,6 +2212,7 @@ class SciKitLearn(superVisedLearning):
         self.myNumber = [np.unique(targetVals[:,index])[0] for index in range(len(self.ROM)) ]
         self.evaluate = self._readdressEvaluateConstResponse
       else:
+
         for index in range(len(self.ROM)):
           self.ROM[index].fit(featureVals,targetVals[:,index])
         self.evaluate = self._readdressEvaluateRomResponse

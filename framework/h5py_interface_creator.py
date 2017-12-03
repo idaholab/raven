@@ -115,7 +115,7 @@ class hdf5Database(MessageHandler.MessageUser):
       self.firstRootGroup = False
       # The root name is / . it can be changed if addGroupInit is called
       self.parentGroupName = b'/'
-  
+
   def addExpectedMeta(self,keys):
     """
       Registers meta to look for in realizations.
@@ -131,7 +131,7 @@ class hdf5Database(MessageHandler.MessageUser):
     # CANNOT add expected new meta after database has been used
     assert(len(self._metavars) == 0)
     self._metavars.extend(keys)
-  
+
   def __createObjFromFile(self):
     """
       Function to create the list "self.allGroupPaths" and the dictionary "self.allGroupEnds"
@@ -181,10 +181,10 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     parentID  = rlz.get("parentID",None)
     groupName = rlz.get("prefix")
-    
+
     if parentID:
       #If Hierarchical structure, firstly add the root group
-      if not self.firstRootGroup or parentID == 'root':        
+      if not self.firstRootGroup or parentID == 'root':
         self.__addGroupRootLevel(groupName,rlz)
         self.firstRootGroup = True
         self.type = 'DET'
@@ -196,11 +196,11 @@ class hdf5Database(MessageHandler.MessageUser):
       # Parallel structure (always root level)
       self.__addGroupRootLevel(groupName,rlz)
       self.firstRootGroup = True
-      self.type = 'MC'      
+      self.type = 'MC'
     self.h5FileW.attrs['allGroupPaths'] = json.dumps(self.allGroupPaths)
-    self.h5FileW.attrs['allGroupEnds'] = json.dumps(self.allGroupEnds)  
+    self.h5FileW.attrs['allGroupEnds'] = json.dumps(self.allGroupEnds)
     self.h5FileW.flush()
-    
+
 
   def addGroupInit(self,groupName,attributes={},upGroup=False):
     """
@@ -212,7 +212,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, upGroup, bool, optional, updated group?
       @ Out, None
     """
-    
+
     groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H")
     if not upGroup:
       for index in xrange(len(self.allGroupPaths)):
@@ -246,9 +246,9 @@ class hdf5Database(MessageHandler.MessageUser):
     self.allGroupPaths.append("/" + groupNameInit)
     self.allGroupEnds["/" + groupNameInit] = False
     self.h5FileW.attrs['allGroupPaths'] = json.dumps(self.allGroupPaths)
-    self.h5FileW.attrs['allGroupEnds'] = json.dumps(self.allGroupEnds)      
+    self.h5FileW.attrs['allGroupEnds'] = json.dumps(self.allGroupEnds)
     self.h5FileW.flush()
-  
+
   def __populateGroup(self, group, name,  rlz):
     """
       This method is a common method between the __addGroupRootLevel and __addSubGroup
@@ -260,8 +260,8 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     # add pointwise metadata (in this case, they are group-wise)
     group.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
-    group.attrs[b'has_intfloat'] = False 
-    group.attrs[b'has_other'   ] = False 
+    group.attrs[b'has_intfloat'] = False
+    group.attrs[b'has_other'   ] = False
     # get the data floats and other types
     data_intfloat = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'])
     data_other    = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'])
@@ -276,10 +276,10 @@ class hdf5Database(MessageHandler.MessageUser):
       # get data shapes
       end   = np.cumsum(varShape_intfloat)
       begin = np.concatenate(([0],end[0:-1]))
-      group.attrs[b'data_begin_end_intfloat'] = json.dumps((begin.tolist(),end.tolist()))    
+      group.attrs[b'data_begin_end_intfloat'] = json.dumps((begin.tolist(),end.tolist()))
       # get data names
       group.create_dataset(name + "_data_intfloat", dtype="float", data=(np.concatenate( data_intfloat.values()).ravel()))
-      group.attrs[b'has_intfloat'] = True 
+      group.attrs[b'has_intfloat'] = True
     # get size of each data variable (other type)
     varKeys_other = data_other.keys()
     if len(varKeys_other) > 0:
@@ -291,9 +291,9 @@ class hdf5Database(MessageHandler.MessageUser):
       # get data shapes
       end   = np.cumsum(varShape_other)
       begin = np.concatenate(([0],end[0:-1]))
-      group.attrs[b'data_begin_end_other'] = json.dumps((begin.tolist(),end.tolist()))    
+      group.attrs[b'data_begin_end_other'] = json.dumps((begin.tolist(),end.tolist()))
       # get data names
-      group.create_dataset(name + "_data_other", data=(np.concatenate( data_other.values()).ravel()))    
+      group.create_dataset(name + "_data_other", data=(np.concatenate( data_other.values()).ravel()))
       group.attrs[b'has_other'] = True
     # add some info
     group.attrs[b'groupName'     ] = name
@@ -302,7 +302,7 @@ class hdf5Database(MessageHandler.MessageUser):
     group.attrs[b'nVars_intfloat'] = len(varKeys_intfloat)
     group.attrs[b'nVars_other'   ] = len(varKeys_other)
 
-  
+
   def __addGroupRootLevel(self,groupName,rlz):
     """
       Function to add a group into the database (root level)
@@ -313,7 +313,7 @@ class hdf5Database(MessageHandler.MessageUser):
     # Check in the "self.allGroupPaths" list if a group is already present...
     # If so, error (Deleting already present information is not desiderable)
     if self.__returnGroupPath(groupName) != '-$':
-      # the group alread exists 
+      # the group alread exists
       groupName = groupName + "_" + groupName
 
     parentName = self.parentGroupName.replace('/', '')
@@ -338,13 +338,13 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     if self.__returnGroupPath(groupName) != '-$':
-      # the group alread exists 
+      # the group alread exists
       groupName = groupName + "_" + groupName
-    
+
     # retrieve parentID
     parentID = rlz.get("parentID")
     parentName = parentID
-  
+
     # Find parent group path
     if parentName != '/':
       parentGroupName = self.__returnGroupPath(parentName)
@@ -358,9 +358,9 @@ class hdf5Database(MessageHandler.MessageUser):
       closestGroup = difflib.get_close_matches(parentName, self.allGroupPaths, n=1, cutoff=0.01)
       errorOut = False
       if len(closestGroup) > 0:
-        parentGroupName = closestGroup[0]   
+        parentGroupName = closestGroup[0]
         if parentGroupName in self.h5FileW:
-          parentGroupObj = self.h5FileW.require_group(parentGroupName)   
+          parentGroupObj = self.h5FileW.require_group(parentGroupName)
         else:
           errorOut = True
       else:
@@ -369,9 +369,9 @@ class hdf5Database(MessageHandler.MessageUser):
         errorString = ' NOT FOUND parent group named "' + str(parentName)
         errorString+= '\n All group paths are:\n -'+'\n -'.join(self.allGroupPaths)
         errorString+= '\n Closest parent group found is "'+str(closestGroup[0] if len(closestGroup) > 0 else 'None')+'"!'
-        self.raiseAnError(ValueError,errorString)    
-    
-    parentGroupObj.attrs[b'endGroup' ] = False 
+        self.raiseAnError(ValueError,errorString)
+
+    parentGroupObj.attrs[b'endGroup' ] = False
     # create the sub group
     self.raiseAMessage('Adding group named "' + groupName + '" in Database "'+ self.name +'"')
     # create and populate the group
@@ -379,7 +379,7 @@ class hdf5Database(MessageHandler.MessageUser):
     self.__populateGroup(grp, groupName, rlz)
     # update lists
     self.__updateGroupLists(groupName, parentGroupName)
-    
+
   def __updateGroupLists(self,groupName, parentName):
     """
       Utility method to update the group lists
@@ -392,8 +392,8 @@ class hdf5Database(MessageHandler.MessageUser):
       self.allGroupEnds[parentName + "/" + groupName] = True
     else:
       self.allGroupPaths.append("/" + groupName)
-      self.allGroupEnds["/" + groupName] = True    
-    
+      self.allGroupEnds["/" + groupName] = True
+
   def retrieveAllHistoryPaths(self,rootName=None):
     """
       Function to create a list of all the HistorySet paths present in an existing database
@@ -401,7 +401,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, allHistoryPaths, list, List of the HistorySet paths
     """
     if rootName:
-      rname = rootName 
+      rname = rootName
     # Create the "self.allGroupPaths" list from the existing database
     if not self.fileOpen:
       self.__createObjFromFile()
@@ -411,13 +411,13 @@ class hdf5Database(MessageHandler.MessageUser):
       if not rootName:
         allHistoryPaths = self.allGroupPaths
       else:
-        allHistoryPaths = [k for k in self.allGroupPaths.keys() if k.endswith(rname)] 
+        allHistoryPaths = [k for k in self.allGroupPaths.keys() if k.endswith(rname)]
     else:
       # Tree structure => construct the HistorySet' paths
       if not rootName:
         allHistoryPaths = [k for k, v in self.allGroupPaths.items() if v ]
       else:
-        allHistoryPaths = [k for k, v in self.allGroupPaths.items() if v and k.endswith(rname)]           
+        allHistoryPaths = [k for k, v in self.allGroupPaths.items() if v and k.endswith(rname)]
     return allHistoryPaths
 
   def retrieveAllHistoryNames(self,rootName=None):
@@ -427,16 +427,16 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, workingList, list, List of the HistorySet names
     """
     if rootName:
-      rname = rootName     
+      rname = rootName
     if not self.fileOpen:
       self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
-    if not rootName:  
-      workingList = [k.split('/')[-1] for k, v in self.allGroupEnds.items() if v ]  
+    if not rootName:
+      workingList = [k.split('/')[-1] for k, v in self.allGroupEnds.items() if v ]
     else:
       workingList = [k.split('/')[-1] for k, v in self.allGroupEnds.items() if v and k.endswith(rname)]
-    
+
     return workingList
-  
+
   def __getListOfParentGroups(self, grp, backGroups = []):
     """
       Method to get the list of groups from the deepest to the root, given a certain group
@@ -463,20 +463,20 @@ class hdf5Database(MessageHandler.MessageUser):
       nVars_intfloat      = group.attrs[b'nVars_intfloat']
       varShape_intfloat   = json.loads(group.attrs[b'data_shapes_intfloat'])
       varKeys_intfloat    = json.loads(group.attrs[b'data_names_intfloat'])
-      begin, end          = json.loads(group.attrs[b'data_begin_end_intfloat']) 
+      begin, end          = json.loads(group.attrs[b'data_begin_end_intfloat'])
       # Reconstruct the dataset
-      newData = {key : np.reshape(dataset_intfloat[begin[cnt]:end[cnt]], varShape_intfloat[cnt]) for cnt,key in enumerate(varKeys_intfloat)} 
+      newData = {key : np.reshape(dataset_intfloat[begin[cnt]:end[cnt]], varShape_intfloat[cnt]) for cnt,key in enumerate(varKeys_intfloat)}
     if has_other:
       dataset_other = group[name + "_data_other"]
       # Get some variables of interest
       nVars_other      = group.attrs[b'nVars_other']
       varShape_other   = json.loads(group.attrs[b'data_shapes_other'])
       varKeys_other    = json.loads(group.attrs[b'data_names_other'])
-      begin, end       = json.loads(group.attrs[b'data_begin_end_other']) 
+      begin, end       = json.loads(group.attrs[b'data_begin_end_other'])
       # Reconstruct the dataset
       newData.update({key : np.reshape(dataset_other[begin[cnt]:end[cnt]], varShape_other[cnt]) for cnt,key in enumerate(varKeys_other)})
     return newData
-    
+
   def _getRealizationByName(self,name,options = {}):
     """
       Function to retrieve the history whose end group name is "name"
@@ -496,7 +496,7 @@ class hdf5Database(MessageHandler.MessageUser):
     # Find the endGroup that coresponds to the given name
     path = self.__returnGroupPath(name)
     found = path != '-$'
-  
+
     if found:
       # Grep only history from group "name"
       group = self.h5FileW.require_group(path)
@@ -514,7 +514,7 @@ class hdf5Database(MessageHandler.MessageUser):
           if grp.name not in ["/",self.parentGroupName]:
             data = self.__getNewDataFromGroup(grp, grp.attrs[b'groupName'])
             if len(data.keys()) != len(newData.keys()):
-              self.raiseAnError(IOError,'Group named "' + grp.attrs[b'groupName'] + '" has an inconsistent number of variables in database "'+self.name+'"!') 
+              self.raiseAnError(IOError,'Group named "' + grp.attrs[b'groupName'] + '" has an inconsistent number of variables in database "'+self.name+'"!')
             newData = {key : np.concatenate((newData[key],data[key])) for key in newData.keys()}
     else:
       self.raiseAnError(IOError,'Group named ' + name + ' not found in database "'+self.name+'"!')
