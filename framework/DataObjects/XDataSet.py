@@ -147,8 +147,20 @@ class DataSet(DataObject):
     rlz = self._formatRealization(rlz)
     # perform selective collapsing/picking of data
     rlz = self._selectiveRealization(rlz)
-    # check and order data to be stored
-    newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
+    # FIXME if no scalar entry is made, this construction fails.
+    #  Instead of treating each dataarrray as an object, numpy.asarray calls their asarray methods,
+    #  unfolding them and making a full numpy array with more dimensions, instead of effectively
+    #  a list of realizations, where each realization is effectively a list of xr.DataArray objects.
+    #
+    #  To mitigate this behavior, we forcibly add a [0.0] entry to each realization, then exclude
+    #  it once the realizations are constructed.  This seems like an innefficient option; others
+    #  should be explored.  - talbpaul, 12/2017
+    # newData is a numpy array of realizations,
+    #   each of which is a numpy array of some combination of scalar values and/or xr.DataArrays.
+    #   This is because the cNDarray collector expects a LIST of realization, not a single realization.
+    #   Maybe the "append" method should be renamed to "extend" or changed to append one at a time.
+    newData = np.asarray([list(rlz[var] for var in self._allvars)+[0.0]],dtype=object)
+    newData = newData[:,:-1]
     # if data storage isn't set up, set it up
     if self._collector is None:
       self._collector = self._newCollector(width=len(rlz))
