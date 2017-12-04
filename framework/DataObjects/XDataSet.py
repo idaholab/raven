@@ -414,6 +414,25 @@ class DataSet(DataObject):
       self.raiseAnError(RuntimeError,'Unrecognized request type:',type(var))
     return res
 
+  def load(self,fName,style='netCDF',**kwargs):
+    """
+      Reads this dataset from disk based on the format.
+      @ In, fName, str, path and name of file to read
+      @ In, style, str, optional, options are enumerated below
+      @ In, kwargs, dict, optional, additional arguments to pass to reading function
+      @ Out, None
+    """
+    style = style.lower()
+    if style == 'netcdf':
+      self._fromNetCDF(fName,**kwargs)
+    elif style == 'csv':
+      self._fromCSV(fName,**kwargs)
+    elif style == 'dict':
+      self._fromDict(fName,**kwargs)
+    # TODO dask
+    else:
+      self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
+
   def realization(self,index=None,matchDict=None,tol=1e-15):
     """
       Method to obtain a realization from the data, either by index or matching value.
@@ -508,25 +527,6 @@ class DataSet(DataObject):
     #      self._setScalingFactors()
     #    index,rlz = self._getRealizationFromDataByValue(matchDict,tol=tol)
     #  return index,rlz
-
-  def load(self,fName,style='netCDF',**kwargs):
-    """
-      Reads this dataset from disk based on the format.
-      @ In, fName, str, path and name of file to read
-      @ In, style, str, optional, options are enumerated below
-      @ In, kwargs, dict, optional, additional arguments to pass to reading function
-      @ Out, None
-    """
-    style = style.lower()
-    if style == 'netcdf':
-      self._fromNetCDF(fName,**kwargs)
-    elif style == 'csv':
-      self._fromCSV(fName,**kwargs)
-    elif style == 'dict':
-      self._fromDict(fName,**kwargs)
-    # TODO dask
-    else:
-      self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
 
   def remove(self,realization=None,variable=None):
     """

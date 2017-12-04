@@ -701,6 +701,7 @@ class MultiRun(SingleRun):
     while found != 0:
       found,newInp = sampler.generateInput(model,inputs)
       if found == 1:
+        # loop over the outputs for this step and collect the data for each
         for collector, outIndex in self._outputDictCollectionLambda:
           collector([newInp,outputs[outIndex]])
     return newInp
