@@ -157,14 +157,11 @@ class HDF5(DateBase):
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
       @ Out, None
     """
-    DateBase.__init__(self)
+    DateBase.__init__(self,runInfoDict)
     self.subtype   = None
-    self.exist     = False
-    self.built     = False
     self.type      = 'HDF5'
     self._metavars = []
     self._allvars  = []
-    self.filename = ""
     self.printTag = 'DATABASE HDF5'
 
   def __getstate__(self):
@@ -287,7 +284,7 @@ class HDF5(DateBase):
     self.database.addExpectedMeta(keys)
     self.addMetaKeys(*keys)
 
-  def initialize(self,gname,options={}):
+  def initialize(self,gname,options=None):
     """
       Function to add an initial root group into the data base...
       This group will not contain a dataset but, eventually, only metadata
