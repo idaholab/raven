@@ -264,39 +264,6 @@ class DataSet(DataObject):
     # if you haven't returned False by now, you must be aligned
     return True
 
-  def checkIndexAlignment(self,indexesToCheck=None):
-    """
-      Checks that all realizations share common coordinates along given indexes.
-      That is, assures data is not sparse, but full (no NaN entries).
-      @ In, indexesToCheck, list(str) or str or None, optional, indexes to check (or single index if string, or if None will check ALL indexes)
-      @ Out, same, bool, if True then alignment is good
-    """
-    # format request so that indexesToCheck is always a list
-    if isinstance(indexesToCheck,(str,unicode)):
-      indexesToCheck = [indexesToCheck]
-    elif indexesToCheck is None:
-      indexesToCheck = self.indexes[:]
-    else:
-      try:
-        indexesToCheck = list(indexesToCheck) # TODO what if this errs?
-      except TypeError:
-        self.raiseAnError('Unrecognized input to checkIndexAlignment!  Expected list, string, or None, but got "{}"'.format(type(indexesToCheck)))
-    # check the alignment of each index by checking for NaN values in each slice
-    data = self.asDataset()
-    for index in indexesToCheck:
-      # check that index is indeed an index
-      assert(index in self.indexes)
-      # get number of slices
-      numSlices = len(data[index].values)
-      for i in range(numSlices):
-        # if any entries are null ...
-        if data.where(data.isel(**{index:i}).isnull()).sum > 0:
-          # don't print out statements, but useful if debugging during development.  Comment again afterward.
-          #self.raiseADebug('Found misalignment in index "{}" entry "{}" (value "{}")'.format(index,i,data[index][i].values))
-          return False
-    # if you haven't returned False by now, you must be aligned
-    return True
-
   def constructNDSample(self,vals,dims,coords,name=None):
     """
       Constructs a single realization instance (for one variable) from a realization entry.
@@ -1547,12 +1514,8 @@ class DataSet(DataObject):
       if isinstance(data.index,pd.MultiIndex):
         # if we have just the self.sampleTag index (we can not drop it otherwise pandas fail). We use index=False (a.a.)
         indexx = False if len(data.index.names) == 1 else True
-<<<<<<< HEAD
         if indexx:
           data.index = data.index.droplevel(self.sampleTag)
-=======
-        if indexx: data.index = data.index.droplevel(self.sampleTag)
->>>>>>> dfloat
         data.to_csv(fName+'.csv',mode=mode,header=header, index=indexx)
       # if keepIndex, then print as is
       elif keepIndex:
