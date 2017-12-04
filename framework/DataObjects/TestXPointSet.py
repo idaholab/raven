@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This Module performs Unit Tests for the Distribution class.
+  This Module performs Unit Tests for the XPointSet class.
   It can not be considered part of the active code but of the regression test system
 """
 
@@ -181,6 +181,13 @@ def checkRlz(comment,first,second,tol=1e-10,update=True):
   return res
 
 def checkNone(comment,entry,update=True):
+  """
+    Tests if the entry identifies as None.
+    @ In, comment, str, comment to print if failed
+    @ In, entry, object, object to test
+    @ In, update, bool, optional, if True then updates results
+    @ Out, None
+  """
   res = entry is None
   if update:
     if res:
@@ -190,6 +197,16 @@ def checkNone(comment,entry,update=True):
       results["fail"] += 1
 
 def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
+  """
+    Tests if function fails as expected
+    @ In, comment, str, comment to print if failed
+    @ In, errstr, str, expected error string
+    @ In, function, method, method to run
+    @ In, update, bool, optional, if True then updates results
+    @ In, args, list, arguments to function
+    @ In, kwargs, dict, keywords arguments to function
+    @ Out, res, bool, result (True if passed)
+  """
   print('Error testing ...')
   if args is None:
     args = []
@@ -461,7 +478,7 @@ correct = ['<DataObjectMetadata name="PointSet">',
 '  ',
 '</DataObjectMetadata>']
 # read in XML
-lines = file(csvname+'.xml','r').readlines()
+lines = open(csvname+'.xml','r').readlines()
 # remove line endings
 for l,line in enumerate(lines):
   lines[l] = line.rstrip(os.linesep).rstrip('\n')
