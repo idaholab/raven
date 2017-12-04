@@ -1241,7 +1241,8 @@ class DataSet(DataObject):
       if isinstance(data.index,pd.MultiIndex):
         # if we have just the self.sampleTag index (we can not drop it otherwise pandas fail). We use index=False (a.a.)
         indexx = False if len(data.index.names) == 1 else True
-        if indexx: data.index = data.index.droplevel(self.sampleTag)
+        if indexx:
+          data.index = data.index.droplevel(self.sampleTag)
         data.to_csv(fName+'.csv',mode=mode,header=header, index=indexx)
       # if keepIndex, then print as is
       elif keepIndex:

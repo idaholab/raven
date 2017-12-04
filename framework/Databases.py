@@ -38,6 +38,13 @@ from utils import utils
 from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
+class DatabasesCollection(InputData.ParameterInput):
+  """
+    Class for reading in a collection of databases
+  """
+
+DatabasesCollection.createClass("Databases")
+
 class DateBase(BaseType):
   """
     class to handle a database,
@@ -55,41 +62,64 @@ class DateBase(BaseType):
     """
     inputSpecification = super(DateBase, cls).getInputSpecification()
     inputSpecification.addParam("directory", InputData.StringType)
-    inputSpecification.addParam(InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType))
-    inputSpecification.addParam(InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType))
-
-
+    inputSpecification.addParam("filename", InputData.StringType)
+    inputSpecification.addParam("readMode", InputData.makeEnumType("readMode","readModeType",["overwrite","read"]), True)
+    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringListType))
     return inputSpecification
 
-  def __init__(self):
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the database parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    if 'directory' in paramInput.parameterValues:
+      self.databaseDir = copy.copy(paramInput.parameterValues['directory'])
+    else:
+      self.databaseDir = os.path.join(self.workingDir,'DatabaseStorage')
+    if 'filename' in paramInput.parameterValues:
+      self.filename = copy.copy(paramInput.parameterValues['filename'])
+    else:
+      self.filename = self.name+'.h5'
+    # read the variables
+    varNode = paramInput.findFirst("variables")
+    if varNode is not None:
+      self.variables =  varNode.value
+    # read mode
+    self.readMode = paramInput.parameterValues['readMode'].strip().lower()
+    self.raiseADebug('HDF5 Read Mode is "'+self.readMode+'".')
+    # get full path
+    fullpath = os.path.join(self.databaseDir,self.filename)
+    if os.path.isfile(fullpath):
+      if self.readMode == 'read':
+        self.exist = True
+      elif self.readMode == 'overwrite':
+        self.exist = False
+      self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist,self.variables)
+    else:
+      #file does not exist in path
+      if self.readMode == 'read':
+        self.raiseAWarning('Requested to read from database, but it does not exist at:',fullpath,'; continuing without reading...')
+      self.exist = False
+      self.database  = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist,self.variables)
+    self.raiseAMessage('Database is located at:',fullpath)
+
+
+  def __init__(self,runInfoDict):
     """
       Constructor
       @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)     # Base Class
-    self.database = None        # Database object
-    self.databaseDir = ''       # Database directory. Default = working directory.
-    self.workingDir = ''        #
-    self.printTag = 'DATABASE'  # For printing verbosity labels
-    self.variables = None       # if not None, list of specific variables requested to be stored by user
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this
-      specialized class and initialize variables based on the inputs received.
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
-      @ Out, None
-    """
-    # Check if a directory has been provided
-    if 'directory' in xmlNode.attrib.keys():
-      self.databaseDir = copy.copy(xmlNode.attrib['directory'])
-    else:
-      self.databaseDir = os.path.join(self.workingDir,'DatabaseStorage')
-    # Check for variables listing
-    varsNode = xmlNode.find('variables')
-    if varsNode is not None:
-      self.variables = list(v.strip() for v in varsNode.text.split(','))
+    BaseType.__init__(self)
+    self.database = None                # Database object
+    self.exist        = False           # does it exist?
+    self.built       = False            # is it built?
+    self.filename    = ""               # filename
+    self.workingDir  = runInfoDict['WorkingDir']
+    self.databaseDir = self.workingDir  # Database directory. Default = working directory.
+    self.printTag = 'DATABASE'          # For printing verbosity labels
+    self.variables = None               # if not None, list of specific variables requested to be stored by user
 
   @abc.abstractmethod
   def addGroup(self,attributes,loadFrom):
@@ -120,23 +150,20 @@ class HDF5(DateBase):
     class to handle h5py (hdf5) databases,
     Used to add and retrieve attributes and values from said database
   """
+
   def __init__(self,runInfoDict):
     """
       Constructor
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
       @ Out, None
     """
-    DateBase.__init__(self)
+    DateBase.__init__(self,runInfoDict)
     self.subtype   = None
-    self.exist     = False
-    self.built     = False
     self.type      = 'HDF5'
     self._metavars = []
     self._allvars  = []
-    self.filename = ""
     self.printTag = 'DATABASE HDF5'
-    self.workingDir = runInfoDict['WorkingDir']
-    self.databaseDir = self.workingDir
+
 
   def __getstate__(self):
     """
@@ -165,54 +192,6 @@ class HDF5(DateBase):
     self.__dict__.update(newstate)
     self.exist    = True
     self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist)
-
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this
-      specialized class and initialize variables based on the input received.
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
-      @ Out, None
-    """
-    DateBase._readMoreXML(self, xmlNode)
-    # Check if database directory exist, otherwise create it
-    if '~' in self.databaseDir:
-      self.databaseDir = copy.copy(os.path.expanduser(self.databaseDir))
-    # Determine RELATIVE location for HDF5.
-    # - if a full path is given, accept it as given, else ...
-    if not os.path.isabs(self.databaseDir):
-      # use working dir as base
-      self.databaseDir = os.path.join(self.workingDir,self.databaseDir)
-    self.databaseDir = os.path.normpath(self.databaseDir)
-
-    utils.makeDir(self.databaseDir)
-    self.raiseADebug('Database Directory is:',self.databaseDir)
-    # Check if a filename has been provided
-    # if yes, we assume the user wants to load the data from there
-    # or update it
-    #try:
-    self.filename = xmlNode.attrib.get('filename',self.name+'.h5')
-    if 'readMode' not in xmlNode.attrib.keys():
-      self.raiseAnError(IOError,'No "readMode" attribute was specified for hdf5 database',self.name)
-    self.readMode = xmlNode.attrib['readMode'].strip().lower()
-    readModes = ['read','overwrite']
-    if self.readMode not in readModes:
-      self.raiseAnError(IOError,'readMode attribute for hdf5 database',self.name,'is not recognized:',self.readMode,'.  Options are:',readModes)
-    self.raiseADebug('HDF5 Read Mode is "'+self.readMode+'".')
-    fullpath = os.path.join(self.databaseDir,self.filename)
-    if os.path.isfile(fullpath):
-      if self.readMode == 'read':
-        self.exist = True
-      elif self.readMode == 'overwrite':
-        self.exist = False
-      self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist)
-    else:
-      #file does not exist in path
-      if self.readMode == 'read':
-        self.raiseAWarning('Requested to read from database, but it does not exist at:',fullpath,'; continuing without reading...')
-      self.exist = False
-      self.database  = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist)
-    self.raiseAMessage('Database is located at:',fullpath)
 
   def getInitParams(self):
     """
@@ -270,12 +249,12 @@ class HDF5(DateBase):
     self.database.addExpectedMeta(keys)
     self.addMetaKeys(*keys)
 
-  def initialize(self,gname,options={}):
+  def initialize(self,gname,options=None):
     """
       Function to add an initial root group into the data base...
       This group will not contain a dataset but, eventually, only metadata
       @ In, gname, string, name of the root group
-      @ In, options, dict, options (metadata muste be appended to the root group)
+      @ In, options, dict, options (metadata muste be appended to the root group), Default =None
       @ Out, None
     """
     self.database.addGroupInit(gname,options)
@@ -330,6 +309,9 @@ __interFaceDict         = {}
 __interFaceDict['HDF5'] = HDF5
 __knownTypes            = __interFaceDict.keys()
 
+# add input specifications in DatabasesCollection
+DatabasesCollection.addSub(HDF5.getInputSpecification())
+
 def knownTypes():
   """
    Return the known types
@@ -352,3 +334,11 @@ def returnInstance(Type,runInfoDict,caller):
     return __interFaceDict[Type](runInfoDict)
   except KeyError:
     caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+
+def returnInputParameter():
+  """
+    Function returns the InputParameterClass that can be used to parse the
+    whole collection.
+    @ Out, returnInputParameter, DatabasesCollection, class for parsing.
+  """
+  return DatabasesCollection()
