@@ -100,7 +100,7 @@
       <Model     class="Models"       type="EnsembleModel">Ensemble_Model</Model>
       <Sampler   class="Samplers"     type="EnsembleForward">Ensemble_Sampler</Sampler>
       <Output     class="DataObjects" type="HistorySet">BBHistorySet_out</Output>
-      <!--Output    class="Databases"    type="HDF5">DB_BouncingBall</Output-->
+      <Output    class="Databases"    type="HDF5">DB_BouncingBall</Output>
     </MultiRun>
     <IOStep name="testPrintUnstructuredInputSpace">
        <Input     class="DataObjects" type="HistorySet">BBHistorySet_out</Input>

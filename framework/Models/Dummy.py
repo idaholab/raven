@@ -187,7 +187,7 @@ class Dummy(Model):
     # TODO expensive deepcopy prevents modification when sent to multiple outputs
     self._replaceVariablesNamesWithAliasSystem(result)
     if isinstance(result,Runners.Error):
-      self.raiseAnError(AttributeError,'No available output to collect!')
+      self.raiseAnError(Runners.Error,'No available output to collect!')
     output.addRealization(result)
     # END can be abstracted to base class
 

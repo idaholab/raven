@@ -146,7 +146,7 @@ class DataSet(DataObject):
     """
     # protect against back-changing realization
     rlz = copy.deepcopy(rlz)
-    # clean out entries that arenit desired
+    # clean out entries that aren't desired
     try:
       rlz = dict((var,rlz[var]) for var in self._allvars+self.indexes)
     except KeyError as e:

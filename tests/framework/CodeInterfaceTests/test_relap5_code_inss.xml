@@ -111,18 +111,14 @@
   <DataObjects>
     <PointSet name="samples">
       <Input>1060110:3,3060110:3,modelpar005,modelpar009,modelpar010</Input>
-      <Output>p_503150000,p_220010000,p_420010000,cntrlvar_392,cntrlvar_394,cntrlvar_6006</Output>
+      <Output>time,p_503150000,p_220010000,p_420010000,cntrlvar_392,cntrlvar_394,cntrlvar_6006</Output>
       <options>
-          <pivotParameter>time</pivotParameter>
         <operator>max</operator>
       </options>
     </PointSet>
     <HistorySet name="histories">
       <Input>1060110:3,3060110:3,modelpar005,modelpar009,modelpar010</Input>
-      <Output>p_503150000,p_220010000,p_420010000,cntrlvar_392,cntrlvar_394,cntrlvar_6006</Output>
-      <options>
-          <pivotParameter>time</pivotParameter>
-      </options>
+      <Output>time,p_503150000,p_220010000,p_420010000,cntrlvar_392,cntrlvar_394,cntrlvar_6006</Output>
     </HistorySet>
   </DataObjects>
 
@@ -273,7 +269,7 @@
       <Input class="Files" type="">tpfh2o</Input>
       <Model class="Models" type="Code">INSS_JP_RELAP5test</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc_loca</Sampler>
-      <!--Output class="Databases" type="HDF5">INSS_RELAP5_database</Output-->
+      <Output class="Databases" type="HDF5">INSS_RELAP5_database</Output>
       <Output class="DataObjects" type="PointSet" >samples</Output>
       <Output class="DataObjects" type="HistorySet" >histories</Output>
     </MultiRun>

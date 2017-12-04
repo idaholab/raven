@@ -55,7 +55,7 @@
       <Input class="Files" type="">BouncingBall_init.xml</Input>
       <Model class="Models" type="Code">BouncingBall</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
-      <!--Output class="Databases" type="HDF5">DB_BouncingBall</Output-->
+      <Output class="Databases" type="HDF5">DB_BouncingBall</Output>
       <Output class="DataObjects" type="HistorySet">BBHistorySet</Output>
     </MultiRun>
   </Steps>
@@ -63,7 +63,7 @@
   <DataObjects>
     <HistorySet name="BBHistorySet">
       <Input>h</Input>
-      <Output>v,flying,impact</Output>
+      <Output>time,v,flying,impact</Output>
     </HistorySet>
   </DataObjects>
 

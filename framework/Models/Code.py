@@ -570,7 +570,6 @@ class Code(Model):
         for f in fileList:
           os.remove(f)
 
-      #returnDict['prefix'] = np.atleast_1d(kwargs['prefix'])
       returnDict.update(kwargs)
       returnValue = (kwargs['SampledVars'],returnDict)
       exportDict = self.createExportDictionary(returnValue)
@@ -588,28 +587,19 @@ class Code(Model):
       ## If you made it here, then the run must have failed
       return None
 
-  def createExportDictionary(self, evaluation, inputParams = None):
+  def createExportDictionary(self, evaluation):
     """
       Method that is aimed to create a dictionary with the sampled and output variables that can be collected by the different
       output objects.
-      @ In, addJobId, bool, optional, add prefix in the exportDictionary? Default: False
-      @ In, inputParams, list, optional, list of input space parameters in the output object? Default: None
+      @ In, evaluation, tuple, (dict of sampled variables, dict of code outputs)
       @ Out, outputEval, dict, dictionary containing the output/input values: {'varName':value}
     """
-    if inputParams is None:
-      inputParams = []
-
     sampledVars,outputDict = evaluation
 
     if type(outputDict).__name__ == "tuple":
       outputEval = outputDict[0]
     else:
       outputEval = outputDict
-    ## The single run does not perturb data, however RAVEN expects something in
-    ## the input space, so let's just put a 0 entry for the inputPlaceHolder
-    ## - DPM 5/4/2017
-    if len(sampledVars) == 0:
-      sampledVars = {'InputPlaceHolder': 0.}
 
     for key, value in outputEval.items():
       outputEval[key] = np.atleast_1d(value)

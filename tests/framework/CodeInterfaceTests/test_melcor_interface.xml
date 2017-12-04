@@ -81,7 +81,7 @@
         <Input   class="Files"       type="input">melcorinput</Input>
         <Model   class="Models"      type="Code">MELGEN</Model>
         <Sampler class="Samplers"    type="MonteCarlo">MC_samp</Sampler>
-        <!--Output  class="Databases"   type="HDF5">DataMELCOR</Output-->
+        <Output  class="Databases"   type="HDF5">DataMELCOR</Output>
         <Output  class="DataObjects" type="HistorySet">MelcorHistorySet</Output>
         <Output  class="DataObjects" type="PointSet">MelcorPointSet</Output>
     </MultiRun>
