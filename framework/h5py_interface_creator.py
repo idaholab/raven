@@ -52,7 +52,7 @@ class hdf5Database(MessageHandler.MessageUser):
   """
     class to create a h5py (hdf5) database
   """
-  def __init__(self,name, databaseDir, messageHandler,filename,exist):
+  def __init__(self,name, databaseDir, messageHandler, filename, exist, variables = None):
     """
       Constructor
       @ In, name, string, name of this database
@@ -60,11 +60,14 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, messageHandler, MessageHandler, global message handler
       @ In, filename, string, the database filename
       @ In, exist, bool, does it exist?
+      @ In, variables, list, the user wants to store just some specific variables (default =None => all variables are stored)
       @ Out, None
     """
     # database name (i.e. arbitrary name).
     # It is the database name that has been found in the xml input
     self.name       = name
+    # check if we have to store all the variables
+    self.variables = variables
     # Database type :
     # -> The structure type is "inferred" by the first group is going to be added
     # * MC  = MonteCarlo => Storing by a Parallel structure
@@ -176,7 +179,6 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, groupName, string, group name
       @ In, attributes, dict, dictionary of attributes that must be added as metadata
       @ In, source, File object, data source (for example, csv file)
-      @ In, upGroup, bool, optional, updated group?
       @ Out, None
     """
     parentID  = rlz.get("parentID",None)
@@ -202,44 +204,41 @@ class hdf5Database(MessageHandler.MessageUser):
     self.h5FileW.flush()
 
 
-  def addGroupInit(self,groupName,attributes={},upGroup=False):
+  def addGroupInit(self,groupName,attributes=None):
     """
       Function to add an empty group to the database
       This function is generally used when the user provides a rootname in the input.
       It uses the groupName + it appends the date and time.
       @ In, groupName, string, group name
-      @ In, attributes, dict, optional, dictionary of attributes that must be added as metadata
-      @ In, upGroup, bool, optional, updated group?
+      @ In, attributes, dict, optional, dictionary of attributes that must be added as metadata (None by default)
       @ Out, None
     """
-
+    attribs = {} if attributes is None else attributes
     groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H")
-    if not upGroup:
-      for index in xrange(len(self.allGroupPaths)):
-        comparisonName = self.allGroupPaths[index]
-        splittedPath=comparisonName.split('/')
-        if len(splittedPath) > 0:
-          if groupNameInit in splittedPath[0]:
-            alphabetCounter, movingCounter = 0, 0
-            asciiAlphabet   = list(string.ascii_uppercase)
-            prefixLetter          = ''
-            while True:
-              testGroup = groupNameInit +"_"+prefixLetter+asciiAlphabet[alphabetCounter]
-              if testGroup not in self.allGroupPaths:
-                groupNameInit = testGroup
-                break
-              alphabetCounter+=1
-              if alphabetCounter >= len(asciiAlphabet):
-                prefix = asciiAlphabet[movingCounter]
-                alphabetCounter = 0
-                movingCounter  += 1
-            break
-            # self.raiseAnError(IOError,"Group named " + groupName + " already present as root group in database " + self.name + ". new group " + groupName + " is equal to old group " + splittedPath[0])
+    for index in xrange(len(self.allGroupPaths)):
+      comparisonName = self.allGroupPaths[index]
+      splittedPath=comparisonName.split('/')
+      if len(splittedPath) > 0:
+        if groupNameInit in splittedPath[0]:
+          alphabetCounter, movingCounter = 0, 0
+          asciiAlphabet   = list(string.ascii_uppercase)
+          prefixLetter          = ''
+          while True:
+            testGroup = groupNameInit +"_"+prefixLetter+asciiAlphabet[alphabetCounter]
+            if testGroup not in self.allGroupPaths:
+              groupNameInit = testGroup
+              break
+            alphabetCounter+=1
+            if alphabetCounter >= len(asciiAlphabet):
+              prefix = asciiAlphabet[movingCounter]
+              alphabetCounter = 0
+              movingCounter  += 1
+          break
     self.parentGroupName = "/" + groupNameInit
     # Create the group
     grp = self.h5FileW.create_group(groupNameInit)
     # Add metadata
-    grp.attrs.update(attributes)
+    grp.attrs.update(attribs)
     grp.attrs['rootname'  ] = True
     grp.attrs['endGroup'  ] = False
     grp.attrs[b'groupName'] = groupNameInit
@@ -260,47 +259,47 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     # add pointwise metadata (in this case, they are group-wise)
     group.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
-    group.attrs[b'has_intfloat'] = False
-    group.attrs[b'has_other'   ] = False
+    group.attrs[b'hasIntfloat'] = False
+    group.attrs[b'hasOther'   ] = False
     # get the data floats and other types
-    data_intfloat = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'])
-    data_other    = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'])
+    dataIntfloat = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'])
+    dataOther    = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'])
     # get size of each data variable (float)
-    varKeys_intfloat = data_intfloat.keys()
-    if len(varKeys_intfloat) > 0:
-      varShape_intfloat = [data_intfloat[key].shape for key in varKeys_intfloat]
+    varKeysIntfloat = dataIntfloat.keys()
+    if len(varKeysIntfloat) > 0:
+      varShapeIntfloat = [dataIntfloat[key].shape for key in varKeysIntfloat]
       # get data names
-      group.attrs[b'data_names_intfloat'] = json.dumps(varKeys_intfloat)
+      group.attrs[b'data_namesIntfloat'] = json.dumps(varKeysIntfloat)
       # get data shapes
-      group.attrs[b'data_shapes_intfloat'] = json.dumps(varShape_intfloat)
+      group.attrs[b'data_shapesIntfloat'] = json.dumps(varShapeIntfloat)
       # get data shapes
-      end   = np.cumsum(varShape_intfloat)
+      end   = np.cumsum(varShapeIntfloat)
       begin = np.concatenate(([0],end[0:-1]))
-      group.attrs[b'data_begin_end_intfloat'] = json.dumps((begin.tolist(),end.tolist()))
+      group.attrs[b'data_begin_endIntfloat'] = json.dumps((begin.tolist(),end.tolist()))
       # get data names
-      group.create_dataset(name + "_data_intfloat", dtype="float", data=(np.concatenate( data_intfloat.values()).ravel()))
-      group.attrs[b'has_intfloat'] = True
+      group.create_dataset(name + "_dataIntfloat", dtype="float", data=(np.concatenate( dataIntfloat.values()).ravel()))
+      group.attrs[b'hasIntfloat'] = True
     # get size of each data variable (other type)
-    varKeys_other = data_other.keys()
-    if len(varKeys_other) > 0:
-      varShape_other = [data_other[key].shape for key in varKeys_other]
+    varKeysOther = dataOther.keys()
+    if len(varKeysOther) > 0:
+      varShapeOther = [dataOther[key].shape for key in varKeysOther]
       # get data names
-      group.attrs[b'data_names_other'] = json.dumps(varKeys_other)
+      group.attrs[b'data_namesOther'] = json.dumps(varKeysOther)
       # get data shapes
-      group.attrs[b'data_shapes_other'] = json.dumps(varShape_other)
+      group.attrs[b'data_shapesOther'] = json.dumps(varShapeOther)
       # get data shapes
-      end   = np.cumsum(varShape_other)
+      end   = np.cumsum(varShapeOther)
       begin = np.concatenate(([0],end[0:-1]))
-      group.attrs[b'data_begin_end_other'] = json.dumps((begin.tolist(),end.tolist()))
+      group.attrs[b'data_begin_endOther'] = json.dumps((begin.tolist(),end.tolist()))
       # get data names
-      group.create_dataset(name + "_data_other", data=(np.concatenate( data_other.values()).ravel()))
-      group.attrs[b'has_other'] = True
+      group.create_dataset(name + "_dataOther", data=(np.concatenate( dataOther.values()).ravel()))
+      group.attrs[b'hasOther'] = True
     # add some info
     group.attrs[b'groupName'     ] = name
     group.attrs[b'endGroup'      ] = True
     group.attrs[b'parentID'      ] = group.parent.name
-    group.attrs[b'nVars_intfloat'] = len(varKeys_intfloat)
-    group.attrs[b'nVars_other'   ] = len(varKeys_other)
+    group.attrs[b'nVarsIntfloat'] = len(varKeysIntfloat)
+    group.attrs[b'nVarsOther'   ] = len(varKeysOther)
 
 
   def __addGroupRootLevel(self,groupName,rlz):
@@ -455,26 +454,26 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, name, str, the group name
       @ Out, newData, dict, the dictionary with the data
     """
-    has_intfloat = group.attrs['has_intfloat']
-    has_other    = group.attrs['has_other']
-    if has_intfloat:
-      dataset_intfloat = group[name + "_data_intfloat"]
+    hasIntfloat = group.attrs['hasIntfloat']
+    hasOther    = group.attrs['hasOther']
+    if hasIntfloat:
+      datasetIntfloat = group[name + "_dataIntfloat"]
       # Get some variables of interest
-      nVars_intfloat      = group.attrs[b'nVars_intfloat']
-      varShape_intfloat   = json.loads(group.attrs[b'data_shapes_intfloat'])
-      varKeys_intfloat    = json.loads(group.attrs[b'data_names_intfloat'])
-      begin, end          = json.loads(group.attrs[b'data_begin_end_intfloat'])
+      nVarsIntfloat      = group.attrs[b'nVarsIntfloat']
+      varShapeIntfloat   = json.loads(group.attrs[b'data_shapesIntfloat'])
+      varKeysIntfloat    = json.loads(group.attrs[b'data_namesIntfloat'])
+      begin, end          = json.loads(group.attrs[b'data_begin_endIntfloat'])
       # Reconstruct the dataset
-      newData = {key : np.reshape(dataset_intfloat[begin[cnt]:end[cnt]], varShape_intfloat[cnt]) for cnt,key in enumerate(varKeys_intfloat)}
-    if has_other:
-      dataset_other = group[name + "_data_other"]
+      newData = {key : np.reshape(datasetIntfloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt]) for cnt,key in enumerate(varKeysIntfloat)}
+    if hasOther:
+      datasetOther = group[name + "_dataOther"]
       # Get some variables of interest
-      nVars_other      = group.attrs[b'nVars_other']
-      varShape_other   = json.loads(group.attrs[b'data_shapes_other'])
-      varKeys_other    = json.loads(group.attrs[b'data_names_other'])
-      begin, end       = json.loads(group.attrs[b'data_begin_end_other'])
+      nVarsOther      = group.attrs[b'nVarsOther']
+      varShapeOther   = json.loads(group.attrs[b'data_shapesOther'])
+      varKeysOther    = json.loads(group.attrs[b'data_namesOther'])
+      begin, end       = json.loads(group.attrs[b'data_begin_endOther'])
       # Reconstruct the dataset
-      newData.update({key : np.reshape(dataset_other[begin[cnt]:end[cnt]], varShape_other[cnt]) for cnt,key in enumerate(varKeys_other)})
+      newData.update({key : np.reshape(datasetOther[begin[cnt]:end[cnt]], varShapeOther[cnt]) for cnt,key in enumerate(varKeysOther)})
     return newData
 
   def _getRealizationByName(self,name,options = {}):
