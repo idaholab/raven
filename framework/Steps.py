@@ -926,7 +926,7 @@ class IOStep(Step):
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]
         options = {'fileToLoad':infile}
-        outputs[i].loadXMLandCSV(inDictionary['Input'][i].getPath(),options)
+        outputs[i].load(inDictionary['Input'][i].getPath(),'csv',**options)
       else:
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
     for output in inDictionary['Output']:

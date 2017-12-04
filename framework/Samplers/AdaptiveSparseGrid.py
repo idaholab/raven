@@ -324,6 +324,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
+    self.inputInfo['ProbabilityWeight'] = 1.0
     pt = self.neededPoints.pop()
     self.submittedNotCollected.append(pt)
     for v,varName in enumerate(self.sparseGrid.varNames):
@@ -354,7 +355,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
             self.values[key] = pt[location]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
-
+        self.inputInfo['ProbabilityWeight']*=self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")]
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
 
