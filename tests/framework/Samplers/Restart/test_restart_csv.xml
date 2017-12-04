@@ -71,18 +71,6 @@
     <ExternalModel ModuleToLoad="../fine" name="fine" subType="">
       <variables>x1,x2,ans</variables>
     </ExternalModel>
-    <ROM name="rom1" subType="GaussPolynomialRom">
-      <Target>ans</Target>
-      <Features>x,y</Features>
-      <IndexSet>TotalDegree</IndexSet>
-      <PolynomialOrder>1</PolynomialOrder>
-    </ROM>
-    <ROM name="rom2" subType="GaussPolynomialRom">
-      <Target>ans</Target>
-      <Features>x,y</Features>
-      <IndexSet>TotalDegree</IndexSet>
-      <PolynomialOrder>2</PolynomialOrder>
-    </ROM>
   </Models>
 
   <DataObjects>

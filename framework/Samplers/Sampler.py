@@ -518,7 +518,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if self.initSeed == None:
       self.initSeed = randomUtils.randomIntegers(0,2**31,self)
     self.counter = 0
-    if   not externalSeeding          :
+    if not externalSeeding:
       randomUtils.randomSeed(self.initSeed)       #use the sampler initialization seed
       self.auxcnt = self.initSeed
     elif externalSeeding=='continue':
@@ -578,7 +578,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     # Register expected metadata
     meta = ['ProbabilityWeight','prefix']
-    # TODO more meta needs to be added, this is just for testing so far.
     self.addMetaKeys(*meta)
 
   def localInitialize(self):
@@ -674,7 +673,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #check if point already exists
     if self.restartData is not None:
       # FIXME
-      print('DEBUGG looking for restart match:',self.values)
       index,inExisting = self.restartData.realization(matchDict=self.values,tol=self.restartTolerance)
       # OLD inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance)
     else:
@@ -698,7 +696,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       # TODO use realization format as per new data object (no subspaces)
       self.raiseADebug('Point found in restart!')
-      print('DEBUGG restart point:',inExisting)
       rlz = {}
       # we've fixed it so teh input and output space don't really matter, so use restartData's own definition
       rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
@@ -706,9 +703,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       rlz['metadata'] = {'prefix':self.inputInfo['prefix'],
                          'ProbabilityWeight':self.inputInfo['ProbabilityWeight'],
                         }
-      print('DEBUGG rst rlz is:')
-      for k,v in rlz.items():
-        print('DEBUGG  ',k,v)
       return 1,rlz
 
   def pcaTransform(self,varsDict,dist):

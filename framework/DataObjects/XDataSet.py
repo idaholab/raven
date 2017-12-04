@@ -423,15 +423,24 @@ class DataSet(DataObject):
       @ Out, None
     """
     style = style.lower()
+    # if fileToLoad in kwargs, then filename is actualle fName/fileToLoad
+    if 'fileToLoad' in kwargs.keys():
+      fName = kwargs['fileToLoad'].getAbsFile()
+    # load based on style for loading
     if style == 'netcdf':
       self._fromNetCDF(fName,**kwargs)
     elif style == 'csv':
+      # make sure we don't include the "csv"
+      if fName.endswith('.csv'):
+        fName = fName[:-4]
       self._fromCSV(fName,**kwargs)
     elif style == 'dict':
       self._fromDict(fName,**kwargs)
     # TODO dask
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
+    # after loading, set or reset scaling factors
+    self._setScalingFactors()
 
   def realization(self,index=None,matchDict=None,tol=1e-15):
     """
@@ -502,31 +511,6 @@ class DataSet(DataObject):
             index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
       return index,rlz
 
-
-    ##### FIXME OLD
-    #if readCollector:
-    #  if self._collector is None or len(self._collector)==0:
-    #    if matchDict is not None:
-    #      return 0,None
-    #    else:
-    #      return None
-    #elif self._data is None or len(self._data)==0:
-    #  return 0,None
-    #if index is not None:
-    #  if readCollector:
-    #    rlz = self._getRealizationFromCollectorByIndex(index)
-    #  else:
-    #    rlz = self._getRealizationFromDataByIndex(index)
-    #  return rlz
-    #else: #because of check above, this means matchDict is not None
-    #  if readCollector:
-    #    # TODO scaling factors and collector
-    #    index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
-    #  else:
-    #    if self._scaleFactors is None:
-    #      self._setScalingFactors()
-    #    index,rlz = self._getRealizationFromDataByValue(matchDict,tol=tol)
-    #  return index,rlz
 
   def remove(self,realization=None,variable=None):
     """
@@ -637,6 +621,7 @@ class DataSet(DataObject):
     self.type      = 'DataSet'
     self.printTag  = self.name
     self.defaultDtype = object
+    self._scaleFactors = {}     # mean, sigma for data for matching purposes
 
   def _readMoreXML(self,xmlNode):
     """
@@ -1083,7 +1068,11 @@ class DataSet(DataObject):
         # scale if we know how
         try:
           loc,scale = self._scaleFactors[var]
-        except IndexError:
+        #except TypeError:
+        #  # self._scaleFactors is None, so set them
+        #  self._setScalingFactors(var)
+        except KeyError: # IndexError?
+        # variable doesn't have a scale factor (yet? Why not?)
           loc = 0.0
           scale = 1.0
         scaleVal = (val-loc)/scale
@@ -1147,7 +1136,7 @@ class DataSet(DataObject):
       @ In, None
       @ Out, None
     """
-    self._scaleFactors = None
+    self._scaleFactors = {}
     self._inputKDTree = None
 
   def _selectiveRealization(self,rlz,checkLengthBeforeTruncating=False):
@@ -1161,16 +1150,26 @@ class DataSet(DataObject):
         self.raiseAnError(NotImplementedError,'Variable "{}" has no dimensions but has multiple values!  Not implemented for DataSet yet.'.format(var))
     return rlz
 
-  def _setScalingFactors(self):
+  def _setScalingFactors(self,var=None):
     """
       Sets the scaling factors for the data (mean, scale).
-      @ In, None
+      @ In, var, str, optional, if given then will only set factors for "var"
       @ Out, None
     """
+    if var is None:
+      # clear existing factors and set list to "all"
+      self._scaleFactors = {}
+      varList = self._allvars
+    else:
+      # clear existing factor and reset variable scale, if existing
+      varList = [var]
+      try:
+        del self._scaleFactors[var]
+      except KeyError:
+        pass
     # TODO someday make KDTree too!
     assert(self._data is not None) # TODO check against collector entries?
-    self._scaleFactors = {}
-    for var in self._allvars:
+    for var in varList:
       ## commented code. We use a try now for speed. It probably needs to be modified for ND arrays
       # if not a float or int, don't scale it
       # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
