@@ -88,32 +88,24 @@ class Dummy(Model):
         self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
     if type(dataIN)!=dict:
       #localInput = dict.fromkeys(dataIN.getParaKeys('inputs' )+dataIN.getParaKeys('outputs' ),None)
-      localInput = dict.fromkeys(dataIN.getVars('input')+dataIN.getVars('output'),None)
-      if not len(dataIN) == 0: #.isItEmpty():
+      localInput = dict.fromkeys(dataIN.getVars('input')+dataIN.getVars('output')+dataIN.indexes,None)
+      if not len(dataIN) == 0:
+        dataSet = dataIN.asDataset()
         if dataIN.type == 'PointSet':
-          for entries in dataIN.getParaKeys('inputs' ):
-            localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[0 if full else -1:])
-          for entries in dataIN.getParaKeys('outputs'):
-            localInput[entries] = copy.copy(np.array(dataIN.getParam('output',entries))[0 if full else -1:])
+          for entries in dataIN.getVars('input')+dataIN.getVars('output'):
+            localInput[entries] = copy.copy(dataSet[entries].values)
         else:
-          if full:
-            for hist in range(len(dataIN)):
-              realization = dataIN.getRealization(hist)
-              for entries in dataIN.getParaKeys('inputs' ):
-                if localInput[entries] is None:
-                  localInput[entries] = c1darray(shape=(1,))
-                localInput[entries].append(realization['inputs'][entries])
-              for entries in dataIN.getParaKeys('outputs' ):
-                if localInput[entries] is None:
-                  localInput[entries] = []
-                localInput[entries].append(realization['outputs'][entries])
-          else:
-            realization = dataIn.getRealization(len(dataIn)-1)
-            for entries in dataIN.getParaKeys('inputs' ):
-              localInput[entries] = [realization['inputs'][entries]]
-            for entries in dataIN.getParaKeys('outputs' ):
-              localInput[entries] = [realization['outputs'][entries]]
-
+          sizeIndex = 0
+          for hist in range(len(dataIN)):
+            for indexes in dataIN.indexes+dataIN.getVars('output'):
+              if localInput[indexes] is None:
+                localInput[indexes] = []
+              localInput[indexes].append(dataSet.isel(RAVEN_sample_ID=hist)[indexes].values)
+              sizeIndex = len(localInput[indexes][-1])
+            for entries in dataIN.getVars('input'):
+              if localInput[entries] is None:
+                localInput[entries] = []
+              localInput[entries].append(np.full((sizeIndex,),dataSet.isel(RAVEN_sample_ID=hist)[entries].values))
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getVars('output'):
         localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
@@ -192,17 +184,12 @@ class Dummy(Model):
     # TODO START can be abstracted to base class
     # TODO apparently sometimes "options" can include 'exportDict'; what do we do for this?
     # TODO consistency with old HDF5; fix this when HDF5 api is in place
-    if output.type == 'HDF5':
-      exportDict = self.createExportDictionaryFromFinishedJob(finishedJob)
-      self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
-
     # TODO expensive deepcopy prevents modification when sent to multiple outputs
     result = copy.deepcopy(finishedJob.getEvaluation())
-    if isinstance(result,Runners.Error):
-      self.raiseAnError(AttributeError,'No available output to collect!')
     self._replaceVariablesNamesWithAliasSystem(result)
+    if isinstance(result,Runners.Error):
+      self.raiseAnError(Runners.Error,'No available output to collect!')
     output.addRealization(result)
-    return
     # END can be abstracted to base class
 
   def collectOutputFromDict(self,exportDict,output,options=None):

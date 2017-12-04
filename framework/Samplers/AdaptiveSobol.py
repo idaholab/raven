@@ -345,6 +345,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #note: pointsNeeded is the collection of points needed by sampler,
     #      while neededPoints is just the reference point that needs running
     #if there's a point that THIS sampler needs, prioritize it
+    self.inputInfo['ProbabilityWeight'] = 1.0
     if len(self.neededPoints)>0:
       pt = self.neededPoints.pop()
     #otherwise, take from the highest-impact sampler's needed points
@@ -396,6 +397,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
             self.values[key] = pt[location]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['ProbabilityWeight']*=self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")]
 
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = 'Adaptive Sparse Grids for Sobol'

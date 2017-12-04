@@ -414,7 +414,6 @@ class ParameterInput(object):
         if child.tag not in subNames:
           handleError("Child "+child.tag+" not in allowed sub elements in "+node.tag)
 
-
   def findFirst(self, name):
     """
       Finds the first subpart with name.  Note that if this node is not ordered,

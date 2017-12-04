@@ -46,7 +46,7 @@ from utils import utils
 from utils import InputData
 import Models
 from OutStreams import OutStreamManager
-from DataObjects import Data,DataSet
+from DataObjects import XDataObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -144,7 +144,6 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-
     printString = 'For step of type {0:15} and name {1:15} the attribute {3:10} has been assigned to a not understandable value {2:10}'
     self.raiseADebug('move this tests to base class when it is ready for all the classes')
     if not set(paramInput.parameterValues.keys()).issubset(set(self._knownAttribute)):
@@ -264,6 +263,27 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     pass
+
+  def _registerMetadata(self,inDictionary):
+    """
+      collects expected metadata keys and deliver them to output data objects
+      @ In, inDictionary, dict, initialization dictionary
+      @ Out, None
+    """
+    ## first collect them
+    metaKeys = set()
+    for role,entities in inDictionary.items():
+      if isinstance(entities,list):
+        for entity in entities:
+          if hasattr(entity,'provideExpectedMetaKeys'):
+            metaKeys = metaKeys.union(entity.provideExpectedMetaKeys())
+      else:
+        if hasattr(entities,'provideExpectedMetaKeys'):
+          metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
+    ## then give them to the output data objects
+    for out in inDictionary['Output']:
+      if 'addExpectedMeta' in dir(out):
+        out.addExpectedMeta(metaKeys)
 
   def _endStepActions(self,inDictionary):
     """
@@ -400,30 +420,8 @@ class SingleRun(Step):
         inDictionary['Output'][i].initialize(self.name)
       elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:
         inDictionary['Output'][i].initialize(inDictionary)
-
       self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
     self._registerMetadata(inDictionary)
-
-  def _registerMetadata(self,inDictionary):
-    """
-      collects expected metadata keys and deliver them to output data objects
-      @ In, inDictionary, dict, initialization dictionary
-      @ Out, None
-    """
-    ## first collect them
-    metaKeys = set()
-    for role,entities in inDictionary.items():
-      if isinstance(entities,list):
-        for entity in entities:
-          if hasattr(entity,'provideExpectedMetaKeys'):
-            metaKeys = metaKeys.union(entity.provideExpectedMetaKeys())
-      else:
-        if hasattr(entities,'provideExpectedMetaKeys'):
-          metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
-    ## then give them to the output data objects
-    for out in inDictionary['Output']:
-      if isinstance(out,DataSet):
-        out.addExpectedMeta(metaKeys)
 
   def _localTakeAstepRun(self,inDictionary):
     """
@@ -830,11 +828,11 @@ class IOStep(Step):
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
       if inDictionary['Input'][i].type == 'HDF5':
-        if isinstance(outputs[i],Data):
+        if isinstance(outputs[i],XDataObject.DataObject):
           self.actionType.append('HDF5-dataObjects')
         else:
           self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
-      elif  isinstance(inDictionary['Input'][i],Data):
+      elif  isinstance(inDictionary['Input'][i],XDataObject.DataObject):
         if outputs[i].type == 'HDF5':
           self.actionType.append('dataObjects-HDF5')
         else:
@@ -847,7 +845,7 @@ class IOStep(Step):
       elif isinstance(inDictionary['Input'][i],Files.File):
         if   isinstance(outputs[i],Models.ROM):
           self.actionType.append('FILES-ROM')
-        elif isinstance(outputs[i],Data):
+        elif isinstance(outputs[i],XDataObject.DataObject):
           self.actionType.append('FILES-dataObjects')
         else:
           self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
@@ -876,6 +874,8 @@ class IOStep(Step):
       if type(output).__name__ in ['OutStreamPrint','OutStreamPlot']:
         output.initialize(inDictionary)
         self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
+    # register metadata
+    self._registerMetadata(inDictionary)
 
   def _localTakeAstepRun(self,inDictionary):
     """
@@ -887,10 +887,16 @@ class IOStep(Step):
     for i in range(len(outputs)):
       if self.actionType[i] == 'HDF5-dataObjects':
         #inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
-        outputs[i].addOutput(inDictionary['Input'][i])
+        allRealizations = inDictionary['Input'][i].allRealizations()
+        ## TODO convert to load function when it can handle unstructured multiple realizations
+        for rlz in allRealizations:
+          outputs[i].addRealization(rlz)
       elif self.actionType[i] == 'dataObjects-HDF5':
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
-        outputs[i].addGroupDataObjects({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
+        ## TODO convert to load function when it can handle unstructured multiple realizations
+        for rlzNo in len(inDictionary['Input'][i]):
+          outputs[i].addRealization(inDictionary['Input'][i].realization(rlzNo))
+
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
         #check the ROM is trained first
@@ -920,7 +926,7 @@ class IOStep(Step):
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]
         options = {'fileToLoad':infile}
-        outputs[i].loadXMLandCSV(inDictionary['Input'][i].getPath(),options)
+        outputs[i].load(inDictionary['Input'][i].getPath(),'csv',**options)
       else:
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
     for output in inDictionary['Output']:
