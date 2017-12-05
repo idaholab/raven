@@ -1232,7 +1232,7 @@ class DataSet(DataObject):
         if child.tag not in keep:
           toRemove.append(child)
       for r in toRemove:
-        dimsNode.remove(child)
+        dimsNode.remove(r)
     ## remove from "inputs, outputs, pointwise"
     genNode =  xmlUtils.findPath(meta['DataSet'].tree.getroot(),'general')
     toRemove = []
