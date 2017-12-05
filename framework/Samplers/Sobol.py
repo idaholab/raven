@@ -223,4 +223,5 @@ class Sobol(SparseGridCollocation):
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
 
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight'] = np.atleast_1d(0.0) # weight has no meaning for sobol
     self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'

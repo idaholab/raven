@@ -250,11 +250,13 @@ class ExternalModel(Dummy):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
+    # collect results from model run
     result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
-    rlz = {}
-    rlz.update(inRun)
-    rlz.update(result)
-    rlz.update(kwargs)
+    # build realization
+    # assure rlz has all metadata
+    rlz = dict(kwargs)
+    # update rlz with input space from inRun and output space from result
+    rlz.update(dict((var,inRun[var] if var in kwargs['SampledVars'] else result[var]) for var in set(result.keys()+inRun.keys())))
     return rlz
 
   def collectOutput(self,finishedJob,output,options=None):

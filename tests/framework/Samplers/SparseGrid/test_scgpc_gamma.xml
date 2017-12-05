@@ -93,6 +93,7 @@
     <Print name="Gdump">
       <type>csv</type>
       <source>Gtests</source>
+      <what>input,output</what>
     </Print>
     <Print name="Gdumprom">
       <type>xml</type>

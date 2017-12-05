@@ -92,6 +92,7 @@
     <Print name="Edump">
       <type>csv</type>
       <source>Etests</source>
+      <what>input,output</what>
     </Print>
     <Print name="Edumprom">
       <type>xml</type>

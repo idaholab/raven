@@ -810,7 +810,6 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       if self._checkCutPoint(subset,inp):
         #get the solution
         _,inExisting = self.solns.realization(matchDict=self._tupleToDict(inp))
-        # OLD soln = self._dictToTuple(inExisting['outputs'],output=True)
         soln = self._dictToTuple(inExisting,output=True)
         #get the cut point
         cinp = self._extractCutPoint(subset,inp)
