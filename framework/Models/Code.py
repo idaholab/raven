@@ -27,6 +27,7 @@ import shutil
 import importlib
 import platform
 import shlex
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -569,8 +570,12 @@ class Code(Model):
         for f in fileList:
           os.remove(f)
 
+      returnDict.update(kwargs)
       returnValue = (kwargs['SampledVars'],returnDict)
-      return returnValue
+      exportDict = self.createExportDictionary(returnValue)
+
+      return exportDict
+
     else:
       self.raiseAMessage(" Process Failed "+str(command)+" returnCode "+str(returnCode))
       absOutputFile = os.path.join(sampleDirectory,outputFile)
@@ -582,6 +587,32 @@ class Code(Model):
       ## If you made it here, then the run must have failed
       return None
 
+  def createExportDictionary(self, evaluation):
+    """
+      Method that is aimed to create a dictionary with the sampled and output variables that can be collected by the different
+      output objects.
+      @ In, evaluation, tuple, (dict of sampled variables, dict of code outputs)
+      @ Out, outputEval, dict, dictionary containing the output/input values: {'varName':value}
+    """
+    sampledVars,outputDict = evaluation
+
+    if type(outputDict).__name__ == "tuple":
+      outputEval = outputDict[0]
+    else:
+      outputEval = outputDict
+
+    for key, value in outputEval.items():
+      outputEval[key] = np.atleast_1d(value)
+
+    for key, value in sampledVars.items():
+      if key in outputEval.keys():
+        self.raiseAWarning('The model '+self.type+' reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the raven (%f).' % (outputEval[key][0], key, value, value))
+      outputEval[key] = np.atleast_1d(value)
+
+    self._replaceVariablesNamesWithAliasSystem(outputEval, 'input',True)
+
+    return outputEval
+
   def collectOutput(self,finishedJob,output,options=None):
     """
       Method that collects the outputs from the previous run
@@ -590,29 +621,17 @@ class Code(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    ## First, if the output is a data object, let's see what inputs it requests
-    if options is None:
-        options = {}
-    if isinstance(output,Data):
-      inputParams = output.getParaKeys('input')
-      options["inputFile"] = self.currentInputFiles
-    else:
-      inputParams = []
-    # create the export dictionary
-    if 'exportDict' in options:
-      exportDict = options['exportDict']
-    else:
-      exportDict = self.createExportDictionaryFromFinishedJob(finishedJob, True, inputParams)
-    options['alias'] = self.alias
-    metadata = exportDict['metadata']
-    if metadata:
-      options['metadata'] = metadata
-    listDict = self.collectOutputFromDataObject(exportDict,output)
-    for cnt, exportDictionary in enumerate(listDict):
-      identifier = finishedJob.identifier if len(listDict) == 1 else finishedJob.identifier+"_"+str(cnt)
-      exportDictionary['prefix'] = identifier
-      self.addOutputFromExportDictionary(exportDictionary, output, options, identifier)
+    evaluation = finishedJob.getEvaluation()
+    self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(AttributeError,"No available Output to collect")
 
+    output.addRealization(evaluation)
+
+    ##TODO How to handle restart?
+    ##TODO How to handle collectOutputFromDataObject
+
+    return
 
   ###################################################################################
   ## THIS METHOD NEEDS TO BE REWORKED WHEN THE NEW DATAOBJECT STRUCURE IS IN PLACE ##
@@ -683,6 +702,8 @@ class Code(Model):
         returnList.append(appendDict)
     return returnList
 
+
+  #TODO: Seems to me, this function can be removed --- wangc Dec. 2017
   def collectOutputFromDict(self,exportDict,output,options=None):
     """
       Collect results from dictionary
@@ -692,32 +713,26 @@ class Code(Model):
       @ Out, None
     """
     prefix = exportDict.pop('prefix')
-    #convert to *spaceParams instead of inputs,outputs
-    if 'inputs' in exportDict.keys():
-      inp = exportDict.pop('inputs')
-      exportDict['inputSpaceParams'] = inp
-    if 'outputs' in exportDict.keys():
-      out = exportDict.pop('outputs')
-      exportDict['outputSpaceParams'] = out
-    if output.type == 'HDF5':
-      output.addGroupDataObjects({'group':self.name+str(prefix)},exportDict,False)
+    if 'inputSpaceParams' in exportDict.keys():
+      inKey = 'inputSpaceParams'
+      outKey = 'outputSpaceParams'
     else:
-      #point set
-      for key in output.getParaKeys('inputs'):
-        if key in exportDict['inputSpaceParams']:
-          output.updateInputValue(key,exportDict['inputSpaceParams'][key],options)
-        else:
-          self.raiseAnError(Exception, "the input parameter "+key+" requested in the DataObject "+output.name+
-                                       " has not been found among the Model input paramters ("+",".join(exportDict['inputSpaceParams'].keys())+"). Check your input!")
-      for key in output.getParaKeys('outputs'):
-        if key in exportDict['outputSpaceParams']:
-          output.updateOutputValue(key,exportDict['outputSpaceParams'][key],options)
-        else:
-          self.raiseAnError(Exception, "the output parameter "+key+" requested in the DataObject "+output.name+
-                                       " has not been found among the Model output paramters ("+",".join(exportDict['outputSpaceParams'].keys())+"). Check your input!")
-      for key in exportDict['metadata']:
-        output.updateMetadata(key,exportDict['metadata'][key], options)
-      output.numAdditionalLoadPoints += 1 #prevents consistency problems for entries from restart
+      inKey = 'inputs'
+      outKey = 'outputs'
+
+    # FIXME: this should be fixed with the new database
+    if output.type == 'HDF5':
+      self.raiseAnError(IOError, "Not yet implemented!")
+
+    rlz = {}
+    rlz.update(exportDict[inKey])
+    rlz.update(exportDict[outKey])
+    rlz.update(exportDict['metadata'])
+    for key, value in rlz.items():
+      rlz[key] = np.atleast_1d(value)
+    output.addRealization(rlz)
+
+    return
 
   def submit(self, myInput, samplerType, jobHandler, **kwargs):
     """

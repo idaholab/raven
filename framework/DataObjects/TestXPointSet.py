@@ -534,23 +534,23 @@ rlz0 = {'a': np.array([0.1, 0.2, 0.3, 0.4, 0.5]),
        }
 data.setPivotParams(dict((var,['time']) for var in data.vars)) # this would normally be set through the input xml
 # sampling the last entry (default)
-data.addRealization(copy.deepcopy(rlz0))
+data.addRealization(rlz0)
 checkRlz('XPointSet selective default',data.realization(index=0),{'a':0.5,'x':1.7})
 # sampling arbitrary row
 data.setSelectiveInput('inputRow',2)
 data.setSelectiveOutput('outputRow',1)
-data.addRealization(copy.deepcopy(rlz0))
+data.addRealization(rlz0)
 checkRlz('XPointSet selective default',data.realization(index=1),{'a':0.3,'x':1.2})
 # sampling value match
 data.setSelectiveInput('inputPivotValue',1.5e-6)
 data.setSelectiveOutput('outputPivotValue',4e-6)
-data.addRealization(copy.deepcopy(rlz0))
+data.addRealization(rlz0)
 checkRlz('XPointSet selective default',data.realization(index=2),{'a':0.2,'x':1.4})
 # sampling operator in output, last in input
 data._pivotParam = 'time'
 data.setSelectiveInput('inputRow',-1)
 data.setSelectiveOutput('operator','mean')
-data.addRealization(copy.deepcopy(rlz0))
+data.addRealization(rlz0)
 checkRlz('XPointSet selective default',data.realization(index=3),{'a':0.5,'x':1.34})
 
 
