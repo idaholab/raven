@@ -19,6 +19,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
+import copy
+
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 
 class testInterfacedPP_PointSet(PostProcessorInterfaceBase):
@@ -50,7 +52,13 @@ class testInterfacedPP_PointSet(PostProcessorInterfaceBase):
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'testInterfacedPP_PointSet Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
-      return inputDic[0]
+      outputDict = {'data':{}}
+      outputDict['dims'] = copy.deepcopy(inputDic[0]['dims'])
+      for key in inputDic[0]['inpVars']:
+        outputDict['data'][key] = inputDic[0]['data'][key].values
+      for key in inputDic[0]['outVars']:
+        outputDict['data'][key] = inputDic[0]['data'][key].values
+      return outputDict
 
   def readMoreXML(self,xmlNode):
     """

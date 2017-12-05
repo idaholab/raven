@@ -136,7 +136,6 @@ class InterfacedPostProcessor(PostProcessor):
     if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
     inputDic= self.inputToInternal(inputIn)
-
     outputDic = self.postProcessor.run(inputDic)
 
     return outputDic
@@ -216,8 +215,9 @@ class InterfacedPostProcessor(PostProcessor):
         inputDictTemp['data']      = inp.asDataset()
         inputDictTemp['dims']      = inp.getDimensions()
         inputDictTemp['type']      = inp.type
+        inputDictTemp['metadata']  = inp.getMeta(pointwise=True,general=True)
         #### ADD dataObject NAME!!!!!
-        inputDictTemp['name']      = inp.getName()
+        #inputDictTemp['name']      = inp.getName()
         inputDict.append(inputDictTemp)
     return inputDict
 
@@ -233,6 +233,8 @@ class InterfacedPostProcessor(PostProcessor):
       self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
 
     evaluation = evaluations[1]
+
+    print(evaluations)
 
     output.load(evaluation['data'], style='dict', dims=evaluation['dims'])
 
@@ -256,11 +258,3 @@ class InterfacedPostProcessor(PostProcessor):
         inputDictTemp['type'] = str(inp.type)
         inputDict.append(inputDictTemp)
     return inputDict
-
-  def inputToInternal(self,input):
-    """
-      Function to convert the received input into a format this object can
-      understand
-      @ In, input, list, list of dataObjects handed to the post-processor
-      @ Out, inputDict, list, list of dictionaries this object can process
-    """
