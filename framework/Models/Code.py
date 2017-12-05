@@ -312,7 +312,7 @@ class Code(Model):
     if not found:
       self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    subDirectory = os.path.join(self.workingDir, kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
+    subDirectory = os.path.join(self.workingDir, kwargs['prefix'][0] if 'prefix' in kwargs.keys() else '1')
 
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
@@ -712,7 +712,7 @@ class Code(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    prefix = exportDict.pop('prefix')
+    prefix = exportDict.pop('prefix',None)
     if 'inputSpaceParams' in exportDict.keys():
       inKey = 'inputSpaceParams'
       outKey = 'outputSpaceParams'

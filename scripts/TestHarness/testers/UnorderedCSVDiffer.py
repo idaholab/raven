@@ -102,7 +102,7 @@ class UnorderedCSVDiffer:
       diffColumns = set(goldCSV.columns)^set(testCSV.columns)
       if len(diffColumns) > 0:
         self.__same = False
-        self.__message += '\nColumns are not the same! Different: {}'.format(diffColumns)
+        self.__message += ('\nColumns are not the same! Different: {}'.format(', '.join(diffColumns)))
         continue
       ## check index length
       if len(goldCSV.index) != len(testCSV.index):
