@@ -238,6 +238,7 @@ class Grid(ForwardSampler):
               midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
               self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = 1.0 - self.distDict[varName].cdf(midMinusValue)
               weight *= 1.0 - self.distDict[varName].cdf(midMinusValue)
+          self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","-")])
       # ND variable
       else:
         if self.variables2distributionsMapping[varName]['reducedDim']==1:
@@ -274,6 +275,7 @@ class Grid(ForwardSampler):
                 dxs[positionList.index(position)]          =  self.distDict[varName].returnUpperBound(positionList.index(position)) - (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0
                 ndCoordinate[positionList.index(position)] = (self.distDict[varName].returnUpperBound(positionList.index(position)) + (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0) /2.0
           self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
+          self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","!")])
           weight *= self.distDict[varName].cellIntegral(ndCoordinate,dxs)
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)

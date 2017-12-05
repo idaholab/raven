@@ -211,6 +211,7 @@ class Stratified(Grid):
                   self.inputInfo['upper'][kkey] = max(upper,lower)
                   self.inputInfo['lower'][kkey] = min(upper,lower)
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(centerCoordinate,dxs)
+            self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","!")])
             weight *= self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")]
             self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
           else:
@@ -227,6 +228,7 @@ class Stratified(Grid):
               self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
               weight *= max(upper,lower) - min(upper,lower)
               self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = max(upper,lower) - min(upper,lower)
+              self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","!")])
             else:
               self.raiseAnError(IOError,"Since the globalGrid is defined, the Stratified Sampler is only working when the sampling is performed on a grid on a CDF. However, the user specifies the grid on " + self.gridInfo[varName])
       if ("<distribution>" in varName) or self.variables2distributionsMapping[varName]['totDim']==1:
@@ -242,6 +244,7 @@ class Stratified(Grid):
           ppfUpper = self.distDict[varName].ppf(max(upper,lower))
           weight *= self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
           self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
+          self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","-")])
           self.inputInfo['SampledVarsPb'][varName]  = self.distDict[varName].pdf(ppfValue)
         elif self.gridInfo[varName] == 'value':
           coordinateCdf = self.distDict[varName].cdf(min(upper,lower)) + (self.distDict[varName].cdf(max(upper,lower))-self.distDict[varName].cdf(min(upper,lower)))*randomUtils.random()
@@ -250,6 +253,7 @@ class Stratified(Grid):
           coordinate = self.distDict[varName].ppf(coordinateCdf)
           weight *= self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
           self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
+          self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","-")])
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(coordinate)
         for kkey in varName.strip().split(','):
           self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]

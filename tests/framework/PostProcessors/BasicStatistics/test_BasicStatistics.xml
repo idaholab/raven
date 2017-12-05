@@ -13,6 +13,9 @@
     <description>
       This requirements test checks operation of the basic statistics postprocessor.
     </description>
+    <revisions>
+        <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+    </revisions>
     <requirements>R-RA-5</requirements>
   </TestInfo>
 

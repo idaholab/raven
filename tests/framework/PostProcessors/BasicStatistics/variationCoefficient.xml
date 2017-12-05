@@ -15,6 +15,9 @@
 			This test will make sure the expectedValue and the variationCoefficient are correctly computed.
 			If the expectedValues are zero, the variationCoefficient will be INF.
     </description>
+    <revisions>
+        <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
