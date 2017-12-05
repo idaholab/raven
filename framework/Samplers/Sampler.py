@@ -673,7 +673,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #check if point already exists
     if self.restartData is not None:
       # FIXME
-      print('DEBUGG looking for match to:',self.values)
       index,inExisting = self.restartData.realization(matchDict=self.values,tol=self.restartTolerance)
       # OLD inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance)
     else:
