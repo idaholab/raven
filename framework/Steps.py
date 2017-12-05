@@ -570,6 +570,7 @@ class MultiRun(SingleRun):
       else:
         self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
         self._outputDictCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
+    self._registerMetadata(inDictionary)
     self.raiseADebug('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     # set up and run the first batch of samples
     # FIXME this duplicates a lot of code from _locatTakeAstepRun, which should be consolidated
@@ -590,7 +591,6 @@ class MultiRun(SingleRun):
           self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
-    self._registerMetadata(inDictionary)
 
   def _localTakeAstepRun(self,inDictionary):
     """
@@ -701,6 +701,7 @@ class MultiRun(SingleRun):
     while found != 0:
       found,newInp = sampler.generateInput(model,inputs)
       if found == 1:
+        # loop over the outputs for this step and collect the data for each
         for collector, outIndex in self._outputDictCollectionLambda:
           collector([newInp,outputs[outIndex]])
     return newInp

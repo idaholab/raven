@@ -121,11 +121,17 @@
     </PointSet>
     <HistorySet name="BBHistorySet_out">
        <Input>hstart, G_vect</Input>
-       <Output>Time,v,flying,impact</Output>
+       <Output>v,flying,impact</Output>
+       <options>
+           <pivotParameter>Time</pivotParameter>
+       </options>
      </HistorySet>
     <HistorySet name="CreateHIST_out">
       <Input>G_a, G_b, G_c</Input>
       <Output>G_vect</Output>
+       <options>
+           <pivotParameter>Time</pivotParameter>
+       </options>
     </HistorySet>
   </DataObjects>
 

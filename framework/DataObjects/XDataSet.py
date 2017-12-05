@@ -13,6 +13,11 @@
 # limitations under the License.
 
 #For future compatibility with Python 3
+"""
+  This class outlines the behavior for the basic in-memory DataObject, including support
+  for ND and ragged input/output variable data shapes.  Other in-memory DataObjects are
+  specialized implementations of this class.
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -42,7 +47,13 @@ try:
   __builtin__.profile
 except AttributeError:
   # profiler not preset, so pass through
-  def profile(func): return func
+  def profile(func):
+    """
+      Dummy for when profiler is missing.
+      @ In, func, method, method to run
+      @ Out, func, method, method to run
+    """
+    return func
 
 #
 #
@@ -147,8 +158,20 @@ class DataSet(DataObject):
     rlz = self._formatRealization(rlz)
     # perform selective collapsing/picking of data
     rlz = self._selectiveRealization(rlz)
-    # check and order data to be stored
-    newData = np.asarray([list(rlz[var] for var in self._allvars)],dtype=object)
+    # FIXME if no scalar entry is made, this construction fails.
+    #  Instead of treating each dataarrray as an object, numpy.asarray calls their asarray methods,
+    #  unfolding them and making a full numpy array with more dimensions, instead of effectively
+    #  a list of realizations, where each realization is effectively a list of xr.DataArray objects.
+    #
+    #  To mitigate this behavior, we forcibly add a [0.0] entry to each realization, then exclude
+    #  it once the realizations are constructed.  This seems like an innefficient option; others
+    #  should be explored.  - talbpaul, 12/2017
+    # newData is a numpy array of realizations,
+    #   each of which is a numpy array of some combination of scalar values and/or xr.DataArrays.
+    #   This is because the cNDarray collector expects a LIST of realization, not a single realization.
+    #   Maybe the "append" method should be renamed to "extend" or changed to append one at a time.
+    newData = np.asarray([list(rlz[var] for var in self._allvars)+[0.0]],dtype=object)
+    newData = newData[:,:-1]
     # if data storage isn't set up, set it up
     if self._collector is None:
       self._collector = self._newCollector(width=len(rlz))
@@ -210,6 +233,39 @@ class DataSet(DataObject):
       # reset collector
       self._collector = self._newCollector(width=self._collector.width,dtype=self._collector.values.dtype)
     return self._data
+
+  def checkIndexAlignment(self,indexesToCheck=None):
+    """
+      Checks that all realizations share common coordinates along given indexes.
+      That is, assures data is not sparse, but full (no NaN entries).
+      @ In, indexesToCheck, list(str) or str or None, optional, indexes to check (or single index if string, or if None will check ALL indexes)
+      @ Out, same, bool, if True then alignment is good
+    """
+    # format request so that indexesToCheck is always a list
+    if isinstance(indexesToCheck,(str,unicode)):
+      indexesToCheck = [indexesToCheck]
+    elif indexesToCheck is None:
+      indexesToCheck = self.indexes[:]
+    else:
+      try:
+        indexesToCheck = list(indexesToCheck) # TODO what if this errs?
+      except TypeError:
+        self.raiseAnError('Unrecognized input to checkIndexAlignment!  Expected list, string, or None, but got "{}"'.format(type(indexesToCheck)))
+    # check the alignment of each index by checking for NaN values in each slice
+    data = self.asDataset()
+    for index in indexesToCheck:
+      # check that index is indeed an index
+      assert(index in self.indexes)
+      # get number of slices
+      numSlices = len(data[index].values)
+      for i in range(numSlices):
+        # if any entries are null ...
+        if data.where(data.isel(**{index:i}).isnull()).sum > 0:
+          # don't print out statements, but useful if debugging during development.  Comment again afterward.
+          #self.raiseADebug('Found misalignment in index "{}" entry "{}" (value "{}")'.format(index,i,data[index][i].values))
+          return False
+    # if you haven't returned False by now, you must be aligned
+    return True
 
   def constructNDSample(self,vals,dims,coords,name=None):
     """
@@ -338,7 +394,11 @@ class DataSet(DataObject):
       @ In, var, str or list(str), name(s) of variable(s)
       @ Out, res, xr.DataArray, samples (or dict of {var:xr.DataArray} if multiple variables requested)
     """
-    # TODO have to convert here?
+    ## NOTE TO DEVELOPER:
+    # This method will make a COPY of all the data into dictionaries.
+    # This is necessarily fairly cumbersome and slow.
+    # For faster access, consider using data.asDataset()['varName'] for one variable, or
+    #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
     if isinstance(var,(str,unicode)):
       val = self._data[var]
@@ -353,6 +413,34 @@ class DataSet(DataObject):
     else:
       self.raiseAnError(RuntimeError,'Unrecognized request type:',type(var))
     return res
+
+  def load(self,fName,style='netCDF',**kwargs):
+    """
+      Reads this dataset from disk based on the format.
+      @ In, fName, str, path and name of file to read
+      @ In, style, str, optional, options are enumerated below
+      @ In, kwargs, dict, optional, additional arguments to pass to reading function
+      @ Out, None
+    """
+    style = style.lower()
+    # if fileToLoad in kwargs, then filename is actualle fName/fileToLoad
+    if 'fileToLoad' in kwargs.keys():
+      fName = kwargs['fileToLoad'].getAbsFile()
+    # load based on style for loading
+    if style == 'netcdf':
+      self._fromNetCDF(fName,**kwargs)
+    elif style == 'csv':
+      # make sure we don't include the "csv"
+      if fName.endswith('.csv'):
+        fName = fName[:-4]
+      self._fromCSV(fName,**kwargs)
+    elif style == 'dict':
+      self._fromDict(fName,**kwargs)
+    # TODO dask
+    else:
+      self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
+    # after loading, set or reset scaling factors
+    self._setScalingFactors()
 
   def realization(self,index=None,matchDict=None,tol=1e-15):
     """
@@ -424,50 +512,6 @@ class DataSet(DataObject):
       return index,rlz
 
 
-    ##### FIXME OLD
-    #if readCollector:
-    #  if self._collector is None or len(self._collector)==0:
-    #    if matchDict is not None:
-    #      return 0,None
-    #    else:
-    #      return None
-    #elif self._data is None or len(self._data)==0:
-    #  return 0,None
-    #if index is not None:
-    #  if readCollector:
-    #    rlz = self._getRealizationFromCollectorByIndex(index)
-    #  else:
-    #    rlz = self._getRealizationFromDataByIndex(index)
-    #  return rlz
-    #else: #because of check above, this means matchDict is not None
-    #  if readCollector:
-    #    # TODO scaling factors and collector
-    #    index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
-    #  else:
-    #    if self._scaleFactors is None:
-    #      self._setScalingFactors()
-    #    index,rlz = self._getRealizationFromDataByValue(matchDict,tol=tol)
-    #  return index,rlz
-
-  def load(self,fName,style='netCDF',**kwargs):
-    """
-      Reads this dataset from disk based on the format.
-      @ In, fName, str, path and name of file to read
-      @ In, style, str, optional, options are enumerated below
-      @ In, kwargs, dict, optional, additional arguments to pass to reading function
-      @ Out, None
-    """
-    style = style.lower()
-    if style == 'netcdf':
-      self._fromNetCDF(fName,**kwargs)
-    elif style == 'csv':
-      self._fromCSV(fName,**kwargs)
-    elif style == 'dict':
-      self._fromDict(fName,**kwargs)
-    # TODO dask
-    else:
-      self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
-
   def remove(self,realization=None,variable=None):
     """
       Used to remove either a realization or a variable from this data object.
@@ -518,11 +562,11 @@ class DataSet(DataObject):
     self._meta = {}
     # TODO others?
 
-  def sliceByIndex(self,axis):
+  def sliceByIndex(self,index):
     """
-      Returns list of realizations at "snapshots" along "axis".
-      For example, if axis is 'time', then returns cross-sectional slices of the dataobject at each recorded 'time' index value.
-      @ In, axis, str, name of index along which to obtain slices
+      Returns list of realizations at "snapshots" along dimension "index".
+      For example, if 'index' is 'time', then returns cross-sectional slices of the dataobject at each recorded 'time' index value.
+      @ In, index, str, name of index along which to obtain slices
       @ Out, slices, list, list of xr.Dataset slices.
     """
     data = self.asDataset()
@@ -530,12 +574,12 @@ class DataSet(DataObject):
     if self._data is None or len(self._data) == 0:
       self.raiseAWarning('Tried to return sliced data, but DataObject is empty!')
       return []
-    # assert that axis is an index
-    if axis not in self.indexes + [self.sampleTag]:
-      self.raiseAnError(IOError,'Requested slices along "{}" but that variable is not an index!  Options are: {}'.format(axis,self.indexes))
-    numAxisValues = len(data[axis])
-    slices = list(data.isel(**{axis:i}) for i in range(numAxisValues))
-    # NOTE: The slice may include NaN if a variable does not have a value along a different index for this snapshot along "axis"
+    # assert that index is indeed an index
+    if index not in self.indexes + [self.sampleTag]:
+      self.raiseAnError(IOError,'Requested slices along "{}" but that variable is not an index!  Options are: {}'.format(index,self.indexes))
+    numIndexCoords = len(data[index])
+    slices = list(data.isel(**{index:i}) for i in range(numIndexCoords))
+    # NOTE: The slice may include NaN if a variable does not have a value along a different index for this snapshot along "index"
     return slices
 
   def write(self,fName,style='netCDF',**kwargs):
@@ -577,6 +621,7 @@ class DataSet(DataObject):
     self.type      = 'DataSet'
     self.printTag  = self.name
     self.defaultDtype = object
+    self._scaleFactors = {}     # mean, sigma for data for matching purposes
 
   def _readMoreXML(self,xmlNode):
     """
@@ -1023,7 +1068,11 @@ class DataSet(DataObject):
         # scale if we know how
         try:
           loc,scale = self._scaleFactors[var]
-        except IndexError:
+        #except TypeError:
+        #  # self._scaleFactors is None, so set them
+        #  self._setScalingFactors(var)
+        except KeyError: # IndexError?
+        # variable doesn't have a scale factor (yet? Why not?)
           loc = 0.0
           scale = 1.0
         scaleVal = (val-loc)/scale
@@ -1087,7 +1136,7 @@ class DataSet(DataObject):
       @ In, None
       @ Out, None
     """
-    self._scaleFactors = None
+    self._scaleFactors = {}
     self._inputKDTree = None
 
   def _selectiveRealization(self,rlz,checkLengthBeforeTruncating=False):
@@ -1101,16 +1150,26 @@ class DataSet(DataObject):
         self.raiseAnError(NotImplementedError,'Variable "{}" has no dimensions but has multiple values!  Not implemented for DataSet yet.'.format(var))
     return rlz
 
-  def _setScalingFactors(self):
+  def _setScalingFactors(self,var=None):
     """
       Sets the scaling factors for the data (mean, scale).
-      @ In, None
+      @ In, var, str, optional, if given then will only set factors for "var"
       @ Out, None
     """
+    if var is None:
+      # clear existing factors and set list to "all"
+      self._scaleFactors = {}
+      varList = self._allvars
+    else:
+      # clear existing factor and reset variable scale, if existing
+      varList = [var]
+      try:
+        del self._scaleFactors[var]
+      except KeyError:
+        pass
     # TODO someday make KDTree too!
     assert(self._data is not None) # TODO check against collector entries?
-    self._scaleFactors = {}
-    for var in self._allvars:
+    for var in varList:
       ## commented code. We use a try now for speed. It probably needs to be modified for ND arrays
       # if not a float or int, don't scale it
       # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
@@ -1172,7 +1231,7 @@ class DataSet(DataObject):
         if child.tag not in keep:
           toRemove.append(child)
       for r in toRemove:
-        dimsNode.remove(child)
+        dimsNode.remove(r)
     ## remove from "inputs, outputs, pointwise"
     genNode =  xmlUtils.findPath(meta['DataSet'].tree.getroot(),'general')
     toRemove = []
@@ -1190,7 +1249,7 @@ class DataSet(DataObject):
       genNode.remove(r)
 
     self.raiseADebug('Printing metadata XML: "{}"'.format(fName+'.xml'))
-    with file(fName+'.xml','w') as ofile:
+    with open(fName+'.xml','w') as ofile:
       #header
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
       for name,target in meta.items():

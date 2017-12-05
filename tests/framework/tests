@@ -199,6 +199,7 @@
   type = 'RavenFramework'
   input = 'test_Lorentz.xml'
   output = 'externalModel/testPrintHistorySet_dump_0.csv externalModel/testPrintHistorySet_dump_1.csv externalModel/testPrintHistorySet_dump_2.csv externalModel/testPointSet_dump.csv'
+  UnorderedCsv = 'externalModel/testPrintHistorySet_dump.csv'
   max_time = 500
   rel_err = 0.001
  [../]

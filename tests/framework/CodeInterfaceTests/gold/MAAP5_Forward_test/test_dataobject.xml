@@ -1,9 +1,14 @@
-<data name="test_dataobject" type="HistorySet"><input>TIMELOCA</input><output>PSGGEN(1),WWBBN(1),WWTOTFW(1),PPS,ZWDC2SG(1),TIME</output><inputFilename>test_dataobject.csv</inputFilename><metadata><executable>array(['', '', ''], dtype=object)</executable><SamplerType>array([u'MonteCarlo', u'MonteCarlo', u'MonteCarlo'], dtype=object)</SamplerType><crowDist>array([ {u'TIMELOCA': '{"mu": 500.0, "sigma": 25.0, "type": "NormalDistribution"}', u'AFWOFF': '{"xMin": 200.0, "type": "UniformDistribution", "xMax": 1000.0}'},
-       {u'TIMELOCA': '{"mu": 500.0, "sigma": 25.0, "type": "NormalDistribution"}', u'AFWOFF': '{"xMin": 200.0, "type": "UniformDistribution", "xMax": 1000.0}'},
-       {u'TIMELOCA': '{"mu": 500.0, "sigma": 25.0, "type": "NormalDistribution"}', u'AFWOFF': '{"xMin": 200.0, "type": "UniformDistribution", "xMax": 1000.0}'}], dtype=object)</crowDist><SampledVars>array([{u'TIMELOCA': 494.76205358197149, u'AFWOFF': 997.7478466922762},
-       {u'TIMELOCA': 514.59514331047808, u'AFWOFF': 946.04588913406383},
-       {u'TIMELOCA': 407.87665693655396, u'AFWOFF': 302.49955824168853}], dtype=object)</SampledVars><ProbabilityWeight>array([ 1.,  1.,  1.])</ProbabilityWeight><outfile>array([u'out~test', u'out~test', u'out~test'], dtype=object)</outfile><prefix>array(['1', '2', '3'], dtype=object)</prefix><PointProbability>array([  1.95140673e-05,   1.68217031e-05,   2.24540608e-08])</PointProbability><additionalEdits>array([{u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''}], dtype=object)</additionalEdits><SampledVarsPb>array([{u'TIMELOCA': 0.015611253849291297, u'AFWOFF': 0.00125},
-       {u'TIMELOCA': 0.013457362503454385, u'AFWOFF': 0.00125},
-       {u'TIMELOCA': 1.7963248669932313e-05, u'AFWOFF': 0.00125}], dtype=object)</SampledVarsPb></metadata></data>
+<DataObjectMetadata name="Temporal_Evolution">
+  <DataSet type="Static">
+    <dims>
+      <PPS>TIME</PPS>
+    </dims>
+    <general>
+      <inputs>TIMELOCA</inputs>
+      <pointwise_meta>ProbabilityWeight</pointwise_meta>
+      <outputs>PPS,PSGGEN(1),ZWDC2SG(1),WWBBN(1),WWTOTFW(1)</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

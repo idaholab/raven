@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+"""
+  Base class for both in-memory and in-disk data structures.
+"""
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -174,12 +176,12 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           elif cchild.getName() in ['inputRow','inputPivotValue']:
             if self._selectInput is not None:
               duplicateInp = True
-            self.setSelectiveInput('inputRow',cchild.value)
+            self.setSelectiveInput(cchild.getName(),cchild.value)
           # output pickers
           elif cchild.getName() in ['outputRow','outputPivotValue','operator']:
             if self._selectOutput is not None:
               duplicateOut = True
-            self._selectOutput = ('outputRow',cchild.value)
+            self._selectOutput = (cchild.getName(),cchild.value)
         # TODO check this in the input checker instead of here?
         if duplicateInp:
           self.raiseAWarning('Multiple options were given to specify the input row to read! Using last entry:',self._selectInput)
