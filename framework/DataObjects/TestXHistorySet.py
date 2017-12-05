@@ -554,7 +554,7 @@ correct = ['<DataObjectMetadata name="HistorySet">',
 '  ',
 '</DataObjectMetadata>']
 # read in XML
-lines = file(csvname+'.xml','r').readlines()
+lines = open(csvname+'.xml','r').readlines()
 # remove line endings
 for l,line in enumerate(lines):
   lines[l] = line.rstrip(os.linesep).rstrip('\n')
@@ -600,6 +600,30 @@ checkSame('HistorySet full csvxml match idx',idx,2)
 checkRlz('HistorySet full csvxml match',rlz,rlz2,skip=['Timelike'])
 # TODO metadata checks?
 
+
+######################################
+#        NO INPUT SPACE CASE         #
+######################################
+# if there are no scalar elements in the dataobject,
+# there used to be a bug in addRealization that resuted
+# in the wrong shape for adding rows to the collector.
+# This section against that bug.
+xml = createElement('HistorySet',attrib={'name':'test'})
+xml.append(createElement('Output',text='x,y'))
+options = createElement('options')
+options.append(createElement('pivotParameter',text='Timelike'))
+xml.append(options)
+
+data = XHistorySet.HistorySet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+rlz = {'x': np.array([1, 2, 3]),
+       'y': np.array([4, 5, 6]),
+       'Timelike': np.array([0.1, 0.2, 0.3])}
+data.addRealization(rlz)
+# check contents
+rlz0 = data.realization(index=0)
+checkRlz('No input space',rlz0,rlz,skip='Timelike')
 
 # TODO more exhaustive tests are needed, but this is sufficient for initial work.
 

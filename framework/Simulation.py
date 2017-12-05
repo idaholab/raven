@@ -489,7 +489,10 @@ class Simulation(MessageHandler.MessageUser):
             if "name" not in childChild.parameterValues:
               self.raiseAnError(IOError,'not found name attribute for '+childName +' in '+Class)
             name = childChild.parameterValues["name"]
-            self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childName,self)
+            if "needsRunInfo" in self.addWhatDict[Class].__dict__:
+              self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childName,self.runInfoDict,self)
+            else:
+              self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childName,self)
             self.whichDict[Class][name].handleInput(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
         elif Class != 'RunInfo':
           for childChild in child:

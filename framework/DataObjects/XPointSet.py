@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+"""
+  Specialized implementation of DataObject for objects with only single-valued inputs and outputs
+  for each realization.
+"""
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -42,7 +45,13 @@ try:
   __builtin__.profile
 except AttributeError:
   # profiler not preset, so pass through
-  def profile(func): return func
+  def profile(func):
+    """
+      Dummy for when profiler is not in use.
+      @ In, func, method, method to run
+      @ Out, func, method, method to run
+    """
+    return func
 
 #
 #

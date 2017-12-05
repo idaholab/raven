@@ -98,6 +98,7 @@
     <Print name="par_dump">
       <type>csv</type>
       <source>solns</source>
+      <what>input,output</what>
     </Print>
     <Print name="par_dumprom">
       <type>xml</type>

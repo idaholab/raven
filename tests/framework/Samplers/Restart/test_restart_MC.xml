@@ -138,10 +138,12 @@
     <Print name="fine">
       <type>csv</type>
       <source>solnsFine</source>
+      <what>input,output</what>
     </Print>
     <Print name="restart">
       <type>csv</type>
       <source>solnsRestart</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

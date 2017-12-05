@@ -97,7 +97,7 @@
       <Model class="Models" type="Dummy">MyDummy</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="DataObjects" type="PointSet">outGrid</Output>
-      <!--Output class="Databases" type="HDF5">test_DummyModel_db</Output-->
+      <!--<Output class="Databases" type="HDF5">test_DummyModel_db</Output>-->
       <Output class="OutStreams" type="Print">outGrid_dump</Output>
     </MultiRun>
   </Steps>

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This Module performs Unit Tests for the Distribution class.
+  This Module performs Unit Tests for the XPointSet class.
   It can not be considered part of the active code but of the regression test system
 """
 
@@ -181,6 +181,13 @@ def checkRlz(comment,first,second,tol=1e-10,update=True):
   return res
 
 def checkNone(comment,entry,update=True):
+  """
+    Tests if the entry identifies as None.
+    @ In, comment, str, comment to print if failed
+    @ In, entry, object, object to test
+    @ In, update, bool, optional, if True then updates results
+    @ Out, None
+  """
   res = entry is None
   if update:
     if res:
@@ -190,6 +197,16 @@ def checkNone(comment,entry,update=True):
       results["fail"] += 1
 
 def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
+  """
+    Tests if function fails as expected
+    @ In, comment, str, comment to print if failed
+    @ In, errstr, str, expected error string
+    @ In, function, method, method to run
+    @ In, update, bool, optional, if True then updates results
+    @ In, args, list, arguments to function
+    @ In, kwargs, dict, keywords arguments to function
+    @ Out, res, bool, result (True if passed)
+  """
   print('Error testing ...')
   if args is None:
     args = []
@@ -461,7 +478,7 @@ correct = ['<DataObjectMetadata name="PointSet">',
 '  ',
 '</DataObjectMetadata>']
 # read in XML
-lines = file(csvname+'.xml','r').readlines()
+lines = open(csvname+'.xml','r').readlines()
 # remove line endings
 for l,line in enumerate(lines):
   lines[l] = line.rstrip(os.linesep).rstrip('\n')
@@ -517,23 +534,23 @@ rlz0 = {'a': np.array([0.1, 0.2, 0.3, 0.4, 0.5]),
        }
 data.setPivotParams(dict((var,['time']) for var in data.vars)) # this would normally be set through the input xml
 # sampling the last entry (default)
-data.addRealization(copy.deepcopy(rlz0))
+data.addRealization(rlz0)
 checkRlz('XPointSet selective default',data.realization(index=0),{'a':0.5,'x':1.7})
 # sampling arbitrary row
 data.setSelectiveInput('inputRow',2)
 data.setSelectiveOutput('outputRow',1)
-data.addRealization(copy.deepcopy(rlz0))
+data.addRealization(rlz0)
 checkRlz('XPointSet selective default',data.realization(index=1),{'a':0.3,'x':1.2})
 # sampling value match
 data.setSelectiveInput('inputPivotValue',1.5e-6)
 data.setSelectiveOutput('outputPivotValue',4e-6)
-data.addRealization(copy.deepcopy(rlz0))
+data.addRealization(rlz0)
 checkRlz('XPointSet selective default',data.realization(index=2),{'a':0.2,'x':1.4})
 # sampling operator in output, last in input
 data._pivotParam = 'time'
 data.setSelectiveInput('inputRow',-1)
 data.setSelectiveOutput('operator','mean')
-data.addRealization(copy.deepcopy(rlz0))
+data.addRealization(rlz0)
 checkRlz('XPointSet selective default',data.realization(index=3),{'a':0.5,'x':1.34})
 
 

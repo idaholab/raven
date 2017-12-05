@@ -87,12 +87,13 @@
     <Print name="out_noexec">
       <type>csv</type>
       <source>outMC</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="outMC">
-      <Input>f11,f22,c11,c22,t11,t22,n11,n22</Input>
+      <Input>c22,t22,f22,n11,t11,n22,c11,f11</Input>
       <Output>eigenvalue</Output>
     </PointSet>
   </DataObjects>

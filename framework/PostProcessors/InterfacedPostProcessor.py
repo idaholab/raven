@@ -258,3 +258,4 @@ class InterfacedPostProcessor(PostProcessor):
         inputDictTemp['type'] = str(inp.type)
         inputDict.append(inputDictTemp)
     return inputDict
+

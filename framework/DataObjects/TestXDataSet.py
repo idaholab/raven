@@ -531,8 +531,10 @@ checkArray('Metadata get keys',sorted(meta.keys()),['DataSet','TestPP','prefix']
 checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'prefix\'])',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
 # fail to find general in pointwise
 checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'DataSet\'])',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
-# TODO more value testing, easier "getting" of specific values
 
+# check that poorly-aligned set checks out as such
+checkSame('Check misaligned data is not aligned',False,data.checkIndexAlignment())
+# TODO check aligned data too
 
 ######################################
 #        READ/WRITE FROM FILE        #
@@ -586,7 +588,7 @@ correct = ['<DataObjectMetadata name="DataSet">',
 '  ',
 '</DataObjectMetadata>']
 # read in XML
-lines = file(csvname+'.xml','r').readlines()
+lines = open(csvname+'.xml','r').readlines()
 # remove line endings
 for l,line in enumerate(lines):
   lines[l] = line.rstrip(os.linesep).rstrip('\n')
