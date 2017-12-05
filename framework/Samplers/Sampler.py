@@ -136,7 +136,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     return inputSpecification
 
-
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -519,7 +518,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if self.initSeed == None:
       self.initSeed = randomUtils.randomIntegers(0,2**31,self)
     self.counter = 0
-    if   not externalSeeding          :
+    if not externalSeeding:
       randomUtils.randomSeed(self.initSeed)       #use the sampler initialization seed
       self.auxcnt = self.initSeed
     elif externalSeeding=='continue':
@@ -532,36 +531,22 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
       self.restartData = self.assemblerDict['Restart'][0][3]
       self.raiseAMessage('Restarting from '+self.restartData.name)
-      #check consistency of data
-      try:
-        rdata = self.restartData.getAllMetadata()['crowDist']
-        sdata = self.inputInfo['crowDist']
-        self.raiseAMessage('sampler inputs:')
-        for sk,sv in sdata.items():
-          self.raiseAMessage('|   '+str(sk)+': '+str(sv))
-        for i,r in enumerate(rdata):
-          if type(r) != dict:
-            continue
-          if not r==sdata:
-            self.raiseAMessage('restart inputs %i:' %i)
-            for rk,rv in r.items():
-              self.raiseAMessage('|   '+str(rk)+': '+str(rv))
-            self.raiseAnError(IOError,'Restart "%s" data[%i] does not have same inputs as sampler!' %(self.restartData.name,i))
-      except KeyError as e:
-        self.raiseAWarning("No CROW distribution available in restart -",e)
+      # we used to check distribution consistency here, but we want to give more flexibility to using
+      #   restart data, so do NOT check distributions of restart data.
     else:
       self.raiseAMessage('No restart for '+self.printTag)
 
     #load restart data into existing points
-    if self.restartData is not None:
-      if not self.restartData.isItEmpty():
-        inps = self.restartData.getInpParametersValues()
-        outs = self.restartData.getOutParametersValues()
-        #FIXME there is no guarantee ordering is accurate between restart data and sampler
-        inputs = list(v for v in inps.values())
-        existingInps = zip(*inputs)
-        outVals = zip(*list(v for v in outs.values()))
-        self.existing = dict(zip(existingInps,outVals))
+    # TODO do not copy data!  Read directly from restart.
+    #if self.restartData is not None:
+    #  if len(self.restartData) > 0:
+    #    inps = self.restartData.getInpParametersValues()
+    #    outs = self.restartData.getOutParametersValues()
+    #    #FIXME there is no guarantee ordering is accurate between restart data and sampler
+    #    inputs = list(v for v in inps.values())
+    #    existingInps = zip(*inputs)
+    #    outVals = zip(*list(v for v in outs.values()))
+    #    self.existing = dict(zip(existingInps,outVals))
 
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None:
@@ -592,8 +577,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.entitiesToRemove.append('transformation-'+distName)
 
     # Register expected metadata
-    meta = ['ProbabilityWeight']
-    # TODO more meta needs to be added, this is just for testing so far.
+    meta = ['ProbabilityWeight','prefix']
     self.addMetaKeys(*meta)
 
   def localInitialize(self):
@@ -688,9 +672,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ##### RESTART #####
     #check if point already exists
     if self.restartData is not None:
-      inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance)
+      # FIXME
+      index,inExisting = self.restartData.realization(matchDict=self.values,tol=self.restartTolerance)
+      # OLD inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance)
     else:
       inExisting = None
+    # reformat metadata into acceptable format for dataojbect
+    self.inputInfo['ProbabilityWeight'] = np.atleast_1d(self.inputInfo['ProbabilityWeight'])
+    self.inputInfo['prefix'] = np.atleast_1d(self.inputInfo['prefix'])
     #if not found or not restarting, we have a new point!
     if inExisting is None:
       self.raiseADebug('Found new point to sample:',self.values)
@@ -702,19 +691,19 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       ## a copy of the information, otherwise we have to be careful to create a
       ## deep copy of this information when we submit it to a job).
       ## -- DPM 4/18/17
-      # reformat metadata into acceptable format for dataojbect
-      # TODO do it by meta key, as we realize we need them
-      self.inputInfo['ProbabilityWeight'] = np.atleast_1d(self.inputInfo['ProbabilityWeight'])
       return 0,oldInput
     #otherwise, return the restart point
     else:
-      self.raiseADebug('Point found in restart:',inExisting['inputs'])
-      realization = {}
-      realization['metadata'] = copy.deepcopy(self.inputInfo)
-      realization['inputs'] = inExisting['inputs']
-      realization['outputs'] = inExisting['outputs']
-      realization['prefix'] = self.inputInfo['prefix']
-      return 1,realization
+      # TODO use realization format as per new data object (no subspaces)
+      self.raiseADebug('Point found in restart!')
+      rlz = {}
+      # we've fixed it so teh input and output space don't really matter, so use restartData's own definition
+      rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
+      rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output'))
+      rlz['metadata'] = {'prefix':self.inputInfo['prefix'],
+                         'ProbabilityWeight':self.inputInfo['ProbabilityWeight'],
+                        }
+      return 1,rlz
 
   def pcaTransform(self,varsDict,dist):
     """
