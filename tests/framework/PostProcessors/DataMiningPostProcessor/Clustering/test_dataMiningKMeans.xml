@@ -9,6 +9,7 @@
       Tests clustering with the KMeans model.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>KMeans</WorkingDir>
     <Sequence>input,cluster,output</Sequence>
@@ -63,7 +64,7 @@
       <source>data</source>
       <what>Output|kMeansLabels</what>
     </Print>
-    <Plot  name="plot" overwrite="false">
+    <Plot name="plot" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

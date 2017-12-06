@@ -11,6 +11,7 @@
        The NumMPI XML node MUST BE INPUTTED if the SLAVE RAVEN runs must run in multiple processors!
     </description>
   </TestInfo>
+
   <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>raven_running_raven_internal_models</WorkingDir>
@@ -21,9 +22,9 @@
     <mode>mpi</mode>
   </RunInfo>
 
-<Files>
-    <Input name="test_rom_trainer.xml" type="raven" >test_rom_trainer.xml</Input>
-</Files>
+  <Files>
+    <Input name="test_rom_trainer.xml" type="raven">test_rom_trainer.xml</Input>
+  </Files>
 
   <!-- STEPS -->
   <Steps>
@@ -42,13 +43,12 @@
   <!-- MODELS -->
   <Models>
     <Code name="raven_running_rom" subType="RAVEN">
-        <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
-        <outputExportOutStreams>outputMontecarloRom_dump,outputMontecarloRomHS_dump</outputExportOutStreams>
-        <conversionModule>raven_running_raven_internal_models/testConversionModule.py</conversionModule>
-        <alias variable="loss_factor" type="input">Models|ROM@subType:SciKitLearn@name:ROM1|C</alias>
-        <alias variable="tollerance"  type="input">Models|ROM@subType:SciKitLearn@name:ROM1|tol</alias>
-        <alias variable="DG1recoveryTime"  type="input">Samplers|Grid@name:gridRom|constant@name:DG1recoveryTime</alias>
- 
+      <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
+      <outputExportOutStreams>outputMontecarloRom_dump,outputMontecarloRomHS_dump</outputExportOutStreams>
+      <conversionModule>raven_running_raven_internal_models/testConversionModule.py</conversionModule>
+      <alias type="input" variable="loss_factor">Models|ROM@subType:SciKitLearn@name:ROM1|C</alias>
+      <alias type="input" variable="tollerance">Models|ROM@subType:SciKitLearn@name:ROM1|tol</alias>
+      <alias type="input" variable="DG1recoveryTime">Samplers|Grid@name:gridRom|constant@name:DG1recoveryTime</alias>
     </Code>
   </Models>
 
@@ -63,8 +63,8 @@
       <sigma>0.000001</sigma>
     </Normal>
     <Uniform name="DG1backup">
-        <lowerBound>0</lowerBound>
-        <upperBound>1000</upperBound>
+      <lowerBound>0</lowerBound>
+      <upperBound>1000</upperBound>
     </Uniform>
   </Distributions>
 
@@ -81,7 +81,7 @@
         <distribution>toll_distrib</distribution>
       </variable>
       <variable name="DG1recoveryTime">
-          <distribution>DG1backup</distribution>
+        <distribution>DG1backup</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>

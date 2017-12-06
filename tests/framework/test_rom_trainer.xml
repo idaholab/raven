@@ -24,6 +24,7 @@
     </revisions>
     <requirements>R-RA-4</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>

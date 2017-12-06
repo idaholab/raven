@@ -79,6 +79,9 @@ class GradientBasedOptimizer(Optimizer):
     self.gainShrinkFactor            = 2.              # max step shrinking factor
     self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation. It is not ideal but it is quick and dirty now
 
+    # register metadata
+    self.addMetaKeys('trajID','varsUpdate','prefix')
+
   def localInputAndChecks(self, xmlNode):
     """
       Method to read the portion of the xml input that belongs to all gradient based optimizer only
@@ -503,30 +506,24 @@ class GradientBasedOptimizer(Optimizer):
           if solutionExportUpdatedFlag or failedTraj:
             #get evaluations (input,output) from the collection of all evaluations
             if not failedTraj:
-              # OLD inputeval = self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
-              # OLD outputeval = self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
               #TODO this might be faster for non-stochastic if we do an "if" here on gradDict['numIterForAve']
               #make a place to store distinct evaluation values
               outputs = dict((var,np.zeros(self.gradDict['numIterForAve'])) for var in self.solutionExport.getVars('output') if var in self.mdlEvalHist.getVars('output'))
-              # OLD for outvar in self.solutionExport.getVars('output'):
-              #   if outvar not in self.mdlEvalHist.getVars('output'): # OLD outputeval.keys():
-              #     continue
-               #  outputs[outvar] = np.zeros(self.gradDict['numIterForAve'])
               # get output values corresponding to evaluations of the opt point
               # also add opt points to the grad perturbation list
               self.gradDict['pertPoints'][traj] = np.zeros((1+self.paramDict['pertSingleGrad'])*self.gradDict['numIterForAve'],dtype=dict)
               for i, index in enumerate(indices):
                 # get the realization from the targetEvaluation
-                vals = self.mdlEvalHist.realization(index=index) # XXX WORKING TODO FIXME
+                vals = self.mdlEvalHist.realization(index=index)
                 # place values TODO this could be vectorized significantly!
-                for outvar in outputs.keys():
-                  outputs[outvar][i] = float(vals[var]) # OLD outputeval[outvar][index]
-                  if outvar == self.objVar:
+                for var in outputs.keys():
+                  outputs[var][i] = float(vals[var])
+                  if var == self.objVar:
                     self.gradDict['pertPoints'][traj][i] = {'inputs':self.normalizeData(dict((var,vals[var]) for var in self.mdlEvalHist.getVars('input'))),
                                                             'output':float(vals[var])}
               # assumed output value is the mean of sampled values
-              for outvar,vals in outputs.items():
-                outputs[outvar] = vals.mean()
+              for var,vals in outputs.items():
+                outputs[var] = vals.mean()
               currentObjectiveValue = outputs[self.objVar]#.mean()
               # check convergence
               # TODO REWORK move this to localStillReady, along with the gradient evaluation
@@ -560,34 +557,25 @@ class GradientBasedOptimizer(Optimizer):
             # update solution export
             #FIXME much of this should move to the base class!
             if not failedTraj:
-              if 'trajID' not in self.solutionExport.getVars('input'):
-                self.raiseAnError(IOError, 'trajID is not in the <inputs> space of the solutionExport data object specified for this optimization step!  Please add it.')
-              trajID = traj+1 # This is needed to be compatible with historySet object
               # create realization to add to data object
               rlz = {}
-              rlz['trajID'] = trajID
-              rlz['traj'] = traj # TODO needed?
-              # OLD self.solutionExport.updateInputValue([trajID,'trajID'], traj)
-              output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding').get(trajID,{})
               badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
-              # TODO this looping can probably be sped up by clustering requests
-              for var in self.solutionExport.getParaKeys('outputs'):
-                # OLD old = copy.deepcopy(output.get(var, np.asarray([])))
-                # OLD new = None #prevents accidental data copying
+              for var in self.solutionExport.getVars():
                 if var in self.getOptVars():
-                  rlz[var] = self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs'])[var]
+                  new = self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs'])[var]
                 elif var == self.objVar:
-                  rlz[var] = self.counter['recentOptHist'][traj][0]['output']
+                  new = self.counter['recentOptHist'][traj][0]['output']
                 elif var in outputs.keys():
-                  rlz[var] = outputs[var]
+                  new = outputs[var]
                 elif var == 'varsUpdate':
-                  rlz[var] = self.counter['solutionUpdate'][traj]
+                  new = self.counter['solutionUpdate'][traj]
+                elif var == 'trajID':
+                  new = traj+1 # +1 is for historical reasons, when histories were indexed on 1 instead of 0
                 elif var == 'stepSize':
                   try:
                     new = self.counter['lastStepSize'][traj]
                   except KeyError:
                     new = badValue
-                  rlz[var] = new
                 elif var.startswith( 'gradient_'):
                   varName = var[9:]
                   vec = self.counter['gradientHistory'][traj][0].get(varName,None)
@@ -595,30 +583,26 @@ class GradientBasedOptimizer(Optimizer):
                     new = vec*self.counter['gradNormHistory'][traj][0]
                   else:
                     new = badValue
-                  rlz[var] = new
                 elif var.startswith( 'convergenceAbs'):
                   try:
                     new = self.convergenceProgress[traj].get('abs',badValue)
                   except KeyError:
                     new = badValue
-                  rlz[var] = new
                 elif var.startswith( 'convergenceRel'):
                   try:
                     new = self.convergenceProgress[traj].get('rel',badValue)
                   except KeyError:
                     new = badValue
-                  rlz[var] = new
                 elif var.startswith( 'convergenceGrad'):
                   try:
                     new = self.convergenceProgress[traj].get('grad',badValue)
                   except KeyError:
                     new = badValue
-                  rlz[var] = new
                 else:
                   self.raiseAnError(IOError,'Unrecognized output request:',var)
-                # OLD new = np.asarray(new)
-                # OLD self.solutionExport.updateOutputValue([trajID,var],np.append(old,new))
-                self.solutionExport.extendExistingEntry(rlz)
+                # format for realization
+                rlz[var] = np.atleast_1d(new)
+              self.solutionExport.addRealization(rlz)
               self.counter['solutionUpdate'][traj] += 1
           else: #not ready to update solutionExport
             break

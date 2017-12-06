@@ -5,6 +5,7 @@
     <Sequence>Cmake,Ctrain,Ctest,Cprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/SparseGrid/customGrid</name>
     <author>talbpaul</author>

@@ -6,13 +6,13 @@
     <created>2015-03-04</created>
     <classesTested>Distributions.NDInverseWeight, Distrubtions.NDCartesianSpline, Samplers.Stratified</classesTested>
     <description>
-       This test is aimed to check the capability of RAVEN to handle ND probability density functions (distributions), when 
+       This test is aimed to check the capability of RAVEN to handle ND probability density functions (distributions), when
        a Stratified sampling strategy is performed. In this case, the capability to use a globalGrid specification, when the discretization is performed in CDF.
     </description>
     <revisions>
       <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
       <revision author="alfoa" date="2015-04-24">From LHS to Stratified. Closes #130</revision>
-      <revision author="alfoa" date="2015-05-28">fixed Stratified Sampler bug (=> regolding) +</revision>
+      <revision author="alfoa" date="2015-05-28">fixed Stratified Sampler bug (=&gt; regolding) +</revision>
       <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
       <revision author="alfoa" date="2015-09-12">removed syntax inconsistency with respect standards for Samplers (underscores instead of camelBack) + created conversion script</revision>
       <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
@@ -21,6 +21,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>ND_test_LHS</WorkingDir>
     <Sequence>FirstMRun</Sequence>

@@ -10,10 +10,8 @@
   <ExternalXML node="Models" xmlToLoad="sharedModel.xml"/>
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
-
-
   <OutStreams>
-    <Plot name='test' interactive='True' overwrite='True'>
+    <Plot interactive="True" name="test" overwrite="True">
       <filename>legendTest</filename>
       <actions>
         <how>png</how>
@@ -24,17 +22,17 @@
       <plotSettings>
         <plot>
           <type>line</type>
-            <x>PointSet|Input|X</x>
-            <y>PointSet|Output|Z</y>
-         </plot>
+          <x>PointSet|Input|X</x>
+          <y>PointSet|Output|Z</y>
+        </plot>
         <plot>
           <type>line</type>
-            <x>PointSet|Input|Y</x>
-            <y>PointSet|Output|Z</y>
-            <kwargs>
-              <label>Y</label>
-            </kwargs>
-         </plot>
+          <x>PointSet|Input|Y</x>
+          <y>PointSet|Output|Z</y>
+          <kwargs>
+            <label>Y</label>
+          </kwargs>
+        </plot>
         <xlabel>X</xlabel>
         <ylabel>Y</ylabel>
         <legend>
@@ -47,5 +45,4 @@
 
   <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
   <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
-
 </Simulation>

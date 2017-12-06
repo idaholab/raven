@@ -5,6 +5,7 @@
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_Minkowski</name>
     <author>wangc</author>
@@ -29,7 +30,7 @@
       <Metric class="Metrics" type="Minkowski">minkowskiMetric</Metric>
     </PostProcessor>
   </Models>
-  
+
   <Metrics>
     <Minkowski name="minkowskiMetric">
       <p>2</p>

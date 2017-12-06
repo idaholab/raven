@@ -16,6 +16,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>subplot_output</WorkingDir>
     <Sequence>FirstMRun,testOutstreamStep</Sequence>
@@ -48,7 +49,7 @@
   </Samplers>
 
   <OutStreams>
-    <Plot   name="subPlot1" overwrite="false" verbosity="silent">
+    <Plot name="subPlot1" overwrite="false" verbosity="silent">
       <plotSettings>
         <gridSpace>3 3 </gridSpace>
         <plot>
@@ -113,7 +114,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot  name="subPlot2" overwrite="false" verbosity="silent">
+    <Plot name="subPlot2" overwrite="false" verbosity="silent">
       <plotSettings>
         <gridSpace>3 3 </gridSpace>
         <plot>
@@ -157,7 +158,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot  name="subPlot3" overwrite="false" verbosity="silent">
+    <Plot name="subPlot3" overwrite="false" verbosity="silent">
       <plotSettings>
         <gridSpace>3 3 </gridSpace>
         <plot>

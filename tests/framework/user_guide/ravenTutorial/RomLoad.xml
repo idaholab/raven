@@ -19,7 +19,7 @@
   </TestInfo>
 
   <Files>
-      <Input name="rom_inv" type="">../commonFiles/inverseRom.pk</Input>
+    <Input name="rom_inv" type="">../commonFiles/inverseRom.pk</Input>
   </Files>
 
   <Models>
@@ -31,22 +31,22 @@
   </Models>
 
   <Distributions>
-      <Uniform name="sigma">
-          <lowerBound>1</lowerBound>
-          <upperBound>10</upperBound>
-      </Uniform>
-      <Uniform name="decayConstant">
-          <lowerBound>0.000000005</lowerBound>
-          <upperBound>0.000000010</upperBound>
-      </Uniform>
+    <Uniform name="sigma">
+      <lowerBound>1</lowerBound>
+      <upperBound>10</upperBound>
+    </Uniform>
+    <Uniform name="decayConstant">
+      <lowerBound>0.000000005</lowerBound>
+      <upperBound>0.000000010</upperBound>
+    </Uniform>
   </Distributions>
 
   <Samplers>
     <MonteCarlo name="monteCarlo">
       <samplerInit>
-          <limit>10</limit>
-          <reseedEachIteration>True</reseedEachIteration>
-          <initialSeed>130168</initialSeed>
+        <limit>10</limit>
+        <reseedEachIteration>True</reseedEachIteration>
+        <initialSeed>130168</initialSeed>
       </samplerInit>
       <variable name="sigma-A">
         <distribution>sigma</distribution>
@@ -59,8 +59,8 @@
 
   <Steps>
     <IOStep name="loadROM">
-        <Input class="Files" type="">rom_inv</Input>
-        <Output class="Models" type="ROM">rom</Output>
+      <Input class="Files" type="">rom_inv</Input>
+      <Output class="Models" type="ROM">rom</Output>
     </IOStep>
     <MultiRun name="sampleROM">
       <Input class="DataObjects" type="HistorySet">inputPlaceHolder</Input>
@@ -69,9 +69,9 @@
       <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
     <IOStep name="writeHistories" pauseAtEnd="True">
-        <Input  class="DataObjects"      type="HistorySet">histories</Input>
-        <Output class="OutStreams" type="Plot">historyROMPlot</Output>
-        <Output class="OutStreams" type="Print">historiesROM</Output>
+      <Input class="DataObjects" type="HistorySet">histories</Input>
+      <Output class="OutStreams" type="Plot">historyROMPlot</Output>
+      <Output class="OutStreams" type="Print">historiesROM</Output>
     </IOStep>
   </Steps>
 
@@ -84,33 +84,33 @@
       <Input>sigma-A,decay-A</Input>
       <Output>A, time</Output>
       <options>
-          <pivotParameter>time</pivotParameter>
+        <pivotParameter>time</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>
 
   <OutStreams>
     <Print name="historiesROM">
-        <type>csv</type>
-        <source>histories</source>
+      <type>csv</type>
+      <source>histories</source>
     </Print>
-    <Plot   name="historyROMPlot" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <plot>
-                <type>line</type>
-                <x>histories|Output|time</x>
-                <y>histories|Output|A</y>
-                <color>blue</color>
-            </plot>
-            <xlabel>time (s)</xlabel>
-            <ylabel>evolution A(kg)</ylabel>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+    <Plot name="historyROMPlot" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>histories|Output|time</x>
+          <y>histories|Output|A</y>
+          <color>blue</color>
+        </plot>
+        <xlabel>time (s)</xlabel>
+        <ylabel>evolution A(kg)</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
   </OutStreams>
 

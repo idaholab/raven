@@ -5,6 +5,7 @@
     <Sequence>Gmake,Gtrain,Gtest,Gprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/SparseGrid/gamma</name>
     <author>talbpaul</author>

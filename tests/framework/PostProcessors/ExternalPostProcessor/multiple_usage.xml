@@ -11,6 +11,7 @@
       processor on multiple data objects does not cause naming issues.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>externalPostProcessor</WorkingDir>
     <Sequence>

@@ -13,7 +13,7 @@
       <revision author="alfoa" date="2017-07-10">Modified test in order to show how to use a HDF5 as optional output (Issue #237)</revision>
     </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <JobName>testEnsembleModelWith2CodesAndAliasAndSelectiveOutputs</JobName>
     <Sequence>
@@ -36,21 +36,21 @@
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
       <prepend>python</prepend>
-      <alias variable="AtestModel1"           type="output">A</alias>
-      <alias variable="BtestModel1"           type="output">B</alias>
+      <alias type="output" variable="AtestModel1">A</alias>
+      <alias type="output" variable="BtestModel1">B</alias>
     </Code>
     <Code name="testModel2" subType="GenericCode">
-        <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
-        <clargs arg="python" type="prepend"/>
-        <clargs arg="" extension=".xml" type="input"/>
-        <clargs arg=" " extension=".csv" type="output"/>
-        <prepend>python</prepend>
-        <alias variable="AtestModel1"           type="input">init-A</alias>
-        <alias variable="BtestModel1"           type="input">init-B</alias>
-        <alias variable="AtestModel2"           type="output">A</alias>
-        <alias variable="BtestModel2"           type="output">B</alias>
-        <alias variable="CtestModel2"           type="output">C</alias>
-        <alias variable="DtestModel2"           type="output">D</alias>
+      <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg=" " extension=".csv" type="output"/>
+      <prepend>python</prepend>
+      <alias type="input" variable="AtestModel1">init-A</alias>
+      <alias type="input" variable="BtestModel1">init-B</alias>
+      <alias type="output" variable="AtestModel2">A</alias>
+      <alias type="output" variable="BtestModel2">B</alias>
+      <alias type="output" variable="CtestModel2">C</alias>
+      <alias type="output" variable="DtestModel2">D</alias>
     </Code>
     <EnsembleModel name="codeAndExtModel" subType="">
       <Model class="Models" type="Code">
@@ -59,7 +59,7 @@
         <TargetEvaluation class="DataObjects" type="PointSet">sumData</TargetEvaluation>
         <Output class="DataObjects" type="PointSet">responseModel2</Output>
         <Output class="DataObjects" type="HistorySet">responseModel2HS</Output>
-        <Output class="Databases"  type="HDF5">database_Model2_optional_output</Output>
+        <Output class="Databases" type="HDF5">database_Model2_optional_output</Output>
       </Model>
       <Model class="Models" type="Code">
           testModel
@@ -67,7 +67,7 @@
         <TargetEvaluation class="DataObjects" type="PointSet">samplesMC</TargetEvaluation>
         <Output class="DataObjects" type="PointSet">responseModel1</Output>
         <Output class="DataObjects" type="HistorySet">responseModel1HS</Output>
-        <Output class="Databases"  type="HDF5">database_Model1_optional_output</Output>
+        <Output class="Databases" type="HDF5">database_Model1_optional_output</Output>
       </Model>
     </EnsembleModel>
   </Models>
@@ -105,45 +105,45 @@
 
   <Steps>
     <MultiRun name="sampleMC">
-      <Input   class="Files"       type="">referenceInput.xml</Input>
-      <Input   class="Files"       type="">referenceInput2.xml</Input>
-      <Model   class="Models"      type="EnsembleModel">codeAndExtModel</Model>
-      <Sampler class="Samplers"    type="MonteCarlo">mc</Sampler>
-      <Output  class="DataObjects" type="PointSet">finalResponses</Output>
-      <Output  class="DataObjects" type="PointSet">responseModel2</Output>
-      <Output  class="DataObjects" type="HistorySet">responseModel2HS</Output>
-      <Output  class="DataObjects" type="PointSet">responseModel1</Output>
-      <Output  class="DataObjects" type="HistorySet">responseModel1HS</Output>
-      <Output  class="Databases"   type="HDF5">database_Model1_optional_output</Output>
-      <Output  class="Databases"   type="HDF5">database_Model2_optional_output</Output>
+      <Input class="Files" type="">referenceInput.xml</Input>
+      <Input class="Files" type="">referenceInput2.xml</Input>
+      <Model class="Models" type="EnsembleModel">codeAndExtModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">finalResponses</Output>
+      <Output class="DataObjects" type="PointSet">responseModel2</Output>
+      <Output class="DataObjects" type="HistorySet">responseModel2HS</Output>
+      <Output class="DataObjects" type="PointSet">responseModel1</Output>
+      <Output class="DataObjects" type="HistorySet">responseModel1HS</Output>
+      <Output class="Databases" type="HDF5">database_Model1_optional_output</Output>
+      <Output class="Databases" type="HDF5">database_Model2_optional_output</Output>
     </MultiRun>
     <IOStep name="dumpResults">
-        <Input class="DataObjects" type="PointSet">finalResponses</Input>
-        <Input class="DataObjects" type="PointSet">responseModel1</Input>
-        <Input class="DataObjects" type="PointSet">responseModel2</Input>
-        <Input class="DataObjects" type="HistorySet">responseModel1HS</Input>
-        <Input class="DataObjects" type="HistorySet">responseModel2HS</Input>
-        <Input class="DataObjects" type="PointSet">responseModel1_from_optional_hdf5_output</Input>
-        <Input class="DataObjects" type="PointSet">responseModel2_from_optional_hdf5_output</Input>
-        <Output class="OutStreams" type="Print">printFinalResults</Output>
-        <Output class="OutStreams" type="Print">printResponseModel1</Output>
-        <Output class="OutStreams" type="Print">printResponseModel2</Output>
-        <Output class="OutStreams" type="Print">printResponseModel1HS</Output>
-        <Output class="OutStreams" type="Print">printResponseModel2HS</Output>
-        <Output class="OutStreams" type="Print">printResponseModel1_from_hdf5</Output>
-        <Output class="OutStreams" type="Print">printResponseModel2_from_hdf5</Output>
+      <Input class="DataObjects" type="PointSet">finalResponses</Input>
+      <Input class="DataObjects" type="PointSet">responseModel1</Input>
+      <Input class="DataObjects" type="PointSet">responseModel2</Input>
+      <Input class="DataObjects" type="HistorySet">responseModel1HS</Input>
+      <Input class="DataObjects" type="HistorySet">responseModel2HS</Input>
+      <Input class="DataObjects" type="PointSet">responseModel1_from_optional_hdf5_output</Input>
+      <Input class="DataObjects" type="PointSet">responseModel2_from_optional_hdf5_output</Input>
+      <Output class="OutStreams" type="Print">printFinalResults</Output>
+      <Output class="OutStreams" type="Print">printResponseModel1</Output>
+      <Output class="OutStreams" type="Print">printResponseModel2</Output>
+      <Output class="OutStreams" type="Print">printResponseModel1HS</Output>
+      <Output class="OutStreams" type="Print">printResponseModel2HS</Output>
+      <Output class="OutStreams" type="Print">printResponseModel1_from_hdf5</Output>
+      <Output class="OutStreams" type="Print">printResponseModel2_from_hdf5</Output>
     </IOStep>
     <IOStep name="storeSelectiveResultsToHDF5">
-        <Input class="DataObjects" type="PointSet">responseModel1</Input>
-        <Input class="DataObjects" type="PointSet">responseModel2</Input>
-        <Output class="Databases"  type="HDF5">database_Model1</Output>
-        <Output class="Databases"  type="HDF5">database_Model2</Output>
+      <Input class="DataObjects" type="PointSet">responseModel1</Input>
+      <Input class="DataObjects" type="PointSet">responseModel2</Input>
+      <Output class="Databases" type="HDF5">database_Model1</Output>
+      <Output class="Databases" type="HDF5">database_Model2</Output>
     </IOStep>
     <IOStep name="extract_from_optional_hdf5">
-        <Input  class="Databases"   type="HDF5">database_Model1_optional_output</Input>
-        <Input  class="Databases"   type="HDF5">database_Model2_optional_output</Input>
-        <Output class="DataObjects" type="PointSet">responseModel1_from_optional_hdf5_output</Output>
-        <Output class="DataObjects" type="PointSet">responseModel2_from_optional_hdf5_output</Output>
+      <Input class="Databases" type="HDF5">database_Model1_optional_output</Input>
+      <Input class="Databases" type="HDF5">database_Model2_optional_output</Input>
+      <Output class="DataObjects" type="PointSet">responseModel1_from_optional_hdf5_output</Output>
+      <Output class="DataObjects" type="PointSet">responseModel2_from_optional_hdf5_output</Output>
     </IOStep>
   </Steps>
 
@@ -160,30 +160,29 @@
       <source>finalResponses</source>
     </Print>
     <Print name="printResponseModel1">
-        <type>csv</type>
-        <source>responseModel1</source>
+      <type>csv</type>
+      <source>responseModel1</source>
     </Print>
     <Print name="printResponseModel2">
-        <type>csv</type>
-        <source>responseModel2</source>
+      <type>csv</type>
+      <source>responseModel2</source>
     </Print>
     <Print name="printResponseModel1HS">
-        <type>csv</type>
-        <source>responseModel1HS</source>
+      <type>csv</type>
+      <source>responseModel1HS</source>
     </Print>
     <Print name="printResponseModel2HS">
-        <type>csv</type>
-        <source>responseModel2HS</source>
+      <type>csv</type>
+      <source>responseModel2HS</source>
     </Print>
     <Print name="printResponseModel1_from_hdf5">
-        <type>csv</type>
-        <source>responseModel1_from_optional_hdf5_output</source>
+      <type>csv</type>
+      <source>responseModel1_from_optional_hdf5_output</source>
     </Print>
     <Print name="printResponseModel2_from_hdf5">
-        <type>csv</type>
-        <source>responseModel2_from_optional_hdf5_output</source>
+      <type>csv</type>
+      <source>responseModel2_from_optional_hdf5_output</source>
     </Print>
-    
   </OutStreams>
 
   <DataObjects>
@@ -200,28 +199,28 @@
       <Output>AtestModel1,BtestModel1,C,D,AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
     </PointSet>
     <PointSet name="responseModel1">
-        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-        <Output>AtestModel1,BtestModel1,C,D</Output>
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>AtestModel1,BtestModel1,C,D</Output>
     </PointSet>
     <PointSet name="responseModel2">
-        <Input>AtestModel1,BtestModel1</Input>
-        <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
+      <Input>AtestModel1,BtestModel1</Input>
+      <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
     </PointSet>
     <PointSet name="responseModel1_from_optional_hdf5_output">
-        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-        <Output>AtestModel1,BtestModel1,C,D</Output>
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>AtestModel1,BtestModel1,C,D</Output>
     </PointSet>
     <PointSet name="responseModel2_from_optional_hdf5_output">
-        <Input>AtestModel1,BtestModel1</Input>
-        <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
+      <Input>AtestModel1,BtestModel1</Input>
+      <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
     </PointSet>
     <HistorySet name="responseModel1HS">
-        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-        <Output>AtestModel1,BtestModel1,C,D</Output>
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>AtestModel1,BtestModel1,C,D</Output>
     </HistorySet>
     <HistorySet name="responseModel2HS">
-        <Input>AtestModel1,BtestModel1</Input>
-        <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
+      <Input>AtestModel1,BtestModel1</Input>
+      <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
     </HistorySet>
   </DataObjects>
 

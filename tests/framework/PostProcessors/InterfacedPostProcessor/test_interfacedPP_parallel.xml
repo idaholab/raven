@@ -9,7 +9,7 @@
       Test of the interfaced post-processor interface performed in parallel
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>interfacedPostProcessorParallel</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>

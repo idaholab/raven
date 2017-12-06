@@ -15,6 +15,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
@@ -48,10 +49,10 @@
   <Models>
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
       <variables>sigma,rho,beta,firstOut,secondOut,z,time,firstVar,secondVar,z0</variables>
-      <alias variable="x0" type="input">firstVar</alias>
-      <alias variable="y0" type="input">secondVar</alias>
-      <alias variable="x"  type="output">firstOut</alias>
-      <alias variable="y"  type="output">secondOut</alias>
+      <alias type="input" variable="x0">firstVar</alias>
+      <alias type="input" variable="y0">secondVar</alias>
+      <alias type="output" variable="x">firstOut</alias>
+      <alias type="output" variable="y">secondOut</alias>
     </ExternalModel>
   </Models>
 
@@ -105,12 +106,12 @@
       <source>testPointSet</source>
     </Print>
     <Print name="testPrintHistorySetFromHDF5_dump">
-        <type>csv</type>
-        <source>testPrintHistorySetFromHDF5</source>
+      <type>csv</type>
+      <source>testPrintHistorySetFromHDF5</source>
     </Print>
     <Print name="testPointSetFromHDF5_dump">
-        <type>csv</type>
-        <source>testPointSetFromHDF5</source>
+      <type>csv</type>
+      <source>testPointSetFromHDF5</source>
     </Print>
   </OutStreams>
 
@@ -125,16 +126,16 @@
       <Output>time,x,y,z</Output>
     </PointSet>
     <PointSet name="testPointSetFromHDF5">
-        <Input>x0,y0,z0</Input>
-        <Output>time,x,y,z</Output>
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
     </PointSet>
     <HistorySet name="testPrintHistorySet">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="testPrintHistorySetFromHDF5">
-        <Input>x0,y0,z0</Input>
-        <Output>time,x,y,z</Output>
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
     </HistorySet>
   </DataObjects>
 

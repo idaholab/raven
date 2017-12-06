@@ -26,7 +26,7 @@
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
-      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
@@ -49,16 +49,16 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <iterationLimit>100</iterationLimit>
-          <gradientThreshold>1e-2</gradientThreshold>
-          <relativeThreshold>1e-5</relativeThreshold>
+        <iterationLimit>100</iterationLimit>
+        <gradientThreshold>1e-2</gradientThreshold>
+        <relativeThreshold>1e-5</relativeThreshold>
       </convergence>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
         <initial>-2,-2,0,2,2</initial>
       </variable>
-      <variable name='y'>
+      <variable name="y">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
         <initial>-2,2,0,-2,2</initial>
@@ -68,8 +68,8 @@
         <c>1e-3</c>
       </parameter>
       <multilevel>
-        <subspace name='first'>x</subspace>
-        <subspace name='second'>y</subspace>
+        <subspace name="first">x</subspace>
+        <subspace name="second">y</subspace>
         <sequence>first,second</sequence>
       </multilevel>
     </SPSA>
@@ -100,16 +100,17 @@
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate</Output>
     </PointSet>
-    <HistorySet name="opt_export">
+    <PointSet name="opt_export">
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate,stepSize,convergenceAbs,convergenceRel,convergenceGrad</Output>
-    </HistorySet>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
     </Print>
     <Print name="opt_soln">
       <type>csv</type>

@@ -102,7 +102,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #functions and dataojbects
     self.constraintFunction             = None                      # External constraint function, could be not present
     self.preconditioners                = {}                        # by name, Models that might be used as preconditioners
-    self.solutionExport                 = None                      # This is the data used to export the solution (it could also not be present)
+    self.solutionExport                 = None                      # This is the data used to export the solution
     self.mdlEvalHist                    = None                      # Containing information of all model evaluation
     self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
     #multilevel
@@ -492,8 +492,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if self.solutionExport is None:
       self.raiseAnError(IOError,'The results of optimization cannot be obtained without a SolutionExport defined in the Step!')
 
-    if type(solutionExport).__name__ != "HistorySet":
-      self.raiseAnError(IOError,'solutionExport type must be a HistorySet. Got '+ type(solutionExport).__name__+ '!')
+    if type(solutionExport).__name__ != "PointSet":
+      self.raiseAnError(IOError,'solutionExport type must be a PointSet. Got '+ type(solutionExport).__name__+ '!')
 
     if 'Function' in self.assemblerDict.keys():
       self.constraintFunction = self.assemblerDict['Function'][0][3]
@@ -907,7 +907,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localGenerateInput(model,oldInput)
     ####   UPDATE STATICS   ####
     # get trajectory asking for eval from LGI variable set
-    traj = self.inputInfo['trajectory']
+    traj = self.inputInfo['trajID'][0] - 1
 
     self.values.update(self.denormalizeData(self.mlStaticValues[traj]))
     staticOutputVars = self.mlOutputStaticVariables[traj] if traj in self.mlOutputStaticVariables else None #self.mlOutputStaticVariables.pop(traj,None)

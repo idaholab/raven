@@ -5,6 +5,7 @@
     <Sequence>gridRun, PP1, PP2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_comparison_stats_metrics_grid</name>
     <author>joshua-cogliati-inl</author>
@@ -39,8 +40,8 @@
   </Models>
 
   <Metrics>
-    <CDFAreaDifference name="cdf_diff" />
-    <PDFCommonArea name="pdf_area" />
+    <CDFAreaDifference name="cdf_diff"/>
+    <PDFCommonArea name="pdf_area"/>
   </Metrics>
 
   <Distributions>
@@ -58,11 +59,11 @@
     <Grid name="grid_external">
       <variable name="x1">
         <distribution>dist1</distribution>
-        <grid type='value' construction='equal' steps='11'>-1 3</grid>
+        <grid construction="equal" steps="11" type="value">-1 3</grid>
       </variable>
       <variable name="x2">
         <distribution>dist2</distribution>
-        <grid type='value' construction='equal' steps='11'>0 4</grid>
+        <grid construction="equal" steps="11" type="value">0 4</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -87,7 +88,6 @@
       <Output class="Files" type="">output_pdf_area</Output>
       <Output class="Files" type="">output_pdf_area.csv</Output>
     </PostProcess>
-
   </Steps>
 
   <DataObjects>
@@ -100,12 +100,12 @@
       <Output>ans,ans2</Output>
     </PointSet>
   </DataObjects>
- 
+
   <OutStreams>
-      <Print name="dumpMC">
-          <type>csv</type>
-          <source>outputDataMC</source>
-      </Print>
+    <Print name="dumpMC">
+      <type>csv</type>
+      <source>outputDataMC</source>
+    </Print>
   </OutStreams>
 
 </Simulation>

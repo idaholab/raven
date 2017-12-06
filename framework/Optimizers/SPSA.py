@@ -193,7 +193,8 @@ class SPSA(GradientBasedOptimizer):
           #for i in range(1,self.gradDict['numIterForAve']*2,2):
           for i in self.perturbationIndices:
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
-            outval = self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar][evalIndex]
+            # OLD outval = self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar][evalIndex]
+            outval = float(self.mdlEvalHist.realization(index=evalIndex)[self.objVar])
             self.gradDict['pertPoints'][traj][i]['output'] = outval
           # reset per-opt-point counters, forward the varsUpdate
           self.counter['perturbation'][traj] = 0
@@ -291,7 +292,8 @@ class SPSA(GradientBasedOptimizer):
     GradientBasedOptimizer.localGenerateInput(self,model,oldInput)
     action, traj = self.nextActionNeeded
     #store traj as active for sampling
-    self.inputInfo['trajectory'] = traj
+    self.inputInfo['trajID'] = np.atleast_1d(traj+1)
+    self.inputInfo['varsUpdate'] = np.atleast_1d(self.counter['varsUpdate'][traj])
     #"action" and "traj" are set in localStillReady
     #"action" is a string of the next action needed by the optimizer in order to move forward
     #"traj" is the trajectory that is in need of the action
@@ -315,7 +317,7 @@ class SPSA(GradientBasedOptimizer):
       prefix,point = self.getQueuedPoint(traj)
       for var in self.getOptVars(traj=traj):
         self.values[var] = point[var]
-      self.inputInfo['prefix'] = prefix
+      self.inputInfo['prefix'] = np.atleast_1d(prefix)
       # if all iterations have been submitted, the optimizer is now in collection mode.
       if len(self.submissionQueue[traj]) == 0:
         self.status[traj]['process'] = 'collecting new opt points'
@@ -355,7 +357,7 @@ class SPSA(GradientBasedOptimizer):
       for var in self.getOptVars(traj=traj):
         self.values[var] = point[var]
       # use 'prefix' to locate the input sent out, as <traj>_<varUpdate>_<eval number>, as 0_0_2
-      self.inputInfo['prefix'] = prefix
+      self.inputInfo['prefix'] = np.atleast_1d(prefix)
       # if all required points are submitted, switch into collection mode
       if len(self.submissionQueue[traj]) == 0:
         self.status[traj]['process'] = 'collecting grad eval points'
@@ -368,7 +370,7 @@ class SPSA(GradientBasedOptimizer):
         self.values[var] = point[var]
       self.updateVariableHistory(self.values,traj)
       # use 'prefix' to locate the input sent out
-      self.inputInfo['prefix'] = prefix
+      self.inputInfo['prefix'] = np.atleast_1d(prefix)
       # if all points submitted (after current one gets submitted), switch to collection mode
       if len(self.submissionQueue[traj]) == 0:
         self.status[traj]['process'] = 'collecting new opt points'
@@ -376,7 +378,7 @@ class SPSA(GradientBasedOptimizer):
     #unrecognized action
     else:
       self.raiseAnError(RuntimeError,'Unrecognized "action" in localGenerateInput:',action)
-    self.raiseADebug('Queuing run "{}"'.format(self.inputInfo['prefix']))
+    self.raiseADebug('Queuing run "{}"'.format(self.inputInfo['prefix'][0]))
 
   def _checkBoundariesAndModify(self,upperBound,lowerBound,varRange,currentValue,pertUp,pertLow):
     """

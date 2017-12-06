@@ -13,9 +13,9 @@
     <revisions>
       <revision author="alfoa" date="2014-07-11">Limit Surface pp fix. SVN r28533</revision>
       <revision author="alfoa" date="2014-11-17">restructuring Steps (removed Adaptive and PostProcessor), adding Assembler capability, removed datatype input for Functions and External models, modified all the inputs, added SafestPoint postprocessor and relative regression test, fixed Sampling for descrete distributions, added check for the distributions consistency between framework and RELAP7. SVN r30411</revision>
-            <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
       <revision author="talbpaul" date="2015-07-06">standardization of tests</revision>
-      <revision author="talbpaul" date="2015-07-06">Revert "standardization of tests"        This reverts commit 68099325e8daba0f756179a20b5c75ba651cb62d.</revision>
+      <revision author="talbpaul" date="2015-07-06">Revert &quot;standardization of tests&quot;        This reverts commit 68099325e8daba0f756179a20b5c75ba651cb62d.</revision>
       <revision author="talbpaul" date="2015-07-06">updated tests, added script</revision>
       <revision author="talbpaul" date="2015-07-07">updated to restrict partial-node comments</revision>
       <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
@@ -24,6 +24,7 @@
     </revisions>
     <requirements>R-RA-1</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>limitSurface</WorkingDir>
     <Sequence>FirstMRun,ComputeLimitSurfacePositive,ComputeLimitSurfaceNegative,ComputeLimitSurfacePositiveNegative</Sequence>

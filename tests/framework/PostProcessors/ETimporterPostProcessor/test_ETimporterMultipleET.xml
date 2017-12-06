@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/PostProcessors.ETimporterPostProcessorMultipleET</name>
@@ -11,7 +12,7 @@
       and it imports the fullET structure into a PointSet. Note that the ETs need to be in an OpenPSA format.
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>ETimporterCoupledET</WorkingDir>
     <Sequence>import,printOnFile</Sequence>
@@ -22,23 +23,23 @@
     <Input name="eventTreeTest1" type="">eventTree1.xml</Input>
     <Input name="eventTreeTest2" type="">eventTree2.xml</Input>
   </Files>
-  
+
   <Models>
     <PostProcessor name="ETimporter" subType="ETImporter">
       <fileFormat>OpenPSA</fileFormat>
-    </PostProcessor>   
+    </PostProcessor>
   </Models>
 
   <Steps>
     <PostProcess name="import">
-      <Input   class="Files"        type=""                >eventTreeTest1</Input>
-      <Input   class="Files"        type=""                >eventTreeTest2</Input>
-      <Model   class="Models"       type="PostProcessor"   >ETimporter</Model>
-      <Output  class="DataObjects"  type="PointSet"        >ET_PS</Output>
+      <Input class="Files" type="">eventTreeTest1</Input>
+      <Input class="Files" type="">eventTreeTest2</Input>
+      <Model class="Models" type="PostProcessor">ETimporter</Model>
+      <Output class="DataObjects" type="PointSet">ET_PS</Output>
     </PostProcess>
     <IOStep name="printOnFile">
-      <Input   class="DataObjects"  type="PointSet"        >ET_PS</Input>
-      <Output  class="OutStreams"   type="Print"           >PrintPS</Output>
+      <Input class="DataObjects" type="PointSet">ET_PS</Input>
+      <Output class="OutStreams" type="Print">PrintPS</Output>
     </IOStep>
   </Steps>
 
@@ -48,12 +49,12 @@
       <source>ET_PS</source>
     </Print>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="ET_PS">
       <Input>ACC,HPI,LPI,LPR</Input>
       <Output>sequence</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

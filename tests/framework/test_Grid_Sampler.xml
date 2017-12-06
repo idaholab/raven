@@ -22,6 +22,7 @@
     </revisions>
     <requirements>R-RE-3</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>GridTest</WorkingDir>
     <Sequence>CustomSampler</Sequence>
@@ -67,8 +68,8 @@
         <grid construction="equal" steps="1" type="value">3.5 4.0</grid>
       </variable>
       <variable name="TestOnePoint">
-          <distribution>DistTri1</distribution>
-          <grid construction="custom" type="CDF">0.5</grid>
+        <distribution>DistTri1</distribution>
+        <grid construction="custom" type="CDF">0.5</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -97,7 +98,9 @@
       <Model class="Models" type="Dummy">MyDummy</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="DataObjects" type="PointSet">outGrid</Output>
-      <!--<Output class="Databases" type="HDF5">test_DummyModel_db</Output>-->
+      <!--
+        <Output class="Databases" type="HDF5">test_DummyModel_db</Output>
+      -->
       <Output class="OutStreams" type="Print">outGrid_dump</Output>
     </MultiRun>
   </Steps>

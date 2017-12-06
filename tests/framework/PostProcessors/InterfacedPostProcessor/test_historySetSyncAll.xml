@@ -9,7 +9,7 @@
       Tests of the HistorySetSync interfaced post-processor and in particular the all syncMethod
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>hs_sync_all</WorkingDir>
     <Sequence>make,sync,train,print</Sequence>
@@ -22,27 +22,27 @@
 
   <Steps>
     <MultiRun name="make">
-      <Input   class="Files"       type="Input"      >inp</Input>
-      <Model   class="Models"      type="Code"       >code</Model>
-      <Sampler class="Samplers"    type="Sobol"      >samp</Sampler>
-      <Output  class="DataObjects" type="HistorySet" >solns</Output>
+      <Input class="Files" type="Input">inp</Input>
+      <Model class="Models" type="Code">code</Model>
+      <Sampler class="Samplers" type="Sobol">samp</Sampler>
+      <Output class="DataObjects" type="HistorySet">solns</Output>
     </MultiRun>
     <IOStep name="print">
-      <Input  class="DataObjects"  type="HistorySet" >solns</Input>
-      <Input  class="DataObjects"  type="HistorySet" >synced</Input>
-      <Input  class="Models"       type="ROM"        >rom</Input>
-      <Output class="OutStreams"   type="Print"      >original</Output>
-      <Output class="OutStreams"   type="Print"      >synced</Output>
-      <Output class="OutStreams"   type="Print"      >rom</Output>
+      <Input class="DataObjects" type="HistorySet">solns</Input>
+      <Input class="DataObjects" type="HistorySet">synced</Input>
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="OutStreams" type="Print">original</Output>
+      <Output class="OutStreams" type="Print">synced</Output>
+      <Output class="OutStreams" type="Print">rom</Output>
     </IOStep>
     <RomTrainer name="train">
-      <Input  class="DataObjects"  type="HistorySet" >synced</Input>
-      <Output class="Models"       type="ROM"        >rom</Output>
+      <Input class="DataObjects" type="HistorySet">synced</Input>
+      <Output class="Models" type="ROM">rom</Output>
     </RomTrainer>
     <PostProcess name="sync">
-      <Input  class="DataObjects"  type="HistorySet"    >solns</Input>
-      <Model  class="Models"       type="PostProcessor" >syncer</Model>
-      <Output class="DataObjects"  type="HistorySet"    >synced</Output>
+      <Input class="DataObjects" type="HistorySet">solns</Input>
+      <Model class="Models" type="PostProcessor">syncer</Model>
+      <Output class="DataObjects" type="HistorySet">synced</Output>
     </PostProcess>
   </Steps>
 

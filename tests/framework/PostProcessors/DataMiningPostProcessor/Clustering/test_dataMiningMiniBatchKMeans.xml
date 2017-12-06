@@ -9,6 +9,7 @@
       Tests clustering with the MiniBatchKMeans model.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>MiniBatchKMeans</WorkingDir>
     <Sequence>readIn,MiniBatchKMeansBlobs,MiniBatchKMeansCircles,MiniBatchKMeansMoons,output</Sequence>

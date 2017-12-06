@@ -10,7 +10,7 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2014-03-06">changed name of DataBase handling, modified all tests were using it, improved Step output handling etc        r25347</revision>
-     <revision author="maljdan" date="2015-06-16">Adding steps to the XSD, and fixing the input files to pass the validation. Currently, using sequences.</revision>
+      <revision author="maljdan" date="2015-06-16">Adding steps to the XSD, and fixing the input files to pass the validation. Currently, using sequences.</revision>
       <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
       <revision author="alfoa" date="2015-06-21">modified Names + added new capabilities and flexibility in DataObjects + added options block. Modified XSD schema and manual to reflect the modifications</revision>
       <revision author="cogljj" date="2015-10-13">Converting test_rom_train_from_already_dumped_HDF5 to use external model.</revision>
@@ -20,6 +20,7 @@
       <revision author="talbpaul" date="2017-07-10">Fixed location of database to be specified relative to working directory</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Sequence>test_extract_for_rom_trainer,test_rom_trainer,rom_MC</Sequence>

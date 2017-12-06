@@ -5,6 +5,7 @@
     <Sequence>make,train,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/SparseGrid/scgpcSudretAnalytic</name>
     <author>talbpaul</author>
@@ -15,7 +16,7 @@
     </description>
     <analytic>
       dumprom.xml has analytic mean and variance, documented in the analytic tests documentation under
-      "Global Sobol Sensitivity: Sudret".
+      &quot;Global Sobol Sensitivity: Sudret&quot;.
     </analytic>
   </TestInfo>
 

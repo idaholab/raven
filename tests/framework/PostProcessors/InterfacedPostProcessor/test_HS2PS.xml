@@ -9,7 +9,7 @@
       Tests of the HS2PS interfaced post-processor
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>HS2PS</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
@@ -92,7 +92,7 @@
       <type>csv</type>
       <source>outMC_PP</source>
     </Print>
-    <Plot  name="plot1" overwrite="False">
+    <Plot name="plot1" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>

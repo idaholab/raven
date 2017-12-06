@@ -150,10 +150,10 @@ class DataSet(DataObject):
     try:
       rlz = dict((var,rlz[var]) for var in self._allvars+self.indexes)
     except KeyError as e:
-      self.raiseAnError(KeyError,'Provided realization does not have all requisite values: "{}"'.format(e.args[0]))
+      self.raiseAnError(KeyError,'Provided realization does not have all requisite values for object "{}": "{}"'.format(self.name,e.args[0]))
     # check consistency, but make it an assertion so it can be passed over
     if not self._checkRealizationFormat(rlz):
-      self.raiseAnError(SyntaxError,'Realization was not formatted correctly! See warnings above.')
+      self.raiseAnError(SyntaxError,'Realization was not formatted correctly for "{}"! See warnings above.'.format(self.name))
     # format the data
     rlz = self._formatRealization(rlz)
     # perform selective collapsing/picking of data
@@ -1004,7 +1004,6 @@ class DataSet(DataObject):
           if not match:
             break
         else:
-          aaa
           match *= lookingFor[e] == element
       if match:
         break

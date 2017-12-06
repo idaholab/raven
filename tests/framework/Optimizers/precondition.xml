@@ -14,7 +14,7 @@
       the Optimizer functions section.
     </analytic>
     <revisions>
-      <revision date='2017-08-08' author='talbpaul'>added preconditioning to initialization, also now tests constants available to preconditioner</revision>
+      <revision author="talbpaul" date="2017-08-08">added preconditioning to initialization, also now tests constants available to preconditioner</revision>
     </revisions>
   </TestInfo>
 
@@ -29,7 +29,7 @@
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">sine</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
-      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
@@ -55,24 +55,24 @@
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Preconditioner class="Models" type="ExternalModel">precond</Preconditioner>
       <convergence>
-          <gradientThreshold>1e-3</gradientThreshold>
-          <gainGrowthFactor>1.5</gainGrowthFactor>
-          <gainShrinkFactor>1.25</gainShrinkFactor>
+        <gradientThreshold>1e-3</gradientThreshold>
+        <gainGrowthFactor>1.5</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
         <initial>-3</initial>
       </variable>
-      <variable name='y'>
+      <variable name="y">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
       </variable>
       <constant name="samplerConstant">3.14159</constant>
       <objectVar>ans</objectVar>
       <multilevel>
-        <subspace name='xgroup'>x</subspace>
-        <subspace name='ygroup' precond="precond">y</subspace>
+        <subspace name="xgroup">x</subspace>
+        <subspace name="ygroup" precond="precond">y</subspace>
         <sequence>xgroup,ygroup</sequence>
       </multilevel>
     </SPSA>
@@ -109,16 +109,17 @@
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate</Output>
     </PointSet>
-    <HistorySet name="opt_export">
+    <PointSet name="opt_export">
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate</Output>
-    </HistorySet>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
     </Print>
     <Print name="opt_soln">
       <type>csv</type>

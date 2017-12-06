@@ -5,6 +5,7 @@
     <batchSize>1</batchSize>
     <Sequence>sample,PP</Sequence>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics.sensitivityOnly</name>
     <author>alfoa</author>

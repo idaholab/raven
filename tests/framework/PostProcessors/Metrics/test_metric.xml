@@ -5,6 +5,7 @@
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_metric</name>
     <author>wangc</author>
@@ -31,7 +32,7 @@
       <Metric class="Metrics" type="SKL">euclidean2</Metric>
     </PostProcessor>
   </Models>
-  
+
   <Metrics>
     <SKL name="euclidean">
       <metricType>euclidean</metricType>
@@ -92,12 +93,12 @@
       <Output>ans,ans2</Output>
     </PointSet>
   </DataObjects>
- 
+
   <OutStreams>
-      <Print name="dumpMC">
-          <type>csv</type>
-          <source>outputDataMC</source>
-      </Print>
+    <Print name="dumpMC">
+      <type>csv</type>
+      <source>outputDataMC</source>
+    </Print>
   </OutStreams>
 
 </Simulation>

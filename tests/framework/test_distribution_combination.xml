@@ -20,6 +20,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>dists_vars/</WorkingDir>
     <Sequence>FirstMRun</Sequence>

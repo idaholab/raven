@@ -1,12 +1,12 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
-  <!-- TestInfo -->  
+  <!-- TestInfo -->
   <TestInfo>
     <name>framework/testAdaptiveHybridDynamicEventTreeRAVEN</name>
     <author>@alfoa</author>
     <created>2015-01-26</created>
     <revisions>
-        <revision date="2016-04-27" author="@alfoa">Updating the test in order to accept the new subdirectories' structure</revision>
+      <revision author="@alfoa" date="2016-04-27">Updating the test in order to accept the new subdirectories' structure</revision>
     </revisions>
     <classesTested>Samplers.AdaptiveDET</classesTested>
     <description>
@@ -14,19 +14,19 @@
     </description>
   </TestInfo>
 
-  <!-- RunInfo. 1 Step is performed in this case -->  
+  <!-- RunInfo. 1 Step is performed in this case -->
   <RunInfo>
     <WorkingDir>AdaptiveHybridDET</WorkingDir>
     <Sequence>AdaptiveHybridDETrunTest,DumpResults</Sequence>
     <batchSize>12</batchSize>
   </RunInfo>
-  
+
   <!-- Files.  2 input files are listed  -->
   <Files>
     <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
     <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
   </Files>
-  
+
   <!-- Models.  2 Models are listed. The Code (RELAP7) and an accelleration ROM -->
   <Models>
     <Code name="MyRAVEN" subType="RELAP7">
@@ -42,7 +42,7 @@
       <C>50</C>
     </ROM>
   </Models>
-  
+
   <!-- Functions.  1 Function is listed. The goal function for the adaptive search. -->
   <Functions>
     <External file="AdaptiveHybridDET/relapFunctionSimple.py" name="relapFunctionSimple">
@@ -51,7 +51,7 @@
       <variable>systemFailed</variable>
     </External>
   </Functions>
-  
+
   <!-- Distributions. 4 Distributions (4 aleatory uncertanties are sampled) -->
   <Distributions>
     <Uniform name="PressureFailureDist">
@@ -71,7 +71,7 @@
       <upperBound>0.1</upperBound>
     </Uniform>
   </Distributions>
-  
+
   <!-- Samplers. In here we specify the characteristics of the Adaptive Hybrid DET sampling -->
   <Samplers>
     <AdaptiveDynamicEventTree name="AdaptiveHybridDETsimple">
@@ -87,7 +87,7 @@
         <distribution>depresSystemDist</distribution>
         <grid construction="custom" type="CDF">0.2 0.6</grid>
       </Distribution>
-      <!-- 
+      <!--
            In case the type of the Hybrid Sampler is == LimitSurface, the epistemic uncertanties are treated into the LimitSurface search algorithm
            If this is the case, no other HybridSampler can be inputted.
            If the HybridSamplers (all of them) are of type != LimitSurface, the adaptive is going to be performed on the aleatory space only (for each
@@ -104,7 +104,7 @@
       </HybridSampler>
     </AdaptiveDynamicEventTree>
   </Samplers>
-  
+
   <!-- Steps. 1 MultiRun and 2 IOStep to dump the results of the analysis-->
   <Steps>
     <MultiRun name="AdaptiveHybridDETrunTest">
@@ -138,12 +138,12 @@
       <Output class="OutStreams" type="Print">adaptiveOutsimpleHier_HistorySetselective_Input_Output_var</Output>
     </IOStep>
   </Steps>
-  
+
   <!-- Databases. The final results are stored in a database -->
   <Databases>
     <HDF5 name="AdaptiveHybridDETsimpleDatabase" readMode="overwrite"/>
   </Databases>
-  
+
   <!-- OutStreams. The final results and the converged limit surface are printed -->
   <OutStreams>
     <Print name="adaptiveNoHierarchicalDump">
@@ -194,7 +194,7 @@
       <what>Output|systemFailed</what>
     </Print>
   </OutStreams>
-  
+
   <!-- DataObjects. DataObjects to contain the final results of the analysis and the converged Limit Surface -->
   <DataObjects>
     <PointSet name="LimitSurfSimple">

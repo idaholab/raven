@@ -9,6 +9,7 @@
       Tests using a custom mode with the pbsdsh command.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstPRun</Sequence>

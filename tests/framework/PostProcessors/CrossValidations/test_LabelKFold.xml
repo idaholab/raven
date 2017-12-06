@@ -5,6 +5,7 @@
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_LabelKFold</name>
     <author>wangc</author>
@@ -32,19 +33,19 @@
       <normalize>True</normalize>
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
-        <SciKitLearn>
-            <SKLtype>LabelKFold</SKLtype>
-            <labels>[0,0,0,1,1,1,1,2,2,2]</labels>
-            <n_splits>3</n_splits>
-        </SciKitLearn>
-        <Metric class="Metrics" type="SKL">m1</Metric>
+      <SciKitLearn>
+        <SKLtype>LabelKFold</SKLtype>
+        <labels>[0,0,0,1,1,1,1,2,2,2]</labels>
+        <n_splits>3</n_splits>
+      </SciKitLearn>
+      <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
   </Models>
-  
+
   <Metrics>
-      <SKL name="m1">
-          <metricType>mean_absolute_error</metricType>
-      </SKL>
+    <SKL name="m1">
+      <metricType>mean_absolute_error</metricType>
+    </SKL>
   </Metrics>
 
   <Distributions>
@@ -80,11 +81,11 @@
       <Output class="DataObjects" type="PointSet">outputDataMC</Output>
     </MultiRun>
     <PostProcess name="PP1">
-        <Input class="DataObjects" type="PointSet">outputDataMC</Input>
-        <Input class="Models" type="ROM">surrogate</Input>
-        <Model class="Models" type="PostProcessor">pp1</Model>
-        <Output class="Files" type="">output_cv</Output>
-        <Output class="Files" type="">output_cv.csv</Output>
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Input class="Models" type="ROM">surrogate</Input>
+      <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="Files" type="">output_cv</Output>
+      <Output class="Files" type="">output_cv.csv</Output>
     </PostProcess>
   </Steps>
 
@@ -98,5 +99,5 @@
       <Output>ans,ans2</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

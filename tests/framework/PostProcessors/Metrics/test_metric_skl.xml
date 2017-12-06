@@ -5,6 +5,7 @@
     <Sequence>mcRun, PP1, PP2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_metric_skl</name>
     <author>wangc</author>
@@ -52,14 +53,14 @@
       <Metric class="Metrics" type="SKL">additive_chi2</Metric>
     </PostProcessor>
   </Models>
-  
+
   <Metrics>
     <SKL name="euclidean">
       <metricType>euclidean</metricType>
     </SKL>
     <SKL name="laplacian">
-        <metricType>laplacian</metricType>
-        <gamma>0.5</gamma>
+      <metricType>laplacian</metricType>
+      <gamma>0.5</gamma>
     </SKL>
     <SKL name="rbf">
       <metricType>rbf</metricType>
@@ -72,65 +73,62 @@
       <coef0>1.0</coef0>
     </SKL>
     <SKL name="sigmoid">
-        <metricType>sigmoid</metricType>
-        <gamma>1.0</gamma>
-        <coef0>1.0</coef0>
+      <metricType>sigmoid</metricType>
+      <gamma>1.0</gamma>
+      <coef0>1.0</coef0>
     </SKL>
     <SKL name="polynomial">
-        <metricType>polynomial</metricType>
-        <gamma>1.0</gamma>
-        <degree>2.0</degree>
-        <coef0>1.0</coef0>
+      <metricType>polynomial</metricType>
+      <gamma>1.0</gamma>
+      <degree>2.0</degree>
+      <coef0>1.0</coef0>
     </SKL>
     <SKL name="linear">
-        <metricType>linear</metricType>
+      <metricType>linear</metricType>
     </SKL>
     <SKL name="cosine">
-        <metricType>cosine</metricType>
-        <dense_output>True</dense_output>
+      <metricType>cosine</metricType>
+      <dense_output>True</dense_output>
     </SKL>
-
     <SKL name="cityblock">
-        <metricType>cityblock</metricType>
+      <metricType>cityblock</metricType>
     </SKL>
     <SKL name="l1">
-        <metricType>l1</metricType>
+      <metricType>l1</metricType>
     </SKL>
     <SKL name="l2">
-        <metricType>l2</metricType>
+      <metricType>l2</metricType>
     </SKL>
     <SKL name="manhattan">
-        <metricType>manhattan</metricType>
-        <sum_over_features>True</sum_over_features>
-        <size_threshold>5e8</size_threshold>
+      <metricType>manhattan</metricType>
+      <sum_over_features>True</sum_over_features>
+      <size_threshold>5e8</size_threshold>
     </SKL>
-    
     <SKL name="additive_chi2">
-        <metricType>additive_chi2</metricType>
+      <metricType>additive_chi2</metricType>
     </SKL>
     <SKL name="chi2">
-        <metricType>chi2</metricType>
-        <gamma>1.0</gamma>
+      <metricType>chi2</metricType>
+      <gamma>1.0</gamma>
     </SKL>
-
     <SKL name="explained_variance_score">
-        <metricType>explained_variance_score</metricType>
-        <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
+      <metricType>explained_variance_score</metricType>
+      <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
     </SKL>
     <SKL name="mean_absolute_error">
-        <metricType>mean_absolute_error</metricType>
-        <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
+      <metricType>mean_absolute_error</metricType>
+      <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
     </SKL>
     <SKL name="r2_score">
-        <metricType>r2_score</metricType>
-        <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
+      <metricType>r2_score</metricType>
+      <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
     </SKL>
     <SKL name="mean_squared_error">
-        <metricType>mean_squared_error</metricType>
-        <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
+      <metricType>mean_squared_error</metricType>
+      <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
     </SKL>
     <SKL name="median_absolute_error">
-        <metricType>median_absolute_error</metricType>
+      <metricType>median_absolute_error</metricType>
     </SKL>
   </Metrics>
 

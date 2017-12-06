@@ -24,6 +24,7 @@
       <Output class="Models" type="ROM">rom</Output>
     </RomTrainer>
   </Steps>
+
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/sobolIshigamiAnalytic</name>
     <author>talbpaul</author>
@@ -34,7 +35,7 @@
     </description>
     <analytic>
       dumprom.xml has analytic mean and variance, and is documented in the analytic test document
-      under "Global Sobol Sensitivity: Ishigami".
+      under &quot;Global Sobol Sensitivity: Ishigami&quot;.
     </analytic>
   </TestInfo>
 

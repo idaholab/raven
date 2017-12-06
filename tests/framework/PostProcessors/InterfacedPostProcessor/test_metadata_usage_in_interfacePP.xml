@@ -7,9 +7,9 @@
   </RunInfo>
 
   <Files>
-    <Input name="dummy.i" type="" >dummy.i</Input>
-    <Input name="outputDataMChistory.csv"  type="" >outputDataMChistory.csv</Input>
-    <Input name="outputDataMChistory.xml"  type="" >outputDataMChistory.xml</Input>
+    <Input name="dummy.i" type="">dummy.i</Input>
+    <Input name="outputDataMChistory.csv" type="">outputDataMChistory.csv</Input>
+    <Input name="outputDataMChistory.xml" type="">outputDataMChistory.xml</Input>
   </Files>
 
   <Models>
@@ -18,22 +18,19 @@
         dummyExe
       </executable>
     </Code>
-
     <PostProcessor name="syncronizeHistorySet" subType="InterfacedPostProcessor">
-        <method>HistorySetSync</method>
-        <syncMethod>all</syncMethod>
-        <pivotParameter>time</pivotParameter>
-        <extension>extended</extension>
+      <method>HistorySetSync</method>
+      <syncMethod>all</syncMethod>
+      <pivotParameter>time</pivotParameter>
+      <extension>extended</extension>
     </PostProcessor>
-
     <PostProcessor name="DNBR" subType="BasicStatistics">
-        <pivotParameter>time</pivotParameter>
-        <expectedValue>
+      <pivotParameter>time</pivotParameter>
+      <expectedValue>
            cntrlvar_106
         </expectedValue>
-    </PostProcessor> 
+    </PostProcessor>
   </Models>
-
 
   <Distributions>
     <Normal name="power_2022">
@@ -61,28 +58,28 @@
       <Model class="Models" type="Code">MyRELAP</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
       <Output class="Databases" type="HDF5">DataB_REL5_1</Output>
-      <Output class="DataObjects" type="PointSet" >samples</Output>
-      <Output class="DataObjects" type="HistorySet" >histories</Output>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="DataObjects" type="HistorySet">histories</Output>
       <Output class="OutStreams" type="Print">test_dump</Output>
     </MultiRun>
     <IOStep name="io_test" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">samples</Input>
       <Input class="DataObjects" type="HistorySet">histories</Input>
-      <Output class="OutStreams" type="Plot" >historyPlot</Output>
-    </IOStep>    
+      <Output class="OutStreams" type="Plot">historyPlot</Output>
+    </IOStep>
     <PostProcess name="syncronizeHistorySetStep" pauseAtEnd="True">
       <Input class="DataObjects" type="HistorySet">histories</Input>
       <Model class="Models" type="PostProcessor">syncronizeHistorySet</Model>
       <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronized</Output>
       <Output class="OutStreams" type="Print">historiesSetPostProc_dump</Output>
       <Output class="OutStreams" type="Print">historiesSetSyncronized_dump</Output>
-    </PostProcess>    
+    </PostProcess>
     <PostProcess name="post_proc" pauseAtEnd="True">
       <Input class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronized</Input>
       <Model class="Models" type="PostProcessor">DNBR</Model>
       <Output class="Files" type="">outputDataMChistory.csv</Output>
       <Output class="Files" type="">outputDataMChistory.xml</Output>
-    </PostProcess>    
+    </PostProcess>
   </Steps>
 
   <DataObjects>
@@ -109,25 +106,24 @@
 
   <OutStreams>
     <Print name="historiesSetPostProc_dump">
-        <type>csv</type>
-        <source> histories </source>
+      <type>csv</type>
+      <source> histories </source>
     </Print>
- <Print name="test_dump">
-         <type>csv</type>
-         <source> histories </source>
-     </Print>
+    <Print name="test_dump">
+      <type>csv</type>
+      <source> histories </source>
+    </Print>
     <Print name="historiesSetSyncronized_dump">
-        <type>csv</type>
-        <source> HistorySetPostProcTestSyncronized </source>
+      <type>csv</type>
+      <source> HistorySetPostProcTestSyncronized </source>
     </Print>
-
     <Print name="outputDataMChistory">
-        <type>csv</type>
-        <source>histories</source>
+      <type>csv</type>
+      <source>histories</source>
     </Print>
     <Print name="outputDataMCpoint">
-        <type>csv</type>
-        <source>samples</source>
+      <type>csv</type>
+      <source>samples</source>
     </Print>
     <Plot name="historyPlot" overwrite="false">
       <plotSettings>
@@ -148,6 +144,7 @@
       <actions>
         <how>png</how>
       </actions>
-   </Plot>
-  </OutStreams> 
+    </Plot>
+  </OutStreams>
+
 </Simulation>

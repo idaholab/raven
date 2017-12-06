@@ -8,7 +8,6 @@
     <description>
        An example of using the Morse-Smale regression reduced order model with
        a support vector machine.
-
        Note, all of the tests in MSR operate on a 2D input domain with
        the goal of fitting a single Gaussian bump. The input dimensions are
        of largely different scales and one dimension is off-centered from the
@@ -23,6 +22,7 @@
       <revision author="maljdan" date="2017-01-19">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>

@@ -14,6 +14,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>rom_aliased</WorkingDir>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>
@@ -48,17 +49,17 @@
       <kernel>linear</kernel>
       <C>10.0</C>
       <tol>0.0001</tol>
-      <alias variable="DeltaTimeScramToAux" type="input">rom1FirstVarAlias</alias>
-      <alias variable="DG1recoveryTime" type="input">rom1SecondVarAlias</alias>
-      <alias variable="CladTempThreshold"  type="output">rom1FirstOut</alias>
+      <alias type="input" variable="DeltaTimeScramToAux">rom1FirstVarAlias</alias>
+      <alias type="input" variable="DG1recoveryTime">rom1SecondVarAlias</alias>
+      <alias type="output" variable="CladTempThreshold">rom1FirstOut</alias>
     </ROM>
     <ROM name="ROM2" subType="NDinvDistWeight">
       <Features>rom2FirstVarAlias,rom2SecondVarAlias</Features>
       <Target>rom2FirstOut</Target>
       <p>3</p>
-      <alias variable="DeltaTimeScramToAux" type="input">rom2FirstVarAlias</alias>
-      <alias variable="DG1recoveryTime" type="input">rom2SecondVarAlias</alias>
-      <alias variable="CladTempThreshold"  type="output">rom2FirstOut</alias>
+      <alias type="input" variable="DeltaTimeScramToAux">rom2FirstVarAlias</alias>
+      <alias type="input" variable="DG1recoveryTime">rom2SecondVarAlias</alias>
+      <alias type="output" variable="CladTempThreshold">rom2FirstOut</alias>
     </ROM>
   </Models>
 
@@ -159,23 +160,23 @@
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet   name="Pointset_from_database_for_rom_trainer">
+    <PointSet name="Pointset_from_database_for_rom_trainer">
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>CladTempThreshold</Output>
     </PointSet>
-    <PointSet  name="data_for_sampling_empty_at_begin">
+    <PointSet name="data_for_sampling_empty_at_begin">
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet  name="data_for_sampling_empty_at_begin_nd">
+    <PointSet name="data_for_sampling_empty_at_begin_nd">
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet  name="outputMontecarloRom">
+    <PointSet name="outputMontecarloRom">
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>CladTempThreshold</Output>
     </PointSet>
-    <PointSet  name="outputMontecarloRomND">
+    <PointSet name="outputMontecarloRomND">
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>CladTempThreshold</Output>
     </PointSet>

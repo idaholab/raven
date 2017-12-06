@@ -9,6 +9,7 @@
       Tests clustering with KMeans followed by data reduction with PCA.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>KMeansPCA</WorkingDir>
     <Sequence>read_in_csv1,pp1,pp2</Sequence>
@@ -50,7 +51,7 @@
 
   <Models>
     <PostProcessor name="KMeans1" subType="DataMining">
-      <KDD lib="SciKitLearn" labelFeature='labels'>
+      <KDD labelFeature="labels" lib="SciKitLearn">
         <SKLtype>cluster|KMeans</SKLtype>
         <Features>output</Features>
         <n_clusters>3</n_clusters>
@@ -75,7 +76,7 @@
       <type>csv</type>
       <source>bisonData</source>
     </Print>
-    <Plot   name="PlotKMeans1" verbosity="debug">
+    <Plot name="PlotKMeans1" verbosity="debug">
       <plotSettings>
         <plot>
           <type>dataMining</type>
@@ -99,7 +100,7 @@
         </labelFormat>
       </actions>
     </Plot>
-    <Plot  name="PlotPCA1" overwrite="false" verbosity="debug">
+    <Plot name="PlotPCA1" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>dataMining</type>
@@ -108,7 +109,7 @@
           <y>bisonData|Output|PCA1PCAComponent2</y>
           <noClusters>3</noClusters>
           <clusterLabels>bisonData|Output|labels</clusterLabels>
-          <kwargs></kwargs>
+          <kwargs/>
         </plot>
         <xlabel>PCAComponent1</xlabel>
         <ylabel>PCAComponent2</ylabel>
@@ -117,7 +118,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="PlotAll" overwrite="false" verbosity="debug">
+    <Plot name="PlotAll" overwrite="false" verbosity="debug">
       <plotSettings>
         <gridSpace>5 1</gridSpace>
         <plot>

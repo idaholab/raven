@@ -9,6 +9,7 @@
       Tests manifold with LocallyLinearEmbedding and a pivot paramater.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>LocallyLinearEmbedding</WorkingDir>
     <Sequence>sampleGen,pp1</Sequence>
@@ -38,14 +39,14 @@
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">DataGeneratorModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">gridSampler</Sampler>
-      <Output class='DataObjects' type='HistorySet'>mData</Output>
+      <Output class="DataObjects" type="HistorySet">mData</Output>
     </MultiRun>
-    <PostProcess name='pp1' pauseAtEnd='True'>
-      <Input   class='DataObjects'       type='HistorySet'      >mData</Input>
-      <Model   class='Models'            type='PostProcessor' >PCA</Model>
-      <Output  class='DataObjects' type='HistorySet'>mData</Output>
-      <Output   class='OutStreams'  type='Print'         >dummy</Output>
-      <Output   class='OutStreams'  type='Plot'          >plotPCAData</Output>
+    <PostProcess name="pp1" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">mData</Input>
+      <Model class="Models" type="PostProcessor">PCA</Model>
+      <Output class="DataObjects" type="HistorySet">mData</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Plot">plotPCAData</Output>
     </PostProcess>
   </Steps>
 
@@ -60,17 +61,17 @@
     <Grid name="gridSampler">
       <variable name="n">
         <distribution>uniDist</distribution>
-                <grid type='value' construction='equal' steps='149'>0.0 149.0</grid>
+        <grid construction="equal" steps="149" type="value">0.0 149.0</grid>
       </variable>
-        </Grid>
+    </Grid>
   </Samplers>
 
   <OutStreams>
-    <Print name='dummy'>
+    <Print name="dummy">
       <type>csv</type>
       <source>mData</source>
     </Print>
-    <Plot  name="plotPCAData" overwrite="True" >
+    <Plot name="plotPCAData" overwrite="True">
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
@@ -110,4 +111,5 @@
       <Output>Time,x1,x2,x3,x4</Output>
     </HistorySet>
   </DataObjects>
+
 </Simulation>

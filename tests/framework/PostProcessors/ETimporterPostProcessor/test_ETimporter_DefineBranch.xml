@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/PostProcessors/ETimporterPostProcessorDefineBranch</name>
@@ -10,7 +11,7 @@
       In particular, this tests checks that capability of the PP to manage ETs that contains by-pass branches.
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>ETimporterDefineBranch</WorkingDir>
     <Sequence>import,printOnFile</Sequence>
@@ -20,22 +21,22 @@
   <Files>
     <Input name="eventTreeTest" type="">eventTreeDefineBranch.xml</Input>
   </Files>
-  
+
   <Models>
     <PostProcessor name="ETimporter" subType="ETImporter">
       <fileFormat>OpenPSA</fileFormat>
-    </PostProcessor>   
+    </PostProcessor>
   </Models>
 
   <Steps>
     <PostProcess name="import">
-      <Input   class="Files"        type=""                >eventTreeTest</Input>
-      <Model   class="Models"       type="PostProcessor"   >ETimporter</Model>
-      <Output  class="DataObjects"  type="PointSet"        >ET_PS</Output>
+      <Input class="Files" type="">eventTreeTest</Input>
+      <Model class="Models" type="PostProcessor">ETimporter</Model>
+      <Output class="DataObjects" type="PointSet">ET_PS</Output>
     </PostProcess>
     <IOStep name="printOnFile">
-      <Input   class="DataObjects"  type="PointSet"        >ET_PS</Input>
-      <Output  class="OutStreams"   type="Print"           >PrintPS</Output>
+      <Input class="DataObjects" type="PointSet">ET_PS</Input>
+      <Output class="OutStreams" type="Print">PrintPS</Output>
     </IOStep>
   </Steps>
 
@@ -45,12 +46,12 @@
       <source>ET_PS</source>
     </Print>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="ET_PS">
       <Input>ACC,LPI,LPR,REC1,REC2</Input>
       <Output>sequence</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

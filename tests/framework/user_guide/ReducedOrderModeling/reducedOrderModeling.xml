@@ -10,6 +10,7 @@
     <WorkingDir>ROMConstruction</WorkingDir>
     <batchSize>8</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/user_guide/ReducedOrderModelling/ROMConstruction</name>
     <author>talbpw</author>
@@ -55,14 +56,14 @@
   </Models>
 
   <Distributions>
-      <Uniform name="sigma">
-          <lowerBound>0</lowerBound>
-          <upperBound>1000</upperBound>
-      </Uniform>
-      <Uniform name="decayConstant">
-          <lowerBound>0.00000001</lowerBound>
-          <upperBound>0.0000001</upperBound>
-      </Uniform>
+    <Uniform name="sigma">
+      <lowerBound>0</lowerBound>
+      <upperBound>1000</upperBound>
+    </Uniform>
+    <Uniform name="decayConstant">
+      <lowerBound>0.00000001</lowerBound>
+      <upperBound>0.0000001</upperBound>
+    </Uniform>
   </Distributions>
 
   <Samplers>
@@ -76,12 +77,12 @@
         <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="sigma-B">
-          <distribution>sigma</distribution>
-          <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
+        <distribution>sigma</distribution>
+        <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="decay-B">
-          <distribution>decayConstant</distribution>
-          <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
+        <distribution>decayConstant</distribution>
+        <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -125,18 +126,18 @@
       <Output class="Models" type="ROM">ROMinverse</Output>
     </RomTrainer>
     <IOStep name="writeHistories" pauseAtEnd="True">
-        <Input  class="DataObjects"      type="HistorySet">histories</Input>
-        <Input  class="DataObjects"      type="PointSet">samples</Input>
-        <Input  class="DataObjects"      type="PointSet">samplesGP</Input>
-        <Input  class="DataObjects"      type="PointSet">samplesInverse</Input>
-        <Input  class="DataObjects"      type="PointSet">samplesSVM</Input>
-        <Output class="OutStreams" type="Plot">samplesPlot3D</Output>
-        <Output class="OutStreams" type="Plot">samplesPlot3DROMgp</Output>
-        <Output class="OutStreams" type="Plot">samplesPlot3DROMsvm</Output>
-        <Output class="OutStreams" type="Plot">samplesPlot3DROMinverse</Output>
-        <Output class="OutStreams" type="Plot">historyPlot</Output>
-        <Output class="OutStreams" type="Print">samples</Output>
-        <Output class="OutStreams" type="Print">histories</Output>
+      <Input class="DataObjects" type="HistorySet">histories</Input>
+      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Input class="DataObjects" type="PointSet">samplesGP</Input>
+      <Input class="DataObjects" type="PointSet">samplesInverse</Input>
+      <Input class="DataObjects" type="PointSet">samplesSVM</Input>
+      <Output class="OutStreams" type="Plot">samplesPlot3D</Output>
+      <Output class="OutStreams" type="Plot">samplesPlot3DROMgp</Output>
+      <Output class="OutStreams" type="Plot">samplesPlot3DROMsvm</Output>
+      <Output class="OutStreams" type="Plot">samplesPlot3DROMinverse</Output>
+      <Output class="OutStreams" type="Plot">historyPlot</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+      <Output class="OutStreams" type="Print">histories</Output>
     </IOStep>
   </Steps>
 
@@ -162,236 +163,235 @@
       <Output>A,B</Output>
     </PointSet>
     <HistorySet name="histories">
-        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-        <Output>A,B,C,D,time</Output>
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>A,B,C,D,time</Output>
     </HistorySet>
   </DataObjects>
 
-<OutStreams>
+  <OutStreams>
     <Print name="samples">
-        <type>csv</type>
-        <source>samples</source>
+      <type>csv</type>
+      <source>samples</source>
     </Print>
     <Print name="histories">
-        <type>csv</type>
-        <source>histories</source>
+      <type>csv</type>
+      <source>histories</source>
     </Print>
-    <Plot   name="historyPlot" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <gridSpace>2 2</gridSpace>
-            <plot>
-                <type>line</type>
-                <x>histories|Output|time</x>
-                <y>histories|Output|A</y>
-                <color>blue</color>
-                <gridLocation>
-                    <x>0</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>time (s)</xlabel>
-                <ylabel>evolution A(kg)</ylabel>
-            </plot>
-            <plot>
-                <type>line</type>
-                <x>histories|Output|time</x>
-                <y>histories|Output|B</y>
-                <color>red</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>time (s)</xlabel>
-                <ylabel>evolution B(kg)</ylabel>
-            </plot>
-            <plot>
-                <type>line</type>
-                <x>histories|Output|time</x>
-                <y>histories|Output|C</y>
-                <color>yellow</color>
-                <gridLocation>
-                    <x>0</x>
-                    <y>1</y>
-                </gridLocation>
-                <xlabel>time (s)</xlabel>
-                <ylabel>evolution C(kg)</ylabel>
-            </plot>
-            <plot>
-                <type>line</type>
-                <x>histories|Output|time</x>
-                <y>histories|Output|D</y>
-                <color>black</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>1</y>
-                </gridLocation>
-                <xlabel>time (s)</xlabel>
-                <ylabel>evolution D(kg)</ylabel>
-            </plot>
-
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+    <Plot name="historyPlot" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <gridSpace>2 2</gridSpace>
+        <plot>
+          <type>line</type>
+          <x>histories|Output|time</x>
+          <y>histories|Output|A</y>
+          <color>blue</color>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>time (s)</xlabel>
+          <ylabel>evolution A(kg)</ylabel>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>histories|Output|time</x>
+          <y>histories|Output|B</y>
+          <color>red</color>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>time (s)</xlabel>
+          <ylabel>evolution B(kg)</ylabel>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>histories|Output|time</x>
+          <y>histories|Output|C</y>
+          <color>yellow</color>
+          <gridLocation>
+            <x>0</x>
+            <y>1</y>
+          </gridLocation>
+          <xlabel>time (s)</xlabel>
+          <ylabel>evolution C(kg)</ylabel>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>histories|Output|time</x>
+          <y>histories|Output|D</y>
+          <color>black</color>
+          <gridLocation>
+            <x>1</x>
+            <y>1</y>
+          </gridLocation>
+          <xlabel>time (s)</xlabel>
+          <ylabel>evolution D(kg)</ylabel>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot name="samplesPlot3D" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <gridSpace>2 1</gridSpace>
-            <plot>
-                <type>scatter</type>
-                <x>samples|Input|sigma-A</x>
-                <y>samples|Input|decay-A</y>
-                <z>samples|Output|A</z>
-                <color>blue</color>
-                <gridLocation>
-                    <x>0</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final A</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samples|Input|sigma-B</x>
-                <y>samples|Input|decay-B</y>
-                <z>samples|Output|B</z>
-                <color>red</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final B</zlabel>
-            </plot>
+      <plotSettings>
+        <gridSpace>2 1</gridSpace>
+        <plot>
+          <type>scatter</type>
+          <x>samples|Input|sigma-A</x>
+          <y>samples|Input|decay-A</y>
+          <z>samples|Output|A</z>
+          <color>blue</color>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final A</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samples|Input|sigma-B</x>
+          <y>samples|Input|decay-B</y>
+          <z>samples|Output|B</z>
+          <color>red</color>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final B</zlabel>
+        </plot>
       </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot name="samplesPlot3DROMgp" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <gridSpace>2 1</gridSpace>
-            <plot>
-                <type>scatter</type>
-                <x>samplesGP|Input|sigma-A</x>
-                <y>samplesGP|Input|decay-A</y>
-                <z>samplesGP|Output|A</z>
-                <color>blue</color>
-                <gridLocation>
-                    <x>0</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final A</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samplesGP|Input|sigma-B</x>
-                <y>samplesGP|Input|decay-B</y>
-                <z>samplesGP|Output|B</z>
-                <color>red</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final B</zlabel>
-            </plot>
+      <plotSettings>
+        <gridSpace>2 1</gridSpace>
+        <plot>
+          <type>scatter</type>
+          <x>samplesGP|Input|sigma-A</x>
+          <y>samplesGP|Input|decay-A</y>
+          <z>samplesGP|Output|A</z>
+          <color>blue</color>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final A</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samplesGP|Input|sigma-B</x>
+          <y>samplesGP|Input|decay-B</y>
+          <z>samplesGP|Output|B</z>
+          <color>red</color>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final B</zlabel>
+        </plot>
       </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot name="samplesPlot3DROMsvm" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <gridSpace>2 1</gridSpace>
-            <plot>
-                <type>scatter</type>
-                <x>samplesSVM|Input|sigma-A</x>
-                <y>samplesSVM|Input|decay-A</y>
-                <z>samplesSVM|Output|A</z>
-                <color>blue</color>
-                <gridLocation>
-                    <x>0</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final A</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samplesSVM|Input|sigma-B</x>
-                <y>samplesSVM|Input|decay-B</y>
-                <z>samplesSVM|Output|B</z>
-                <color>red</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final B</zlabel>
-            </plot>
+      <plotSettings>
+        <gridSpace>2 1</gridSpace>
+        <plot>
+          <type>scatter</type>
+          <x>samplesSVM|Input|sigma-A</x>
+          <y>samplesSVM|Input|decay-A</y>
+          <z>samplesSVM|Output|A</z>
+          <color>blue</color>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final A</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samplesSVM|Input|sigma-B</x>
+          <y>samplesSVM|Input|decay-B</y>
+          <z>samplesSVM|Output|B</z>
+          <color>red</color>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final B</zlabel>
+        </plot>
       </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot name="samplesPlot3DROMinverse" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <gridSpace>2 1</gridSpace>
-            <plot>
-                <type>scatter</type>
-                <x>samplesInverse|Input|sigma-A</x>
-                <y>samplesInverse|Input|decay-A</y>
-                <z>samplesInverse|Output|A</z>
-                <color>blue</color>
-                <gridLocation>
-                    <x>0</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final A</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samplesInverse|Input|sigma-B</x>
-                <y>samplesInverse|Input|decay-B</y>
-                <z>samplesInverse|Output|B</z>
-                <color>red</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final B</zlabel>
-            </plot>
+      <plotSettings>
+        <gridSpace>2 1</gridSpace>
+        <plot>
+          <type>scatter</type>
+          <x>samplesInverse|Input|sigma-A</x>
+          <y>samplesInverse|Input|decay-A</y>
+          <z>samplesInverse|Output|A</z>
+          <color>blue</color>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final A</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samplesInverse|Input|sigma-B</x>
+          <y>samplesInverse|Input|decay-B</y>
+          <z>samplesInverse|Output|B</z>
+          <color>red</color>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final B</zlabel>
+        </plot>
       </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
-</OutStreams>
+  </OutStreams>
 
 </Simulation>

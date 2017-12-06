@@ -17,6 +17,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>metaModelLinearThreadWithTimeSeries</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
@@ -45,12 +46,12 @@
     <EnsembleModel name="heatTransferEnsembleModel" subType="">
       <Model class="Models" type="ExternalModel">
          thermalConductivityComputation
-        <Input            class="DataObjects" type="PointSet">inputHolder</Input>
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
         <TargetEvaluation class="DataObjects" type="HistorySet">thermalConductivityComputationContainer</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
           heatTransfer
-        <Input            class="DataObjects" type="PointSet">inputHolder</Input>
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
       </Model>
     </EnsembleModel>
@@ -68,19 +69,21 @@
       </variable>
     </Grid>
   </Samplers>
+
   <Databases>
-      <HDF5 name="testOutputDatabase" readMode="overwrite"/>
+    <HDF5 name="testOutputDatabase" readMode="overwrite"/>
   </Databases>
+
   <Steps>
     <MultiRun name="testMetamodelHeatTransfer">
-      <Input class="DataObjects"  type="PointSet">inputHolder</Input>
-      <Model class="Models"       type="EnsembleModel">heatTransferEnsembleModel</Model>
-      <Sampler class="Samplers"   type="Grid">MonteCarloTemperature</Sampler>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="EnsembleModel">heatTransferEnsembleModel</Model>
+      <Sampler class="Samplers" type="Grid">MonteCarloTemperature</Sampler>
       <Output class="DataObjects" type="PointSet">metaModelOutputTestPointSet</Output>
       <Output class="DataObjects" type="PointSet">metaModelOutputTestHistorySet</Output>
       <Output class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Output>
       <Output class="DataObjects" type="PointSet">heatTransferContainer</Output>
-      <Output class="Databases"   type="HDF5">testOutputDatabase</Output>
+      <Output class="Databases" type="HDF5">testOutputDatabase</Output>
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">heatTransferContainer</Input>
@@ -92,7 +95,7 @@
       <Output class="OutStreams" type="Plot">metaModelOutputTestPointSetSolution</Output>
       <Output class="OutStreams" type="Plot">metaModelOutputTestPointSetK</Output>
       <Output class="OutStreams" type="Plot">metaModelOutputTestHistorySetk</Output>
-      <Output class="OutStreams"  type="Print">metaModelOutputTestPointSetDump</Output>
+      <Output class="OutStreams" type="Print">metaModelOutputTestPointSetDump</Output>
     </IOStep>
   </Steps>
 
@@ -110,34 +113,34 @@
       <source>metaModelOutputTestPointSet</source>
     </Print>
     <Print name="metaModelOutputTestHistorySetDump">
-        <type>csv</type>
-        <source>metaModelOutputTestHistorySet</source>
+      <type>csv</type>
+      <source>metaModelOutputTestHistorySet</source>
     </Print>
     <Plot name="metaModelOutputTestHistorySetk" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <plot>
-                <type>scatter</type>
-                <x>metaModelOutputTestHistorySet|Input|k</x>
-                <y>metaModelOutputTestHistorySet|Input|timeFromFirstModel</y>
-            </plot>
-            <xlabel>thermal conductivity</xlabel>
-            <ylabel>time (s)</ylabel>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <figureProperties>
-                <frameon>true</frameon>
-            </figureProperties>
-            <labelFormat>
-                <style>sci</style>
-            </labelFormat>
-            <grid>
-                <b>true</b>
-            </grid>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>metaModelOutputTestHistorySet|Input|k</x>
+          <y>metaModelOutputTestHistorySet|Input|timeFromFirstModel</y>
+        </plot>
+        <xlabel>thermal conductivity</xlabel>
+        <ylabel>time (s)</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <figureProperties>
+          <frameon>true</frameon>
+        </figureProperties>
+        <labelFormat>
+          <style>sci</style>
+        </labelFormat>
+        <grid>
+          <b>true</b>
+        </grid>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot name="metaModelOutputTestPointSetSolution" overwrite="false" verbosity="debug">
       <plotSettings>
@@ -211,12 +214,12 @@
       <Output>k,solution</Output>
     </PointSet>
     <PointSet name="metaModelOutputTestHistorySet">
-        <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
-        <Output>solution</Output>
+      <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
+      <Output>solution</Output>
     </PointSet>
     <HistorySet name="thermalConductivityComputationContainer">
-        <Input>leftTemperature,rightTemperature</Input>
-        <Output>k,timeFromFirstModel</Output>
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>k,timeFromFirstModel</Output>
     </HistorySet>
   </DataObjects>
 

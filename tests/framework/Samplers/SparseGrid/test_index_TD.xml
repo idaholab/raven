@@ -5,6 +5,7 @@
     <Sequence>TDmake,TDtrain,TDtest,TDprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/SparseGrid/totalDegreeGrid</name>
     <author>talbpaul</author>

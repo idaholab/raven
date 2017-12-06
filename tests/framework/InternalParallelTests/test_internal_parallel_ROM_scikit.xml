@@ -18,6 +18,7 @@
       <revision author="maljdan" date="2017-09-19">Adding a maxQueueSize for testing a new feature.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>InternalParallelScikit</WorkingDir>
     <Sequence>step1,step2,step3,step4</Sequence>

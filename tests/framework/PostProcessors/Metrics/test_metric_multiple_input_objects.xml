@@ -5,6 +5,7 @@
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_multiple_input_objects</name>
     <author>wangc</author>
@@ -29,7 +30,7 @@
       <Metric class="Metrics" type="SKL">euclidean</Metric>
     </PostProcessor>
   </Models>
-  
+
   <Metrics>
     <SKL name="euclidean">
       <metricType>euclidean</metricType>

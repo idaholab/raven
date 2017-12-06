@@ -6,7 +6,7 @@
     <author>@alfoa</author>
     <created>2015-01-26</created>
     <revisions>
-        <revision date="2016-04-27" author="@alfoa">Updating the test in order to accept the new subdirectories' structure</revision>
+      <revision author="@alfoa" date="2016-04-27">Updating the test in order to accept the new subdirectories' structure</revision>
     </revisions>
     <classesTested>Samplers.AdaptiveDET</classesTested>
     <description>
@@ -20,13 +20,13 @@
     <Sequence>AdaptiveDETrunTest</Sequence>
     <batchSize>8</batchSize>
   </RunInfo>
-  
+
   <!-- Files.  2 input files are listed -->
   <Files>
     <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
     <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
   </Files>
-  
+
   <!-- Models.  2 Models are listed. The Code (RELAP7) and an accelleration ROM -->
   <Models>
     <Code name="MyRAVEN" subType="RELAP7">
@@ -38,7 +38,7 @@
       <SKLtype>svm|LinearSVC</SKLtype>
     </ROM>
   </Models>
-  
+
   <!-- Functions.  1 Function is listed. The goal function for the adaptive search. -->
   <Functions>
     <External file="AdaptiveDET/relapFunctionSimple.py" name="relapFunctionSimple">
@@ -47,7 +47,7 @@
       <variable>systemFailed</variable>
     </External>
   </Functions>
-  
+
   <!-- Distributions. 2 Distributions -->
   <Distributions>
     <Uniform name="PressureFailureDist">
@@ -59,7 +59,7 @@
       <upperBound>5.0</upperBound>
     </Uniform>
   </Distributions>
-  
+
   <!-- Samplers. In here we specify the characteristics of the Adaptive DET sampling -->
   <Samplers>
     <AdaptiveDynamicEventTree name="AdaptiveDETsimple" printEndXmlSummary="yes">
@@ -77,7 +77,7 @@
       </Distribution>
     </AdaptiveDynamicEventTree>
   </Samplers>
-  
+
   <!-- Steps. 1 MultiRun -->
   <Steps>
     <MultiRun name="AdaptiveDETrunTest">
@@ -91,7 +91,7 @@
       <Output class="OutStreams" type="Print">adaptiveOutsimpleDump</Output>
     </MultiRun>
   </Steps>
-  
+
   <!-- OutStreams. The final results are printed and the converged limit surface -->
   <OutStreams>
     <Print name="limitSurfDump">
@@ -103,7 +103,7 @@
       <source>adaptiveOutsimple</source>
     </Print>
   </OutStreams>
-  
+
   <!-- DataObjects. DataObjects to contain the final results of the analysis and the converged Limit Surface -->
   <DataObjects>
     <PointSet name="LimitSurfSimple">

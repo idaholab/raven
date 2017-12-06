@@ -9,10 +9,10 @@
       Tests of the HistorySetSampling post-processor with intervalAverage interpolation technique
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>historySamplingIntervalAve</WorkingDir>
-    <Sequence>readIn,pp,plot</Sequence> 
+    <Sequence>readIn,pp,plot</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -21,23 +21,23 @@
   </Files>
 
   <Steps>
-    <IOStep name='readIn' pauseAtEnd = 'True'>
-      <Input    class = 'Files'             type = ''              >windTypDataFile</Input>
-      <Output   class = 'DataObjects'       type = 'HistorySet'       >windTypData</Output>        
-	</IOStep>
-	<PostProcess name="pp">
-      <Input   class="DataObjects"  type="HistorySet"    >windTypData</Input>
-      <Model   class="Models"       type="PostProcessor" >historySamplingPP</Model>
-      <Output  class="DataObjects"  type="HistorySet"    >windTypDataResampled</Output>
-      <Output  class="OutStreams"   type="Print"         >dump_interval_average</Output>
+    <IOStep name="readIn" pauseAtEnd="True">
+      <Input class="Files" type="">windTypDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">windTypData</Output>
+    </IOStep>
+    <PostProcess name="pp">
+      <Input class="DataObjects" type="HistorySet">windTypData</Input>
+      <Model class="Models" type="PostProcessor">historySamplingPP</Model>
+      <Output class="DataObjects" type="HistorySet">windTypDataResampled</Output>
+      <Output class="OutStreams" type="Print">dump_interval_average</Output>
     </PostProcess>
     <IOStep name="plot">
-      <Input   class="DataObjects"  type="HistorySet"    >windTypData</Input>
-      <Input   class="DataObjects"  type="HistorySet"    >windTypDataResampled</Input>
-      <Output  class="OutStreams"   type="Plot"          >plot_interval_average</Output>
+      <Input class="DataObjects" type="HistorySet">windTypData</Input>
+      <Input class="DataObjects" type="HistorySet">windTypDataResampled</Input>
+      <Output class="OutStreams" type="Plot">plot_interval_average</Output>
     </IOStep>
   </Steps>
- 
+
   <Models>
     <PostProcessor name="historySamplingPP" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
@@ -47,13 +47,13 @@
       <interpolation>intervalAverage</interpolation>
     </PostProcessor>
   </Models>
- 
+
   <OutStreams>
     <Print name="dump_interval_average">
       <type>csv</type>
       <source>windTypDataResampled</source>
     </Print>
-    <Plot  name="plot_interval_average" overwrite="False">
+    <Plot name="plot_interval_average" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -76,13 +76,13 @@
       </actions>
     </Plot>
   </OutStreams>
- 
+
   <DataObjects>
-	<HistorySet name="windTypData">
-	  <Input>x</Input>
+    <HistorySet name="windTypData">
+      <Input>x</Input>
       <Output>Time,Speed</Output>
-    </HistorySet>  
-	<HistorySet name="windTypDataResampled">
+    </HistorySet>
+    <HistorySet name="windTypDataResampled">
       <Input>x</Input>
       <Output>Time,Speed</Output>
     </HistorySet>
