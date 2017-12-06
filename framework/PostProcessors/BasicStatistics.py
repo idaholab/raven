@@ -437,8 +437,6 @@ class BasicStatistics(PostProcessor):
     # a percentile that is < that the first pb weight is requested. Otherwise the median
     # is returned (that is wrong).
     sortedWeightsAndPoints = np.insert(np.asarray(zip(pbWeight[idxs],arrayIn[idxs])),0,[0.0,arrayIn[idxs[0]]],axis=0)
-    print("sortedWeights")
-    print(sortedWeightsAndPoints)
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
     try:
       index = utils.find_le_index(weightsCDF,percent)

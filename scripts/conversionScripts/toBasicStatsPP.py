@@ -145,8 +145,11 @@ def convert(tree,fileName=None):
                 if child.tag != 'percentile':
                   params.append(metricDict[child.tag] + '_' + var.strip())
                 else:
-                  params.append(metricDict[child.tag]+'_5_'+var.strip())
-                  params.append(metricDict[child.tag]+'_95_'+var.strip())
+                  if 'percent' in child.attrib.keys():
+                    params.append(metricDict[child.tag]+'_'+child.attrib['percent']+'_'+var.strip())
+                  else:
+                    params.append(metricDict[child.tag]+'_5_'+var.strip())
+                    params.append(metricDict[child.tag]+'_95_'+var.strip())
 
             else:
               targNode = child.find('targets')
@@ -156,10 +159,10 @@ def convert(tree,fileName=None):
                   params.append(metricDict[child.tag]+'_'+targ.strip()+'_'+feat.strip())
 
         # add variable groups
-        group = ET.Element('Group')
-        group.attrib['name'] = model.attrib['name'] + '_vars'
-        group.text = ',\n                 '.join(params)
-        variableGroups.append(group)
+      group = ET.Element('Group')
+      group.attrib['name'] = model.attrib['name'] + '_vars'
+      group.text = ',\n                 '.join(params)
+      variableGroups.append(group)
 
   if variableGroups.find('Group') is not None:
     if not hasVariableGroups:
