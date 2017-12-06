@@ -19,6 +19,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
+import copy
+import itertools
+import numpy as np
+
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 
 class testInterfacedPP(PostProcessorInterfaceBase):
@@ -34,7 +38,6 @@ class testInterfacedPP(PostProcessorInterfaceBase):
      Method to initialize the Interfaced Post-processor
      @ In, None,
      @ Out, None,
-
     """
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
@@ -42,15 +45,29 @@ class testInterfacedPP(PostProcessorInterfaceBase):
 
   def run(self,inputDic):
     """
-    This method is transparent: it passes the inputDic directly as output
+     This method is transparent: it passes the inputDic directly as output
      @ In, inputDic, dict, dictionary which contains the data inside the input DataObject
      @ Out, inputDic, dict, same inputDic dictionary
-
     """
     if len(inputDic)>1:
-      self.raiseAnError(IOError, 'testInterfacedPP Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+      self.raiseAnError(IOError, 'testInterfacedPP_PointSet Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
-      return inputDic[0]
+      inputDict = inputDic[0]
+      outputDict = {'data':{}}
+
+      outputDict['dims'] = copy.deepcopy(inputDict['dims'])
+      for key in inputDict['inpVars'] + inputDict['outVars']:
+        outputDict['data'][key]=np.zeros(inputDict['numberRealizations'], dtype=object)
+        for rlz in range(inputDict['numberRealizations']):
+          outputDict['data'][key][rlz] = inputDict['data'][key].values[rlz]
+
+      # get dim vars ID
+      vars = set(itertools.chain.from_iterable(inputDict.get('dims').values()))
+      for elem in vars:
+        outputDict['data'][elem] = np.zeros(inputDict['numberRealizations'], dtype=object)
+        for rlz in range(inputDict['numberRealizations']):
+          outputDict['data'][elem][rlz] = inputDict['data'][elem].values
+      return outputDict
 
   def readMoreXML(self,xmlNode):
     """

@@ -216,6 +216,7 @@ class InterfacedPostProcessor(PostProcessor):
         inputDictTemp['dims']      = inp.getDimensions()
         inputDictTemp['type']      = inp.type
         inputDictTemp['metadata']  = inp.getMeta(pointwise=True,general=True)
+        inputDictTemp['numberRealizations'] = len(inp)
         #### ADD dataObject NAME!!!!!
         #inputDictTemp['name']      = inp.getName()
         inputDict.append(inputDictTemp)
@@ -234,9 +235,13 @@ class InterfacedPostProcessor(PostProcessor):
 
     evaluation = evaluations[1]
 
-    print(evaluations)
-
     output.load(evaluation['data'], style='dict', dims=evaluation['dims'])
+
+  def returnFormat(self,location):
+    if location == 'input':
+      return self.inputFormat
+    elif location=='output':
+      return self.outputFormat
 
   def inputToInternal_OLD(self,inputs):
     """
@@ -254,8 +259,8 @@ class InterfacedPostProcessor(PostProcessor):
         inputDictTemp['data']['input']  = copy.deepcopy(inp.getInpParametersValues())
         inputDictTemp['data']['output'] = copy.deepcopy(inp.getOutParametersValues())
         inputDictTemp['metadata']       = copy.deepcopy(inp.getAllMetadata())
-        inputDictTemp['name'] = inp.whoAreYou()['Name']
-        inputDictTemp['type'] = str(inp.type)
+        inputDictTemp['name']           = inp.whoAreYou()['Name']
+        inputDictTemp['type']           = str(inp.type)
         inputDict.append(inputDictTemp)
     return inputDict
 
