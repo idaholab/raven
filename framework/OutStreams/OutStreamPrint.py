@@ -102,7 +102,7 @@ class OutStreamPrint(OutStreamManager):
     """
     self.type = 'OutStreamPrint'
     for subnode in xmlNode:
-      if subnode.tag not in ['type','source','what','filename','target']:
+      if subnode.tag not in ['type','source','what','filename','target','clusterLabel']:
         self.raiseAnError(IOError, ' Print Outstream object ' + str(self.name) + ' contains the following unknown node: ' + str(subnode.tag))
       if subnode.tag == 'source':
         self.sourceName = subnode.text.split(',')
@@ -146,6 +146,12 @@ class OutStreamPrint(OutStreamManager):
             filename = dictOptions['filenameroot']
             rlzIndex = self.indexPrinted.get(filename,0)
             dictOptions['firstIndex'] = rlzIndex
+            # clusterLabel lets the user print a point set as if it were a history, with input decided by clusterLabel
+            if 'clusterLabel' in self.options:
+              if type(sourceData).__name__ != 'PointSet':
+                self.raiseAWarning('Label clustering currently only works for PointSet data objects!  Skipping for',self.sourceData.name)
+              else:
+                dictOptions['clusterLabel'] = self.options['clusterLabel']
             rlzIndex = self.sourceData[index].write(filename,style='CSV',**dictOptions)
             self.indexPrinted[filename] = rlzIndex
           elif self.options['type'] == 'xml':

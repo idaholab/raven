@@ -480,8 +480,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
     # check if the TargetEvaluation feature and target spaces are consistent
-    ins  = self.mdlEvalHist.getVarss("inputs")
-    outs = self.mdlEvalHist.getVars("outputs")
+    ins  = self.mdlEvalHist.getVars("input")
+    outs = self.mdlEvalHist.getVars("output")
     for varName in self.fullOptVars:
       if varName not in ins:
         self.raiseAnError(RuntimeError,"the optimization variable "+varName+" is not contained in the TargetEvaluation object "+self.mdlEvalHist.name)
@@ -493,7 +493,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseAnError(IOError,'The results of optimization cannot be obtained without a SolutionExport defined in the Step!')
 
     if type(solutionExport).__name__ != "HistorySet":
-      self.raiseAnError(IOError,'solutionExport type is not a HistorySet. Got '+ type(solutionExport).__name__+ '!')
+      self.raiseAnError(IOError,'solutionExport type must be a HistorySet. Got '+ type(solutionExport).__name__+ '!')
 
     if 'Function' in self.assemblerDict.keys():
       self.constraintFunction = self.assemblerDict['Function'][0][3]
@@ -808,17 +808,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       Method to get the Loss Function value given an evaluation ID
       @ In, evaluationID, string, the evaluation identifier (prefix)
-      @ Out, functionValue, float, the loss function value
+      @ Out, objeciveValue, float, the loss function value
     """
-    objective  = self.mdlEvalHist.getVars('output', nodeId = 'RecontructEnding')[self.objVar]
-    prefix = self.mdlEvalHist.getMetadata('prefix',nodeId='RecontructEnding')
-    if len(prefix) > 0 and utils.returnIdSeparator() in prefix[0]:
-      # ensemble model id modification
-      # FIXME: Need to find a better way to handle this case
-      prefix = [key.split(utils.returnIdSeparator())[-1] for key in prefix]
-    search = dict(zip(prefix, objective))
-    functionValue = search.get(evaluationID,None)
-    return functionValue
+    # get matching realization by matching "prefix"
+    # TODO the EnsembleModel prefix breaks this pattern!
+    _,rlz  = self.mdlEvalHist.realization(matchDict={'prefix':evaluationID})
+    # if no match found, return None
+    if rlz is None:
+      return None
+    # otherwise, return value (float assures single value)
+    return float(rlz[self.objVar])
 
   def checkConstraint(self, optVars):
     """

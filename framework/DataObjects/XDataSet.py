@@ -287,38 +287,7 @@ class DataSet(DataObject):
       @ In, rlz, dict, {name:value} as {str:float} of the variables to extend
       @ Out, None
     """
-    assert(type(rlz) == dict)
-    # modify outputs to be pivot-dependent
-    # set up index vars for removal
-    toRemove = (var for var in self.indexes if var in allDims)
-    # dimensionalize outputs
-    for var in self._outputs:
-      # TODO are they always all there?
-      # TODO check the right dimensional shape and order
-      vals = rlz[var]
-      dims = self.getDimensions(var)[var]
-      coords = dict((dim,rlz[dim]) for dim in dims)
-      rlz[var] = self.constructNDSample(vals,dims,coords)
-    # remove indexes
-    for var in toRemove:
-      del rlz[var]
-    # first time? Initialize everything
-    if (self._collector is None or len(self._collector)==0) and self._data is None:
-      if self._collector is None:
-        self._collector = self._newCollector(width=len(rlz),dtype=object)
-      self.addRealization(rlz)
-    # collector is present # TODO match search should happen both in collector and in data!
-    elif len(self._collector) > 0:
-      # find the entry to modify
-      matchIdx,matchRlz = self.realization(matchDict=dict((var,rlz[var]) for var in self._inputs))
-      if matchRlz is None:
-        #we're adding the entry as if new # TODO duplicated code
-        self.addRealization(rlz)
-      else:
-        # extend each existing dataarray with the new value
-        extend
-    else:
-      indata
+    self.raiseAnError(NotImplementedError,'extendExistingEntry only implemented for HistorySets! Use HistorySet for Optimizer\'s Solution Export.')
 
   def getDimensions(self,var=None):
     """
@@ -510,7 +479,6 @@ class DataSet(DataObject):
           if numInCollector > 0:
             index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
       return index,rlz
-
 
   def remove(self,realization=None,variable=None):
     """
@@ -736,6 +704,7 @@ class DataSet(DataObject):
       Converts a 1-D array of xr.DataArrays into a xr.Dataset, then takes action on self._data:
       action=='replace': replace self._data with the new dataset
       action=='extend' : add new dataset to self._data using merge
+      action=='return' : return new dataset
       else             : only return new dataset
       @ In, array, list(xr.DataArray), list of variables as samples to turn into dataset
       @ In, action, str, optional, can be used to specify the action to take with the new dataset
@@ -745,7 +714,9 @@ class DataSet(DataObject):
       new = xr.Dataset(array)
     except ValueError as e:
       self.raiseAnError(RuntimeError,'While trying to create a new Dataset, a variable has itself as an index!  Error: ' +str(e))
-    if action == 'replace': #self._data is None:
+    if action == 'return':
+      return new
+    elif action == 'replace':
       self._data = new
       # general metadata included if first time
       self._data.attrs = self._meta # appears to NOT be a reference
@@ -1028,10 +999,13 @@ class DataSet(DataObject):
     for r,row in enumerate(self._collector[:,tuple(self._allvars.index(var) for var in match.keys())]):
       match = True
       for e,element in enumerate(row):
-        if isinstance(element,float):
+        if isinstance(element,(float,int)):
           match *= mathUtils.compareFloats(lookingFor[e],element,tol=tol)
           if not match:
             break
+        else:
+          aaa
+          match *= lookingFor[e] == element
       if match:
         break
     if match:
@@ -1189,11 +1163,18 @@ class DataSet(DataObject):
       @ In, fName, str, path/name to write file
       @ In, start, int, optional, first realization to start printing from (if > 0, implies append mode)
       @ In, kwargs, dict, optional, keywords for options
+            Possibly includes:
+                'clusterLabel': name of variable to cluster printing by.  If included then triggers history-like printing.
       @ Out, None
     """
     filenameLocal = fName # TODO path?
     keep = self._getRequestedElements(kwargs)
     toDrop = list(var for var in self._allvars if var not in keep)
+    # if printing by cluster, divert now
+    if 'clusterLabel' in kwargs:
+      clusterLabel = kwargs.pop('clusterLabel')
+      self._toCSVCluster(fName,start,clusterLabel,**kwargs)
+      return
     # set up data to write
     if start > 0:
       # slice data starting from "start"
@@ -1211,6 +1192,31 @@ class DataSet(DataObject):
     ordered += list(o for o in self._outputs if o in keep)
     ordered += list(m for m in self._metavars if m in keep)
     self._usePandasWriteCSV(filenameLocal,data,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
+
+  def _toCSVCluster(self,fName,start,clusterLabel,**kwargs):
+    """
+      Writes this data object as a chain of CSVs, grouped by the cluster
+      @ In, fName, str, path/name to write file
+      @ In, start, int, optional, TODO UNUSED first realization to start printing from (if > 0, implies append mode)
+      @ In, clusterLable, str, variable by which to cluster printing
+      @ In, kwargs, dict, optional, keywords for options
+      @ Out, None
+    """
+    # get list of variables to print
+    keep = self._getRequestedElements(kwargs)
+    # get unique cluster labels
+    clusterIDs = set(self._data[clusterLabel].values)
+    # write main CSV pointing to other files
+    with open(fName+'.csv','w') as writeFile: # TODO append mode if printing each step
+      writeFile.writelines('{},filename\n'.format(clusterLabel))
+      for ID in clusterIDs:
+        writeFile.writelines('{},{}_{}.csv\n'.format(ID,fName,ID))
+      self.raiseADebug('Wrote master cluster file to "{}.csv"'.format(fName))
+    # write sub files as point sets
+    ordered = list(var for var in itertools.chain(self._inputs,self._outputs,self._metavars) if (var != clusterLabel and var in keep))
+    for ID in clusterIDs:
+      data = self._data.where(self._data[clusterLabel] == ID, drop = True).drop(clusterLabel)
+      self._usePandasWriteCSV('{}_{}'.format(fName,ID), data, ordered, keepSampleTag=self.sampleTag in keep, mode='w') # TODO append mode
 
   def _toCSVXML(self,fName,**kwargs):
     """

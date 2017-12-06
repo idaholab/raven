@@ -169,7 +169,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
     for key,val in first.items():
       if key in skip:
         continue
-      if isinstance(val,float):
+      if isinstance(val,(float,int)):
         pres = checkFloat('',val,second[key][0],tol,update=False)
       elif isinstance(val,(str,unicode)):
         pres = checkSame('',val,second[key][0],update=False)
@@ -720,6 +720,101 @@ checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
 checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
 # check we can add a new realization
 data.addRealization({'a':np.array([2.1]), 't':np.array([0])})
+
+
+######################################
+#          CLUSTER LABELING          #
+######################################
+# as used by the Optimizer, for example.  We store as a flat point set, then
+#   divide up by cluster label for printing.
+# create data object
+xml = createElement('PointSet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a,b'))
+xml.append(createElement('Output',text='x,y'))
+data = XDataSet.DataSet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+# register "trajID" (cluster label) and "varsUpdate" (iteration number/monotonically increasing var) as meta
+data.addExpectedMeta(['trajID','varsUpdate'])
+# add two trajectories to get started, like starting two trajectories
+rlz0_0 = {'trajID': np.atleast_1d(1),
+          'a': np.atleast_1d(  1.0),
+          'b': np.atleast_1d(  5.0),
+          'x': np.atleast_1d( 10.0),
+          'y': np.atleast_1d(100.0),
+          'varsUpdate': np.atleast_1d(0)}
+rlz1_0 = {'trajID': np.atleast_1d(2),
+          'a': np.atleast_1d(  2.0),
+          'b': np.atleast_1d(  6.0),
+          'x': np.atleast_1d( 20.0),
+          'y': np.atleast_1d(200.0),
+          'varsUpdate': np.atleast_1d(0)}
+data.addRealization(rlz0_0)
+data.addRealization(rlz1_0)
+checkRlz('Cluster initial traj 1',data.realization(index=0),rlz0_0,skip='varsUpdate')
+checkRlz('Cluster initial traj 2',data.realization(index=1),rlz1_0,skip='varsUpdate')
+# now sample a new trajectory point, going into the collector
+rlz0_1 = {'trajID': np.atleast_1d(1),
+          'a': np.atleast_1d(  1.1),
+          'b': np.atleast_1d(  5.1),
+          'x': np.atleast_1d( 10.1),
+          'y': np.atleast_1d(100.1),
+          'varsUpdate': np.atleast_1d(1)}
+data.addRealization(rlz0_1)
+checkRlz('Cluster extend traj 1[0]',data.realization(matchDict={'trajID':1,'varsUpdate':0})[1],rlz0_0,skip='varsUpdate')
+checkRlz('Cluster extend traj 1[1]',data.realization(matchDict={'trajID':1,'varsUpdate':1})[1],rlz0_1,skip='varsUpdate')
+checkRlz('Cluster extend traj 2[0]',data.realization(matchDict={'trajID':2,'varsUpdate':0})[1],rlz1_0,skip='varsUpdate')
+# now collapse and then append to the data
+data.asDataset()
+rlz1_1 = {'trajID': np.atleast_1d(2),
+          'a': np.atleast_1d(  2.1),
+          'b': np.atleast_1d(  6.1),
+          'x': np.atleast_1d( 20.1),
+          'y': np.atleast_1d(200.1),
+          'varsUpdate': np.atleast_1d(1)}
+data.addRealization(rlz1_1)
+checkRlz('Cluster extend traj 2[1]',data.realization(matchDict={'trajID':2,'varsUpdate':1})[1],rlz1_1,skip='varsUpdate')
+# print it
+fname = 'XDataUnitTestClusterLabels'
+data.write(fname,style='csv',clusterLabel='trajID')
+# manually check contents
+for l,line in enumerate(open(fname+'.csv','r')):
+  if l == 0:
+    checkSame('Cluster CSV main [0]',line.strip(),'trajID,filename')
+  elif l == 1:
+    checkSame('Cluster CSV main [1]',line.strip(),'1,{}_1.csv'.format(fname))
+  elif l == 2:
+    checkSame('Cluster CSV main [2]',line.strip(),'2,{}_2.csv'.format(fname))
+for l,line in enumerate(open(fname+'_1.csv','r')):
+  if l == 0:
+    checkSame('Cluster CSV id1 [0]',line.strip(),'a,b,x,y,varsUpdate')
+  elif l == 1:
+    line = list(float(x) for x in line.split(','))
+    checkArray('Cluster CSV id1 [1]',line,[1.0,5.0,10.0,100.0,0],float)
+  elif l == 2:
+    line = list(float(x) for x in line.split(','))
+    checkArray('Cluster CSV id1 [1]',line,[1.1,5.1,10.1,100.1,1],float)
+for l,line in enumerate(open(fname+'_2.csv','r')):
+  if l == 0:
+    checkSame('Cluster CSV id1 [0]',line.strip(),'a,b,x,y,varsUpdate')
+  elif l == 1:
+    line = list(float(x) for x in line.split(','))
+    checkArray('Cluster CSV id1 [1]',line,[2.0,6.0,20.0,200.0,0],float)
+  elif l == 2:
+    line = list(float(x) for x in line.split(','))
+    checkArray('Cluster CSV id1 [1]',line,[2.1,6.1,20.1,200.1,1],float)
+# load it as a history # TODO first, loading needs to be fixed to use DataObject params instead of XML params
+#from XHistorySet import HistorySet
+#xml = createElement('HistorySet',attrib={'name':'test'})
+#xml.append(createElement('Input',text='trajID'))
+#xml.append(createElement('Output',text='a,b,x,y'))
+#options = createElement('options')
+#options.append(createElement('pivotParameter',text='varsUpdate'))
+#xml.append(options)
+#data2 = HistorySet()
+#data2.messageHandler = mh
+#data2._readMoreXML(xml)
+#data2.load(fname,style='csv')
 
 
 print(results)
