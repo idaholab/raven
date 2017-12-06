@@ -212,7 +212,8 @@ class InterfacedPostProcessor(PostProcessor):
         inputDictTemp['inpVars']   = inp.getVars('input')
         inputDictTemp['outVars']   = inp.getVars('output')
         inputDictTemp['pivotVars'] = inp.getDimensions('output')
-        inputDictTemp['data']      = inp.asDataset()
+        inputDictTemp['_data']     = inp.asDataset()
+        inputDictTemp['_data']     = inp.asDataset(type='dict')
         inputDictTemp['dims']      = inp.getDimensions()
         inputDictTemp['type']      = inp.type
         inputDictTemp['metadata']  = inp.getMeta(pointwise=True,general=True)
