@@ -260,11 +260,11 @@ class DataMining(PostProcessor):
     ## are reused more readily
 
     data = currentInput.asDataset()
+    allInputFeatures = currentInput.getVars('input')
+    allOutputFeatures = currentInput.getVars('output')
 
     if self.PreProcessor is None:
       inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
-      allInputFeatures = currentInput.getVars('input')
-      allOutputFeatures = currentInput.getVars('output')
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         for param in allInputFeatures:
           inputDict['Features'][param] = data[param]
@@ -280,10 +280,14 @@ class DataMining(PostProcessor):
         ## Get what the user asks requests
         features = set(self.initializationOptionDict['KDD']['Features'].split(','))
 
+        if features not in (allInputFeatures+allOutputFeatures):
+          self.raiseAnError(ValueError, 'Data Mining PP: features specified in the '
+                                        'PP (' + str(features) + ') do not match the one available '
+                                        'in the dataObject ('+ str(allInputFeatures+allOutputFeatures) +') ')
         ## Now intersect what the user wants and what is available.
         ## NB: this will not error, if the user asks for something that does not
         ##     exist in the data, it will silently ignore it.
-        inParams = list(features.intersection(allInputFeatures))
+        inParams  = list(features.intersection(allInputFeatures))
         outParams = list(features.intersection(allOutputFeatures))
 
         for param in inParams:
@@ -307,6 +311,9 @@ class DataMining(PostProcessor):
     else:
       features = self.initializationOptionDict['KDD']['Features'].split(',')
     '''
+    if self.PreProcessor.interface.returnFormat('output') not in ['PointSet']:
+      self.raiseAnError(IOError, 'DataMining PP: this PP is employing a pre-processor PP which does not generates a PointSet.')
+
     tempData = self.PreProcessor.interface.inputToInternal(currentInput)
     preProcessedData = self.PreProcessor.interface.run(tempData)
 
@@ -334,6 +341,7 @@ class DataMining(PostProcessor):
 
     if type(currentInp) == list:
       currentInput = currentInp[-1]
+      '''====> For the reviewer: should we raise a warning/error here? I see issues here......'''
     else:
       currentInput = currentInp
 
@@ -348,11 +356,10 @@ class DataMining(PostProcessor):
         return
 
     elif isinstance(currentInp, Files.File):
-      if currentInput.subtype == 'csv':
-        self.raiseAnError(IOError, 'CSV File received as an input!')
+      self.raiseAnError(IOError, 'DataMining PP: this PP does not support files as input.')
 
     elif currentInput.type == 'HDF5':
-      self.raiseAnError(IOError, 'HDF5 Object received as an input!')
+      self.raiseAnError(IOError, 'DataMining PP: this PP does not support HDF5 Objects as input.')
 
   def inputToInternal_OLD(self, currentInp):
     """
