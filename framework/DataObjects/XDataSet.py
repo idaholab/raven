@@ -280,15 +280,6 @@ class DataSet(DataObject):
     obj.rename(name)
     return obj
 
-  def extendExistingEntry(self,rlz):
-    """
-      Extends an ND sample to include more data.
-      Probably only useful for the hacky way the Optimizer stores Trajectories.
-      @ In, rlz, dict, {name:value} as {str:float} of the variables to extend
-      @ Out, None
-    """
-    self.raiseAnError(NotImplementedError,'extendExistingEntry only implemented for HistorySets! Use HistorySet for Optimizer\'s Solution Export.')
-
   def getDimensions(self,var=None):
     """
       Provides the independent dimensions that this variable depends on.
