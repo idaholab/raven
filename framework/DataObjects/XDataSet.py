@@ -78,7 +78,7 @@ class DataSet(DataObject):
     """
     # TODO add option to skip parts of meta if user wants to
     # remove already existing keys
-    keys = list(key for key in keys if key not in self._allvars)
+    keys = list(key for key in keys if key not in self._allvars+self.indexes)
     # if no new meta, move along
     if len(keys) == 0:
       return
@@ -817,19 +817,20 @@ class DataSet(DataObject):
       self.raiseADebug('Reading data from "{}.csv"'.format(fName))
     # then, read in the XML
     # TODO what if no xml? -> read as point set?
-    # TODO separate _fromCSVXML for clarity and brevity
     meta = self._fromCSVXML(fName)
-    # apply findings
+    # apply findings # TODO shouldn't we respect user wishes more carefully? TODO
     self.sampleTag = meta.get('sampleTag',self.sampleTag)
     dims = meta.get('pivotParams',{}) # stores the dimensionality of each variable
     if len(dims)>0:
       self.setPivotParams(dims)
-    # TODO make this into a consistency check instead?  Selective loading?
-    self._inputs = meta.get('inputs',self._inputs)
-    self._outputs = meta.get('outputs',self._outputs)
-    self._metavars = meta.get('metavars',self._metavars)
-    # replace the IO space, default to user input # TODO or should we be sticking to user's wishes?  Probably.
-    self._allvars = self._inputs + self._outputs + self._metavars
+    # check that all required variables are available # TODO this breaks if the metadata is missing
+    provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
+    needed = set(self._allvars)
+    missing = needed - provided
+    if len(missing) > 0:
+      self.raiseAnError(IOError,'Not all the variables requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fName,missing))
+    # What about probability weights and other essential metadata? -> Let's just add them.
+    self.addExpectedMeta(meta.get('metavars',[]))
     # find distinct number of samples
     try:
       samples = list(set(panda[self.sampleTag]))

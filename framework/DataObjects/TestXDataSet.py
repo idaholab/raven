@@ -37,7 +37,7 @@ import XDataSet
 import MessageHandler
 
 mh = MessageHandler.MessageHandler()
-mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
+mh.initialize({'verbosity':'silent', 'callerLength':10, 'tagLength':10})
 
 print('Module undergoing testing:')
 print (XDataSet )
@@ -330,11 +330,11 @@ formatRealization(rlz2)
 rlzMissing = dict(rlz0)
 rlz0['z'] = 6.0
 formatRealization(rlz0)
-checkFails('DataSet addRealization err missing','Provided realization does not have all requisite values: \"z\"',data.addRealization,args=[rlzMissing])
+checkFails('DataSet addRealization err missing','Provided realization does not have all requisite values for object \"DataSet\": \"z\"',data.addRealization,args=[rlzMissing])
 # bad formatting
 rlzFormat = dict(rlz0)
 rlzFormat['c'] = list(rlzFormat['c'])
-checkFails('DataSet addRealization err format','Realization was not formatted correctly! See warnings above.',data.addRealization,args=[rlzFormat])
+checkFails('DataSet addRealization err format','Realization was not formatted correctly for "DataSet"! See warnings above.',data.addRealization,args=[rlzFormat])
 # test appending
 data.addRealization(dict(rlz0))
 
@@ -595,11 +595,20 @@ for l,line in enumerate(lines):
 # check
 checkArray('CSV XML',lines,correct,str)
 ## read from CSV/XML
+xml = createElement('DataSet',attrib={'name':'csv'})
+# scramble the IO space, also skip 'z' for testing
+xml.append(createElement('Input',text='a,x,y'))
+xml.append(createElement('Output',text='c,b'))
+xml.append(createElement('Index',attrib={'var':'t'},text='y,c'))
 dataCSV = XDataSet.DataSet()
 dataCSV.messageHandler = mh
+dataCSV._readMoreXML(xml)
 dataCSV.load(csvname,style='CSV')
 for var in data.getVars():
-  if isinstance(data.getVarValues(var).item(0),(float,int)):
+  if var == 'z':
+    # not included in XML input specs, so should be left out
+    checkFails('CSV var z','z',dataCSV.getVarValues,args=var)
+  elif isinstance(data.getVarValues(var).item(0),(float,int)):
     checkTrue('CSV var {}'.format(var),(dataCSV._data[var] - data._data[var]).sum()<1e-20) #necessary due to roundoff
   else:
     checkTrue('CSV var {}'.format(var),bool((dataCSV._data[var] == data._data[var]).prod()))
@@ -616,7 +625,7 @@ os.remove(csvname+'.xml')
 # by index
 checkRlz('Dataset full origin idx 1',data.realization(index=1),rlz1,skip=['time'])
 checkRlz('Dataset full netcdf idx 1',dataNET.realization(index=1),rlz1,skip=['time'])
-checkRlz('Dataset full csvxml idx 1',dataCSV.realization(index=1),rlz1,skip=['time'])
+checkRlz('Dataset full csvxml idx 1',dataCSV.realization(index=1),rlz1,skip=['time','z'])
 # by match
 idx,rlz = data.realization(matchDict={'prefix':'third'})
 checkSame('Dataset full origin match idx',idx,2)
@@ -626,7 +635,7 @@ checkSame('Dataset full netcdf match idx',idx,2)
 checkRlz('Dataset full netCDF match',rlz,rlz2,skip=['time'])
 idx,rlz = dataCSV.realization(matchDict={'prefix':'third'})
 checkSame('Dataset full csvxml match idx',idx,2)
-checkRlz('Dataset full csvxml match',rlz,rlz2,skip=['time'])
+checkRlz('Dataset full csvxml match',rlz,rlz2,skip=['time','z'])
 # TODO metadata checks?
 
 
@@ -804,17 +813,30 @@ for l,line in enumerate(open(fname+'_2.csv','r')):
     line = list(float(x) for x in line.split(','))
     checkArray('Cluster CSV id1 [1]',line,[2.1,6.1,20.1,200.1,1],float)
 # load it as a history # TODO first, loading needs to be fixed to use DataObject params instead of XML params
-#from XHistorySet import HistorySet
-#xml = createElement('HistorySet',attrib={'name':'test'})
-#xml.append(createElement('Input',text='trajID'))
-#xml.append(createElement('Output',text='a,b,x,y'))
-#options = createElement('options')
-#options.append(createElement('pivotParameter',text='varsUpdate'))
-#xml.append(options)
-#data2 = HistorySet()
-#data2.messageHandler = mh
-#data2._readMoreXML(xml)
-#data2.load(fname,style='csv')
+from XHistorySet import HistorySet
+xml = createElement('HistorySet',attrib={'name':'test'})
+xml.append(createElement('Input',text='trajID'))
+xml.append(createElement('Output',text='a,b,x,y'))
+options = createElement('options')
+options.append(createElement('pivotParameter',text='varsUpdate'))
+xml.append(options)
+data2 = HistorySet()
+data2.messageHandler = mh
+data2._readMoreXML(xml)
+data2.load(fname,style='csv')
+# check data is correct by realization
+correct = {'a':np.array([  1.0,  1.1]),
+           'b':np.array([  5.0,  5.1]),
+           'x':np.array([ 10.0, 10.1]),
+           'y':np.array([100.0,100.1]),
+           'trajID':np.array([1])}
+checkRlz('Cluster read [0]',data2.realization(index=0),correct)
+correct = {'a':np.array([  2.0,  2.1]),
+           'b':np.array([  6.0,  6.1]),
+           'x':np.array([ 20.0, 20.1]),
+           'y':np.array([200.0,200.1]),
+           'trajID':np.array([2])}
+checkRlz('Cluster read [1]',data2.realization(index=1),correct)
 
 
 print(results)

@@ -135,15 +135,20 @@ class HistorySet(DataSet):
     data = {}
     # load in XML, if present
     meta = self._fromCSVXML(fname)
+    # TODO shouldn't we be respecting user wishes more carefully? TODO
     self.samplerTag = meta.get('sampleTag',self.sampleTag)
     # TODO do selective inputs! consistency check here instead
     dims = meta.get('pivotParams',{})
     if len(dims)>0:
       self.setPivotParams(dims)
-    self._inputs = meta.get('inputs',self._inputs)
-    self._outputs = meta.get('outputs',self._outputs)
-    self._metavars = meta.get('metavars',self._metavars)
-    self._allvars = self._inputs + self._outputs + self._metavars
+    # check all variables desired are available TODO this check isn't good if meta is missing
+    provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
+    needed = set(self._allvars)
+    missing = needed - provided
+    if len(missing) > 0:
+      self.raiseAnError(IOError,'Not all varibles requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fName,missing))
+    # add metadata, so we get probability weights and etc
+    self.addExpectedMeta(meta.get('metavars',[]))
     # load in main CSV
     ## read into dataframe
     main = pd.read_csv(fname+'.csv')
