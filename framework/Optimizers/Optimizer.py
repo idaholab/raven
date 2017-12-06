@@ -907,7 +907,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localGenerateInput(model,oldInput)
     ####   UPDATE STATICS   ####
     # get trajectory asking for eval from LGI variable set
-    traj = self.inputInfo['trajID'][0] - 1
+    traj = self.inputInfo['trajID'] - 1
 
     self.values.update(self.denormalizeData(self.mlStaticValues[traj]))
     staticOutputVars = self.mlOutputStaticVariables[traj] if traj in self.mlOutputStaticVariables else None #self.mlOutputStaticVariables.pop(traj,None)
