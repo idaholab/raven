@@ -167,10 +167,10 @@ class Dummy(Model):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-    rlz = {}
-    rlz.update(inRun)
-    rlz.update(kwargs)
-    rlz['OutputPlaceHolder'] = np.atleast_1d(np.float(Input[1]['prefix']))
+    # build realization using input space from inRun and metadata from kwargs
+    rlz = dict((var,np.atlesat_1d(inRun[var] if var in kwargs['SampledVars'] else kwargs[var])) for var in set(kwargs.keys()+inRun.keys()))
+    # add dummy output space
+    rlz['OutputPlaceHolder'] = np.atleast_1d(float(Input[1]['prefix'][0]))
     return rlz
 
   def collectOutput(self,finishedJob,output,options=None):
@@ -185,6 +185,7 @@ class Dummy(Model):
     # TODO apparently sometimes "options" can include 'exportDict'; what do we do for this?
     # TODO consistency with old HDF5; fix this when HDF5 api is in place
     # TODO expensive deepcopy prevents modification when sent to multiple outputs
+    result = finishedJob.getEvaluation()
     self._replaceVariablesNamesWithAliasSystem(result)
     if isinstance(result,Runners.Error):
       self.raiseAnError(Runners.Error,'No available output to collect!')
