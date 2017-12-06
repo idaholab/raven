@@ -190,8 +190,6 @@ class BasicStatistics(PostProcessor):
         inputDict = {}
         inputDict['metadata'] = metadata
         inputDict['targets'] = dict((target, sliceData[target]) for target in self.parameters['targets'])
-        print("inputDict")
-        print(inputDict['targets'])
         inputList.append(inputDict)
 
     self.raiseAMessage("Recasting performed")
@@ -308,7 +306,6 @@ class BasicStatistics(PostProcessor):
       self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
 
     outputRealization = evaluation[1]
-    print("Realization", outputRealization)
     if output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       output.addRealization(outputRealization)
@@ -560,10 +557,6 @@ class BasicStatistics(PostProcessor):
       if pbPresent:
         relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         calculations[metric][targetP] = np.average(inputDict['targets'][targetP].values, weights = relWeight)
-        print("targetP:", targetP)
-        print(inputDict['targets'][targetP].values)
-        print("Metric: ", metric)
-        print(calculations[metric][targetP])
       else:
         relWeight  = None
         calculations[metric][targetP] = np.mean(inputDict['targets'][targetP].values)
