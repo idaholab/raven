@@ -168,7 +168,7 @@ class Dummy(Model):
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
     # build realization using input space from inRun and metadata from kwargs
-    rlz = dict((var,inRun[var] if var in kwargs['SampledVars'] else kwargs[var]) for var in set(kwargs.keys()+inRun.keys()))
+    rlz = dict((var,np.atlesat_1d(inRun[var] if var in kwargs['SampledVars'] else kwargs[var])) for var in set(kwargs.keys()+inRun.keys()))
     # add dummy output space
     rlz['OutputPlaceHolder'] = np.atleast_1d(float(Input[1]['prefix'][0]))
     return rlz
