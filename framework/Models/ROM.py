@@ -23,6 +23,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import copy
 import inspect
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -362,6 +363,9 @@ class ROM(Dummy):
     """
     inputToROM       = self._inputToInternal(request)
     outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
+    # assure numpy array formatting # TODO can this be done in the supervised engine instead?
+    for k,v in outputEvaluation.items():
+      outputEvaluation[k] = np.atleast_1d(v)
     return outputEvaluation
 
   def _externalRun(self,inRun):
@@ -390,9 +394,13 @@ class ROM(Dummy):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-    rlz = self._externalRun(inRun)
-    rlz.update(inRun)
-    rlz.update(kwargs)
+    # collect results from model run
+    result = self._externalRun(inRun)
+    # build realization
+    # assure rlz has all metadata
+    rlz = dict((var,np.atleast_1d(kwargs[var]) for var in kwargs.keys())
+    # update rlz with input space from inRun and output space from result
+    rlz.update(dict((var,np.atlest_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(result.keys()+inRun.keys())))
     return rlz
 
   def reseed(self,seed):
