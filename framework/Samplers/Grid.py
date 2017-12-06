@@ -103,6 +103,13 @@ class Grid(ForwardSampler):
       self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
     self.axisName = list(grdInfo.keys())
     self.axisName.sort()
+    for i in range(len(self.axisName)):
+      varName = self.axisName[i]
+      if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
+        self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","-")])
+      else:
+        if self.variables2distributionsMapping[varName]['reducedDim']==1:
+          self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","!")])
 
   def localGetInitParams(self):
     """
@@ -238,7 +245,6 @@ class Grid(ForwardSampler):
               midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
               self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = 1.0 - self.distDict[varName].cdf(midMinusValue)
               weight *= 1.0 - self.distDict[varName].cdf(midMinusValue)
-          self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","-")])
       # ND variable
       else:
         if self.variables2distributionsMapping[varName]['reducedDim']==1:
@@ -275,7 +281,6 @@ class Grid(ForwardSampler):
                 dxs[positionList.index(position)]          =  self.distDict[varName].returnUpperBound(positionList.index(position)) - (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0
                 ndCoordinate[positionList.index(position)] = (self.distDict[varName].returnUpperBound(positionList.index(position)) + (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0) /2.0
           self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
-          self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","!")])
           weight *= self.distDict[varName].cellIntegral(ndCoordinate,dxs)
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
