@@ -230,10 +230,6 @@ class Metric(PostProcessor):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier, "failed!")
     outputDict = evaluation[1]
-
-    print("Debug realization: ++++++++++++++++++++++++++++++")
-    print(outputDict)
-
     output.addRealization(outputDict)
 
   def run(self, inputIn):
