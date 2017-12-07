@@ -177,6 +177,8 @@ class BasicStatistics(PostProcessor):
     inputList = []
     if currentInput.type == 'PointSet':
       inputDict = {}
+      #FIXME: the following operation is slow, and we should operate on the data
+      # directly without transforming it into dicts first.
       inputDict['targets'] = currentInput.getVarValues(self.parameters['targets'])
       inputDict['metadata'] =  metadata
       inputList.append(inputDict)
@@ -185,6 +187,8 @@ class BasicStatistics(PostProcessor):
         self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter got inputted!')
       self.dynamic = True
       self.pivotValue = currentInput.asDataset()[self.pivotParameter].values
+      if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
+        self.raiseAnError(IOError, "The data provided by the data objects", currentInput.name, "is not synchronized!")
       slices = currentInput.sliceByIndex(self.pivotParameter)
       for sliceData in slices:
         inputDict = {}
@@ -243,10 +247,10 @@ class BasicStatistics(PostProcessor):
       #because percentile is strange (has an attached parameter), we address it first
       if tag in ['percentile'] + self.scalarVals + self.vectorVals:
         if 'prefix' not in child.parameterValues:
-          self.raiseAnError(IOError, "Not prefix is provided for node: ", tag)
+          self.raiseAnError(IOError, "No prefix is provided for node: ", tag)
+        #get the prefix
         prefix = child.parameterValues['prefix']
       if tag == 'percentile':
-        #get the prefix
         #get targets
         targets = set(child.value)
         #what if user didn't give any targets?
@@ -264,8 +268,6 @@ class BasicStatistics(PostProcessor):
           self.toDo[tag].append({'targets':set(targets),
                                  'prefix':prefix,
                                  'percent':reqPercent})
-          #TODO: remove
-          #self.parameters['percentile_map'][floatPercentile[0]] = '5'
       elif tag in self.scalarVals:
         self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
         self.toDo[tag].append({'targets':set(child.value),
@@ -856,7 +858,7 @@ class BasicStatistics(PostProcessor):
   def run(self, inputIn):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
-      @ In,  inputIn, object, object contained the data to process. (enputToInternal output)
+      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
       @ Out, outputDict, dict, Dictionary containing the results
     """
     inputAdapted = self.inputToInternal(inputIn)
@@ -868,6 +870,7 @@ class BasicStatistics(PostProcessor):
       outputList = []
       for inputDict in inputAdapted:
         outputList.append(self.__runLocal(inputDict))
+      #FIXME: swith to defaultdict
       outputDict = dict((var,list()) for var in outputList[0].keys())
       for output in outputList:
         for var, value in output.items():

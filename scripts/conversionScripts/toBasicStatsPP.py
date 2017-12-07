@@ -17,8 +17,7 @@ import os
 
 def convert(tree,fileName=None):
   """
-    Converts input files to be compatible with merge request ###, where BasicStatistics is given the power
-    to be more nodalized than before.
+    Converts input files to be compatible with merge request #460
     @ In, tree, xml.etree.ElementTree.ElementTree object, the contents of a RAVEN input file
     @ In, fileName, the name for the raven input file
     @Out, tree, xml.etree.ElementTree.ElementTree object, the modified RAVEN input file
