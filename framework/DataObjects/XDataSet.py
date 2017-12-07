@@ -229,21 +229,33 @@ class DataSet(DataObject):
       @ In, None
       @ Out, asDataset, xr.Dataset or dict, data in requested format
     """
-    dataDict={}
 
-    dataDict['data'] = {}
-    for var in self.getVars():
-      dataDict['data'][var] = self.asDataset()[var].values
+    nRlzs = self.size
+    dataDict = {}
+    dataDict['data'] = dict((var,np.zeros(nRlzs,dtype=object)) for var in self.vars+self.indexes)
+    for s,slice in enumerate(self.sliceByIndex(self.sampleTag)):
+      for var in self.vars+self.indexes:
+        data = slice[var]
+        dims=self.getDimensions(var)[var]
+        if len(dims)==0 and var not in self.indexes:
+          dataDict['data'][var]=data.values
+        else:
+          for index in dims:
+            data = data.dropna(index)
+          dataDict['data'][var][s] = data.values
+
+    print(dataDict['data'])
 
     for var in self.indexes:
+      print(var)
       varSlice = self.sliceByIndex(var)
-      length = varSlice.size
+      length = len(varSlice)
       dataDict['data'][var] = np.zeros(length,dtype=object)
       for elem in varSlice:
-        dataDict['data'][var] = elem
+        dataDict['data'][var] = elem.values
 
-    dataDict['dimensions'] = self.getDimensions('output')
-    dataDict['metadata']   = self.getMeta(general=True)
+    dataDict['dims']     = self.getDimensions()
+    dataDict['metadata'] = self.getMeta(general=True)
     return dataDict
 
   def _convertToXrDataset(self):

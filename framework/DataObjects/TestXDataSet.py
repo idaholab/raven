@@ -702,6 +702,15 @@ rlz = data.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
 
+
+# Here I am testing the functionality that converts the dataObject into a dict
+convertedDict = data.asDataset(outType='dict')
+#print(convertedDict)
+checkArray('check generated dict "a"', data.asDataset()['a'].values, convertedDict['data']['a'], float)
+checkArray('check generated dict "b"', data.asDataset()['b'].values, convertedDict['data']['b'], float)
+
+checkArray('check generated dict "t"', seed['t'], convertedDict['data']['t'], float)
+
 ######################################
 #        REMOVING VARIABLES          #
 ######################################
