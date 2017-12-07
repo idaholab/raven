@@ -705,11 +705,17 @@ checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
 
 # Here I am testing the functionality that converts the dataObject into a dict
 convertedDict = data.asDataset(outType='dict')
-#print(convertedDict)
-checkArray('check generated dict "a"', data.asDataset()['a'].values, convertedDict['data']['a'], float)
-checkArray('check generated dict "b"', data.asDataset()['b'].values, convertedDict['data']['b'], float)
-
-checkArray('check generated dict "t"', seed['t'], convertedDict['data']['t'], float)
+# check that the dictionary entries are the same
+checkArray('asDict "a"',seed['a'],convertedDict['data']['a'],float)
+checkArray('asDict "b[0]"',convertedDict['data']['b'][0],seed['b'][0],float)
+checkArray('asDict "b[4]"',convertedDict['data']['b'][4],seed['b'][4],float)
+checkArray('asDict "b[9]"',convertedDict['data']['b'][9],seed['b'][9],float)
+checkArray('asDict "t[0]"',convertedDict['data']['t'][0],seed['t'][0],float)
+checkArray('asDict "t[4]"',convertedDict['data']['t'][4],seed['t'][4],float)
+checkArray('asDict "t[9]"',convertedDict['data']['t'][9],seed['t'][9],float)
+checkSame('asDict dims "a"',convertedDict['dims']['a'],[])
+checkSame('asDict dims "b"',convertedDict['dims']['b'],['t'])
+# TODO check metadata?
 
 ######################################
 #        REMOVING VARIABLES          #

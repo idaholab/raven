@@ -223,71 +223,6 @@ class DataSet(DataObject):
       self.raiseAnError(ValueError, 'DataObject method "asDataset" has been called with wrong '
                                     'type: ' +str(outType) + '. Allowed values are: xrDataset, dict.')
 
-  def _convertToDict(self):
-    """
-      Casts this dataObject as dictionary.
-      @ In, None
-      @ Out, asDataset, xr.Dataset or dict, data in requested format
-    """
-
-    nRlzs = self.size
-    dataDict = {}
-    dataDict['data'] = dict((var,np.zeros(nRlzs,dtype=object)) for var in self.vars+self.indexes)
-    for s,slice in enumerate(self.sliceByIndex(self.sampleTag)):
-      for var in self.vars+self.indexes:
-        data = slice[var]
-        dims=self.getDimensions(var)[var]
-        if len(dims)==0 and var not in self.indexes:
-          dataDict['data'][var]=data.values
-        else:
-          for index in dims:
-            data = data.dropna(index)
-          dataDict['data'][var][s] = data.values
-
-    print(dataDict['data'])
-
-    for var in self.indexes:
-      print(var)
-      varSlice = self.sliceByIndex(var)
-      length = len(varSlice)
-      dataDict['data'][var] = np.zeros(length,dtype=object)
-      for elem in varSlice:
-        dataDict['data'][var] = elem.values
-
-    dataDict['dims']     = self.getDimensions()
-    dataDict['metadata'] = self.getMeta(general=True)
-    return dataDict
-
-  def _convertToXrDataset(self):
-    """
-      Casts this dataobject as an xr.Dataset.
-      Functionally, typically collects the data from self._collector and places it in self._data.
-      Efficiency note: this is the slowest part of typical data collection.
-      @ In, None
-      @ Out, xarray.Dataset, all the data from this data object.
-      P.S.: this was the old asDataset(self)
-    """
-    # TODO make into a protected method? Should it be called from outside?
-    # if we have collected data, collapse it
-    if self._collector is not None and len(self._collector) > 0:
-      data = self._collector.getData()
-      firstSample = int(self._data[self.sampleTag][-1])+1 if self._data is not None else 0
-      arrs = {}
-      for v,var in enumerate(self._allvars):
-        # create single dataarrays
-        arrs[var] = self._collapseNDtoDataArray(data[:,v],var)
-        # re-index samples
-        arrs[var][self.sampleTag] += firstSample
-      # collect all data into dataset, and update self._data
-      if self._data is None:
-        self._convertArrayListToDataset(arrs,action='replace')
-      else:
-        self._convertArrayListToDataset(arrs,action='extend')
-      # reset collector
-      self._collector = self._newCollector(width=self._collector.width,dtype=self._collector.values.dtype)
-    return self._data
-
-
   def checkIndexAlignment(self,indexesToCheck=None):
     """
       Checks that all realizations share common coordinates along given indexes.
@@ -564,7 +499,6 @@ class DataSet(DataObject):
           if numInCollector > 0:
             index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
       return index,rlz
-
 
   def remove(self,realization=None,variable=None):
     """
@@ -852,6 +786,70 @@ class DataSet(DataObject):
           v = v.dropna(dim)
         new[k] = v
     return new
+
+  def _convertToDict(self):
+    """
+      Casts this dataObject as dictionary.
+      @ In, None
+      @ Out, asDataset, xr.Dataset or dict, data in requested format
+    """
+    self.raiseAWarning('DataObject._convertToDict can be a slow operation and should be avoided where possible!')
+    # container for all necessary information
+    dataDict = {}
+    # supporting data
+    dataDict['dims']     = self.getDimensions()
+    dataDict['metadata'] = self.getMeta(general=True)
+    # main data
+    ## initialize with np arrays of objects
+    dataDict['data'] = dict((var,np.zeros(self.size,dtype=object)) for var in self.vars+self.indexes)
+    ## loop over realizations to get distinct values without NaNs
+    for var in self.vars:
+      # how we get and store variables depends on the dimensionality of the variable
+      dims=self.getDimensions(var)[var]
+      # if scalar (no dims and not an index), just grab the values
+      if len(dims)==0 and var not in self.indexes:
+        dataDict['data'][var] = self.asDataset()[var].values
+        continue
+      # otherwise, need to remove NaNs, so loop over slices
+      for s,rlz in enumerate(self.sliceByIndex(self.sampleTag)):
+        # get data specific to this var for this realization (slice)
+        data = rlz[var]
+        # need to drop indexes for which no values are present
+        for index in dims:
+          data = data.dropna(index)
+          if dataDict['data'][index][s] == 0:
+            dataDict['data'][index][s] = data[index].values
+        dataDict['data'][var][s] = data.values
+    return dataDict
+
+  def _convertToXrDataset(self):
+    """
+      Casts this dataobject as an xr.Dataset.
+      Functionally, typically collects the data from self._collector and places it in self._data.
+      Efficiency note: this is the slowest part of typical data collection.
+      @ In, None
+      @ Out, xarray.Dataset, all the data from this data object.
+      P.S.: this was the old asDataset(self)
+    """
+    # TODO make into a protected method? Should it be called from outside?
+    # if we have collected data, collapse it
+    if self._collector is not None and len(self._collector) > 0:
+      data = self._collector.getData()
+      firstSample = int(self._data[self.sampleTag][-1])+1 if self._data is not None else 0
+      arrs = {}
+      for v,var in enumerate(self._allvars):
+        # create single dataarrays
+        arrs[var] = self._collapseNDtoDataArray(data[:,v],var)
+        # re-index samples
+        arrs[var][self.sampleTag] += firstSample
+      # collect all data into dataset, and update self._data
+      if self._data is None:
+        self._convertArrayListToDataset(arrs,action='replace')
+      else:
+        self._convertArrayListToDataset(arrs,action='extend')
+      # reset collector
+      self._collector = self._newCollector(width=self._collector.width,dtype=self._collector.values.dtype)
+    return self._data
 
   def _formatRealization(self,rlz):
     """
