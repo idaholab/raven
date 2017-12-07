@@ -13,6 +13,9 @@
     <description>
       This test checks the CrossValidation PostProcessor with StratifiedShuffleSplit method
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-07">convert test to use the new dataobjects</revision>
+    </revisions>
   </TestInfo>
 
   <Files>

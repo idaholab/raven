@@ -13,6 +13,9 @@
     <description>
       This test checks the CrossValidation PostProcessor with KFold method
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-07">convert test to use the new dataobjects</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
@@ -105,12 +108,6 @@
         <Output class="Files" type="">output_cv</Output>
         <Output class="Files" type="">output_cv.csv</Output>
     </PostProcess>
-    <PostProcess name="ravenout">
-        <Input class="Files" type="">output_cv</Input>
-        <Model class="Models" type="PostProcessor">ravenout</Model>
-        <Output class="DataObjects" type="PointSet">outRaven</Output>
-        <Output class="OutStreams" type="Print">outRaven</Output>
-    </PostProcess>
   </Steps>
 
   <DataObjects>
@@ -122,30 +119,12 @@
       <Input>x1,x2</Input>
       <Output>ans,ans2</Output>
     </PointSet>
-    <PointSet name="outRaven">
-        <Input>ID</Input>
-        <Output>
-            ans-m1_mean_absolute_error-cv-1,
-            ans-m1_mean_absolute_error-cv-2,
-            ans-m1_mean_absolute_error-cv-3,
-            ans-m1_mean_absolute_error-cv-4,
-            ans-m1_mean_absolute_error-cv-5,
-            ans-m1_mean_absolute_error-cv-6,
-            ans-m1_mean_absolute_error-cv-7,
-            ans-m1_mean_absolute_error-cv-8,
-            ans-m1_mean_absolute_error-cv-9
-        </Output>
-    </PointSet>
   </DataObjects>
 
   <OutStreams>
       <Print name="dumpMC">
           <type>csv</type>
           <source>outputDataMC</source>
-      </Print>
-      <Print name="outRaven">
-          <type>csv</type>
-          <source>outRaven</source>
       </Print>
   </OutStreams>
 
