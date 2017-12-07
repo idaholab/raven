@@ -256,14 +256,17 @@ class DataSet(DataObject):
     for index in indexesToCheck:
       # check that index is indeed an index
       assert(index in self.indexes)
-      # get number of slices
-      numSlices = len(data[index].values)
-      for i in range(numSlices):
-        # if any entries are null ...
-        if data.where(data.isel(**{index:i}).isnull()).sum > 0:
-          # don't print out statements, but useful if debugging during development.  Comment again afterward.
-          #self.raiseADebug('Found misalignment in index "{}" entry "{}" (value "{}")'.format(index,i,data[index][i].values))
-          return False
+      # get a typical variable from set to look at
+      ## NB we can do this because each variable within one realization must be aligned with the rest
+      ##    of the variables in that same realization, so checking one variable that depends on "index"
+      ##    is as good as checking all of them.
+      ##TODO: This approach is only working for our current data struture, for ND case, this should be
+      ## improved.
+      data = data[self._pivotParams[index][-1]]
+      # if any nulls exist in this data, this suggests missing data, therefore misalignment.
+      if data.where(data.isnull()).sum() > 0:
+        self.raiseADebug('Found misalignment index variable "{}".'.format(index))
+        return False
     # if you haven't returned False by now, you must be aligned
     return True
 
