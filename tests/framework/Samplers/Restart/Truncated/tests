@@ -1,26 +1,30 @@
 [Tests]
- [./Grid]
-   type = 'RavenFramework'
-   input = 'grid.xml'
-   output = 'grid/coarse.xml grid/fine.xml'
-   UnorderedCsv = 'grid/coarse.csv grid/fine.csv'
- [../]
- [./SparseGridCollocation]
-   type = 'RavenFramework'
-   input = 'sparse_grid_collocation.xml'
-   output = 'sparse_grid_collocation/coarse.xml sparse_grid_collocation/fine.xml'
-   UnorderedCsv = 'sparse_grid_collocation/coarse.csv sparse_grid_collocation/fine.csv'
- [../]
- [./Sobol]
-   type = 'RavenFramework'
-   input = 'sobol.xml'
-   output = 'sobol/coarse.xml sobol/fine.xml'
-   UnorderedCsv = 'sobol/coarse.csv sobol/fine.csv'
- [../]
- [./Scaled]
-   type = 'RavenFramework'
-   input = 'scale_test.xml'
-   output = 'scale/coarse.xml scale/fine.xml'
-   UnorderedCsv = 'scale/coarse.csv scale/fine.csv'
- [../]
+# NB These tests were all created to test an older system where, if the Model changed the
+#   values of input variables, we respected that change and placed the modified value into
+#   our input files.  As of the 2017 Dec data object rework, this decision was reversed,
+#   so these tests are not needed to cover restarting.
+# [./Grid]
+#   type = 'RavenFramework'
+#   input = 'grid.xml'
+#   output = 'grid/coarse.xml grid/fine.xml'
+#   UnorderedCsv = 'grid/coarse.csv grid/fine.csv'
+# [../]
+# [./SparseGridCollocation]
+#   type = 'RavenFramework'
+#   input = 'sparse_grid_collocation.xml'
+#   output = 'sparse_grid_collocation/coarse.xml sparse_grid_collocation/fine.xml'
+#   UnorderedCsv = 'sparse_grid_collocation/coarse.csv sparse_grid_collocation/fine.csv'
+# [../]
+# [./Sobol]
+#   type = 'RavenFramework'
+#   input = 'sobol.xml'
+#   output = 'sobol/coarse.xml sobol/fine.xml'
+#   UnorderedCsv = 'sobol/coarse.csv sobol/fine.csv'
+# [../]
+# [./Scaled]
+#   type = 'RavenFramework'
+#   input = 'scale_test.xml'
+#   output = 'scale/coarse.xml scale/fine.xml'
+#   UnorderedCsv = 'scale/coarse.csv scale/fine.csv'
+# [../]
 []
