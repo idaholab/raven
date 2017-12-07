@@ -169,7 +169,7 @@ class BasicStatistics(PostProcessor):
     if type(currentInput).__name__ =='dict':
       if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys():
         self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
-      return currentInput
+      return [currentInput]
     if currentInput.type not in ['PointSet','HistorySet']:
       self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
 
@@ -961,3 +961,4 @@ class BasicStatistics(PostProcessor):
       corrMatrix = covM / covM
     # to prevent numerical instability
     return corrMatrix
+
