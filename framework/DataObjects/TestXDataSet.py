@@ -716,6 +716,21 @@ checkArray('asDict "t[9]"',convertedDict['data']['t'][9],seed['t'][9],float)
 checkSame('asDict dims "a"',convertedDict['dims']['a'],[])
 checkSame('asDict dims "b"',convertedDict['dims']['b'],['t'])
 # TODO check metadata?
+# double-check there's no errors using this to construct a new dataset (full loop)
+xml = createElement('DataSet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a'))
+xml.append(createElement('Output',text='b'))
+xml.append(createElement('Index',attrib={'var':'t'},text='b'))
+dataRe = XDataSet.DataSet()
+dataRe.messageHandler = mh
+dataRe._readMoreXML(xml)
+dataRe.load(convertedDict['data'],style='dict',dims=convertedDict['dims'])
+# use exact same tests as originally loading from dict, but for dataRe
+checkArray('load from dict "a"',dataRe.asDataset()['a'].values,seed['a'],float)
+checkArray('load from dict "b"[3]',dataRe.asDataset().isel(True,RAVEN_sample_ID=3)['b'].dropna('t').values,seed['b'][3],float)
+rlz = dataRe.realization(index=2)
+checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
+checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
 
 ######################################
 #        REMOVING VARIABLES          #
