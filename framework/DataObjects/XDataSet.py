@@ -206,13 +206,49 @@ class DataSet(DataObject):
       self._metavars.append(varName)
     self._allvars.append(varName)
 
-  def asDataset(self):
+  def asDataset(self, outType=None):
+    """
+      Casts this dataObject as dictionary or an xr.Dataset depending on outType.
+      @ In, outType, str, type of output object (xr.Dataset or dictionary).
+      @ Out, xr.Dataset or dictionary.
+    """
+    if outType=='None' or outType=='xrDataset':
+      # return the old asDataset()
+      return self._convertToXrDataset()
+    elif outType=='dict':
+      # return a dict
+      return self._convertToDict()
+    else:
+      # raise an error
+      print('raise an error')
+
+  def _convertToDict(self):
+    """
+      Casts this dataObject as dictionary.
+      @ In, None
+      @ Out, data, dict, dictionary containing for all.
+    """
+    data={}
+    for var in self.getVars():
+      data[var] = self.asDataset()[var]
+
+    for var in self.indexes:
+      length = self.sliceByIndex(var).size
+      data[var] = np.zeros(length,dtype=object)
+      for elem in self.sliceByIndex(var):
+        data[var] = elem
+
+    data['dimensions']=self.getDimensions('output')
+    return data
+
+  def _convertToXrDataset(self):
     """
       Casts this dataobject as an xr.Dataset.
       Functionally, typically collects the data from self._collector and places it in self._data.
       Efficiency note: this is the slowest part of typical data collection.
       @ In, None
       @ Out, xarray.Dataset, all the data from this data object.
+      P.S.: this was the old asDataset(self)
     """
     # TODO make into a protected method? Should it be called from outside?
     # if we have collected data, collapse it
@@ -233,6 +269,7 @@ class DataSet(DataObject):
       # reset collector
       self._collector = self._newCollector(width=self._collector.width,dtype=self._collector.values.dtype)
     return self._data
+
 
   def checkIndexAlignment(self,indexesToCheck=None):
     """
