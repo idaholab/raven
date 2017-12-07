@@ -246,7 +246,7 @@ class BaseType(MessageHandler.MessageUser):
     """
       Provides the registered list of metadata keys for this entity.
       @ In, None
-      @ Out, meta, list(str), expected keys (empty if none)
+      @ Out, meta, set(str), expected keys (empty if none)
     """
     return self.metadataKeys
 
