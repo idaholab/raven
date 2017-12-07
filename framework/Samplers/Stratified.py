@@ -106,6 +106,14 @@ class Stratified(Grid):
     self.inputInfo['upper'] = {}
     self.inputInfo['lower'] = {}
 
+    for varName in self.axisName:
+      if not "<distribution>" in varName:
+        if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
+          self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","!")])
+      if ("<distribution>" in varName) or self.variables2distributionsMapping[varName]['totDim']==1:
+        self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","-")])
+
+
   def localInitialize(self):
     """
       Will perform all initialization specific to this Sampler. For instance,

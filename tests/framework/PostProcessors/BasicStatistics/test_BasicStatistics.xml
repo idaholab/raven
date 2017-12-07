@@ -5,6 +5,7 @@
     <Sequence>FirstMRun,PP1,PP2,PP3,PP4,PP5,PP6</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/general</name>
     <author>alfoa</author>
@@ -13,17 +14,14 @@
     <description>
       This requirements test checks operation of the basic statistics postprocessor.
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+    </revisions>
     <requirements>R-RA-5</requirements>
   </TestInfo>
 
   <Files>
     <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
-    <Input name="autoCorrelated.xml"    type="">autoCorrelated.xml</Input>
-    <Input name="unCorrelated.xml"      type="">unCorrelated.xml</Input>
-    <Input name="inverseCorrelated.xml" type="">inverseCorrelated.xml</Input>
-    <Input name="inputOutput.xml"       type="">inputOutput.xml</Input>
-    <Input name="infinite.xml"          type="">infinite.xml</Input>
-    <Input name="matrixComputable.xml"  type="">matrixComputable.xml</Input>
   </Files>
 
   <Models>
@@ -31,43 +29,153 @@
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
     </ExternalModel>
     <PostProcessor name="autoCorrelationTest" subType="BasicStatistics" verbosity="debug">
-      <!--
-         =&gt; you can here specify what type of figure of merit you need to compute
-        <what>expectedValue,sigma,variance,kurtois,pearson,covariance</what>
-      -->
-      <methodsToRun>failureProbability</methodsToRun>
-      <expectedValue>x01,x02</expectedValue>
+      <expectedValue prefix="mean">x01,x02</expectedValue>
     </PostProcessor>
     <PostProcessor name="NotCorrellatedTest" subType="BasicStatistics" verbosity="debug">
       <biased>true</biased>
-      <all>
+      <skewness prefix="skew">y01,y02</skewness>
+      <variationCoefficient prefix="vc">y01,y02</variationCoefficient>
+      <percentile prefix="percentile">y01,y02</percentile>
+      <expectedValue prefix="mean">y01,y02</expectedValue>
+      <kurtosis prefix="kurt">y01,y02</kurtosis>
+      <median prefix="median">y01,y02</median>
+      <maximum prefix="max">y01,y02</maximum>
+      <minimum prefix="min">y01,y02</minimum>
+      <samples prefix="samp">y01,y02</samples>
+      <variance prefix="var">y01,y02</variance>
+      <sigma prefix="sigma">y01,y02</sigma>
+      <NormalizedSensitivity prefix="nsen">
         <targets>y01,y02</targets>
         <features>y01,y02</features>
-      </all>
+      </NormalizedSensitivity>
+      <sensitivity prefix="sen">
+        <targets>y01,y02</targets>
+        <features>y01,y02</features>
+      </sensitivity>
+      <pearson prefix="pear">
+        <targets>y01,y02</targets>
+        <features>y01,y02</features>
+      </pearson>
+      <covariance prefix="cov">
+        <targets>y01,y02</targets>
+        <features>y01,y02</features>
+      </covariance>
+      <VarianceDependentSensitivity prefix="vsen">
+        <targets>y01,y02</targets>
+        <features>y01,y02</features>
+      </VarianceDependentSensitivity>
     </PostProcessor>
     <PostProcessor name="InverseCorrelatedTest" subType="BasicStatistics" verbosity="debug">
-      <all>
+      <skewness prefix="skew">z01,z02</skewness>
+      <variationCoefficient prefix="vc">z01,z02</variationCoefficient>
+      <percentile prefix="percentile">z01,z02</percentile>
+      <expectedValue prefix="mean">z01,z02</expectedValue>
+      <kurtosis prefix="kurt">z01,z02</kurtosis>
+      <median prefix="median">z01,z02</median>
+      <maximum prefix="max">z01,z02</maximum>
+      <minimum prefix="min">z01,z02</minimum>
+      <samples prefix="samp">z01,z02</samples>
+      <variance prefix="var">z01,z02</variance>
+      <sigma prefix="sigma">z01,z02</sigma>
+      <NormalizedSensitivity prefix="nsen">
         <targets>z01,z02</targets>
         <features>z01,z02</features>
-      </all>
+      </NormalizedSensitivity>
+      <sensitivity prefix="sen">
+        <targets>z01,z02</targets>
+        <features>z01,z02</features>
+      </sensitivity>
+      <pearson prefix="pear">
+        <targets>z01,z02</targets>
+        <features>z01,z02</features>
+      </pearson>
+      <covariance prefix="cov">
+        <targets>z01,z02</targets>
+        <features>z01,z02</features>
+      </covariance>
+      <VarianceDependentSensitivity prefix="vsen">
+        <targets>z01,z02</targets>
+        <features>z01,z02</features>
+      </VarianceDependentSensitivity>
     </PostProcessor>
     <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
-      <all>
+      <skewness prefix="skew">x0,x01,y0,y02</skewness>
+      <variationCoefficient prefix="vc">x0,x01,y0,y02</variationCoefficient>
+      <percentile prefix="percentile">x0,x01,y0,y02</percentile>
+      <expectedValue prefix="mean">x0,x01,y0,y02</expectedValue>
+      <kurtosis prefix="kurt">x0,x01,y0,y02</kurtosis>
+      <median prefix="median">x0,x01,y0,y02</median>
+      <maximum prefix="max">x0,x01,y0,y02</maximum>
+      <minimum prefix="min">x0,x01,y0,y02</minimum>
+      <samples prefix="samp">x0,x01,y0,y02</samples>
+      <variance prefix="var">x0,x01,y0,y02</variance>
+      <sigma prefix="sigma">x0,x01,y0,y02</sigma>
+      <NormalizedSensitivity prefix="nsen">
         <targets>x0,x01,y0,y02</targets>
         <features>x0,x01,y0,y02</features>
-      </all>
+      </NormalizedSensitivity>
+      <sensitivity prefix="sen">
+        <targets>x0,x01,y0,y02</targets>
+        <features>x0,x01,y0,y02</features>
+      </sensitivity>
+      <pearson prefix="pear">
+        <targets>x0,x01,y0,y02</targets>
+        <features>x0,x01,y0,y02</features>
+      </pearson>
+      <covariance prefix="cov">
+        <targets>x0,x01,y0,y02</targets>
+        <features>x0,x01,y0,y02</features>
+      </covariance>
+      <VarianceDependentSensitivity prefix="vsen">
+        <targets>x0,x01,y0,y02</targets>
+        <features>x0,x01,y0,y02</features>
+      </VarianceDependentSensitivity>
     </PostProcessor>
     <PostProcessor name="checkIfMatrixCanBeComputed" subType="BasicStatistics" verbosity="debug">
-      <all>
-        <targets>x</targets>
-        <features>x</features>
-      </all>
+      <skewness prefix="skew">x</skewness>
+      <variationCoefficient prefix="vc">x</variationCoefficient>
+      <percentile prefix="percentile">x</percentile>
+      <expectedValue prefix="mean">x</expectedValue>
+      <kurtosis prefix="kurt">x</kurtosis>
+      <median prefix="median">x</median>
+      <maximum prefix="max">x</maximum>
+      <minimum prefix="min">x</minimum>
+      <samples prefix="samp">x</samples>
+      <variance prefix="var">x</variance>
+      <sigma prefix="sigma">x</sigma>
     </PostProcessor>
     <PostProcessor name="CreateInfinity" subType="BasicStatistics" verbosity="debug">
-      <all>
+      <skewness prefix="skew">time,x0,y0,y02</skewness>
+      <variationCoefficient prefix="vc">time,x0,y0,y02</variationCoefficient>
+      <percentile prefix="percentile">time,x0,y0,y02</percentile>
+      <expectedValue prefix="mean">time,x0,y0,y02</expectedValue>
+      <kurtosis prefix="kurt">time,x0,y0,y02</kurtosis>
+      <median prefix="median">time,x0,y0,y02</median>
+      <maximum prefix="max">time,x0,y0,y02</maximum>
+      <minimum prefix="min">time,x0,y0,y02</minimum>
+      <samples prefix="samp">time,x0,y0,y02</samples>
+      <variance prefix="var">time,x0,y0,y02</variance>
+      <sigma prefix="sigma">time,x0,y0,y02</sigma>
+      <NormalizedSensitivity prefix="nsen">
         <targets>time,x0,y0,y02</targets>
         <features>time,x0,y0,y02</features>
-      </all>
+      </NormalizedSensitivity>
+      <sensitivity prefix="sen">
+        <targets>time,x0,y0,y02</targets>
+        <features>time,x0,y0,y02</features>
+      </sensitivity>
+      <pearson prefix="pear">
+        <targets>time,x0,y0,y02</targets>
+        <features>time,x0,y0,y02</features>
+      </pearson>
+      <covariance prefix="cov">
+        <targets>time,x0,y0,y02</targets>
+        <features>time,x0,y0,y02</features>
+      </covariance>
+      <VarianceDependentSensitivity prefix="vsen">
+        <targets>time,x0,y0,y02</targets>
+        <features>time,x0,y0,y02</features>
+      </VarianceDependentSensitivity>
     </PostProcessor>
   </Models>
 
@@ -121,32 +229,38 @@
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Function class="Functions" type="External">testFunctionComputeProbability</Function>
       <Model class="Models" type="PostProcessor">autoCorrelationTest</Model>
-      <Output class="Files" type="">autoCorrelated.xml</Output>
+      <Output class="DataObjects" type="PointSet">autoCorrelationTest_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">autoCorrelationTest_basicStatPP_dump</Output>
     </PostProcess>
     <PostProcess name="PP2">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">NotCorrellatedTest</Model>
-      <Output class="Files" type="">unCorrelated.xml</Output>
+      <Output class="DataObjects" type="PointSet">NotCorrellatedTest_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">NotCorrellatedTest_basicStatPP_dump</Output>
     </PostProcess>
     <PostProcess name="PP3">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">InverseCorrelatedTest</Model>
-      <Output class="Files" type="">inverseCorrelated.xml</Output>
+      <Output class="DataObjects" type="PointSet">InverseCorrelatedTest_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">InverseCorrelatedTest_basicStatPP_dump</Output>
     </PostProcess>
     <PostProcess name="PP4">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">InputOutput</Model>
-      <Output class="Files" type="">inputOutput.xml</Output>
+      <Output class="DataObjects" type="PointSet">InputOutput_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">InputOutput_basicStatPP_dump</Output>
     </PostProcess>
     <PostProcess name="PP5">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">CreateInfinity</Model>
-      <Output class="Files" type="">infinite.xml</Output>
+      <Output class="DataObjects" type="PointSet">CreateInfinity_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">CreateInfinity_basicStatPP_dump</Output>
     </PostProcess>
     <PostProcess name="PP6">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">checkIfMatrixCanBeComputed</Model>
-      <Output class="Files" type="">matrixComputable.xml</Output>
+      <Output class="DataObjects" type="PointSet">checkIfMatrixCanBeComputed_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">checkIfMatrixCanBeComputed_basicStatPP_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -155,6 +269,30 @@
       <type>csv</type>
       <source>PointSetPostProcTest</source>
     </Print>
+    <Print name="InverseCorrelatedTest_basicStatPP_dump">
+      <type>csv</type>
+      <source>InverseCorrelatedTest_basicStatPP</source>
+    </Print>
+    <Print name="InputOutput_basicStatPP_dump">
+      <type>csv</type>
+      <source>InputOutput_basicStatPP</source>
+    </Print>
+    <Print name="NotCorrellatedTest_basicStatPP_dump">
+      <type>csv</type>
+      <source>NotCorrellatedTest_basicStatPP</source>
+    </Print>
+    <Print name="checkIfMatrixCanBeComputed_basicStatPP_dump">
+      <type>csv</type>
+      <source>checkIfMatrixCanBeComputed_basicStatPP</source>
+    </Print>
+    <Print name="autoCorrelationTest_basicStatPP_dump">
+      <type>csv</type>
+      <source>autoCorrelationTest_basicStatPP</source>
+    </Print>
+    <Print name="CreateInfinity_basicStatPP_dump">
+      <type>csv</type>
+      <source>CreateInfinity_basicStatPP</source>
+    </Print>
   </OutStreams>
 
   <DataObjects>
@@ -162,6 +300,385 @@
       <Input>x0,y0,z0</Input>
       <Output>time,x02,y02,z02,x01,y01,z01,x,y,z</Output>
     </PointSet>
+    <PointSet name="InverseCorrelatedTest_basicStatPP">
+      <Output>InverseCorrelatedTest_vars</Output>
+    </PointSet>
+    <PointSet name="InputOutput_basicStatPP">
+      <Output>InputOutput_vars</Output>
+    </PointSet>
+    <PointSet name="NotCorrellatedTest_basicStatPP">
+      <Output>NotCorrellatedTest_vars</Output>
+    </PointSet>
+    <PointSet name="checkIfMatrixCanBeComputed_basicStatPP">
+      <Output>checkIfMatrixCanBeComputed_vars</Output>
+    </PointSet>
+    <PointSet name="autoCorrelationTest_basicStatPP">
+      <Output>autoCorrelationTest_vars</Output>
+    </PointSet>
+    <PointSet name="CreateInfinity_basicStatPP">
+      <Output>CreateInfinity_vars</Output>
+    </PointSet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="autoCorrelationTest_vars">mean_x01,
+                 mean_x02</Group>
+    <Group name="NotCorrellatedTest_vars">skew_y01,
+                 skew_y02,
+                 vc_y01,
+                 vc_y02,
+                 percentile_5_y01,
+                 percentile_95_y01,
+                 percentile_5_y02,
+                 percentile_95_y02,
+                 mean_y01,
+                 mean_y02,
+                 kurt_y01,
+                 kurt_y02,
+                 median_y01,
+                 median_y02,
+                 max_y01,
+                 max_y02,
+                 min_y01,
+                 min_y02,
+                 samp_y01,
+                 samp_y02,
+                 var_y01,
+                 var_y02,
+                 sigma_y01,
+                 sigma_y02,
+                 nsen_y01_y01,
+                 nsen_y01_y02,
+                 nsen_y02_y01,
+                 nsen_y02_y02,
+                 sen_y01_y01,
+                 sen_y01_y02,
+                 sen_y02_y01,
+                 sen_y02_y02,
+                 pear_y01_y01,
+                 pear_y01_y02,
+                 pear_y02_y01,
+                 pear_y02_y02,
+                 cov_y01_y01,
+                 cov_y01_y02,
+                 cov_y02_y01,
+                 cov_y02_y02,
+                 vsen_y01_y01,
+                 vsen_y01_y02,
+                 vsen_y02_y01,
+                 vsen_y02_y02</Group>
+    <Group name="InverseCorrelatedTest_vars">skew_z01,
+                 skew_z02,
+                 vc_z01,
+                 vc_z02,
+                 percentile_5_z01,
+                 percentile_95_z01,
+                 percentile_5_z02,
+                 percentile_95_z02,
+                 mean_z01,
+                 mean_z02,
+                 kurt_z01,
+                 kurt_z02,
+                 median_z01,
+                 median_z02,
+                 max_z01,
+                 max_z02,
+                 min_z01,
+                 min_z02,
+                 samp_z01,
+                 samp_z02,
+                 var_z01,
+                 var_z02,
+                 sigma_z01,
+                 sigma_z02,
+                 nsen_z01_z01,
+                 nsen_z01_z02,
+                 nsen_z02_z01,
+                 nsen_z02_z02,
+                 sen_z01_z01,
+                 sen_z01_z02,
+                 sen_z02_z01,
+                 sen_z02_z02,
+                 pear_z01_z01,
+                 pear_z01_z02,
+                 pear_z02_z01,
+                 pear_z02_z02,
+                 cov_z01_z01,
+                 cov_z01_z02,
+                 cov_z02_z01,
+                 cov_z02_z02,
+                 vsen_z01_z01,
+                 vsen_z01_z02,
+                 vsen_z02_z01,
+                 vsen_z02_z02</Group>
+    <Group name="InputOutput_vars">skew_x0,
+                 skew_x01,
+                 skew_y0,
+                 skew_y02,
+                 vc_x0,
+                 vc_x01,
+                 vc_y0,
+                 vc_y02,
+                 percentile_5_x0,
+                 percentile_95_x0,
+                 percentile_5_x01,
+                 percentile_95_x01,
+                 percentile_5_y0,
+                 percentile_95_y0,
+                 percentile_5_y02,
+                 percentile_95_y02,
+                 mean_x0,
+                 mean_x01,
+                 mean_y0,
+                 mean_y02,
+                 kurt_x0,
+                 kurt_x01,
+                 kurt_y0,
+                 kurt_y02,
+                 median_x0,
+                 median_x01,
+                 median_y0,
+                 median_y02,
+                 max_x0,
+                 max_x01,
+                 max_y0,
+                 max_y02,
+                 min_x0,
+                 min_x01,
+                 min_y0,
+                 min_y02,
+                 samp_x0,
+                 samp_x01,
+                 samp_y0,
+                 samp_y02,
+                 var_x0,
+                 var_x01,
+                 var_y0,
+                 var_y02,
+                 sigma_x0,
+                 sigma_x01,
+                 sigma_y0,
+                 sigma_y02,
+                 nsen_x0_x0,
+                 nsen_x0_x01,
+                 nsen_x0_y0,
+                 nsen_x0_y02,
+                 nsen_x01_x0,
+                 nsen_x01_x01,
+                 nsen_x01_y0,
+                 nsen_x01_y02,
+                 nsen_y0_x0,
+                 nsen_y0_x01,
+                 nsen_y0_y0,
+                 nsen_y0_y02,
+                 nsen_y02_x0,
+                 nsen_y02_x01,
+                 nsen_y02_y0,
+                 nsen_y02_y02,
+                 sen_x0_x0,
+                 sen_x0_x01,
+                 sen_x0_y0,
+                 sen_x0_y02,
+                 sen_x01_x0,
+                 sen_x01_x01,
+                 sen_x01_y0,
+                 sen_x01_y02,
+                 sen_y0_x0,
+                 sen_y0_x01,
+                 sen_y0_y0,
+                 sen_y0_y02,
+                 sen_y02_x0,
+                 sen_y02_x01,
+                 sen_y02_y0,
+                 sen_y02_y02,
+                 pear_x0_x0,
+                 pear_x0_x01,
+                 pear_x0_y0,
+                 pear_x0_y02,
+                 pear_x01_x0,
+                 pear_x01_x01,
+                 pear_x01_y0,
+                 pear_x01_y02,
+                 pear_y0_x0,
+                 pear_y0_x01,
+                 pear_y0_y0,
+                 pear_y0_y02,
+                 pear_y02_x0,
+                 pear_y02_x01,
+                 pear_y02_y0,
+                 pear_y02_y02,
+                 cov_x0_x0,
+                 cov_x0_x01,
+                 cov_x0_y0,
+                 cov_x0_y02,
+                 cov_x01_x0,
+                 cov_x01_x01,
+                 cov_x01_y0,
+                 cov_x01_y02,
+                 cov_y0_x0,
+                 cov_y0_x01,
+                 cov_y0_y0,
+                 cov_y0_y02,
+                 cov_y02_x0,
+                 cov_y02_x01,
+                 cov_y02_y0,
+                 cov_y02_y02,
+                 vsen_x0_x0,
+                 vsen_x0_x01,
+                 vsen_x0_y0,
+                 vsen_x0_y02,
+                 vsen_x01_x0,
+                 vsen_x01_x01,
+                 vsen_x01_y0,
+                 vsen_x01_y02,
+                 vsen_y0_x0,
+                 vsen_y0_x01,
+                 vsen_y0_y0,
+                 vsen_y0_y02,
+                 vsen_y02_x0,
+                 vsen_y02_x01,
+                 vsen_y02_y0,
+                 vsen_y02_y02</Group>
+    <Group name="checkIfMatrixCanBeComputed_vars">skew_x,
+                 vc_x,
+                 percentile_5_x,
+                 percentile_95_x,
+                 mean_x,
+                 kurt_x,
+                 median_x,
+                 max_x,
+                 min_x,
+                 samp_x,
+                 var_x,
+                 sigma_x</Group>
+    <Group name="CreateInfinity_vars">skew_time,
+                 skew_x0,
+                 skew_y0,
+                 skew_y02,
+                 vc_time,
+                 vc_x0,
+                 vc_y0,
+                 vc_y02,
+                 percentile_5_time,
+                 percentile_95_time,
+                 percentile_5_x0,
+                 percentile_95_x0,
+                 percentile_5_y0,
+                 percentile_95_y0,
+                 percentile_5_y02,
+                 percentile_95_y02,
+                 mean_time,
+                 mean_x0,
+                 mean_y0,
+                 mean_y02,
+                 kurt_time,
+                 kurt_x0,
+                 kurt_y0,
+                 kurt_y02,
+                 median_time,
+                 median_x0,
+                 median_y0,
+                 median_y02,
+                 max_time,
+                 max_x0,
+                 max_y0,
+                 max_y02,
+                 min_time,
+                 min_x0,
+                 min_y0,
+                 min_y02,
+                 samp_time,
+                 samp_x0,
+                 samp_y0,
+                 samp_y02,
+                 var_time,
+                 var_x0,
+                 var_y0,
+                 var_y02,
+                 sigma_time,
+                 sigma_x0,
+                 sigma_y0,
+                 sigma_y02,
+                 nsen_time_time,
+                 nsen_time_x0,
+                 nsen_time_y0,
+                 nsen_time_y02,
+                 nsen_x0_time,
+                 nsen_x0_x0,
+                 nsen_x0_y0,
+                 nsen_x0_y02,
+                 nsen_y0_time,
+                 nsen_y0_x0,
+                 nsen_y0_y0,
+                 nsen_y0_y02,
+                 nsen_y02_time,
+                 nsen_y02_x0,
+                 nsen_y02_y0,
+                 nsen_y02_y02,
+                 sen_time_time,
+                 sen_time_x0,
+                 sen_time_y0,
+                 sen_time_y02,
+                 sen_x0_time,
+                 sen_x0_x0,
+                 sen_x0_y0,
+                 sen_x0_y02,
+                 sen_y0_time,
+                 sen_y0_x0,
+                 sen_y0_y0,
+                 sen_y0_y02,
+                 sen_y02_time,
+                 sen_y02_x0,
+                 sen_y02_y0,
+                 sen_y02_y02,
+                 pear_time_time,
+                 pear_time_x0,
+                 pear_time_y0,
+                 pear_time_y02,
+                 pear_x0_time,
+                 pear_x0_x0,
+                 pear_x0_y0,
+                 pear_x0_y02,
+                 pear_y0_time,
+                 pear_y0_x0,
+                 pear_y0_y0,
+                 pear_y0_y02,
+                 pear_y02_time,
+                 pear_y02_x0,
+                 pear_y02_y0,
+                 pear_y02_y02,
+                 cov_time_time,
+                 cov_time_x0,
+                 cov_time_y0,
+                 cov_time_y02,
+                 cov_x0_time,
+                 cov_x0_x0,
+                 cov_x0_y0,
+                 cov_x0_y02,
+                 cov_y0_time,
+                 cov_y0_x0,
+                 cov_y0_y0,
+                 cov_y0_y02,
+                 cov_y02_time,
+                 cov_y02_x0,
+                 cov_y02_y0,
+                 cov_y02_y02,
+                 vsen_time_time,
+                 vsen_time_x0,
+                 vsen_time_y0,
+                 vsen_time_y02,
+                 vsen_x0_time,
+                 vsen_x0_x0,
+                 vsen_x0_y0,
+                 vsen_x0_y02,
+                 vsen_y0_time,
+                 vsen_y0_x0,
+                 vsen_y0_y0,
+                 vsen_y0_y02,
+                 vsen_y02_time,
+                 vsen_y02_x0,
+                 vsen_y02_y0,
+                 vsen_y02_y02</Group>
+  </VariableGroups>
 
 </Simulation>
