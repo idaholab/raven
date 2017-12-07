@@ -209,39 +209,41 @@ class DataSet(DataObject):
   def asDataset(self, outType=None):
     """
       Casts this dataObject as dictionary or an xr.Dataset depending on outType.
-      @ In, outType, str, type of output object (xr.Dataset or dictionary).
+      @ In, outType, str, optional, type of output object (xr.Dataset or dictionary).
       @ Out, xr.Dataset or dictionary.
     """
-    if outType=='None' or outType=='xrDataset':
-      # return the old asDataset()
+    if outType is None or outType=='xrDataset':
+      # return the xArray, i.e., the old asDataset()
       return self._convertToXrDataset()
     elif outType=='dict':
       # return a dict
       return self._convertToDict()
     else:
       # raise an error
-      print('raise an error')
+      self.raiseAnError(ValueError, 'DataObject method "asDataset" has been called with wrong '
+                                    'type: ' +str(outType) + '. Allowed values are: xrDataset, dict.')
 
   def _convertToDict(self):
     """
       Casts this dataObject as dictionary.
       @ In, None
-      @ Out, data, dict, dictionary containing for all.
+      @ Out, asDataset, xr.Dataset or dict, data in requested format
     """
     dataDict={}
 
     dataDict['data'] = {}
     for var in self.getVars():
-      dataDict['data'][var] = self.asDataset()[var]
+      dataDict['data'][var] = self.asDataset()[var].values
 
     for var in self.indexes:
-      length = self.sliceByIndex(var).size
+      varSlice = self.sliceByIndex(var)
+      length = varSlice.size
       dataDict['data'][var] = np.zeros(length,dtype=object)
-      for elem in self.sliceByIndex(var):
+      for elem in varSlice:
         dataDict['data'][var] = elem
 
     dataDict['dimensions'] = self.getDimensions('output')
-    dataDict['metadata']   = self.getMeta(pointwise=True, general=True)
+    dataDict['metadata']   = self.getMeta(general=True)
     return dataDict
 
   def _convertToXrDataset(self):
