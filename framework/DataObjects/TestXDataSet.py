@@ -531,10 +531,25 @@ checkArray('Metadata get keys',sorted(meta.keys()),['DataSet','TestPP','prefix']
 checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'prefix\'])',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
 # fail to find general in pointwise
 checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'DataSet\'])',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
-
 # check that poorly-aligned set checks out as such
-checkSame('Check misaligned data is not aligned',False,data.checkIndexAlignment())
-# TODO check aligned data too
+checkTrue('Check misaligned data is not aligned',not data.checkIndexAlignment())
+# check aligned data too
+xml = createElement('DataSet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a'))
+xml.append(createElement('Output',text='b'))
+xml.append(createElement('Index',attrib={'var':'t'},text='b'))
+dataAlign = XDataSet.DataSet()
+dataAlign.messageHandler = mh
+dataAlign._readMoreXML(xml)
+rlz = {'a':np.array([1.9]),
+       'b':np.array([3.4, 2.4, 6.5]),
+       't':np.array([0.4, 0.9, 10])}
+dataAlign.addRealization(rlz)
+rlz = {'a':np.array([7.9]),
+       'b':np.array([0.3, -0.8, 9.7]),
+       't':np.array([0.4, 0.9, 10])}
+dataAlign.addRealization(rlz)
+checkTrue('Check aligned data is aligned', dataAlign.checkIndexAlignment('t'))
 
 ######################################
 #        READ/WRITE FROM FILE        #

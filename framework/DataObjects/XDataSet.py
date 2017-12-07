@@ -264,7 +264,7 @@ class DataSet(DataObject):
       ## improved.
       data = data[self._pivotParams[index][-1]]
       # if any nulls exist in this data, this suggests missing data, therefore misalignment.
-      if data.where(data.isnull()).sum() > 0:
+      if data.isnull().sum() > 0:
         self.raiseADebug('Found misalignment index variable "{}".'.format(index))
         return False
     # if you haven't returned False by now, you must be aligned
