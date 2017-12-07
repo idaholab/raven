@@ -125,10 +125,12 @@
     <Print name="TDdump">
       <type>csv</type>
       <source>TDsolns</source>
+      <what>input,output</what>
     </Print>
     <Print name="HCdump">
       <type>csv</type>
       <source>HCsolns</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

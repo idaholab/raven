@@ -480,8 +480,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
     # check if the TargetEvaluation feature and target spaces are consistent
-    ins  = self.mdlEvalHist.getParaKeys("inputs")
-    outs = self.mdlEvalHist.getParaKeys("outputs")
+    ins  = self.mdlEvalHist.getVarss("inputs")
+    outs = self.mdlEvalHist.getVars("outputs")
     for varName in self.fullOptVars:
       if varName not in ins:
         self.raiseAnError(RuntimeError,"the optimization variable "+varName+" is not contained in the TargetEvaluation object "+self.mdlEvalHist.name)
@@ -810,7 +810,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, evaluationID, string, the evaluation identifier (prefix)
       @ Out, functionValue, float, the loss function value
     """
-    objective  = self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')[self.objVar]
+    objective  = self.mdlEvalHist.getVars('output', nodeId = 'RecontructEnding')[self.objVar]
     prefix = self.mdlEvalHist.getMetadata('prefix',nodeId='RecontructEnding')
     if len(prefix) > 0 and utils.returnIdSeparator() in prefix[0]:
       # ensemble model id modification

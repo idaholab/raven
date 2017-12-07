@@ -388,7 +388,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       ]:
       self.pointsNeededToMakeROM.add(pt) #sets won't store redundancies
       #if pt isn't already in needed, and it hasn't already been solved, add it to the queue
-      if pt not in self.neededPoints and self.solns.getMatchingRealization(self._tupleToDict(pt)) is None:
+      if pt not in self.neededPoints and self.solns.realization(matchDict=self._tupleToDict(pt))[1] is None:
         self.newSolutionSizeShouldBe+=1
         self.neededPoints.append(pt)
 
@@ -499,7 +499,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     tot=0
     for n in range(len(sg)):
       pt,wt = sg[n]
-      inExisting = self.solns.getMatchingRealization(self._tupleToDict(pt))
+      _,inExisting = self.solns.realization(matchDict=self._tupleToDict(pt))
       if inExisting is None:
         self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
       tot+=inExisting['outputs'][self.targets[i]]**r*wt
