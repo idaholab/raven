@@ -193,7 +193,6 @@ class SPSA(GradientBasedOptimizer):
           #for i in range(1,self.gradDict['numIterForAve']*2,2):
           for i in self.perturbationIndices:
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
-            # OLD outval = self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar][evalIndex]
             outval = float(self.mdlEvalHist.realization(index=evalIndex)[self.objVar])
             self.gradDict['pertPoints'][traj][i]['output'] = outval
           # reset per-opt-point counters, forward the varsUpdate
