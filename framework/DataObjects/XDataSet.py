@@ -228,18 +228,21 @@ class DataSet(DataObject):
       @ In, None
       @ Out, data, dict, dictionary containing for all.
     """
-    data={}
+    dataDict={}
+
+    dataDict['data'] = {}
     for var in self.getVars():
-      data[var] = self.asDataset()[var]
+      dataDict['data'][var] = self.asDataset()[var]
 
     for var in self.indexes:
       length = self.sliceByIndex(var).size
-      data[var] = np.zeros(length,dtype=object)
+      dataDict['data'][var] = np.zeros(length,dtype=object)
       for elem in self.sliceByIndex(var):
-        data[var] = elem
+        dataDict['data'][var] = elem
 
-    data['dimensions']=self.getDimensions('output')
-    return data
+    dataDict['dimensions'] = self.getDimensions('output')
+    dataDict['metadata']   = self.getMeta(pointwise=True, general=True)
+    return dataDict
 
   def _convertToXrDataset(self):
     """
