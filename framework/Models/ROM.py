@@ -170,6 +170,11 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedValue", InputData.IntegerType))
+    
+    inputSpecification.addSub(InputData.parameterInputFactory("maxNumberExpTerms", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("numberExpTerms", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("maxPolyOrder", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("polyOrder", InputData.IntegerType))
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
@@ -398,7 +403,7 @@ class ROM(Dummy):
     result = self._externalRun(inRun)
     # build realization
     # assure rlz has all metadata
-    rlz = dict((var,np.atleast_1d(kwargs[var]) for var in kwargs.keys())
+    rlz = dict((var,np.atleast_1d(kwargs[var])) for var in kwargs.keys())
     # update rlz with input space from inRun and output space from result
     rlz.update(dict((var,np.atlest_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(result.keys()+inRun.keys())))
     return rlz

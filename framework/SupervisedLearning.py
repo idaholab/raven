@@ -2810,6 +2810,272 @@ class ARMA(superVisedLearning):
     """
     randomUtils.randomSeed(seed)
 
+class PolyExponential(superVisedLearning):
+  """
+    This surrogate is aimed to construct a "time-dep" surrogate based on a polynomial sum of exponentials
+    The surrogate will have the form:
+    SM(X,z) = \sum_{i=1}^N P_i(X) \exp ( - Q_i(X) z )
+    where:
+      z is the indipendent monotonic variable (e.g. time)
+      X is the vector of the other independent (parametric) variables
+      P_i(X) is a polynomial of rank M function of the parametric space X
+      Q_i(X) is a polynomial of rank M function of the parametric space X
+  """
+  def __init__(self,messageHandler,**kwargs):
+    """
+      A constructor that will appropriately intialize a supervised learning object
+      @ In, messageHandler: a MessageHandler object in charge of raising errors,
+                           and printing messages
+      @ In, kwargs: an arbitrary dictionary of keywords and values
+    """
+    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    self.printTag          = 'PolyExponential'
+    self._dynamicHandling  = True  # This ROM is able to manage the time-series on its own. No need for special treatment outside
+    self.polyExpParams     = {}
+    self.polyExpParams['expTerms']     = int(kwargs.get('numberExpTerms',-1))    # the number of exponential terms (by default an optimization problem is run in order to get the best number of terms)
+    self.polyExpParams['maxExpTerms']  = int(kwargs.get('maxNumberExpTerms',20)) # maximum number of exponential terms
+    self.polyExpParams['polyOrder']    = int(kwargs.get('polyOrder',-1))         # the polynomial order (by default an optimization problem is run in order to get the best order)
+    self.polyExpParams['maxPolyOrder'] = int(kwargs.get('maxPolyOrder',20))      # the maximum polynomial order
+    # check if the pivotParameter is among the targetValues
+    if self.pivotParameterID not in self.target:
+      self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
+    if len(self.target) > 2:
+      self.raiseAnError(IOError,"Multi-target ARMA not available yet!")
+    
+
+  #def __getstate__(self):
+    #"""
+      #Obtains state of object for pickling.
+      #@ In, None
+      #@ Out, d, dict, stateful dictionary
+    #"""
+    #d = copy.copy(self.__dict__)
+    ## set up a seed for the next pickled iteration
+    #if self.reseedCopies:
+      #rand = randomUtils.randomIntegers(1,int(2**20),self)
+      #d['random seed'] = rand
+    #return d
+
+  #def __setstate__(self,d):
+    #"""
+      #Sets state of object from pickling.
+      #@ In, d, dict, stateful dictionary
+      #@ Out, None
+    #"""
+    #seed = d.pop('random seed',None)
+    #if seed is not None:
+      #self.reseed(seed)
+    #self.__dict__ = d
+
+  def _localNormalizeData(self,values,names,feat): # This function is not used in this class and can be removed
+    """
+      Overwrites default normalization procedure.
+      @ In, values, unused
+      @ In, names, unused
+      @ In, feat, feature to normalize
+      @ Out, None
+    """
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
+
+  def __trainLocal__(self,featureVals,targetVals):
+    """
+      Perform training on input database stored in featureVals.
+
+      @ In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
+      @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
+    """
+    self.pivotParameterValues = targetVals[:,:,self.target.index(self.pivotParameterID)]
+    
+    
+    
+    
+    self.pivotParameterValues.shape = (self.pivotParameterValues.size,)
+    self.timeSeriesDatabase         = copy.deepcopy(np.delete(targetVals,self.target.index(self.pivotParameterID),2))
+    self.timeSeriesDatabase.shape   = (self.timeSeriesDatabase.size,)
+    self.target.pop(self.target.index(self.pivotParameterID))
+    # Fit fourier seires
+    if self.hasFourierSeries:
+      self.__trainFourier__()
+      self.armaPara['rSeries'] = self.timeSeriesDatabase - self.fourierResult['predict']
+    else:
+      self.armaPara['rSeries'] = self.timeSeriesDatabase
+
+    # Transform data to obatain normal distrbuted series. See
+    # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
+    # Applied Energy, 87(2010) 843-855
+    self.__generateCDF__(self.armaPara['rSeries'])
+    self.armaPara['rSeriesNorm'] = self.__dataConversion__(self.armaPara['rSeries'], obj='normalize')
+
+    self.__trainARMA__() # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
+
+    del self.timeSeriesDatabase       # Delete to reduce the pickle size, since from now the original data will no longer be used in the evaluation.
+
+  def __trainFourier__(self):
+    """
+      Perform fitting of Fourier series on self.timeSeriesDatabase
+      @ In, none,
+      @ Out, none,
+    """
+    fourierSeriesAll = self.__generateFourierSignal__(self.pivotParameterValues, self.fourierPara['basePeriod'], self.fourierPara['FourierOrder'])
+    fourierEngine = linear_model.LinearRegression()
+    temp = {}
+    for bp in self.fourierPara['FourierOrder'].keys():
+      temp[bp] = range(1,self.fourierPara['FourierOrder'][bp]+1)
+    fourOrders = list(itertools.product(*temp.values())) # generate the set of combinations of the Fourier order
+
+    criterionBest = np.inf
+    fSeriesBest = []
+    self.fourierResult={}
+    self.fourierResult['residues'] = 0
+    self.fourierResult['fOrder'] = []
+
+    for fOrder in fourOrders:
+      fSeries = np.zeros(shape=(self.pivotParameterValues.size,2*sum(fOrder)))
+      indexTemp = 0
+      for index,bp in enumerate(self.fourierPara['FourierOrder'].keys()):
+        fSeries[:,indexTemp:indexTemp+fOrder[index]*2] = fourierSeriesAll[bp][:,0:fOrder[index]*2]
+        indexTemp += fOrder[index]*2
+      fourierEngine.fit(fSeries,self.timeSeriesDatabase)
+      r = (fourierEngine.predict(fSeries)-self.timeSeriesDatabase)**2
+      if r.size > 1:
+        r = sum(r)
+      r = r/self.pivotParameterValues.size
+      criterionCurrent = copy.copy(r)
+      if  criterionCurrent< criterionBest:
+        self.fourierResult['fOrder'] = copy.deepcopy(fOrder)
+        fSeriesBest = copy.deepcopy(fSeries)
+        self.fourierResult['residues'] = copy.deepcopy(r)
+        criterionBest = copy.deepcopy(criterionCurrent)
+
+    fourierEngine.fit(fSeriesBest,self.timeSeriesDatabase)
+    self.fourierResult['predict'] = np.asarray(fourierEngine.predict(fSeriesBest))
+
+  def __trainARMA__(self):
+    """
+      Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
+      Data series to this function has been normalized so that it is standard gaussian
+      @ In, none,
+      @ Out, none,
+    """
+    self.armaResult = {}
+    Pmax = self.armaPara['Pmax']
+    Pmin = self.armaPara['Pmin']
+    Qmax = self.armaPara['Qmax']
+    Qmin = self.armaPara['Qmin']
+
+    criterionBest = np.inf
+    for p in range(Pmin,Pmax+1):
+      for q in range(Qmin,Qmax+1):
+        if p is 0 and q is 0:
+          continue          # dump case so we pass
+        init = [0.0]*(p+q)*self.armaPara['dimension']**2
+        init_S = np.identity(self.armaPara['dimension'])
+        for n1 in range(self.armaPara['dimension']):
+          init.append(init_S[n1,n1])
+
+        rOpt = {}
+        rOpt = optimize.fmin(self.__computeARMALikelihood__,init, args=(p,q) ,full_output = True)
+        tmp = (p+q)*self.armaPara['dimension']**2/self.pivotParameterValues.size
+        criterionCurrent = self.__computeAICorBIC(self.armaResult['sigHat'],noPara=tmp,cType='BIC',obj='min')
+        if criterionCurrent < criterionBest or 'P' not in self.armaResult.keys():
+          # to save the first iteration results
+          self.armaResult['P'] = p
+          self.armaResult['Q'] = q
+          self.armaResult['param'] = rOpt[0]
+          criterionBest = criterionCurrent
+
+    # saving training results
+    Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],self.armaResult['P'],self.armaResult['Q'],self.armaPara['dimension'] )
+    self.armaResult['Phi'] = Phi
+    self.armaResult['Theta'] = Theta
+    self.armaResult['sig'] = np.zeros(shape=(1, self.armaPara['dimension'] ))
+    for n in range(self.armaPara['dimension'] ):
+      self.armaResult['sig'][0,n] = np.sqrt(Cov[n,n])
+
+
+  def __evaluateLocal__(self,featureVals):
+    """
+      @ In, featureVals, float, a scalar feature value is passed as scaling factor
+      @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
+    """
+    if featureVals.size > 1:
+      self.raiseAnError(ValueError, 'The input feature for ARMA for evaluation cannot have size greater than 1. ')
+
+    # Instantiate a normal distribution for time series synthesis (noise part)
+    normEvaluateEngine = Distributions.returnInstance('Normal',self)
+    normEvaluateEngine.mean, normEvaluateEngine.sigma = 0, 1
+    normEvaluateEngine.upperBoundUsed, normEvaluateEngine.lowerBoundUsed = False, False
+    normEvaluateEngine.initializeDistribution()
+
+    numTimeStep = len(self.pivotParameterValues)
+    tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
+    # TODO This could probably be vectorized for speed gains
+    for t in range(numTimeStep):
+      for n in range(self.armaPara['dimension']):
+        tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult['sig'][0,n]
+
+    tSeriesNorm = np.zeros(shape=(numTimeStep,self.armaPara['rSeriesNorm'].shape[1]))
+    tSeriesNorm[0,:] = self.armaPara['rSeriesNorm'][0,:]
+    for t in range(numTimeStep):
+      for i in range(1,min(self.armaResult['P'], t)+1):
+        tSeriesNorm[t,:] += np.dot(tSeriesNorm[t-i,:], self.armaResult['Phi'][i])
+      for j in range(1,min(self.armaResult['Q'], t)+1):
+        tSeriesNorm[t,:] += np.dot(tSeriesNoise[t-j,:], self.armaResult['Theta'][j])
+      tSeriesNorm[t,:] += tSeriesNoise[t,:]
+
+    # Convert data back to empirically distributed
+    tSeries = self.__dataConversion__(tSeriesNorm, obj='denormalize')
+    # Add fourier trends
+    self.raiseADebug(self.fourierResult['predict'].shape, tSeries.shape)
+    if self.hasFourierSeries:
+      if len(self.fourierResult['predict'].shape) == 1:
+        tempFour = np.reshape(self.fourierResult['predict'], newshape=(self.fourierResult['predict'].shape[0],1))
+      else:
+        tempFour = self.fourierResult['predict'][0:numTimeStep,:]
+      tSeries += tempFour
+    # Ensure positivity --- FIXME
+    if self.outTruncation is not None:
+      if self.outTruncation == 'positive':
+        tSeries = np.absolute(tSeries)
+      elif self.outTruncation == 'negative':
+        tSeries = -np.absolute(tSeries)
+    returnEvaluation = {}
+    returnEvaluation[self.pivotParameterID] = self.pivotParameterValues[0:numTimeStep]
+    evaluation = tSeries*featureVals
+    for index, target in enumerate(self.target):
+      returnEvaluation[target] = evaluation[:,index]
+    return returnEvaluation
+
+  def __confidenceLocal__(self,featureVals):
+    """
+      This method is currently not needed for ARMA
+    """
+    pass
+
+  def __resetLocal__(self,featureVals):
+    """
+      After this method the ROM should be described only by the initial parameter settings
+      Currently not implemented for ARMA
+    """
+    pass
+
+  def __returnInitialParametersLocal__(self):
+    """
+      there are no possible default parameters to report
+    """
+    localInitParam = {}
+    return localInitParam
+
+  def __returnCurrentSettingLocal__(self):
+    """
+      override this method to pass the set of parameters of the ROM that can change during simulation
+      Currently not implemented for ARMA
+    """
+    pass
+
+
+
+
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom
 __interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
@@ -2818,6 +3084,7 @@ __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom
 __interfaceDict['MSR'                 ] = MSR
 __interfaceDict['ARMA'                ] = ARMA
+__interfaceDict['PolyExponential'     ] = PolyExponential
 __interfaceDict['pickledROM'          ] = pickledROM
 __base                                  = 'superVisedLearning'
 
