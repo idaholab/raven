@@ -1,0 +1,128 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+    
+  <TestInfo>
+    <name>framework/ROM/TimeSeries.ARMA</name>
+    <author>alfoa</author>
+    <created>2017-02-02</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+       aaa
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-02-03">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+    
+    <RunInfo>
+        <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/ROM/TimeSeries/PolyExponential</WorkingDir>
+		<Sequence>readIn,PolyTrain,runPoly,writeOut</Sequence>
+        <batchSize>1</batchSize>
+    </RunInfo>
+    <Files>
+        <Input name="rawDataFile">./decay_heat.csv</Input>
+    </Files>
+    <Distributions>
+		<Uniform name="enrichmentDist">
+			<lowerBound>3.4</lowerBound>
+			<upperBound>9.9</upperBound>
+		</Uniform>
+        <Uniform name="temperatureDist">
+            <lowerBound>600</lowerBound>
+            <upperBound>1200.</upperBound>
+        </Uniform>
+        <Uniform name="burnupDist">
+            <lowerBound>16.501</lowerBound>
+            <upperBound>26.402</upperBound>
+        </Uniform>
+	</Distributions>
+
+	<Samplers>
+		<MonteCarlo name="mcSampler">
+			<samplerInit>
+                <limit>2</limit>
+                <initialSeed>20021986</initialSeed>
+			</samplerInit>
+			<variable name="enrichment">
+				<distribution>enrichmentDist</distribution>
+			</variable>
+            <variable name="temperature">
+                <distribution>temperatureDist</distribution>
+            </variable>
+            <variable name="burnup">
+                <distribution>burnupDist</distribution>
+            </variable>
+        </MonteCarlo>
+	</Samplers> 
+	
+	<Models>			
+		<ROM name='PolyExp' subType='ARMA'>
+			<Target>time,decay_heat</Target>
+			<Features>enrichment,temperature,burnup</Features>
+			<pivotParameter>time</pivotParameter>
+			<!--
+               <numberExpTerms>7</numberExpTerms>
+               <polyOrder>3</polyOrder>
+             -->
+            <maxNumberExpTerms>10</maxNumberExpTerms>
+            <maxPolyOrder>10</maxPolyOrder>
+		</ROM>
+    </Models>
+    <Steps>
+        <IOStep name='readIn' pauseAtEnd = 'True'>
+       <Input    class = 'Files'                  type = ''              >rawDataFile</Input>
+       <Output   class = 'DataObjects'            type = 'HistorySet'    >rawData</Output>
+        </IOStep>
+		<RomTrainer name='PolyTrain'>
+			<Input    class = 'DataObjects'       type = 'HistorySet'    >rawData</Input>
+			<Output   class='Models' 			  type ='ROM' 	 		 >PolyExp</Output>
+		</RomTrainer>
+		<MultiRun name='runPoly'>
+			<Input    class = 'DataObjects'       type = 'PointSet'      >dataIn</Input>
+			<Model   class='Models' 			  type = 'ROM' 	 		 >PolyExp</Model>
+            <Sampler class="Samplers"             type="MonteCarlo"      >mcSampler</Sampler>
+			<Output    class = 'DataObjects'      type = 'HistorySet'    >synData</Output>
+		</MultiRun>
+        <IOStep name='writeOut' pauseAtEnd = 'True'>
+			<Input    class = 'DataObjects'       type = 'HistorySet'    >synData</Input>		 			
+			<Output   class = 'OutStreams'  type = 'Print'               >writeSynDataOut</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'                >plotSynData</Output>
+		</IOStep>	
+    </Steps>
+    <OutStreams>		
+        <Print name = 'writeSynDataOut'>
+       <type>csv</type>
+       <source>synData</source>
+        </Print>	
+		<Plot name="plotSynData" overwrite="false" >
+			<plotSettings>
+				<plot>
+					<type>line</type>
+					<x>synData|Output|time</x>
+					<y>synData|Output|decay_heat</y>
+					<interpPointsX>200</interpPointsX>
+				</plot>
+			</plotSettings>
+			<actions>
+				<how>png</how>
+			</actions>
+	    </Plot>
+	</OutStreams>
+	
+    <DataObjects>
+      <PointSet name="dataIn">
+        <Input>enrichment,temperature,burnup</Input>
+        <Output>OutputPlaceHolder</Output>
+      </PointSet>
+      <HistorySet name="rawData">
+        <Input>enrichment,temperature,burnup</Input>
+        <Output>decay_heat</Output>
+      </HistorySet>
+      <HistorySet name="synData">
+       <Input>enrichment,temperature,burnup</Input>
+       <Output>decay_heat</Output>
+      </HistorySet>
+    </DataObjects>
+</Simulation>
+
+
