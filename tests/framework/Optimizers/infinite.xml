@@ -6,7 +6,7 @@
     <created>2017-06-13</created>
     <classesTested>Optimizer</classesTested>
     <description>
-      This test runs the optimization on 1/x, returning &quot;inf&quot; at x=0.
+      This test runs the optimization on 1/x, returning "inf" at x=0.
       It primarily tests that gradients can be obtained when infinite solutions are provided.
     </description>
   </TestInfo>

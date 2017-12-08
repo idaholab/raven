@@ -89,7 +89,7 @@
       <variables>x,y,ans</variables>
     </ExternalModel>
     <ExternalModel ModuleToLoad="amplifier" name="amplifier" subType="">
-      <!-- This model just aplify the ans with the z value that is actually part of the optimization space... &quot;z&quot; should converge to 0 -->
+      <!-- This model just aplify the ans with the z value that is actually part of the optimization space... "z" should converge to 0 -->
       <variables>z,ans,objAns</variables>
     </ExternalModel>
     <EnsembleModel name="Ensemble_with_amplifier" subType="">
