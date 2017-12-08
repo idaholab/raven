@@ -73,7 +73,7 @@ class hdf5Database(MessageHandler.MessageUser):
     # * MC  = MonteCarlo => Storing by a Parallel structure
     # * DET = Dynamic Event Tree => Storing by a Hierarchical structure
     self.type       = None
-    self._metavars = []
+    #self._metavars = []
     # specialize printTag (THIS IS THE CORRECT WAY TO DO THIS)
     self.printTag = 'DATABASE HDF5'
     self.messageHandler = messageHandler
@@ -119,21 +119,21 @@ class hdf5Database(MessageHandler.MessageUser):
       # The root name is / . it can be changed if addGroupInit is called
       self.parentGroupName = b'/'
 
-  def addExpectedMeta(self,keys):
-    """
-      Registers meta to look for in realizations.
-      @ In, keys, set(str), keys to register
-      @ Out, None
-    """
-    # TODO add option to skip parts of meta if user wants to
-    # remove already existing keys
-    keys = list(key for key in keys if key not in self._metavars)
-    # if no new meta, move along
-    if len(keys) == 0:
-      return
-    # CANNOT add expected new meta after database has been used
-    assert(len(self._metavars) == 0)
-    self._metavars.extend(keys)
+  #def addExpectedMeta(self,keys):
+    #"""
+      #Registers meta to look for in realizations.
+      #@ In, keys, set(str), keys to register
+      #@ Out, None
+    #"""
+    ## TODO add option to skip parts of meta if user wants to
+    ## remove already existing keys
+    #keys = list(key for key in keys if key not in self._metavars)
+    ## if no new meta, move along
+    #if len(keys) == 0:
+      #return
+    ## CANNOT add expected new meta after database has been used
+    #assert(len(self._metavars) == 0)
+    #self._metavars.extend(keys)
 
   def __createObjFromFile(self):
     """
@@ -258,7 +258,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     # add pointwise metadata (in this case, they are group-wise)
-    group.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
+    #group.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
     group.attrs[b'hasIntfloat'] = False
     group.attrs[b'hasOther'   ] = False
     # get the data floats and other types
