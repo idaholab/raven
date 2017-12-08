@@ -283,37 +283,37 @@ class OutStreamPlot(OutStreamManager):
           xsplit = self.__splitVariableNames('x', (pltindex, i))
           if xsplit[2].strip() not in self.sourceData[pltindex].getVars(xsplit[1].lower()):
             self.raiseAnError(IOError, 'Not found variable "'+ xsplit[2] + '" in "'+xsplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
-          self.xValues[pltindex][1].append(np.asarray(dataSet[xsplit[2]].values))
+          self.xValues[pltindex][1].append(np.asarray(dataSet[xsplit[2]].values.astype(float, copy=False)))
         if self.yCoordinates :
           for i in range(len(self.yCoordinates [pltindex])):
             ysplit = self.__splitVariableNames('y', (pltindex, i))
             if ysplit[2].strip() not in self.sourceData[pltindex].getVars(ysplit[1].lower()):
               self.raiseAnError(IOError, 'Not found variable "'+ ysplit[2] + '" in "'+ysplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
-            self.yValues[pltindex][1].append(np.asarray(dataSet[ysplit[2].strip()].values))
+            self.yValues[pltindex][1].append(np.asarray(dataSet[ysplit[2].strip()].values.astype(float, copy=False)))
         if self.zCoordinates  and self.dim > 2:
           for i in range(len(self.zCoordinates [pltindex])):
             zsplit = self.__splitVariableNames('z', (pltindex, i))
             if zsplit[2].strip() not in self.sourceData[pltindex].getVars(zsplit[1].lower()):
               self.raiseAnError(IOError, 'Not found variable "'+ zsplit[2] + '" in "'+zsplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
-            self.zValues[pltindex][1].append(np.asarray(dataSet[zsplit[2].strip()].values))
+            self.zValues[pltindex][1].append(np.asarray(dataSet[zsplit[2].strip()].values.astype(float, copy=False)))
         if self.clusterLabels:
           for i in range(len(self.clusterLabels [pltindex])):
             clustersplit = self.__splitVariableNames('clusterLabels', (pltindex, i))
             if clustersplit[2].strip() not in self.sourceData[pltindex].getVars(clustersplit[1].lower()):
               self.raiseAnError(IOError, 'Not found variable "'+ clustersplit[2] + '" in "'+clustersplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
-            self.clusterValues[pltindex][1].append(np.asarray(dataSet[clustersplit[2].strip()].values))
+            self.clusterValues[pltindex][1].append(np.asarray(dataSet[clustersplit[2].strip()].values.astype(float, copy=False)))
         if self.mixtureLabels:
           for i in range(len(self.mixtureLabels [pltindex])):
             mixturesplit = self.__splitVariableNames('mixtureLabels', (pltindex, i))
             if mixturesplit[2].strip() not in self.sourceData[pltindex].getVars(mixturesplit[1].lower()):
               self.raiseAnError(IOError, 'Not found variable "'+ mixturesplit[2] + '" in "'+mixturesplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
-            self.mixtureValues[pltindex][1].append(np.asarray(dataSet[mixturesplit[2].strip()].values))
+            self.mixtureValues[pltindex][1].append(np.asarray(dataSet[mixturesplit[2].strip()].values.astype(float, copy=False)))
         if self.colorMapCoordinates[pltindex] != None:
           for i in range(len(self.colorMapCoordinates[pltindex])):
             zsplit = self.__splitVariableNames('colorMap', (pltindex, i))
             if zsplit[2].strip() not in self.sourceData[pltindex].getVars(zsplit[1].lower()):
               self.raiseAnError(IOError, 'Not found variable "'+ zsplit[2] + '" in "'+zsplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
-            self.colorMapValues[pltindex][1].append(np.asarray(dataSet[zsplit[2].strip()].values))
+            self.colorMapValues[pltindex][1].append(np.asarray(dataSet[zsplit[2].strip()].values.astype(float, copy=False)))
         # check if the array sizes are consistent
         sizeToMatch = self.xValues[pltindex][1][-1].size
         if self.yCoordinates and self.yValues[pltindex][1][-1].size != sizeToMatch:
@@ -331,40 +331,40 @@ class OutStreamPlot(OutStreamManager):
             outputIndexes = self.sourceData[pltindex].indexes if xsplit[1].lower() == 'output' else []
             if xsplit[2].strip() not in self.sourceData[pltindex].getVars(xsplit[1].lower())+outputIndexes:
               self.raiseAnError(IOError, 'Not found variable "'+ xsplit[2] + '" in "'+xsplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
-            self.xValues[pltindex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[xsplit[2]].values)
-            maxSize = len(self.xValues[pltindex][cnt][-1]) if len(self.xValues[pltindex][cnt][-1]) > maxSize else maxSize
+            self.xValues[pltindex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[xsplit[2]].values.astype(float, copy=False))
+            maxSize = self.xValues[pltindex][cnt][-1].size if self.xValues[pltindex][cnt][-1].size > maxSize else maxSize
           if self.yCoordinates :
             for i in range(len(self.yCoordinates [pltindex])):
               ysplit = self.__splitVariableNames('y', (pltindex, i))
               outputIndexes = self.sourceData[pltindex].indexes if ysplit[1].lower() == 'output' else []
               if ysplit[2].strip() not in self.sourceData[pltindex].getVars(ysplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ ysplit[2] + '" in "'+ysplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
-              self.yValues[pltindex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[ysplit[2]].values)
-              maxSize = len(self.yValues[pltindex][cnt][-1]) if len(self.yValues[pltindex][cnt][-1]) > maxSize else maxSize
+              self.yValues[pltindex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[ysplit[2]].values.astype(float, copy=False))
+              maxSize = self.yValues[pltindex][cnt][-1].size if self.yValues[pltindex][cnt][-1].size > maxSize else maxSize
           if self.zCoordinates  and self.dim > 2:
             for i in range(len(self.zCoordinates [pltindex])):
               zsplit = self.__splitVariableNames('z', (pltindex, i))
               outputIndexes = self.sourceData[pltindex].indexes if zsplit[1].lower() == 'output' else []
               if zsplit[2].strip() not in self.sourceData[pltindex].getVars(zsplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ zsplit[2] + '" in "'+zsplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
-              self.zValues[pltindex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[zsplit[2]].values)
-              maxSize = len(self.zValues[pltindex][cnt][-1]) if len(self.zValues[pltindex][cnt][-1]) > maxSize else maxSize
+              self.zValues[pltindex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[zsplit[2]].values.astype(float, copy=False))
+              maxSize = self.zValues[pltindex][cnt][-1].size if self.zValues[pltindex][cnt][-1].size > maxSize else maxSize
           if self.colorMapCoordinates[pltindex] != None:
             for i in range(len(self.colorMapCoordinates[pltindex])):
               colorSplit = self.__splitVariableNames('colorMap', (pltindex, i))
               outputIndexes = self.sourceData[pltindex].indexes if colorSplit[1].lower() == 'output' else []
               if colorSplit[2].strip() not in self.sourceData[pltindex].getVars(colorSplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ colorSplit[2] + '" in "'+colorSplit[1]+ '" of DataObject "'+ self.sourceData[pltindex].name+'"!')
-              self.colorMapValues[pltindex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[colorSplit[2]].values)
-              maxSize = len(self.colorMapValues[pltindex][cnt][-1]) if len(self.colorMapValues[pltindex][cnt][-1]) > maxSize else maxSize
+              self.colorMapValues[pltindex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[colorSplit[2]].values.astype(float, copy=False))
+              maxSize = self.colorMapValues[pltindex][cnt][-1].size if self.colorMapValues[pltindex][cnt][-1].size > maxSize else maxSize
           # expand the scalars in case they need to be plotted against histories
-          if len(self.xValues[pltindex][cnt][-1]) == 1 and maxSize > 1:
+          if self.xValues[pltindex][cnt][-1].size == 1 and maxSize > 1:
             self.xValues[pltindex][cnt][-1] = np.full(maxSize, self.xValues[pltindex][cnt][-1])
-          if self.yCoordinates and len(self.yValues[pltindex][cnt][-1]) == 1 and maxSize > 1:
+          if self.yCoordinates and self.yValues[pltindex][cnt][-1].size == 1 and maxSize > 1:
             self.yValues[pltindex][cnt][-1] = np.full(maxSize, self.yValues[pltindex][cnt][-1])
-          if self.zCoordinates and self.dim > 2 and len(self.zValues[pltindex][cnt][-1]) == 1 and maxSize > 1:
+          if self.zCoordinates and self.dim > 2 and self.zValues[pltindex][cnt][-1].size == 1 and maxSize > 1:
             self.zValues[pltindex][cnt][-1] = np.full(maxSize, self.zValues[pltindex][cnt][-1])
-          if self.colorMapCoordinates[pltindex] is not None and len(self.colorMapValues[pltindex][cnt][-1]) == 1 and maxSize > 1:
+          if self.colorMapCoordinates[pltindex] is not None and self.colorMapValues[pltindex][cnt][-1].size == 1 and maxSize > 1:
             self.colorMapValues[pltindex][cnt][-1] = np.full(maxSize, self.colorMapValues[pltindex][cnt][-1])
           # check if the array sizes are consistent
           if self.yCoordinates and self.yValues[pltindex][cnt][-1].size != maxSize:
