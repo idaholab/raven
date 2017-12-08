@@ -345,16 +345,6 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     pass
 
   @abc.abstractmethod
-  def extendExistingEntry(self,rlz):
-    """
-      Extends an ND sample to include more data.
-      Probably only useful for the hacky way the Optimizer stores Trajectories.
-      @ In, rlz, dict, {name:value} as {str:float} of the variables to extend
-      @ Out, None
-    """
-    pass
-
-  @abc.abstractmethod
   def getDimensions(self,var):
     """
       Provides the independent dimensions that this variable depends on.
