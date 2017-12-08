@@ -207,8 +207,8 @@ class Grid(ForwardSampler):
               self.inputInfo['distributionName'][key] = self.toBeSampled[variable]
               self.inputInfo['distributionType'][key] = self.distDict[variable].type
               self.values[key] = coordinates[variable]
-          # Based on the discussion with Diego, we will use the following to compute SampledVarsPb.
-          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
+              # Based on the discussion with Diego, we will use the following to compute SampledVarsPb.
+              self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(ndCoordinate)
       # Compute the ProbabilityWeight
       if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
         if self.distDict[varName].getDisttype() == 'Discrete':
