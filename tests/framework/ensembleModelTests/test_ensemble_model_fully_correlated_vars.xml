@@ -66,16 +66,10 @@
       <samplerInit>
         <limit>6</limit>
       </samplerInit>
-      <variable name="sigma-A">
+      <variable name="sigma-A,sigma-B">
         <distribution>sigma</distribution>
       </variable>
-      <variable name="decay-A">
-        <distribution>decayConstant</distribution>
-      </variable>
-      <variable name="sigma-B">
-        <distribution>sigma</distribution>
-      </variable>
-      <variable name="decay-B">
+      <variable name="decay-B,decay-A">
         <distribution>decayConstant</distribution>
       </variable>
     </MonteCarlo>
