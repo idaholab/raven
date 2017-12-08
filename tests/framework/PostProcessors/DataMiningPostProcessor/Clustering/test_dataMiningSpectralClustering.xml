@@ -9,7 +9,6 @@
       Tests clustering with SpectralClustering model.
     </description>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>SpectralClustering</WorkingDir>
     <Sequence>readIn,SpectralCircles,output</Sequence>
@@ -56,7 +55,7 @@
       <source>DataSets</source>
       <what>Output|labels</what>
     </Print>
-    <Plot name="PlotSpectralCircles" overwrite="false">
+    <Plot  name="PlotSpectralCircles" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

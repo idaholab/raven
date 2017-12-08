@@ -9,7 +9,6 @@
       Tests clustering with the AffinityPropogation model.
     </description>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>AffinityPropogation</WorkingDir>
     <Sequence>readIn,AffinityBlobs,output</Sequence>
@@ -56,7 +55,7 @@
       <source>DataSets</source>
       <what>Output|labels</what>
     </Print>
-    <Plot name="PlotAffinityBlobs" overwrite="false">
+    <Plot  name="PlotAffinityBlobs" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

@@ -4,7 +4,6 @@
     <WorkingDir>dynamic</WorkingDir>
     <Sequence>sample,stats,read,print</Sequence>
   </RunInfo>
-
   <TestInfo>
     <name>framework/PostProcessors/RavenOutputPostProcessor.dynamic</name>
     <author>talbpaul</author>

@@ -9,7 +9,7 @@
       Test of the interfaced post-processor interface to deal with pointSet
     </description>
   </TestInfo>
-
+  
   <RunInfo>
     <WorkingDir>interfacedPostProcessor_PointSet</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>

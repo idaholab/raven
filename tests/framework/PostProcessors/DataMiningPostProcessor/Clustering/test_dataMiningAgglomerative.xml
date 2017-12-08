@@ -12,7 +12,6 @@
       <revision author="maljdan" date="2017-08-07">Modifying this test case to exercise putting the data into a new data object different than the input of to the clustering algorithm</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>Agglomerative</WorkingDir>
     <Sequence>input,cluster,output</Sequence>
@@ -64,7 +63,8 @@
       <source>dataOut</source>
       <what>Output|labels</what>
     </Print>
-    <Plot name="plot" overwrite="false">
+
+    <Plot  name="plot" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

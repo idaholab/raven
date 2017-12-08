@@ -5,7 +5,6 @@
     <Sequence>Amake,Atrain,Atest,Aprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/Samplers/SparseGrid/anisotropicGrid</name>
     <author>talbpaul</author>

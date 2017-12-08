@@ -5,7 +5,6 @@
     <Sequence>load,sampleRom,sampleModel,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/verifyHDMRRom</name>
     <author>talbpaul</author>
@@ -15,7 +14,7 @@
       This analytic test checks that the time-dependent HDMRRom performs the same as the model it's representing.
     </description>
     <analytic>
-      This test uses &quot;projectile.py&quot; as documented in the analytic tests document, and makes several evaluations
+      This test uses "projectile.py" as documented in the analytic tests document, and makes several evaluations
       of position based on time.
     </analytic>
   </TestInfo>

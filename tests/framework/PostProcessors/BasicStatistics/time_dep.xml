@@ -5,7 +5,6 @@
     <Sequence>FirstMRun,timeDepBasicStatPP, readStats, printExtracted</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/timeDependent</name>
     <author>alfoa</author>

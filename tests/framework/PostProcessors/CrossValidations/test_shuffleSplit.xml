@@ -5,7 +5,6 @@
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_shuffleSplit</name>
     <author>wangc</author>
@@ -33,21 +32,21 @@
       <normalize>True</normalize>
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
-      <SciKitLearn>
-        <SKLtype>ShuffleSplit</SKLtype>
-        <n_iter>10</n_iter>
-        <test_size>0.1</test_size>
-        <train_size>None</train_size>
-        <random_state>10</random_state>
-      </SciKitLearn>
-      <Metric class="Metrics" type="SKL">m1</Metric>
+        <SciKitLearn>
+            <SKLtype>ShuffleSplit</SKLtype>
+            <n_iter>10</n_iter>
+            <test_size>0.1</test_size>
+            <train_size>None</train_size>
+            <random_state>10</random_state>
+        </SciKitLearn>
+        <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
   </Models>
-
+  
   <Metrics>
-    <SKL name="m1">
-      <metricType>mean_absolute_error</metricType>
-    </SKL>
+      <SKL name="m1">
+          <metricType>mean_absolute_error</metricType>
+      </SKL>
   </Metrics>
 
   <Distributions>
@@ -83,11 +82,11 @@
       <Output class="DataObjects" type="PointSet">outputDataMC</Output>
     </MultiRun>
     <PostProcess name="PP1">
-      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
-      <Input class="Models" type="ROM">surrogate</Input>
-      <Model class="Models" type="PostProcessor">pp1</Model>
-      <Output class="Files" type="">output_cv</Output>
-      <Output class="Files" type="">output_cv.csv</Output>
+        <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+        <Input class="Models" type="ROM">surrogate</Input>
+        <Model class="Models" type="PostProcessor">pp1</Model>
+        <Output class="Files" type="">output_cv</Output>
+        <Output class="Files" type="">output_cv.csv</Output>
     </PostProcess>
   </Steps>
 

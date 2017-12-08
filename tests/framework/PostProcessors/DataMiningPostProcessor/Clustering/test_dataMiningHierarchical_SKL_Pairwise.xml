@@ -9,7 +9,6 @@
       Tests clustering with the Hierarchical model with the SKL metric.
     </description>
   </TestInfo>
-
   <RunInfo>
     <internalParallel>False</internalParallel>
     <WorkingDir>Hierarchical</WorkingDir>
@@ -40,7 +39,7 @@
   <Models>
     <PostProcessor name="hierarchical_1" subType="DataMining" verbosity="quiet">
       <Metric class="Metrics" type="SKL">euclidean</Metric>
-      <KDD labelFeature="labels" lib="Scipy">
+      <KDD lib="Scipy" labelFeature='labels'>
         <Features>x1,x2</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>
         <method>single</method>
@@ -57,7 +56,7 @@
     </PostProcessor>
     <PostProcessor name="hierarchical_2" subType="DataMining" verbosity="quiet">
       <Metric class="Metrics" type="SKL">rbf</Metric>
-      <KDD labelFeature="labels" lib="Scipy">
+      <KDD lib="Scipy" labelFeature='labels'>
         <Features>x1,x2</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>
         <method>single</method>
@@ -74,7 +73,7 @@
     </PostProcessor>
     <PostProcessor name="hierarchical_3" subType="DataMining" verbosity="quiet">
       <Metric class="Metrics" type="SKL">polynomial</Metric>
-      <KDD labelFeature="labels" lib="Scipy">
+      <KDD lib="Scipy" labelFeature='labels'>
         <Features>x1,x2</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>
         <method>single</method>
@@ -91,7 +90,7 @@
     </PostProcessor>
     <PostProcessor name="hierarchical_4" subType="DataMining" verbosity="quiet">
       <Metric class="Metrics" type="SKL">mahalanobis</Metric>
-      <KDD labelFeature="labels" lib="Scipy">
+      <KDD lib="Scipy" labelFeature='labels'>
         <Features>x1,x2</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>
         <method>single</method>
@@ -110,60 +109,63 @@
 
   <Steps>
     <IOStep name="readIn1" pauseAtEnd="True">
-      <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets_SKL_1</Output>
+      <Input    class="Files"         type=""               >DataSetsFile</Input>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_1</Output>
     </IOStep>
     <PostProcess name="Hierarchical1" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets_SKL_1</Input>
-      <Model class="Models" type="PostProcessor">hierarchical_1</Model>
-      <Output class="DataObjects" type="PointSet">DataSets_SKL_1</Output>
-      <Output class="OutStreams" type="Print">dummy_SKL_1</Output>
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_1</Input>
+      <Model    class="Models"        type="PostProcessor"  >hierarchical_1</Model>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_1</Output>
+      <Output   class="OutStreams"    type="Print"          >dummy_SKL_1</Output>
     </PostProcess>
     <IOStep name="output1" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets_SKL_1</Input>
-      <Output class="OutStreams" type="Plot">PlotHierarchical_1</Output>
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_1</Input>
+      <Output   class="OutStreams"    type="Plot"           >PlotHierarchical_1</Output>
     </IOStep>
+
     <IOStep name="readIn2" pauseAtEnd="True">
-      <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets_SKL_2</Output>
+      <Input    class="Files"         type=""               >DataSetsFile</Input>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_2</Output>
     </IOStep>
     <PostProcess name="Hierarchical2" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets_SKL_2</Input>
-      <Model class="Models" type="PostProcessor">hierarchical_2</Model>
-      <Output class="DataObjects" type="PointSet">DataSets_SKL_2</Output>
-      <Output class="OutStreams" type="Print">dummy_SKL_2</Output>
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_2</Input>
+      <Model    class="Models"        type="PostProcessor"  >hierarchical_2</Model>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_2</Output>
+      <Output   class="OutStreams"    type="Print"          >dummy_SKL_2</Output>
     </PostProcess>
     <IOStep name="output2" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets_SKL_2</Input>
-      <Output class="OutStreams" type="Plot">PlotHierarchical_2</Output>
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_2</Input>
+      <Output   class="OutStreams"    type="Plot"           >PlotHierarchical_2</Output>
     </IOStep>
+
     <IOStep name="readIn3" pauseAtEnd="True">
-      <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets_SKL_3</Output>
+      <Input    class="Files"         type=""               >DataSetsFile</Input>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_3</Output>
     </IOStep>
     <PostProcess name="Hierarchical3" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets_SKL_3</Input>
-      <Model class="Models" type="PostProcessor">hierarchical_3</Model>
-      <Output class="DataObjects" type="PointSet">DataSets_SKL_3</Output>
-      <Output class="OutStreams" type="Print">dummy_SKL_3</Output>
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_3</Input>
+      <Model    class="Models"        type="PostProcessor"  >hierarchical_3</Model>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_3</Output>
+      <Output   class="OutStreams"    type="Print"          >dummy_SKL_3</Output>
     </PostProcess>
     <IOStep name="output3" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets_SKL_3</Input>
-      <Output class="OutStreams" type="Plot">PlotHierarchical_3</Output>
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_3</Input>
+      <Output   class="OutStreams"    type="Plot"           >PlotHierarchical_3</Output>
     </IOStep>
+
     <IOStep name="readIn4" pauseAtEnd="True">
-      <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets_SKL_4</Output>
+      <Input    class="Files"         type=""               >DataSetsFile</Input>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_4</Output>
     </IOStep>
     <PostProcess name="Hierarchical4" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets_SKL_4</Input>
-      <Model class="Models" type="PostProcessor">hierarchical_4</Model>
-      <Output class="DataObjects" type="PointSet">DataSets_SKL_4</Output>
-      <Output class="OutStreams" type="Print">dummy_SKL_4</Output>
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_4</Input>
+      <Model    class="Models"        type="PostProcessor"  >hierarchical_4</Model>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_4</Output>
+      <Output   class="OutStreams"    type="Print"          >dummy_SKL_4</Output>
     </PostProcess>
     <IOStep name="output4" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets_SKL_4</Input>
-      <Output class="OutStreams" type="Plot">PlotHierarchical_4</Output>
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_4</Input>
+      <Output   class="OutStreams"    type="Plot"           >PlotHierarchical_4</Output>
     </IOStep>
   </Steps>
 

@@ -1,11 +1,10 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity='debug'>
   <RunInfo>
     <WorkingDir>ColdRestart</WorkingDir>
     <Sequence>load,sample,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/ROM/coldRestart</name>
     <author>talbpaul</author>

@@ -5,7 +5,6 @@
     <Sequence>SamplingMirrowModelStratified,PP1Stratified</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/grid_analytic</name>
     <author>alfoa</author>

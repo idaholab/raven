@@ -9,7 +9,6 @@
       Tests manifold with SpectralEmbedding.
     </description>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>SpectralEmbedding</WorkingDir>
     <Sequence>readIn,PCAIris,output</Sequence>
@@ -52,7 +51,7 @@
       <type>csv</type>
       <source>DataSets</source>
     </Print>
-    <Plot name="PlotIris" overwrite="false" verbosity="debug">
+    <Plot  name="PlotIris" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>dataMining</type>

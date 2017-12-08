@@ -5,7 +5,6 @@
     <Sequence>make,train,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/AnovaOnCutHDMR</name>
     <author>talbpaul</author>
@@ -16,7 +15,7 @@
     </description>
     <analytic>
       This test is analytic in the variance, Sobol sensitivities, and mean of the response.  These parameters
-      are documented in the analytic tests documentation under &quot;Second-Order ANOVA of Second-Order Cut-HDMR Expansion of Sudret&quot;.
+      are documented in the analytic tests documentation under "Second-Order ANOVA of Second-Order Cut-HDMR Expansion of Sudret".
     </analytic>
   </TestInfo>
 

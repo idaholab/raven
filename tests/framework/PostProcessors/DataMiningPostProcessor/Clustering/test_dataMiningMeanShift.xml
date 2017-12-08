@@ -9,7 +9,6 @@
       Tests clustering with the MeanShift model.
     </description>
   </TestInfo>
-
   <RunInfo>
     <internalParallel>False</internalParallel>
     <WorkingDir>MeanShift</WorkingDir>
@@ -79,7 +78,7 @@
       <source>DataSets</source>
       <what>Output|MeanShiftCirclesLabels,Output|MeanShiftBlobsLabels,Output|MeanShiftMoonsLabels</what>
     </Print>
-    <Plot name="PlotMeanShift" overwrite="false">
+    <Plot  name="PlotMeanShift" overwrite="false">
       <plotSettings>
         <gridSpace>3 1</gridSpace>
         <plot>

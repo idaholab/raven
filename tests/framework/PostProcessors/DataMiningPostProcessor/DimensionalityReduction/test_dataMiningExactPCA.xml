@@ -10,7 +10,6 @@
     </description>
     <requirements>R-RA-6</requirements>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>ExactPCA</WorkingDir>
     <Sequence>readIn,PCAIris,output</Sequence>
@@ -61,7 +60,7 @@
       <type>csv</type>
       <source>drInfo</source>
     </Print>
-    <Plot name="PlotIris" overwrite="false" verbosity="debug">
+    <Plot  name="PlotIris" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>dataMining</type>

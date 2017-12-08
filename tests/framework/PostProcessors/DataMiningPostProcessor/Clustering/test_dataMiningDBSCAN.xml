@@ -9,7 +9,6 @@
       Tests clustering with the DBSCAN model.
     </description>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>DBSCAN</WorkingDir>
     <Sequence>readIn,DBSCANBlobs,output</Sequence>
@@ -36,17 +35,17 @@
       <Output class="DataObjects" type="PointSet">DataSets</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Input class="DataObjects" type="PointSet">clusterInfo</Input>
-      <Output class="OutStreams" type="Plot">PlotDBSCANBlobs</Output>
-      <Output class="OutStreams" type="Print">info</Output>
+      <Input  class="DataObjects"   type="PointSet"  >DataSets</Input>
+      <Input  class="DataObjects"   type="PointSet"  >clusterInfo</Input>
+      <Output class="OutStreams"    type="Plot"      >PlotDBSCANBlobs</Output>
+      <Output class="OutStreams"    type="Print"     >info</Output>
     </IOStep>
     <PostProcess name="DBSCANBlobs" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Model class="Models" type="PostProcessor">DBSCANBlobs</Model>
-      <SolutionExport class="DataObjects" type="PointSet">clusterInfo</SolutionExport>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreams" type="Print">dummy</Output>
+      <Input          class="DataObjects"   type="PointSet"       >DataSets</Input>
+      <Model          class="Models"        type="PostProcessor"  >DBSCANBlobs</Model>
+      <SolutionExport class="DataObjects"   type="PointSet"       >clusterInfo</SolutionExport>
+      <Output         class="DataObjects"   type="PointSet"       >DataSets</Output>
+      <Output         class="OutStreams"    type="Print"          >dummy</Output>
     </PostProcess>
   </Steps>
 
@@ -60,7 +59,7 @@
       <source>DataSets</source>
       <what>Output|labels</what>
     </Print>
-    <Plot name="PlotDBSCANBlobs" overwrite="false">
+    <Plot  name="PlotDBSCANBlobs" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

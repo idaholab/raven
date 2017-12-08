@@ -5,7 +5,6 @@
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_comparison_stats_metrics</name>
     <author>joshua-cogliati-inl</author>
@@ -34,8 +33,8 @@
   </Models>
 
   <Metrics>
-    <CDFAreaDifference name="cdf_diff"/>
-    <PDFCommonArea name="pdf_area"/>
+    <CDFAreaDifference name="cdf_diff" />
+    <PDFCommonArea name="pdf_area" />
   </Metrics>
 
   <Distributions>
@@ -91,12 +90,12 @@
       <Output>ans,ans2</Output>
     </PointSet>
   </DataObjects>
-
+ 
   <OutStreams>
-    <Print name="dumpMC">
-      <type>csv</type>
-      <source>outputDataMC</source>
-    </Print>
+      <Print name="dumpMC">
+          <type>csv</type>
+          <source>outputDataMC</source>
+      </Print>
   </OutStreams>
 
 </Simulation>

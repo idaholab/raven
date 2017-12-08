@@ -19,7 +19,6 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>DETshort</WorkingDir>
     <Sequence>DETrunTest</Sequence>
@@ -71,7 +70,7 @@
       <source>Pointset</source>
       <what>Output,Input|dummy_for_branch</what>
     </Print>
-    <Plot interactive="false" name="2DHistoryPlot" overwrite="false">
+    <Plot  interactive="false" name="2DHistoryPlot" overwrite="false">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -92,7 +91,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot interactive="false" name="2DHistoryPlot_tps" overwrite="false">
+    <Plot  interactive="false" name="2DHistoryPlot_tps" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

@@ -94,15 +94,15 @@
       <percentile percent="95">T1,T2</percentile>
     </PostProcessor>
     <PostProcessor name="readStats" subType="RavenOutput">
-      <dynamic>true</dynamic>
-      <File ID="0" name="stat_xml">
-        <output name="mean_T1">T1 / expectedValue </output>
-        <output name="percentile_5_T1">T1 / percentile_5 </output>
-        <output name="percentile_95_T1">T1 / percentile_95 </output>
-        <output name="mean_T2">T2 / expectedValue </output>
-        <output name="percentile_5_T2">T2 / percentile_5 </output>
-        <output name="percentile_95_T2">T2 / percentile_95 </output>
-      </File>
+        <dynamic>true</dynamic>
+        <File ID="0" name="stat_xml">
+            <output name="mean_T1"          >T1 / expectedValue </output>
+            <output name="percentile_5_T1"  >T1 / percentile_5 </output>
+            <output name="percentile_95_T1" >T1 / percentile_95 </output>
+            <output name="mean_T2"          >T2 / expectedValue </output>
+            <output name="percentile_5_T2"  >T2 / percentile_5 </output>
+            <output name="percentile_95_T2" >T2 / percentile_95 </output>
+        </File>
     </PostProcessor>
   </Models>
 

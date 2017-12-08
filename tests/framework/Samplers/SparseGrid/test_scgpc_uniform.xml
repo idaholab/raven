@@ -5,7 +5,6 @@
     <Sequence>Umake,Utrain,Utest,Uprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/Samplers/SparseGrid/uniform</name>
     <author>talbpaul</author>

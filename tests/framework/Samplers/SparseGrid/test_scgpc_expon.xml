@@ -5,7 +5,6 @@
     <Sequence>Emake,Etrain,Etest,Eprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/Samplers/SparseGrid/exponential</name>
     <author>talbpaul</author>

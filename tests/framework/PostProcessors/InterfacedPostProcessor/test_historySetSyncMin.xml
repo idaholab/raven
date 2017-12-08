@@ -9,7 +9,7 @@
       Tests of the HistorySetSync interfaced post-processor and in particular the MIN syncMethod
     </description>
   </TestInfo>
-
+  
   <RunInfo>
     <WorkingDir>hs_sync_min</WorkingDir>
     <Sequence>make,sync,train,print</Sequence>

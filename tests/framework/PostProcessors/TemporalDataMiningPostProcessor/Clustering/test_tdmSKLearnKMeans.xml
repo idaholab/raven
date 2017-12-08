@@ -9,20 +9,17 @@
       Tests clustering with KMeans and a pivot parameter.
     </description>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>KMeans</WorkingDir>
     <Sequence>readIn,pp1,writeOut</Sequence>
     <batchSize>100</batchSize>
   </RunInfo>
-
   <Files>
     <Input name="rawDataFile">../SKLearnData/BB_dump.csv</Input>
   </Files>
-
   <Models>
-    <PostProcessor name="KMeans1" subType="DataMining">
-      <KDD labelFeature="labels" lib="SciKitLearn">
+    <PostProcessor name='KMeans1' subType='DataMining'>
+      <KDD lib='SciKitLearn'  labelFeature='labels'>
         <SKLtype>cluster|KMeans</SKLtype>
         <Features>x1,x2</Features>
         <n_clusters>3</n_clusters>
@@ -35,37 +32,36 @@
   </Models>
 
   <Steps>
-    <IOStep name="readIn" pauseAtEnd="True">
-      <Input class="Files" type="">rawDataFile</Input>
-      <Output class="DataObjects" type="HistorySet">mData</Output>
+    <IOStep name='readIn' pauseAtEnd = 'True'>
+      <Input  class='Files'       type=''          >rawDataFile</Input>
+      <Output class='DataObjects' type='HistorySet'>mData</Output>
     </IOStep>
-    <PostProcess name="pp1" pauseAtEnd="True">
-      <Input class="DataObjects" type="HistorySet">mData</Input>
-      <Model class="Models" type="PostProcessor">KMeans1</Model>
+    <PostProcess name='pp1' pauseAtEnd = 'True'>
+      <Input class='DataObjects' type='HistorySet'   >mData</Input>
+      <Model class='Models'      type='PostProcessor'>KMeans1</Model>
       <SolutionExport class="DataObjects" type="HistorySet">clusterInfo</SolutionExport>
-      <Output class="DataObjects" type="HistorySet">mData</Output>
-      <Output class="OutStreams" type="Print">dummy</Output>
+      <Output class='DataObjects' type='HistorySet'>mData</Output>
+      <Output class='OutStreams'  type='Print'     >dummy</Output>
     </PostProcess>
-    <IOStep name="writeOut" pauseAtEnd="True">
-      <Input class="DataObjects" type="HistorySet">mData</Input>
-      <Input class="DataObjects" type="HistorySet">clusterInfo</Input>
-      <Output class="OutStreams" type="Plot">plotRawData</Output>
-      <Output class="OutStreams" type="Plot">plotPPDataLabel</Output>
-      <Output class="OutStreams" type="Plot">plotPPDataCentroid</Output>
-      <Output class="OutStreams" type="Print">centroid</Output>
+    <IOStep name='writeOut' pauseAtEnd = 'True'>
+      <Input  class='DataObjects' type='HistorySet'>mData</Input>
+      <Input  class='DataObjects' type='HistorySet'>clusterInfo</Input>
+      <Output class='OutStreams'  type='Plot'      >plotRawData</Output>
+      <Output class='OutStreams'  type='Plot'      >plotPPDataLabel</Output>
+      <Output class='OutStreams'  type='Plot'      >plotPPDataCentroid</Output>
+      <Output class='OutStreams'  type='Print'     >centroid</Output>
     </IOStep>
   </Steps>
-
   <OutStreams>
-    <Print name="dummy">
+    <Print name='dummy'>
       <type>csv</type>
       <source>mData</source>
     </Print>
-    <Print name="centroid">
+    <Print name='centroid'>
       <type>csv</type>
       <source>clusterInfo</source>
     </Print>
-    <Plot name="plotRawData" overwrite="True">
+    <Plot  name="plotRawData" overwrite="True" >
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
@@ -97,7 +93,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot name="plotPPDataLabel" overwrite="True">
+    <Plot  name="plotPPDataLabel" overwrite="True" >
       <plotSettings>
         <plot>
           <type>line</type>
@@ -110,7 +106,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot name="plotPPDataCentroid" overwrite="True">
+    <Plot  name="plotPPDataCentroid" overwrite="True" >
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
@@ -145,7 +141,7 @@
   </OutStreams>
 
   <DataObjects>
-    <HistorySet name="clusterInfo">
+    <HistorySet name='clusterInfo'>
       <Input>labels</Input>
       <Output>Time,x1,x2</Output>
     </HistorySet>
@@ -154,5 +150,4 @@
       <Output>Time,x1,x2</Output>
     </HistorySet>
   </DataObjects>
-
 </Simulation>

@@ -5,7 +5,6 @@
     <Sequence>TPmake,TPtrain,TPtest,TPprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/Samplers/SparseGrid/tensorPrductGrid</name>
     <author>talbpaul</author>

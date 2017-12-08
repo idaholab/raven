@@ -1,5 +1,4 @@
-<?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity='debug'>
   <TestInfo>
     <name>framework/Samplers/EnsembledSampler.EnsembleSamplerConstants</name>
     <author>talbpaul</author>
@@ -17,15 +16,15 @@
   </RunInfo>
 
   <Models>
-    <Dummy name="MyDummy1" subType=""/>
+    <Dummy name='MyDummy1' subType=''/>
   </Models>
 
   <Distributions>
-    <Uniform name="unif">
+    <Uniform name='unif'>
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
     </Uniform>
-    <Normal name="norm">
+    <Normal name='norm'>
       <mean>0.5</mean>
       <sigma>0.2</sigma>
       <lowerBound>0</lowerBound>
@@ -34,47 +33,47 @@
   </Distributions>
 
   <Samplers>
-    <EnsembleForward name="testEnsembleForward">
+    <EnsembleForward name='testEnsembleForward'>
       <constant name="constantine">3.14159</constant>
-      <MonteCarlo name="notNeeded">
+      <MonteCarlo name='notNeeded'>
         <samplerInit>
           <limit>3</limit>
         </samplerInit>
-        <variable name="x1">
+        <variable name='x1'>
           <distribution>norm</distribution>
         </variable>
       </MonteCarlo>
-      <Grid name="notNeeded">
-        <variable name="x2">
+      <Grid name='notNeeded'>
+        <variable name='x2'>
           <distribution>unif</distribution>
-          <grid construction="custom" type="value">0.02 0.6</grid>
+          <grid construction='custom' type='value'>0.02 0.6</grid>
         </variable>
       </Grid>
-    </EnsembleForward>
+     </EnsembleForward>
   </Samplers>
 
   <OutStreams>
-    <Print name="PointsetEnsembleForward">
+    <Print name='PointsetEnsembleForward'>
       <type>csv</type>
       <source>PointsetEnsembleForward</source>
     </Print>
   </OutStreams>
 
   <Steps>
-    <MultiRun name="EnsembleForwardStep" sleepTime="0.0000001">
-      <Input class="DataObjects" type="PointSet">PointsetEnsembleForward</Input>
-      <Model class="Models" type="Dummy">MyDummy1</Model>
-      <Sampler class="Samplers" type="EnsembleForward">testEnsembleForward</Sampler>
-      <Output class="DataObjects" type="PointSet">PointsetEnsembleForward</Output>
+    <MultiRun name='EnsembleForwardStep' sleepTime='0.0000001'>
+      <Input    class='DataObjects'   type='PointSet'         >PointsetEnsembleForward</Input>
+      <Model    class='Models'        type='Dummy'            >MyDummy1</Model>
+      <Sampler  class='Samplers'      type='EnsembleForward'  >testEnsembleForward</Sampler>
+      <Output   class='DataObjects'   type='PointSet'         >PointsetEnsembleForward</Output>
     </MultiRun>
-    <IOStep name="EnsembleForwardOutstreamStep">
-      <Input class="DataObjects" type="PointSet">PointsetEnsembleForward</Input>
-      <Output class="OutStreams" type="Print">PointsetEnsembleForward</Output>
+    <IOStep name='EnsembleForwardOutstreamStep'>
+      <Input    class='DataObjects'   type='PointSet'         >PointsetEnsembleForward</Input>
+      <Output   class='OutStreams'    type='Print'            >PointsetEnsembleForward</Output>
     </IOStep>
   </Steps>
 
   <DataObjects>
-    <PointSet name="PointsetEnsembleForward">
+    <PointSet name='PointsetEnsembleForward'>
       <Input>x1,x2,constantine</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>

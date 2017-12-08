@@ -22,7 +22,6 @@
       <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>

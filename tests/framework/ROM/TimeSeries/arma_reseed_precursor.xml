@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries.ARMAparallelReseed</name>

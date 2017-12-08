@@ -9,7 +9,6 @@
       Tests clustering with VBGMM (Variational Bayesian Gaussian Mixture Model).
     </description>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>VariationalGMM</WorkingDir>
     <Sequence>readIn,VariationalGMMBlobs,output</Sequence>
@@ -57,7 +56,7 @@
       <source>DataSets</source>
       <what>Output|labels</what>
     </Print>
-    <Plot name="PlotVariationalGMMBlobs" overwrite="false">
+    <Plot  name="PlotVariationalGMMBlobs" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

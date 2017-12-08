@@ -5,7 +5,6 @@
     <Sequence>makeTP,makeTD,makeHC</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/Samplers/SparseGrid/TensorGridTest</name>
     <author>talbpaul</author>

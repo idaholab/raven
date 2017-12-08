@@ -9,7 +9,6 @@
       Tests clustering with the Hierarchical model.
     </description>
   </TestInfo>
-
   <RunInfo>
     <internalParallel>False</internalParallel>
     <WorkingDir>Hierarchical</WorkingDir>
@@ -23,7 +22,7 @@
 
   <Models>
     <PostProcessor name="hierarchical" subType="DataMining" verbosity="quiet">
-      <KDD labelFeature="labels" lib="Scipy">
+      <KDD lib="Scipy" labelFeature='labels'>
         <Features>x1,x2</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>
         <method>single</method>
@@ -42,18 +41,18 @@
 
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
-      <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Input    class="Files"         type=""               >DataSetsFile</Input>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets</Output>
     </IOStep>
     <PostProcess name="Hierarchical" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Model class="Models" type="PostProcessor">hierarchical</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreams" type="Print">dummy</Output>
+      <Input    class="DataObjects"   type="PointSet"       >DataSets</Input>
+      <Model    class="Models"        type="PostProcessor"  >hierarchical</Model>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets</Output>
+      <Output   class="OutStreams"    type="Print"          >dummy</Output>
     </PostProcess>
     <IOStep name="output" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreams" type="Plot">PlotHierarchical</Output>
+      <Input    class="DataObjects"   type="PointSet"       >DataSets</Input>
+      <Output   class="OutStreams"    type="Plot"           >PlotHierarchical</Output>
     </IOStep>
   </Steps>
 

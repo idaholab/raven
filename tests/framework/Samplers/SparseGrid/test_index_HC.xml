@@ -5,7 +5,6 @@
     <Sequence>HCmake,HCtrain,HCtest,HCprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/Samplers/SparseGrid/hyperbolicCrossGrid</name>
     <author>talbpaul</author>
