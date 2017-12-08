@@ -531,10 +531,25 @@ checkArray('Metadata get keys',sorted(meta.keys()),['DataSet','TestPP','prefix']
 checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'prefix\'])',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
 # fail to find general in pointwise
 checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'DataSet\'])',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
-
 # check that poorly-aligned set checks out as such
-checkSame('Check misaligned data is not aligned',False,data.checkIndexAlignment())
-# TODO check aligned data too
+checkTrue('Check misaligned data is not aligned',not data.checkIndexAlignment())
+# check aligned data too
+xml = createElement('DataSet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a'))
+xml.append(createElement('Output',text='b'))
+xml.append(createElement('Index',attrib={'var':'t'},text='b'))
+dataAlign = XDataSet.DataSet()
+dataAlign.messageHandler = mh
+dataAlign._readMoreXML(xml)
+rlz = {'a':np.array([1.9]),
+       'b':np.array([3.4, 2.4, 6.5]),
+       't':np.array([0.4, 0.9, 10])}
+dataAlign.addRealization(rlz)
+rlz = {'a':np.array([7.9]),
+       'b':np.array([0.3, -0.8, 9.7]),
+       't':np.array([0.4, 0.9, 10])}
+dataAlign.addRealization(rlz)
+checkTrue('Check aligned data is aligned', dataAlign.checkIndexAlignment('t'))
 
 ######################################
 #        READ/WRITE FROM FILE        #
@@ -708,6 +723,36 @@ data.load(seed,style='dict',dims=data.getDimensions())
 checkArray('load from dict "a"',data.asDataset()['a'].values,seed['a'],float)
 checkArray('load from dict "b"[3]',data.asDataset().isel(True,RAVEN_sample_ID=3)['b'].dropna('t').values,seed['b'][3],float)
 rlz = data.realization(index=2)
+checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
+checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
+
+
+# Here I am testing the functionality that converts the dataObject into a dict
+convertedDict = data.asDataset(outType='dict')
+# check that the dictionary entries are the same
+checkArray('asDict "a"',seed['a'],convertedDict['data']['a'],float)
+checkArray('asDict "b[0]"',convertedDict['data']['b'][0],seed['b'][0],float)
+checkArray('asDict "b[4]"',convertedDict['data']['b'][4],seed['b'][4],float)
+checkArray('asDict "b[9]"',convertedDict['data']['b'][9],seed['b'][9],float)
+checkArray('asDict "t[0]"',convertedDict['data']['t'][0],seed['t'][0],float)
+checkArray('asDict "t[4]"',convertedDict['data']['t'][4],seed['t'][4],float)
+checkArray('asDict "t[9]"',convertedDict['data']['t'][9],seed['t'][9],float)
+checkSame('asDict dims "a"',convertedDict['dims']['a'],[])
+checkSame('asDict dims "b"',convertedDict['dims']['b'],['t'])
+# TODO check metadata?
+# double-check there's no errors using this to construct a new dataset (full loop)
+xml = createElement('DataSet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a'))
+xml.append(createElement('Output',text='b'))
+xml.append(createElement('Index',attrib={'var':'t'},text='b'))
+dataRe = XDataSet.DataSet()
+dataRe.messageHandler = mh
+dataRe._readMoreXML(xml)
+dataRe.load(convertedDict['data'],style='dict',dims=convertedDict['dims'])
+# use exact same tests as originally loading from dict, but for dataRe
+checkArray('load from dict "a"',dataRe.asDataset()['a'].values,seed['a'],float)
+checkArray('load from dict "b"[3]',dataRe.asDataset().isel(True,RAVEN_sample_ID=3)['b'].dropna('t').values,seed['b'][3],float)
+rlz = dataRe.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
 

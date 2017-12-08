@@ -5,6 +5,18 @@
     <Sequence>GenerateData,PP,readStatistics,Plot</Sequence>
     <batchSize>8</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/timeDepOutCsv</name>
+    <author>alfoa</author>
+    <created>2017-03-29</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This test checks basic statistics for csv ouptut
+    </description>
+    <revisions>
+        <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+    </revisions>
+  </TestInfo>
 
   <Files>
     <Input name="stat_csv" type="">output_TD_BS2.csv</Input>
