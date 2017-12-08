@@ -373,7 +373,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       if self.variables2distributionsMapping[varName]['totDim'] == 1:
         for key in varName.strip().split(','):
           self.values[key] = pt[v]
-          self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(pt[v])
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
       # compute the SampledVarsPb for N-D distribution
       elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
@@ -394,10 +394,11 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
             self.raiseAnError(IOError,'The variables ' + var + ' listed in adaptive sobol sampler, but not used in the ROM!' )
           for key in var.strip().split(','):
             self.values[key] = pt[location]
-            self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(ndCoordinates)
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
-
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    # reassign SampledVarsPb to fully correlated variables
+    self._reassignSampledVarsPbToFullyCorrVars()
     self.inputInfo['SamplerType'] = 'Adaptive Sparse Grids for Sobol'
 
   def _addPointToDataObject(self,subset,point):
