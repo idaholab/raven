@@ -600,6 +600,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.inputInfo['SampledVars'  ].update(self.constants)
       # we consider that CDF of the constant variables is equal to 1 (same as its Pb Weight)
       self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(),1.0))
+      pbKey = ['ProbabilityWeight-'+key for key in self.constants.keys()]
+      self.addMetaKeys(pbKey)
       self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
 
   def amIreadyToProvideAnInput(self): #inLastOutput=None):
@@ -791,6 +793,18 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, myInput, list, the generating input
     """
     pass
+
+  def _reassignSampledVarsPbToFullyCorrVars(self):
+    """
+      Method to reassign sampledVarsPb to the fully correlated variables
+      @ In, None
+      @ Out, None
+    """
+    fullyCorrVars = {s: self.inputInfo['SampledVarsPb'].pop(s) for s in self.inputInfo['SampledVarsPb'].keys() if "," in s}
+    # assign the SampledVarsPb to the fully correlated vars
+    for key in fullyCorrVars:
+      for kkey in key.split(","):
+        self.inputInfo['SampledVarsPb'][kkey] = fullyCorrVars[key]
 
   def handleFailedRuns(self,failedRuns):
     """
