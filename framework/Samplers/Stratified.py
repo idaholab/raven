@@ -208,6 +208,7 @@ class Stratified(Grid):
                   self.values[kkey] = ndCoordinate[positionList.index(position)]
                   self.inputInfo['upper'][kkey] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)
                   self.inputInfo['lower'][kkey] = self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
+                  self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(ndCoordinate)
               elif self.gridInfo[variable] == 'value':
                 dxs[positionList.index(position)] = max(upper,lower) - min(upper,lower)
                 centerCoordinate[positionList.index(position)] = (upper + lower)/2.0
@@ -218,9 +219,10 @@ class Stratified(Grid):
                   self.values[kkey] = coordinate
                   self.inputInfo['upper'][kkey] = max(upper,lower)
                   self.inputInfo['lower'][kkey] = min(upper,lower)
+                  self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(ndCoordinate)
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(centerCoordinate,dxs)
             weight *= self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")]
-            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
+            
           else:
             if self.gridInfo[varName] == 'CDF':
               upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
@@ -231,8 +233,8 @@ class Stratified(Grid):
               for distVarName in self.distributions2variablesMapping[distName]:
                 for kkey in utils.first(distVarName.keys()).strip().split(','):
                   self.inputInfo['distributionName'][kkey], self.inputInfo['distributionType'][kkey], self.values[kkey] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
-              # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
-              self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
+                  # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
+                  self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
               weight *= max(upper,lower) - min(upper,lower)
               self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = max(upper,lower) - min(upper,lower)
             else:
@@ -250,7 +252,6 @@ class Stratified(Grid):
           ppfUpper = self.distDict[varName].ppf(max(upper,lower))
           weight *= self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
           self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
-          self.inputInfo['SampledVarsPb'][varName]  = self.distDict[varName].pdf(ppfValue)
         elif self.gridInfo[varName] == 'value':
           coordinateCdf = self.distDict[varName].cdf(min(upper,lower)) + (self.distDict[varName].cdf(max(upper,lower))-self.distDict[varName].cdf(min(upper,lower)))*randomUtils.random()
           if coordinateCdf == 0.0:
@@ -258,7 +259,6 @@ class Stratified(Grid):
           coordinate = self.distDict[varName].ppf(coordinateCdf)
           weight *= self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
           self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
-          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(coordinate)
         for kkey in varName.strip().split(','):
           self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
           self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
@@ -266,10 +266,12 @@ class Stratified(Grid):
             self.values[kkey] = ppfValue
             self.inputInfo['upper'][kkey] = ppfUpper
             self.inputInfo['lower'][kkey] = ppfLower
+            self.inputInfo['SampledVarsPb'][kkey]  = self.distDict[varName].pdf(ppfValue)
           elif self.gridInfo[varName] =='value':
             self.values[kkey] = coordinate
             self.inputInfo['upper'][kkey] = max(upper,lower)
             self.inputInfo['lower'][kkey] = min(upper,lower)
+            self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(coordinate)
 
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     # reassign SampledVarsPb to fully correlated variables
