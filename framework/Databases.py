@@ -281,7 +281,7 @@ class HDF5(DateBase):
       @ In, keys, set(str), keys to register
       @ Out, None
     """
-    self.database.addExpectedMeta(keys)
+    #self.database.addExpectedMeta(keys)
     self.addMetaKeys(*keys)
 
   def initialize(self,gname,options=None):
