@@ -5,7 +5,6 @@
     <batchSize>1</batchSize>
     <Sequence>sample,train,print,stats</Sequence>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pca_adaptive_sgc/test_adaptive_sgc_attenuation</name>
     <author>wangc</author>

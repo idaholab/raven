@@ -5,7 +5,6 @@
     <Sequence>gridRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pca_grid/gridPCACdf</name>
     <author>wangc</author>

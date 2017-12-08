@@ -6,8 +6,8 @@
     <created>2014-12-06</created>
     <classesTested>Sampler.ResponseSurfaceDesign</classesTested>
     <description>
-       This test is aimed to check the capability in RAVEN to employ a ResponseSurfaceDesign sampling strategy. Since the goal of the test is to testify
-       that the Grid sampling strategy is functional, a Dummy model is used.
+       This test is aimed to check the capability in RAVEN to employ a ResponseSurfaceDesign sampling strategy. Since the goal of the test is to testify 
+       that the Grid sampling strategy is functional, a Dummy model is used. 
        Both available Response Surface design strategies are tested (BoxBehnken, CentralComposite)
     </description>
     <revisions>
@@ -22,7 +22,6 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>ResponseDesign</WorkingDir>
     <Sequence>BoxBehnkenRespDesignStep,CentralCompositeRespDesignStep</Sequence>

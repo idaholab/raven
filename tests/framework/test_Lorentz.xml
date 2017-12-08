@@ -16,7 +16,6 @@
     </revisions>
     <requirements>R-IS-4</requirements>
   </TestInfo>
-
   <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
@@ -31,10 +30,7 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
-      <!--
-         FIXME
-        <Output class="Databases" type="HDF5">test_external_db</Output>
-      -->
+      <!-- FIXME <Output class="Databases" type="HDF5">test_external_db</Output>-->
       <Output class="OutStreams" type="Print">testPrintHistorySet_dump</Output>
       <Output class="DataObjects" type="PointSet">testPointSet</Output>
       <Output class="OutStreams" type="Print">testPointSet_dump</Output>

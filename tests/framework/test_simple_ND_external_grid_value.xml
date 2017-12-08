@@ -6,7 +6,7 @@
     <created>2015-03-04</created>
     <classesTested>Distributions.NDInverseWeight, Distrubtions.NDCartesianSpline, Samplers.Grid</classesTested>
     <description>
-       This test is aimed to check the capability of RAVEN to handle ND probability density functions (distributions), when
+       This test is aimed to check the capability of RAVEN to handle ND probability density functions (distributions), when 
        a Grid sampling strategy is performed. In this case, the capability to construct marginal distributions (for each uncertanties of
        the ND distribution domain), when the discretization is performed in VALUE.
     </description>
@@ -19,7 +19,6 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>ND_test_Grid_value</WorkingDir>
     <Sequence>FirstMRun</Sequence>

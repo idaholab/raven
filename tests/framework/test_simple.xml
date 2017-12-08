@@ -16,7 +16,6 @@
     </revisions>
     <requirements>R-IS-2</requirements>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>revirD_tset</WorkingDir>
     <Sequence>FirstMRun</Sequence>

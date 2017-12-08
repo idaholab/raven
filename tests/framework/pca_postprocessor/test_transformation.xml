@@ -5,7 +5,6 @@
     <Sequence>FirstMRun,computeRank</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pca_grid/transformationMatrix</name>
     <author>wangc</author>

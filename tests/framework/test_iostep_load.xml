@@ -26,7 +26,6 @@
     </revisions>
     <requirements>R-RA-2</requirements>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir runRelative="True">test_iostep_load</WorkingDir>
     <Sequence>test_read_in,test_rewrite</Sequence>

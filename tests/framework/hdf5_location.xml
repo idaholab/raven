@@ -9,7 +9,6 @@
       Tests that the location specified for the HDF5 is relative to the working dir, not to the run dir.
     </description>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>HDF5_location</WorkingDir>
     <Sequence>load,print</Sequence>
@@ -27,7 +26,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 directory="../HDF5_selective" name="all" readMode="read"/>
+    <HDF5 name="all" readMode="read" directory="../HDF5_selective"/>
   </Databases>
 
   <DataObjects>
@@ -43,5 +42,4 @@
       <source>dataWorks</source>
     </Print>
   </OutStreams>
-
 </Simulation>

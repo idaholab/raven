@@ -12,7 +12,6 @@
       test.
     </description>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>fail_xml</WorkingDir>
     <Sequence>External_Model,MakeSet</Sequence>

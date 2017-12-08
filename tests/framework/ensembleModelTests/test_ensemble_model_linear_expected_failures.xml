@@ -10,7 +10,6 @@
        termination of RAVEN.
     </description>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>metaModelLinearExpectedFailure</WorkingDir>
     <Sequence>failStep</Sequence>
@@ -74,6 +73,7 @@
       <Output class="DataObjects" type="PointSet">heatTransferContainer</Output>
     </MultiRun>
   </Steps>
+
 
   <DataObjects>
     <PointSet name="inputHolder">

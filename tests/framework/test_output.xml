@@ -9,7 +9,7 @@
        This test is aimed to check the OutStreams system in RAVEN (BOTH TYPE: Plot (all available plot types) and Print(all the available combination of options))
     </description>
     <revisions>
-      <revision author="crisr" date="2014-04-03">new imput stile for the rom and the dummy. SVN r26236</revision>
+     <revision author="crisr" date="2014-04-03">new imput stile for the rom and the dummy. SVN r26236</revision>
       <revision author="alfoa" date="2014-04-10">Interactive mode for Steps + moved exec on the fly outside the modules in order to avoid unneeded slowing down. SVN r26340</revision>
       <revision author="senrs" date="2015-03-17">Scatter plot corrected</revision>
       <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
@@ -17,14 +17,13 @@
       <revision author="maljdan" date="2015-06-22">Adding the outstream manager to the XSD and adjusting some of the input files to play nicely with it.</revision>
       <revision author="senrs" date="2015-07-08">Adding subPlot capability</revision>
       <revision author="cogljj" date="2015-10-08">Switching from RAVEN model to external model, so RELAP-7 not needed.        This is checking raven's output, so it shouldn't depend on RELAP-7.    This removes the raven c++ input files.    This updates gold files because of changing the model.</revision>
-      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+     <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
       <revision author="alfoa" date="2016-09-01">Close #650</revision>
       <revision author="cogljj" date="2016-10-07">Having both a color and a colormap doesn't make sense.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
     <requirements>R-RA-3</requirements>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>output_check</WorkingDir>
     <Sequence>FirstMRun,testOutstreamStep</Sequence>
@@ -97,7 +96,7 @@
       <type>csv</type>
       <source>PointSets</source>
     </Print>
-    <Plot name="test" overwrite="false" verbosity="debug">
+    <Plot  name="test" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -168,7 +167,7 @@
         </arrow>
       </actions>
     </Plot>
-    <Plot name="plot2" overwrite="false" verbosity="debug">
+    <Plot   name="plot2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -238,7 +237,7 @@
         </autoscale>
       </actions>
     </Plot>
-    <Plot name="plot3" overwrite="false" verbosity="debug">
+    <Plot  name="plot3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -268,7 +267,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="plot4" overwrite="false" verbosity="debug">
+    <Plot   name="plot4" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -304,7 +303,7 @@
         </autoscale>
       </actions>
     </Plot>
-    <Plot name="plot5" overwrite="false" verbosity="debug">
+    <Plot  name="plot5" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -320,7 +319,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="plot6" overwrite="false" verbosity="debug">
+    <Plot   name="plot6" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -337,7 +336,7 @@
         </camera>
       </actions>
     </Plot>
-    <Plot name="plot7" overwrite="false" verbosity="debug">
+    <Plot  name="plot7" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -354,7 +353,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="plot8" overwrite="false" verbosity="debug">
+    <Plot   name="plot8" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -372,7 +371,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="plot9" overwrite="false" verbosity="debug">
+    <Plot  name="plot9" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -389,7 +388,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="plot10" overwrite="false" verbosity="debug">
+    <Plot   name="plot10" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -407,7 +406,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="plot11" overwrite="false" verbosity="debug">
+    <Plot  name="plot11" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>step</type>
@@ -424,7 +423,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="plot12" overwrite="false" verbosity="debug">
+    <Plot  name="plot12" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>pseudocolor</type>
@@ -443,7 +442,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="plot13" overwrite="false" verbosity="debug">
+    <Plot   name="plot13" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>surface</type>
@@ -478,7 +477,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="plot14" overwrite="false" verbosity="debug">
+    <Plot   name="plot14" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>tri-surface</type>
@@ -509,7 +508,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="plot15" overwrite="false" verbosity="debug">
+    <Plot   name="plot15" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>wireframe</type>
@@ -541,7 +540,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="plot16" overwrite="false" verbosity="debug">
+    <Plot  name="plot16" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>contour</type>
@@ -567,7 +566,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="plot17" overwrite="false" verbosity="debug">
+    <Plot   name="plot17" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>contour3D</type>
@@ -596,7 +595,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="plot18" overwrite="false" verbosity="debug">
+    <Plot  name="plot18" overwrite="false" verbosity="debug">
       <actions>
         <how>png</how>
       </actions>
@@ -614,7 +613,7 @@
         <ylabel>cosine</ylabel>
       </plotSettings>
     </Plot>
-    <Plot name="plot19" overwrite="false" verbosity="debug">
+    <Plot   name="plot19" overwrite="false" verbosity="debug">
       <actions>
         <how>png</how>
       </actions>
@@ -634,7 +633,7 @@
         <zlabel>cosine</zlabel>
       </plotSettings>
     </Plot>
-    <Plot name="historyPlot2D" overwrite="false" verbosity="debug">
+    <Plot  name="historyPlot2D" overwrite="false" verbosity="debug">
       <filename>1-2DHistoryPlot_histogram</filename>
       <plotSettings>
         <plot>
@@ -651,7 +650,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="2DHistoryPlot2" overwrite="false" verbosity="debug">
+    <Plot  name="2DHistoryPlot2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>

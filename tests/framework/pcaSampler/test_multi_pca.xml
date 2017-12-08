@@ -5,7 +5,6 @@
     <Sequence>FirstMRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pcaSampler/multiPCA</name>
     <author>wangc</author>

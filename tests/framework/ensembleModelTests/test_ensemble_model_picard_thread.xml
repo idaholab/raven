@@ -20,7 +20,6 @@
       <revision author="wangc" date="2017-09-11">add new sub-node 'initialStartModels'</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>metaModelNonLinearThread</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
@@ -115,7 +114,7 @@
       <type>csv</type>
       <source>metaModelOutputTest</source>
     </Print>
-    <Plot name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
+    <Plot   name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -143,7 +142,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="metaModelOutputTestLinearHeat" overwrite="false" verbosity="debug">
+    <Plot   name="metaModelOutputTestLinearHeat" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -171,7 +170,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot name="metaModelOutputTestK" overwrite="false" verbosity="debug">
+    <Plot   name="metaModelOutputTestK" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>

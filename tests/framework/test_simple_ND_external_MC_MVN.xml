@@ -6,8 +6,8 @@
     <created>2015-04-15</created>
     <classesTested>Distributions.MultivariateNormal, Samplers.MonteCarlo</classesTested>
     <description>
-       This test is aimed to check the capability of RAVEN to handle MultivariateNormal probability density functions (distributions), when
-       a MonteCarlo sampling strategy is performed.
+       This test is aimed to check the capability of RAVEN to handle MultivariateNormal probability density functions (distributions), when 
+       a MonteCarlo sampling strategy is performed.     
     </description>
     <revisions>
       <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
@@ -16,7 +16,6 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>ND_test_MC_MVN</WorkingDir>
     <Sequence>FirstMRun</Sequence>

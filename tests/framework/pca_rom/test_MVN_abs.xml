@@ -5,7 +5,6 @@
     <Sequence>AbsRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pca_rom/MVNAbs</name>
     <author>wangc</author>

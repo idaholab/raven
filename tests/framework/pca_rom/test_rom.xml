@@ -5,7 +5,6 @@
     <Sequence>uqWithCov,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pca_rom/ROM</name>
     <author>wangc</author>

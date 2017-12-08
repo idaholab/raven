@@ -5,7 +5,6 @@
     <Sequence>FirstMRun,computeRank</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pca_grid/timeDepImportanceRank</name>
     <author>wangc</author>
@@ -31,14 +30,14 @@
       <targets>x,y,z</targets>
       <pivotParameter>time</pivotParameter>
       <features>
-        <manifest>
-          <variables>z0,x0,y0</variables>
-          <dimensions>3,1,2</dimensions>
-        </manifest>
-        <latent>
-          <variables>y1,x1</variables>
-          <dimensions>2,1</dimensions>
-        </latent>
+          <manifest>
+              <variables>z0,x0,y0</variables>
+              <dimensions>3,1,2</dimensions>
+          </manifest>
+          <latent>
+              <variables>y1,x1</variables>
+              <dimensions>2,1</dimensions>
+          </latent>
       </features>
       <mvnDistribution>MVN</mvnDistribution>
     </PostProcessor>

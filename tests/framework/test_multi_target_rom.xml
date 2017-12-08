@@ -6,7 +6,7 @@
     <created>2014-11-30</created>
     <classesTested>Steps.RomTrainer, Models.ROM</classesTested>
     <description>
-       This test is aimed to test the capability of RAVEN to train ROMs that can predict multiple targets at the same time (multiple FOMs)
+       This test is aimed to test the capability of RAVEN to train ROMs that can predict multiple targets at the same time (multiple FOMs)     
     </description>
     <revisions>
       <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
@@ -20,7 +20,6 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>

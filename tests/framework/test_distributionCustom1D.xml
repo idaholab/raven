@@ -12,7 +12,6 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>custom1D/</WorkingDir>
     <!--
@@ -148,7 +147,7 @@
       <type>csv</type>
       <source>PointSet3</source>
     </Print>
-    <Plot name="plot2" overwrite="false" verbosity="debug">
+    <Plot  name="plot2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -161,7 +160,7 @@
         <how>pdf</how>
       </actions>
     </Plot>
-    <Plot name="plot3" overwrite="false" verbosity="debug">
+    <Plot  name="plot3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>

@@ -7,7 +7,7 @@
     <classesTested>Models.PostProcessors.LimitSurface, Models.PostProcessors.LimitSurfaceIntegral</classesTested>
     <description>
        This test is aimed to check the capability of RAVEN to generate Limit Surfaces from a pre-generated data set (in this case, generated with
-       a MonteCarlo sampling). In addition, this test is aimed to check the capability of RAVEN to compute the integral of the Limit Surface (e.g.
+       a MonteCarlo sampling). In addition, this test is aimed to check the capability of RAVEN to compute the integral of the Limit Surface (e.g. 
        Failure probability) both probability-weighted and not.
     </description>
     <revisions>
@@ -19,7 +19,6 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>limitSurface_integral</WorkingDir>
     <Sequence>FirstMRun,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted,ComputeLimitSurfaceIntegralUnWeighted</Sequence>

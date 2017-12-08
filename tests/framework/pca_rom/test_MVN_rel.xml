@@ -5,7 +5,6 @@
     <Sequence>RelRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pca_rom/MVNRel</name>
     <author>wangc</author>

@@ -12,10 +12,10 @@
     </description>
     <!--We should find a better way to test the contents of the HDF5, as loading back into a CSV filters through
          the DataObject as well, but we currently don't have a way to test the file sizes against each other.
-         For now, I'll make this an error test that loads &quot;square&quot; from &quot;all.hdf5&quot; but errors trying to load
-         &quot;square&quot; from &quot;sine.hdf5&quot;.-->
-  </TestInfo>
 
+         For now, I'll make this an error test that loads "square" from "all.hdf5" but errors trying to load
+         "square" from "sine.hdf5".-->
+  </TestInfo>
   <RunInfo>
     <WorkingDir>HDF5_selective</WorkingDir>
     <Sequence>sample,load,print</Sequence>
@@ -74,10 +74,10 @@
   </Steps>
 
   <Databases>
-    <HDF5 directory="." name="sine" readMode="overwrite">
+    <HDF5 name="sine" readMode="overwrite" directory=".">
       <variables>var1,var2,time,sine</variables>
     </HDF5>
-    <HDF5 directory="." name="all" readMode="overwrite"/>
+    <HDF5 name="all" readMode="overwrite" directory="."/>
   </Databases>
 
   <DataObjects>
@@ -105,5 +105,4 @@
       <source>dataErrs</source>
     </Print>
   </OutStreams>
-
 </Simulation>

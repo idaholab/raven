@@ -1,11 +1,9 @@
-<?xml version="1.0" ?>
 <Simulation color="True" verbosity="debug">
   <RunInfo>
     <WorkingDir>run</WorkingDir>
     <Sequence>sample</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/SingleRuns/ROMFails</name>
     <author>talbpw</author>
@@ -49,5 +47,4 @@
       <source>sample</source>
     </Print>
   </OutStreams>
-
 </Simulation>

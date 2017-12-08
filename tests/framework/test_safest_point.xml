@@ -7,7 +7,7 @@
     <classesTested>Samplers.LimitSurfaceSearch, Models.PostProcessor.SafestPoint, Steps.MultiRun</classesTested>
     <description>
        This test is about the identification of the Safest Point in a set of controllable and un-controllable parameter.
-       In order to do that, a LimitSurfaceSearch sampling is employed and sub-sequentially the PostProcessor
+       In order to do that, a LimitSurfaceSearch sampling is employed and sub-sequentially the PostProcessor 
        of type SafestPoint is used.
     </description>
     <revisions>
@@ -20,7 +20,6 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>SafestPointPP</WorkingDir>
     <Sequence>pth1,pth2,pth3,pth4</Sequence>

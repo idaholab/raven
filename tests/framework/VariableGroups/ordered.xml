@@ -5,7 +5,6 @@
     <printInput/>
     <Sequence>sample,print</Sequence>
   </RunInfo>
-
   <TestInfo>
     <name>framework/VariableGroups/OrderedVariables</name>
     <author>talbpaul</author>

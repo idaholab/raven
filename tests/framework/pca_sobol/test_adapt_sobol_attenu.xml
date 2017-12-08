@@ -5,7 +5,6 @@
     <batchSize>1</batchSize>
     <Sequence>sample,train,print,stats</Sequence>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pca_sobol/test_adaptive_sobol_attenuation</name>
     <author>wangc</author>
@@ -15,7 +14,7 @@
       Tests the Adaptive Sobol sampler combined wit input reductions via PCA method, using uncorrelated multivariate normal distribution.
     </description>
     <analytic>
-      This test is analytic in mean and variance using the &quot;attenuation&quot; analytic model documented in the analytic tests.
+      This test is analytic in mean and variance using the "attenuation" analytic model documented in the analytic tests.
     </analytic>
   </TestInfo>
 

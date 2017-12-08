@@ -62,11 +62,11 @@
         <grid construction="equal" steps="1" type="value">3.5 4.0</grid>
       </variable>
       <variable name="TestOnePoint">
-        <distribution>DistTri1</distribution>
-        <grid construction="custom" type="CDF">0.5</grid>
+          <distribution>DistTri1</distribution>
+          <grid construction="custom" type="CDF">0.5</grid>
       </variable>
       <variable name="multiplyTheConstantByTwo">
-        <function>multiply_the_constant</function>
+          <function>multiply_the_constant</function>
       </variable>
       <constant name="aConstant"> 20021986 </constant>
     </Grid>
@@ -107,8 +107,8 @@
 
   <Functions>
     <External file="multiply_the_constant.py" name="multiply_the_constant">
-      <variable>aConstant</variable>
-      <variable>TestOnePoint</variable>
+        <variable>aConstant</variable>
+        <variable>TestOnePoint</variable>
     </External>
   </Functions>
 
