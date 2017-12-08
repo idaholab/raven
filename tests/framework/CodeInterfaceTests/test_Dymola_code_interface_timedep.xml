@@ -5,7 +5,7 @@
     <author>alfoa</author>
     <created>2016-11-11</created>
     <revisions>
-      <revision author="@alfoa" date="2016-12-01">Fixed order of test inputs to respect XSD schema</revision>
+      <revision date="2016-12-01" author="@alfoa">Fixed order of test inputs to respect XSD schema</revision>
     </revisions>
     <classesTested>Models.EnsembleModel,CodeInterfaces.OpenModelica</classesTested>
     <description>
@@ -14,12 +14,10 @@
        not necessary to run this test.
     </description>
   </TestInfo>
-
   <Files>
     <Input name="dsin.txt" type="DymolaInitialisation">dsin.txt</Input>
     <Input name="addinp.txt" type="DymolaVectors">addinp.txt</Input>
   </Files>
-
   <RunInfo>
     <WorkingDir>DMInterfaceTestTimedep</WorkingDir>
     <Sequence>testDummyStep,testPrintUnstructuredInputSpace</Sequence>
@@ -27,25 +25,27 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="CreateHIST" name="CreateHIST" subType="">
-      <variables>G_a, G_b, G_c, G_vect</variables>
+    <ExternalModel ModuleToLoad="CreateHIST" name="CreateHIST" subType=""> 
+        <variables>G_a, G_b, G_c, G_vect</variables>
     </ExternalModel>
+
     <Code name="BouncingBall" subType="Dymola">
       <executable>
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
     </Code>
+
     <EnsembleModel name="Ensemble_Model" subType="">
       <Model class="Models" type="ExternalModel">
          CreateHIST
-        <Input class="DataObjects" type="PointSet">CreateHIST_in</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet">CreateHIST_out</TargetEvaluation>
+         <Input            class="DataObjects" type="PointSet">CreateHIST_in</Input>
+         <TargetEvaluation class="DataObjects" type="HistorySet">CreateHIST_out</TargetEvaluation>
       </Model>
       <Model class="Models" type="Code">
          BouncingBall
-        <Input class="Files" type="DymolaInitialisation">dsin.txt</Input>
-        <Input class="Files" type="DymolaVectors">addinp.txt</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet">BBHistorySet_out</TargetEvaluation>
+         <Input     class="Files"        type="DymolaInitialisation">dsin.txt</Input>
+         <Input     class="Files"        type="DymolaVectors">addinp.txt</Input>
+         <TargetEvaluation class="DataObjects" type="HistorySet">BBHistorySet_out</TargetEvaluation>
       </Model>
     </EnsembleModel>
   </Models>
@@ -56,83 +56,82 @@
       <upperBound>5.0</upperBound>
     </Uniform>
     <Uniform name="Grid_dist">
-      <upperBound>1</upperBound>
-      <lowerBound>0</lowerBound>
+        <upperBound>1</upperBound>
+        <lowerBound>0</lowerBound>
     </Uniform>
   </Distributions>
 
   <Samplers>
     <EnsembleForward name="Ensemble_Sampler">
-      <MonteCarlo name="MC">
-        <samplerInit>
-          <limit>1</limit>
-        </samplerInit>
-        <variable name="hstart">
-          <distribution>h_dist</distribution>
+    <MonteCarlo name="MC">
+      <samplerInit>
+        <limit>1</limit>
+      </samplerInit>
+      <variable name="hstart">
+        <distribution>h_dist</distribution>
+      </variable>
+    </MonteCarlo>
+    <Grid name="HYBGrid">
+        <variable name="G_a"> 
+            <distribution>Grid_dist</distribution>
+            <grid construction="equal" steps="1" type="value">0 1</grid>
         </variable>
-      </MonteCarlo>
-      <Grid name="HYBGrid">
-        <variable name="G_a">
-          <distribution>Grid_dist</distribution>
-          <grid construction="equal" steps="1" type="value">0 1</grid>
+        <variable name="G_b"> 
+            <distribution>Grid_dist</distribution>
+            <grid construction="equal" steps="1" type="value">0 1</grid>
         </variable>
-        <variable name="G_b">
-          <distribution>Grid_dist</distribution>
-          <grid construction="equal" steps="1" type="value">0 1</grid>
+        <variable name="G_c"> 
+            <distribution>Grid_dist</distribution>
+            <grid construction="equal" steps="1" type="value">0 1</grid>
         </variable>
-        <variable name="G_c">
-          <distribution>Grid_dist</distribution>
-          <grid construction="equal" steps="1" type="value">0 1</grid>
+        <variable name="G_z"> 
+            <distribution>Grid_dist</distribution>
+            <grid construction="equal" steps="1" type="value">0 1</grid>
         </variable>
-        <variable name="G_z">
-          <distribution>Grid_dist</distribution>
-          <grid construction="equal" steps="1" type="value">0 1</grid>
-        </variable>
-      </Grid>
+    </Grid>
     </EnsembleForward>
   </Samplers>
 
   <Steps>
     <MultiRun name="testDummyStep" re-seeding="1">
-      <Input class="Files" type="DymolaInitialisation">dsin.txt</Input>
-      <Input class="Files" type="DymolaVectors">addinp.txt</Input>
-      <Input class="DataObjects" type="PointSet">CreateHIST_in</Input>
-      <Model class="Models" type="EnsembleModel">Ensemble_Model</Model>
-      <Sampler class="Samplers" type="EnsembleForward">Ensemble_Sampler</Sampler>
-      <Output class="DataObjects" type="HistorySet">BBHistorySet_out</Output>
-      <Output class="Databases" type="HDF5">DB_BouncingBall</Output>
+      <Input     class="Files"        type="DymolaInitialisation">dsin.txt</Input> 
+      <Input     class="Files"        type="DymolaVectors">addinp.txt</Input> 
+      <Input     class="DataObjects"  type="PointSet">CreateHIST_in</Input>
+      <Model     class="Models"       type="EnsembleModel">Ensemble_Model</Model>
+      <Sampler   class="Samplers"     type="EnsembleForward">Ensemble_Sampler</Sampler>
+      <Output     class="DataObjects" type="HistorySet">BBHistorySet_out</Output>
+      <Output    class="Databases"    type="HDF5">DB_BouncingBall</Output>
     </MultiRun>
     <IOStep name="testPrintUnstructuredInputSpace">
-      <Input class="DataObjects" type="HistorySet">BBHistorySet_out</Input>
-      <Output class="OutStreams" type="Print">DB_BouncingBallDump</Output>
+       <Input     class="DataObjects" type="HistorySet">BBHistorySet_out</Input>
+       <Output    class="OutStreams"  type="Print">DB_BouncingBallDump</Output>
+ 
     </IOStep>
   </Steps>
-
   <OutStreams>
-    <Print name="DB_BouncingBallDump">
-      <type>csv</type>
-      <source>BBHistorySet_out</source>
-    </Print>
+      <Print name="DB_BouncingBallDump">
+          <type>csv</type>
+          <source>BBHistorySet_out</source>
+      </Print>
   </OutStreams>
-
   <DataObjects>
     <PointSet name="CreateHIST_in">
-      <Input>G_a, G_b, G_c</Input>
-      <Output>OutputPlaceHolder</Output>
+       <Input>G_a, G_b, G_c</Input>
+       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <HistorySet name="BBHistorySet_out">
-      <Input>hstart, G_vect</Input>
-      <Output>v,flying,impact</Output>
-      <options>
-        <pivotParameter>Time</pivotParameter>
-      </options>
-    </HistorySet>
+       <Input>hstart, G_vect</Input>
+       <Output>v,flying,impact</Output>
+       <options>
+           <pivotParameter>Time</pivotParameter>
+       </options>
+     </HistorySet>
     <HistorySet name="CreateHIST_out">
       <Input>G_a, G_b, G_c</Input>
       <Output>G_vect</Output>
-      <options>
-        <pivotParameter>Time</pivotParameter>
-      </options>
+       <options>
+           <pivotParameter>Time</pivotParameter>
+       </options>
     </HistorySet>
   </DataObjects>
 

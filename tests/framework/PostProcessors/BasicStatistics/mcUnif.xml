@@ -5,7 +5,6 @@
     <Sequence>MC,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/mc_uniform</name>
     <author>mandd</author>
@@ -56,17 +55,17 @@
 
   <Steps>
     <MultiRun name="MC">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model class="Models" type="ExternalModel">piModel</Model>
-      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="DataObjects" type="PointSet">outputDataMC</Output>
+      <Input   class="DataObjects"  type="PointSet"       >inputPlaceHolder</Input>
+      <Model   class="Models"       type="ExternalModel"  >piModel</Model>
+      <Sampler class="Samplers"     type="MonteCarlo"     >MC_external</Sampler>
+      <Output  class="DataObjects"  type="PointSet"       >outputDataMC</Output>
     </MultiRun>
     <PostProcess name="PP">
-      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
-      <Model class="Models" type="PostProcessor">analyticalTest</Model>
-      <Output class="OutStreams" type="Print">outputDataMC_dump</Output>
-      <Output class="Files" type="">output_basicStatistics_PP.csv</Output>
-      <Output class="Files" type="">output_basicStatistics_PP.xml</Output>
+      <Input   class="DataObjects"  type="PointSet"       >outputDataMC</Input>
+      <Model   class="Models"       type="PostProcessor"  >analyticalTest</Model>
+      <Output  class="OutStreams"   type="Print"           >outputDataMC_dump</Output>
+      <Output  class="Files"        type=""               >output_basicStatistics_PP.csv</Output>
+      <Output  class="Files"        type=""               >output_basicStatistics_PP.xml</Output>
     </PostProcess>
   </Steps>
 

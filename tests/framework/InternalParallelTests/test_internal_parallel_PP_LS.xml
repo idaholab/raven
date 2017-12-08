@@ -11,12 +11,11 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2015-10-07">Made the test faster</revision>
-      <revision author="alfoa" date="2015-10-19">New syntax form samplerInit: from sampler_init -&gt; samplerInit</revision>
+      <revision author="alfoa" date="2015-10-19">New syntax form samplerInit: from sampler_init -> samplerInit</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>InternalParallelPostProcessorLS</WorkingDir>
     <Sequence>ExternalModelMC,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted,ComputeLimitSurfaceIntegralUnWeighted</Sequence>

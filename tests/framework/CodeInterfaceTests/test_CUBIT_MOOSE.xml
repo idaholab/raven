@@ -27,7 +27,6 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <!--CubitMoose Interface Test
   This test is designed to ensure the CubitMoose interface runs correctly.
   It will only run if a cubit executable is found.  At this time, the
@@ -87,8 +86,8 @@
     <Code name="moose-modules" subType="CubitMoose">
       <executable>%FRAMEWORK_DIR%/../../moose/test/moose_test-%METHOD%</executable>
       <preexec>/hpc-common/apps/local/cubit/13.2/bin/cubit</preexec>
-      <alias type="input" variable="length">Cubit@y</alias>
-      <alias type="input" variable="bot_BC">BCs|bottom|value</alias>
+      <alias variable="length" type="input">Cubit@y</alias>
+      <alias variable="bot_BC" type="input">BCs|bottom|value</alias>
     </Code>
   </Models>
 

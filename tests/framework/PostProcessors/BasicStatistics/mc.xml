@@ -5,7 +5,6 @@
     <Sequence>SamplingMirrowModelMC,PP1mc</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/mc</name>
     <author>alfoa</author>

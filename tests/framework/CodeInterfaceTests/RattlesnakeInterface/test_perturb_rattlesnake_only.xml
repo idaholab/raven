@@ -7,7 +7,7 @@
     <classesTested>Models.Code.Rattlesnake, Sampler.MonteCarlo</classesTested>
     <description>
        An example of using the code interface RattleSnake.
-       This test is aimed to check the functionality (running the code) of the Rattlesnake interface (perturbing only RattleSnake and not
+       This test is aimed to check the functionality (running the code) of the Rattlesnake interface (perturbing only RattleSnake and not 
        the YAK library) when a MonteCarlo sampling approach is used.
     </description>
     <revisions>
@@ -15,7 +15,6 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>TestRattlesnake</WorkingDir>
     <Sequence>MCTestRattlesnake</Sequence>

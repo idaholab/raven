@@ -5,7 +5,6 @@
     <Sequence>SamplingMirrowModel2levelFractFactorial,SamplingMirrowModelpbFactorial,PP12levelFractFactorial,PP1pbFactorial</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/factorial_analytic</name>
     <author>alfoa</author>

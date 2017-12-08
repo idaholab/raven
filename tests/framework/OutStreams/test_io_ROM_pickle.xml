@@ -13,7 +13,6 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>IO_ROM_PICKLE</WorkingDir>
     <Sequence>step1,step2,step3,step4,step5,step6,step7</Sequence>

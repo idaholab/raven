@@ -19,7 +19,6 @@
     </revisions>
     <requirements>R-IS-1</requirements>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>LHStestBisonParallel</WorkingDir>
     <Sequence>myLHS</Sequence>

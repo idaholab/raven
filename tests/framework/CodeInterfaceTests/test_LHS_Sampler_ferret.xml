@@ -7,14 +7,13 @@
     <classesTested>Models.Code.MooseBasedApp</classesTested>
     <description>
        An example of using the the Model Code of type MooseBasedApp for Ferret code.
-       This test is aimed to show the usage of the code interface MooseBasedApp in order to test its mechanics
+       This test is aimed to show the usage of the code interface MooseBasedApp in order to test its mechanics 
     </description>
     <revisions>
       <revision author="talbpaul" date="2016-04-26">Added check for pre-existing backup files when validating</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>LHStestFerret</WorkingDir>
     <Sequence>myLHS</Sequence>

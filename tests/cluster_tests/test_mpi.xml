@@ -10,7 +10,6 @@
       a qsub.  This could be used in pbs interactive mode.
     </description>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstMRun</Sequence>

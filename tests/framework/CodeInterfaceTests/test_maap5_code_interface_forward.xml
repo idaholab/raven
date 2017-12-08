@@ -17,7 +17,6 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>MAAP5_Forward_test</WorkingDir>
     <Sequence>testDummyStep</Sequence>
@@ -81,7 +80,7 @@
       <Input>TIMELOCA</Input>
       <Output>PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1)</Output>
       <options>
-        <pivotParameter>TIME</pivotParameter>
+          <pivotParameter>TIME</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>

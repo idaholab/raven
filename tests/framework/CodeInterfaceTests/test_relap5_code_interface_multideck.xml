@@ -6,7 +6,7 @@
     <created>2016-05-03</created>
     <classesTested>Models.Code.Relap5</classesTested>
     <description>
-       An example of using the Relap5 code interface. This test is aimed to test the mechanics of the interface (no executable)
+       An example of using the Relap5 code interface. This test is aimed to test the mechanics of the interface (no executable) 
        when a multi-deck type of input needs to be perturbed.
     </description>
     <revisions>
@@ -14,7 +14,6 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>RELAP5interfaceTestMultiDeck</WorkingDir>
     <Sequence>testDummyStep</Sequence>

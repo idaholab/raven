@@ -5,21 +5,19 @@
     <author>@bobk</author>
     <created>2015-06-11</created>
     <revisions>
-      <revision author="@talbpaul" date="2016-04-26">Added check for pre-existing HDF5 backup files when validating</revision>
+      <revision date="2016-04-26" author="@talbpaul">Added check for pre-existing HDF5 backup files when validating</revision>
     </revisions>
     <classesTested>CodeInterfaces.OpenModelica</classesTested>
     <description>
-       The purpose of this test is to exercise the OpenModelica external code interface without needing to have a built
-         executable.  It is directly modeled on the test_relap5_code_interface.xml test and works by making sure that
-         1) The input files are perturbed correctly
-         2) That the raw output CSV files are properly processed for reading by RAVEN
+       The purpose of this test is to exercise the OpenModelica external code interface without needing to have a built 
+         executable.  It is directly modeled on the test_relap5_code_interface.xml test and works by making sure that 
+         1) The input files are perturbed correctly 
+         2) That the raw output CSV files are properly processed for reading by RAVEN 
     </description>
   </TestInfo>
-
   <Files>
     <Input name="BouncingBall_init.xml" type="">BouncingBall_init.xml</Input>
   </Files>
-
   <RunInfo>
     <WorkingDir>OMInterfaceTest</WorkingDir>
     <Sequence>testDummyStep</Sequence>
