@@ -792,6 +792,18 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
+  def _reassignSampledVarsPbToFullyCorrVars(self):
+    """
+      Method to reassign sampledVarsPb to the fully correlated variables
+      @ In, None
+      @ Out, None
+    """
+    fullyCorrVars = {s: self.inputInfo['SampledVarsPb'].pop(s) for s in self.inputInfo['SampledVarsPb'].keys() if "," in s}
+    # assign the SampledVarsPb to the fully correlated vars
+    for key in fullyCorrVars:
+      for kkey in key.split(","):
+        self.inputInfo['SampledVarsPb'][kkey] = fullyCorrVars[key]
+
   def handleFailedRuns(self,failedRuns):
     """
       Collects the failed runs from the Step and allows samples to handle them individually if need be.
