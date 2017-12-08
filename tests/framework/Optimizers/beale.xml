@@ -7,8 +7,8 @@
     <classesTested>Optimizer</classesTested>
     <description>
       This test runs the optimization on Beale's function.  It tests analytic optimization values
-      as well as the mechanical operation of the test.  Also tests the &quot;gainGrowthFactor&quot; and
-      &quot;gainShrinkFactor&quot; convergence parameters.
+      as well as the mechanical operation of the test.  Also tests the "gainGrowthFactor" and
+      "gainShrinkFactor" convergence parameters.
     </description>
     <analytic>
       This test uses Beale's function, which is documented in the analytic tests documentation under
