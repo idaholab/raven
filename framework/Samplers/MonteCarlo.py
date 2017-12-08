@@ -148,8 +148,8 @@ class MonteCarlo(ForwardSampler):
             weight *= midPlusCDF - midMinusCDF
           else:
             rvsnum = self.distDict[key].rvs()
+          self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
           for kkey in varID.strip().split(','):
-            self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(rvsnum)
             self.values[kkey] = np.atleast_1d(rvsnum)[0]
       elif totDim > 1:
         if reducedDim == 1:
@@ -165,12 +165,12 @@ class MonteCarlo(ForwardSampler):
           if reducedDim > len(coordinate):
             self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
           probabilityValue = self.distDict[key].pdf(coordinate)
+          self.inputInfo['SampledVarsPb'][key] = probabilityValue
           for var in self.distributions2variablesMapping[dist]:
             varID  = utils.first(var.keys())
             varDim = var[varID]
             for kkey in varID.strip().split(','):
               self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
-              self.inputInfo['SampledVarsPb'][kkey] = probabilityValue
       else:
         self.raiseAnError(IOError,"Total dimension for given distribution should be >= 1")
 
@@ -180,6 +180,8 @@ class MonteCarlo(ForwardSampler):
         self.inputInfo['ProbabilityWeight'  ] = weight
       else:
         self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
+    # reassign SampledVarsPb to fully correlated variables
+    self._reassignSampledVarsPbToFullyCorrVars()
     self.inputInfo['SamplerType'] = 'MonteCarlo'
 
   def _localHandleFailedRuns(self,failedRuns):
