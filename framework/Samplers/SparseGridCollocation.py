@@ -290,7 +290,7 @@ class SparseGridCollocation(Grid):
       if self.variables2distributionsMapping[varName]['totDim'] == 1:
         for key in varName.strip().split(','):
           self.values[key] = pt[v]
-          self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(pt[v])
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
       # compute the SampledVarsPb for N-D distribution
       # Assume only one N-D distribution is associated with sparse grid collocation method
@@ -312,7 +312,7 @@ class SparseGridCollocation(Grid):
             self.raiseAnError(IOError,'The variables ' + var + ' listed in sparse grid collocation sampler, but not used in the ROM!' )
           for key in var.strip().split(','):
             self.values[key] = pt[location]
-            self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(ndCoordinates)
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
 
     self.inputInfo['ProbabilityWeight'] = weight
