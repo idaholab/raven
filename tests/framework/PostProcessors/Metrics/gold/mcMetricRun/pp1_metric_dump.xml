@@ -1,0 +1,9 @@
+<DataObjectMetadata name="pp1_metric">
+  <DataSet type="Static">
+    <general>
+      <outputs>euclidean_ans2_ans,euclidean2_ans2_ans</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

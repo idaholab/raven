@@ -171,4 +171,7 @@ class CustomSampler(ForwardSampler):
       self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter-1]
     if 'ProbabilityWeight' in self.infoFromCustom.keys():
       self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][self.counter-1]
+    else:
+      self.inputInfo['ProbabilityWeight'] = 1.0
+
     self.inputInfo['SamplerType'] = 'Custom'

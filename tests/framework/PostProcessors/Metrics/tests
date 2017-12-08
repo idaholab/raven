@@ -2,9 +2,8 @@
   [./simpleMetric]
     type = 'RavenFramework'
     input = 'test_metric.xml'
-    UnorderedXml = 'mcMetricRun/output_metric.xml'
-    UnorderedCsv = 'mcMetricRun/dumpMC.csv'
-    output = 'mcMetricRun/output_metric.csv'
+    UnorderedXml = 'mcMetricRun/dumpMC.xml mcMetricRun/pp1_metric_dump.xml'
+    UnorderedCsv = 'mcMetricRun/dumpMC.csv mcMetricRun/pp1_metric_dump.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
     remove_whitespace = True
@@ -12,7 +11,8 @@
   [./multipleInputs]
     type = 'RavenFramework'
     input = 'test_metric_multiple_input_objects.xml'
-    UnorderedXml = 'multipleInputObjects/output_metric.xml'
+    output = 'multipleInputObjects/pp1_metric_dump.xml'
+    UnorderedCsv = 'multipleInputObjects/pp1_metric_dump.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
     remove_whitespace = True
@@ -20,7 +20,8 @@
   [./sklMetric]
     type = 'RavenFramework'
     input = 'test_metric_skl.xml'
-    UnorderedXml = 'sklMetrics/output_metric.xml sklMetrics/chi2_metric.xml'
+    output = 'sklMetrics/pp1_metric_dump.xml sklMetrics/pp2_metric_dump.xml'
+    UnorderedCsv = 'sklMetrics/pp1_metric_dump.csv sklMetrics/pp2_metric_dump.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
     remove_whitespace = True
@@ -28,7 +29,8 @@
   [./minkowskiMetric]
     type = 'RavenFramework'
     input = 'test_Minkowski.xml'
-    UnorderedXml = 'minkowskiMetric/output_metric.xml'
+    output = 'minkowskiMetric/pp1_metric_dump.xml'
+    UnorderedCsv = 'minkowskiMetric/pp1_metric_dump.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
     remove_whitespace = True
@@ -36,17 +38,20 @@
   [./test_comparison_statistics_metrics]
     type = 'RavenFramework'
     input = 'test_comparison_stats_metrics.xml'
-    xml = 'compStats/output_cdf_diff.xml compStats/output_pdf_area.xml'
+    UnorderedCsv = 'compStats/pp2_metric_dump.csv compStats/pp1_metric_dump.csv'
+    output = 'compStats/pp2_metric_dump.xml compStats/pp1_metric_dump.xml'
   [../]
   [./test_comparison_statistics_metrics_grid]
     type = 'RavenFramework'
     input = 'test_comparison_stats_metrics_grid.xml'
-    xml = 'compStatsGrid/output_cdf_diff.xml compStatsGrid/output_pdf_area.xml'
+    output = 'compStatsGrid/pp1_metric_dump.xml compStatsGrid/pp2_metric_dump.xml'
+    UnorderedCsv = 'compStatsGrid/pp2_metric_dump.csv compStatsGrid/pp1_metric_dump.csv'
   [../]
   [./test_comparison_statistics_metrics_dists]
     type = 'RavenFramework'
     input = 'test_comparison_stats_metrics_dists.xml'
-    xml = 'compStatsDists/output_metric.xml'
+    output = 'compStatsDists/pp1_metric_dump.xml'
+    UnorderedCsv = 'compStatsDists/pp1_metric_dump.csv'
   [../]
   [./test_comparison_statistics_unit]
     type = 'RavenPython'

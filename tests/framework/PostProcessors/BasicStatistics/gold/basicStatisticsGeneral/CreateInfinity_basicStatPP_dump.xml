@@ -1,0 +1,9 @@
+<DataObjectMetadata name="CreateInfinity_basicStatPP">
+  <DataSet type="Static">
+    <general>
+      <outputs>skew_time,skew_x0,skew_y0,skew_y02,vc_time,vc_x0,vc_y0,vc_y02,percentile_5_time,percentile_95_time,percentile_5_x0,percentile_95_x0,percentile_5_y0,percentile_95_y0,percentile_5_y02,percentile_95_y02,mean_time,mean_x0,mean_y0,mean_y02,kurt_time,kurt_x0,kurt_y0,kurt_y02,median_time,median_x0,median_y0,median_y02,max_time,max_x0,max_y0,max_y02,min_time,min_x0,min_y0,min_y02,samp_time,samp_x0,samp_y0,samp_y02,var_time,var_x0,var_y0,var_y02,sigma_time,sigma_x0,sigma_y0,sigma_y02,nsen_time_time,nsen_time_x0,nsen_time_y0,nsen_time_y02,nsen_x0_time,nsen_x0_x0,nsen_x0_y0,nsen_x0_y02,nsen_y0_time,nsen_y0_x0,nsen_y0_y0,nsen_y0_y02,nsen_y02_time,nsen_y02_x0,nsen_y02_y0,nsen_y02_y02,sen_time_time,sen_time_x0,sen_time_y0,sen_time_y02,sen_x0_time,sen_x0_x0,sen_x0_y0,sen_x0_y02,sen_y0_time,sen_y0_x0,sen_y0_y0,sen_y0_y02,sen_y02_time,sen_y02_x0,sen_y02_y0,sen_y02_y02,pear_time_time,pear_time_x0,pear_time_y0,pear_time_y02,pear_x0_time,pear_x0_x0,pear_x0_y0,pear_x0_y02,pear_y0_time,pear_y0_x0,pear_y0_y0,pear_y0_y02,pear_y02_time,pear_y02_x0,pear_y02_y0,pear_y02_y02,cov_time_time,cov_time_x0,cov_time_y0,cov_time_y02,cov_x0_time,cov_x0_x0,cov_x0_y0,cov_x0_y02,cov_y0_time,cov_y0_x0,cov_y0_y0,cov_y0_y02,cov_y02_time,cov_y02_x0,cov_y02_y0,cov_y02_y02,vsen_time_time,vsen_time_x0,vsen_time_y0,vsen_time_y02,vsen_x0_time,vsen_x0_x0,vsen_x0_y0,vsen_x0_y02,vsen_y0_time,vsen_y0_x0,vsen_y0_y0,vsen_y0_y02,vsen_y02_time,vsen_y02_x0,vsen_y02_y0,vsen_y02_y02</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>
