@@ -103,6 +103,13 @@ class Grid(ForwardSampler):
       self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
     self.axisName = list(grdInfo.keys())
     self.axisName.sort()
+    for i in range(len(self.axisName)):
+      varName = self.axisName[i]
+      if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
+        self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","-")])
+      else:
+        if self.variables2distributionsMapping[varName]['reducedDim']==1:
+          self.addMetaKeys(*['ProbabilityWeight-'+varName.replace(",","!")])
 
   def localGetInitParams(self):
     """

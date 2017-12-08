@@ -714,6 +714,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.inputInfo['distributionType'][key]  = self.distDict[key].type
         self.inputInfo['SampledVarsPb'   ][key]  = self.distDict[key].pdf(self.values[key])
         self.inputInfo['ProbabilityWeight-'+key] = self.distDict[key].pdf(self.values[key])
+        self.addMetaKeys(*['ProbabilityWeight-'+key])
     self.inputInfo['PointProbability'    ]      = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
     self.inputInfo['ProbabilityWeight']         = self.inputInfo['PointProbability']

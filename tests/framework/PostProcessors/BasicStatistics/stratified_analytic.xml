@@ -5,6 +5,7 @@
     <Sequence>SamplingMirrowModelStratified,PP1Stratified</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/grid_analytic</name>
     <author>alfoa</author>
@@ -13,22 +14,47 @@
     <description>
       This test checks basic statistics on Stratified samples
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+    </revisions>
   </TestInfo>
-
-  <Files>
-    <Input name="output_basicStatistics_PP1Stratified.csv" type="">output_basicStatistics_PP1Stratified.csv</Input>
-    <Input name="output_basicStatistics_PP1Stratified.xml" type="">output_basicStatistics_PP1Stratified.xml</Input>
-  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
       <variables>x,y,x1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <all>
+      <skewness prefix="skew">x,y</skewness>
+      <variationCoefficient prefix="vc">x,y</variationCoefficient>
+      <percentile prefix="percentile">x,y</percentile>
+      <expectedValue prefix="mean">x,y</expectedValue>
+      <kurtosis prefix="kurt">x,y</kurtosis>
+      <median prefix="median">x,y</median>
+      <maximum prefix="max">x,y</maximum>
+      <minimum prefix="min">x,y</minimum>
+      <samples prefix="samp">x,y</samples>
+      <variance prefix="var">x,y</variance>
+      <sigma prefix="sigma">x,y</sigma>
+      <NormalizedSensitivity prefix="nsen">
         <targets>x,y</targets>
         <features>x,y</features>
-      </all>
+      </NormalizedSensitivity>
+      <sensitivity prefix="sen">
+        <targets>x,y</targets>
+        <features>x,y</features>
+      </sensitivity>
+      <pearson prefix="pear">
+        <targets>x,y</targets>
+        <features>x,y</features>
+      </pearson>
+      <covariance prefix="cov">
+        <targets>x,y</targets>
+        <features>x,y</features>
+      </covariance>
+      <VarianceDependentSensitivity prefix="vsen">
+        <targets>x,y</targets>
+        <features>x,y</features>
+      </VarianceDependentSensitivity>
     </PostProcessor>
   </Models>
 
@@ -66,10 +92,8 @@
     <PostProcess name="PP1Stratified">
       <Input class="DataObjects" type="PointSet">outputDataStratified</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
-      <Output class="Files" type="">output_basicStatistics_PP1Stratified.csv</Output>
-      <Output class="Files" type="">output_basicStatistics_PP1Stratified.xml</Output>
-      <Output class="DataObjects" type="PointSet">outputDataStratified</Output>
-      <Output class="OutStreams" type="Print">outputDataStratified_dump</Output>
+      <Output class="DataObjects" type="PointSet">analyticalTest_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">analyticalTest_basicStatPP_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -77,6 +101,10 @@
     <Print name="outputDataStratified_dump">
       <type>csv</type>
       <source>outputDataStratified</source>
+    </Print>
+    <Print name="analyticalTest_basicStatPP_dump">
+      <type>csv</type>
+      <source>analyticalTest_basicStatPP</source>
     </Print>
   </OutStreams>
 
@@ -89,6 +117,56 @@
       <Input>x,y</Input>
       <Output>x1</Output>
     </PointSet>
+    <PointSet name="analyticalTest_basicStatPP">
+      <Output>analyticalTest_vars</Output>
+    </PointSet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="analyticalTest_vars">skew_x,
+                 skew_y,
+                 vc_x,
+                 vc_y,
+                 percentile_5_x,
+                 percentile_95_x,
+                 percentile_5_y,
+                 percentile_95_y,
+                 mean_x,
+                 mean_y,
+                 kurt_x,
+                 kurt_y,
+                 median_x,
+                 median_y,
+                 max_x,
+                 max_y,
+                 min_x,
+                 min_y,
+                 samp_x,
+                 samp_y,
+                 var_x,
+                 var_y,
+                 sigma_x,
+                 sigma_y,
+                 nsen_x_x,
+                 nsen_x_y,
+                 nsen_y_x,
+                 nsen_y_y,
+                 sen_x_x,
+                 sen_x_y,
+                 sen_y_x,
+                 sen_y_y,
+                 pear_x_x,
+                 pear_x_y,
+                 pear_y_x,
+                 pear_y_y,
+                 cov_x_x,
+                 cov_x_y,
+                 cov_y_x,
+                 cov_y_y,
+                 vsen_x_x,
+                 vsen_x_y,
+                 vsen_y_x,
+                 vsen_y_y</Group>
+  </VariableGroups>
 
 </Simulation>
