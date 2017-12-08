@@ -1,0 +1,121 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ensembleModelTests.testEnsembleModelFullyCorrVars</name>
+    <author>alfoa</author>
+    <created>2017-12-07</created>
+    <classesTested>Models.EnsembleModel, Models.ExternalModel, Models.Code, JobHandler.Thread</classesTested>
+    <description>
+       This test is a mechanical test for the EnsembleModel to test that it can correctly handle fully correlated variables
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-12-07">Added the test</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <JobName>ensembleModelFullyCorrVars</JobName>
+    <Sequence>
+        sampleMC
+    </Sequence>
+    <WorkingDir>ensembleModelFullyCorrVars</WorkingDir>
+    <batchSize>2</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
+  </Files>
+
+  <Models>
+    <Code name="testModel" subType="GenericCode">
+      <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg=" " extension=".csv" type="output"/>
+      <prepend>python</prepend>
+    </Code>
+    <ExternalModel ModuleToLoad="ABCDsum" name="sumOfABCD" subType="">
+      <variables>A,B,C,D,sum</variables>
+    </ExternalModel>
+    <EnsembleModel name="codeAndExtModel" subType="">
+      <Model class="Models" type="ExternalModel">
+        sumOfABCD
+        <Input class="DataObjects" type="PointSet">inputPlaceHolderForInternalObjects</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">sumData</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="Code">
+          testModel
+        <Input class="Files" type="">referenceInput.xml</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">samplesMC</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="sigma">
+      <lowerBound>0</lowerBound>
+      <upperBound>1000</upperBound>
+    </Uniform>
+    <Uniform name="decayConstant">
+      <lowerBound>0.00000001</lowerBound>
+      <upperBound>0.0000001</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>6</limit>
+      </samplerInit>
+      <variable name="sigma-A">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay-A">
+        <distribution>decayConstant</distribution>
+      </variable>
+      <variable name="sigma-B">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay-B">
+        <distribution>decayConstant</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sampleMC">
+      <Input class="Files" type="">referenceInput.xml</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolderForInternalObjects</Input>
+      <Model class="Models" type="EnsembleModel">codeAndExtModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">finalResponses</Output>
+      <Output class="OutStreams" type="Print">printFinalResults</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="printFinalResults">
+      <type>csv</type>
+      <source>finalResponses</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="samplesMC">
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>A,B,C,D</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolderForInternalObjects">
+      <Input>A,B,C,D</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="sumData">
+      <Input>A,B,C,D</Input>
+      <Output>sum</Output>
+    </PointSet>
+    <PointSet name="finalResponses">
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>A,B,C,D,sum</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
