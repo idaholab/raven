@@ -19,7 +19,7 @@
   </TestInfo>
 
   <Files>
-    <Input name="referenceInput.xml" type="input">../commonFiles/referenceInput.xml</Input>
+      <Input name="referenceInput.xml" type="input">../commonFiles/referenceInput.xml</Input>
   </Files>
 
   <Models>
@@ -41,9 +41,9 @@
       <Output class="OutStreams" type="Print">pointValues</Output>
     </SingleRun>
     <IOStep name="writehistory" pauseAtEnd="True">
-      <Input class="DataObjects" type="HistorySet">history</Input>
-      <Output class="OutStreams" type="Print">history</Output>
-      <Output class="OutStreams" type="Plot">historyPlot</Output>
+        <Input class="DataObjects" type="HistorySet">history</Input>
+        <Output class="OutStreams" type="Print">history</Output>
+        <Output class="OutStreams" type="Plot">historyPlot</Output>
     </IOStep>
   </Steps>
 
@@ -53,8 +53,8 @@
       <Output>A,B,C,D</Output>
     </PointSet>
     <HistorySet name="history">
-      <Input>InputPlaceHolder</Input>
-      <Output>A,B,C,D,time</Output>
+        <Input>InputPlaceHolder</Input>
+        <Output>A,B,C,D,time</Output>
     </HistorySet>
   </DataObjects>
 
@@ -64,44 +64,44 @@
       <source>pointValues</source>
     </Print>
     <Print name="history">
-      <type>csv</type>
-      <source>history</source>
+        <type>csv</type>
+        <source>history</source>
     </Print>
-    <Plot name="historyPlot" overwrite="false" verbosity="debug">
-      <plotSettings>
-        <plot>
-          <type>line</type>
-          <x>history|Output|time</x>
-          <y>history|Output|A</y>
-          <c>blue</c>
-        </plot>
-        <plot>
-          <type>line</type>
-          <x>history|Output|time</x>
-          <y>history|Output|B</y>
-          <c>red</c>
-        </plot>
-        <plot>
-          <type>line</type>
-          <x>history|Output|time</x>
-          <y>history|Output|C</y>
-          <c>yellow</c>
-        </plot>
-        <plot>
-          <type>line</type>
-          <x>history|Output|time</x>
-          <y>history|Output|D</y>
-          <c>black</c>
-        </plot>
-        <xlabel>time (s)</xlabel>
-        <ylabel>evolution (kg)</ylabel>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-        <title>
-          <text> </text>
-        </title>
-      </actions>
+    <Plot   name="historyPlot" overwrite="false" verbosity="debug">
+        <plotSettings>
+            <plot>
+                <type>line</type>
+                <x>history|Output|time</x>
+                <y>history|Output|A</y>
+                <c>blue</c>
+            </plot>
+            <plot>
+                <type>line</type>
+                <x>history|Output|time</x>
+                <y>history|Output|B</y>
+                <c>red</c>
+            </plot>
+            <plot>
+                <type>line</type>
+                <x>history|Output|time</x>
+                <y>history|Output|C</y>
+                <c>yellow</c>
+            </plot>
+            <plot>
+                <type>line</type>
+                <x>history|Output|time</x>
+                <y>history|Output|D</y>
+                <c>black</c>
+            </plot>
+            <xlabel>time (s)</xlabel>
+            <ylabel>evolution (kg)</ylabel>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
     </Plot>
   </OutStreams>
 

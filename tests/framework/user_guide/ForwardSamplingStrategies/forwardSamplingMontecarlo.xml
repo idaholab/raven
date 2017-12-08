@@ -6,7 +6,6 @@
     <WorkingDir>RunDir/MonteCarlo</WorkingDir>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/user_guide/ForwardSamplingStrategies/MonteCarlo</name>
     <author>talbpw</author>
@@ -32,22 +31,22 @@
   </Models>
 
   <Distributions>
-    <Uniform name="sigma">
-      <lowerBound>1</lowerBound>
-      <upperBound>10</upperBound>
-    </Uniform>
-    <Uniform name="decayConstant">
-      <lowerBound>0.000000005</lowerBound>
-      <upperBound>0.000000010</upperBound>
-    </Uniform>
+      <Uniform name="sigma">
+          <lowerBound>1</lowerBound>
+          <upperBound>10</upperBound>
+      </Uniform>
+      <Uniform name="decayConstant">
+          <lowerBound>0.000000005</lowerBound>
+          <upperBound>0.000000010</upperBound>
+      </Uniform>
   </Distributions>
 
   <Samplers>
     <MonteCarlo name="monteCarlo">
       <samplerInit>
-        <limit>100</limit>
-        <reseedEachIteration>True</reseedEachIteration>
-        <initialSeed>0</initialSeed>
+          <limit>100</limit>
+          <reseedEachIteration>True</reseedEachIteration>
+          <initialSeed>0</initialSeed>
       </samplerInit>
       <variable name="sigma-A">
         <distribution>sigma</distribution>
@@ -56,41 +55,42 @@
         <distribution>decayConstant</distribution>
       </variable>
       <variable name="sigma-B">
-        <distribution>sigma</distribution>
+          <distribution>sigma</distribution>
       </variable>
       <variable name="decay-B">
-        <distribution>decayConstant</distribution>
+          <distribution>decayConstant</distribution>
       </variable>
       <variable name="sigma-C">
-        <distribution>sigma</distribution>
+          <distribution>sigma</distribution>
       </variable>
       <variable name="decay-C">
-        <distribution>decayConstant</distribution>
+          <distribution>decayConstant</distribution>
       </variable>
       <variable name="sigma-D">
-        <distribution>sigma</distribution>
+          <distribution>sigma</distribution>
       </variable>
       <variable name="decay-D">
-        <distribution>decayConstant</distribution>
+          <distribution>decayConstant</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
 
   <Steps>
     <MultiRun name="sample">
-      <Input class="Files" type="input">referenceInput.xml</Input>
-      <Model class="Models" type="Code">testModel</Model>
-      <Sampler class="Samplers" type="MonteCarlo">monteCarlo</Sampler>
-      <Output class="DataObjects" type="PointSet">samples</Output>
-      <Output class="DataObjects" type="HistorySet">histories</Output>
+      <Input 	class="Files" 			 type="input">referenceInput.xml</Input>
+      <Model 	class="Models" 			 type="Code">testModel</Model>
+      <Sampler 	class="Samplers" 		 type="MonteCarlo">monteCarlo</Sampler>
+      <Output 	class="DataObjects" 	 type="PointSet">samples</Output>
+      <Output 	class="DataObjects" 	 type="HistorySet">histories</Output>
+
     </MultiRun>
     <IOStep name="writeHistories" pauseAtEnd="True">
-      <Input class="DataObjects" type="HistorySet">histories</Input>
-      <Input class="DataObjects" type="PointSet">samples</Input>
-      <Output class="OutStreams" type="Plot">samplesPlot3D</Output>
-      <Output class="OutStreams" type="Plot">historyPlot</Output>
-      <Output class="OutStreams" type="Print">samples</Output>
-      <Output class="OutStreams" type="Print">histories</Output>
+        <Input class="DataObjects" type="HistorySet">histories</Input>
+        <Input class="DataObjects" type="PointSet">samples</Input>
+        <Output 	class="OutStreams" type="Plot">samplesPlot3D</Output>
+        <Output 	class="OutStreams" type="Plot">historyPlot</Output>
+        <Output 	class="OutStreams" type="Print">samples</Output>
+        <Output 	class="OutStreams" type="Print">histories</Output>
     </IOStep>
   </Steps>
 
@@ -100,8 +100,8 @@
       <Output>A,B,C,D,time</Output>
     </PointSet>
     <HistorySet name="histories">
-      <Input>sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D</Input>
-      <Output>A,B,C,D,time</Output>
+        <Input>sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D</Input>
+        <Output>A,B,C,D,time</Output>
     </HistorySet>
   </DataObjects>
 
@@ -174,74 +174,74 @@
       </actions>
     </Plot>
     <Plot name="samplesPlot3D" overwrite="false" verbosity="debug">
-      <plotSettings>
-        <gridSpace>2 2</gridSpace>
-        <plot>
-          <type>scatter</type>
-          <x>samples|Input|sigma-A</x>
-          <y>samples|Input|decay-A</y>
-          <z>samples|Output|A</z>
-          <color>blue</color>
-          <gridLocation>
-            <x>0</x>
-            <y>0</y>
-          </gridLocation>
-          <xlabel>sigma</xlabel>
-          <ylabel>decay</ylabel>
-          <zlabel>final A</zlabel>
-        </plot>
-        <plot>
-          <type>scatter</type>
-          <x>samples|Input|sigma-B</x>
-          <y>samples|Input|decay-B</y>
-          <z>samples|Output|B</z>
-          <color>red</color>
-          <gridLocation>
-            <x>1</x>
-            <y>0</y>
-          </gridLocation>
-          <xlabel>sigma</xlabel>
-          <ylabel>decay</ylabel>
-          <zlabel>final B</zlabel>
-        </plot>
-        <plot>
-          <type>scatter</type>
-          <x>samples|Input|sigma-C</x>
-          <y>samples|Input|decay-C</y>
-          <z>samples|Output|C</z>
-          <color>yellow</color>
-          <gridLocation>
-            <x>0</x>
-            <y>1</y>
-          </gridLocation>
-          <xlabel>sigma</xlabel>
-          <ylabel>decay</ylabel>
-          <zlabel>final C</zlabel>
-        </plot>
-        <plot>
-          <type>scatter</type>
-          <x>samples|Input|sigma-D</x>
-          <y>samples|Input|decay-D</y>
-          <z>samples|Output|D</z>
-          <color>black</color>
-          <gridLocation>
-            <x>1</x>
-            <y>1</y>
-          </gridLocation>
-          <xlabel>sigma</xlabel>
-          <ylabel>decay</ylabel>
-          <zlabel>final D</zlabel>
-        </plot>
-        <xlabel>sigma</xlabel>
-        <ylabel>decay</ylabel>
-        <zlabel>final response</zlabel>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-        <title>
-          <text> </text>
-        </title>
-      </actions>
+        <plotSettings>
+            <gridSpace>2 2</gridSpace>
+            <plot>
+                <type>scatter</type>
+                <x>samples|Input|sigma-A</x>
+                <y>samples|Input|decay-A</y>
+                <z>samples|Output|A</z>
+                <color>blue</color>
+                <gridLocation>
+                  <x>0</x>
+                  <y>0</y>
+                </gridLocation>
+                <xlabel>sigma</xlabel>
+                <ylabel>decay</ylabel>
+                <zlabel>final A</zlabel>
+            </plot>
+            <plot>
+                <type>scatter</type>
+                <x>samples|Input|sigma-B</x>
+                <y>samples|Input|decay-B</y>
+                <z>samples|Output|B</z>
+                <color>red</color>
+                <gridLocation>
+                    <x>1</x>
+                    <y>0</y>
+                </gridLocation>
+                <xlabel>sigma</xlabel>
+                <ylabel>decay</ylabel>
+                <zlabel>final B</zlabel>
+            </plot>
+            <plot>
+                <type>scatter</type>
+                <x>samples|Input|sigma-C</x>
+                <y>samples|Input|decay-C</y>
+                <z>samples|Output|C</z>
+                <color>yellow</color>
+                <gridLocation>
+                    <x>0</x>
+                    <y>1</y>
+                </gridLocation>
+                <xlabel>sigma</xlabel>
+                <ylabel>decay</ylabel>
+                <zlabel>final C</zlabel>
+            </plot>
+            <plot>
+                <type>scatter</type>
+                <x>samples|Input|sigma-D</x>
+                <y>samples|Input|decay-D</y>
+                <z>samples|Output|D</z>
+                <color>black</color>
+                <gridLocation>
+                    <x>1</x>
+                    <y>1</y>
+                </gridLocation>
+                <xlabel>sigma</xlabel>
+                <ylabel>decay</ylabel>
+                <zlabel>final D</zlabel>
+            </plot>
+            <xlabel>sigma</xlabel>
+            <ylabel>decay</ylabel>
+            <zlabel>final response</zlabel>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
     </Plot>
   </OutStreams>
 

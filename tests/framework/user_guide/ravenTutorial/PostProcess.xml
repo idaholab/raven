@@ -10,7 +10,7 @@
   </RunInfo>
 
   <TestInfo>
-    <name>framework/user_guide/ravenTutorial/PostProcess</name>
+      <name>framework/user_guide/ravenTutorial/PostProcess</name>
     <author>wangc</author>
     <created>2017-07-27</created>
     <classesTested>PostProcessors.BasicStatistics</classesTested>
@@ -46,14 +46,14 @@
   </Models>
 
   <Distributions>
-    <Uniform name="sigma">
-      <lowerBound>0</lowerBound>
-      <upperBound>1000</upperBound>
-    </Uniform>
-    <Uniform name="decayConstant">
-      <lowerBound>0.00000001</lowerBound>
-      <upperBound>0.0000001</upperBound>
-    </Uniform>
+      <Uniform name="sigma">
+          <lowerBound>0</lowerBound>
+          <upperBound>1000</upperBound>
+      </Uniform>
+      <Uniform name="decayConstant">
+          <lowerBound>0.00000001</lowerBound>
+          <upperBound>0.0000001</upperBound>
+      </Uniform>
   </Distributions>
 
   <Samplers>
@@ -73,21 +73,21 @@
 
   <Steps>
     <MultiRun name="sampleMC">
-      <Input class="Files" type="input">referenceInput.xml</Input>
-      <Model class="Models" type="Code">testModel</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
-      <Output class="DataObjects" type="PointSet">samplesMC</Output>
-      <Output class="DataObjects" type="HistorySet">histories</Output>
+      <Input   class="Files"       type="input">referenceInput.xml</Input>
+      <Model   class="Models"      type="Code">testModel</Model>
+      <Sampler class="Samplers"    type="MonteCarlo">mc</Sampler>
+      <Output  class="DataObjects" type="PointSet">samplesMC</Output>
+      <Output  class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
     <PostProcess name="statAnalysis_1">
-      <Input class="DataObjects" type="PointSet">samplesMC</Input>
-      <Model class="Models" type="PostProcessor">statisticalAnalysis</Model>
-      <Output class="Files" type="">output_1</Output>
+      <Input  class="DataObjects" type="PointSet">samplesMC</Input>
+      <Model  class="Models"      type="PostProcessor">statisticalAnalysis</Model>
+      <Output class="Files"       type="">output_1</Output>
     </PostProcess>
     <PostProcess name="statAnalysis_2">
-      <Input class="DataObjects" type="PointSet">histories</Input>
-      <Model class="Models" type="PostProcessor">statisticalAnalysis</Model>
-      <Output class="Files" type="">output_2</Output>
+      <Input  class="DataObjects" type="PointSet">histories</Input>
+      <Model  class="Models"      type="PostProcessor">statisticalAnalysis</Model>
+      <Output class="Files"       type="">output_2</Output>
     </PostProcess>
   </Steps>
 
