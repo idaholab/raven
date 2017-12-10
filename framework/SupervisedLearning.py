@@ -34,6 +34,8 @@ else:
 
 #External Modules------------------------------------------------------------------------------------
 import sklearn
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import make_pipeline
 from sklearn import linear_model
 from sklearn import svm
 from sklearn import multiclass
@@ -85,19 +87,20 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
   ROMtimeDependent = False # is this ROM able to treat time-like (any monotonic variable) explicitly in its formulation?
 
   @staticmethod
-  def checkArrayConsistency(arrayIn):
+  def checkArrayConsistency(arrayIn,isDynamic=False):
     """
       This method checks the consistency of the in-array
       @ In, arrayIn, object,  It should be an array
+      @ In, isDynamic, bool, optional, is Dynamic?
       @ Out, (consistent, 'error msg'), tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
     """
     #checking if None provides a more clear message about the problem
     if arrayIn is None:
       return (False,' The object is None, and contains no entries!')
     if type(arrayIn).__name__ == 'list':
-      if self.isDynamic():
+      if isDynamic:
         for cnt, elementArray in enumerate(arrayIn):
-          resp = checkArrayConsistency(elementArray)
+          resp = superVisedLearning.checkArrayConsistency(elementArray)
           if not resp[0]:
             return (False,' The element number '+str(cnt)+' is not a consistent array. Error: '+resp[1])
       else:
@@ -185,16 +188,16 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
       else:
         valueToUse = values[names.index(feat)]
-        resp = self.checkArrayConsistency(valueToUse)
+        resp = self.checkArrayConsistency(valueToUse, self.isDynamic())
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         valueToUse = np.asarray(valueToUse)
-        if valueToUse.size != featureValues[:,0].size:
+        if valueToUse[:,0].size != featureValues[:,0].size:
           self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
-          self.raiseAWarning('target values:',valueToUse.size,tag='ERROR')
+          self.raiseAWarning('target values:',valueToUse[:,0].size,tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
-        featureValues[:,cnt] = (valueToUse - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        featureValues[:,cnt] = (valueToUse[:,cnt] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
 
@@ -220,7 +223,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       self.raiseAnError(IOError,'method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values   = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
-      resp = self.checkArrayConsistency(values[index])
+      resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
@@ -228,7 +231,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
       else:
-        resp = self.checkArrayConsistency(values[names.index(feat)])
+        resp = self.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = values[names.index(feat)]
@@ -246,7 +249,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values  = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
-      resp = self.checkArrayConsistency(values[index])
+      resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
     # construct the evaluation matrix
@@ -2830,6 +2833,7 @@ class PolyExponential(superVisedLearning):
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag          = 'PolyExponential'
+    self.pivotParameterID = kwargs.get("pivotParameter","time")
     self._dynamicHandling  = True  # This ROM is able to manage the time-series on its own. No need for special treatment outside
     self.polyExpParams     = {}
     self.polyExpParams['expTerms']     = int(kwargs.get('numberExpTerms',-1))    # the number of exponential terms (by default an optimization problem is run in order to get the best number of terms)
@@ -2840,7 +2844,7 @@ class PolyExponential(superVisedLearning):
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
     if len(self.target) > 2:
-      self.raiseAnError(IOError,"Multi-target ARMA not available yet!")
+      self.raiseAnError(IOError,"Multi-target PolyExponential not available yet!")
     
 
   #def __getstate__(self):
@@ -2885,10 +2889,6 @@ class PolyExponential(superVisedLearning):
       @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
     """
     self.pivotParameterValues = targetVals[:,:,self.target.index(self.pivotParameterID)]
-    
-    
-    
-    
     self.pivotParameterValues.shape = (self.pivotParameterValues.size,)
     self.timeSeriesDatabase         = copy.deepcopy(np.delete(targetVals,self.target.index(self.pivotParameterID),2))
     self.timeSeriesDatabase.shape   = (self.timeSeriesDatabase.size,)
@@ -2909,88 +2909,6 @@ class PolyExponential(superVisedLearning):
     self.__trainARMA__() # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
 
     del self.timeSeriesDatabase       # Delete to reduce the pickle size, since from now the original data will no longer be used in the evaluation.
-
-  def __trainFourier__(self):
-    """
-      Perform fitting of Fourier series on self.timeSeriesDatabase
-      @ In, none,
-      @ Out, none,
-    """
-    fourierSeriesAll = self.__generateFourierSignal__(self.pivotParameterValues, self.fourierPara['basePeriod'], self.fourierPara['FourierOrder'])
-    fourierEngine = linear_model.LinearRegression()
-    temp = {}
-    for bp in self.fourierPara['FourierOrder'].keys():
-      temp[bp] = range(1,self.fourierPara['FourierOrder'][bp]+1)
-    fourOrders = list(itertools.product(*temp.values())) # generate the set of combinations of the Fourier order
-
-    criterionBest = np.inf
-    fSeriesBest = []
-    self.fourierResult={}
-    self.fourierResult['residues'] = 0
-    self.fourierResult['fOrder'] = []
-
-    for fOrder in fourOrders:
-      fSeries = np.zeros(shape=(self.pivotParameterValues.size,2*sum(fOrder)))
-      indexTemp = 0
-      for index,bp in enumerate(self.fourierPara['FourierOrder'].keys()):
-        fSeries[:,indexTemp:indexTemp+fOrder[index]*2] = fourierSeriesAll[bp][:,0:fOrder[index]*2]
-        indexTemp += fOrder[index]*2
-      fourierEngine.fit(fSeries,self.timeSeriesDatabase)
-      r = (fourierEngine.predict(fSeries)-self.timeSeriesDatabase)**2
-      if r.size > 1:
-        r = sum(r)
-      r = r/self.pivotParameterValues.size
-      criterionCurrent = copy.copy(r)
-      if  criterionCurrent< criterionBest:
-        self.fourierResult['fOrder'] = copy.deepcopy(fOrder)
-        fSeriesBest = copy.deepcopy(fSeries)
-        self.fourierResult['residues'] = copy.deepcopy(r)
-        criterionBest = copy.deepcopy(criterionCurrent)
-
-    fourierEngine.fit(fSeriesBest,self.timeSeriesDatabase)
-    self.fourierResult['predict'] = np.asarray(fourierEngine.predict(fSeriesBest))
-
-  def __trainARMA__(self):
-    """
-      Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
-      Data series to this function has been normalized so that it is standard gaussian
-      @ In, none,
-      @ Out, none,
-    """
-    self.armaResult = {}
-    Pmax = self.armaPara['Pmax']
-    Pmin = self.armaPara['Pmin']
-    Qmax = self.armaPara['Qmax']
-    Qmin = self.armaPara['Qmin']
-
-    criterionBest = np.inf
-    for p in range(Pmin,Pmax+1):
-      for q in range(Qmin,Qmax+1):
-        if p is 0 and q is 0:
-          continue          # dump case so we pass
-        init = [0.0]*(p+q)*self.armaPara['dimension']**2
-        init_S = np.identity(self.armaPara['dimension'])
-        for n1 in range(self.armaPara['dimension']):
-          init.append(init_S[n1,n1])
-
-        rOpt = {}
-        rOpt = optimize.fmin(self.__computeARMALikelihood__,init, args=(p,q) ,full_output = True)
-        tmp = (p+q)*self.armaPara['dimension']**2/self.pivotParameterValues.size
-        criterionCurrent = self.__computeAICorBIC(self.armaResult['sigHat'],noPara=tmp,cType='BIC',obj='min')
-        if criterionCurrent < criterionBest or 'P' not in self.armaResult.keys():
-          # to save the first iteration results
-          self.armaResult['P'] = p
-          self.armaResult['Q'] = q
-          self.armaResult['param'] = rOpt[0]
-          criterionBest = criterionCurrent
-
-    # saving training results
-    Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],self.armaResult['P'],self.armaResult['Q'],self.armaPara['dimension'] )
-    self.armaResult['Phi'] = Phi
-    self.armaResult['Theta'] = Theta
-    self.armaResult['sig'] = np.zeros(shape=(1, self.armaPara['dimension'] ))
-    for n in range(self.armaPara['dimension'] ):
-      self.armaResult['sig'][0,n] = np.sqrt(Cov[n,n])
 
 
   def __evaluateLocal__(self,featureVals):

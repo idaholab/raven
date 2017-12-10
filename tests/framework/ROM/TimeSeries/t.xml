@@ -56,7 +56,7 @@
 	</Samplers> 
 	
 	<Models>			
-		<ROM name='PolyExp' subType='ARMA'>
+		<ROM name='PolyExp' subType='PolyExponential'>
 			<Target>time,decay_heat</Target>
 			<Features>enrichment,temperature,burnup</Features>
 			<pivotParameter>time</pivotParameter>
