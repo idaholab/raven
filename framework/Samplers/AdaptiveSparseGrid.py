@@ -357,6 +357,8 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
         self.inputInfo['ProbabilityWeight']*=self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")]
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    # reassign SampledVarsPb to fully correlated variables
+    self._reassignSampledVarsPbToFullyCorrVars()
     self.inputInfo['SamplerType'] = self.type
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
