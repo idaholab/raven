@@ -140,14 +140,17 @@
     <Print name="2levelFact_dump">
       <type>csv</type>
       <source>2levelFactData</source>
+      <what>input,output</what>
     </Print>
     <Print name="pb_dump">
       <type>csv</type>
       <source>pbData</source>
+      <what>input,output</what>
     </Print>
     <Print name="fullFact_dump">
       <type>csv</type>
       <source>fullFactData</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

@@ -116,6 +116,9 @@ class OutStreamPrint(OutStreamManager):
       self.raiseAnError(TypeError, 'Print type ' + self.options['type'] + ' not available yet. ')
     if 'what' in self.options.keys():
       self.what = self.options['what']
+      for elm in self.what.lower().split(","):
+        if not elm.startswith("input") and not elm.startswith("output") and not elm.startswith("metadata"):
+          self.raiseAnError(IOError, 'Not recognized request in "what" node <'+elm.strip()+'>. The request must begin with one of "input", "output" or "metadata"!')
 
   def addOutput(self):
     """

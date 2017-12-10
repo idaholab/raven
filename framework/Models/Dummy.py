@@ -170,7 +170,7 @@ class Dummy(Model):
     # build realization using input space from inRun and metadata from kwargs
     rlz = dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else kwargs[var])) for var in set(kwargs.keys()+inRun.keys()))
     # add dummy output space
-    rlz['OutputPlaceHolder'] = np.atleast_1d(float(Input[1]['prefix'][0]))
+    rlz['OutputPlaceHolder'] = np.atleast_1d(float(Input[1]['prefix']))
     return rlz
 
   def collectOutput(self,finishedJob,output,options=None):
