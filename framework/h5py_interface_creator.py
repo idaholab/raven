@@ -181,8 +181,8 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, source, File object, data source (for example, csv file)
       @ Out, None
     """
-    parentID  = rlz.get("parentID",None)
-    groupName = rlz.get("prefix")
+    parentID  = rlz.get("parentID") if type(rlz.get("parentID")) != np.ndarray else rlz.get("parentID")[0]
+    groupName = rlz.get("prefix") if type(rlz.get("prefix")) != np.ndarray else rlz.get("prefix")[0]
 
     if parentID:
       #If Hierarchical structure, firstly add the root group
@@ -292,7 +292,7 @@ class hdf5Database(MessageHandler.MessageUser):
       begin = np.concatenate(([0],end[0:-1]))
       group.attrs[b'data_begin_endOther'] = json.dumps((begin.tolist(),end.tolist()))
       # get data names
-      group.create_dataset(name + "_dataOther", data=(np.concatenate( dataOther.values()).ravel()))
+      group.create_dataset(name + "_dataOther", data=(json.dumps(np.concatenate( dataOther.values()).ravel().tolist())))
       group.attrs[b'hasOther'] = True
     # add some info
     group.attrs[b'groupName'     ] = name
