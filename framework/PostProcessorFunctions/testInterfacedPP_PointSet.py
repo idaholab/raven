@@ -52,12 +52,11 @@ class testInterfacedPP_PointSet(PostProcessorInterfaceBase):
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'testInterfacedPP_PointSet Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
+      inputDict = inputDic[0]
       outputDict = {'data':{}}
-      outputDict['dims'] = copy.deepcopy(inputDic[0]['dims'])
-      for key in inputDic[0]['inpVars']:
-        outputDict['data'][key] = inputDic[0]['data'][key].values
-      for key in inputDic[0]['outVars']:
-        outputDict['data'][key] = inputDic[0]['data'][key].values
+      outputDict['dims'] = copy.deepcopy(inputDict['dims'])
+      for key in inputDict['data'].keys():
+        outputDict['data'][key] = copy.deepcopy(inputDict['data'][key])
       return outputDict
 
   def readMoreXML(self,xmlNode):

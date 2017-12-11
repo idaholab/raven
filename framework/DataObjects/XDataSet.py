@@ -820,8 +820,8 @@ class DataSet(DataObject):
         # need to drop indexes for which no values are present
         for index in dims:
           data = data.dropna(index)
-          if dataDict['data'][index][s] == 0:
-            dataDict['data'][index][s] = data[index].values
+          #if dataDict['data'][index][s] == 0:
+          dataDict['data'][index][s] = data[index].values
         dataDict['data'][var][s] = data.values
     return dataDict
 
