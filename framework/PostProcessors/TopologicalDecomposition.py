@@ -119,6 +119,8 @@ class TopologicalDecomposition(PostProcessor):
     # TODO typechecking against what currentInp can be; so far it's a length=1 list with a dataobject inside
     currentInp = currentInp[0]
     currentInp.asDataset()
+    print('DEBUGG in dataset:')
+    print(currentInp.asDataset())
     # nowadays, our only input should be DataObject
     ## if no "type", then you're not a PointSet or HistorySet
     if not hasattr(currentInp,'type') or currentInp.type != 'PointSet':
@@ -133,6 +135,10 @@ class TopologicalDecomposition(PostProcessor):
     inputDict = {'features':dict((var,np.array(data[var],dtype=float)) for var in self.parameters['features']),
                  'targets' :dict((var,np.array(data[var],dtype=float)) for var in self.parameters['targets' ]),
                  'metadata':currentInp.getMeta(general=True)}
+    #if 'PointProbability' in currentInp.getVars():
+    inputDict['metadata']['PointProbability'] = currentInp.getVarValues('PointProbability').values
+    #else:
+    #  raise NotImplementedError # TODO
     return inputDict
 
   def _localReadMoreXML(self, xmlNode):
