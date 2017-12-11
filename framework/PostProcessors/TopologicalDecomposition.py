@@ -118,6 +118,7 @@ class TopologicalDecomposition(PostProcessor):
     """
     # TODO typechecking against what currentInp can be; so far it's a length=1 list with a dataobject inside
     currentInp = currentInp[0]
+    currentInp.asDataset()
     # nowadays, our only input should be DataObject
     ## if no "type", then you're not a PointSet or HistorySet
     if not hasattr(currentInp,'type') or currentInp.type != 'PointSet':
@@ -128,12 +129,10 @@ class TopologicalDecomposition(PostProcessor):
     ## TODO FIXME maintaining old structure for now, in the future convert to use DataObject directly
     ##    and not bother with inputToInternal
     ##    This works particularly well since we only accept point sets.
-    inputDict = {'features':{}, 'targets':{}, 'metadata':{}}
-    features = currentInp.getVarValues(self.parameters['features'],asDict=True)
-    targets  = currentInp.getVarValues(self.parameters['targets' ],asDict=True)
-    inputDict['features'] = features
-    inputDict['targets' ] = targets
-    inputDict['metadata'] = currentInp.getMeta(general=True)
+    data = currentInp.asDataset(outType='dict')['data']
+    inputDict = {'features':dict((var,np.array(data[var],dtype=float)) for var in self.parameters['features']),
+                 'targets' :dict((var,np.array(data[var],dtype=float)) for var in self.parameters['targets' ]),
+                 'metadata':currentInp.getMeta(general=True)}
     return inputDict
 
   def _localReadMoreXML(self, xmlNode):
@@ -297,7 +296,7 @@ class TopologicalDecomposition(PostProcessor):
       self.inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
 
     if self.weighted:
-      self.weights = inputIn[0].getMetadata('PointProbability')
+      self.weights = internalInput['PointProbability'] #inputIn[0].getMetadata('PointProbability')
     else:
       self.weights = None
 
