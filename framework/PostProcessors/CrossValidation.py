@@ -342,7 +342,4 @@ class CrossValidation(PostProcessor):
       self.raiseAnError(RuntimeError, ' No available output to collect')
     outputDict = evaluation[1]
 
-    print("Debug Realization: ")
-    print(outputDict)
-
     output.addRealization(outputDict)
