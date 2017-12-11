@@ -23,6 +23,7 @@ warnings.simplefilter('default', DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import time
+import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -119,8 +120,6 @@ class TopologicalDecomposition(PostProcessor):
     # TODO typechecking against what currentInp can be; so far it's a length=1 list with a dataobject inside
     currentInp = currentInp[0]
     currentInp.asDataset()
-    print('DEBUGG in dataset:')
-    print(currentInp.asDataset())
     # nowadays, our only input should be DataObject
     ## if no "type", then you're not a PointSet or HistorySet
     if not hasattr(currentInp,'type') or currentInp.type != 'PointSet':
@@ -217,6 +216,20 @@ class TopologicalDecomposition(PostProcessor):
     inputList,outputDict = evaluation
 
     if output.type == 'PointSet':
+      # TODO this is a slow dict-based implementation.  It should be improved on need.
+      # TODO can inputList ever be multiple dataobjects?
+      if len(inputList) > 1:
+        self.raiseAnError(NotImplementedError, 'Need to implement looping over all inputs.')
+      fromInput = inputList[0].asDataset('dict')['data']
+      results = dict((var,fromInput[var]) for var in output.getVars() if var in fromInput.keys())
+      for label in ['minLabel','maxLabel']:
+        results[label] = outputDict[label]
+      output.load(results,style='dict')
+      output.addMeta(self.type,{'general':{'hierarchy':outputDict['hierarchy']}})
+      return
+
+
+      #### OLD ####
       requestedInput = output.getParaKeys('input')
       requestedOutput = output.getParaKeys('output')
       dataLength = None
@@ -302,7 +315,7 @@ class TopologicalDecomposition(PostProcessor):
       self.inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
 
     if self.weighted:
-      self.weights = internalInput['PointProbability'] #inputIn[0].getMetadata('PointProbability')
+      self.weights = np.array(internalInput['metadata']['PointProbability'],dtype=float) #inputIn[0].getMetadata('PointProbability')
     else:
       self.weights = None
 
