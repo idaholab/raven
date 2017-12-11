@@ -224,4 +224,6 @@ class Sobol(SparseGridCollocation):
 
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = np.atleast_1d(1.0) # weight has no meaning for sobol
+    # reassign SampledVarsPb to fully correlated variables
+    self._reassignSampledVarsPbToFullyCorrVars()
     self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'

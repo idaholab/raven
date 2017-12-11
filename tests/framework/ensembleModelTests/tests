@@ -79,4 +79,14 @@
    expect_err = 'IOError: There were failed runs; aborting RAVEN.'
  [../]
 
+
+ [./testEnsembleModelFullyCorrVars]
+   type = 'RavenFramework'
+   input = 'test_ensemble_model_fully_correlated_vars.xml'
+   UnorderedCsv = 'ensembleModelFullyCorrVars/printFinalResults.csv'
+   rel_err=1.e-4
+ [../]
+
+
+
 []

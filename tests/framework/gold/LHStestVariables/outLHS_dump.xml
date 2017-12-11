@@ -10,6 +10,6 @@
        {u'y2': 'Normal', u'y1': 'Normal', u'x2': 'Triangular', u'x3': 'Triangular', u'y3': 'Normal', u'x1': 'Triangular'},
        {u'y2': 'Normal', u'y1': 'Normal', u'x2': 'Triangular', u'x3': 'Triangular', u'y3': 'Normal', u'x1': 'Triangular'}], dtype=object)</distributionType><distributionName>array([ {u'y2': 'Gauss1', u'y1': 'Gauss1', u'x2': 'DistTri1', u'x3': 'DistTri1', u'y3': 'Gauss1', u'x1': 'DistTri1'},
        {u'y2': 'Gauss1', u'y1': 'Gauss1', u'x2': 'DistTri1', u'x3': 'DistTri1', u'y3': 'Gauss1', u'x1': 'DistTri1'},
-       {u'y2': 'Gauss1', u'y1': 'Gauss1', u'x2': 'DistTri1', u'x3': 'DistTri1', u'y3': 'Gauss1', u'x1': 'DistTri1'}], dtype=object)</distributionName><SampledVarsPb>array([{'x1,x2,x3': 0.37061844569526153, 'y1,y2,y3': 0.0},
-       {'x1,x2,x3': 0.42978113318231626, 'y1,y2,y3': 0.0},
-       {'x1,x2,x3': 0.12621861491230157, 'y1,y2,y3': 0.0}], dtype=object)</SampledVarsPb><ProbabilityWeight-y1-y2-y3>array([ 0.,  0.,  0.])</ProbabilityWeight-y1-y2-y3></metadata></data>
+       {u'y2': 'Gauss1', u'y1': 'Gauss1', u'x2': 'DistTri1', u'x3': 'DistTri1', u'y3': 'Gauss1', u'x1': 'DistTri1'}], dtype=object)</distributionName><SampledVarsPb>array([ {u'y2': 0.0, u'y1': 0.0, u'x2': 0.37061844569526153, u'x3': 0.37061844569526153, u'y3': 0.0, u'x1': 0.37061844569526153},
+       {u'y2': 0.0, u'y1': 0.0, u'x2': 0.42978113318231626, u'x3': 0.42978113318231626, u'y3': 0.0, u'x1': 0.42978113318231626},
+       {u'y2': 0.0, u'y1': 0.0, u'x2': 0.12621861491230157, u'x3': 0.12621861491230157, u'y3': 0.0, u'x1': 0.12621861491230157}], dtype=object)</SampledVarsPb><ProbabilityWeight-y1-y2-y3>array([ 0.,  0.,  0.])</ProbabilityWeight-y1-y2-y3></metadata></data>

@@ -5,6 +5,7 @@
     <Sequence>MC,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/mc_uniform</name>
     <author>mandd</author>
@@ -13,6 +14,9 @@
     <description>
       Tests basic statistics on uniformly-sampled normally-distributed Monte Carlo sampling.
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
@@ -25,7 +29,7 @@
       <variables>x1,x2,out</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <expectedValue>out</expectedValue>
+      <expectedValue prefix="mean">out</expectedValue>
     </PostProcessor>
   </Models>
 
@@ -55,17 +59,16 @@
 
   <Steps>
     <MultiRun name="MC">
-      <Input   class="DataObjects"  type="PointSet"       >inputPlaceHolder</Input>
-      <Model   class="Models"       type="ExternalModel"  >piModel</Model>
-      <Sampler class="Samplers"     type="MonteCarlo"     >MC_external</Sampler>
-      <Output  class="DataObjects"  type="PointSet"       >outputDataMC</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">piModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC</Output>
     </MultiRun>
     <PostProcess name="PP">
-      <Input   class="DataObjects"  type="PointSet"       >outputDataMC</Input>
-      <Model   class="Models"       type="PostProcessor"  >analyticalTest</Model>
-      <Output  class="OutStreams"   type="Print"           >outputDataMC_dump</Output>
-      <Output  class="Files"        type=""               >output_basicStatistics_PP.csv</Output>
-      <Output  class="Files"        type=""               >output_basicStatistics_PP.xml</Output>
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Model class="Models" type="PostProcessor">analyticalTest</Model>
+      <Output class="DataObjects" type="PointSet">analyticalTest_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">analyticalTest_basicStatPP_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -73,6 +76,10 @@
     <Print name="outputDataMC_dump">
       <type>csv</type>
       <source>outputDataMC</source>
+    </Print>
+    <Print name="analyticalTest_basicStatPP_dump">
+      <type>csv</type>
+      <source>analyticalTest_basicStatPP</source>
     </Print>
   </OutStreams>
 
@@ -85,6 +92,13 @@
       <Input>x1,x2</Input>
       <Output>out</Output>
     </PointSet>
+    <PointSet name="analyticalTest_basicStatPP">
+      <Output>analyticalTest_vars</Output>
+    </PointSet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="analyticalTest_vars">mean_out</Group>
+  </VariableGroups>
 
 </Simulation>
