@@ -315,7 +315,7 @@ class TopologicalDecomposition(PostProcessor):
       self.inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
 
     if self.weighted:
-      self.weights = np.array(internalInput['metadata']['PointProbability'],dtype=float) #inputIn[0].getMetadata('PointProbability')
+      self.weights = np.array(internalInput['metadata']['PointProbability'],dtype=float)
     else:
       self.weights = None
 
