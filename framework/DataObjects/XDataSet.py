@@ -919,10 +919,10 @@ class DataSet(DataObject):
     try:
       meta,_ = xmlUtils.loadToTree(fName+'.xml')
       self.raiseADebug('Reading metadata from "{}.xml"'.format(fName))
-      haveMeta = True      
+      haveMeta = True
     except IOError:
       haveMeta = False
-      
+
     # if nothing to load, return nothing
     if not haveMeta:
       return metadata
