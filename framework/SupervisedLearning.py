@@ -59,6 +59,7 @@ from operator import itemgetter
 from collections import OrderedDict
 from scipy import spatial
 from scipy import optimize
+from scipy.optimize import differential_evolution
 from sklearn.neighbors.kde import KernelDensity
 import math
 import copy
