@@ -54,19 +54,9 @@ class testInterfacedPP(PostProcessorInterfaceBase):
     else:
       inputDict = inputDic[0]
       outputDict = {'data':{}}
-
       outputDict['dims'] = copy.deepcopy(inputDict['dims'])
-      for key in inputDict['inpVars'] + inputDict['outVars']:
-        outputDict['data'][key]=np.zeros(inputDict['numberRealizations'], dtype=object)
-        for rlz in range(inputDict['numberRealizations']):
-          outputDict['data'][key][rlz] = inputDict['data'][key].values[rlz]
-
-      # get dim vars ID
-      vars = set(itertools.chain.from_iterable(inputDict.get('dims').values()))
-      for elem in vars:
-        outputDict['data'][elem] = np.zeros(inputDict['numberRealizations'], dtype=object)
-        for rlz in range(inputDict['numberRealizations']):
-          outputDict['data'][elem][rlz] = inputDict['data'][elem].values
+      for key in inputDict['data'].keys():
+        outputDict['data'][key] = copy.deepcopy(inputDict['data'][key])
       return outputDict
 
   def readMoreXML(self,xmlNode):

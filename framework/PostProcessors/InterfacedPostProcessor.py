@@ -211,15 +211,18 @@ class InterfacedPostProcessor(PostProcessor):
         inputDictTemp = {}
         inputDictTemp['inpVars']   = inp.getVars('input')
         inputDictTemp['outVars']   = inp.getVars('output')
-        inputDictTemp['pivotVars'] = inp.getDimensions('output')
-        inputDictTemp['_data']     = inp.asDataset()
-        inputDictTemp['_data']     = inp.asDataset(type='dict')
-        inputDictTemp['dims']      = inp.getDimensions()
+        inputDictTemp['data']      = inp.asDataset(outType='dict')['data']
+        inputDictTemp['dims']      = inp.getDimensions('output')
         inputDictTemp['type']      = inp.type
-        inputDictTemp['metadata']  = inp.getMeta(pointwise=True,general=True)
+        self.metaKeys = inp.getVars('meta')
+        for key in self.metaKeys:
+          try:
+            inputDictTemp['data'][key]  = inp.getMeta(pointwise=True,general=True)[key].values
+          except:
+            self.raiseADebug('The following key: ' + str(key) + ' has not passed to the Interfaced PP')
         inputDictTemp['numberRealizations'] = len(inp)
         #### ADD dataObject NAME!!!!!
-        #inputDictTemp['name']      = inp.getName()
+        #inputDictTemp['name']     = inp.getName()
         inputDict.append(inputDictTemp)
     return inputDict
 
@@ -236,6 +239,7 @@ class InterfacedPostProcessor(PostProcessor):
 
     evaluation = evaluations[1]
 
+    output.addExpectedMeta(set(self.metaKeys))
     output.load(evaluation['data'], style='dict', dims=evaluation['dims'])
 
   def returnFormat(self,location):
