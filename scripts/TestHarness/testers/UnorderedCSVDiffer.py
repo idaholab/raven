@@ -63,7 +63,7 @@ class UnorderedCSVDiffer:
     for idx, val in row.iteritems():
       if val == np.inf:
         val = -sys.maxint
-      elif np.isnan(val):
+      elif pd.isnull(val):
         val = sys.maxint
       try:
         # try float/int first
