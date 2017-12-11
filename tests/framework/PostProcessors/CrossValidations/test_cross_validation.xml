@@ -2,9 +2,10 @@
 <Simulation verbosity="all">
   <RunInfo>
     <WorkingDir>simpleCrossValidation</WorkingDir>
-    <Sequence>mcRun, PP1, ravenout</Sequence>
+    <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_cross_validation</name>
     <author>wangc</author>
@@ -18,11 +19,6 @@
     </revisions>
   </TestInfo>
 
-  <Files>
-    <Input name="output_cv" type="">output_cv.xml</Input>
-    <Input name="output_cv.csv" type="">output_cv.csv</Input>
-  </Files>
-
   <Models>
     <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
       <variables>x1,x2,ans,ans2</variables>
@@ -35,37 +31,25 @@
       <normalize>True</normalize>
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
-        <SciKitLearn>
-            <SKLtype>KFold</SKLtype>
-            <n_splits>10</n_splits>
-            <shuffle>False</shuffle>
-            <random_state>None</random_state>
-        </SciKitLearn>
-        <Metric class="Metrics" type="SKL">m1</Metric>
-        <Metric class="Metrics" type="SKL">m2</Metric>
-    </PostProcessor>
-    <PostProcessor name="ravenout" subType="RavenOutput">
-        <File ID="1" name="output_cv">
-            <output name="ans-m1_mean_absolute_error-cv-1">ans/m1_mean_absolute_error/cv-1</output>
-            <output name="ans-m1_mean_absolute_error-cv-2">ans/m1_mean_absolute_error/cv-2</output>
-            <output name="ans-m1_mean_absolute_error-cv-3">ans/m1_mean_absolute_error/cv-3</output>
-            <output name="ans-m1_mean_absolute_error-cv-4">ans/m1_mean_absolute_error/cv-4</output>
-            <output name="ans-m1_mean_absolute_error-cv-5">ans/m1_mean_absolute_error/cv-5</output>
-            <output name="ans-m1_mean_absolute_error-cv-6">ans/m1_mean_absolute_error/cv-6</output>
-            <output name="ans-m1_mean_absolute_error-cv-7">ans/m1_mean_absolute_error/cv-7</output>
-            <output name="ans-m1_mean_absolute_error-cv-8">ans/m1_mean_absolute_error/cv-8</output>
-            <output name="ans-m1_mean_absolute_error-cv-9">ans/m1_mean_absolute_error/cv-9</output>
-        </File>
+      <SciKitLearn>
+        <SKLtype>KFold</SKLtype>
+        <n_splits>10</n_splits>
+        <shuffle>False</shuffle>
+        <random_state>None</random_state>
+        <scores>average</scores>
+      </SciKitLearn>
+      <Metric class="Metrics" type="SKL">m1</Metric>
+      <Metric class="Metrics" type="SKL">m2</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
-      <SKL name="m1">
-          <metricType>mean_absolute_error</metricType>
-      </SKL>
-      <SKL name="m2">
-          <metricType>mean_absolute_error</metricType>
-      </SKL>
+    <SKL name="m1">
+      <metricType>mean_absolute_error</metricType>
+    </SKL>
+    <SKL name="m2">
+      <metricType>mean_absolute_error</metricType>
+    </SKL>
   </Metrics>
 
   <Distributions>
@@ -102,11 +86,11 @@
       <Output class="OutStreams" type="Print">dumpMC</Output>
     </MultiRun>
     <PostProcess name="PP1">
-        <Input class="DataObjects" type="PointSet">outputDataMC</Input>
-        <Input class="Models" type="ROM">surrogate</Input>
-        <Model class="Models" type="PostProcessor">pp1</Model>
-        <Output class="Files" type="">output_cv</Output>
-        <Output class="Files" type="">output_cv.csv</Output>
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Input class="Models" type="ROM">surrogate</Input>
+      <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="DataObjects" type="PointSet">pp1_cv</Output>
+      <Output class="OutStreams" type="Print">pp1_cv_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -119,13 +103,20 @@
       <Input>x1,x2</Input>
       <Output>ans,ans2</Output>
     </PointSet>
+    <PointSet name="pp1_cv">
+      <Output>cv_m1_surrogate,cv_m2_surrogate</Output>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>
-      <Print name="dumpMC">
-          <type>csv</type>
-          <source>outputDataMC</source>
-      </Print>
+    <Print name="dumpMC">
+      <type>csv</type>
+      <source>outputDataMC</source>
+    </Print>
+    <Print name="pp1_cv_dump">
+      <type>csv</type>
+      <source>pp1_cv</source>
+    </Print>
   </OutStreams>
 
 </Simulation>
