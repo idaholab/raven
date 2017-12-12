@@ -193,12 +193,12 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         valueToUse = np.asarray(valueToUse)
-        if valueToUse[:,0].size != featureValues[:,0].size:
+        if valueToUse[:,0].size if self.isDynamic() else valueToUse.size != featureValues[:,0].size:
           self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
           self.raiseAWarning('target values:',valueToUse[:,0].size,tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
-        featureValues[:,cnt] = (valueToUse[:,cnt] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        featureValues[:,cnt] = (valueToUse[:,cnt] if self.isDynamic() else valueToUse - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
 

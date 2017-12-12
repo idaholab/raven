@@ -27,7 +27,7 @@
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">mod</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
-      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
@@ -52,45 +52,48 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <!-- Initialization Sampler -->
-      <Sampler          class="Samplers"    type="MonteCarlo">initialPointsSampler</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">initialPointsSampler</Sampler>
       <convergence>
-          <gradientThreshold>1e-4</gradientThreshold>
-          <gainGrowthFactor>1.5</gainGrowthFactor>
-          <gainShrinkFactor>1.25</gainShrinkFactor>
+        <gradientThreshold>1e-4</gradientThreshold>
+        <gainGrowthFactor>1.5</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
         <initial>2,2,0,-2,-2</initial>
       </variable>
-      <variable name='y'>
+      <variable name="y">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
-        <!-- <initial>2,-2,0,2,-2</initial> -->
+        <!--
+          <initial>2,-2,0,2,-2</initial>
+        -->
       </variable>
       <objectVar>ans</objectVar>
-      
     </SPSA>
   </Optimizers>
+
   <Distributions>
-      <Normal name="ydist">
-          <mean>1</mean>
-          <sigma>0.1</sigma>
-          <lowerBound>-3</lowerBound>
-          <upperBound>3</upperBound>
-      </Normal>
+    <Normal name="ydist">
+      <mean>1</mean>
+      <sigma>0.1</sigma>
+      <lowerBound>-3</lowerBound>
+      <upperBound>3</upperBound>
+    </Normal>
   </Distributions>
-  
+
   <Samplers>
-      <MonteCarlo name="initialPointsSampler">
-          <samplerInit>
-              <limit>5</limit>
-          </samplerInit>
-          <variable name="y">
-              <distribution>ydist</distribution>
-          </variable>
-      </MonteCarlo>
+    <MonteCarlo name="initialPointsSampler">
+      <samplerInit>
+        <limit>5</limit>
+      </samplerInit>
+      <variable name="y">
+        <distribution>ydist</distribution>
+      </variable>
+    </MonteCarlo>
   </Samplers>
+
   <Models>
     <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="mod" subType="">
       <variables>x,y,ans</variables>
@@ -115,16 +118,17 @@
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate</Output>
     </PointSet>
-    <HistorySet name="opt_export">
+    <PointSet name="opt_export">
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate</Output>
-    </HistorySet>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
     </Print>
     <Print name="opt_soln">
       <type>csv</type>

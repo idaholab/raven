@@ -79,6 +79,9 @@ class GradientBasedOptimizer(Optimizer):
     self.gainShrinkFactor            = 2.              # max step shrinking factor
     self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation. It is not ideal but it is quick and dirty now
 
+    # register metadata
+    self.addMetaKeys('trajID','varsUpdate','prefix')
+
   def localInputAndChecks(self, xmlNode):
     """
       Method to read the portion of the xml input that belongs to all gradient based optimizer only
@@ -165,15 +168,15 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, _checkModelFinish, tuple(bool, int), (1,realization dictionary),
             (indicating whether the Model has finished the evaluation over input identified by traj+updateKey+evalID, the index of the location of the input in dataobject)
     """
-    if self.mdlEvalHist.isItEmpty():
+    if len(self.mdlEvalHist) == 0:
       return (False,-1)
-    prefix = self.mdlEvalHist.getMetadata('prefix')
-    for index, pr in enumerate(prefix):
-      pr = pr.split(utils.returnIdSeparator())[-1].split('_')
-      # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
-      if pr[0] == str(traj) and pr[1] == str(updateKey) and pr[2] == str(evalID):
-        return (True, index)
-    return (False, -1)
+    lookFor = '{}_{}_{}'.format(traj,updateKey,evalID)
+    index,match = self.mdlEvalHist.realization(matchDict = {'prefix':lookFor})
+    # if no match, return False
+    if match is None:
+      return False,-1
+    # otherwise, return index of match
+    return True, index
 
   def localGenerateInput(self,model,oldInput):
     """
@@ -494,35 +497,33 @@ class GradientBasedOptimizer(Optimizer):
       # failed trajectory
       failedTrajectory = int(prefix.split("_")[0])
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
-    if len(self.mdlEvalHist) > 0:
+    if len(self.mdlEvalHist) != 0:
       for traj in self.optTraj:
         failedTraj = traj == failedTrajectory
         if self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
+          # check whether solution export needs updating, and get indices of entries that need to be added
           solutionExportUpdatedFlag, indices = self._getJobsByID(traj)
           if solutionExportUpdatedFlag or failedTraj:
             #get evaluations (input,output) from the collection of all evaluations
             if not failedTraj:
-              inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
-              outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
               #TODO this might be faster for non-stochastic if we do an "if" here on gradDict['numIterForAve']
               #make a place to store distinct evaluation values
-              outputs = {}
-              for outvar in self.solutionExport.getParaKeys('outputs'):
-                if outvar not in outputeval.keys():
-                  continue
-                outputs[outvar] = np.zeros(self.gradDict['numIterForAve'])
+              outputs = dict((var,np.zeros(self.gradDict['numIterForAve'])) for var in self.solutionExport.getVars('output') if var in self.mdlEvalHist.getVars('output'))
               # get output values corresponding to evaluations of the opt point
               # also add opt points to the grad perturbation list
               self.gradDict['pertPoints'][traj] = np.zeros((1+self.paramDict['pertSingleGrad'])*self.gradDict['numIterForAve'],dtype=dict)
               for i, index in enumerate(indices):
-                for outvar in outputs.keys():
-                  outputs[outvar][i] = outputeval[outvar][index]
-                  if outvar == self.objVar:
-                    self.gradDict['pertPoints'][traj][i] = {'inputs':self.normalizeData(dict((k,v[index]) for k,v in inputeval.items())),
-                                                            'output':outputs[self.objVar][i]}
+                # get the realization from the targetEvaluation
+                vals = self.mdlEvalHist.realization(index=index)
+                # place values TODO this could be vectorized significantly!
+                for var in outputs.keys():
+                  outputs[var][i] = float(vals[var])
+                  if var == self.objVar:
+                    self.gradDict['pertPoints'][traj][i] = {'inputs':self.normalizeData(dict((var,vals[var]) for var in self.mdlEvalHist.getVars('input'))),
+                                                            'output':float(vals[var])}
               # assumed output value is the mean of sampled values
-              for outvar,vals in outputs.items():
-                outputs[outvar] = vals.mean()
+              for var,vals in outputs.items():
+                outputs[var] = vals.mean()
               currentObjectiveValue = outputs[self.objVar]#.mean()
               # check convergence
               # TODO REWORK move this to localStillReady, along with the gradient evaluation
@@ -556,27 +557,23 @@ class GradientBasedOptimizer(Optimizer):
             # update solution export
             #FIXME much of this should move to the base class!
             if not failedTraj:
-              if 'trajID' not in self.solutionExport.getParaKeys('inputs'):
-                self.raiseAnError(IOError, 'trajID is not in the <inputs> space of the solutionExport data object specified for this optimization step!  Please add it.')
-              trajID = traj+1 # This is needed to be compatible with historySet object
-              self.solutionExport.updateInputValue([trajID,'trajID'], traj)
-              #otherOutVars = self.solutionExport.getParaKeys('outputs')
-              output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding').get(trajID,{})
+              # create realization to add to data object
+              rlz = {}
               badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
-              for var in self.solutionExport.getParaKeys('outputs'):
-                old = copy.deepcopy(output.get(var, np.asarray([])))
-                new = None #prevents accidental data copying
+              for var in self.solutionExport.getVars():
                 if var in self.getOptVars():
-                  new = self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs'])[var] #inputeval[var][index]
+                  new = self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs'])[var]
                 elif var == self.objVar:
                   new = self.counter['recentOptHist'][traj][0]['output']
                 elif var in outputs.keys():
                   new = outputs[var]
                 elif var == 'varsUpdate':
-                  new = [self.counter['solutionUpdate'][traj]]
+                  new = self.counter['solutionUpdate'][traj]
+                elif var == 'trajID':
+                  new = traj+1 # +1 is for historical reasons, when histories were indexed on 1 instead of 0
                 elif var == 'stepSize':
                   try:
-                    new = [self.counter['lastStepSize'][traj]]
+                    new = self.counter['lastStepSize'][traj]
                   except KeyError:
                     new = badValue
                 elif var.startswith( 'gradient_'):
@@ -603,8 +600,9 @@ class GradientBasedOptimizer(Optimizer):
                     new = badValue
                 else:
                   self.raiseAnError(IOError,'Unrecognized output request:',var)
-                new = np.asarray(new)
-                self.solutionExport.updateOutputValue([trajID,var],np.append(old,new))
+                # format for realization
+                rlz[var] = np.atleast_1d(new)
+              self.solutionExport.addRealization(rlz)
               self.counter['solutionUpdate'][traj] += 1
           else: #not ready to update solutionExport
             break
