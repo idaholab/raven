@@ -93,25 +93,39 @@ class HistorySetSampling(PostProcessorInterfaceBase):
 
   def run(self,inputDic):
     """
-     Method to post-process the dataObjects
-     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
-     @ Out, outputDic, dict, dictionary of re-sampled histories
+      Method to post-process the dataObjects
+      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+      @ Out, outputDic, dict, dictionary of resampled histories
     """
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
       inputDic = inputDic[0]
-      outputDic={}
-      outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
-      outputDic['data'] = {}
+      outputDic={'data':{}}
 
-      for rlz in inputDic['data']:
+      for var in inputDic['inpVars']:
+        outputDic['data'][var] = copy.deepcopy(inputDic['data'][var])
+
+      for hist in range(inputDic['numberRealizations']):
+        rlz={}
+        for var in inputDic['outVars']:
+          rlz[var] = inputDic['data'][var][hist]
+        rlz[self.pivotParameter]=inputDic['data'][self.pivotParameter][hist]
+
         if self.samplingType in ['uniform','firstDerivative','secondDerivative']:
-          outputDic['data'] = self.varsTimeInterp(inputDic['data'])
+          outData = self.varsTimeInterp(rlz)
         elif self.samplingType in ['filteredFirstDerivative','filteredSecondDerivative']:
-          outputDic['data'] = timeSeriesFilter(self.pivotParameter,inputDic['data'],self.samplingType,self.tolerance)
+          outData = timeSeriesFilter(self.pivotParameter,rlz,self.samplingType,self.tolerance)
         else:
           self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : not recognized samplingType')
+
+        for var in outData.keys():
+          outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
+          outputDic['data'][var][hist] = outData[var]
+
+      outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+      outputDic['data']['prefix'] = inputDic['data']['prefix']
+      outputDic['dims'] = copy.deepcopy(inputDic['dims'])
       return outputDic
 
   def run_OLD(self,inputDic):
@@ -180,6 +194,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
           interp = interpolate.interp1d(vars[self.pivotParameter], vars[key], self.interpolation)
           newVars[key]=interp(newTime)
     return newVars
+
 
   def derivativeTimeValues(self, var):
     """

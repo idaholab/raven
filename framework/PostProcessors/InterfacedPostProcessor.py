@@ -214,13 +214,14 @@ class InterfacedPostProcessor(PostProcessor):
         inputDictTemp['data']      = inp.asDataset(outType='dict')['data']
         inputDictTemp['dims']      = inp.getDimensions('output')
         inputDictTemp['type']      = inp.type
+        inputDictTemp['numberRealizations'] = len(inp)
         self.metaKeys = inp.getVars('meta')
         for key in self.metaKeys:
           try:
             inputDictTemp['data'][key]  = inp.getMeta(pointwise=True,general=True)[key].values
           except:
             self.raiseADebug('The following key: ' + str(key) + ' has not passed to the Interfaced PP')
-        inputDictTemp['numberRealizations'] = len(inp)
+
         #### ADD dataObject NAME!!!!!
         #inputDictTemp['name']     = inp.getName()
         inputDict.append(inputDictTemp)

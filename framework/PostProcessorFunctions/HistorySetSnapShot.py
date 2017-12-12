@@ -158,10 +158,10 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
       #   We use the same methods to get slices, then pick out only the requested variables
       else:
         #establish the output dict
-        outDict = {'data':{}}
+        outDict = {'data':{'input':{},'output':{}}}
         #replicate input space
-        for var in inputDic['inpVars']:
-          outDict['data'][var] = inputDic[var]
+        for var in inputDic['data']['input'].values()[0].keys():
+          outDict['data']['input'][var] = np.array(list(inputDic['data']['input'][prefix][var] for prefix in inputDic['data']['input'].keys()))
         #replicate metadata
           outDict['metadata'] = inputDic['metadata']
         #loop over the methods requested to fill output space
@@ -170,12 +170,12 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
           if method in ['min','max']:
             for var in entries:
               getDict = historySnapShot(inputDic,var,method)
-              outDict['data'][var] = getDict['data'][var]
+              outDict['data']['output'][var] = getDict['data']['output'][var]
           #average requires the pivotParameter
           elif method == 'average':
             for var in entries:
               getDict = historySnapShot(inputDic,var,method,tempID=self.pivotParameter)
-              outDict['data'][var] = getDict['data'][var]
+              outDict['data']['output'][var] = getDict['data']['output'][var]
           #timeSlice requires the time value
           #functionality removed for now until we recall why it's desirable
           #elif method == 'timeSlice':
@@ -185,7 +185,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
           elif method == 'value':
             for var,depVar,depVal in entries:
               getDict = historySnapShot(inputDic,depVar,method,pivotVal=depVal)
-              outDict['data'][var] = getDict['data'][var]
+              outDict['data']['output'][var] = getDict['data']['output'][var]
         return outDict
 
   def run_OLD(self,inputDic, pivotVal=None):
@@ -253,37 +253,42 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
     @ In, snapShotType, string, type of snapShot: min, max, average, value
     @ Out, outputDic, dict, it contains the temporal slice of all histories
   """
-  numberOfRealizations = len(inputDic['data']['RAVEN_sample_ID'].values)
+  outputDic={'data':{}}
+  outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+  outputDic['data']['prefix'] = inputDic['data']['prefix']
+  outputDic['dims'] = copy.deepcopy(inputDic['dims'])
 
-  outputDic={}
-  outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
-  outputDic['data'] = {}
-  for var in inputDic['outVars'].keys():
-    outputDic['data'][var] = np.zeros(numberOfRealizations)
+  for var in inputDic['data']['inpVars'].keys():
+    outputDic['data'][var] = inputDic['data'][var]
 
-  for var in inputDic['outVars']:
-    outputDic['data'][var] = np.zeros(0)
-
-  for i in range(numberOfRealizations):
-    rlz = outputDic['data'].isel(RAVEN_sample_ID=i)
-    for var in inputDic['outVars']:
-      if snapShotType == 'min':
-        idx = rlz[pivotVar].values.returnIndexMin()
-        outputDic['data'][var][i] = rlz[pivotVar].values[idx]
-
-      elif snapShotType == 'max':
-        idx = rlz[pivotVar].values.returnIndexMax()
-        outputDic['data'][var][i] = rlz[pivotVar].values[idx]
-
-      elif snapShotType == 'value':
-        idx = rlz[pivotVar].values.returnIndexFirstPassage(pivotVal)
-        outputDic['data'][var][i] = rlz[pivotVar].values[idx]
-
-      elif snapShotType == 'average':
-        varToIntegrate = rlz[var].values
-        timeAxis = rlz[tempID].values
-        integral = np.trapz(varToIntegrate, x=timeAxis)
-        outputDic['data'][var][i] = integral/(timeAxis[-1]-timeAxis[0])
+  for history in range(inputDic['numberRealizations']):
+    if snapShotType == 'min':
+      idx = inputDic['data']['output'][history][pivotVar].returnIndexMin()
+      for vars in outVars:
+        outputDic['data']['output'][vars] = np.append(outputDic['data']['output'][vars] , copy.deepcopy(inputDic['data']['output'][history][vars][idx]))
+    elif snapShotType == 'max':
+      idx = inputDic['data']['output'][history][pivotVar].returnIndexMax()
+      for vars in outVars:
+        outputDic['data']['output'][vars] = np.append(outputDic['data']['output'][vars] , copy.deepcopy(inputDic['data']['output'][history][vars][idx]))
+    elif snapShotType == 'value':
+      idx = inputDic['data']['output'][history][pivotVar].returnIndexFirstPassage(pivotVal)
+      if inputDic['data']['output'][history][pivotVar][idx]>pivotVal:
+        intervalFraction = (pivotVal-inputDic['data']['output'][history][pivotVar][idx-1])/(inputDic['data']['output'][history][pivotVar][idx]-inputDic['data']['output'][history][pivotVar][idx-1])
+        for keys in outVars:
+          value = inputDic['data']['output'][history][keys][idx-1] + (inputDic['data']['output'][history][keys][idx]-inputDic['data']['output'][history][keys][idx-1])*intervalFraction
+          outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value)
+      else:
+        intervalFraction = (pivotVal-inputDic['data']['output'][history][pivotVar][idx])/(inputDic['data']['output'][history][pivotVar][idx+1]-inputDic['data']['output'][history][pivotVar][idx])
+        for keys in outVars:
+          value = inputDic['data']['output'][history][keys][idx] + (inputDic['data']['output'][history][keys][idx+1]-inputDic['data']['output'][history][keys][idx])*intervalFraction
+          outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value)
+    elif snapShotType == 'average':
+      for keys in outVars:
+        cumulative=0.0
+        for t in range(1,len(inputDic['data']['output'][history][tempID])):
+          cumulative += (inputDic['data']['output'][history][keys][t] + inputDic['data']['output'][history][keys][t-1]) / 2.0 * (inputDic['data']['output'][history][tempID][t] - inputDic['data']['output'][history][tempID][t-1])
+        value = cumulative / (inputDic['data']['output'][history][tempID][-1] - inputDic['data']['output'][history][tempID][0])
+        outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value)
 
   return outputDic
 
@@ -352,22 +357,24 @@ def historySnapShot_OLD(inputDic, pivotVar, snapShotType, pivotVal=None, tempID 
 
 def historySetWindow(inputDic,timeStepID,pivotParameter):
   """
-  Method do to compute a conversion from HistorySet to PointSet using the temporal slice of the historySet
-  @ In, inputDic, dict, it is an historySet
-  @ In, timeStepID, int, number of time sample of each history
-  @ In, pivotParameter, string, ID name of the temporal variable
-  @ Out, outDic, dict, it contains the temporal slice of all histories
+    Method do to compute a conversion from HistorySet to PointSet using the temporal slice of the historySet
+    @ In, inputDic, dict, it is an historySet
+    @ In, timeStepID, int, number of time sample of each history
+    @ In, pivotParameter, string, ID name of the temporal variable
+    @ Out, outDic, dict, it contains the temporal slice of all histories
   """
+  outputDic={'data':{}}
+  outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+  outputDic['data']['prefix'] = inputDic['data']['prefix']
+  outputDic['dims'] = copy.deepcopy(inputDic['dims'])
 
-  outputDic={}
-  outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
-  outputDic['data'] = {}
+  for var in inputDic['data']['inpVars']:
+    outputDic['data'][var] = inputDic['data'][var]
 
-  for var in inputDic['inpVars']:
-    outputDic['data'][var] = inputDic['data'].isel(pivotParameter=[timeStepID])[var]
-
-  for var in inputDic['outVars']:
-    outputDic['data'][var] = inputDic['data'].isel(pivotParameter=[timeStepID])[var]
+  for var in inputDic['data']['outVars']:
+    outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
+    for rlz in range(inputDic['numberRealizations']):
+      outputDic['data'][var] = inputDic['data'][var][timeStepID]
 
   return outputDic
 
