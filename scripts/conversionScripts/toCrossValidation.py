@@ -41,6 +41,8 @@ def convert(tree,fileName=None):
 
   if models is None: return tree # no models, no BasicStats
   modelNames = []
+  romTargets = {}
+  scoreDict = {}
   for model in models:
     if model.tag == 'PostProcessor' and model.attrib['subType'] == 'CrossValidation':
       metrics = model.findall('Metric')
@@ -49,6 +51,14 @@ def convert(tree,fileName=None):
       for metric in metrics:
         metricName = metric.text.strip()
         metricNames.append(metricName)
+      sklNode = model.find('SciKitLearn')
+      score = sklNode.find('scores')
+      if score is not None:
+        scoreDict[model.attrib['name']] = True
+      else:
+        scoreDict[model.attrib['name']] = False
+    if model.tag == 'ROM':
+      romTargets[model.attrib['name']] = [var.strip() for var in model.find('Target').text.split(',')]
 
   for modelName in modelNames:
 
@@ -68,8 +78,11 @@ def convert(tree,fileName=None):
             romName = inputObj.text.strip()
             varNames = []
             for metricName in metricNames:
-              varName = 'cv' + '_' + metricName + '_' + romName
-              varNames.append(varName)
+              for targs in romTargets[romName]:
+                varName = 'cv' + '_' + metricName + '_' + targs
+                varNames.append(varName)
+            if not scoreDict[modelName]:
+              varNames.append('RAVEN_CV_ID')
             dataSet = ET.Element('PointSet')
             dataSet.attrib['name'] = dataSetName
             outNode = ET.SubElement(dataSet,'Output')
