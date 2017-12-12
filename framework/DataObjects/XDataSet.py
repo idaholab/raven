@@ -1374,6 +1374,11 @@ class DataSet(DataObject):
     """
     # TODO do we have to collapse?  It would be faster if not.
     data = self.asDataset()
+    # TODO this check should be done long before this; probably when setting up the data object that wants to be hierarchical.
+    try:
+      assert('prefix' in self._allvars)
+    except AssertionError:
+      self.raiseAnError(IOError,'The metakey "prefix" was not found in data object "{}", so we cannot use Hierarchical methods.'.format(self.name))
     ##### OPTION 1: find all prefixes who are not parents of other prefixes
     # this option could be slow because it checks each prefix against all other prefixes
     prefixes = data['prefix'].values
