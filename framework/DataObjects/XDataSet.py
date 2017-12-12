@@ -1363,3 +1363,53 @@ class DataSet(DataObject):
       else:
         data.to_csv(fName+'.csv',index=False,mode=mode,header=header)
     #raw_input('Just wrote to CSV "{}.csv", press enter to continue ...'.format(fName))
+
+
+  ### HIERARCHICAL STUFF ###
+  def _getPathEndings(self):
+    """
+      Finds all those nodes who are the end of the line.
+      @ In, None
+      @ Out, endings, np.array(int), sampleTag IDs of endings
+    """
+    # TODO do we have to collapse?  It would be faster if not.
+    data = self.asDataset()
+    ##### OPTION 1: find all prefixes who are not parents of other prefixes
+    # this option could be slow because it checks each prefix against all other prefixes
+    prefixes = data['prefix'].values
+    endings = []
+    # TODO mask can be used to get indexes of endings instead of only prefixes.  Leaving in case that's useful later.
+    #mask = np.zeros(len(prefixes),dtype=int)
+    for p,prefix in enumerate(prefixes):
+      # if no other prefixes start with this one (except itself, ofc), then it's a path ending
+      if not any((pre.startswith(prefix) and pre != prefix) for pre in prefixes):
+        endings.append(prefix)
+        # see above.
+        #mask[p] = 1
+    # see above
+    #mask = xr.DataArray(mask,dims=[self.sampleTag],coords={self.sampleTag:data['prefix'][self.sampleTag].values})
+    #data = data.where(mask,drop=True)
+    #return data[self.sampleTag].values
+    return endings
+    ##### TODO other faster options?
+
+  def _reconstructPath(self,prefix):
+    """
+      Given an ending prefix, reconstruct the path as an xr.Dataset and return it.
+      @ In, prefix, string, hierarchal prefix with underscore form, such as 1_3_2_1_4
+      @ Out, data, xr.Dataset, dataset containing only the path information
+    """
+    # TODO can we do this without collapsing?
+    data = self.asDataset()
+    branches = list(int(x) for x in prefix.split('_'))
+    dataParts = []
+    # walk up the levels until all the parts are obtained
+    for level in range(len(branches)):
+      if level == len(branches) - 1:
+        branch = branches
+      else:
+        branch = branches[:level+1]
+      partPrefix = '_'.join(list(str(b) for b in branch))
+      dataParts.append(data.where(data['prefix'] == partPrefix,drop=True))
+    data = xr.concat(dataParts,dim=self.sampleTag)
+    return data
