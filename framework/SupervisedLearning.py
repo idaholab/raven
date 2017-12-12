@@ -2906,6 +2906,9 @@ class PolyExponential(superVisedLearning):
     bounds = [[min(x), max(x)]]*self.polyExpParams['expTerms'] + [[min(y), max(y)]]*self.polyExpParams['expTerms']
     result = differential_evolution(objective, bounds)  
     taui, fi = np.split(result['x'], 2)    
+    sortIndexes = np.argsort(fi)
+    fi = fi[sortIndexes]
+    taui = taui[sortIndexes]    
     return fi, 1./taui
 
   def __trainLocal__(self,featureVals,targetVals):
@@ -2920,9 +2923,6 @@ class PolyExponential(superVisedLearning):
     pivotParamIndex  = self.target.index(self.pivotParameterID)
     targetParamIndex = self.target.index(self.pivotParameterID)
     nsamples = len(targetVals[:,:,pivotParamIndex])
-    #self.pivotParameterValues = 
-    #self.timeSeriesDatabase         = copy.deepcopy(np.delete(targetVals,self.target.index(self.pivotParameterID),2))
-    #self.target.pop(self.target.index(self.pivotParameterID))
     aij   = np.zeros( (nsamples, self.polyExpParams['expTerms']))
     bij   = np.zeros((nsamples, self.polyExpParams['expTerms']))
     #TODO: this can be parallelized
