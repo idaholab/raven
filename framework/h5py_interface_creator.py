@@ -165,13 +165,8 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, source, File object, data source (for example, csv file)
       @ Out, None
     """
-<<<<<<< HEAD
-    parentID  = rlz.get("parentID") if type(rlz.get("parentID")) != np.ndarray else rlz.get("parentID")[0]
-    groupName = rlz.get("prefix") if type(rlz.get("prefix")) != np.ndarray else rlz.get("prefix")[0]
-=======
     parentID  = rlz.get("parentID",[None])[0]
     groupName = rlz.get("prefix")[0]
->>>>>>> 2cc47a7be6358144a504fd93e7869bd8acf65bbd
 
     if parentID:
       #If Hierarchical structure, firstly add the root group

@@ -1,0 +1,176 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+    
+  <TestInfo>
+    <name>framework/ROM/TimeSeries.ARMA</name>
+    <author>alfoa</author>
+    <created>2017-02-02</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+       aaa
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-02-03">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+    
+    <RunInfo>
+        <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/ROM/TimeSeries/PolyExponential</WorkingDir>
+		<!-- <Sequence>readIn,RAVENsurrogateTrain,PolyTrain,runRAVENsurrogate,runPoly,plot,writeOut</Sequence> -->
+        <Sequence>readIn,RAVENsurrogateTrain,runRAVENsurrogate,writeOut</Sequence>
+        <batchSize>1</batchSize>
+    </RunInfo>
+    <Files>
+        <Input name="rawDataFile">./decay_heat.csv</Input>
+    </Files>
+    <Distributions>
+		<Uniform name="enrichmentDist">
+			<lowerBound>3.4</lowerBound>
+			<upperBound>9.9</upperBound>
+		</Uniform>
+        <Uniform name="temperatureDist">
+            <lowerBound>600</lowerBound>
+            <upperBound>1200.</upperBound>
+        </Uniform>
+        <Uniform name="burnupDist">
+            <lowerBound>16.501</lowerBound>
+            <upperBound>26.402</upperBound>
+        </Uniform>
+	</Distributions>
+
+	<Samplers>
+		<MonteCarlo name="mcSampler">
+			<samplerInit>
+                <limit>100</limit>
+                <initialSeed>20021986</initialSeed>
+			</samplerInit>
+			<variable name="enrichment">
+				<distribution>enrichmentDist</distribution>
+			</variable>
+            <variable name="temperature">
+                <distribution>temperatureDist</distribution>
+            </variable>
+            <variable name="burnup">
+                <distribution>burnupDist</distribution>
+            </variable>
+        </MonteCarlo>
+	</Samplers> 
+	
+	<Models>			
+		<ROM name='PolyExp' subType='PolyExponential'>
+			<Target>time,decay_heat</Target>
+			<Features>enrichment,temperature,burnup</Features>
+			<pivotParameter>time</pivotParameter>
+			<!--
+               <numberExpTerms>7</numberExpTerms>
+               <polyOrder>3</polyOrder>
+             -->
+            <maxNumberExpTerms>10</maxNumberExpTerms>
+            <maxPolyOrder>10</maxPolyOrder>
+		</ROM>
+        <ROM name='RAVENsurrogate' subType='SciKitLearn'>
+            <Target>time,decay_heat</Target>
+            <Features>enrichment,temperature,burnup</Features>
+            <pivotParameter>time</pivotParameter>
+            <SKLtype>svm|SVR</SKLtype>
+            <kernel>rbf</kernel>
+        </ROM>
+    </Models>
+    <Steps>
+        <IOStep name='readIn' pauseAtEnd = 'True'>
+       <Input    class = 'Files'                  type = ''              >rawDataFile</Input>
+       <Output   class = 'DataObjects'            type = 'HistorySet'    >rawData</Output>
+        </IOStep>
+		<RomTrainer name='PolyTrain'>
+			<Input    class = 'DataObjects'       type = 'HistorySet'    >rawData</Input>
+			<Output   class='Models' 			  type ='ROM' 	 		 >PolyExp</Output>
+		</RomTrainer>
+		<MultiRun name='runPoly'>
+			<Input    class = 'DataObjects'       type = 'PointSet'      >dataIn</Input>
+			<Model   class='Models' 			  type = 'ROM' 	 		 >PolyExp</Model>
+            <Sampler class="Samplers"             type="MonteCarlo"      >mcSampler</Sampler>
+			<Output    class = 'DataObjects'      type = 'HistorySet'    >synDataPolyExp</Output>
+		</MultiRun>
+        <RomTrainer name='RAVENsurrogateTrain'>
+            <Input    class = 'DataObjects'       type = 'HistorySet'    >rawData</Input>
+            <Output   class='Models' 			  type ='ROM' 	 		 >RAVENsurrogate</Output>
+        </RomTrainer>
+        <MultiRun name='runRAVENsurrogate'>
+            <Input    class = 'DataObjects'       type = 'PointSet'      >dataIn</Input>
+            <Model   class='Models' 			  type = 'ROM' 	 		 >RAVENsurrogate</Model>
+            <Sampler class="Samplers"             type="MonteCarlo"      >mcSampler</Sampler>
+            <Output    class = 'DataObjects'      type = 'HistorySet'    >synDataRAVENsurrogate</Output>
+        </MultiRun>
+        <IOStep name='writeOut' pauseAtEnd = 'True'>
+			<Input    class = 'DataObjects'       type = 'HistorySet'    >synDataRAVENsurrogate</Input>
+            <!-- <Input    class = 'DataObjects'       type = 'HistorySet'    >synDataPolyExp</Input> -->
+			<Output   class = 'OutStreams'  type = 'Print'               >writeSynDataOutRAVENsurrogate</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'                >plotSynDataRAVENsurrogate</Output>
+            <!--
+            <Output   class = 'OutStreams'  type = 'Print'               >writeSynDataOutPolyExp</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'                >plotSynDataPolyExp</Output>
+             -->
+		</IOStep>	
+    </Steps>
+    <OutStreams>		
+
+		<Plot name="plotSynDataRAVENsurrogate" overwrite="false" >
+			<plotSettings>
+				<plot>
+					<type>line</type>
+					<x>synDataRAVENsurrogate|Output|time</x>
+					<y>synDataRAVENsurrogate|Output|decay_heat</y>
+					<interpPointsX>200</interpPointsX>
+				</plot>
+			</plotSettings>
+			<actions>
+				<how>png</how>
+			</actions>
+	    </Plot>
+        <Print name = 'writeSynDataOutRAVENsurrogate'>
+            <type>csv</type>
+            <source>synDataRAVENsurrogate</source>
+        </Print>
+        <Plot name="plotSynDataPolyExp" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>line</type>
+                    <x>synDataPolyExp|Output|time</x>
+                    <y>synDataPolyExp|Output|decay_heat</y>
+                    <interpPointsX>200</interpPointsX>
+                </plot>
+            </plotSettings>
+            <actions>
+                <how>png</how>
+                <scale>
+                  <xscale>log</xscale>
+                </scale>
+            </actions>
+        </Plot>
+        <Print name = 'writeSynDataOutPolyExp'>
+            <type>csv</type>
+            <source>synDataPolyExp</source>
+        </Print>
+    </OutStreams>
+	
+    <DataObjects>
+      <PointSet name="dataIn">
+        <Input>enrichment,temperature,burnup</Input>
+        <Output>OutputPlaceHolder</Output>
+      </PointSet>
+      <HistorySet name="rawData">
+        <Input>enrichment,temperature,burnup</Input>
+        <Output>decay_heat</Output>
+      </HistorySet>
+      <HistorySet name="synDataPolyExp">
+       <Input>enrichment,temperature,burnup</Input>
+       <Output>decay_heat</Output>
+      </HistorySet>
+      <HistorySet name="synDataRAVENsurrogate">
+          <Input>enrichment,temperature,burnup</Input>
+          <Output>decay_heat</Output>
+      </HistorySet>
+    </DataObjects>
+</Simulation>
+
+
