@@ -146,7 +146,7 @@ class HistorySet(DataSet):
     needed = set(self._allvars)
     missing = needed - provided
     if len(missing) > 0:
-      self.raiseAnError(IOError,'Not all varibles requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fName,missing))
+      self.raiseAnError(IOError,'Not all varibles requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fname,missing))
     # add metadata, so we get probability weights and etc
     self.addExpectedMeta(meta.get('metavars',[]))
     # load in main CSV
