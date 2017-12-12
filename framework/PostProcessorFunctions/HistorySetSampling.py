@@ -51,7 +51,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     self.samplingType    = None
     self.numberOfSamples = None
     self.tolerance       = None
-    self.pivotParameter          = None
+    self.pivotParameter  = None
     self.interpolation   = None
 
   def readMoreXML(self,xmlNode):
@@ -181,7 +181,6 @@ class HistorySetSampling(PostProcessorInterfaceBase):
           newVars[key]=interp(newTime)
     return newVars
 
-
   def derivativeTimeValues(self, var):
     """
       This function computes the new temporal variable
@@ -189,7 +188,6 @@ class HistorySetSampling(PostProcessorInterfaceBase):
                       {'pivotParameter':time_array, 'var1':var1_array, ..., 'varn':varn_array})
       @ Out, newTime, list, values of the new temporal variable
     """
-
     newTime = np.zeros(self.numberOfSamples)
     cumDerivative = np.zeros(var[self.pivotParameter].size)
 

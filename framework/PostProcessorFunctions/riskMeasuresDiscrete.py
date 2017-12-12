@@ -204,8 +204,8 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         ## of this function.
         if componentConfig is None:
           inputName     = inp['name']
-          inputDataIn   = {key: inp[key] for key in inp['inpVars'] }
-          inputDataOut  = {key: inp[key] for key in inp['outVars'] }
+          inputDataIn   = inp['data']['input']
+          inputDataOut  = inp['data']['output']
           targetVar     = np.asarray(inputDataOut[self.target['targetID']])
           inputMetadata = inp['metadata'] if 'metadata' in inp else None
         else:
@@ -215,7 +215,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           indexUpdatedData = None
           for var in componentConfig.keys():
             if componentConfig[var] == 0:
-              inputVar = np.asarray(inp['data'][var])
+              inputVar = np.asarray(inp['data']['input'][var])
               indexCompOut = np.where(inputVar==1)
               if indexUpdatedData is None:
                 indexUpdatedData = copy.deepcopy(indexCompOut)
@@ -227,16 +227,16 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
             inputDataIn  = {}
             inputDataOut = {}
             for var in inp['data']['input']:
-              inputDataIn[var]  = inp['data'][var][indexUpdatedData]
+              inputDataIn[var]  = inp['data']['input'][var][indexUpdatedData]
             for var in inp['data']['output']:
-              inputDataOut[var] = inp['data'][var][indexUpdatedData]
+              inputDataOut[var] = inp['data']['output'][var][indexUpdatedData]
             targetVar = np.asarray(inputDataOut[self.target['targetID']])
             inputMetadata = {}
             inputMetadata['ProbabilityWeight'] = inp['metadata']['ProbabilityWeight'][indexUpdatedData]
           else:
             inputName     = inp['name']
-            inputDataIn  = {key: inp[key] for key in inp['inpVars']}
-            inputDataOut = {key: inp[key] for key in inp['outVars']}
+            inputDataIn   = inp['data']['input']
+            inputDataOut  = inp['data']['output']
             targetVar     = np.asarray(inputDataOut[self.target['targetID']])
             inputMetadata = inp['metadata'] if 'metadata' in inp else None
 
@@ -323,11 +323,18 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         riskImportanceMeasures['R0']   = np.asanyarray([macroR0])
         self.raiseADebug(' R0  = ' + str(macroR0))
 
+    outputDic = {
+                  'data': {
+                           'input': {},
+                           'output': riskImportanceMeasures
+                          },
+                  'metadata': {}
+                }
     ## If for whatever reason passing an empty input back causes errors, then you may want to add some sort of dummy
     ## value.
     # outputDic['data']['input'] = {} # {'dummy' : np.asanyarray(0)}
 
-    return riskImportanceMeasures
+    return outputDic
 
   def runStatic_OLD(self,inputDic, componentConfig=None):
     """
