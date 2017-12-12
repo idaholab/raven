@@ -862,22 +862,8 @@ class DataSet(DataObject):
       return
     finally:
       self.raiseADebug('Reading data from "{}.csv"'.format(fName))
-    # then, read in the XML
-    # TODO what if no xml? -> read as point set?
-    meta = self._fromCSVXML(fName)
-    # apply findings # TODO shouldn't we respect user wishes more carefully? TODO
-    self.sampleTag = meta.get('sampleTag',self.sampleTag)
-    dims = meta.get('pivotParams',{}) # stores the dimensionality of each variable
-    if len(dims)>0:
-      self.setPivotParams(dims)
-    # check that all required variables are available # TODO this breaks if the metadata is missing
-    provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
-    needed = set(self._allvars)
-    missing = needed - provided
-    if len(missing) > 0:
-      self.raiseAnError(IOError,'Not all the variables requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fName,missing))
-    # What about probability weights and other essential metadata? -> Let's just add them.
-    self.addExpectedMeta(meta.get('metavars',[]))
+    # load in metadata
+    dims = self._loadCsvMeta(fName)
     # find distinct number of samples
     try:
       samples = list(set(panda[self.sampleTag]))
@@ -1157,7 +1143,7 @@ class DataSet(DataObject):
       If found, update stateful parameters.
       If not available, check the CSV itself for the available variables.
       @ In, fname, str, filename (without extension) of the CSV/XML combination
-      @ Out, None
+      @ Out, dims, dict, dimensionality dictionary with {index:[vars]} structure
     """
     meta = self._fromCSVXML(fname)
     # if we have meta, use it to load data, as it will be efficient to read from
@@ -1174,12 +1160,14 @@ class DataSet(DataObject):
     # otherwise, if we have no meta XML to load from, infer what we can from the CSV, which is only the available variables.
     else:
       provided = set(self._identifyVariablesInCSV(fname))
+      dims = {}
     # check provided match needed
     needed = set(self._allvars)
     missing = needed - provided
     if len(missing) > 0:
       self.raiseAnError(IOError,'Not all variables requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fname,missing))
     # otherwise, return happily and continue loading the CSV
+    return dims
 
   def _newCollector(self,width=1,length=100,dtype=None):
     """
