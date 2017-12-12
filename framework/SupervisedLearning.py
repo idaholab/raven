@@ -2837,10 +2837,12 @@ class PolyExponential(superVisedLearning):
     self.pivotParameterID = kwargs.get("pivotParameter","time")
     self._dynamicHandling  = True  # This ROM is able to manage the time-series on its own. No need for special treatment outside
     self.polyExpParams     = {}
-    self.polyExpParams['expTerms']     = int(kwargs.get('numberExpTerms',-1))    # the number of exponential terms (by default an optimization problem is run in order to get the best number of terms)
-    self.polyExpParams['maxExpTerms']  = int(kwargs.get('maxNumberExpTerms',20)) # maximum number of exponential terms
-    self.polyExpParams['polyOrder']    = int(kwargs.get('polyOrder',-1))         # the polynomial order (by default an optimization problem is run in order to get the best order)
-    self.polyExpParams['maxPolyOrder'] = int(kwargs.get('maxPolyOrder',20))      # the maximum polynomial order
+    #self.polyExpParams['maxExpTerms']  = int(kwargs.get('maxNumberExpTerms',20)) # maximum number of exponential terms
+    #self.polyExpParams['maxPolyOrder'] = int(kwargs.get('maxPolyOrder',20))      # the maximum polynomial order
+    
+    self.polyExpParams['expTerms']        = int(kwargs.get('numberExpTerms',3))      # the number of exponential terms (by default an optimization problem is run in order to get the best number of terms)
+    self.polyExpParams['polyOrder']       = int(kwargs.get('polyOrder',2))           # the polynomial order (by default an optimization problem is run in order to get the best order)
+    self.polyExpParams['initialScaling']  = float(kwargs.get('initialScaling',30000.))
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
@@ -2881,6 +2883,30 @@ class PolyExponential(superVisedLearning):
       @ Out, None
     """
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
+  
+  def __computeExponentialTerms(self, x, y):
+    """
+      Method to compute the coefficients of "n" exponential terms that minimize the 
+      difference between the training data and the "predicted" data
+      y(x) = \sum_{i=1}^n a_i \exp ( - b_i x )
+      @ In, x, numpy.ndarray, the x values
+      @ In, y, numpy.ndarray, the target values
+      @ Out, (fi, 1/taui), tuple(numpy.ndarray, numpy.ndarray), a_i and b_i
+    """
+    def objective(s):
+      """
+        Objective function for the optimization 
+        @ In, s, numpy.ndarray, the array of coefficient
+        @ Out, objective, float, the cumulative difference between the predicted and the real data
+      """
+      l = int(s.size/2)
+      return np.sum((y - np.dot(s[l:], np.exp(-np.outer(1./s[:l], x))))**2.)    
+    x = np.array(x)
+    y = np.array(y)
+    bounds = [[min(x), max(x)]]*self.polyExpParams['expTerms'] + [[min(y), max(y)]]*self.polyExpParams['expTerms']
+    result = differential_evolution(objective, bounds)  
+    taui, fi = np.split(result['x'], 2)    
+    return fi, 1./taui
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -2889,11 +2915,25 @@ class PolyExponential(superVisedLearning):
       @ In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
       @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
     """
-    self.pivotParameterValues = targetVals[:,:,self.target.index(self.pivotParameterID)]
-    self.pivotParameterValues.shape = (self.pivotParameterValues.size,)
-    self.timeSeriesDatabase         = copy.deepcopy(np.delete(targetVals,self.target.index(self.pivotParameterID),2))
-    self.timeSeriesDatabase.shape   = (self.timeSeriesDatabase.size,)
-    self.target.pop(self.target.index(self.pivotParameterID))
+    # time
+    
+    pivotParamIndex  = self.target.index(self.pivotParameterID)
+    targetParamIndex = self.target.index(self.pivotParameterID)
+    nsamples = len(targetVals[:,:,pivotParamIndex])
+    #self.pivotParameterValues = 
+    #self.timeSeriesDatabase         = copy.deepcopy(np.delete(targetVals,self.target.index(self.pivotParameterID),2))
+    #self.target.pop(self.target.index(self.pivotParameterID))
+    aij   = np.zeros( (nsamples, self.polyExpParams['expTerms']))
+    bij   = np.zeros((nsamples, self.polyExpParams['expTerms']))
+    #TODO: this can be parallelized
+    for smp in range(nsamples):
+      aij[smp,:],bij[smp,:] = self.__computeExponentialTerms(np.ravel(targetVals[smp,:,pivotParamIndex]), np.ravel(targetVals[smp,:,targetParamIndex])/self.polyExpParams['initialScaling'])
+    # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
+    model = make_pipeline(PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
+    # the targets are the coefficients
+    model.fit(featureVals, np.concatenate( (aij,bij) , axis=1))
+    print("trained")
+    
     # Fit fourier seires
     if self.hasFourierSeries:
       self.__trainFourier__()
