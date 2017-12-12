@@ -1140,6 +1140,47 @@ class DataSet(DataObject):
     """
     return self._allvars.index(var)
 
+  def _identifyVariablesInCSV(self,fname):
+    """
+      Gets the list of available variables from the file "fname.csv".  A method is necessary because HistorySets
+      don't store all the data in one csv.
+      @ In, fname, str, name of file without extension
+      @ Out, varList, list(str), list of variables
+    """
+    with open(fname+'.csv','r') as f:
+      provided = list(s.strip() for s in f.readline().split(','))
+    return provided
+
+  def _loadCsvMeta(self,fname):
+    """
+      Attempts to load metadata from an associated XML file.
+      If found, update stateful parameters.
+      If not available, check the CSV itself for the available variables.
+      @ In, fname, str, filename (without extension) of the CSV/XML combination
+      @ Out, None
+    """
+    meta = self._fromCSVXML(fname)
+    # if we have meta, use it to load data, as it will be efficient to read from
+    if len(meta) > 0:
+      # TODO shouldn't we be respecting user wishes more carefully? TODO
+      self.samplerTag = meta.get('sampleTag',self.sampleTag)
+      dims = meta.get('pivotParams',{})
+      if len(dims)>0:
+        self.setPivotParams(dims)
+      # add metadata, so we get probability weights and etc
+      self.addExpectedMeta(meta.get('metavars',[]))
+      # check all variables desired are available
+      provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
+    # otherwise, if we have no meta XML to load from, infer what we can from the CSV, which is only the available variables.
+    else:
+      provided = set(self._identifyVariablesInCSV(fname))
+    # check provided match needed
+    needed = set(self._allvars)
+    missing = needed - provided
+    if len(missing) > 0:
+      self.raiseAnError(IOError,'Not all variables requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fname,missing))
+    # otherwise, return happily and continue loading the CSV
+
   def _newCollector(self,width=1,length=100,dtype=None):
     """
       Creates a new collector object and returns it.
