@@ -96,8 +96,8 @@
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <!-- The &quot;coarsemod&quot; model will output a reponse of 1.0, while &quot;finemod&quot; gives 2.0.
-         This allows the test to distinguish which samples originated in &quot;coarse&quot; and which in &quot;fine&quot;.-->
+    <!-- The "coarsemod" model will output a reponse of 1.0, while "finemod" gives 2.0.
+         This allows the test to distinguish which samples originated in "coarse" and which in "fine".-->
     <ExternalModel ModuleToLoad="../coarse" name="coarsemod" subType="">
       <variables>x1,x2,ans</variables>
     </ExternalModel>

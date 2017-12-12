@@ -37,7 +37,7 @@ import XDataSet
 import MessageHandler
 
 mh = MessageHandler.MessageHandler()
-mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
+mh.initialize({'verbosity':'silent', 'callerLength':10, 'tagLength':10})
 
 print('Module undergoing testing:')
 print (XDataSet )
@@ -169,7 +169,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
     for key,val in first.items():
       if key in skip:
         continue
-      if isinstance(val,float):
+      if isinstance(val,(float,int)):
         pres = checkFloat('',val,second[key][0],tol,update=False)
       elif isinstance(val,(str,unicode)):
         pres = checkSame('',val,second[key][0],update=False)
@@ -330,11 +330,11 @@ formatRealization(rlz2)
 rlzMissing = dict(rlz0)
 rlz0['z'] = 6.0
 formatRealization(rlz0)
-checkFails('DataSet addRealization err missing','Provided realization does not have all requisite values: \"z\"',data.addRealization,args=[rlzMissing])
+checkFails('DataSet addRealization err missing','Provided realization does not have all requisite values for object \"DataSet\": \"z\"',data.addRealization,args=[rlzMissing])
 # bad formatting
 rlzFormat = dict(rlz0)
 rlzFormat['c'] = list(rlzFormat['c'])
-checkFails('DataSet addRealization err format','Realization was not formatted correctly! See warnings above.',data.addRealization,args=[rlzFormat])
+checkFails('DataSet addRealization err format','Realization was not formatted correctly for "DataSet"! See warnings above.',data.addRealization,args=[rlzFormat])
 # test appending
 data.addRealization(dict(rlz0))
 
@@ -610,11 +610,20 @@ for l,line in enumerate(lines):
 # check
 checkArray('CSV XML',lines,correct,str)
 ## read from CSV/XML
+xml = createElement('DataSet',attrib={'name':'csv'})
+# scramble the IO space, also skip 'z' for testing
+xml.append(createElement('Input',text='a,x,y'))
+xml.append(createElement('Output',text='c,b'))
+xml.append(createElement('Index',attrib={'var':'t'},text='y,c'))
 dataCSV = XDataSet.DataSet()
 dataCSV.messageHandler = mh
+dataCSV._readMoreXML(xml)
 dataCSV.load(csvname,style='CSV')
 for var in data.getVars():
-  if isinstance(data.getVarValues(var).item(0),(float,int)):
+  if var == 'z':
+    # not included in XML input specs, so should be left out
+    checkFails('CSV var z','z',dataCSV.getVarValues,args=var)
+  elif isinstance(data.getVarValues(var).item(0),(float,int)):
     checkTrue('CSV var {}'.format(var),(dataCSV._data[var] - data._data[var]).sum()<1e-20) #necessary due to roundoff
   else:
     checkTrue('CSV var {}'.format(var),bool((dataCSV._data[var] == data._data[var]).prod()))
@@ -631,7 +640,7 @@ os.remove(csvname+'.xml')
 # by index
 checkRlz('Dataset full origin idx 1',data.realization(index=1),rlz1,skip=['time'])
 checkRlz('Dataset full netcdf idx 1',dataNET.realization(index=1),rlz1,skip=['time'])
-checkRlz('Dataset full csvxml idx 1',dataCSV.realization(index=1),rlz1,skip=['time'])
+checkRlz('Dataset full csvxml idx 1',dataCSV.realization(index=1),rlz1,skip=['time','z'])
 # by match
 idx,rlz = data.realization(matchDict={'prefix':'third'})
 checkSame('Dataset full origin match idx',idx,2)
@@ -641,7 +650,7 @@ checkSame('Dataset full netcdf match idx',idx,2)
 checkRlz('Dataset full netCDF match',rlz,rlz2,skip=['time'])
 idx,rlz = dataCSV.realization(matchDict={'prefix':'third'})
 checkSame('Dataset full csvxml match idx',idx,2)
-checkRlz('Dataset full csvxml match',rlz,rlz2,skip=['time'])
+checkRlz('Dataset full csvxml match',rlz,rlz2,skip=['time','z'])
 # TODO metadata checks?
 
 
@@ -765,6 +774,114 @@ checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
 checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
 # check we can add a new realization
 data.addRealization({'a':np.array([2.1]), 't':np.array([0])})
+
+
+######################################
+#          CLUSTER LABELING          #
+######################################
+# as used by the Optimizer, for example.  We store as a flat point set, then
+#   divide up by cluster label for printing.
+# create data object
+xml = createElement('PointSet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a,b'))
+xml.append(createElement('Output',text='x,y'))
+data = XDataSet.DataSet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+# register "trajID" (cluster label) and "varsUpdate" (iteration number/monotonically increasing var) as meta
+data.addExpectedMeta(['trajID','varsUpdate'])
+# add two trajectories to get started, like starting two trajectories
+rlz0_0 = {'trajID': np.atleast_1d(1),
+          'a': np.atleast_1d(  1.0),
+          'b': np.atleast_1d(  5.0),
+          'x': np.atleast_1d( 10.0),
+          'y': np.atleast_1d(100.0),
+          'varsUpdate': np.atleast_1d(0)}
+rlz1_0 = {'trajID': np.atleast_1d(2),
+          'a': np.atleast_1d(  2.0),
+          'b': np.atleast_1d(  6.0),
+          'x': np.atleast_1d( 20.0),
+          'y': np.atleast_1d(200.0),
+          'varsUpdate': np.atleast_1d(0)}
+data.addRealization(rlz0_0)
+data.addRealization(rlz1_0)
+checkRlz('Cluster initial traj 1',data.realization(index=0),rlz0_0,skip='varsUpdate')
+checkRlz('Cluster initial traj 2',data.realization(index=1),rlz1_0,skip='varsUpdate')
+# now sample a new trajectory point, going into the collector
+rlz0_1 = {'trajID': np.atleast_1d(1),
+          'a': np.atleast_1d(  1.1),
+          'b': np.atleast_1d(  5.1),
+          'x': np.atleast_1d( 10.1),
+          'y': np.atleast_1d(100.1),
+          'varsUpdate': np.atleast_1d(1)}
+data.addRealization(rlz0_1)
+checkRlz('Cluster extend traj 1[0]',data.realization(matchDict={'trajID':1,'varsUpdate':0})[1],rlz0_0,skip='varsUpdate')
+checkRlz('Cluster extend traj 1[1]',data.realization(matchDict={'trajID':1,'varsUpdate':1})[1],rlz0_1,skip='varsUpdate')
+checkRlz('Cluster extend traj 2[0]',data.realization(matchDict={'trajID':2,'varsUpdate':0})[1],rlz1_0,skip='varsUpdate')
+# now collapse and then append to the data
+data.asDataset()
+rlz1_1 = {'trajID': np.atleast_1d(2),
+          'a': np.atleast_1d(  2.1),
+          'b': np.atleast_1d(  6.1),
+          'x': np.atleast_1d( 20.1),
+          'y': np.atleast_1d(200.1),
+          'varsUpdate': np.atleast_1d(1)}
+data.addRealization(rlz1_1)
+checkRlz('Cluster extend traj 2[1]',data.realization(matchDict={'trajID':2,'varsUpdate':1})[1],rlz1_1,skip='varsUpdate')
+# print it
+fname = 'XDataUnitTestClusterLabels'
+data.write(fname,style='csv',clusterLabel='trajID')
+# manually check contents
+for l,line in enumerate(open(fname+'.csv','r')):
+  if l == 0:
+    checkSame('Cluster CSV main [0]',line.strip(),'trajID,filename')
+  elif l == 1:
+    checkSame('Cluster CSV main [1]',line.strip(),'1,{}_1.csv'.format(fname))
+  elif l == 2:
+    checkSame('Cluster CSV main [2]',line.strip(),'2,{}_2.csv'.format(fname))
+for l,line in enumerate(open(fname+'_1.csv','r')):
+  if l == 0:
+    checkSame('Cluster CSV id1 [0]',line.strip(),'a,b,x,y,varsUpdate')
+  elif l == 1:
+    line = list(float(x) for x in line.split(','))
+    checkArray('Cluster CSV id1 [1]',line,[1.0,5.0,10.0,100.0,0],float)
+  elif l == 2:
+    line = list(float(x) for x in line.split(','))
+    checkArray('Cluster CSV id1 [1]',line,[1.1,5.1,10.1,100.1,1],float)
+for l,line in enumerate(open(fname+'_2.csv','r')):
+  if l == 0:
+    checkSame('Cluster CSV id1 [0]',line.strip(),'a,b,x,y,varsUpdate')
+  elif l == 1:
+    line = list(float(x) for x in line.split(','))
+    checkArray('Cluster CSV id1 [1]',line,[2.0,6.0,20.0,200.0,0],float)
+  elif l == 2:
+    line = list(float(x) for x in line.split(','))
+    checkArray('Cluster CSV id1 [1]',line,[2.1,6.1,20.1,200.1,1],float)
+# load it as a history # TODO first, loading needs to be fixed to use DataObject params instead of XML params
+from XHistorySet import HistorySet
+xml = createElement('HistorySet',attrib={'name':'test'})
+xml.append(createElement('Input',text='trajID'))
+xml.append(createElement('Output',text='a,b,x,y'))
+options = createElement('options')
+options.append(createElement('pivotParameter',text='varsUpdate'))
+xml.append(options)
+data2 = HistorySet()
+data2.messageHandler = mh
+data2._readMoreXML(xml)
+data2.load(fname,style='csv')
+# check data is correct by realization
+correct = {'a':np.array([  1.0,  1.1]),
+           'b':np.array([  5.0,  5.1]),
+           'x':np.array([ 10.0, 10.1]),
+           'y':np.array([100.0,100.1]),
+           'trajID':np.array([1])}
+checkRlz('Cluster read [0]',data2.realization(index=0),correct)
+correct = {'a':np.array([  2.0,  2.1]),
+           'b':np.array([  6.0,  6.1]),
+           'x':np.array([ 20.0, 20.1]),
+           'y':np.array([200.0,200.1]),
+           'trajID':np.array([2])}
+checkRlz('Cluster read [1]',data2.realization(index=1),correct)
 
 
 print(results)

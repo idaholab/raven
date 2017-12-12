@@ -169,7 +169,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
     for key,val in first.items():
       if key in skip:
         continue
-      if isinstance(val,float):
+      if isinstance(val,(float,int)):
         pres = checkFloat('',val,second[key][0],tol,update=False)
       elif isinstance(val,(str,unicode)):
         pres = checkSame('',val,second[key][0],update=False)
@@ -625,7 +625,6 @@ data.addRealization(rlz)
 rlz0 = data.realization(index=0)
 checkRlz('No input space',rlz0,rlz,skip='Timelike')
 
-# TODO more exhaustive tests are needed, but this is sufficient for initial work.
 
 print(results)
 

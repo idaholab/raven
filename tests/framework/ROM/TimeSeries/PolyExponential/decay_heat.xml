@@ -1,0 +1,10 @@
+<DataObjectMetadata name="rawData">
+    <DataSet type="Static">
+        <general>
+            <inputs>enrichment,temperature,burnup</inputs>
+            <outputs>decay_heat,time</outputs>
+            <sampleTag>RAVEN_sample_ID</sampleTag>
+        </general>
+    </DataSet>
+    
+</DataObjectMetadata>

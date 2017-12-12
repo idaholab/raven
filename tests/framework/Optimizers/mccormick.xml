@@ -26,7 +26,7 @@
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">mccormick</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
-      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
@@ -50,15 +50,15 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <relativeThreshold>1e-6</relativeThreshold>
-          <gradientThreshold>1e-2</gradientThreshold>
+        <relativeThreshold>1e-6</relativeThreshold>
+        <gradientThreshold>1e-2</gradientThreshold>
       </convergence>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>3</upperBound>
         <lowerBound>-2</lowerBound>
         <initial>-2,-2,0,3,3</initial>
       </variable>
-      <variable name='y'>
+      <variable name="y">
         <upperBound>3</upperBound>
         <lowerBound>-2</lowerBound>
         <initial>-2,3,0,-2,3</initial>
@@ -92,16 +92,17 @@
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate</Output>
     </PointSet>
-    <HistorySet name="opt_export">
+    <PointSet name="opt_export">
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate</Output>
-    </HistorySet>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
     </Print>
     <Print name="opt_soln">
       <type>csv</type>
