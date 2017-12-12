@@ -97,7 +97,7 @@
       <Output>ans,ans2</Output>
     </PointSet>
     <PointSet name="pp1_cv">
-      <Output>cv_m1_surrogate</Output>
+      <Output>cv_m1_ans</Output>
     </PointSet>
   </DataObjects>
 

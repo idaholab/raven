@@ -94,7 +94,7 @@ class CrossValidation(PostProcessor):
     self.dynamic        = False # is it time-dependent?
     self.metricsDict    = {}    # dictionary of metrics that are going to be assembled
     self.pivotParameter = None
-    self.cvScore        = 'average'
+    self.cvScore        = None
     # assembler objects to be requested
     self.addAssemblerObject('Metric', 'n', True)
     # The list of cross validation engine that require the parameter 'n'
@@ -107,6 +107,7 @@ class CrossValidation(PostProcessor):
     # 2. we seldom use this metric.
     self.validMetrics = ['mean_absolute_error', 'explained_variance_score', 'r2_score', 'mean_squared_error']
     self.invalidRom = ['GaussPolynomialRom', 'HDMRRom']
+    self.cvID = 'RAVEN_CV_ID'
 
   def initialize(self, runInfo, inputs, initDict=None) :
     """
@@ -295,40 +296,38 @@ class CrossValidation(PostProcessor):
         break
     if cvEngine is None:
       self.raiseAnError(IOError, "No cross validation engine is provided!")
-
     outputDict = {}
-    # construct matrix and pass matrix
     for trainIndex, testIndex in cvEngine.generateTrainTestIndices():
       trainDict, testDict = self.__generateTrainTestInputs(inputDict, trainIndex, testIndex)
       ## Train the rom
       cvEstimator.train(trainDict)
       ## evaluate the rom
       outputEvaluation = cvEstimator.evaluate(testDict)
-      cvOutputs = np.asarray(outputEvaluation.values()).T
-      testOutputs = np.asarray([testDict[var] for var in outputEvaluation.keys()]).T
-      for metricInstance in self.metricsDict.values():
-        metricValue = metricInstance.distance(cvOutputs, testOutputs)
-        if hasattr(metricInstance, 'metricType'):
-          if metricInstance.metricType not in self.validMetrics:
-            self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType, " can not be used, the accepted metric types are: ", str(self.validMetrics))
-        else:
+      ## Compute the distance between ROM and given data using Metric system
+      for targetName, targetValue in outputEvaluation.items():
+        for metricInstance in self.metricsDict.values():
+          metricValue = metricInstance.distance(targetValue, testDict[targetName])
+          if hasattr(metricInstance, 'metricType'):
+            if metricInstance.metricType not in self.validMetrics:
+              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType, " can not be used, the accepted metric types are: ", str(self.validMetrics))
+          else:
             self.raiseAnError(IOError, "The metric: ", metricInstance.name, " can not be used, the accepted metric types are: ", str(self.validMetrics))
-
-        varName = 'cv' + '_' + metricInstance.name + '_' + cvEstimator.name
-        if varName not in outputDict.keys():
-          outputDict[varName] = []
-        outputDict[varName].append(metricValue[0])
-
+          varName = 'cv' + '_' + metricInstance.name + '_' + targetName
+          if varName not in outputDict.keys():
+            outputDict[varName] = np.array([])
+          outputDict[varName] = np.append(outputDict[varName], metricValue)
     scoreDict = {}
-    for varName, metricValues in outputDict.items():
-      if self.cvScore.lower() == 'maximum':
-        scoreDict[varName] = np.atleast_1d(np.amax(np.atleast_1d(metricValues)))
-      elif self.cvScore.lower() == 'median':
-        scoreDict[varName] = np.atleast_1d(np.median(np.atleast_1d(metricValues)))
-      else:
-        scoreDict[varName] = np.atleast_1d(np.mean(np.atleast_1d(metricValues)))
-
-    return scoreDict
+    if not self.cvScore:
+      return outputDict
+    else:
+      for varName, metricValues in outputDict.items():
+        if self.cvScore.lower() == 'maximum':
+          scoreDict[varName] = np.atleast_1d(np.amax(np.atleast_1d(metricValues)))
+        elif self.cvScore.lower() == 'median':
+          scoreDict[varName] = np.atleast_1d(np.median(np.atleast_1d(metricValues)))
+        elif self.cvScore.lower() == 'average':
+          scoreDict[varName] = np.atleast_1d(np.mean(np.atleast_1d(metricValues)))
+      return scoreDict
 
   def collectOutput(self,finishedJob, output):
     """
@@ -341,5 +340,9 @@ class CrossValidation(PostProcessor):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, ' No available output to collect')
     outputDict = evaluation[1]
-
-    output.addRealization(outputDict)
+    if self.cvScore is not None:
+      output.addRealization(outputDict)
+    else:
+      cvIDs = {self.cvID: np.atleast_1d(range(len(outputDict.values()[0])))}
+      outputDict.update(cvIDs)
+      output.load(outputDict, style='dict')

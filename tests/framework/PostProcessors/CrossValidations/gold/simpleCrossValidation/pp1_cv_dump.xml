@@ -1,7 +1,7 @@
 <DataObjectMetadata name="pp1_cv">
   <DataSet type="Static">
     <general>
-      <outputs>cv_m1_surrogate,cv_m2_surrogate</outputs>
+      <outputs>cv_m1_ans,cv_m2_ans</outputs>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>
   </DataSet>
