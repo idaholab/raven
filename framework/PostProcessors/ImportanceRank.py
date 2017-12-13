@@ -225,8 +225,6 @@ class ImportanceRank(PostProcessor):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
     outputDict = evaluation[1]
-    print("Debug Realization: ")
-    print(outputDict)
     # Output to DataObjects
     if output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
@@ -297,7 +295,8 @@ class ImportanceRank(PostProcessor):
       self.dynamic = True
       self.pivotValue = dataSet[self.pivotParameter].values
       if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
-        self.raiseAnError(IOError, "The data provided by the data objects ", currentInput.name, " is not synchronized!")
+        self.raiseAnError(IOError, "In data object ", currentInput.name, ", the realization' pivot parameters have unsynchronized pivot values!"
+                + "Please use the internal postprocessor 'HistorySetSync' to synchronize the data.")
       slices = currentInput.sliceByIndex(self.pivotParameter)
       metadata = currentInput.getMeta(pointwise=True)
       inputList = []
@@ -368,7 +367,7 @@ class ImportanceRank(PostProcessor):
         what = 'sensitivityIndex'
         for target in self.targets:
           for i, feat in enumerate(feats):
-            varName = what + '_' + target + '_' + feat
+            varName = '_'.join([what, target, feat])
             outputDict[varName] = np.atleast_1d(senWeightDict[target][i])
       if what.lower() == 'importanceindex':
         what = 'importanceIndex'
@@ -387,13 +386,13 @@ class ImportanceRank(PostProcessor):
               featWeights.append(covTarget)
             featWeights = featWeights/np.sum(featWeights)
             for i, feat in enumerate(feats):
-              varName = what + '_' + target + '_' + feat
+              varName = '_'.join([what, target, feat])
               outputDict[varName] = np.atleast_1d(featWeights[i])
           # if the features type is 'latent', since latentVariables are used to compute the sensitivities
           # the covariance for latentVariances are identity matrix
           else:
             for i, feat in enumerate(feats):
-              varName = what + '_' + target + '_' + feat
+              varName = '_'.join([what, target, feat])
               outputDict[varName] = np.atleast_1d(senWeightDict[target][i])
       if what.lower() == 'manifestsensitivity':
         if self.reconstructSen:
@@ -411,7 +410,7 @@ class ImportanceRank(PostProcessor):
             else:
               manifestSen = list(np.dot(latentSen,inverseTransformationMatrix)/inputDict['targets'][target])
             for i, feat in enumerate(self.manifest):
-              varName = what + '_' + target + '_' + feat
+              varName = '_'.join([what, target, feat])
               outputDict[varName] = np.atleast_1d(manifestSen[i])
         elif self.latentSen:
           self.raiseAnError(IOError, 'Unable to reconstruct the sensitivities for manifest variables, this is because no manifest variable is provided in',self.printTag)
@@ -427,7 +426,7 @@ class ImportanceRank(PostProcessor):
           singularValues = self.mvnDistribution.returnSingularValues(index)
           singularValues = list(singularValues/np.sum(singularValues))
           for i, feat in enumerate(feats):
-            varName = what + '_' + feat
+            varName = '_'.join([what, feat])
             outputDict[varName] = np.atleast_1d(singularValues[i])
       if what.lower() == 'transformation':
         if self.transformation:
@@ -437,7 +436,7 @@ class ImportanceRank(PostProcessor):
           transformMatrix = self.mvnDistribution.transformationMatrix(index)
           for ind,var in enumerate(self.manifest):
             for i, feat in enumerate(feats):
-              varName = what + '_' + var + '_' + feat
+              varName = '_'.join([what, var, feat])
               outputDict[varName] = np.atleast_1d(transformMatrix[manifestIndex[ind]][i])
         else:
           self.raiseAnError(IOError,'Unable to output the transformation matrix, please provide both "manifest" and "latent" variables in XML node "features" in',self.printTag)
@@ -450,6 +449,7 @@ class ImportanceRank(PostProcessor):
           for ind,var in enumerate(self.latent):
             for i, mVar in enumerate(self.manifest):
               varName = what + '_' + var + '_' + mVar
+              varName = '_'.join([what, var, mVar])
               outputDict[varName] = np.atleast_1d(inverseTransformationMatrix[index[ind]][i])
         else:
           self.raiseAnError(IOError,'Unable to output the inverse transformation matrix, please provide both "manifest" and "latent" variables in XML node "features" in', self.printTag)
