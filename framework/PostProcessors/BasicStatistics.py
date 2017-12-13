@@ -193,7 +193,7 @@ class BasicStatistics(PostProcessor):
       for sliceData in slices:
         inputDict = {}
         inputDict['metadata'] = metadata
-        inputDict['targets'] = dict((target, sliceData[target]) for target in self.parameters['targets'])
+        inputDict['targets'] = dict((target, sliceData[target].astype("float",copy=False)) for target in self.parameters['targets'])
         inputList.append(inputDict)
 
     self.raiseAMessage("Recasting performed")
@@ -816,6 +816,9 @@ class BasicStatistics(PostProcessor):
         for targetP in targetDict['targets']:
           if pbPresent:
             relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+          else:
+            lenght = len(inputDict['targets'][targetP].values)
+            relWeight  = np.full((lenght,),1./float(lenght))
           varName = prefix + '_' + targetDict['percent'].strip() + '_' + targetP
           outputDict[varName] = np.atleast_1d(self._computeWeightedPercentile(inputDict['targets'][targetP].values,relWeight,percent=float(percent)/100.0))
 

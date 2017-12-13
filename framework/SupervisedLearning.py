@@ -2843,6 +2843,7 @@ class PolyExponential(superVisedLearning):
     self.polyExpParams['expTerms']        = int(kwargs.get('numberExpTerms',3))      # the number of exponential terms (by default an optimization problem is run in order to get the best number of terms)
     self.polyExpParams['polyOrder']       = int(kwargs.get('polyOrder',2))           # the polynomial order (by default an optimization problem is run in order to get the best order)
     self.polyExpParams['initialScaling']  = float(kwargs.get('initialScaling',1.))
+    self.polyExpParams['cutPivotValue']   = float(kwargs.get('cutPivotValue',1095.))
     self.model = None
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
@@ -2911,6 +2912,14 @@ class PolyExponential(superVisedLearning):
     sortIndexes = np.argsort(fi)
     fi = fi[sortIndexes]
     taui = taui[sortIndexes]
+
+    print("maximum error:")
+    print(np.max(  (y-self.__evaluateExponentialTerm(x, fi, 1./taui))/y  ))
+    print("error per spot:")
+    print(self.pivotParameterID + " , err_" + self.targetID)
+    for cnt in range(len(x)):
+      arr = (y-self.__evaluateExponentialTerm(x, fi, 1./taui))/y
+      print(str(x[cnt]) + " , " + str(arr[cnt]))
     return fi, 1./taui
 
   def __evaluateExponentialTerm(self,x, a, b):
@@ -2952,6 +2961,10 @@ class PolyExponential(superVisedLearning):
     """
     pivotParamIndex  = self.target.index(self.pivotParameterID)
     targetParamIndex = self.target.index(self.targetID)
+    for index in range(len(targetVals[0,:,pivotParamIndex])):
+      if targetVals[0,index,pivotParamIndex] >= self.polyExpParams['cutPivotValue']:
+        break
+    index+=1
     nsamples = len(targetVals[:,:,pivotParamIndex])
     aij   = np.zeros( (nsamples, self.polyExpParams['expTerms']))
     bij   = np.zeros((nsamples, self.polyExpParams['expTerms']))
@@ -2959,8 +2972,8 @@ class PolyExponential(superVisedLearning):
     #TODO: this can be parallelized
     for smp in range(nsamples):
       self.raiseADebug("Computing exponential terms for sample ID "+str(smp+1))
-      aij[smp,:],bij[smp,:] = self.__computeExponentialTerms(np.ravel(targetVals[smp,:,pivotParamIndex]), np.ravel(targetVals[smp,:,targetParamIndex])/self.polyExpParams['initialScaling'])
-    self.pivotValues = targetVals[0,:,pivotParamIndex]
+      aij[smp,:],bij[smp,:] = self.__computeExponentialTerms(np.ravel(targetVals[smp,:index,pivotParamIndex]), np.ravel(targetVals[smp,:index,targetParamIndex])/self.polyExpParams['initialScaling'])
+    self.pivotValues = targetVals[0,:index,pivotParamIndex]
     # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
     self.model = make_pipeline(PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
     # the targets are the coefficients
