@@ -238,7 +238,6 @@ class InterfacedPostProcessor(PostProcessor):
     if isinstance(evaluations, Runners.Error):
       self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
     evaluation = evaluations[1]
-    print(evaluation)
     output.addExpectedMeta(set(self.metaKeys))
     output.load(evaluation['data'], style='dict', dims=evaluation['dims'])
 
