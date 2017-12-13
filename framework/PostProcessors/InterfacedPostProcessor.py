@@ -148,54 +148,6 @@ class InterfacedPostProcessor(PostProcessor):
     outputDic = self.postProcessor._inverse(inputIn)
     return outputDic
 
-
-  def collectOutput_OLD(self, finishedJob, output):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
-      @ Out, None
-    """
-    evaluations = finishedJob.getEvaluation()
-    if isinstance(evaluations, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-
-    evaluation = evaluations[1]
-
-    exportDict = {'inputSpaceParams':evaluation['data']['input'],'outputSpaceParams':evaluation['data']['output'],'metadata':evaluation['metadata']}
-
-    listInputParams   = output.getParaKeys('inputs')
-    listOutputParams = output.getParaKeys('outputs')
-
-    if output.type == 'HistorySet':
-      for hist in exportDict['inputSpaceParams']:
-        if type(exportDict['inputSpaceParams'].values()[0]).__name__ == "dict":
-          for key in listInputParams:
-            output.updateInputValue(key,exportDict['inputSpaceParams'][hist][str(key)])
-          for key in listOutputParams:
-            output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][str(key)])
-        else:
-          for key in exportDict['inputSpaceParams']:
-            if key in output.getParaKeys('inputs'):
-              output.updateInputValue(key,exportDict['inputSpaceParams'][key])
-          for key in exportDict['outputSpaceParams']:
-            if key in output.getParaKeys('outputs'):
-              output.updateOutputValue(key,exportDict['outputSpaceParams'][str(key)])
-      for key in exportDict['metadata']:
-        output.updateMetadata(key,exportDict['metadata'][key])
-    else:
-      # output.type == 'PointSet':
-      for key in exportDict['inputSpaceParams']:
-        if key in output.getParaKeys('inputs'):
-          for value in exportDict['inputSpaceParams'][key]:
-            output.updateInputValue(str(key),value)
-      for key in exportDict['outputSpaceParams']:
-        if str(key) in output.getParaKeys('outputs'):
-          for value in exportDict['outputSpaceParams'][key]:
-            output.updateOutputValue(str(key),value)
-      for key in exportDict['metadata']:
-        output.updateMetadata(key,exportDict['metadata'][key])
-
   def inputToInternal(self,inputs):
     """
       Function to convert the received input into a format this object can
@@ -246,25 +198,3 @@ class InterfacedPostProcessor(PostProcessor):
       return self.inputFormat
     elif location=='output':
       return self.outputFormat
-
-  def inputToInternal_OLD(self,inputs):
-    """
-      Function to convert the received input into a format this object can
-      understand
-      @ In, input, list, list of dataObjects handed to the post-processor
-      @ Out, inputDict, list, list of dictionaries this object can process
-    """
-    inputDict = []
-    for inp in inputs:
-      if type(inp) == dict:
-        return [inp]
-      else:
-        inputDictTemp = {'data':{}, 'metadata':{}}
-        inputDictTemp['data']['input']  = copy.deepcopy(inp.getInpParametersValues())
-        inputDictTemp['data']['output'] = copy.deepcopy(inp.getOutParametersValues())
-        inputDictTemp['metadata']       = copy.deepcopy(inp.getAllMetadata())
-        inputDictTemp['name']           = inp.whoAreYou()['Name']
-        inputDictTemp['type']           = str(inp.type)
-        inputDict.append(inputDictTemp)
-    return inputDict
-
