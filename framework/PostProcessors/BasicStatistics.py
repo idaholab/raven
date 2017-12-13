@@ -407,10 +407,10 @@ class BasicStatistics(PostProcessor):
     """
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(2,pbWeight) if not self.biased else 1.0
-      result = (1.0/self.__computeVp(1,pbWeight))*np.average((arrayIn - expValue)**2,weights= pbWeight)*unbiasCorr
+      result = (1.0/self.__computeVp(1,pbWeight))*np.average((arrayIn - np.asarray(expValue))**2,weights= pbWeight)*unbiasCorr
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(2,len(arrayIn)) if not self.biased else 1.0
-      result = np.average((arrayIn - expValue)**2)*unbiasCorr
+      result = np.average((arrayIn - np.asarray(expValue))**2)*unbiasCorr
     return result
 
   def _computeSigma(self,arrayIn,variance,pbWeight=None):

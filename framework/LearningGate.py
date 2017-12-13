@@ -72,7 +72,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.isADynamicModel      = False
     # if it is dynamic and time series are passed in, self.supervisedContainer is not going to be expanded, else it is going to
     self.supervisedContainer     = [modelInstance]
-    
+
     #
     self.historySteps         = []
 

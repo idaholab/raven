@@ -193,7 +193,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         valueToUse = np.asarray(valueToUse)
-        if valueToUse[:,0].size if self.isDynamic() else valueToUse.size != featureValues[:,0].size:
+        if (valueToUse[:,0].size if self.isDynamic() else valueToUse.size) != featureValues[:,0].size:
           self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
           self.raiseAWarning('target values:',valueToUse[:,0].size,tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
@@ -2839,16 +2839,18 @@ class PolyExponential(superVisedLearning):
     self.polyExpParams     = {}
     #self.polyExpParams['maxExpTerms']  = int(kwargs.get('maxNumberExpTerms',20)) # maximum number of exponential terms
     #self.polyExpParams['maxPolyOrder'] = int(kwargs.get('maxPolyOrder',20))      # the maximum polynomial order
-    
+
     self.polyExpParams['expTerms']        = int(kwargs.get('numberExpTerms',3))      # the number of exponential terms (by default an optimization problem is run in order to get the best number of terms)
     self.polyExpParams['polyOrder']       = int(kwargs.get('polyOrder',2))           # the polynomial order (by default an optimization problem is run in order to get the best order)
-    self.polyExpParams['initialScaling']  = float(kwargs.get('initialScaling',30000.))
+    self.polyExpParams['initialScaling']  = float(kwargs.get('initialScaling',1.))
+    self.model = None
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
     if len(self.target) > 2:
       self.raiseAnError(IOError,"Multi-target PolyExponential not available yet!")
-    
+    self.targetID = self.target[self.target.index(self.pivotParameterID) - 1]
+
 
   #def __getstate__(self):
     #"""
@@ -2883,10 +2885,10 @@ class PolyExponential(superVisedLearning):
       @ Out, None
     """
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
-  
+
   def __computeExponentialTerms(self, x, y):
     """
-      Method to compute the coefficients of "n" exponential terms that minimize the 
+      Method to compute the coefficients of "n" exponential terms that minimize the
       difference between the training data and the "predicted" data
       y(x) = \sum_{i=1}^n a_i \exp ( - b_i x )
       @ In, x, numpy.ndarray, the x values
@@ -2895,21 +2897,51 @@ class PolyExponential(superVisedLearning):
     """
     def objective(s):
       """
-        Objective function for the optimization 
+        Objective function for the optimization
         @ In, s, numpy.ndarray, the array of coefficient
         @ Out, objective, float, the cumulative difference between the predicted and the real data
       """
       l = int(s.size/2)
-      return np.sum((y - np.dot(s[l:], np.exp(-np.outer(1./s[:l], x))))**2.)    
+      return np.sum((y - np.dot(s[l:], np.exp(-np.outer(1./s[:l], x))))**2.)
     x = np.array(x)
     y = np.array(y)
     bounds = [[min(x), max(x)]]*self.polyExpParams['expTerms'] + [[min(y), max(y)]]*self.polyExpParams['expTerms']
-    result = differential_evolution(objective, bounds)  
-    taui, fi = np.split(result['x'], 2)    
+    result = differential_evolution(objective, bounds)
+    taui, fi = np.split(result['x'], 2)
     sortIndexes = np.argsort(fi)
     fi = fi[sortIndexes]
-    taui = taui[sortIndexes]    
+    taui = taui[sortIndexes]
     return fi, 1./taui
+
+  def __evaluateExponentialTerm(self,x, a, b):
+    """
+      Evaluate exponential term given x, a and b
+      y(x) = \sum_{i=1}^n a_i \exp ( - b_i x )
+      @ In, x, numpy.ndarray, the x values
+      @ In, a, numpy.ndarray, the a values
+      @ In, b, numpy.ndarray, the b values
+      @ Out, y, numpy.ndarray, the outcome y(x)
+    """
+    return np.dot(a, np.exp(-np.outer(b, x)))
+
+  def __constructPolyString(self):
+    """
+     print
+    """
+    powers = self.model.steps[0][1].powers_
+    featureNames = []
+    for row in powers:
+      inds = np.where(row)[0]
+      if len(inds):
+        name = " ".join("%s^%d" % (self.features[ind], exp)
+                                  if exp != 1 else self.features[ind]
+                                  for ind, exp in zip(inds, row[inds]))
+      else:
+        name = "1"
+      name = name.replace(" ","*")
+      featureNames.append(name)
+
+    return featureNames
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -2918,93 +2950,50 @@ class PolyExponential(superVisedLearning):
       @ In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
       @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
     """
-    # time
-    
     pivotParamIndex  = self.target.index(self.pivotParameterID)
-    targetParamIndex = self.target.index(self.pivotParameterID)
+    targetParamIndex = self.target.index(self.targetID)
     nsamples = len(targetVals[:,:,pivotParamIndex])
     aij   = np.zeros( (nsamples, self.polyExpParams['expTerms']))
     bij   = np.zeros((nsamples, self.polyExpParams['expTerms']))
+
     #TODO: this can be parallelized
     for smp in range(nsamples):
+      self.raiseADebug("Computing exponential terms for sample ID "+str(smp+1))
       aij[smp,:],bij[smp,:] = self.__computeExponentialTerms(np.ravel(targetVals[smp,:,pivotParamIndex]), np.ravel(targetVals[smp,:,targetParamIndex])/self.polyExpParams['initialScaling'])
+    self.pivotValues = targetVals[0,:,pivotParamIndex]
     # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
-    model = make_pipeline(PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
+    self.model = make_pipeline(PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
     # the targets are the coefficients
-    model.fit(featureVals, np.concatenate( (aij,bij) , axis=1))
-    print("trained")
-    
-    # Fit fourier seires
-    if self.hasFourierSeries:
-      self.__trainFourier__()
-      self.armaPara['rSeries'] = self.timeSeriesDatabase - self.fourierResult['predict']
-    else:
-      self.armaPara['rSeries'] = self.timeSeriesDatabase
-
-    # Transform data to obatain normal distrbuted series. See
-    # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
-    # Applied Energy, 87(2010) 843-855
-    self.__generateCDF__(self.armaPara['rSeries'])
-    self.armaPara['rSeriesNorm'] = self.__dataConversion__(self.armaPara['rSeries'], obj='normalize')
-
-    self.__trainARMA__() # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
-
-    del self.timeSeriesDatabase       # Delete to reduce the pickle size, since from now the original data will no longer be used in the evaluation.
-
+    expTermCoeff = np.concatenate( (aij,bij), axis=1)
+    self.model.fit(featureVals, expTermCoeff)
+    # get feature names
+    featureNames = self.__constructPolyString()
+    # print the coefficient
+    coefficients = self.model.steps[1][1].coef_
+    self.raiseAMessage("Polynomial coefficients:")
+    self.raiseAMessage("  Monomials:")
+    self.raiseAMessage("  "+" ".join(featureNames))
+    for l, coeff in enumerate(coefficients):
+      if l < self.polyExpParams['expTerms']:
+        coeff_str = "    a_"+str(l+1)
+      else:
+        coeff_str = "    b_"+str((l-self.polyExpParams['expTerms'])+1)
+      coeff_str+="(" + ",".join(self.features)+"):"
+      self.raiseAMessage(coeff_str)
+      self.raiseAMessage("      "+" ".join([str(elm) for elm in coefficients[l]]))
 
   def __evaluateLocal__(self,featureVals):
     """
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
-    if featureVals.size > 1:
-      self.raiseAnError(ValueError, 'The input feature for ARMA for evaluation cannot have size greater than 1. ')
-
-    # Instantiate a normal distribution for time series synthesis (noise part)
-    normEvaluateEngine = Distributions.returnInstance('Normal',self)
-    normEvaluateEngine.mean, normEvaluateEngine.sigma = 0, 1
-    normEvaluateEngine.upperBoundUsed, normEvaluateEngine.lowerBoundUsed = False, False
-    normEvaluateEngine.initializeDistribution()
-
-    numTimeStep = len(self.pivotParameterValues)
-    tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
-    # TODO This could probably be vectorized for speed gains
-    for t in range(numTimeStep):
-      for n in range(self.armaPara['dimension']):
-        tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult['sig'][0,n]
-
-    tSeriesNorm = np.zeros(shape=(numTimeStep,self.armaPara['rSeriesNorm'].shape[1]))
-    tSeriesNorm[0,:] = self.armaPara['rSeriesNorm'][0,:]
-    for t in range(numTimeStep):
-      for i in range(1,min(self.armaResult['P'], t)+1):
-        tSeriesNorm[t,:] += np.dot(tSeriesNorm[t-i,:], self.armaResult['Phi'][i])
-      for j in range(1,min(self.armaResult['Q'], t)+1):
-        tSeriesNorm[t,:] += np.dot(tSeriesNoise[t-j,:], self.armaResult['Theta'][j])
-      tSeriesNorm[t,:] += tSeriesNoise[t,:]
-
-    # Convert data back to empirically distributed
-    tSeries = self.__dataConversion__(tSeriesNorm, obj='denormalize')
-    # Add fourier trends
-    self.raiseADebug(self.fourierResult['predict'].shape, tSeries.shape)
-    if self.hasFourierSeries:
-      if len(self.fourierResult['predict'].shape) == 1:
-        tempFour = np.reshape(self.fourierResult['predict'], newshape=(self.fourierResult['predict'].shape[0],1))
-      else:
-        tempFour = self.fourierResult['predict'][0:numTimeStep,:]
-      tSeries += tempFour
-    # Ensure positivity --- FIXME
-    if self.outTruncation is not None:
-      if self.outTruncation == 'positive':
-        tSeries = np.absolute(tSeries)
-      elif self.outTruncation == 'negative':
-        tSeries = -np.absolute(tSeries)
+    evaluation = self.model.predict(featureVals)
     returnEvaluation = {}
-    returnEvaluation[self.pivotParameterID] = self.pivotParameterValues[0:numTimeStep]
-    evaluation = tSeries*featureVals
-    for index, target in enumerate(self.target):
-      returnEvaluation[target] = evaluation[:,index]
+    for point in range(len(evaluation)):
+      l = int(evaluation[point].size/2)
+      returnEvaluation[self.pivotParameterID] = self.pivotValues.ravel()
+      returnEvaluation[self.targetID] =  self.__evaluateExponentialTerm(self.pivotValues , evaluation[point][:l], evaluation[point][l:])*self.polyExpParams['initialScaling']
     return returnEvaluation
-
   def __confidenceLocal__(self,featureVals):
     """
       This method is currently not needed for ARMA

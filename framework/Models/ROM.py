@@ -170,11 +170,13 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedValue", InputData.IntegerType))
-    
+
     inputSpecification.addSub(InputData.parameterInputFactory("maxNumberExpTerms", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("numberExpTerms", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("maxPolyOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("polyOrder", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("initialScaling", InputData.FloatType))
+
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
