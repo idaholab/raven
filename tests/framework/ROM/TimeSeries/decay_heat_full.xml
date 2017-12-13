@@ -16,12 +16,12 @@
     
     <RunInfo>
         <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/ROM/TimeSeries/PolyExponential</WorkingDir>
-		<!-- <Sequence>readIn,RAVENsurrogateTrain,PolyTrain,runRAVENsurrogate,runPoly,plot,writeOut</Sequence> -->
-        <Sequence>readIn,RAVENsurrogateTrain,runRAVENsurrogate,writeOut</Sequence>
+		 <Sequence>readIn,RAVENsurrogateTrain,PolyTrain,pickleRom,runRAVENsurrogate,runPoly,plot,writeOut</Sequence>
         <batchSize>1</batchSize>
     </RunInfo>
     <Files>
         <Input name="rawDataFile">./decay_heat.csv</Input>
+        <Input name="ROMpk" type="">ROMpk</Input>
     </Files>
     <Distributions>
 		<Uniform name="enrichmentDist">
@@ -61,12 +61,9 @@
 			<Target>time,decay_heat</Target>
 			<Features>enrichment,temperature,burnup</Features>
 			<pivotParameter>time</pivotParameter>
-			<!--
-               <numberExpTerms>7</numberExpTerms>
-               <polyOrder>3</polyOrder>
-             -->
-            <maxNumberExpTerms>10</maxNumberExpTerms>
-            <maxPolyOrder>10</maxPolyOrder>
+            <numberExpTerms>10</numberExpTerms>
+            <polyOrder>2</polyOrder>
+            <initialScaling>30000.</initialScaling>
 		</ROM>
         <ROM name='RAVENsurrogate' subType='SciKitLearn'>
             <Target>time,decay_heat</Target>
@@ -85,6 +82,10 @@
 			<Input    class = 'DataObjects'       type = 'HistorySet'    >rawData</Input>
 			<Output   class='Models' 			  type ='ROM' 	 		 >PolyExp</Output>
 		</RomTrainer>
+        <IOStep name='pickleRom' pauseAtEnd = 'True'>
+            <Input    class = 'Models'       type = 'ROM'    >PolyExp</Input>
+            <Output class="Files" type="">ROMpk</Output>
+        </IOStep>
 		<MultiRun name='runPoly'>
 			<Input    class = 'DataObjects'       type = 'PointSet'      >dataIn</Input>
 			<Model   class='Models' 			  type = 'ROM' 	 		 >PolyExp</Model>
@@ -103,13 +104,11 @@
         </MultiRun>
         <IOStep name='writeOut' pauseAtEnd = 'True'>
 			<Input    class = 'DataObjects'       type = 'HistorySet'    >synDataRAVENsurrogate</Input>
-            <!-- <Input    class = 'DataObjects'       type = 'HistorySet'    >synDataPolyExp</Input> -->
+            <Input    class = 'DataObjects'       type = 'HistorySet'    >synDataPolyExp</Input>
 			<Output   class = 'OutStreams'  type = 'Print'               >writeSynDataOutRAVENsurrogate</Output>
 			<Output   class = 'OutStreams'  type = 'Plot'                >plotSynDataRAVENsurrogate</Output>
-            <!--
             <Output   class = 'OutStreams'  type = 'Print'               >writeSynDataOutPolyExp</Output>
             <Output   class = 'OutStreams'  type = 'Plot'                >plotSynDataPolyExp</Output>
-             -->
 		</IOStep>	
     </Steps>
     <OutStreams>		
