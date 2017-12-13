@@ -693,10 +693,10 @@ class DataSet(DataObject):
     #method = 'once' # see below, parallelization is possible but not implemented
     # first case: single entry per node: floats, strings, ints, etc
     dataType = type(None)
-    i = 0
+    i = -1
     while dataType is type(None):
-      dataType = type(data[i])
       i += 1
+      dataType = type(data[i])
     if isinstance(data[i],(float,str,unicode,int,bool,np.bool_)):
       array = xr.DataArray(data,
                            dims=[self.sampleTag],
@@ -1431,8 +1431,11 @@ class DataSet(DataObject):
     data = self.asDataset()
     paths = self._generateHierPaths()
     results = [None] * len(paths)
-    for p,path in paths:
-      # TODO
+    for p,path in enumerate(paths):
+      rlzs = list(self._data.where(data['prefix']==ID,drop=True) for ID in path)
+      results[p] = xr.concat(rlzs,dim=self.sampleTag)
+    return results
+
 #### OLD ####
     branches = list(int(x) for x in prefix.split('_'))
     dataParts = []

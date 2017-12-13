@@ -342,37 +342,37 @@ data.addRealization(rlz1_2_1)
 data.addRealization(rlz1_2_2)
 # make a dataset TODO for less slowdown, see if we can do it with the Collector AND the data
 
+# check endings
 endings = data._getPathEndings()
 checkRlz('Path endings[0]',endings[0],rlz1_1_1,skip='time')
 checkRlz('Path endings[1]',endings[1],rlz1_1_2,skip='time')
 checkRlz('Path endings[2]',endings[2],rlz1_2_1,skip='time')
 checkRlz('Path endings[3]',endings[3],rlz1_2_2,skip='time')
 
-data.asDataset()
-data.write('dump',style='csv')
-#print(data.asDataset())
-#print(data.asDataset()['RAVEN_isEnding'])
+# check paths
+paths = data._generateHierPaths()
+checkArray('Path paths[0]',paths[0],['1','2','4'],str)
+checkArray('Path paths[1]',paths[1],['1','2','5'],str)
+checkArray('Path paths[2]',paths[2],['1','3','6'],str)
+checkArray('Path paths[3]',paths[3],['1','3','7'],str)
 
-### OLD ###
-## find the end of each path
-#checkArray('Path endings',endings,['1_1_1','1_1_2','1_2_1','1_2_2'],str)
-## TODO test endings
-#paths = list(data._reconstructPath(end) for end in endings)
-## check paths; all should have same RAVEN_HierLevel, and sensible prefixes (all nodes are parents of the ending)
-#for p,path in enumerate(paths):
-#  checkArray('Path levels[{}]'.format(p),path['RAVEN_HierLevel'],[1,2,3],float)
-#  checkTrue('Path good prefixes[{}]'.format(p), all(endings[p].startswith(prefix) for prefix in path['prefix'].values))
-## check sample IDs
-#checkArray('Path sampleTag[0]',paths[0]['RAVEN_sample_ID'],[0,1,3],float)
-#checkArray('Path sampleTag[1]',paths[1]['RAVEN_sample_ID'],[0,1,4],float)
-#checkArray('Path sampleTag[2]',paths[2]['RAVEN_sample_ID'],[0,2,5],float)
-#checkArray('Path sampleTag[3]',paths[3]['RAVEN_sample_ID'],[0,2,6],float)
-## check "a"
-#checkArray('Path "a"[0]',paths[0]['a'],[1,1,1],float)
-#checkArray('Path "a"[1]',paths[1]['a'],[1,1,2],float)
-#checkArray('Path "a"[2]',paths[2]['a'],[1,2,2],float)
-#checkArray('Path "a"[3]',paths[3]['a'],[1,2,4],float)
-## TODO could check 'b' and 'time', for now this seems sufficient
+# get fully constructed path data
+full = data._constructHierPaths()
+# check some select data
+checkArray('Path full[0] RSID',full[0]['RAVEN_sample_ID'].values,[0,1,3],float)
+checkArray('Path full[1] RSID',full[1]['RAVEN_sample_ID'].values,[0,1,4],float)
+checkArray('Path full[2] RSID',full[2]['RAVEN_sample_ID'].values,[0,2,5],float)
+checkArray('Path full[3] RSID',full[3]['RAVEN_sample_ID'].values,[0,2,6],float)
+checkArray('Path full[0]',full[0]['prefix'],['1','2','4'],str)
+checkArray('Path full[1]',full[1]['prefix'],['1','2','5'],str)
+checkArray('Path full[2]',full[2]['prefix'],['1','3','6'],str)
+checkArray('Path full[3]',full[3]['prefix'],['1','3','7'],str)
+checkArray('Path full[0] a',full[0]['a'].values,[1,1,1],float)
+checkArray('Path full[1] a',full[1]['a'].values,[1,1,2],float)
+checkArray('Path full[2] a',full[2]['a'].values,[1,2,2],float)
+checkArray('Path full[3] a',full[3]['a'].values,[1,2,4],float)
+for f,fl in enumerate(full):
+  checkArray('Path full[{}] isEnding'.format(f),fl['RAVEN_isEnding'],[False,False,True],str)
 
 print(results)
 

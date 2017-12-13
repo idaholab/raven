@@ -37,7 +37,7 @@ import XDataSet
 import MessageHandler
 
 mh = MessageHandler.MessageHandler()
-mh.initialize({'verbosity':'silent', 'callerLength':10, 'tagLength':10})
+mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 print('Module undergoing testing:')
 print (XDataSet )
