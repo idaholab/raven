@@ -130,7 +130,7 @@ class DataSet(DataObject):
         # Otherwise, scalarMetric
         else:
           # sanity check to make sure suitable values are passed in
-          assert(isinstance(value,(str,unicode,float,int)))
+          assert(isinstance(value,(basestring,float,int)))
           destination.addScalar(target,metric,value)
 
   def addRealization(self,rlz):
@@ -158,8 +158,10 @@ class DataSet(DataObject):
     rlz = self._formatRealization(rlz)
     # perform selective collapsing/picking of data
     rlz = self._selectiveRealization(rlz)
-    # FIXME if no scalar entry is made, this construction fails.
-    #  Instead of treating each dataarrray as an object, numpy.asarray calls their asarray methods,
+    ## establish types if not done yet
+    self._setDataTypes(rlz)
+    #  NB If no scalar entry is made, this construction fails.  In that case,
+    #  instead of treating each dataarrray as an object, numpy.asarray calls their asarray methods,
     #  unfolding them and making a full numpy array with more dimensions, instead of effectively
     #  a list of realizations, where each realization is effectively a list of xr.DataArray objects.
     #
@@ -170,6 +172,7 @@ class DataSet(DataObject):
     #   each of which is a numpy array of some combination of scalar values and/or xr.DataArrays.
     #   This is because the cNDarray collector expects a LIST of realization, not a single realization.
     #   Maybe the "append" method should be renamed to "extend" or changed to append one at a time.
+    ## set realizations as a list of realizations (which are ordered lists)
     newData = np.asarray([list(rlz[var] for var in self._allvars)+[0.0]],dtype=object)
     newData = newData[:,:-1]
     # if data storage isn't set up, set it up
@@ -231,7 +234,7 @@ class DataSet(DataObject):
       @ Out, same, bool, if True then alignment is good
     """
     # format request so that indexesToCheck is always a list
-    if isinstance(indexesToCheck,(str,unicode)):
+    if isinstance(indexesToCheck,basestring):
       indexesToCheck = [indexesToCheck]
     elif indexesToCheck is None:
       indexesToCheck = self.indexes[:]
@@ -352,7 +355,7 @@ class DataSet(DataObject):
     # For faster access, consider using data.asDataset()['varName'] for one variable, or
     #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
-    if isinstance(var,(str,unicode)):
+    if isinstance(var,basestring):
       val = self._data[var]
       #format as scalar
       if len(val.dims) == 0:
@@ -570,6 +573,7 @@ class DataSet(DataObject):
     DataObject.__init__(self)
     self.name      = 'DataSet'
     self.type      = 'DataSet'
+    self.types     = None       # list of type objects, for each realization entry
     self.printTag  = self.name
     self.defaultDtype = object
     self._scaleFactors = {}     # mean, sigma for data for matching purposes
@@ -640,13 +644,14 @@ class DataSet(DataObject):
     """
     assert(isinstance(data,np.ndarray))
     assert(len(data.shape) == 1)
+    # set up sampleTag values
     if labels is None:
       labels = range(len(data))
     else:
       assert(len(labels) == len(data))
     #method = 'once' # see below, parallelization is possible but not implemented
     # first case: single entry per node: floats, strings, ints, etc
-    if isinstance(data[0],(float,str,unicode,int)):
+    if isinstance(data[0],(float,basestring,int,bool,np.bool_)):
       array = xr.DataArray(data,
                            dims=[self.sampleTag],
                            coords={self.sampleTag:labels},
@@ -804,8 +809,16 @@ class DataSet(DataObject):
       firstSample = int(self._data[self.sampleTag][-1])+1 if self._data is not None else 0
       arrs = {}
       for v,var in enumerate(self._allvars):
+        # gather data type from first realization
+        dtype = object = self.types[v]
+        # if not scalar, then dtype is embedded below this level
+        if isinstance(data[0,v],xr.DataArray):
+          varData = data[:,v]
+        # if scalar, however, need to force correct dtype here
+        else:
+          varData = np.array(data[:,v],dtype=dtype)
         # create single dataarrays
-        arrs[var] = self._collapseNDtoDataArray(data[:,v],var)
+        arrs[var] = self._collapseNDtoDataArray(varData,var)
         # re-index samples
         arrs[var][self.sampleTag] += firstSample
       # collect all data into dataset, and update self._data
@@ -814,7 +827,7 @@ class DataSet(DataObject):
       else:
         self._convertArrayListToDataset(arrs,action='extend')
       # reset collector
-      self._collector = self._newCollector(width=self._collector.width,dtype=self._collector.values.dtype)
+      self._collector = self._newCollector(width=self._collector.width)
     return self._data
 
   def _formatRealization(self,rlz):
@@ -825,11 +838,14 @@ class DataSet(DataObject):
     """
     # TODO this could be much more efficient on the parallel (finalizeCodeOutput) than on serial
     # TODO costly for loop
-    indexes = []
+    # do indexes first to assure correct typing on first realization collection
+    if self._collector is None or len(self._collector) == 0:
+      for var in self._pivotParams.keys():
+        dtype = self._getCompatibleType(rlz[var][0])
+        rlz[var] = np.array(rlz[var],dtype=dtype)
     for var,val in rlz.items():
-      # if an index variable, skip it and mark it for removal
+      # if an index variable, skip it
       if var in self._pivotParams.keys():
-        indexes.append(var)
         continue
       dims = self.getDimensions(var)[var]
       ## change dimensionless to floats -> TODO use operator to collapse!
@@ -839,8 +855,12 @@ class DataSet(DataObject):
       ## reshape multidimensional entries into dataarrays
       else:
         coords = dict((d,rlz[d]) for d in dims)
+        # if first entry in collector, assure types are correct for the index
+        if self._collector is None or len(self._collector) == 0:
+          dtype = self._getCompatibleType(val[0])
+          val = np.array(val,dtype=dtype)
         rlz[var] = self.constructNDSample(val,dims,coords,name=var)
-    for var in indexes:
+    for var in self._pivotParams.keys():
       del rlz[var]
     return rlz
 
@@ -936,6 +956,10 @@ class DataSet(DataObject):
   def _fromDict(self,source,dims=None,**kwargs):
     """
       Loads data from a dictionary with variables as keys and values as np.arrays of realization values
+      Format for entries in "source":
+        - scalars: source['a'] = np.array([1, 2, 3, 4])  -> each entry is a realization
+        - vectors: source['b'] = np.array([ np.array([1, 2]), np.array([3,4,5]) ])  -> each entry is a realization
+        - indexes: same as "vectors"
       @ In, source, dict, as {var:values} with types {str:np.array}
       @ In, dims, dict, optional, ordered list of dimensions that each var depends on as {var:[list]}
       @ In, kwargs, dict, optional, additional arguments
@@ -986,6 +1010,9 @@ class DataSet(DataObject):
       data[:,i] = values
     # set up collector as cached nd array of values
     self._collector = cached_ndarray.cNDarray(values=data,dtype=object)
+    # set datatypes for each variable
+    rlz = self.realization(index=0)
+    self._setDataTypes(rlz)
     # collapse into xr.Dataset
     self.asDataset()
 
@@ -1006,6 +1033,30 @@ class DataSet(DataObject):
     # convert metadata back to XML files
     for key,val in self._data.attrs.items():
       self._meta[key] = pk.loads(val.encode('utf-8'))
+
+  def _getCompatibleType(self,val):
+    """
+      Determines the data type for "val" that is compatible with the rest of the data object.
+      @ In, val, object, item whose type should be determined.
+      @ Out, _type, type instance, type to use
+    """
+    # ND uses first entry as example type
+    if isinstance(val,xr.DataArray):
+      val = val.item(0)
+    # identify other scalars by instance
+    if isinstance(val,float):
+      _type = float
+    elif isinstance(val,int):
+      _type = int
+    elif isinstance(val,(bool,np.bool_)):
+      _type = bool
+    # strings and unicode have to be stored as objects to prevent string sizing in numpy
+    elif isinstance(val,basestring):
+      _type = object
+    # catchall
+    else:
+      _type = object
+    return _type
 
   def _getRealizationFromCollectorByIndex(self,index):
     """
@@ -1199,6 +1250,18 @@ class DataSet(DataObject):
       if isinstance(val,np.ndarray):
         self.raiseAnError(NotImplementedError,'Variable "{}" has no dimensions but has multiple values!  Not implemented for DataSet yet.'.format(var))
     return rlz
+
+  def _setDataTypes(self,rlz):
+    """
+      Set the data types according to the given realization.
+      @ In, rlz, dict, standardized and formatted realization
+      @ Out, None
+    """
+    if self.types is None:
+      self.types = [None]*len(self._allvars)
+      for v,name in enumerate(self._allvars):
+        var = rlz[name]
+        self.types[v] = self._getCompatibleType(var)
 
   def _setScalingFactors(self,var=None):
     """
