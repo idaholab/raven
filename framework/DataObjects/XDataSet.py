@@ -646,11 +646,12 @@ class DataSet(DataObject):
     assert(type(value).__name__ in ['float','str','int','unicode','bool'])
     lenColl = len(self._collector) if self._collector is not None else 0
     lenData = len(self._data     ) if self._data      is not None else 0
+    # if it's in the data ...
+    if index < lenData:
+      self._data[var].values[index] = value
     # if it's in the collector ...
-    if index < lenColl:
-      self._collector[index][self._allvars.index(var)] = value
     elif index < lenColl + lenData:
-      pass #TODO
+      self._collector[index][self._allvars.index(var)] = value
     else:
       self.raiseAnError(IndexError,'Requested value change for realization "{}", which is past the end of the data object!'.format(index))
 
@@ -1436,20 +1437,6 @@ class DataSet(DataObject):
       results[p] = xr.concat(rlzs,dim=self.sampleTag)
     return results
 
-#### OLD ####
-    branches = list(int(x) for x in prefix.split('_'))
-    dataParts = []
-    # walk up the levels until all the parts are obtained
-    for level in range(len(branches)):
-      if level == len(branches) - 1:
-        branch = branches
-      else:
-        branch = branches[:level+1]
-      partPrefix = '_'.join(list(str(b) for b in branch))
-      dataParts.append(data.where(data['prefix'] == partPrefix,drop=True))
-    data = xr.concat(dataParts,dim=self.sampleTag)
-    return data
-
   def _generateHierPaths(self):
     """
       Returns paths followed to obtain endings
@@ -1462,7 +1449,7 @@ class DataSet(DataObject):
     for e,ending in enumerate(endings):
       # reconstruct path that leads to this ending
       path = [ending['prefix']]
-      while ending['RAVEN_parentID'] is not None:
+      while ending['RAVEN_parentID'] is not None and not pd.isnull(ending['RAVEN_parentID']):
         _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
         path.append(ending['prefix'])
       # sort it in order by progression

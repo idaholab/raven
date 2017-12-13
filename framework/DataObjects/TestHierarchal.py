@@ -165,7 +165,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
     for key,val in first.items():
       if key in skip:
         continue
-      if isinstance(val,(float,int)):
+      if isinstance(val,(float,int)) and not isinstance(val,bool):
         pres = checkFloat('',val,second[key][0],tol,update=False)
       elif isinstance(val,(str,unicode,bool,np.bool_)):
         pres = checkSame('',val,second[key][0],update=False)
@@ -337,6 +337,17 @@ data.addRealization(rlz1)
 data.addRealization(rlz1_1)
 data.addRealization(rlz1_2)
 data.addRealization(rlz1_1_1)
+# check mid-creation, calling asDataset
+## this assures that we can work with the collector OR the data equally well
+data.asDataset()
+endings = data._getPathEndings()
+#for e,end in enumerate(endings):
+checkRlz('Path early endings[0]',endings[0],rlz1_2,skip='time')
+checkRlz('Path early endings[1]',endings[1],rlz1_1_1,skip='time')
+paths = data._generateHierPaths()
+full = data._constructHierPaths()
+
+
 data.addRealization(rlz1_1_2)
 data.addRealization(rlz1_2_1)
 data.addRealization(rlz1_2_2)
@@ -344,17 +355,17 @@ data.addRealization(rlz1_2_2)
 
 # check endings
 endings = data._getPathEndings()
-checkRlz('Path endings[0]',endings[0],rlz1_1_1,skip='time')
-checkRlz('Path endings[1]',endings[1],rlz1_1_2,skip='time')
-checkRlz('Path endings[2]',endings[2],rlz1_2_1,skip='time')
-checkRlz('Path endings[3]',endings[3],rlz1_2_2,skip='time')
+checkRlz('Path endings[0]',endings[0],rlz1_1_2,skip='time')
+checkRlz('Path endings[1]',endings[1],rlz1_2_1,skip='time')
+checkRlz('Path endings[2]',endings[2],rlz1_2_2,skip='time')
+checkRlz('Path endings[3]',endings[3],rlz1_1_1,skip='time')
 
 # check paths
 paths = data._generateHierPaths()
-checkArray('Path paths[0]',paths[0],['1','2','4'],str)
-checkArray('Path paths[1]',paths[1],['1','2','5'],str)
-checkArray('Path paths[2]',paths[2],['1','3','6'],str)
-checkArray('Path paths[3]',paths[3],['1','3','7'],str)
+checkArray('Path paths[0]',paths[3],['1','2','4'],str)
+checkArray('Path paths[1]',paths[0],['1','2','5'],str)
+checkArray('Path paths[2]',paths[1],['1','3','6'],str)
+checkArray('Path paths[3]',paths[2],['1','3','7'],str)
 
 # get fully constructed path data
 full = data._constructHierPaths()
