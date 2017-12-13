@@ -837,9 +837,9 @@ for l,line in enumerate(open(fname+'.csv','r')):
   if l == 0:
     checkSame('Cluster CSV main [0]',line.strip(),'trajID,filename')
   elif l == 1:
-    checkSame('Cluster CSV main [1]',line.strip(),'1.0,{}_1.0.csv'.format(fname))
+    checkSame('Cluster CSV main [1]',line.strip(),'1,{}_1.csv'.format(fname))
   elif l == 2:
-    checkSame('Cluster CSV main [2]',line.strip(),'2.0,{}_2.0.csv'.format(fname))
+    checkSame('Cluster CSV main [2]',line.strip(),'2,{}_2.csv'.format(fname))
 for l,line in enumerate(open(fname+'_1.csv','r')):
   if l == 0:
     checkSame('Cluster CSV id1 [0]',line.strip(),'a,b,x,y,varsUpdate')

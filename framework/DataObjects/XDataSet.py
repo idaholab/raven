@@ -499,6 +499,16 @@ class DataSet(DataObject):
       for varlist in [self._inputs,self._outputs,self._metavars]:
         if variable in varlist:
           varlist.remove(variable)
+      # remove from pivotParams, and remove any indexes without keys
+      for pivot in self.indexes:
+        print('DEBUGG checking pivot',pivot,self._pivotParams[pivot])
+        if variable in self._pivotParams[pivot]:
+          self._pivotParams[pivot].remove(variable)
+        if len(self._pivotParams[pivot]) == 0:
+          del self._pivotParams[pivot]
+          # if in self._data, clear the index
+          if not noData and pivot in self._data.dims:
+            del self._data[pivot] # = self._data.drop(pivot,dim
       # TODO remove references from general metadata?
     if self._scaleFactors is not None:
       self._scaleFactors.pop(variable,None)
@@ -733,7 +743,8 @@ class DataSet(DataObject):
     elif action == 'extend':
       # TODO compatability check!
       # TODO Metadata update?
-      self._data.merge(new,inplace=True)
+      # merge can change dtypes b/c no NaN int type: self._data.merge(new,inplace=True)
+      self._data = xr.concat([self._data,new],dim=self.sampleTag)
     # set up scaling factors
     self._setScalingFactors()
     return new
