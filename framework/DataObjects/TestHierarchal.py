@@ -167,7 +167,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
         continue
       if isinstance(val,(float,int)):
         pres = checkFloat('',val,second[key][0],tol,update=False)
-      elif isinstance(val,(str,unicode)):
+      elif isinstance(val,(str,unicode,bool,np.bool_)):
         pres = checkSame('',val,second[key][0],update=False)
       elif isinstance(val,np.ndarray):
         if isinstance(val[0],(float,int)):
@@ -263,9 +263,10 @@ xml.append(createElement('Index',attrib={'var':'time'},text='b'))
 data = XDataSet.DataSet()
 # initialization
 data.messageHandler = mh
+mh.verbosity = 'debug'
 data._readMoreXML(xml)
 # register expected meta
-data.addExpectedMeta(['prefix','RAVEN_HierLevel'])
+data.addExpectedMeta(['prefix','RAVEN_parentID','RAVEN_isEnding'])
 
 #### Explanation of Test ####
 # We're going to simulate the storage of a heirarchical data tree as follows:
@@ -287,37 +288,50 @@ rlz1 = {              'a':np.array([1.0        ]),
                       'b':np.array([0.1,0.2,0.3]),
                    'time':np.array([1.0,2.0,3.0])*1e-6,
                  'prefix':np.array(["1"        ]),
-        'RAVEN_HierLevel':np.array([1          ])}
+         'RAVEN_parentID':np.array([None       ]),
+         'RAVEN_isEnding':np.array([True       ])}
+
 rlz1_1 = {            'a':np.array([1.0        ]),
                       'b':np.array([0.4,0.5,0.6]),
                    'time':np.array([4.0,5.0,6.0])*1e-6,
-                 'prefix':np.array(["1_1"      ]),
-        'RAVEN_HierLevel':np.array([2          ])}
+                 'prefix':np.array(["2"        ]),
+         'RAVEN_parentID':np.array(["1"        ]),
+         'RAVEN_isEnding':np.array([True       ])}
+
 rlz1_2 = {            'a':np.array([2.0        ]),
                       'b':np.array([0.7,0.8,0.9]),
                    'time':np.array([7.0,8.0,9.0])*1e-6,
-                 'prefix':np.array(["1_2"      ]),
-        'RAVEN_HierLevel':np.array([2          ])}
+                 'prefix':np.array(["3"        ]),
+         'RAVEN_parentID':np.array(["1"        ]),
+         'RAVEN_isEnding':np.array([True       ])}
+
 rlz1_1_1 = {          'a':np.array([1.0        ]),
                       'b':np.array([1.0,1.1,1.2]),
                    'time':np.array([1.0,1.1,1.2])*1e-5,
-                 'prefix':np.array(["1_1_1"    ]),
-        'RAVEN_HierLevel':np.array([3          ])}
+                 'prefix':np.array(["4"        ]),
+         'RAVEN_parentID':np.array(["2"        ]),
+         'RAVEN_isEnding':np.array([True       ])}
+
 rlz1_1_2 = {          'a':np.array([2.0        ]),
                       'b':np.array([1.3,1.4,1.5]),
                    'time':np.array([1.3,1.4,1.5])*1e-5,
-                 'prefix':np.array(["1_1_2"    ]),
-        'RAVEN_HierLevel':np.array([3          ])}
+                 'prefix':np.array(["5"        ]),
+         'RAVEN_parentID':np.array(["2"        ]),
+         'RAVEN_isEnding':np.array([True       ])}
+
 rlz1_2_1 = {          'a':np.array([2.0        ]),
                       'b':np.array([1.6,1.7,1.8]),
                    'time':np.array([1.6,1.7,1.8])*1e-5,
-                 'prefix':np.array(["1_2_1"    ]),
-        'RAVEN_HierLevel':np.array([3          ])}
+                 'prefix':np.array(["6"        ]),
+         'RAVEN_parentID':np.array(["3"        ]),
+         'RAVEN_isEnding':np.array([True       ])}
+
 rlz1_2_2 = {          'a':np.array([4.0        ]),
                       'b':np.array([1.9,2.0,2.1]),
                    'time':np.array([1.9,2.0,2.1])*1e-5,
-                 'prefix':np.array(["1_2_2"    ]),
-        'RAVEN_HierLevel':np.array([3          ])}
+                 'prefix':np.array(["7"        ]),
+         'RAVEN_parentID':np.array(["3"        ]),
+         'RAVEN_isEnding':np.array([True       ])}
 
 data.addRealization(rlz1)
 data.addRealization(rlz1_1)
@@ -328,26 +342,37 @@ data.addRealization(rlz1_2_1)
 data.addRealization(rlz1_2_2)
 # make a dataset TODO for less slowdown, see if we can do it with the Collector AND the data
 
-# find the end of each path
 endings = data._getPathEndings()
-checkArray('Path endings',endings,['1_1_1','1_1_2','1_2_1','1_2_2'],str)
-# TODO test endings
-paths = list(data._reconstructPath(end) for end in endings)
-# check paths; all should have same RAVEN_HierLevel, and sensible prefixes (all nodes are parents of the ending)
-for p,path in enumerate(paths):
-  checkArray('Path levels[{}]'.format(p),path['RAVEN_HierLevel'],[1,2,3],float)
-  checkTrue('Path good prefixes[{}]'.format(p), all(endings[p].startswith(prefix) for prefix in path['prefix'].values))
-# check sample IDs
-checkArray('Path sampleTag[0]',paths[0]['RAVEN_sample_ID'],[0,1,3],float)
-checkArray('Path sampleTag[1]',paths[1]['RAVEN_sample_ID'],[0,1,4],float)
-checkArray('Path sampleTag[2]',paths[2]['RAVEN_sample_ID'],[0,2,5],float)
-checkArray('Path sampleTag[3]',paths[3]['RAVEN_sample_ID'],[0,2,6],float)
-# check "a"
-checkArray('Path "a"[0]',paths[0]['a'],[1,1,1],float)
-checkArray('Path "a"[1]',paths[1]['a'],[1,1,2],float)
-checkArray('Path "a"[2]',paths[2]['a'],[1,2,2],float)
-checkArray('Path "a"[3]',paths[3]['a'],[1,2,4],float)
-# TODO could check 'b' and 'time', for now this seems sufficient
+checkRlz('Path endings[0]',endings[0],rlz1_1_1,skip='time')
+checkRlz('Path endings[1]',endings[1],rlz1_1_2,skip='time')
+checkRlz('Path endings[2]',endings[2],rlz1_2_1,skip='time')
+checkRlz('Path endings[3]',endings[3],rlz1_2_2,skip='time')
+
+data.asDataset()
+data.write('dump',style='csv')
+#print(data.asDataset())
+#print(data.asDataset()['RAVEN_isEnding'])
+
+### OLD ###
+## find the end of each path
+#checkArray('Path endings',endings,['1_1_1','1_1_2','1_2_1','1_2_2'],str)
+## TODO test endings
+#paths = list(data._reconstructPath(end) for end in endings)
+## check paths; all should have same RAVEN_HierLevel, and sensible prefixes (all nodes are parents of the ending)
+#for p,path in enumerate(paths):
+#  checkArray('Path levels[{}]'.format(p),path['RAVEN_HierLevel'],[1,2,3],float)
+#  checkTrue('Path good prefixes[{}]'.format(p), all(endings[p].startswith(prefix) for prefix in path['prefix'].values))
+## check sample IDs
+#checkArray('Path sampleTag[0]',paths[0]['RAVEN_sample_ID'],[0,1,3],float)
+#checkArray('Path sampleTag[1]',paths[1]['RAVEN_sample_ID'],[0,1,4],float)
+#checkArray('Path sampleTag[2]',paths[2]['RAVEN_sample_ID'],[0,2,5],float)
+#checkArray('Path sampleTag[3]',paths[3]['RAVEN_sample_ID'],[0,2,6],float)
+## check "a"
+#checkArray('Path "a"[0]',paths[0]['a'],[1,1,1],float)
+#checkArray('Path "a"[1]',paths[1]['a'],[1,1,2],float)
+#checkArray('Path "a"[2]',paths[2]['a'],[1,2,2],float)
+#checkArray('Path "a"[3]',paths[3]['a'],[1,2,4],float)
+## TODO could check 'b' and 'time', for now this seems sufficient
 
 print(results)
 
