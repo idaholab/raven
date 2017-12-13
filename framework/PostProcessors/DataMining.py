@@ -13,7 +13,6 @@
 # limitations under the License.
 """
 Created on July 10, 2013
-
 @author: alfoa
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
@@ -214,154 +213,7 @@ class DataMining(PostProcessor):
     """
     self.jobHandler = initDict['internal']['jobHandler']
 
-  def inputToInternalForHistorySet(self,currentInput):
-    inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
-    if self.PreProcessor is None and self.metric is None:
-      # for testing time dependent data mining - time dependent clustering
-
-      self.pivotVariable  = np.asarray(currentInput['data'].isel(RAVEN_sample_ID=0)[self.pivotParameter])[-1]
-      historyKey          = currentInput.getOutParametersValues().keys()
-      numberOfSample      = len(currentInput['data']['RAVEN_sample_ID'].values)
-      numberOfHistoryStep = len(np.asarray(currentInput['data'].isel(RAVEN_sample_ID=0)[self.pivotParameter])[-1])
-
-      if self.initializationOptionDict['KDD']['Features'] == 'input':
-        self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
-      elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
-        features = currentInput.getParaKeys('output')
-        #features.remove(self.pivotParameter)
-      else:
-        features = self.initializationOptionDict['KDD']['Features'].split(',')
-
-      for param in features:
-        inputDict['Features'][param] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-        for cnt, keyH in enumerate(historyKey):
-          inputDict['Features'][param][cnt,:] = currentInput.realization(index=keyH)[param] # currentInput.getParam('output', keyH)[param]
-
-    elif self.metric is not None:
-      if self.initializationOptionDict['KDD']['Features'] == 'input':
-        self.raiseAnError(ValueError, 'KDD Post-processor for time dependent data with metric provided allows only output variables (time-dependent)')
-      elif self.initializationOptionDict['KDD']['Features'] == 'output':
-        numberOfSample = currentInput.size
-        for i in range(numberOfSample):
-          rlz = currentInput.realization(index=i)
-          for var in currentInput.getVars('output'):
-            inputDict['Features'][i] = rlz[var]
-
-    elif self.PreProcessor is not None:
-      return self.inputToInternalForPreProcessor([currentInput])
-
-    inputDict['metadata'] = currentInput.getMeta(pointwise=True,general=True)
-    return inputDict
-
-  def inputToInternalForPointSet(self,currentInput):
-    ## Get what is available in the data object being operated on
-    ## This is potentially more information than we need at the moment, but
-    ## it will make the code below easier to read and highlights where objects
-    ## are reused more readily
-
-    data = currentInput.asDataset()
-    allInputFeatures = currentInput.getVars('input')
-    allOutputFeatures = currentInput.getVars('output')
-
-    if self.PreProcessor is None:
-      inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
-      if self.initializationOptionDict['KDD']['Features'] == 'input':
-        for param in allInputFeatures:
-          inputDict['Features'][param] = data[param]
-      elif self.initializationOptionDict['KDD']['Features'] == 'output':
-        for param in allOutputFeatures:
-          inputDict['Features'][param] = data[param]
-      elif self.initializationOptionDict['KDD']['Features'] == 'all':
-        for param in allInputFeatures:
-          inputDict['Features'][param] = data[param]
-        for param in allOutputFeatures:
-          inputDict['Features'][param] = data[param]
-      else:
-        ## Get what the user asks requests
-        features = set(self.initializationOptionDict['KDD']['Features'].split(','))
-
-        if features not in (allInputFeatures+allOutputFeatures):
-          self.raiseAnError(ValueError, 'Data Mining PP: features specified in the '
-                                        'PP (' + str(features) + ') do not match the one available '
-                                        'in the dataObject ('+ str(allInputFeatures+allOutputFeatures) +') ')
-        ## Now intersect what the user wants and what is available.
-        ## NB: this will not error, if the user asks for something that does not
-        ##     exist in the data, it will silently ignore it.
-        inParams  = list(features.intersection(allInputFeatures))
-        outParams = list(features.intersection(allOutputFeatures))
-
-        for param in inParams:
-          inputDict['Features'][param] = data[param]
-        for param in outParams:
-          inputDict['Features'][param] = data[param]
-
-      inputDict['metadata'] = currentInput.getMeta(pointwise=True,general=True)
-      return inputDict
-
-    elif self.PreProcessor is not None:
-      return self.inputToInternalForPreProcessor([currentInput])
-
-  def inputToInternalForPreProcessor(self,currentInput):
-    inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
-    '''
-    if self.initializationOptionDict['KDD']['Features'] == 'input':
-      features = currentInp[-1].getParaKeys('input')
-    elif self.initializationOptionDict['KDD']['Features'] == 'output':
-      features = currentInp[-1].getParaKeys('output')
-    else:
-      features = self.initializationOptionDict['KDD']['Features'].split(',')
-    '''
-    if self.PreProcessor.interface.returnFormat('output') not in ['PointSet']:
-      self.raiseAnError(IOError, 'DataMining PP: this PP is employing a pre-processor PP which does not generates a PointSet.')
-
-    tempData = self.PreProcessor.interface.inputToInternal(currentInput)
-    preProcessedData = self.PreProcessor.interface.run(tempData)
-
-    if self.initializationOptionDict['KDD']['Features'] == 'input':
-      featureList = currentInput.vars('input')
-    elif self.initializationOptionDict['KDD']['Features'] == 'output':
-      featureList = currentInput.vars('input')
-    else:
-      featureList = self.initializationOptionDict['KDD']['Features'].split(',')
-
-    for key in featureList:
-      inputDict['Features'][key] = copy.deepcopy(preProcessedData['data'][key])
-
-    inputDict['metadata'] = currentInput.getMeta(pointwise=True,general=True)
-    return inputDict
-
   def inputToInternal(self, currentInp):
-    """
-      Function to convert the received input into a format this object can
-      understand
-      @ In, currentInp, list or DataObjects, Some form of data object or list of
-        data objects handed to the post-processor
-      @ Out, inputDict, dict, An input dictionary this object can process
-    """
-
-    if type(currentInp) == list:
-      currentInput = currentInp[-1]
-      '''====> For the reviewer: should we raise a warning/error here? I see issues here......'''
-    else:
-      currentInput = currentInp
-
-    if currentInput.type == 'HistorySet':
-      return self.inputToInternalforHistorySet(currentInput)
-
-    elif currentInput.type == 'PointSet':
-      return self.inputToInternalForPointSet(currentInput)
-
-    elif type(currentInp) == dict:
-      if 'Features' in currentInput.keys():
-        return
-
-    elif isinstance(currentInp, Files.File):
-      self.raiseAnError(IOError, 'DataMining PP: this PP does not support files as input.')
-
-    elif currentInput.type == 'HDF5':
-      self.raiseAnError(IOError, 'DataMining PP: this PP does not support HDF5 Objects as input.')
-
-  def inputToInternal_OLD(self, currentInp):
     """
       Function to convert the received input into a format this object can
       understand
@@ -486,8 +338,6 @@ class DataMining(PostProcessor):
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
         inputDict['Features'] = currentInput.getOutParametersValues()
       elif self.initializationOptionDict['KDD']['Features'] == 'all':
-        allInputFeatures = currentInput.getParaKeys('input')
-        allOutputFeatures = currentInput.getParaKeys('output')
         for param in allInputFeatures:
           inputDict['Features'][param] = currentInput.getParam('input', param)
         for param in allOutputFeatures:
@@ -614,7 +464,7 @@ class DataMining(PostProcessor):
       elif self.unSupervisedEngine.getDataMiningType() in ['decomposition','manifold']:
         self.labelFeature = self.name+'Dimension'
 
-  def collectOutput_OLD(self, finishedJob, outputObject):
+  def collectOutput(self, finishedJob, outputObject):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob, JobHandler External or Internal instance, A JobHandler
@@ -716,67 +566,6 @@ class DataMining(PostProcessor):
           for index, keyH in enumerate(historyKey):
             for keyL in dataMineDict['outputs'].keys():
               outputObject.updateOutputValue([keyH,keyL], dataMineDict['outputs'][keyL][index,:])
-    ## End data augmentation
-    ############################################################################
-
-    if len(missingKeys) > 0:
-      missingKeys = ','.join(missingKeys)
-      self.raiseAWarning("The {} \"{}\" used as an output specifies the "
-                         "following inputs/outputs that could not be resolved "
-                         "by the \"{}\" {}: {}".format(outputObject.type,
-                                                       outputObject.name,
-                                                       self.name, "Model",
-                                                       missingKeys))
-
-  def collectOutput(self, finishedJob, outputObject):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler
-        object that is in charge of running this post-processor
-      @ InOut, outputObject, dataObjects, A reference to an object where we want
-        to place our computed results
-    """
-    ## When does this actually happen?
-    evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-
-    inputObject, dataMineDict = evaluation
-
-    ## This should not have to be a list
-    ## TODO: figure out if there is a case where it can be in this processor
-    inputObject = inputObject[0]
-
-    ## Store everything we cannot wrangle from the input data object and the
-    ## result of the dataMineDict
-    missingKeys = []
-
-    ############################################################################
-    ## If the input data object is different from the output data object, we
-    ## need to explicitly copy everything over that the user requests from the
-    ## input object
-    if inputObject != outputObject:
-      ## First copy any data you need from the input object
-      ## before adding new data
-      numberOfRealizations =  len(inputObject['data']['RAVEN_sample_ID'].values)
-      for i in range(numberOfRealizations):
-        outputObject.addRealization(inputObject.realization(index=i))
-    ## End data copy
-    ############################################################################
-
-    ############################################################################
-    ## Now augment the DataObject by adding the computed labels and/or
-    ## transformed coordinates aka the new columns added to the DataObject
-    for key in dataMineDict['outputs']:
-      if outputObject.type == 'PointSet':
-        outputObject.addVariable(key,dataMineDict['outputs'][key])
-      elif outputObject.type == 'HistorySet':
-        if self.PreProcessor is not None or self.metric is not None:
-          for keyL in dataMineDict['outputs'].keys():
-            outputObject.addVariable(keyL, dataMineDict['outputs'][key])
-        else:
-          for keyL in dataMineDict['outputs'].keys():
-            outputObject.addVariable(keyL, dataMineDict['outputs'][key])
     ## End data augmentation
     ############################################################################
 
