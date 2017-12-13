@@ -119,22 +119,6 @@ class hdf5Database(MessageHandler.MessageUser):
       # The root name is / . it can be changed if addGroupInit is called
       self.parentGroupName = b'/'
 
-  #def addExpectedMeta(self,keys):
-    #"""
-      #Registers meta to look for in realizations.
-      #@ In, keys, set(str), keys to register
-      #@ Out, None
-    #"""
-    ## TODO add option to skip parts of meta if user wants to
-    ## remove already existing keys
-    #keys = list(key for key in keys if key not in self._metavars)
-    ## if no new meta, move along
-    #if len(keys) == 0:
-      #return
-    ## CANNOT add expected new meta after database has been used
-    #assert(len(self._metavars) == 0)
-    #self._metavars.extend(keys)
-
   def __createObjFromFile(self):
     """
       Function to create the list "self.allGroupPaths" and the dictionary "self.allGroupEnds"
@@ -181,9 +165,8 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, source, File object, data source (for example, csv file)
       @ Out, None
     """
-    parentID  = rlz.get("parentID") if type(rlz.get("parentID")) != np.ndarray else rlz.get("parentID")[0]
-    groupName = rlz.get("prefix") if type(rlz.get("prefix")) != np.ndarray else rlz.get("prefix")[0]
-
+    parentID  = rlz.get("parentID",[None])[0]
+    groupName = rlz.get("prefix")[0]
     if parentID:
       #If Hierarchical structure, firstly add the root group
       if not self.firstRootGroup or parentID == 'root':

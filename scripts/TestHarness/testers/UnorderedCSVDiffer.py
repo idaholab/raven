@@ -13,6 +13,7 @@
 # limitations under the License.
 from __future__ import division, print_function, unicode_literals, absolute_import
 import sys,os
+import numpy as np
 import pandas as pd
 
 class UnorderedCSVDiffer:
@@ -56,10 +57,17 @@ class UnorderedCSVDiffer:
       @ Out, match, TODO, matching row of data
     """
     match = csv.copy()
+    match = match.replace(np.inf,-sys.maxint)
+    match = match.replace(np.nan,sys.maxint)
+    # mask inf as -sys.max and nan as +sys.max
     for idx, val in row.iteritems():
+      if val == np.inf:
+        val = -sys.maxint
+      elif pd.isnull(val):
+        val = sys.maxint
       try:
         # try float/int first
-        match = match[abs(match[idx] - val) < self.__rel_err]
+        match = match[(abs(match[idx] - val) < self.__rel_err)]
       except TypeError:
         # otherwise, use exact matching
         match = match[match[idx] == val]
@@ -143,3 +151,6 @@ class UnorderedCSVDiffer:
           break
       self.finalizeMessage(same,msg,testFilename)
     return self.__same, self.__message
+
+  ## accessors
+

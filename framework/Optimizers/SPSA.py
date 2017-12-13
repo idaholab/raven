@@ -193,7 +193,7 @@ class SPSA(GradientBasedOptimizer):
           #for i in range(1,self.gradDict['numIterForAve']*2,2):
           for i in self.perturbationIndices:
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
-            outval = self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar][evalIndex]
+            outval = float(self.mdlEvalHist.realization(index=evalIndex)[self.objVar])
             self.gradDict['pertPoints'][traj][i]['output'] = outval
           # reset per-opt-point counters, forward the varsUpdate
           self.counter['perturbation'][traj] = 0
@@ -291,7 +291,8 @@ class SPSA(GradientBasedOptimizer):
     GradientBasedOptimizer.localGenerateInput(self,model,oldInput)
     action, traj = self.nextActionNeeded
     #store traj as active for sampling
-    self.inputInfo['trajectory'] = traj
+    self.inputInfo['trajID'] = np.atleast_1d(traj+1)
+    self.inputInfo['varsUpdate'] = np.atleast_1d(self.counter['varsUpdate'][traj])
     #"action" and "traj" are set in localStillReady
     #"action" is a string of the next action needed by the optimizer in order to move forward
     #"traj" is the trajectory that is in need of the action

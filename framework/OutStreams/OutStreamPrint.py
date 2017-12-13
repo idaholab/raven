@@ -102,7 +102,7 @@ class OutStreamPrint(OutStreamManager):
     """
     self.type = 'OutStreamPrint'
     for subnode in xmlNode:
-      if subnode.tag not in ['type','source','what','filename','target']:
+      if subnode.tag not in ['type','source','what','filename','target','clusterLabel']:
         self.raiseAnError(IOError, ' Print Outstream object ' + str(self.name) + ' contains the following unknown node: ' + str(subnode.tag))
       if subnode.tag == 'source':
         self.sourceName = subnode.text.split(',')
@@ -144,17 +144,28 @@ class OutStreamPrint(OutStreamManager):
       except TypeError:
         empty = False
       if not empty:
-        try:
-          if self.options['type'] == 'csv':
-            filename = dictOptions['filenameroot']
-            rlzIndex = self.indexPrinted.get(filename,0)
-            dictOptions['firstIndex'] = rlzIndex
+        if self.options['type'] == 'csv':
+          filename = dictOptions['filenameroot']
+          rlzIndex = self.indexPrinted.get(filename,0)
+          dictOptions['firstIndex'] = rlzIndex
+          # clusterLabel lets the user print a point set as if it were a history, with input decided by clusterLabel
+          if 'clusterLabel' in self.options:
+            if type(self.sourceData[index]).__name__ != 'PointSet':
+              self.raiseAWarning('Label clustering currently only works for PointSet data objects!  Skipping for',self.sourceData[index].name)
+            else:
+              dictOptions['clusterLabel'] = self.options['clusterLabel']
+          try:
             rlzIndex = self.sourceData[index].write(filename,style='CSV',**dictOptions)
+          except AttributeError:
+            self.raiseAnError(NotImplementedError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
+          finally:
             self.indexPrinted[filename] = rlzIndex
-          elif self.options['type'] == 'xml':
+        elif self.options['type'] == 'xml':
+          try:
             self.sourceData[index].printXML(dictOptions)
-        except AttributeError:
-          self.raiseAnError(IOError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
+          except AttributeError:
+            self.raiseAnError(NotImplementedError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
+
 
   def finalize(self):
     """

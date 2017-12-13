@@ -78,7 +78,7 @@ class DataSet(DataObject):
     """
     # TODO add option to skip parts of meta if user wants to
     # remove already existing keys
-    keys = list(key for key in keys if key not in self._allvars)
+    keys = list(key for key in keys if key not in self._allvars+self.indexes)
     # if no new meta, move along
     if len(keys) == 0:
       return
@@ -150,10 +150,10 @@ class DataSet(DataObject):
     try:
       rlz = dict((var,rlz[var]) for var in self._allvars+self.indexes)
     except KeyError as e:
-      self.raiseAnError(KeyError,'Provided realization does not have all requisite values: "{}"'.format(e.args[0]))
+      self.raiseAnError(KeyError,'Provided realization does not have all requisite values for object "{}": "{}"'.format(self.name,e.args[0]))
     # check consistency, but make it an assertion so it can be passed over
     if not self._checkRealizationFormat(rlz):
-      self.raiseAnError(SyntaxError,'Realization was not formatted correctly! See warnings above.')
+      self.raiseAnError(SyntaxError,'Realization was not formatted correctly for "{}"! See warnings above.'.format(self.name))
     # format the data
     rlz = self._formatRealization(rlz)
     # perform selective collapsing/picking of data
@@ -271,46 +271,6 @@ class DataSet(DataObject):
     obj = xr.DataArray(vals,dims=dims,coords=coords)
     obj.rename(name)
     return obj
-
-  def extendExistingEntry(self,rlz):
-    """
-      Extends an ND sample to include more data.
-      Probably only useful for the hacky way the Optimizer stores Trajectories.
-      @ In, rlz, dict, {name:value} as {str:float} of the variables to extend
-      @ Out, None
-    """
-    assert(type(rlz) == dict)
-    # modify outputs to be pivot-dependent
-    # set up index vars for removal
-    toRemove = (var for var in self.indexes if var in allDims)
-    # dimensionalize outputs
-    for var in self._outputs:
-      # TODO are they always all there?
-      # TODO check the right dimensional shape and order
-      vals = rlz[var]
-      dims = self.getDimensions(var)[var]
-      coords = dict((dim,rlz[dim]) for dim in dims)
-      rlz[var] = self.constructNDSample(vals,dims,coords)
-    # remove indexes
-    for var in toRemove:
-      del rlz[var]
-    # first time? Initialize everything
-    if (self._collector is None or len(self._collector)==0) and self._data is None:
-      if self._collector is None:
-        self._collector = self._newCollector(width=len(rlz),dtype=object)
-      self.addRealization(rlz)
-    # collector is present # TODO match search should happen both in collector and in data!
-    elif len(self._collector) > 0:
-      # find the entry to modify
-      matchIdx,matchRlz = self.realization(matchDict=dict((var,rlz[var]) for var in self._inputs))
-      if matchRlz is None:
-        #we're adding the entry as if new # TODO duplicated code
-        self.addRealization(rlz)
-      else:
-        # extend each existing dataarray with the new value
-        extend
-    else:
-      indata
 
   def getDimensions(self,var=None):
     """
@@ -727,6 +687,7 @@ class DataSet(DataObject):
       Converts a 1-D array of xr.DataArrays into a xr.Dataset, then takes action on self._data:
       action=='replace': replace self._data with the new dataset
       action=='extend' : add new dataset to self._data using merge
+      action=='return' : return new dataset
       else             : only return new dataset
       @ In, array, list(xr.DataArray), list of variables as samples to turn into dataset
       @ In, action, str, optional, can be used to specify the action to take with the new dataset
@@ -736,7 +697,9 @@ class DataSet(DataObject):
       new = xr.Dataset(array)
     except ValueError as e:
       self.raiseAnError(RuntimeError,'While trying to create a new Dataset, a variable has itself as an index!  Error: ' +str(e))
-    if action == 'replace': #self._data is None:
+    if action == 'return':
+      return new
+    elif action == 'replace':
       self._data = new
       # general metadata included if first time
       self._data.attrs = self._meta # appears to NOT be a reference
@@ -899,21 +862,8 @@ class DataSet(DataObject):
       return
     finally:
       self.raiseADebug('Reading data from "{}.csv"'.format(fName))
-    # then, read in the XML
-    # TODO what if no xml? -> read as point set?
-    # TODO separate _fromCSVXML for clarity and brevity
-    meta = self._fromCSVXML(fName)
-    # apply findings
-    self.sampleTag = meta.get('sampleTag',self.sampleTag)
-    dims = meta.get('pivotParams',{}) # stores the dimensionality of each variable
-    if len(dims)>0:
-      self.setPivotParams(dims)
-    # TODO make this into a consistency check instead?  Selective loading?
-    self._inputs = meta.get('inputs',self._inputs)
-    self._outputs = meta.get('outputs',self._outputs)
-    self._metavars = meta.get('metavars',self._metavars)
-    # replace the IO space, default to user input # TODO or should we be sticking to user's wishes?  Probably.
-    self._allvars = self._inputs + self._outputs + self._metavars
+    # load in metadata
+    dims = self._loadCsvMeta(fName)
     # find distinct number of samples
     try:
       samples = list(set(panda[self.sampleTag]))
@@ -954,11 +904,11 @@ class DataSet(DataObject):
     # check if we have anything from which to read
     try:
       meta,_ = xmlUtils.loadToTree(fName+'.xml')
-    except IOError:
-      haveMeta = False
-    finally:
       self.raiseADebug('Reading metadata from "{}.xml"'.format(fName))
       haveMeta = True
+    except IOError:
+      haveMeta = False
+
     # if nothing to load, return nothing
     if not haveMeta:
       return metadata
@@ -1083,10 +1033,12 @@ class DataSet(DataObject):
     for r,row in enumerate(self._collector[:,tuple(self._allvars.index(var) for var in match.keys())]):
       match = True
       for e,element in enumerate(row):
-        if isinstance(element,float):
+        if isinstance(element,(float,int)):
           match *= mathUtils.compareFloats(lookingFor[e],element,tol=tol)
           if not match:
             break
+        else:
+          match *= lookingFor[e] == element
       if match:
         break
     if match:
@@ -1174,6 +1126,49 @@ class DataSet(DataObject):
     """
     return self._allvars.index(var)
 
+  def _identifyVariablesInCSV(self,fname):
+    """
+      Gets the list of available variables from the file "fname.csv".  A method is necessary because HistorySets
+      don't store all the data in one csv.
+      @ In, fname, str, name of file without extension
+      @ Out, varList, list(str), list of variables
+    """
+    with open(fname+'.csv','r') as f:
+      provided = list(s.strip() for s in f.readline().split(','))
+    return provided
+
+  def _loadCsvMeta(self,fname):
+    """
+      Attempts to load metadata from an associated XML file.
+      If found, update stateful parameters.
+      If not available, check the CSV itself for the available variables.
+      @ In, fname, str, filename (without extension) of the CSV/XML combination
+      @ Out, dims, dict, dimensionality dictionary with {index:[vars]} structure
+    """
+    meta = self._fromCSVXML(fname)
+    # if we have meta, use it to load data, as it will be efficient to read from
+    if len(meta) > 0:
+      # TODO shouldn't we be respecting user wishes more carefully? TODO
+      self.samplerTag = meta.get('sampleTag',self.sampleTag)
+      dims = meta.get('pivotParams',{})
+      if len(dims)>0:
+        self.setPivotParams(dims)
+      # add metadata, so we get probability weights and etc
+      self.addExpectedMeta(meta.get('metavars',[]))
+      # check all variables desired are available
+      provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
+    # otherwise, if we have no meta XML to load from, infer what we can from the CSV, which is only the available variables.
+    else:
+      provided = set(self._identifyVariablesInCSV(fname))
+      dims = {}
+    # check provided match needed
+    needed = set(self._allvars)
+    missing = needed - provided
+    if len(missing) > 0:
+      self.raiseAnError(IOError,'Not all variables requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fname,missing))
+    # otherwise, return happily and continue loading the CSV
+    return dims
+
   def _newCollector(self,width=1,length=100,dtype=None):
     """
       Creates a new collector object and returns it.
@@ -1244,11 +1239,18 @@ class DataSet(DataObject):
       @ In, fName, str, path/name to write file
       @ In, start, int, optional, first realization to start printing from (if > 0, implies append mode)
       @ In, kwargs, dict, optional, keywords for options
+            Possibly includes:
+                'clusterLabel': name of variable to cluster printing by.  If included then triggers history-like printing.
       @ Out, None
     """
     filenameLocal = fName # TODO path?
     keep = self._getRequestedElements(kwargs)
     toDrop = list(var for var in self._allvars if var not in keep)
+    # if printing by cluster, divert now
+    if 'clusterLabel' in kwargs:
+      clusterLabel = kwargs.pop('clusterLabel')
+      self._toCSVCluster(fName,start,clusterLabel,**kwargs)
+      return
     # set up data to write
     if start > 0:
       # slice data starting from "start"
@@ -1266,6 +1268,31 @@ class DataSet(DataObject):
     ordered += list(o for o in self._outputs if o in keep)
     ordered += list(m for m in self._metavars if m in keep)
     self._usePandasWriteCSV(filenameLocal,data,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
+
+  def _toCSVCluster(self,fName,start,clusterLabel,**kwargs):
+    """
+      Writes this data object as a chain of CSVs, grouped by the cluster
+      @ In, fName, str, path/name to write file
+      @ In, start, int, optional, TODO UNUSED first realization to start printing from (if > 0, implies append mode)
+      @ In, clusterLable, str, variable by which to cluster printing
+      @ In, kwargs, dict, optional, keywords for options
+      @ Out, None
+    """
+    # get list of variables to print
+    keep = self._getRequestedElements(kwargs)
+    # get unique cluster labels
+    clusterIDs = set(self._data[clusterLabel].values)
+    # write main CSV pointing to other files
+    with open(fName+'.csv','w') as writeFile: # TODO append mode if printing each step
+      writeFile.writelines('{},filename\n'.format(clusterLabel))
+      for ID in clusterIDs:
+        writeFile.writelines('{},{}_{}.csv\n'.format(ID,fName,ID))
+      self.raiseADebug('Wrote master cluster file to "{}.csv"'.format(fName))
+    # write sub files as point sets
+    ordered = list(var for var in itertools.chain(self._inputs,self._outputs,self._metavars) if (var != clusterLabel and var in keep))
+    for ID in clusterIDs:
+      data = self._data.where(self._data[clusterLabel] == ID, drop = True).drop(clusterLabel)
+      self._usePandasWriteCSV('{}_{}'.format(fName,ID), data, ordered, keepSampleTag=self.sampleTag in keep, mode='w') # TODO append mode
 
   def _toCSVXML(self,fName,**kwargs):
     """

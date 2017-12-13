@@ -300,7 +300,7 @@ formatRealization(rlz0)
 formatRealization(rlz1)
 formatRealization(rlz2)
 # test missing data
-checkFails('XPointSet addRealization err','Provided realization does not have all requisite values: \"z\"',data.addRealization,args=[rlz0])
+checkFails('XPointSet addRealization err','Provided realization does not have all requisite values for object \"PointSet\": \"z\"',data.addRealization,args=[rlz0])
 rlz0['z'] = 6.0
 formatRealization(rlz0)
 # test appending
@@ -447,7 +447,7 @@ os.remove(netname) # if this is a problem because of lazy loading, force dataNET
 
 # to CSV
 ## test writing to file
-csvname = 'DataSetUnitTest'
+csvname = 'PointSetUnitTest'
 data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
 ## test metadata written
 correct = ['<DataObjectMetadata name="PointSet">',
@@ -485,8 +485,24 @@ for l,line in enumerate(lines):
 # check
 checkArray('CSV XML',lines,correct,str)
 ## read from CSV/XML
+### create the data object
+xml = createElement('PointSet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a,b'))
+xml.append(createElement('Output',text='x,z'))
 dataCSV = XPointSet.PointSet()
 dataCSV.messageHandler = mh
+dataCSV._readMoreXML(xml)
+### load the data (with both CSV, XML)
+dataCSV.load(csvname,style='CSV')
+for var in data.getVars():
+  if isinstance(data.getVarValues(var).item(0),(float,int)):
+    checkTrue('CSV var {}'.format(var),(dataCSV._data[var] - data._data[var]).sum()<1e-20) #necessary due to roundoff
+  else:
+    checkTrue('CSV var {}'.format(var),bool((dataCSV._data[var] == data._data[var]).prod()))
+
+### try also without the XML file
+os.remove(csvname+'.xml')
+dataCSV.reset()
 dataCSV.load(csvname,style='CSV')
 for var in data.getVars():
   if isinstance(data.getVarValues(var).item(0),(float,int)):
@@ -496,7 +512,6 @@ for var in data.getVars():
 
 # clean up temp files
 os.remove(csvname+'.csv')
-os.remove(csvname+'.xml')
 
 ######################################
 #        ACCESS USING GETTERS        #
