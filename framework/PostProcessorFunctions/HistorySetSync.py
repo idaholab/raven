@@ -145,54 +145,6 @@ class HistorySetSync(PostProcessorInterfaceBase):
 
       return outputDic
 
-
-  def run_OLD(self,inputDic):
-    '''
-     Method to post-process the dataObjects
-     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
-     @ Out, outputPSDic, dict, output dictionary
-    '''
-    if len(inputDic)>1:
-      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
-    else:
-      inputDic = inputDic[0]
-      outputDic={}
-      outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
-      outputDic['data'] = {}
-      outputDic['data']['input'] = copy.deepcopy(inputDic['data']['input'])
-      outputDic['data']['output'] = {}
-
-      newTime = []
-      if self.syncMethod == 'grid':
-        maxEndTime = []
-        minInitTime = []
-        for hist in inputDic['data']['output']:
-          maxEndTime.append(inputDic['data']['output'][hist][self.pivotParameter][-1])
-          minInitTime.append(inputDic['data']['output'][hist][self.pivotParameter][0])
-        maxTime = max(maxEndTime)
-        minTime = min(minInitTime)
-        newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
-      elif self.syncMethod == 'all':
-        times = set()
-        for hist in inputDic['data']['output']:
-          for value in inputDic['data']['output'][hist][self.pivotParameter]:
-            times.add(value)
-        times = list(times)
-        times.sort()
-        newTime = np.array(times)
-      elif self.syncMethod in ['min','max']:
-        notableHist = None   #set on first iteration
-        notableLength = None #set on first iteration
-        for h,hist in enumerate(inputDic['data']['output'].keys()):
-          l = len(inputDic['data']['output'][hist][self.pivotParameter])
-          if (h==0) or (self.syncMethod == 'max' and l > notableLength) or (self.syncMethod == 'min' and l < notableLength):
-            notableHist = inputDic['data']['output'][hist][self.pivotParameter][:]
-            notableLength = l
-        newTime = np.array(notableHist)
-      for hist in inputDic['data']['output']:
-        outputDic['data']['output'][hist] = self.resampleHist(inputDic['data']['output'][hist],newTime)
-      return outputDic
-
   def resampleHist(self, variable, oldTime, newTime):
     newVar=np.zeros(newTime.size)
     pos=0
@@ -212,28 +164,3 @@ class HistorySetSync(PostProcessorInterfaceBase):
         newVar[pos] = variable[index-1] + (variable[index]-variable[index-1])/(oldTime[index]-oldTime[index-1])*(newT-oldTime[index-1])
       pos=pos+1
     return newVar
-
-  def resampleHist_OLD(self, variables, newTime):
-    newVars={}
-    for key in variables.keys():
-      if key != self.pivotParameter:
-        newVars[key]=np.zeros(newTime.size)
-        pos=0
-        for newT in newTime:
-          if newT<variables[self.pivotParameter][0]:
-            if self.extension == 'extended':
-              newVars[key][pos] = variables[key][0]
-            elif self.extension == 'zeroed':
-              newVars[key][pos] = 0.0
-          elif newT>variables[self.pivotParameter][-1]:
-            if self.extension == 'extended':
-              newVars[key][pos] = variables[key][-1]
-            elif self.extension == 'zeroed':
-              newVars[key][pos] = 0.0
-          else:
-            index = np.searchsorted(variables[self.pivotParameter],newT)
-            newVars[key][pos] = variables[key][index-1] + (variables[key][index]-variables[key][index-1])/(variables[self.pivotParameter][index]-variables[self.pivotParameter][index-1])*(newT-variables[self.pivotParameter][index-1])
-          pos=pos+1
-
-    newVars[self.pivotParameter] = copy.deepcopy(newTime)
-    return newVars
