@@ -239,13 +239,7 @@ class LimitSurface(PostProcessor):
       self.functionValue[self.externalFunction.name][myIndex] = self.externalFunction.evaluate('residuumSign', tempDict)
       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0:
         self.raiseAnError(IOError, 'LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
-      if type(inp) != dict:
-        inp.addRealization(self.functionValue[self.externalFunction.name][myIndex])
-        #if self.externalFunction.name in inp.getParaKeys('inputs'):
-        #  inp.self.updateInputValue (self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
-        #if self.externalFunction.name in inp.getParaKeys('output'):
-        #  inp.self.updateOutputValue(self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
-      else:
+      if type(inp).__name__ in ['dict','OrderedDict']:
         if self.externalFunction.name in inp['inputs' ].keys():
           inp['inputs' ][self.externalFunction.name] = np.concatenate((inp['inputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
         if self.externalFunction.name in inp['outputs'].keys():
@@ -269,7 +263,6 @@ class LimitSurface(PostProcessor):
     tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
     self.ROM.train(tempDict)
     self.raiseADebug('LimitSurface: Training performed')
-    self.raiseADebug('LimitSurface: Training finished')
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -379,15 +372,13 @@ class LimitSurface(PostProcessor):
     self.raiseADebug(str(evaluation))
     limitSurf = evaluation[1]
     if limitSurf[0] is not None:
-      for varName in output.getParaKeys('inputs'):
-        for varIndex in range(len(self.axisName)):
-          if varName == self.axisName[varIndex]:
-            output.removeInputValue(varName)
-            for value in limitSurf[0][:,varIndex]:
-              output.updateInputValue(varName, copy.copy(value))
-      output.removeOutputValue(self.externalFunction.name)
-      for value in limitSurf[1]:
-        output.updateOutputValue(self.externalFunction.name, copy.copy(value))
+      # reset the output
+      output.reset()
+      # construct the realizations dict
+      rlz = {varName: limitSurf[0][:,varIndex] for varIndex,varName in enumerate(self.axisName) }
+      rlz[self.externalFunction.name] = limitSurf[1]
+      # add the full realizations
+      output.load(rlz,style='dict')
 
   def refineGrid(self,refinementSteps=2):
     """
@@ -494,6 +485,7 @@ class LimitSurface(PostProcessor):
       @ In, nodeName, string, the sub-grid name
       @ Out, listSurfPoint, list, the list of limit surface coordinates
     """
+    #TODO: This approach might be extremely slow. It must be replaced with matrix operations
     listSurfPoint = []
     gridShape = self.gridEntity.returnParameter("gridShape",nodeName)
     myIdList = np.zeros(self.nVar,dtype=int)

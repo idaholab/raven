@@ -13,6 +13,9 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2017-06-02">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-12-14">
+          Moved LimitSurface Postprocessor tests in a specific directory (tests/framework/PostProcessors/LimitSurface) and updated for new DataObject structure
+      </revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -148,16 +151,16 @@
       <Output>z</Output>
     </PointSet>
     <PointSet name="LimitSurfacePositive">
-      <Input>x0,y0</Input>
-      <Output>OutputPlaceOrder</Output>
+      <Input>y0,x0</Input>
+      <Output>goalFunctionForLimitSurface</Output>
     </PointSet>
     <PointSet name="LimitSurfaceNegative">
-      <Input>x0,y0</Input>
-      <Output>OutputPlaceOrder</Output>
+      <Input>y0,x0</Input>
+      <Output>goalFunctionForLimitSurface</Output>
     </PointSet>
     <PointSet name="LimitSurfacePositiveNegative">
-      <Input>x0,y0</Input>
-      <Output>OutputPlaceOrder</Output>
+      <Input>y0,x0</Input>
+      <Output>goalFunctionForLimitSurface</Output>
     </PointSet>
     <PointSet name="Dummy">
       <Input>x0,y0</Input>
