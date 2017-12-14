@@ -19,12 +19,12 @@
 		<Sequence>
             readIn,
             timeDepBasicStatPPRawData,
-            PolyTrain,
             RAVENsurrogateTrain,
-            runPoly,
             runRAVENsurrogate,
-            timeDepBasicStatPPPoly,
             timeDepBasicStatPPRAVENsurrogate,
+            PolyTrain,
+            runPoly,
+            timeDepBasicStatPPPoly,
             writeOut
         </Sequence>
         <batchSize>1</batchSize>
@@ -52,15 +52,15 @@
 		<Grid name="mcSampler">
 			<variable name="enrichment">
 				<distribution>enrichmentDist</distribution>
-                <grid construction="custom" type="value">3.4 5.9 7.2 9.9</grid>
+                <grid construction="custom" type="value">3.4 4.0 5.0 5.9 6.5 7.2 8.0 9.9</grid>
 			</variable>
             <variable name="temperature">
                 <distribution>temperatureDist</distribution>
-                <grid construction="custom" type="value">600 900 1200</grid>
+                <grid construction="custom" type="value">600 750 900 1050 1200</grid>
             </variable>
             <variable name="burnup">
                 <distribution>burnupDist</distribution>
-                <grid construction="custom" type="value">16.501 18.858 21.98 26.402</grid>
+                <grid construction="custom" type="value">16.501 17.500 18.858 20.5 21.98 24.0 26.402</grid>
             </variable>
         </Grid>
 	</Samplers> 
@@ -70,16 +70,22 @@
 			<Target>time,decay_heat</Target>
 			<Features>enrichment,temperature,burnup</Features>
 			<pivotParameter>time</pivotParameter>
-            <numberExpTerms>11</numberExpTerms>
-            <polyOrder>2</polyOrder>
-            <initialScaling>30000.</initialScaling>
+            <numberExpTerms>10</numberExpTerms>
+            <polyOrder>1</polyOrder>
+            <!-- <initialScaling>30000.</initialScaling> -->
 		</ROM>
-        <ROM name='RAVENsurrogate' subType='SciKitLearn'>
+        <ROM name='RAVENsurrogate' subType='NDinvDistWeight'>
             <Target>time,decay_heat</Target>
             <Features>enrichment,temperature,burnup</Features>
             <pivotParameter>time</pivotParameter>
+            <p>3</p>
+            <!--
+             
+             
             <SKLtype>svm|SVR</SKLtype>
             <kernel>rbf</kernel>
+            <C>10</C>
+            <gamma>0.8</gamma> -->
         </ROM>
         <PostProcessor name="timeDepBasicStat" subType="BasicStatistics" verbosity="silent">
             <pivotParameter>time</pivotParameter>
@@ -164,6 +170,10 @@
                     <xscale>log</xscale>
                     <yscale>log</yscale>
                 </scale>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>120</xmax>
+                </range>
             </actions>
         </Plot>
         <Print name = 'writeSynDataOutPolyExp'>
@@ -217,6 +227,10 @@
                     <xscale>log</xscale>
                     <yscale>log</yscale>
                 </scale>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>120</xmax>
+                </range>
                 <how>png</how>
             </actions>
         </Plot>
@@ -240,6 +254,10 @@
                     <y>basicStatHistoryPoly|Output|percentile_95_decay_heat</y>
                     <interpPointsX>200</interpPointsX>
                 </plot>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>120</xmax>
+                </range>
             </plotSettings>
             <actions>
                 <scale>
@@ -275,6 +293,10 @@
                     <xscale>log</xscale>
                     <yscale>log</yscale>
                 </scale>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>120</xmax>
+                </range>
                 <how>png</how>
             </actions>
         </Plot>
@@ -292,6 +314,10 @@
                     <xscale>log</xscale>
                     <yscale>log</yscale>
                 </scale>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>120</xmax>
+                </range>
 				<how>png</how>
 			</actions>
 	    </Plot>
@@ -309,6 +335,10 @@
                     <xscale>log</xscale>
                     <yscale>log</yscale>
                 </scale>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>120</xmax>
+                </range>
                 <how>png</how>
             </actions>
         </Plot>

@@ -140,6 +140,10 @@
                 </plot>
             </plotSettings>
             <actions>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>120</xmax>
+                </range>
                 <how>png</how>
                 <scale>
                   <xscale>log</xscale>
