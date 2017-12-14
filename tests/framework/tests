@@ -212,26 +212,6 @@
   rel_err = 0.001
  [../]
 
- [./testLimitSurfacePostProcessor]
-  #REQUIREMENT_TEST R-RA-1
-  type = 'RavenFramework'
-  input = 'test_LimitSurface.xml'
-  csv = 'limitSurface/LimitSurfaceNegative_dump.csv limitSurface/LimitSurfacePositiveNegative_dump.csv limitSurface/LimitSurfacePositive_dump.csv'
-  max_time = 300
-  rel_err = 0.0001
-  #skip = ‘need to be fixed’
- [../]
-
- [./testLimitSurfaceIntegralPP]
-  type = 'RavenFramework'
-  input = 'test_LimitSurface_and_integral.xml'
-  output = 'limitSurface_integral/LimitSurfaceUnWeightedPb_dump.xml limitSurface_integral/LimitSurfaceWeightedPb_dump.xml'
-  csv = 'limitSurface_integral/LimitSurfaceWeightedPb_FileObj.csv limitSurface_integral/LimitSurfaceUnWeightedPb_FileObj.csv limitSurface_integral/LimitSurfaceWeightedPb_dump.csv limitSurface_integral/LimitSurfaceUnWeightedPb_dump.csv'
-  max_time = 300
-  rel_err = 0.0001
-  #skip = ‘need to be fixed’
- [../]
-
  [./testLimitSurfaceMultiGridSampling]
   type = 'RavenFramework'
   input = 'test_limitSurfaceMultiGridMethod.xml'
@@ -480,13 +460,7 @@
    output = 'GridTestHDF5WithFileName/DatabaseStorage/userSpecifiedFileName.h5'
  [../]
 
- [./testLimitSurfacePostProcessorWithRegressor]
-  type = 'RavenFramework'
-  input = 'test_LimitSurface_regressor_inverseWeight.xml'
-  csv = 'limitSurfaceWithRegressor/LimitSurfaceNegative_dump.csv limitSurfaceWithRegressor/LimitSurfacePositiveNegative_dump.csv limitSurfaceWithRegressor/LimitSurfacePositive_dump.csv'
-  max_time = 300
-  rel_err = 0.0001
- [../]
+
 
   [./HDF5selective]
     type = 'RavenErrors'
