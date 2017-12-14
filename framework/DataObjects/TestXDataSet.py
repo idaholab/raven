@@ -37,7 +37,7 @@ import XDataSet
 import MessageHandler
 
 mh = MessageHandler.MessageHandler()
-mh.initialize({'verbosity':'silent', 'callerLength':10, 'tagLength':10})
+mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 print('Module undergoing testing:')
 print (XDataSet )
@@ -791,42 +791,43 @@ data._readMoreXML(xml)
 # register "trajID" (cluster label) and "varsUpdate" (iteration number/monotonically increasing var) as meta
 data.addExpectedMeta(['trajID','varsUpdate'])
 # add two trajectories to get started, like starting two trajectories
-rlz0_0 = {'trajID': np.atleast_1d(1),
-          'a': np.atleast_1d(  1.0),
-          'b': np.atleast_1d(  5.0),
-          'x': np.atleast_1d( 10.0),
-          'y': np.atleast_1d(100.0),
-          'varsUpdate': np.atleast_1d(0)}
-rlz1_0 = {'trajID': np.atleast_1d(2),
-          'a': np.atleast_1d(  2.0),
-          'b': np.atleast_1d(  6.0),
-          'x': np.atleast_1d( 20.0),
-          'y': np.atleast_1d(200.0),
-          'varsUpdate': np.atleast_1d(0)}
+rlz0_0 = {'trajID': np.array([1]),
+          'a': np.array([  1.0]),
+          'b': np.array([  5.0]),
+          'x': np.array([ 10.0]),
+          'y': np.array([100.0]),
+          'varsUpdate': np.array([0])}
+rlz1_0 = {'trajID': np.array([2]),
+          'a': np.array([  2.0]),
+          'b': np.array([  6.0]),
+          'x': np.array([ 20.0]),
+          'y': np.array([200.0]),
+          'varsUpdate': np.array([0])}
 data.addRealization(rlz0_0)
 data.addRealization(rlz1_0)
 checkRlz('Cluster initial traj 1',data.realization(index=0),rlz0_0,skip='varsUpdate')
 checkRlz('Cluster initial traj 2',data.realization(index=1),rlz1_0,skip='varsUpdate')
 # now sample a new trajectory point, going into the collector
-rlz0_1 = {'trajID': np.atleast_1d(1),
-          'a': np.atleast_1d(  1.1),
-          'b': np.atleast_1d(  5.1),
-          'x': np.atleast_1d( 10.1),
-          'y': np.atleast_1d(100.1),
-          'varsUpdate': np.atleast_1d(1)}
+rlz0_1 = {'trajID': np.array([1]),
+          'a': np.array([  1.1]),
+          'b': np.array([  5.1]),
+          'x': np.array([ 10.1]),
+          'y': np.array([100.1]),
+          'varsUpdate': np.array([1])}
 data.addRealization(rlz0_1)
 checkRlz('Cluster extend traj 1[0]',data.realization(matchDict={'trajID':1,'varsUpdate':0})[1],rlz0_0,skip='varsUpdate')
 checkRlz('Cluster extend traj 1[1]',data.realization(matchDict={'trajID':1,'varsUpdate':1})[1],rlz0_1,skip='varsUpdate')
 checkRlz('Cluster extend traj 2[0]',data.realization(matchDict={'trajID':2,'varsUpdate':0})[1],rlz1_0,skip='varsUpdate')
 # now collapse and then append to the data
 data.asDataset()
-rlz1_1 = {'trajID': np.atleast_1d(2),
-          'a': np.atleast_1d(  2.1),
-          'b': np.atleast_1d(  6.1),
-          'x': np.atleast_1d( 20.1),
-          'y': np.atleast_1d(200.1),
-          'varsUpdate': np.atleast_1d(1)}
+rlz1_1 = {'trajID': np.array([    2]),
+               'a': np.array([  2.1]),
+               'b': np.array([  6.1]),
+               'x': np.array([ 20.1]),
+               'y': np.array([200.1]),
+          'varsUpdate': np.array([1])}
 data.addRealization(rlz1_1)
+tid = data._collector[-1,data._allvars.index('trajID')]
 checkRlz('Cluster extend traj 2[1]',data.realization(matchDict={'trajID':2,'varsUpdate':1})[1],rlz1_1,skip='varsUpdate')
 # print it
 fname = 'XDataUnitTestClusterLabels'
@@ -883,6 +884,52 @@ correct = {'a':np.array([  2.0,  2.1]),
            'trajID':np.array([2])}
 checkRlz('Cluster read [1]',data2.realization(index=1),correct)
 
+
+######################################
+#             DATA TYPING            #
+######################################
+## check that types are set correctly, both for histories and scalars
+xml = createElement('DataSet',attrib={'name':'test'})
+xml.append(createElement('Input', text=' fl, in, st, un, bo'))
+xml.append(createElement('Output',text='dfl,din,dst,dun,dbo'))
+xml.append(createElement('Index',attrib={'var':'t'},text='dfl,din,dst,dun,dbo'))
+data = XDataSet.DataSet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+
+rlz = {'fl' :np.array([   1.0]),
+       'in' :np.array([     2]),
+       'st' :np.array([ 'msg']),
+       'un' :np.array([u'utf']),
+       'bo' :np.array([  True]),
+       'dfl':np.array([ 1.0,   2.0,  3.0]),
+       'din':np.array([   4,     5,    6]),
+       'dst':np.array([ 'a',   'b',  'c']),
+       'dun':np.array([ u'x', u'y', u'z']),
+       'dbo':np.array([ True,False, True]),
+         't':np.array(['one','two','three'])}
+rlz2= {'fl' :np.array([   10.0]),
+       'in' :np.array([     20]),
+       'st' :np.array([ 'msg2']),
+       'un' :np.array([u'utf2']),
+       'bo' :np.array([  False]),
+       'dfl':np.array([ 10.0,   20.0,  30.0]),
+       'din':np.array([   40,     50,    60]),
+       'dst':np.array([ 'a2',   'b2',  'c2']),
+       'dun':np.array([ u'x2', u'y2', u'z2']),
+       'dbo':np.array([ False,  True, False]),
+         't':np.array(['one','two','manystringchars'])}
+data.addRealization(rlz)
+#print('DEBUGG first',data.asDataset())
+# check types
+for var in rlz.keys():
+  correct = rlz[var].dtype
+  if correct.type in [np.unicode_,np.string_]:
+    correct = object
+  checkSame('dtype checking "{}"'.format(var),data.asDataset()[var].dtype,correct)
+
+data.addRealization(rlz2)
+#print('DEBUGG second',data.asDataset())
 
 print(results)
 
