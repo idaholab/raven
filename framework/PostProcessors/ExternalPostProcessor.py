@@ -257,8 +257,21 @@ class ExternalPostProcessor(PostProcessor):
     for msg in list(set(warningMessages)):
       self.raiseAWarning(msg)
 
+    # TODO: We assume the structure of input to the external pp isthe  same as the struture of output to this external pp
+    # An interface pp should be used if the user wants to merge two data objects, or change the structures of input data
+    # objects.
+    numRlz = len(outputDict.values()[0])
+    for val in outputDict.values():
+      if len(val) != numRlz:
+        self.raiseAnError(IOError, "The return results from the external functions have different number of lengths!"
+                + " This postpocessor ", self.name, " requests all the returned values should have the same lengths.")
     for target in inputDict.keys():
-      if target not in outputDict.keys() and target in inputDict.keys():
-        outputDict[target] = np.atleast_1d(inputDict[target])
+      if target not in outputDict.keys():
+        if len(inputDict[target]) != numRlz:
+          self.raiseAWarning("Parameter ", target, " is available in the provided input DataObjects,"
+                  + " but it has different length from the returned values from the external functions."
+                  + " Thus this parameter will not be accessible by the output DataObjects!")
+        else:
+          outputDict[target] = np.atleast_1d(inputDict[target])
 
     return outputDict
