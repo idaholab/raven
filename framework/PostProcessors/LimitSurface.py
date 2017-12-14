@@ -172,28 +172,30 @@ class LimitSurface(PostProcessor):
     self.ROM.reset()
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
-      if type(inp).__name__ in ['str', 'bytes', 'unicode']:
-        self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs!')
+      if isinstance(inp, basestring)  or isinstance(inp, bytes):
+        self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs. Got string type!')
       if inp.type == 'PointSet':
         self.indexes = index
     if self.indexes == -1:
       self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a PointSet as INPUT!!!!!!')
-    else:
-      # check if parameters are contained in the data
-      inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
-      outKeys = self.inputs[self.indexes].getParaKeys("outputs")
-      self.paramType = {}
-      for param in self.parameters['targets']:
-        if param not in inpKeys + outKeys:
-          self.raiseAnError(IOError, 'LimitSurface PostProcessor: The param ' + param + ' not contained in Data ' + self.inputs[self.indexes].name + ' !')
-        if param in inpKeys:
-          self.paramType[param] = 'inputs'
-        else:
-          self.paramType[param] = 'outputs'
+    #else:
+    #  # check if parameters are contained in the data
+    #  inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
+    #  outKeys = self.inputs[self.indexes].getParaKeys("outputs")
+    #  self.paramType = {}
+    #  for param in self.parameters['targets']:
+    #    if param not in inpKeys + outKeys:
+    #      self.raiseAnError(IOError, 'LimitSurface PostProcessor: The param ' + param + ' not contained in Data ' + self.inputs[self.indexes].name + ' !')
+    #    if param in inpKeys:
+    #      self.paramType[param] = 'inputs'
+    #    else:
+    #      self.paramType[param] = 'outputs'
     if self.bounds == None:
+      dataSet = self.inputs[self.indexes].asDataset()
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
       for key in self.parameters['targets']:
-        self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding'))
+        self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(dataSet[key].values), max(dataSet[key].values)
+        #self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding'))
         if utils.compare(round(self.bounds["lowerBounds"][key],14),round(self.bounds["upperBounds"][key],14)):
           self.bounds["upperBounds"][key]+= abs(self.bounds["upperBounds"][key]/1.e7)
     self.gridEntity.initialize(initDictionary={"rootName":self.name,'constructTensor':True, "computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,
@@ -215,8 +217,9 @@ class LimitSurface(PostProcessor):
       self.functionValue.update(inp['inputs' ])
       self.functionValue.update(inp['outputs'])
     else:
-      self.functionValue.update(inp.getParametersValues('inputs', nodeId = 'RecontructEnding'))
-      self.functionValue.update(inp.getParametersValues('outputs', nodeId = 'RecontructEnding'))
+      dataSet = inp.asDataset("dict")
+      self.functionValue.update(dataSet['data'])
+      #self.functionValue.update(inp.getParametersValues('outputs', nodeId = 'RecontructEnding'))
     # recovery the index of the last function evaluation performed
     if self.externalFunction.name in self.functionValue.keys():
       indexLast = len(self.functionValue[self.externalFunction.name]) - 1
@@ -237,10 +240,11 @@ class LimitSurface(PostProcessor):
       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0:
         self.raiseAnError(IOError, 'LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
       if type(inp) != dict:
-        if self.externalFunction.name in inp.getParaKeys('inputs'):
-          inp.self.updateInputValue (self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
-        if self.externalFunction.name in inp.getParaKeys('output'):
-          inp.self.updateOutputValue(self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
+        inp.addRealization(self.functionValue[self.externalFunction.name][myIndex])
+        #if self.externalFunction.name in inp.getParaKeys('inputs'):
+        #  inp.self.updateInputValue (self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
+        #if self.externalFunction.name in inp.getParaKeys('output'):
+        #  inp.self.updateOutputValue(self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
       else:
         if self.externalFunction.name in inp['inputs' ].keys():
           inp['inputs' ][self.externalFunction.name] = np.concatenate((inp['inputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
