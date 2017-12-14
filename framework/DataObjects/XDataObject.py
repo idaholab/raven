@@ -155,11 +155,11 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     for child in inp.subparts:
       # TODO check for repeats, "notAllowdInputs", names in both input and output space
       if child.getName() == 'Input':
-        self._inputs.extend(list(x for x in child.value.split(',') if x.strip()!=''))
+        self._inputs.extend(list(x.strip() for x in child.value.split(',') if x.strip()!=''))
       elif child.getName() == 'Output':
-        self._outputs.extend(list(x for x in child.value.split(',') if x.strip()!=''))
+        self._outputs.extend(list(x.strip() for x in child.value.split(',') if x.strip()!=''))
       elif child.getName() == 'Index':
-        depends = child.value.split(',')
+        depends = list(d.strip() for d in child.value.split(','))
         var = child.parameterValues['var']
         self._pivotParams[var] = depends
       # options node

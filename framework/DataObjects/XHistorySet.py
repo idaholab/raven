@@ -133,22 +133,8 @@ class HistorySet(DataSet):
     """
     # data dict for loading data
     data = {}
-    # load in XML, if present
-    meta = self._fromCSVXML(fname)
-    # TODO shouldn't we be respecting user wishes more carefully? TODO
-    self.samplerTag = meta.get('sampleTag',self.sampleTag)
-    # TODO do selective inputs! consistency check here instead
-    dims = meta.get('pivotParams',{})
-    if len(dims)>0:
-      self.setPivotParams(dims)
-    # check all variables desired are available TODO this check isn't good if meta is missing
-    provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
-    needed = set(self._allvars)
-    missing = needed - provided
-    if len(missing) > 0:
-      self.raiseAnError(IOError,'Not all varibles requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fName,missing))
-    # add metadata, so we get probability weights and etc
-    self.addExpectedMeta(meta.get('metavars',[]))
+    # load in metadata
+    self._loadCsvMeta(fname)
     # load in main CSV
     ## read into dataframe
     main = pd.read_csv(fname+'.csv')
@@ -175,6 +161,21 @@ class HistorySet(DataSet):
     self.load(data,style='dict',dims=self.getDimensions())
     # read in secondary CSVs
     # construct final data object
+
+  def _identifyVariablesInCSV(self,fname):
+    """
+      Gets the list of available variables from the file "fname.csv".
+      @ In, fname, str, name of base file without extension.
+      @ Out, varList, list(str), list of variables
+    """
+    with open(fname+'.csv','r') as base:
+      inputAvail = list(s.strip() for s in base.readline().split(','))
+      # get one of the subCSVs from the first row of data in the base file
+      # ASSUMES that filename is the last column.  Currently, there's no way for that not to be true.
+      subfile = base.readline().split(',')[-1].strip()
+    with open(subfile,'r') as sub:
+      outputAvail = list(s.strip() for s in sub.readline().split(','))
+    return inputAvail + outputAvail
 
   def _selectiveRealization(self,rlz):
     """

@@ -318,11 +318,11 @@ formatRealization(rlz2)
 rlzMissing = dict(rlz0)
 rlz0['x'] = [4.0, 4.1, 4.2]
 formatRealization(rlz0)
-checkFails('HistorySet addRealization err missing','Provided realization does not have all requisite values: \"x\"',data.addRealization,args=[rlzMissing])
+checkFails('HistorySet addRealization err missing','Provided realization does not have all requisite values for object \"HistorySet\": \"x\"',data.addRealization,args=[rlzMissing])
 # bad formatting
 rlzFormat = dict(rlz0)
 rlzFormat['b'] = list(rlzFormat['b'])
-checkFails('HistorySet addRealization err format','Realization was not formatted correctly! See warnings above.',data.addRealization,args=[rlzFormat])
+checkFails('HistorySet addRealization err format','Realization was not formatted correctly for \"HistorySet\"! See warnings above.',data.addRealization,args=[rlzFormat])
 # test appending
 data.addRealization(dict(rlz0))
 
@@ -561,8 +561,17 @@ for l,line in enumerate(lines):
 # check
 checkArray('CSV XML',lines,correct,str)
 ## read from CSV/XML
+### create the data object
+xml = createElement('HistorySet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a,b'))
+xml.append(createElement('Output',text='x,y'))
+options = createElement('options')
+options.append(createElement('pivotParameter',text='Timelike'))
+xml.append(options)
 dataCSV = XHistorySet.HistorySet()
 dataCSV.messageHandler = mh
+dataCSV._readMoreXML(xml)
+### load the data (with both CSV, XML)
 dataCSV.load(csvname,style='CSV')
 for var in data.getVars():
   if isinstance(data.getVarValues(var).item(0),(float,int)):
@@ -570,14 +579,23 @@ for var in data.getVars():
   else:
     checkTrue('CSV var {}'.format(var),bool((dataCSV._data[var] == data._data[var]).prod()))
 
-# clean up temp files
+### also try without the XML metadata file, just the CSVs
+# get rid of the xml file
+os.remove(csvname+'.xml')
+dataCSV.reset()
+dataCSV.load(csvname,style='CSV')
+for var in data.getVars():
+  if isinstance(data.getVarValues(var).item(0),(float,int)):
+    checkTrue('CSV var {}'.format(var),(dataCSV._data[var] - data._data[var]).sum()<1e-20) #necessary due to roundoff
+  else:
+    checkTrue('CSV var {}'.format(var),bool((dataCSV._data[var] == data._data[var]).prod()))
+
+# clean up remaining temp files
 os.remove(csvname+'.csv')
 os.remove(csvname+'_0.csv')
 os.remove(csvname+'_1.csv')
 os.remove(csvname+'_2.csv')
 os.remove(csvname+'_3.csv')
-# TODO cleanup sub-files too
-os.remove(csvname+'.xml')
 
 
 ######################################

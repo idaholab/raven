@@ -1,9 +1,0 @@
-<CrossValidationPostProcessor type="Static">
-  <ans>
-    <m1_mean_absolute_error>
-      <average>0.207689217296</average>
-      <median>0.175280798758</median>
-      <maximum>0.534998816938</maximum>
-    </m1_mean_absolute_error>
-  </ans>
-</CrossValidationPostProcessor>
