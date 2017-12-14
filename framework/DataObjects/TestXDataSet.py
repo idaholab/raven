@@ -769,6 +769,7 @@ data.remove(variable='b')
 checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
 checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
 # collapse and re-check
+print('PRE:',data._data)
 data.asDataset()
 checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
 checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)

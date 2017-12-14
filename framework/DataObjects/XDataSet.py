@@ -180,6 +180,8 @@ class DataSet(DataObject):
       self._collector = self._newCollector(width=len(rlz))
     # append
     self._collector.append(newData)
+    # if hierarchical, clear the parent as an ending
+    self._clearParentEndingStatus(rlz)
     # reset scaling factors, kd tree
     self._resetScaling()
 
@@ -644,6 +646,51 @@ class DataSet(DataObject):
     return self._pivotParams.keys()
 
   ### INTERNAL USE FUNCTIONS ###
+  def _changeVariableValue(self,index,var,value):
+    """
+      Changes the value of a variable for a particular realization in the data object, in collector or data.
+      Should only rarely be called!  Adding or removing data is recommended.
+      For now, only works for scalar variables.
+      @ In, index, int, index of realization to be modified
+      @ In, var, str, name of variable to change
+      @ In, value, float or int or str, new value for entry
+      @ Out, None
+    """
+    assert(var in self._allvars)
+    assert(type(value).__name__ in ['float','str','int','unicode','bool'])
+    lenColl = len(self._collector) if self._collector is not None else 0
+    lenData = len(self._data     ) if self._data      is not None else 0
+    # if it's in the data ...
+    if index < lenData:
+      self._data[var].values[index] = value
+    # if it's in the collector ...
+    elif index < lenColl + lenData:
+      self._collector[index][self._allvars.index(var)] = value
+    else:
+      self.raiseAnError(IndexError,'Requested value change for realization "{}", which is past the end of the data object!'.format(index))
+
+  def _clearParentEndingStatus(self,rlz):
+    """
+      If self is hierarchical, then set the parent of the given realization "rlz" to False.
+      @ In, rlz, dict, realization (from addRealization, already formatted)
+      @ Out, None
+    """
+    # TODO set global status of 'parentID' instead of check every time
+    idVar = 'RAVEN_parentID'
+    endVar = 'RAVEN_isEnding'
+    if idVar in self._allvars:
+      # get the parent ID
+      parentID = rlz[idVar]
+      # if root or parentless, nothing to do
+      if parentID is None:
+        return
+      # otherwise, find the index of the match
+      idx,match = self.realization(matchDict={'prefix':parentID})
+      self._changeVariableValue(idx,endVar,False)
+    else:
+      # no action taken for data without hierarchical information
+      pass
+
   def _collapseNDtoDataArray(self,data,var,labels=None):
     """
       Converts a row of numpy samples (float or xr.DataArray) into a single DataArray suitable for a xr.Dataset.
@@ -661,13 +708,18 @@ class DataSet(DataObject):
       assert(len(labels) == len(data))
     #method = 'once' # see below, parallelization is possible but not implemented
     # first case: single entry per node: floats, strings, ints, etc
-    if isinstance(data[0],(float,basestring,int,bool,np.bool_)):
+    dataType = type(None)
+    i = -1
+    while dataType is type(None):
+      i += 1
+      dataType = type(data[i])
+    if isinstance(data[i],(float,str,unicode,int,bool,np.bool_)):
       array = xr.DataArray(data,
                            dims=[self.sampleTag],
                            coords={self.sampleTag:labels},
                            name=var) # THIS is very fast
     # second case: ND set (history set or higher dimension) --> CURRENTLY should be unused
-    elif type(data[0]) == xr.DataArray:
+    elif type(data[i]) == xr.DataArray:
       # two methods: all at "once" or "split" into multiple parts.  "once" is faster, but not parallelizable.
       # ONCE #
       #if method == 'once':
@@ -839,6 +891,10 @@ class DataSet(DataObject):
         self._convertArrayListToDataset(arrs,action='extend')
       # reset collector
       self._collector = self._newCollector(width=self._collector.width)
+      # write hierarchal data to general meta, if any
+      paths = self._generateHierPaths()
+      for p in paths:
+        self.addMeta('DataSet',{'Hierarchical':{'path':','.join(p)}})
     return self._data
 
   def _formatRealization(self,rlz):
@@ -1466,3 +1522,71 @@ class DataSet(DataObject):
       else:
         data.to_csv(fName+'.csv',index=False,mode=mode,header=header)
     #raw_input('Just wrote to CSV "{}.csv", press enter to continue ...'.format(fName))
+
+
+  ### HIERARCHICAL STUFF ###
+  def _constructHierPaths(self):
+    """
+      Construct a list of xr.Datasets, each of which is the samples taken along one hierarchical path
+      @ In, None
+      @ Out, results, list(xr.Dataset), dataset containing only the path information
+    """
+    # TODO can we do this without collapsing? Should we?
+    data = self.asDataset()
+    paths = self._generateHierPaths()
+    results = [None] * len(paths)
+    for p,path in enumerate(paths):
+      rlzs = list(self._data.where(data['prefix']==ID,drop=True) for ID in path)
+      results[p] = xr.concat(rlzs,dim=self.sampleTag)
+    return results
+
+  def _generateHierPaths(self):
+    """
+      Returns paths followed to obtain endings
+      @ In, None
+      @ Out, paths, list(list(str)), list of paths (which are lists of prefixes)
+    """
+    # get the ending realizations
+    endings = self._getPathEndings()
+    paths = [None]*len(endings)
+    for e,ending in enumerate(endings):
+      # reconstruct path that leads to this ending
+      path = [ending['prefix']]
+      while ending['RAVEN_parentID'] is not None and not pd.isnull(ending['RAVEN_parentID']):
+        _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
+        path.append(ending['prefix'])
+      # sort it in order by progression
+      path.reverse()
+      # add it to the path list
+      paths[e] = path
+    return paths
+
+  def _getPathEndings(self):
+    """
+      Finds all those nodes who are the end of the line.
+      @ In, None
+      @ Out, endings, list({var:float/str or xr.DataArray}, ...), realizations
+    """
+    # TODO returning dicts means copying the data!  Do more efficiently by masking and creating xr.Dataset instances!
+    # check if hierarchal data exists, by checking for the isEnding tag
+    if not 'RAVEN_isEnding' in self._allvars:
+      return []
+    # get realization slices for each realization that is an ending
+    # get from the collector first
+    if self._collector is not None and len(self._collector) > 0:
+      # first get rows from collector
+      fromColl = self._collector[:][np.where(self._collector[:,self._allvars.index('RAVEN_isEnding')])]
+      # then turn them into realization-like
+      fromColl = list( dict(zip(self._allvars,c)) for c in fromColl)
+    else:
+      fromColl = []
+    # then get from data
+    if self._data is not None and len(self._data[self.sampleTag].values) > 0:
+      # first get indexes of realizations
+      indexes = self._data.where(self._data['RAVEN_isEnding'],drop=True)[self.sampleTag].values
+      # then collect them into a list
+      fromData = list(self._getRealizationFromDataByIndex(i) for i in indexes)
+    else:
+      fromData = []
+    endings = fromColl + fromData
+    return endings
