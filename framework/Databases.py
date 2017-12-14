@@ -297,7 +297,8 @@ class HDF5(DateBase):
     assert (matchDict is None)
     if (not self.exist) and (not self.built):
       self.raiseAnError(Exception,'Can not retrieve a realization from Database' + self.name + '.It has not been built yet!')
-    if type(index).__name__ == 'int': allRealizations = self.database.retrieveAllHistoryNames()
+    if type(index).__name__ == 'int':
+      allRealizations = self.database.retrieveAllHistoryNames()
     if type(index).__name__ == 'int' and index > len(allRealizations):
       rlz = None
     else:
