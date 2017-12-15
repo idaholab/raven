@@ -617,6 +617,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
           for varIndex, _ in enumerate([key.replace('<distribution>','') for key in self.axisName]):
             self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[maxGridId][maxId,varIndex]))
             self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+            self.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
           varSet=True
         else:
           self.raiseADebug('Maximum score is 0.0')
@@ -681,6 +682,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         for varIndex, varName in enumerate(axisNames):
           self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+          self.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
       elif self.batchStrategy == 'naive':
         ########################################################################
@@ -700,6 +702,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         for varIndex, varName in enumerate(axisNames):
           self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+          self.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
 
     if not varSet:
