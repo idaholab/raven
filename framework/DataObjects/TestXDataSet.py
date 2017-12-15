@@ -705,8 +705,6 @@ seed['t'] = np.array([ np.linspace(0,1,1),
                        np.linspace(0,1,8),
                        np.linspace(0,1,9),
                        np.linspace(0,1,10) ])
-print(seed['t'].shape, seed['t'].dtype)
-
 # set up data object
 xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a'))

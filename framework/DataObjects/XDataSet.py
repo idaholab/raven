@@ -1051,12 +1051,15 @@ class DataSet(DataObject):
     cols = len(self.getVars())
     data = np.zeros([rows,cols],dtype=object)
     for i,var in enumerate(itertools.chain(self._inputs,self._outputs,self._metavars)):
-      # TODO: This wastefully copies the source data, but it preserves the object dtype
-      # Without this, a numpy.array of numpy.array will recast the xr.dataarray as simple numpy array
-      values = np.zeros(len(source[var]), dtype=object)
       # TODO consistency checking with dimensions requested by the user?  Or override them?
       #  -> currently overriding them
       varDims = dims.get(var,[])
+      # TODO: This wastefully copies the source data, but it preserves the object dtype
+      # Without this, a numpy.array of numpy.array will recast the xr.dataarray as simple numpy array
+      if len(varDims) != 0:
+        values = np.zeros(len(source[var]), dtype=object)
+      else:
+        values = source[var]
       # format higher-than-one-dimensional variables into a list of xr.DataArray
       for dim in varDims:
         ## first, make sure we have all the dimensions for this variable
