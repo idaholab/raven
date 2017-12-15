@@ -577,7 +577,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.entitiesToRemove.append('transformation-'+distName)
 
     # Register expected metadata
-    meta = ['ProbabilityWeight','prefix']
+    meta = ['ProbabilityWeight','prefix','PointProbability']
     self.addMetaKeys(*meta)
 
   def localInitialize(self):
