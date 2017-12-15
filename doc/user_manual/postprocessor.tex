@@ -547,7 +547,9 @@ At present only the ``equal'' grid type is available.
                 \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
     identifier or sub-type.
         \end{itemize}
-        \item \xmlNode{controllable} lists the controllable variables.
+             \item  \xmlNode{outputName}, \xmlDesc{string, required field}, specifies the name of the output variable where the probability is going to be stored.
+               \nb This variable name must be listed in the \xmlNode{Output} field of the Output DataObject
+        \item \xmlNode{controllable}, \xmlDesc{XML node, required field},  lists the controllable variables.
   %
   Each variable is associated with its name and the two items below:
         \begin{itemize}
@@ -558,7 +560,7 @@ At present only the ``equal'' grid type is available.
     tolerance of the sampling grid.
     %
         \end{itemize}
-        \item \xmlNode{non-controllable} lists the non-controllable variables.
+        \item \xmlNode{non-controllable}, \xmlDesc{XML node, required field}, lists the non-controllable variables.
   %
   Each variable is associated with its name and the two items below:
         \begin{itemize}
