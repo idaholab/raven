@@ -714,7 +714,7 @@ data = XDataSet.DataSet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 # load with insufficient values
-checkFails('Load from dict missing variable','Variables are missing from "source" that are required for this data object: set([u\'a\'])',data.load,args=[seed],kwargs=dict(style='dict',dims=data.getDimensions()))
+checkFails('Load from dict missing variable','Variables are missing from "source" that are required for data object " DataSet ": a',data.load,args=[seed],kwargs=dict(style='dict',dims=data.getDimensions()))
 # add a scalar variable, 10 entries
 seed['a'] = np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9])
 # load properly
