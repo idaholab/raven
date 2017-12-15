@@ -151,7 +151,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     # Check how many HistorySets (checkHSs) have been provided
     checkHSs=0
     for inp in inputDic:
-      if bool([a for a in inp['dims'].values() if a != []]): # inp['dims'] == 'HistorySet':
+      if inp['type'] == 'HistorySet':
         timeDepData = copy.deepcopy(inp)
         inputDic.remove(inp)
         checkHSs +=1
@@ -159,22 +159,31 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     if checkHSs == 0:
       # if no HistorySet has been provided run the static form of this PP
       outputDic = self.runStatic(inputDic)
+      outputDic['dims'] = {}
+      for key in outputDic['data'].keys():
+        outputDic['dims'][key] = []
     elif checkHSs == 1:
        # if one HistorySet has been provided run the dynamic form of this PP
       self.outputFormat = 'HistorySet'
       outputDic = self.runDynamic(inputDic,timeDepData)
-      for var in timeDepData['data']['output'][1]:
+      for var in timeDepData['data'].keys():
         if var != self.temporalID:
           ## Are there any values in timeDepData['data']['output'][1][var] that are not 0 or 1?
-          if len(np.setdiff1d(timeDepData['data']['output'][1][var], [0,1])):
+          if len(np.setdiff1d(timeDepData['data'][var], [0,1])):
             self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                               ' : the provided HistorySet contains the variable ' + str(var) + ' which has elements different than 0 or 1')
-      outputDic['data']['output'][1][self.temporalID] = copy.deepcopy(timeDepData['data']['output'][1][self.temporalID])
-      outputDic['data']['input'] = copy.deepcopy(timeDepData['data']['input'])
+      outputDic['data'][self.temporalID] = copy.deepcopy(timeDepData['data'][self.temporalID][0])
+
+      for var in timeDepData['inpVars']:
+        outputDic['data'][var] = copy.deepcopy(timeDepData['data'][var])
     else: # checkHSs >= 2:
       # only one HistorySet should be provided
       self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                         ' : more than one HistorySet has been provided')
+
+    outputDic['data']['ProbabilityWeight'] = np.asanyarray(1.0)
+    outputDic['data']['prefix'] = np.asanyarray(1.0)
+    print(outputDic)
     return outputDic
 
   def runStatic(self,inputDic, componentConfig=None):
@@ -204,10 +213,9 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         ## of this function.
         if componentConfig is None:
           inputName     = inp['name']
-          inputDataIn   = inp['data']['input']
-          inputDataOut  = inp['data']['output']
-          targetVar     = np.asarray(inputDataOut[self.target['targetID']])
-          inputMetadata = inp['metadata'] if 'metadata' in inp else None
+          #inputDataIn   = inp['data']['input']
+          #inputDataOut  = inp['data']['output']
+          targetVar     = np.asarray(inp['data'][self.target['targetID']])
         else:
           # if componentConfig is provided, then only a subset of the original data must be considered
           # only the data points that contains componentConfig are in fact considered
@@ -215,7 +223,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           indexUpdatedData = None
           for var in componentConfig.keys():
             if componentConfig[var] == 0:
-              inputVar = np.asarray(inp['data']['input'][var])
+              inputVar = np.asarray(inp['data'][var])
               indexCompOut = np.where(inputVar==1)
               if indexUpdatedData is None:
                 indexUpdatedData = copy.deepcopy(indexCompOut)
@@ -226,27 +234,27 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
             inputName    = inp['name']
             inputDataIn  = {}
             inputDataOut = {}
-            for var in inp['data']['input']:
-              inputDataIn[var]  = inp['data']['input'][var][indexUpdatedData]
-            for var in inp['data']['output']:
-              inputDataOut[var] = inp['data']['output'][var][indexUpdatedData]
+            for var in inp['data']['inpVars']:
+              inputDataIn[var]  = inp['data'][var][indexUpdatedData]
+            for var in inp['data']['outVars']:
+              inputDataOut[var] = inp['data'][var][indexUpdatedData]
             targetVar = np.asarray(inputDataOut[self.target['targetID']])
             inputMetadata = {}
-            inputMetadata['ProbabilityWeight'] = inp['metadata']['ProbabilityWeight'][indexUpdatedData]
+            inputMetadata['ProbabilityWeight'] = inp['data']['ProbabilityWeight'][indexUpdatedData]
           else:
             inputName     = inp['name']
-            inputDataIn   = inp['data']['input']
-            inputDataOut  = inp['data']['output']
+            inputDataIn   = {key: inp['data'][key] for key in inp['inpVars']} #inp['data']['input']
+            inputDataOut  = {key: inp['data'][key] for key in inp['outVars']} #inp['data']['output']
             targetVar     = np.asarray(inputDataOut[self.target['targetID']])
             inputMetadata = inp['metadata'] if 'metadata' in inp else None
 
-        if inputMetadata is not None and 'ProbabilityWeight' in inputMetadata:
-          inputWeights = np.asarray(inputMetadata['ProbabilityWeight'])
+        if 'ProbabilityWeight' in inp['data'].keys():
+          inputWeights = np.asarray(inp['data']['ProbabilityWeight'])
           pbWeights = inputWeights/np.sum(inputWeights)
         else:
           ## Any variable will do, so just count the first input. We could also have count the outputs, but this could
           ## be tricky if the data is a HistorySet and thus multidimensional.
-          pointCount = len(inputDataIn.values()[0])
+          pointCount = inp['numberRealizations']
           pbWeights  = np.ones(pointCount)/float(pointCount)
 
         if inputName in self.IEdata.keys():
@@ -261,8 +269,8 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         ## Step 1: Retrieve points that contain system failure
         indexSystemFailure = np.where(np.logical_and(targetVar >= self.target['low'], targetVar <= self.target['high']))[0]
 
-        if variable in inputDataIn.keys():
-          inputVar = np.asarray(inputDataIn[variable])
+        if variable in inp['data'].keys():
+          inputVar = np.asarray(inp['data'][variable])
 
           ## Step 2: Retrieve points from original dataset that contain component reliability values equal to 1
           ##         (indexComponentMinus) and 0 (indexComponentPlus)
@@ -323,13 +331,8 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         riskImportanceMeasures['R0']   = np.asanyarray([macroR0])
         self.raiseADebug(' R0  = ' + str(macroR0))
 
-    outputDic = {
-                  'data': {
-                           'input': {},
-                           'output': riskImportanceMeasures
-                          },
-                  'metadata': {}
-                }
+    outputDic = {'data': riskImportanceMeasures}
+
     ## If for whatever reason passing an empty input back causes errors, then you may want to add some sort of dummy
     ## value.
     # outputDic['data']['input'] = {} # {'dummy' : np.asanyarray(0)}
