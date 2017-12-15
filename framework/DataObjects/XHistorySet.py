@@ -142,9 +142,9 @@ class HistorySet(DataSet):
     ## collect input space data
     for inp in self._inputs + self._metavars:
       data[inp] = main[inp].values # TODO dtype?
-    ## get the samplerTag values if they're present, in case it's not just range
-    if self.samplerTag in main:
-      labels = main[self.samplerTag].values
+    ## get the sampleTag values if they're present, in case it's not just range
+    if self.sampleTag in main:
+      labels = main[self.sampleTag].values
     else:
       labels = None
     # load subfiles for output spaces
@@ -155,7 +155,13 @@ class HistorySet(DataSet):
     for i,sub in enumerate(subFiles):
       # first time create structures
       subDat = pd.read_csv(sub)
-      for out in self._outputs + self.indexes:
+      if set(self.indexes) not in set(self._outputs):
+        if 'time' in self.indexes:
+          self.raiseAnError(IOError,'Importing HistorySet from .csv: the pivot parameter "time" has not been found in the .csv file. Check that the '
+                                    'correct pivot parameter has been specified in the dataObject or make sure the pivot parameter is included in the .csv files')
+        else:
+          self.raiseAnError(IOError, 'Importing HistorySet from .csv: the specified pivot parameter ' + str(self.indexes) + '  has not been found in the .csv file')
+      for out in self._outputs:
         data[out][i] = subDat[out].values # TODO dtype?
 
     self.load(data,style='dict',dims=self.getDimensions())
