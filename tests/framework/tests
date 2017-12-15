@@ -398,12 +398,14 @@
    input = 'test_redundant_scgpc.xml'
    output = 'RedundantInputs/sc_out.xml'
    UnorderedCsv = 'RedundantInputs/sc_out.csv'
+   rel_err = 1.0E-6
  [../]
  [./redundantInputsSobol]
    type = 'RavenFramework'
    input = 'test_redundant_sobol.xml'
    output = 'RedundantInputs/hdmr_out.xml'
    UnorderedCsv = 'RedundantInputs/hdmr_out.csv'
+   rel_err = 1.0E-6
  [../]
 
  [./failrunsMC]

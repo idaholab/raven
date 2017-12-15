@@ -112,6 +112,7 @@
     <Print name="dumpMC">
       <type>csv</type>
       <source>outputDataMC</source>
+      <what>input,output</what>
     </Print>
     <Print name="pp1_cv_dump">
       <type>csv</type>

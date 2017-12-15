@@ -348,10 +348,11 @@ class DataSet(DataObject):
     else:
       self.raiseAnError(KeyError,'Unrecognized subset choice: "{}"'.format(subset))
 
-  def getVarValues(self,var):
+  def getVarValues(self,var,asDict=False):
     """
       Returns the sampled values of "var"
       @ In, var, str or list(str), name(s) of variable(s)
+      @ In, asDict, bool, optional, if True then always returns a dictionary even if only one sample requested
       @ Out, res, xr.DataArray, samples (or dict of {var:xr.DataArray} if multiple variables requested)
     """
     ## NOTE TO DEVELOPER:
@@ -368,6 +369,8 @@ class DataSet(DataObject):
       #format as dataarray
       else:
         res = self._data[var]
+      if asDict:
+        res = {var:res}
     elif isinstance(var,list):
       res = dict((v,self.getVarValues(v)) for v in var)
     else:

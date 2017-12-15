@@ -67,6 +67,7 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outSVR</filename>
+      <what>input,output, ProbabilityWeight</what>
     </Print>
   </OutStreams>
 
