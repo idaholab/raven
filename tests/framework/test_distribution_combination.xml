@@ -113,6 +113,7 @@
     <Print name="PrintPointSet_dump">
       <type>csv</type>
       <source>PointSet</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

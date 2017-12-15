@@ -98,6 +98,7 @@
       <Print name="dumpMC">
           <type>csv</type>
           <source>outputDataMC</source>
+          <what>input,output</what>
       </Print>
       <Print name="pp1_metric_dump">
           <type>csv</type>

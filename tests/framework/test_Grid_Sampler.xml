@@ -75,8 +75,7 @@
 
   <DataObjects>
     <PointSet name="outGrid">
-      <Input>VarGauss1,VarGauss2,VarTri1</Input>
-      <Output>OutputPlaceHolder</Output>
+      <Input>VarGauss2,VarGauss1,VarTri1</Input>
     </PointSet>
     <PointSet name="dummyIN">
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
@@ -88,6 +87,7 @@
     <Print name="outGrid_dump">
       <type>csv</type>
       <source>outGrid</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
