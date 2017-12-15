@@ -286,14 +286,6 @@ specified:
                 a preconditioner to this subset, chosen from the \xmlNode{Preconditioner} nodes defined within
                 the optimzer, and identified by the text of those nodes.  See the documentation for the
                 preconditioner node above for details on how they affect the calculation flow.
-              %\item \xmlAttr{holdOutputSpace}, \xmlDesc{parameter names, optional 
-              %comma separated parameter}, provides the option to identify some output 
-              %parameters that
-              %need to be kept on hold at this subspace optimization level. This capability is
-              %currently implemented for the \textit{EnsembleModel} only.  In other words,
-              %all the models that have, in their output spaces, the parameter here specified
-              %will not be re-run for the iteration $i$ but the solution at iteration $i-1$ will be
-              %used.
             \end{itemize}
         \end{itemize}
 
