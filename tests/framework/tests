@@ -212,14 +212,6 @@
   rel_err = 0.001
  [../]
 
- [./testLimitSurfaceMultiGridSampling]
-  type = 'RavenFramework'
-  input = 'test_limitSurfaceMultiGridMethod.xml'
-  csv = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
-  max_time = 300
-  rel_err = 0.0001
- [../]
-
  [./test_bison_mc_simple_and_alias_system]
   #REQUIREMENT_TEST R-IS-6
   type = 'RavenFramework'
@@ -295,11 +287,6 @@
    method = 'devel opt'
  [../]
 
- [./adaptive_sampler_ext_model]
-  type = 'RavenFramework'
-  input = 'test_adaptive_sampler.xml'
-  csv = 'Adapt/limitSurfaceDump.csv'
- [../]
 
  [./safest_point_pp]
   type = 'RavenFramework'

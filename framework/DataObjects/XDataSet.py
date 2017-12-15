@@ -1051,7 +1051,8 @@ class DataSet(DataObject):
     ## figure out who's missing from the IO space
     missing = requiredVars - providedVars
     if len(missing) > 0:
-      self.raiseAnError(KeyError,'Variables are missing from "source" that are required for this data object:',missing)
+      self.raiseAnError(KeyError,'Variables are missing from "source" that are required for data object "',
+                                  self.name.strip(),'":',",".join(missing))
     # make a collector from scratch -> start by collecting into ndarray
     rows = len(source.values()[0])
     cols = len(self.getVars())

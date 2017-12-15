@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework.testLimitSurfacePostProcessorWithRegressor</name>
+    <name>framework/PostProcessors/LimitSurface.testLimitSurfacePostProcessorWithRegressor</name>
     <author>alfoa</author>
     <created>2014-07-10</created>
     <classesTested>Models.PostProcessors.LimitSurface, Functions.External, Models.ROM</classesTested>
