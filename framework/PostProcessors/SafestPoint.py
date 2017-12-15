@@ -284,17 +284,14 @@ class SafestPoint(PostProcessor):
       @ In, currentInput, object, an object that needs to be converted
       @ Out, None, the resulting converted object is stored as an attribute of this class
     """
-    for item in currentInput:
-      if item.type == 'PointSet':
-        self.surfPointsMatrix = np.zeros((len(item.getParam('output', item.getParaKeys('outputs')[-1])), len(self.gridInfo.keys()) + 1))
-        k = 0
-        for varName in self.controllableOrd:
-          self.surfPointsMatrix[:, k] = item.getParam('input', varName)
-          k += 1
-        for varName in self.nonControllableOrd:
-          self.surfPointsMatrix[:, k] = item.getParam('input', varName)
-          k += 1
-        self.surfPointsMatrix[:, k] = item.getParam('output', item.getParaKeys('outputs')[-1])
+    item = currentInput[0]
+    if item.type != 'PointSet':
+      self.raiseAnError(IOError, self.type +" accepts PointSet only as input! Got: "+item.type)
+    self.surfPointsMatrix = np.zeros((len(item), len(self.gridInfo.keys()) + 1))
+    dataSet = item.asDataset()
+    for k, varName in enumerate(self.controllableOrd+self.nonControllableOrd):
+      self.surfPointsMatrix[:, k] = dataSet[varName].values
+    self.surfPointsMatrix[:, k+1] = dataSet[item.getVars("output")[-1]].values
 
   def run(self, input):
     """
