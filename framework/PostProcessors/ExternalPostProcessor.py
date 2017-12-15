@@ -97,11 +97,8 @@ class ExternalPostProcessor(PostProcessor):
               + " but multiple inputs are provided!")
       else:
         currentInput = currentInput[-1]
-    if hasattr(currentInput, 'type'):
-      inType = currentInput.type
-    else:
-      self.raiseAnError(IOError, "Input type ", type(currentInput).__name__, ' is not recognized!')
-
+    assert(hasattr(currentInput, 'type'), "The type is missing for input object! We should always associate a type with it.")
+    inType = currentInput.type
     if inType in ['PointSet', 'HistorySet']:
       dataSet = currentInput.asDataset()
     else:
@@ -263,8 +260,8 @@ class ExternalPostProcessor(PostProcessor):
     numRlz = len(outputDict.values()[0])
     for val in outputDict.values():
       if len(val) != numRlz:
-        self.raiseAnError(IOError, "The return results from the external functions have different number of lengths!"
-                + " This postpocessor ", self.name, " requests all the returned values should have the same lengths.")
+        self.raiseAnError(IOError, "The return results from the external functions have different number of realizations!"
+                + " This postpocessor ", self.name, " requests all the returned values should have the same number of realizations.")
     for target in inputDict.keys():
       if target not in outputDict.keys():
         if len(inputDict[target]) != numRlz:
