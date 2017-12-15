@@ -23,7 +23,6 @@ warnings.simplefilter('default', DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import time
-import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -131,8 +130,8 @@ class TopologicalDecomposition(PostProcessor):
     ##    and not bother with inputToInternal
     ##    This works particularly well since we only accept point sets.
     data = currentInp.asDataset(outType='dict')['data']
-    inputDict = {'features':dict((var,np.array(data[var],dtype=float)) for var in self.parameters['features']),
-                 'targets' :dict((var,np.array(data[var],dtype=float)) for var in self.parameters['targets' ]),
+    inputDict = {'features':dict((var,data[var]) for var in self.parameters['features']),
+                 'targets' :dict((var,data[var]) for var in self.parameters['targets' ]),
                  'metadata':currentInp.getMeta(general=True)}
     #if 'PointProbability' in currentInp.getVars():
     inputDict['metadata']['PointProbability'] = currentInp.getVarValues('PointProbability').values
@@ -315,7 +314,7 @@ class TopologicalDecomposition(PostProcessor):
       self.inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
 
     if self.weighted:
-      self.weights = np.array(internalInput['metadata']['PointProbability'],dtype=float)
+      self.weights = internalInput['metadata']['PointProbability']
     else:
       self.weights = None
 
