@@ -72,6 +72,7 @@
     <Print name='PointsetEnsembleForward'>
       <type>csv</type>
       <source>PointsetEnsembleForward</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

@@ -134,18 +134,22 @@
     <Print name="PointSetFile2_dump">
       <type>csv</type>
       <source>PointSetFile2</source>
+      <what>input, output</what>
     </Print>
     <Print name="PointSetFile3_dump">
       <type>csv</type>
       <source>PointSetFile3</source>
+      <what>input, output</what>
     </Print>
     <Print name="PointSet2_dump">
       <type>csv</type>
       <source>PointSet2</source>
+      <what>input, output</what>
     </Print>
     <Print name="PointSet3_dump">
       <type>csv</type>
       <source>PointSet3</source>
+      <what>input, output</what>
     </Print>
     <Plot  name="plot2" overwrite="false" verbosity="debug">
       <plotSettings>

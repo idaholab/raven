@@ -112,6 +112,7 @@
     <Print name="csv_database">
       <type>csv</type>
       <source>collset</source>
+      <what>input, output</what>
     </Print>
     <Print name="stats_td1">
       <type>xml</type>
