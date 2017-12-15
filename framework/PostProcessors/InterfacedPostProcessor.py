@@ -173,9 +173,7 @@ class InterfacedPostProcessor(PostProcessor):
             inputDictTemp['data'][key]  = inp.getMeta(pointwise=True,general=True)[key].values
           except:
             self.raiseADebug('The following key: ' + str(key) + ' has not passed to the Interfaced PP')
-
-        #### ADD dataObject NAME!!!!!
-        #inputDictTemp['name']     = inp.getName()
+        inputDictTemp['name']     = inp.name
         inputDict.append(inputDictTemp)
     return inputDict
 
