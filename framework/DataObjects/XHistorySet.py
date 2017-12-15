@@ -133,17 +133,8 @@ class HistorySet(DataSet):
     """
     # data dict for loading data
     data = {}
-    # load in XML, if present
-    meta = self._fromCSVXML(fname)
-    self.samplerTag = meta.get('sampleTag',self.sampleTag)
-    # TODO do selective inputs! consistency check here instead
-    dims = meta.get('pivotParams',{})
-    if len(dims)>0:
-      self.setPivotParams(dims)
-    self._inputs = meta.get('inputs',self._inputs)
-    self._outputs = meta.get('outputs',self._outputs)
-    self._metavars = meta.get('metavars',self._metavars)
-    self._allvars = self._inputs + self._outputs + self._metavars
+    # load in metadata
+    self._loadCsvMeta(fname)
     # load in main CSV
     ## read into dataframe
     main = pd.read_csv(fname+'.csv')
@@ -170,6 +161,21 @@ class HistorySet(DataSet):
     self.load(data,style='dict',dims=self.getDimensions())
     # read in secondary CSVs
     # construct final data object
+
+  def _identifyVariablesInCSV(self,fname):
+    """
+      Gets the list of available variables from the file "fname.csv".
+      @ In, fname, str, name of base file without extension.
+      @ Out, varList, list(str), list of variables
+    """
+    with open(fname+'.csv','r') as base:
+      inputAvail = list(s.strip() for s in base.readline().split(','))
+      # get one of the subCSVs from the first row of data in the base file
+      # ASSUMES that filename is the last column.  Currently, there's no way for that not to be true.
+      subfile = base.readline().split(',')[-1].strip()
+    with open(subfile,'r') as sub:
+      outputAvail = list(s.strip() for s in sub.readline().split(','))
+    return inputAvail + outputAvail
 
   def _selectiveRealization(self,rlz):
     """

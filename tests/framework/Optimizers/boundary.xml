@@ -27,7 +27,7 @@
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">parabola</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
-      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
@@ -51,11 +51,11 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <gradientThreshold>1e-1</gradientThreshold>
-          <gainGrowthFactor>1.5</gainGrowthFactor>
-          <gainShrinkFactor>1.25</gainShrinkFactor>
+        <gradientThreshold>1e-1</gradientThreshold>
+        <gainGrowthFactor>1.5</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>2</upperBound>
         <lowerBound>1</lowerBound>
         <initial>1.5</initial>
@@ -89,16 +89,17 @@
       <Input>trajID</Input>
       <Output>x,ans,varsUpdate</Output>
     </PointSet>
-    <HistorySet name="opt_export">
+    <PointSet name="opt_export">
       <Input>trajID</Input>
       <Output>x,ans,varsUpdate</Output>
-    </HistorySet>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
     </Print>
     <Print name="opt_soln">
       <type>csv</type>
