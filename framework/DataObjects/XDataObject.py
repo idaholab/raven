@@ -155,11 +155,11 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     for child in inp.subparts:
       # TODO check for repeats, "notAllowdInputs", names in both input and output space
       if child.getName() == 'Input':
-        self._inputs.extend(list(x for x in child.value.split(',') if x.strip()!=''))
+        self._inputs.extend(list(x.strip() for x in child.value.split(',') if x.strip()!=''))
       elif child.getName() == 'Output':
-        self._outputs.extend(list(x for x in child.value.split(',') if x.strip()!=''))
+        self._outputs.extend(list(x.strip() for x in child.value.split(',') if x.strip()!=''))
       elif child.getName() == 'Index':
-        depends = child.value.split(',')
+        depends = list(d.strip() for d in child.value.split(','))
         var = child.parameterValues['var']
         self._pivotParams[var] = depends
       # options node
@@ -341,16 +341,6 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, dims, list(str), names of dependent dimensions IN ORDER of appearance in vals, e.g. ['time','x','y']
       @ In, coords, dict, {dimension:list(float)}, values for each dimension at which 'val' was obtained, e.g. {'time':
       @ Out, obj, xr.DataArray, completed realization instance suitable for sending to "addRealization"
-    """
-    pass
-
-  @abc.abstractmethod
-  def extendExistingEntry(self,rlz):
-    """
-      Extends an ND sample to include more data.
-      Probably only useful for the hacky way the Optimizer stores Trajectories.
-      @ In, rlz, dict, {name:value} as {str:float} of the variables to extend
-      @ Out, None
     """
     pass
 
