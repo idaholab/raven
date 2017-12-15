@@ -117,43 +117,6 @@ class LimitSurface(PostProcessor):
     """
     self.jobHandler = initDict['internal']['jobHandler']
 
-  def inputToInternal(self, currentInp):
-    """
-      Method to convert an input object into the internal format that is
-      understandable by this pp.
-      @ In, currentInput, object, an object that needs to be converted
-      @ Out, inputDict, dict, the resulting dictionary containing features and response
-    """
-    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and dataobjects
-    if type(currentInp) == list:
-      currentInput = currentInp[-1]
-    else:
-      currentInput = currentInp
-    if type(currentInp) == dict:
-      if 'targets' in currentInput.keys():
-        return
-    inputDict = {'targets':{}, 'metadata':{}}
-    #FIXME I don't think this is checking for files, HDF5 and dataobjects
-    if hasattr(currentInput,'type'):
-      inType = currentInput.type
-    else:
-      self.raiseAnError(IOError, self, 'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
-    if isinstance(currentInp,Files.File):
-      if currentInput.subtype == 'csv':
-        pass
-      #FIXME else?  This seems like hollow code right now.
-    if inType == 'HDF5':
-      pass  # to be implemented
-    if inType in ['PointSet']:
-      for targetP in self.parameters['targets']:
-        if   targetP in currentInput.getParaKeys('input'):
-          inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
-        elif targetP in currentInput.getParaKeys('output'):
-          inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
-      inputDict['metadata'] = currentInput.getAllMetadata()
-    # to be added
-    return inputDict
-
   def _initializeLSpp(self, runInfo, inputs, initDict):
     """
       Method to initialize the LS post processor (create grid, etc.)
@@ -373,7 +336,9 @@ class LimitSurface(PostProcessor):
     limitSurf = evaluation[1]
     if limitSurf[0] is not None:
       # reset the output
-      output.reset()
+      if len(output) > 0:
+        self.raiseAnError(RuntimeError, 'The output DataObject "'+output.name+'" is not empty! Chose another one!')
+        #output.reset()
       # construct the realizations dict
       rlz = {varName: limitSurf[0][:,varIndex] for varIndex,varName in enumerate(self.axisName) }
       rlz[self.externalFunction.name] = limitSurf[1]
