@@ -620,8 +620,8 @@ dataCSV.messageHandler = mh
 dataCSV._readMoreXML(xml)
 dataCSV.load(csvname,style='CSV')
 print('DEBUGG dataCSV c:',dataCSV.asDataset())
-print('DEBUGG dataCSV c:',dataCSV.asDataset()['c'])
-print('DEBUGG data    c:',(data.asDataset()['c'] - dataCSV.asDataset()['c']).sum(skipna=True))
+print('DEBUGG data    c:',data.asDataset())
+print('DEBUGG data diff:',(data.asDataset()['c'] - dataCSV.asDataset()['c']).sum(skipna=True))
 for var in data.getVars():
   if var == 'z':
     # not included in XML input specs, so should be left out
