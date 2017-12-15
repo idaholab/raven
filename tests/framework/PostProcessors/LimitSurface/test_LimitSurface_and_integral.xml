@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework.testLimitSurfaceIntegralPP</name>
+    <name>framework/PostProcessors/LimitSurface.testLimitSurfaceIntegralPP</name>
     <author>alfoa</author>
     <created>2015-05-08</created>
     <classesTested>Models.PostProcessors.LimitSurface, Models.PostProcessors.LimitSurfaceIntegral</classesTested>

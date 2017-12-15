@@ -497,8 +497,9 @@ class LimitSurfaceSearch(AdaptiveSampler):
           rlz.update(localRlz)
     # add the full realizations
     if self.solutionExport is not None:
-      self.solutionExport.load(rlz,style='dict')    
-    
+      if len(rlz):
+        self.solutionExport.load(rlz,style='dict')
+
     # Keep track of some extra points that we will add to thicken the limit
     # surface candidate set
     self.bandIndices = OrderedDict()
