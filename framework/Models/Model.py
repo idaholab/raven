@@ -454,11 +454,3 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None.
     """
     pass
-
-  #def acceptHoldOutputSpace(self):
-  #  """
-  #    This method returns True if a certain output space can be kept on hold (so far, just the EnsembelModel can do that)
-  #    @ In, None
-  #    @ Out, acceptHoldOutputSpace, bool, True if a certain output space can be kept on hold
-  #  """
-  #  return False
