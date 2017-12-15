@@ -339,21 +339,21 @@ class cNDarray(object):
     if type(entry) not in [np.ndarray]:
       raise IOError('Tried to add new data to cNDarray.  Can only accept np.ndarray, but got '+type(entry).__name__)
     # for now require full correct shape, later handle the single entry case
-    if len(entry.shape)!=2:
+    if len(entry.shape)!=1:
       # TODO single entry case
-      raise IOError('Tried to add new data to cNDarray.  Need shape (#,{}) but got "{}"!'.format(self.width,entry.shape))
+      raise IOError('Tried to add new data to cNDarray.  Need shape ({},) but got "{}"!'.format(self.width,entry.shape))
     # must have matching width (fix for single entry case)
-    if entry.shape[1] != self.width:
-      raise IOError('Tried to add new data to cNDarray.  Need {} entities per entry, but got '.format(self.width)+str(entry.shape[1]))
+    if entry.shape[0] != self.width:
+      raise IOError('Tried to add new data to cNDarray.  Need {} entries in array, but got '.format(self.width)+str(entry.shape[0]))
     # check for index alignment, if it's not the first entry
-    #if False:
-    if len(self) != 0:
+    if False:
+    #if len(self) != 0:
       for e in entry:
         self.checkAlignment(e,self[-1],tol=1e-10) # TODO user-based tolerance
     # check if there's enough space in cache to append the new entries
-    if self.size + entry.shape[0] > self.capacity:
+    if self.size + 1 > self.capacity:
       # since there's not enough space, quadruple available space # TODO change growth parameter to be variable?
-      self.capacity += max(self.capacity*4,entry.shape[0])
+      self.capacity += self.capacity*4
       newdata = np.zeros((self.capacity,self.width),dtype=self.values.dtype)
       newdata[:self.size] = self.values[:self.size]
       self.values = newdata

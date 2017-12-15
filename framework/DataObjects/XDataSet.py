@@ -173,7 +173,7 @@ class DataSet(DataObject):
     #   This is because the cNDarray collector expects a LIST of realization, not a single realization.
     #   Maybe the "append" method should be renamed to "extend" or changed to append one at a time.
     ## set realizations as a list of realizations (which are ordered lists)
-    newData = np.asarray([list(rlz[var] for var in self._allvars)+[0.0]],dtype=object)
+    newData = np.asarray([list(rlz[var] for var in self._allvars + self.indexes)+[0.0]],dtype=object)
     newData = newData[:,:-1]
     # if data storage isn't set up, set it up
     if self._collector is None:
@@ -868,6 +868,7 @@ class DataSet(DataObject):
     # TODO make into a protected method? Should it be called from outside?
     # if we have collected data, collapse it
     if self._collector is not None and len(self._collector) > 0:
+      # XXX TODO FIXME make data all at once plus indexes, now
       data = self._collector.getData()
       firstSample = int(self._data[self.sampleTag][-1])+1 if self._data is not None else 0
       arrs = {}
@@ -910,6 +911,19 @@ class DataSet(DataObject):
       for var in self._pivotParams.keys():
         dtype = self._getCompatibleType(rlz[var][0])
         rlz[var] = np.array(rlz[var],dtype=dtype)
+    # for now, leave them as the arrays they are, except single entries need converting
+    for var,val in rlz.items():
+      # if an index variable, skip it
+      if var in self._pivotParams.keys():
+        continue
+      dims = self.getDimensions(var)[var]
+      ## change dimensionless to floats -> TODO use operator to collapse!
+      if dims in [[self.sampleTag], []]:
+        if len(val) == 1:
+          rlz[var] = val[0]
+    return rlz
+
+    ### OLD ###
     for var,val in rlz.items():
       # if an index variable, skip it
       if var in self._pivotParams.keys():
