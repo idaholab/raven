@@ -345,6 +345,11 @@ class cNDarray(object):
     # must have matching width (fix for single entry case)
     if entry.shape[1] != self.width:
       raise IOError('Tried to add new data to cNDarray.  Need {} entities per entry, but got '.format(self.width)+str(entry.shape[1]))
+    # check for index alignment, if it's not the first entry
+    #if False:
+    if len(self) != 0:
+      for e in entry:
+        self.checkAlignment(e,self[-1],tol=1e-10) # TODO user-based tolerance
     # check if there's enough space in cache to append the new entries
     if self.size + entry.shape[0] > self.capacity:
       # since there's not enough space, quadruple available space # TODO change growth parameter to be variable?
@@ -375,6 +380,36 @@ class cNDarray(object):
       vals[i] = new
     self.values = np.hstack([self.values] + vals)
     self.width += 1
+
+  def checkAlignment(self,new,old,tol):
+    """
+      If entry indexes are nearly aligned, align new to old
+      @ In, new, np.array(single-valued OR xr.DataArray), new realization
+      @ In, old, np.array(single-valued OR xr.DataArray), old realization
+      @ In, tol, float, the acceptable average relative difference between the two
+      @ Out, new, np.array(single-valued OR xr.DataArray), new realization (aligned if within tol)
+    """
+    closeEnough = True
+    # check for each variable
+    for v in range(len(new)):
+      if not type(new[v]).__name__ == 'DataArray':
+        continue
+      # all indexes have to be aligned in order to reindex
+      for index in new[v].dims:
+        diff = sum(abs(new[v][index] - old[v][index]))/float(len(new[v][index]))
+        # determine scale factor
+        scale = np.average(old[v][index])
+        if scale == 0.0:
+          scale = max(old[v][index])
+        # check against tolerance
+        if diff/scale > tol:
+          closeEnough = False
+          break
+      # if all indexes close enough, then reindex
+      if closeEnough:
+        new[v] = new[v].reindex_like(old[v],method='nearest',tolerance=tol)
+    return new
+
 
   def getData(self):
     """
