@@ -54,15 +54,15 @@
 
   <DataObjects>
     <PointSet name="dummyIn">
-      <Input>x1,x2</Input>
+      <Input>x2,x1</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="response">
-      <Input>x1,x2</Input>
+      <Input>x2,x1</Input>
       <Output>y</Output>
     </PointSet>
     <PointSet name="limit_surface">
-      <Input>x1,x2</Input>
+      <Input>x2,x1</Input>
       <Output>label</Output>
     </PointSet>
   </DataObjects>
@@ -135,10 +135,12 @@
     <Print name="invalid_post_ls">
       <type>csv</type>
       <source>limit_surface</source>
+      <what>input,output</what>
     </Print>
     <Print name="invalid_post_samples">
       <type>csv</type>
       <source>response</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

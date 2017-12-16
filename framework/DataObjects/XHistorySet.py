@@ -143,8 +143,8 @@ class HistorySet(DataSet):
     for inp in self._inputs + self._metavars:
       data[inp] = main[inp].values # TODO dtype?
     ## get the samplerTag values if they're present, in case it's not just range
-    if self.samplerTag in main:
-      labels = main[self.samplerTag].values
+    if self.sampleTag in main:
+      labels = main[self.sampleTag].values
     else:
       labels = None
     # load subfiles for output spaces

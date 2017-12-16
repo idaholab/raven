@@ -343,3 +343,4 @@ def returnInputParameter():
     @ Out, returnInputParameter, DatabasesCollection, class for parsing.
   """
   return DatabasesCollection()
+

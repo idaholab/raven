@@ -913,13 +913,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     staticOutputVars = self.mlOutputStaticVariables[traj] if traj in self.mlOutputStaticVariables else None #self.mlOutputStaticVariables.pop(traj,None)
     #if "holdOutputSpace" in self.inputInfo:
     #  self.inputInfo.pop("holdOutputSpace")
-    if staticOutputVars is not None:
-      # check if the model can hold a portion of the output space
-      if not model.acceptHoldOutputSpace():
-        self.raiseAnError(RuntimeError,'The user requested to hold a certain output space but the model "'+model.name+'" does not allow it!')
-      # try to hold this output variables (multilevel)
-      ID = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj]-1,"")
-      self.inputInfo["holdOutputErase"] = ID
+    #if staticOutputVars is not None:
+    #  # check if the model can hold a portion of the output space
+    #  if not model.acceptHoldOutputSpace():
+    #    self.raiseAnError(RuntimeError,'The user requested to hold a certain output space but the model "'+model.name+'" does not allow it!')
+    #  # try to hold this output variables (multilevel)
+    #  ID = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj]-1,"")
+    #  self.inputInfo["holdOutputErase"] = ID
     #### CONSTANT VARIABLES ####
     if len(self.constants) > 0:
       self.values.update(self.constants)
@@ -1045,3 +1045,4 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       return a <= b
     elif self.optType == 'max':
       return a >= b
+

@@ -32,7 +32,6 @@
     </External>
 </Functions>
 
-
   <!-- STEPS -->
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="20021986">
@@ -46,7 +45,6 @@
         <Input  class="DataObjects" type="HistorySet"   >originalHistorySet</Input>
         <Model  class="Models"      type="PostProcessor">functionPP</Model>
         <Output class="DataObjects" type="HistorySet"   >partitionedHistorySet</Output>
-        <Output class="OutStreams"  type="Print"        >originalHistorySet_dump</Output>
         <Output class="OutStreams"  type="Print"        >partitionedHistorySet_dump</Output>
     </PostProcess>
   </Steps>
@@ -123,7 +121,10 @@
     </HistorySet>
     <HistorySet name="partitionedHistorySet">
         <Input>x0,y0,z0</Input>
-        <Output>time,x,y,z</Output>
+        <Output>partitionHistorySet_time, partitionHistorySet_x,partitionHistorySet_y,partitionHistorySet_z</Output>
+        <options>
+            <pivotParameter>partitionHistorySet_time</pivotParameter>
+        </options>
     </HistorySet>
   </DataObjects>
 

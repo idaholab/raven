@@ -22,6 +22,7 @@ warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
+import xarray
 from scipy import spatial
 import copy
 #External Modules End--------------------------------------------------------------------------------
@@ -67,6 +68,7 @@ class SafestPoint(PostProcessor):
     ControllableInput = InputData.parameterInputFactory("controllable", contentType=InputData.StringType)
     ControllableInput.addSub(VariableInput)
     inputSpecification.addSub(ControllableInput)
+    inputSpecification.addSub(InputData.parameterInputFactory("outputName", contentType=InputData.StringType))
 
     NoncontrollableInput = InputData.parameterInputFactory("non-controllable", contentType=InputData.StringType)
     NoncontrollableInput.addSub(VariableInput)
@@ -90,7 +92,9 @@ class SafestPoint(PostProcessor):
     self.nonControllableOrd = []  # list containing the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
     self.surfPointsMatrix = None  # 2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
     self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
+    self.outputName = "Probability"
     self.addAssemblerObject('Distribution','n', True)
+    self.addMetaKeys(*["ProbabilityWeight"])
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 
   def _localGenerateAssembler(self, initDict):
@@ -128,6 +132,8 @@ class SafestPoint(PostProcessor):
     """
 
     for child in paramInput.subparts:
+      if child.getName() == 'outputName':
+        self.outputName = child.value
       if child.getName() == 'controllable' or  child.getName() == 'non-controllable':
         for childChild in child.subparts:
           if childChild.getName() == 'variable':
@@ -177,7 +183,7 @@ class SafestPoint(PostProcessor):
     self.inputToInternal(inputs)
     #FIXME this is quite invasive use of the basic statistics; a more standardized construction would be nice
     #we set the toDo here, since at this point we know the targets for the basic statistics
-    self.stat.toDo = {'expectedValue':set(self.controllableOrd)} #don't set directly, just set up the toDo for basicStats
+    self.stat.toDo = {'expectedValue':[{'targets':set(self.controllableOrd), 'prefix':"controllable"}]} #don't set directly, just set up the toDo for basicStats
     self.stat.initialize(runInfo, inputs, initDict)
     self.raiseADebug('GRID INFO:')
     self.raiseADebug(self.gridInfo)
@@ -284,17 +290,16 @@ class SafestPoint(PostProcessor):
       @ In, currentInput, object, an object that needs to be converted
       @ Out, None, the resulting converted object is stored as an attribute of this class
     """
-    for item in currentInput:
-      if item.type == 'PointSet':
-        self.surfPointsMatrix = np.zeros((len(item.getParam('output', item.getParaKeys('outputs')[-1])), len(self.gridInfo.keys()) + 1))
-        k = 0
-        for varName in self.controllableOrd:
-          self.surfPointsMatrix[:, k] = item.getParam('input', varName)
-          k += 1
-        for varName in self.nonControllableOrd:
-          self.surfPointsMatrix[:, k] = item.getParam('input', varName)
-          k += 1
-        self.surfPointsMatrix[:, k] = item.getParam('output', item.getParaKeys('outputs')[-1])
+    if len(currentInput) > 0:
+      self.raiseAnError(IOError,"This PostProcessor can accept only a single input! Got: "+ str(len(currentInput))+"!")
+    item = currentInput[0]
+    if item.type != 'PointSet':
+      self.raiseAnError(IOError, self.type +" accepts PointSet only as input! Got: "+item.type)
+    self.surfPointsMatrix = np.zeros((len(item), len(self.gridInfo.keys()) + 1))
+    dataSet = item.asDataset()
+    for k, varName in enumerate(self.controllableOrd+self.nonControllableOrd):
+      self.surfPointsMatrix[:, k] = dataSet[varName].values
+    self.surfPointsMatrix[:, k+1] = dataSet[item.getVars("output")[-1]].values
 
   def run(self, input):
     """
@@ -302,9 +307,8 @@ class SafestPoint(PostProcessor):
       @ In,  input, object, object contained the data to process. (inputToInternal output)
       @ Out, dataCollector, PointSet, PointSet containing the elaborated data
     """
+    ##TODO: This PP can be LARGELY optimized.
     nearestPointsInd = []
-    dataCollector = DataObjects.returnInstance('PointSet', self)
-    dataCollector.type = 'PointSet'
     surfTree = spatial.KDTree(copy.copy(self.surfPointsMatrix[:, 0:self.surfPointsMatrix.shape[-1] - 1]))
     self.controllableSpace.shape = (np.prod(self.controllableSpace.shape[0:len(self.controllableSpace.shape) - 1]), self.controllableSpace.shape[-1])
     self.nonControllableSpace.shape = (np.prod(self.nonControllableSpace.shape[0:len(self.nonControllableSpace.shape) - 1]), self.nonControllableSpace.shape[-1])
@@ -312,6 +316,10 @@ class SafestPoint(PostProcessor):
     self.raiseADebug(self.controllableSpace)
     self.raiseADebug('RESHAPED NON-CONTROLLABLE SPACE:')
     self.raiseADebug(self.nonControllableSpace)
+    # create space for realization
+    rlz = {key : np.zeros(self.nonControllableSpace.shape[0])  for key in self.controllableOrd+self.nonControllableOrd}
+    rlz[self.outputName] = np.zeros(self.nonControllableSpace.shape[0])
+    rlz['ProbabilityWeight'] = np.zeros(self.nonControllableSpace.shape[0])
     for ncLine in range(self.nonControllableSpace.shape[0]):
       queryPointsMatrix = np.append(self.controllableSpace, np.tile(self.nonControllableSpace[ncLine, :], (self.controllableSpace.shape[0], 1)), axis = 1)
       self.raiseADebug('QUERIED POINTS MATRIX:')
@@ -329,32 +337,34 @@ class SafestPoint(PostProcessor):
         self.raiseAnError(ValueError, 'no safest point found for the current set of non-controllable variables: ' + str(self.nonControllableSpace[ncLine, :]) + '.')
       else:
         for cVarIndex in range(len(self.controllableOrd)):
-          dataCollector.updateInputValue(self.controllableOrd[cVarIndex], copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))], cVarIndex]))
+          rlz[self.controllableOrd[cVarIndex]][ncLine] = copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))], cVarIndex])
         for ncVarIndex in range(len(self.nonControllableOrd)):
-          dataCollector.updateInputValue(self.nonControllableOrd[ncVarIndex], copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))], len(self.controllableOrd) + ncVarIndex]))
+          rlz[self.nonControllableOrd[ncVarIndex]][ncLine] = queryPointsMatrix[indexList[distList.index(max(distList))], len(self.controllableOrd) + ncVarIndex]
           if queryPointsMatrix[indexList[distList.index(max(distList))], len(self.controllableOrd) + ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound:
             if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
-              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / float(2)
+              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.
             else:
-              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound + self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / float(2))
+              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound + self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.)
           elif queryPointsMatrix[indexList[distList.index(max(distList))], len(self.controllableOrd) + ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound:
             if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
-              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / float(2)
+              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.
             else:
-              prob = 1 - self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound - self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / float(2))
+              prob = 1 - self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound - self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.)
           else:
             if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
               prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]
             else:
-              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))], len(self.controllableOrd) + ncVarIndex] + self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / float(2)) - self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))], len(self.controllableOrd) + ncVarIndex] - self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / float(2))
+              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))],
+                      len(self.controllableOrd) + ncVarIndex] + self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.) - self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))],
+                      len(self.controllableOrd) + ncVarIndex] - self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.)
           probList.append(prob)
-      dataCollector.updateOutputValue('Probability', np.prod(probList))
-      dataCollector.updateMetadata('ProbabilityWeight', np.prod(probList))
-    dataCollector.updateMetadata('ExpectedSafestPointCoordinates', self.stat.run(dataCollector)['expectedValue'])
-    self.raiseADebug(dataCollector.getParametersValues('input'))
-    self.raiseADebug(dataCollector.getParametersValues('output'))
-    self.raiseADebug(dataCollector.getMetadata('ExpectedSafestPointCoordinates'))
-    return dataCollector
+      rlz[self.outputName][ncLine] = np.prod(probList)
+      rlz['ProbabilityWeight'][ncLine] = np.prod(probList)
+    metadata = {'ProbabilityWeight':xarray.DataArray(rlz['ProbabilityWeight'])}
+    targets = {tar:xarray.DataArray( rlz[tar])  for tar in self.controllableOrd}
+    rlz['ExpectedSafestPointCoordinates'] = self.stat.run({'metadata':metadata, 'targets':targets})
+    self.raiseADebug(rlz['ExpectedSafestPointCoordinates'])
+    return rlz
 
   def collectOutput(self, finishedJob, output):
     """
@@ -366,19 +376,19 @@ class SafestPoint(PostProcessor):
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-    else:
-      dataCollector = evaluation[1]
-      if output.type != 'PointSet':
-        self.raiseAnError(TypeError, 'output item type must be "PointSet".')
-      else:
-        if not output.isItEmpty():
-          self.raiseAnError(ValueError, 'output item must be empty.')
-        else:
-          for key, value in dataCollector.getParametersValues('input').items():
-            for val in value:
-              output.updateInputValue(key, val)
-          for key, value in dataCollector.getParametersValues('output').items():
-            for val in value:
-              output.updateOutputValue(key, val)
-          for key, value in dataCollector.getAllMetadata().items():
-            output.updateMetadata(key, value)
+    dataCollector = evaluation[1]
+
+    if output.type != 'PointSet':
+      self.raiseAnError(TypeError, 'output item type must be "PointSet".')
+
+    if len(output) > 0:
+      self.raiseAnError(ValueError, 'output item must be empty.')
+
+    if self.outputName not in output.getVars():
+      self.raiseAnError(IOError, 'The output name "'+self.outputName+'" is not present in the output '+output.name )
+    safestPoint = dataCollector.pop("ExpectedSafestPointCoordinates")
+    # add the data
+    output.load(dataCollector,'dict')
+    # add general metadata
+    output.addMeta(self.type,{'safest_point':{'coordinate':safestPoint}})
+

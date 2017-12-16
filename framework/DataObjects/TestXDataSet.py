@@ -714,7 +714,7 @@ data = XDataSet.DataSet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 # load with insufficient values
-checkFails('Load from dict missing variable','Variables are missing from "source" that are required for this data object: set([u\'a\'])',data.load,args=[seed],kwargs=dict(style='dict',dims=data.getDimensions()))
+checkFails('Load from dict missing variable','Variables are missing from "source" that are required for data object " DataSet ": a',data.load,args=[seed],kwargs=dict(style='dict',dims=data.getDimensions()))
 # add a scalar variable, 10 entries
 seed['a'] = np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9])
 # load properly
@@ -725,8 +725,6 @@ checkArray('load from dict "b"[3]',data.asDataset().isel(True,RAVEN_sample_ID=3)
 rlz = data.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
-
-
 # Here I am testing the functionality that converts the dataObject into a dict
 convertedDict = data.asDataset(outType='dict')
 # check that the dictionary entries are the same
@@ -755,7 +753,6 @@ checkArray('load from dict "b"[3]',dataRe.asDataset().isel(True,RAVEN_sample_ID=
 rlz = dataRe.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
-
 ######################################
 #        REMOVING VARIABLES          #
 ######################################
@@ -775,7 +772,6 @@ checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
 checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
 # check we can add a new realization
 data.addRealization({'a':np.array([2.1]), 't':np.array([0])})
-
 
 ######################################
 #          CLUSTER LABELING          #
@@ -884,7 +880,6 @@ correct = {'a':np.array([  2.0,  2.1]),
            'y':np.array([200.0,200.1]),
            'trajID':np.array([2])}
 checkRlz('Cluster read [1]',data2.realization(index=1),correct)
-
 
 ######################################
 #             DATA TYPING            #

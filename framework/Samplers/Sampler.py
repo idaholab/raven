@@ -222,6 +222,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     paramInput = self._readMoreXMLbase(xmlNode)
     self.localInputAndChecks(xmlNode, paramInput)
 
+
   def _readMoreXMLbase(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to the base sampler only
@@ -578,6 +579,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     # Register expected metadata
     meta = ['ProbabilityWeight','prefix','PointProbability']
+    for var in self.toBeSampled.keys():
+      meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
     self.addMetaKeys(*meta)
 
   def localInitialize(self):
