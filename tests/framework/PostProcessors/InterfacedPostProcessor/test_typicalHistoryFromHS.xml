@@ -31,18 +31,18 @@
     <Steps>
         <IOStep name='readIn' pauseAtEnd = 'True'>
             <Input    class = 'Files'             type = ''              >windRawDataFile</Input>
-            <Output   class = 'DataObjects'       type = 'HistorySet'       >windRawData</Output>        
+            <Output   class = 'DataObjects'       type = 'HistorySet'    >windRawData</Output>
 		</IOStep>
 		<PostProcess name='pp' pauseAtEnd = 'True'>
-			<Input    class = 'DataObjects'       type = 'HistorySet'       >windRawData</Input>
-			<Model   class='Models' 			  type = 'PostProcessor'    >TypicalHistory</Model>
-			<Output    class = 'DataObjects'       type = 'HistorySet'    	 >windTypicalData</Output>
+			<Input    class = 'DataObjects'       type = 'HistorySet'    >windRawData</Input>
+			<Model    class = 'Models' 			  type = 'PostProcessor' >TypicalHistory</Model>
+			<Output   class = 'DataObjects'       type = 'HistorySet'    >windTypicalData</Output>
 		</PostProcess>
         <IOStep name='writeOut' pauseAtEnd = 'True'>
-			<Input    class = 'DataObjects'       type = 'HistorySet'       >windRawData</Input>
-			<Input    class = 'DataObjects'       type = 'HistorySet'    	 >windTypicalData</Input>
-			<Output   class = 'OutStreams'  type = 'Print'         >writeTypDataOut</Output>	
-			<Output   class = 'OutStreams'  type = 'Plot'         >plotWindTypData</Output>			
+			<Input    class = 'DataObjects'       type = 'HistorySet'    >windRawData</Input>
+			<Input    class = 'DataObjects'       type = 'HistorySet'    >windTypicalData</Input>
+			<Output   class = 'OutStreams'        type = 'Print'         >writeTypDataOut</Output>
+			<Output   class = 'OutStreams'        type = 'Plot'          >plotWindTypData</Output>
 		</IOStep>	
     </Steps>
 	
@@ -86,6 +86,9 @@
         <HistorySet name="windRawData">
             <Input>x</Input>
             <Output>Time,Speed</Output>
+			<!--options>
+				<pivotParameter>Time</pivotParameter>
+			</options-->
         </HistorySet>
 		<HistorySet name="windTypicalData">
             <Input>x</Input>

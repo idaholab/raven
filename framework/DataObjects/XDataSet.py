@@ -297,7 +297,7 @@ class DataSet(DataObject):
 
   def getMeta(self,keys=None,pointwise=False,general=False):
     """
-      Method to obtain entries in the metadata.  If niether pointwise nor general, then returns an empty dict.
+      Method to obtain entries in the metadata.  If neither pointwise nor general, then returns an empty dict.
        @ In, keys, list(str), optional, the keys (or main tag) to search for.  If None, return all.
        @ In, pointwise, bool, optional, if True then matches will be searched in the pointwise metadata
        @ In, general, bool, optional, if True then matches will be searched in the general metadata
@@ -856,8 +856,8 @@ class DataSet(DataObject):
         # need to drop indexes for which no values are present
         for index in dims:
           data = data.dropna(index)
-          if dataDict['data'][index][s] == 0:
-            dataDict['data'][index][s] = data[index].values
+          #if dataDict['data'][index][s] == 0:
+          dataDict['data'][index][s] = data[index].values
         dataDict['data'][var][s] = data.values
     return dataDict
 
