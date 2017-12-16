@@ -67,8 +67,8 @@
 
     <OutStreams>
         <Print name = 'results'>
-       <type>csv</type>
-       <source>results</source>
+          <type>csv</type>
+          <source>results</source>
         </Print>
 	</OutStreams>
 
@@ -80,6 +80,9 @@
       <HistorySet name="results">
         <Input>scaling</Input>
         <Output>Time,Speed</Output>
+        <options>
+            <pivotParameter>Time</pivotParameter>
+        </options>
       </HistorySet>
     </DataObjects>
 </Simulation>

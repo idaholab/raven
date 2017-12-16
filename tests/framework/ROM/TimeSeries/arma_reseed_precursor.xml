@@ -59,6 +59,9 @@
     <HistorySet name="rawData">
       <Input>scaling</Input>
       <Output>Time,Speed</Output>
+      <options>
+         <pivotParameter>Time</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 

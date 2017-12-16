@@ -105,6 +105,9 @@
       <HistorySet name="rawData">
         <Input>scaling</Input>
         <Output>Time,Speed</Output>
+        <options>
+            <pivotParameter>Time</pivotParameter>
+        </options>
       </HistorySet>
       <HistorySet name="synData">
        <Input>scaling</Input>
