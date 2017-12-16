@@ -1231,6 +1231,9 @@ class DataSet(DataObject):
         elif small == 'output':
           keep += self._outputs
           continue
+        elif small == 'metadata':
+          keep += self._metavars
+          continue
         else:
           keep.append(entry.split('|')[-1].strip())
     else:
