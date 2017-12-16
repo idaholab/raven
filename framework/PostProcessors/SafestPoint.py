@@ -290,7 +290,7 @@ class SafestPoint(PostProcessor):
       @ In, currentInput, object, an object that needs to be converted
       @ Out, None, the resulting converted object is stored as an attribute of this class
     """
-    if len(currentInput) > 0:
+    if len(currentInput) > 1:
       self.raiseAnError(IOError,"This PostProcessor can accept only a single input! Got: "+ str(len(currentInput))+"!")
     item = currentInput[0]
     if item.type != 'PointSet':
