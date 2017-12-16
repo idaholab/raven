@@ -449,7 +449,7 @@ class ETImporter(PostProcessor):
     outputDict, variables = evaluation[1]
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
-    if not set(output.getParaKeys('inputs')) == set(variables):
+    if not set(output.getVars('input')) == set(variables):
       self.raiseAnError(RuntimeError, ' ETImporter: set of branching variables in the '
                                       'ET ( ' + str(output.getParaKeys('inputs')) + ' ) is not identical to the'
                                       ' set of input variables specified in the PointSet (' + str(variables) +')')
@@ -460,6 +460,7 @@ class ETImporter(PostProcessor):
                                       'variables specified in the ET (' + str(set(outputDict.keys())))
     if output.type in ['PointSet']:
       for key in outputDict.keys():
+        print(type(output))
         output.addVariable(key,outputDict[key])
       '''
       for key in output.getParaKeys('inputs'):

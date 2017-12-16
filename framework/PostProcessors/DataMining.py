@@ -13,7 +13,6 @@
 # limitations under the License.
 """
 Created on July 10, 2013
-
 @author: alfoa
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
@@ -567,6 +566,74 @@ class DataMining(PostProcessor):
           for index, keyH in enumerate(historyKey):
             for keyL in dataMineDict['outputs'].keys():
               outputObject.updateOutputValue([keyH,keyL], dataMineDict['outputs'][keyL][index,:])
+    ## End data augmentation
+    ############################################################################
+
+    if len(missingKeys) > 0:
+      missingKeys = ','.join(missingKeys)
+      self.raiseAWarning("The {} \"{}\" used as an output specifies the "
+                         "following inputs/outputs that could not be resolved "
+                         "by the \"{}\" {}: {}".format(outputObject.type,
+                                                       outputObject.name,
+                                                       self.name, "Model",
+                                                       missingKeys))
+
+  def collectOutput(self, finishedJob, outputObject):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler
+        object that is in charge of running this post-processor
+      @ InOut, outputObject, dataObjects, A reference to an object where we want
+        to place our computed results
+    """
+    ## When does this actually happen?
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
+    inputObject, dataMineDict = evaluation
+
+    ## This should not have to be a list
+    ## TODO: figure out if there is a case where it can be in this processor
+    inputObject = inputObject[0]
+
+    ## Store everything we cannot wrangle from the input data object and the
+    ## result of the dataMineDict
+    missingKeys = []
+
+    ############################################################################
+    ## If the input data object is different from the output data object, we
+    ## need to explicitly copy everything over that the user requests from the
+    ## input object
+    if inputObject != outputObject:
+      ## First copy any data you need from the input object
+      ## before adding new data
+      numberOfRealizations =  len(inputObject['data']['RAVEN_sample_ID'].values)
+      for i in range(numberOfRealizations):
+        outputObject.addRealization(inputObject.realization(index=i))
+    ## End data copy
+    ############################################################################
+
+    ############################################################################
+    ## Now augment the DataObject by adding the computed labels and/or
+    ## transformed coordinates aka the new columns added to the DataObject
+    for key in dataMineDict['outputs']:
+      if outputObject.type == 'PointSet':
+        outputObject.addVariable(key,dataMineDict['outputs'][key])
+      elif outputObject.type == 'HistorySet':
+        if self.PreProcessor is not None or self.metric is not None:
+          for index, value in np.ndenumerate(dataMineDict['outputs'][key]):
+            firstHist = outputObject._dataContainer['outputs'].keys()[0]
+            firstVar = outputObject._dataContainer['outputs'][index[0] + 1].keys()[0]
+            timeLength = outputObject._dataContainer['outputs'][index[0] + 1][firstVar].size
+            arrayBase = value * np.ones(timeLength)
+            outputObject.updateOutputValue([index[0] + 1, key], arrayBase)
+        else:
+          outputObject.addVariable(varName,values)
+          historyKey = outputObject.getOutParametersValues().keys()
+          for index, keyH in enumerate(historyKey):
+            for keyL in dataMineDict['outputs'].keys():
+              outputObject.updateOutputValue([keyH, keyL], dataMineDict['outputs'][keyL][index, :])
     ## End data augmentation
     ############################################################################
 
