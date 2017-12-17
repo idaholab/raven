@@ -1522,7 +1522,19 @@ class DataSet(DataObject):
         else:
           if self.sampleTag in data.index.names:
             data.index = data.index.droplevel(self.sampleTag)
-        data.to_csv(fName+'.csv',mode=mode,header=header, index=indexx)
+        if not indexx:
+          data.to_csv(fName+'.csv',mode=mode,header=header, index=indexx)
+        else:
+          ## This is extremely bad and not elegant
+          ## It is just needed to go on with the "regolding" of the tests
+          dataString = data.to_string()
+          # find headers
+          splitted = [",".join(elm.split())+"\n" for elm in data.to_string().split("\n")]
+          header, stringData = splitted[0:2], splitted[2:]
+          header.reverse()
+          toPrint = [",".join(header).replace("\n","")+"\n"]+stringData
+          with open(fName+'.csv', mode='w+') as fileObject:
+            fileObject.writelines(toPrint)
       # if keepIndex, then print as is
       elif keepIndex:
         data.to_csv(fName+'.csv',mode=mode,header=header)
