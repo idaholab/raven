@@ -153,8 +153,12 @@ class HistorySet(DataSet):
     for out in self._outputs + self.indexes:
       data[out] = np.zeros(nSamples,dtype=object)
     for i,sub in enumerate(subFiles):
+      subFile = sub
+      # check if the sub has an absolute path, otherwise take it from the master file (fname)
+      if not os.path.isabs(subFile):
+        subFile = os.path.join(os.path.dirname(fname),subFile)
       # first time create structures
-      subDat = pd.read_csv(sub)
+      subDat = pd.read_csv(subFile)
       if len(set(subDat.keys()).intersection(self.indexes)) != len(self.indexes):
         self.raiseAnError(IOError,'Importing HistorySet from .csv: the pivot parameters "'+', '.join(self.indexes)+'" have not been found in the .csv file. Check that the '
                                   'correct <pivotParameter> has been specified in the dataObject or make sure the <pivotParameter> is included in the .csv files')
@@ -176,6 +180,9 @@ class HistorySet(DataSet):
       # get one of the subCSVs from the first row of data in the base file
       # ASSUMES that filename is the last column.  Currently, there's no way for that not to be true.
       subfile = base.readline().split(',')[-1].strip()
+      # check if abs path otherwise take the dirpath from the master file (fname)
+      if not os.path.isabs(subfile):
+        subfile = os.path.join(os.path.dirname(fname),subfile)
     with open(subfile,'r') as sub:
       outputAvail = list(s.strip() for s in sub.readline().split(','))
     return inputAvail + outputAvail
@@ -231,6 +238,15 @@ class HistorySet(DataSet):
     ## obtain slices to write subset CSVs
     ordered = list(o for o in self.getVars('output') if o in keep)
     for i in range(len(data[self.sampleTag].values)):
-      rlz = data.isel(**{self.sampleTag:i})[ordered].dropna(self.indexes[0])
+      #########################################################################
+      #rlz = data.isel(**{self.sampleTag:i})[ordered].dropna(self.indexes[0]) #
+      #########################################################################
+      #
+      # @talbpaul, why you were dropping the index? I think it is logical I want to have the "time" in the output of the HistorySet. Right?
+      #TODO:
+      # Conceptually we always considered the "PivotParameter" an output. So If I request "output" in <what> or I do not specify <what> I should
+      # always add the pivotParameter value in the printing.
+      # Please check
+      rlz = data.isel(**{self.sampleTag:i})[ordered]
       filename = subFiles[i][:-4]
       self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)

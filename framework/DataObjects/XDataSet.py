@@ -1494,7 +1494,7 @@ class DataSet(DataObject):
       @ In, fName, str, path/name to write file
       @ In, data, xr.Dataset, data to write (with only "keep" vars included, plus self.sampleTag)
       @ In, ordered, list(str), ordered list of headers
-      @ In, keepSampleTag, bool, optional, if True then keep the samplerTag in the CSV
+      @ In, keepSampleTag, bool, optional, if True then keep the sampleTag in the CSV
       @ In, keepIndex, bool, optional, if True then keep indices in the CSV even if not multiindex
       @ In, mode, str, optional, mode to write CSV in (write, append as 'w','a')
       @ Out, None
@@ -1516,9 +1516,12 @@ class DataSet(DataObject):
       # if other multiindices included, don't omit them #for ND DataSets only
       if isinstance(data.index,pd.MultiIndex):
         # if we have just the self.sampleTag index (we can not drop it otherwise pandas fail). We use index=False (a.a.)
-        indexx = False if len(data.index.names) == 1 else True
-        if indexx:
-          data.index = data.index.droplevel(self.sampleTag)
+        indexx = True
+        if len(data.index.names) == 1:
+          indexx = self.sampleTag not in data.index.names
+        else:
+          if self.sampleTag in data.index.names:
+            data.index = data.index.droplevel(self.sampleTag)
         data.to_csv(fName+'.csv',mode=mode,header=header, index=indexx)
       # if keepIndex, then print as is
       elif keepIndex:
