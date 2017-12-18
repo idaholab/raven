@@ -104,6 +104,10 @@
           <type>csv</type>
           <source>pp1_metric</source>
       </Print>
+      <Print name="pp1_metric_dump">
+          <type>csv</type>
+          <source>pp1_metric</source>
+      </Print>
   </OutStreams>
 
 </Simulation>

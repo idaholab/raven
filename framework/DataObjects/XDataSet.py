@@ -382,6 +382,9 @@ class DataSet(DataObject):
       @ In, kwargs, dict, optional, additional arguments to pass to reading function
       @ Out, None
     """
+    if len(self) > 0:
+      self.raiseAnError(IOError, "Attempting to load data from a '{}', but target DataObject is not empty!".format(style)
+              + " This operation is not permitted; try outputting to a clean DataObject.")
     style = style.lower()
     # if fileToLoad in kwargs, then filename is actualle fName/fileToLoad
     if 'fileToLoad' in kwargs.keys():
@@ -1064,8 +1067,6 @@ class DataSet(DataObject):
       @ In, kwargs, dict, optional arguments
       @ Out, None
     """
-    assert(self._data is None)
-    assert(self._collector is None)
     # first, try to read from csv
     try:
       panda = pd.read_csv(fName+'.csv')
@@ -1158,8 +1159,6 @@ class DataSet(DataObject):
       @ In, kwargs, dict, optional, additional arguments
       @ Out, None
     """
-    assert(self._data is None)
-    assert(self._collector is None)
     # not safe to default to dict, so if "dims" not specified set it here
     if dims is None:
       dims = {}
@@ -1169,31 +1168,34 @@ class DataSet(DataObject):
     #   etc
     ## check that all inputs, outputs required are provided
     providedVars = set(source.keys())
-    requiredVars = set(self.getVars('input')+self.getVars('output'))
-    ## determine what vars are metadata (the "extra" stuff that isn't output or input
-    # TODO don't take "extra", check registered meta explicitly
-    extra = list(e for e in providedVars - requiredVars if e not in self.indexes)
-    self._metavars = extra
+    requiredVars = set(self.getVars())
     ## figure out who's missing from the IO space
     missing = requiredVars - providedVars
     if len(missing) > 0:
-      self.raiseAnError(KeyError,'Variables are missing from "source" that are required for this data object:',missing)
+      self.raiseAnError(KeyError,'Variables are missing from "source" that are required for data object "',
+                                  self.name.strip(),'":',",".join(missing))
     # make a collector from scratch -> start by collecting into ndarray
     rows = len(source.values()[0])
     cols = len(self.getVars())
     data = np.zeros([rows,cols],dtype=object)
     for i,var in enumerate(itertools.chain(self._inputs,self._outputs,self._metavars)):
-      values = source[var]
       # TODO consistency checking with dimensions requested by the user?  Or override them?
       #  -> currently overriding them
       varDims = dims.get(var,[])
+      # TODO: This wastefully copies the source data, but it preserves the object dtype
+      # Without this, a numpy.array of numpy.array will recast the xr.dataarray as simple numpy array
+      if len(varDims) != 0:
+        values = np.zeros(len(source[var]), dtype=object)
+      else:
+        values = source[var]
       # format higher-than-one-dimensional variables into a list of xr.DataArray
       for dim in varDims:
         ## first, make sure we have all the dimensions for this variable
         if dim not in source.keys():
           self.raiseAnError(KeyError,'Variable "{}" depends on dimension "{}" but it was not provided to _fromDict in the "source"!'.format(var,dim))
         ## construct ND arrays
-        for v,val in enumerate(values):
+
+        for v,val in enumerate(source[var]):
           ## coordinates come from each dimension, specific to the "vth" realization
           coords = dict((dim,source[dim][v]) for dim in varDims)
           ## swap-in-place the construction; this will likely error if there's inconsistencies
@@ -1220,8 +1222,6 @@ class DataSet(DataObject):
     """
     # TODO set up to use dask for on-disk operations -> or is that a different data object?
     # TODO are these fair assertions?
-    assert(self._data is None)
-    assert(self._collector is None)
     self._data = xr.open_dataset(fName)
     # convert metadata back to XML files
     for key,val in self._data.attrs.items():
@@ -1713,3 +1713,4 @@ class DataSet(DataObject):
       fromData = []
     endings = fromColl + fromData
     return endings
+

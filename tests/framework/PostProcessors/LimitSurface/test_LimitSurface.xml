@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework.testLimitSurfacePostProcessor</name>
+    <name>framework/PostProcessors/LimitSurface.testLimitSurfacePostProcessor</name>
     <author>alfoa</author>
     <created>2014-07-10</created>
     <classesTested>Models.PostProcessors.LimitSurface, Functions.External</classesTested>
@@ -13,7 +13,7 @@
     <revisions>
       <revision author="alfoa" date="2014-07-11">Limit Surface pp fix. SVN r28533</revision>
       <revision author="alfoa" date="2014-11-17">restructuring Steps (removed Adaptive and PostProcessor), adding Assembler capability, removed datatype input for Functions and External models, modified all the inputs, added SafestPoint postprocessor and relative regression test, fixed Sampling for descrete distributions, added check for the distributions consistency between framework and RELAP7. SVN r30411</revision>
-            <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
       <revision author="talbpaul" date="2015-07-06">standardization of tests</revision>
       <revision author="talbpaul" date="2015-07-06">Revert "standardization of tests"        This reverts commit 68099325e8daba0f756179a20b5c75ba651cb62d.</revision>
       <revision author="talbpaul" date="2015-07-06">updated tests, added script</revision>
@@ -21,6 +21,9 @@
       <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-12-14">
+          Moved LimitSurface Postprocessor tests in a specific directory (tests/framework/PostProcessors/LimitSurface) and updated for new DataObject structure
+      </revision>
     </revisions>
     <requirements>R-RA-1</requirements>
   </TestInfo>
@@ -159,15 +162,15 @@
     </PointSet>
     <PointSet name="LimitSurfacePositive">
       <Input>x0,y0</Input>
-      <Output>OutputPlaceOrder</Output>
+      <Output>goalFunctionForLimitSurface</Output>
     </PointSet>
     <PointSet name="LimitSurfaceNegative">
       <Input>x0,y0</Input>
-      <Output>OutputPlaceOrder</Output>
+      <Output>goalFunctionForLimitSurface</Output>
     </PointSet>
     <PointSet name="LimitSurfacePositiveNegative">
       <Input>x0,y0</Input>
-      <Output>OutputPlaceOrder</Output>
+      <Output>goalFunctionForLimitSurface</Output>
     </PointSet>
     <PointSet name="Dummy">
       <Input>x0,y0</Input>

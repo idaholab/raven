@@ -45,15 +45,15 @@
 
   <DataObjects>
     <PointSet name="dummyIn">
-      <Input>x1,x2</Input>
+      <Input>x2,x1</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="response">
-      <Input>x1,x2</Input>
+      <Input>x2,x1</Input>
       <Output>y</Output>
     </PointSet>
     <PointSet name="limit_surface">
-      <Input>x1,x2</Input>
+      <Input>x2,x1</Input>
       <Output>label</Output>
     </PointSet>
   </DataObjects>

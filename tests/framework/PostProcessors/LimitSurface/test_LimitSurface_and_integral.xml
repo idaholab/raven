@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework.testLimitSurfaceIntegralPP</name>
+    <name>framework/PostProcessors/LimitSurface.testLimitSurfaceIntegralPP</name>
     <author>alfoa</author>
     <created>2015-05-08</created>
     <classesTested>Models.PostProcessors.LimitSurface, Models.PostProcessors.LimitSurfaceIntegral</classesTested>
@@ -17,6 +17,9 @@
       <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-12-14">
+          Moved LimitSurface Postprocessor tests in a specific directory (tests/framework/PostProcessors/LimitSurface) and updated for new DataObject structure
+      </revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -47,6 +50,7 @@
       <integralType>MonteCarlo</integralType>
       <seed>20021986</seed>
       <target>goalFunctionForLimitSurface</target>
+      <outputName>EventProbability</outputName>
       <variable name="x0">
         <distribution>x0_distrib</distribution>
       </variable>
@@ -59,6 +63,7 @@
       <integralType>MonteCarlo</integralType>
       <seed>20021986</seed>
       <target>goalFunctionForLimitSurface</target>
+      <outputName>EventProbability</outputName>
       <variable name="x0">
         <lowerBound>-2.0</lowerBound>
         <upperBound>12.0</upperBound>
@@ -132,14 +137,14 @@
       <Model class="Models" type="PostProcessor">LimitSurfaceIntegralWeighted</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfaceWeightedPb</Output>
       <Output class="OutStreams" type="Print">LimitSurfaceWeightedPb_dump</Output>
-      <Output class="Files" type="">LimitSurfaceWeightedPb_FileObj.csv</Output>
+      <!-- NOT ALLOWED ANYMORE: <Output class="Files" type="">LimitSurfaceWeightedPb_FileObj.csv</Output> -->
     </PostProcess>
     <PostProcess name="ComputeLimitSurfaceIntegralUnWeighted">
       <Input class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Input>
       <Model class="Models" type="PostProcessor">LimitSurfaceIntegralUnWeightedWithBounds</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfaceUnWeightedPb</Output>
       <Output class="OutStreams" type="Print">LimitSurfaceUnWeightedPb_dump</Output>
-      <Output class="Files" type="">LimitSurfaceUnWeightedPb_FileObj.csv</Output>
+      <!-- NOT ALLOWED ANYMORE: <Output class="Files" type="">LimitSurfaceUnWeightedPb_FileObj.csv</Output> -->
     </PostProcess>
   </Steps>
 
@@ -168,16 +173,16 @@
       <Output>z</Output>
     </PointSet>
     <PointSet name="LimitSurfacePositiveNegative">
-      <Input>x0,y0</Input>
+      <Input>y0,x0</Input>
       <Output>goalFunctionForLimitSurface</Output>
     </PointSet>
     <PointSet name="LimitSurfaceWeightedPb">
-      <Input>x0,y0</Input>
-      <Output>goalFunctionForLimitSurface</Output>
+      <Input>y0,x0</Input>
+      <Output>EventProbability,goalFunctionForLimitSurface</Output>
     </PointSet>
     <PointSet name="LimitSurfaceUnWeightedPb">
-      <Input>x0,y0</Input>
-      <Output>goalFunctionForLimitSurface</Output>
+      <Input>y0,x0</Input>
+      <Output>EventProbability,goalFunctionForLimitSurface</Output>
     </PointSet>
     <PointSet name="Dummy">
       <Input>x0,y0</Input>

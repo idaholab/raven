@@ -2,14 +2,17 @@
 <Simulation>
   <!-- TestInfo -->
   <TestInfo>
-    <name>framework/adaptive_sampler_ext_model</name>
-    <author>@alfoa</author>
+    <name>framework/Samplers/AdaptiveLimitSurfaceSearch.adaptive_sampler_ext_model</name>
+    <author>alfoa</author>
     <created>2015-04-09</created>
     <classesTested>Samplers.LimitSurfaceSearch, Models.ExternalModel, Models.ROM</classesTested>
     <description>
         This  test is aimed to test the capability of RAVEN to employ a goal oriented sampling. It tests the
         LimitSurfaceSearch algorithm using an external model as ``system code''
     </description>
+    <revisions>
+      <revision author="alfoa" date="2017-12-12">Adapted for new DataObject structure</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -43,7 +46,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="limitSurface">
-      <Input>x1,x2,x3</Input>
+      <Input>x2,x3,x1</Input>
       <Output>decision</Output>
     </PointSet>
   </DataObjects>
