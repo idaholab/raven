@@ -75,6 +75,9 @@ class DateBase(BaseType):
     """
     if 'directory' in paramInput.parameterValues:
       self.databaseDir = copy.copy(paramInput.parameterValues['directory'])
+      # if not absolute path, join with working directory
+      if not os.path.isabs(self.databaseDir):
+        self.databaseDir = os.path.abspath(os.path.join(self.workingDir,self.databaseDir))
     else:
       self.databaseDir = os.path.join(self.workingDir,'DatabaseStorage')
     if 'filename' in paramInput.parameterValues:
@@ -99,7 +102,7 @@ class DateBase(BaseType):
     else:
       #file does not exist in path
       if self.readMode == 'read':
-        self.raiseAWarning('Requested to read from database, but it does not exist at:',fullpath,'; continuing without reading...')
+        self.raiseAnError(IOError, 'Requested to read from database, but it does not exist at:',fullpath,'; The path to the database must be either absolute or relative to <workingDir>!')
       self.exist = False
       self.database  = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist,self.variables)
     self.raiseAMessage('Database is located at:',fullpath)
@@ -246,8 +249,16 @@ class HDF5(DateBase):
       @ In, keys, set(str), keys to register
       @ Out, None
     """
-    #self.database.addExpectedMeta(keys)
+    self.database.addExpectedMeta(keys)
     self.addMetaKeys(*keys)
+
+  def provideExpectedMetaKeys(self):
+    """
+      Provides the registered list of metadata keys for this entity.
+      @ In, None
+      @ Out, meta, set(str), expected keys (empty if none)
+    """
+    return self.database.provideExpectedMetaKeys()
 
   def initialize(self,gname,options=None):
     """

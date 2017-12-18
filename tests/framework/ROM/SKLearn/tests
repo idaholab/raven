@@ -139,7 +139,7 @@
   [./GP]
     type = 'RavenFramework'
     input = 'gp.xml'
-    UnorderedCsv = 'data/outGP.csv'
+    csv = 'data/outGP.csv'
     output = 'data/outGP.xml'
   [../]
   [./linearARD]

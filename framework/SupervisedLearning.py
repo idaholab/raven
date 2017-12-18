@@ -190,14 +190,13 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         valueToUse = np.asarray(valueToUse)
-        # for consistency between who can handle time-dep data and who can not
-        valueToUse.shape = (len(valueToUse),int(valueToUse.size/len(valueToUse)))
         if len(valueToUse) != featureValues[:,0].size:
           self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
           self.raiseAWarning('target values:',len(valueToUse),tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
-        featureValues[:,cnt] = (valueToUse[:,0] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
+        featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
 
