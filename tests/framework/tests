@@ -70,7 +70,7 @@
  [./test_merge_2_databases]
   type = 'RavenFramework'
   input = 'test_merge_2_databases.xml'
-  csv = 'test_merge_2_databases/Pointset_from_database_dump.csv test_merge_2_databases/Pointset_IN_database_dump.csv
+  UnorderedCsv = 'test_merge_2_databases/Pointset_from_database_dump.csv test_merge_2_databases/Pointset_IN_database_dump.csv
   test_merge_2_databases/Historyset_from_database_dump_0.csv test_merge_2_databases/Historyset_from_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_0.csv test_merge_2_databases/Historyset_IN_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_2.csv test_merge_2_databases/Historyset_IN_database_dump_3.csv'
  [../]
 
