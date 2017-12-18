@@ -895,7 +895,7 @@ class IOStep(Step):
       elif self.actionType[i] == 'dataObjects-HDF5':
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
         ## TODO convert to load function when it can handle unstructured multiple realizations
-        for rlzNo in len(inDictionary['Input'][i]):
+        for rlzNo in range(len(inDictionary['Input'][i])):
           outputs[i].addRealization(inDictionary['Input'][i].realization(rlzNo))
 
       elif self.actionType[i] == 'ROM-FILES':

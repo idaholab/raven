@@ -265,8 +265,10 @@ class hdf5Database(MessageHandler.MessageUser):
     group.attrs[b'hasIntfloat'] = False
     group.attrs[b'hasOther'   ] = False
     # get the data floats and other types
-    dataIntfloat = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'])
-    dataOther    = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'])
+    dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if type(value) == np.ndarray and
+                         value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value) in [float,int])
+    dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if type(value) == np.ndarray and
+                         value.dtype not in np.sctypes['float']+np.sctypes['int'] or type(value) not in [float,int])
     # get size of each data variable (float)
     varKeysIntfloat = dataIntfloat.keys()
     if len(varKeysIntfloat) > 0:
@@ -460,6 +462,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, name, str, the group name
       @ Out, newData, dict, the dictionary with the data
     """
+    newData = {}
     hasIntfloat = group.attrs['hasIntfloat']
     hasOther    = group.attrs['hasOther']
     if hasIntfloat:
