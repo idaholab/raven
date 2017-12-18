@@ -619,8 +619,8 @@ dataCSV = XDataSet.DataSet()
 dataCSV.messageHandler = mh
 dataCSV._readMoreXML(xml)
 dataCSV.load(csvname,style='CSV')
-print('DEBUGG dataCSV c:',dataCSV.asDataset())
-print('DEBUGG data    c:',data.asDataset())
+print('DEBUGG after load csv:',data.asDataset())
+print('DEBUGG after load csv2:',dataCSV.asDataset())
 print('DEBUGG data diff:',(data.asDataset()['c'] - dataCSV.asDataset()['c']).sum(skipna=True))
 for var in data.getVars():
   if var == 'z':
@@ -924,7 +924,6 @@ rlz2= {'fl' :np.array([   10.0]),
        'dbo':np.array([ False,  True, False]),
          't':np.array(['one','two','manystringchars'])}
 data.addRealization(rlz)
-#print('DEBUGG first',data.asDataset())
 # check types
 for var in rlz.keys():
   correct = rlz[var].dtype
@@ -933,7 +932,6 @@ for var in rlz.keys():
   checkSame('dtype checking "{}"'.format(var),data.asDataset()[var].dtype,correct)
 
 data.addRealization(rlz2)
-#print('DEBUGG second',data.asDataset())
 
 print(results)
 

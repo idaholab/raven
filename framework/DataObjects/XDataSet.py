@@ -348,11 +348,10 @@ class DataSet(DataObject):
     else:
       self.raiseAnError(KeyError,'Unrecognized subset choice: "{}"'.format(subset))
 
-  def getVarValues(self,var,asDict=False):
+  def getVarValues(self,var):
     """
       Returns the sampled values of "var"
       @ In, var, str or list(str), name(s) of variable(s)
-      @ In, asDict, bool, optional, if True then always returns a dictionary even if only one sample requested
       @ Out, res, xr.DataArray, samples (or dict of {var:xr.DataArray} if multiple variables requested)
     """
     ## NOTE TO DEVELOPER:
@@ -369,8 +368,6 @@ class DataSet(DataObject):
       #format as dataarray
       else:
         res = self._data[var]
-      if asDict:
-        res = {var:res}
     elif isinstance(var,list):
       res = dict((v,self.getVarValues(v)) for v in var)
     else:
@@ -955,6 +952,7 @@ class DataSet(DataObject):
               # first make a datarray out of each realization value
               for r in range(len(self._collector)):
                 values = self._collector[r,v]
+                values = np.array(values,dtype=self._getCompatibleType(values[0]))
                 coords = dict((idx,self._collector[r,self._orderedVars.index(idx)]) for idx in dims)
                 self._collector[r][v] = self.constructNDSample(values,dims,coords,name=str(r))
               # then collapse these entries into a single datarray
