@@ -238,15 +238,6 @@ class HistorySet(DataSet):
     ## obtain slices to write subset CSVs
     ordered = list(o for o in self.getVars('output') if o in keep)
     for i in range(len(data[self.sampleTag].values)):
-      #########################################################################
-      ## Is it correct?
-      ## why you were dropping the index? I think it is logical I want to have the "time" in the output of the HistorySet
-      ##TODO:
-      ## Conceptually we always considered the "PivotParameter" an output. So If I request "output" in <what> or I do not specify <what> I should
-      ## always add the pivotParameter value in the printing.
-      ## Please check
-      ## rlz = data.isel(**{self.sampleTag:i})[ordered] (AA: actually this does not change anything)
-      rlz = data.isel(**{self.sampleTag:i})[ordered].dropna(self.indexes[0]) #
-      #########################################################################
+      rlz = data.isel(**{self.sampleTag:i})[ordered].dropna(self.indexes[0])
       filename = subFiles[i][:-4]
       self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
