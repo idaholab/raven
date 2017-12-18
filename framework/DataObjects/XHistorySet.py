@@ -95,34 +95,7 @@ class HistorySet(DataSet):
     self._pivotParams = {self._tempPivotParam:self._outputs[:]}
 
   ### INTERNAL USE FUNCTIONS ###
-  def _collapseNDtoDataArray(self,data,var,labels=None):
-    """
-      Converts a row of numpy samples into a single DataArray suitable for a xr.Dataset.
-      @ In, data, np.ndarray, array of either float or xr.DataArray; array must be single-dimension
-      @ In, var, str, name of the variable being acted on
-      @ In, labels, list, list of labels to use for collapsed array under self.sampleTag title
-      @ Out, DataArray, xr.DataArray, single dataarray object
-    """
-    # TODO this is only type-checking before using the base class implementation.
-    ## TODO these assertions are identical to the base class right now; should abstract
-    assert(isinstance(data,np.ndarray))
-    assert(len(data.shape) == 1)
-    if labels is None:
-      labels = range(len(data))
-    else:
-      assert(len(labels) == len(data))
-    ## these assertions are specific to history sets -> should they be in addRealization instead?
-    # Inputs and meta should all be single entries, outputs should all be xr.DataArray that depend only on pivotParam
-    if var in self._inputs:
-      assert(isinstance(data[0],(float,str,unicode,int)))
-    elif var in self._outputs:
-      # all outputs are xr.DataArrays
-      assert(isinstance(data[0],xr.DataArray))
-      # all outputs have a single independent coordinate
-      assert(len(data[0].dims) == 1)
-      # all outputs depend only on the pivot parameter
-      assert(data[0].dims[0] == self._pivotParams.keys()[0])
-    return DataSet._collapseNDtoDataArray(self,data,var,labels)
+
 
   def _fromCSV(self,fname,**kwargs):
     """

@@ -619,9 +619,7 @@ dataCSV = XDataSet.DataSet()
 dataCSV.messageHandler = mh
 dataCSV._readMoreXML(xml)
 dataCSV.load(csvname,style='CSV')
-print('DEBUGG after load csv:',data.asDataset())
-print('DEBUGG after load csv2:',dataCSV.asDataset())
-print('DEBUGG data diff:',(data.asDataset()['c'] - dataCSV.asDataset()['c']).sum(skipna=True))
+
 for var in data.getVars():
   if var == 'z':
     # not included in XML input specs, so should be left out
@@ -769,7 +767,6 @@ data.remove(variable='b')
 checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
 checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
 # collapse and re-check
-print('PRE:',data._data)
 data.asDataset()
 checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
 checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)

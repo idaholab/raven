@@ -156,10 +156,11 @@ class DataSet(DataObject):
       self.raiseAnError(SyntaxError,'Realization was not formatted correctly for "{}"! See warnings above.'.format(self.name))
     # format the data
     rlz = self._formatRealization(rlz)
+    ## establish types if not done yet    
+    self._setDataTypes(rlz)
     # perform selective collapsing/picking of data
     rlz = self._selectiveRealization(rlz)
-    ## establish types if not done yet
-    self._setDataTypes(rlz)
+
     ## check alignment of indexes
     self._checkAlignedIndexes(rlz) # TODO implement
     #  NB If no scalar entry is made, this construction fails.  In that case,
@@ -746,12 +747,13 @@ class DataSet(DataObject):
       # no action taken for data without hierarchical information
       pass
 
-  def _collapseNDtoDataArray(self,data,var,labels=None):
+  def _collapseNDtoDataArray(self,data,var,labels=None,dtype=None):
     """
       Converts a row of numpy samples (float or xr.DataArray) into a single DataArray suitable for a xr.Dataset.
       @ In, data, np.ndarray, array of either float or xr.DataArray; array must be single-dimension
       @ In, var, str, name of the variable being acted on
-      @ In, labels, list, list of labels to use for collapsed array under self.sampleTag title
+      @ In, labels, list, optional, list of labels to use for collapsed array under self.sampleTag title
+      @ In, dtype, type, optional, type from _getCompatibleType to cast data as
       @ Out, DataArray, xr.DataArray, single dataarray object
     """
     assert(isinstance(data,np.ndarray))
@@ -761,14 +763,21 @@ class DataSet(DataObject):
       labels = range(len(data))
     else:
       assert(len(labels) == len(data))
-    #method = 'once' # see below, parallelization is possible but not implemented
-    # first case: single entry per node: floats, strings, ints, etc
+    # find first non-None entry, and get its type if needed
     dataType = type(None)
     i = -1
     while dataType is type(None):
       i += 1
       dataType = type(data[i])
+    # if "type" predetermined, override it (but we still needed "i" so always do the loop above)
+    # TODO this can be sped up probably, by checking the "type" directly with dtype; but we ALSO need to know if
+    #   it's a history or not, so we need to check the first non-NaN entry....
+    if dtype is not None:
+      dataType = dtype
+    # method = 'once' # see below, parallelization is possible but not implemented
+    # first case: single entry per node: floats, strings, ints, etc
     if isinstance(data[i],(float,str,unicode,int,bool,np.bool_)):
+      data = np.array(data,dtype=dataType)
       array = xr.DataArray(data,
                            dims=[self.sampleTag],
                            coords={self.sampleTag:labels},
@@ -927,7 +936,7 @@ class DataSet(DataObject):
       firstSample = int(self._data[self.sampleTag][-1])+1 if self._data is not None else 0
       # storage array for each variable's xr.DataArray with all rlz data from every rlz
       arrays = {}
-      # loop over variables to collapse data into nice xr.DataArray of realization data
+      # loop over variables IN ORDER of collector storage to collapse data into nice xr.DataArray of realization data
       for v,var in enumerate(self._orderedVars):
         # only converting variables, so ignore indexes (they'll be used by the variables)
         if var in self.indexes:
@@ -955,14 +964,15 @@ class DataSet(DataObject):
               # first make a datarray out of each realization value
               for r in range(len(self._collector)):
                 values = self._collector[r,v]
-                values = np.array(values,dtype=self._getCompatibleType(values[0]))
+                dtype = self._getCompatibleType(values[0])
+                values = np.array(values,dtype=dtype)
                 coords = dict((idx,self._collector[r,self._orderedVars.index(idx)]) for idx in dims)
                 self._collector[r][v] = self.constructNDSample(values,dims,coords,name=str(r))
               # then collapse these entries into a single datarray
-              arrays[var] = self._collapseNDtoDataArray(self._collector[:,v],var)
+              arrays[var] = self._collapseNDtoDataArray(self._collector[:,v],var,dtype=dtype)
         # if not ND, then it's a simple data array construction
         else:
-          arrays[var] = self._collapseNDtoDataArray(self._collector[:,v],var)
+          arrays[var] = self._collapseNDtoDataArray(self._collector[:,v],var,dtype=dtype)
         # however we created it, now arrays[var] is a xr.DataArray of all realizations for "var"
         # update labels as needed
         arrays[var][self.sampleTag] += firstSample
@@ -1022,9 +1032,13 @@ class DataSet(DataObject):
     # TODO this could be much more efficient on the parallel (finalizeCodeOutput) than on serial
     # TODO costly for loop
     # do indexes first to assure correct typing on first realization collection
+    # - note, the other variables are set in _setDataTypes which is called after _formatRealization in addRealization
     if self._collector is None or len(self._collector) == 0:
       for var in self._pivotParams.keys():
         dtype = self._getCompatibleType(rlz[var][0])
+        current = rlz[var].dtype
+        # Note, I don't like this action happening here, but I don't have an alternative way to assure
+        # indexes have the correct dtype.  In the first pass, they aren't going into the collector, but into alignedIndexes.
         rlz[var] = np.array(rlz[var],dtype=dtype)
     # for now, leave them as the arrays they are, except single entries need converting
     for var,val in rlz.items():
