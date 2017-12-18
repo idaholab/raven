@@ -86,9 +86,9 @@
         <HistorySet name="windRawData">
             <Input>x</Input>
             <Output>Time,Speed</Output>
-			<!--options>
+			<options>
 				<pivotParameter>Time</pivotParameter>
-			</options-->
+			</options>
         </HistorySet>
 		<HistorySet name="windTypicalData">
             <Input>x</Input>
