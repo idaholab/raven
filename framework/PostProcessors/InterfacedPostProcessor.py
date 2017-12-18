@@ -176,7 +176,7 @@ class InterfacedPostProcessor(PostProcessor):
     """
       Function that returns the format of either input or output
       @ In, location, str, list of dataObjects handed to the post-processor
-      @ Out, form, str, format of either input or output 
+      @ Out, form, str, format of either input or output
     """
     if location == 'input':
       form = self.inputFormat

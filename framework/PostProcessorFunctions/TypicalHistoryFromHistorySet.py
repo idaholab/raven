@@ -96,7 +96,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       self.outputLen = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameter])[-1]
 
     ## Check if data is synchronized
-    referenceHistory = 0 
+    referenceHistory = 0
     referenceTimeAxis = inputDict[self.pivotParameter][referenceHistory]
     for hist in inputDict['output']:
       if str(inputDict[self.pivotParameter][hist]) != str(referenceTimeAxis):
@@ -107,7 +107,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     #data dictionaries have form {historyNumber:{VarName:[data], VarName:[data]}}
     reshapedData = {}
     newHistoryCounter = 0 #new history tracking labels
-    for historyNumber in range(inputDic['numberRealizations']): 
+    for historyNumber in range(inputDic['numberRealizations']):
       #array of the pivot values provided in the history
       pivotValues = np.asarray(inputDict[self.pivotParameter][historyNumber])
       #if the desired output pivot value length is (equal to or) longer than the provided history ...

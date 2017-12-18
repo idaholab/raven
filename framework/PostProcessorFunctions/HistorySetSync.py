@@ -45,7 +45,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
       Method to initialize the Interfaced Post-processor
       @ In, numberOfSamples, int, (default None)
       @ In, pivotParameter, str, ID of the pivot paramter (e.g., time)
-      @ In, extension, type of extension to be employed 
+      @ In, extension, type of extension to be employed
       @ In, syncMethod, type of syncrhonization method
       @ Out, None,
     '''
@@ -151,10 +151,10 @@ class HistorySetSync(PostProcessorInterfaceBase):
   def resampleHist(self, variable, oldTime, newTime):
     '''
       Method the re-sample on "newTime" the "variable" originally sampled on "oldTime"
-      @ In, variable, np.array, array containing the sampled values of the dependent variable 
+      @ In, variable, np.array, array containing the sampled values of the dependent variable
       @ In, oldTime,  np.array, array containing the sampled values of the temporal variable
       @ In, newTime,  np.array, array containing the sampled values of the new temporal variable
-      @ Out, variable, np.array, array containing the sampled values of the dependent variable re-sampled on oldTime 
+      @ Out, variable, np.array, array containing the sampled values of the dependent variable re-sampled on oldTime
     '''
     newVar=np.zeros(newTime.size)
     pos=0
