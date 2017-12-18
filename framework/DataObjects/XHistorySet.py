@@ -244,6 +244,3 @@ class HistorySet(DataSet):
         self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
     else:
       self.raiseAWarning('No output space variables have been requested for DataObject "{}"! No history files will be printed!'.format(self.name))
-
-
-
