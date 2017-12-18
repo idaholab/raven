@@ -97,7 +97,7 @@ class HS2PS(PostProcessorInterfaceBase):
 
       historyLength = len(inputDict['data'][self.features[0]][0])
       numVariables = historyLength*len(self.features)
-      for history in inputDict['data'][self.features[0]][history]:
+      for history in inputDict['data'][self.features[0]]:
         if len(history) != historyLength:
           self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' : one or more histories in the historySet have different time scale')
 

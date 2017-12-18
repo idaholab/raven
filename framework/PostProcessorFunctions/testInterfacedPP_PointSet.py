@@ -20,7 +20,6 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import copy
-
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 
 class testInterfacedPP_PointSet(PostProcessorInterfaceBase):

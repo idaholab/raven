@@ -460,7 +460,6 @@ class ETImporter(PostProcessor):
                                       'variables specified in the ET (' + str(set(outputDict.keys())))
     if output.type in ['PointSet']:
       for key in outputDict.keys():
-        print(type(output))
         output.addVariable(key,outputDict[key])
       '''
       for key in output.getParaKeys('inputs'):
