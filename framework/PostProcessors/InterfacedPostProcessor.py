@@ -137,12 +137,7 @@ class InterfacedPostProcessor(PostProcessor):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
     inputDic= self.inputToInternal(inputIn)
     outputDic = self.postProcessor.run(inputDic)
-
     return outputDic
-    #if self.postProcessor.checkGeneratedDicts(outputDic):
-    #  return outputDic
-    #else:
-    #  self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor '+ self.name +' : function has generated a not valid output dictionary')
 
   def _inverse(self, inputIn):
     outputDic = self.postProcessor._inverse(inputIn)
@@ -177,54 +172,17 @@ class InterfacedPostProcessor(PostProcessor):
         inputDict.append(inputDictTemp)
     return inputDict
 
-  def collectOutput(self, finishedJob, output):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
-      @ Out, None
-    """
-    evaluations = finishedJob.getEvaluation()
-    if isinstance(evaluations, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-    evaluation = evaluations[1]
-    output.addExpectedMeta(set(self.metaKeys))
-    output.load(evaluation['data'], style='dict', dims=evaluation['dims'])
-
   def returnFormat(self,location):
+    """
+      Function that returns the format of either input or output
+      @ In, location, str, list of dataObjects handed to the post-processor
+      @ Out, form, str, format of either input or output 
+    """
     if location == 'input':
-      return self.inputFormat
-    elif location=='output':
-      return self.outputFormat
-
-  def inputToInternal_OLD(self,inputs):
-    """
-      Function to convert the received input into a format this object can
-      understand
-      @ In, input, list, list of dataObjects handed to the post-processor
-      @ Out, inputDict, list, list of dictionaries this object can process
-    """
-    inputDict = []
-    for inp in inputs:
-      if type(inp) == dict:
-        return [inp]
-      else:
-        inputDictTemp = {}
-        inputDictTemp['inpVars']   = inp.getVars('input')
-        inputDictTemp['outVars']   = inp.getVars('output')
-        inputDictTemp['data']      = inp.asDataset(outType='dict')['data']
-        inputDictTemp['dims']      = inp.getDimensions('output')
-        inputDictTemp['type']      = inp.type
-        inputDictTemp['numberRealizations'] = len(inp)
-        self.metaKeys = inp.getVars('meta')
-        for key in self.metaKeys:
-          try:
-            inputDictTemp['data'][key]  = inp.getMeta(pointwise=True,general=True)[key].values
-          except:
-            self.raiseADebug('The following key: ' + str(key) + ' has not passed to the Interfaced PP')
-        inputDictTemp['name']     = inp.name
-        inputDict.append(inputDictTemp)
-    return inputDict
+      form = self.inputFormat
+    elif location == 'output':
+      form = self.outputFormat
+    return form
 
   def collectOutput(self, finishedJob, output):
     """
@@ -239,14 +197,3 @@ class InterfacedPostProcessor(PostProcessor):
     evaluation = evaluations[1]
     output.addExpectedMeta(set(self.metaKeys))
     output.load(evaluation['data'], style='dict', dims=evaluation['dims'])
-
-  def returnFormat(self,location):
-    """
-      Return the format based on the input or output
-      @ In, location, str, input or output
-      @ Out, returnFormat, str, the format
-    """
-    if location == 'input':
-      return self.inputFormat
-    elif location=='output':
-      return self.outputFormat

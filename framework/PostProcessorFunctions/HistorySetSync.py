@@ -1,20 +1,20 @@
 # Copyright 2017 Battelle Energy Alliance, LLC
 #
-# Licensed under the Apache License, Version 2.0 (the 'License');
+# Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 # http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an 'AS IS' BASIS,
+# distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-'''
+"""
 Created on October 28, 2015
 
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -43,7 +43,10 @@ class HistorySetSync(PostProcessorInterfaceBase):
   def initialize(self, numberOfSamples=None, pivotParameter=None, extension=None, syncMethod=None):
     '''
       Method to initialize the Interfaced Post-processor
-      @ In, None,
+      @ In, numberOfSamples, int, (default None)
+      @ In, pivotParameter, str, ID of the pivot paramter (e.g., time)
+      @ In, extension, type of extension to be employed 
+      @ In, syncMethod, type of syncrhonization method
       @ Out, None,
     '''
     PostProcessorInterfaceBase.initialize(self)
@@ -146,6 +149,13 @@ class HistorySetSync(PostProcessorInterfaceBase):
       return outputDic
 
   def resampleHist(self, variable, oldTime, newTime):
+    '''
+      Method the re-sample on "newTime" the "variable" originally sampled on "oldTime"
+      @ In, variable, np.array, array containing the sampled values of the dependent variable 
+      @ In, oldTime,  np.array, array containing the sampled values of the temporal variable
+      @ In, newTime,  np.array, array containing the sampled values of the new temporal variable
+      @ Out, variable, np.array, array containing the sampled values of the dependent variable re-sampled on oldTime 
+    '''
     newVar=np.zeros(newTime.size)
     pos=0
     for newT in newTime:

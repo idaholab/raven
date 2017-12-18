@@ -67,7 +67,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     self.variables = {}
     self.target    = {}
 
-    self.IEdata = {}
+    self.IEData = {}
 
     self.temporalID = None
 
@@ -133,7 +133,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
                             ' : attribute node values is not present for XML node: ' + str(child) )
 
       elif child.tag == 'data':
-        self.IEdata[child.text] = float(child.attrib['freq'])
+        self.IEData[child.text] = float(child.attrib['freq'])
 
       elif child.tag == 'temporalID':
         self.temporalID = child.text
@@ -183,7 +183,6 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
 
     outputDic['data']['ProbabilityWeight'] = np.asanyarray(1.0)
     outputDic['data']['prefix'] = np.asanyarray(1.0)
-    print(outputDic)
     return outputDic
 
   def runStatic(self,inputDic, componentConfig=None):
@@ -257,14 +256,14 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           pointCount = inp['numberRealizations']
           pbWeights  = np.ones(pointCount)/float(pointCount)
 
-        if inputName in self.IEdata.keys():
-          multiplier = self.IEdata[inputName]
+        if inputName in self.IEData.keys():
+          multiplier = self.IEData[inputName]
         else:
           multiplier = 1.0
           self.raiseAWarning('RiskMeasuresDiscrete Interfaced Post-Processor: the dataObject '
                              + str (inputName) + ' does not have the frequency of the IE specified. It is assumed that the frequency of the IE is 1.0')
 
-        ## Calculate R0, Rminus, Rplus
+        ## Calculate R0, RMinus, RPlus
 
         ## Step 1: Retrieve points that contain system failure
         indexSystemFailure = np.where(np.logical_and(targetVar >= self.target['low'], targetVar <= self.target['high']))[0]
@@ -287,29 +286,29 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
             # Coordinate BE2
             ## R0 = pb of system failure
             R0     = np.sum(pbWeights[indexSystemFailure])
-            Rminus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
-            Rplus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
+            RMinus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
+            RPlus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
           else:
             # Coordinate BE3
             R0 = np.sum(pbWeights[indexSystemFailure])
             if   componentConfig[variable] == 0:
-              Rminus = Rplus = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
+              RMinus = RPlus = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
             elif componentConfig[variable] == 1:
               if indexFailureMinus.size:
-                Rminus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
+                RMinus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
               else:
-                Rminus = R0
+                RMinus = R0
               if indexComponentPlus.size:
-                Rplus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
+                RPlus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
               else:
-                Rplus = R0
+                RPlus = R0
         else:
           # Coordinate BE1
-          R0 = Rminus = Rplus = np.sum(pbWeights[indexSystemFailure])
+          R0 = RMinus = RPlus = np.sum(pbWeights[indexSystemFailure])
 
         macroR0     += multiplier * R0
-        macroRMinus += multiplier * Rminus
-        macroRPlus  += multiplier * Rplus
+        macroRMinus += multiplier * RMinus
+        macroRPlus  += multiplier * RPlus
 
       if 'RRW' in self.measures:
         RRW = riskImportanceMeasures[variable + '_RRW'] = np.asanyarray([macroR0/macroRMinus])
@@ -411,14 +410,14 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           pointCount = len(inputDataIn.values()[0])
           pbWeights  = np.ones(pointCount)/float(pointCount)
 
-        if inputName in self.IEdata.keys():
-          multiplier = self.IEdata[inputName]
+        if inputName in self.IEData.keys():
+          multiplier = self.IEData[inputName]
         else:
           multiplier = 1.0
           self.raiseAWarning('RiskMeasuresDiscrete Interfaced Post-Processor: the dataObject '
                              + str (inputName) + ' does not have the frequency of the IE specified. It is assumed that the frequency of the IE is 1.0')
 
-        ## Calculate R0, Rminus, Rplus
+        ## Calculate R0, RMinus, RPlus
 
         ## Step 1: Retrieve points that contain system failure
         indexSystemFailure = np.where(np.logical_and(targetVar >= self.target['low'], targetVar <= self.target['high']))[0]
@@ -441,29 +440,29 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
             # Coordinate BE2
             ## R0 = pb of system failure
             R0     = np.sum(pbWeights[indexSystemFailure])
-            Rminus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
-            Rplus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
+            RMinus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
+            RPlus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
           else:
             # Coordinate BE3
             R0 = np.sum(pbWeights[indexSystemFailure])
             if   componentConfig[variable] == 0:
-              Rminus = Rplus = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
+              RMinus = RPlus = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
             elif componentConfig[variable] == 1:
               if indexFailureMinus.size:
-                Rminus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
+                RMinus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
               else:
-                Rminus = R0
+                RMinus = R0
               if indexComponentPlus.size:
-                Rplus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
+                RPlus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
               else:
-                Rplus = R0
+                RPlus = R0
         else:
           # Coordinate BE1
-          R0 = Rminus = Rplus = np.sum(pbWeights[indexSystemFailure])
+          R0 = RMinus = RPlus = np.sum(pbWeights[indexSystemFailure])
 
         macroR0     += multiplier * R0
-        macroRMinus += multiplier * Rminus
-        macroRPlus  += multiplier * Rplus
+        macroRMinus += multiplier * RMinus
+        macroRPlus  += multiplier * RPlus
 
       if 'RRW' in self.measures:
         RRW = riskImportanceMeasures[variable + '_RRW'] = np.asanyarray([macroR0/macroRMinus])
@@ -494,8 +493,6 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
                 }
     ## If for whatever reason passing an empty input back causes errors, then you may want to add some sort of dummy
     ## value.
-    # outputDic['data']['input'] = {} # {'dummy' : np.asanyarray(0)}
-
     return outputDic
 
   def runDynamic(self,inputDic,timeHistory):
@@ -548,61 +545,3 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       previousSystemConfig = copy.deepcopy(systemConfig)
 
     return outputDic
-
-  def runDynamic_OLD(self,inputDic,timeHistory):
-    """
-     This method performs the dynamic calculation of the risk measures
-     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
-     @ In, timeHistory, dict, dictionary containing  boolean temporal profiles (0 or 1) of a sub set of the input variables. Note that this
-                              history must contain a single history
-     @ Out, outputDic, dict, dictionary which contains the risk measures
-    """
-    # timeHistory format values:
-    # - 0 component is disconnected
-    # - 1 component is connected
-
-    if self.temporalID is None:
-      self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor: an HistorySet is provided but no temporalID variable is specified')
-
-    if self.temporalID not in timeHistory['data']['output'][1].keys():
-      self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor: the specified temporalID variable '
-                        + str(self.temporalID) + ' is not part of the HistorySet variables')
-
-    outputDic = {
-                  'data': {
-                           'input' : {},
-                           'output': {}
-                          },
-                  'metadata': {}
-                }
-    outputDic['data']['output'][1] = {}
-
-    for measure in self.measures:
-      if measure=='R0':
-        outputDic['data']['output'][1][measure] = np.zeros(len(timeHistory['data']['output'][1][self.temporalID]))
-      else:
-        for var in self.variables:
-          outputDic['data']['output'][1][var + '_' + measure] = np.zeros(len(timeHistory['data']['output'][1][self.temporalID]))
-
-    previousSystemConfig = {}
-
-    for index,value in enumerate(timeHistory['data']['output'][1][self.temporalID]):
-      systemConfig={}
-
-      # Retrieve the system configuration at time instant "index"
-      for var in timeHistory['data']['output'][1].keys():
-        if var != self.temporalID:
-          systemConfig[var] = timeHistory['data']['output'][1][var][index]
-
-      # Do not repeat the calculation if the system configuration is identical to the one of previous time instant
-      if systemConfig == previousSystemConfig:
-        for key in outputDic['data']['output'][1].keys():
-          outputDic['data']['output'][1][key][index] = outputDic['data']['output'][1][key][index-1]
-      else:
-        staticOutputDic = self.runStatic(inputDic,systemConfig)
-        for key in outputDic['data']['output'][1].keys():
-          outputDic['data']['output'][1][key][index] = staticOutputDic['data']['output'][key]
-      previousSystemConfig = copy.deepcopy(systemConfig)
-
-    return outputDic
-

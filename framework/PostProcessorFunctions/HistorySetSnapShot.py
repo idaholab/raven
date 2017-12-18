@@ -138,7 +138,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
     """
       Method to post-process the dataObjects
       @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
-      @ In, pivotVal,  float, value associated to the variable considered
+      @ In, pivotVal,  float, value associated to the variable considered (default None)
       @ Out, outputPSDic, dict, output dictionary
     """
     if len(inputDic)>1:
@@ -192,10 +192,11 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
 def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = None):
   """
     Method do to compute a conversion from HistorySet to PointSet using the methods: min,max,average,value
-    @ In, vars, dict, it is an historySet
+    @ In, inputDic, dict, it is an historySet
     @ In, pivotVar,  string, variable considered
-    @ In, pivotVal,  float, value associated to the variable considered
+    @ In, pivotVal,  float, value associated to the variable considered (deault None)
     @ In, snapShotType, string, type of snapShot: min, max, average, value
+    @ In, tempID, string, name of the temporal variable (default None)
     @ Out, outputDic, dict, it contains the temporal slice of all histories
   """
   outputDic={'data':{}}
@@ -240,7 +241,10 @@ def historySetWindow(inputDic,timeStepID,inpVars,outVars,N,pivotParameter):
     Method do to compute a conversion from HistorySet to PointSet using the temporal slice of the historySet
     @ In, inputDic, dict, it is an historySet
     @ In, timeStepID, int, number of time sample of each history
+    @ In, inpVars, list, list of input variables
+    @ In, outVars, list, list of output variables
     @ In, pivotParameter, string, ID name of the temporal variable
+    @ In, N, int, number of realizations
     @ Out, outDic, dict, it contains the temporal slice of all histories
   """
   outputDic={'data':{}}
@@ -256,15 +260,12 @@ def historySetWindow(inputDic,timeStepID,inpVars,outVars,N,pivotParameter):
     outputDic['data'][var] = np.zeros(N, dtype=object)
     for rlz in range(N):
       outputDic['data'][var][rlz] = inputDic['data'][var][rlz][timeStepID]
-
-  #outputDic['data'][pivotParameter] = np.zeros(N, dtype=object)
-  #for rlz in range(N):
-  #  outputDic['data'][pivotParameter][rlz] = inputDic['data'][pivotParameter][rlz][timeStepID]
   return outputDic
 
 def returnIndexFirstPassage(array,value):
   """
     Function that return the index of the element that firstly crosses value
+    @ In, array, np.array, array to be considered in the search
     @ In, value, double, query value
     @ Out, index, int, index of the element in the array closest to value
   """
