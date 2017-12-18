@@ -237,7 +237,13 @@ class HistorySet(DataSet):
     self._usePandasWriteCSV(fileName,inpData,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
     ## obtain slices to write subset CSVs
     ordered = list(o for o in self.getVars('output') if o in keep)
-    for i in range(len(data[self.sampleTag].values)):
-      rlz = data.isel(**{self.sampleTag:i})[ordered].dropna(self.indexes[0])
-      filename = subFiles[i][:-4]
-      self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
+    if len(ordered):
+      for i in range(len(data[self.sampleTag].values)):
+        filename = subFiles[i][:-4]
+        rlz = data.isel(**{self.sampleTag:i})[ordered].dropna(self.indexes[0])
+        self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
+    else:
+      self.raiseAWarning('No output space variables have been requested for DataObject "{}"! No history files will be printed!'.format(self.name))
+
+
+
