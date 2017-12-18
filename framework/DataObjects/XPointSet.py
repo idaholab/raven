@@ -121,11 +121,12 @@ class PointSet(DataSet):
     array.rename(var)
     return array
 
-  def _convertFinalizedDataRealizationToDict(self,rlz):
+  def _convertFinalizedDataRealizationToDict(self,rlz, unpackXArray=False):
     """
       After collapsing into xr.Dataset, all entries are stored as xr.DataArrays.
       This converts them into a dictionary like the realization sent in.
       @ In, rlz, dict(varname:xr.DataArray), "row" from self._data
+      @ In, unpackXArray, bool, optional, For now it is just a by-pass here
       @ Out, new, dict(varname:value), where "value" could be singular (float,str) or xr.DataArray
     """
     new = {}

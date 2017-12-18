@@ -405,7 +405,7 @@ class DataSet(DataObject):
     # after loading, set or reset scaling factors
     self._setScalingFactors()
 
-  def realization(self,index=None,matchDict=None,tol=1e-15):
+  def realization(self,index=None,matchDict=None,tol=1e-15, unpackXArray=False):
     """
       Method to obtain a realization from the data, either by index or matching value.
       Either "index" or "matchDict" must be supplied.
@@ -413,6 +413,7 @@ class DataSet(DataObject):
       @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
       @ In, matchDict, dict, optional, {key:val} to search for matches
       @ In, tol, float, optional, tolerance to which match should be made
+      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}) (valid only for dataset)
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
@@ -438,7 +439,7 @@ class DataSet(DataObject):
             rlz = self._getRealizationFromCollectorByIndex(index - numInData)
         ## otherwise, take from the data
         else:
-          rlz = self._getRealizationFromDataByIndex(index)
+          rlz = self._getRealizationFromDataByIndex(index, unpackXArray)
       # handle "-" requests (counting from the end): first end of collector, or if not then end of data
       else:
         # caller is requesting so many "from the end", so work backwards
@@ -449,7 +450,7 @@ class DataSet(DataObject):
             self.raiseAnError(IndexError,'Requested index "{}" but only have {} entries!'.format(index,numInData+numInCollector))
           ## otherwise, grab the requested index from the data
           else:
-            rlz = self._getRealizationFromDataByIndex(index + numInCollector)
+            rlz = self._getRealizationFromDataByIndex(index + numInCollector, unpackXArray)
         ## otherwise, grab the entry from the collector
         else:
           rlz = self._getRealizationFromCollectorByIndex(index)
@@ -467,7 +468,7 @@ class DataSet(DataObject):
           index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
       # otherwise, first try to find it in the data
       else:
-        index,rlz = self._getRealizationFromDataByValue(matchDict,tol=tol)
+        index,rlz = self._getRealizationFromDataByValue(matchDict,tol=tol, unpackXArray=unpackXArray)
         # if no match found in data, try in the collector (if there's anything in it)
         if rlz is None:
           if numInCollector > 0:
@@ -806,11 +807,12 @@ class DataSet(DataObject):
     self._setScalingFactors()
     return new
 
-  def _convertFinalizedDataRealizationToDict(self,rlz):
+  def _convertFinalizedDataRealizationToDict(self,rlz, unpackXarray=False):
     """
       After collapsing into xr.Dataset, all entries are stored as xr.DataArrays.
       This converts them into a dictionary like the realization sent in.
       @ In, rlz, dict(varname:xr.DataArray), "row" from self._data
+      @ In, unpackXarray, bool, unpack XArray coordinates in numpy arrays (it assumes that the coordinates are consistent among the data)
       @ Out, new, dict(varname:value), where "value" could be singular (float,str) or xr.DataArray
     """
     # TODO this has a lot of looping and might be slow for many variables.  Bypass or rewrite where possible.
@@ -823,6 +825,8 @@ class DataSet(DataObject):
       else:
         for dim in v.dims[:]:
           v = v.dropna(dim)
+          if unpackXarray:
+            new[dim] = v.coords[dim].values
         new[k] = v
     return new
 
@@ -1127,10 +1131,11 @@ class DataSet(DataObject):
       _type = object
     return _type
 
-  def _getRealizationFromCollectorByIndex(self,index):
+  def _getRealizationFromCollectorByIndex(self,index, unpackXArray):
     """
       Obtains a realization from the collector storage using the provided index.
       @ In, index, int, index to return
+      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray})
       @ Out, rlz, dict, realization as {var:value}
     """
     assert(self._collector is not None)
@@ -1166,23 +1171,25 @@ class DataSet(DataObject):
     else:
       return len(self),None
 
-  def _getRealizationFromDataByIndex(self,index):
+  def _getRealizationFromDataByIndex(self,index, unpackXArray=False):
     """
       Obtains a realization from the data storage using the provided index.
       @ In, index, int, index to return
+      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray})
       @ Out, rlz, dict, realization as {var:value} where value is a DataArray with only coordinate dimensions
     """
     assert(self._data is not None)
     #assert(index < len(self._data[self.sampleTag]))
     rlz = self._data[{self.sampleTag:index}].drop(self.sampleTag).data_vars
-    rlz = self._convertFinalizedDataRealizationToDict(rlz)
+    rlz = self._convertFinalizedDataRealizationToDict(rlz, unpackXArray)
     return rlz
 
-  def _getRealizationFromDataByValue(self,match,tol=1e-15):
+  def _getRealizationFromDataByValue(self,match, tol=1e-15, unpackXArray=False):
     """
       Obtains a realization from the data storage using the provided index.
       @ In, match, dict, elements to match
       @ In, tol, float, optional, tolerance to which match should be made
+      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray})
       @ Out, r, int, index where match was found OR size of data if not found
       @ Out, rlz, dict, realization as {var:value} OR None if not found
     """
@@ -1212,7 +1219,7 @@ class DataSet(DataObject):
       idx = rlz[self.sampleTag].item(0)
     except IndexError:
       return len(self),None
-    return idx,self._getRealizationFromDataByIndex(idx)
+    return idx,self._getRealizationFromDataByIndex(idx,unpackXArray)
 
   def _getRequestedElements(self,options):
     """

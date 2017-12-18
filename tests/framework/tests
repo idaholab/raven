@@ -62,9 +62,9 @@
  [./test_push_into_hdf5]
   type = 'RavenFramework'
   input = 'test_push_into_hdf5.xml'
-  csv = 'test_extract_data_s_from_hdf5/Pointset_from_database_dump.csv test_extract_data_s_from_hdf5/Pointset_IN_database_dump.csv'
-  max_time = 500
-  rel_err = 0.01
+  UnorderedCsv = 'test_extract_data_s_from_hdf5/Pointset_from_database_dump.csv test_extract_data_s_from_hdf5/Pointset_IN_database_dump.csv test_extract_data_s_from_hdf5/HistorySet_from_database_dump_0.csv test_extract_data_s_from_hdf5/HistorySet_IN_database_dump_0.csv'
+  max_time = 500 
+  rel_err = 0.0001
  [../]
 
  [./test_merge_2_databases]
