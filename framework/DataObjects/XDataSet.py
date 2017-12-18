@@ -1248,15 +1248,15 @@ class DataSet(DataObject):
       @ Out, _type, type instance, type to use
     """
     # ND uses first entry as example type
-    if isinstance(val,xr.DataArray):
+    if isinstance(val,(xr.DataArray,np.ndarray)):
       val = val.item(0)
     # identify other scalars by instance
     if isinstance(val,float):
       _type = float
-    elif isinstance(val,int):
-      _type = int
     elif isinstance(val,(bool,np.bool_)):
       _type = bool
+    elif isinstance(val,int):
+      _type = int
     # strings and unicode have to be stored as objects to prevent string sizing in numpy
     elif isinstance(val,basestring):
       _type = object
@@ -1464,8 +1464,11 @@ class DataSet(DataObject):
     if self.types is None:
       self.types = [None]*len(self.getVars())
       for v,name in enumerate(self.getVars()):
-        var = rlz[name]
-        self.types[v] = self._getCompatibleType(var)
+        val = rlz[name]
+        if isinstance(val,np.ndarray):
+          self.types[v] = self._getCompatibleType(val.item(0))          
+        else:
+          self.types[v] = self._getCompatibleType(val)
 
   def _setScalingFactors(self,var=None):
     """

@@ -916,6 +916,7 @@ rlz2= {'fl' :np.array([   10.0]),
        'dbo':np.array([ False,  True, False]),
          't':np.array(['one','two','manystringchars'])}
 data.addRealization(rlz)
+data.asDataset()
 # check types
 for var in rlz.keys():
   correct = rlz[var].dtype
