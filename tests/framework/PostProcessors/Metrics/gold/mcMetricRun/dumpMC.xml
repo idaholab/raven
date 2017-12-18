@@ -1,0 +1,11 @@
+<DataObjectMetadata name="outputDataMC">
+  <DataSet type="Static">
+    <general>
+      <inputs>x1,x2</inputs>
+      <pointwise_meta>ProbabilityWeight,prefix</pointwise_meta>
+      <outputs>ans,ans2</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>
