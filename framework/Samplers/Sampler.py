@@ -580,6 +580,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # Register expected metadata
     meta = ['ProbabilityWeight','prefix','PointProbability']
     for var in self.toBeSampled.keys():
+      #if self.variables2distributionsMapping[var]['totDim'] > 1:
+      #  meta +=  ['ProbabilityWeight-'+ var.replace(",","-")]
+      #else:
       meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
     self.addMetaKeys(*meta)
 

@@ -1131,11 +1131,10 @@ class DataSet(DataObject):
       _type = object
     return _type
 
-  def _getRealizationFromCollectorByIndex(self,index, unpackXArray):
+  def _getRealizationFromCollectorByIndex(self,index):
     """
       Obtains a realization from the collector storage using the provided index.
       @ In, index, int, index to return
-      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray})
       @ Out, rlz, dict, realization as {var:value}
     """
     assert(self._collector is not None)
