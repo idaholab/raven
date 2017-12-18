@@ -124,25 +124,25 @@ class HistorySet(DataSet):
       assert(data[0].dims[0] == self._pivotParams.keys()[0])
     return DataSet._collapseNDtoDataArray(self,data,var,labels)
 
-  def _fromCSV(self,fname,**kwargs):
+  def _fromCSV(self,fileName,**kwargs):
     """
       Loads a dataset from custom RAVEN history csv.
-      @ In, fname, str, filename to load from (not including .csv or .xml)
+      @ In, fileName, str, filename to load from (not including .csv or .xml)
       @ In, kwargs, dict, optional arguments
       @ Out, None
     """
     # data dict for loading data
     data = {}
     # load in metadata
-    self._loadCsvMeta(fname)
+    self._loadCsvMeta(fileName)
     # load in main CSV
     ## read into dataframe
-    main = pd.read_csv(fname+'.csv')
+    main = pd.read_csv(fileName+'.csv')
     nSamples = len(main.index)
     ## collect input space data
     for inp in self._inputs + self._metavars:
       data[inp] = main[inp].values # TODO dtype?
-    ## get the samplerTag values if they're present, in case it's not just range
+    ## get the sampleTag values if they're present, in case it's not just range
     if self.sampleTag in main:
       labels = main[self.sampleTag].values
     else:
@@ -153,27 +153,37 @@ class HistorySet(DataSet):
     for out in self._outputs + self.indexes:
       data[out] = np.zeros(nSamples,dtype=object)
     for i,sub in enumerate(subFiles):
+      subFile = sub
+      # check if the sub has an absolute path, otherwise take it from the master file (fileName)
+      if not os.path.isabs(subFile):
+        subFile = os.path.join(os.path.dirname(fileName),subFile)
       # first time create structures
-      subDat = pd.read_csv(sub)
-      for out in self._outputs + self.indexes:
+      subDat = pd.read_csv(subFile)
+      if len(set(subDat.keys()).intersection(self.indexes)) != len(self.indexes):
+        self.raiseAnError(IOError,'Importing HistorySet from .csv: the pivot parameters "'+', '.join(self.indexes)+'" have not been found in the .csv file. Check that the '
+                                  'correct <pivotParameter> has been specified in the dataObject or make sure the <pivotParameter> is included in the .csv files')
+      for out in self._outputs+self.indexes:
         data[out][i] = subDat[out].values # TODO dtype?
 
     self.load(data,style='dict',dims=self.getDimensions())
     # read in secondary CSVs
     # construct final data object
 
-  def _identifyVariablesInCSV(self,fname):
+  def _identifyVariablesInCSV(self,fileName):
     """
-      Gets the list of available variables from the file "fname.csv".
-      @ In, fname, str, name of base file without extension.
+      Gets the list of available variables from the file "fileName.csv".
+      @ In, fileName, str, name of base file without extension.
       @ Out, varList, list(str), list of variables
     """
-    with open(fname+'.csv','r') as base:
+    with open(fileName+'.csv','r') as base:
       inputAvail = list(s.strip() for s in base.readline().split(','))
       # get one of the subCSVs from the first row of data in the base file
       # ASSUMES that filename is the last column.  Currently, there's no way for that not to be true.
-      subfile = base.readline().split(',')[-1].strip()
-    with open(subfile,'r') as sub:
+      subFile = base.readline().split(',')[-1].strip()
+      # check if abs path otherwise take the dirpath from the master file (fileName)
+      if not os.path.isabs(subFile):
+        subFile = os.path.join(os.path.dirname(fileName),subFile)
+    with open(subFile,'r') as sub:
       outputAvail = list(s.strip() for s in sub.readline().split(','))
     return inputAvail + outputAvail
 
@@ -187,10 +197,10 @@ class HistorySet(DataSet):
     # TODO someday needs to be implemented for when ND data is collected!  For now, use base class.
     return DataSet._selectiveRealization(self,rlz)
 
-  def _toCSV(self,fname,start=0,**kwargs):
+  def _toCSV(self,fileName,start=0,**kwargs):
     """
       Writes this data objcet to CSV file (for metadata see _toCSVXML)
-      @ In, fname, str, path/name to write file
+      @ In, fileName, str, path/name to write file
       @ In, start, int, optional, starting realization to print
       @ In, kwargs, dict, optional, keywords for options
       @ Out, None
@@ -209,7 +219,7 @@ class HistorySet(DataSet):
       mode = 'w'
     toDrop = list(var for var in self._allvars if var not in keep)
     data = data.drop(toDrop)
-    self.raiseADebug('Printing data to CSV: "{}"'.format(fname+'.csv'))
+    self.raiseADebug('Printing data to CSV: "{}"'.format(fileName+'.csv'))
     # specific implementation
     ## write input space CSV with pointers to history CSVs
     ### get list of input variables to keep
@@ -217,14 +227,14 @@ class HistorySet(DataSet):
     ### select input part of dataset
     inpData = data[ordered]
     ### add column for realization information, pointing to the appropriate CSV
-    subFiles = np.array(list('{}_{}.csv'.format(fname,rid) for rid in data[self.sampleTag].values),dtype=object)
+    subFiles = np.array(list('{}_{}.csv'.format(fileName,rid) for rid in data[self.sampleTag].values),dtype=object)
     ### add column to dataset
     column = self._collapseNDtoDataArray(subFiles,'filename',labels=data[self.sampleTag])
     inpData = inpData.assign(filename=column)
     ### also add column name to "ordered"
     ordered += ['filename']
     ### write CSV
-    self._usePandasWriteCSV(fname,inpData,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
+    self._usePandasWriteCSV(fileName,inpData,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
     ## obtain slices to write subset CSVs
     ordered = list(o for o in self.getVars('output') if o in keep)
     for i in range(len(data[self.sampleTag].values)):

@@ -26,7 +26,6 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">outMC</Output>
-      <Output class="Databases" type="HDF5">out_db</Output>
       <Output class="OutStreams" type="Print">PrintHistorySet_dump</Output>
     </MultiRun>
     <IOStep name="plot1">
@@ -148,10 +147,6 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-
-  <Databases>
-    <HDF5 name="out_db" readMode="overwrite"/>
-  </Databases>
 
   <OutStreams>
     <Print name="PrintHistorySet_dump">

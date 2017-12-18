@@ -58,7 +58,7 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outOVR</filename>
-      <what>input,output, ProbabilityWeight</what>
+      <what>input,output, metadata|ProbabilityWeight</what>
     </Print>
   </OutStreams>
 

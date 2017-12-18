@@ -75,11 +75,10 @@ class Dummy(Model):
       inRun = dataIn[0][0]
     return inRun
 
-  def _inputToInternal(self,dataIN,full=False):
+  def _inputToInternal(self,dataIN):
     """
       Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data
       @ In, dataIn, object, the object that needs to be manipulated
-      @ In, full, bool, optional, does the full input needs to be retrieved or just the last element?
       @ Out, localInput, dict, the manipulated input
     """
     #self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
@@ -105,7 +104,8 @@ class Dummy(Model):
             for entries in dataIN.getVars('input'):
               if localInput[entries] is None:
                 localInput[entries] = []
-              localInput[entries].append(np.full((sizeIndex,),dataSet.isel(RAVEN_sample_ID=hist)[entries].values))
+              value = dataSet.isel(**{dataSet.sampleTag:hist})[entries].values
+              localInput[entries].append(np.full((sizeIndex,),value,dtype=value.dtype))
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getVars('output'):
         localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs

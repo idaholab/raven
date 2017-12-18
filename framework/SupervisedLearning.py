@@ -85,19 +85,20 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
   ROMtimeDependent = False # is this ROM able to treat time-like (any monotonic variable) explicitly in its formulation?
 
   @staticmethod
-  def checkArrayConsistency(arrayIn):
+  def checkArrayConsistency(arrayIn,isDynamic=False):
     """
       This method checks the consistency of the in-array
       @ In, arrayIn, object,  It should be an array
+      @ In, isDynamic, bool, optional, is Dynamic?
       @ Out, (consistent, 'error msg'), tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
     """
     #checking if None provides a more clear message about the problem
     if arrayIn is None:
       return (False,' The object is None, and contains no entries!')
     if type(arrayIn).__name__ == 'list':
-      if self.isDynamic():
+      if isDynamic:
         for cnt, elementArray in enumerate(arrayIn):
-          resp = checkArrayConsistency(elementArray)
+          resp = superVisedLearning.checkArrayConsistency(elementArray)
           if not resp[0]:
             return (False,' The element number '+str(cnt)+' is not a consistent array. Error: '+resp[1])
       else:
@@ -177,7 +178,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     else:
       sl = (slice(None),) * np.asarray(targetValues[0]).ndim + (np.newaxis,)
       targetValues = np.concatenate([np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
-    targetValues = targetValues.astype("float", copy=False)
+
     # construct the evaluation matrixes
     featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
     for cnt, feat in enumerate(self.features):
@@ -185,16 +186,17 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
       else:
         valueToUse = values[names.index(feat)]
-        resp = self.checkArrayConsistency(valueToUse)
+        resp = self.checkArrayConsistency(valueToUse, self.isDynamic())
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         valueToUse = np.asarray(valueToUse)
-        if valueToUse.size != featureValues[:,0].size:
+        if len(valueToUse) != featureValues[:,0].size:
           self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
-          self.raiseAWarning('target values:',valueToUse.size,tag='ERROR')
+          self.raiseAWarning('target values:',len(valueToUse),tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
-        featureValues[:,cnt] = (valueToUse - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
+        featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
 
@@ -220,7 +222,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       self.raiseAnError(IOError,'method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values   = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
-      resp = self.checkArrayConsistency(values[index])
+      resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
@@ -228,7 +230,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
       else:
-        resp = self.checkArrayConsistency(values[names.index(feat)])
+        resp = self.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = values[names.index(feat)]
@@ -246,7 +248,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values  = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
-      resp = self.checkArrayConsistency(values[index])
+      resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
     # construct the evaluation matrix
@@ -255,7 +257,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
       else:
-        resp = self.checkArrayConsistency(values[names.index(feat)])
+        resp = self.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
