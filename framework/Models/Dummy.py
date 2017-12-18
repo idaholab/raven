@@ -104,7 +104,7 @@ class Dummy(Model):
             for entries in dataIN.getVars('input'):
               if localInput[entries] is None:
                 localInput[entries] = []
-              value = dataSet.isel(RAVEN_sample_ID=hist)[entries].values
+              value = dataSet.isel(**{dataSet.sampleTag:hist})[entries].values
               localInput[entries].append(np.full((sizeIndex,),value,dtype=value.dtype))
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getVars('output'):

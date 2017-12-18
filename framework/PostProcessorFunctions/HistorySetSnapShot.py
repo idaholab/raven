@@ -138,6 +138,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
     """
       Method to post-process the dataObjects
       @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+      @ In, pivotVal,  float, value associated to the variable considered
       @ Out, outputPSDic, dict, output dictionary
     """
     if len(inputDic)>1:
@@ -193,7 +194,7 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
     Method do to compute a conversion from HistorySet to PointSet using the methods: min,max,average,value
     @ In, vars, dict, it is an historySet
     @ In, pivotVar,  string, variable considered
-    @ In, pivotVal,  double, value associated to the variable considered
+    @ In, pivotVal,  float, value associated to the variable considered
     @ In, snapShotType, string, type of snapShot: min, max, average, value
     @ Out, outputDic, dict, it contains the temporal slice of all histories
   """

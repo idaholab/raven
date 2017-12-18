@@ -298,7 +298,6 @@ class hdf5Database(MessageHandler.MessageUser):
       group.attrs[b'data_begin_endOther'] = json.dumps((begin.tolist(),end.tolist()))
       # get data names
       group.attrs[name + b'_dataOther'] = json.dumps(np.concatenate( dataOther.values()).ravel().tolist())
-      #group.create_dataset(name + "_dataOther", data=(json.dumps(np.concatenate( dataOther.values()).ravel().tolist())))
       group.attrs[b'hasOther'] = True
     # add some info
     group.attrs[b'groupName'     ] = name
