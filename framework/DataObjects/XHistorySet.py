@@ -180,7 +180,7 @@ class HistorySet(DataSet):
     else:
       data = self._data
       mode = 'w'
-    toDrop = list(var for var in self._allvars if var not in keep)
+    toDrop = list(var for var in self._orderedVars if var not in keep)
     data = data.drop(toDrop)
     self.raiseADebug('Printing data to CSV: "{}"'.format(fname+'.csv'))
     # specific implementation

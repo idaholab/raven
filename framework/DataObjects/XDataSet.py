@@ -706,7 +706,11 @@ class DataSet(DataObject):
       else:
         # if we don't have any samples in the collector, congratulations, you're aligned with yourself
         if self._collector is None or len(self._collector) == 0:
-          self._alignedIndexes[index] = rlz.pop(index)
+          try:
+            self._alignedIndexes[index] = rlz.pop(index)
+          except KeyError:
+            # it's already gone; this can happen if this pivot parameter is only being used to collapse data (like in PointSet case)
+            pass
         # otherwise, you're misaligned, and have been since before this realization, no action.
       return
 
