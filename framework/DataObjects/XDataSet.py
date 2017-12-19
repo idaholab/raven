@@ -998,38 +998,6 @@ class DataSet(DataObject):
       self._clearAlignment()
     return self._data
 
-
-    #### OLD ####
-    # XXX TODO FIXME make data all at once plus indexes, now
-    #data = self._collector.getData()
-    firstSample = int(self._data[self.sampleTag][-1])+1 if self._data is not None else 0
-    arrs = {}
-    for v,var in enumerate(self._allvars):
-      # gather data type from first realization
-      dtype = object = self.types[v]
-      # if not scalar, then dtype is embedded below this level
-      if isinstance(data[0,v],xr.DataArray):
-        varData = data[:,v]
-      # if scalar, however, need to force correct dtype here
-      else:
-        varData = np.array(data[:,v],dtype=dtype)
-      # create single dataarrays
-      arrs[var] = self._collapseNDtoDataArray(varData,var)
-      # re-index samples
-      arrs[var][self.sampleTag] += firstSample
-    # collect all data into dataset, and update self._data
-    if self._data is None:
-      self._convertArrayListToDataset(arrs,action='replace')
-    else:
-      self._convertArrayListToDataset(arrs,action='extend')
-    # reset collector
-    self._collector = self._newCollector(width=self._collector.width)
-    # write hierarchal data to general meta, if any
-    paths = self._generateHierPaths()
-    for p in paths:
-      self.addMeta('DataSet',{'Hierarchical':{'path':','.join(p)}})
-    return self._data
-
   def _formatRealization(self,rlz):
     """
       Formats realization without truncating data
@@ -1057,28 +1025,6 @@ class DataSet(DataObject):
       if dims in [[self.sampleTag], []]:
         if len(val) == 1:
           rlz[var] = val[0]
-    return rlz
-
-    ### OLD ###
-    for var,val in rlz.items():
-      # if an index variable, skip it
-      if var in self._pivotParams.keys():
-        continue
-      dims = self.getDimensions(var)[var]
-      ## change dimensionless to floats -> TODO use operator to collapse!
-      if dims in [[self.sampleTag], []]:
-        if len(val) == 1:
-          rlz[var] = val[0]
-      ## reshape multidimensional entries into dataarrays
-      else:
-        coords = dict((d,rlz[d]) for d in dims)
-        # if first entry in collector, assure types are correct for the index
-        if self._collector is None or len(self._collector) == 0:
-          dtype = self._getCompatibleType(val[0])
-          val = np.array(val,dtype=dtype)
-        rlz[var] = self.constructNDSample(val,dims,coords,name=var)
-    for var in self._pivotParams.keys():
-      del rlz[var]
     return rlz
 
   def _fromCSV(self,fileName,**kwargs):
