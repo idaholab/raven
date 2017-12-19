@@ -95,8 +95,8 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="outMC_PP">
-      <Input>x0,y0,z0</Input>
-      <Output>0,1,2,3,4,5</Output>
+      <Input>y0,x0,z0</Input>
+      <Output>3,2,1,0,5,4</Output>
     </PointSet>
     <HistorySet name="outMC">
       <Input>x0,y0,z0</Input>
