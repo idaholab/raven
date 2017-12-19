@@ -156,7 +156,7 @@ class DataSet(DataObject):
       self.raiseAnError(SyntaxError,'Realization was not formatted correctly for "{}"! See warnings above.'.format(self.name))
     # format the data
     rlz = self._formatRealization(rlz)
-    ## establish types if not done yet    
+    ## establish types if not done yet
     self._setDataTypes(rlz)
     # perform selective collapsing/picking of data
     rlz = self._selectiveRealization(rlz)
@@ -1478,7 +1478,7 @@ class DataSet(DataObject):
       for v,name in enumerate(self.getVars()):
         val = rlz[name]
         if isinstance(val,np.ndarray):
-          self.types[v] = self._getCompatibleType(val.item(0))          
+          self.types[v] = self._getCompatibleType(val.item(0))
         else:
           self.types[v] = self._getCompatibleType(val)
 
