@@ -159,8 +159,8 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
         #establish the output dict
         outDict = {'data':{}}
         #replicate input space
-        for var in inputDic['outVars']:
-          outDict['data'][var]  = np.array(list(inputDic['data'][prefix][var] for prefix in inputDic['inpVars']))
+        for var in inputDic['inpVars']:
+          outDict['data'][var]  = inputDic['data'][var]
         #replicate metadata
           outDict['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
           outDict['data']['prefix'] = inputDic['data']['prefix']
@@ -208,7 +208,7 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
     outputDic['data'][var] = inputDic['data'][var]
 
   outVars = inputDic['data'].keys()
-  outVars.remove('ProbabilityWeight')
+  outVars = [var for var in outVars if 'Probability' not in var]
   outVars.remove('prefix')
   vars = [var for var in outVars if var not in inputDic['inpVars']]
 
