@@ -459,15 +459,7 @@ class ETImporter(PostProcessor):
                                       'dataObject (' + str(set(output.getVars())) + ') is different form the set of '
                                       'variables specified in the ET (' + str(set(outputDict.keys())))
     if output.type in ['PointSet']:
-      for key in outputDict.keys():
-        output.addVariable(key,outputDict[key])
-      '''
-      for key in output.getParaKeys('inputs'):
-        for value in outputDict['inputs'][key]:
-          output.updateInputValue(str(key),value)
-      for key in output.getParaKeys('outputs'):
-        for value in outputDict['outputs'][key]:
-          output.updateOutputValue(str(key),value)'''
+      output.load(outputDict,style='dict')
     else:
         self.raiseAnError(RuntimeError, 'ETImporter failed: Output type ' + str(output.type) + ' is not supported.')
 
