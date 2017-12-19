@@ -83,6 +83,9 @@ class DataSet(DataObject):
     if len(keys) == 0:
       return
     # CANNOT add expected meta after samples are started
+    print('DEBUGG adding exp meta:',keys)
+    print('       to:',self.name)
+    print(self._data)
     assert(self._data is None)
     assert(self._collector is None or len(self._collector) == 0)
     self._metavars.extend(keys)
@@ -947,28 +950,21 @@ class DataSet(DataObject):
       @ Out, None
     """
     # first, try to read from csv
-    try:
-      panda = pd.read_csv(fileName+'.csv')
-    except pd.errors.EmptyDataError:
-      # no data in file
-      self.raiseAWarning('Tried to read data from "{}", but the file is empty!'.format(fileName+'.csv'))
-      return
-    finally:
-      self.raiseADebug('Reading data from "{}.csv"'.format(fileName))
+    df = self._readPandasCSV(fileName+'.csv')
     # load in metadata
     dims = self._loadCsvMeta(fileName)
     # find distinct number of samples
     try:
-      samples = list(set(panda[self.sampleTag]))
+      samples = list(set(df[self.sampleTag]))
     except KeyError:
       # sample ID wasn't given, so assume each row is sample
-      samples = range(len(panda.index))
-      panda[self.sampleTag] = samples
+      samples = range(len(df.index))
+      df[self.sampleTag] = samples
     # create arrays from which to create the data set
     arrays = {}
     for var in self._allvars:
       if var in dims.keys():
-        data = panda[[var,self.sampleTag]+dims[var]]
+        data = df[[var,self.sampleTag]+dims[var]]
         data.set_index(self.sampleTag,inplace=True)
         ndat = np.zeros(len(samples),dtype=object)
         for s,sample in enumerate(samples):
@@ -983,7 +979,7 @@ class DataSet(DataObject):
         arrays[var] = self._collapseNDtoDataArray(ndat,var,labels=samples)
       else:
         # scalar example
-        data = panda[[var,self.sampleTag]].groupby(self.sampleTag).first().values[:,0]
+        data = df[[var,self.sampleTag]].groupby(self.sampleTag).first().values[:,0]
         arrays[var] = self._collapseNDtoDataArray(data,var,labels=samples)
     self._convertArrayListToDataset(arrays,action='replace')
 
@@ -1307,6 +1303,28 @@ class DataSet(DataObject):
     if dtype is None:
       dtype = self.defaultDtype # set in subclasses if different
     return cached_ndarray.cNDarray(width=width,length=length,dtype=dtype)
+
+  def _readPandasCSV(self,fname):
+    """
+      Reads in a CSV and does some simple checking.
+      @ In fname, str, name of file to read in (WITH the .csv extension)
+      @ Out, df, pd.DataFrame, contents of file
+    """
+    # first try reading the file
+    try:
+      df = pd.read_csv(fname)
+    except pd.errors.EmptyDataError:
+      # no data in file
+      self.raiseAWarning('Tried to read data from "{}", but the file is empty!'.format(fname+'.csv'))
+      return
+    else:
+      self.raiseADebug('Reading data from "{}.csv"'.format(fname))
+    # check for NaN contents -> this isn't allowed in RAVEN currently, although we might need to change this for ND
+    if pd.isnull(df).values.sum() != 0:
+      bad = pd.isnull(df).any(1).nonzero()[0][0]
+      self.raiseAnError(IOError,'Invalid data in input file: row "{}" in "{}"'.format(bad,fname))
+    return df
+
 
   def _resetScaling(self):
     """

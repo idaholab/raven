@@ -137,7 +137,7 @@ class HistorySet(DataSet):
     self._loadCsvMeta(fileName)
     # load in main CSV
     ## read into dataframe
-    main = pd.read_csv(fileName+'.csv')
+    main = self._readPandasCSV(fileName+'.csv')
     nSamples = len(main.index)
     ## collect input space data
     for inp in self._inputs + self._metavars:
@@ -158,7 +158,11 @@ class HistorySet(DataSet):
       if not os.path.isabs(subFile):
         subFile = os.path.join(os.path.dirname(fileName),subFile)
       # first time create structures
-      subDat = pd.read_csv(subFile)
+      subDat = self._readPandasCSV(subFile)
+      # currently, we don't allow incomplete data to be loaded (such as when line-",\n")
+      if pd.isnull(subDat).values.sum() != 0:
+        bad = pd.isnull(subDat).any(1).nonzero()[0][0]
+        self.raiseAnError(IOError,'Invalid data in input file: row "{}" in "{}"'.format(bad,subFile))
       if len(set(subDat.keys()).intersection(self.indexes)) != len(self.indexes):
         self.raiseAnError(IOError,'Importing HistorySet from .csv: the pivot parameters "'+', '.join(self.indexes)+'" have not been found in the .csv file. Check that the '
                                   'correct <pivotParameter> has been specified in the dataObject or make sure the <pivotParameter> is included in the .csv files')
