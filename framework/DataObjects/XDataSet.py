@@ -83,9 +83,6 @@ class DataSet(DataObject):
     if len(keys) == 0:
       return
     # CANNOT add expected meta after samples are started
-    print('DEBUGG adding exp meta:',keys)
-    print('       to:',self.name)
-    print(self._data)
     assert(self._data is None)
     assert(self._collector is None or len(self._collector) == 0)
     self._metavars.extend(keys)
