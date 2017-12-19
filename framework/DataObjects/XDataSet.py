@@ -1317,7 +1317,7 @@ class DataSet(DataObject):
     self._scaleFactors = {}
     self._inputKDTree = None
 
-  def _selectiveRealization(self,rlz,checkLengthBeforeTruncating=False):
+  def _selectiveRealization(self,rlz):
     """
       Formats realization to contain the desired data
       @ In, rlz, dict, {var:val} format (see addRealization)

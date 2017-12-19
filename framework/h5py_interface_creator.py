@@ -258,9 +258,9 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, check, bool, the check
     """
     if neg:
-      check = type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'] or type(value) not in [float,int]
+      check = type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'] and type(value) not in [float,int]
     else:
-      check = type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value)  in [float,int]
+      check = type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value) in [float,int]
     return check
 
   def __populateGroup(self, group, name,  rlz):
@@ -272,7 +272,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, rlz, dict, dictionary with the data and metadata to add
       @ Out, None
     """
-   
+
 
     group.attrs[b'hasIntfloat'] = False
     group.attrs[b'hasOther'   ] = False
@@ -281,12 +281,12 @@ class hdf5Database(MessageHandler.MessageUser):
       if not set(self.variables).issubset(rlz.keys()):
         self.raiseAnError(IOError, "Not all the requested variables have been passed in the realization. Missing are: "+
                           ",".join(list(set(self.variables).symmetric_difference(set(rlz.keys())))))
-    # get the data floats and other types
+    # get the data floats or arrays
     if self.variables is None:
       dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) )
     else:
       dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) and key in self.variables)
-
+    # get other dtype data (strings and objects)
     dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, True) )
     # get size of each data variable (float)
     varKeysIntfloat = dataIntfloat.keys()
