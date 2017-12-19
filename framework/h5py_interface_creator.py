@@ -281,15 +281,15 @@ class hdf5Database(MessageHandler.MessageUser):
                           ",".join(list(set(self.variables).symmetric_difference(set(rlz.keys())))))
     # get the data floats or arrays
     if self.variables is None:
-      dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) )
+      dataIntFloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) )
     else:
-      dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) and key in self.variables)
+      dataIntFloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) and key in self.variables)
     # get other dtype data (strings and objects)
     dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, True) )
     # get size of each data variable (float)
-    varKeysIntfloat = dataIntfloat.keys()
+    varKeysIntfloat = dataIntFloat.keys()
     if len(varKeysIntfloat) > 0:
-      varShapeIntfloat = [dataIntfloat[key].shape for key in varKeysIntfloat]
+      varShapeIntfloat = [dataIntFloat[key].shape for key in varKeysIntfloat]
       # get data names
       group.attrs[b'data_namesIntfloat'] = json.dumps(varKeysIntfloat)
       # get data shapes
@@ -299,7 +299,7 @@ class hdf5Database(MessageHandler.MessageUser):
       begin = np.concatenate(([0],end[0:-1]))
       group.attrs[b'data_begin_endIntfloat'] = json.dumps((begin.tolist(),end.tolist()))
       # get data names
-      group.create_dataset(name + "_dataIntfloat", dtype="float", data=(np.concatenate( dataIntfloat.values()).ravel()))
+      group.create_dataset(name + "_dataIntFloat", dtype="float", data=(np.concatenate( dataIntFloat.values()).ravel()))
       group.attrs[b'hasIntfloat'] = True
     # get size of each data variable (other type)
     varKeysOther = dataOther.keys()
@@ -482,14 +482,14 @@ class hdf5Database(MessageHandler.MessageUser):
     hasIntfloat = group.attrs['hasIntfloat']
     hasOther    = group.attrs['hasOther']
     if hasIntfloat:
-      datasetIntfloat = group[name + "_dataIntfloat"]
+      dataSetIntFloat = group[name + "_dataIntFloat"]
       # Get some variables of interest
       nVarsIntfloat      = group.attrs[b'nVarsIntfloat']
       varShapeIntfloat   = json.loads(group.attrs[b'data_shapesIntfloat'])
       varKeysIntfloat    = json.loads(group.attrs[b'data_namesIntfloat'])
       begin, end          = json.loads(group.attrs[b'data_begin_endIntfloat'])
       # Reconstruct the dataset
-      newData = {key : np.reshape(datasetIntfloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt]) for cnt,key in enumerate(varKeysIntfloat)}
+      newData = {key : np.reshape(dataSetIntFloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt]) for cnt,key in enumerate(varKeysIntfloat)}
     if hasOther:
       # get the "other" data
       datasetOther = json.loads(group.attrs[name + "_dataOther"])

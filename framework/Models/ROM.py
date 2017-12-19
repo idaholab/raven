@@ -400,7 +400,7 @@ class ROM(Dummy):
     # assure rlz has all metadata
     rlz = dict((var,np.atleast_1d(kwargs[var])) for var in kwargs.keys())
     # update rlz with input space from inRun and output space from result
-    rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(result.keys()+inRun.keys())))
+    rlz.update(dict((var,np.atleast_1d(inRun[var] if var in inRun else result[var])) for var in set(result.keys()+inRun.keys())))
     return rlz
 
   def reseed(self,seed):

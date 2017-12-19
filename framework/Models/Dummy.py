@@ -170,7 +170,7 @@ class Dummy(Model):
     # alias system
     self._replaceVariablesNamesWithAliasSystem(inRun,'input',True)
     # build realization using input space from inRun and metadata from kwargs
-    rlz = dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else kwargs[var])) for var in set(kwargs.keys()+inRun.keys()))
+    rlz = dict((var,np.atleast_1d(inRun[var] if var in inRun else kwargs[var])) for var in set(kwargs.keys()+inRun.keys()))
     # add dummy output space
     rlz['OutputPlaceHolder'] = np.atleast_1d(float(Input[1]['prefix']))
     return rlz
@@ -189,7 +189,7 @@ class Dummy(Model):
     # TODO expensive deepcopy prevents modification when sent to multiple outputs
     result = finishedJob.getEvaluation()
     # alias system
-    self._replaceVariablesNamesWithAliasSystem(result,'inout',True)
+    self._replaceVariablesNamesWithAliasSystem(result,'output',True)
     if isinstance(result,Runners.Error):
       self.raiseAnError(Runners.Error,'No available output to collect!')
     output.addRealization(result)
