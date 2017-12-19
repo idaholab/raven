@@ -63,7 +63,7 @@
   type = 'RavenFramework'
   input = 'test_push_into_hdf5.xml'
   UnorderedCsv = 'test_extract_data_s_from_hdf5/Pointset_from_database_dump.csv test_extract_data_s_from_hdf5/Pointset_IN_database_dump.csv test_extract_data_s_from_hdf5/HistorySet_from_database_dump_0.csv test_extract_data_s_from_hdf5/HistorySet_IN_database_dump_0.csv'
-  max_time = 500 
+  max_time = 500
   rel_err = 0.0001
  [../]
 
@@ -241,6 +241,19 @@
   type = 'RavenPython'
   input = '../../framework/TestFiles.py'
  [../]
+
+  [./unit_test_DataSets]
+    type = 'RavenPython'
+    input = '../../framework/DataObjects/TestXDataSets.py'
+  [../]
+  [./unit_test_HistorySets]
+    type = 'RavenPython'
+    input = '../../framework/DataObjects/TestXHistorySets.py'
+  [../]
+  [./unit_test_PointSets]
+    type = 'RavenPython'
+    input = '../../framework/DataObjects/TestXPointSets.py'
+  [../]
 
  [./test_xsd_input_data]
   type = 'RavenPython'
