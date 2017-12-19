@@ -272,8 +272,6 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, rlz, dict, dictionary with the data and metadata to add
       @ Out, None
     """
-
-
     group.attrs[b'hasIntfloat'] = False
     group.attrs[b'hasOther'   ] = False
     if self.variables is not None:

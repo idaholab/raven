@@ -167,6 +167,8 @@ class Dummy(Model):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
+    # alias system
+    self._replaceVariablesNamesWithAliasSystem(inRun,'input',True)
     # build realization using input space from inRun and metadata from kwargs
     rlz = dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else kwargs[var])) for var in set(kwargs.keys()+inRun.keys()))
     # add dummy output space
