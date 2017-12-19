@@ -291,6 +291,8 @@ class HDF5(DateBase):
       @ Out, allData, list of arrays, all the data from this data object.
     """
     allRealizationNames = self.database.retrieveAllHistoryNames()
+    # instead to use a OrderedDict in the database, I sort the names here (it is much faster)
+    allRealizationNames.sort()
     allData = [self.realization(name) for name in allRealizationNames]
     return allData
 
