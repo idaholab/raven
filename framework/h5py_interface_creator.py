@@ -260,15 +260,33 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, rlz, dict, dictionary with the data and metadata to add
       @ Out, None
     """
-    # add pointwise metadata (in this case, they are group-wise)
-    #group.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
+    def _checkTypeHDF5(self, value, neg):
+      """
+        Local utility function to check the type
+        @ In, value, object, the value to check
+        @ In, neg, bool, to use the "not" or not
+        @ Out, check, bool, the check
+      """
+      if neg:
+        check = type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'] or type(value) not in [float,int]
+      else:
+        check = type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value)  in [float,int]
+      return check
+
     group.attrs[b'hasIntfloat'] = False
     group.attrs[b'hasOther'   ] = False
+    if self.variables is not None:
+      # check if all variables are contained in the rlz dictionary
+      if not set(self.variables).issubset(rlz.keys()):
+        self.raiseAnError(IOError, "Not all the requested variables have been passed in the realization. Missing are: "+
+                          ",".join(list(set(self.variables).symmetric_difference(set(rlz.keys())))))
     # get the data floats and other types
-    dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if type(value) == np.ndarray and
-                         value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value) in [float,int])
-    dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if type(value) == np.ndarray and
-                         value.dtype not in np.sctypes['float']+np.sctypes['int'] or type(value) not in [float,int])
+    if self.variables is None:
+      dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self._checkTypeHDF5(value, False) )
+    else:
+      dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self._checkTypeHDF5(value, False) and key in self.variables)
+
+    dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self._checkTypeHDF5(value, True) )
     # get size of each data variable (float)
     varKeysIntfloat = dataIntfloat.keys()
     if len(varKeysIntfloat) > 0:
