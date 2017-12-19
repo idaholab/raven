@@ -251,7 +251,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       outputDict['data'][var][0] = typicalData[var]
     # preserve input data
     for var in inputDic[0]['inpVars']:
-      outputDict['data'][var] = np.asarray(inputDict[var][0])
+      outputDict['data'][var] = np.zeros(1, dtype=object)
+      outputDict['data'][var][0] = inputDict[var][0]
     outputDict['dims']={}
     for var in self.features:  
       outputDict['dims'][var]=[self.pivotParameter]
