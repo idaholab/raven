@@ -196,7 +196,6 @@ class hdf5Database(MessageHandler.MessageUser):
       else:
         # Add sub group in the Hierarchical structure
         self.__addSubGroup(groupName,rlz)
-      endif
     else:
       # Parallel structure (always root level)
       self.__addGroupRootLevel(groupName,rlz)
@@ -251,6 +250,19 @@ class hdf5Database(MessageHandler.MessageUser):
     self.h5FileW.attrs['allGroupEnds'] = json.dumps(self.allGroupEnds)
     self.h5FileW.flush()
 
+  def __checkTypeHDF5(self, value, neg):
+    """
+      Local utility function to check the type
+      @ In, value, object, the value to check
+      @ In, neg, bool, to use the "not" or not
+      @ Out, check, bool, the check
+    """
+    if neg:
+      check = type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'] or type(value) not in [float,int]
+    else:
+      check = type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value)  in [float,int]
+    return check
+
   def __populateGroup(self, group, name,  rlz):
     """
       This method is a common method between the __addGroupRootLevel and __addSubGroup
@@ -260,18 +272,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, rlz, dict, dictionary with the data and metadata to add
       @ Out, None
     """
-    def _checkTypeHDF5(self, value, neg):
-      """
-        Local utility function to check the type
-        @ In, value, object, the value to check
-        @ In, neg, bool, to use the "not" or not
-        @ Out, check, bool, the check
-      """
-      if neg:
-        check = type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'] or type(value) not in [float,int]
-      else:
-        check = type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value)  in [float,int]
-      return check
+   
 
     group.attrs[b'hasIntfloat'] = False
     group.attrs[b'hasOther'   ] = False
@@ -282,11 +283,11 @@ class hdf5Database(MessageHandler.MessageUser):
                           ",".join(list(set(self.variables).symmetric_difference(set(rlz.keys())))))
     # get the data floats and other types
     if self.variables is None:
-      dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self._checkTypeHDF5(value, False) )
+      dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) )
     else:
-      dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self._checkTypeHDF5(value, False) and key in self.variables)
+      dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) and key in self.variables)
 
-    dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self._checkTypeHDF5(value, True) )
+    dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, True) )
     # get size of each data variable (float)
     varKeysIntfloat = dataIntfloat.keys()
     if len(varKeysIntfloat) > 0:
