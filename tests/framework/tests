@@ -244,15 +244,15 @@
 
   [./unit_test_DataSets]
     type = 'RavenPython'
-    input = '../../framework/DataObjects/TestXDataSets.py'
+    input = '../../framework/DataObjects/TestXDataSet.py'
   [../]
   [./unit_test_HistorySets]
     type = 'RavenPython'
-    input = '../../framework/DataObjects/TestXHistorySets.py'
+    input = '../../framework/DataObjects/TestXHistorySet.py'
   [../]
   [./unit_test_PointSets]
     type = 'RavenPython'
-    input = '../../framework/DataObjects/TestXPointSets.py'
+    input = '../../framework/DataObjects/TestXPointSet.py'
   [../]
 
  [./test_xsd_input_data]
