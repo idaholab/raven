@@ -157,6 +157,26 @@ class hdf5Database(MessageHandler.MessageUser):
         self.raiseAWarning('not found attribute endGroup in group ' + name + '.Set True.')
     return
 
+  def addExpectedMeta(self, keys):
+    """
+      Store expected metadata
+      @ In, keys, set(), the metadata list
+      @ Out, None
+    """
+    self.h5FileW.attrs['expectedMetadata'] = json.dumps(list(keys))
+
+  def provideExpectedMetaKeys(self):
+    """
+      Provides the registered list of metadata keys for this entity.
+      @ In, None
+      @ Out, meta, set(str), expected keys (empty if none)
+    """
+    meta = set()
+    gotMeta = self.h5FileW.attrs.get('expectedMetadata',None)
+    if gotMeta is not None:
+      meta = set(json.loads(gotMeta))
+    return meta
+
   def addGroup(self,rlz):
     """
       Function to add a group into the database
@@ -197,7 +217,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     attribs = {} if attributes is None else attributes
-    groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H")
+    groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H-%S")
     for index in xrange(len(self.allGroupPaths)):
       comparisonName = self.allGroupPaths[index]
       splittedPath=comparisonName.split('/')
@@ -245,8 +265,10 @@ class hdf5Database(MessageHandler.MessageUser):
     group.attrs[b'hasIntfloat'] = False
     group.attrs[b'hasOther'   ] = False
     # get the data floats and other types
-    dataIntfloat = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'])
-    dataOther    = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'])
+    dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if type(value) == np.ndarray and
+                         value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value) in [float,int])
+    dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if type(value) == np.ndarray and
+                         value.dtype not in np.sctypes['float']+np.sctypes['int'] or type(value) not in [float,int])
     # get size of each data variable (float)
     varKeysIntfloat = dataIntfloat.keys()
     if len(varKeysIntfloat) > 0:
@@ -275,7 +297,7 @@ class hdf5Database(MessageHandler.MessageUser):
       begin = np.concatenate(([0],end[0:-1]))
       group.attrs[b'data_begin_endOther'] = json.dumps((begin.tolist(),end.tolist()))
       # get data names
-      group.create_dataset(name + "_dataOther", data=(json.dumps(np.concatenate( dataOther.values()).ravel().tolist())))
+      group.attrs[name + b'_dataOther'] = json.dumps(np.concatenate( dataOther.values()).ravel().tolist())
       group.attrs[b'hasOther'] = True
     # add some info
     group.attrs[b'groupName'     ] = name
@@ -426,8 +448,10 @@ class hdf5Database(MessageHandler.MessageUser):
       @ InOut, backGroups, list, list of group instances (from the deepest to the root)
     """
     if grp.parent and grp.parent != grp:
-      backGroups.append(grp.parent)
-      self.__getListOfParentGroups(grp.parent, backGroups)
+      parentGroup = grp.parent
+      if not parentGroup.attrs.get("rootname",False):
+        backGroups.append(parentGroup)
+        self.__getListOfParentGroups(parentGroup, backGroups)
     return backGroups
 
   def __getNewDataFromGroup(self, group, name):
@@ -437,6 +461,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, name, str, the group name
       @ Out, newData, dict, the dictionary with the data
     """
+    newData = {}
     hasIntfloat = group.attrs['hasIntfloat']
     hasOther    = group.attrs['hasOther']
     if hasIntfloat:
@@ -449,7 +474,8 @@ class hdf5Database(MessageHandler.MessageUser):
       # Reconstruct the dataset
       newData = {key : np.reshape(datasetIntfloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt]) for cnt,key in enumerate(varKeysIntfloat)}
     if hasOther:
-      datasetOther = group[name + "_dataOther"]
+      # get the "other" data
+      datasetOther = json.loads(group.attrs[name + "_dataOther"])
       # Get some variables of interest
       nVarsOther      = group.attrs[b'nVarsOther']
       varShapeOther   = json.loads(group.attrs[b'data_shapesOther'])

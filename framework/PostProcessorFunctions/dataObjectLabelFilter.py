@@ -71,7 +71,6 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
       elif child.tag !='method':
         self.raiseAnError(IOError, 'dataObjectLabelFilter Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
-
   def run(self,inputDic):
     """
      Method to post-process the dataObjects
@@ -81,32 +80,8 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
-      inputDic = copy.deepcopy(inputDic[0])
-      outputDic={}
-      outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
-      outputDic['data'] = {}
-      outputDic['data']['input'] = {}
-      outputDic['data']['output'] = {}
-
-      if self.inputFormat == 'HistorySet':
-        for hist in inputDic['data']['output']:
-          if int(inputDic['data']['output'][hist][self.label][0]) in self.clusterIDs:
-            outputDic['data']['input'][hist]  = copy.deepcopy(inputDic['data']['input'][hist])
-            outputDic['data']['output'][hist] = copy.deepcopy(inputDic['data']['output'][hist])
-
-      else:
-        # self.outFormat == 'PointSet'
-        for key in inputDic['data']['input']:
-          outputDic['data']['input'][key] = np.zeros(0)
-        for key in inputDic['data']['output']:
-          outputDic['data']['output'][key] = np.zeros(0)
-
-        for pos,val in np.ndenumerate(inputDic['data']['output'][self.label]):
-          if val in self.clusterIDs:
-            for key in inputDic['data']['input']:
-              outputDic['data']['input'][key]  = np.append(outputDic['data']['input'][key],copy.deepcopy(inputDic['data']['input'][key][pos[0]]))
-            for key in inputDic['data']['output']:
-              outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key],copy.deepcopy(inputDic['data']['output'][key][pos[0]]))
-
-
-      return outputDic
+      inputDict = inputDic[0]
+      indexes = np.where(np.in1d(inputDic['data'][self.label],self.clusterIDs))[0]
+      for key in inputDict['data'].keys():
+        inputDict['data'][key] = inputDict['data'][key][indexes]
+    return inputDict

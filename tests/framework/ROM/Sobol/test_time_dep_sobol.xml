@@ -98,7 +98,7 @@
     </PointSet>
     <HistorySet name="trainset">
       <Input>x0,y0</Input>
-      <Output>time,x,y,r</Output>
+      <Output>y,x,r,time</Output>
     </HistorySet>
   </DataObjects>
 

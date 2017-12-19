@@ -113,12 +113,12 @@
     <Print name="testPrintHistorySet_dump">
       <type>csv</type>
       <source>testPrintHistorySet</source>
-      <what>input, output</what>
+      <what>input, output, metadata|ProbabilityWeight</what>
     </Print>
     <Print name="testPointSet_dump">
       <type>csv</type>
       <source>testPointSet</source>
-      <what>input, output</what>
+      <what>input, output, metadata|ProbabilityWeight</what>
     </Print>
   </OutStreams>
 

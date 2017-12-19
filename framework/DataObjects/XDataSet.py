@@ -301,7 +301,7 @@ class DataSet(DataObject):
 
   def getMeta(self,keys=None,pointwise=False,general=False):
     """
-      Method to obtain entries in the metadata.  If niether pointwise nor general, then returns an empty dict.
+      Method to obtain entries in the metadata.  If neither pointwise nor general, then returns an empty dict.
        @ In, keys, list(str), optional, the keys (or main tag) to search for.  If None, return all.
        @ In, pointwise, bool, optional, if True then matches will be searched in the pointwise metadata
        @ In, general, bool, optional, if True then matches will be searched in the general metadata
@@ -375,10 +375,10 @@ class DataSet(DataObject):
       self.raiseAnError(RuntimeError,'Unrecognized request type:',type(var))
     return res
 
-  def load(self,fName,style='netCDF',**kwargs):
+  def load(self,fileName,style='netCDF',**kwargs):
     """
       Reads this dataset from disk based on the format.
-      @ In, fName, str, path and name of file to read
+      @ In, fileName, str, path and name of file to read
       @ In, style, str, optional, options are enumerated below
       @ In, kwargs, dict, optional, additional arguments to pass to reading function
       @ Out, None
@@ -387,26 +387,26 @@ class DataSet(DataObject):
       self.raiseAnError(IOError, "Attempting to load data from a '{}', but target DataObject is not empty!".format(style)
               + " This operation is not permitted; try outputting to a clean DataObject.")
     style = style.lower()
-    # if fileToLoad in kwargs, then filename is actualle fName/fileToLoad
+    # if fileToLoad in kwargs, then filename is actualle fileName/fileToLoad
     if 'fileToLoad' in kwargs.keys():
-      fName = kwargs['fileToLoad'].getAbsFile()
+      fileName = kwargs['fileToLoad'].getAbsFile()
     # load based on style for loading
     if style == 'netcdf':
-      self._fromNetCDF(fName,**kwargs)
+      self._fromNetCDF(fileName,**kwargs)
     elif style == 'csv':
       # make sure we don't include the "csv"
-      if fName.endswith('.csv'):
-        fName = fName[:-4]
-      self._fromCSV(fName,**kwargs)
+      if fileName.endswith('.csv'):
+        fileName = fileName[:-4]
+      self._fromCSV(fileName,**kwargs)
     elif style == 'dict':
-      self._fromDict(fName,**kwargs)
+      self._fromDict(fileName,**kwargs)
     # TODO dask
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
     # after loading, set or reset scaling factors
     self._setScalingFactors()
 
-  def realization(self,index=None,matchDict=None,tol=1e-15):
+  def realization(self,index=None,matchDict=None,tol=1e-15, unpackXArray=False):
     """
       Method to obtain a realization from the data, either by index or matching value.
       Either "index" or "matchDict" must be supplied.
@@ -414,6 +414,7 @@ class DataSet(DataObject):
       @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
       @ In, matchDict, dict, optional, {key:val} to search for matches
       @ In, tol, float, optional, tolerance to which match should be made
+      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}) (valid only for dataset)
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
@@ -439,7 +440,7 @@ class DataSet(DataObject):
             rlz = self._getRealizationFromCollectorByIndex(index - numInData)
         ## otherwise, take from the data
         else:
-          rlz = self._getRealizationFromDataByIndex(index)
+          rlz = self._getRealizationFromDataByIndex(index, unpackXArray)
       # handle "-" requests (counting from the end): first end of collector, or if not then end of data
       else:
         # caller is requesting so many "from the end", so work backwards
@@ -450,7 +451,7 @@ class DataSet(DataObject):
             self.raiseAnError(IndexError,'Requested index "{}" but only have {} entries!'.format(index,numInData+numInCollector))
           ## otherwise, grab the requested index from the data
           else:
-            rlz = self._getRealizationFromDataByIndex(index + numInCollector)
+            rlz = self._getRealizationFromDataByIndex(index + numInCollector, unpackXArray)
         ## otherwise, grab the entry from the collector
         else:
           rlz = self._getRealizationFromCollectorByIndex(index)
@@ -468,7 +469,7 @@ class DataSet(DataObject):
           index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
       # otherwise, first try to find it in the data
       else:
-        index,rlz = self._getRealizationFromDataByValue(matchDict,tol=tol)
+        index,rlz = self._getRealizationFromDataByValue(matchDict,tol=tol, unpackXArray=unpackXArray)
         # if no match found in data, try in the collector (if there's anything in it)
         if rlz is None:
           if numInCollector > 0:
@@ -554,10 +555,10 @@ class DataSet(DataObject):
     # NOTE: The slice may include NaN if a variable does not have a value along a different index for this snapshot along "index"
     return slices
 
-  def write(self,fName,style='netCDF',**kwargs):
+  def write(self,fileName,style='netCDF',**kwargs):
     """
       Writes this dataset to disk based on the format.
-      @ In, fName, str, path and name of file to write
+      @ In, fileName, str, path and name of file to write
       @ In, style, str, optional, options are enumerated below
       @ In, kwargs, dict, optional, additional arguments to pass to writing function
           Includes:  firstIndex, int, optional, if included then is the realization index that writing should start from (implies appending instead of rewriting)
@@ -565,16 +566,16 @@ class DataSet(DataObject):
     """
     self.asDataset() #just in case there is stuff left in the collector
     if style.lower() == 'netcdf':
-      self._toNetCDF(fName,**kwargs)
+      self._toNetCDF(fileName,**kwargs)
     elif style.lower() == 'csv':
       if len(self._data[self.sampleTag])==0: #TODO what if it's just metadata?
         self.raiseAWarning('Nothing to write!')
         return
       #first write the CSV
       firstIndex = kwargs.get('firstIndex',0)
-      self._toCSV(fName,start=firstIndex,**kwargs)
+      self._toCSV(fileName,start=firstIndex,**kwargs)
       # then the metaxml
-      self._toCSVXML(fName,**kwargs)
+      self._toCSVXML(fileName,**kwargs)
     # TODO dask?
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized write style: "{}"'.format(style))
@@ -869,11 +870,12 @@ class DataSet(DataObject):
     self._setScalingFactors()
     return new
 
-  def _convertFinalizedDataRealizationToDict(self,rlz):
+  def _convertFinalizedDataRealizationToDict(self,rlz, unpackXarray=False):
     """
       After collapsing into xr.Dataset, all entries are stored as xr.DataArrays.
       This converts them into a dictionary like the realization sent in.
       @ In, rlz, dict(varname:xr.DataArray), "row" from self._data
+      @ In, unpackXarray, bool, unpack XArray coordinates in numpy arrays (it assumes that the coordinates are consistent among the data)
       @ Out, new, dict(varname:value), where "value" could be singular (float,str) or xr.DataArray
     """
     # TODO this has a lot of looping and might be slow for many variables.  Bypass or rewrite where possible.
@@ -886,6 +888,8 @@ class DataSet(DataObject):
       else:
         for dim in v.dims[:]:
           v = v.dropna(dim)
+          if unpackXarray:
+            new[dim] = v.coords[dim].values
         new[k] = v
     return new
 
@@ -919,8 +923,7 @@ class DataSet(DataObject):
         # need to drop indexes for which no values are present
         for index in dims:
           data = data.dropna(index)
-          if dataDict['data'][index][s] == 0:
-            dataDict['data'][index][s] = data[index].values
+          dataDict['data'][index][s] = data[index].values
         dataDict['data'][var][s] = data.values
     return dataDict
 
@@ -1078,24 +1081,24 @@ class DataSet(DataObject):
       del rlz[var]
     return rlz
 
-  def _fromCSV(self,fName,**kwargs):
+  def _fromCSV(self,fileName,**kwargs):
     """
       Loads a dataset from CSV (preferably one it wrote itself, but maybe not necessarily?
-      @ In, fName, str, filename to load from (not including .csv or .xml)
+      @ In, fileName, str, filename to load from (not including .csv or .xml)
       @ In, kwargs, dict, optional arguments
       @ Out, None
     """
     # first, try to read from csv
     try:
-      panda = pd.read_csv(fName+'.csv')
+      panda = pd.read_csv(fileName+'.csv')
     except pd.errors.EmptyDataError:
       # no data in file
-      self.raiseAWarning('Tried to read data from "{}", but the file is empty!'.format(fName+'.csv'))
+      self.raiseAWarning('Tried to read data from "{}", but the file is empty!'.format(fileName+'.csv'))
       return
     finally:
-      self.raiseADebug('Reading data from "{}.csv"'.format(fName))
+      self.raiseADebug('Reading data from "{}.csv"'.format(fileName))
     # load in metadata
-    dims = self._loadCsvMeta(fName)
+    dims = self._loadCsvMeta(fileName)
     # find distinct number of samples
     try:
       samples = list(set(panda[self.sampleTag]))
@@ -1126,17 +1129,17 @@ class DataSet(DataObject):
         arrays[var] = self._collapseNDtoDataArray(data,var,labels=samples)
     self._convertArrayListToDataset(arrays,action='replace')
 
-  def _fromCSVXML(self,fName):
+  def _fromCSVXML(self,fileName):
     """
       Loads in the XML portion of a CSV if it exists.  Returns information found.
-      @ In, fName, str, filename to read as filename.xml
+      @ In, fileName, str, filename to read as filename.xml
       @ Out, metadata, dict, metadata discovered
     """
     metadata = {}
     # check if we have anything from which to read
     try:
-      meta,_ = xmlUtils.loadToTree(fName+'.xml')
-      self.raiseADebug('Reading metadata from "{}.xml"'.format(fName))
+      meta,_ = xmlUtils.loadToTree(fileName+'.xml')
+      self.raiseADebug('Reading metadata from "{}.xml"'.format(fileName))
       haveMeta = True
     except IOError:
       haveMeta = False
@@ -1229,18 +1232,18 @@ class DataSet(DataObject):
     # collapse into xr.Dataset
     self.asDataset()
 
-  def _fromNetCDF(self,fName, **kwargs):
+  def _fromNetCDF(self,fileName, **kwargs):
     """
       Reads this data object from file that is netCDF.  If not netCDF4, this could be slow.
       Loads data lazily; it won't be pulled into memory until operations are attempted on the specific data
-      @ In, fName, str, path/name to read file
+      @ In, fileName, str, path/name to read file
       @ In, kwargs, dict, optional, keywords to pass to netCDF4 reading
                                     See http://xarray.pydata.org/en/stable/io.html#netcdf for options
       @ Out, None
     """
     # TODO set up to use dask for on-disk operations -> or is that a different data object?
     # TODO are these fair assertions?
-    self._data = xr.open_dataset(fName)
+    self._data = xr.open_dataset(fileName)
     # convert metadata back to XML files
     for key,val in self._data.attrs.items():
       self._meta[key] = pk.loads(val.encode('utf-8'))
@@ -1308,23 +1311,25 @@ class DataSet(DataObject):
     else:
       return len(self),None
 
-  def _getRealizationFromDataByIndex(self,index):
+  def _getRealizationFromDataByIndex(self,index, unpackXArray=False):
     """
       Obtains a realization from the data storage using the provided index.
       @ In, index, int, index to return
+      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray})
       @ Out, rlz, dict, realization as {var:value} where value is a DataArray with only coordinate dimensions
     """
     assert(self._data is not None)
     #assert(index < len(self._data[self.sampleTag]))
     rlz = self._data[{self.sampleTag:index}].drop(self.sampleTag).data_vars
-    rlz = self._convertFinalizedDataRealizationToDict(rlz)
+    rlz = self._convertFinalizedDataRealizationToDict(rlz, unpackXArray)
     return rlz
 
-  def _getRealizationFromDataByValue(self,match,tol=1e-15):
+  def _getRealizationFromDataByValue(self,match, tol=1e-15, unpackXArray=False):
     """
       Obtains a realization from the data storage using the provided index.
       @ In, match, dict, elements to match
       @ In, tol, float, optional, tolerance to which match should be made
+      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray})
       @ Out, r, int, index where match was found OR size of data if not found
       @ Out, rlz, dict, realization as {var:value} OR None if not found
     """
@@ -1354,7 +1359,7 @@ class DataSet(DataObject):
       idx = rlz[self.sampleTag].item(0)
     except IndexError:
       return len(self),None
-    return idx,self._getRealizationFromDataByIndex(idx)
+    return idx,self._getRealizationFromDataByIndex(idx,unpackXArray)
 
   def _getRequestedElements(self,options):
     """
@@ -1373,6 +1378,9 @@ class DataSet(DataObject):
         elif small == 'output':
           keep += self._outputs
           continue
+        elif small == 'metadata':
+          keep += self._metavars
+          continue
         else:
           keep.append(entry.split('|')[-1].strip())
     else:
@@ -1388,26 +1396,26 @@ class DataSet(DataObject):
     """
     return self._orderedVars.index(var)
 
-  def _identifyVariablesInCSV(self,fname):
+  def _identifyVariablesInCSV(self,fileName):
     """
-      Gets the list of available variables from the file "fname.csv".  A method is necessary because HistorySets
+      Gets the list of available variables from the file "fileName.csv".  A method is necessary because HistorySets
       don't store all the data in one csv.
-      @ In, fname, str, name of file without extension
+      @ In, fileName, str, name of file without extension
       @ Out, varList, list(str), list of variables
     """
-    with open(fname+'.csv','r') as f:
+    with open(fileName+'.csv','r') as f:
       provided = list(s.strip() for s in f.readline().split(','))
     return provided
 
-  def _loadCsvMeta(self,fname):
+  def _loadCsvMeta(self,fileName):
     """
       Attempts to load metadata from an associated XML file.
       If found, update stateful parameters.
       If not available, check the CSV itself for the available variables.
-      @ In, fname, str, filename (without extension) of the CSV/XML combination
+      @ In, fileName, str, filename (without extension) of the CSV/XML combination
       @ Out, dims, dict, dimensionality dictionary with {index:[vars]} structure
     """
-    meta = self._fromCSVXML(fname)
+    meta = self._fromCSVXML(fileName)
     # if we have meta, use it to load data, as it will be efficient to read from
     if len(meta) > 0:
       # TODO shouldn't we be respecting user wishes more carefully? TODO
@@ -1421,13 +1429,13 @@ class DataSet(DataObject):
       provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
     # otherwise, if we have no meta XML to load from, infer what we can from the CSV, which is only the available variables.
     else:
-      provided = set(self._identifyVariablesInCSV(fname))
+      provided = set(self._identifyVariablesInCSV(fileName))
       dims = {}
     # check provided match needed
     needed = set(self._orderedVars)
     missing = needed - provided
     if len(missing) > 0:
-      self.raiseAnError(IOError,'Not all variables requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fname,missing))
+      self.raiseAnError(IOError,'Not all variables requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fileName,missing))
     # otherwise, return happily and continue loading the CSV
     return dims
 
@@ -1507,23 +1515,23 @@ class DataSet(DataObject):
       except TypeError:
         pass
 
-  def _toCSV(self,fName,start=0,**kwargs):
+  def _toCSV(self,fileName,start=0,**kwargs):
     """
       Writes this data object to CSV file (except the general metadata, see _toCSVXML)
-      @ In, fName, str, path/name to write file
+      @ In, fileName, str, path/name to write file
       @ In, start, int, optional, first realization to start printing from (if > 0, implies append mode)
       @ In, kwargs, dict, optional, keywords for options
             Possibly includes:
                 'clusterLabel': name of variable to cluster printing by.  If included then triggers history-like printing.
       @ Out, None
     """
-    filenameLocal = fName # TODO path?
+    filenameLocal = fileName # TODO path?
     keep = self._getRequestedElements(kwargs)
     toDrop = list(var for var in self.getVars() if var not in keep)
     # if printing by cluster, divert now
     if 'clusterLabel' in kwargs:
       clusterLabel = kwargs.pop('clusterLabel')
-      self._toCSVCluster(fName,start,clusterLabel,**kwargs)
+      self._toCSVCluster(fileName,start,clusterLabel,**kwargs)
       return
     # set up data to write
     if start > 0:
@@ -1543,10 +1551,10 @@ class DataSet(DataObject):
     ordered += list(m for m in self._metavars if m in keep)
     self._usePandasWriteCSV(filenameLocal,data,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
 
-  def _toCSVCluster(self,fName,start,clusterLabel,**kwargs):
+  def _toCSVCluster(self,fileName,start,clusterLabel,**kwargs):
     """
       Writes this data object as a chain of CSVs, grouped by the cluster
-      @ In, fName, str, path/name to write file
+      @ In, fileName, str, path/name to write file
       @ In, start, int, optional, TODO UNUSED first realization to start printing from (if > 0, implies append mode)
       @ In, clusterLable, str, variable by which to cluster printing
       @ In, kwargs, dict, optional, keywords for options
@@ -1557,21 +1565,21 @@ class DataSet(DataObject):
     # get unique cluster labels
     clusterIDs = set(self._data[clusterLabel].values)
     # write main CSV pointing to other files
-    with open(fName+'.csv','w') as writeFile: # TODO append mode if printing each step
+    with open(fileName+'.csv','w') as writeFile: # TODO append mode if printing each step
       writeFile.writelines('{},filename\n'.format(clusterLabel))
       for ID in clusterIDs:
-        writeFile.writelines('{},{}_{}.csv\n'.format(ID,fName,ID))
-      self.raiseADebug('Wrote master cluster file to "{}.csv"'.format(fName))
+        writeFile.writelines('{},{}_{}.csv\n'.format(ID,fileName,ID))
+      self.raiseADebug('Wrote master cluster file to "{}.csv"'.format(fileName))
     # write sub files as point sets
     ordered = list(var for var in itertools.chain(self._inputs,self._outputs,self._metavars) if (var != clusterLabel and var in keep))
     for ID in clusterIDs:
       data = self._data.where(self._data[clusterLabel] == ID, drop = True).drop(clusterLabel)
-      self._usePandasWriteCSV('{}_{}'.format(fName,ID), data, ordered, keepSampleTag=self.sampleTag in keep, mode='w') # TODO append mode
+      self._usePandasWriteCSV('{}_{}'.format(fileName,ID), data, ordered, keepSampleTag=self.sampleTag in keep, mode='w') # TODO append mode
 
-  def _toCSVXML(self,fName,**kwargs):
+  def _toCSVXML(self,fileName,**kwargs):
     """
       Writes the general metadata of this data object to XML file
-      @ In, fName, str, path/name to write file
+      @ In, fileName, str, path/name to write file
       @ In, kwargs, dict, additional options
       @ Out, None
     """
@@ -1604,8 +1612,8 @@ class DataSet(DataObject):
     for r in toRemove:
       genNode.remove(r)
 
-    self.raiseADebug('Printing metadata XML: "{}"'.format(fName+'.xml'))
-    with open(fName+'.xml','w') as ofile:
+    self.raiseADebug('Printing metadata XML: "{}"'.format(fileName+'.xml'))
+    with open(fileName+'.xml','w') as ofile:
       #header
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
       for name,target in meta.items():
@@ -1613,10 +1621,10 @@ class DataSet(DataObject):
         ofile.writelines('  '+xml+'\n')
       ofile.writelines('</DataObjectMetadata>\n')
 
-  def _toNetCDF(self,fName,**kwargs):
+  def _toNetCDF(self,fileName,**kwargs):
     """
       Writes this data object to file in netCDF4.
-      @ In, fName, str, path/name to write file
+      @ In, fileName, str, path/name to write file
       @ In, kwargs, dict, optional, keywords to pass to netCDF4 writing
                                     One good option is format='NETCDF4' to assure netCDF4 is used
                                     See http://xarray.pydata.org/en/stable/io.html#netcdf for options
@@ -1625,15 +1633,15 @@ class DataSet(DataObject):
     # TODO set up to use dask for on-disk operations -> or is that a different data object?
     # convert metadata into writeable
     self._data.attrs = dict((key,pk.dumps(val)) for key,val in self._meta.items())
-    self._data.to_netcdf(fName,**kwargs)
+    self._data.to_netcdf(fileName,**kwargs)
 
-  def _usePandasWriteCSV(self,fName,data,ordered,keepSampleTag=False,keepIndex=False,mode='w'):
+  def _usePandasWriteCSV(self,fileName,data,ordered,keepSampleTag=False,keepIndex=False,mode='w'):
     """
       Uses Pandas to write a CSV.
-      @ In, fName, str, path/name to write file
+      @ In, fileName, str, path/name to write file
       @ In, data, xr.Dataset, data to write (with only "keep" vars included, plus self.sampleTag)
       @ In, ordered, list(str), ordered list of headers
-      @ In, keepSampleTag, bool, optional, if True then keep the samplerTag in the CSV
+      @ In, keepSampleTag, bool, optional, if True then keep the sampleTag in the CSV
       @ In, keepIndex, bool, optional, if True then keep indices in the CSV even if not multiindex
       @ In, mode, str, optional, mode to write CSV in (write, append as 'w','a')
       @ Out, None
@@ -1650,22 +1658,37 @@ class DataSet(DataObject):
       header = True
     # write, depending on whether to keep sampleTag in index or not
     if keepSampleTag:
-      data.to_csv(fName+'.csv',mode=mode,header=header)
+      data.to_csv(fileName+'.csv',mode=mode,header=header)
     else:
       # if other multiindices included, don't omit them #for ND DataSets only
       if isinstance(data.index,pd.MultiIndex):
         # if we have just the self.sampleTag index (we can not drop it otherwise pandas fail). We use index=False (a.a.)
-        indexx = False if len(data.index.names) == 1 else True
-        if indexx:
-          data.index = data.index.droplevel(self.sampleTag)
-        data.to_csv(fName+'.csv',mode=mode,header=header, index=indexx)
+        localIndex = True
+        if len(data.index.names) == 1:
+          localIndex = self.sampleTag not in data.index.names
+        else:
+          if self.sampleTag in data.index.names:
+            data.index = data.index.droplevel(self.sampleTag)
+        if not localIndex:
+          data.to_csv(fileName+'.csv',mode=mode,header=header, index=localIndex)
+        else:
+          ##FIXME: This is extremely bad and not elegant
+          ##FIXME:  It is just needed to go on with the "regolding" of the tests
+          dataString = data.to_string()
+          # find headers
+          splitted = [",".join(elm.split())+"\n" for elm in data.to_string().split("\n")]
+          header, stringData = splitted[0:2], splitted[2:]
+          header.reverse()
+          toPrint = [",".join(header).replace("\n","")+"\n"]+stringData
+          with open(fileName+'.csv', mode='w+') as fileObject:
+            fileObject.writelines(toPrint)
       # if keepIndex, then print as is
       elif keepIndex:
-        data.to_csv(fName+'.csv',mode=mode,header=header)
+        data.to_csv(fileName+'.csv',mode=mode,header=header)
       # if only index was sampleTag and we don't want it, index = False takes care of that
       else:
-        data.to_csv(fName+'.csv',index=False,mode=mode,header=header)
-    #raw_input('Just wrote to CSV "{}.csv", press enter to continue ...'.format(fName))
+        data.to_csv(fileName+'.csv',index=False,mode=mode,header=header)
+    #raw_input('Just wrote to CSV "{}.csv", press enter to continue ...'.format(fileName))
 
 
   ### HIERARCHICAL STUFF ###

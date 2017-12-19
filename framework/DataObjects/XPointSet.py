@@ -93,11 +93,40 @@ class PointSet(DataSet):
       self._selectOutput = ('outputRow',-1)
 
   ### INTERNAL USE FUNCTIONS ###
-  def _convertFinalizedDataRealizationToDict(self,rlz):
+  def _collapseNDtoDataArray(self,data,var,labels=None):
+    """
+      Converts a row of numpy samples into a single DataArray suitable for a xr.Dataset.
+      @ In, data, np.ndarray, array of either float or xr.DataArray; array must be single-dimension
+      @ In, var, str, name of the variable being acted on
+      @ In, labels, list, list of labels to use for collapsed array under self.sampleTag title
+      @ Out, DataArray, xr.DataArray, single dataarray object
+    """
+    # TODO this is slightly different but quite similar to the base class.  Should it be separate?
+    assert(isinstance(data,np.ndarray))
+    assert(len(data.shape) == 1)
+    if labels is None:
+      labels = range(len(data))
+    else:
+      assert(len(labels) == len(data))
+    # ALL should be floats or otherwise 1d
+    #assert(isinstance(data[0],(float,str,unicode,int,type(None)))) # --> in LimitSurfaceSearch, first can be "None", floats come later
+    try:
+      assert(isinstance(data[0],(float,str,unicode,int,))) # --> in LimitSurfaceSearch, first can be "None", floats come later
+    except AssertionError as e:
+      raise e
+    array = xr.DataArray(data,
+                         dims=[self.sampleTag],
+                         coords={self.sampleTag:labels},
+                         name=var)
+    array.rename(var)
+    return array
+
+  def _convertFinalizedDataRealizationToDict(self,rlz, unpackXArray=False):
     """
       After collapsing into xr.Dataset, all entries are stored as xr.DataArrays.
       This converts them into a dictionary like the realization sent in.
       @ In, rlz, dict(varname:xr.DataArray), "row" from self._data
+      @ In, unpackXArray, bool, optional, For now it is just a by-pass here
       @ Out, new, dict(varname:value), where "value" could be singular (float,str) or xr.DataArray
     """
     new = {}
