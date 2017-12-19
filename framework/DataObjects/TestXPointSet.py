@@ -268,7 +268,7 @@ data.messageHandler = mh
 data._readMoreXML(xml)
 checkArray('DataSet __init__ inp',data._inputs,['a','b'],str)
 checkArray('DataSet __init__ out',data._outputs,['x','z'],str)
-checkArray('DataSet __init__ all',data._allvars,['a','b','x','z'],str)
+checkArray('DataSet __init__ all',data._orderedVars,['a','b','x','z'],str)
 checkNone('DataSet __init__ _data',data._data)
 checkNone('DataSet __init__ _collector',data._collector)
 

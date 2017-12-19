@@ -339,41 +339,36 @@ class cNDarray(object):
     if type(entry) not in [np.ndarray]:
       raise IOError('Tried to add new data to cNDarray.  Can only accept np.ndarray, but got '+type(entry).__name__)
     # for now require full correct shape, later handle the single entry case
-    if len(entry.shape)!=2:
+    if len(entry.shape)!=1:
       # TODO single entry case
-      raise IOError('Tried to add new data to cNDarray.  Need shape (#,{}) but got "{}"!'.format(self.width,entry.shape))
+      raise IOError('Tried to add new data to cNDarray.  Need shape ({},) but got "{}"!'.format(self.width,entry.shape))
     # must have matching width (fix for single entry case)
-    if entry.shape[1] != self.width:
-      raise IOError('Tried to add new data to cNDarray.  Need {} entities per entry, but got '.format(self.width)+str(entry.shape[1]))
+    if entry.shape[0] != self.width:
+      raise IOError('Tried to add new data to cNDarray.  Need {} entries in array, but got '.format(self.width)+str(entry.shape[0]))
     # check if there's enough space in cache to append the new entries
-    if self.size + entry.shape[0] > self.capacity:
+    if self.size + 1 > self.capacity:
       # since there's not enough space, quadruple available space # TODO change growth parameter to be variable?
-      self.capacity += max(self.capacity*4,entry.shape[0])
+      self.capacity += self.capacity*3
       newdata = np.zeros((self.capacity,self.width),dtype=self.values.dtype)
       newdata[:self.size] = self.values[:self.size]
       self.values = newdata
-    self.values[self.size:self.size+entry.shape[0]][:] = entry[:]
-    self.size += entry.shape[0]
+    self.values[self.size] = entry[:]
+    self.size += 1
 
   def addEntity(self,vals,firstEver=False):
     """
       Adds a column to the dataset.
-      @ In, vals, list of np.array([ [#],[#],[#] ], dtype = float or xr.DataArray), fill values (each entry must be shape==(self.size,num new entites))
+      @ In, vals, list, as list(#,#,#) where # is either single-valued or numpy array
       @ Out, None
     """
-    # example 1: for 1 new entity with sample values [1,2,3], "vals" should be:
-    # [ np.array([[1],[2],[3]]) ] (note expecially the outermost list)
-    # example 2: for 2 new entities with sample values [1,2,3] and [4,5,6], "vals" should be:
-    # [ np.array([[1],[2],[3]]), np.array([[4],[5],[6]]) ]
-    for i,v in enumerate(vals):
-      # FIXME slow assertion check
-      if len(v) != self.size:
-        raise IOError('Wrong number ({}) of initial values passed to add entity!  Need {}.'.format(len(v),self.size))
-      # FIXME slow reshaping
-      new = np.ndarray((self.capacity,1),dtype=object)
-      new[:self.size] = v[:]
-      vals[i] = new
-    self.values = np.hstack([self.values] + vals)
+    # create a new column with up to the cached capacity
+    new = np.ndarray(self.capacity,dtype=object)
+    # fill up to current filled size with the values
+    new[:self.size] = vals
+    # reshape so it can be stacked onto the existing data
+    new = new.reshape(self.capacity,1)
+    # "hstack" stacks along the second dimension, or columns for us
+    self.values = np.hstack((self.values,new))
     self.width += 1
 
   def getData(self):

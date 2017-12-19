@@ -278,7 +278,7 @@ data._readMoreXML(xml)
 # NOTE histories are currently disabled pending future work (c,y are history vars)
 checkArray('DataSet __init__ inp',data._inputs,['a','b','c'],str)
 checkArray('DataSet __init__ out',data._outputs,['x','y','z'],str)
-checkArray('DataSet __init__ all',data._allvars,['a','b','c','x','y','z'],str)
+checkArray('DataSet __init__ all',data.vars,['a','b','c','x','y','z'],str)
 checkNone('DataSet __init__ _data',data._data)
 checkNone('DataSet __init__ _collector',data._collector)
 
@@ -619,6 +619,7 @@ dataCSV = XDataSet.DataSet()
 dataCSV.messageHandler = mh
 dataCSV._readMoreXML(xml)
 dataCSV.load(csvname,style='CSV')
+
 for var in data.getVars():
   if var == 'z':
     # not included in XML input specs, so should be left out
@@ -766,7 +767,6 @@ data.remove(variable='b')
 checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
 checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
 # collapse and re-check
-print('PRE:',data._data)
 data.asDataset()
 checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
 checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
@@ -824,7 +824,7 @@ rlz1_1 = {'trajID': np.array([    2]),
                'y': np.array([200.1]),
           'varsUpdate': np.array([1])}
 data.addRealization(rlz1_1)
-tid = data._collector[-1,data._allvars.index('trajID')]
+tid = data._collector[-1,data._orderedVars.index('trajID')]
 checkRlz('Cluster extend traj 2[1]',data.realization(matchDict={'trajID':2,'varsUpdate':1})[1],rlz1_1,skip='varsUpdate')
 # print it
 fname = 'XDataUnitTestClusterLabels'
@@ -916,7 +916,7 @@ rlz2= {'fl' :np.array([   10.0]),
        'dbo':np.array([ False,  True, False]),
          't':np.array(['one','two','manystringchars'])}
 data.addRealization(rlz)
-#print('DEBUGG first',data.asDataset())
+data.asDataset()
 # check types
 for var in rlz.keys():
   correct = rlz[var].dtype
@@ -925,7 +925,6 @@ for var in rlz.keys():
   checkSame('dtype checking "{}"'.format(var),data.asDataset()[var].dtype,correct)
 
 data.addRealization(rlz2)
-#print('DEBUGG second',data.asDataset())
 
 print(results)
 
