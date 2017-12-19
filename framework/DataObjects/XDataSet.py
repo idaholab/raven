@@ -827,7 +827,7 @@ class DataSet(DataObject):
           v = v.dropna(dim)
           if unpackXarray:
             new[dim] = v.coords[dim].values
-        new[k] = v
+        new[k] = v if not unpackXarray else v.values
     return new
 
   def _convertToDict(self):
