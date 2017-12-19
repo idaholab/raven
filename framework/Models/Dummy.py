@@ -188,7 +188,8 @@ class Dummy(Model):
     # TODO consistency with old HDF5; fix this when HDF5 api is in place
     # TODO expensive deepcopy prevents modification when sent to multiple outputs
     result = finishedJob.getEvaluation()
-    self._replaceVariablesNamesWithAliasSystem(result)
+    # alias system
+    self._replaceVariablesNamesWithAliasSystem(result,'inout',True)
     if isinstance(result,Runners.Error):
       self.raiseAnError(Runners.Error,'No available output to collect!')
     output.addRealization(result)
