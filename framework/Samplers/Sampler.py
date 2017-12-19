@@ -326,9 +326,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       for var in self.distributions2variablesMapping[distName]:
         position = utils.first(var.values())
         positionList.append(position)
-      if sum(list(set(positionList))) > 1 and len(positionList) != len(list(set(positionList))):
+      if sum(set(positionList)) > 1 and len(positionList) != len(set(positionList)):
         dups = set(var for var in positionList if positionList.count(var) > 1)
-        self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple variables in Samplers: ', str(dups),
+        self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple variables in Samplers: "{}"'.format(', '.join(dups)),
                 ' associated to ND distribution ', distName, '. This is currently not allowed!')
       positionList = list(set(positionList))
       positionList.sort()

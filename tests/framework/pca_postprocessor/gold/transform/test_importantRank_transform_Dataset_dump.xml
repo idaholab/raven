@@ -1,9 +1,0 @@
-<DataObjectMetadata name="test_importantRank_Dataset">
-  <DataSet type="Static">
-    <general>
-      <outputs>transformation_z0_y1,transformation_z0_x1,transformation_x0_y1,transformation_x0_x1,transformation_y0_y1,transformation_y0_x1,inverseTransformation_y1_z0,inverseTransformation_y1_x0,inverseTransformation_y1_y0,inverseTransformation_x1_z0,inverseTransformation_x1_x0,inverseTransformation_x1_y0,manifestSensitivity_x_z0,manifestSensitivity_x_x0,manifestSensitivity_x_y0,manifestSensitivity_y_z0,manifestSensitivity_y_x0,manifestSensitivity_y_y0,manifestSensitivity_z_z0,manifestSensitivity_z_x0,manifestSensitivity_z_y0,pcaIndex_y1,pcaIndex_x1</outputs>
-      <sampleTag>RAVEN_sample_ID</sampleTag>
-    </general>
-  </DataSet>
-  
-</DataObjectMetadata>

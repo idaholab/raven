@@ -16,7 +16,6 @@
  [./transformationMatrix]
   type = 'RavenFramework'
   input = 'test_transformation.xml'
-  UnorderedXml = 'transform/test_importantRank_transform_Dataset_dump.xml'
   csv = 'transform/test_importantRank_transform_Dataset_dump.csv'
  [../]
  
@@ -24,7 +23,6 @@
   type = 'RavenFramework'
   input = 'test_time_dependent.xml'
   output = 'transform/test_importantRank_Dataset_dump.csv'
-  UnorderedXml = 'transform/test_importantRank_Dataset_dump.xml'
   csv = 'transform/test_importantRank_Dataset_dump_0.csv'
   rel_err = 1e-5
   zero_threshold = 1e-14
