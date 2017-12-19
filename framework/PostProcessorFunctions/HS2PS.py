@@ -122,6 +122,7 @@ class HS2PS(PostProcessorInterfaceBase):
       self.transformationSettings['timeAxis'] = inputDict['data'][self.pivotParameter][0]
       self.transformationSettings['dimID'] = outputDic['data'].keys()
 
+      print(outputDic)
       return outputDic
 
   def _inverse(self,inputDic):
