@@ -294,30 +294,6 @@
       <type>csv</type>
       <source>CreateInfinity_basicStatPP</source>
     </Print>
-    <Print name="InverseCorrelatedTest_basicStatPP_dump">
-      <type>csv</type>
-      <source>InverseCorrelatedTest_basicStatPP</source>
-    </Print>
-    <Print name="InputOutput_basicStatPP_dump">
-      <type>csv</type>
-      <source>InputOutput_basicStatPP</source>
-    </Print>
-    <Print name="NotCorrellatedTest_basicStatPP_dump">
-      <type>csv</type>
-      <source>NotCorrellatedTest_basicStatPP</source>
-    </Print>
-    <Print name="checkIfMatrixCanBeComputed_basicStatPP_dump">
-      <type>csv</type>
-      <source>checkIfMatrixCanBeComputed_basicStatPP</source>
-    </Print>
-    <Print name="autoCorrelationTest_basicStatPP_dump">
-      <type>csv</type>
-      <source>autoCorrelationTest_basicStatPP</source>
-    </Print>
-    <Print name="CreateInfinity_basicStatPP_dump">
-      <type>csv</type>
-      <source>CreateInfinity_basicStatPP</source>
-    </Print>
   </OutStreams>
 
   <DataObjects>
