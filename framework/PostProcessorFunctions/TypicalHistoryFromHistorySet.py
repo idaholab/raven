@@ -254,7 +254,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       outputDict['data'][var] = np.zeros(1, dtype=object)
       outputDict['data'][var][0] = inputDict[var][0]
     outputDict['dims']={}
-    for var in self.features:  
+    for var in self.features:
       outputDict['dims'][var]=[self.pivotParameter]
     return outputDict
 

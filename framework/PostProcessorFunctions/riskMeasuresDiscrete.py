@@ -335,7 +335,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     ## If for whatever reason passing an empty input back causes errors, then you may want to add some sort of dummy
     ## value.
     # outputDic['data']['input'] = {} # {'dummy' : np.asanyarray(0)}
-    
+
     return outputDic
 
   def runDynamic(self,inputDic,timeHistory):
