@@ -51,6 +51,10 @@
       <dataFilename type="PDF">2DgaussianCartesianPDF.txt</dataFilename>
       <workingDir>dists_vars</workingDir>
     </NDCartesianSpline>
+    <NDCartesianSpline name="ND_CartesianSpline_P2">
+        <dataFilename type="PDF">2DgaussianCartesianPDF.txt</dataFilename>
+        <workingDir>dists_vars</workingDir>
+    </NDCartesianSpline>
   </Distributions>
 
   <Samplers>
@@ -80,10 +84,10 @@
         <distribution dim="2">ND_CartesianSpline_P</distribution>
       </variable>
       <variable name="x1">
-        <distribution dim="1">ND_CartesianSpline_P</distribution>
+        <distribution dim="1">ND_CartesianSpline_P2</distribution>
       </variable>
       <variable name="y1,z1">
-        <distribution dim="2">ND_CartesianSpline_P</distribution>
+        <distribution dim="2">ND_CartesianSpline_P2</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
