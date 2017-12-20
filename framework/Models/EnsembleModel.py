@@ -432,69 +432,34 @@ class EnsembleModel(Dummy):
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
-    out = evaluation[1]
-    exportDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
-    exportDictTargetEvaluation = {}
-    outcomes, targetEvaluations, optionalOutputs = out
+    outcomes, targetEvaluations, optionalOutputs = evaluation[1]
     try:
       jobIndex = self.tempOutputs['uncollectedJobIds'].index(finishedJob.identifier)
       self.tempOutputs['uncollectedJobIds'].pop(jobIndex)
     except ValueError:
       jobIndex = None
+
+    joinedResponse = {}
+    joinedGeneralMetadata = {}
+    targetEvaluationNames = {}
     for modelIn in self.modelsDictionary.keys():
+      targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation'].name] = modelIn
       # collect data
-      dataSet = targetEvaluations[modelIn].asDataset()
-
-      #inputsValues               = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
-      #unstructuredInputsValues   = targetEvaluations[modelIn].getParametersValues('unstructuredInputs', nodeId = 'RecontructEnding')
-      #outputsValues              = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
-      #metadataValues             = targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
-      #inputsValues  = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]
-      #if len(unstructuredInputsValues.keys()) > 0:
-        #if targetEvaluations[modelIn].type != 'HistorySet':
-          #castedUnstructuredInputsValues = {}
-          #for key in unstructuredInputsValues.keys():
-            #castedUnstructuredInputsValues[key] = unstructuredInputsValues[key][-1]
-        #else:
-          #castedUnstructuredInputsValues  =  unstructuredInputsValues.values()[-1]
-        #inputsValues.update(castedUnstructuredInputsValues)
-      #outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1]
-      #exportDictTargetEvaluation[self.modelsDictionary[modelIn]['TargetEvaluation'].name] = {'inputSpaceParams':inputsValues,'outputSpaceParams':outputsValues,'metadata':metadataValues}
-
-      #returnDict[modelIn]['general_metadata']
-
-      #for typeInfo,values in outcomes[modelIn].items():
-      #  for key in values.keys():
-      #    exportDict[typeInfo][key] = np.asarray(values[key])
-
+      #dataSet = targetEvaluations[modelIn].asDataset()
       # collect optional output if present and not already collected
       if jobIndex is not None:
         for optionalModelOutput in self.modelsDictionary[modelIn]['OutputObject']:
-          optionalModelOutput.addRealization(returnDict[modelIn]['response'])
-          #self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedJob,optionalModelOutput,options={'exportDict':copy.copy(optionalOutputs[modelIn])})
+          optionalModelOutput.addRealization(optionalOutputs[modelIn][modelIn])
+      joinedResponse.update(outcomes[modelIn]['response'])
+      joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
     # collect the output of the STEP
-    #optionalOutputNames = []
     optionalOutputNames = [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject'] for modelIn in self.modelsDictionary[modelIn]]
-    #for modelIn in self.modelsDictionary.keys():
-    #  for optionalOutput in self.modelsDictionary[modelIn]['OutputObject']:
-    #    optionalOutputNames.append(optionalOutput.name)
     if output.name not in optionalOutputNames:
-      output.addRealization(returnDict[modelIn]['response'])
-    #if output.type == 'HDF5':
-    #  if output.name not in optionalOutputNames:
-    #    output.addRealization    ({'group':self.name+str(finishedJob.identifier)},exportDict,False)
-    #else:
-    #  if output.name not in optionalOutputNames:
-    #    if output.name in exportDictTargetEvaluation.keys():
-    #      exportDict = exportDictTargetEvaluation[output.name]
-    #    for key in exportDict['inputSpaceParams' ] :
-    #      if key in output.getParaKeys('inputs'):
-    #        output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
-    #    for key in exportDict['outputSpaceParams'] :
-    #      if key in output.getParaKeys('outputs'):
-    #        output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
-    #    for key in exportDict['metadata']:
-    #      output.updateMetadata(key,exportDict['metadata'][key][-1])
+      if output.name not in targetEvaluationNames.keys():
+        output.addRealization(joinedResponse)
+      else:
+        output.addRealization(outcomes[targetEvaluationNames[output.name]]['response'])
+        #output.addMeta()
 
   def getAdditionalInputEdits(self,inputInfo):
     """
