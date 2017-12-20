@@ -121,14 +121,17 @@
     <Print name="thermalConductivityComputationContainerDump">
       <type>csv</type>
       <source>thermalConductivityComputationContainer</source>
+      <what>input,output</what>
     </Print>
     <Print name="heatTransferContainerDump">
       <type>csv</type>
       <source>heatTransferContainer</source>
+      <what>input,output</what>
     </Print>
     <Print name="metaModelOutputTestDump">
       <type>csv</type>
       <source>metaModelOutputTest</source>
+      <what>input,output</what>
     </Print>
     <Print name="optimizationHistoryDump">
       <type>csv</type>
@@ -138,6 +141,7 @@
     <Print name="mdlDataDump">
       <type>csv</type>
       <source>optOutput</source>
+      <what>input,output</what>
     </Print>
     <Plot name="optPath" overwrite="false" verbosity="debug">
       <actions>
