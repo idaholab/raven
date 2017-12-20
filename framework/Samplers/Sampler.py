@@ -327,7 +327,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         position = utils.first(var.values())
         positionList.append(position)
       if sum(set(positionList)) > 1 and len(positionList) != len(set(positionList)):
-        dups = set(var for var in positionList if positionList.count(var) > 1)
+        dups = set(str(var) for var in positionList if positionList.count(var) > 1)
         self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple variables in Samplers: "{}"'.format(', '.join(dups)),
                 ' associated to ND distribution ', distName, '. This is currently not allowed!')
       positionList = list(set(positionList))
@@ -608,7 +608,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # we consider that CDF of the constant variables is equal to 1 (same as its Pb Weight)
       self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(),1.0))
       pbKey = ['ProbabilityWeight-'+key for key in self.constants.keys()]
-      self.addMetaKeys(pbKey)
+      self.addMetaKeys(*pbKey)
       self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
 
   def amIreadyToProvideAnInput(self): #inLastOutput=None):
