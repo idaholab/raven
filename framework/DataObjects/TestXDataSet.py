@@ -920,7 +920,7 @@ data.asDataset()
 # check types
 for var in rlz.keys():
   correct = rlz[var].dtype
-  if correct.type in [np.unicode_,np.string_]:
+  if correct.type in [np.unicode_,np.string_,basestring]:
     correct = object
   checkSame('dtype checking "{}"'.format(var),data.asDataset()[var].dtype,correct)
 

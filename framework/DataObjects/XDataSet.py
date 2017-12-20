@@ -977,21 +977,25 @@ class DataSet(DataObject):
                 self._collector[r][v] = self.constructNDSample(values,dims,coords,name=str(r))
               # then collapse these entries into a single datarray
               arrays[var] = self._collapseNDtoDataArray(self._collector[:,v],var,dtype=dtype)
+        # if it's a dataarray, then that's old-style histories, no-can do right now
+        elif isinstance(self._collector[0,v],xr.DataArray):
+          self.raiseAnError(NotImplementedError,'History entries should be numpy arrays, not data arrays!')
         # if not ND, then it's a simple data array construction
         else:
           try:
-            varData = np.array(data[:,v],dtype=dtype)
+            varData = np.array(self._collector[:,v],dtype=dtype)
           except ValueError as e:
             # infinte/missing data can't be cast to anything but floats or objects, as far as I can tell
-            if dtype != float and pd.isnull(data[:,v]).sum() != 0:#np.nan in data[:,v]:
+            if dtype != float and pd.isnull(self._collector[:,v]).sum() != 0:
               self.raiseAWarning('NaN detected, but no safe casting NaN to "{}" so switching to "object" type. '.format(dtype) \
                   + ' This may cause problems with other entities in RAVEN.')
-              varData = data[:,v][:]
+              varData = self._collector[:,v][:]
+              dtype=object
             # otherwise, let error be raised.
             else:
               raise e
           # create single dataarrays
-          arrays[var] = self._collapseNDtoDataArray(varData,var)
+          arrays[var] = self._collapseNDtoDataArray(varData,var,dtype=dtype)
           # re-index samples
           arrays[var][self.sampleTag] += firstSample
       # collect all data into dataset, and update self._data
@@ -1064,19 +1068,21 @@ class DataSet(DataObject):
         data.set_index(self.sampleTag,inplace=True)
         ndat = np.zeros(len(samples),dtype=object)
         for s,sample in enumerate(samples):
+          # set dtype on first pass
+          if s == 0:
+            dtype = self._getCompatibleType(sample)
           places = data.index.get_loc(sample)
-          vals = data[places].dropna().set_index(dims[var])#.set_index(dims[var]).dropna()
+          vals = data[places].dropna().set_index(dims[var])
           #vals.drop('dim_1')
           # TODO this needs to be improved before ND will work; we need the individual sub-indices (time, space, etc)
           rlz = xr.DataArray(vals.values[:,0],dims=dims[var],coords=dict((var,vals.index.values) for var in dims[var]))
           ndat[s] = rlz
-          #rlzdat = xr.DataArray(vals,dims=['time'],coords=dict((var,vals[var].values[0]) for var in dims[var]))
-          #print rlzdat
-        arrays[var] = self._collapseNDtoDataArray(ndat,var,labels=samples)
+        arrays[var] = self._collapseNDtoDataArray(ndat,var,labels=samples,dtype=dtype)
       else:
         # scalar example
         data = df[[var,self.sampleTag]].groupby(self.sampleTag).first().values[:,0]
-        arrays[var] = self._collapseNDtoDataArray(data,var,labels=samples)
+        dtype = self._getCompatibleType(data.item(0))
+        arrays[var] = self._collapseNDtoDataArray(data,var,labels=samples,dtype=dtype)
     self._convertArrayListToDataset(arrays,action='replace')
 
   def _fromCSVXML(self,fileName):
@@ -1145,36 +1151,16 @@ class DataSet(DataObject):
     if len(missing) > 0:
       self.raiseAnError(KeyError,'Variables are missing from "source" that are required for data object "',
                                   self.name.strip(),'":',",".join(missing))
-    # make a collector from scratch -> start by collecting into ndarray
+    # set orderedVars to all vars, for now don't be fancy with alignedIndexes
+    self._orderedVars = self.vars + self.indexes
+    # make a collector from scratch
     rows = len(source.values()[0])
-    cols = len(self.getVars())
+    cols = len(self._orderedVars)
+    # can this for-loop be done in a comprehension?  The dtype seems to be a bit of an issue.
     data = np.zeros([rows,cols],dtype=object)
-    for i,var in enumerate(itertools.chain(self._inputs,self._outputs,self._metavars)):
-      # TODO consistency checking with dimensions requested by the user?  Or override them?
-      #  -> currently overriding them
-      varDims = dims.get(var,[])
-      # TODO: This wastefully copies the source data, but it preserves the object dtype
-      # Without this, a numpy.array of numpy.array will recast the xr.dataarray as simple numpy array
-      if len(varDims) != 0:
-        values = np.zeros(len(source[var]), dtype=object)
-      else:
-        values = source[var]
-      # format higher-than-one-dimensional variables into a list of xr.DataArray
-      for dim in varDims:
-        ## first, make sure we have all the dimensions for this variable
-        if dim not in source.keys():
-          self.raiseAnError(KeyError,'Variable "{}" depends on dimension "{}" but it was not provided to _fromDict in the "source"!'.format(var,dim))
-        ## construct ND arrays
-
-        for v,val in enumerate(source[var]):
-          ## coordinates come from each dimension, specific to the "vth" realization
-          coords = dict((dim,source[dim][v]) for dim in varDims)
-          ## swap-in-place the construction; this will likely error if there's inconsistencies
-          values[v] = self.constructNDSample(val,varDims,coords,name=var)
-        #else:
-        #  pass # TODO need to make sure entries are all single entries!
-      data[:,i] = values
-    # set up collector as cached nd array of values
+    for v,var in enumerate(self._orderedVars):
+      data[:,v] = source[var]
+    # set up collector as cached nd array of values -> TODO might be some wasteful copying here
     self._collector = cached_ndarray.cNDarray(values=data,dtype=object)
     # set datatypes for each variable
     rlz = self.realization(index=0)
@@ -1400,12 +1386,19 @@ class DataSet(DataObject):
       dtype = self.defaultDtype # set in subclasses if different
     return cached_ndarray.cNDarray(width=width,length=length,dtype=dtype)
 
-  def _readPandasCSV(self,fname):
+  def _readPandasCSV(self,fname,nullOK=None):
     """
       Reads in a CSV and does some simple checking.
-      @ In fname, str, name of file to read in (WITH the .csv extension)
+      @ In, fname, str, name of file to read in (WITH the .csv extension)
+      @ In, nullOK, bool, optional, if provided then determines whether to error on nulls or not
       @ Out, df, pd.DataFrame, contents of file
     """
+    # if nullOK not provided, infer from type: points and histories can't have them
+    if self.type in ['PointSet','HistorySet']:
+      nullOK = False
+    # datasets can have them because we don't have a 2d+ CSV storage strategy yet
+    else:
+      nullOK = True
     # first try reading the file
     try:
       df = pd.read_csv(fname)
@@ -1416,11 +1409,10 @@ class DataSet(DataObject):
     else:
       self.raiseADebug('Reading data from "{}.csv"'.format(fname))
     # check for NaN contents -> this isn't allowed in RAVEN currently, although we might need to change this for ND
-    if pd.isnull(df).values.sum() != 0:
+    if (not nullOK) and (pd.isnull(df).values.sum() != 0):
       bad = pd.isnull(df).any(1).nonzero()[0][0]
-      self.raiseAnError(IOError,'Invalid data in input file: row "{}" in "{}"'.format(bad,fname))
+      self.raiseAnError(IOError,'Invalid data in input file: row "{}" in "{}"'.format(bad+1,fname))
     return df
-
 
   def _resetScaling(self):
     """
@@ -1449,10 +1441,10 @@ class DataSet(DataObject):
       self.types = [None]*len(self.getVars())
       for v,name in enumerate(self.getVars()):
         val = rlz[name]
-        if isinstance(val,np.ndarray):
-          self.types[v] = self._getCompatibleType(val.item(0))
-        else:
-          self.types[v] = self._getCompatibleType(val)
+        #if isinstance(val,np.ndarray):
+        #  self.types[v] = self._getCompatibleType(val.item(0))
+        #else:
+        self.types[v] = self._getCompatibleType(val)
 
   def _setScalingFactors(self,var=None):
     """

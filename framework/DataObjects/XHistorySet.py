@@ -95,8 +95,6 @@ class HistorySet(DataSet):
     self._pivotParams = {self._tempPivotParam:self._outputs[:]}
 
   ### INTERNAL USE FUNCTIONS ###
-
-
   def _fromCSV(self,fileName,**kwargs):
     """
       Loads a dataset from custom RAVEN history csv.
@@ -139,7 +137,6 @@ class HistorySet(DataSet):
                                   'correct <pivotParameter> has been specified in the dataObject or make sure the <pivotParameter> is included in the .csv files')
       for out in self._outputs+self.indexes:
         data[out][i] = subDat[out].values
-
     # construct final data object
     self.load(data,style='dict',dims=self.getDimensions())
 
