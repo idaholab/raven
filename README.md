@@ -1,9 +1,7 @@
 # Raven
 Risk Analysis Virtual Environment
 
-RAVEN (Risk Analysis Virtual Environment) is one of the many INL-developed software tools researchers can use to identify and increase the safety margin in nuclear reactor systems.
-
-As a generic software framework, RAVEN is designed to perform parametric and probabilistic analysis based on the response of complex system codes. RAVEN is capable of investigating the system response as well as the input space using Monte Carlo, Grid, or Latin Hyper Cube sampling schemes, but its strength is focused toward system feature discovery, such as limit surfaces, separating regions of the input space leading to system failure, using dynamic supervised learning techniques. RAVEN includes the following major capabilities:
+RAVEN is designed to perform parametric and probabilistic analysis based on the response of complex system codes. RAVEN is capable of investigating the system response as well as the input space using Monte Carlo, Grid, or Latin Hyper Cube sampling schemes, but its strength is focused toward system feature discovery, such as limit surfaces, separating regions of the input space leading to system failure, using dynamic supervised learning techniques. RAVEN includes the following major capabilities:
 
 - Sampling of codes for uncertainty quantification and reliability analyses
 - Generation and use of reduced-order models (also known as surrogate)

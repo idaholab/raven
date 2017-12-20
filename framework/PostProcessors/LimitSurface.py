@@ -347,6 +347,14 @@ class LimitSurface(PostProcessor):
     """
     paramInput = LimitSurface.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     initDict = {}
     for child in paramInput.subparts:
       initDict[child.getName()] = child.value

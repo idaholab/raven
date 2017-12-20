@@ -114,7 +114,8 @@ class RAVENparser():
           else:
             self.slaveInputFiles.append(os.path.expanduser(moduleToLoad))
         else:
-          raise IOError(self.printTag+' ERROR: ExternalModel "'+extModel.attrib['name']+'" does not have any attribute named "ModuleToLoad"!!')
+          if 'subType' not in extModel.attrib or len(extModel.attrib['subType']) == 0:
+            raise IOError(self.printTag+' ERROR: ExternalModel "'+extModel.attrib['name']+'" does not have any attribute named "ModuleToLoad" or "subType" with an available plugin name!')
 
     externalFunctions = self.tree.findall('.//Functions/External')
     if len(externalFunctions) > 0:

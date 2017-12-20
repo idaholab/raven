@@ -35,7 +35,7 @@ from functools import reduce
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
 from .Sampler import Sampler
-from utils import utils,randomUtils
+from utils import utils,randomUtils,InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -44,6 +44,39 @@ class Stratified(Grid):
     Stratified sampler, also known as Latin Hypercube Sampling (LHS). Currently no
     special filling methods are implemented
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Stratified, cls).getInputSpecification()
+
+    samplerInitInput = InputData.parameterInputFactory("samplerInit")
+    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputData.IntegerType))
+    samplerInitInput.addSub(InputData.parameterInputFactory("distInit", contentType=InputData.IntegerType))
+
+    inputSpecification.addSub(samplerInitInput)
+
+    globalGridInput = InputData.parameterInputFactory("globalGrid", contentType=InputData.StringType)
+
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
+    gridInput.addParam("name", InputData.StringType)
+    gridInput.addParam("type", InputData.StringType)
+    gridInput.addParam("construction", InputData.StringType)
+    gridInput.addParam("steps", InputData.IntegerType)
+
+    globalGridInput.addSub(gridInput)
+
+    inputSpecification.addSub(globalGridInput)
+
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -56,14 +89,16 @@ class Stratified(Grid):
     self.printTag = 'SAMPLER Stratified'
     self.globalGrid          = {}    # Dictionary for the globalGrid. These grids are used only for Stratified for ND distributions.
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    #TODO Remove using xmlNode
     Sampler.readSamplerInit(self,xmlNode)
-    Grid.localInputAndChecks(self,xmlNode)
+    Grid.localInputAndChecks(self,xmlNode, paramInput)
     pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
     if len(set(pointByVar))!=1:
       self.raiseAnError(IOError,'the latin Hyper Cube requires the same number of point in each dimension')

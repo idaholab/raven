@@ -54,11 +54,32 @@ class CrossValidation(PostProcessor):
     """
     inputSpecification = super(CrossValidation, cls).getInputSpecification()
 
-    ## TODO: fill this in with the appropriate tags
-    #MetricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
-    #MetricInput.addParam("class", InputData.StringType)
-    #MetricInput.addParam("type", InputData.StringType)
-    #inputSpecification.addSub(MetricInput)
+    metricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
+    metricInput.addParam("class", InputData.StringType, True)
+    metricInput.addParam("type", InputData.StringType, True)
+    inputSpecification.addSub(metricInput)
+
+    sciKitLearnInput = InputData.parameterInputFactory("SciKitLearn")
+
+    sklTypeInput = InputData.parameterInputFactory("SKLtype", contentType=InputData.StringType)
+
+    sciKitLearnInput.addSub(sklTypeInput)
+
+    for name, inputType in [("n",InputData.IntegerType),
+                            ("p",InputData.IntegerType),
+                            ("n_splits",InputData.IntegerType),
+                            ("shuffle",InputData.StringType),
+                            ("random_state",InputData.StringType),
+                            ("y",InputData.StringType),
+                            ("labels",InputData.StringType),
+                            ("n_iter",InputData.IntegerType),
+                            ("test_size",InputData.StringType),
+                            ("train_size",InputData.StringType),
+                            ("scores",InputData.StringListType)]:
+      dataType = InputData.parameterInputFactory(name, contentType=inputType)
+      sciKitLearnInput.addSub(dataType)
+
+    inputSpecification.addSub(sciKitLearnInput)
 
     return inputSpecification
 
@@ -108,46 +129,54 @@ class CrossValidation(PostProcessor):
         the available options specific to this Sampler
       @ Out, None
     """
-    #paramInput = CrossValidation.getInputSpecification()()
-    #paramInput.parseNode(xmlNode)
+    paramInput = self.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
 
     self.initializationOptionDict = {}
     scoreList = ['maximum', 'average', 'median']
-    cvNode = xmlNode.find('SciKitLearn')
-    for child in cvNode:
-      if child.tag == 'scores':
-        for elem in child.text.split(','):
+    cvNode = paramInput.findFirst('SciKitLearn')
+    for child in cvNode.subparts:
+      if child.getName() == 'scores':
+        for elem in child.value:
           score = elem.strip().lower()
           if score in scoreList:
             self.cvScores.append(score)
           else:
             self.raiseAnError(IOError, "Unexpected input '", score, "' for XML node 'scores'! Valid inputs include: ", ",".join(scoreList))
         break
-    for child in xmlNode:
-      if child.tag == 'SciKitLearn':
-        self.initializationOptionDict[child.tag] = self._localInputAndCheck(child)
-        self.initializationOptionDict[child.tag].pop("scores",'False')
-      elif child.tag == 'Metric':
-        if 'type' not in child.attrib.keys() or 'class' not in child.attrib.keys():
+    for child in paramInput.subparts:
+      if child.getName() == 'SciKitLearn':
+        self.initializationOptionDict[child.getName()] = self._localInputAndCheckParam(child)
+        self.initializationOptionDict[child.getName()].pop("scores",'False')
+      elif child.getName() == 'Metric':
+        if 'type' not in child.parameterValues or 'class' not in child.parameterValues:
           self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
         else:
-          metricName = child.text.strip()
+          metricName = child.value.strip()
           self.metricsDict[metricName] = None
       else:
-        self.raiseAnError(IOError, "Unknown xml node ", child.tag, " is provided for metric system")
+        self.raiseAnError(IOError, "Unknown xml node ", child.getName(), " is provided for metric system")
 
-  def _localInputAndCheck(self, xmlNode):
+  def _localInputAndCheckParam(self, inputParam):
     """
       Function to read the portion of the xml input
-      @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against the available options specific to this Sampler
+      @ In, inputParam, ParameterInput, the xml element node that will be checked against the available options specific to this Sampler
       @ Out, initDict, dict, dictionary contains the information about the given xml node
     """
     initDict = {}
-    for child in xmlNode:
-      if child.attrib:
-        initDict[child.tag] = dict(child.attrib)
+    for child in inputParam.subparts:
+      if len(child.parameterValues) > 0:
+        initDict[child.getName()] = dict(child.parameterValues)
       else:
-        initDict[child.tag] = utils.tryParse(child.text)
+        initDict[child.getName()] = utils.tryParse(child.value)
     return initDict
 
   def inputToInternal(self, currentInp, full = False):

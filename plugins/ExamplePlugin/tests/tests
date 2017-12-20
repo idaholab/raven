@@ -1,0 +1,18 @@
+[Tests]
+ [./TestPluginExample]
+  type = 'RavenFramework'
+  input = 'test_example_plugin.xml'
+  csv = 'simpleTest/dumpSumOfExpOutput.csv'
+  max_time = 100
+  rel_err = 0.0001
+ [../]
+ [./TestPluginWithRavenRunningRaven]
+  type = 'RavenFramework'
+  input = 'test_raven_running_raven_plugin.xml'
+  csv = 'ravenRunningRavenPlugin/testPointSet_dump.csv'
+  max_time = 100
+  rel_err = 0.0001
+ [../]
+[]
+
+

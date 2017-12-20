@@ -101,6 +101,18 @@ def checkIntegral(name,dist,low,high,numpts=1e4,tol=1e-3):
   tot = sum(dist.pdf(x)*dx for x in xs)
   checkAnswer(name+' unity integration',tot,1,tol)
 
+def getDistribution(xmlElement):
+  """
+    Parses the xmlElement and returns the distribution
+  """
+  distributionInstance = Distributions.returnInstance(xmlElement.tag, mh)
+  distributionInstance.setMessageHandler(mh)
+  paramInput = distributionInstance.getInputSpecification()()
+  paramInput.parseNode(xmlElement)
+  distributionInstance._handleInput(paramInput)
+  distributionInstance.initializeDistribution()
+  return distributionInstance
+
 #Test module methods
 print(Distributions.knownTypes())
 #Test error
@@ -117,10 +129,7 @@ uniformElement.append(createElement("upperBound",text="3.0"))
 
 #ET.dump(uniformElement)
 
-uniform = Distributions.Uniform()
-uniform._readMoreXML(uniformElement)
-uniform.initializeDistribution()
-uniform.setMessageHandler(mh)
+uniform = getDistribution(uniformElement)
 
 #check pickled version as well
 pk.dump(uniform,open('testDistrDump.pk','wb'))
@@ -166,9 +175,7 @@ normalElement = ET.Element("Normal",{"name":"test"})
 normalElement.append(createElement("mean",text="%f" %mean))
 normalElement.append(createElement("sigma",text="%f" %sigma))
 
-normal = Distributions.Normal()
-normal._readMoreXML(normalElement)
-normal.initializeDistribution()
+normal = getDistribution(normalElement)
 
 #check pickled version as well
 pk.dump(normal,open('testDistrDump.pk','wb'))
@@ -213,9 +220,7 @@ truncNormalElement.append(createElement("sigma",text="2.0"))
 truncNormalElement.append(createElement("lowerBound",text="-1.0"))
 truncNormalElement.append(createElement("upperBound",text="3.0"))
 
-truncNormal = Distributions.Normal()
-truncNormal._readMoreXML(truncNormalElement)
-truncNormal.initializeDistribution()
+truncNormal = getDistribution(truncNormalElement)
 
 #check pickled version as well
 pk.dump(truncNormal,open('testDistrDump.pk','wb'))
@@ -244,17 +249,13 @@ lowtruncNormalElement = ET.Element("Normal",{"name":"test"})
 lowtruncNormalElement.append(createElement("mean",text="1.0"))
 lowtruncNormalElement.append(createElement("sigma",text="2.0"))
 lowtruncNormalElement.append(createElement("lowerBound",text="-1.0"))
-lowtruncNormal = Distributions.Normal()
-lowtruncNormal._readMoreXML(lowtruncNormalElement)
-lowtruncNormal.initializeDistribution()
+lowtruncNormal = getDistribution(lowtruncNormalElement)
 
 uptruncNormalElement = ET.Element("Normal",{"name":"test"})
 uptruncNormalElement.append(createElement("mean",text="1.0"))
 uptruncNormalElement.append(createElement("sigma",text="2.0"))
 uptruncNormalElement.append(createElement("upperBound",text="3.0"))
-uptruncNormal = Distributions.Normal()
-uptruncNormal._readMoreXML(uptruncNormalElement)
-uptruncNormal.initializeDistribution()
+uptruncNormal = getDistribution(uptruncNormalElement)
 
 
 #Test Gamma
@@ -264,9 +265,7 @@ gammaElement.append(createElement("low",text="0.0"))
 gammaElement.append(createElement("alpha",text="1.0"))
 gammaElement.append(createElement("beta",text="0.5"))
 
-gamma = Distributions.Gamma()
-gamma._readMoreXML(gammaElement)
-gamma.initializeDistribution()
+gamma = getDistribution(gammaElement)
 
 ## Should these be checked?
 initParams = gamma.getInitParams()
@@ -300,9 +299,7 @@ nobeta_gammaElement = ET.Element("Gamma",{"name":"test"})
 nobeta_gammaElement.append(createElement("alpha",text="1.0"))
 nobeta_gammaElement.append(createElement("low",text="0.0"))
 nobeta_gammaElement.append(createElement("upperBound",text="10.0"))
-nobeta_gamma = Distributions.Gamma()
-nobeta_gamma._readMoreXML(nobeta_gammaElement)
-nobeta_gamma.initializeDistribution()
+nobeta_gamma = getDistribution(nobeta_gammaElement)
 
 print(gamma.rvs(5),gamma.rvs())
 
@@ -312,9 +309,7 @@ gammaElement.append(createElement("low",text="10.0"))
 gammaElement.append(createElement("alpha",text="1.0"))
 gammaElement.append(createElement("beta",text="0.5"))
 
-gamma = Distributions.Gamma()
-gamma._readMoreXML(gammaElement)
-gamma.initializeDistribution()
+gamma = getDistribution(gammaElement)
 
 ## Should these be checked?
 initParams = gamma.getInitParams()
@@ -340,9 +335,7 @@ betaElement.append(createElement("high",text="1.0"))
 betaElement.append(createElement("alpha",text="5.0"))
 betaElement.append(createElement("beta",text="2.0"))
 
-beta = Distributions.Beta()
-beta._readMoreXML(betaElement)
-beta.initializeDistribution()
+beta = getDistribution(betaElement)
 
 #check pickled version as well
 pk.dump(beta,open('testDistrDump.pk','wb'))
@@ -394,9 +387,7 @@ betaElement.append(createElement("high",text="4.0"))
 betaElement.append(createElement("alpha",text="5.0"))
 betaElement.append(createElement("beta",text="1.0"))
 
-beta = Distributions.Beta()
-beta._readMoreXML(betaElement)
-beta.initializeDistribution()
+beta = getDistribution(betaElement)
 
 checkCrowDist("scaled beta",beta,{'scale': 4.0, 'beta': 1.0, 'low':0.0, 'xMax': 4.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
 
@@ -420,9 +411,7 @@ betaElement.append(createElement("high",text="5.0"))
 betaElement.append(createElement("alpha",text="5.0"))
 betaElement.append(createElement("beta",text="2.0"))
 
-beta = Distributions.Beta()
-beta._readMoreXML(betaElement)
-beta.initializeDistribution()
+beta = getDistribution(betaElement)
 
 checkCrowDist("shifted beta",beta,{'scale': 6.0, 'beta': 2.0, 'low':-1.0, 'xMax': 5.0, 'xMin': -1.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
 
@@ -444,8 +433,7 @@ betanElement.append(createElement("low",text="1.0"))
 betanElement.append(createElement("high",text="5.0"))
 betanElement.append(createElement("peakFactor",text="0.5"))
 
-betan = Distributions.Beta()
-betan._readMoreXML(betanElement)
+betan = getDistribution(betanElement)
 
 checkCrowDist("truncnormal beta",betan,{'scale': 4.0, 'beta': 7.520872400521023, 'low':1.0, 'xMax': 5.0, 'xMin': 1.0, 'alpha': 7.520872400521023, 'type': 'BetaDistribution'})
 
@@ -471,9 +459,7 @@ triangularElement.append(createElement("min",text="0.0"))
 triangularElement.append(createElement("apex",text="3.0"))
 triangularElement.append(createElement("max",text="4.0"))
 
-triangular = Distributions.Triangular()
-triangular._readMoreXML(triangularElement)
-triangular.initializeDistribution()
+triangular = getDistribution(triangularElement)
 
 #check pickled version as well
 pk.dump(triangular,open('testDistrDump.pk','wb'))
@@ -510,9 +496,7 @@ triangularElement.append(createElement("min",text="5.0"))
 triangularElement.append(createElement("apex",text="8.0"))
 triangularElement.append(createElement("max",text="9.0"))
 
-triangular = Distributions.Triangular()
-triangular._readMoreXML(triangularElement)
-triangular.initializeDistribution()
+triangular = getDistribution(triangularElement)
 
 checkCrowDist("shift triangular",triangular,{'lowerBound': 5.0, 'type': 'TriangularDistribution', 'upperBound': 9.0, 'xMax': 9.0, 'xMin': 5.0, 'xPeak': 8.0})
 
@@ -531,9 +515,7 @@ checkAnswer("shift triangular ppf(0.9)",triangular.ppf(0.9),8.36754446797)
 poissonElement = ET.Element("Poisson",{"name":"test"})
 poissonElement.append(createElement("mu",text="4.0"))
 
-poisson = Distributions.Poisson()
-poisson._readMoreXML(poissonElement)
-poisson.initializeDistribution()
+poisson = getDistribution(poissonElement)
 
 ## Should these be checked?
 initParams = poisson.getInitParams()
@@ -572,9 +554,7 @@ binomialElement = ET.Element("Binomial",{"name":"test"})
 binomialElement.append(createElement("n",text="10"))
 binomialElement.append(createElement("p",text="0.25"))
 
-binomial = Distributions.Binomial()
-binomial._readMoreXML(binomialElement)
-binomial.initializeDistribution()
+binomial = getDistribution(binomialElement)
 
 ## Should these be checked?
 initParams = binomial.getInitParams()
@@ -610,9 +590,7 @@ checkAnswer("pbinomial ppf(0.9)",pbinomial.ppf(0.9),4.0)
 bernoulliElement = ET.Element("Bernoulli",{"name":"test"})
 bernoulliElement.append(createElement("p",text="0.4"))
 
-bernoulli = Distributions.Bernoulli()
-bernoulli._readMoreXML(bernoulliElement)
-bernoulli.initializeDistribution()
+bernoulli = getDistribution(bernoulliElement)
 
 ## Should these be checked?
 initParams = bernoulli.getInitParams()
@@ -647,9 +625,7 @@ checkAnswer("pbernoulli ppf(0.9)",pbernoulli.ppf(0.9),1.0)
 geometricElement = ET.Element("Geometric",{"name":"test"})
 geometricElement.append(createElement("p",text="0.25"))
 
-geometric = Distributions.Geometric()
-geometric._readMoreXML(geometricElement)
-geometric.initializeDistribution()
+geometric = getDistribution(geometricElement)
 
 checkCrowDist("geometric",geometric,{'p': 0.25, 'type': 'GeometricDistribution'})
 
@@ -670,9 +646,7 @@ logisticElement = ET.Element("Logistic",{"name":"test"})
 logisticElement.append(createElement("location",text="4.0"))
 logisticElement.append(createElement("scale",text="1.0"))
 
-logistic = Distributions.Logistic()
-logistic._readMoreXML(logisticElement)
-logistic.initializeDistribution()
+logistic = getDistribution(logisticElement)
 
 ## Should these be checked?
 initParams = logistic.getInitParams()
@@ -706,17 +680,13 @@ lowLogisticElement = ET.Element("Logistic",{"name":"test"})
 lowLogisticElement.append(createElement("location",text="4.0"))
 lowLogisticElement.append(createElement("scale",text="1.0"))
 lowLogisticElement.append(createElement("lowerBound",text="3.0"))
-lowLogistic = Distributions.Logistic()
-lowLogistic._readMoreXML(lowLogisticElement)
-lowLogistic.initializeDistribution()
+lowLogistic = getDistribution(lowLogisticElement)
 
 upLogisticElement = ET.Element("Logistic",{"name":"test"})
 upLogisticElement.append(createElement("location",text="4.0"))
 upLogisticElement.append(createElement("scale",text="1.0"))
 upLogisticElement.append(createElement("upperBound",text="5.0"))
-upLogistic = Distributions.Logistic()
-upLogistic._readMoreXML(upLogisticElement)
-upLogistic.initializeDistribution()
+upLogistic = getDistribution(upLogisticElement)
 
 #Test Laplace
 
@@ -724,9 +694,7 @@ laplaceElement = ET.Element("Laplace",{"name":"test"})
 laplaceElement.append(createElement("location",text="0.0"))
 laplaceElement.append(createElement("scale",text="2.0"))
 
-laplace = Distributions.Laplace()
-laplace._readMoreXML(laplaceElement)
-laplace.initializeDistribution()
+laplace = getDistribution(laplaceElement)
 
 ## Should these be checked?
 initParams = laplace.getInitParams()
@@ -751,9 +719,7 @@ checkAnswer("laplace ppf(0.75)",laplace.ppf(0.75),1.38629436112)
 exponentialElement = ET.Element("Exponential",{"name":"test"})
 exponentialElement.append(createElement("lambda",text="5.0"))
 
-exponential = Distributions.Exponential()
-exponential._readMoreXML(exponentialElement)
-exponential.initializeDistribution()
+exponential = getDistribution(exponentialElement)
 
 #check picklling
 pk.dump(exponential,open('testDistrDump.pk','wb'))
@@ -783,15 +749,13 @@ checkAnswer("pexponential ppf(0.5)",pexponential.ppf(0.5),0.138629436112)
 lowExponentialElement = ET.Element("Exponential",{"name":"test"})
 lowExponentialElement.append(createElement("lambda",text="5.0"))
 lowExponentialElement.append(createElement("lowerBound",text="0.0"))
-lowExponential = Distributions.Exponential()
-lowExponential._readMoreXML(lowExponentialElement)
-lowExponential.initializeDistribution()
+lowExponential = getDistribution(lowExponentialElement)
+
 upExponentialElement = ET.Element("Exponential",{"name":"test"})
 upExponentialElement.append(createElement("lambda",text="5.0"))
 upExponentialElement.append(createElement("upperBound",text="10.0"))
-upExponential = Distributions.Exponential()
-upExponential._readMoreXML(upExponentialElement)
-upExponential.initializeDistribution()
+upExponential = getDistribution(upExponentialElement)
+
 #Test truncated exponential
 
 truncExponentialElement = ET.Element("Exponential",{"name":"test"})
@@ -799,9 +763,7 @@ truncExponentialElement.append(createElement("lambda",text="5.0"))
 truncExponentialElement.append(createElement("lowerBound",text="0.0"))
 truncExponentialElement.append(createElement("upperBound",text="10.0"))
 
-truncExponential = Distributions.Exponential()
-truncExponential._readMoreXML(truncExponentialElement)
-truncExponential.initializeDistribution()
+truncExponential = getDistribution(truncExponentialElement)
 
 checkCrowDist("truncExponential",truncExponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'xMax': 10.0, 'lambda': 5.0, 'low':0.0})
 
@@ -822,9 +784,7 @@ exponentialElement = ET.Element("Exponential",{"name":"test"})
 exponentialElement.append(createElement("lambda",text="5.0"))
 exponentialElement.append(createElement("low",text="10.0"))
 
-exponential = Distributions.Exponential()
-exponential._readMoreXML(exponentialElement)
-exponential.initializeDistribution()
+exponential = getDistribution(exponentialElement)
 
 checkCrowDist("shifted exponential",exponential,{'xMin': 10.0, 'type': 'ExponentialDistribution', 'lambda': 5.0, 'low':10.0})
 
@@ -845,9 +805,7 @@ logNormalElement = ET.Element("LogNormal",{"name":"test"})
 logNormalElement.append(createElement("mean",text="3.0"))
 logNormalElement.append(createElement("sigma",text="2.0"))
 
-logNormal = Distributions.LogNormal()
-logNormal._readMoreXML(logNormalElement)
-logNormal.initializeDistribution()
+logNormal = getDistribution(logNormalElement)
 
 ## Should these be checked?
 initParams = logNormal.getInitParams()
@@ -881,17 +839,13 @@ lowlogNormalElement = ET.Element("LogNormal",{"name":"test"})
 lowlogNormalElement.append(createElement("mean",text="3.0"))
 lowlogNormalElement.append(createElement("sigma",text="2.0"))
 lowlogNormalElement.append(createElement("lowerBound",text="0.0"))
-lowlogNormal = Distributions.LogNormal()
-lowlogNormal._readMoreXML(lowlogNormalElement)
-lowlogNormal.initializeDistribution()
+lowlogNormal = getDistribution(lowlogNormalElement)
 
 uplogNormalElement = ET.Element("LogNormal",{"name":"test"})
 uplogNormalElement.append(createElement("mean",text="3.0"))
 uplogNormalElement.append(createElement("sigma",text="2.0"))
 uplogNormalElement.append(createElement("upperBound",text="10.0"))
-uplogNormal = Distributions.LogNormal()
-uplogNormal._readMoreXML(uplogNormalElement)
-uplogNormal.initializeDistribution()
+uplogNormal = getDistribution(uplogNormalElement)
 
 #shift log normal
 
@@ -900,9 +854,7 @@ logNormalElement.append(createElement("mean",text="3.0"))
 logNormalElement.append(createElement("sigma",text="2.0"))
 logNormalElement.append(createElement("low",text="10.0"))
 
-logNormal = Distributions.LogNormal()
-logNormal._readMoreXML(logNormalElement)
-logNormal.initializeDistribution()
+logNormal = getDistribution(logNormalElement)
 
 ## Should these be checked?
 initParams = logNormal.getInitParams()
@@ -925,9 +877,7 @@ logNormalLowMeanElement = ET.Element("LogNormal",{"name":"test"})
 logNormalLowMeanElement.append(createElement("mean",text="-0.00002"))
 logNormalLowMeanElement.append(createElement("sigma",text="0.2"))
 
-logNormalLowMean = Distributions.LogNormal()
-logNormalLowMean._readMoreXML(logNormalLowMeanElement)
-logNormalLowMean.initializeDistribution()
+logNormalLowMean = getDistribution(logNormalLowMeanElement)
 
 checkCrowDist("logNormalLowMean",logNormalLowMean,{'mu': -2e-5, 'sigma': 0.2, 'type': 'LogNormalDistribution', 'low': 0.0})
 
@@ -947,9 +897,7 @@ weibullElement = ET.Element("Weibull",{"name":"test"})
 weibullElement.append(createElement("k", text="1.5"))
 weibullElement.append(createElement("lambda", text="1.0"))
 
-weibull = Distributions.Weibull()
-weibull._readMoreXML(weibullElement)
-weibull.initializeDistribution()
+weibull = getDistribution(weibullElement)
 
 ## Should these be checked?
 initParams = weibull.getInitParams()
@@ -986,9 +934,7 @@ weibullElement.append(createElement("k", text="1.5"))
 weibullElement.append(createElement("lambda", text="1.0"))
 weibullElement.append(createElement("low", text="10.0"))
 
-weibull = Distributions.Weibull()
-weibull._readMoreXML(weibullElement)
-weibull.initializeDistribution()
+weibull = getDistribution(weibullElement)
 
 ## Should these be checked?
 initParams = weibull.getInitParams()
@@ -1009,17 +955,13 @@ lowWeibullElement = ET.Element("Weibull",{"name":"test"})
 lowWeibullElement.append(createElement("k", text="1.5"))
 lowWeibullElement.append(createElement("lambda", text="1.0"))
 lowWeibullElement.append(createElement("lowerBound",text="0.001"))
-lowWeibull = Distributions.Weibull()
-lowWeibull._readMoreXML(lowWeibullElement)
-lowWeibull.initializeDistribution()
+lowWeibull = getDistribution(lowWeibullElement)
 
 upWeibullElement = ET.Element("Weibull",{"name":"test"})
 upWeibullElement.append(createElement("k", text="1.5"))
 upWeibullElement.append(createElement("lambda", text="1.0"))
 upWeibullElement.append(createElement("upperBound",text="10.0"))
-upWeibull = Distributions.Weibull()
-upWeibull._readMoreXML(upWeibullElement)
-upWeibull.initializeDistribution()
+upWeibull = getDistribution(upWeibullElement)
 
 #Testing N-Dimensional Distributions
 
@@ -1033,9 +975,7 @@ ndInverseWeightElement.append(filenode)
 
 ET.dump(ndInverseWeightElement)
 
-ndInverseWeight_test = Distributions.NDInverseWeight()
-ndInverseWeight_test._readMoreXML(ndInverseWeightElement)
-ndInverseWeight_test.initializeDistribution()
+ndInverseWeight_test = getDistribution(ndInverseWeightElement)
 
 ## Should these be checked?
 initParams = ndInverseWeight_test.getInitParams()
@@ -1050,10 +990,7 @@ filenode.set("type","PDF")
 ndCartesianSplineElement.append(filenode)
 ndCartesianSplineElement.append(createElement("workingDir", text="ND_test_Grid_cdf/"))
 
-ndCartesianSpline = Distributions.NDCartesianSpline()
-ndCartesianSpline.setMessageHandler(mh)
-ndCartesianSpline._readMoreXML(ndCartesianSplineElement)
-ndCartesianSpline.initializeDistribution()
+ndCartesianSpline = getDistribution(ndCartesianSplineElement)
 
 ## Should these be checked?
 initParams = ndCartesianSpline.getInitParams()
@@ -1085,9 +1022,7 @@ filenode5.set("outcome","60")
 CategoricalElement.append(filenode5)
 
 
-Categorical = Distributions.Categorical()
-Categorical._readMoreXML(CategoricalElement)
-Categorical.initializeDistribution()
+Categorical = getDistribution(CategoricalElement)
 
 ## Should these be checked?
 initParams = Categorical.getInitParams()
@@ -1112,9 +1047,7 @@ Custom1DElement.append(createElement("variableID",   text="x"))
 Custom1DElement.append(createElement("functionType", text="pdf"))
 Custom1DElement.append(createElement("workingDir",   text="custom1D/"))
 
-Custom1D = Distributions.Custom1D()
-Custom1D._readMoreXML(Custom1DElement)
-Custom1D.initializeDistribution()
+Custom1D = getDistribution(Custom1DElement)
 
 checkAnswer("Custom1D pdf(-2.2)",Custom1D.pdf(-2.2),0.0354745928462)
 checkAnswer("Custom1D pdf(1.9)",Custom1D.pdf(1.9) ,0.0656158147747)

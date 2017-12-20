@@ -38,13 +38,13 @@ class RAVEN(CodeInterfaceBase):
     self.printTag  = 'RAVEN INTERFACE'
     self.outputPrefix = 'out~'
     self.outStreamsNamesAndType = {} # Outstreams names and type {'outStreamName':[DataObjectName,DataObjectType]}
-    # pointer to the module that contains the function to modify and convert the sampled vars (optional)
+    # path to the module that contains the function to modify and convert the sampled vars (optional)
     # 2 methods are going to be inquired (if present and needed):
     # - convertNotScalarSampledVariables
     # - manipulateScalarSampledVariables
-    self.extModForVarsManipulation = None
-    # 'noscalar' = True if convertNotScalarSampledVariables exists in self.extModForVarsManipulation module
-    # 'scalar'   = True if manipulateScalarSampledVariables exists in self.extModForVarsManipulation module
+    self.extModForVarsManipulationPath = None
+    # 'noscalar' = True if convertNotScalarSampledVariables exists in extModForVarsManipulation module
+    # 'scalar'   = True if manipulateScalarSampledVariables exists in extModForVarsManipulation module
     self.hasMethods                = {'noscalar':False, 'scalar':False}
     # inner workind directory
     self.innerWorkingDir = ''
@@ -82,22 +82,22 @@ class RAVEN(CodeInterfaceBase):
 
     child = xmlNode.find("conversionModule")
     if child is not None:
-      extModForVarsManipulationPath = os.path.expanduser(child.text.strip())
-      if not os.path.isabs(extModForVarsManipulationPath):
-        extModForVarsManipulationPath = os.path.abspath(extModForVarsManipulationPath)
+      self.extModForVarsManipulationPath = os.path.expanduser(child.text.strip())
+      if not os.path.isabs(self.extModForVarsManipulationPath):
+        self.extModForVarsManipulationPath = os.path.abspath(self.extModForVarsManipulationPath)
       # check if it exist
-      if not os.path.exists(extModForVarsManipulationPath):
-        raise IOError(self.printTag+' ERROR: the conversionModule "'+extModForVarsManipulationPath+'" has not been found!')
-      self.extModForVarsManipulation = utils.importFromPath(extModForVarsManipulationPath)
-      if self.extModForVarsManipulation is None:
-        raise IOError(self.printTag+' ERROR: the conversionModule "'+extModForVarsManipulationPath+'" failed to be imported!')
+      if not os.path.exists(self.extModForVarsManipulationPath):
+        raise IOError(self.printTag+' ERROR: the conversionModule "'+self.extModForVarsManipulationPath+'" has not been found!')
+      extModForVarsManipulation = utils.importFromPath(self.extModForVarsManipulationPath)
+      if extModForVarsManipulation is None:
+        raise IOError(self.printTag+' ERROR: the conversionModule "'+self.extModForVarsManipulationPath+'" failed to be imported!')
       # check if the methods are there
-      if 'convertNotScalarSampledVariables' in self.extModForVarsManipulation.__dict__.keys():
+      if 'convertNotScalarSampledVariables' in extModForVarsManipulation.__dict__.keys():
         self.hasMethods['noscalar'] = True
-      if 'manipulateScalarSampledVariables' in self.extModForVarsManipulation.__dict__.keys():
+      if 'manipulateScalarSampledVariables' in extModForVarsManipulation.__dict__.keys():
         self.hasMethods['scalar'  ] = True
       if not self.hasMethods['scalar'] and not self.hasMethods['noscalar']:
-        raise IOError(self.printTag +' ERROR: the conversionModule "'+extModForVarsManipulationPath
+        raise IOError(self.printTag +' ERROR: the conversionModule "'+self.extModForVarsManipulationPath
                                     +'" does not contain any of the usable methods! Expected at least '
                                     +'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
 
@@ -195,11 +195,13 @@ class RAVEN(CodeInterfaceBase):
       raise IOError(self.printTag+' ERROR: No scalar variables ('+','.join(noscalarVars.keys())
                                   + ') have been detected but no convertNotScalarSampledVariables has been inputted!')
     # check if ext module has been inputted
+    if self.hasMethods['noscalar'] or self.hasMethods['scalar']:
+      extModForVarsManipulation = utils.importFromPath(self.extModForVarsManipulationPath)
     if self.hasMethods['noscalar']:
       if len(noscalarVars) > 0:
         toPopOut = noscalarVars.keys()
         try:
-          newVars = self.extModForVarsManipulation.convertNotScalarSampledVariables(noscalarVars)
+          newVars = extModForVarsManipulation.convertNotScalarSampledVariables(noscalarVars)
           if type(newVars).__name__ != 'dict':
             raise IOError(self.printTag+' ERROR: convertNotScalarSampledVariables must return a dictionary!')
           if len(newVars) != totSizeExpected:
@@ -214,7 +216,7 @@ class RAVEN(CodeInterfaceBase):
     # check if ext module has the method to manipulate the variables
     if self.hasMethods['scalar']:
       try:
-        self.extModForVarsManipulation.manipulateScalarSampledVariables(modifDict)
+        extModForVarsManipulation.manipulateScalarSampledVariables(modifDict)
       except TypeError:
         raise IOError(self.printTag+' ERROR: manipulateScalarSampledVariables accept only one argument manipulateScalarSampledVariables(variableDict)')
 

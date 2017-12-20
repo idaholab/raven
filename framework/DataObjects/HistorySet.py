@@ -50,10 +50,10 @@ class HistorySet(Data):
     """
     Data.__init__(self)
 
-  def _specializedInputCheck(self,xmlNode):
+  def _specializedInputCheckParam(self,paramInput):
     """
       Here we check if the parameters read by the global reader are compatible with this type of Data
-      @ In, xmlNode, xml.etree.ElementTree.Element, xml node
+      @ In, paramInput, ParameterInput, the input
       @ Out, None
     """
     if set(self._dataParameters.keys()).issubset(['operator','outputRow']):

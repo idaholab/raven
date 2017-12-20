@@ -41,12 +41,68 @@ from .AdaptiveSampler import AdaptiveSampler
 import Distributions
 from AMSC_Object import AMSC_Object
 from utils import randomUtils
+from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class LimitSurfaceSearch(AdaptiveSampler):
   """
     A sampler that will adaptively locate the limit surface of a given problem
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(LimitSurfaceSearch, cls).getInputSpecification()
+
+    convergenceInput = InputData.parameterInputFactory("Convergence", contentType=InputData.FloatType)
+    convergenceInput.addParam("limit", InputData.IntegerType)
+    convergenceInput.addParam("forceIteration", InputData.StringType)
+    convergenceInput.addParam("weight", InputData.StringType)
+    convergenceInput.addParam("persistence", InputData.IntegerType)
+    convergenceInput.addParam("subGridTol", InputData.FloatType)
+
+    inputSpecification.addSub(convergenceInput)
+
+    batchStrategyInput = InputData.parameterInputFactory("batchStrategy",
+                                                         contentType=InputData.StringType)
+    inputSpecification.addSub(batchStrategyInput)
+
+    maxBatchSizeInput = InputData.parameterInputFactory("maxBatchSize", contentType=InputData.IntegerType)
+    inputSpecification.addSub(maxBatchSizeInput)
+    scoringInput = InputData.parameterInputFactory("scoring", contentType=InputData.StringType)
+    inputSpecification.addSub(scoringInput)
+    simplificationInput = InputData.parameterInputFactory("simplification", contentType=InputData.FloatType)
+    inputSpecification.addSub(simplificationInput)
+
+    thicknessInput = InputData.parameterInputFactory("thickness", contentType=InputData.IntegerType)
+    inputSpecification.addSub(thicknessInput)
+
+    thresholdInput = InputData.parameterInputFactory("threshold", contentType=InputData.FloatType)
+    inputSpecification.addSub(thresholdInput)
+
+    romInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
+    romInput.addParam("type", InputData.StringType)
+    romInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(romInput)
+
+    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputData.StringType)
+    targetEvaluationInput.addParam("type", InputData.StringType)
+    targetEvaluationInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(targetEvaluationInput)
+
+    functionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
+    functionInput.addParam("type", InputData.StringType)
+    functionInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(functionInput)
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -136,12 +192,14 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if isinstance(dist,Distributions.NDimensionalDistributions):
         self.raiseAnError(IOError,'ND Dists not supported for this sampler (yet)!')
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    #TODO remove using xmlNode
     if 'limit' in xmlNode.attrib.keys():
       try:
         self.limit = int(xmlNode.attrib['limit'])
