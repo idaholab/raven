@@ -280,7 +280,7 @@ data._readMoreXML(xml)
 # NOTE histories are currently disabled pending future work (c,y are history vars)
 checkArray('HistorySet __init__ inp',data._inputs,['a','b'],str)
 checkArray('HistorySet __init__ out',data._outputs,['x','y'],str)
-checkArray('HistorySet __init__ all',data._allvars,['a','b','x','y'],str)
+checkArray('HistorySet __init__ all',data._orderedVars,['a','b','x','y'],str)
 checkNone('HistorySet __init__ _data',data._data)
 checkNone('HistorySet __init__ _collector',data._collector)
 

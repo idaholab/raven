@@ -108,7 +108,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._inputs   = []     # list(str) if input variables
     self._outputs  = []     # list(str) of output variables
     self._metavars = []     # list(str) of POINTWISE metadata variables
-    self._allvars  = []     # list(str) of vars IN ORDER of their index
+    self._orderedVars = []     # list(str) of vars IN ORDER of their index
 
     self._meta         = {}     # dictionary to collect meta until data is collapsed
     self._heirarchal   = False  # if True, non-traditional format (not yet implemented)
@@ -201,7 +201,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self._inputs.remove(index)
       except ValueError:
         pass #not requested as input anyway
-    self._allvars = self._inputs + self._outputs
+    self._orderedVars = self._inputs + self._outputs
     if self.messageHandler is None:
       self.messageHandler = MessageCourier()
 
