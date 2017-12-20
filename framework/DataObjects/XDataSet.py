@@ -979,10 +979,21 @@ class DataSet(DataObject):
               arrays[var] = self._collapseNDtoDataArray(self._collector[:,v],var,dtype=dtype)
         # if not ND, then it's a simple data array construction
         else:
-          arrays[var] = self._collapseNDtoDataArray(self._collector[:,v],var,dtype=dtype)
-        # however we created it, now arrays[var] is a xr.DataArray of all realizations for "var"
-        # update labels as needed
-        arrays[var][self.sampleTag] += firstSample
+          try:
+            varData = np.array(data[:,v],dtype=dtype)
+          except ValueError as e:
+            # infinte/missing data can't be cast to anything but floats or objects, as far as I can tell
+            if dtype != float and pd.isnull(data[:,v]).sum() != 0:#np.nan in data[:,v]:
+              self.raiseAWarning('NaN detected, but no safe casting NaN to "{}" so switching to "object" type. '.format(dtype) \
+                  + ' This may cause problems with other entities in RAVEN.')
+              varData = data[:,v][:]
+            # otherwise, let error be raised.
+            else:
+              raise e
+          # create single dataarrays
+          arrays[var] = self._collapseNDtoDataArray(varData,var)
+          # re-index samples
+          arrays[var][self.sampleTag] += firstSample
       # collect all data into dataset, and update self._data
       if self._data is None:
         self._convertArrayListToDataset(arrays,action='replace')
@@ -1035,28 +1046,21 @@ class DataSet(DataObject):
       @ Out, None
     """
     # first, try to read from csv
-    try:
-      panda = pd.read_csv(fileName+'.csv')
-    except pd.errors.EmptyDataError:
-      # no data in file
-      self.raiseAWarning('Tried to read data from "{}", but the file is empty!'.format(fileName+'.csv'))
-      return
-    finally:
-      self.raiseADebug('Reading data from "{}.csv"'.format(fileName))
+    df = self._readPandasCSV(fileName+'.csv')
     # load in metadata
     dims = self._loadCsvMeta(fileName)
     # find distinct number of samples
     try:
-      samples = list(set(panda[self.sampleTag]))
+      samples = list(set(df[self.sampleTag]))
     except KeyError:
       # sample ID wasn't given, so assume each row is sample
-      samples = range(len(panda.index))
-      panda[self.sampleTag] = samples
+      samples = range(len(df.index))
+      df[self.sampleTag] = samples
     # create arrays from which to create the data set
     arrays = {}
     for var in self.getVars():
       if var in dims.keys():
-        data = panda[[var,self.sampleTag]+dims[var]]
+        data = df[[var,self.sampleTag]+dims[var]]
         data.set_index(self.sampleTag,inplace=True)
         ndat = np.zeros(len(samples),dtype=object)
         for s,sample in enumerate(samples):
@@ -1071,7 +1075,7 @@ class DataSet(DataObject):
         arrays[var] = self._collapseNDtoDataArray(ndat,var,labels=samples)
       else:
         # scalar example
-        data = panda[[var,self.sampleTag]].groupby(self.sampleTag).first().values[:,0]
+        data = df[[var,self.sampleTag]].groupby(self.sampleTag).first().values[:,0]
         arrays[var] = self._collapseNDtoDataArray(data,var,labels=samples)
     self._convertArrayListToDataset(arrays,action='replace')
 
@@ -1395,6 +1399,28 @@ class DataSet(DataObject):
     if dtype is None:
       dtype = self.defaultDtype # set in subclasses if different
     return cached_ndarray.cNDarray(width=width,length=length,dtype=dtype)
+
+  def _readPandasCSV(self,fname):
+    """
+      Reads in a CSV and does some simple checking.
+      @ In fname, str, name of file to read in (WITH the .csv extension)
+      @ Out, df, pd.DataFrame, contents of file
+    """
+    # first try reading the file
+    try:
+      df = pd.read_csv(fname)
+    except pd.errors.EmptyDataError:
+      # no data in file
+      self.raiseAWarning('Tried to read data from "{}", but the file is empty!'.format(fname+'.csv'))
+      return
+    else:
+      self.raiseADebug('Reading data from "{}.csv"'.format(fname))
+    # check for NaN contents -> this isn't allowed in RAVEN currently, although we might need to change this for ND
+    if pd.isnull(df).values.sum() != 0:
+      bad = pd.isnull(df).any(1).nonzero()[0][0]
+      self.raiseAnError(IOError,'Invalid data in input file: row "{}" in "{}"'.format(bad,fname))
+    return df
+
 
   def _resetScaling(self):
     """

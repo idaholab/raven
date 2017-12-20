@@ -291,8 +291,8 @@ class SPSA(GradientBasedOptimizer):
     GradientBasedOptimizer.localGenerateInput(self,model,oldInput)
     action, traj = self.nextActionNeeded
     #store traj as active for sampling
-    self.inputInfo['trajID'] = np.atleast_1d(traj+1)
-    self.inputInfo['varsUpdate'] = np.atleast_1d(self.counter['varsUpdate'][traj])
+    self.inputInfo['trajID'] = traj+1
+    self.inputInfo['varsUpdate'] = self.counter['varsUpdate'][traj]
     #"action" and "traj" are set in localStillReady
     #"action" is a string of the next action needed by the optimizer in order to move forward
     #"traj" is the trajectory that is in need of the action
