@@ -463,9 +463,10 @@ class EnsembleModel(Dummy):
 
       #returnDict[modelIn]['general_metadata']
 
-      for typeInfo,values in outcomes[modelIn].items():
-        for key in values.keys():
-          exportDict[typeInfo][key] = np.asarray(values[key])
+      #for typeInfo,values in outcomes[modelIn].items():
+      #  for key in values.keys():
+      #    exportDict[typeInfo][key] = np.asarray(values[key])
+
       # collect optional output if present and not already collected
       if jobIndex is not None:
         for optionalModelOutput in self.modelsDictionary[modelIn]['OutputObject']:
@@ -477,21 +478,23 @@ class EnsembleModel(Dummy):
     #for modelIn in self.modelsDictionary.keys():
     #  for optionalOutput in self.modelsDictionary[modelIn]['OutputObject']:
     #    optionalOutputNames.append(optionalOutput.name)
-    if output.type == 'HDF5':
-      if output.name not in optionalOutputNames:
-        output.addRealization    ({'group':self.name+str(finishedJob.identifier)},exportDict,False)
-    else:
-      if output.name not in optionalOutputNames:
-        if output.name in exportDictTargetEvaluation.keys():
-          exportDict = exportDictTargetEvaluation[output.name]
-        for key in exportDict['inputSpaceParams' ] :
-          if key in output.getParaKeys('inputs'):
-            output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
-        for key in exportDict['outputSpaceParams'] :
-          if key in output.getParaKeys('outputs'):
-            output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
-        for key in exportDict['metadata']:
-          output.updateMetadata(key,exportDict['metadata'][key][-1])
+    if output.name not in optionalOutputNames:
+      output.addRealization(returnDict[modelIn]['response'])
+    #if output.type == 'HDF5':
+    #  if output.name not in optionalOutputNames:
+    #    output.addRealization    ({'group':self.name+str(finishedJob.identifier)},exportDict,False)
+    #else:
+    #  if output.name not in optionalOutputNames:
+    #    if output.name in exportDictTargetEvaluation.keys():
+    #      exportDict = exportDictTargetEvaluation[output.name]
+    #    for key in exportDict['inputSpaceParams' ] :
+    #      if key in output.getParaKeys('inputs'):
+    #        output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
+    #    for key in exportDict['outputSpaceParams'] :
+    #      if key in output.getParaKeys('outputs'):
+    #        output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
+    #    for key in exportDict['metadata']:
+    #      output.updateMetadata(key,exportDict['metadata'][key][-1])
 
   def getAdditionalInputEdits(self,inputInfo):
     """
@@ -732,11 +735,12 @@ class EnsembleModel(Dummy):
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
           #else:
           #  tempTargetEvaluations[modelIn] = holdCollector[modelIn]['targetEvaluations']
+          #dataSet = tempTargetEvaluations[modelIn].realization(index=0,unpackXArray=True)
           dataSet = tempTargetEvaluations[modelIn].asDataset()
           responseSpace         = dataSet
           #inputSpace            = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
           typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
-          gotOutputs[modelCnt]  = dataSet # responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
+          gotOutputs[modelCnt]  = {key: dataSet[key] for key in tempTargetEvaluations[modelIn].getVars("output")}   # responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
 
           #store the results in return dictionary
           returnDict[modelIn]['response'        ] = responseSpace
@@ -748,7 +752,7 @@ class EnsembleModel(Dummy):
           # if nonlinear system, compute the residue
           if self.activatePicard:
             residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
-            for out in  tempTargetEvaluations[modelIn].getVars("output"): #      gotOutputs[modelCnt].keys():
+            for out in  tempTargetEvaluations[modelIn].getVars("output"):
               residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
               if iterationCount == 1:
                 residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))

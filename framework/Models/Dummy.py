@@ -104,7 +104,7 @@ class Dummy(Model):
             for entries in dataIN.getVars('input'):
               if localInput[entries] is None:
                 localInput[entries] = []
-              value = dataSet.isel(**{dataSet.sampleTag:hist})[entries].values
+              value = dataSet.isel(**{dataIN.sampleTag:hist})[entries].values
               localInput[entries].append(np.full((sizeIndex,),value,dtype=value.dtype))
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getVars('output'):
@@ -167,6 +167,9 @@ class Dummy(Model):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
+    # alias system
+    self._replaceVariablesNamesWithAliasSystem(inRun,'input',True)
+    self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',True)
     # build realization using input space from inRun and metadata from kwargs
     rlz = dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else kwargs[var])) for var in set(kwargs.keys()+inRun.keys()))
     # add dummy output space
@@ -186,7 +189,8 @@ class Dummy(Model):
     # TODO consistency with old HDF5; fix this when HDF5 api is in place
     # TODO expensive deepcopy prevents modification when sent to multiple outputs
     result = finishedJob.getEvaluation()
-    self._replaceVariablesNamesWithAliasSystem(result)
+    # alias system
+    self._replaceVariablesNamesWithAliasSystem(result,'output',True)
     if isinstance(result,Runners.Error):
       self.raiseAnError(Runners.Error,'No available output to collect!')
     output.addRealization(result)
