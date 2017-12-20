@@ -890,7 +890,7 @@ class DataSet(DataObject):
           v = v.dropna(dim)
           if unpackXarray:
             new[dim] = v.coords[dim].values
-        new[k] = v
+        new[k] = v if not unpackXarray else v.values
     return new
 
   def _convertToDict(self):
@@ -1405,7 +1405,7 @@ class DataSet(DataObject):
     self._scaleFactors = {}
     self._inputKDTree = None
 
-  def _selectiveRealization(self,rlz,checkLengthBeforeTruncating=False):
+  def _selectiveRealization(self,rlz):
     """
       Used for selecting a subset of the given data.  Not implemented for ND.
       @ In, rlz, dict, {var:val} format (see addRealization)

@@ -543,8 +543,7 @@ class Code(Model):
         for header,data in zip(headers, csvData.T):
           returnDict[header] = data
       if not ravenCase:
-        self._replaceVariablesNamesWithAliasSystem(returnDict, 'input', True)
-        self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
+        self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
       else:
         # we have the DataObjects
         for dataObj in finalCodeOutputFile.values():

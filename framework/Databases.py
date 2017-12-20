@@ -91,6 +91,10 @@ class DateBase(BaseType):
     # read mode
     self.readMode = paramInput.parameterValues['readMode'].strip().lower()
     self.raiseADebug('HDF5 Read Mode is "'+self.readMode+'".')
+    if self.readMode == 'overwrite':
+      # check if self.databaseDir exists or create in case not
+      if not os.path.exists(self.databaseDir):
+        os.mkdir(self.databaseDir)
     # get full path
     fullpath = os.path.join(self.databaseDir,self.filename)
     if os.path.isfile(fullpath):
@@ -291,6 +295,8 @@ class HDF5(DateBase):
       @ Out, allData, list of arrays, all the data from this data object.
     """
     allRealizationNames = self.database.retrieveAllHistoryNames()
+    # instead to use a OrderedDict in the database, I sort the names here (it is much faster)
+    allRealizationNames.sort()
     allData = [self.realization(name) for name in allRealizationNames]
     return allData
 

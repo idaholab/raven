@@ -196,7 +196,6 @@ class hdf5Database(MessageHandler.MessageUser):
       else:
         # Add sub group in the Hierarchical structure
         self.__addSubGroup(groupName,rlz)
-      endif
     else:
       # Parallel structure (always root level)
       self.__addGroupRootLevel(groupName,rlz)
@@ -251,6 +250,19 @@ class hdf5Database(MessageHandler.MessageUser):
     self.h5FileW.attrs['allGroupEnds'] = json.dumps(self.allGroupEnds)
     self.h5FileW.flush()
 
+  def __checkTypeHDF5(self, value, neg):
+    """
+      Local utility function to check the type
+      @ In, value, object, the value to check
+      @ In, neg, bool, to use the "not" or not
+      @ Out, check, bool, the check
+    """
+    if neg:
+      check = type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'] and type(value) not in [float,int]
+    else:
+      check = type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value) in [float,int]
+    return check
+
   def __populateGroup(self, group, name,  rlz):
     """
       This method is a common method between the __addGroupRootLevel and __addSubGroup
@@ -260,19 +272,24 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, rlz, dict, dictionary with the data and metadata to add
       @ Out, None
     """
-    # add pointwise metadata (in this case, they are group-wise)
-    #group.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
     group.attrs[b'hasIntfloat'] = False
     group.attrs[b'hasOther'   ] = False
-    # get the data floats and other types
-    dataIntfloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if type(value) == np.ndarray and
-                         value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value) in [float,int])
-    dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if type(value) == np.ndarray and
-                         value.dtype not in np.sctypes['float']+np.sctypes['int'] or type(value) not in [float,int])
+    if self.variables is not None:
+      # check if all variables are contained in the rlz dictionary
+      if not set(self.variables).issubset(rlz.keys()):
+        self.raiseAnError(IOError, "Not all the requested variables have been passed in the realization. Missing are: "+
+                          ",".join(list(set(self.variables).symmetric_difference(set(rlz.keys())))))
+    # get the data floats or arrays
+    if self.variables is None:
+      dataIntFloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) )
+    else:
+      dataIntFloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) and key in self.variables)
+    # get other dtype data (strings and objects)
+    dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, True) )
     # get size of each data variable (float)
-    varKeysIntfloat = dataIntfloat.keys()
+    varKeysIntfloat = dataIntFloat.keys()
     if len(varKeysIntfloat) > 0:
-      varShapeIntfloat = [dataIntfloat[key].shape for key in varKeysIntfloat]
+      varShapeIntfloat = [dataIntFloat[key].shape for key in varKeysIntfloat]
       # get data names
       group.attrs[b'data_namesIntfloat'] = json.dumps(varKeysIntfloat)
       # get data shapes
@@ -282,7 +299,7 @@ class hdf5Database(MessageHandler.MessageUser):
       begin = np.concatenate(([0],end[0:-1]))
       group.attrs[b'data_begin_endIntfloat'] = json.dumps((begin.tolist(),end.tolist()))
       # get data names
-      group.create_dataset(name + "_dataIntfloat", dtype="float", data=(np.concatenate( dataIntfloat.values()).ravel()))
+      group.create_dataset(name + "_dataIntFloat", dtype="float", data=(np.concatenate( dataIntFloat.values()).ravel()))
       group.attrs[b'hasIntfloat'] = True
     # get size of each data variable (other type)
     varKeysOther = dataOther.keys()
@@ -465,14 +482,14 @@ class hdf5Database(MessageHandler.MessageUser):
     hasIntfloat = group.attrs['hasIntfloat']
     hasOther    = group.attrs['hasOther']
     if hasIntfloat:
-      datasetIntfloat = group[name + "_dataIntfloat"]
+      dataSetIntFloat = group[name + "_dataIntFloat"]
       # Get some variables of interest
       nVarsIntfloat      = group.attrs[b'nVarsIntfloat']
       varShapeIntfloat   = json.loads(group.attrs[b'data_shapesIntfloat'])
       varKeysIntfloat    = json.loads(group.attrs[b'data_namesIntfloat'])
       begin, end          = json.loads(group.attrs[b'data_begin_endIntfloat'])
       # Reconstruct the dataset
-      newData = {key : np.reshape(datasetIntfloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt]) for cnt,key in enumerate(varKeysIntfloat)}
+      newData = {key : np.reshape(dataSetIntFloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt]) for cnt,key in enumerate(varKeysIntfloat)}
     if hasOther:
       # get the "other" data
       datasetOther = json.loads(group.attrs[name + "_dataOther"])
