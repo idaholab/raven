@@ -887,7 +887,18 @@ class DataSet(DataObject):
           varData = data[:,v]
         # if scalar, however, need to force correct dtype here
         else:
-          varData = np.array(data[:,v],dtype=dtype)
+          try:
+            varData = np.array(data[:,v],dtype=dtype)
+          except ValueError as e:
+            # infinte/missing data can't be cast to anything but floats or objects, as far as I can tell
+            if dtype != float and pd.isnull(data[:,v]).sum() != 0:#np.nan in data[:,v]:
+              self.raiseAWarning('NaN detected, but no safe casting NaN to "{}" so switching to "object" type. '.format(dtype) \
+                  + ' This may cause problems with other entities in RAVEN.')
+              print('DEBUGG data:',data[:,v],data[:,v].dtype)
+              varData = data[:,v][:]
+            # otherwise, let error be raised.
+            else:
+              raise e
         # create single dataarrays
         arrs[var] = self._collapseNDtoDataArray(varData,var)
         # re-index samples
