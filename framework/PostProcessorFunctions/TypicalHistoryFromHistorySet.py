@@ -141,7 +141,6 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
           endPivot += self.outputLen
 
     inputDict['output'] = reshapedData
-    print(reshapedData)
     self.numHistory = len(inputDict['output'].keys()) #should be same as newHistoryCounter - 1, if that's faster
     #update the set of pivot parameter values to match the first of the reshaped histories
     self.pivotValues = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameter])
@@ -154,16 +153,12 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     n = 0                 #counts the number of the subsequence
     # in this loop we collect the similar (in time) subsequences in each history
     while True:
-      print(self.pivotValues[-1])
       subsequenceLength = self.subseqLen[n % len(self.subseqLen)]
-      print(subsequenceLength)
       # if the history is longer than the subsequence we need, take the whole subsequence
       if startLocation + subsequenceLength < self.pivotValues[-1]:
-        print('here')
         self.subsequence.append([startLocation, startLocation+subsequenceLength])
       # otherwise, take only as much as the history has, and exit
       else:
-        print('here2')
         self.subsequence.append([startLocation, self.pivotValues[-1]])
         break # TODO this could be made "while startLocation + subsequenceLength < self.pivotValues[-1]
       # iterate forward
@@ -200,7 +195,6 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
             subseqData[index][feature][h,-1] = inputDict['output'][historyNumber][feature][-1]
           else:
             subseqData[index][feature][h,:] = np.extract(extractCondition, inputDict['output'][historyNumber][feature])
-          print(subseqData[index][feature])
 
     # task: compare CDFs to find the nearest match to the collective time's standard CDF (see the paper ref'd in the manual)
     # start by building the CDFs in the same structure as subseqData
@@ -260,7 +254,6 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     outputDict['dims']={}
     for var in self.features:
       outputDict['dims'][var]=[self.pivotParameter] 
-    print(numParallelSubsequences)
     return outputDict
 
   def __computeECDF(self, data, binEdgesIn):
