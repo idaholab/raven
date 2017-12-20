@@ -141,9 +141,10 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
           endPivot += self.outputLen
 
     inputDict['output'] = reshapedData
-    self.numHistory = inputDic[0]['numberRealizations']
+    print(reshapedData)
+    self.numHistory = len(inputDict['output'].keys()) #should be same as newHistoryCounter - 1, if that's faster
     #update the set of pivot parameter values to match the first of the reshaped histories
-    self.pivotValues = np.asarray(inputDict[self.pivotParameter][0])
+    self.pivotValues = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameter])
 
     # task: split the history into multiple subsequences so that the typical history can be constructed
     #  -> i.e., split the year history into multiple months, so we get a typical January, February, ..., hence a typical year
@@ -153,12 +154,16 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     n = 0                 #counts the number of the subsequence
     # in this loop we collect the similar (in time) subsequences in each history
     while True:
+      print(self.pivotValues[-1])
       subsequenceLength = self.subseqLen[n % len(self.subseqLen)]
+      print(subsequenceLength)
       # if the history is longer than the subsequence we need, take the whole subsequence
       if startLocation + subsequenceLength < self.pivotValues[-1]:
+        print('here')
         self.subsequence.append([startLocation, startLocation+subsequenceLength])
       # otherwise, take only as much as the history has, and exit
       else:
+        print('here2')
         self.subsequence.append([startLocation, self.pivotValues[-1]])
         break # TODO this could be made "while startLocation + subsequenceLength < self.pivotValues[-1]
       # iterate forward
@@ -175,7 +180,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     #     while the subseqIndex dictionaries only contain the relevant subsequence data (i.e., the monthly data)
     # stack the similar histories in numpy arrays for full period (for example, by year)
     for feature in self.features:
-      subseqData['all'][feature] = np.concatenate(list(inputDict[feature][h] for h in range(inputDic[0]['numberRealizations'])))
+      subseqData['all'][feature] = np.concatenate(list(inputDict['output'][h][feature] for h in inputDict['output'].keys()))
 
     # gather feature data by subsequence (for example, by month)
     for index in range(numParallelSubsequences):
@@ -187,14 +192,15 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       #get the subsequence data for each feature, for each history
       for feature in self.features:
         subseqData[index][feature] = np.zeros(shape=(self.numHistory,len(subseqData[index][self.pivotParameter])))
-        for h in range(inputDic[0]['numberRealizations']): #for h, historyNumber in enumerate(inputDict['output'].keys()):
+        for h, historyNumber in enumerate(inputDict['output'].keys()):
           if self.pivotValues[-1] == self.subsequence[index][1]:
             #TODO this is doing the right action, but it's strange that we need to add one extra element.
             #  Maybe this should be fixed where we set the self.subsequence[index][1] for the last index, instead of patched here
-            subseqData[index][feature][h,0:-1] = np.extract(extractCondition, inputDict[feature][h])
-            subseqData[index][feature][h,-1] = inputDict[feature][h][-1]
+            subseqData[index][feature][h,0:-1] = np.extract(extractCondition, inputDict['output'][historyNumber][feature])
+            subseqData[index][feature][h,-1] = inputDict['output'][historyNumber][feature][-1]
           else:
-            subseqData[index][feature][h,:] = np.extract(extractCondition, inputDict[feature][h])
+            subseqData[index][feature][h,:] = np.extract(extractCondition, inputDict['output'][historyNumber][feature])
+          print(subseqData[index][feature])
 
     # task: compare CDFs to find the nearest match to the collective time's standard CDF (see the paper ref'd in the manual)
     # start by building the CDFs in the same structure as subseqData
@@ -230,13 +236,11 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
           smallestDeltaIndex = h
       for feature in self.features:
         typicalDataHistories[index][feature] = subseqData[index][feature][smallestDeltaIndex,:]
-
     # now collapse the data into the typical history
     typicalData = {}
-    typicalData[self.pivotParameter] = np.concatenate(list(typicalDataHistories[index][self.pivotParameter] for index in range(numParallelSubsequences)))
+    typicalData[self.pivotParameter] = np.concatenate(list(typicalDataHistories[index][self.pivotParameter] for index in range(numParallelSubsequences)))  
     for feature in self.features:
       typicalData[feature] = np.concatenate(list(typicalDataHistories[index][feature] for index in range(numParallelSubsequences)))
-
     # sanity check, should probably be skipped for efficiency, as it looks like a debugging tool
     # preserved for now in case it was important for an undiscovered reason
     #   for t in range(1,len(typicalData[self.pivotParameter])):
@@ -255,7 +259,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       outputDict['data'][var][0] = inputDict[var][0]
     outputDict['dims']={}
     for var in self.features:
-      outputDict['dims'][var]=[self.pivotParameter]
+      outputDict['dims'][var]=[self.pivotParameter] 
+    print(numParallelSubsequences)
     return outputDict
 
   def __computeECDF(self, data, binEdgesIn):
