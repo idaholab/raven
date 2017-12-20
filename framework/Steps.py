@@ -281,7 +281,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if hasattr(entities,'provideExpectedMetaKeys'):
           metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
     ## then give them to the output data objects
-    for out in inDictionary['Output']:
+    for out in inDictionary['Output']+(inDictionary['TargetEvaluation'] if 'TargetEvaluation' in inDictionary else []):
       if 'addExpectedMeta' in dir(out):
         out.addExpectedMeta(metaKeys)
 
