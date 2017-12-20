@@ -608,7 +608,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # we consider that CDF of the constant variables is equal to 1 (same as its Pb Weight)
       self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(),1.0))
       pbKey = ['ProbabilityWeight-'+key for key in self.constants.keys()]
-      self.addMetaKeys(pbKey)
+      self.addMetaKeys(*pbKey)
       self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
 
   def amIreadyToProvideAnInput(self): #inLastOutput=None):

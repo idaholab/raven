@@ -56,6 +56,7 @@
     <Print name='PointsetEnsembleForward'>
       <type>csv</type>
       <source>PointsetEnsembleForward</source>
+      <what>input, output, metadata|ProbabilityWeight</what>
     </Print>
   </OutStreams>
 
@@ -74,7 +75,7 @@
 
   <DataObjects>
     <PointSet name='PointsetEnsembleForward'>
-      <Input>x1,x2,constantine</Input>
+      <Input>x2,x1,constantine</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
   </DataObjects>
