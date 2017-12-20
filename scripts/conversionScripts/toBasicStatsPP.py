@@ -46,7 +46,21 @@ def convert(tree,fileName=None):
 
   steps = simulation.find('Steps')
   postProcess = steps.findall('PostProcess')
+  TestInfo = simulation.find('TestInfo')
+  revisions = TestInfo.find('revisions')
+  hasRev = True
+  if revisions is None:
+    revisions = ET.Element('revisions')
+    hasRev = False
+  rev = ET.Element('revision')
+  rev.attrib['author'] = 'wangc'
+  rev.attrib['date'] = '2017-12-20'
+  rev.text = 'convert test to use the new DataObjects with the new structure of basic statistic'
+  revisions.append(rev)
+  if not hasRev:
+    TestInfo.append(revisions)
 
+  toRemove = []
 
   if models is None: return tree # no models, no BasicStats
   timeDep = {}
@@ -203,6 +217,7 @@ def convert(tree,fileName=None):
           hasPrint = False
           for output in outputs:
             if output.attrib['class'] == 'Files':
+              toRemove.append(output.text)
               output.attrib['class'] = 'DataObjects'
               output.attrib['type'] = 'PointSet' if pivotParam is None else 'HistorySet'
               output.text = dataSetName
@@ -220,6 +235,12 @@ def convert(tree,fileName=None):
             printNode.attrib['class'] = 'OutStreams'
             printNode.attrib['type'] = 'Print'
             printNode.text = dataSetName + '_dump'
+  # move unused files
+  if len(toRemove) > 0:
+    files = simulation.find('Files')
+    for inputFile in files:
+      if inputFile.attrib['name'] in toRemove:
+        files.remove(inputFile)
 
   return tree
 

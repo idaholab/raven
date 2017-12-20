@@ -205,7 +205,7 @@ class Grid(ForwardSampler):
       # Compute the ProbabilityWeight
       if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
         if self.distDict[varName].getDisttype() == 'Discrete':
-          weight *= self.distDict[varName].pdf(coordinates[varName])
+          gridWeight = self.distDict[varName].pdf(coordinates[varName])
         else:
           if self.gridInfo[varName]=='CDF':
             if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
@@ -230,8 +230,8 @@ class Grid(ForwardSampler):
             if coordinatesPlusOne[varName] == sys.maxsize:
               midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
               gridWeight = 1.0 - self.distDict[varName].cdf(midMinusValue)
-          self.inputInfo['ProbabilityWeight-'+varName] = gridWeight
-          weight *= gridWeight
+        self.inputInfo['ProbabilityWeight-'+varName] = gridWeight
+        weight *= gridWeight
       # ND variable
       else:
         if self.variables2distributionsMapping[varName]['reducedDim']==1:
