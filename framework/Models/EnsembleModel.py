@@ -439,32 +439,29 @@ class EnsembleModel(Dummy):
     except ValueError:
       jobIndex = None
 
+    #joinedGeneralMetadata = {}
     joinedResponse = {}
-    joinedGeneralMetadata = {}
     targetEvaluationNames = {}
     for modelIn in self.modelsDictionary.keys():
       targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation'].name] = modelIn
       # collect data
-      #dataSet = targetEvaluations[modelIn].asDataset()
       # collect optional output if present and not already collected
       if jobIndex is not None:
         for optionalModelOutput in self.modelsDictionary[modelIn]['OutputObject']:
-          optionalModelOutput.addRealization(optionalOutputs[modelIn][modelIn])
-      # update the response with the metadata from the output model
-      #joinedResponse.update(optionalOutputs[modelIn])
+          optionalModelOutput.addRealization(optionalOutputs[modelIn])
       # update the responses
       joinedResponse.update(outcomes[modelIn]['response'])
+
       # get general metadata
-      joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
+      #joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
     # collect the output of the STEP
-    optionalOutputNames = [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject'] for modelIn in self.modelsDictionary[modelIn]]
+    optionalOutputNames = [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject'] for modelIn in self.modelsDictionary]
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
         output.addRealization(joinedResponse)
       else:
         joinedModelResponse = optionalOutputs[targetEvaluationNames[output.name]]
         output.addRealization(outcomes[targetEvaluationNames[output.name]]['response'])
-        #output.addMeta()
 
   def getAdditionalInputEdits(self,inputInfo):
     """
@@ -572,8 +569,7 @@ class EnsembleModel(Dummy):
       if len(previousOutputs.values()) > 0:
         for inKey in self.modelsDictionary[modelIn]['Input']:
           if inKey in previousOutputs.keys():
-            dependentOutputs[inKey] =  previousOutputs[inKey]
-          #if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
+            dependentOutputs[inKey] =  previousOutputs[inKey] if len(previousOutputs[inKey]) > 1 else previousOutputs[inKey][0]
     return dependentOutputs
 
   def _externalRun(self,inRun, jobHandler):
@@ -699,7 +695,6 @@ class EnsembleModel(Dummy):
           #  exportDict = holdCollector[modelIn]['exportDict']
           # store the output dictionary
           tempOutputs[modelIn] = copy.deepcopy(evaluation)
-
           # collect the target evaluation
           #if modelIn not in modelsOnHold:
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
@@ -719,6 +714,7 @@ class EnsembleModel(Dummy):
           returnDict[modelIn]['response'        ] = evaluation
           # overwrite with target evaluation filtering
           returnDict[modelIn]['response'        ].update(responseSpace)
+          returnDict[modelIn]['prefix'          ] = np.atleast_1d(identifier)
           returnDict[modelIn]['general_metadata'] = tempTargetEvaluations[modelIn].getMeta(general=True)
           #returnDict[modelIn]['outputSpaceParams'] = gotOutputs[modelCnt]
           #returnDict[modelIn]['inputSpaceParams' ] = inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
