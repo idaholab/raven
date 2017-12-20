@@ -450,7 +450,11 @@ class EnsembleModel(Dummy):
       if jobIndex is not None:
         for optionalModelOutput in self.modelsDictionary[modelIn]['OutputObject']:
           optionalModelOutput.addRealization(optionalOutputs[modelIn][modelIn])
+      # update the response with the metadata from the output model
+      #joinedResponse.update(optionalOutputs[modelIn])
+      # update the responses
       joinedResponse.update(outcomes[modelIn]['response'])
+      # get general metadata
       joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
     # collect the output of the STEP
     optionalOutputNames = [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject'] for modelIn in self.modelsDictionary[modelIn]]
@@ -458,6 +462,7 @@ class EnsembleModel(Dummy):
       if output.name not in targetEvaluationNames.keys():
         output.addRealization(joinedResponse)
       else:
+        joinedModelResponse = optionalOutputs[targetEvaluationNames[output.name]]
         output.addRealization(outcomes[targetEvaluationNames[output.name]]['response'])
         #output.addMeta()
 
@@ -567,7 +572,7 @@ class EnsembleModel(Dummy):
       if len(previousOutputs.values()) > 0:
         for inKey in self.modelsDictionary[modelIn]['Input']:
           if inKey in previousOutputs.keys():
-            dependentOutputs[inKey] =  previousOutputs[inKey].values
+            dependentOutputs[inKey] =  previousOutputs[inKey]
           #if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
     return dependentOutputs
 
@@ -701,14 +706,19 @@ class EnsembleModel(Dummy):
           #else:
           #  tempTargetEvaluations[modelIn] = holdCollector[modelIn]['targetEvaluations']
           #dataSet = tempTargetEvaluations[modelIn].realization(index=0,unpackXArray=True)
-          dataSet = tempTargetEvaluations[modelIn].asDataset()
+          dataSet = tempTargetEvaluations[modelIn].realization(index=0,unpackXArray=True)
+          #FIXME: the following dict construction is a temporary solution since the realization method returns scalars if we have a PointSet
+          dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
           responseSpace         = dataSet
           #inputSpace            = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
           typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
           gotOutputs[modelCnt]  = {key: dataSet[key] for key in tempTargetEvaluations[modelIn].getVars("output")}   # responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
 
           #store the results in return dictionary
-          returnDict[modelIn]['response'        ] = responseSpace
+          # store the metadata
+          returnDict[modelIn]['response'        ] = evaluation
+          # overwrite with target evaluation filtering
+          returnDict[modelIn]['response'        ].update(responseSpace)
           returnDict[modelIn]['general_metadata'] = tempTargetEvaluations[modelIn].getMeta(general=True)
           #returnDict[modelIn]['outputSpaceParams'] = gotOutputs[modelCnt]
           #returnDict[modelIn]['inputSpaceParams' ] = inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
