@@ -336,6 +336,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     ## value.
     # outputDic['data']['input'] = {} # {'dummy' : np.asanyarray(0)}
 
+    print(outputDic)
     return outputDic
 
   def runDynamic(self,inputDic,timeHistory):
