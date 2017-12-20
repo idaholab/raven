@@ -308,7 +308,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     if self.initSeed == None:
       self.initSeed = randomUtils.randomIntegers(0,2**31,self)
-    # Creation of the self.distributions2variablesMapping dictionary: {'distName': ({'variable_name1': dim1}, {'variable_name2': dim2})}
+    # Creation of the self.distributions2variablesMapping dictionary: {'distName': [{'variable_name1': dim1}, {'variable_name2': dim2}]}
     for variable in self.variables2distributionsMapping.keys():
       distName = self.variables2distributionsMapping[variable]['name']
       dim      = self.variables2distributionsMapping[variable]['dim']
@@ -326,6 +326,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       for var in self.distributions2variablesMapping[distName]:
         position = utils.first(var.values())
         positionList.append(position)
+      if sum(set(positionList)) > 1 and len(positionList) != len(set(positionList)):
+        dups = set(var for var in positionList if positionList.count(var) > 1)
+        self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple variables in Samplers: "{}"'.format(', '.join(dups)),
+                ' associated to ND distribution ', distName, '. This is currently not allowed!')
       positionList = list(set(positionList))
       positionList.sort()
       self.distributions2variablesIndexList[distName] = positionList
@@ -367,7 +371,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.raiseAnError(IOError,'The maximum dim = ' + str(max(listIndex)) + ' defined for latent variables is exceeded the dimension of the problem ' + str(maxDim))
         if len(set(listIndex)) != len(listIndex):
           dups = set(var+1 for var in listIndex if listIndex.count(var) > 1)
-          self.raiseAnError(IOError,'Each of the following dimensions  are assigned to multiple latent variables in Samplers: ' + str(dups))
+          self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple latent variables in Samplers: ' + str(dups))
         # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
     return paramInput
@@ -580,9 +584,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # Register expected metadata
     meta = ['ProbabilityWeight','prefix','PointProbability']
     for var in self.toBeSampled.keys():
-      #if self.variables2distributionsMapping[var]['totDim'] > 1:
-      #  meta +=  ['ProbabilityWeight-'+ var.replace(",","-")]
-      #else:
       meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
     self.addMetaKeys(*meta)
 
@@ -811,6 +812,21 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for key in fullyCorrVars:
       for kkey in key.split(","):
         self.inputInfo['SampledVarsPb'][kkey] = fullyCorrVars[key]
+
+  def _reassignPbWeightToCorrelatedVars(self):
+    """
+      Method to reassign probability weight to the correlated variables
+      @ In, None
+      @ Out, None
+    """
+    for varName, varInfo in self.variables2distributionsMapping.items():
+      # Handle ND Case
+      if varInfo['totDim'] > 1:
+        distName = self.variables2distributionsMapping[varName]['name']
+        self.inputInfo['ProbabilityWeight-' + varName] = self.inputInfo['ProbabilityWeight-' + distName]
+      if "," in varName:
+        for subVarName in varName.split(","):
+          self.inputInfo['ProbabilityWeight-' + subVarName.strip()] = self.inputInfo['ProbabilityWeight-' + varName]
 
   def handleFailedRuns(self,failedRuns):
     """
