@@ -563,6 +563,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, mode, string, open mode (default "w=write")
       @ Out, fh5, hdf5 object, instance of hdf5
     """
+    print(filename)
     fh5 = h5.File(filename,mode)
     self.fileOpen       = True
     return fh5
