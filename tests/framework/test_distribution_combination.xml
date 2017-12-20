@@ -18,6 +18,7 @@
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-12-20">Added seed and added additional ND distribution.</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -61,6 +62,7 @@
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>1</limit>
+        <initialSeed>20021986</initialSeed>
         <distInit>
           <distribution name="ND_CartesianSpline_P">
             <initialGridDisc>5</initialGridDisc>
@@ -108,7 +110,7 @@
       <Output>out</Output>
     </PointSet>
     <PointSet name="PointSet">
-      <Input>t1,t2,t3,t4,x0,y0,z0,x1,y1,z1</Input>
+      <Input>t4,t2,t3,t1,y1,y0,x0,x1,z0,z1</Input>
       <Output>out</Output>
     </PointSet>
   </DataObjects>
