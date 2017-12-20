@@ -45,7 +45,7 @@ def convert(tree,fileName=None):
   steps = simulation.find('Steps')
   postProcess = steps.findall('PostProcess')
   TestInfo = simulation.find('TestInfo')
-  revisions = simulation.find('revisions')
+  revisions = TestInfo.find('revisions')
   hasRev = True
   if revisions is None:
     revisions = ET.Element('revisions')
