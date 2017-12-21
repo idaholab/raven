@@ -368,14 +368,15 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           outputDic['data'][var + '_' + measure] = np.zeros(len(timeHistory['data'][self.temporalID]))
 
     previousSystemConfig = {}
-
-    for index,value in enumerate(timeHistory['data'][self.temporalID]):
+    print(timeHistory)
+    for index,value in enumerate(timeHistory['data'][self.temporalID][0]):
       systemConfig={}
-
+      print(index,value)
       # Retrieve the system configuration at time instant "index"
-      for var in timeHistory['data'].keys():
+      for var in timeHistory['outVars']:
         if var != self.temporalID:
-          systemConfig[var] = timeHistory['data'][index]
+          print(timeHistory['data'][var][0])
+          systemConfig[var] = np.asarray(timeHistory['data'][var][0])[index]
 
       # Do not repeat the calculation if the system configuration is identical to the one of previous time instant
       if systemConfig == previousSystemConfig:
