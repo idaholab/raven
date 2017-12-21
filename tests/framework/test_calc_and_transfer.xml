@@ -27,7 +27,7 @@
       <variables>gauss,uniform,time,out1,out2</variables>
     </ExternalModel>
     <ROM name="ROM1" subType="SciKitLearn">
-      <Features>gauss,uniform,time</Features>
+      <Features>gauss,uniform</Features>
       <Target>out1,out2</Target>
       <SKLtype>svm|SVR</SKLtype>
       <kernel>linear</kernel>
@@ -81,6 +81,7 @@
     <Print name="PrintROM1PointSet">
       <type>csv</type>
       <source>ROM1PointSet</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 
@@ -131,10 +132,10 @@
     </PointSet>
     <PointSet name="RawPointSet">
       <Input>gauss,uniform</Input>
-      <Output>time,out1,out2</Output>
+      <Output>out1,out2</Output>
     </PointSet>
     <PointSet name="ROM1PointSet">
-      <Input>gauss,uniform,time</Input>
+      <Input>gauss,uniform</Input>
       <Output>out1,out2</Output>
     </PointSet>
   </DataObjects>
