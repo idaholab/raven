@@ -125,27 +125,53 @@ class CustomSampler(ForwardSampler):
     if self.assemblerDict['Source'][0][0] == 'Files':
       csvFile = self.assemblerDict['Source'][0][3]
       csvFile.open(mode='r')
-      headers = [x.replace("\n","") for x in csvFile.readline().split(",")]
+      headers = [x.replace("\n","").strip() for x in csvFile.readline().split(",")]
       data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float, delimiter=',', skiprows=1, ndmin=2)
+      lenRlz = len(data)
       csvFile.close()
       for var in self.toBeSampled.keys():
-        if var not in headers:
-          self.raiseAnError(IOError, "variable "+ var+ " not found in the file "+csvFile.getFilename())
-        self.pointsToSample[var] = data[:,headers.index(var)]
+        for subVar in var.split(','):
+          subVar = subVar.strip()
+          if subVar not in headers:
+            self.raiseAnError(IOError, "variable "+ subVar + " not found in the file "
+                    + csvFile.getFilename())
+          self.pointsToSample[subVar] = data[:,headers.index(subVar)]
+          subVarPb = 'ProbabilityWeight-' + subVar
+          if subVarPb in headers:
+            self.infoFromCustom[subVarPb] = data[:, headers.index(subVarPb)]
+          else:
+            self.infoFromCustom[subVarPb] = np.ones(lenRlz)
       if 'PointProbability' in headers:
         self.infoFromCustom['PointProbability'] = data[:,headers.index('PointProbability')]
+      else:
+        self.infoFromCustom['PointProbability'] = np.ones(lenRlz)
       if 'ProbabilityWeight' in headers:
         self.infoFromCustom['ProbabilityWeight'] = data[:,headers.index('ProbabilityWeight')]
+      else:
+        self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
     else:
       dataObj = self.assemblerDict['Source'][0][3]
+      lenRlz = len(dataObj)
+      dataSet = dataObj.asDataset()
       for var in self.toBeSampled.keys():
-        if var not in dataObj.getParaKeys('input') + dataObj.getParaKeys('output'):
-          self.raiseAnError(IOError,"the variable "+ var+ " not found in "+dataObj.type +" "+dataObj.name)
-        self.pointsToSample[var] = dataObj.getParam('input', var, nodeId = 'ending') if var in dataObj.getParaKeys('input') else dataObj.getParam('output', var, nodeId = 'ending')
-      if 'PointProbability'  in dataObj.getParaKeys('metadata'):
-        self.infoFromCustom['PointProbability'] = dataObj.getMetadata('PointProbability',nodeId='ending')
-      if 'ProbabilityWeight' in dataObj.getParaKeys('metadata'):
-        self.infoFromCustom['ProbabilityWeight'] = dataObj.getMetadata('ProbabilityWeight',nodeId='ending')
+        for subVar in var.split(','):
+          subVar = subVar.strip()
+          if subVar not in dataObj.getVars('input') + dataObj.getVars('output'):
+            self.raiseAnError(IOError,"the variable "+ subVar + " not found in "+ dataObj.type + " " + dataObj.name)
+          self.pointsToSample[subVar] = copy.copy(dataSet[subVar].values)
+          subVarPb = 'ProbabilityWeight-' + subVar
+          if subVarPb in dataObj.getVars('meta'):
+            self.infoFromCustom[subVarPb] = copy.copy(dataSet[subVarPb].values)
+          else:
+            self.infoFromCustom[subVarPb] = np.ones(lenRlz)
+      if 'PointProbability'  in dataObj.getVars('meta'):
+        self.infoFromCustom['PointProbability'] = copy.copy(dataSet['PointProbability'].values)
+      else:
+        self.infoFromCustom['PointProbability'] = np.ones(lenRlz)
+      if 'ProbabilityWeight' in dataObj.getVars('meta'):
+        self.infoFromCustom['ProbabilityWeight'] = copy.copy(dataSet['ProbabilityWeight'].values)
+      else:
+        self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
     self.limit = len(self.pointsToSample.values()[0])
     #TODO: add restart capability here!
     if self.restartData:
@@ -166,12 +192,10 @@ class CustomSampler(ForwardSampler):
     """
     # create values dictionary
     for var in self.toBeSampled.keys():
-      self.values[var] = self.pointsToSample[var][self.counter-1]
-    if 'PointProbability' in self.infoFromCustom.keys():
-      self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter-1]
-    if 'ProbabilityWeight' in self.infoFromCustom.keys():
-      self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][self.counter-1]
-    else:
-      self.inputInfo['ProbabilityWeight'] = 1.0
-
+      for subVar in var.split(','):
+        subVar = subVar.strip()
+        self.values[subVar] = self.pointsToSample[subVar][self.counter-1]
+        self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom['ProbabilityWeight-' + subVar][self.counter-1]
+    self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter-1]
+    self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][self.counter-1]
     self.inputInfo['SamplerType'] = 'Custom'
