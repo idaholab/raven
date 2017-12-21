@@ -129,9 +129,7 @@
       <Output>outcome</Output>
     </PointSet>
     <PointSet name="outPPS">
-      <Output>Astatus_FV  , Bstatus_FV  , Cstatus_FV  , Dstatus_FV
-              Astatus_RAW , Bstatus_RAW , Cstatus_RAW , Dstatus_RAW
-              Astatus_RRW , Bstatus_RRW , Cstatus_RRW , Dstatus_RRW</Output>
+      <Output>Astatus_FV, Bstatus_FV, Cstatus_FV, Dstatus_FV, Astatus_RAW, Bstatus_RAW, Cstatus_RAW, Dstatus_RAW, Astatus_RRW, Bstatus_RRW, Cstatus_RRW, Dstatus_RRW</Output>
     </PointSet>
   </DataObjects>
   

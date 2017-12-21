@@ -78,9 +78,12 @@
   </OutStreams>
  
   <DataObjects>
-	<HistorySet name="windTypData">
-	  <Input>x</Input>
+    <HistorySet name="windTypData">
+       <Input>x</Input>
       <Output>Time,Speed</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
     </HistorySet>  
 	<HistorySet name="windTypDataResampled">
       <Input>x</Input>
