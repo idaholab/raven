@@ -662,7 +662,7 @@ class HybridModel(Dummy):
           if isinstance(evaluation, Runners.Error):
             self.raiseAnError(RuntimeError, "The job identified by "+finishedRun.identifier+" failed!")
           # collect output in temporary data object
-          tempExportDict = evaluation #self.createExportDictionaryFromFinishedJob(finishedRun, False)
+          tempExportDict = evaluation
           exportDict = self.__mergeDict(exportDict, tempExportDict)
         if jobHandler.areTheseJobsFinished(uniqueHandler=uniqueHandler):
           self.raiseADebug("Jobs with uniqueHandler ", uniqueHandler, "are collected!")
@@ -689,7 +689,7 @@ class HybridModel(Dummy):
       if isinstance(evaluation, Runners.Error):
         self.raiseAnError(RuntimeError, "The model "+self.modelInstance.name+" identified by "+finishedRun[0].identifier+" failed!")
       # collect output in temporary data object
-      exportDict = evaluation #self.modelInstance.createExportDictionaryFromFinishedJob(finishedRun[0], True)
+      exportDict = evaluation
       self.raiseADebug("Create exportDict")
     # used in the collectOutput
     exportDict['useROM'] = useROM
@@ -705,8 +705,6 @@ class HybridModel(Dummy):
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
-    #exportDict = evaluation[1]
-    #exportDict = evaluation[1]
     useROM = evaluation['useROM']
     try:
       jobIndex = self.tempOutputs['uncollectedJobIds'].index(finishedJob.identifier)
@@ -715,9 +713,8 @@ class HybridModel(Dummy):
       jobIndex = None
     if jobIndex is not None and not useROM:
       self.tempTargetEvaluation.addRealization(evaluation)
-      #self.collectOutputFromDict(exportDict, self.tempTargetEvaluation)
       self.raiseADebug("ROM is invalid, collect ouptuts of Model with job identifier: {}".format(finishedJob.identifier))
-    Dummy.collectOutput(self, finishedJob, output )#, options = {'exportDict':exportDict})
+    Dummy.collectOutput(self, finishedJob, output )
 
   def __mergeDict(self,exportDict, tempExportDict):
     """
