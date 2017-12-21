@@ -220,7 +220,10 @@
     </PointSet>
     <HistorySet name="thermalConductivityComputationContainer">
         <Input>leftTemperature,rightTemperature</Input>
-        <Output>k,timeFromFirstModel</Output>
+        <Output>k</Output>
+        <options>
+            <pivotParameter>timeFromFirstModel</pivotParameter>
+        </options>
     </HistorySet>
   </DataObjects>
 
