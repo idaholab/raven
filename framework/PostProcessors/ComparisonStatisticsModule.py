@@ -452,6 +452,7 @@ class ComparisonStatistics(PostProcessor):
       reference = compareGroup.referenceData
       foundDataObjects = []
       for name, kind, rest in dataPulls:
+        print(kind)
         data = self.dataDict[name].getParametersValues(kind)
         if len(rest) == 1:
           foundDataObjects.append(data[rest[0]])
