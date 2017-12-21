@@ -346,6 +346,8 @@ class DataSet(DataObject):
       return self._outputs[:]
     elif subset == 'meta':
       return self._metavars[:]
+    elif subset == 'indexes':
+      return self.indexes[:]
     else:
       self.raiseAnError(KeyError,'Unrecognized subset choice: "{}"'.format(subset))
 
