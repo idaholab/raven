@@ -279,6 +279,7 @@
    prereq = test_output
    remove_unicode_identifier = true
    remove_whitespace = true
+   rel_err = 9.0E-4
  [../]
 
  [./load_and_push_reusing_same_hdf5]
