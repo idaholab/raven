@@ -232,7 +232,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         typicalDataHistories[index][feature] = subseqData[index][feature][smallestDeltaIndex,:]
     # now collapse the data into the typical history
     typicalData = {}
-    typicalData[self.pivotParameter] = np.concatenate(list(typicalDataHistories[index][self.pivotParameter] for index in range(numParallelSubsequences)))  
+    typicalData[self.pivotParameter] = np.concatenate(list(typicalDataHistories[index][self.pivotParameter] for index in range(numParallelSubsequences)))
     for feature in self.features:
       typicalData[feature] = np.concatenate(list(typicalDataHistories[index][feature] for index in range(numParallelSubsequences)))
     # sanity check, should probably be skipped for efficiency, as it looks like a debugging tool
@@ -253,7 +253,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       outputDict['data'][var][0] = inputDict[var][0]
     outputDict['dims']={}
     for var in self.features:
-      outputDict['dims'][var]=[self.pivotParameter] 
+      outputDict['dims'][var]=[self.pivotParameter]
     return outputDict
 
   def __computeECDF(self, data, binEdgesIn):
