@@ -168,7 +168,7 @@
     </HistorySet>
     <PointSet inputTs="2" name="outputMontecarloRomND">
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-      <Output>CladTempThreshold,time</Output>
+      <Output>CladTempThreshold</Output>
     </PointSet>
   </DataObjects>
 
