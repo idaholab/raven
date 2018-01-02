@@ -194,8 +194,11 @@ class CustomSampler(ForwardSampler):
     for var in self.toBeSampled.keys():
       for subVar in var.split(','):
         subVar = subVar.strip()
+        # assign the custom sampled variables values to the sampled variables
         self.values[subVar] = self.pointsToSample[subVar][self.counter-1]
+        # This is the custom sampler, assign the ProbabilityWeights based on the provided values
         self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom['ProbabilityWeight-' + subVar][self.counter-1]
+    # Construct probabilities based on the user provided information
     self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter-1]
     self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][self.counter-1]
     self.inputInfo['SamplerType'] = 'Custom'
