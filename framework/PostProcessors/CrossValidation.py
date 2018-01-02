@@ -256,6 +256,19 @@ class CrossValidation(PostProcessor):
     newInputs = newInput, cvEstimator
     return newInputs
 
+  #FIXME: Temporary method. Need to be rethought when the new Hybrid Model is developed
+  def _returnCharacteristicsOfCvGivenOutputName(self,outputName):
+    """
+      Method to return the metric name, type and target name given the output name
+      @ In, outputName, str, the output name
+      @ Out, info, dict, the dictionary containing the info
+    """
+    assert(len(outputName.split("_")) == 3)
+    info = {}
+    _, info['metricName'], info['targetName']  = outputName.split("_")
+    info['metricType'] = self.metricsDict[info['metricName']].metricType
+    return info
+
   def __generateTrainTestInputs(self, inputDict, trainIndex, testIndex):
     """
       Genenerate train and test set based on the given train index and test index

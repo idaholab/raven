@@ -5,11 +5,14 @@
     <created>2017-05-25</created>
     <classesTested>Samplers.EnsembleForward, Models.Dummy</classesTested>
     <description>
-       This test uses a Dummy Model in order to check that the values generated 
+       This test uses a Dummy Model in order to check that the values generated
        by functions in the ensemble sampler are correctly passed to the Model entity.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2018-01-02">added input data object to prevent same-input-as-output error</revision>
+    </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>EnsembleForwardTestFunction</WorkingDir>
     <Sequence>EnsembleForwardStep,EnsembleForwardOutstreamStep</Sequence>
@@ -32,15 +35,15 @@
       <upperBound>1</upperBound>
     </Normal>
   </Distributions>
-  
+
   <Functions>
      <External name='funct1' file='funct1.py'>
         <variable>x1</variable>
         <variable>x2</variable>
-     </External>  
+     </External>
      <External name='funct2' file='funct2.py'>
         <variable>x2</variable>
-     </External> 
+     </External>
   </Functions>
 
   <Samplers>
@@ -78,7 +81,7 @@
 
   <Steps>
     <MultiRun name='EnsembleForwardStep' sleepTime='0.0000001'>
-      <Input    class='DataObjects'   type='PointSet'         >PointsetEnsembleForward</Input>
+      <Input    class='DataObjects'   type='PointSet'         >input</Input>
       <Model    class='Models'        type='Dummy'            >MyDummy1</Model>
       <Sampler  class='Samplers'      type='EnsembleForward'  >testEnsembleForward</Sampler>
       <Output   class='DataObjects'   type='PointSet'         >PointsetEnsembleForward</Output>
@@ -90,6 +93,9 @@
   </Steps>
 
   <DataObjects>
+    <PointSet name='input'>
+      <Input>x1,x2,x3,x4,x5</Input>
+    </PointSet>
     <PointSet name='PointsetEnsembleForward'>
       <Input>x1,x2,x3,x4,x5</Input>
       <Output>OutputPlaceHolder</Output>

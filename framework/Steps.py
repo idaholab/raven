@@ -281,7 +281,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if hasattr(entities,'provideExpectedMetaKeys'):
           metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
     ## then give them to the output data objects
-    for out in inDictionary['Output']:
+    for out in inDictionary['Output']+(inDictionary['TargetEvaluation'] if 'TargetEvaluation' in inDictionary else []):
       if 'addExpectedMeta' in dir(out):
         out.addExpectedMeta(metaKeys)
 
@@ -552,6 +552,16 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     SingleRun._localInitializeStep(self,inDictionary)
+    # check that no input data objects are also used as outputs?
+    for out in inDictionary['Output']:
+      if out.type not in ['PointSet','HistorySet','DataSet']:
+        continue
+      for inp in inDictionary['Input']:
+        if inp.type not in ['PointSet','HistorySet','DataSet']:
+          continue
+        if inp == out:
+          self.raiseAnError(IOError,'The same data object should not be used as both <Input> and <Output> in the same MultiRun step! ' \
+              + 'Step: "{}", DataObject: "{}"'.format(self.name,out.name))
     self.counter = 0
     self._samplerInitDict['externalSeeding'] = self.initSeed
     self._initializeSampler(inDictionary)
