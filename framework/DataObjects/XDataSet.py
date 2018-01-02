@@ -1161,7 +1161,14 @@ class DataSet(DataObject):
     # can this for-loop be done in a comprehension?  The dtype seems to be a bit of an issue.
     data = np.zeros([rows,cols],dtype=object)
     for v,var in enumerate(self._orderedVars):
-      data[:,v] = source[var]
+      if len(source[var].shape) > 1:
+        # we can't set all at once, because the user gave us an ND array instead of a np.array(dtype=object) of np.array.
+        #    if we try -> ValueError: "could not broadcast input array from shape (#rlz,#time) into shape (#rlz)
+        for i in range(len(data)):
+          data[i,v] = source[var][i]
+      else:
+        # we can set it at once, the fast way.
+        data[:,v] = source[var]
     # set up collector as cached nd array of values -> TODO might be some wasteful copying here
     self._collector = cached_ndarray.cNDarray(values=data,dtype=object)
     # set datatypes for each variable
