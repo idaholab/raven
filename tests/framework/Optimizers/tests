@@ -47,7 +47,7 @@
   [./Infinite]
     type = 'RavenFramework'
     input = 'infinite.xml'
-    output = 'Infinite/opt_export_0.csv'
+    UnorderedCsv = 'Infinite/opt_export_1.csv'
     # The values of the CSV can't be tested, as "inf" is rejected in gold files currently
   [../]
   [./Preconditioner]

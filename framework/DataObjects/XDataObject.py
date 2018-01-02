@@ -189,6 +189,11 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           self.raiseAWarning('Multiple options were given to specify the output row to read! Using last entry:',self._selectOutput)
       # end options node
     # end input reading
+    # clear keywords InputPlaceHolder but NOT the OutputPlaceHolder, for legacy reasons
+    while 'InputPlaceHolder' in self._inputs:
+      self._inputs.remove('InputPlaceHolder')
+    #while 'OutputPlaceHolder' in self._outputs:
+    #  self._outputs.remove('OutputPlaceHolder')
     # set default pivot parameters, if needed
     self._setDefaultPivotParams()
     # remove index variables from input/output spaces, but silently, since we'll still have them available later

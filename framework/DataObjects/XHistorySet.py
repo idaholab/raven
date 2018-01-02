@@ -95,8 +95,6 @@ class HistorySet(DataSet):
     self._pivotParams = {self._tempPivotParam:self._outputs[:]}
 
   ### INTERNAL USE FUNCTIONS ###
-
-
   def _fromCSV(self,fileName,**kwargs):
     """
       Loads a dataset from custom RAVEN history csv.
@@ -110,11 +108,11 @@ class HistorySet(DataSet):
     self._loadCsvMeta(fileName)
     # load in main CSV
     ## read into dataframe
-    main = pd.read_csv(fileName+'.csv')
+    main = self._readPandasCSV(fileName+'.csv')
     nSamples = len(main.index)
     ## collect input space data
     for inp in self._inputs + self._metavars:
-      data[inp] = main[inp].values # TODO dtype?
+      data[inp] = main[inp].values
     ## get the sampleTag values if they're present, in case it's not just range
     if self.sampleTag in main:
       labels = main[self.sampleTag].values
@@ -125,22 +123,22 @@ class HistorySet(DataSet):
     # pre-build realization spots
     for out in self._outputs + self.indexes:
       data[out] = np.zeros(nSamples,dtype=object)
+    # read in secondary CSVs
     for i,sub in enumerate(subFiles):
       subFile = sub
       # check if the sub has an absolute path, otherwise take it from the master file (fileName)
       if not os.path.isabs(subFile):
         subFile = os.path.join(os.path.dirname(fileName),subFile)
+      # read in file
+      subDat = self._readPandasCSV(subFile)
       # first time create structures
-      subDat = pd.read_csv(subFile)
       if len(set(subDat.keys()).intersection(self.indexes)) != len(self.indexes):
         self.raiseAnError(IOError,'Importing HistorySet from .csv: the pivot parameters "'+', '.join(self.indexes)+'" have not been found in the .csv file. Check that the '
                                   'correct <pivotParameter> has been specified in the dataObject or make sure the <pivotParameter> is included in the .csv files')
       for out in self._outputs+self.indexes:
-        data[out][i] = subDat[out].values # TODO dtype?
-
-    self.load(data,style='dict',dims=self.getDimensions())
-    # read in secondary CSVs
+        data[out][i] = subDat[out].values
     # construct final data object
+    self.load(data,style='dict',dims=self.getDimensions())
 
   def _identifyVariablesInCSV(self,fileName):
     """

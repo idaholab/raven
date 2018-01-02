@@ -7,6 +7,9 @@
     <description>
       Tests the use of constants in the EnsembleForward sampler.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2018-01-02">added input data object to prevent same-input-as-output error</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -62,7 +65,7 @@
 
   <Steps>
     <MultiRun name='EnsembleForwardStep' sleepTime='0.0000001'>
-      <Input    class='DataObjects'   type='PointSet'         >PointsetEnsembleForward</Input>
+      <Input    class='DataObjects'   type='PointSet'         >input</Input>
       <Model    class='Models'        type='Dummy'            >MyDummy1</Model>
       <Sampler  class='Samplers'      type='EnsembleForward'  >testEnsembleForward</Sampler>
       <Output   class='DataObjects'   type='PointSet'         >PointsetEnsembleForward</Output>
@@ -74,6 +77,9 @@
   </Steps>
 
   <DataObjects>
+    <PointSet name='input'>
+      <Input>x2,x1,constantine</Input>
+    </PointSet>
     <PointSet name='PointsetEnsembleForward'>
       <Input>x2,x1,constantine</Input>
       <Output>OutputPlaceHolder</Output>

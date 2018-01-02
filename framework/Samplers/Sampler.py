@@ -711,9 +711,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # DO format the data as atleast_1d so it's consistent in the ExternalModel for users (right?)
       rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
       rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output'))
-      rlz['metadata'] = {'prefix':self.inputInfo['prefix'],
-                         'ProbabilityWeight':self.inputInfo['ProbabilityWeight'],
-                        }
+      rlz['metadata'] = copy.deepcopy(self.inputInfo) # TODO need deepcopy only because inputInfo is on self
       return 1,rlz
 
   def pcaTransform(self,varsDict,dist):
