@@ -266,7 +266,7 @@ class EnsembleModel(Dummy):
       # attention: from now on, the values for the following dict with respect to 'Input' and 'Output' keys are changed
       # to the liss of input or output parameters names
       self.modelsDictionary[modelIn[2]]['Input' ]           = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getVars('input')
-      self.modelsDictionary[modelIn[2]]['Output']           = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getVars("output")
+      self.modelsDictionary[modelIn[2]]['Output']           = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getVars("output") + self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getVars('indexes')
     # check if all the inputs passed in the step are linked with at least a model
     if not all(checkDictInputsUsage.values()):
       unusedFiles = ""
@@ -589,15 +589,6 @@ class EnsembleModel(Dummy):
     identifier = inputKwargs.pop('prefix')
     tempOutputs = {}
     tempTargetEvaluations = {}
-    #holdOutputSpace = inputKwargs.values()[-1]['holdOutputSpace'] if 'holdOutputSpace' in inputKwargs.values()[-1] else None
-    # the sampler or optimizer wants to hold the result of
-    #modelsOnHold    = []
-    #holdCollector   = {}
-    #if holdOutputSpace is not None:
-    #  modelsOnHold = self._identifyModelsOnHold(holdOutputSpace[0])
-    #  for modelOnHold in modelsOnHold:
-    #    holdCollector[modelOnHold] = {'exportDict':self.tempOutputs['forHold'][holdOutputSpace[1]]['outs'][modelOnHold],'targetEvaluations':self.tempOutputs['forHold'][holdOutputSpace[1]]['targetEvaluations'][modelOnHold]} #         self.tempOutputs['forHold'][holdOutputSpace[1]][modelOnHold]
-    #    holdCollector[modelOnHold] = self.modelsDictionary[modelOnHold]['TargetEvaluation'].getRealizationGivenEvaluationID(holdOutputSpace[1])
 
     for modelIn in self.orderList:
       self.tempTargetEvaluations[modelIn].reset()
@@ -698,16 +689,16 @@ class EnsembleModel(Dummy):
           # collect the target evaluation
           #if modelIn not in modelsOnHold:
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
-          #else:
-          #  tempTargetEvaluations[modelIn] = holdCollector[modelIn]['targetEvaluations']
-          #dataSet = tempTargetEvaluations[modelIn].realization(index=0,unpackXArray=True)
+          ## FIXME: The call asDataset() is unuseful here. It must be done because otherwise the realization(...) method from collector
+          ## does not return the indexes values (TO FIX)
+          tempTargetEvaluations[modelIn].asDataset()
+          # get realization
           dataSet = tempTargetEvaluations[modelIn].realization(index=0,unpackXArray=True)
-          #FIXME: the following dict construction is a temporary solution since the realization method returns scalars if we have a PointSet
+          ##FIXME: the following dict construction is a temporary solution since the realization method returns scalars if we have a PointSet
           dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
           responseSpace         = dataSet
-          #inputSpace            = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
           typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
-          gotOutputs[modelCnt]  = {key: dataSet[key] for key in tempTargetEvaluations[modelIn].getVars("output")}   # responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
+          gotOutputs[modelCnt]  = {key: dataSet[key] for key in tempTargetEvaluations[modelIn].getVars("output")+tempTargetEvaluations[modelIn].getVars("indexes")}
 
           #store the results in return dictionary
           # store the metadata
@@ -745,11 +736,3 @@ class EnsembleModel(Dummy):
           break
     returnEvaluation = returnDict, tempTargetEvaluations, tempOutputs
     return returnEvaluation
-
-  #def acceptHoldOutputSpace(self):
-  #  """
-  #    This method returns True if a certain output space can be kept on hold (so far, just the EnsembelModel can do that)
-  #    @ In, None
-  #    @ Out, acceptHoldOutputSpace, bool, True if a certain output space can be kept on hold
-  #  """
-  #  return True
