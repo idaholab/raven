@@ -190,7 +190,7 @@ class ExternalPostProcessor(PostProcessor):
       self.raiseAWarning('Output type File not yet implemented. I am going to skip it.')
     elif output.type == 'HDF5':
       self.raiseAnError(NotImplementedError,'Output type ' + type(output).__name__
-                         + ' not yet implemented!') # I am going to skip it.')
+                         + ' not yet implemented!')
     elif output.type in ['PointSet', 'HistorySet']:
       output.load(outputDict, style='dict', dims=output.getDimensions())
     else:

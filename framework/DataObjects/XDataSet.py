@@ -1450,9 +1450,6 @@ class DataSet(DataObject):
       self.types = [None]*len(self.getVars())
       for v,name in enumerate(self.getVars()):
         val = rlz[name]
-        #if isinstance(val,np.ndarray):
-        #  self.types[v] = self._getCompatibleType(val.item(0))
-        #else:
         self.types[v] = self._getCompatibleType(val)
 
   def _setScalingFactors(self,var=None):

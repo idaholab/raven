@@ -79,6 +79,7 @@
   <DataObjects>
     <PointSet name='input'>
       <Input>x2,x1,constantine</Input>
+    </PointSet>
     <PointSet name='PointsetEnsembleForward'>
       <Input>x2,x1,constantine</Input>
       <Output>OutputPlaceHolder</Output>
