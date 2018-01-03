@@ -234,6 +234,13 @@ def IMPLYgate(argumentValues):
   """
     Method that evaluates the IMPLY gate 
     Note that this gate requires a specific definition of the two inputs. This definition is specifed in the order of the events provided in the input file
+    As an example, BE1->BE2 is translated as:
+      <define-gate name="TOP">
+          <imply>
+              <basic-event name="BE1"/>
+              <basic-event name="BE2"/>
+          </imply>
+      </define-gate>
     @ In, argumentValues, list, list of values
     @ Out, outcome, float, calculated outcome of the gate
   """ 
