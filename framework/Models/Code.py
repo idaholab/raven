@@ -545,12 +545,55 @@ class Code(Model):
       if not ravenCase:
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
       else:
-        # we have the DataObjects
+        # we have the DataObjects -> raven-runs-raven case only so far
+        returnDict = {}
         for dataObj in finalCodeOutputFile.values():
-          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('inputs',nodeId='RecontructEnding'), 'input', True)
-          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('unstructuredinputs',nodeId='RecontructEnding'), 'input', True)
-          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('outputs',nodeId='RecontructEnding'), 'output', True)
-        returnDict = finalCodeOutputFile
+          # TODO can we replace all the aliases at once instead of piecemeal?
+          # TODO creating a dictionary, changing alias keys, then going back into the data object again seems REALLY SLOW
+          # TODO FIXME so for now, override this with the local method instead of calling the base class alias method, since we're doing data objects
+          for subset in self.alias.keys():
+            for frmName,mdlName in self.alias[subset].items():
+              whichVar = mdlName # not required, but consistent with _replaceVariableNamesWithAliasSystem call
+              if whichVar in dataObj.asDataset().data_vars.keys():
+                dataObj.renameVariable(whichVar,frmName)
+          # this results in all data objects being handed through.
+          # however, right now the realization expects realization format!  So give it that.
+          #   -> careful checking depends strongly on what kind of subspace each var is from
+          # get data as sliced-by-realization dictionary
+          data = dataObj.asDataset(outType='dict')['data']
+          # collect outputs
+          for var in dataObj.getVars('output'):
+            # if we have var values already, then we can't be replacing them with new values, so error out
+            if var in returnDict.keys():
+              self.raiseAnError(IOError,'When acquiring values from the inner RAVEN run, the same output variable ("{}") is in multiple data objects!'.format(var) +\
+                  'Please change the inner RAVEN run so that each output variable is unique among the data objects being read into the outer-level RAVEN run.')
+            # if we didn't error, then add the variable and its values to the return dict.
+            returnDict[var] = data[var]
+          # collect inputs, meta
+          for var in dataObj.getVars('input') + dataObj.getVars('meta'):
+            # if we have var values already, check first if they're (nearly) identical
+            if var in returnDict.keys():
+              # if not nearly identical, we have a problem, so error out
+              if not np.allclose(dataObj.asDataset()[var].values,returnDict[var],atol=1e-10,equal_nan=True):
+                self.raiseAnError(IOError,'When acquiring values from the inner RAVEN run, the same input variable ("{}") showed different values in different data objects!'.format(var) +\
+                    'Please change the inner RAVEN run so that each Input variable has only a single set of values among the output data objects')
+              # if identical, no problem, just keep what we already have
+            # if we don't already have var, add its values
+            else:
+              returnDict[var] = data[var]
+          # collect indexes
+          for var in dataObj.indexes:
+            # indexes can only come from HistorySet case currently (TODO FIXME assumption), so just take all the indexes
+            returnDict[var] = data[var]
+
+          #### OLD METHOD, kept for reference ####
+          #self._replaceVariablesNamesWithAliasSystem(dataObj.getVars('input'), 'input', True)
+          # TODO unstructured inputs not a part of ensemble anymore? FIXME
+          #self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('unstructuredinputs',nodeId='RecontructEnding'), 'input', True)
+          #self._replaceVariablesNamesWithAliasSystem(dataObj.getVars('output'), 'output', True)
+        #returnDict = finalCodeOutputFile
+          #### END OLD METHOD ####
+
       ## The last thing before returning should be to delete the temporary log
       ## file and any other file the user requests to be cleared
       if deleteSuccessfulLogFiles:
@@ -624,6 +667,10 @@ class Code(Model):
     self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(AttributeError,"No available Output to collect")
+
+    print('DEBUGG Code "{}" collect output rlz:'.format(self.name))
+    for k,v in evaluation.items():
+      print('  ',k,v)
 
     output.addRealization(evaluation)
 

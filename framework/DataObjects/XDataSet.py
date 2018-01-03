@@ -526,6 +526,41 @@ class DataSet(DataObject):
     #either way reset kdtree
     self.inputKDTree = None
 
+  def renameVariable(self,old,new):
+    """
+      Changes the name of a variable from "old" to "new".
+      @ In, old, str, old name
+      @ In, new, str, new name
+      @ Out, None
+    """
+    # determine where the old variable was
+    isInput = old in self._inputs
+    isOutput = old in self._outputs
+    isMeta = old in self._metavars
+    isIndex = old in self.indexes
+    # make the changes to the variable listings
+    if isInput:
+      self._inputs = list(a if (a != old) else new for a in self._inputs)
+    if isOutput:
+      self._outputs = list(a if (a != old) else new for a in self._outputs)
+    if isMeta:
+      self._metavars = list(a if (a != old) else new for a in self._metavars)
+    if isIndex:
+      # change the pivotParameters listing, as well as the sync/unsynced listings
+      self._pivotParams[new] = self._pivotParams.pop(old)
+      if old in self._alignedIndexes.keys():
+        self._alignedIndexes[new] = self._alignedIndexes.pop(old)
+      else:
+        self._orderedVars = list(a if a != old else new for a in self._orderedVars)
+    # if in/out/meta, change allvars (TODO wastefully already done if an unaligned index)
+    if isInput or isOutput or isMeta:
+      self._orderedVars = list(a if a != old else new for a in self._orderedVars)
+    # change scaling factor entry
+    if old in self._scaleFactors:
+      self._scaleFactors[new] = self._scaleFactors.pop(old)
+    if self._data is not None:
+      self._data.rename({old:new},inplace=True)
+
   def reset(self):
     """
       Sets this object back to its initial state.
@@ -1031,6 +1066,7 @@ class DataSet(DataObject):
         current = rlz[var].dtype
         # Note, I don't like this action happening here, but I don't have an alternative way to assure
         # indexes have the correct dtype.  In the first pass, they aren't going into the collector, but into alignedIndexes.
+        print('DEBUGG setting index',var)
         rlz[var] = np.array(rlz[var],dtype=dtype)
     # for now, leave them as the arrays they are, except single entries need converting
     for var,val in rlz.items():

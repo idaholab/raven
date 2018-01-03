@@ -297,9 +297,11 @@ class RAVEN(CodeInterfaceBase):
     for filename in self.linkedDataObjectOutStreamsNames:
       dataObjectInfo = self.outStreamsNamesAndType[filename]
       dataObjectsToReturn[dataObjectInfo[0]] = DataObjects.returnInstance(dataObjectInfo[1],None)
+      # dummy message handler to handle message parsing, TODO this stinks and should be fixed.
+      dataObjectsToReturn[dataObjectInfo[0]].messageHandler = DataObjects.XDataObject.MessageCourier()
       dataObjectsToReturn[dataObjectInfo[0]]._readMoreXML(dataObjectInfo[2])
       dataObjectsToReturn[dataObjectInfo[0]].name = filename
-      dataObjectsToReturn[dataObjectInfo[0]].loadXMLandCSV(os.path.join(workingDir,self.innerWorkingDir))
+      dataObjectsToReturn[dataObjectInfo[0]].load(os.path.join(workingDir,self.innerWorkingDir,filename),style='csv')
     return dataObjectsToReturn
 
 

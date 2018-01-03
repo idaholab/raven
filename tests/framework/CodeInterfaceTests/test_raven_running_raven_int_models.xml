@@ -48,7 +48,7 @@
         <alias variable="loss_factor" type="input">Models|ROM@subType:SciKitLearn@name:ROM1|C</alias>
         <alias variable="tollerance"  type="input">Models|ROM@subType:SciKitLearn@name:ROM1|tol</alias>
         <alias variable="DG1recoveryTime"  type="input">Samplers|Grid@name:gridRom|constant@name:DG1recoveryTime</alias>
- 
+
     </Code>
   </Models>
 
