@@ -1,0 +1,106 @@
+[Tests]
+  [./FTimporter_and]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_and.xml'
+    csv    = 'FTimporter_and/PrintPS.csv'
+    output = 'FTimporter_and/PrintPS.xml'
+  [../]
+  [./FTimporter_and_withNOT]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_and_withNOT.xml'
+    csv    = 'FTimporter_and_withNOT/PrintPS.csv'
+    output = 'FTimporter_and_withNOT/PrintPS.xml'
+  [../]
+  [./FTimporter_and_withNOT_embedded]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_and_withNOT_embedded.xml'
+    csv    = 'FTimporter_and_withNOT_embedded/PrintPS.csv'
+    output = 'FTimporter_and_withNOT_embedded/PrintPS.xml'
+  [../]
+
+  [./FTimporter_and_withNOT_withNOT_embedded]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_and_withNOT_withNOT_embedded.xml'
+    csv    = 'FTimporter_and_withNOT_withNOT_embedded/PrintPS.csv'
+    output = 'FTimporter_and_withNOT_withNOT_embedded/PrintPS.xml'
+  [../]
+
+  [./FTimporter_atleast]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_atleast.xml'
+    csv    = 'FTimporter_atleast/PrintPS.csv'
+    output = 'FTimporter_atleast/PrintPS.xml'
+  [../]
+  [./FTimporter_cardinality]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_cardinality.xml'
+    csv    = 'FTimporter_cardinality/PrintPS.csv'
+    output = 'FTimporter_cardinality/PrintPS.xml'
+  [../]
+  [./FTimporter_component]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_component.xml'
+    csv    = 'FTimporter_component/PrintPS.csv'
+    output = 'FTimporter_component/PrintPS.xml'
+  [../]
+  [./FTimporter_iff]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_iff.xml'
+    csv    = 'FTimporter_iff/PrintPS.csv'
+    output = 'FTimporter_iff/PrintPS.xml'
+  [../]
+  [./FTimporter_imply]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_imply.xml'
+    csv    = 'FTimporter_imply/PrintPS.csv'
+    output = 'FTimporter_imply/PrintPS.xml'
+  [../]
+  [./FTimporter_multipleFTs]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_multipleFTs.xml'
+    csv    = 'FTimporter_multipleFTs/PrintPS.csv'
+    output = 'FTimporter_multipleFTs/PrintPS.xml'
+  [../]
+  [./FTimporter_nand]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_nand.xml'
+    csv    = 'FTimporter_nand/PrintPS.csv'
+    output = 'FTimporter_nand/PrintPS.xml'
+  [../]
+  [./FTimporter_nor]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_nor.xml'
+    csv    = 'FTimporter_nor/PrintPS.csv'
+    output = 'FTimporter_nor/PrintPS.xml'
+  [../]
+  [./FTimporter_or]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_or.xml'
+    csv    = 'FTimporter_or/PrintPS.csv'
+    output = 'FTimporter_or/PrintPS.xml'
+  [../]
+  [./FTimporter_or_houseEvent]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_or_houseEvent.xml'
+    csv    = 'FTimporter_or_houseEvent/PrintPS.csv'
+    output = 'FTimporter_or_houseEvent/PrintPS.xml'
+  [../]
+  [./FTimporter_xor]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_xor.xml'
+    csv    = 'FTimporter_xor/PrintPS.csv'
+    output = 'FTimporter_xor/PrintPS.xml'
+  [../]
+  [./FTimporter_not]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_not.xml'
+    csv    = 'FTimporter_not/PrintPS.csv'
+    output = 'FTimporter_not/PrintPS.xml'
+  [../]
+  [./FTimporter_doubleNot]
+    type   = 'RavenFramework'
+    input  = 'test_FTimporter_doubleNot.xml'
+    csv    = 'FTimporter_doubleNot/PrintPS.csv'
+    output = 'FTimporter_doubleNot/PrintPS.xml'
+  [../]
+[]
