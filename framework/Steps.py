@@ -35,6 +35,7 @@ if sys.version_info.major > 2:
 else:
   import cPickle as pickle
 import copy
+import numpy as np
 #import pickle as cloudpickle
 import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
@@ -878,7 +879,8 @@ class IOStep(Step):
       for i in range(len(inDictionary['Input'])):
         if self.actionType[i].startswith('dataObjects-'):
           inInput = inDictionary['Input'][i]
-          inInput.loadXMLandCSV(self.fromDirectory)
+          filename = os.path.join(self.fromDirectory, inInput.name)
+          inInput.load(filename, style='csv')
 
     #Initialize all the OutStreamPrint and OutStreamPlot outputs
     for output in inDictionary['Output']:
@@ -906,7 +908,9 @@ class IOStep(Step):
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
         ## TODO convert to load function when it can handle unstructured multiple realizations
         for rlzNo in range(len(inDictionary['Input'][i])):
-          outputs[i].addRealization(inDictionary['Input'][i].realization(rlzNo,unpackXArray=True))
+          rlz = inDictionary['Input'][i].realization(rlzNo, unpackXArray=True)
+          rlz = dict((var,np.atleast_1d(val)) for var, val in rlz.items())
+          outputs[i].addRealization(rlz)
 
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
