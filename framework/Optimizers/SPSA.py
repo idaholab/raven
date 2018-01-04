@@ -330,7 +330,7 @@ class SPSA(GradientBasedOptimizer):
       if self.counter['perturbation'][traj] == 1:
         # Generate all the perturbations at once, then we can submit them one at a time
         ck = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
-        varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars(traj)) #varK = self.counter['recentOptHist'][traj][0]['inputs']
+        varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars(traj))
         #check the submission queue is empty; otherwise something went wrong # TODO this is a sanity check, might be removed for efficiency
         #TODO this same check is in GradientBasedOptimizer.queueUpOptPointRuns, they might benefit from abstracting
         if len(self.submissionQueue[traj]) > 0:

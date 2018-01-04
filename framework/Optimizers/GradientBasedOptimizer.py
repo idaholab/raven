@@ -380,7 +380,6 @@ class GradientBasedOptimizer(Optimizer):
         #same coordinate check
         oldInputSpace = set(self.optVarsHist[traj][varsUpdate].items())
         curInputSpace = set(dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars()).items())
-        #curInputSpace = set(self.counter['recentOptHist'][traj][0]['inputs'].items())
         sameCoordinateCheck = oldInputSpace == curInputSpace
         self.raiseAMessage(printString.format('Same coordinate check',str(minStepSizeCheck)))
         converged = converged or sameCoordinateCheck
@@ -554,9 +553,6 @@ class GradientBasedOptimizer(Optimizer):
               rlz.update(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
               rlz.update(outputs)
               self.counter['recentOptHist'][traj][0] = rlz
-              #self.counter['recentOptHist'][traj][0] = {}
-              #self.counter['recentOptHist'][traj][0]['inputs'] = self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
-              #self.counter['recentOptHist'][traj][0]['output'] = currentObjectiveValue
               if traj not in self.counter['prefixHistory']:
                 self.counter['prefixHistory'][traj] = []
               self.counter['prefixHistory'][traj].append(prefix)
