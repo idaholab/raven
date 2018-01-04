@@ -1,24 +1,26 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers.BealeFiniteDifference</name>
-    <author>alfoa</author>
-    <created>2017-09-11</created>
-    <classesTested>Optimizer.FiniteDifferenceGradientOptimizer</classesTested>
+    <name>framework/Optimizers.BealeFinal</name>
+    <author>talbpaul</author>
+    <created>2018-01-04</created>
+    <classesTested>Optimizer</classesTested>
     <description>
-      This test runs the optimization (Finite difference forward) on Beale's function.  It tests analytic optimization values
-      as well as the mechanical operation of the Finite Difference optimizer.     </description>
+      This test runs the optimization on Beale's function.  It tests analytic optimization values
+      as well as the mechanical operation of the test.  Also tests the "gainGrowthFactor" and
+      "gainShrinkFactor" convergence parameters.
+
+      Different from the Beale test, it only prints the final optimal point as part of the OutStream printing,
+      through the Optimizer flag initialization.writeSteps as final.
+    </description>
     <analytic>
       This test uses Beale's function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
-    <revisions>
-      <revision author="talbpaul" date="2018-01-04">switch from snapshot to writeSteps final</revision>
-    </revisions>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>BealeFiniteDifference</WorkingDir>
+    <WorkingDir>BealeFinal</WorkingDir>
     <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -27,7 +29,7 @@
     <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
-      <Optimizer class="Optimizers" type="FiniteDifferenceGradientOptimizer">opter</Optimizer>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
@@ -38,7 +40,7 @@
   </Steps>
 
   <Optimizers>
-    <FiniteDifferenceGradientOptimizer name="opter">
+    <SPSA name="opter">
       <initialization>
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
@@ -54,15 +56,15 @@
       <variable name="x">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
-        <initial>3,0</initial>
+        <initial>2,2,0,-2,-2</initial>
       </variable>
       <variable name="y">
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
-        <initial>0,0</initial>
+        <initial>2,-2,0,2,-2</initial>
       </variable>
       <objectVar>ans</objectVar>
-    </FiniteDifferenceGradientOptimizer>
+    </SPSA>
   </Optimizers>
 
   <Models>

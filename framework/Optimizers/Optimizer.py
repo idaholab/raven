@@ -81,6 +81,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.optVarsInit['ranges']          = {}                        # Dict of the ranges (min and max) of each variable's domain
     self.initSeed                       = None                      # Seed for random number generators
     self.optType                        = None                      # Either max or min
+    self.writeSolnExportOn              = None                      # Determines when we write to solution export (every step or final solution)
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
     self.initializationSampler          = None                      # Sampler that can be used to initialize the optimizer trajectories
     self.optVarsInitialized             = {}                        # Dict {var1:<initial> present?,var2:<initial> present?}
@@ -249,8 +250,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.initSeed = int(childChild.text)
           elif childChild.tag == 'thresholdTrajRemoval':
             self.thresholdTrajRemoval = float(childChild.text)
+          elif childChild.tag == 'writeSteps':
+            if childChild.text.strip().lower() == 'every':
+              self.writeSolnExportOn = 'every'
+            elif childChild.text.strip().lower() == 'final':
+              self.writeSolnExportOn = 'final'
+            else:
+              self.raiseAnError(IOError,'Unexpected frequency for <writeSteps>: "{}". Expected "every" or "final".')
           else:
-            self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
+            self.raiseAnError(IOError,'Unknown tag: '+childChild.tag)
 
       elif child.tag == "convergence":
         for childChild in child:
@@ -297,6 +305,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           elif subnode.tag == 'sequence':
             self.mlSequence = list(x.strip() for x in subnode.text.split(','))
 
+    if self.writeSolnExportOn is None:
+      # default
+      self.writeSolnExportOn = 'every'
+    self.raiseAMessage('Writing to solution export on "{}" optimizer iteration.'.format(self.writeSolnExportOn))
     if self.optType is None:
       self.optType = 'min'
     if self.thresholdTrajRemoval is None:
@@ -660,7 +672,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         # do we have any opt points yet?
         if len(self.counter['recentOptHist'][traj][0]) > 0:
           # get the latset optimization point (normalized)
-          latestPoint = self.counter['recentOptHist'][traj][0]['inputs']
+          latestPoint = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars())
           #some flags for clarity of checking
           justStarted = self.mlDepth[traj] is None
           inInnermost = self.mlDepth[traj] is not None and self.mlDepth[traj] == len(self.mlSequence)-1
@@ -995,6 +1007,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     pass
+
+  def finalizeSampler(self,failedRuns):
+    """
+      Method called at the end of the Step when no more samples will be taken.  Closes out the optimizer for this step.
+      @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
+      @ Out, None
+    """
+    self.handleFailedRuns(failedRuns)
 
   def handleFailedRuns(self,failedRuns):
     """
