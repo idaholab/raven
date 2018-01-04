@@ -51,6 +51,7 @@ class ETImporter(PostProcessor):
     PostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR ET IMPORTER'
     self.ETFormat = None
+    self.expand   = False
     self.allowedFormats = ['OpenPSA']
 
   @classmethod
@@ -64,6 +65,7 @@ class ETImporter(PostProcessor):
     """
     inputSpecification = super(ETImporter, cls).getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("expand"    , contentType=InputData.StringType))
     return inputSpecification
 
   def initialize(self, runInfo, inputs, initDict) :
@@ -97,8 +99,16 @@ class ETImporter(PostProcessor):
     fileFormat = paramInput.findFirst('fileFormat')
     self.fileFormat = fileFormat.value
     if self.fileFormat not in self.allowedFormats:
-      self.raiseAnError(IOError,
-                          'ETImporterPostProcessor Post-Processor ' + self.name + ', format ' + str(self.fileFormat) + ' : is not supported')
+      self.raiseAnError(IOError, 'ETImporterPostProcessor Post-Processor ' + self.name + ', format ' + str(self.fileFormat) + ' : is not supported')
+    
+    expand = paramInput.findFirst('expand')
+    self.expand = expand.value  
+    if self.expand in ['True','true']:
+      self.expand = True
+    elif self.expand in ['false','False']:
+      self.expand = False
+    else:
+      self.raiseAnError(IOError, 'ETImporterPostProcessor Post-Processor ' + self.name + ', expand ' + str(self.expand) + ' : is not recognized')
 
   def run(self, inputs):
     """
@@ -300,6 +310,10 @@ class ETImporter(PostProcessor):
     for node in root.find('initial-state'):
       newRows = self.constructPointDFS(node, variables, values, etMap, pointSet, rowCounter)
       rowCounter += newRows
+      
+    if self.expand:
+      pointSet = self.expandPointSet(pointSet)
+      
     outputDict = {}
     outputDict['inputs'] = {}
     outputDict['outputs'] = {}
@@ -308,7 +322,26 @@ class ETImporter(PostProcessor):
     outputDict['outputs']['sequence'] = pointSet[:, -1]
 
     return outputDict, variables
-
+  
+  def expandPointSet(self,pointSet):
+    """
+      This method performs a full-factorial expansion of the ET: if a branch contains a -1 element this method
+      duplicate the branch; each duplicated branch contains element values equal to +1 and 0.
+      @ In,  pointSet, np.array, original point set
+      @ Out, pointSet, np.array, expanded point set
+    """
+    for col in range(pointSet.shape[1]):
+      indexes = np.where(pointSet[:,col] == -1)[0]
+      if indexes.size>0:
+        for idx in indexes:
+          rowToBeAdded = copy.deepcopy(pointSet[idx,:])
+          rowToBeAdded[col] = +1
+          pointSet = np.vstack([pointSet,rowToBeAdded])
+          pointSet[idx,col] = 0          
+          #self.expandRow(pointSet,idx,col)
+    return pointSet
+  
+  
   def checkLinkedTree(self, root):
     """
       This method checks if the provided root of the ET contains links to other ETs.

@@ -23,4 +23,10 @@
     csv    = 'ETimporterCoupledET/PrintPS.csv'
     output = 'ETimporterCoupledET/PrintPS.xml ETimporterCoupledET/eventTreeMain_mapping.xml'
   [../]
+  [./ET_importer_OpenPSA_expand]
+    type   = 'RavenFramework'
+    input  = 'test_ETimporter_expand.xml'
+    csv    = 'ETimporterExpand/PrintPS.csv'
+    output = 'ETimporterExpand/PrintPS.xml'
+  [../]
 []

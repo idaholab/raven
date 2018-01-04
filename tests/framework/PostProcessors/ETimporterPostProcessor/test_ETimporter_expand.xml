@@ -1,31 +1,29 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors.ETImporterPostProcessorSymbolic</name>
+    <name>framework/PostProcessors/ETimporterPostProcessorExpand</name>
     <author>mandd</author>
     <created>2017-11-07</created>
     <classesTested>ETimporter</classesTested>
     <description>
       Tests of the ETImporter post-processor: it read an event-tree (ET) from an .xml file (eventTree.xml) and it imports
       the ET structure into a PointSet. Note that the ET needs to be in an OpenPSA format.
-      In particular, this tests checks that capability of the PP to manage symbolic ID for the ET sequences. Note that
-      in this configuration, a mapping file is generated
     </description>
   </TestInfo>
   
   <RunInfo>
-    <WorkingDir>ETimporterSymbolicSequence</WorkingDir>
+    <WorkingDir>ETimporterExpand</WorkingDir>
     <Sequence>import,printOnFile</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="eventTreeTest" type="">eventTreeSymbolic.xml</Input>
+    <Input name="eventTreeTest" type="">eventTree.xml</Input>
   </Files>
   
   <Models>
     <PostProcessor name="ETimporter" subType="ETImporter">
       <fileFormat>OpenPSA</fileFormat>
-      <expand>False</expand>
+      <expand>True</expand>
     </PostProcessor>   
   </Models>
 
