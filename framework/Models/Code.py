@@ -547,10 +547,17 @@ class Code(Model):
       else:
         # we have the DataObjects -> raven-runs-raven case only so far
         returnDict = {}
+        # we have two tasks to do: collect the input/output/meta/indexes from the INNER raven run, and ALSO the input from the OUTER raven run.
+        #  -> in addition, we have to fix the probability weights.
+        ## first, collect from the INNER only
+        numRlz = None
         for dataObj in finalCodeOutputFile.values():
-          # TODO can we replace all the aliases at once instead of piecemeal?
-          # TODO creating a dictionary, changing alias keys, then going back into the data object again seems REALLY SLOW
-          # TODO FIXME so for now, override this with the local method instead of calling the base class alias method, since we're doing data objects
+          # store the number of realizations (note a consistency check should be done in the CodeInterface.finalizeCodeOutput, so we don't check consistency here)
+          if numRlz is None:
+            numRlz = len(dataObj)
+          # replace aliases
+          ## TODO can we replace all the aliases at once instead of piecemeal?
+          ## TODO FIXME so for now, override this with the local method instead of calling the base class alias method, since we're doing data objects
           for subset in self.alias.keys():
             for frmName,mdlName in self.alias[subset].items():
               whichVar = mdlName # not required, but consistent with _replaceVariableNamesWithAliasSystem call
@@ -559,7 +566,7 @@ class Code(Model):
           # this results in all data objects being handed through.
           # however, right now the realization expects realization format!  So give it that.
           #   -> careful checking depends strongly on what kind of subspace each var is from
-          # get data as sliced-by-realization dictionary
+          # we need to get data as sliced-by-realization dictionary, since we run batches in the inner RAVEN
           data = dataObj.asDataset(outType='dict')['data']
           # collect outputs
           for var in dataObj.getVars('output'):
@@ -585,6 +592,9 @@ class Code(Model):
           for var in dataObj.indexes:
             # indexes can only come from HistorySet case currently (TODO FIXME assumption), so just take all the indexes
             returnDict[var] = data[var]
+        ## second, collect from the OUTER input space
+        ## -> multiply the entry per realization
+
 
           #### OLD METHOD, kept for reference ####
           #self._replaceVariablesNamesWithAliasSystem(dataObj.getVars('input'), 'input', True)

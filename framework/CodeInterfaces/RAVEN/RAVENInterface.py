@@ -293,15 +293,38 @@ class RAVEN(CodeInterfaceBase):
                                                  (internally we check if the return variable is a dict and if it is returned by RAVEN (if not, we error out))
     """
 
+    ##### TODO This is an exception to the way CodeInterfaces usually run.
+    # The return dict for this CodeInterface is a dictionary of data objects (either one or two of them, up to one each point set and history set).
+    # Normally, the end result of this method is producing a CSV file with the data to load.
+    # When data objects are returned, this triggers an "if" path in Models/Code.py in evaluateSample().  There's an "else"
+    # that can be found by searching for the comment "we have the DataObjects -> raven-runs-raven case only so far".
+    # See more details there.
+    #####
     dataObjectsToReturn = {}
+    numRlz = None
     for filename in self.linkedDataObjectOutStreamsNames:
+      # load the output CSV into a data object, so we can return that
+      ## load the XML initialization information and type
       dataObjectInfo = self.outStreamsNamesAndType[filename]
-      dataObjectsToReturn[dataObjectInfo[0]] = DataObjects.returnInstance(dataObjectInfo[1],None)
+      # create an instance of the correct data object type
+      data = DataObjects.returnInstance(dataObjectInfo[1],None)
       # dummy message handler to handle message parsing, TODO this stinks and should be fixed.
-      dataObjectsToReturn[dataObjectInfo[0]].messageHandler = DataObjects.XDataObject.MessageCourier()
-      dataObjectsToReturn[dataObjectInfo[0]]._readMoreXML(dataObjectInfo[2])
-      dataObjectsToReturn[dataObjectInfo[0]].name = filename
-      dataObjectsToReturn[dataObjectInfo[0]].load(os.path.join(workingDir,self.innerWorkingDir,filename),style='csv')
+      data.messageHandler = DataObjects.XDataObject.MessageCourier()
+      # initialize the data object by reading the XML
+      data._readMoreXML(dataObjectInfo[2])
+      # set the name, then load the data
+      data.name = filename
+      data.load(os.path.join(workingDir,self.innerWorkingDir,filename),style='csv')
+      # check consistency of data object number of realizations
+      if numRlz is None:
+        # set the standard if you're the first data object
+        numRlz = len(data)
+      else:
+        # otherwise, check that the number of realizations is appropriate
+        if len(data) != numRlz:
+          raise IOError('The number of realizations in output CSVs from the inner RAVEN run are not consistent!  In "{}" recieved "{}" realization(s), but other data objects had "{}" realization(s)!'.format(data.name,len(data),numRlz)
+      # store the object to return
+      dataObjectsToReturn[dataObjectInfo[0]] = data
     return dataObjectsToReturn
 
 
