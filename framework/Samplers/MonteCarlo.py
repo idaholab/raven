@@ -179,10 +179,9 @@ class MonteCarlo(ForwardSampler):
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ]  = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       if self.samplingType == 'uniform':
-        self.inputInfo['ProbabilityWeight'  ] = weight
+        self.inputInfo['ProbabilityWeight'] = weight
       else:
-        self.inputInfo['ProbabilityWeight' ] = 1. #MC weight is 1/N => weight is one
-
+        self.inputInfo['ProbabilityWeight'] = 1. #MC weight is 1/N => weight is one
     # reassign SampledVarsPb to fully correlated variables
     self._reassignSampledVarsPbToFullyCorrVars()
     self.inputInfo['SamplerType'] = 'MonteCarlo'

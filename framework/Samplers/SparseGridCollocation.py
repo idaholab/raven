@@ -317,8 +317,6 @@ class SparseGridCollocation(Grid):
 
     self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-    # reassign SampledVarsPb to fully correlated variables
-    self._reassignSampledVarsPbToFullyCorrVars()
     self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 
   def readFromROM(self):
