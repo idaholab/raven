@@ -141,7 +141,7 @@ class DataSet(DataObject):
       Before actually adding the realization, data is formatted for this data object.
       @ In, rlz, dict, {var:val} format where
                          "var" is the variable name as a string,
-                         "val" is either a float or a np.ndarray of values.
+                         "val" is either a np.ndarray of values.
       @ Out, None
     """
     # protect against back-changing realization
@@ -420,9 +420,7 @@ class DataSet(DataObject):
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
-    # FIXME the caller should have no idea whether to read the collector or not.
-    # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in
-    # TODO option to read both collector and data for matches/indices
+    # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in?
     ## first, check that some direction was given, either an index or a match to find
     if (index is None and matchDict is None) or (index is not None and matchDict is not None):
       self.raiseAnError(TypeError,'Either "index" OR "matchDict" (not both) must be specified to use "realization!"')
@@ -1174,6 +1172,9 @@ class DataSet(DataObject):
       @ In, kwargs, dict, optional, additional arguments
       @ Out, None
     """
+    # if anything is in the collector, collapse it first
+    if self._collector is not None:
+      self.asDataset()
     # not safe to default to dict, so if "dims" not specified set it here
     if dims is None:
       dims = {}

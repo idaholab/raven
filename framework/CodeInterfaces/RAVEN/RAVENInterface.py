@@ -322,7 +322,7 @@ class RAVEN(CodeInterfaceBase):
       else:
         # otherwise, check that the number of realizations is appropriate
         if len(data) != numRlz:
-          raise IOError('The number of realizations in output CSVs from the inner RAVEN run are not consistent!  In "{}" recieved "{}" realization(s), but other data objects had "{}" realization(s)!'.format(data.name,len(data),numRlz)
+          raise IOError('The number of realizations in output CSVs from the inner RAVEN run are not consistent!  In "{}" received "{}" realization(s), but other data objects had "{}" realization(s)!'.format(data.name,len(data),numRlz))
       # store the object to return
       dataObjectsToReturn[dataObjectInfo[0]] = data
     return dataObjectsToReturn

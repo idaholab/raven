@@ -544,57 +544,40 @@ class Code(Model):
           returnDict[header] = data
       if not ravenCase:
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
+        returnDict.update(kwargs)
+        returnValue = (kwargs['SampledVars'],returnDict)
+        exportDict = self.createExportDictionary(returnValue)
       else:
         # we have the DataObjects -> raven-runs-raven case only so far
-        returnDict = {}
         # we have two tasks to do: collect the input/output/meta/indexes from the INNER raven run, and ALSO the input from the OUTER raven run.
         #  -> in addition, we have to fix the probability weights.
-        ## first, collect from the INNER only
-        numRlz = None
-        for dataObj in finalCodeOutputFile.values():
-          # store the number of realizations (note a consistency check should be done in the CodeInterface.finalizeCodeOutput, so we don't check consistency here)
-          if numRlz is None:
-            numRlz = len(dataObj)
-          # replace aliases
-          ## TODO can we replace all the aliases at once instead of piecemeal?
-          ## TODO FIXME so for now, override this with the local method instead of calling the base class alias method, since we're doing data objects
-          for subset in self.alias.keys():
-            for frmName,mdlName in self.alias[subset].items():
-              whichVar = mdlName # not required, but consistent with _replaceVariableNamesWithAliasSystem call
-              if whichVar in dataObj.asDataset().data_vars.keys():
-                dataObj.renameVariable(whichVar,frmName)
-          # this results in all data objects being handed through.
-          # however, right now the realization expects realization format!  So give it that.
-          #   -> careful checking depends strongly on what kind of subspace each var is from
-          # we need to get data as sliced-by-realization dictionary, since we run batches in the inner RAVEN
-          data = dataObj.asDataset(outType='dict')['data']
-          # collect outputs
-          for var in dataObj.getVars('output'):
-            # if we have var values already, then we can't be replacing them with new values, so error out
-            if var in returnDict.keys():
-              self.raiseAnError(IOError,'When acquiring values from the inner RAVEN run, the same output variable ("{}") is in multiple data objects!'.format(var) +\
-                  'Please change the inner RAVEN run so that each output variable is unique among the data objects being read into the outer-level RAVEN run.')
-            # if we didn't error, then add the variable and its values to the return dict.
-            returnDict[var] = data[var]
-          # collect inputs, meta
-          for var in dataObj.getVars('input') + dataObj.getVars('meta'):
-            # if we have var values already, check first if they're (nearly) identical
-            if var in returnDict.keys():
-              # if not nearly identical, we have a problem, so error out
-              if not np.allclose(dataObj.asDataset()[var].values,returnDict[var],atol=1e-10,equal_nan=True):
-                self.raiseAnError(IOError,'When acquiring values from the inner RAVEN run, the same input variable ("{}") showed different values in different data objects!'.format(var) +\
-                    'Please change the inner RAVEN run so that each Input variable has only a single set of values among the output data objects')
-              # if identical, no problem, just keep what we already have
-            # if we don't already have var, add its values
-            else:
-              returnDict[var] = data[var]
-          # collect indexes
-          for var in dataObj.indexes:
-            # indexes can only come from HistorySet case currently (TODO FIXME assumption), so just take all the indexes
-            returnDict[var] = data[var]
-        ## second, collect from the OUTER input space
-        ## -> multiply the entry per realization
-
+        ## get the number of realizations
+        ### we already checked consistency in the CodeInterface, so just get the length of the first data object
+        numRlz = len(finalCodeOutputFile.values()[0])
+        ## set up the return container
+        exportDict = {'RAVEN_isBatch':True,'realizations':[]}
+        ## set up each realization
+        for n in range(numRlz):
+          rlz = {}
+          ## collect the results from INNER, both point set and history set
+          for dataObj in finalCodeOutputFile.values():
+            # TODO FIXME check for overwriting data.  For now just replace data if it's duplicate!
+            new = dict((var,np.atleast_1d(val)) for var,val in dataObj.realization(index=n,unpackXArray=True).items())
+            rlz.update( new )
+          ## add OUTER input space
+          # TODO FIXME check for overwriting data.  For now just replace data if it's duplicate!
+          new = dict((var,np.atleast_1d(val)) for var,val in kwargs['SampledVars'].items())
+          rlz.update( new )
+          ## combine ProbabilityWeights # TODO FIXME these are a rough attempt at getting it right!
+          rlz['ProbabilityWeight'] = np.atleast_1d(rlz.get('ProbabilityWeight',1.0) * kwargs.get('ProbabilityWeight',1.0))
+          rlz['PointProbability'] = np.atleast_1d(rlz.get('PointProbability',1.0) * kwargs.get('PointProbability',1.0))
+          rlz['prefix'] = np.atleast_1d(kwargs['prefix']+'_'+str(n))
+          ## add the rest of the metadata # TODO slow
+          for var,val in kwargs.items():
+            if var not in rlz.keys():
+              rlz[var] = np.atleast_1d(val)
+          self._replaceVariablesNamesWithAliasSystem(rlz,'inout',True) # TODO should this only be "input" instead of "inout"?
+          exportDict['realizations'].append(rlz)
 
           #### OLD METHOD, kept for reference ####
           #self._replaceVariablesNamesWithAliasSystem(dataObj.getVars('input'), 'input', True)
@@ -616,15 +599,9 @@ class Code(Model):
       for fileExt in fileExtensionsToDelete:
         if not fileExt.startswith("."):
           fileExt = "." + fileExt
-
         fileList = [ os.path.join(metaData['subDirectory'],f) for f in os.listdir(metaData['subDirectory']) if f.endswith(fileExt) ]
-
         for f in fileList:
           os.remove(f)
-
-      returnDict.update(kwargs)
-      returnValue = (kwargs['SampledVars'],returnDict)
-      exportDict = self.createExportDictionary(returnValue)
 
       return exportDict
 
@@ -678,11 +655,14 @@ class Code(Model):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(AttributeError,"No available Output to collect")
 
-    print('DEBUGG Code "{}" collect output rlz:'.format(self.name))
-    for k,v in evaluation.items():
-      print('  ',k,v)
 
-    output.addRealization(evaluation)
+    # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
+    if evaluation.get('RAVEN_isBatch',False):
+      for rlz in evaluation['realizations']:
+        output.addRealization(rlz)
+    # otherwise, we received a single realization
+    else:
+      output.addRealization(evaluation)
 
     ##TODO How to handle restart?
     ##TODO How to handle collectOutputFromDataObject
