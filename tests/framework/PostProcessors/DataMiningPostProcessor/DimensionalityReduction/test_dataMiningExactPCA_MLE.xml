@@ -87,12 +87,11 @@
 
   <DataObjects>
     <PointSet name="DataSets">
-      <Input>x1,x2,x3,x4,labels</Input>
+      <Input>x2,x3,labels,x1, x4</Input>
       <Output>Output</Output>
     </PointSet>
     <PointSet name="drInfo">
-      <Input>x1,x2</Input>
-      <Output>placeholder</Output>
+      <Input>x1,x2,x3,x4,component</Input>
     </PointSet>
   </DataObjects>
 

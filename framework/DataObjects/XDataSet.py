@@ -783,7 +783,7 @@ class DataSet(DataObject):
       dataType = dtype
     # method = 'once' # see below, parallelization is possible but not implemented
     # first case: single entry per node: floats, strings, ints, etc
-    if isinstance(data[i],(float,str,unicode,int,bool,np.bool_)):
+    if isinstance(data[i],(float,str,int,unicode,bool,np.bool_, np.integer)):
       data = np.array(data,dtype=dataType)
       array = xr.DataArray(data,
                            dims=[self.sampleTag],
@@ -1348,7 +1348,7 @@ class DataSet(DataObject):
       @ In, fileName, str, name of file without extension
       @ Out, varList, list(str), list of variables
     """
-    with open(fileName+'.csv','r') as f:
+    with open(fileName+'.csv','rU') as f:
       provided = list(s.strip() for s in f.readline().split(','))
     return provided
 
