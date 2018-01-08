@@ -213,7 +213,154 @@ class DataMining(PostProcessor):
     """
     self.jobHandler = initDict['internal']['jobHandler']
 
+  def inputToInternalForHistorySet(self,currentInput):
+    inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
+    if self.PreProcessor is None and self.metric is None:
+      # for testing time dependent data mining - time dependent clustering
+
+      self.pivotVariable  = np.asarray(currentInput['data'].isel(RAVEN_sample_ID=0)[self.pivotParameter])[-1]
+      historyKey          = currentInput.getOutParametersValues().keys()
+      numberOfSample      = len(currentInput['data']['RAVEN_sample_ID'].values)
+      numberOfHistoryStep = len(np.asarray(currentInput['data'].isel(RAVEN_sample_ID=0)[self.pivotParameter])[-1])
+
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
+      elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
+        features = currentInput.getParaKeys('output')
+        #features.remove(self.pivotParameter)
+      else:
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
+
+      for param in features:
+        inputDict['Features'][param] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for cnt, keyH in enumerate(historyKey):
+          inputDict['Features'][param][cnt,:] = currentInput.realization(index=keyH)[param] # currentInput.getParam('output', keyH)[param]
+
+    elif self.metric is not None:
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        self.raiseAnError(ValueError, 'KDD Post-processor for time dependent data with metric provided allows only output variables (time-dependent)')
+      elif self.initializationOptionDict['KDD']['Features'] == 'output':
+        numberOfSample = currentInput.size
+        for i in range(numberOfSample):
+          rlz = currentInput.realization(index=i)
+          for var in currentInput.getVars('output'):
+            inputDict['Features'][i] = rlz[var]
+
+    elif self.PreProcessor is not None:
+      return self.inputToInternalForPreProcessor([currentInput])
+
+    inputDict['metadata'] = currentInput.getMeta(pointwise=True,general=True)
+    return inputDict
+
+  def inputToInternalForPointSet(self,currentInput):
+    ## Get what is available in the data object being operated on
+    ## This is potentially more information than we need at the moment, but
+    ## it will make the code below easier to read and highlights where objects
+    ## are reused more readily
+
+    data = currentInput.asDataset()
+    allInputFeatures = currentInput.getVars('input')
+    allOutputFeatures = currentInput.getVars('output')
+
+    if self.PreProcessor is None:
+      inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        for param in allInputFeatures:
+          inputDict['Features'][param] = data[param]
+      elif self.initializationOptionDict['KDD']['Features'] == 'output':
+        for param in allOutputFeatures:
+          inputDict['Features'][param] = data[param]
+      elif self.initializationOptionDict['KDD']['Features'] == 'all':
+        for param in allInputFeatures:
+          inputDict['Features'][param] = data[param]
+        for param in allOutputFeatures:
+          inputDict['Features'][param] = data[param]
+      else:
+        ## Get what the user asks requests
+        features = set(self.initializationOptionDict['KDD']['Features'].split(','))
+
+        if features not in (allInputFeatures+allOutputFeatures):
+          self.raiseAnError(ValueError, 'Data Mining PP: features specified in the '
+                                        'PP (' + str(features) + ') do not match the one available '
+                                        'in the dataObject ('+ str(allInputFeatures+allOutputFeatures) +') ')
+        ## Now intersect what the user wants and what is available.
+        ## NB: this will not error, if the user asks for something that does not
+        ##     exist in the data, it will silently ignore it.
+        inParams  = list(features.intersection(allInputFeatures))
+        outParams = list(features.intersection(allOutputFeatures))
+
+        for param in inParams:
+          inputDict['Features'][param] = data[param]
+        for param in outParams:
+          inputDict['Features'][param] = data[param]
+
+      inputDict['metadata'] = currentInput.getMeta(pointwise=True,general=True)
+      return inputDict
+
+    elif self.PreProcessor is not None:
+      return self.inputToInternalForPreProcessor([currentInput])
+
+  def inputToInternalForPreProcessor(self,currentInput):
+    inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
+    '''
+    if self.initializationOptionDict['KDD']['Features'] == 'input':
+      features = currentInp[-1].getParaKeys('input')
+    elif self.initializationOptionDict['KDD']['Features'] == 'output':
+      features = currentInp[-1].getParaKeys('output')
+    else:
+      features = self.initializationOptionDict['KDD']['Features'].split(',')
+    '''
+    if self.PreProcessor.interface.returnFormat('output') not in ['PointSet']:
+      self.raiseAnError(IOError, 'DataMining PP: this PP is employing a pre-processor PP which does not generates a PointSet.')
+
+    tempData = self.PreProcessor.interface.inputToInternal(currentInput)
+    preProcessedData = self.PreProcessor.interface.run(tempData)
+
+    if self.initializationOptionDict['KDD']['Features'] == 'input':
+      featureList = currentInput.vars('input')
+    elif self.initializationOptionDict['KDD']['Features'] == 'output':
+      featureList = currentInput.vars('input')
+    else:
+      featureList = self.initializationOptionDict['KDD']['Features'].split(',')
+
+    for key in featureList:
+      inputDict['Features'][key] = copy.deepcopy(preProcessedData['data'][key])
+
+    inputDict['metadata'] = currentInput.getMeta(pointwise=True,general=True)
+    return inputDict
+
   def inputToInternal(self, currentInp):
+    """
+      Function to convert the received input into a format this object can
+      understand
+      @ In, currentInp, list or DataObjects, Some form of data object or list of
+        data objects handed to the post-processor
+      @ Out, inputDict, dict, An input dictionary this object can process
+    """
+
+    if type(currentInp) == list:
+      currentInput = currentInp[-1]
+      '''====> For the reviewer: should we raise a warning/error here? I see issues here......'''
+    else:
+      currentInput = currentInp
+
+    if currentInput.type == 'HistorySet':
+      return self.inputToInternalforHistorySet(currentInput)
+
+    elif currentInput.type == 'PointSet':
+      return self.inputToInternalForPointSet(currentInput)
+
+    elif type(currentInp) == dict:
+      if 'Features' in currentInput.keys():
+        return
+
+    elif isinstance(currentInp, Files.File):
+      self.raiseAnError(IOError, 'DataMining PP: this PP does not support files as input.')
+
+    elif currentInput.type == 'HDF5':
+      self.raiseAnError(IOError, 'DataMining PP: this PP does not support HDF5 Objects as input.')
+
+  def inputToInternal_OLD(self, currentInp):
     """
       Function to convert the received input into a format this object can
       understand
@@ -338,6 +485,8 @@ class DataMining(PostProcessor):
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
         inputDict['Features'] = currentInput.getOutParametersValues()
       elif self.initializationOptionDict['KDD']['Features'] == 'all':
+        allInputFeatures = currentInput.getParaKeys('input')
+        allOutputFeatures = currentInput.getParaKeys('output')
         for param in allInputFeatures:
           inputDict['Features'][param] = currentInput.getParam('input', param)
         for param in allOutputFeatures:
