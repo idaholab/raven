@@ -100,18 +100,22 @@
     <Print name="thermalConductivityComputationContainerDump">
       <type>csv</type>
       <source>thermalConductivityComputationContainer</source>
+      <what>input,output</what>
     </Print>
     <Print name="heatTransferContainerDump">
       <type>csv</type>
       <source>heatTransferContainer</source>
+      <what>input,output</what>
     </Print>
     <Print name="metaModelOutputTestPointSetDump">
       <type>csv</type>
       <source>metaModelOutputTestPointSet</source>
+      <what>input,output</what>
     </Print>
     <Print name="metaModelOutputTestHistorySetDump">
         <type>csv</type>
         <source>metaModelOutputTestHistorySet</source>
+        <what>input,output</what>
     </Print>
     <Plot name="metaModelOutputTestHistorySetk" overwrite="false" verbosity="debug">
         <plotSettings>
@@ -216,7 +220,10 @@
     </PointSet>
     <HistorySet name="thermalConductivityComputationContainer">
         <Input>leftTemperature,rightTemperature</Input>
-        <Output>k,timeFromFirstModel</Output>
+        <Output>k</Output>
+        <options>
+            <pivotParameter>timeFromFirstModel</pivotParameter>
+        </options>
     </HistorySet>
   </DataObjects>
 

@@ -1,1 +1,10 @@
-<data name="output" type="Pointset"><input>a,c,b</input><output>1</output><inputFilename>output.csv</inputFilename></data>
+<DataObjectMetadata name="data">
+  <DataSet type="Static">
+    <general>
+      <inputs>a,b,c</inputs>
+      <outputs>1</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

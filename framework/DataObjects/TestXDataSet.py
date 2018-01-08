@@ -754,6 +754,36 @@ checkArray('load from dict "b"[3]',dataRe.asDataset().isel(True,RAVEN_sample_ID=
 rlz = dataRe.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
+
+# construct from dict, but data is provided in numpy ND array instead of np array of np array objects
+seed = {}
+seed['a'] = np.array([0., 1., 2., 3.])
+seed['b'] = np.array([ [0.1, 0.2, 0.3],
+                       [1.1, 1.2, 1.3],
+                       [2.1, 2.2, 2.3],
+                       [3.1, 3.2, 3.3]])
+seed['t'] = np.array([ [1e-6,2e-6,3e-6],
+                       [1e-6,2e-6,3e-6],
+                       [1e-6,2e-6,3e-6],
+                       [1e-6,2e-6,3e-6]])
+# set up data object
+xml = createElement('DataSet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a'))
+xml.append(createElement('Output',text='b'))
+xml.append(createElement('Index',attrib={'var':'t'},text='b'))
+data = XDataSet.DataSet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+# load
+data.load(seed,style='dict',dims=data.getDimensions())
+# check data
+checkArray('load from dict of ND, "a"',data.asDataset()['a'].values,seed['a'],float)
+checkArray('load from dict of ND, "b[0]"',data.asDataset()['b'][0].values,seed['b'][0],float)
+checkArray('load from dict of ND, "b[1]"',data.asDataset()['b'][1].values,seed['b'][1],float)
+checkArray('load from dict of ND, "b[2]"',data.asDataset()['b'][2].values,seed['b'][2],float)
+checkArray('load from dict of ND, "b[3]"',data.asDataset()['b'][3].values,seed['b'][3],float)
+
+
 ######################################
 #        REMOVING VARIABLES          #
 ######################################
@@ -920,7 +950,7 @@ data.asDataset()
 # check types
 for var in rlz.keys():
   correct = rlz[var].dtype
-  if correct.type in [np.unicode_,np.string_]:
+  if correct.type in [np.unicode_,np.string_,basestring]:
     correct = object
   checkSame('dtype checking "{}"'.format(var),data.asDataset()[var].dtype,correct)
 

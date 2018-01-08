@@ -35,7 +35,7 @@
 		</IOStep>
 		<PostProcess name='pp' pauseAtEnd = 'True'>
 			<Input    class = 'DataObjects'       type = 'HistorySet'    >windRawData</Input>
-			<Model    class = 'Models' 			  type = 'PostProcessor' >TypicalHistory</Model>
+			<Model    class = 'Models' 	      type = 'PostProcessor' >TypicalHistory</Model>
 			<Output   class = 'DataObjects'       type = 'HistorySet'    >windTypicalData</Output>
 		</PostProcess>
         <IOStep name='writeOut' pauseAtEnd = 'True'>
@@ -86,13 +86,16 @@
         <HistorySet name="windRawData">
             <Input>x</Input>
             <Output>Time,Speed</Output>
-			<options>
-				<pivotParameter>Time</pivotParameter>
-			</options>
+	    <options>
+	 	<pivotParameter>Time</pivotParameter>
+	    </options>
         </HistorySet>
 		<HistorySet name="windTypicalData">
             <Input>x</Input>
             <Output>Time,Speed</Output>
+	    <options>
+		<pivotParameter>Time</pivotParameter>
+	    </options>
         </HistorySet>
     </DataObjects>
 </Simulation>

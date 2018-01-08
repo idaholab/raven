@@ -199,9 +199,21 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
     @ In, tempID, string, name of the temporal variable (default None)
     @ Out, outputDic, dict, it contains the temporal slice of all histories
   """
+  # place to store data results
   outputDic={'data':{}}
-  outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
-  outputDic['data']['prefix'] = inputDic['data']['prefix']
+  # collect metadata, if it exists, to pass through
+  # TODO collecting by name is problemsome; for instance, Optimizers don't produce "probability weight" information
+  ## ProbabilityWeight
+  try:
+    outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+  except KeyError:
+    pass
+  ## prefix
+  try:
+    outputDic['data']['prefix'] = inputDic['data']['prefix']
+  except KeyError:
+    pass
+  # place to store dimensionalities
   outputDic['dims'] = {key: [] for key in inputDic['dims'].keys()}
 
   for var in inputDic['inpVars']:
@@ -209,7 +221,10 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
 
   outVars = inputDic['data'].keys()
   outVars = [var for var in outVars if 'Probability' not in var]
-  outVars.remove('prefix')
+  try:
+    outVars.remove('prefix')
+  except ValueError:
+    pass
   vars = [var for var in outVars if var not in inputDic['inpVars']]
 
   for var in vars:

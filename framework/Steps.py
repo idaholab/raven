@@ -35,6 +35,7 @@ if sys.version_info.major > 2:
 else:
   import cPickle as pickle
 import copy
+import numpy as np
 #import pickle as cloudpickle
 import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
@@ -281,7 +282,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if hasattr(entities,'provideExpectedMetaKeys'):
           metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
     ## then give them to the output data objects
-    for out in inDictionary['Output']+inDictionary['TargetEvaluation'] if 'TargetEvaluation' in inDictionary else []:
+    for out in inDictionary['Output']+(inDictionary['TargetEvaluation'] if 'TargetEvaluation' in inDictionary else []):
       if 'addExpectedMeta' in dir(out):
         out.addExpectedMeta(metaKeys)
 
@@ -552,6 +553,16 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     SingleRun._localInitializeStep(self,inDictionary)
+    # check that no input data objects are also used as outputs?
+    for out in inDictionary['Output']:
+      if out.type not in ['PointSet','HistorySet','DataSet']:
+        continue
+      for inp in inDictionary['Input']:
+        if inp.type not in ['PointSet','HistorySet','DataSet']:
+          continue
+        if inp == out:
+          self.raiseAnError(IOError,'The same data object should not be used as both <Input> and <Output> in the same MultiRun step! ' \
+              + 'Step: "{}", DataObject: "{}"'.format(self.name,out.name))
     self.counter = 0
     self._samplerInitDict['externalSeeding'] = self.initSeed
     self._initializeSampler(inDictionary)
@@ -676,8 +687,9 @@ class MultiRun(SingleRun):
         self.raiseADebug('Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
       time.sleep(self.sleepTime)
-    # if any new collected runs failed, let the sampler treat them appropriately
-    sampler.handleFailedRuns(self.failedRuns)
+    # END while loop that runs the step iterations
+    # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
+    sampler.finalizeSampler(self.failedRuns)
 
   def _findANewInputToRun(self, sampler, model, inputs, outputs):
     """
@@ -868,7 +880,8 @@ class IOStep(Step):
       for i in range(len(inDictionary['Input'])):
         if self.actionType[i].startswith('dataObjects-'):
           inInput = inDictionary['Input'][i]
-          inInput.loadXMLandCSV(self.fromDirectory)
+          filename = os.path.join(self.fromDirectory, inInput.name)
+          inInput.load(filename, style='csv')
 
     #Initialize all the OutStreamPrint and OutStreamPlot outputs
     for output in inDictionary['Output']:
@@ -896,7 +909,9 @@ class IOStep(Step):
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
         ## TODO convert to load function when it can handle unstructured multiple realizations
         for rlzNo in range(len(inDictionary['Input'][i])):
-          outputs[i].addRealization(inDictionary['Input'][i].realization(rlzNo,unpackXArray=True))
+          rlz = inDictionary['Input'][i].realization(rlzNo, unpackXArray=True)
+          rlz = dict((var,np.atleast_1d(val)) for var, val in rlz.items())
+          outputs[i].addRealization(rlz)
 
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
