@@ -826,6 +826,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for subVarName in varName.split(","):
           self.inputInfo['ProbabilityWeight-' + subVarName.strip()] = self.inputInfo['ProbabilityWeight-' + varName]
 
+  def finalizeSampler(self,failedRuns):
+    """
+      Method called at the end of the Step when no more samples will be taken.  Closes out sampler for step.
+      @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
+      @ Out, None
+    """
+    self.handleFailedRuns(failedRuns)
+
   def handleFailedRuns(self,failedRuns):
     """
       Collects the failed runs from the Step and allows samples to handle them individually if need be.

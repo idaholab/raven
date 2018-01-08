@@ -687,8 +687,9 @@ class MultiRun(SingleRun):
         self.raiseADebug('Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
       time.sleep(self.sleepTime)
-    # if any new collected runs failed, let the sampler treat them appropriately
-    sampler.handleFailedRuns(self.failedRuns)
+    # END while loop that runs the step iterations
+    # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
+    sampler.finalizeSampler(self.failedRuns)
 
   def _findANewInputToRun(self, sampler, model, inputs, outputs):
     """
