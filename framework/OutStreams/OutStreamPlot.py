@@ -1751,7 +1751,7 @@ class OutStreamPlot(OutStreamManager):
                 elif self.dim == 3:
                   for zIndex in range(len(self.zValues[pltIndex][key])):
                     clusterDict[pltIndex]['clusterValues'][:, 2] = self.zValues[pltIndex][key][zIndex]
-                  for k, col in zip(range(clusterDict[pltIndex]['noClusters']), colors):
+                  for k, col in zip(range(int(clusterDict[pltIndex]['noClusters'])), colors):
                     myMembers = self.clusterValues[pltIndex][1][0] == k
                     self.actPlot = self.plt3D.scatter(clusterDict[pltIndex]['clusterValues'][myMembers, 0], clusterDict[pltIndex]['clusterValues'][myMembers, 1], clusterDict[pltIndex]['clusterValues'][myMembers, 2], color = col, **dataMiningPlotOptions)
 

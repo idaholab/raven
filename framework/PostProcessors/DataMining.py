@@ -858,8 +858,7 @@ class DataMining(PostProcessor):
           ## We should list the variables name the solution export in order to access this data
           for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
             j = i+joffset
-            covValues = []
-            covValues.append(mixtureCovars[:][i,j])
+            covValues = mixtureCovars[:,i,j]
             covName = 'cov_'+str(key)+'_'+str(col)
             additionalOutput[covName] = np.atleast_1d(covValues)
         self.solutionExport.load(rlzs, style = 'dict')
