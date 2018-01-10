@@ -26,12 +26,18 @@ app_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
 plugins_directory = os.path.abspath(os.path.join(app_path, "plugins"))
 found_plugin_argument = False
 force_copy = False
+exclude_dirs = ['.git', 'raven']
 for cnt, commarg in enumerate(sys.argv):
   if commarg == "-s":
     plugin_dir = os.path.abspath(sys.argv[cnt+1])
     found_plugin_argument = True
   if commarg == "-f":
     force_copy = True
+  if commarg == "-e":
+    exclude_str = sys.argv[cnt+1]
+    # strip out whitespace
+    exclude_str = "".join(exclude_str.split())
+    exclude_dirs = exclude_str.split(',')
 if not found_plugin_argument:
   raise IOError('Source directory for plugin installation not found! USE the syntax "-s path/to/plugin/orginal/location"!')
 
@@ -60,6 +66,10 @@ if os.path.exists(destination_plugin) and not force_copy:
 if os.path.exists(destination_plugin):
   shutil.rmtree(destination_plugin)
 # start copying
-shutil.copytree(plugin_dir , destination_plugin ,ignore=shutil.ignore_patterns(".git"))
+shutil.copytree(
+  plugin_dir,
+  destination_plugin,
+  ignore=shutil.ignore_patterns(*exclude_dirs)
+)
 print('Installation of plugin "'+plugin_name+'" performed successfully!')
 
