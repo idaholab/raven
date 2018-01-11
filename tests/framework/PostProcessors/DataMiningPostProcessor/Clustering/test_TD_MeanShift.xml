@@ -144,7 +144,7 @@
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="clusterInfo">
-      <Input>labels</Input>
+      <Input>MeanShiftLabels</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
   </DataObjects>

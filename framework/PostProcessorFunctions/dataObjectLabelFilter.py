@@ -81,7 +81,7 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
       inputDict = inputDic[0]
-      indexes = np.where(np.in1d(inputDic['data'][self.label],self.clusterIDs))[0]
+      indexes = np.where(np.in1d(inputDict['data'][self.label],self.clusterIDs))[0]
       for key in inputDict['data'].keys():
         inputDict['data'][key] = inputDict['data'][key][indexes]
     return inputDict
