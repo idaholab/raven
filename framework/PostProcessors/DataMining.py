@@ -228,23 +228,25 @@ class DataMining(PostProcessor):
         self.raiseAnError(IOError, 'HistorySet is provided as input, but this post-processor ', self.name, ' can not handle it!')
       self.pivotParameter = self.metric.pivotParameter
     if self.PreProcessor is None and self.metric is None:
+      if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
+        self.raiseAnError(IOError, "The data provided by the DataObject ", currentInput.name, " is not synchronized!")
       # for testing time dependent data mining - time dependent clustering
       self.pivotVariable = np.asarray([dataSet.isel(RAVEN_sample_ID=i)[self.pivotParameter].dropna(self.pivotParameter).values for i in range(len(currentInput))])
-      historyKey          = currentInput.getOutParametersValues().keys()
-      numberOfSample      = len(currentInput['data']['RAVEN_sample_ID'].values)
-      numberOfHistoryStep = len(np.asarray(currentInput['data'].isel(RAVEN_sample_ID=0)[self.pivotParameter])[-1])
+      historyKey          = dataSet[self.pivotParameter].values
+      numberOfSample      = len(dataSet['RAVEN_sample_ID'].values)
+      numberOfHistoryStep = len(dataSet[self.pivotParameter].values)
 
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
       elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
         features = currentInput.getVars('output')
       else:
-        features = self.initializationOptionDict['KDD']['Features'].split(',')
+        features = [elem.strip() for elem in self.initializationOptionDict['KDD']['Features'].split(',')]
 
       for param in features:
         inputDict['Features'][param] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-        for cnt, keyH in enumerate(historyKey):
-          inputDict['Features'][param][cnt,:] = currentInput.realization(index=keyH)[param] # currentInput.getParam('output', keyH)[param]
+        for cnt in range(numberOfSample):
+          inputDict['Features'][param][cnt,:] = currentInput.realization(index=cnt)[param]
 
     elif self.metric is not None:
       if self.initializationOptionDict['KDD']['Features'] == 'input':
@@ -536,10 +538,14 @@ class DataMining(PostProcessor):
             outputObject.addVariable(key, expValues,classify='output')
         else:
           # FIXME for time-dep scikit-learn
-          historyKey = outputObject.getOutParametersValues().keys()
-          for index, keyH in enumerate(historyKey):
-            for keyL in dataMineDict['outputs'].keys():
-              outputObject.updateOutputValue([keyH,keyL], dataMineDict['outputs'][keyL][index,:])
+          for key, values in dataMineDict['outputs'].items():
+            expValues = np.zeros(len(outputObject), dtype=object)
+            for index, value in enumerate(values):
+              timeLength = len(self.pivotVariable[index])
+              arrayBase = value * np.ones(timeLength)
+              xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter))
+              expValues[index] = xrArray
+            outputObject.addVariable(key, expValues,classify='output')
     ## End data augmentation
     ############################################################################
 
@@ -760,15 +766,13 @@ class DataMining(PostProcessor):
         clusterCenters = self.unSupervisedEngine.metaDict['clusterCenters']
         # Output cluster centroid to solutionExport
         if self.solutionExport is not None:
+          rlzDims = {}
+          rlzs = {}
+          clusterLabels = range(int(np.max(labels)) + 1)
+          rlzs[self.labelFeature] = np.atleast_1d(clusterLabels)
+          rlzs[self.pivotParameter] = self.pivotVariable
           ## We will process each cluster in turn
-          for clusterIdx in xrange(int(np.max(labels))+1):
-            ## First store the label as the input for this cluster
-            self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
-
-            ## The time series will be the first output
-            ## TODO: Ensure user requests this
-            self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
-
+          for rlzIndex in clusterLabels:
             ## Now we will process each feature available
             ## TODO: Ensure user requests each of these
             for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
@@ -776,13 +780,12 @@ class DataMining(PostProcessor):
               ## where this cluster exists, if it does not, then we put a NaN
               ## to signal that the information is missing for this timestep
               timeSeries = np.zeros(numberOfHistoryStep)
-
               for timeIdx in range(numberOfHistoryStep):
                 ## Here we use the assumption that SKL provides clusters that
                 ## are integer values beginning at zero, which make for nice
                 ## indexes with no need to add another layer of obfuscation
-                if clusterIdx in clusterCentersIndices[timeIdx]:
-                  loc = clusterCentersIndices[timeIdx].index(clusterIdx)
+                if rlzIndex in clusterCentersIndices[timeIdx]:
+                  loc = clusterCentersIndices[timeIdx].index(rlzIndex)
                   timeSeries[timeIdx] = self.unSupervisedEngine.metaDict['clusterCenters'][timeIdx][loc,featureIdx]
                 else:
                   timeSeries[timeIdx] = np.nan
@@ -794,7 +797,13 @@ class DataMining(PostProcessor):
               ## updateOutputValue to associate everything with it? Once I
               ## call updateInputValue again, it will move the pointer? This
               ## needs verified
-              self.solutionExport.updateOutputValue(feat, timeSeries)
+              if feat not in rlzs.keys():
+                rlzs[feat] = copy.copy(timeSeries)
+                rlzDims[feat] = [self.pivotParameter]
+              else:
+                rlzs[feat] = np.vstack((rlzs[feat], copy.copy(timeSeries)))
+
+          self.solutionExport.load(rlzs, style='dict',dims=rlzDims)
 
       if 'inertia' in self.unSupervisedEngine.outputDict.keys():
         inertia = self.unSupervisedEngine.outputDict['inertia']
@@ -823,14 +832,13 @@ class DataMining(PostProcessor):
       # Output cluster centroid to solutionExport
       if self.solutionExport is not None:
         ## We will process each cluster in turn
-        for clusterIdx in xrange(int(np.max(componentMeanIndices.values()))+1):
-          ## First store the label as the input for this cluster
-          self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
-
-          ## The time series will be the first output
-          ## TODO: Ensure user requests this
-          self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
-
+        rlzDims = {}
+        rlzs = {}
+        ## First store the label as the input for this cluster
+        mixLabels = range(int(np.max(componentMeanIndices.values()))+1)
+        rlzs[self.labelFeature] = np.atleast_1d(mixLabels)
+        rlzs[self.pivotParameter] = self.pivotVariable
+        for rlzIndex in mixLabels:
           ## Now we will process each feature available
           ## TODO: Ensure user requests each of these
           if mixtureMeans is not None:
@@ -839,11 +847,9 @@ class DataMining(PostProcessor):
               ## where this cluster exists, if it does not, then we put a NaN
               ## to signal that the information is missing for this timestep
               timeSeries = np.zeros(numberOfHistoryStep)
-
               for timeIdx in range(numberOfHistoryStep):
-                loc = componentMeanIndices[timeIdx].index(clusterIdx)
+                loc = componentMeanIndices[timeIdx].index(rlzIndex)
                 timeSeries[timeIdx] = mixtureMeans[timeIdx][loc,featureIdx]
-
               ## In summary, for each feature, we fill a temporary array and
               ## stuff it into the solutionExport, one question is how do we
               ## tell it which item we are exporting? I am assuming that if
@@ -851,8 +857,11 @@ class DataMining(PostProcessor):
               ## updateOutputValue to associate everything with it? Once I
               ## call updateInputValue again, it will move the pointer? This
               ## needs verified
-              self.solutionExport.updateOutputValue(feat, timeSeries)
-
+              if feat not in rlzs.keys():
+                rlzs[feat] = copy.copy(timeSeries)
+                rlzDims[feat] = [self.pivotParameter]
+              else:
+                rlzs[feat] = np.vstack((rlzs[feat], copy.copy(timeSeries)))
           ## You may also want to output the covariances of each pair of
           ## dimensions as well
           if mixtureCovars is not None:
@@ -861,9 +870,15 @@ class DataMining(PostProcessor):
                 j = i+joffset
                 timeSeries = np.zeros(numberOfHistoryStep)
                 for timeIdx in range(numberOfHistoryStep):
-                  loc = componentMeanIndices[timeIdx].index(clusterIdx)
+                  loc = componentMeanIndices[timeIdx].index(rlzIndex)
                   timeSeries[timeIdx] = mixtureCovars[timeIdx][loc][i,j]
-                self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
+                covPairName = 'cov_' + str(row) + '_' + str(col)
+                if covPairName not in rlzs.keys():
+                  rlzs[covPairName] = timeSeries
+                  rlzDims[covPairName] = [self.pivotParameter]
+                else:
+                  rlzs[covPairName] = np.vstack((rlzs[covPairName], timeSeries))
+        self.solutionExport.load(rlzs, style='dict',dims=rlzDims)
     elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
       if self.solutionExport is not None:
         solutionExportDict = self.unSupervisedEngine.metaDict
@@ -878,30 +893,27 @@ class DataMining(PostProcessor):
           ## be stored in a dictionary to begin with)
           numComponents,numDimensions = components[0].shape
 
-          componentsArray = np.zeros((numberOfHistoryStep,numComponents, numDimensions))
-          evrArray = np.zeros((numberOfHistoryStep,numComponents))
+          componentsArray = np.zeros((numComponents, numberOfHistoryStep, numDimensions))
+          evrArray = np.zeros((numComponents, numberOfHistoryStep))
 
           for timeIdx in range(numberOfHistoryStep):
             for componentIdx,values in enumerate(components[timeIdx]):
-              componentsArray[timeIdx,componentIdx,:] = values
-              evrArray[timeIdx,componentIdx] = solutionExportDict['explainedVarianceRatio'][timeIdx][componentIdx]
+              componentsArray[componentIdx,timeIdx,:] = values
+              evrArray[componentIdx, timeIdx] = solutionExportDict['explainedVarianceRatio'][timeIdx][componentIdx]
 
-          for componentIdx in range(numComponents):
-            ## First store the dimension name as the input for this component
-            self.solutionExport.updateInputValue(self.labelFeature, componentIdx+1)
-
-            ## The time series will be the first output
-            ## TODO: Ensure user requests this
-            self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
-
-            ## Now we will process each feature available
-            ## TODO: Ensure user requests each of these
-            for dimIdx,dimName in enumerate(self.unSupervisedEngine.features.keys()):
-              values = componentsArray[:,componentIdx,dimIdx]
-              self.solutionExport.updateOutputValue(dimName,values)
-
+          rlzs = {}
+          rlzDims = {}
+          ## First store the dimension name as the input for this component
+          rlzs[self.labelFeature] =  np.atleast_1d(range(1,numComponents+1))
+          rlzs[self.pivotParameter] = self.pivotVariable
+          for dimIdx,dimName in enumerate(self.unSupervisedEngine.features.keys()):
+            values = componentsArray[:,:,dimIdx]
+            rlzs[dimName] = values
+            rlzDims[dimName] = [self.pivotParameter]
             if 'explainedVarianceRatio' in solutionExportDict:
-              self.solutionExport.updateOutputValue('ExplainedVarianceRatio',evrArray[:,componentIdx])
+              rlzs['ExplainedVarianceRatio'] = evrArray
+              rlzDims['ExplainedVarianceRatio'] = [self.pivotParameter]
+        self.solutionExport.load(rlzs, style='dict',dims=rlzDims)
 
     return outputDict
 
