@@ -14,7 +14,14 @@ from random import *
 class FissionYieldParser():
      
   def matrix_printer(self, infile, outfile, spectra):
-  
+    """
+      This method print the fission yield matrix in thermal and fast range
+      @ In, infile, string, fission yield library input file 
+      @ In, outfile, string,perturbed fission yield library 
+      @ In, spectra, string, indicate what spectrum it is 'Thermal' or 'Fast'
+      @ Out, None 
+    """
+    
     isotopeCounter = 0
     #print spectra     
     for line in infile :
@@ -54,15 +61,15 @@ class FissionYieldParser():
         pass
       try : 
         isotopeCounter = isotopeCounter + 1  
-        #print line 
         line[0] = "{0:<7s}".format(line[0])
         i = 1
-        #print self.spectrum[0]
         while i <= len(self.spectrumNumbering.get(spectra)) :
-          #print i 
-          #print line 
-          line[i] = "{0:<11s}".format(line[i])
-          i = i + 1 
+          try:
+            #print i 
+            #print line[i]
+            line[i] = "{0:<11s}".format(line[i])
+            i = i + 1 
+          except IndexError: i = i + 1 
         outfile.writelines(' '+''.join(line[0:len(self.spectrumNumbering.get(spectra)) + 1])+"\n") 
         #print isotopeCounter 
         if isotopeCounter == self.numberOfIsotopes :

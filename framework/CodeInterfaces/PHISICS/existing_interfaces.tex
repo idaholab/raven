@@ -1,0 +1,2738 @@
+\section{Existing Interfaces}
+\label{sec:existingInterface}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% Generic  INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Generic Interface}
+\label{subsec:genericInterface}
+The GenericCode interface is meant to handle a wide variety of generic codes
+that take take straightforward input files and produce output CSV files.  There are
+some limitations for this interface.
+If a code: \vspace{-20pt}
+\begin{itemize}
+\item accepts a keyword-based input file with no cross-dependent inputs,
+\item has no more than one filetype extension per command line flag,
+\item and returns a CSV with the input parameters and output parameters,
+\end{itemize}\vspace{-20pt}
+the GenericCode interface should cover the code for RAVEN.
+
+If a code contains cross-dependent data, the generic interface is not able to
+edit the correct values.  For example, if a geometry-building script specifies
+inner\_radius, outer\_radius, and thickness, the generic interface cannot
+calculate the thickness given the outer and inner radius, or vice versa.
+
+ An example of the code interface is shown here.  The input parameters are read
+ from the input files \texttt{gen.one} and \texttt{gen.two} respectively.
+ The code is run using \texttt{python}, so that is part of the \xmlNode{prepend} node.
+ The command line entry to normally run the code is
+\begin{lstlisting}[language=bash]
+python poly_inp.py -i gen.one -a gen.two -o myOut
+\end{lstlisting}
+and produces the output \texttt{myOut.csv}.
+
+Example:
+\begin{lstlisting}[style=XML]
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterface/poly_inp.py</executable>
+      <inputExtentions>.one,.two</inputExtentions>
+      <clargs type='prepend' arg='python'/>
+      <clargs type='input'   arg='-i' extension='.one'/>
+      <clargs type='input'   arg='-a' extension='.two'/>
+      <clargs type='output'  arg='-o'/>
+      <prepend>python</prepend>
+    </Code>
+\end{lstlisting}
+
+If a code doesn't accept necessary Raven-editable auxiliary input files
+or output filenames through the command line, the GenericCode interface
+can also edit the input files and insert the filenames there.  For example,
+in the previous example, say instead of \texttt{-a gen.two} and \texttt{-o myOut}
+in the command line, \texttt{gen.one} has the following lines:
+\begin{lstlisting}[language=python]
+...
+auxfile = gen.two
+case = myOut
+...
+\end{lstlisting}
+Then, our example XML for the code would be
+
+Example:
+\begin{lstlisting}[style=XML]
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterface/poly_inp.py</executable>
+      <inputExtentions>.one,.two</inputExtentions>
+      <clargs   type='prepend' arg='python'/>
+      <clargs   type='input'   arg='-i'  extension='.one'/>
+      <fileargs type='input'   arg='two' extension='.two'/>
+      <fileargs type='output'  arg='out'/>
+      <prepend>python</prepend>
+    </Code>
+\end{lstlisting}
+and the corresponding template input file lines would be changed to read
+\begin{lstlisting}[language=python]
+...
+auxfile = $RAVEN-two$
+case = $RAVEN-out$
+...
+\end{lstlisting}
+
+In addition, the ``wild-cards'' above can contain two special and optional symbols:
+\begin{itemize}
+  \item  \texttt{:}, that defines an eventual default value;
+  \item  \texttt{|}, that defines the format of the value. The  Generic Interface currently supports the following formatting options (* in the examples means blank space):
+    \begin{itemize}
+       \item \textbf{plain integer}, in this case  the value that is going to be replaced by the Generic Interface, will be left-justified with a string length equal to the integer value specified here (e.g. ``\texttt{|}6'', the value is left-justified with a string length of 6);
+      \item \textbf{d}, signed integer decimal, the value is going to be formatted as an integer (e.g.  if the value is 9 and the format ``\texttt{|}10d'', the replaced value will be formatted as follows: ``*********9'');
+      \item \textbf{e}, floating point exponential format (lowercase), the value is going to be formatted as a float in scientific notation (e.g. if the value is 9.1234 and the format ``\texttt{|}10.3e'', the replaced value will be formatted as follows: ``*9.123e+00'' );
+      \item \textbf{E}, floating point exponential format (uppercase), the value is going to be formatted as a float in scientific notation (e.g. if the value is 9.1234 and the format ``\texttt{|}10.3E'', the replaced value will be formatted as follows: ``*9.123E+00'' );
+      \item \textbf{f or F}, floating point decimal format, the value is going to be formatted as a float in decimal notation (e.g. if the value is 9.1234 and the format ``\texttt{|}10.3f'', the replaced value will be formatted as follows: ``*****9.123'' );
+      \item \textbf{g}, floating point format. Uses lowercase exponential format if exponent is less than -4 or not less than precision, decimal format otherwise (e.g. if the value is 9.1234 and the format ``\texttt{|}10.3g'', the replaced value will be formatted as follows: ``******9.12'' );
+      \item \textbf{G}, floating point format. Uses uppercase exponential format if exponent is less than -4 or not less than precision, decimal format otherwise (e.g. if the value is 0.000009 and the format ``\texttt{|}10.3G'', the replaced value will be formatted as follows: ``*****9E-06'' ).
+    \end{itemize}|
+\end{itemize}
+For example:
+\begin{lstlisting}[language=python]
+...
+auxfile = $RAVEN-two:3$
+case = $RAVEN-out:5|10$
+...
+\end{lstlisting}
+Where,
+\begin{itemize}
+  \item  \texttt{:}, in case the variable ``two'' is not defined in the RAVEN XML input file, the Parser, will replace it with the value ``3''.;
+  \item  \texttt{|}, the value that is going to be replaced by the Generic Interface, will be left- justified with a string length of ``10'';
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% RELAP5  INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{RELAP5 Interface}
+\label{subsec:RELAP5Interface}
+
+\subsubsection{Sequence}
+In the \xmlNode{Sequence} section, the names of the steps declared in the
+\xmlNode{Steps} block should be specified.
+%
+As an example, if we called the first multirun ``Grid\_Sampler'' and the second
+multirun ``MC\_Sampler'' in the sequence section we should see this:
+\begin{lstlisting}[style=XML]
+<Sequence>Grid_Sampler,MC_Sampler</Sequence>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{batchSize and mode}
+For the \xmlNode{batchSize} and \xmlNode{mode} sections please refer to the
+\xmlNode{RunInfo} block in the previous chapters.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{RunInfo}
+After all of these blocks are filled out, a standard example RunInfo block may
+look like the example below:
+\begin{lstlisting}[style=XML]
+<RunInfo>
+  <WorkingDir>~/workingDir</WorkingDir>
+  <Sequence>Grid_Sampler,MC_Sampler</Sequence>
+  <batchSize>1</batchSize>
+  <mode>mpi</mode>
+  <expectedTime>1:00:00</expectedTime>
+  <ParallelProcNumb>1</ParallelProcNumb>
+</RunInfo>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+In the \xmlNode{Files} section, as specified before, all of the files needed for
+the code to run should be specified.
+%
+In the case of RELAP5, the files typically needed are:
+\begin{itemize}
+  \item RELAP5 Input file
+  \item Table file or files that RELAP needs to run
+\end{itemize}
+Example:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='tpfh2o' type=''>tpfh2o</Input>
+  <Input name='inputrelap.i' type=''>X10.i</Input>
+</Files>
+\end{lstlisting}
+
+It is a good practice to put inside the working directory all of these files and
+also:
+\begin{itemize}
+  \item the RAVEN input file
+  \item the license for the executable of RELAP5
+\end{itemize}
+\textcolor{red}{
+\textbf{It is important to notice that the interface output collection relies on the MINOR EDITS. The user must specify the MINOR
+EDITS block and those variables are the only one the INTERFACE will read and make available to RAVEN. In addition, it is important to notice that:}
+\begin{itemize}
+  \item \textbf{the simulation time is stored in a variable called \textit{``time''}};
+  \item \textbf{all the variables specified in the MINOR EDIT block are going to be converted using underscores (e.g.  an edit such as
+  $301 \:\:\: p \:\:\: 345010000$ will be named in the converted CSVs as $p\_345010000$).In addition, if a variable contains spaces, the trailing spaces
+   are going to be removed and internal spaces are replaced with underscores (e.g. $HTTEMP 1131008 12$ will become $HTTEMP\_1131008\_12$}.
+\end{itemize}
+}
+
+Remeber also that a RELAP5 simulation run is considered successful (i.e., the simulation did not crash) if it terminates with the following
+message:
+\textcolor{red}{Transient terminated by end of time step cards}
+or
+\textcolor{red}{Transient terminated by trip}
+
+If the a RELAP5 simulation run stops with messages other than this one (e.g., `` Transient terminated by failure.'') than the simulation is considered as
+crashed, i.e., it will not be saved.
+Hence, it is strongly recommended to set up the RELAP5 input file so that the simulation exiting conditions are set through control logic trip variables
+(e.g., simulation mission time and clad temperature equal to clad failure temperature).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+For the \xmlNode{Models} block here is a standard example of how it would look
+when using RELAP5 as the external model:
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name='MyRELAP' subType='Relap5'>
+    <executable>~/path_to_the_executable</executable>
+  </Code>
+</Models>
+\end{lstlisting}
+In case the \textbf{multi-deck} approach is used in RELAP5, the interface is going to load all the outputs in one CSV RAVEN is
+going to read. This means that all the decks' outputs are going to be loaded in one of the Output of RAVEN. In case the user
+wants to select the outputs coming from only one deck, the following XML node needs to be specified:
+\begin{itemize}
+   \item \xmlNode{outputDeckNumber}, \xmlDesc{integer, optional parameter}, the deck number from
+   which the results needs to be retrieved. \default{all}.
+\end{itemize}
+In addition, if some command line parameters need to be passed to RELAP5 \\(e.g. ``-r
+$\: restartFileWithCustomName.r$''), the user might use (optionally) the \xmlNode{clargs} XML nodes.
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name='MyRELAP' subType='Relap5'>
+    <executable>~/path_to_the_executable</executable>
+    <outputDeckNumber>1</outputDeckNumber>
+    <clargs type="text" arg="-r restartFileWithCustomName.r"/>
+  </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distribution} block defines the distributions that are going
+to be used for the sampling of the variables defined in the \xmlNode{Samplers}
+block.
+%
+For all the possibile distributions and all their possible inputs please see the
+chapter about Distributions (see~\ref{sec:distributions}).
+%
+Here we give a general example of three different distributions:
+\begin{lstlisting}[style=XML,morekeywords={name,debug}]
+<Distributions verbosity='debug'>
+  <Triangular name='BPfailtime'>
+    <apex>5.0</apex>
+    <min>4.0</min>
+    <max>6.0</max>
+  </Triangular>
+  <LogNormal name='BPrepairtime'>
+    <mean>0.75</mean>
+    <sigma>0.25</sigma>
+  </LogNormal>
+  <Uniform name='ScalFactPower'>
+    <lowerBound>1.0</lowerBound>
+    <upperBound>1.2</upperBound>
+  </Uniform>
+ </Distributions>
+\end{lstlisting}
+
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+In the \xmlNode{Samplers} block we want to define the variables that are going
+to be sampled.
+%
+\textbf{Example}:
+We want to do the sampling of 3 variables:
+\begin{itemize}
+  \item Battery Fail Time
+  \item Battery Repair Time
+  \item Scaling Factor Power Rate
+\end{itemize}
+
+We are going to sample these 3 variables using two different sampling methods:
+grid and MonteCarlo.
+
+In RELAP5, the sampler reads the variable as, given the name, the first number
+is the card number and the second number is the word number.
+%
+In this example we are sampling:
+\begin{itemize}
+  \item For card 0000588 (trip) the word 6 (battery failure time)
+  \item For card 0000575 (trip) the word 6 (battery repair time)
+  \item For card 20210000 (reactor power) the word 4 (reactor scaling factor)
+\end{itemize}
+
+We proceed to do so for both the Grid sampling and the MonteCarlo sampling.
+
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
+<Samplers verbosity='debug'>
+  <Grid name='Grid_Sampler' >
+    <variable name='0000588:6'>
+      <distribution>BPfailtime</distribution>
+      <grid type='value' construction='equal'  steps='10'>0.0 28800</grid>
+    </variable>
+    <variable name='0000575:6'>
+      <distribution>BPrepairtime</distribution>
+      <grid type='value' construction='equal' steps='10'>0.0 28800</grid>
+    </variable>
+    <variable name='20210000:4'>
+      <distribution>ScalFactPower</distribution>
+      <grid type='value' construction='equal' steps='10'>1.0 1.2</grid>
+    </variable>
+  </Grid>
+  <MonteCarlo name='MC_Sampler'>
+     <samplerInit>
+       <limit>1000</limit>
+     </samplerInit>
+    <variable name='0000588:6'>
+      <distribution>BPfailtime</distribution>
+    </variable>
+    <variable name='0000575:6'>
+      <distribution>BPrepairtime</distribution>
+    </variable>
+    <variable name='20210000:4'>
+      <distribution>ScalFactPower</distribution>
+    </variable>
+  </MonteCarlo>
+</Samplers>
+\end{lstlisting}
+
+In case the RELAP5 input file is a multi-deck, the user can specify the deck to which each sampled variable
+corresponds to. As an example, the following sampling strategy:
+
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
+<MonteCarlo name='MC_Sampler'>
+   <samplerInit>
+     <limit>1000</limit>
+   </samplerInit>
+  <variable name='1|0000588:6'>
+    <distribution>BPfailtime</distribution>
+  </variable>
+  <variable name='2|0000575:6'>
+    <distribution>BPrepairtime</distribution>
+  </variable>
+</MonteCarlo>
+</Samplers>
+\end{lstlisting}
+performs:
+\begin{itemize}
+  \item the sampling of the distribution \\\xmlNode{BPfailtime} and it provides the sampled value
+        to the 6th word of card 0000588 for the first deck
+  \item the sampling of the distribution \\\xmlNode{BPrepairtime} and it provides the sampled value
+        to the 6th word of card 0000575 for the second deck
+\end{itemize}
+
+It can be seen that each variable is connected with a proper distribution
+defined in the \\\xmlNode{Distributions} block (from the previous example).
+%
+The following demonstrates how the input for the first variable is read.
+
+We are sampling a a variable situated in word 6 of the card 0000588 using a Grid
+sampling method.
+%
+The distribution that this variable is following is a Triangular distribution
+(see section above).
+%
+We are sampling this variable beginning from 0.0 in 10 \textit{equal} steps of
+2880.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a RELAP interface, the \xmlNode{MultiRun} step type will most likely be
+used.
+%
+First, the step needs to be named: this name will be one of the names used in
+the \xmlNode{Sequence} block.
+%
+In our example, \texttt{Grid\_Sampler} and \texttt{MC\_Sampler}.
+%
+\begin{lstlisting}[style=XML,morekeywords={name,debug,re-seeding}]
+     <MultiRun name='Grid_Sampler' verbosity='debug'>
+\end{lstlisting}
+
+With this step, we need to import all the files needed for the simulation:
+\begin{itemize}
+  \item RELAP input file
+  \item element tables -- tpfh2o
+\end{itemize}
+\begin{lstlisting}[style=XML,morekeywords={name,class,type}]
+    <Input   class='Files' type=''>inputrelap.i</Input>
+    <Input   class='Files' type=''>tpfh2o</Input>
+\end{lstlisting}
+We then need to define which model will be used:
+\begin{lstlisting}[style=XML]
+    <Model  class='Models' type='Code'>MyRELAP</Model>
+\end{lstlisting}
+We then need to specify which Sampler is used, and this can be done as follows:
+\begin{lstlisting}[style=XML]
+    <Sampler class='Samplers' type='Grid'>Grid_Sampler</Sampler>
+\end{lstlisting}
+And lastly, we need to specify what kind of output the user wants.
+%
+For example the user might want to make a database (in RAVEN the database
+created is an HDF5 file).
+%
+Here is a classical example:
+\begin{lstlisting}[style=XML,morekeywords={class,type}]
+    <Output  class='Databases' type='HDF5'>Grid_out</Output>
+\end{lstlisting}
+Following is the example of two MultiRun steps which use different sampling
+methods (grid and Monte Carlo), and creating two different databases for each
+one:
+\begin{lstlisting}[style=XML]
+<Steps verbosity='debug'>
+  <MultiRun name='Grid_Sampler' verbosity='debug'>
+    <Input   class='Files' type=''>inputrelap.i</Input>
+    <Input   class='Files'     type=''    >tpfh2o</Input>
+    <Model   class='Models'    type='Code'>MyRELAP</Model>
+    <Sampler class='Samplers'  type='Grid'>Grid_Sampler</Sampler>
+    <Output  class='Databases' type='HDF5'>Grid_out</Output>
+  </MultiRun>
+  <MultiRun name='MC_Sampler' verbosity='debug' re-seeding='210491'>
+    <Input   class='Files' type=''>inputrelap.i</Input>
+    <Input   class='Files'     type=''          >tpfh2o</Input>
+    <Model   class='Models'    type='Code'      >MyRELAP</Model>
+    <Sampler class='Samplers'  type='MonteCarlo'>MC_Sampler</Sampler>
+    <Output  class='Databases' type='HDF5'      >MC_out</Output>
+  </MultiRun>
+</Steps>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Databases}
+As shown in the \xmlNode{Steps} block, the code is creating two database objects
+called \texttt{Grid\_out} and \texttt{MC\_out}.
+%
+So the user needs to input the following:
+\begin{lstlisting}[style=XML]
+<Databases>
+  <HDF5 name="Grid_out" readMode="overwrite"/>
+  <HDF5 name="MC_out" readMode="overwrite"/>
+</Databases>
+\end{lstlisting}
+As listed before, this will create two databases.
+%
+The files will have names corresponding to their \xmlAttr{name} appended with
+the .h5 extension (i.e. \texttt{Grid\_out.h5} and \texttt{MC\_out.h5}).
+
+\subsubsection{Modified Version of the Institute of Nuclear Safety System Incorporated (Japan)}
+The Institute of Nuclear Safety System Incorporated (Japan) has modified the \textbf{RELAP5}  source code
+in order to be able to control some additional parameters from an auxiliary input file (\textbf{modelPar.inp}).
+\\In order to use this interface, the user needs to input the $subType$ attribute\textbf{Relap5inssJp}:
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name='MyRELAP' subType='Relap5'>
+    <executable>~/path_to_the_executable</executable>
+    <!-- here is taking the output from the first deck only -->
+    <outputDeckNumber>1</outputDeckNumber>
+  </Code>
+</Models>
+\end{lstlisting}
+For perturbing such input file, the approach presented in section \ref{subsec:genericInterface} (Generic Interface)
+has been employed. For the standard \textbf{RELAP5} input, the same approach previously in this section is used.
+\\For example, in the following Sampler block, the card $9100101$ is perturbed with the same approach used in standard \textbf{RELAP5}; in addition, the variable $modelParTest$  is going to be perturbed in the \textbf{modelPar.inp} input file.
+\begin{lstlisting}[style=XML]
+    <MonteCarlo name="mc_loca">
+      <samplerInit>
+        <limit>1</limit>
+      </samplerInit>
+      <variable name="9100101:3">
+        <distribution>break_size</distribution>
+      </variable>
+      <variable name="modelParTest">
+          <distribution>break_size</distribution>
+      </variable>
+    </MonteCarlo>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% RELAP7 INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{RELAP7 Interface}
+This section covers the input specifications for running RELAP7 through RAVEN.
+It is important to notice that this short explanation assumes that the reader already knows
+how to use the control logic system in RELAP7.
+Since the presence of the control logic system in RELAP7, this code interface is different with respect to the others
+and uses some special keyword available in RAVEN (see the following).
+
+\subsubsection{Files}
+In the \xmlNode{Files} section, as specified before, all of the files needed for
+the code to run should be specified.
+%
+In the case of RELAP7, the files typically needed are the following:
+\begin{itemize}
+  \item RELAP7 Input file
+  \item Control Logic file
+\end{itemize}
+Example:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='nat_circ.i' type=''>nat_circ.i</Input>
+  <Input name='control_logic.py' type=''>control_logic.py</Input>
+</Files>
+\end{lstlisting}
+The RAVEN/RELAP7 interface recognizes as RELAP7 inputs the files with the extensions  ``*.i'', ``*.inp'' and ``*.in''.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+For the \xmlNode{Models} block RELAP7 uses the RAVEN executable, since through this executable the stochastic
+environment gets activated (possibility to sample parameters directly in the control logic system)
+%
+Here is a standard example of what can be used to use RELAP7 as the model:
+\begin{lstlisting}[style=XML]
+<Models>
+    <Code name='MyRAVEN' subType='RAVEN'><executable>~path/to/RAVEN-opt</executable></Code>
+</Models>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+As for all the other codes interfaces  the \xmlNode{Distributions} block needs to be specified in order to employ
+as sampling strategy (e.g. MonteCarlo, Stratified, etc.). In this block, the user specifies the distributions that need to be used.
+Once the user defines the distributions in this block, RAVEN activates the Distribution environment in the RAVEN/RELAP7 control logic
+system. The sampling of the parameters is then performed directly in the control logic input file.
+
+%
+For example, let's consider the sampling of a normal distribution for the primary pressure in
+RELAP7:
+%
+\begin{lstlisting}[style=XML]
+<Distributions>
+ <Normal name="Prim_Pres">
+ <mean>1000000</mean>
+ <sigma>100<sigma/>
+ </Normal>
+</Distributions>
+\end{lstlisting}
+In order to change a parameter (independently on the sampling strategy), the control logic input file should be modified as follows:
+%\lstset{margin=1.5cm}
+\begin{lstlisting}[language=Python]
+def initial_function(monitored, controlled, auxiliary)
+    print("monitored",monitored,"controlled",
+    controlled,"auxiliary",auxiliary)
+
+    controlled.pressureInPressurizer =
+     distributions.Prim_Pres.getDistributionRandom()
+    return
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+In the \xmlNode{Samplers} block, all the variables that needs to be sampled must be specified.
+In case some of these variables are directly sampled in the Control Logic system, the
+\xmlNode{variable} needs to be replaced with \xmlNode{Distribution}. In this way, RAVEN is able
+to understand which variables needs to be directly modified through input file (i.e. modifying the original
+input file *.i)  and which variables are going to be ``sampled'' through the control logic system.
+%
+For the example, we are performing Grid Sampling.
+%
+The global initial pressure wasn't specified in the control logic so it is going to be specified
+using the node \xmlNode{variable}. The ``pressureInPressurizer'' variable is instead sampled in the
+control logic system; for this reason, it is going to be specified using the node  \xmlNode{Distribution}.
+%
+For example,
+%
+\begin{lstlisting}[style=XML]
+<Samplers>
+ <Grid name="MC_samp">
+   <samplerInit> <limit>500</limit> </samplerInit>
+   <variable name="GlobalParams|global_init_P">
+      <distribution>Prim_Pres</distribution>
+      <grid construction="equal" steps="10" type="CDF">0.0 1.0</grid>
+   </variable>
+   <Distribution name="pressureInPressurizer">
+      <distribution>Prim_Pres</distribution>
+      <grid construction="equal" steps="10" type="CDF">0.0 1.0</grid>
+   </Distribution>
+ </Grid>
+</Samplers>
+\end{lstlisting}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% MooseBasedApp INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MooseBasedApp Interface}
+\subsubsection{Files}
+In the \xmlNode{Files} section, as specified before, all of the files needed for
+the code to run should be specified.
+%
+In the case of any MooseBasedApp, the files typically needed are the following:
+\begin{itemize}
+  \item MooseBasedApp YAML input file
+  \item Restart Files (if the calculation is instantiated from a restart point)
+\end{itemize}
+Example:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='mooseBasedApp.i' type=''>mooseBasedApp.i</Input>
+  <Input name='0020_mesh.cpr' type=''>0020_mesh.cpr</Input>
+  <Input name='0020.xdr.0000'>0020.xdr.0000</Input>
+  <Input name='0020.rd-0'>0020.rd-0</Input>
+</Files>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+In the \xmlNode{Models} block particular MooseBasedApp executable needs to be specified.
+%
+Here is a standard example of what can be used to use with a typical MooseBasedApp (Bison) as the model:
+\begin{lstlisting}[style=XML]
+<Models>
+    <Code name='MyMooseBasedApp' subType='MooseBasedApp'><executable>~path/to/Bison-opt</executable></Code>
+</Models>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distributions} block defines the distributions that are going
+to be used for the sampling of the variables defined in the \xmlNode{Samplers}
+block.
+%
+For all the possible distributions and all their possible inputs please see the
+chapter about Distributions (see~\ref{sec:distributions}).
+%
+Here we give a general example of three different distributions:
+\begin{lstlisting}[style=XML,morekeywords={name,debug}]
+<Distributions>
+    <Normal name='ThermalConductivity1'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0.5</lowerBound>
+        <upperBound>1.5</upperBound>
+    </Normal>
+    <Normal name='SpecificHeat'>
+        <mean>1</mean>
+        <sigma>0.4</sigma>
+        <lowerBound>0.5</lowerBound>
+        <upperBound>1.5</upperBound>
+    </Normal>
+    <Triangular name='ThermalConductivity2'>
+        <apex>1</apex>
+        <min>0.1</min>
+        <max>4</max>
+    </Triangular>
+</Distributions>
+\end{lstlisting}
+
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+In the \xmlNode{Samplers} block we want to define the variables that are going
+to be sampled.
+%
+\textbf{Example}:
+We want to do the sampling of 3 variables:
+\begin{itemize}
+  \item Thermal Conductivity of the Fuel;
+  \item Specific Heat Transfer Ratio of the Cladding;
+  \item Thermal Conductivity of the Cladding.
+\end{itemize}
+
+We are going to sample these 3 variables using two different sampling methods:
+Grid and Monte-Carlo.
+
+In order to perturb any MooseBasedApp, the user needs to specify the variables to be
+sampled indicating the path to the value separated with the symbol ``$|$''. For example,
+if the variable that we want to perturb is specified in the input as follows:
+\begin{lstlisting}[style=XML]
+[Materials]
+  ...
+  [./heatStructure]
+     ...
+     thermal_conductivity = 1.0
+     ...
+  [../]
+  ...
+[]
+\end{lstlisting}
+the variable name in the Sampler input block needs to be named as follows:
+\begin{lstlisting}[style=XML]
+...
+<Samplers>
+  <aSampler name='aUserDefinedName' >
+    <variable name='Materials|heatStructure|thermal_conductivity'>
+      ...
+    </variable>
+  </aSampler>
+</Samplers>
+...
+\end{lstlisting}
+%
+In this example, we proceed to do so for both the Grid sampling and the Monte-Carlo sampling.
+
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
+<Samplers verbosity='debug'>
+    <Grid name='myGrid'>
+      <variable name='Materials|heatStructure1|thermal_conductivity' >
+        <distribution>ThermalConductivity1</distribution>
+        <grid         type='value' construction='custom' >0.6 0.7 0.8</grid>
+      </variable>
+      <variable name='Materials|heatStructure1|specific_heat' >
+        <distribution >SpecificHeat</distribution>
+        <grid         type='CDF'    construction='custom'>0.5 1.0 0.0</grid>
+      </variable>
+      <variable name='Materials|heatStructure2|thermal_conductivity'>
+        <distribution  >ThermalConductivity2</distribution>
+        <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
+      </variable>
+    </Grid>
+  <MonteCarlo name='MC_Sampler' limit='1000'>
+      <variable name='Materials|heatStructure1|thermal_conductivity' >
+        <distribution>ThermalConductivity1</distribution>
+      </variable>
+      <variable name='Materials|heatStructure1|specific_heat' >
+        <distribution >SpecificHeat</distribution>
+      </variable>
+      <variable name='Materials|heatStructure2|thermal_conductivity'>
+        <distribution  >ThermalConductivity2</distribution>
+      </variable>
+  </MonteCarlo>
+</Samplers>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a MooseBasedApp, the \xmlNode{MultiRun} step type will most likely be
+used, as first step.
+%
+First, the step needs to be named: this name will be one of the names used in
+the \xmlNode{Sequence} block.
+%
+In our example, \texttt{Grid\_Sampler} and \texttt{MC\_Sampler}.
+%
+\begin{lstlisting}[style=XML,morekeywords={name,debug,re-seeding}]
+     <MultiRun name='Grid_Sampler' >
+\end{lstlisting}
+
+With this step, we need to import all the files needed for the simulation:
+\begin{itemize}
+  \item MooseBasedApp YAML input file;
+  \item eventual restart files (optional);
+  \item other auxiliary files (e.g., powerHistory tables, etc.).
+\end{itemize}
+\begin{lstlisting}[style=XML,morekeywords={name,class,type}]
+    <Input   class='Files' type=''>mooseBasedApp.i</Input>
+    <Input   class='Files' type=''>0020_mesh.cpr</Input>
+    <Input   class='Files' type=''>0020.xdr.0000</Input>
+    <Input   class='Files' type=''>0020.rd-0</Input>
+\end{lstlisting}
+We then need to define which model will be used:
+\begin{lstlisting}[style=XML]
+    <Model  class='Models' type='Code'>MyMooseBasedApp</Model>
+\end{lstlisting}
+We then need to specify which Sampler is used, and this can be done as follows:
+\begin{lstlisting}[style=XML]
+    <Sampler class='Samplers' type='Grid'>Grid_Sampler</Sampler>
+\end{lstlisting}
+And lastly, we need to specify what kind of output the user wants.
+%
+For example the user might want to make a database (in RAVEN the database
+created is an HDF5 file) and a DataObject of type PointSet, to use in sub-sequential
+post-processing.
+%
+Here is a classical example:
+\begin{lstlisting}[style=XML,morekeywords={class,type}]
+    <Output  class='Databases' type='HDF5'>MC_out</Output>
+    <Output  class='DataObjects' type='PointSet'>MCOutData</Output>
+\end{lstlisting}
+
+Following is the example of two MultiRun steps which use different sampling
+methods (grid and Monte Carlo), and creating two different databases for each
+one:
+\begin{lstlisting}[style=XML]
+<Steps verbosity='debug'>
+  <MultiRun name='Grid_Sampler' verbosity='debug'>
+    <Input  class='Files' type=''>mooseBasedApp.i</Input>
+    <Input  class='Files' type=''>0020_mesh.cpr</Input>
+    <Input  class='Files' type='' >0020.xdr.0000</Input>
+    <Input  class='Files' type=''>0020.rd-0</Input>
+    <Model  class='Models'    type='Code'>MyMooseBasedApp</Model>
+    <Sampler class='Samplers'  type='Grid'>Grid_Sampler</Sampler>
+    <Output  class='Databases' type='HDF5'>Grid_out</Output>
+    <Output  class='DataObjects' type='PointSet'>gridOutData</Output>
+  </MultiRun>
+  <MultiRun name='MC_Sampler' verbosity='debug' re-seeding='210491'>
+    <Input  class='Files' type=''>mooseBasedApp.i</Input>
+    <Input  class='Files' type=''>0020_mesh.cpr</Input>
+    <Input  class='Files' type='' >0020.xdr.0000</Input>
+    <Input  class='Files' type=''>0020.rd-0</Input>
+    <Model  class='Models'    type='Code'>MyMooseBasedApp</Model>
+    <Sampler class='Samplers'  type='MonteCarlo' >MC_Sampler</Sampler>
+    <Output  class='Databases' type='HDF5' >MC_out</Output>
+    <Output  class='DataObjects' type='PointSet'>MCOutData</Output>
+  </MultiRun>
+</Steps>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Databases}
+As shown in the \xmlNode{Steps} block, the code is creating two database objects
+called \texttt{Grid\_out} and \texttt{MC\_out}.
+%
+So the user needs to input the following:
+\begin{lstlisting}[style=XML]
+<Databases>
+  <HDF5 name="Grid_out" readMode="overwrite"/>
+  <HDF5 name="MC_out" readMode="overwrite"/>
+</Databases>
+\end{lstlisting}
+As listed before, this will create two databases.
+%
+The files will have names corresponding to their \xmlAttr{name} appended with
+the .h5 extension (i.e. \texttt{Grid\_out.h5} and \texttt{MC\_out.h5}).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{DataObjects}
+As shown in the \xmlNode{Steps} block, the code is creating two DataObjects of type PointSet
+called \texttt{gridOutData} and \texttt{MCOutData}.
+%
+So the user needs to input the following:
+\begin{lstlisting}[style=XML]
+<DataObjects>
+    <PointSet name='gridOutData'>
+      <Input>
+          Materials|heatStructure2|thermal_conductivity,
+          Materials|heatStructure1|specific_heat,
+          Materials|heatStructure2|thermal_conductivity
+      </Input>
+      <Output>aveTempLeft</Output>
+    </PointSet>
+    <PointSet name='MCOutData'>
+      <Input>
+          Materials|heatStructure2|thermal_conductivity,
+          Materials|heatStructure1|specific_heat,
+          Materials|heatStructure2|thermal_conductivity
+      </Input>
+      <Output>aveTempLeft</Output>
+    </PointSet>
+</DataObjects>
+\end{lstlisting}
+As listed before, this will create two DataObjects that can be used in sub-sequential post-processing.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{OutStreams}
+As fully explained in section~\ref{sec:outstream}, if the user want to print out or plot the content of a \textbf{DataObjects},
+he needs to create an \textbf{OutStream} in the \xmlNode{OutStreams} XML block.
+\\As it shown in the example below, for MooseBasedApp (and any other Code interface that might use the symbol $|$
+for the Sampler's variable syntax), in the Plot \xmlNode{x} and \xmlNode{y} specification, the user needs to
+utilize curly brackets.
+\begin{lstlisting}[style=XML]
+<OutStreams>
+  <Print name='gridOutDataDumpCSV'>
+    <type>csv</type>
+    <source>gridOutData</source>
+  </Print>
+   <Plot verbosity='debug' name='test'   overwrite='False'>
+    <plotSettings>
+       <plot>
+        <type>line</type>
+        <x>MCOutData|Input|{Materials|heatStructure2|thermal_conductivity}</x>
+        <y>MCOutData|Output|aveTempLeft</y>
+        <kwargs><color>blue</color></kwargs>
+      </plot>
+    </plotSettings>
+    <actions><how>screen,png</how></actions>
+  </Plot>
+</OutStreams>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% Moose VectorPostProcessor INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MooseVPP Interface}
+
+The Moose Vector Post Processor is used mainly in the solid mechanics analysis.
+This interface loads the values of the vector ouput processor to a \xmlNode{DataObjects} object.
+
+To use this interface the [DomainIntegral] needs to be present in the MooseBasedApp's
+ input file and the subnode \xmlNode{fileargs} should be defined in the subnode \xmlNode{Code} in
+ the \xmlNode{Models} block of the RAVEN input file. The \xmlNode{fileargs} is required to have attributes with
+the below specified values:
+
+\begin{itemize}
+    \item \xmlAttr{type}, \xmlDesc{string, required field}, must be "MooseVPP"
+    \item \xmlAttr{arg}, \xmlDesc{string, required field}, the string value attached to the vector post processor action
+         while creating the output files.
+\end{itemize}
+
+This interface is actually identical to the MooseBasedApp interface, however there is
+ few constraints on defining the output values of the post processor.
+The definition of these outputs in the \xmlNode{DataObjects} depends on the definition of
+ the [DomainIntegral].
+
+The location of the value outputted is defined as \textit{ID\#} and the value is as
+\textit{value\#}. The ''\#'' defines
+the number of the location. The example below contains 3 locations in the [DomainIntegral]
+where the values are outputted.
+
+%
+Example:
+\begin{lstlisting}[style=XML]
+ ...
+  <Models>
+    <Code name="MOOSETestApp" subType="MooseBasedApp">
+      <executable>%FRAMEWORK_DIR%/../../moose/
+        modules/combined/modules-%METHOD%</executable>
+      <fileargs type = "MooseVPP" arg = "_J_1_" />
+      <alias variable = "poissonsRatio" >
+        Materials|stiffStuff|poissons_ratio</alias>
+      <alias variable = "youngModulus"  >
+        Materials|stiffStuff|youngs_modulus</alias>
+    </Code>
+  </Models>
+ ...
+  <DataObjects>
+    <PointSet name="collset">
+      <Input>youngModulus,poissonsRatio</Input>
+      <Output>ID1,ID2,ID3,value1,value2,value3</Output>
+    </PointSet>
+  </DataObjects>
+ ...
+\end{lstlisting}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% OPENMODELICA INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{OpenModelica Interface}
+OpenModelica (\url{http://www.openmodelica.org}) is an open souce implementation of the Modelica simulation language.  Modelica is "a non-proprietary,
+object-oriented, equation based language to conveniently model complex physical systems containing, e.g., mechanical, electrical, electronic, hydraulic,
+thermal, control, electric power or process-oriented subcomponents."\footnote{\url{http://www.modelica.org}}.  Modelica models are specified in text files
+with a file extension of .mo.  A standard Modelica example called BouncingBall which simulates the trajectory of an object falling in one dimension from a
+height is shown as an example:
+\begin{lstlisting}
+model BouncingBall
+  parameter Real e=0.7 "coefficient of restitution";
+  parameter Real g=9.81 "gravity acceleration";
+  Real h(start=1) "height of ball";
+  Real v "velocity of ball";
+  Boolean flying(start=true) "true, if ball is flying";
+  Boolean impact;
+  Real v_new;
+  Integer foo;
+
+equation
+  impact = h <= 0.0;
+  foo = if impact then 1 else 2;
+  der(v) = if flying then -g else 0;
+  der(h) = v;
+
+  when {h <= 0.0 and v <= 0.0,impact} then
+    v_new = if edge(impact) then -e*pre(v) else 0;
+    flying = v_new > 0;
+    reinit(v, v_new);
+  end when;
+
+end BouncingBall;
+\end{lstlisting}
+
+\subsubsection{Files}
+An OpenModelica installation specific to the operating system is used to create a stand-alone executable program that performs the model calculations.
+A separate XML file containing model parameters and initial conditions is also generated as part of the build process.  The RAVEN OpenModelica interface
+modifies input parameters by changing copies of this file.  Both the executable and XML parameter file names must be provided to RAVEN.  In the case of
+the BouncingBall model previously mentioned on the Windows operating system, the \textless Files\textgreater  specification would look like:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='BouncingBall_init.xml' type=''>BouncingBall_init.xml</Input>
+  <Input name='BouncingBall.exe' type=''>BouncingBall.exe</Input>
+</Files>
+\end{lstlisting}
+\subsubsection{Models}
+OpenModelica models may provide simulation output in a number of formats.  The particular format used is specified during the model generation
+process.  RAVEN works best with Comma-Separated Value (CSV) files, which is one of the possible output format options.  Models are generated
+using the OpenModelica Shell (OMS) command-line interface, which is part of the OpenModelica installation.  To generate an executable that provides
+CSV-formatted output, use OMSl commands as follows:
+\lstset{
+    frame=single,
+    breaklines=true,
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}
+}
+ \begin{enumerate}
+\item Change to the directory containing the .mo file to generate an executable for:
+\begin{lstlisting}
+>> cd("C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica")
+"C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica"
+\end{lstlisting}
+\item Load the model file into memory:
+\begin{lstlisting}
+>> loadFile("BouncingBall.mo")
+true
+\end{lstlisting}
+\item Create the model executable, specifying CSV output format:
+\begin{lstlisting}
+>> buildModel(BouncingBall, outputFormat="csv")
+{"C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall","BouncingBall_init.xml"}
+Warning: The initial conditions are not fully specified. Use +d=initialization for more information.
+\end{lstlisting}
+At this point the model executable and XML initialization file should have been created in the same directory as the original model file.
+\end{enumerate}
+The model executable is specified to RAVEN using the \textless Models\textgreater  section of the input file as follows:
+\begin{lstlisting}[style=XML]
+<Simulation>
+    ...
+  <Models>
+    <Code name="BouncingBall" subType = "OpenModelica">
+      <executable>BouncingBall.exe</executable>
+    </Code>
+  </Models>
+    ...
+</Simulation>
+\end{lstlisting}
+\subsubsection{CSV Output}
+The CSV files produced by OpenModelica model executables require adjustment before it may be read by RAVEN.
+The first few lines of original CSV output from the
+BouncingBall example is shown below:
+\begin{lstlisting}
+"time","h","v","der(h)","der(v)","v_new","foo","flying","impact",
+0,1,0,0,-9.810000000000001,0,2,1,0,
+  ...
+\end{lstlisting}
+RAVEN will not properly read this file as-generated for two reasons:
+\begin{itemize}
+  \item The variable names in the first line are each enclosed in double-quotes.
+  \item Each line has a trailing comma.
+\end{itemize}
+ The OpenModelica inteface will automatically remove the double-quotes and trailing commas through its implementation of the
+finalizeCodeOutput function.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% DYMOLA INTERFACE  %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dymola Interface}
+Modelica is "a non-proprietary, object-oriented, equation-based language to conveniently model complex physical systems containing, e.g., mechanical, electrical, electronic, hydraulic,
+thermal, control, electric power or process-oriented subcomponents."\footnote{\url{http://www.modelica.org}}.  Modelica models (with a file extension of .mo) are built, translated (compiled), and simulated in Dymola (http://www.modelon.com/p-
+roducts/dymola/), which is a commercial modeling and simulation environment based on the Modelica modeling language.
+A standard Modelica example called BouncingBall, which simulates the trajectory of an object falling in one dimension from a height, is shown as an example:
+\begin{lstlisting}
+model BouncingBall
+  parameter Real e=0.7 "coefficient of restitution";
+  parameter Real g=9.81 "gravity acceleration";
+  parameter Real hstart = 10 "height of ball at time zero";
+  parameter Real vstart = 0 "velocity of ball at time zero";
+  Real h(start=hstart,fixed=true) "height of ball";
+  Real v(start=vstart,fixed=true) "velocity of ball";
+  Boolean flying(start=true) "true, if ball is flying";
+  Boolean impact;
+  Real v_new;
+  Integer foo;
+
+equation
+  impact = h <= 0.0;
+  foo = if impact then 1 else 2;
+  der(v) = if flying then -g else 0;
+  der(h) = v;
+
+  when {h <= 0.0 and v <= 0.0,impact} then
+    v_new = if edge(impact) then -e*pre(v) else 0;
+    flying = v_new > 0;
+    reinit(v, v_new);
+  end when;
+
+  annotation (uses(Modelica(version="3.2.1")),
+    experiment(StopTime=10, Interval=0.1),
+    __Dymola_experimentSetupOutput);
+
+end BouncingBall;
+\end{lstlisting}
+
+\subsubsection{Files}
+When a modelica model, e.g., BouncingBall model, is implemented in Dymola, the platform dependent C-code from a Modelica model and the corresponding executable code
+(i.e., by default dymosim.exe on the Windows operating system) are generated for simulation.  After the executable is generated, it may be run multiple times (with Dymola license).
+A separate TEXT file (by default dsin.txt) containing model parameters and initial conditions are also generated as part of the build process.  The RAVEN Dymola interface
+modifies input parameters by changing copies of this file.  Both the executable and TEXT parameter file (or simulation initialization file) names must be provided to RAVEN. The TEXT parameter file must be of type 'DymolaInitialisation'.  In the case of
+the BouncingBall model previously mentioned on the Windows operating system, the \textless Files\textgreater  specification would look like:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='dsin.txt' type='DymolaInitialisation'>dsin.txt</Input>
+</Files>
+\end{lstlisting}
+
+The Dymola interface can only pass scalar values into the TEXT parameter file. If the user wants to pass vector information to Dymola, he can do so by providing an optional TEXT vector file to Dymola. This file must have the type 'DymolaVectors'. This additional file can then be read by the Dymola model. If vecor data is passed from RAVEN to the Dymola interface and the TEXT vector file is not specified, the interface will display an error and stop the Dymola execution. If the TEXT vector file is specified (and vector data is passed to the interface), the interface will write the datd into the specified file, but also display a warning, saying that the Dymola interface found vector data to be passed and if this data is supposed to go into the simulation initialisation file of type 'DymolaInitialisation' the array must be split into scalars. The \textless Files\textgreater specification for the vector data look as follows:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='timeSeriesData.txt' type='DymolaVectors'>timeSeriesData.txt</Input>
+</Files>
+\end{lstlisting}
+
+\subsubsection{Models}
+An executable (dymosim.exe) and a simulation initialization file (dsin.txt) can be generated after either translating or simulating the
+Modelica model (BouncingBall.mo) using the Dymola Graphical User Interface (GUI) or Dymola Application Programming Interface (API)-routines.
+To generate an executable and a simulation initialization file, use the Dymola API-routines (or Dymola GUI) to translate the model as follows:
+\lstset{
+    frame=single,
+    breaklines=true,
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}
+}
+\begin{enumerate}
+\item Change to the directory containing the .mo file to generate an executable.  In Dymola GUI, this corresponds to File/Change Directory in menus:
+\begin{lstlisting}
+>> cd("C:/msys64/home/KIMJ/projects/raven/framework/CodeInterfaces/Dymola");
+C:/msys64/home/KIMJ/projects/raven/framework/CodeInterfaces/Dymola
+ = true
+\end{lstlisting}
+\item Reads the specified file and displays its window.  In Dymola GUI, this corresponds to File/Open in the menus:
+\begin{lstlisting}
+>> openModel("BouncingBall.mo")
+ = true
+\end{lstlisting}
+\item Compile the model (with current settings), and create the model executable and the corresponding simulation initialization file.  In Dymola GUI, this corresponds to Translate Model in the menus:
+\begin{lstlisting}
+>> translateModel("BouncingBall");
+ = true
+\end{lstlisting}
+At this point the model executable and the simulation initialization file should have been created in the same directory as the original model file.
+Additionally, they could be created by simulating the model.  The following command corresponds to Simulate in the menus in Dymola GUI:
+\begin{lstlisting}
+>> simulateModel("BouncingBall", stopTime=10, numberOfIntervals=0, outputInterval=0.1, method="dassl", resultFile="BouncingBall");
+ = true
+\end{lstlisting}
+The file extension (.mat) is automatically added to a output file (resultFile), e.g., BouncingBall.mat.  If the generated executable code is triggered directly from a
+command prompt, the output file is always named as "dsres.mat".
+\end{enumerate}
+The model executable is specified to RAVEN using the \textless Models\textgreater  section of the input file as follows:
+\begin{lstlisting}[style=XML]
+<Simulation>
+    ...
+  <Models>
+    <Code name="BouncingBall" subType = "Dymola">
+      <executable>dymosim.exe</executable>
+    </Code>
+  </Models>
+    ...
+</Simulation>
+\end{lstlisting}
+RAVEN works best with Comma-Separated Value (CSV) files.  Therefore, the default .mat output type needs to be converted to .csv output.
+The Dymola interface will automatically convert the .mat output to human-readable forms, i.e., .csv output, through its implementation of the finalizeCodeOutput function.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% MESH GENERATION COUPLED INTERFACES %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Mesh Generation Coupled Interfaces}
+Some software requires a provided mesh that requires a separate code run to generate.
+In these cases, we use sampled geometric
+variables to generate a new mesh for each perturbation of the original problem, then run the input with
+the remainder of the perturbed parameters and the perturbed mesh.  RAVEN currently provides two interfaces for
+this type of calculation, listed below.
+
+%%%%%%%%%% CUBIT MOOSE INTERFACE %%%%%%%%%%
+\subsubsection{MooseBasedApp and Cubit Interface}
+Many MOOSE-based applications use Cubit (\url{https://cubit.sandia.gov}) to generate Exodus II files as
+geometry and meshing for calculations.  To use the developed interface, Cubit's
+bin directory must be added to the user's PYTHONPATH.  Input parameters for Cubit can be listed in a journal
+(\texttt{.jou}) file.  Parameter values
+are typically hardcoded into the Cubit command syntax, but variables may be
+predefined in a journal file through Aprepro syntax.  This is an example of a journal
+file that generates a rectangle of given height and width, meshes it, defines its
+volume and sidesets, lists its element type, and writes it as an Exodus file:
+
+%Cubit (\url{https://cubit.sandia.gov}) is a toolkit developed at Sandia National
+%Laboratory used to create two- and three-dimensional finite element meshes with
+%various options for defining geometric properties as a part of the grid. It is
+%capable of reading and writing a variety of standard mesh file types, including
+%Genesis or Exodus II (*.e) files.  As MOOSE applications use Exodus II files for
+%meshes and results, Cubit is commonly used to generate meshes for problems of
+%interest.  Cubit commands are used to create the geometry, mesh the object, and
+%identify volumes, sidesets, and nodesets for a mesh.  These commands may be
+%placed in journal files (*.jou) to be used as input to Cubit.  Parameter values
+%are typically hardcoded into the Cubit command syntax, but variables may be
+%predefined in a journal file through Aprepro syntax.  An example of a journal
+%file that generates a rectangle of given height and width, meshes it, defines its
+%volume and sidesets, lists its element type, and writes it as an Exodus file is given:
+
+\begin{lstlisting}
+#{x = 3}
+#{y = 3}
+#{out_name = "'out_mesh.e'"}
+create surface rectangle width {x} height {y} zplane
+mesh surface 1
+set duplicate block elements off
+block 1 surface 1
+Sideset 1 curve 3
+Sideset 2 curve 4
+Sideset 3 curve 1
+Sideset 4 curve 2
+Block all element type QUAD4
+export genesis {out_name} overwrite
+\end{lstlisting}
+
+The first three lines are the Aprepro variable definitions that RAVEN requires to
+insert sampled variables.  All variables that RAVEN samples
+need to be defined as Aprepro variables in the journal
+file.
+%These are typically geometric parameters, though almost anything that Cubit
+%quantifies in a command may be defined as a variable and sampled through RAVEN
+%such as internal mesh refinement values.
+One essential caveat to running
+this interface is that an Aprepro variable MUST be defined with the name "out\_name".
+In order to run this script without RAVEN inserting the correct syntax for the
+output file name and properly generate the Exodus file for a mesh, the output file
+name is REQUIRED to be in both single and double quotation marks with the file
+extension appended to the end of the file base name (e.g. '"output\_file.e"').
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Files}
+\xmlNode{Files} works the same as in other interfaces with name and type
+attributes for each node entry.  The \xmlAttr{name} attribute is a user-chosen internal
+name for the file contained in the node, and \xmlAttr{type} identifies which base-level
+interface the file is used within.  \xmlNode{type} should only be specified for inputs
+that RAVEN will perturb.  For Moose input files, \xmlNode{type} should be \xmlString{MooseInput} and for
+Cubit journal files, the \xmlNode{type} should be \xmlString{CubitInput}.  The node should contain the
+path to the file from the working directory.  The following is an example
+of a typical \xmlNode{Files} block.
+
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='moose_test' type='MooseInput'>simple_diffusion.i</Input>
+  <Input name='mesh_in'    type='CubitInput'>rectangle.jou</Input>
+  <Input name='other_file' type=''          >some_file_moose_input_needs.ext</Input>
+</Files>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Models}
+A user provides paths to executables and aliases for sampled variables within the
+\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes name and
+subType.  Name identifies that particular \xmlNode{Code} model within RAVEN, and
+subType specifies which code interface the model will use. The \xmlNode{executable}
+block should contain the absolute or relative (with respect to the current working
+directory) path to the MooseBasedApp that RAVEN will use to run generated input
+files.  The absolute or relative path to the Cubit executable is specified within
+\xmlNode{preexec}.  If the \xmlNode{preexec} block is not needed, the
+MooseBasedApp interface is probably preferable to the Cubit-Moose interface.
+
+Aliases are defined by specifying the variable attribute in an \xmlNode{alias} node with
+the internal RAVEN variable name chosen with the node containing the model
+variable name.  The Cubit-Moose interface uses the same syntax as the
+MooseBasedApp to refer to model variables, with pipes separating terms starting
+with the highest YAML block going down to the individual parameter that RAVEN
+will change.  To specify variables that are going to be used in the Cubit
+journal file, the syntax is "Cubit|aprepro\_var".  The Cubit-Moose interface
+will look for the Cubit tag in all variables passed to it and upon finding it,
+send it to the Cubit interface.  If the model variable does not begin with \xmlString{Cubit},
+the variable MUST be specified in the MooseBasedApp input file.  While the model
+variable names are not required to have aliases defined (the \xmlNode{alias}
+blocks are optional), it is highly suggested to do so not only to ensure brevity
+throughout the RAVEN input, but to easily identify where variables are being sent
+in the interface.
+
+An example \xmlNode{Models} block follows.
+
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name="moose-modules" subType="CubitMoose">
+    <executable>%FRAMEWORK_DIR%/../../moose/modules/combined/...
+      modules-%METHOD%</executable>
+    <preexec>/hpc-common/apps/local/cubit/13.2/bin/cubit</preexec>
+    <alias variable="length">Cubit@y</alias>
+    <alias variable="bot_BC">BCs|bottom|value</alias>
+  </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Distributions}
+The \xmlNode{Distributions} block defines all distributions used to
+sample variables in the current RAVEN run.
+
+For all the possible distributions and their possible inputs please
+refer to the Distributions chapter (see~\ref{sec:distributions}).
+%
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Samplers}
+The \xmlNode{Samplers} block defines the variables to be sampled.
+
+After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The name attribute in the \xmlNode{variable} block must either be the
+full MooseBasedApp model variable name or the alias name specifed in
+\xmlNode{Models}.  If the sampled variable is a geometric property
+that will be used to generate a mesh with Cubit, remember the syntax for
+variables being passed to journal files (Cubit|aprepro\_var).
+
+For listings of available samplers
+refer to the Samplers chapter (see~\ref{sec:Samplers}).
+
+See the following for an example of a grid based sampler for
+length and the bottom boundary condition (both of which have aliases
+defined in \xmlNode{Models}).
+
+\begin{lstlisting}[style=XML]
+<Samplers>
+  <Grid name="Grid_sampling">
+    <variable name="length" >
+      <distribution>length_dist</distribution>
+      <grid type="value" construction="custom">1.0 2.0</grid>
+    </variable>
+    <variable name="bot_BC">
+      <distribution>bot_BC_dist</distribution>
+      <grid type="value" construction="custom">3.0 6.0</grid>
+    </variable>
+  </Grid>
+</Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Steps,OutStreams,DataObjects}
+This interface's \xmlNode{Steps}, \xmlNode{OutStreams}, and
+\xmlNode{DataObjects} blocks do not deviate significantly from
+other interfaces' respective nodes.  Please refer to previous
+entries for these blocks if needed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{File Cleanup}
+The Cubit-Moose interface automatically removes files that are commonly
+unwanted after the RAVEN run reaches completion. Cubit has been described as
+"talkative" due to additional journal files with execution information
+being generated by the program after every completed journal file run.
+The quantity of these files can quickly become unwieldly if the working
+directory is not kept clean; thus these files are removed.  In addition, some users
+may wish to remove Exodus files after the RAVEN run is complete as
+the typical size of each file is quite large and it is assumed that any
+output quantities of interest will be collected by appropriate postprocessors
+and the OutStreams.  Exodus files are not automatically removed,
+but by using the \xmlNode{deleteOutExtension} node in \xmlNode{RunInfo}, one
+may specify the Exodus extension to save a fair amount of storage space
+after RAVEN completes a sequence. For example:
+
+\begin{lstlisting}[style=XML]
+<RunInfo>
+  ...
+  <deleteOutExtension>e</deleteOutExtension>
+  ...
+</RunInfo>
+\end{lstlisting}
+
+%%%%%%%%%% BISON MESH SCRIPT MOOSE INTERFACE %%%%%%%%%%
+\subsubsection{MooseBasedApp and Bison Mesh Script Interface}
+For BISON users, a Python mesh generation script is included in
+the \%BISON\_DIR\%/tools/UO2/ directory.  This script generates
+3D or 2D (RZ) meshes for nuclear fuel rods using Cubit with
+templated commands.  The BISON Mesh Script (BMS) is capable of
+generating rods with discrete fuel pellets of various size in
+assorted configurations.  To use this interface, Cubit's bin
+directory must be added to the user's PYTHONPATH.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Files}
+Similar to the Cubit-Moose interface, the BisonAndMesh interface
+requires users to specify all files required to run their input
+so that these file may be copied into the respective sequence's
+working directory.  The user will give each file an internal
+RAVEN designation with the name attribute, and the MooseBasedApp
+and BISON Mesh Script inputs must be assigned their respective types
+in another attribute of the \xmlNode{Input} node.  An example follows.
+
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='bison_test' type='MooseInput'>simple_bison_test.i</Input>
+  <Input name='mesh_in'    type='BisonMeshInput'>coarse_input.py</Input>
+  <Input name='other_file' type=''>some_file_moose_input_needs.ext</Input>
+</Files>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Models}
+A user provides paths to executables and aliases for sampled variables within the
+\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes \xmlAttr{name} and
+\xmlAttr{subType}.  \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
+\xmlAttr{subType} specifies which code interface the model will use. The \xmlNode{executable}
+block should contain the absolute or relative (with respect to the current working
+directory) path to the MooseBasedApp that RAVEN will use to run generated input
+files.  The absolute or relative path to the mesh script python file is specified within
+\xmlNode{preexec}.  If the \xmlNode{preexec} block is not needed, use the
+MooseBasedApp interface.
+
+Aliases are defined by specifying the variable attribute in an \xmlNode{alias} node with
+the internal RAVEN variable name chosen with the node containing the model
+variable name.  The BisonAndMesh interface uses the same syntax as the
+MooseBasedApp to refer to model variables, with pipes separating terms starting
+with the highest YAML block going down to the individual parameter that RAVEN
+will change.  To specify variables that are going to be used in the BISON Mesh Script
+python input, the syntax is "Cubit|dict\_name|var\_name".  The interface
+will look for the Cubit tag in all variables passed to it and upon finding the tag,
+send it to the BISON Mesh Script interface.  If the model variable does not begin with Cubit,
+the variable MUST be specified in the MooseBasedApp input file.  While the model
+variable names are not required to have aliases defined (the \xmlNode{alias}
+blocks are optional), it is highly suggested to do so not only to ensure brevity
+throughout the RAVEN input, but to easily identify where variables are being sent
+in the interface.
+
+An example \xmlNode{Models} block follows.
+
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name="Bison-opt" subType="BisonAndMesh">
+    <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
+    <preexec>%FRAMEWORK_DIR%/../../bison/tools/UO2/mesh_script.py</preexec>
+    <alias variable="pellet_radius" >Cubit@Pellet1|outer_radius</alias>
+    <alias variable="clad_thickness">Cubit@clad|clad_thickness</alias>
+    <alias variable="fuel_k"        >Materials|fuel_thermal|thermal_conductivity</alias>
+    <alias variable="clad_k"        >Materials|clad_thermal|thermal_conductivity</alias>
+  </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Distributions}
+The \xmlNode{Distributions} block defines all distributions used to
+sample variables in the current RAVEN run.
+
+For all the possible distributions and their possible inputs please
+refer to the Distributions chapter (see~\ref{sec:distributions}).
+%
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Samplers}
+The \xmlNode{Samplers} block defines the variables to be sampled.
+
+After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The name attribute in the \xmlNode{variable} block must either be the
+full MooseBasedApp model variable name or the alias name specified in
+\xmlNode{Models}.  If the sampled variable is a geometric property
+that will be used to generate a mesh with Cubit, remember the syntax for
+variables being passed to journal files (Cubit|aprepro\_var).
+
+For listings of available samplers
+refer to the Samplers chapter (see~\ref{sec:Samplers}).
+
+See the following for an example of a grid based sampler for
+length and the bottom boundary condition (both of which have aliases
+defined in \xmlNode{Models}).
+
+\begin{lstlisting}[style=XML]
+<Samplers>
+  <Grid name="Grid_sampling">
+    <variable name="length" >
+      <distribution>length_dist</distribution>
+      <grid type="value" construction="custom">1.0 2.0</grid>
+    </variable>
+    <variable name="bot_BC">
+      <distribution>bot_BC_dist</distribution>
+      <grid type="value" construction="custom">3.0 6.0</grid>
+    </variable>
+  </Grid>
+</Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Steps,OutStreams,DataObjects}
+This interface's \xmlNode{Steps}, \xmlNode{OutStreams}, and
+\xmlNode{DataObjects} blocks do not deviate significantly from
+other interfaces' respective nodes.  Please refer to previous
+entries for these blocks if needed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{File Cleanup}
+The BisonAndMesh interface automatically removes files that are commonly
+unwanted after the RAVEN run reaches completion. Cubit has been described as
+"talkative" due to additional journal files with execution information
+being generated by the program after every completed journal file run.
+The BISON Mesh Script creates a journal file to run with cubit after reading input parameters;
+so Cubit will generate its "redundant" journal files, and .pyc files will
+litter the working directory as artifacts of the python mesh script
+reading from the .py input files.  The quantity of these files can quickly
+become unwieldly if the working directory is not kept clean, thus these
+files are removed.  Some users
+may wish to remove Exodus files after the RAVEN run is complete as
+the typical size of each file is quite large and it is assumed that any
+output quantities of interest will be collected by appropriate postprocessors
+and the OutStreams.  Exodus files are not automatically removed,
+but by using the \xmlNode{deleteOutExtension} node in \xmlNode{RunInfo}, one
+may specify the Exodus extension (*.e) to save a fair amount of storage space
+after RAVEN completes a sequence. For example:
+
+\begin{lstlisting}[style=XML]
+<RunInfo>
+  ...
+  <deleteOutExtension>e</deleteOutExtension>
+  ...
+</RunInfo>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%% PHISICS INTERFACE %%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Phisics Interface} \label{PhisicsInterface}
+%
+This section covers the input specification for running Phisics through RAVEN.
+The interface can be used to perturb the Phisics input file including the Instant and MrTau input decks
+and the following libraries: cross sections, fission yield, decay, fission Q-values, decay Q-values and the XML material input. 
+%
+\subsubsection{Files}
+\xmlNode{Files} includes two attributes \xmlAttr{name} and \xmlAttr{type} entries, identically as other interfaces.   
+It also included two optional attributes \xmlAttr{perturbable} and \xmlAttr{subDirectory}.
+
+The \xmlAttr{name} attribute is a user-defined internal name for the file contained in the node. 
+Default: None (required entry).  
+
+The \xmlAttr{type} attribute identifies which base-level parser an input file is used within.  The \xmlAttr{type} has to be specified for both perturbed and unperturbed input. 
+\xmlAttr{type} is hardcoded for each input, in order to assign each input to its corresponding RAVEN parser. 
+Default: None (required entry). 
+
+The corresponding hardcoded flags accepted by RAVEN are given in Table \ref{TypeTable}. The type attributes are case-incensitive. 
+\begin{table}[]
+  \centering
+  \caption{Correspondance between the type attributes required and the Phisics input files}\label{TypeTable}
+    \begin{tabular}{l|l|l}
+\textit{Type Attribute} & \textit{Corresponding Phisics input}                           & \textit{Perturbable} \\
+\hline
+decay                   & MrTau decay library                          & Yes                  \\
+inp                     & XML Instant input                            & No                   \\
+path                    & XML MrTau path-to-libraries file             & No                   \\
+material                & XML MrTau material input                     & Yes                  \\
+depletion\_input        & XML MrTau depletion input                    & No                   \\
+Xs-Library              & XML MrTau library input                      & No                   \\
+FissionYield            & MrTau fission yield library                  & Yes                  \\
+FissQValue              & MrTau fission Q-values                       & Yes                  \\
+AlphaDecay              & MrTau $\alpha$ decay library                 & Yes                  \\
+Beta+Decay              & MrTau $\beta^+$ decay library                & Yes                  \\
+Beta+xDecay             & MrTau $\beta^{+*}$ decay library             & Yes                  \\
+BetaDecay               & MrTau $\beta$ decay library                  & Yes                  \\
+BetaxDecay              & MrTau $\beta^*$ decay library                & Yes                  \\
+IntTraDecay             & MrTau internal transition decay library      & Yes                  \\
+isoXS                   & Cross section library                        & No                   \\
+XS                      & XML XS scaling factors file                  & Yes                  \\
+N,2N                    & MrTau n,2n library                           & No                   \\
+N,ALPHA                 & MrTau n,$\alpha$ library                     & No                   \\
+N,G                     & MrTau n,$\gamma$ library                     & No                   \\
+N,Gx                    & MrTau n,$\gamma^*$ library                   & No                   \\
+N,P                     & MrTau n,proton library                       & No                   \\
+budep                   & MrTau burn-up history                        & No                   \\
+CRAM\_coeff\_PF         & MrTau CRAM coefficients                      & No                   \\
+IsotopeList             & MrTau isotope list input                     & No                   \\
+mass                    & MrTau mass input                             & No                                       
+    \end{tabular}
+\end{table}
+
+The \xmlAttr{perturbable} attribute indicates whether the input file can be perturbed. It is an optional boolean attribute.  
+Default: False
+
+The \xmlAttr{subDirectory} indicates the subdirectory to which RAVEN search an input file. It is an optional attribute.  
+Default: . / (relative path of the working directory)
+
+The \xmlString{Input File} string is the user-defined input file name. 
+The XML file specifying the library input paths corresponding to the decay, fission yields, the Q-values and the Mrtau standalone inputs will be automatically populated according to the user-input file names. 
+The Instant-MrTau input files material, library, instant control, library path and depletion are also user-defined in the input section. The user do not have to use the default file names. 
+Example:
+\begin{lstlisting}[style=XML]
+<File>
+  <Input name="path"  type="path"  perturbable="False"                    >pathMrTau.xml</Input>
+  <Input name="dec"   type="decay" perturbable="True" subDirectory="libF" >decayLibrary.dat</Input>
+  <Input name="input" type="inp"   perturbable="False"                    >inpInstant.xml</Input>
+</File>
+\end{lstlisting}
+in the example, the path-to-MrTau-libraries is pointed by the \xmlAttr{type}="path". The file name associated to the path-to-MrTau-libraries file is then user-defined as \xmlString{pathMrTau.xml}. 
+It is located in the working directory and it cannot be perturbed. 
+
+The decay library is pointed by the \xmlAttr{type}="decay". The file name associated to the decay library is then user-defined as \xmlString{decayLibrary.dat}. 
+The decay library is located at the relative path "libF". This path and name will be populated in the \xmlString{pathMrTau.xml} file automatically. The decay library can be perturbed.
+
+The Instant XML input is pointed by the \xmlAttr{type}="inp". The file name associated to the Instant input is then user-defined as \xmlString{inpInstant.xml}. 
+it is located in the working directory and it cannot be perturbed. 
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+The user provides paths to executables for sampled variables within the \xmlNode{Models} block.  
+The \xmlNode{Code} block will contain attributes \xmlAttr{name} and
+\xmlAttr{subType}. The \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
+\xmlAttr{subType} specifies which code interface the model will use. 
+The \xmlNode{executable} block contains the absolute or relative path (with respect to the current working directory) to Phisics that RAVEN will use to run generated input files.
+The \xmlNode{tabulation} informs the RAVEN cross section parser if there will be tabulation points in the cross section definition. 
+The \xmlNode{tabulation} node accepts only a boolean entry (\xmlString{true}, \xmlString{t}, \xmlString{false},\xmlString{f}). It is case insensitive. if the entry is true, the file "tabMapping.xml" will be read (described in Section \ref{additionalInput}). 
+Default: False. 
+
+The \xmlNode{mrtauStandAlone} informs whether or not MrTau is ran in standalone mode. The \xmlNode{mrtauStandAlone} accepts only a boolean entry (\xmlString{true}, \xmlString{t}, \xmlString{false},\xmlString{f}). It is case insensitive. 
+Default: false. 
+
+If \xmlNode{mrtauStandAlone} is false, a coupled Instant+MrTau calculation is ran, using the Phisics executable. 
+
+If \xmlNode{mrtauStandAlone} is true, a subnode \xmlNode{mrtauStandAloneExecutable} has to be defined. 
+The \xmlNode{mrtauStandAloneExecutable} node should contain the absolute or relative path (with respect to the current working directory) path to the MrTau executable. 
+Default: None (\xmlNode{mrtauStandAloneExecutable} is required if \xmlNode{mrtauStandAlone} is \xmlString{true}). 
+
+An example of the \xmlNode{Models} block is given below:
+
+\begin{lstlisting}[style=XML]
+  <Models>
+    <Code name="PHISICS" subType="Phisics">
+       <executable>./path/to/instant/executable</executable>   
+       <tabulation>F</tabulation> 
+       <mrtauStandAlone>F</mrtauStandAlone>
+        <mrtauStandAloneExecutable>./path/to/mrtau/executable</mrtauStandAloneExecutable>
+    </Code>
+  </Models>
+\end{lstlisting}
+in the example, note that because \xmlNode{mrtauStandAlone} is false, \xmlNode{mrtauStandAloneExecutable} is ignored. If  \xmlNode{mrtauStandAlone} is changed to \xmlString{true}, the path \xmlString{/path/to/mrtau/executable} will be read to get the MrTau executable. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distributions} block defines all distributions used to
+sample variables in the current RAVEN run.
+
+For all the possible distributions and their possible inputs please
+refer to the Distributions chapter (see~\ref{sec:distributions}).
+%
+It is good practice to name a distribution and its corresponding sampled variable with identical root names, and appending sufix to the distribution name, since there might be many variables with the
+same kind of distributions but different input parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}\label{SamplerPhisics}
+The \xmlNode{Samplers} block defines the variables to be sampled.
+After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The \xmlAttr{name} must be formatted according to library which the variable belongs to. 
+The description of the \xmlString{variable} template is detailed in the next sub-sections for the decay constants (\ref{decayPara}), the fission yields (\ref{FYPara}), the number densities (\ref{NDPara}), 
+the fission Q-values (\ref{FQPara}), the $\alpha$ decay Q-values (\ref{AlphaPara}), the $\beta^+$ Q-values (\ref{BetaPlusPara}), $\beta^{+*}$ Q-values (\ref{BetaPlusStarPara}), $\beta$ Q-values (\ref{BetaPara}), 
+$\beta^*$ Q-values (\ref{BetaStarPara}), the internal transition decay Q-values (\ref{IntTraPara}) and the cross section scaling factors (\ref{XSPara}). 
+
+\paragraph{Decay constant variable} \label{decayPara}
+
+The \xmlString{variable} template is: DECAY$\vert$TYPE\_OF\_DECAY$\vert$ISOTOPE. 
+The type of decay (TYPE\_OF\_DECAY) is the decay mode relative to the isotope's decay constant perturbed. The type of decay depends on the isotope perturbed. 
+If the isotope is an actinide, the available decay modes are:
+\begin{enumerate}
+\item [$-$]BETA; 
+\item [$-$]BETA+; 
+\item [$-$]ALPHA. 
+\end{enumerate}
+If the isotope is a fission product, the available decay modes are:
+\begin{enumerate}
+\item [$-$]BETA; 
+\item [$-$]BETA*; 
+\item [$-$]BETA+;
+\item [$-$]BETA+*;
+\item [$-$]ALPHA;
+\item [$-$]INTER\_TRAN.
+\end{enumerate}
+
+The decay types are immediatly parsed from the MrTau decay library. Hence, If the user modifies the decay labels in the decay library, 
+the user will have to modify the her/his decay type in the RAVEN input. The isotope defined in the variable has to originally exist in the decay library.  
+
+\paragraph{Fission yield variable} \label{FYPara} 
+The \xmlString{variable} template is FY$\vert$SPECTRUM$\vert$FISSION\_ISOTOPE$\vert$FISSION\_PRODUCT. 
+
+The types of spectrum (SPECTRUM) available are: FAST; THERMAL. 
+The fission isotopes (FISSION\_ISOTOPE) and fission products (FISSION\_PRODUCT) in the variable have to originally exist in the fission yield library. 
+
+\paragraph{Number density variable} \label{NDPara} 
+The \xmlString{variable} template is DENSITY$\vert$MATERIAL\_ID$\vert$ISOTOPE. 
+The Material ID (MATERIAL\_ID) has to originally exist in the material XML input. The isotope in the variable has to be originally defined within the material ID aforementioned.  
+
+\paragraph{Fission Q-values variables} \label{FQPara}
+The \xmlString{variable} template is QVALUES$\vert$ ISOTOPE. 
+
+The isotope (ISOTOPE) in the variable has to originally exist in the fission Q-values library. 
+
+\paragraph{$\alpha$ decay variable} \label{AlphaPara}
+The \xmlString{variable} template is ALPHADECAY$\vert$ISOTOPE.
+
+The isotope (ISOTOPE) in the variable has to originally exist in the $\alpha$ decay Q-values library.
+
+\paragraph{$\beta^+$ decay variable} \label{BetaPlusPara} 
+The \xmlString{variable} template is BETA+DECAY$\vert$ ISOTOPE. 
+
+The isotope (ISOTOPE) in the variable has to originally exist in the $\beta^+$ decay Q-values library.
+
+\paragraph{$\beta^{+*}$ decay variable} \label{BetaPlusStarPara}
+The \xmlString{variable} template is BETA+XDECAY$\vert$ISOTOPE. 
+
+The isotope (ISOTOPE) in the variable has to originally exist in the $\beta^{+*}$ decay Q-values library.
+
+\paragraph{$\beta$ decay variable} \label{BetaPara} 
+The \xmlString{variable} template is BETADECAY$\vert$ISOTOPE. 
+
+The isotope (ISOTOPE) in the variable has to originally exist in the $\beta$ decay Q-values library.
+
+\paragraph{$\beta^*$ decay variable} \label{BetaStarPara} 
+The \xmlString{variable} template is BETAXDECAY$\vert$ISOTOPE. 
+
+The isotope (ISOTOPE) in the variable has to originally exist in the $\beta^*$ decay Q-values library.
+
+\paragraph{Internal transition decay variable} \label{IntTraPara} 
+The \xmlString{variable} template is INTTRADECAY$\vert$ISOTOPE. 
+
+The isotope (ISOTOPE) in the variable has originally to exist in the internal transition decay Q-value library.
+
+\paragraph{Cross section scaling factors} \label{XSPara}
+The \xmlString{variable} template is: 
+
+XS$\vert$TABULATION\_POINT$\vert$MATERIAL\_ID$\vert$ISOTOPE$\vert$OPERATOR$\vert$XS\_TYPE$\vert$GROUP\_NUMBER. 
+\begin{enumerate}
+\item [$\cdot$]The tabulation point (TABULATION\_POINT) is the integer referrencing to the tabulation point. The tabulation numbering is given by the XML input file 'tabMapping.xml' (Section \ref{additionalInput}). If there are no tabulations, the tabulation number has to be 1. 
+\item [$\cdot$]The material ID (MATERIAL\_ID) is the string referring to the material in which the isotope is defined. The Material ID  has to originally exist in the material XML file. 
+\item [$\cdot$]The isotope (ISOTOPE) is the ISOTOPE that the user desires to perturbed. The isotope perturbed has to originally exist in the material ID.
+\item [$\cdot$]The operator (OPERATOR) determines how the cross section is perturbed from its nominal value. The operators available are: 
+\begin{enumerate}
+\item[$-$]ADDITIVE; The additive operator adds the user-defined value to the nominal cross section value. 
+\item[$-$]MULTIPLIER; the multiplier operator multiplies the user-defined factor to the nominal value. 
+\item[$-$]ABSOLUTE; the absolute operator replaces the nominal value by the user-defined value. 
+\end{enumerate}
+\item [$\cdot$]The types of cross sections (CROSS\_SECTION\_TYPE) available are:
+\begin{enumerate}
+\item[$-$]FISSIONXS; Fission cross section. 
+\item[$-$]NPXS; Neutron to proton capture cross section. 
+\item[$-$]NGXS; Neutron to gamma capture cross section. 
+\item[$-$]NUFISSIONXS; $\nu$*fission cross section. The $\nu$*fission is coordinated with the fission cross section so that only the coefficient $\nu$ is perturbed.  
+\item[$-$]SCATTERINGXS. Total scattering cross section.
+\item[$-$]N2NXS. n,2n cross section. 
+\item[$-$]NALPHAXS. Neutron to alpha capture cross section.
+\item[$-$]KAPPAXS. Kappa coefficient.
+\end{enumerate}
+The group number (GROUP\_NUMBER) is the group number of the cross section perturbed. The group number is an integer and has to be inferior or equal to the number of groups used in the cross section library. 
+\end{enumerate}
+An exmaple is given for each type of variable in Table \ref{VariableExampleTable}. 
+
+\begin{table}[]
+\centering
+\caption{Examples of possible variable names}\label{VariableExampleTable}
+\begin{tabular}{l|l|l}
+\textit{Input file perturbed} & \textit{Variable perturbed}  & \textit{Example}  \\
+\hline
+Decay lib.               & Decay constant              & DECAY$\vert$BETAX$\vert$SE78     \\
+Fission yield lib.       & Fission yield               & FY$\vert$FAST$\vert$U235$\vert$NB93       \\
+XML Material             & Number densitiy             & DENSITY$\vert$FUEL1$\vert$PU239     \\
+Fission Q-values lib.    & Fission Q-value              & QVALUES$\vert$U235            \\
+$\alpha$ decay lib.      & $\alpha$ decay Q-value       & ALPHADECAY$\vert$U234         \\
+$\beta^+$ decay lib.     & $\beta^+$ decay Q-value      & BETA+DECAY$\vert$U235         \\
+$\beta^{+*}$ decay lib.  & $\beta^{+*}$ decay Q-value   & BETA+XDECAY$\vert$U236        \\
+$\beta$ decay lib.       & $\beta^$ decay Q-value       & BETADECAY$\vert$CM242         \\
+$\beta^*$ decay lib.     & $\beta^*$ decay Q-value      & BETAXDECAY$\vert$PU240        \\
+Internal transition lib. & Internal transition Q-value  & INTTRADECAY$\vert$U238        \\
+XS scaling factors       & XS scaling factor           & XS$\vert$1$\vert$FUEL1$\vert$U238$\vert$ABSOLUTE$\vert$N2NXS$\vert$4 \\
+\end{tabular}
+\end{table}
+
+The following example is a Monte Carlo-based sampler with two variables. The $\beta$ decay constant of uranium $^{235}$U and the $^{135}$Xe n,p cross section in group 12 at tabulation point 1 within the material ID "F1" are to be perturbed. The absolute operator is chosen for the n,p cross section, which means the nominal value will be replaced by the averaged value defined in the distribution block, with its corresponding distribution. 
+
+\begin{lstlisting}[style=XML]
+  <Samplers>
+    <MonteCarlo name="MC_samp"> 
+      <samplerInit>
+        <limit>100</limit>
+      </samplerInit>
+      <variable name="DECAY|BETA|U235">
+        <distribution>DECAY|BETA|U235_dis</distribution>
+      </variable>
+      <variable name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|12">
+              <distribution>XS|1|F1|XE135|ABSOLUTE|NPXS|12_dis</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a Phisics interface, the \xmlNode{MultiRun} step type will most likely be used. First, the step needs
+to be named: this name will be one of the names used in the \xmlNode{Sequence} block. 
+In the example, the step is called \xmlString{testDummyStep}.
+%
+\begin{lstlisting}[style=XML]
+<MultiRun name='testDummyStep' verbosity='debug'>
+    <Input   class='Files' type='decay'>decay.dat</Input>
+    <Input   class='Files' type='inp'>inp.xml</Input>
+    <Input   class='Files' type='XS'>xs.xml</Input>
+    <Model   class='Models' type='Code'>PHISICS</Model>
+    <Sampler class='Samplers' type='MonteCarlo'>MC_samp</Sampler>
+    <Output  class='Databases' type='HDF5'>DataB_REL5_1</Ouput>
+\end{lstlisting}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Additional Input} \label{additionalInput}
+In addition to the usual Phisics inputs required (instant input, depletion input, material  input, library input, path input) and the regular MrTau libraries, additional inputs may be required. 
+\begin{enumerate}
+\item [$\cdot$]If the \xmlNode{tabulation} is set to \xmlString{true}, a file 'tabMapping.xml' is required. The tabulation mapping assigns an integer to a given tabulation in order to identify it in the RAVEN variable definition. 
+The format of the tabulation mapping is the following: 
+\begin{lstlisting}[style=XML]
+<mapping>
+  <tabulation set="1">
+    <tab name="mod_temperature">559.0</tab>
+    <tab name="BURN-UP">0.0</tab>
+  </tabulation>
+  <tabulation set="2">
+    <tab name="mod_temperature">1000</tab>
+    <tab name="BURN-UP">0.0</tab>
+  </tabulation>
+  <tabulation set="3">
+    <tab name="mod_temperature">1000</tab>
+    <tab name="BURN-UP">100</tab>
+  </tabulation>
+</mapping> 
+\end{lstlisting}
+In \xmlNode{tabulation}, the \xmlAttr{set} refers to the user-defined number assigned to a given tabulation point. This \xmlAttr{set} number corresponds to the second argument of the cross section scaling factor variable.   
+The user enters the tabulation parameters and corresponding tabulation values with the \xmlNode{tabulation}, using the sub-node
+\xmlNode{tab}. 
+
+\item [$\cdot$]If the user perturbs cross sections, an XML file 'XS.xml' is to be included. The file 'XS.xml' is created from the cross section variables defined in the RAVEN \xmlNode{Sampler} block (see \ref{XSPara}). 
+Hence, the 'XS.xml' file is created automatically based on the RAVEN input. The 'XS.xml' file has the following format:
+\begin{lstlisting}[style=XML]
+<scaling_library>
+  <tabulation>
+    <tab name="mod_temperature">559.0</tab>
+    <tab name="BURN-UP">0.0</tab>
+    <library lib_name="fuel1" >
+      <isotope id="xe135" type="absolute">
+        <npxs g="8,3,12">8.889E+02,3.333E+02,1.212E+05</npxs>
+      </isotope>
+      <isotope id="u235" type="multiplier">
+        <fissionxs g="1">2.019E-02</fissionxs>
+      </isotope>
+    </library>
+  </tabulation>
+<scaling_library>  
+\end{lstlisting}
+The tabulation points \xmlNode{tab} (if the \xmlNode{tabulation} is true in the raven input) have to agree with the tabulation points defined in the 'tabMapping.xml'. 
+The \xmlNode{library} has one required attribute \xmlAttr{lib\_name} corresponding to one of the libraries listed in the Phisics library input. 
+The \xmlNode{isotope} provides the information related to an isotope included in the library aforementioned. 
+The \xmlAttr{id} gives the isotope ID (no dash allowed). 
+The \xmlAttr{type} specifies the type of operator used (additive, multiplier or absolute). 
+The sub-node \xmlNode{XS} (where XS the perturbale type of cross sections are listed in \ref{XSPara}) provides the cross section information. 
+The \xmlAttr{g} refers to the group numbers to be perturbed, separated by commas. 
+The \xmlString{XS} provides the scaling factors or the new cross section values. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%% RATTLESNAKE INTERFACE %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Rattlesnake Interfaces} \label{RattlesnakeInterfaces}
+%
+This section covers the input specification for running Rattlesnake through RAVEN. It is important
+to notice that this short explanation assumes that the reader already knows how to use Rattlesnake.
+The interface can be used to perturb the Rattlesnake MOOSE-based input file as well as the Yak
+cross section libraries XML input files (e.g. multigroup cross section libraries) and Instant format
+cross section libraries.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+\xmlNode{Files} works the same as in other interfaces with name and type
+attributes for each node entry.  The \xmlAttr{name} attribute is a user-chosen internal
+name for the file contained in the node, and \xmlAttr{type} identifies which base-level
+interface the file is used within.  \xmlAttr{type} should only be specified for inputs
+that RAVEN will perturb. Take Rattlesnake input files for example, \xmlAttr{type} should
+be \xmlString{RattlesnakeInput}.
+
+\paragraph{Perturb Yak Multigroup Cross Section Libraries}
+If the user would like to perturb the Yak multigroup cross section libraries, the user need to use the
+\xmlString{YakXSInput} for the \xmlAttr{type} of the libaries. In addition, the \xmlAttr{type} of the
+alias files that are used to perturb the Yak multigroup cross section libraries should be
+\xmlString{YakXSAliasInput}. The following is an example of a typical \xmlNode{Files} block.
+%
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='rattlesnakeInput' type='RattlesnakeInput'>simple_diffusion.i</Input>
+  <Input name='crossSection'    type='YakXSInput'>xs.xml</Input>
+  <Input name='alias' type='YakXSAliasInput'>alias.xml</Input>
+</Files>
+\end{lstlisting}
+%
+The alias files are employed to define the variables that will be used to perturb Yak multigroup cross section
+libraries. The following is an example of a typical alias file:
+%
+\begin{lstlisting}[style=XML]
+<Multigroup_Cross_Section_Libraries Name="twigl" NGroup="2" Type="rel">
+    <Multigroup_Cross_Section_Library ID="1">
+        <Fission gridIndex="1" mat="pseudo-seed1" gIndex="1">f11</Fission>
+        <Capture gridIndex="1" mat="pseudo-seed1" gIndex="1">c11</Capture>
+        <TotalScattering gridIndex="1" mat="pseudo-seed1" gIndex="1">t11</TotalScattering>
+        <Nu gridIndex="1" mat="pseudo-seed1" gIndex="1">n11</Nu>
+        <Fission gridIndex="1" mat="pseudo-seed2" gIndex="2">f22</Fission>
+        <Capture gridIndex="1" mat="pseudo-seed2" gIndex="2">c22</Capture>
+        <TotalScattering gridIndex="1" mat="pseudo-seed2" gIndex="2">t22</TotalScattering>
+        <Nu gridIndex="1" mat="pseudo-seed2" gIndex="2">n22</Nu>
+        <Fission gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">f11</Fission>
+        <Capture gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">c11</Capture>
+        <TotalScattering gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">t11</TotalScattering>
+        <Nu gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">n11</Nu>
+        <Transport gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">d11</Transport>
+    </Multigroup_Cross_Section_Library>
+</Multigroup_Cross_Section_Libraries>
+\end{lstlisting}
+%
+In the above alias file, the \xmlAttr{Name} of \xmlNode{Multigroup\_Cross\_Section\_Libraries} are used to indicate
+which Yak multigroup cross section library input file will be perturbed.
+The \xmlAttr{NGroup}, \xmlAttr{ID}, and \xmlNode{Multigroup\_Cross\_Section\_Library}
+should be consistent with the Yak multigroup cross section library input files.
+The \xmlNode{Fission}, \xmlNode{Capture}, \xmlNode{TotalScattering}, \xmlNode{Nu}, \xmlAttr{gridIndex},
+\xmlAttr{mat}, and \xmlAttr{gIndex} are used to find the corresponding cross sections in the Yak multigroup cross
+section library input files. For example:
+%
+\begin{lstlisting}[style=XML]
+<Fission gridIndex="1" mat="pseudo-seed1" gIndex="1">f11</Fission>
+\end{lstlisting}
+%
+This node defines an alias with name \xmlString{f11} used to represent the fission cross section at energy group \xmlString{1}
+for material with name 'pseudo-seed1' at grid index \xmlString{1} in the Yak multigroup cross section library input files.
+
+\nb The attribute \xmlAttr{Type="rel"} indicates that the cross sections will be perturbed relatively (i.e. perturbed by
+percents). In this case, the user also needs to specify a relative covariance matrix for \xmlNode{covaraince \xmlAttr{type="rel"}} in
+\xmlNode{MultivariateNormal} distribution, and the values for \xmlNode{mu} should be `ones'. In the other case, if
+the user choose \xmlAttr{Type="abs"}, the cross sections will be perturbed absolutely (i.e. perturbed by values), and
+the user needs to provide an absolute covariance matrix and specify `zeros' for \xmlNode{mu} in \xmlNode{MultivariateNormal}
+distribution.
+
+\nb Currently, only the following cross sections can be perturbed by the user: Fission, Capture, Nu, TotalScattering,
+and Transport.
+
+\paragraph{Perturb Instant format Cross Section Libraries}
+If the user would like to perturb the Instant cross section libraries, the user need to use the
+\xmlString{InstantXSInput} for the \xmlAttr{type} of the libaries. In addition, the \xmlAttr{type} of the
+alias files that are used to perturb the Instant format cross section libraries should be
+\xmlString{InstantXSAliasInput}. The following is an example of a typical \xmlNode{Files} block.
+%
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='rattlesnakeInput' type='RattlesnakeInput'>iaea2d_ls_sn.i</Input>
+  <Input name='crossSection'    type='InstantXSInput'>iaea2d_materials.xml</Input>
+  <Input name='alias' type='InstantXSAliasInput'>alias.xml</Input>
+</Files>
+\end{lstlisting}
+%
+The alias files are employed to define the variables that will be used to perturb Instant format cross section
+libraries. The following is an example of a typical alias file:
+%
+\begin{lstlisting}[style=XML]
+<Materials>
+  <Macros NG="2" Type="rel">
+    <material ID="1">
+      <FissionXS gIndex="1">f11</FissionXS>
+      <CaptureXS gIndex="1">c11</CaptureXS>
+      <TotalScatteringXS gIndex="1">t11<TotalScatteringXS>
+      <Nu gIndex="1">n11</Nu>
+      <DiffusionCoefficient gIndex="1">d11</DiffusionCoefficient>
+    </material>
+  </Macros>
+</Materials>
+\end{lstlisting}
+
+%
+In the above alias file, the \xmlAttr{NG} and \xmlAttr{ID} should be consistent with the Instant format cross
+section library input files. The \xmlNode{FissionXS}, \xmlNode{CaptureXS}, \xmlNode{TotalScatteringXS}, \xmlNode{Nu}, \xmlAttr{gIndex},
+are used to find the corresponding cross sections in the Instant format cross
+section library input files. For example, the variable \xmlString{f11} used to represent the fission cross section at energy group \xmlString{1}
+for material with \xmlString{ID} equal \xmlString{1} in the given cross section library.
+
+\nb The attribute \xmlAttr{Type="rel"} indicates that the cross sections will be perturbed relatively (i.e. perturbed by
+percents). In this case, the user also needs to specify a relative covariance matrix for \xmlNode{covaraince \xmlAttr{type="rel"}} in
+\xmlNode{MultivariateNormal} distribution, and the values for \xmlNode{mu} should be `ones'. In the other case, if
+the user choose \xmlAttr{Type="abs"}, the cross sections will be perturbed absolutely (i.e. perturbed by values), and
+the user needs to provide an absolute covariance matrix and specify `zeros' for \xmlNode{mu} in \xmlNode{MultivariateNormal}
+distribution.
+
+\nb Currently, only the following cross sections can be perturbed by the user: FissionXS, CaptureXS, Nu, TotalScatteringXS,
+and DiffusionCoefficient.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+A user provides paths to executables and aliases for sampled variables within the
+\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes \xmlNode{name} and
+\xmlNode{subType}. The \xmlNode{name} identifies that particular \xmlNode{Code} model within RAVEN, and
+\xmlNode{subType} specifies which code interface the model will use. The \xmlNode{executable}
+block should contain the absolute or relative (with respect to the current working
+directory) path to Rattlesnake that RAVEN will use to run generated input
+files.
+
+An example \xmlNode{Models} block follows.
+
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name="Rattlesnake" subType="Rattlesnake">
+    <executable>%FRAMEWORK_DIR%/../../rattlesnake/
+     rattlesnake-%METHOD%</executable>
+  </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distributions} block defines all distributions used to
+sample variables in the current RAVEN run.
+
+For all the possible distributions and their possible inputs please
+refer to the Distributions chapter (see~\ref{sec:distributions}).
+%
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Samplers}
+The \xmlNode{Samplers} block defines the variables to be sampled.
+After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The name attribute in the \xmlNode{variable} block must either be the
+full MooseBasedApp (Rattlesnake) model variable name, the alias name specifed in
+\xmlNode{Models}, or the variable name specified in the provided alias files.
+
+For listings of available samplers, please refer to the Samplers chapter (see~\ref{sec:Samplers}).
+See the following for an example of a grid based sampler for
+the first energy group fission and capture cross sections  (both of which have
+defined in alias files provided in \xmlNode{Files}).
+
+\begin{lstlisting}[style=XML]
+<Samplers>
+  <Grid name="Grid_sampling">
+    <variable name="fission_group_1" >
+      <distribution>fission_dist</distribution>
+      <grid type="value" construction="custom">1.0 2.0</grid>
+    </variable>
+    <variable name="capture_group_1">
+      <distribution>capture_dist</distribution>
+      <grid type="value" construction="custom">3.0 6.0</grid>
+    </variable>
+  </Grid>
+</Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a Rattlesnake interface, the \xmlNode{MultiRun} step type will most likely be used. First, the step needs
+to be named: this name will be one of the names used in the \xmlNode{Sequence} block. In our example, \xmlString{Grid\_Rattlesnake}.
+%
+\begin{lstlisting}[style=XML]
+<MultiRun name='Grid_Rattlesnake' verbosity='debug'>
+    <Input   class='Files' type=''>RattlesnakeInput.i</Input>
+    <Input   class='Files' type=''>xs.xml</Input>
+    <Input   class='Files' type=''>alias.xml</Input>
+    <Model   class='Models' type='Code'>Rattlesnake</Model>
+    <Sampler class='Samplers' type='Grid'>Grid_Samplering</Sampler>
+    <Output  class='DataObjects' type='PointSet'>solns</Ouput>
+\end{lstlisting}
+%
+With this step, we need to import all the files needed for the simulation:
+%
+\begin{itemize}
+  \item Rattlesnake MOOSE-based input file;
+  \item Yak multigroup cross section libraries input files (XML);
+  \item Yak alias files used to define the perturbed variables (XML).
+\end{itemize}
+We then need to define \xmlNode{Model}, \xmlNode{Sampler} and \xmlNode{Output}. The \xmlNode{Output} can be
+\xmlNode{DataObjects} or \xmlNode{OutStreams}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MAAP5  INTERFACE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MAAP5 Interface}
+This section presents the main aspects of the interface coupling RAVEN with MAAP5,
+the consequent RAVEN input adjustments and the modifications of the MAAP5
+files required to run the two coupled codes.
+The interface works both for forward sampling and the DET,
+however there are some differences depending on the selected sampling strategy.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{RAVEN Input file}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Files}
+MAAP5 requires more than one file to run a simulation.
+This means that, since the \xmlNode{Files} section has to contain all the files required by
+the external model (MAAP5) to be run, all these files need to be included within this node.
+This involves not only the input file (.inp) but also the include file, the parameter file, all the
+files defining the different ``PLOTFILs'', if any, and the other files which could
+result useful for the MAAP5 simulation run.
+
+Example:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name="test.inp" type="">test.inp</Input>
+  <Input name="include" type="">include</Input>
+  <Input name="plot.txt" type="">plot.txt</Input>
+  <Input name="plant.par" type="">plant.par</Input>
+</Files>
+\end{lstlisting}
+All the files here mentioned in this section
+ need, then, to be put into the working directory specified
+by the \xmlNode{workingDir} node into the \xmlNode{RunInfo} block.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Models}
+The \xmlNode{Models} block contains the name of the executable file of MAAP5
+(with the path, if necessary),
+and the name of the interface (e.g. MAAP5\_GenericV7).
+The block has also some required nodes:
+\begin{itemize}
+  \item \xmlNode{boolMaapOutputVariables}: containing the number of the MAAP5 IEVNT corresponding to the boolean events of interest;
+  \item \xmlNode{contMaapOutputVariables}: containing the list of all the continuous variables we are interested at,
+  and that we want to monitor;
+  \item \xmlNode{stopSimulation}: this node is required only in case of DET sampling strategy.
+The user needs to specify
+  if the MAAP5 simulation run stops due to the reached END TIME, specifying ''mission\_time'',
+or due to the occurrence of a specific event by
+  inserting the number of the corresponding MAAP5 IEVNT (e.g IEVNT(691) for core uncovery)
+ \item \xmlNode{includeForTimer}: also this node is required only in case of DET sampling
+ strategy and it contains the name of the
+ MAAP5 include file where the TIMERS for the different variables are defined
+(see paragraph ''MAAP5 include file below'' for more information about timers).
+\end{itemize}
+
+A \xmlNode{Models} block is shown as an example below:
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name="MyMAAP" subType="MAAP5\_GenericV7">
+    <executable>MAAP5.exe</executable>
+    <clargs type='input' extension='.inp'/>
+    <boolMaapOutputVariables>691</boolMaapOutputVariables>
+    <contMaapOutputVariables>PPS,PSGGEN(1),ZWDC2SG(1)
+    </contMaapOutputVariables>
+    <stopSimulation>mission_time</stopSimulation>
+    <includeForTimer>include</includeForTimer>
+  </Code>
+</Models>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Other blocks}
+All the other blocks (e.g. \xmlNode{Distributions}, \xmlNode{Samplers}, \xmlNode{Steps},
+ \xmlNode{Databases}, \xmlNode{OutStream}, etc.)
+do not require any particular arrangements than already provided by a RAVEN input.
+User can, therefore, refer to the corresponding sections of the User's Manual.
+This is valid for both forward sampling and DET.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{MAAP5 Input files}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The coupling of RAVEN and MAAP5 requires modifications to some
+MAAP5 files in order to work. This is particularly true when a DET analysis is performed.
+The MAAP5 input files that need to be modified are:
+\begin{itemize}
+  \item MAAP5 include file
+  \item MAAP5 input file (.inp)
+  \item PLOTFIL blocks
+\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{MAAP5 include file}
+Usually MAAP5 simulation provides the presence of some include files, for example,
+containing the user-defined variables, timers, definition of the plotfil, etc.
+The adjustments explained in this section are required only in case of a DET analysis.
+The user needs to modify the include file containing the set of the
+timers used into the run, by adding the definition of the different timers,
+one for each variable that causes a branching.
+The include file to be modified should correspond to that one defined in the \xmlNode{includeForTimer}
+block of the RAVEN xml input.
+
+User is supposed to check that the numbers used for the different timers definition
+are not already used in any of the other MAAP5 files.
+These timers should be preceeded by a line reporting ''C Branching + name of the variable
+sampled by RAVEN causing the branching''.
+
+For example, we assume that DIESEL is the name of the variable corresponding to the failure time
+of the Diesel generators (user defined). User has to firstly ensure that, for example,
+''TIMER 100'' is not already used into the model, then the following lines
+need to be added into the selected include file for the set of the timer corresponding
+to the Diesel generators failure:
+\begin{lstlisting}[style=XML]
+C Branching DIESEL
+WHEN (TIM>DIESEL)
+   SET TIMER 100
+END
+\end{lstlisting}
+It is worth mentioning that at this step a TIMER should be defined
+also for the event IEVNT specified into the \xmlNode{stopSimulation},
+ if this is the stop condition for the MAAP5 run:
+\begin{lstlisting}[style=XML]
+WHEN IEVNT(691) == 1.0
+  SET TIMER 10
+END
+\end{lstlisting}
+The interface will check that one timer is defined for each variable
+of the DET. If not, an error arises suggesting to user the name of the variable having no
+timer defined.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{MAAP5 input file}
+In the ''parameter change'' section of the MAAP5 input file, the user should declare
+the name of the variables sampled by RAVEN according to the following statement:
+\begin{lstlisting}[style=XML]
+ variable = $ RAVEN-variable:default$
+\end{lstlisting}
+where the dafault value is optional.
+
+For example:
+\begin{lstlisting}[style=XML]
+DIESEL = $RAVEN-DIESEL:-1$
+\end{lstlisting}
+This is valid for both forward and DET sampled variables.
+In particular, in case of DET analysis, the variables causing the occurrence of the branch should be
+assigned within a block identified by the comment ''C DET Sampled variables'':
+\begin{lstlisting}[style=XML]
+C DET Sampled Variables
+DIESEL = $RAVEN-DIESEL:-1$
+C End DET Sampled Variables
+\end{lstlisting}
+If the sampled variables are user-defined, then the user shall ensure that they are initialized
+(to the default value) and set within the user-defined variables section of one of the include
+file.
+As usual, a distribution and a sampling strategy should then correspond to each of these variables
+into the RAVEN xml input file.
+
+Only for the DET analysis, then, the occurence of a branch will be identified by a comment before. This comment is
+ ''C BRANCHING + name of the variable determining the branch'' and acts as a sort of branching marker.
+Looking for these markers, indeed, the interface (in case of DET sampler) verifies that at least
+one branching exists, and furthermore, that one branching is defined for each of the
+variables contained into ''DET sampled variables''.
+
+Within the block, the occurrence of the branching leads the value of a variable (user-defined)
+called ''TIM+number of the corresponding timer set into
+the include file'' to switch to 1.0. The code, in fact, detects if a branch has occurred by monitoring
+the value of these kind of variables. SInce these variables are user-defined, they need to be
+initialized to a value (different from 1.0), into the ''user-defined variables'' section of one of the include
+files.
+
+Therefore following the previous example, if we want that, when the diesels failure occurs it leads
+to the event ''Loss of AC Power'' (IEVNT(205) of MAAP5), we will have:
+\begin{lstlisting}[style=XML]
+C Branching TIMELOCA
+WHEN TIM > DIESEL
+ TIM100=1.0
+ IEVNT(205)=1.0
+END
+\end{lstlisting}
+It is worth noticing that no comments should be contained within the line of assignment
+(i.e. IEVNT(205)=1.0 //LOSS OF AC POWER is not allowed).
+
+Finally, only in case of DET analysis, a stop simulation condition (provided by the comment
+''C Stop Simulation condition'') needs to be put into the input.
+The original input should have all the timers (linked with the branching) separated by an OR
+condition, even including that one of the event that stops the simulation (e.g. IEVNT(691)),
+if any.
+\begin{lstlisting}[style=XML]
+C Stop Simulation condition
+IF (TIMER 10 > 0) OR (TIMER 100 > 0) OR ... (TIMER N > 0)
+ TILAST=TIM
+END
+\end{lstlisting}
+This allows the simulation run to stop when a branch condition occurs, creating the restart file that will
+be used by the two following branches.
+
+For each branch, then, the interface will automatically update the name of the RESTART FILE to be used and
+of the RESTART TIME that will be equal to the difference between the END TIME of the ''parent'' simulation
+and the PRINT INTERVAL (which specifies the interval at which the restart output is written).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{MAAP5 PLOTFIL blocks}
+This section refers to the ''PLOTFIL blocks'' used to modify the plot file (.csv) defined into the parameter file.
+These blocks need to be modified in order to include some variables.
+It is important, indeed, that the MAAP5 csv PLOTFIL files contain the evolution of:
+\begin{itemize}
+  \item RAVEN sampled variables (e.g. DIESEL) (both for Forward and DET sampling)
+  \item the variables whose value is modified by the occurrence of one of the branches, either continuous or boolean (e.g. IEVNT(225))
+  \item the variables of interest defined within \xmlNode{boolMaapOutputVariables}
+  and \\ \xmlNode{contMaapOutputVariables} blocks (both for Forward and DET sampling)
+\end{itemize}
+If one of these variables is not contained into one of csv files, RAVEN will give an error.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%% MAMMOTH INTERFACE %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MAMMOTH Interface}
+%
+This section covers the input specification for running MAMMOTH through RAVEN.
+It is important to notice that this short explanation assumes that the reader already knows how to use MAMMOTH.
+The interface can be used to perturb Bison, Rattlesnake, RELAP-7, and general MOOSE input files that utilize
+MOOSE's standard YAML input structure as well as Yak multigroup cross section library XML input files.
+%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+\xmlNode{Files} works the same as in other interfaces with name and type
+attributes for each node entry.  The \xmlAttr{name} attribute is a user-chosen internal
+name for the file contained in the node, and \xmlAttr{type} identifies which base-level
+interface the file is used within.  \xmlAttr{type} should be specified for all inputs
+used in RAVEN's MultiRun for MAMMOTH (including files not perturbed by RAVEN).
+The MAMMOTH input file's \xmlAttr{type} should have \xmlString{MAMMOTHInput} prepended
+to the driver app's input specification (e.g. \xmlString{MAMMOTHInput|appNameInput}).
+Any other app's input file needs a \xmlAttr{type} with the app's name prepended to \xmlString{Input}
+(e.g. \xmlString{BisonInput}, \xmlString{Relap7Input}, etc.).  In addition, the \xmlAttr{type} for any mesh
+input is the app in which that mesh is utilized prepended to \xmlString{|Mesh}; so a Bison mesh would have
+a \xmlAttr{type} of \xmlString{Bison|Mesh} and similarly a mesh for Rattlesnake would have \xmlString{Rattlesnake|Mesh}
+as its \xmlAttr{type}. In cases where a file needs to be copied to each perturbed run
+directory (to be used as function input, control logic, etc.), one can use the \xmlAttr{type}
+\xmlString{AncillaryInput} to make it clear in the RAVEN input file that this is file
+is required for the simulation to run but contains no perturbed parameters.
+For Yak multigroup cross section libraries,
+the \xmlAttr{type} should be \xmlString{YakXSInput}, and for the Yak
+alias files that are used to perturb the Yak multigroup cross section libraries, the \xmlAttr{type} should be
+\xmlString{YakXSAliasInput}.
+
+The node should contain the path to the file from the working directory.
+The following is an example of a typical \xmlNode{Files} block.
+%
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='mammothInput' type='MAMMOTHInput|RattlesnakeInput'>test_mammoth.i</Input>
+  <Input name='crossSection'    type='YakXSInput'>xs.xml</Input>
+  <Input name='alias' type='YakXSAliasInput'>alias.xml</Input>
+  <Input name='bisonInput'    type='BisonInput'>test_bison.xml</Input>
+  <Input name='bisonMesh'    type='Bison|Mesh'>bisonMesh.e</Input>
+  <Input name='fuelCTEfunct' type='AncillaryInput'>uo2_CTE.csv</Input>
+  <Input name='rattlesnakeMesh'    type='Rattlesnake|Mesh'>rattlesnakeMesh.e</Input>
+</Files>
+\end{lstlisting}
+%
+The alias files are employed to define the variables that will be used to perturb Yak multigroup cross section
+libraries. Please see the section \ref{RattlesnakeInterfaces} for the example.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+A user provides paths to executables and aliases for sampled variables within the
+\xmlNode{Models} block.  The \xmlNode{Code} block will contain \xmlAttr{name} and
+\xmlAttr{subType}.  The attribute \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
+\xmlAttr{subType} specifies which code interface the model will use. The \xmlNode{executable}
+block should contain the absolute or relative (with respect to the current working
+directory) path to MAMMOTH that RAVEN will use to run generated input
+files.
+
+An example \xmlNode{Models} block follows.
+
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name="Mammoth" subType="MAMMOTH">
+    <executable>\%FRAMEWORK_DIR\%/../../mammoth/
+     mammoth-%METHOD%</executable>
+  </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distributions} block defines all distributions used to
+sample variables in the current RAVEN run.
+
+For all the possible distributions and their possible inputs please
+refer to the Distributions chapter (see~\ref{sec:distributions}).
+%
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Samplers}
+The \xmlNode{Samplers} block defines the variables to be sampled.
+After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The \xmlAttr{name} attribute in the \xmlNode{variable} block must either be the
+app's name prepended to the full MooseBasedApp model variable name, the alias name specifed in
+\xmlNode{Models}, or the variable name specified in the provided alias files.
+
+For listings of available samplers, please refer to the Samplers chapter (see~\ref{sec:Samplers}).
+See the following for an example of a grid based sampler used to generate the samples for
+the first energy group fission and capture cross sections (both of which have
+defined in alias files provided in \xmlNode{Files}), the initial condition temperature defined in Rattlesnake
+input file and the poissons ratio, clad thickness, and gap width defined in Bison input files with clad
+and gap parameters calculated using an external function with sampled clad inner and outer diameters
+as inputs.
+%
+\begin{lstlisting}[style=XML]
+<Samplers>
+  <Grid name="Grid_sampling">
+    <variable name="Rattlesnake@fission_group_1" >
+      <distribution>fission_dist</distribution>
+      <grid type="value" construction="custom">1.0 2.0</grid>
+    </variable>
+    <variable name="Rattlesnake@capture_group_1">
+      <distribution>capture_dist</distribution>
+      <grid type="value" construction="custom">3.0 6.0</grid>
+    </variable>
+    <variable name="Rattlesnake@AuxVariables|Temp|initial_condition">
+      <distribution>uniform</distribution>
+      <grid type="value" construction="custom">3.0 6.0</grid>
+    </variable>
+    <variable name="Bison@Materials|fuel_solid_mechanics_elastic|poissons_ratio">
+      <distribution>normal</distribution>
+      <grid type="value" construction="custom">3.0 6.0</grid>
+    </variable>
+    <variable name='clad_outer_diam'>
+      <distribution>clad_outer_diam_dist</distribution>
+      <grid construction='equal' steps='144' type='CDF'>0.02275 0.97725</grid>
+    </variable>
+    <variable name='clad_inner_diam'>
+      <distribution>clad_inner_diam_dist</distribution>
+      <grid construction='equal' steps='144' type='CDF'>0.02275 0.97725</grid>
+    </variable>
+    <variable name='Bison@Mesh|clad_thickness'>
+      <function>clad_thickness_calc</function>
+    </variable>
+    <variable name='Bison@Mesh|clad_gap_width'>
+      <function>clad_gap_width_calc</function>
+    </variable>
+  </Grid>
+</Samplers>
+\end{lstlisting}
+%
+In order to make the input variables of one application distinct from input variables of another,
+an app's name followed by the '@' symbol is prepended to the variable name (e.g. \xmlString{appName@varName}).
+Each variable to be used in an app's input file and sampled in the MAMMOTH interface is required
+to have a destination app specified. All variables utilizing Rattlesnake's executable (whether
+they are in the Rattlesnake input file or not) are listed as Rattlesnake variables
+as that application's interface will sort input file and cross section
+variables itself.  Notice that the clad inner and outer diameter sampled parameters have no app
+name specified.  These parameters are utilized to sample values used as inputs
+for the clad thickness and gap width variables in BISON, so by not specifying a destination
+app, these are passed through the interface having only been used in an external function
+to calculate parameters usable in an app's input.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a MAMMOTH interface run, the \xmlNode{MultiRun} step type will most likely be used. First, the step needs
+to be named: this name will be one of the names used in the \xmlNode{Sequence} block. In our example, \xmlString{Grid\_Mammoth}.
+%
+\begin{lstlisting}[style=XML]
+<MultiRun name='Grid_Mammoth' verbosity='debug'>
+    <Input   class='Files' type=''>mammothInput</Input>
+    <Input   class='Files' type=''>crossSection</Input>
+    <Input   class='Files' type=''>alias</Input>
+    <Input   class='Files' type=''>bisonInput</Input>
+    <Input   class='Files' type=''>bisonMesh</Input>
+    <Input   class='Files' type=''>fuelCTEfunct</Input>
+    <Input   class='Files' type=''>rattlesnakeMesh</Input>
+    <Model   class='Models' type='Code'>Mammoth</Model>
+    <Sampler class='Samplers' type='Grid'>Grid_Samplering</Sampler>
+    <Output  class='DataObjects' type='PointSet'>solns</Output>
+</MultiRun>
+\end{lstlisting}
+%
+With this step, we need to import all the files needed for the simulation:
+%
+\begin{itemize}
+  \item MAMMOTH|Rattlesnake YAML input file;
+  \item Yak multigroup cross section libraries input files (XML);
+  \item Yak alias files used to define the perturbed variables (XML);
+  \item Bison YAML input file;
+  \item Bison mesh file;
+  \item Bison function file for the fuel's coefficient of thermal expansion as a function of temperature;
+  \item Rattlesnake mesh file.
+\end{itemize}
+As well as \xmlNode{Model}, \xmlNode{Sampler} and outputs, such as \xmlNode{OutStreams} and \xmlNode{DataObjects}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% MELCOR  INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MELCOR Interface}
+\label{subsec:MELCORInterface}
+
+The current implementation of MELCOR interfaface is valid for MELCOR 2.1/2.2; its validity for MELCOR
+1.8 is \textbf{not been tested}.
+
+\subsubsection{Sequence}
+In the \xmlNode{Sequence} section, the names of the steps declared in the
+\xmlNode{Steps} block should be specified.
+%
+As an example, if we called the first multirun ``Grid\_Sampler'' and the second
+multirun ``MC\_Sampler'' in the sequence section we should see this:
+\begin{lstlisting}[style=XML]
+<Sequence>Grid_Sampler,MC_Sampler</Sequence>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{batchSize and mode}
+For the \xmlNode{batchSize} and \xmlNode{mode} sections please refer to the
+\xmlNode{RunInfo} block in the previous chapters.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{RunInfo}
+After all of these blocks are filled out, a standard example RunInfo block may
+look like the example below:
+\begin{lstlisting}[style=XML]
+<RunInfo>
+  <WorkingDir>~/workingDir</WorkingDir>
+  <Sequence>Grid_Sampler,MC_Sampler</Sequence>
+  <batchSize>8</batchSize>
+</RunInfo>
+\end{lstlisting}
+In this example, the \xmlNode{batchSize} is set to $8$; this means that 8 simulatenous (parallel) instances
+of MELCOR are going to be executed when a sampling strategy is employed.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+In the \xmlNode{Files} section, as specified before, all of the files needed for
+the code to run should be specified.
+%
+In the case of MELCOR, the files typically needed are:
+\begin{itemize}
+  \item MELCOR Input file (file extension ``.i'' or ``.inp'')
+  \item Restart file (if present)
+\end{itemize}
+Example:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='melcorInputFile' type=''>inputFileMelcor.i</Input>
+  <Input name='aRestart' type=''>restartFile</Input>
+</Files>
+\end{lstlisting}
+
+It is a good practice to put inside the working directory (\xmlNode{WorkingDir}) all of these files.
+
+\textcolor{red}{
+\textbf{It is important to notice that the interface output collection  (i.e. the parser of the MELCOR output)
+currently is able to extract \textit{CONTROL VOLUME HYDRODYNAMICS EDIT} data only. Only those
+variables are going to be exported and make available to RAVEN.
+In addition, it is important to notice that:}
+\begin{itemize}
+  \item \textbf{the simulation time is stored in a variable called \textit{``time''}};
+  \item \textbf{all the variables specified in the \textit{CONTROL VOLUME HYDRODYNAMICS EDIT}
+   block are going to be converted using underscores. For example, the following EDITs:}
+    \begin{table}[h]
+    \centering
+    \begin{tabular}{ccccc}
+        VOLUME & PRESSURE & TLIQ   & TVAP   & MASS     \\
+                & PA       & K      & K      & KG       \\
+             1      & 1.00E+07 & 584.23 & 584.23 & 1.66E+03
+     \end{tabular}
+    \end{table}
+    \\\textbf{will be converted in the following way (CSV):}
+    \begin{table}[h]
+    \centering
+    \begin{tabular}{ccccc}
+         $time$ & $volume\_1\_PRESSURE$& $volume\_1\_TLIQ$ & $volume\_1\_TVAP$   & $volume\_1\_MASS$     \\
+             1.0   & 1.00E+07 & 584.23 & 584.23 & 1.66E+03
+     \end{tabular}
+    \end{table}
+\end{itemize}
+}
+
+Remeber also that a MELCOR simulation run is considered successfull (i.e., the simualtion did not crash) if it terminates with the
+following message:
+
+\textcolor{red}{Normal termination}
+
+If the a MELCOR simulation run stops with messages other than this one than the simulation is considered as
+crashed, i.e., it will not be saved.
+Hence, it is strongly recommended to set up the MELCOR input file so that the simulation exiting conditions are set through control logic
+trip variables.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+For the \xmlNode{Models} block here is a standard example of how it would look
+when using MELCOR 2.1/2.2 as the external code:
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name='MyMELCOR' subType='Melcor'>
+    <executable>~/path_to_the_executable_of_melcor</executable>
+    <preexec>~/path_to_the_executable_of_melgen</preexec>
+  </Code>
+</Models>
+\end{lstlisting}
+As it can be seen above, the \xmlNode{preexec} node must be specified, since MELCOR 2.1/2.2 must run the MELGEN utility
+code before executing. Once the \xmlNode{preexec} node is inputted, the execution of MELGEN is performed automatically by the Interface.
+\\In addition, if some command line parameters need to be passed to MELCOR, the user might use (optionally) the \xmlNode{clargs} XML nodes.
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name='MyMELCOR' subType='Melcor'>
+    <executable>~/path_to_the_executable_of_melcor</executable>
+    <preexec>~/path_to_the_executable_of_melgen</preexec>
+    <clargs type="text" arg="-r whatever command line instruction"/>
+  </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distribution} block defines the distributions that are going
+to be used for the sampling of the variables defined in the \xmlNode{Samplers}
+block.
+%
+For all the possibile distributions and all their possible inputs please see the
+chapter about Distributions (see~\ref{sec:distributions}).
+%
+Here we report an example of a Normal distribution:
+\begin{lstlisting}[style=XML,morekeywords={name,debug}]
+<Distributions verbosity='debug'>
+    <Normal name="temper">
+      <mean>1.E+7</mean>
+      <sigma>1.5</sigma>
+      <upperBound>9.E+6</upperBound>
+      <lowerBound>1.1E+7</lowerBound>
+    </Normal>
+ </Distributions>
+\end{lstlisting}
+
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+In the \xmlNode{Samplers} block we want to define the variables that are going
+to be sampled.
+%
+\textbf{Example}:
+We want to do the sampling of 1 single variable:
+\begin{itemize}
+  \item The in pressure ($P\_in$) of a control volume regolated by a Tabular Function $TF\_TAB$
+\end{itemize}
+
+We are going to sample this variable using two different sampling methods:
+Grid and MonteCarlo.
+
+The interface of MELCOR uses the \textbf{\textit{GenericCode}} (see section \ref{subsec:genericInterface})
+interface for the input perturbation; this means that the original input file (listed in the \xmlNode{Files} XML block)
+needs to implement wild-cards.
+%
+In this example we are sampling the variable:
+\begin{itemize}
+  \item \textit{PRE}, which acts on the Tabular Function $TF\_TAB$ whose $TF\_ID $ is $P\_in$.
+\end{itemize}
+
+We proceed to do so for both the Grid sampling and the MonteCarlo sampling.
+
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
+<Samplers verbosity='debug'>
+  <Grid name='Grid_Sampler' >
+    <variable name='PRE'>
+      <distribution>temper</distribution>
+      <grid type='CDF' construction='equal'  steps='10'>0.001 0.999</grid>
+    </variable>
+  </Grid>
+  <MonteCarlo name='MC_Sampler'>
+     <samplerInit>
+       <limit>1000</limit>
+     </samplerInit>
+    <variable name='PRE'>
+      <distribution>temper</distribution>
+  </MonteCarlo>
+</Samplers>
+\end{lstlisting}
+
+It can be seen that each variable is connected with a proper distribution
+defined in the \\\xmlNode{Distributions} block (from the previous example).
+%
+The following demonstrates how the input for the variable is read.
+
+We are sampling a variable whose wild-card in the original input file is named $\$RAVEN-PRE\$$
+using a Grid sampling method.
+%
+The distribution that this variable is following is a Normal distribution
+(see section above).
+%
+We are sampling this variable beginning from 0.001 (CDF) in 10 \textit{equal} steps of
+0.0998 (CDF).
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a MELCOR interface, the \xmlNode{MultiRun} step type will most likely be
+used.
+%
+First, the step needs to be named: this name will be one of the names used in
+the \xmlNode{sequence} block.
+%
+In our example, \texttt{Grid\_Sampler} and \texttt{MC\_Sampler}.
+%
+\begin{lstlisting}[style=XML,morekeywords={name,debug,re-seeding}]
+     <MultiRun name='Grid_Sampler' verbosity='debug'>
+\end{lstlisting}
+
+With this step, we need to import all the files needed for the simulation:
+\begin{itemize}
+  \item MELCOR input file
+  \item any other file needed by the calculation (e.g. restart file)
+\end{itemize}
+\begin{lstlisting}[style=XML,morekeywords={name,class,type}]
+    <Input   class='Files' type=''>inputFileMelcor.i</Input>
+    <Input   class='Files' type=''>restartFile</Input>
+\end{lstlisting}
+We then need to define which model will be used:
+\begin{lstlisting}[style=XML]
+    <Model  class='Models' type='Code'>MyMELCOR</Model>
+\end{lstlisting}
+We then need to specify which Sampler is used, and this can be done as follows:
+\begin{lstlisting}[style=XML]
+    <Sampler class='Samplers' type='Grid'>Grid_Sampler</Sampler>
+\end{lstlisting}
+And lastly, we need to specify what kind of output the user wants.
+%
+For example the user might want to make a database (in RAVEN the database
+created is an HDF5 file).
+%
+Here is a classical example:
+\begin{lstlisting}[style=XML,morekeywords={class,type}]
+    <Output  class='Databases' type='HDF5'>Grid_out</Output>
+\end{lstlisting}
+Following is the example of two MultiRun steps which use different sampling
+methods (Grid and Monte Carlo), and creating two different databases for each
+one:
+\begin{lstlisting}[style=XML]
+<Steps verbosity='debug'>
+  <MultiRun name='Grid_Sampler' verbosity='debug'>
+    <Input   class='Files' type=''>inputFileMelcor.i</Input>
+    <Input   class='Files' type=''>restartFile</Input>
+    <Model   class='Models'    type='Code'>MyMELCOR</Model>
+    <Sampler class='Samplers'  type='Grid'>Grid_Sampler</Sampler>
+    <Output  class='Databases' type='HDF5'>Grid_out</Output>
+    <Output  class='DataObjects' type='PointSet'   >GridMelcorPointSet</Output>
+    <Output  class='DataObjects' type='HistorySet'>GridMelcorHistorySet</Output>
+  </MultiRun>
+  <MultiRun name='MC_Sampler' verbosity='debug' re-seeding='210491'>
+    <Input   class='Files' type=''>inputFileMelcor.i</Input>
+    <Input   class='Files' type=''>restartFile</Input>
+    <Model   class='Models'    type='Code'>MyMELCOR</Model>
+    <Sampler class='Samplers'  type='MonteCarlo'>MC_Sampler</Sampler>
+    <Output  class='Databases' type='HDF5'      >MC_out</Output>
+    <Output  class='DataObjects' type='PointSet'   >MonteCarloMelcorPointSet</Output>
+    <Output  class='DataObjects' type='HistorySet'>MonteCarloMelcorHistorySet</Output>
+  </MultiRun>
+</Steps>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Databases}
+As shown in the \xmlNode{Steps} block, the code is creating two database objects
+called \texttt{Grid\_out} and \texttt{MC\_out}.
+%
+So the user needs to input the following:
+\begin{lstlisting}[style=XML]
+<Databases>
+  <HDF5 name="Grid_out" readMode="overwrite"/>
+  <HDF5 name="MC_out" readMode="overwrite"/>
+</Databases>
+\end{lstlisting}
+As listed before, this will create two databases.
+%
+The files will have names corresponding to their \xmlAttr{name} appended with
+the .h5 extension (i.e. \texttt{Grid\_out.h5} and \texttt{MC\_out.h5}).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{DataObjects}
+As shown in the \xmlNode{Steps} block, the code is creating $4$ data objects ($2$ HistorySet and $2$ PointSet)
+called \texttt{GridMelcorPointSet} \texttt{GridMelcorHistorySet} \texttt{MonteCarloMelcorPointSet} and
+ \texttt{MonteCarloMelcorHistorySet}.
+%
+So the user needs to input the following block as well, where the Input and Output variables are listed:
+\begin{lstlisting}[style=XML]
+  <DataObjects>
+    <PointSet name="GridMelcorPointSet">
+      <Input>PRE</Input>
+      <Output>
+        time,volume_1_PRESSURE,volume_1_TLIQ,
+        volume_1_TVAP,volume_1_MASS
+      </Output>
+    </PointSet>
+    <HistorySet name="GridMelcorHistorySet">
+      <Input>PRE</Input>
+      <Output>
+        time,volume_1_PRESSURE,volume_1_TLIQ,
+        volume_1_TVAP,volume_1_MASS
+      </Output>
+    </HistorySet>
+    <PointSet name="MonteCarloMelcorPointSet">
+      <Input>PRE</Input>
+      <Output>
+        time,volume_1_PRESSURE,volume_1_TLIQ,
+        volume_1_TVAP,volume_1_MASS
+      </Output>
+    </PointSet>
+    <HistorySet name="MonteCarloMelcorHistorySet">
+      <Input>PRE</Input>
+      <Output>
+        time,volume_1_PRESSURE,volume_1_TLIQ,
+        volume_1_TVAP,volume_1_MASS
+      </Output>
+    </HistorySet>
+  </DataObjects>
+\end{lstlisting}
+As mentioned before, this will create $4$ DataObjects.
+%
