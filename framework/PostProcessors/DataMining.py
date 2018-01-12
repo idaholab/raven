@@ -245,6 +245,7 @@ class DataMining(PostProcessor):
 
       for param in features:
         inputDict['Features'][param] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        # FIXME: Slow loop in case of many samples, improve performance
         for cnt in range(numberOfSample):
           inputDict['Features'][param][cnt,:] = currentInput.realization(index=cnt)[param]
 
@@ -362,8 +363,9 @@ class DataMining(PostProcessor):
     """
 
     if type(currentInp) == list:
+      if len(currentInp) > 1:
+        self.raiseAnError(IOError, "Only one input is allowed for this post-processor: ", self.name)
       currentInput = currentInp[-1]
-      '''====> For the reviewer: should we raise a warning/error here? I see issues here......'''
     else:
       currentInput = currentInp
 
@@ -791,7 +793,6 @@ class DataMining(PostProcessor):
                 rlzDims[feat] = [self.pivotParameter]
               else:
                 rlzs[feat] = np.vstack((rlzs[feat], copy.copy(timeSeries)))
-
           self.solutionExport.load(rlzs, style='dict',dims=rlzDims)
 
       if 'inertia' in self.unSupervisedEngine.outputDict.keys():
