@@ -527,25 +527,14 @@ class DataMining(PostProcessor):
       if outputObject.type == 'PointSet':
         outputObject.addVariable(key, copy.copy(dataMineDict['outputs'][key]),classify='output')
       elif outputObject.type == 'HistorySet':
-        if self.PreProcessor is not None or self.metric is not None:
-          for key, values in dataMineDict['outputs'].items():
-            expValues = np.zeros(len(outputObject), dtype=object)
-            for index, value in enumerate(values):
-              timeLength = len(self.pivotVariable[index])
-              arrayBase = value * np.ones(timeLength)
-              xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter))
-              expValues[index] = xrArray
-            outputObject.addVariable(key, expValues,classify='output')
-        else:
-          # FIXME for time-dep scikit-learn
-          for key, values in dataMineDict['outputs'].items():
-            expValues = np.zeros(len(outputObject), dtype=object)
-            for index, value in enumerate(values):
-              timeLength = len(self.pivotVariable[index])
-              arrayBase = value * np.ones(timeLength)
-              xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter))
-              expValues[index] = xrArray
-            outputObject.addVariable(key, expValues,classify='output')
+        expValues = np.zeros(len(outputObject), dtype=object)
+        values = dataMineDict['outputs'][key]
+        for index, value in enumerate(values):
+          timeLength = len(self.pivotVariable[index])
+          arrayBase = value * np.ones(timeLength)
+          xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter))
+          expValues[index] = xrArray
+        outputObject.addVariable(key, expValues,classify='output')
     ## End data augmentation
     ############################################################################
 
