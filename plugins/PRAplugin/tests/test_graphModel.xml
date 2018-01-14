@@ -1,7 +1,7 @@
 <Simulation verbosity="debug">
 
   <RunInfo>
-    <WorkingDir>dataClassifier</WorkingDir>
+    <WorkingDir>graphModel</WorkingDir>
     <Sequence>simRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -15,7 +15,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>10</limit>
+        <limit>2</limit>
       </samplerInit>
       <variable name="2_status">
         <distribution>distrib</distribution>
@@ -31,16 +31,12 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-
-  <Files>
-    <Input name="graphTestFile" type="">graphTest.xml</Input>
-  </Files>
   
   <Models>
     <ExternalModel name="graph" subType="graphModel">
       <variables>2_status,3_status,4_status,5_status,SG1_flow,SG2_flow,SG3_flow</variables>
       <!-- xml portion for this plugin only -->
-      <modelFile>graphTestFile</modelFile>
+      <modelFile>graphTest</modelFile>
       <nodesIN>CST</nodesIN>
       <nodesOUT>SG1,SG2,SG3</nodesOUT>
     </ExternalModel>
@@ -57,7 +53,7 @@
   </Steps>
 
   <OutStreams>
-    <Print name="printOnFile_sim_PS">
+    <Print name="Print_sim_PS">
       <type>csv</type>
       <source>sim_PS</source>
     </Print>

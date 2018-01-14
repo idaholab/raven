@@ -7,7 +7,7 @@ import numpy as np
 import math
 import xml.etree.ElementTree as ET
 from utils import utils
-from utils import graphStructure
+from utils import graphStructure as GS
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -17,6 +17,35 @@ from PluginsBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
 
 class graphModel(ExternalModelPluginBase):
 
+  def _readMoreXML(self, container, xmlNode):
+    """
+      Method to read the portion of the XML that belongs to this plugin
+      @ In, container, object, self-like object where all the variables can be stored
+      @ In, xmlNode, xml.etree.ElementTree.Element, XML node that needs to be read
+      @ Out, None
+    """
+    print('here_xml')
+
+    container.modelFile = None
+    container.nodesIN   = None
+    container.nodesOUT  = None
+
+    for child in xmlNode:
+      if   child.tag == 'nodesIN':
+        container.nodesIN  = [var.strip() for var in child.text.split(",")]
+      elif child.tag == 'nodesOUT':
+        container.nodesOUT = [var.strip() for var in child.text.split(",")]
+      elif child.tag == 'modelFile':
+        container.modelFile = child.text + '.xml'
+
+    if container.nodesIN is None:
+      print('nodesIN Error')
+    if container.nodesOUT is None:
+      print('nodesOUT Error')
+    if container.modelFile is None:
+      print('modelFile Error')
+
+
   def initialize(self, container,runInfoDict,inputFiles):
     """
       Method to initialize this plugin
@@ -25,46 +54,22 @@ class graphModel(ExternalModelPluginBase):
       @ In, inputFiles, list, list of input files (if any)
       @ Out, None
     """
-    self.modelFile = None
-    self.nodesIN   = None
-    self.nodesOUT  = None
+    print('here_init')
 
-    self.nodes = {}  
-    self.degradation = {}
+    container.nodes = {}  
+    container.deg   = {}
 
-    self.runInfo = runInfoDict
+    container.runInfo = runInfoDict
+    print(container.modelFile)
+    self.createGraph(container,container.modelFile)
 
-    print('============')
 
-  def _readMoreXML(self, container, xmlNode):
-    """
-      Method to read the portion of the XML that belongs to this plugin
-      @ In, container, object, self-like object where all the variables can be stored
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML node that needs to be read
-      @ Out, None
-    """
-    for child in xmlNode:
-      if   child.tag == 'nodesIN':
-        self.nodesIN  = [var.strip() for var in child.text.split(",")]
-      elif child.tag == 'nodesOUT':
-        self.nodesOUT = [var.strip() for var in child.text.split(",")]
-      elif child.tag == 'modelFile':
-        self.modelFile = child.text
-
-    if self.nodesIN is None:
-      print('nodesIN Error')
-    if self.nodesOUT is None:
-      print('nodesOUT Error')
-    if self.modelFile is None:
-      print('modelFile Error')
-
-    self.createGraph(self.modelFile)
-
-  def createGraph(self,file):
-    graph = ET.parse(self.runInfo['WorkingDir'] + file)
+  def createGraph(self,container,file):
+    print('here_create')
+    graph = ET.parse(container.runInfo['WorkingDir'] + '/' + file)
     graph = findAllRecursive(graph,'Graph')
 
-    for node in findAllRecursive(faultTree[0], 'node'):
+    for node in findAllRecursive(graph[0], 'node'):
       nodeName = node.get('name')
       nodeChilds = None
       deg = None
@@ -73,19 +78,17 @@ class graphModel(ExternalModelPluginBase):
           nodeChilds = [var.strip() for var in child.text.split(",")]
         if child.tag == 'deg':
           deg = float(child.text)
-      self.nodes[nodeName]=nodeChilds
-      self.deg[nodeName]=deg
-      if deg is not None:
-        degradation[nodeName]=deg
+      container.nodes[nodeName]=nodeChilds
+      container.deg[nodeName]=deg
 
-    ravenGraph = graphObject(self.nodes)
+    ravenGraph = GS.graphObject(container.nodes)
 
-    self.pathDict = {}
-    for nodeO in nodesOUT:
+    container.pathDict = {}
+    for nodeO in container.nodesOUT:
       paths = []
-      for nodeI in nodesIN:
+      for nodeI in container.nodesIN:
         paths = paths + ravenGraph.findAllPaths(nodeI,nodeO)
-      self.pathDict[nodeO] = paths
+      container.pathDict[nodeO] = paths
 
   def run(self, container, Inputs):
     """
@@ -94,6 +97,7 @@ class graphModel(ExternalModelPluginBase):
       @ In, Inputs, dict, dictionary of inputs from RAVEN
 
     """
+    print('here_run')
     for key in Inputs:
       if key in self.nodes.keys():
         if Inputs[key] == 0.0:       # 1=operating ; 0=failed
