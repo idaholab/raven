@@ -783,7 +783,7 @@ class DataSet(DataObject):
       dataType = dtype
     # method = 'once' # see below, parallelization is possible but not implemented
     # first case: single entry per node: floats, strings, ints, etc
-    if isinstance(data[i],(float,str,int,unicode,bool,np.bool_, np.integer)):
+    if isinstance(data[i],(float,str,int,unicode,bool,np.bool_,np.integer,np.number)):
       data = np.array(data,dtype=dataType)
       array = xr.DataArray(data,
                            dims=[self.sampleTag],

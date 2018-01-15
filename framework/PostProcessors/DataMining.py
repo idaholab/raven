@@ -231,7 +231,7 @@ class DataMining(PostProcessor):
       if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
         self.raiseAnError(IOError, "The data provided by the DataObject ", currentInput.name, " is not synchronized!")
       # for testing time dependent data mining - time dependent clustering
-      self.pivotVariable = np.asarray([dataSet.isel(RAVEN_sample_ID=i)[self.pivotParameter].dropna(self.pivotParameter).values for i in range(len(currentInput))])
+      self.pivotVariable = np.asarray([dataSet.isel(**{currentInput.sampleTag:i})[self.pivotParameter].dropna(self.pivotParameter).values for i in range(len(currentInput))])
       historyKey          = dataSet[self.pivotParameter].values
       numberOfSample      = len(dataSet['RAVEN_sample_ID'].values)
       numberOfHistoryStep = len(dataSet[self.pivotParameter].values)
