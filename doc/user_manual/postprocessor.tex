@@ -71,7 +71,7 @@ data objects, depending on the type of statistics the user wants to compute:
 %
 \ppType{BasicStatistics post-processor}{BasicStatistics}
 \begin{itemize}
-  \item \xmlNode{(metric)}, \xmlDesc{comma separated string or node list, required field},
+  \item \xmlNode{"metric"}, \xmlDesc{comma separated string or node list, required field},
     specifications for the metric to be calculated.  The name of each node is the requested metric.  There are
     two forms for specifying the requested parameters of the metric.  For scalar values such as
     \xmlNode{expectedValue} and \xmlNode{variance}, the text of the node is a comma-separated list of the
@@ -114,9 +114,15 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{VarianceDependentSensitivity}: matrix of sensitivity coefficients dependent on the variance of the variables
     \item \textbf{samples}: the number of samples in the data set used to determine the statistics.
   \end{itemize}
-  If all the quantities need to be computed, this can be done through the \xmlNode{all} node, which
-  requires the \xmlNode{targets} and \xmlNode{features} sub-nodes.
-
+  This XML node needs to contain the attribute:
+  \begin{itemize}
+    \itemsep0em
+    \item \xmlAttr{prefix}, \xmlDesc{required string attribute}, user-defined prefix for the given \textbf{metric}.
+      For scalar quantifies, RAVEN will define a variable with name defined as:  ``prefix'' + ``\_'' + ``parameter anme''.
+      For matrix quantities, RAVEN will define a variable with name defined as: ``prefix'' + ``\_'' + ``target parameter name'' + ``\_'' +``feature parameter name''. 
+      This variable will be used by RAVEN for the internally calculations. It is also accessible by the user through
+      \textbf{DataObjects} and \textbf{OutStreams}. 
+  \end{itemize}
    %
   \nb If the weights are present in the system then weighted quantities are calculated automatically. In addition, if a matrix quantity is requested (e.g. Covariance matrix, etc.), only the weights in the output space are going to be used for both input and output space (the computation of the joint probability between input and output spaces is not implemented yet).
   \\
@@ -139,39 +145,6 @@ data objects, depending on the type of statistics the user wants to compute:
   quantities are going to be calculated, if \textit{False} unbiased.
   \default{False}
   %
-  \item \xmlNode{methodsToRun}, \xmlDesc{comma separated string, optional
-  field}, specifies the method names of an external Function that need to be run
-  before computing any of the predefined quantities.
-  %
-  If this XML node is specified, the \xmlNode{Function} node must be present.
-  %
-  \default{None}
-% Assembler Objects
-  \item \textbf{Assembler Objects} This object is required in case the  \xmlNode{methodsToRun}
-  node is specified.
-  %
-  The object must be listed with a rigorous syntax that, except for the xml
-  node tag, is common among all the objects.
-  %
-  Each of these nodes must contain 2 attributes that are used to map those
-  within the simulation framework:
-  \begin{itemize}
-    \item \xmlAttr{class}, \xmlDesc{required string attribute}, it is the main
-    ``class'' the listed object is from;
-    \item \xmlAttr{type}, \xmlDesc{required string attribute}, it is the object
-    identifier or sub-type.
-    %
-  \end{itemize}
-  The \textbf{BasicStatistics} post-processor approach optionally accepts the
-  following object type:
-  \begin{itemize}
-    \item \xmlNode{Function}, \xmlDesc{string, required field}, The body of
-    this xml block needs to contain the name of an External Function defined
-    within the \xmlNode{Functions} main block (see section \ref{sec:functions}).
-    %
-    This object needs to contain the methods listed in the node
-    \xmlNode{methodsToRun}.
-  \end{itemize}
 \end{itemize}
 \textbf{Example (Static Statistics):}  This example demonstrates how to request the expected value of
 \xmlString{x01} and \xmlString{x02}, along with the sensitivity of both \xmlString{x01} and \xmlString{x02} to
@@ -182,12 +155,11 @@ data objects, depending on the type of statistics the user wants to compute:
   <Models>
     ...
     <PostProcessor name='aUserDefinedName' subType='BasicStatistics' verbosity='debug'>
-      <expectedValue>x01,x02</expectedValue>
-      <sensitivity>
+      <expectedValue prefix='mean'>x01,x02</expectedValue>
+      <sensitivity prefix='sen'>
         <targets>x01,x02</targets>
         <features>a,b</features>
       </sensitivity>
-      <methodsToRun>failureProbability</methodsToRun>
     </PostProcessor>
     ...
   </Models>
@@ -195,24 +167,8 @@ data objects, depending on the type of statistics the user wants to compute:
 </Simulation>
 \end{lstlisting}
 
-\textbf{Example (Static using \xmlNode{all}):} This example is similar to the one above, but shows using the
-\xmlNode{all} node.
-\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
-<Simulation>
-  ...
-  <Models>
-    ...
-    <PostProcessor name='aUserDefinedName' subType='BasicStatistics' verbosity='debug'>
-      <all>
-        <targets>x01,x02</targets>
-        <features>a,b</features>
-      </all>
-    </PostProcessor>
-    ...
-  </Models>
-  ...
-</Simulation>
-\end{lstlisting}
+In this case, the RAVEN variables ``mean\_x01, mean\_x02, sen\_x01\_a, sen\_x02\_a, sen\_x01\_b, sen\_x02\_b''
+will be created and accessible for the RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}. 
 
 \textbf{Example (Static, multiple matrix nodes):} This example shows how multiple nodes can specify
 particular metrics multiple times to include different target/feature combinations.  This postprocessor
@@ -224,12 +180,12 @@ $Y$ as well as the sensitivity of $C$ to $W$ and $Z$.
   <Models>
     ...
     <PostProcessor name='aUserDefinedName' subType='BasicStatistics' verbosity='debug'>
-      <expectedValue>A,B,C</expectedValue>
-      <sensitivity>
+      <expectedValue prefix='mean'>A,B,C</expectedValue>
+      <sensitivity prefix='sen1'>
         <targets>A,B</targets>
         <features>x,y</features>
       </sensitivity>
-      <sensitivity>
+      <sensitivity prefix='sen2'>
         <targets>C</targets>
         <features>w,z</features>
       </sensitivity>
@@ -246,12 +202,11 @@ $Y$ as well as the sensitivity of $C$ to $W$ and $Z$.
   <Models>
     ...
     <PostProcessor name='aUserDefinedNameForDynamicPP' subType='BasicStatistics' verbosity='debug'>
-      <expectedValue>x01,x02</expectedValue>
-      <sensitivity>
+      <expectedValue prefix='mean'>x01,x02</expectedValue>
+      <sensitivity prefix='sen'>
         <targets>x01,x02</targets>
         <features>a,b</features>
       </sensitivity>
-      <methodsToRun>failureProbability</methodsToRun>
       <pivotParameter>time</pivotParameter>
     </PostProcessor>
     ...
