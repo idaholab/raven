@@ -302,7 +302,6 @@ class RAVEN(CodeInterfaceBase):
     #####
     dataObjectsToReturn = {}
     numRlz = None
-    print('DEBUGG finalize RRR:')
     for filename in self.linkedDataObjectOutStreamsNames:
       # load the output CSV into a data object, so we can return that
       ## load the XML initialization information and type
@@ -326,12 +325,6 @@ class RAVEN(CodeInterfaceBase):
           raise IOError('The number of realizations in output CSVs from the inner RAVEN run are not consistent!  In "{}" received "{}" realization(s), but other data objects had "{}" realization(s)!'.format(data.name,len(data),numRlz))
       # store the object to return
       dataObjectsToReturn[dataObjectInfo[0]] = data
-      print(' ... in ',data.name)
-      print(data.asDataset())
-      try:
-        print(data.asDataset()['CladTempThreshold'].values)
-      except KeyError:
-        pass
     return dataObjectsToReturn
 
 
