@@ -845,6 +845,12 @@ def aNewPointSetParameter(self):
 </Simulation>
 \end{lstlisting}
 
+\nb The calculation results from this post-processor are stored in the internal variables. These variables
+are accessible by the users through RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}. The names
+of these variables are defined as: ``Function Name in this post-processor'' + ``\_`` + ``variable name in XML
+node \xmlNode{method}''. For example, in previous case, variables ``operators\_Delta'' and ``operators\_Sum''
+are defined by RAVEN to store the outputs of this post-processor.
+
 %%%%% PP TopologicalDecomposition %%%%%%%
 \subsubsection{TopologicalDecomposition}
 \label{TopologicalDecomposition}
