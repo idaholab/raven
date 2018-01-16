@@ -13,6 +13,7 @@ framework_modules:: amsc python_crow_modules
 
 all:: amsc python_crow_modules
 	$(MAKE) -C $(FRAMEWORK_DIR)/contrib/hit bindings
+	cp $(FRAMEWORK_DIR)/contrib/hit/hit.so $(MOOSE_DIR)/python/
 
 ####################################################################################
 #           find and remove all the *.pyc files (better safe then sorry)           #
@@ -33,7 +34,8 @@ clean::
           $(RAVEN_objects) \
           $(RAVEN_app_objects) \
           $(RAVEN_APP) \
-          $(RAVEN_plugins)
+          $(RAVEN_plugins) \
+	  $(MOOSE_DIR)/python/hit.so
 	@rm -Rf $(RAVEN_DIR)/build
 	@find $(RAVEN_DIR)/framework  -name '*.pyc' -exec rm '{}' \;
 	$(MAKE) -C $(FRAMEWORK_DIR)/contrib/hit clean
