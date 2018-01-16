@@ -219,8 +219,6 @@ class RavenFramework(Tester):
 
     #unordered csv
     checkAbsoluteValue = self.specs["check_absolute_value"]
-    #if len(self.specs["check_absolute_value"]) > 0:
-    #  if self.specs["check_absolute_value"]: checkAbsoluteValue = True
     if len(self.specs["rel_err"]) > 0:
       ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],self.ucsv_files,relative_error=float(self.specs["rel_err"]),absolute_check=checkAbsoluteValue)
     else:
