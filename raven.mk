@@ -7,16 +7,12 @@ SHELL := /bin/bash
 ################################################################################
 ## Build system for Approximate Morse-Smale Complex (AMSC)
 include $(RAVEN_DIR)/amsc.mk
-################################################################################
-
-################################################################################
-## hit framework contrib
-include $(FRAMEWORK_DIR)/contrib/hit/Makefile
-################################################################################
+###############################################################################
 
 framework_modules:: amsc python_crow_modules
 
-all:: amsc python_crow_modules hit
+all:: amsc python_crow_modules
+	$(MAKE) -C $(FRAMEWORK_DIR)/contrib/hit hit
 
 ####################################################################################
 #           find and remove all the *.pyc files (better safe then sorry)           #
