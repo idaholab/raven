@@ -449,11 +449,11 @@ class EnsembleModel(Dummy):
       # collect optional output if present and not already collected
       if jobIndex is not None:
         for optionalModelOutput in self.modelsDictionary[modelIn]['OutputObject']:
-          optionalModelOutput.addRealization(optionalOutputs[modelIn][modelIn])
+          optionalModelOutput.addRealization(optionalOutputs[modelIn])
       joinedResponse.update(outcomes[modelIn]['response'])
       joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
     # collect the output of the STEP
-    optionalOutputNames = [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject'] for modelIn in self.modelsDictionary[modelIn]]
+    optionalOutputNames = [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject'] for modelIn in self.modelsDictionary]
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
         output.addRealization(joinedResponse)
