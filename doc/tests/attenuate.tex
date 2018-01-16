@@ -106,11 +106,17 @@ these opacities varies from lower bound $y_\ell$ to higher bound $y_h$, and the 
 the same for both opacities.
 
 We consider evaluating the lower and upper bounds
-on a grid, and determine the expected values for the opacity means, as well as expected trends in the other
-values.
+on a grid, and determine the expected values for the opacity means and exit strength.
 
-The analytic values for the opacity means and exit strength expected value depend on the lower and upper bound
+The analytic values for the exit strength expected value depends on the lower and upper bound
 as follows:
+\begin{align}
+  \bar u(y_1,y_2) &= \int_{y_\ell}^{y_h}\int_{y_\ell}^{y_h} \left(\frac{1}{y_h-y_\ell}\right)^2
+    e^{-(y_1+y_2)/2} dy_1 dy_2, \\
+    &= \frac{4e^{-y_h-y_\ell}\left(e^{y_h/2}-e^{y_\ell/2}\right)^2}{(y_h-y_\ell)^2}.
+\end{align}
+
+Numerically, the following grid points result in the following expected values:
 
 \begin{table}[h!]
 \centering
