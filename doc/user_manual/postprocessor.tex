@@ -118,9 +118,13 @@ data objects, depending on the type of statistics the user wants to compute:
   \begin{itemize}
     \itemsep0em
     \item \xmlAttr{prefix}, \xmlDesc{required string attribute}, user-defined prefix for the given \textbf{metric}.
-      For scalar quantifies, RAVEN will define a variable with name defined as:  ``prefix'' + ``\_'' + ``parameter anme''.
-      For matrix quantities, RAVEN will define a variable with name defined as: ``prefix'' + ``\_'' + ``target parameter name'' + ``\_'' +``feature parameter name''. 
-      This variable will be used by RAVEN for the internally calculations. It is also accessible by the user through
+      For scalar quantifies, RAVEN will define a variable with name defined as:  ``prefix'' + ``\_'' + ``parameter name''.
+      For example, if we define ``mean'' as the prefix for \textbf{expectedValue}, and parameter ``x'', then variable
+      ``mean\_x'' will be defined by RAVEN.
+      For matrix quantities, RAVEN will define a variable with name defined as: ``prefix'' + ``\_'' + ``target parameter name'' + ``\_'' + ``feature parameter name''.
+      For example, if we define ``sen'' as the prefix for \textbf{sensitivity}, target ``y'' and feature ``x'', then
+      variable ``sen\_y\_x'' will be defined by RAVEN.
+      \nb These variable will be used by RAVEN for the internal calculations. It is also accessible by the user through
       \textbf{DataObjects} and \textbf{OutStreams}. 
   \end{itemize}
    %
@@ -1679,7 +1683,7 @@ Fault-Trees to the branch (i.e., fork) point.
 
 \subsubsection{Metric}
 \label{MetricPP}
-The \textbf{Metric} post-processor is specifically used to calculate the distance values among points from PointSet and histories from HistorySet,
+The \textbf{Metric} post-processor is specifically used to calculate the distance values among points from PointSets and histories from HistorySets,
 while the \textbf{Metrics} block (See Chapter \ref{sec:Metrics}) allows the user to specify the similarity/dissimilarity metrics to be used in this
 post-processor. It is important to notice that this post-processor currently can only accept \textbf{PointSet} data
 object and does not accept \textbf{HistorySet} data.  If the name of the variable is unique, it can be used,
