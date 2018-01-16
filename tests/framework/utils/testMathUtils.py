@@ -18,7 +18,6 @@
 
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
-from future.utils import bytes_to_native_str
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
@@ -350,32 +349,76 @@ checkAnswer('InfDiff -inf   - (-inf)',mathUtils.diffWithInfinites(-n,-n), 0)
 ##########################
 #      TYPE CHECKING     #
 ##########################
-# isAScalar
-checkAnswer('isAScalar -1'      ,mathUtils.isAScalar(-1      ),True)
-checkAnswer('isAScalar 0'       ,mathUtils.isAScalar(0       ),True)
-checkAnswer('isAScalar 1'       ,mathUtils.isAScalar(1       ),True)
-checkAnswer('isAScalar 1e200'   ,mathUtils.isAScalar(1e200   ),True)
-checkAnswer('isAScalar 1e-200'  ,mathUtils.isAScalar(1e-200  ),True)
-checkAnswer('isAScalar -1e200'  ,mathUtils.isAScalar(-1e200  ),True)
-checkAnswer('isAScalar 3.14'    ,mathUtils.isAScalar(3.14    ),True)
-checkAnswer('isAScalar "hombre"',mathUtils.isAScalar('hombre'),True)
-checkAnswer('isAScalar None'    ,mathUtils.isAScalar(None    ),True)
-checkAnswer('isAScalar True'    ,mathUtils.isAScalar(True    ),True)
-checkAnswer('isAScalar False'   ,mathUtils.isAScalar(False   ),True)
+# isSingleValued
+checkAnswer('isSingleValued -1'      ,mathUtils.isSingleValued(-1      ),True)
+checkAnswer('isSingleValued 0'       ,mathUtils.isSingleValued(0       ),True)
+checkAnswer('isSingleValued 1'       ,mathUtils.isSingleValued(1       ),True)
+checkAnswer('isSingleValued 1e200'   ,mathUtils.isSingleValued(1e200   ),True)
+checkAnswer('isSingleValued 1e-200'  ,mathUtils.isSingleValued(1e-200  ),True)
+checkAnswer('isSingleValued -1e200'  ,mathUtils.isSingleValued(-1e200  ),True)
+checkAnswer('isSingleValued 3.14'    ,mathUtils.isSingleValued(3.14    ),True)
+checkAnswer('isSingleValued "hombre"',mathUtils.isSingleValued('hombre'),True)
+checkAnswer('isSingleValued None'    ,mathUtils.isSingleValued(None    ),True)
+checkAnswer('isSingleValued True'    ,mathUtils.isSingleValued(True    ),True)
+checkAnswer('isSingleValued False'   ,mathUtils.isSingleValued(False   ),True)
 
-checkAnswer('isAScalar inf notok',mathUtils.isAScalar(np.inf,nanOk=False),False)
-checkAnswer('isAScalar nan notok',mathUtils.isAScalar(np.nan,nanOk=False),False)
-checkAnswer('isAScalar inf ok'   ,mathUtils.isAScalar(np.inf,nanOk=True ),False)
-checkAnswer('isAScalar nan ok'   ,mathUtils.isAScalar(np.nan,nanOk=True ),False)
+checkAnswer('isSingleValued inf notok',mathUtils.isSingleValued(np.inf,nanOk=False),False)
+checkAnswer('isSingleValued nan notok',mathUtils.isSingleValued(np.nan,nanOk=False),False)
+checkAnswer('isSingleValued inf ok'   ,mathUtils.isSingleValued(np.inf,nanOk=True ),True)
+checkAnswer('isSingleValued nan ok'   ,mathUtils.isSingleValued(np.nan,nanOk=True ),True)
 
-checkAnswer('isAScalar array'  ,mathUtils.isAScalar([1]          ),False)
-checkAnswer('isAScalar set'    ,mathUtils.isAScalar((1,)         ),False)
-checkAnswer('isAScalar nparray',mathUtils.isAScalar(np.array([1])),False)
-checkAnswer('isAScalar dict'   ,mathUtils.isAScalar({1:2}        ),False)
+checkAnswer('isSingleValued array'  ,mathUtils.isSingleValued([1]          ),False)
+checkAnswer('isSingleValued set'    ,mathUtils.isSingleValued((1,)         ),False)
+checkAnswer('isSingleValued nparray',mathUtils.isSingleValued(np.array([1])),False)
+checkAnswer('isSingleValued dict'   ,mathUtils.isSingleValued({1:2}        ),False)
 
 # isAString
-checkAnswer('isAString string',mathUtils.isAString(bytes_to_native_str(b'alpha')),True)
+# TODO how to get a string (not unicode) after import unicode literals?
+#checkAnswer('isAString string',mathUtils.isAString(bytes_to_native_str(b'alpha')),True)
+checkAnswer('isAString strish' ,mathUtils.isAString('alpha'),True)
 checkAnswer('isAString unicode',mathUtils.isAString(u'beta'),True)
+checkAnswer('isAString float'  ,mathUtils.isAString(1.0    ),False)
+checkAnswer('isAString int'    ,mathUtils.isAString(1      ),False)
+checkAnswer('isAString bool'   ,mathUtils.isAString(True   ),False)
+
+# isAFloatOrInt
+checkAnswer('isAFloatOrInt 0'   ,mathUtils.isAFloatOrInt(0      ),True)
+checkAnswer('isAFloatOrInt 1'   ,mathUtils.isAFloatOrInt(1      ),True)
+checkAnswer('isAFloatOrInt 3.14',mathUtils.isAFloatOrInt(3.14   ),True)
+checkAnswer('isAFloatOrInt str' ,mathUtils.isAFloatOrInt('gamma'),False)
+checkAnswer('isAFloatOrInt bool',mathUtils.isAFloatOrInt(True   ),False)
+
+checkAnswer('isAFloatOrInt nan ok' ,mathUtils.isAFloatOrInt(np.nan),True)
+checkAnswer('isAFloatOrInt inf ok' ,mathUtils.isAFloatOrInt(np.inf),True)
+checkAnswer('isAFloatOrInt nan not ok',mathUtils.isAFloatOrInt(np.nan, nanOk=False),False)
+checkAnswer('isAFloatOrInt inf not ok',mathUtils.isAFloatOrInt(np.inf, nanOk=False),False)
+
+# isAFloat
+checkAnswer('isAFloat 3.14'  ,mathUtils.isAFloat(3.14  ),True)
+checkAnswer('isAFloat 1e200' ,mathUtils.isAFloat(1e200 ),True)
+checkAnswer('isAFloat 1e-200',mathUtils.isAFloat(1e-200),True)
+checkAnswer('isAFloat -1e200',mathUtils.isAFloat(-1e200),True)
+checkAnswer('isAFloat 1'     ,mathUtils.isAFloat(1     ),False)
+checkAnswer('isAFloat str'   ,mathUtils.isAFloat('eps' ),False)
+checkAnswer('isAFloat bool'  ,mathUtils.isAFloat(True  ),False)
+
+# isAnInteger
+checkAnswer('isAnInteger 1'   ,mathUtils.isAnInteger(1      ),True)
+checkAnswer('isAnInteger 0'   ,mathUtils.isAnInteger(0      ),True)
+checkAnswer('isAnInteger -1'  ,mathUtils.isAnInteger(-1     ),True)
+checkAnswer('isAnInteger 3.14',mathUtils.isAnInteger(3.14   ),False)
+checkAnswer('isAnInteger 1e1' ,mathUtils.isAnInteger(1e1    ),False)
+checkAnswer('isAnInteger str' ,mathUtils.isAnInteger('delta'),False)
+checkAnswer('isAnInteger bool',mathUtils.isAnInteger(True   ),False)
+
+# isABoolean
+checkAnswer('isABoolean False',mathUtils.isABoolean(False ),True)
+checkAnswer('isABoolean True' ,mathUtils.isABoolean(True  ),True)
+checkAnswer('isABoolean 0'    ,mathUtils.isABoolean(0     ),False)
+checkAnswer('isABoolean 1'    ,mathUtils.isABoolean(1     ),False)
+checkAnswer('isABoolean -1'   ,mathUtils.isABoolean(-1    ),False)
+checkAnswer('isABoolean str'  ,mathUtils.isABoolean("True"),False)
+checkAnswer('isABoolean 3.14' ,mathUtils.isABoolean(3.14  ),False)
 
 print(results)
 

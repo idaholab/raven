@@ -543,7 +543,7 @@ def diffWithInfinites(a,b):
     res = a-b
   return res
 
-def isAScalar(val,nanOk=True):
+def isSingleValued(val,nanOk=True):
   """
     Determine if a single-entry value (by traditional standards).
     Single entries include strings, numbers, NaN, inf, None
@@ -560,6 +560,7 @@ def isAString(val):
     @ In, val, object, check
     @ Out, isAString, bool, result
   """
+  # str,unicode inherit from basestring
   return isinstance(val,basestring)
 
 def isAFloatOrInt(val,nanOk=True):
@@ -571,9 +572,14 @@ def isAFloatOrInt(val,nanOk=True):
     @ Out, isAFloatOrInt, bool, result
   """
   if isinstance(val,(float,int,np.number)):
-    return True
-  if nanOk and isinstance(val,np.float):
-    return True
+    # bools are ints, unfortunately
+    if isABoolean(val):
+      return False
+    # nan and inf are floats
+    if nanOk:
+      return True
+    elif val not in [np.inf,np.nan]:
+      return True
   return False
 
 def isAFloat(val,nanOk=True):
@@ -583,7 +589,11 @@ def isAFloat(val,nanOk=True):
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
     @ Out, isAFloat, bool, result
   """
-  if isinstance(val,(float,np.float)):
+  if isinstance(val,(float,np.number)):
+    # exclude ints, which are np.number
+    if isAnInteger(val):
+      return False
+    # np.float32 (or 16) is niether a float nor a np.float (it is a np.number)
     if nanOk:
       return True
     elif val not in [np.nan,np.inf]:
@@ -598,7 +608,11 @@ def isAnInteger(val,nanOk=False):
     @ Out, isAnInteger, bool, result
   """
   if isinstance(val,(int,np.integer)):
+    # exclude booleans
+    if isABoolean(val):
+      return False
     return True
+  # also include inf and nan, if requested
   if nanOk and val in [np.nan,np.inf]:
     return True
   return False
@@ -609,4 +623,4 @@ def isABoolean(val):
     @ In, val, object, check
     @ Out, isABoolean, bool, result
   """
-  return isinstance(val,(bool,np.bool_)):
+  return isinstance(val,(bool,np.bool_))
