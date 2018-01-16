@@ -12,7 +12,7 @@ include $(RAVEN_DIR)/amsc.mk
 framework_modules:: amsc python_crow_modules
 
 all:: amsc python_crow_modules
-	$(MAKE) -C $(FRAMEWORK_DIR)/contrib/hit hit
+	$(MAKE) -C $(FRAMEWORK_DIR)/contrib/hit bindings
 
 ####################################################################################
 #           find and remove all the *.pyc files (better safe then sorry)           #
