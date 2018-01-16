@@ -371,7 +371,18 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
     the subnodes \xmlNode{latent} and \xmlNode{manifest} under \xmlNode{features} are required (more details can be found in the following).
     %
   \end{itemize}
-   %
+  %
+  \nb For each computed quantity, RAVEN will define a unique variable name so that the data can be accessible by the users
+  through RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}. These variable names are defined as follows:
+  \begin{itemize}
+    \item \xmlString{SensitivityIndex}: `sensitivityIndex' + `\_' + `targetVariableName' + `\_' + `latentFeatureVariableName'
+    \item \xmlString{ImportanceIndex}: `importanceIndex' + `\_' + `targetVariableName' + `\_' + `latentFeatureVariableName'
+    \item \xmlString{PCAIndex}: `pcaIndex' + `\_' + `latentFeatureVariableName'
+    \item \xmlString{transformation}: `transformation' + `\_' + `manifestFeatureVariableName' + `\_' + `latentFeatureVariableName'
+    \item \xmlString{InverseTransformation}: `inverseTransformation' + `\_' + `latentFeatureVariableName' + `\_' + `manifestFeatureVariableName'
+    \item \xmlString{ManifestSensitivity}: `manifestSensitivity' + `\_' + `targetVariableName' + `\_' + `manifestFeatureVariableName'
+  \end{itemize}
+  %
   If all the quantities need to be computed, the user can input in the body of \xmlNode{what} the string \xmlString{all}.
   \nb \xmlString{all} equivalent to \xmlString {SensitivityIndex, ImportanceIndex, PCAIndex}.
 
@@ -449,11 +460,11 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
           <dimensions>1,2</dimensions>
         </manifest>
         <latent>
-          <variables>latent_1, latent_2</variables>
-          <dimensions>1,2</dimensions>
+          <variables>latent1</variables>
+          <dimensions>1</dimensions>
         </latent>
       </features>
-      <targets>y1,y2</targets>
+      <targets>y</targets>
       <mvnDistribution>MVN</mvnDistribution>
     </PostProcessor>
     ...
@@ -461,6 +472,11 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
   ...
 </Simulation>
 \end{lstlisting}
+
+The calculation results can be accessible via variables ``sensitivityIndex\_y\_latent1, importanceIndex\_y\_latent1,
+manifestSensitivity\_y\_x1, manifestSensitivity\_y\_x2, transformation\_x1\_latent1, transformation\_x2\_latent1,
+inverseTransformation\_latnet1\_x1, inverseTransformation\_laent1\_x2'' through RAVEN entities \textbf{DataObjects}
+and \textbf{OutStreams}.
 
 %%%%% PP SafestPoint %%%%%%%
 \subsubsection{SafestPoint}
