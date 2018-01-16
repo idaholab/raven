@@ -690,6 +690,7 @@ class DataSet(DataObject):
       # if it's aligned so far, check if it still is
       if index in self._alignedIndexes.keys():
         # first, if lengths don't match, they're not aligned.
+        # TODO there are concerns this check may slow down runs; it should be profiled along with other bottlenecks to optimize our efforts.
         if len(rlz[index]) != len(self._alignedIndexes[index]):
           closeEnough = False
         else:
