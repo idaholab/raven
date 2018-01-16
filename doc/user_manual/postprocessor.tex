@@ -1657,10 +1657,12 @@ Fault-Trees to the branch (i.e., fork) point.
 
 \subsubsection{Metric}
 \label{MetricPP}
-The \textbf{Metric} post-processor is specifically used to calculate the distance values among points and histories,
+The \textbf{Metric} post-processor is specifically used to calculate the distance values among points from PointSet and histories from HistorySet,
 while the \textbf{Metrics} block (See Chapter \ref{sec:Metrics}) allows the user to specify the similarity/dissimilarity metrics to be used in this
 post-processor. It is important to notice that this post-processor currently can only accept \textbf{PointSet} data
-object and does not accept \textbf{HistorySet} data.  If the name of the variable is unique, it can be used, otherwise the variable can be specified with DataObjectName|InputOrOutput|variablename like other places in RAVEN.  Some of the Metrics also accept distributions to calculate the distance against.  These are specified by using the name of the distribution.
+object and does not accept \textbf{HistorySet} data.  If the name of the variable is unique, it can be used,
+otherwise the variable can be specified with $DataObjectName|InputOrOutput|VariableName$ like other places in RAVEN.
+Some of the Metrics also accept distributions to calculate the distance against.  These are specified by using the name of the distribution.
 %
 \ppType{Metric}{Metric}
 %
@@ -1716,6 +1718,12 @@ object and does not accept \textbf{HistorySet} data.  If the name of the variabl
 </Simulation>
 \end{lstlisting}
 
+In order to access the results from this post-processor, RAVEN will define the variables as ``MetricName'' +
+``\_'' + ``TargetVariableName'' + ``\_'' + ``FeatureVariableName'' to store the calculation results, and these
+variables are also accessible by the users through RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}.
+In previous example, variables such as \textit{euclidean\_ans2\_ans, rbf\_ans2\_ans, poly\_ans2\_ans} are accessible
+by the users.
+
 %%%%%%%%%%%%%% Cross Validation PP %%%%%%%%%%%%%%%%%%%
 
 \subsubsection{CrossValidation}
@@ -1745,6 +1753,58 @@ only accept \textbf{PointSet} data object.
     \xmlString{mean\_absolute\_error}, \xmlString{explained\_variance\_score}, \xmlString{r2\_score},
     \xmlString{mean\_squared\_error}, and \xmlString{median\_absolute\_error}.
 \end{itemize}
+
+\textbf{Example:}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+  <Files>
+    <Input name="output_cv" type="">output_cv.xml</Input>
+    <Input name="output_cv.csv" type="">output_cv.csv</Input>
+  </Files>
+  <Models>
+    ...
+    <ROM name="surrogate" subType="SciKitLearn">
+      <SKLtype>linear_model|LinearRegression</SKLtype>
+      <Features>x1,x2</Features>
+      <Target>ans</Target>
+      <fit_intercept>True</fit_intercept>
+      <normalize>True</normalize>
+    </ROM>
+    <PostProcessor name="pp1" subType="CrossValidation">
+        <SciKitLearn>
+            <SKLtype>KFold</SKLtype>
+            <n_splits>3</n_splits>
+            <shuffle>False</shuffle>
+            <random_state>None</random_state>
+        </SciKitLearn>
+        <Metric class="Metrics" type="SKL">m1</Metric>
+    </PostProcessor>
+    ...
+  </Models>
+  <Metrics>
+    <SKL name="m1">
+      <metricType>mean_absolute_error</metricType>
+    </SKL>
+  </Metrics>
+  <Steps>
+    <PostProcess name="PP1">
+        <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+        <Input class="Models" type="ROM">surrogate</Input>
+        <Model class="Models" type="PostProcessor">pp1</Model>
+        <Output class="Files" type="">output_cv</Output>
+        <Output class="Files" type="">output_cv.csv</Output>
+    </PostProcess>
+  </Steps>
+ ...
+</Simulation>
+\end{lstlisting}
+
+In order to access the results from this post-processor, RAVEN will define the variables as ``cv'' +
+``\_'' + ``MetricName'' + ``\_'' + ``ROMTargetVariable'' to store the calculation results, and these
+variables are also accessible by the users through RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}.
+In previous example, variable \textit{cv\_m1\_ans} are accessible by the users.
 
 \paragraph{SciKitLearn}
 
@@ -1908,49 +1968,3 @@ In addition to this XML node, several others are available:
     pseudo-random number generator state used for shuffling. If None, use default numpy RNG for shuffling.
 \end{itemize}
 
-\textbf{Example:}
-
-\begin{lstlisting}[style=XML]
-<Simulation>
- ...
-  <Files>
-    <Input name="output_cv" type="">output_cv.xml</Input>
-    <Input name="output_cv.csv" type="">output_cv.csv</Input>
-  </Files>
-  <Models>
-    ...
-    <ROM name="surrogate" subType="SciKitLearn">
-      <SKLtype>linear_model|LinearRegression</SKLtype>
-      <Features>x1,x2</Features>
-      <Target>ans</Target>
-      <fit_intercept>True</fit_intercept>
-      <normalize>True</normalize>
-    </ROM>
-    <PostProcessor name="pp1" subType="CrossValidation">
-        <SciKitLearn>
-            <SKLtype>KFold</SKLtype>
-            <n_splits>3</n_splits>
-            <shuffle>False</shuffle>
-            <random_state>None</random_state>
-        </SciKitLearn>
-        <Metric class="Metrics" type="SKL">m1</Metric>
-    </PostProcessor>
-    ...
-  </Models>
-  <Metrics>
-    <SKL name="m1">
-      <metricType>mean_absolute_error</metricType>
-    </SKL>
-  </Metrics>
-  <Steps>
-    <PostProcess name="PP1">
-        <Input class="DataObjects" type="PointSet">outputDataMC</Input>
-        <Input class="Models" type="ROM">surrogate</Input>
-        <Model class="Models" type="PostProcessor">pp1</Model>
-        <Output class="Files" type="">output_cv</Output>
-        <Output class="Files" type="">output_cv.csv</Output>
-    </PostProcess>
-  </Steps>
- ...
-</Simulation>
-\end{lstlisting}
