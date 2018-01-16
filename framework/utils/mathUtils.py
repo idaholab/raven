@@ -547,6 +547,7 @@ def isSingleValued(val,nanOk=True):
   """
     Determine if a single-entry value (by traditional standards).
     Single entries include strings, numbers, NaN, inf, None
+    NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
     @ In, val, object, check
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
     @ Out, isAScalar, bool, result

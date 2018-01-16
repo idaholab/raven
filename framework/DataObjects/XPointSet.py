@@ -121,7 +121,7 @@ class PointSet(DataSet):
     toRemove = []
     for var,val in rlz.items():
       # only modify it if it is not already scalar
-      if not isinstance(val,(float,int,str,unicode)):
+      if not mathUtils.isSingleValued(val):
         # treat inputs, outputs differently TODO this should extend to per-variable someday
         ## inputs
         if var in self._inputs:

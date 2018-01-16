@@ -130,7 +130,7 @@ class DataSet(DataObject):
         # Otherwise, scalarMetric
         else:
           # sanity check to make sure suitable values are passed in
-          assert(isinstance(value,(basestring,float,int)))
+          assert(mathUtils.isSingleValued(value))
           destination.addScalar(target,metric,value)
 
   def addRealization(self,rlz):
@@ -240,7 +240,7 @@ class DataSet(DataObject):
       @ Out, same, bool, if True then alignment is good
     """
     # format request so that indexesToCheck is always a list
-    if isinstance(indexesToCheck,basestring):
+    if mathUtils.isAString(indexesToCheck):
       indexesToCheck = [indexesToCheck]
     elif indexesToCheck is None:
       indexesToCheck = self.indexes[:]
@@ -363,7 +363,7 @@ class DataSet(DataObject):
     # For faster access, consider using data.asDataset()['varName'] for one variable, or
     #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
-    if isinstance(var,basestring):
+    if mathUtils.isAString(var):
       val = self._data[var]
       #format as scalar
       if len(val.dims) == 0:
@@ -690,7 +690,7 @@ class DataSet(DataObject):
       # if it's aligned so far, check if it still is
       if index in self._alignedIndexes.keys():
         # if close enough, then keep the aligned values; otherwise, take action
-        if isinstance(rlz[index][0],(float,int)):
+        if mathUtils.isAFloatOrInt(rlz[index][0]):
           closeEnough = all(np.isclose(rlz[index],self._alignedIndexes[index],rtol=tol))
         else:
           closeEnough = all(rlz[index] == self._alignedIndexes[index])
@@ -783,7 +783,7 @@ class DataSet(DataObject):
       dataType = dtype
     # method = 'once' # see below, parallelization is possible but not implemented
     # first case: single entry per node: floats, strings, ints, etc
-    if isinstance(data[i],(float,str,unicode,int,bool,np.bool_)):
+    if mathUtils.isSingleValued(data[i]):
       data = np.array(data,dtype=dataType)
       array = xr.DataArray(data,
                            dims=[self.sampleTag],
@@ -1203,14 +1203,14 @@ class DataSet(DataObject):
     if isinstance(val,(xr.DataArray,np.ndarray)):
       val = val.item(0)
     # identify other scalars by instance
-    if isinstance(val,float):
+    if mathUtils.isAFloat(val):
       _type = float
-    elif isinstance(val,(bool,np.bool_)):
+    elif mathUtils.isABoolean(val):
       _type = bool
-    elif isinstance(val,int):
+    elif mathUtils.isAnInteger(val):
       _type = int
     # strings and unicode have to be stored as objects to prevent string sizing in numpy
-    elif isinstance(val,basestring):
+    elif mathUtils.isAString(val):
       _type = object
     # catchall
     else:
@@ -1243,7 +1243,7 @@ class DataSet(DataObject):
     for r,row in enumerate(self._collector[:,tuple(self._orderedVars.index(var) for var in match.keys())]):
       match = True
       for e,element in enumerate(row):
-        if isinstance(element,(float,int)):
+        if mathUtils.isAFloatOrInt(element):
           match *= mathUtils.compareFloats(lookingFor[e],element,tol=tol)
           if not match:
             break
@@ -1283,7 +1283,7 @@ class DataSet(DataObject):
     mask = 1.0
     for var,val in match.items():
       # float instances are relative, others are absolute
-      if isinstance(val,(float,int)):
+      if mathUtils.isAFloatOrInt(val):
         # scale if we know how
         try:
           loc,scale = self._scaleFactors[var]
@@ -1476,7 +1476,7 @@ class DataSet(DataObject):
       # if not a float or int, don't scale it
       # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
       #first = self._data.groupby(var).first()[var].item(0)
-      #if (not isinstance(first,(float,int))) or np.isnan(first):# or self._data[var].isnull().all():
+      #if (not mathUtils.isAFloatOrInt(first)) or np.isnan(first):# or self._data[var].isnull().all():
       #  continue
       try:
         mean = float(self._data[var].mean())
