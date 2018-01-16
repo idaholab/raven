@@ -7,7 +7,7 @@
               test_rom_trainer, test_rom_trainerHS,
               rom_MC, rom_MCHS,
               test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>
-    <batchSize>3</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Distributions>

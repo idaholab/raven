@@ -145,6 +145,10 @@ class DataSet(DataObject):
       @ Out, None
     """
     # protect against back-changing realization
+    print('DEBUGG xds addR rcv:',self.name)
+    for var,val in rlz.items():
+      print('  ',var,val)
+    print('')
     rlz = copy.deepcopy(rlz)
     # clean out entries that aren't desired
     try:
@@ -163,6 +167,10 @@ class DataSet(DataObject):
 
     ## check alignment of indexes
     self._checkAlignedIndexes(rlz) # TODO implement
+    print('DEBUGG xds addR massaged:',self.name)
+    for var,val in rlz.items():
+      print('  ',var,val)
+    print('')
     #  NB If no scalar entry is made, this construction fails.  In that case,
     #  instead of treating each dataarrray as an object, numpy.asarray calls their asarray methods,
     #  unfolding them and making a full numpy array with more dimensions, instead of effectively
