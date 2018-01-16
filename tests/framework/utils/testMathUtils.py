@@ -18,6 +18,7 @@
 
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
+from future.utils import bytes_to_native_str
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
@@ -26,6 +27,7 @@ import numpy as np
 frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,'framework'))
 sys.path.append(frameworkDir)
 from utils import mathUtils
+import numpy as np
 
 print (mathUtils)
 
@@ -344,6 +346,36 @@ checkAnswer('InfDiff -inf   - inf'   ,mathUtils.diffWithInfinites(-n, n),-i)
 checkAnswer('InfDiff -inf   - finite',mathUtils.diffWithInfinites(-n, 0),-i)
 checkAnswer('InfDiff -inf   - (-inf)',mathUtils.diffWithInfinites(-n,-n), 0)
 
+
+##########################
+#      TYPE CHECKING     #
+##########################
+# isAScalar
+checkAnswer('isAScalar -1'      ,mathUtils.isAScalar(-1      ),True)
+checkAnswer('isAScalar 0'       ,mathUtils.isAScalar(0       ),True)
+checkAnswer('isAScalar 1'       ,mathUtils.isAScalar(1       ),True)
+checkAnswer('isAScalar 1e200'   ,mathUtils.isAScalar(1e200   ),True)
+checkAnswer('isAScalar 1e-200'  ,mathUtils.isAScalar(1e-200  ),True)
+checkAnswer('isAScalar -1e200'  ,mathUtils.isAScalar(-1e200  ),True)
+checkAnswer('isAScalar 3.14'    ,mathUtils.isAScalar(3.14    ),True)
+checkAnswer('isAScalar "hombre"',mathUtils.isAScalar('hombre'),True)
+checkAnswer('isAScalar None'    ,mathUtils.isAScalar(None    ),True)
+checkAnswer('isAScalar True'    ,mathUtils.isAScalar(True    ),True)
+checkAnswer('isAScalar False'   ,mathUtils.isAScalar(False   ),True)
+
+checkAnswer('isAScalar inf notok',mathUtils.isAScalar(np.inf,nanOk=False),False)
+checkAnswer('isAScalar nan notok',mathUtils.isAScalar(np.nan,nanOk=False),False)
+checkAnswer('isAScalar inf ok'   ,mathUtils.isAScalar(np.inf,nanOk=True ),False)
+checkAnswer('isAScalar nan ok'   ,mathUtils.isAScalar(np.nan,nanOk=True ),False)
+
+checkAnswer('isAScalar array'  ,mathUtils.isAScalar([1]          ),False)
+checkAnswer('isAScalar set'    ,mathUtils.isAScalar((1,)         ),False)
+checkAnswer('isAScalar nparray',mathUtils.isAScalar(np.array([1])),False)
+checkAnswer('isAScalar dict'   ,mathUtils.isAScalar({1:2}        ),False)
+
+# isAString
+checkAnswer('isAString string',mathUtils.isAString(bytes_to_native_str(b'alpha')),True)
+checkAnswer('isAString unicode',mathUtils.isAString(u'beta'),True)
 
 print(results)
 
