@@ -576,16 +576,8 @@ class Code(Model):
           for var,val in kwargs.items():
             if var not in rlz.keys():
               rlz[var] = np.atleast_1d(val)
-          self._replaceVariablesNamesWithAliasSystem(rlz,'inout',True) # TODO should this only be "input" instead of "inout"?
+          self._replaceVariablesNamesWithAliasSystem(rlz,'inout',True)
           exportDict['realizations'].append(rlz)
-
-          #### OLD METHOD, kept for reference ####
-          #self._replaceVariablesNamesWithAliasSystem(dataObj.getVars('input'), 'input', True)
-          # TODO unstructured inputs not a part of ensemble anymore? FIXME
-          #self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('unstructuredinputs',nodeId='RecontructEnding'), 'input', True)
-          #self._replaceVariablesNamesWithAliasSystem(dataObj.getVars('output'), 'output', True)
-        #returnDict = finalCodeOutputFile
-          #### END OLD METHOD ####
 
       ## The last thing before returning should be to delete the temporary log
       ## file and any other file the user requests to be cleared
