@@ -12,6 +12,7 @@ include $(RAVEN_DIR)/amsc.mk
 ################################################################################
 ## hit framework contrib
 include $(FRAMEWORK_DIR)/contrib/hit/Makefile
+################################################################################
 
 framework_modules:: amsc python_crow_modules
 
