@@ -141,7 +141,7 @@ class DataSet(DataObject):
       Before actually adding the realization, data is formatted for this data object.
       @ In, rlz, dict, {var:val} format where
                          "var" is the variable name as a string,
-                         "val" is either a np.ndarray of values.
+                         "val" is a np.ndarray of values.
       @ Out, None
     """
     # protect against back-changing realization
