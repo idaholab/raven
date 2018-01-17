@@ -18,6 +18,7 @@
       <revision author="cogljj" date="2015-11-17">Updating to work with scikit-learn 0.17. In the new version of sklearn the rom can not use a classifier anymore.</revision>
       <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-12-17">Modified for adapting to new DataObject structure</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -139,9 +140,6 @@
     <IOStep name="test_extract_for_rom_trainer" verbosity="debug">
       <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_MULTI_ROM_TRAINER</Input>
       <Output class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Output>
-      <!--
-        <Output class="OutStreams" type="Print">ciccio</Output>
-      -->
     </IOStep>
     <RomTrainer name="test_rom_trainer" verbosity="debug">
       <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
@@ -157,21 +155,18 @@
     <Print name="outputMontecarlo_dump">
       <type>csv</type>
       <source>outputMontecarlo</source>
+      <what>input, output </what>
     </Print>
     <Print name="outputMontecarloMultiTargetRom_dump">
       <type>csv</type>
       <source>outputMontecarloRom</source>
+      <what>input, output </what>
     </Print>
     <Print name="outputMontecarloMultiTargetRomND_dump">
       <type>csv</type>
       <source>outputMontecarloRomND</source>
+      <what>input, output </what>
     </Print>
-    <!--
-      <Print name="ciccio">
-        <type>csv</type>
-        <source>Pointset_from_database_for_rom_trainer</source>
-      </Print>
-    -->
   </OutStreams>
 
   <Databases>

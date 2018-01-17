@@ -56,11 +56,11 @@
   <DataObjects>
     <PointSet name="MelcorPointSet">
       <Input>%PRE%</Input>
-      <Output>time,volume_2_CVVELO(1),volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP</Output>
+      <Output>volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP,volume_2_CVVELO(1)</Output>
     </PointSet>
     <HistorySet name="MelcorHistorySet">
       <Input>%PRE%</Input>
-      <Output>time,volume_2_CVVELO(1),volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP</Output>
+      <Output>volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP,volume_2_CVVELO(1)</Output>
     </HistorySet>
   </DataObjects>
 
@@ -72,6 +72,7 @@
     <Print name="dumpMelcorPointSet">
       <type>csv</type>
       <source>MelcorPointSet</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

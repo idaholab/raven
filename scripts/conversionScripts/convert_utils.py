@@ -73,6 +73,10 @@ def standardMain(argv,convert):
     keep_comments=False
     argv.remove('--remove-comments')
   else: keep_comments = True
+  always_rewrite = True
+  if '--no-rewrite' in argv:
+    always_rewrite = False
+    argv.remove('--no-rewrite')
   #offer option to apply to all framework tests
   if '--tests' in argv:
     #get list of all 'tests' files
@@ -87,10 +91,12 @@ def standardMain(argv,convert):
   else: #explicilty list files to run
     #remove the script name itself from the list
     filelist = argv[1:]
+
   #track the failed attempts
   failures = 0
   maxname = max(len(fname) for fname in filelist)
   #iterate over files
+  not_converted_files = 0
   for fname in filelist:
     if not os.path.isfile(fname):
       #file doesn't exist, but do continue on to others
@@ -98,21 +104,29 @@ def standardMain(argv,convert):
       failures+=1
       continue
     if createBackup(fname)==False: #sucessful operation
-      print ('Converting '+fname+'...').ljust(14+maxname,'.'),
       #change comments to comment nodes
       strfile = ''.join(line for line in open(fname,'r'))
       if keep_comments: strfile = convertToRavenComment(strfile)
+
       tree = ET.ElementTree(ET.fromstring(strfile))
+      if not always_rewrite:
+        tree_copy = ET.tostring(tree.getroot())
       convert(tree,fileName=fname)
+      if not always_rewrite:
+        if ET.tostring(tree.getroot()) == tree_copy:
+          print('File '+fname+ ' not converted since no syntax modifications have been detected')
+          not_converted_files+=1
+          continue
+      print ('Converting '+fname+'...').ljust(14+maxname,'.'),
       towrite = prettify(tree)
       if keep_comments: towrite = convertFromRavenComment(towrite)
       file(fname,'w').writelines(towrite)
-      print 'converted.'
+      print ('converted.')
     else:
       #backup was not successfully created
       failures+=1
-  if failures>0: print '\n%i files converted, but there were %i failures.  See messages above.' %(len(filelist)-failures,failures)
-  else: print '\nConversion script completed successfully.  %i files converted.' %len(filelist)
+  if failures>0: print ('\n%i files converted, but there were %i failures.  See messages above.' %(len(filelist)-not_converted_files-failures,failures))
+  else: print ('\nConversion script completed successfully.  %i files converted.' %(len(filelist)-not_converted_files))
   return failures
 
 def convertFromRavenComment(msg):

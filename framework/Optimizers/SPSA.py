@@ -119,7 +119,7 @@ class SPSA(GradientBasedOptimizer):
     """
     ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
-    varK = copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs'])
+    varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars(traj)) #copy.deepcopy(self.counter['recentOptHist'][traj][0]['inputs'])
     varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
     #check for redundant paths
     if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
@@ -193,7 +193,7 @@ class SPSA(GradientBasedOptimizer):
           #for i in range(1,self.gradDict['numIterForAve']*2,2):
           for i in self.perturbationIndices:
             evalIndex = self._checkModelFinish(traj,self.counter['varsUpdate'][traj],i)[1]
-            outval = self.mdlEvalHist.getParametersValues('outputs',nodeId='ReconstructEnding')[self.objVar][evalIndex]
+            outval = float(self.mdlEvalHist.realization(index=evalIndex)[self.objVar])
             self.gradDict['pertPoints'][traj][i]['output'] = outval
           # reset per-opt-point counters, forward the varsUpdate
           self.counter['perturbation'][traj] = 0
@@ -291,7 +291,8 @@ class SPSA(GradientBasedOptimizer):
     GradientBasedOptimizer.localGenerateInput(self,model,oldInput)
     action, traj = self.nextActionNeeded
     #store traj as active for sampling
-    self.inputInfo['trajectory'] = traj
+    self.inputInfo['trajID'] = traj+1
+    self.inputInfo['varsUpdate'] = self.counter['varsUpdate'][traj]
     #"action" and "traj" are set in localStillReady
     #"action" is a string of the next action needed by the optimizer in order to move forward
     #"traj" is the trajectory that is in need of the action
@@ -329,7 +330,7 @@ class SPSA(GradientBasedOptimizer):
       if self.counter['perturbation'][traj] == 1:
         # Generate all the perturbations at once, then we can submit them one at a time
         ck = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
-        varK = self.counter['recentOptHist'][traj][0]['inputs']
+        varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars(traj))
         #check the submission queue is empty; otherwise something went wrong # TODO this is a sanity check, might be removed for efficiency
         #TODO this same check is in GradientBasedOptimizer.queueUpOptPointRuns, they might benefit from abstracting
         if len(self.submissionQueue[traj]) > 0:

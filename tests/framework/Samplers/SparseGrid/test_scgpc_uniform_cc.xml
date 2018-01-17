@@ -93,6 +93,7 @@
     <Print name="UCdump">
       <type>csv</type>
       <source>UCtests</source>
+      <what>input,output</what>
     </Print>
     <Print name="UCdumprom">
       <type>xml</type>

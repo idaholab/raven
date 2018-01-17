@@ -89,6 +89,7 @@
     <Print name="testPrintHistorySet_dump">
       <type>csv</type>
       <source>testPrintHistorySet</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

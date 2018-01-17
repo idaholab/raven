@@ -88,10 +88,12 @@
     <Print name="outLHS_dump">
       <type>csv</type>
       <source>outLHS</source>
+      <what>input,output</what>
     </Print>
     <Print name="samples1D">
       <type>csv</type>
       <source>samples1D</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
@@ -110,7 +112,6 @@
     </PointSet>
     <PointSet name="samples1D">
       <Input>x</Input>
-      <Output>OutputPlaceHolder</Output>
     </PointSet>
   </DataObjects>
 

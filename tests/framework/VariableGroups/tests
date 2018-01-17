@@ -3,24 +3,28 @@
     type = 'RavenFramework'
     input = 'sets.xml'
     UnorderedCsv = 'Sets/dump_standard.csv Sets/dump_addrem.csv Sets/dump_comp.csv Sets/dump_intx.csv Sets/dump_sdiff.csv Sets/dump_uni.csv'
+    rel_err = 1e-6
   [../]
 
   [./ROM]
     type = 'RavenFramework'
     input = 'rom.xml'
     UnorderedCsv = 'ROMs/dump_romout.csv'
+    rel_err = 1e-6
   [../]
 
   [./ExternalNodes]
     type = 'RavenFramework'
     input = 'extnodes.xml'
     UnorderedCsv = 'ExternalNodes/dump_standard.csv'
+    rel_err = 1e-6
   [../]
 
   [./OrderedVariables]
     type = 'RavenFramework'
     input = 'ordered.xml'
     UnorderedXml = 'Ordered/duplicated_input.xml'
+    rel_err = 1e-6
   [../]
    
 []
