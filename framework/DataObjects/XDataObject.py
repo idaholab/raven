@@ -123,23 +123,6 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._inputKDTree  = None   # for finding outputs given inputs (pointset only?)
     self._scaleFactors = None   # scaling factors inputs as {var:(mean,scale)}
 
-  def _checkRealizationFormat(self,rlz):
-    """
-      Checks that a passed-in realization has a format acceptable to data objects.
-      Data objects require a CSV-like result with either float or np.ndarray instances.
-      @ In, rlz, dict, realization with {key:value} pairs.
-      @ Out, okay, bool, True if acceptable or False if not
-    """
-    if not isinstance(rlz,dict):
-      self.raiseAWarning('Realization is not a "dict" instance!')
-      return False
-    for key,value in rlz.items():
-      #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
-      if not isinstance(value,np.ndarray):
-        self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(key,type(value)))
-        return False
-    return True
-
   def _readMoreXML(self,xmlNode):
     """
       Initializes data object based on XML input

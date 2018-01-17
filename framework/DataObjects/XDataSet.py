@@ -1015,6 +1015,29 @@ class DataSet(DataObject):
       self._clearAlignment()
     return self._data
 
+  def _checkRealizationFormat(self,rlz):
+    """
+      Checks that a passed-in realization has a format acceptable to data objects.
+      Data objects require a CSV-like result with either float or np.ndarray instances.
+      @ In, rlz, dict, realization with {key:value} pairs.
+      @ Out, okay, bool, True if acceptable or False if not
+    """
+    okay = True
+    if not isinstance(rlz,dict):
+      self.raiseAWarning('Realization is not a "dict" instance!')
+      return False
+    for key,value in rlz.items():
+      #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
+      if not isinstance(value,np.ndarray):
+        self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(key,type(value)))
+        return False
+      # check if index-dependent variables have matching shapes
+      # FIXME: this check will not work in case of variables depending on multiple indexes. When this need comes, we will change this (alfoa)
+      okay = len(self._pivotParams) > 0 and all([True if key in v else rlz[k].shape == rlz[key].shape for k,v in self._pivotParams.items()])
+      if not okay:
+        self.raiseAWarning('Variable "{}" has not a consistent shape with respect its indexes!'.format(key))
+    return okay
+
   def _formatRealization(self,rlz):
     """
       Formats realization without truncating data
@@ -1035,7 +1058,7 @@ class DataSet(DataObject):
     # for now, leave them as the arrays they are, except single entries need converting
     for var,val in rlz.items():
       # if an index variable, skip it
-      if var in self._pivotParams.keys():
+      if var in self._pivotParams:
         continue
       dims = self.getDimensions(var)[var]
       ## change dimensionless to floats -> TODO use operator to collapse!
