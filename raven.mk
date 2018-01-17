@@ -10,6 +10,8 @@ include $(RAVEN_DIR)/amsc.mk
 ###############################################################################
 
 framework_modules:: amsc python_crow_modules
+	$(MAKE) -C $(FRAMEWORK_DIR)/contrib/hit bindings
+	cp $(FRAMEWORK_DIR)/contrib/hit/hit.so $(MOOSE_DIR)/python/
 
 all:: amsc python_crow_modules
 	$(MAKE) -C $(FRAMEWORK_DIR)/contrib/hit bindings
@@ -35,7 +37,7 @@ clean::
           $(RAVEN_app_objects) \
           $(RAVEN_APP) \
           $(RAVEN_plugins) \
-	  $(MOOSE_DIR)/python/hit.so
+	      $(MOOSE_DIR)/python/hit.so
 	@rm -Rf $(RAVEN_DIR)/build
 	@find $(RAVEN_DIR)/framework  -name '*.pyc' -exec rm '{}' \;
 	$(MAKE) -C $(FRAMEWORK_DIR)/contrib/hit clean
