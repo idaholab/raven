@@ -246,8 +246,8 @@ of protocol the parallel enviroment should use.
 %
 RAVEN currently supports one pre-defined ``mode'':
   \begin{itemize}
-    \item \textbf{mpi}: this ``mode'' uses \texttt{mpiexec} to distribute the
-      running program; more information regarding this protocol can be found
+    \item \textbf{mpi}: this ``mode'' uses \xmlNode{MPIExec}  command (default: \texttt{mpiexec}) 
+      to distribute the running program; more information regarding this protocol can be found
       in~\cite{MPI}.
       Mode ``MPI''  can either generate a \texttt{qsub} command or can execute
       on selected nodes.

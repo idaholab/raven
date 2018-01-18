@@ -81,7 +81,31 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
       inputDict = inputDic[0]
-      indexes = np.where(np.in1d(inputDic['data'][self.label],self.clusterIDs))[0]
-      for key in inputDict['data'].keys():
-        inputDict['data'][key] = inputDict['data'][key][indexes]
-    return inputDict
+      outputDict = {}
+      outputDict['data'] ={}
+      outputDict['dims'] = {}
+      outputDict['metadata'] = copy.deepcopy(inputDict['metadata']) if 'metadata' in inputDict.keys() else {}
+      labelType = type(inputDict['data'][self.label][0])
+      if labelType != np.ndarray:
+        indexes = np.where(np.in1d(inputDict['data'][self.label],self.clusterIDs))[0]
+        for key in inputDict['data'].keys():
+          outputDict['data'][key] = inputDict['data'][key][indexes]
+          outputDict['dims'][key] = []
+      else:
+        for key in inputDict['data'].keys():
+          if type(inputDict['data'][key][0]) == np.ndarray:
+            temp = []
+            for cnt in range(len(inputDict['data'][self.label])):
+              indexes = np.where(np.in1d(inputDict['data'][self.label][cnt],self.clusterIDs))[0]
+              if len(indexes) > 0:
+                temp.append(copy.deepcopy(inputDict['data'][key][cnt][indexes]))
+            outputDict['data'][key] = np.asanyarray(temp)
+            outputDict['dims'][key] = []
+          else:
+            outputDict['data'][key] = np.empty(0)
+            for cnt in range(len(inputDict['data'][self.label])):
+              indexes = np.where(np.in1d(inputDict['data'][self.label][cnt],self.clusterIDs))[0]
+              if len(indexes) > 0:
+                outputDict['data'][key] = np.append(outputDict['data'][key], copy.deepcopy(inputDict['data'][key][cnt]))
+              outputDict['dims'][key] = []
+    return outputDict
