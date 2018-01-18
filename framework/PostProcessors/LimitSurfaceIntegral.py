@@ -195,6 +195,8 @@ class LimitSurfaceIntegral(PostProcessor):
         if self.variableDist[varName] == None:
           if 'lowerBound' not in self.lowerUpperDict[varName].keys() or 'upperBound' not in self.lowerUpperDict[varName].keys():
             self.raiseAnError(NameError, 'either a distribution name or lowerBound and upperBound need to be specified for variable ' + varName)
+    if self.computationPrefix == None:
+      self.raiseAnError(IOError,'The required XML node <outputName> has not been inputted!!!')
     if self.target == None:
       self.raiseAWarning('integral target has not been provided. The postprocessor is going to take the last output it finds in the provided limitsurface!!!')
 

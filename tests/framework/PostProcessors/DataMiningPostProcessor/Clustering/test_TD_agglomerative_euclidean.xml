@@ -199,7 +199,7 @@
     </HistorySet>
     <HistorySet name="dataOut">
       <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
+      <Output>x,y,z</Output>
     </HistorySet>
     <HistorySet name="cluster0">
       <Input>x0,y0,z0</Input>
