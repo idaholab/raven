@@ -3,8 +3,11 @@
 
   <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
-    <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>
-    <batchSize>3</batchSize>
+    <Sequence>MC_for_rom_trainer, test_extract_for_rom_trainer,
+              test_rom_trainer, test_rom_trainerHS,
+              rom_MC, rom_MCHS,
+              test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Distributions>
@@ -25,6 +28,15 @@
     <ROM name="ROM1" subType="SciKitLearn">
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
       <Target>CladTempThreshold</Target>
+      <SKLtype>svm|SVR</SKLtype>
+      <kernel>linear</kernel>
+      <C>10.0</C>
+      <tol>0.0001</tol>
+      <coef0>0.0</coef0>
+    </ROM>
+    <ROM name="ROMHS" subType="SciKitLearn">
+      <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
+      <Target>CladTempThreshold,time</Target>
       <SKLtype>svm|SVR</SKLtype>
       <kernel>linear</kernel>
       <C>10.0</C>
@@ -89,12 +101,19 @@
     </MultiRun>
     <IOStep name="test_extract_for_rom_trainer" verbosity="debug">
       <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
       <Output class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Output>
+      <Output class="DataObjects" type="HistorySet">Historyset_from_database_for_rom_trainer</Output>
       <Output class="OutStreams" type="Print">ciccio</Output>
+      <Output class="OutStreams" type="Print">ciccioHS</Output>
     </IOStep>
     <RomTrainer name="test_rom_trainer" verbosity="debug">
       <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
       <Output class="Models" type="ROM">ROM1</Output>
+    </RomTrainer>
+    <RomTrainer name="test_rom_trainerHS" verbosity="debug">
+      <Input class="DataObjects" type="HistorySet">Historyset_from_database_for_rom_trainer</Input>
+      <Output class="Models" type="ROM">ROMHS</Output>
     </RomTrainer>
     <RomTrainer name="test_rom_trainer_nd_interp">
       <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
@@ -105,8 +124,13 @@
       <Model class="Models" type="ROM">ROM1</Model>
       <Sampler class="Samplers" type="Grid">gridRom</Sampler>
       <Output class="DataObjects" type="PointSet">outputMontecarloRom</Output>
-      <Output class="DataObjects" type="HistorySet">outputMontecarloRomHS</Output>
       <Output class="OutStreams" type="Print">outputMontecarloRom_dump</Output>
+    </MultiRun>
+    <MultiRun name="rom_MCHS" re-seeding="200286">
+      <Input class="DataObjects" type="PointSet">data_for_sampling_empty_at_begin</Input>
+      <Model class="Models" type="ROM">ROMHS</Model>
+      <Sampler class="Samplers" type="Grid">gridRom</Sampler>
+      <Output class="DataObjects" type="HistorySet">outputMontecarloRomHS</Output>
       <Output class="OutStreams" type="Print">outputMontecarloRomHS_dump</Output>
     </MultiRun>
     <MultiRun name="rom_MC_nd_interpolator">
@@ -135,6 +159,10 @@
       <type>csv</type>
       <source>Pointset_from_database_for_rom_trainer</source>
     </Print>
+    <Print name="ciccioHS">
+      <type>csv</type>
+      <source>Historyset_from_database_for_rom_trainer</source>
+    </Print>
   </OutStreams>
 
   <Databases>
@@ -150,6 +178,10 @@
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>CladTempThreshold,time</Output>
     </PointSet>
+    <HistorySet name="Historyset_from_database_for_rom_trainer">
+      <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+      <Output>CladTempThreshold</Output>
+    </HistorySet>
     <PointSet historyName="1" inputTs="2" name="data_for_sampling_empty_at_begin">
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>OutputPlaceHolder</Output>
@@ -160,7 +192,7 @@
     </PointSet>
     <PointSet name="outputMontecarloRom">
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-      <Output>CladTempThreshold</Output>
+      <!--Output>CladTempThreshold</Output-->
     </PointSet>
     <HistorySet name="outputMontecarloRomHS">
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>

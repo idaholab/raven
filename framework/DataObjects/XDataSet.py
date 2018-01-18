@@ -141,7 +141,7 @@ class DataSet(DataObject):
       Before actually adding the realization, data is formatted for this data object.
       @ In, rlz, dict, {var:val} format where
                          "var" is the variable name as a string,
-                         "val" is either a float or a np.ndarray of values.
+                         "val" is a np.ndarray of values.
       @ Out, None
     """
     # protect against back-changing realization
@@ -420,9 +420,7 @@ class DataSet(DataObject):
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
-    # FIXME the caller should have no idea whether to read the collector or not.
-    # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in
-    # TODO option to read both collector and data for matches/indices
+    # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in?
     ## first, check that some direction was given, either an index or a match to find
     if (index is None and matchDict is None) or (index is not None and matchDict is not None):
       self.raiseAnError(TypeError,'Either "index" OR "matchDict" (not both) must be specified to use "realization!"')
@@ -525,6 +523,41 @@ class DataSet(DataObject):
       self._scaleFactors.pop(variable,None)
     #either way reset kdtree
     self.inputKDTree = None
+
+  def renameVariable(self,old,new):
+    """
+      Changes the name of a variable from "old" to "new".
+      @ In, old, str, old name
+      @ In, new, str, new name
+      @ Out, None
+    """
+    # determine where the old variable was
+    isInput = old in self._inputs
+    isOutput = old in self._outputs
+    isMeta = old in self._metavars
+    isIndex = old in self.indexes
+    # make the changes to the variable listings
+    if isInput:
+      self._inputs = list(a if (a != old) else new for a in self._inputs)
+    if isOutput:
+      self._outputs = list(a if (a != old) else new for a in self._outputs)
+    if isMeta:
+      self._metavars = list(a if (a != old) else new for a in self._metavars)
+    if isIndex:
+      # change the pivotParameters listing, as well as the sync/unsynced listings
+      self._pivotParams[new] = self._pivotParams.pop(old)
+      if old in self._alignedIndexes.keys():
+        self._alignedIndexes[new] = self._alignedIndexes.pop(old)
+      else:
+        self._orderedVars = list(a if a != old else new for a in self._orderedVars)
+    # if in/out/meta, change allvars (TODO wastefully already done if an unaligned index)
+    if isInput or isOutput or isMeta:
+      self._orderedVars = list(a if a != old else new for a in self._orderedVars)
+    # change scaling factor entry
+    if old in self._scaleFactors:
+      self._scaleFactors[new] = self._scaleFactors.pop(old)
+    if self._data is not None:
+      self._data.rename({old:new},inplace=True)
 
   def reset(self):
     """
@@ -1144,6 +1177,9 @@ class DataSet(DataObject):
       @ In, kwargs, dict, optional, additional arguments
       @ Out, None
     """
+    # if anything is in the collector, collapse it first
+    if self._collector is not None:
+      self.asDataset()
     # not safe to default to dict, so if "dims" not specified set it here
     if dims is None:
       dims = {}
