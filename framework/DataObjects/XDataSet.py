@@ -162,7 +162,7 @@ class DataSet(DataObject):
     rlz = self._selectiveRealization(rlz)
 
     ## check alignment of indexes
-    self._checkAlignedIndexes(rlz) # TODO implement
+    self._checkAlignedIndexes(rlz)
     #  NB If no scalar entry is made, this construction fails.  In that case,
     #  instead of treating each dataarrray as an object, numpy.asarray calls their asarray methods,
     #  unfolding them and making a full numpy array with more dimensions, instead of effectively
@@ -689,11 +689,17 @@ class DataSet(DataObject):
     for index in self.indexes:
       # if it's aligned so far, check if it still is
       if index in self._alignedIndexes.keys():
-        # if close enough, then keep the aligned values; otherwise, take action
-        if isinstance(rlz[index][0],(float,int)):
-          closeEnough = all(np.isclose(rlz[index],self._alignedIndexes[index],rtol=tol))
+        # first, if lengths don't match, they're not aligned.
+        # TODO there are concerns this check may slow down runs; it should be profiled along with other bottlenecks to optimize our efforts.
+        if len(rlz[index]) != len(self._alignedIndexes[index]):
+          closeEnough = False
         else:
-          closeEnough = all(rlz[index] == self._alignedIndexes[index])
+          # "close enough" if float/int, otherwise require exactness
+          if isinstance(rlz[index][0],(float,int)):
+            closeEnough = all(np.isclose(rlz[index],self._alignedIndexes[index],rtol=tol))
+          else:
+            closeEnough = all(rlz[index] == self._alignedIndexes[index])
+        # if close enough, then keep the aligned values; otherwise, take action
         if not closeEnough:
           dtype = rlz[index].dtype
           # TODO add new column to collector, propagate values up to (not incl) current rlz
@@ -783,7 +789,7 @@ class DataSet(DataObject):
       dataType = dtype
     # method = 'once' # see below, parallelization is possible but not implemented
     # first case: single entry per node: floats, strings, ints, etc
-    if isinstance(data[i],(float,str,unicode,int,bool,np.bool_)):
+    if isinstance(data[i],(float,str,int,unicode,bool,np.bool_,np.integer,np.number)):
       data = np.array(data,dtype=dataType)
       array = xr.DataArray(data,
                            dims=[self.sampleTag],
@@ -1371,7 +1377,7 @@ class DataSet(DataObject):
       @ In, fileName, str, name of file without extension
       @ Out, varList, list(str), list of variables
     """
-    with open(fileName+'.csv','r') as f:
+    with open(fileName+'.csv','rU') as f:
       provided = list(s.strip() for s in f.readline().split(','))
     return provided
 
