@@ -9,6 +9,9 @@
     <description>
       This tests the output of preset verbosity options (_stepSize, etc) for optimizer runs.
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-01-03'>Switched from snapshot to writeSteps as final</revision>
+    </revisions>
   </TestInfo>
 
   <!-- actual RAVEN input -->
@@ -37,6 +40,7 @@
       <initialization>
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
+        <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
@@ -86,7 +90,6 @@
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
-      <clusterLabel>trajID</clusterLabel>
     </Print>
   </OutStreams>
 

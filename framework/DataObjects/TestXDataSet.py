@@ -26,6 +26,7 @@ import sys, os
 import pickle as pk
 import numpy as np
 import xarray as xr
+import copy
 frameworkDir = os.path.dirname(os.path.abspath(os.path.join(sys.argv[0],'..')))
 
 sys.path.append(frameworkDir)
@@ -754,6 +755,36 @@ checkArray('load from dict "b"[3]',dataRe.asDataset().isel(True,RAVEN_sample_ID=
 rlz = dataRe.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
+
+# construct from dict, but data is provided in numpy ND array instead of np array of np array objects
+seed = {}
+seed['a'] = np.array([0., 1., 2., 3.])
+seed['b'] = np.array([ [0.1, 0.2, 0.3],
+                       [1.1, 1.2, 1.3],
+                       [2.1, 2.2, 2.3],
+                       [3.1, 3.2, 3.3]])
+seed['t'] = np.array([ [1e-6,2e-6,3e-6],
+                       [1e-6,2e-6,3e-6],
+                       [1e-6,2e-6,3e-6],
+                       [1e-6,2e-6,3e-6]])
+# set up data object
+xml = createElement('DataSet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a'))
+xml.append(createElement('Output',text='b'))
+xml.append(createElement('Index',attrib={'var':'t'},text='b'))
+data = XDataSet.DataSet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+# load
+data.load(seed,style='dict',dims=data.getDimensions())
+# check data
+checkArray('load from dict of ND, "a"',data.asDataset()['a'].values,seed['a'],float)
+checkArray('load from dict of ND, "b[0]"',data.asDataset()['b'][0].values,seed['b'][0],float)
+checkArray('load from dict of ND, "b[1]"',data.asDataset()['b'][1].values,seed['b'][1],float)
+checkArray('load from dict of ND, "b[2]"',data.asDataset()['b'][2].values,seed['b'][2],float)
+checkArray('load from dict of ND, "b[3]"',data.asDataset()['b'][3].values,seed['b'][3],float)
+
+
 ######################################
 #        REMOVING VARIABLES          #
 ######################################
@@ -920,11 +951,89 @@ data.asDataset()
 # check types
 for var in rlz.keys():
   correct = rlz[var].dtype
-  if correct.type in [np.unicode_,np.string_]:
+  if correct.type in [np.unicode_,np.string_,basestring]:
     correct = object
   checkSame('dtype checking "{}"'.format(var),data.asDataset()[var].dtype,correct)
 
 data.addRealization(rlz2)
+
+######################################
+#          DATA RENAMING             #
+######################################
+# use the renaming, needed for alias operations
+xml = createElement('DataSet',attrib={'name':'test'})
+xml.append(createElement('Input', text='a,b'))
+xml.append(createElement('Output',text='c,d'))
+xml.append(createElement('Index',attrib={'var':'t'},text='b,d'))
+data = XDataSet.DataSet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+data.addExpectedMeta(['prefix'])
+rlz0 = {'a':np.array([0.0]),
+        'b':np.array([0.0, 0.1, 0.2]),
+        'c':np.array([0.5]),
+        'd':np.array([0.5, 0.6, 0.7]),
+        'prefix':np.array(['0']),
+        't':np.array([0.01, 0.02, 0.03])}
+data.addRealization(rlz0)
+# make a copy, to test renaming with just collector
+data2 = copy.deepcopy(data)
+data2.renameVariable('a','alpha')
+data2.renameVariable('b','beta')
+data2.renameVariable('c','gamma')
+data2.renameVariable('d','delta')
+data2.renameVariable('prefix','jobID')
+data2.renameVariable('t','timelike')
+# check everything was changed
+correct0 = {'alpha':np.array([0.0]),
+            'beta':np.array([0.0, 0.1, 0.2]),
+            'gamma':np.array([0.5]),
+            'delta':np.array([0.5, 0.6, 0.7]),
+            'jobID':np.array(['0']),
+            'timelike':np.array([0.01, 0.02, 0.03])}
+checkRlz('Rename in collector: variables',data2.realization(index=0),correct0,skip='timelike')
+checkArray('Rename in collector: index',data2.indexes,['timelike'],str)
+
+# now asDataset(), then rename
+data3 = copy.deepcopy(data)
+data3.asDataset()
+data3.renameVariable('a','alpha')
+data3.renameVariable('b','beta')
+data3.renameVariable('c','gamma')
+data3.renameVariable('d','delta')
+data3.renameVariable('prefix','jobID')
+data3.renameVariable('t','timelike')
+checkRlz('Rename in dataset: variables',data3.realization(index=0),correct0,skip='timelike')
+checkArray('Rename in dataset: index',data3.indexes,['timelike'],str)
+
+# now asDatset, then append, then rename
+data.asDataset()
+rlz1 = {'a':np.array([1.0]),
+        'b':np.array([1.0, 1.1, 1.2]),
+        'c':np.array([1.5]),
+        'd':np.array([1.5, 1.6, 1.7]),
+        'prefix':np.array(['1']),
+        't':np.array([0.01, 0.02, 0.03])}
+data.addRealization(rlz1)
+data.renameVariable('a','alpha')
+data.renameVariable('b','beta')
+data.renameVariable('c','gamma')
+data.renameVariable('d','delta')
+data.renameVariable('prefix','jobID')
+data.renameVariable('t','timelike')
+correct1 = {'alpha':np.array([1.0]),
+            'beta':np.array([1.0, 1.1, 1.2]),
+            'gamma':np.array([1.5]),
+            'delta':np.array([1.5, 1.6, 1.7]),
+            'jobID':np.array(['1']),
+            'timelike':np.array([0.01, 0.02, 0.03])}
+checkRlz('Rename in both: variables[0]',data.realization(index=0),correct0,skip='timelike')
+checkRlz('Rename in both: variables[1]',data.realization(index=1),correct1,skip='timelike')
+checkArray('Rename in both: index',data.indexes,['timelike'],str)
+# make sure adding a new realization without the renaming fails
+checkFails('Add old-named data after renaming variables','Provided realization does not have all requisite values for object \"DataSet\": \"alpha\"',data.addRealization,args=[rlz1])
+
+
 
 print(results)
 

@@ -30,7 +30,7 @@
   <DataObjects>
     <ExternalXML node="PointSet" xmlToLoad="ExternalXMLTest/external_pointset1.xml"/>
     <PointSet name="dummyIN">
-      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Input>VarGauss2,VarGauss1,VarTri1</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
   </DataObjects>
@@ -39,6 +39,7 @@
     <Print name="outGrid_dump">
       <ExternalXML node="type" xmlToLoad="ExternalXMLTest/external_printtype.xml"/>
       <ExternalXML node="source" xmlToLoad="ExternalXMLTest/external_printsource.xml"/>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

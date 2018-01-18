@@ -644,6 +644,44 @@ rlz0 = data.realization(index=0)
 checkRlz('No input space',rlz0,rlz,skip='Timelike')
 
 
+
+######################################
+#           ASYNC HISTORIES          #
+######################################
+xml = createElement('HistorySet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a,b'))
+xml.append(createElement('Output',text='x,y'))
+data = XHistorySet.HistorySet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+rlz1 = {'a': np.array([1.0]),
+        'b': np.array([2.0]),
+        'x': np.array([1.0, 2.0, 3.0]),
+        'y': np.array([6.0, 7.0, 8.0]),
+        'time': np.array([0.0, 0.1, 0.2])}
+
+rlz2 = {'a': np.array([11.0]),
+        'b': np.array([12.0]),
+        'x': np.array([11.0, 12.0]),
+        'y': np.array([16.0, 17.0]),
+        'time': np.array([0.05, 0.15])}
+
+data.addRealization(rlz1)
+data.addRealization(rlz2)
+# check collection in realizations, in collector
+checkRlz('Adding asynchronous histories, collector[0]',data.realization(index=0),rlz1,skip=['time'])
+checkRlz('Adding asynchronous histories, collector[1]',data.realization(index=1),rlz2,skip=['time'])
+# check stored in collector, not in synced histories
+idx = data._orderedVars.index('time')
+times = data._collector[:,idx]
+checkArray('Asynchronous histories, collector, time[0]',times[0],rlz1['time'],float)
+checkArray('Asynchronous histories, collector, time[1]',times[1],rlz2['time'],float)
+# check as dataset, just for kicks
+data.asDataset()
+checkRlz('Adding asynchronous histories, dataset[0]',data.realization(index=0),rlz1,skip=['time'])
+checkRlz('Adding asynchronous histories, dataset[1]',data.realization(index=1),rlz2,skip=['time'])
+
+
 print(results)
 
 sys.exit(results["fail"])

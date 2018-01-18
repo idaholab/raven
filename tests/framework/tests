@@ -64,15 +64,15 @@
   type = 'RavenFramework'
   input = 'test_push_into_hdf5.xml'
   UnorderedCsv = 'test_extract_data_s_from_hdf5/Pointset_from_database_dump.csv test_extract_data_s_from_hdf5/Pointset_IN_database_dump.csv test_extract_data_s_from_hdf5/HistorySet_from_database_dump_0.csv test_extract_data_s_from_hdf5/HistorySet_IN_database_dump_0.csv'
-  max_time = 500 
+  max_time = 500
   rel_err = 0.0001
  [../]
 
  [./test_merge_2_databases]
   type = 'RavenFramework'
   input = 'test_merge_2_databases.xml'
-  UnorderedCsv = 'test_merge_2_databases/Pointset_from_database_dump.csv test_merge_2_databases/Pointset_IN_database_dump.csv
-  test_merge_2_databases/Historyset_from_database_dump_0.csv test_merge_2_databases/Historyset_from_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_0.csv test_merge_2_databases/Historyset_IN_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_2.csv test_merge_2_databases/Historyset_IN_database_dump_3.csv'
+  UnorderedCsv = 'test_merge_2_databases/Pointset_from_database_dump.csv test_merge_2_databases/Pointset_IN_database_dump.csv test_merge_2_databases/Historyset_from_database_dump_0.csv test_merge_2_databases/Historyset_from_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_0.csv test_merge_2_databases/Historyset_IN_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_2.csv test_merge_2_databases/Historyset_IN_database_dump_3.csv'
+  rel_err = 0.000001
  [../]
 
  [./test_rom_trainer_raven]
@@ -243,6 +243,19 @@
   input = '../../framework/TestFiles.py'
  [../]
 
+  [./unit_test_DataSets]
+    type = 'RavenPython'
+    input = '../../framework/DataObjects/TestXDataSet.py'
+  [../]
+  [./unit_test_HistorySets]
+    type = 'RavenPython'
+    input = '../../framework/DataObjects/TestXHistorySet.py'
+  [../]
+  [./unit_test_PointSets]
+    type = 'RavenPython'
+    input = '../../framework/DataObjects/TestXPointSet.py'
+  [../]
+
  [./test_xsd_input_data]
   type = 'RavenPython'
   input = 'TestXSD/TestDataRead.py'
@@ -278,6 +291,7 @@
    prereq = test_output
    remove_unicode_identifier = true
    remove_whitespace = true
+   rel_err = 9.0E-4
  [../]
 
  [./load_and_push_reusing_same_hdf5]

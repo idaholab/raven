@@ -11,12 +11,15 @@
       It tests analytic optimization values
       as well as the mechanical operation of the test, using both multilevel and mutlitrajectory.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2018-01-04">switch from snapshot to writeSteps final</revision>
+    </revisions>
   </TestInfo>
 
   <!-- actual RAVEN input -->
   <RunInfo>
     <WorkingDir>MTML</WorkingDir>
-    <Sequence>optimize,print,getOptPoint</Sequence>
+    <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
     <maxQueueSize>1</maxQueueSize>
   </RunInfo>
@@ -30,15 +33,9 @@
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">opt_soln</Input>
-      <Output class="OutStreams" type="Print">opt_soln</Output>
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
     </IOStep>
-    <PostProcess name="getOptPoint">
-      <Input class="DataObjects" type="HistorySet">opt_export</Input>
-      <Model class="Models" type="PostProcessor">snapshot</Model>
-      <Output class="DataObjects" type="PointSet">opt_soln</Output>
-      <Output class="OutStreams" type="Print">opt_soln</Output>
-    </PostProcess>
   </Steps>
 
   <Optimizers>
@@ -46,6 +43,7 @@
       <initialization>
         <limit>1000</limit>
         <initialSeed>42</initialSeed>
+        <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
@@ -80,11 +78,6 @@
     <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
-    <PostProcessor name="snapshot" subType="InterfacedPostProcessor">
-      <method>HistorySetSnapShot</method>
-      <type>max</type>
-      <pivotVar>varsUpdate</pivotVar>
-    </PostProcessor>
   </Models>
 
   <DataObjects>
@@ -96,10 +89,6 @@
       <Input>x,y</Input>
       <Output>ans</Output>
     </PointSet>
-    <PointSet name="opt_soln">
-      <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
-    </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate,stepSize,convergenceAbs,convergenceRel,convergenceGrad</Output>
@@ -110,11 +99,6 @@
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
-      <clusterLabel>trajID</clusterLabel>
-    </Print>
-    <Print name="opt_soln">
-      <type>csv</type>
-      <source>opt_soln</source>
     </Print>
   </OutStreams>
 

@@ -102,7 +102,7 @@ class HS2PS(PostProcessorInterfaceBase):
           self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' : one or more histories in the historySet have different time scale')
 
       tempDict = {}
-      matrix = np.zeros((numSamples,numVariables), dtype=object)
+      matrix = np.zeros((numSamples,numVariables))
       for i in range(numSamples):
         temp = np.empty(0)
         for feature in self.features:
@@ -110,7 +110,7 @@ class HS2PS(PostProcessorInterfaceBase):
         matrix[i,:]=temp
 
       for key in range(numVariables):
-        outputDic['data'][str(key)] = np.empty((1,), dtype=object)
+        outputDic['data'][str(key)] = np.empty(0)
         outputDic['data'][str(key)] = matrix[:,key]
         outputDic['dims'][str(key)] = []
 

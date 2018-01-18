@@ -189,8 +189,8 @@ class ExternalPostProcessor(PostProcessor):
     if isinstance(output,Files.File):
       self.raiseAWarning('Output type File not yet implemented. I am going to skip it.')
     elif output.type == 'HDF5':
-      self.raiseAWarning('Output type ' + type(output).__name__
-                         + ' not yet implemented. I am going to skip it.')
+      self.raiseAnError(NotImplementedError,'Output type ' + type(output).__name__
+                         + ' not yet implemented!')
     elif output.type in ['PointSet', 'HistorySet']:
       output.load(outputDict, style='dict', dims=output.getDimensions())
     else:
@@ -254,7 +254,7 @@ class ExternalPostProcessor(PostProcessor):
     for msg in list(set(warningMessages)):
       self.raiseAWarning(msg)
 
-    # TODO: We assume the structure of input to the external pp isthe  same as the struture of output to this external pp
+    # TODO: We assume the structure of input to the external pp is the same as the struture of output to this external pp
     # An interface pp should be used if the user wants to merge two data objects, or change the structures of input data
     # objects.
     numRlz = len(outputDict.values()[0])

@@ -179,9 +179,9 @@ class InterfacedPostProcessor(PostProcessor):
       @ Out, form, str, format of either input or output
     """
     if location == 'input':
-      form = self.inputFormat
+      form = self.postProcessor.inputFormat
     elif location == 'output':
-      form = self.outputFormat
+      form = self.postProcessor.outputFormat
     return form
 
   def collectOutput(self, finishedJob, output):
@@ -195,5 +195,4 @@ class InterfacedPostProcessor(PostProcessor):
     if isinstance(evaluations, Runners.Error):
       self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
     evaluation = evaluations[1]
-    #output.addExpectedMeta(set(self.metaKeys))
     output.load(evaluation['data'], style='dict', dims=evaluation['dims'])
