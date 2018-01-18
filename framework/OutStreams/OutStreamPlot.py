@@ -1105,7 +1105,7 @@ class OutStreamPlot(OutStreamManager):
               scatterPlotOptions.update(plotSettings.get('attributes', {}))
               if self.dim == 2:
                 if self.colorMapCoordinates[pltIndex] != None:
-                  scatterPlotOptions['c'] = self.colorMapValues[pltIndex][key]
+                  scatterPlotOptions['c'] = self.colorMapValues[pltIndex][key][xIndex]
                   scatterPlotOptions['cmap'] = matplotlib.cm.get_cmap("winter")
                   if self.actcm:
                     first = False
@@ -1148,7 +1148,7 @@ class OutStreamPlot(OutStreamManager):
               elif self.dim == 3:
                 for zIndex in range(len(self.zValues[pltIndex][key])):
                   if self.colorMapCoordinates[pltIndex] != None:
-                    scatterPlotOptions['c'] = self.colorMapValues[pltIndex][key]
+                    scatterPlotOptions['c'] = self.colorMapValues[pltIndex][key][zIndex]
                     if self.actcm:
                       first = False
                     else:

@@ -54,21 +54,21 @@ class RavenFramework(Tester):
     params.addParam('required_libraries','','Skip test if any of these libraries are not found')
     params.addParam('minimum_library_versions','','Skip test if the library listed is below the supplied version (e.g. minimum_library_versions = \"name1 version1 name2 version2\")')
     params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
-    params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
-    params.addParam('check_absolute_value','False','if true the values are compared in absolute value (abs(trueValue)-abs(testValue)')
+    params.addParam('test_interface_only',False,'Test the interface only (without running the driven code')
+    params.addParam('check_absolute_value',False,'if true the values are compared in absolute value (abs(trueValue)-abs(testValue)')
     params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
-    params.addParam('remove_whitespace','False','Removes whitespace before comparing xml node text if True')
-    params.addParam('expected_fail', 'False', 'if true, then the test should fails, and if it passes, it fails.')
-    params.addParam('remove_unicode_identifier', 'False', 'if true, then remove u infront of a single quote')
-    params.addParam('interactive', 'False', 'if true, then RAVEN will be run with interactivity enabled.')
+    params.addParam('remove_whitespace',False,'Removes whitespace before comparing xml node text if True')
+    params.addParam('expected_fail', False, 'if true, then the test should fails, and if it passes, it fails.')
+    params.addParam('remove_unicode_identifier', False, 'if true, then remove u infront of a single quote')
+    params.addParam('interactive', False, 'if true, then RAVEN will be run with interactivity enabled.')
     return params
 
   def getCommand(self, options):
     ravenflag = ''
-    if self.specs['test_interface_only'].lower() == 'true':
+    if self.specs['test_interface_only']:
       ravenflag += ' interfaceCheck '
 
-    if self.specs['interactive'].lower() == 'true':
+    if self.specs['interactive']:
       ravenflag += ' interactiveCheck '
 
     if RavenUtils.inPython3():
@@ -86,6 +86,7 @@ class RavenFramework(Tester):
     self.uxml_files  = self.specs['UnorderedXml'].split(" ") if len(self.specs['UnorderedXml']) > 0 else []
     self.text_files  = self.specs['text'        ].split(" ") if len(self.specs['text'        ]) > 0 else []
     self.img_files   = self.specs['image'       ].split(" ") if len(self.specs['image'       ]) > 0 else []
+    self.all_files = self.check_files + self.csv_files + self.xml_files + self.ucsv_files + self.uxml_files + self.text_files + self.img_files
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.minimum_libraries = self.specs['minimum_library_versions'].split(' ')  if len(self.specs['minimum_library_versions']) > 0 else []
@@ -176,7 +177,8 @@ class RavenFramework(Tester):
       the test.
       @ Out, createdFiles, [str], list of files created by the test.
     """
-    return self.check_files + self.csv_files+self.xml_files+self.ucsv_files+self.uxml_files+self.img_files
+    runpath = self.getTestDir()
+    return list(os.path.join(runpath,file) for file in self.all_files)
 
   def prepare(self, options = None):
     self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.check_files]
@@ -185,7 +187,7 @@ class RavenFramework(Tester):
         os.remove(filename)
 
   def processResults(self, moose_dir,  options, output):
-    expectedFail = self.specs['expected_fail'].lower().strip() == 'true'
+    expectedFail = self.specs['expected_fail']
     if not expectedFail:
       return self.rawProcessResults(moose_dir, options, output)
     else:
@@ -218,13 +220,12 @@ class RavenFramework(Tester):
       return output
 
     #unordered csv
-    checkAbsoluteValue = False
-    if len(self.specs["check_absolute_value"]) > 0:
-      if self.specs["check_absolute_value"].lower() in ['true','t']: checkAbsoluteValue = True
+    checkAbsoluteValue = self.specs["check_absolute_value"]
     if len(self.specs["rel_err"]) > 0:
       ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],self.ucsv_files,relative_error=float(self.specs["rel_err"]),absolute_check=checkAbsoluteValue)
     else:
       ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],self.ucsv_files,absolute_check=checkAbsoluteValue)
+
     ucsv_same,ucsv_messages = ucsv_diff.diff()
     if not ucsv_same:
       self.setStatus(ucsv_messages, self.bucket_diff)
@@ -235,8 +236,8 @@ class RavenFramework(Tester):
     if len(self.specs["rel_err"]) > 0: xmlopts['rel_err'] = float(self.specs["rel_err"])
     xmlopts['zero_threshold'] = float(self.specs["zero_threshold"])
     xmlopts['unordered'     ] = False
-    xmlopts['remove_whitespace'] = self.specs['remove_whitespace'].lower().strip() == 'true'
-    xmlopts['remove_unicode_identifier'] = self.specs['remove_unicode_identifier'].lower().strip() == 'true'
+    xmlopts['remove_whitespace'] = self.specs['remove_whitespace'] == True
+    xmlopts['remove_unicode_identifier'] = self.specs['remove_unicode_identifier']
     if len(self.specs['xmlopts'])>0: xmlopts['xmlopts'] = self.specs['xmlopts'].split(' ')
     xml_diff = XMLDiff(self.specs['test_dir'],self.xml_files,**xmlopts)
     (xml_same,xml_messages) = xml_diff.diff()
