@@ -130,7 +130,7 @@ class DataSet(DataObject):
         # Otherwise, scalarMetric
         else:
           # sanity check to make sure suitable values are passed in
-          assert(isinstance(value,(basestring,float,int)))
+          assert(mathUtils.isSingleValued(value))
           destination.addScalar(target,metric,value)
 
   def addRealization(self,rlz):
@@ -141,7 +141,7 @@ class DataSet(DataObject):
       Before actually adding the realization, data is formatted for this data object.
       @ In, rlz, dict, {var:val} format where
                          "var" is the variable name as a string,
-                         "val" is either a float or a np.ndarray of values.
+                         "val" is a np.ndarray of values.
       @ Out, None
     """
     # protect against back-changing realization
@@ -162,7 +162,7 @@ class DataSet(DataObject):
     rlz = self._selectiveRealization(rlz)
 
     ## check alignment of indexes
-    self._checkAlignedIndexes(rlz) # TODO implement
+    self._checkAlignedIndexes(rlz)
     #  NB If no scalar entry is made, this construction fails.  In that case,
     #  instead of treating each dataarrray as an object, numpy.asarray calls their asarray methods,
     #  unfolding them and making a full numpy array with more dimensions, instead of effectively
@@ -240,7 +240,7 @@ class DataSet(DataObject):
       @ Out, same, bool, if True then alignment is good
     """
     # format request so that indexesToCheck is always a list
-    if isinstance(indexesToCheck,basestring):
+    if mathUtils.isAString(indexesToCheck):
       indexesToCheck = [indexesToCheck]
     elif indexesToCheck is None:
       indexesToCheck = self.indexes[:]
@@ -363,7 +363,7 @@ class DataSet(DataObject):
     # For faster access, consider using data.asDataset()['varName'] for one variable, or
     #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
-    if isinstance(var,basestring):
+    if mathUtils.isAString(var):
       val = self._data[var]
       #format as scalar
       if len(val.dims) == 0:
@@ -420,9 +420,7 @@ class DataSet(DataObject):
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
-    # FIXME the caller should have no idea whether to read the collector or not.
-    # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in
-    # TODO option to read both collector and data for matches/indices
+    # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in?
     ## first, check that some direction was given, either an index or a match to find
     if (index is None and matchDict is None) or (index is not None and matchDict is not None):
       self.raiseAnError(TypeError,'Either "index" OR "matchDict" (not both) must be specified to use "realization!"')
@@ -525,6 +523,41 @@ class DataSet(DataObject):
       self._scaleFactors.pop(variable,None)
     #either way reset kdtree
     self.inputKDTree = None
+
+  def renameVariable(self,old,new):
+    """
+      Changes the name of a variable from "old" to "new".
+      @ In, old, str, old name
+      @ In, new, str, new name
+      @ Out, None
+    """
+    # determine where the old variable was
+    isInput = old in self._inputs
+    isOutput = old in self._outputs
+    isMeta = old in self._metavars
+    isIndex = old in self.indexes
+    # make the changes to the variable listings
+    if isInput:
+      self._inputs = list(a if (a != old) else new for a in self._inputs)
+    if isOutput:
+      self._outputs = list(a if (a != old) else new for a in self._outputs)
+    if isMeta:
+      self._metavars = list(a if (a != old) else new for a in self._metavars)
+    if isIndex:
+      # change the pivotParameters listing, as well as the sync/unsynced listings
+      self._pivotParams[new] = self._pivotParams.pop(old)
+      if old in self._alignedIndexes.keys():
+        self._alignedIndexes[new] = self._alignedIndexes.pop(old)
+      else:
+        self._orderedVars = list(a if a != old else new for a in self._orderedVars)
+    # if in/out/meta, change allvars (TODO wastefully already done if an unaligned index)
+    if isInput or isOutput or isMeta:
+      self._orderedVars = list(a if a != old else new for a in self._orderedVars)
+    # change scaling factor entry
+    if old in self._scaleFactors:
+      self._scaleFactors[new] = self._scaleFactors.pop(old)
+    if self._data is not None:
+      self._data.rename({old:new},inplace=True)
 
   def reset(self):
     """
@@ -689,11 +722,17 @@ class DataSet(DataObject):
     for index in self.indexes:
       # if it's aligned so far, check if it still is
       if index in self._alignedIndexes.keys():
-        # if close enough, then keep the aligned values; otherwise, take action
-        if isinstance(rlz[index][0],(float,int)):
-          closeEnough = all(np.isclose(rlz[index],self._alignedIndexes[index],rtol=tol))
+        # first, if lengths don't match, they're not aligned.
+        # TODO there are concerns this check may slow down runs; it should be profiled along with other bottlenecks to optimize our efforts.
+        if len(rlz[index]) != len(self._alignedIndexes[index]):
+          closeEnough = False
         else:
-          closeEnough = all(rlz[index] == self._alignedIndexes[index])
+          # "close enough" if float/int, otherwise require exactness
+          if mathUtils.isAFloatOrInt(rlz[index][0]):
+            closeEnough = all(np.isclose(rlz[index],self._alignedIndexes[index],rtol=tol))
+          else:
+            closeEnough = all(rlz[index] == self._alignedIndexes[index])
+        # if close enough, then keep the aligned values; otherwise, take action
         if not closeEnough:
           dtype = rlz[index].dtype
           # TODO add new column to collector, propagate values up to (not incl) current rlz
@@ -783,7 +822,7 @@ class DataSet(DataObject):
       dataType = dtype
     # method = 'once' # see below, parallelization is possible but not implemented
     # first case: single entry per node: floats, strings, ints, etc
-    if isinstance(data[i],(float,str,unicode,int,bool,np.bool_)):
+    if mathUtils.isSingleValued(data[i]):
       data = np.array(data,dtype=dataType)
       array = xr.DataArray(data,
                            dims=[self.sampleTag],
@@ -1138,6 +1177,9 @@ class DataSet(DataObject):
       @ In, kwargs, dict, optional, additional arguments
       @ Out, None
     """
+    # if anything is in the collector, collapse it first
+    if self._collector is not None:
+      self.asDataset()
     # not safe to default to dict, so if "dims" not specified set it here
     if dims is None:
       dims = {}
@@ -1203,14 +1245,14 @@ class DataSet(DataObject):
     if isinstance(val,(xr.DataArray,np.ndarray)):
       val = val.item(0)
     # identify other scalars by instance
-    if isinstance(val,float):
+    if mathUtils.isAFloat(val):
       _type = float
-    elif isinstance(val,(bool,np.bool_)):
+    elif mathUtils.isABoolean(val):
       _type = bool
-    elif isinstance(val,int):
+    elif mathUtils.isAnInteger(val):
       _type = int
     # strings and unicode have to be stored as objects to prevent string sizing in numpy
-    elif isinstance(val,basestring):
+    elif mathUtils.isAString(val):
       _type = object
     # catchall
     else:
@@ -1243,7 +1285,7 @@ class DataSet(DataObject):
     for r,row in enumerate(self._collector[:,tuple(self._orderedVars.index(var) for var in match.keys())]):
       match = True
       for e,element in enumerate(row):
-        if isinstance(element,(float,int)):
+        if mathUtils.isAFloatOrInt(element):
           match *= mathUtils.compareFloats(lookingFor[e],element,tol=tol)
           if not match:
             break
@@ -1283,7 +1325,7 @@ class DataSet(DataObject):
     mask = 1.0
     for var,val in match.items():
       # float instances are relative, others are absolute
-      if isinstance(val,(float,int)):
+      if mathUtils.isAFloatOrInt(val):
         # scale if we know how
         try:
           loc,scale = self._scaleFactors[var]
@@ -1348,7 +1390,7 @@ class DataSet(DataObject):
       @ In, fileName, str, name of file without extension
       @ Out, varList, list(str), list of variables
     """
-    with open(fileName+'.csv','r') as f:
+    with open(fileName+'.csv','rU') as f:
       provided = list(s.strip() for s in f.readline().split(','))
     return provided
 
@@ -1476,7 +1518,7 @@ class DataSet(DataObject):
       # if not a float or int, don't scale it
       # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
       #first = self._data.groupby(var).first()[var].item(0)
-      #if (not isinstance(first,(float,int))) or np.isnan(first):# or self._data[var].isnull().all():
+      #if (not mathUtils.isAFloatOrInt(first)) or np.isnan(first):# or self._data[var].isnull().all():
       #  continue
       try:
         mean = float(self._data[var].mean())

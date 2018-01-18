@@ -544,13 +544,41 @@ class Code(Model):
           returnDict[header] = data
       if not ravenCase:
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
+        returnDict.update(kwargs)
+        returnValue = (kwargs['SampledVars'],returnDict)
+        exportDict = self.createExportDictionary(returnValue)
       else:
-        # we have the DataObjects
-        for dataObj in finalCodeOutputFile.values():
-          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('inputs',nodeId='RecontructEnding'), 'input', True)
-          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('unstructuredinputs',nodeId='RecontructEnding'), 'input', True)
-          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('outputs',nodeId='RecontructEnding'), 'output', True)
-        returnDict = finalCodeOutputFile
+        # we have the DataObjects -> raven-runs-raven case only so far
+        # we have two tasks to do: collect the input/output/meta/indexes from the INNER raven run, and ALSO the input from the OUTER raven run.
+        #  -> in addition, we have to fix the probability weights.
+        ## get the number of realizations
+        ### we already checked consistency in the CodeInterface, so just get the length of the first data object
+        numRlz = len(finalCodeOutputFile.values()[0])
+        ## set up the return container
+        exportDict = {'RAVEN_isBatch':True,'realizations':[]}
+        ## set up each realization
+        for n in range(numRlz):
+          rlz = {}
+          ## collect the results from INNER, both point set and history set
+          for dataObj in finalCodeOutputFile.values():
+            # TODO FIXME check for overwriting data.  For now just replace data if it's duplicate!
+            new = dict((var,np.atleast_1d(val)) for var,val in dataObj.realization(index=n,unpackXArray=True).items())
+            rlz.update( new )
+          ## add OUTER input space
+          # TODO FIXME check for overwriting data.  For now just replace data if it's duplicate!
+          new = dict((var,np.atleast_1d(val)) for var,val in kwargs['SampledVars'].items())
+          rlz.update( new )
+          ## combine ProbabilityWeights # TODO FIXME these are a rough attempt at getting it right!
+          rlz['ProbabilityWeight'] = np.atleast_1d(rlz.get('ProbabilityWeight',1.0) * kwargs.get('ProbabilityWeight',1.0))
+          rlz['PointProbability'] = np.atleast_1d(rlz.get('PointProbability',1.0) * kwargs.get('PointProbability',1.0))
+          rlz['prefix'] = np.atleast_1d(kwargs['prefix']+'_'+str(n))
+          ## add the rest of the metadata # TODO slow
+          for var,val in kwargs.items():
+            if var not in rlz.keys():
+              rlz[var] = np.atleast_1d(val)
+          self._replaceVariablesNamesWithAliasSystem(rlz,'inout',True)
+          exportDict['realizations'].append(rlz)
+
       ## The last thing before returning should be to delete the temporary log
       ## file and any other file the user requests to be cleared
       if deleteSuccessfulLogFiles:
@@ -563,15 +591,9 @@ class Code(Model):
       for fileExt in fileExtensionsToDelete:
         if not fileExt.startswith("."):
           fileExt = "." + fileExt
-
         fileList = [ os.path.join(metaData['subDirectory'],f) for f in os.listdir(metaData['subDirectory']) if f.endswith(fileExt) ]
-
         for f in fileList:
           os.remove(f)
-
-      returnDict.update(kwargs)
-      returnValue = (kwargs['SampledVars'],returnDict)
-      exportDict = self.createExportDictionary(returnValue)
 
       return exportDict
 
@@ -625,7 +647,14 @@ class Code(Model):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(AttributeError,"No available Output to collect")
 
-    output.addRealization(evaluation)
+
+    # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
+    if evaluation.get('RAVEN_isBatch',False):
+      for rlz in evaluation['realizations']:
+        output.addRealization(rlz)
+    # otherwise, we received a single realization
+    else:
+      output.addRealization(evaluation)
 
     ##TODO How to handle restart?
     ##TODO How to handle collectOutputFromDataObject

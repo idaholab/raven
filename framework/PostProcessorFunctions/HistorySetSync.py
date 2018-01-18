@@ -111,10 +111,10 @@ class HistorySetSync(PostProcessorInterfaceBase):
         minTime = min(minInitTime)
         newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
       elif self.syncMethod == 'all':
-        times = set()
+        times = []
         for hist in inputDic['data'][self.pivotParameter]:
-            times.add(hist.values)
-        times = list(times)
+            times.extend(hist)
+        times = list(set(times))
         times.sort()
         newTime = np.array(times)
       elif self.syncMethod in ['min','max']:

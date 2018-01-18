@@ -157,7 +157,7 @@
   csv = 'OMInterfaceTest/testDummyStep/1/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/2/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/3/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/4/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/5/out~BouncingBall_init.csv'
   test_interface_only = True
  [../]
- 
+
  [./DymolaTestNoExecutable]
   type = 'RavenFramework'
   input = 'test_Dymola_code_interface.xml'
@@ -319,6 +319,11 @@
  [../]
 
  [./RAVENrunningRAVEN]
+   type = 'RavenFramework'
+   input = 'raven_running_raven_basic.xml'
+   UnorderedCsv = 'Raven_running_raven_basic/outer_out.csv'
+ [../]
+ [./RAVENrunningRAVEN_ROM]
    type = 'RavenFramework'
    input = 'test_raven_running_raven_int_models.xml'
    output = 'raven_running_raven_internal_models/testPrintHistorySet_dump_11.csv'
