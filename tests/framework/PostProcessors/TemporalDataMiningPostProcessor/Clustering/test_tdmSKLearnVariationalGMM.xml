@@ -204,11 +204,17 @@
     </PointSet>
     <HistorySet name="clusterInfo">
       <Input>labels</Input>
-      <Output>Time,x,y</Output>
+      <Output>x,y</Output>
+      <options>
+          <pivotParameter>Time</pivotParameter>
+      </options>
     </HistorySet>
     <HistorySet name="mData">
       <Input>cluster,dx,dy,ddx,ddy</Input>
-      <Output>Time,x,y</Output>
+      <Output>x,y</Output>
+      <options>
+          <pivotParameter>Time</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
