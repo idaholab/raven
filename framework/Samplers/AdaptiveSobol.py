@@ -400,6 +400,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         self.inputInfo['ProbabilityWeight']*=self.inputInfo['ProbabilityWeight-'+dist]
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     # reassign SampledVarsPb to fully correlated variables
+<<<<<<< HEAD
     self._reassignSampledVarsPbToFullyCorrVars()
     # reassign probability weight to correlated variables
     self._reassignPbWeightToCorrelatedVars()
