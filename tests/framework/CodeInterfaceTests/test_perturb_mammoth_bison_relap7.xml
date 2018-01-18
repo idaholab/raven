@@ -91,7 +91,7 @@
   <DataObjects>
     <HistorySet name="solns">
       <Input>init_liq_temp,Bison@Materials|fuel_mechanical|poissons_ratio</Input>
-      <Output>ave_temp_interior,peak_temp,peak_clad_temp,gas_volume</Output>
+      <Output>time,ave_temp_interior,peak_temp,peak_clad_temp,gas_volume</Output>
     </HistorySet>
   </DataObjects>
 

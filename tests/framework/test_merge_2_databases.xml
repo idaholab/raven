@@ -90,22 +90,18 @@
     <Print name="Pointset_from_database_dump">
       <type>csv</type>
       <source>Pointset_from_database</source>
-      <what>input, output</what>
     </Print>
     <Print name="Pointset_IN_database_dump">
       <type>csv</type>
       <source>Pointset_IN_database</source>
-      <what>input, output</what>
     </Print>
     <Print name="Historyset_from_database_dump">
       <type>csv</type>
       <source>HistorySet_from_database</source>
-      <what>input, output</what>
     </Print>
     <Print name="Historyset_IN_database_dump">
       <type>csv</type>
       <source>HistorySet_IN_database</source>
-      <what>input, output</what>
     </Print>
   </OutStreams>
 

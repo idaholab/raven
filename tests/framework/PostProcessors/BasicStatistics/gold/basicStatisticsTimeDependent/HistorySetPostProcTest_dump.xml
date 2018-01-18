@@ -1,143 +1,52 @@
-<DataObjectMetadata name="basicStatHistory">
-  <DataSet type="Static">
-    <dims>
-      <cov_x0_y0>time</cov_x0_y0>
-      <samp_y>time</samp_y>
-      <samp_z>time</samp_z>
-      <sigma_z>time</sigma_z>
-      <sigma_y>time</sigma_y>
-      <sigma_x>time</sigma_x>
-      <mean_z0>time</mean_z0>
-      <samp_y0>time</samp_y0>
-      <cov_y_z0>time</cov_y_z0>
-      <var_y0>time</var_y0>
-      <cov_z_z0>time</cov_z_z0>
-      <pearson_y_x0>time</pearson_y_x0>
-      <kurt_y0>time</kurt_y0>
-      <pearson_z_z0>time</pearson_z_z0>
-      <pearson_x0_z>time</pearson_x0_z>
-      <cov_z_x0>time</cov_z_x0>
-      <pearson_x0_x>time</pearson_x0_x>
-      <pearson_x0_y>time</pearson_x0_y>
-      <pearson_y_z>time</pearson_y_z>
-      <pearson_y_x>time</pearson_y_x>
-      <pearson_y_y>time</pearson_y_y>
-      <pearson_x0_x0>time</pearson_x0_x0>
-      <pearson_y0_y0>time</pearson_y0_y0>
-      <pearson_z0_x0>time</pearson_z0_x0>
-      <kurt_x0>time</kurt_x0>
-      <var_z>time</var_z>
-      <var_y>time</var_y>
-      <var_x>time</var_x>
-      <pearson_y0_y>time</pearson_y0_y>
-      <pearson_y0_x>time</pearson_y0_x>
-      <pearson_y0_z>time</pearson_y0_z>
-      <pearson_x0_z0>time</pearson_x0_z0>
-      <samp_x>time</samp_x>
-      <mean_x0>time</mean_x0>
-      <pearson_y0_x0>time</pearson_y0_x0>
-      <vc_x>time</vc_x>
-      <vc_y>time</vc_y>
-      <vc_z>time</vc_z>
-      <pearson_z0_y0>time</pearson_z0_y0>
-      <mean_x>time</mean_x>
-      <mean_y>time</mean_y>
-      <mean_z>time</mean_z>
-      <pearson_z0_z>time</pearson_z0_z>
-      <cov_y_z>time</cov_y_z>
-      <cov_y_x>time</cov_y_x>
-      <cov_y_y>time</cov_y_y>
-      <pearson_x_z>time</pearson_x_z>
-      <pearson_x_y>time</pearson_x_y>
-      <pearson_x_x>time</pearson_x_x>
-      <kurt_y>time</kurt_y>
-      <kurt_x>time</kurt_x>
-      <kurt_z>time</kurt_z>
-      <cov_x_x0>time</cov_x_x0>
-      <pearson_z_y>time</pearson_z_y>
-      <percentile_5_x0>time</percentile_5_x0>
-      <cov_y0_y0>time</cov_y0_y0>
-      <pearson_z_x>time</pearson_z_x>
-      <cov_z_y0>time</cov_z_y0>
-      <mean_y0>time</mean_y0>
-      <pearson_z0_z0>time</pearson_z0_z0>
-      <pearson_z_z>time</pearson_z_z>
-      <cov_z0_x0>time</cov_z0_x0>
-      <pearson_y0_z0>time</pearson_y0_z0>
-      <percentile_95_z0>time</percentile_95_z0>
-      <cov_x_y0>time</cov_x_y0>
-      <percentile_5_y0>time</percentile_5_y0>
-      <cov_y0_x0>time</cov_y0_x0>
-      <pearson_z_x0>time</pearson_z_x0>
-      <vc_x0>time</vc_x0>
-      <median_z0>time</median_z0>
-      <cov_z0_y0>time</cov_z0_y0>
-      <skew_z0>time</skew_z0>
-      <skew_y>time</skew_y>
-      <skew_x>time</skew_x>
-      <skew_z>time</skew_z>
-      <cov_x_z>time</cov_x_z>
-      <cov_x_y>time</cov_x_y>
-      <cov_x_x>time</cov_x_x>
-      <cov_z0_x>time</cov_z0_x>
-      <cov_z0_y>time</cov_z0_y>
-      <cov_z0_z>time</cov_z0_z>
-      <cov_x_z0>time</cov_x_z0>
-      <sigma_x0>time</sigma_x0>
-      <percentile_5_z0>time</percentile_5_z0>
-      <pearson_x_x0>time</pearson_x_x0>
-      <cov_z_y>time</cov_z_y>
-      <cov_z_x>time</cov_z_x>
-      <percentile_95_y0>time</percentile_95_y0>
-      <cov_z_z>time</cov_z_z>
-      <cov_x0_z0>time</cov_x0_z0>
-      <samp_z0>time</samp_z0>
-      <skew_y0>time</skew_y0>
-      <var_z0>time</var_z0>
-      <cov_z0_z0>time</cov_z0_z0>
-      <pearson_z_y0>time</pearson_z_y0>
-      <vc_y0>time</vc_y0>
-      <cov_y_y0>time</cov_y_y0>
-      <median_y0>time</median_y0>
-      <kurt_z0>time</kurt_z0>
-      <median_z>time</median_z>
-      <median_y>time</median_y>
-      <median_x>time</median_x>
-      <sigma_y0>time</sigma_y0>
-      <pearson_x_y0>time</pearson_x_y0>
-      <cov_y0_z0>time</cov_y0_z0>
-      <skew_x0>time</skew_x0>
-      <percentile_95_x>time</percentile_95_x>
-      <percentile_95_y>time</percentile_95_y>
-      <percentile_95_z>time</percentile_95_z>
-      <median_x0>time</median_x0>
-      <pearson_x0_y0>time</pearson_x0_y0>
-      <cov_y_x0>time</cov_y_x0>
-      <vc_z0>time</vc_z0>
-      <cov_x0_z>time</cov_x0_z>
-      <cov_x0_x>time</cov_x0_x>
-      <cov_x0_y>time</cov_x0_y>
-      <pearson_z0_x>time</pearson_z0_x>
-      <pearson_z0_y>time</pearson_z0_y>
-      <sigma_z0>time</sigma_z0>
-      <pearson_x_z0>time</pearson_x_z0>
-      <var_x0>time</var_x0>
-      <percentile_95_x0>time</percentile_95_x0>
-      <cov_x0_x0>time</cov_x0_x0>
-      <samp_x0>time</samp_x0>
-      <pearson_y_y0>time</pearson_y_y0>
-      <pearson_y_z0>time</pearson_y_z0>
-      <percentile_5_z>time</percentile_5_z>
-      <percentile_5_x>time</percentile_5_x>
-      <percentile_5_y>time</percentile_5_y>
-      <cov_y0_y>time</cov_y0_y>
-      <cov_y0_x>time</cov_y0_x>
-      <cov_y0_z>time</cov_y0_z>
-    </dims>
-    <general>
-      <outputs>var_x0,var_y0,var_z0,var_x,var_y,var_z,mean_x0,mean_y0,mean_z0,mean_x,mean_y,mean_z,sigma_x0,sigma_y0,sigma_z0,sigma_x,sigma_y,sigma_z,vc_x0,vc_y0,vc_z0,vc_x,vc_y,vc_z,skew_x0,skew_y0,skew_z0,skew_x,skew_y,skew_z,kurt_x0,kurt_y0,kurt_z0,kurt_x,kurt_y,kurt_z,median_x0,median_y0,median_z0,median_x,median_y,median_z,samp_x0,samp_y0,samp_z0,samp_x,samp_y,samp_z,percentile_5_x0,percentile_5_y0,percentile_5_z0,percentile_5_x,percentile_5_y,percentile_5_z,percentile_95_x0,percentile_95_y0,percentile_95_z0,percentile_95_x,percentile_95_y,percentile_95_z,cov_x0_x0,cov_y0_x0,cov_z0_x0,cov_x_x0,cov_y_x0,cov_z_x0,cov_x0_y0,cov_y0_y0,cov_z0_y0,cov_x_y0,cov_y_y0,cov_z_y0,cov_x0_z0,cov_y0_z0,cov_z0_z0,cov_x_z0,cov_y_z0,cov_z_z0,cov_x0_x,cov_y0_x,cov_z0_x,cov_x_x,cov_y_x,cov_z_x,cov_x0_y,cov_y0_y,cov_z0_y,cov_x_y,cov_y_y,cov_z_y,cov_x0_z,cov_y0_z,cov_z0_z,cov_x_z,cov_y_z,cov_z_z,pearson_x0_x0,pearson_y0_x0,pearson_z0_x0,pearson_x_x0,pearson_y_x0,pearson_z_x0,pearson_x0_y0,pearson_y0_y0,pearson_z0_y0,pearson_x_y0,pearson_y_y0,pearson_z_y0,pearson_x0_z0,pearson_y0_z0,pearson_z0_z0,pearson_x_z0,pearson_y_z0,pearson_z_z0,pearson_x0_x,pearson_y0_x,pearson_z0_x,pearson_x_x,pearson_y_x,pearson_z_x,pearson_x0_y,pearson_y0_y,pearson_z0_y,pearson_x_y,pearson_y_y,pearson_z_y,pearson_x0_z,pearson_y0_z,pearson_z0_z,pearson_x_z,pearson_y_z,pearson_z_z</outputs>
-      <sampleTag>RAVEN_sample_ID</sampleTag>
-    </general>
-  </DataSet>
-  
-</DataObjectMetadata>
+<data name="HistorySetPostProcTest_dump" type="HistorySet"><input>y0,x0,z0</input><output>y,x,z,time</output><inputFilename>HistorySetPostProcTest_dump.csv</inputFilename><metadata><z0-variance-time-0.0>array([ 62.5])</z0-variance-time-0.0><z-variance-time-0.05>array([ 3287.50978835])</z-variance-time-0.05><z-skewness-time-0.05>array([ 0.69322877])</z-skewness-time-0.05><z0-variationCoefficient-time--0.05>array([ 0.52704628])</z0-variationCoefficient-time--0.05><z0-percentile_5-time--0.05>array([ 6.])</z0-percentile_5-time--0.05><prefix>array(['1', '2', '3', '4', '5'], dtype=object)</prefix><z-expectedValue-time-0.0>array([ 38.75])</z-expectedValue-time-0.0><y0-variance-time--0.05>array([ 250.])</y0-variance-time--0.05><x-samples-time--0.05>array([5])</x-samples-time--0.05><z0-kurtosis-time-0.0>array([-1.72])</z0-kurtosis-time-0.0><x0-skewness-time-0.05>array([ 0.])</x0-skewness-time-0.05><y0-percentile_5-time-0.0>array([ 12.])</y0-percentile_5-time-0.0><x-variance-time-0.05>array([ 986.29761562])</x-variance-time-0.05><targets-pearson-time-0.0>array([u'x', u'y', u'y0', u'x0', u'z', u'z0'], dtype=object)</targets-pearson-time-0.0><z-percentile_95-time-0.0>array([ 72.6])</z-percentile_95-time-0.0><x-expectedValue-time--0.05>array([ 61.])</x-expectedValue-time--0.05><x0-percentile_5-time-0.0>array([ 24.])</x0-percentile_5-time-0.0><z0-expectedValue-time-0.05>array([ 15.])</z0-expectedValue-time-0.05><y-variance-time-0.0>array([ 655.55625])</y-variance-time-0.0><x0-kurtosis-time-0.05>array([-1.72])</x0-kurtosis-time-0.05><x-samples-time-0.05>array([5])</x-samples-time-0.05><x0-kurtosis-time--0.05>array([-1.72])</x0-kurtosis-time--0.05><y-skewness-time-0.0>array([ 0.27208585])</y-skewness-time-0.0><z-samples-time-0.0>array([5])</z-samples-time-0.0><z-kurtosis-time-0.0>array([-1.55126562])</z-kurtosis-time-0.0><y-sigma-time-0.05>array([ 55.91787236])</y-sigma-time-0.05><x-sigma-time--0.05>array([ 31.6227766])</x-sigma-time--0.05><x-percentile_5-time-0.05>array([ 24.779])</x-percentile_5-time-0.05><x0-variationCoefficient-time-0.05>array([ 0.52704628])</x0-variationCoefficient-time-0.05><x-percentile_95-time-0.05>array([ 96.284])</x-percentile_95-time-0.05><y0-median-time--0.05>array([ 30.])</y0-median-time--0.05><z0-variance-time-0.05>array([ 62.5])</z0-variance-time-0.05><z-skewness-time--0.05>array([ 0.])</z-skewness-time--0.05><z-expectedValue-time--0.05>array([ 16.])</z-expectedValue-time--0.05><z0-skewness-time--0.05>array([ 0.])</z0-skewness-time--0.05><x-sigma-time-0.05>array([ 31.40537558])</x-sigma-time-0.05><y-variationCoefficient-time-0.05>array([ 0.77221565])</y-variationCoefficient-time-0.05><z-variance-time-0.0>array([ 757.90625])</z-variance-time-0.0><y-percentile_5-time-0.0>array([ 14.78])</y-percentile_5-time-0.0><x-median-time--0.05>array([ 61.])</x-median-time--0.05><z0-median-time-0.05>array([ 15.])</z0-median-time-0.05><z-percentile_5-time-0.0>array([ 10.5])</z-percentile_5-time-0.0><y0-kurtosis-time-0.05>array([-1.72])</y0-kurtosis-time-0.05><pearson-time-0.0>array([[1.0, 0.9973269386739981, 1.0000000000000002, 1.0000000000000002,
+        0.9907209790776259, 1.0000000000000002],
+       [0.9973269386739981, 1.0, 0.9973269386739982, 0.9973269386739982,
+        0.9980035458187941, 0.9973269386739982],
+       [1.0000000000000002, 0.9973269386739982, 1.0, 1.0,
+        0.9907209790776259, 1.0],
+       [1.0000000000000002, 0.9973269386739982, 1.0, 1.0,
+        0.9907209790776259, 1.0],
+       [0.9907209790776259, 0.9980035458187941, 0.9907209790776259,
+        0.9907209790776259, 1.0, 0.9907209790776259],
+       [1.0000000000000002, 0.9973269386739982, 1.0, 1.0,
+        0.9907209790776259, 1.0]], dtype=object)</pearson-time-0.0><x-skewness-time-0.0>array([ -7.78573582e-16])</x-skewness-time-0.0><y-expectedValue-time-0.05>array([ 72.41225])</y-expectedValue-time-0.05><x-percentile_95-time--0.05>array([ 97.])</x-percentile_95-time--0.05><z0-percentile_95-time-0.05>array([ 24.])</z0-percentile_95-time-0.05><x0-variance-time--0.05>array([ 1000.])</x0-variance-time--0.05><y0-skewness-time-0.05>array([ 0.])</y0-skewness-time-0.05><y0-skewness-time--0.05>array([ 0.])</y0-skewness-time--0.05><z-percentile_95-time-0.05>array([ 142.86612])</z-percentile_95-time-0.05><z0-skewness-time-0.0>array([ 0.])</z0-skewness-time-0.0><x0-median-time-0.05>array([ 60.])</x0-median-time-0.05><y0-sigma-time-0.0>array([ 15.8113883])</y0-sigma-time-0.0><z-median-time-0.0>array([ 34.75])</z-median-time-0.0><x0-variance-time-0.0>array([ 1000.])</x0-variance-time-0.0><z-variance-time--0.05>array([ 62.5])</z-variance-time--0.05><x-variance-time-0.0>array([ 990.025])</x-variance-time-0.0><x-variationCoefficient-time-0.05>array([ 0.51894701])</x-variationCoefficient-time-0.05><x-percentile_5-time-0.0>array([ 24.88])</x-percentile_5-time-0.0><z0-samples-time-0.0>array([5])</z0-samples-time-0.0><targets-pearson-time--0.05>array([u'x', u'y', u'y0', u'x0', u'z', u'z0'], dtype=object)</targets-pearson-time--0.05><x0-skewness-time--0.05>array([ 0.])</x0-skewness-time--0.05><y0-median-time-0.0>array([ 30.])</y0-median-time-0.0><x0-kurtosis-time-0.0>array([-1.72])</x0-kurtosis-time-0.0><z0-sigma-time-0.0>array([ 7.90569415])</z0-sigma-time-0.0><z0-median-time-0.0>array([ 15.])</z0-median-time-0.0><x0-percentile_95-time-0.05>array([ 96.])</x0-percentile_95-time-0.05><z-sigma-time--0.05>array([ 7.90569415])</z-sigma-time--0.05><y0-percentile_95-time--0.05>array([ 48.])</y0-percentile_95-time--0.05><covariance-time--0.05>array([[1000.0, 500.0, 500.0, 1000.0, 250.0, 250.0],
+       [500.0, 250.0, 250.0, 500.0, 125.0, 125.0],
+       [500.0, 250.0, 250.0, 500.0, 125.0, 125.0],
+       [1000.0, 500.0, 500.0, 1000.0, 250.0, 250.0],
+       [250.0, 125.0, 125.0, 250.0, 62.5, 62.5],
+       [250.0, 125.0, 125.0, 250.0, 62.5, 62.5]], dtype=object)</covariance-time--0.05><y-median-time--0.05>array([ 31.])</y-median-time--0.05><y-skewness-time--0.05>array([ 0.])</y-skewness-time--0.05><z0-percentile_5-time-0.0>array([ 6.])</z0-percentile_5-time-0.0><z0-percentile_95-time--0.05>array([ 24.])</z0-percentile_95-time--0.05><y-median-time-0.0>array([ 40.45])</y-median-time-0.0><z0-kurtosis-time--0.05>array([-1.72])</z0-kurtosis-time--0.05><pearson-time-0.05>array([[1.0, 0.9820757624080423, 0.9999998225687532, 0.9999998225687532,
+        0.9820147081360696, 0.9999998225687532],
+       [0.9820757624080423, 1.0, 0.9819635946296131, 0.9819635946296131,
+        0.9999758226194818, 0.9819635946296131],
+       [0.9999998225687532, 0.9819635946296131, 1.0, 1.0,
+        0.9819021308996263, 1.0],
+       [0.9999998225687532, 0.9819635946296131, 1.0, 1.0,
+        0.9819021308996263, 1.0],
+       [0.9820147081360696, 0.9999758226194818, 0.9819021308996263,
+        0.9819021308996263, 1.0, 0.9819021308996263],
+       [0.9999998225687532, 0.9819635946296131, 1.0, 1.0,
+        0.9819021308996263, 1.0]], dtype=object)</pearson-time-0.05><x0-skewness-time-0.0>array([ 0.])</x0-skewness-time-0.0><z-samples-time--0.05>array([5])</z-samples-time--0.05><z0-sigma-time-0.05>array([ 7.90569415])</z0-sigma-time-0.05><z0-variance-time--0.05>array([ 62.5])</z0-variance-time--0.05><y-percentile_95-time--0.05>array([ 49.])</y-percentile_95-time--0.05><z-expectedValue-time-0.05>array([ 70.55735])</z-expectedValue-time-0.05><y-percentile_5-time-0.05>array([ 17.6028])</y-percentile_5-time-0.05><y0-expectedValue-time-0.0>array([ 30.])</y0-expectedValue-time-0.0><z-percentile_5-time--0.05>array([ 7.])</z-percentile_5-time--0.05><x-kurtosis-time--0.05>array([-1.72])</x-kurtosis-time--0.05><x0-expectedValue-time-0.0>array([ 60.])</x0-expectedValue-time-0.0><z-samples-time-0.05>array([5])</z-samples-time-0.05><x0-samples-time-0.05>array([5])</x0-samples-time-0.05><y-skewness-time-0.05>array([ 0.69896943])</y-skewness-time-0.05><x0-variationCoefficient-time--0.05>array([ 0.52704628])</x0-variationCoefficient-time--0.05><z-percentile_95-time--0.05>array([ 25.])</z-percentile_95-time--0.05><covariance-time-0.05>array([[986.2976156250002, 1724.6446393750002, 496.5625, 993.125,
+        1768.2982266249999, 248.28125],
+       [1724.6446393750002, 3126.8084495937505, 868.1925000000001,
+        1736.3850000000002, 3206.07491050625, 434.09625000000005],
+       [496.5625, 868.1925000000001, 250.0, 500.0, 890.1675, 125.0],
+       [993.125, 1736.3850000000002, 500.0, 1000.0, 1780.335, 250.0],
+       [1768.2982266249999, 3206.07491050625, 890.1675, 1780.335,
+        3287.509788353749, 445.08375],
+       [248.28125, 434.09625000000005, 125.0, 250.0, 445.08375, 62.5]], dtype=object)</covariance-time-0.05><z0-samples-time-0.05>array([5])</z0-samples-time-0.05><y0-variance-time-0.05>array([ 250.])</y0-variance-time-0.05><x0-samples-time-0.0>array([5])</x0-samples-time-0.0><y0-samples-time-0.0>array([5])</y0-samples-time-0.0><x0-percentile_5-time--0.05>array([ 24.])</x0-percentile_5-time--0.05><y-variationCoefficient-time--0.05>array([ 0.51004478])</y-variationCoefficient-time--0.05><z0-percentile_5-time-0.05>array([ 6.])</z0-percentile_5-time-0.05><y-expectedValue-time-0.0>array([ 42.45])</y-expectedValue-time-0.0><x-sigma-time-0.0>array([ 31.46466272])</x-sigma-time-0.0><y-samples-time-0.0>array([5])</y-samples-time-0.0><y-variationCoefficient-time-0.0>array([ 0.60315271])</y-variationCoefficient-time-0.0><SampledVarsPb>array([{}, {}, {}, {}, {}], dtype=object)</SampledVarsPb><x0-median-time-0.0>array([ 60.])</x0-median-time-0.0><y0-samples-time--0.05>array([5])</y0-samples-time--0.05><x-samples-time-0.0>array([5])</x-samples-time-0.0><y0-percentile_5-time-0.05>array([ 12.])</y0-percentile_5-time-0.05><z-kurtosis-time--0.05>array([-1.72])</z-kurtosis-time--0.05><crowDist>array([{}, {}, {}, {}, {}], dtype=object)</crowDist><SampledVars>array([{'y0': 10.0, 'x0': 20.0, 'z0': 5.0},
+       {'y0': 20.0, 'x0': 40.0, 'z0': 10.0},
+       {'y0': 30.0, 'x0': 60.0, 'z0': 15.0},
+       {'y0': 40.0, 'x0': 80.0, 'z0': 20.0},
+       {'y0': 50.0, 'x0': 100.0, 'z0': 25.0}], dtype=object)</SampledVars><y0-percentile_95-time-0.05>array([ 48.])</y0-percentile_95-time-0.05><z0-median-time--0.05>array([ 15.])</z0-median-time--0.05><x-median-time-0.05>array([ 60.4975])</x-median-time-0.05><z-skewness-time-0.0>array([ 0.50009926])</z-skewness-time-0.0><targets-pearson-time-0.05>array([u'x', u'y', u'y0', u'x0', u'z', u'z0'], dtype=object)</targets-pearson-time-0.05><PointProbability>array([None, None, None, None, None], dtype=object)</PointProbability><covariance-time-0.0>array([[990.0250000000001, 803.4625000000001, 497.5000000000001,
+        995.0000000000002, 858.1875, 248.75000000000006],
+       [803.4625000000001, 655.5562500000001, 403.75000000000006,
+        807.5000000000001, 703.4687500000001, 201.87500000000003],
+       [497.5000000000001, 403.75000000000006, 250.0, 500.0, 431.25, 125.0],
+       [995.0000000000002, 807.5000000000001, 500.0, 1000.0, 862.5, 250.0],
+       [858.1875, 703.4687500000001, 431.25, 862.5, 757.90625, 215.625],
+       [248.75000000000006, 201.87500000000003, 125.0, 250.0, 215.625, 62.5]], dtype=object)</covariance-time-0.0><x0-sigma-time-0.05>array([ 31.6227766])</x0-sigma-time-0.05><y-samples-time--0.05>array([5])</y-samples-time--0.05><x-kurtosis-time-0.0>array([-1.72])</x-kurtosis-time-0.0><x-median-time-0.0>array([ 60.7])</x-median-time-0.0><y0-kurtosis-time-0.0>array([-1.72])</y0-kurtosis-time-0.0><x-variationCoefficient-time-0.0>array([ 0.51836347])</x-variationCoefficient-time-0.0><y-percentile_5-time--0.05>array([ 13.])</y-percentile_5-time--0.05><z0-expectedValue-time-0.0>array([ 15.])</z0-expectedValue-time-0.0><z-variationCoefficient-time-0.05>array([ 0.81262703])</z-variationCoefficient-time-0.05><y0-sigma-time-0.05>array([ 15.8113883])</y0-sigma-time-0.05><y0-variationCoefficient-time-0.05>array([ 0.52704628])</y0-variationCoefficient-time-0.05><y0-kurtosis-time--0.05>array([-1.72])</y0-kurtosis-time--0.05><z0-variationCoefficient-time-0.05>array([ 0.52704628])</z0-variationCoefficient-time-0.05><z0-samples-time--0.05>array([5])</z0-samples-time--0.05><x0-percentile_5-time-0.05>array([ 24.])</x0-percentile_5-time-0.05><y0-percentile_5-time--0.05>array([ 12.])</y0-percentile_5-time--0.05><x0-percentile_95-time-0.0>array([ 96.])</x0-percentile_95-time-0.0><targets-covariance-time-0.0>array([u'x', u'y', u'y0', u'x0', u'z', u'z0'], dtype=object)</targets-covariance-time-0.0><z-variationCoefficient-time-0.0>array([ 0.71045412])</z-variationCoefficient-time-0.0><y-median-time-0.05>array([ 61.13875])</y-median-time-0.05><y0-median-time-0.05>array([ 30.])</y0-median-time-0.05><y-expectedValue-time--0.05>array([ 31.])</y-expectedValue-time--0.05><y-percentile_95-time-0.05>array([ 143.0046])</y-percentile_95-time-0.05><z-percentile_5-time-0.05>array([ 14.49096])</z-percentile_5-time-0.05><z0-kurtosis-time-0.05>array([-1.72])</z0-kurtosis-time-0.05><x-variationCoefficient-time--0.05>array([ 0.51840617])</x-variationCoefficient-time--0.05><x-kurtosis-time-0.05>array([-1.71999669])</x-kurtosis-time-0.05><pearson-time--0.05>array([[1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+       [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+       [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+       [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+       [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+       [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]], dtype=object)</pearson-time--0.05><z0-percentile_95-time-0.0>array([ 24.])</z0-percentile_95-time-0.0><x-expectedValue-time-0.0>array([ 60.7])</x-expectedValue-time-0.0><x0-sigma-time--0.05>array([ 31.6227766])</x0-sigma-time--0.05><z0-sigma-time--0.05>array([ 7.90569415])</z0-sigma-time--0.05><x0-percentile_95-time--0.05>array([ 96.])</x0-percentile_95-time--0.05><y-kurtosis-time-0.0>array([-1.67050509])</y-kurtosis-time-0.0><y-samples-time-0.05>array([5])</y-samples-time-0.05><y0-skewness-time-0.0>array([ 0.])</y0-skewness-time-0.0><z-median-time-0.05>array([ 58.95565])</z-median-time-0.05><z-variationCoefficient-time--0.05>array([ 0.49410588])</z-variationCoefficient-time--0.05><targets-covariance-time--0.05>array([u'x', u'y', u'y0', u'x0', u'z', u'z0'], dtype=object)</targets-covariance-time--0.05><z-kurtosis-time-0.05>array([-1.36029189])</z-kurtosis-time-0.05><targets-covariance-time-0.05>array([u'x', u'y', u'y0', u'x0', u'z', u'z0'], dtype=object)</targets-covariance-time-0.05><x0-expectedValue-time-0.05>array([ 60.])</x0-expectedValue-time-0.05><y-variance-time--0.05>array([ 250.])</y-variance-time--0.05><x0-samples-time--0.05>array([5])</x0-samples-time--0.05><y-percentile_95-time-0.0>array([ 72.92])</y-percentile_95-time-0.0><z0-skewness-time-0.05>array([ 0.])</z0-skewness-time-0.05><x0-variationCoefficient-time-0.0>array([ 0.52704628])</x0-variationCoefficient-time-0.0><x-skewness-time--0.05>array([ 0.])</x-skewness-time--0.05><SamplerType>array([u'Custom', u'Custom', u'Custom', u'Custom', u'Custom'], dtype=object)</SamplerType><y-sigma-time--0.05>array([ 15.8113883])</y-sigma-time--0.05><x0-variance-time-0.05>array([ 1000.])</x0-variance-time-0.05><y-kurtosis-time-0.05>array([-1.32142283])</y-kurtosis-time-0.05><x-percentile_95-time-0.0>array([ 96.52])</x-percentile_95-time-0.0><x-variance-time--0.05>array([ 1000.])</x-variance-time--0.05><x0-median-time--0.05>array([ 60.])</x0-median-time--0.05><x0-expectedValue-time--0.05>array([ 60.])</x0-expectedValue-time--0.05><y0-variationCoefficient-time--0.05>array([ 0.52704628])</y0-variationCoefficient-time--0.05><x-skewness-time-0.05>array([ 0.00222892])</x-skewness-time-0.05><y-kurtosis-time--0.05>array([-1.72])</y-kurtosis-time--0.05><y0-expectedValue-time--0.05>array([ 30.])</y0-expectedValue-time--0.05><y0-variance-time-0.0>array([ 250.])</y0-variance-time-0.0><x-percentile_5-time--0.05>array([ 25.])</x-percentile_5-time--0.05><x0-sigma-time-0.0>array([ 31.6227766])</x0-sigma-time-0.0><y0-samples-time-0.05>array([5])</y0-samples-time-0.05><z-sigma-time-0.05>array([ 57.33681006])</z-sigma-time-0.05><y-sigma-time-0.0>array([ 25.60383272])</y-sigma-time-0.0><y0-sigma-time--0.05>array([ 15.8113883])</y0-sigma-time--0.05><y-variance-time-0.05>array([ 3126.80844959])</y-variance-time-0.05><z-median-time--0.05>array([ 16.])</z-median-time--0.05><z0-variationCoefficient-time-0.0>array([ 0.52704628])</z0-variationCoefficient-time-0.0><y0-variationCoefficient-time-0.0>array([ 0.52704628])</y0-variationCoefficient-time-0.0><z0-expectedValue-time--0.05>array([ 15.])</z0-expectedValue-time--0.05><y0-percentile_95-time-0.0>array([ 48.])</y0-percentile_95-time-0.0><z-sigma-time-0.0>array([ 27.53009717])</z-sigma-time-0.0><y0-expectedValue-time-0.05>array([ 30.])</y0-expectedValue-time-0.05><x-expectedValue-time-0.05>array([ 60.5175])</x-expectedValue-time-0.05></metadata></data>

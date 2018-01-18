@@ -1,0 +1,6 @@
+<MetricPostProcessor type="Static">
+  <ans2-x1>
+    <chi2_chi2>0.225164869422</chi2_chi2>
+    <additive_chi2_additive_chi2>-1.49092239212</additive_chi2_additive_chi2>
+  </ans2-x1>
+</MetricPostProcessor>

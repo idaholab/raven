@@ -26,7 +26,7 @@
       <Input class="DataObjects" type="PointSet">dummyINAmplifier</Input>
       <Model class="Models" type="EnsembleModel">Ensemble_with_amplifier</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
-      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
@@ -50,35 +50,33 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <iterationLimit>1000</iterationLimit>
-        <gradientThreshold>1e-4</gradientThreshold>
-        <relativeThreshold>1e-6</relativeThreshold>
+          <iterationLimit>1000</iterationLimit>
+          <gradientThreshold>1e-4</gradientThreshold>
+          <relativeThreshold>1e-6</relativeThreshold>
       </convergence>
-      <variable name="x">
+      <variable name='x'>
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
         <initial>-2,0,2</initial>
       </variable>
-      <variable name="y">
+      <variable name='y'>
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
         <initial>-2,0,2</initial>
       </variable>
-      <variable name="z">
-        <upperBound>4.5</upperBound>
-        <lowerBound>0.0</lowerBound>
-        <initial>2,0.1,4</initial>
+      <variable name='z'>
+          <upperBound>4.5</upperBound>
+          <lowerBound>0.0</lowerBound>
+          <initial>2,0.1,4</initial>
       </variable>
       <objectVar>objAns</objectVar>
       <parameter>
         <c>1e-3</c>
       </parameter>
       <multilevel>
-        <subspace name="first">x,y</subspace>
-        <!--
-          <subspace name="second">z</subspace>
-        -->
-        <subspace holdOutputSpace="ans" name="second">z</subspace>
+        <subspace name='first'>x,y</subspace>
+        <!--<subspace name='second' >z</subspace>-->
+         <subspace name='second' holdOutputSpace="ans">z</subspace>
         <sequence>first,second</sequence>
       </multilevel>
     </SPSA>
@@ -89,21 +87,25 @@
       <variables>x,y,ans</variables>
     </ExternalModel>
     <ExternalModel ModuleToLoad="amplifier" name="amplifier" subType="">
-      <!-- This model just aplify the ans with the z value that is actually part of the optimization space... "z" should converge to 0 -->
-      <variables>z,ans,objAns</variables>
+        <!-- This model just aplify the ans with the z value that is actually part of the optimization space... "z" should converge to 0 -->
+        <variables>z,ans,objAns</variables>
     </ExternalModel>
+
     <EnsembleModel name="Ensemble_with_amplifier" subType="">
-      <Model class="Models" type="ExternalModel">
+        <Model class="Models" type="ExternalModel">
             beale
-        <Input class="DataObjects" type="PointSet">dummyINbeale</Input>
-        <TargetEvaluation class="DataObjects" type="PointSet">optOutbeale</TargetEvaluation>
-      </Model>
-      <Model class="Models" type="ExternalModel">
+            <Input            class="DataObjects" type="PointSet">dummyINbeale</Input>
+            <TargetEvaluation class="DataObjects" type="PointSet">optOutbeale</TargetEvaluation>
+        </Model>
+        <Model class="Models" type="ExternalModel">
             amplifier
-        <Input class="DataObjects" type="PointSet">dummyINAmplifier</Input>
-        <TargetEvaluation class="DataObjects" type="PointSet">optOutAmplifier</TargetEvaluation>
-      </Model>
+            <Input            class="DataObjects" type="PointSet">dummyINAmplifier</Input>
+            <TargetEvaluation class="DataObjects" type="PointSet">optOutAmplifier</TargetEvaluation>
+        </Model>
     </EnsembleModel>
+
+
+
     <PostProcessor name="snapshot" subType="InterfacedPostProcessor">
       <method>HistorySetSnapShot</method>
       <type>max</type>
@@ -112,45 +114,45 @@
   </Models>
 
   <DataObjects>
-    <PointSet name="dummyIN">
-      <Input>x,y,z</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
+      <PointSet name="dummyIN">
+          <Input>x,y,z</Input>
+          <Output>OutputPlaceHolder</Output>
+      </PointSet>
     <PointSet name="dummyINbeale">
       <Input>x,y</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="dummyINAmplifier">
-      <Input>z,ans</Input>
-      <Output>OutputPlaceHolder</Output>
+        <Input>z,ans</Input>
+        <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="optOutbeale">
       <Input>x,y</Input>
       <Output>ans</Output>
     </PointSet>
     <PointSet name="optOutAmplifier">
-      <Input>z,ans</Input>
-      <Output>objAns</Output>
+        <Input>z,ans</Input>
+        <Output>objAns</Output>
     </PointSet>
+
     <PointSet name="optOut">
-      <Input>x,y,z</Input>
-      <Output>objAns</Output>
+        <Input>x,y,z</Input>
+        <Output>objAns</Output>
     </PointSet>
     <PointSet name="opt_soln">
       <Input>trajID</Input>
       <Output>x,y,z,objAns,varsUpdate</Output>
     </PointSet>
-    <PointSet name="opt_export">
+    <HistorySet name="opt_export">
       <Input>trajID</Input>
       <Output>x,y,z,objAns,varsUpdate,stepSize,convergenceAbs,convergenceRel,convergenceGrad</Output>
-    </PointSet>
+    </HistorySet>
   </DataObjects>
 
   <OutStreams>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
-      <clusterLabel>trajID</clusterLabel>
     </Print>
     <Print name="opt_soln">
       <type>csv</type>

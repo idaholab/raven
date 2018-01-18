@@ -69,12 +69,10 @@
     <Print name="reprint_HistorySet">
       <type>csv</type>
       <source>fullprint_HistorySet</source>
-      <what>input,output</what>
     </Print>
     <Print name="reprint_Pointset">
       <type>csv</type>
       <source>fullprint_Pointset</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

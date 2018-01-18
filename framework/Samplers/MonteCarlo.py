@@ -151,7 +151,6 @@ class MonteCarlo(ForwardSampler):
           self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
           for kkey in varID.strip().split(','):
             self.values[kkey] = np.atleast_1d(rvsnum)[0]
-            self.inputInfo['ProbabilityWeight-' +kkey.strip()] = 1.
       elif totDim > 1:
         if reducedDim == 1:
           if self.samplingType is None:
@@ -172,7 +171,6 @@ class MonteCarlo(ForwardSampler):
             varDim = var[varID]
             for kkey in varID.strip().split(','):
               self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
-              self.inputInfo['ProbabilityWeight-' +kkey.strip()] = 1.
       else:
         self.raiseAnError(IOError,"Total dimension for given distribution should be >= 1")
 
@@ -181,9 +179,7 @@ class MonteCarlo(ForwardSampler):
       if self.samplingType == 'uniform':
         self.inputInfo['ProbabilityWeight'  ] = weight
       else:
-        self.inputInfo['ProbabilityWeight' ] = 1. #MC weight is 1/N => weight is one
-    # reassign SampledVarsPb to fully correlated variables
-    self._reassignSampledVarsPbToFullyCorrVars()
+        self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
     self.inputInfo['SamplerType'] = 'MonteCarlo'
 
   def _localHandleFailedRuns(self,failedRuns):

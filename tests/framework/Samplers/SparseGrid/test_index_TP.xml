@@ -91,7 +91,6 @@
     <Print name="TPdump">
       <type>csv</type>
       <source>TPtests</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

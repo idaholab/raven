@@ -1,9 +1,0 @@
-<DataObjectMetadata name="autoCorrelationTest_basicStatPP">
-  <DataSet type="Static">
-    <general>
-      <outputs>mean_x01,mean_x02</outputs>
-      <sampleTag>RAVEN_sample_ID</sampleTag>
-    </general>
-  </DataSet>
-  
-</DataObjectMetadata>

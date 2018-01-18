@@ -93,7 +93,6 @@
     <Print name="Cdump">
       <type>csv</type>
       <source>Ctests</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

@@ -23,7 +23,6 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import copy
 import inspect
-import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -338,7 +337,7 @@ class ROM(Dummy):
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
     else:
-      self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
+      self.trainingSet = copy.copy(self._inputToInternal(trainingSet, full=True))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
       self.supervisedEngine.train(self.trainingSet)
       self.amITrained = self.supervisedEngine.amITrained
@@ -363,9 +362,6 @@ class ROM(Dummy):
     """
     inputToROM       = self._inputToInternal(request)
     outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
-    # assure numpy array formatting # TODO can this be done in the supervised engine instead?
-    for k,v in outputEvaluation.items():
-      outputEvaluation[k] = np.atleast_1d(v)
     return outputEvaluation
 
   def _externalRun(self,inRun):
@@ -387,22 +383,15 @@ class ROM(Dummy):
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
         @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, rlz, dict, This will hold two pieces of information,
-          the first will be the input data used to generate this sample,
-          the second will be the output of this model given the specified
+        @ Out, returnValue, tuple, This will hold two pieces of information,
+          the first item will be the input data used to generate this sample,
+          the second item will be the output of this model given the specified
           inputs
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-    # collect results from model run
-    result = self._externalRun(inRun)
-    # build realization
-    # assure rlz has all metadata
-    self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'] ,'input',True)
-    rlz = dict((var,np.atleast_1d(kwargs[var])) for var in kwargs.keys())
-    # update rlz with input space from inRun and output space from result
-    rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(result.keys()+inRun.keys())))
-    return rlz
+    returnValue = inRun,self._externalRun(inRun)
+    return returnValue
 
   def reseed(self,seed):
     """
@@ -411,4 +400,3 @@ class ROM(Dummy):
       @ Out, None
     """
     self.supervisedEngine.reseed(seed)
-

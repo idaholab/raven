@@ -64,7 +64,6 @@
     <Print name="testPrintPointSetRel_dump">
       <type>csv</type>
       <source>testPrintPointSetRel</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

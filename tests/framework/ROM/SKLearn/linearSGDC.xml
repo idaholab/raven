@@ -68,7 +68,6 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outLinearSGDC</filename>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

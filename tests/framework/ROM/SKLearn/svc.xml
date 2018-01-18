@@ -70,7 +70,6 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outSVC</filename>
-      <what>input,output, metadata|ProbabilityWeight</what>
     </Print>
   </OutStreams>
 

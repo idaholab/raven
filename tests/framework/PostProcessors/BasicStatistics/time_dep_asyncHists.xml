@@ -13,9 +13,6 @@
     <description>
       This test checks time-dependent basic statistics with histories that are not synchronized a priori.
     </description>
-    <revisions>
-        <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
-    </revisions>
   </TestInfo>
 
   <Files>

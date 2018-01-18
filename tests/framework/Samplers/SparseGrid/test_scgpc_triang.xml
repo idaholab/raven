@@ -94,7 +94,6 @@
     <Print name="Tdump">
       <type>csv</type>
       <source>Ttests</source>
-      <what>input,output</what>
     </Print>
     <Print name="Tdumprom">
       <type>xml</type>

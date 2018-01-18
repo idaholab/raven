@@ -59,7 +59,6 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outLinearLARSCV</filename>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

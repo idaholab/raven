@@ -35,7 +35,7 @@ from .ImportanceRank import ImportanceRank
 from .InterfacedPostProcessor import InterfacedPostProcessor
 from .LimitSurface import LimitSurface
 from .LimitSurfaceIntegral import LimitSurfaceIntegral
-# from .RavenOutput import RavenOutput # deprecated for now
+from .RavenOutput import RavenOutput
 from .SafestPoint import SafestPoint
 
 from .TopologicalDecomposition import TopologicalDecomposition

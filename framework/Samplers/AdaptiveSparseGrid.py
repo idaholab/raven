@@ -324,7 +324,6 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    self.inputInfo['ProbabilityWeight'] = 1.0
     pt = self.neededPoints.pop()
     self.submittedNotCollected.append(pt)
     for v,varName in enumerate(self.sparseGrid.varNames):
@@ -333,7 +332,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
         for key in varName.strip().split(','):
           self.values[key] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-        self.inputInfo['ProbabilityWeight-'+varName] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
         # compute the SampledVarsPb for N-D distribution
       elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] ==1:
         dist = self.variables2distributionsMapping[varName]['name']
@@ -354,13 +353,8 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
           for key in var.strip().split(','):
             self.values[key] = pt[location]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-        self.inputInfo['ProbabilityWeight-'+dist] = self.inputInfo['SampledVarsPb'][varName]
-        self.inputInfo['ProbabilityWeight']*=self.inputInfo['ProbabilityWeight-'+dist]
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-    # reassign SampledVarsPb to fully correlated variables
-    self._reassignSampledVarsPbToFullyCorrVars()
-    # reassign probability weight to correlated variables
-    self._reassignPbWeightToCorrelatedVars()
     self.inputInfo['SamplerType'] = self.type
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
@@ -392,7 +386,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       ]:
       self.pointsNeededToMakeROM.add(pt) #sets won't store redundancies
       #if pt isn't already in needed, and it hasn't already been solved, add it to the queue
-      if pt not in self.neededPoints and self.solns.realization(matchDict=self._tupleToDict(pt))[1] is None:
+      if pt not in self.neededPoints and self.solns.getMatchingRealization(self._tupleToDict(pt)) is None:
         self.newSolutionSizeShouldBe+=1
         self.neededPoints.append(pt)
 
@@ -503,7 +497,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     tot=0
     for n in range(len(sg)):
       pt,wt = sg[n]
-      _,inExisting = self.solns.realization(matchDict=self._tupleToDict(pt))
+      inExisting = self.solns.getMatchingRealization(self._tupleToDict(pt))
       if inExisting is None:
         self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
       tot+=inExisting['outputs'][self.targets[i]]**r*wt

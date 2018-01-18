@@ -15,9 +15,4 @@ format without changing the contents, run
 
 python path/to/raven/scripts/conversionScripts/standard.py test.xml
 
-To avoid to rewrite the a file ('text.xml') in case no changes in the content
-Are detected use the command line variable --no-rewrite. For example:
-
-python path/to/conversion/script.py --tests —-no-rewrite
-
  - talbpaul, 2016-02-08

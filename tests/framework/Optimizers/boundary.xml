@@ -14,14 +14,11 @@
       This test uses an inverse parabola, whose minimum is outside the domain and expected solution is
       at the lowest possible input value (1.0).
     </analytic>
-    <revisions>
-      <revision author="talbpaul" date="2018-01-04">switch from snapshot to writeSteps</revision>
-    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Boundary</WorkingDir>
-    <Sequence>optimize,print</Sequence>
+    <Sequence>optimize,getOptPoint,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -30,13 +27,19 @@
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">parabola</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
-      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">opt_export</Input>
-      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Input class="DataObjects" type="PointSet">opt_soln</Input>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
     </IOStep>
+    <PostProcess name="getOptPoint">
+      <Input class="DataObjects" type="HistorySet">opt_export</Input>
+      <Model class="Models" type="PostProcessor">snapshot</Model>
+      <Output class="DataObjects" type="PointSet">opt_soln</Output>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
+    </PostProcess>
   </Steps>
 
   <Optimizers>
@@ -45,15 +48,14 @@
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
         <type>max</type>
-        <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <gradientThreshold>1e-1</gradientThreshold>
-        <gainGrowthFactor>1.5</gainGrowthFactor>
-        <gainShrinkFactor>1.25</gainShrinkFactor>
+          <gradientThreshold>1e-1</gradientThreshold>
+          <gainGrowthFactor>1.5</gainGrowthFactor>
+          <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
-      <variable name="x">
+      <variable name='x'>
         <upperBound>2</upperBound>
         <lowerBound>1</lowerBound>
         <initial>1.5</initial>
@@ -67,6 +69,11 @@
     <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/parabolas" name="parabola" subType="">
       <variables>x,ans</variables>
     </ExternalModel>
+    <PostProcessor name="snapshot" subType="InterfacedPostProcessor">
+      <method>HistorySetSnapShot</method>
+      <type>max</type>
+      <pivotVar>varsUpdate</pivotVar>
+    </PostProcessor>
   </Models>
 
   <DataObjects>
@@ -78,16 +85,24 @@
       <Input>x</Input>
       <Output>ans</Output>
     </PointSet>
-    <PointSet name="opt_export">
+    <PointSet name="opt_soln">
       <Input>trajID</Input>
       <Output>x,ans,varsUpdate</Output>
     </PointSet>
+    <HistorySet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,ans,varsUpdate</Output>
+    </HistorySet>
   </DataObjects>
 
   <OutStreams>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
+    </Print>
+    <Print name="opt_soln">
+      <type>csv</type>
+      <source>opt_soln</source>
     </Print>
   </OutStreams>
 

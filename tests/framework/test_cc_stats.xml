@@ -104,7 +104,8 @@
 
   <DataObjects>
     <PointSet name="fullprint_Pointset">
-          <Output>normal1,normal2,uniform1,uniform2p</Output>
+      <Input>useless_input</Input>
+      <Output>normal1,normal2,uniform1,uniform2p</Output>
     </PointSet>
     <PointSet name="out_data">
       <Input>DummyIn</Input>

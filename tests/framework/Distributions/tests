@@ -2,7 +2,8 @@
  [./categorical]
    type   = 'RavenFramework'
    input  = 'test_distributionsCategorical.xml'
-   csv    = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv test_categorical/BS_basicStatPP_grid_dump.csv test_categorical/BS_basicStatPP_dump.csv'
+   output = 'test_categorical/output_basicStatistics_Grid.csv test_categorical/output_basicStatistics_MC.csv'
+   csv    = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv'
  [../]
 
  [./laplace]

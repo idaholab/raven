@@ -102,7 +102,6 @@
     <Print name="data" verbosity="silent">
       <type>csv</type>
       <source>solns</source>
-      <what>input, output</what>
     </Print>
   </OutStreams>
 

@@ -94,7 +94,6 @@
     <Print name="BNdump">
       <type>csv</type>
       <source>BNtests</source>
-      <what>input,output</what>
     </Print>
     <Print name="BNdumprom">
       <type>xml</type>

@@ -4,109 +4,109 @@
   [./linearSVC]
     type = 'RavenFramework'
     input = 'linearSVC.xml'
-    UnorderedCsv = 'data/outlinearSVC.csv'
+    csv = 'data/outlinearSVC.csv'
     output = 'data/outlinearSVC.xml'
   [../]
   [./SVC]
     type = 'RavenFramework'
     input = 'svc.xml'
-    UnorderedCsv = 'data/outSVC.csv'
+    csv = 'data/outSVC.csv'
     output = 'data/outSVC.xml'
   [../]
   [./NuSVC]
     type = 'RavenFramework'
     input = 'nuSVC.xml'
-    UnorderedCsv = 'data/outNuSVC.csv'
+    csv = 'data/outNuSVC.csv'
     output = 'data/outNuSVC.xml'
   [../]
   [./OCC]
     type = 'RavenFramework'
     input = 'occ.xml'
-    UnorderedCsv = 'data/outOCC.csv'
+    csv = 'data/outOCC.csv'
     output = 'data/outOCC.xml'
   [../]
   [./KNC]
     type = 'RavenFramework'
     input = 'knc.xml'
-    UnorderedCsv = 'data/outKNC.csv'
+    csv = 'data/outKNC.csv'
     output = 'data/outKNC.xml'
   [../]
   [./RNC]
     type = 'RavenFramework'
     input = 'rnc.xml'
-    UnorderedCsv = 'data/outRNC.csv'
+    csv = 'data/outRNC.csv'
     output = 'data/outRNC.xml'
   [../]
   [./NCC]
     type = 'RavenFramework'
     input = 'ncc.xml'
-    UnorderedCsv = 'data/outNCC.csv'
+    csv = 'data/outNCC.csv'
     output = 'data/outNCC.xml'
   [../]
   [./OVR]
     type = 'RavenFramework'
     input = 'ovr.xml'
-    UnorderedCsv = 'data/outOVR.csv'
+    csv = 'data/outOVR.csv'
     output = 'data/outOVR.xml'
   [../]
   [./OVO]
     type = 'RavenFramework'
     input = 'ovo.xml'
-    UnorderedCsv = 'data/outOVO.csv'
+    csv = 'data/outOVO.csv'
     output = 'data/outOVO.xml'
   [../]
   [./GaussianNB]
     type = 'RavenFramework'
     input = 'gaussianNB.xml'
-    UnorderedCsv = 'data/outGaussianNB.csv'
+    csv = 'data/outGaussianNB.csv'
     output = 'data/outGaussianNB.xml'
   [../]
   [./BernoulliNB]
     type = 'RavenFramework'
     input = 'bernoulliNB.xml'
-    UnorderedCsv = 'data/outBernoulliNB.csv'
+    csv = 'data/outBernoulliNB.csv'
     output = 'data/outBernoulliNB.xml'
   [../]
   [./linearRidgeC]
     type = 'RavenFramework'
     input = 'linearRidgeC.xml'
-    UnorderedCsv = 'data/outLinearRidgeC.csv'
+    csv = 'data/outLinearRidgeC.csv'
     output = 'data/outLinearRidgeC.xml'
   [../]
   [./linearRidgeCCV]
     type = 'RavenFramework'
     input = 'linearRidgeCCV.xml'
-    UnorderedCsv = 'data/outLinearRidgeCCV.csv'
+    csv = 'data/outLinearRidgeCCV.csv'
     output = 'data/outLinearRidgeCCV.xml'
   [../]
   [./linearPAC]
     type = 'RavenFramework'
     input = 'linearPAC.xml'
-    UnorderedCsv = 'data/outLinearPAC.csv'
+    csv = 'data/outLinearPAC.csv'
     output = 'data/outLinearPAC.xml'
   [../]
   [./linearSGDC]
     type = 'RavenFramework'
     input = 'linearSGDC.xml'
-    UnorderedCsv = 'data/outLinearSGDC.csv'
+    csv = 'data/outLinearSGDC.csv'
     output = 'data/outLinearSGDC.xml'
   [../]
   [./MultinomialNB]
     type = 'RavenFramework'
     input = 'multinomialNB.xml'
-    UnorderedCsv = 'data/outMultinomialNB.csv'
+    csv = 'data/outMultinomialNB.csv'
     output = 'data/outMultinomialNB.xml'
   [../]
   [./DTC]
     type = 'RavenFramework'
     input = 'dtc.xml'
-    UnorderedCsv = 'data/outDTC.csv'
+    csv = 'data/outDTC.csv'
     output = 'data/outDTC.xml'
   [../]
   [./ETC]
     type = 'RavenFramework'
     input = 'etc.xml'
-    UnorderedCsv = 'data/outETC.csv'
+    csv = 'data/outETC.csv'
     output = 'data/outETC.xml'
   [../]
 
@@ -115,25 +115,25 @@
   [./SVR]
     type = 'RavenFramework'
     input = 'svr.xml'
-    UnorderedCsv = 'data/outSVR.csv'
+    csv = 'data/outSVR.csv'
     output = 'data/outSVR.xml'
   [../]
   [./KNR]
     type = 'RavenFramework'
     input = 'knr.xml'
-    UnorderedCsv = 'data/outKNR.csv'
+    csv = 'data/outKNR.csv'
     output = 'data/outKNR.xml'
   [../]
   [./RNR]
     type = 'RavenFramework'
     input = 'rnr.xml'
-    UnorderedCsv = 'data/outRNR.csv'
+    csv = 'data/outRNR.csv'
     output = 'data/outRNR.xml'
   [../]
   [./QDA]
     type = 'RavenFramework'
     input = 'qda.xml'
-    UnorderedCsv = 'data/outQDA.csv'
+    csv = 'data/outQDA.csv'
     output = 'data/outQDA.xml'
   [../]
   [./GP]
@@ -145,133 +145,133 @@
   [./linearARD]
     type = 'RavenFramework'
     input = 'linearARD.xml'
-    UnorderedCsv = 'data/outLinearARD.csv'
+    csv = 'data/outLinearARD.csv'
     output = 'data/outLinearARD.xml'
   [../]
   [./linearBayesianRidge]
     type = 'RavenFramework'
     input = 'linearBayesianRidge.xml'
-    UnorderedCsv = 'data/outLinearBayesianRidge.csv'
+    csv = 'data/outLinearBayesianRidge.csv'
     output = 'data/outLinearBayesianRidge.xml'
   [../]
   [./linearElasticNet]
     type = 'RavenFramework'
     input = 'linearElasticNet.xml'
-    UnorderedCsv = 'data/outLinearElasticNet.csv'
+    csv = 'data/outLinearElasticNet.csv'
     output = 'data/outLinearElasticNet.xml'
   [../]
   [./linearElasticNetCV]
     type = 'RavenFramework'
     input = 'linearElasticNetCV.xml'
-    UnorderedCsv = 'data/outLinearElasticNetCV.csv'
+    csv = 'data/outLinearElasticNetCV.csv'
     output = 'data/outLinearElasticNetCV.xml'
   [../]
   [./linearLARS]
     type = 'RavenFramework'
     input = 'linearLARS.xml'
-    UnorderedCsv = 'data/outLinearLARS.csv'
+    csv = 'data/outLinearLARS.csv'
     output = 'data/outLinearLARS.xml'
   [../]
   [./linearLARSCV]
     type = 'RavenFramework'
     input = 'linearLARSCV.xml'
-    UnorderedCsv = 'data/outLinearLARSCV.csv'
+    csv = 'data/outLinearLARSCV.csv'
     output = 'data/outLinearLARSCV.xml'
   [../]
   [./linearLasso]
     type = 'RavenFramework'
     input = 'linearLasso.xml'
-    UnorderedCsv = 'data/outLinearLasso.csv'
+    csv = 'data/outLinearLasso.csv'
     output = 'data/outLinearLasso.xml'
   [../]
   [./linearLassoCV]
     type = 'RavenFramework'
     input = 'linearLassoCV.xml'
-    UnorderedCsv = 'data/outLinearLassoCV.csv'
+    csv = 'data/outLinearLassoCV.csv'
     output = 'data/outLinearLassoCV.xml'
   [../]
   [./linearLassoLARS]
     type = 'RavenFramework'
     input = 'linearLassoLARS.xml'
-    UnorderedCsv = 'data/outLinearLassoLARS.csv'
+    csv = 'data/outLinearLassoLARS.csv'
     output = 'data/outLinearLassoLARS.xml'
   [../]
   [./linearLassoLARSCV]
     type = 'RavenFramework'
     input = 'linearLassoLARSCV.xml'
-    UnorderedCsv = 'data/outLinearLassoLARSCV.csv'
+    csv = 'data/outLinearLassoLARSCV.csv'
     output = 'data/outLinearLassoLARSCV.xml'
   [../]
   [./linearLassoLARSIC]
     type = 'RavenFramework'
     input = 'linearLassoLARSIC.xml'
-    UnorderedCsv = 'data/outLinearLassoLARSIC.csv'
+    csv = 'data/outLinearLassoLARSIC.csv'
     output = 'data/outLinearLassoLARSIC.xml'
   [../]
   [./linearRegression]
     type = 'RavenFramework'
     input = 'linearRegression.xml'
-    UnorderedCsv = 'data/outLinearRegression.csv'
+    csv = 'data/outLinearRegression.csv'
     output = 'data/outLinearRegression.xml'
   [../]
   [./linearLogisticRegression]
     type = 'RavenFramework'
     input = 'linearLogisticRegression.xml'
-    UnorderedCsv = 'data/outLinearLogisticRegression.csv'
+    csv = 'data/outLinearLogisticRegression.csv'
     output = 'data/outLinearLogisticRegression.xml'
   [../]
   [./linearMultiTaskLasso]
     type = 'RavenFramework'
     input = 'linearMultiTaskLasso.xml'
-    UnorderedCsv = 'data/outLinearMultiTaskLasso.csv'
+    csv = 'data/outLinearMultiTaskLasso.csv'
     output = 'data/outLinearMultiTaskLasso.xml'
   [../]
   [./linearMultiTaskElasticNet]
     type = 'RavenFramework'
     input = 'linearMultiTaskElasticNet.xml'
-    UnorderedCsv = 'data/outLinearMultiTaskElasticNet.csv'
+    csv = 'data/outLinearMultiTaskElasticNet.csv'
     output = 'data/outLinearMultiTaskElasticNet.xml'
   [../]
   [./linearOMP]
     type = 'RavenFramework'
     input = 'linearOMP.xml'
-    UnorderedCsv = 'data/outLinearOMP.csv'
+    csv = 'data/outLinearOMP.csv'
     output = 'data/outLinearOMP.xml'
   [../]
   [./linearOMPCV]
     type = 'RavenFramework'
     input = 'linearOMPCV.xml'
-    UnorderedCsv = 'data/outLinearOMPCV.csv'
+    csv = 'data/outLinearOMPCV.csv'
     output = 'data/outLinearOMPCV.xml'
   [../]
   [./linearPerceptron]
     type = 'RavenFramework'
     input = 'linearPerceptron.xml'
-    UnorderedCsv = 'data/outLinearPerceptron.csv'
+    csv = 'data/outLinearPerceptron.csv'
     output = 'data/outLinearPerceptron.xml'
   [../]
   [./linearRidgeR]
     type = 'RavenFramework'
     input = 'linearRidgeR.xml'
-    UnorderedCsv = 'data/outLinearRidgeR.csv'
+    csv = 'data/outLinearRidgeR.csv'
     output = 'data/outLinearRidgeR.xml'
   [../]
   [./linearRidgeRCV]
     type = 'RavenFramework'
     input = 'linearRidgeRCV.xml'
-    UnorderedCsv = 'data/outLinearRidgeRCV.csv'
+    csv = 'data/outLinearRidgeRCV.csv'
     output = 'data/outLinearRidgeRCV.xml'
   [../]
   [./linearPAR]
     type = 'RavenFramework'
     input = 'linearPAR.xml'
-    UnorderedCsv = 'data/outLinearPAR.csv'
+    csv = 'data/outLinearPAR.csv'
     output = 'data/outLinearPAR.xml'
   [../]
   [./linearSGDR]
     type = 'RavenFramework'
     input = 'linearSGDR.xml'
-    UnorderedCsv = 'data/outLinearSGDR.csv'
+    csv = 'data/outLinearSGDR.csv'
     output = 'data/outLinearSGDR.xml'
   [../]
   ##############################################################################
@@ -279,13 +279,13 @@
   #[./DTR]
   #  type = 'RavenFramework'
   #  input = 'dtr.xml'
-  #  UnorderedCsv = 'data/outDTR.csv'
+  #  csv = 'data/outDTR.csv'
   #  output = 'data/outDTR.xml'
   #[../]
   #[./ETR]
   #  type = 'RavenFramework'
   #  input = 'etr.xml'
-  #  UnorderedCsv = 'data/outETR.csv'
+  #  csv = 'data/outETR.csv'
   #  output = 'data/outETR.xml'
   #[../]
 []

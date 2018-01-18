@@ -78,10 +78,7 @@
   <DataObjects>
     <HistorySet name="Temporal_Evolution">
       <Input>TIMELOCA</Input>
-      <Output>PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1)</Output>
-      <options>
-          <pivotParameter>TIME</pivotParameter>
-      </options>
+      <Output>TIME, PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1)</Output>
     </HistorySet>
   </DataObjects>
 

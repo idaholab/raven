@@ -95,7 +95,6 @@
     <Print name="Bdump">
       <type>csv</type>
       <source>Btests</source>
-      <what>input,output</what>
     </Print>
     <Print name="Bdumprom">
       <type>xml</type>

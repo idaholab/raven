@@ -51,7 +51,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     self.samplingType    = None
     self.numberOfSamples = None
     self.tolerance       = None
-    self.pivotParameter  = None
+    self.pivotParameter          = None
     self.interpolation   = None
 
   def readMoreXML(self,xmlNode):
@@ -77,62 +77,48 @@ class HistorySetSampling(PostProcessorInterfaceBase):
 
     if self.samplingType not in set(['uniform','firstDerivative','secondDerivative','filteredFirstDerivative','filteredSecondDerivative']):
       self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : sampling type is not correctly specified')
-    if self.pivotParameter is None:
+    if self.pivotParameter == None:
       self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : time ID is not specified')
 
     if self.samplingType == 'uniform' or self.samplingType == 'firstDerivative' or self.samplingType == 'secondDerivative':
-      if self.numberOfSamples is None or self.numberOfSamples < 0:
+      if self.numberOfSamples == None or self.numberOfSamples < 0:
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not specified or less than 0')
       if self.interpolation not in set(['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'intervalAverage']):
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : interpolation is not correctly specified; possible values: linear, nearest, zero, slinear, quadratic, cubic')
 
     if self.samplingType == 'filteredFirstDerivative' or self.samplingType == 'filteredSecondDerivative':
-      if self.tolerance is  None or self.tolerance < 0.0:
+      if self.tolerance == None or self.tolerance < 0.0:
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : tolerance is not specified or less than 0')
 
 
   def run(self,inputDic):
     """
-      Method to post-process the dataObjects
-      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
-      @ Out, outputDic, dict, dictionary of resampled histories
+     Method to post-process the dataObjects
+     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+     @ Out, outputDic, dict, dictionary ofr esampled histories
     """
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
       inputDic = inputDic[0]
-      outputDic={'data':{}}
+      outputDic={}
+      outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
+      outputDic['data'] = {}
+      outputDic['data']['input'] = copy.deepcopy(inputDic['data']['input'])
+      outputDic['data']['output'] = {}
 
-      for var in inputDic['inpVars']:
-        outputDic['data'][var] = copy.deepcopy(inputDic['data'][var])
-
-      for hist in range(inputDic['numberRealizations']):
-        rlz={}
-        for var in inputDic['outVars']:
-          rlz[var] = inputDic['data'][var][hist]
-        rlz[self.pivotParameter]=inputDic['data'][self.pivotParameter][hist]
-
+      for hist in inputDic['data']['output']:
         if self.samplingType in ['uniform','firstDerivative','secondDerivative']:
-          outData = self.varsTimeInterp(rlz)
+          outputDic['data']['output'][hist] = self.varsTimeInterp(inputDic['data']['output'][hist])
         elif self.samplingType in ['filteredFirstDerivative','filteredSecondDerivative']:
-          outData = timeSeriesFilter(self.pivotParameter,rlz,self.samplingType,self.tolerance)
+          outputDic['data']['output'][hist] = timeSeriesFilter(self.pivotParameter,inputDic['data']['output'][hist],self.samplingType,self.tolerance)
         else:
           self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : not recognized samplingType')
-
-        for var in outData.keys():
-          outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
-          outputDic['data'][var][hist] = outData[var]
-
-      if 'ProbabilityWeight' in inputDic['data'].keys():
-        outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
-      if 'prefix' in inputDic['data'].keys():
-        outputDic['data']['prefix'] = inputDic['data']['prefix']
-      outputDic['dims'] = copy.deepcopy(inputDic['dims'])
       return outputDic
 
   def varsTimeInterp(self, vars):
     """
-      This function samples a multi-variate temporal function
+      This function sample a multi-variate temporal function
       @ In, vars, dict, data set that contained the information of the multi-variate temporal function (this is supposed to be a dictionary:
                       {'pivotParameter':time_array, 'var1':var1_array, ..., 'varn':varn_array})
       @ Out, newVars, dict, data set that is a sampled version of vars
@@ -180,6 +166,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
                       {'pivotParameter':time_array, 'var1':var1_array, ..., 'varn':varn_array})
       @ Out, newTime, list, values of the new temporal variable
     """
+
     newTime = np.zeros(self.numberOfSamples)
     cumDerivative = np.zeros(var[self.pivotParameter].size)
 

@@ -67,7 +67,6 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outSVR</filename>
-      <what>input,output, metadata</what>
     </Print>
   </OutStreams>
 

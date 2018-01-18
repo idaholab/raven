@@ -83,7 +83,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="Run1">
+    <MultiRun name="Run1" pauseAtEnd="True">
       <Input   class="DataObjects"  type="PointSet"        >inputPlaceHolder1</Input>
       <Model   class="Models"       type="ExternalModel"   >model1</Model>
       <Sampler class="Samplers"     type="Grid"            >Grid1</Sampler>
@@ -129,7 +129,10 @@
       <Output>outcome</Output>
     </PointSet>
     <PointSet name="outPPS">
-      <Output>Astatus_FV, Bstatus_FV, Cstatus_FV, Dstatus_FV, Astatus_RAW, Bstatus_RAW, Cstatus_RAW, Dstatus_RAW, Astatus_RRW, Bstatus_RRW, Cstatus_RRW, Dstatus_RRW</Output>
+      <Input> Astatus_avg , Bstatus_avg , Cstatus_avg , Dstatus_avg</Input>
+      <Output>Astatus_FV  , Bstatus_FV  , Cstatus_FV  , Dstatus_FV
+              Astatus_RAW , Bstatus_RAW , Cstatus_RAW , Dstatus_RAW
+              Astatus_RRW , Bstatus_RRW , Cstatus_RRW , Dstatus_RRW</Output>
     </PointSet>
   </DataObjects>
   

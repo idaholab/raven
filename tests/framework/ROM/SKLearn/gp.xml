@@ -64,7 +64,6 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outGP</filename>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

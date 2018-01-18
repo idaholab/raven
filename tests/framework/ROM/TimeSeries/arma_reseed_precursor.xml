@@ -11,7 +11,6 @@
     </description>
     <revisions>
       <revision author="talbpaul" date="2017-07-12">created</revision>
-      <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
     </revisions>
   </TestInfo>
 
@@ -59,10 +58,7 @@
   <DataObjects>
     <HistorySet name="rawData">
       <Input>scaling</Input>
-      <Output>Speed,Time</Output>
-      <options>
-         <pivotParameter>Time</pivotParameter>
-      </options>
+      <Output>Time,Speed</Output>
     </HistorySet>
   </DataObjects>
 

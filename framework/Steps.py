@@ -29,13 +29,11 @@ import time
 import abc
 import os
 import sys
-import itertools
 if sys.version_info.major > 2:
   import pickle
 else:
   import cPickle as pickle
 import copy
-import numpy as np
 #import pickle as cloudpickle
 import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
@@ -47,7 +45,7 @@ from utils import utils
 from utils import InputData
 import Models
 from OutStreams import OutStreamManager
-from DataObjects import XDataObject
+from DataObjects import Data
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -145,6 +143,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+
     printString = 'For step of type {0:15} and name {1:15} the attribute {3:10} has been assigned to a not understandable value {2:10}'
     self.raiseADebug('move this tests to base class when it is ready for all the classes')
     if not set(paramInput.parameterValues.keys()).issubset(set(self._knownAttribute)):
@@ -264,27 +263,6 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     pass
-
-  def _registerMetadata(self,inDictionary):
-    """
-      collects expected metadata keys and deliver them to output data objects
-      @ In, inDictionary, dict, initialization dictionary
-      @ Out, None
-    """
-    ## first collect them
-    metaKeys = set()
-    for role,entities in inDictionary.items():
-      if isinstance(entities,list):
-        for entity in entities:
-          if hasattr(entity,'provideExpectedMetaKeys'):
-            metaKeys = metaKeys.union(entity.provideExpectedMetaKeys())
-      else:
-        if hasattr(entities,'provideExpectedMetaKeys'):
-          metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
-    ## then give them to the output data objects
-    for out in inDictionary['Output']+(inDictionary['TargetEvaluation'] if 'TargetEvaluation' in inDictionary else []):
-      if 'addExpectedMeta' in dir(out):
-        out.addExpectedMeta(metaKeys)
 
   def _endStepActions(self,inDictionary):
     """
@@ -421,8 +399,8 @@ class SingleRun(Step):
         inDictionary['Output'][i].initialize(self.name)
       elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:
         inDictionary['Output'][i].initialize(inDictionary)
+
       self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
-    self._registerMetadata(inDictionary)
 
   def _localTakeAstepRun(self,inDictionary):
     """
@@ -553,16 +531,6 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     SingleRun._localInitializeStep(self,inDictionary)
-    # check that no input data objects are also used as outputs?
-    for out in inDictionary['Output']:
-      if out.type not in ['PointSet','HistorySet','DataSet']:
-        continue
-      for inp in inDictionary['Input']:
-        if inp.type not in ['PointSet','HistorySet','DataSet']:
-          continue
-        if inp == out:
-          self.raiseAnError(IOError,'The same data object should not be used as both <Input> and <Output> in the same MultiRun step! ' \
-              + 'Step: "{}", DataObject: "{}"'.format(self.name,out.name))
     self.counter = 0
     self._samplerInitDict['externalSeeding'] = self.initSeed
     self._initializeSampler(inDictionary)
@@ -581,7 +549,6 @@ class MultiRun(SingleRun):
       else:
         self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
         self._outputDictCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
-    self._registerMetadata(inDictionary)
     self.raiseADebug('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     # set up and run the first batch of samples
     # FIXME this duplicates a lot of code from _locatTakeAstepRun, which should be consolidated
@@ -687,9 +654,8 @@ class MultiRun(SingleRun):
         self.raiseADebug('Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
       time.sleep(self.sleepTime)
-    # END while loop that runs the step iterations
-    # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
-    sampler.finalizeSampler(self.failedRuns)
+    # if any new collected runs failed, let the sampler treat them appropriately
+    sampler.handleFailedRuns(self.failedRuns)
 
   def _findANewInputToRun(self, sampler, model, inputs, outputs):
     """
@@ -713,7 +679,6 @@ class MultiRun(SingleRun):
     while found != 0:
       found,newInp = sampler.generateInput(model,inputs)
       if found == 1:
-        # loop over the outputs for this step and collect the data for each
         for collector, outIndex in self._outputDictCollectionLambda:
           collector([newInp,outputs[outIndex]])
     return newInp
@@ -841,11 +806,11 @@ class IOStep(Step):
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
       if inDictionary['Input'][i].type == 'HDF5':
-        if isinstance(outputs[i],XDataObject.DataObject):
+        if isinstance(outputs[i],Data):
           self.actionType.append('HDF5-dataObjects')
         else:
           self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
-      elif  isinstance(inDictionary['Input'][i],XDataObject.DataObject):
+      elif  isinstance(inDictionary['Input'][i],Data):
         if outputs[i].type == 'HDF5':
           self.actionType.append('dataObjects-HDF5')
         else:
@@ -858,7 +823,7 @@ class IOStep(Step):
       elif isinstance(inDictionary['Input'][i],Files.File):
         if   isinstance(outputs[i],Models.ROM):
           self.actionType.append('FILES-ROM')
-        elif isinstance(outputs[i],XDataObject.DataObject):
+        elif isinstance(outputs[i],Data):
           self.actionType.append('FILES-dataObjects')
         else:
           self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
@@ -880,16 +845,13 @@ class IOStep(Step):
       for i in range(len(inDictionary['Input'])):
         if self.actionType[i].startswith('dataObjects-'):
           inInput = inDictionary['Input'][i]
-          filename = os.path.join(self.fromDirectory, inInput.name)
-          inInput.load(filename, style='csv')
+          inInput.loadXMLandCSV(self.fromDirectory)
 
     #Initialize all the OutStreamPrint and OutStreamPlot outputs
     for output in inDictionary['Output']:
       if type(output).__name__ in ['OutStreamPrint','OutStreamPlot']:
         output.initialize(inDictionary)
         self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
-    # register metadata
-    self._registerMetadata(inDictionary)
 
   def _localTakeAstepRun(self,inDictionary):
     """
@@ -901,18 +863,10 @@ class IOStep(Step):
     for i in range(len(outputs)):
       if self.actionType[i] == 'HDF5-dataObjects':
         #inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
-        allRealizations = inDictionary['Input'][i].allRealizations()
-        ## TODO convert to load function when it can handle unstructured multiple realizations
-        for rlz in allRealizations:
-          outputs[i].addRealization(rlz)
+        outputs[i].addOutput(inDictionary['Input'][i])
       elif self.actionType[i] == 'dataObjects-HDF5':
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
-        ## TODO convert to load function when it can handle unstructured multiple realizations
-        for rlzNo in range(len(inDictionary['Input'][i])):
-          rlz = inDictionary['Input'][i].realization(rlzNo, unpackXArray=True)
-          rlz = dict((var,np.atleast_1d(val)) for var, val in rlz.items())
-          outputs[i].addRealization(rlz)
-
+        outputs[i].addGroupDataObjects({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
         #check the ROM is trained first
@@ -942,7 +896,7 @@ class IOStep(Step):
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]
         options = {'fileToLoad':infile}
-        outputs[i].load(inDictionary['Input'][i].getPath(),'csv',**options)
+        outputs[i].loadXMLandCSV(inDictionary['Input'][i].getPath(),options)
       else:
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
     for output in inDictionary['Output']:

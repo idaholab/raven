@@ -1,9 +1,0 @@
-<DataObjectMetadata name="InverseCorrelatedTest_basicStatPP">
-  <DataSet type="Static">
-    <general>
-      <outputs>skew_z01,skew_z02,vc_z01,vc_z02,percentile_5_z01,percentile_95_z01,percentile_5_z02,percentile_95_z02,mean_z01,mean_z02,kurt_z01,kurt_z02,median_z01,median_z02,max_z01,max_z02,min_z01,min_z02,samp_z01,samp_z02,var_z01,var_z02,sigma_z01,sigma_z02,nsen_z01_z01,nsen_z01_z02,nsen_z02_z01,nsen_z02_z02,sen_z01_z01,sen_z01_z02,sen_z02_z01,sen_z02_z02,pear_z01_z01,pear_z01_z02,pear_z02_z01,pear_z02_z02,cov_z01_z01,cov_z01_z02,cov_z02_z01,cov_z02_z02,vsen_z01_z01,vsen_z01_z02,vsen_z02_z01,vsen_z02_z02</outputs>
-      <sampleTag>RAVEN_sample_ID</sampleTag>
-    </general>
-  </DataSet>
-  
-</DataObjectMetadata>

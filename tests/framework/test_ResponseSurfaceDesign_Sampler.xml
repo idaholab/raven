@@ -117,12 +117,10 @@
     <Print name="CentralCompositeRespDesign_dump">
       <type>csv</type>
       <source>CentralCompositeRespDesignData</source>
-      <what>input,output</what>
     </Print>
     <Print name="BoxBehnkenRespDesign_dump">
       <type>csv</type>
       <source>BoxBehnkenRespDesignData</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

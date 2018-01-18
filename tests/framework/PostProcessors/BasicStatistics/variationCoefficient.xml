@@ -5,7 +5,6 @@
     <Sequence>FirstMRun,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/variationCoefficient</name>
     <author>wangc</author>
@@ -16,12 +15,11 @@
 			This test will make sure the expectedValue and the variationCoefficient are correctly computed.
 			If the expectedValues are zero, the variationCoefficient will be INF.
     </description>
-    <revisions>
-      <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
-    </revisions>
   </TestInfo>
 
   <Files>
+    <Input name="output.csv" type="">output_variation_coefficient.csv</Input>
+    <Input name="output.xml" type="">output_variation_coefficient.xml</Input>
     <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
   </Files>
 
@@ -30,7 +28,7 @@
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
     </ExternalModel>
     <PostProcessor name="variationCoefficient" subType="BasicStatistics" verbosity="debug">
-      <variationCoefficient prefix="vc">x0,y0,z0,x,y,z</variationCoefficient>
+      <variationCoefficient>x0,y0,z0,x,y,z</variationCoefficient>
     </PostProcessor>
   </Models>
 
@@ -76,8 +74,8 @@
     <PostProcess name="PP">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">variationCoefficient</Model>
-      <Output class="DataObjects" type="PointSet">variationCoefficient_basicStatPP</Output>
-      <Output class="OutStreams" type="Print">variationCoefficient_basicStatPP_dump</Output>
+      <Output class="Files" type="">output.csv</Output>
+      <Output class="Files" type="">output.xml</Output>
     </PostProcess>
   </Steps>
 
@@ -86,25 +84,6 @@
       <Input>x0,y0,z0</Input>
       <Output>time,x02,y02,z02,x01,y01,z01,x,y,z</Output>
     </PointSet>
-    <PointSet name="variationCoefficient_basicStatPP">
-      <Output>variationCoefficient_vars</Output>
-    </PointSet>
   </DataObjects>
-
-  <VariableGroups>
-    <Group name="variationCoefficient_vars">vc_x0,
-                 vc_y0,
-                 vc_z0,
-                 vc_x,
-                 vc_y,
-                 vc_z</Group>
-  </VariableGroups>
-
-  <OutStreams>
-    <Print name="variationCoefficient_basicStatPP_dump">
-      <type>csv</type>
-      <source>variationCoefficient_basicStatPP</source>
-    </Print>
-  </OutStreams>
 
 </Simulation>

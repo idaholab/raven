@@ -1,0 +1,5 @@
+<data name="outCustomSampler_dump" type="Pointset"><input>y,x,z</input><output>OutputPlaceHolder</output><inputFilename>outCustomSampler_dump.csv</inputFilename><metadata><SamplerType>array([u'Custom', u'Custom', u'Custom', u'Custom', u'Custom'], dtype=object)</SamplerType><crowDist>array([{}, {}, {}, {}, {}], dtype=object)</crowDist><SampledVars>array([{'y': 0.725675246, 'x': 0.031099304000000001, 'z': 0.984988317},
+       {'y': 0.565949127, 'x': 0.028589753999999998, 'z': 1.1318637199999999},
+       {'y': 0.72567753999999995, 'x': 0.031099304000000001, 'z': 0.96720923800000003},
+       {'y': 0.56595163299999995, 'x': 0.028589753999999998, 'z': 1.111431662},
+       {'y': 0.72596830700000003, 'x': 0.031100307000000001, 'z': 0.98498834999999996}], dtype=object)</SampledVars><prefix>array(['1', '2', '3', '4', '5'], dtype=object)</prefix><SampledVarsPb>array([{}, {}, {}, {}, {}], dtype=object)</SampledVarsPb><PointProbability>array([None, None, None, None, None], dtype=object)</PointProbability></metadata></data>

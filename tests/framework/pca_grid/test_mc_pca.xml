@@ -81,7 +81,6 @@
     <Print name="testPrintPointSet_dump">
       <type>csv</type>
       <source>testPrintPointSet</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

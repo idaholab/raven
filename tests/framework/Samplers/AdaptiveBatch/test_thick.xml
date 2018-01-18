@@ -53,15 +53,15 @@
 
   <DataObjects>
     <PointSet name="dummyIn">
-      <Input>x2,x1</Input>
+      <Input>x1,x2</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="response">
-      <Input>x2,x1</Input>
+      <Input>x1,x2</Input>
       <Output>y</Output>
     </PointSet>
     <PointSet name="limit_surface">
-      <Input>x2,x1</Input>
+      <Input>x1,x2</Input>
       <Output>label</Output>
     </PointSet>
   </DataObjects>
@@ -133,12 +133,10 @@
     <Print name="thick_ls">
       <type>csv</type>
       <source>limit_surface</source>
-      <what>input,output</what>
     </Print>
     <Print name="thick_samples">
       <type>csv</type>
       <source>response</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

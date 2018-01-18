@@ -110,7 +110,6 @@
     <Print name="dump_romout">
       <type>csv</type>
       <source>romout</source>
-     <what>input, output, metadata|ProbabilityWeight, metadata|prefix</what>
     </Print>
   </OutStreams>
 

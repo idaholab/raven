@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
 <PointSet name="outGrid">
-  <Input>VarGauss2,VarGauss1,VarTri1</Input>
+  <Input>VarGauss1,VarGauss2,VarTri1</Input>
   <Output>OutputPlaceHolder</Output>
 </PointSet>

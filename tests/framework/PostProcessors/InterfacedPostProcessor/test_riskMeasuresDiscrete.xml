@@ -95,6 +95,7 @@
       <Output>Tmax,outcome,failureTime</Output>
     </PointSet>
     <PointSet name="outPPS">
+      <Input> pump1Time_avg , pump2Time_avg , valveTime_avg</Input>
       <Output>pump1Time_B   , pump2Time_B   , valveTime_B,
               pump1Time_FV  , pump2Time_FV  , valveTime_FV,
               pump1Time_RAW , pump2Time_RAW , valveTime_RAW,

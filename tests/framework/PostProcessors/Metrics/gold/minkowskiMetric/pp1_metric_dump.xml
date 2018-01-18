@@ -1,9 +1,0 @@
-<DataObjectMetadata name="pp1_metric">
-  <DataSet type="Static">
-    <general>
-      <outputs>minkowskiMetric_ans2_ans</outputs>
-      <sampleTag>RAVEN_sample_ID</sampleTag>
-    </general>
-  </DataSet>
-  
-</DataObjectMetadata>

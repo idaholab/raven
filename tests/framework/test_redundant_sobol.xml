@@ -114,7 +114,6 @@
     <Print name="hdmr_out">
       <type>csv</type>
       <source>scset</source>
-      <what>input, output</what>
     </Print>
   </OutStreams>
 

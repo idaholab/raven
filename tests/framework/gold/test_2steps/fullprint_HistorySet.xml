@@ -1,15 +1,24 @@
-<DataObjectMetadata name="stories">
-  <DataSet type="Static">
-    <dims>
-      <out1>time</out1>
-      <out2>time</out2>
-    </dims>
-    <general>
-      <inputs>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</inputs>
-      <pointwise_meta>ProbabilityWeight,ProbabilityWeight-auxBackupTimeDist,PointProbability,ProbabilityWeight-Gauss2,ProbabilityWeight-Gauss1,ProbabilityWeight-CladFailureDist,prefix</pointwise_meta>
-      <outputs>out1,out2</outputs>
-      <sampleTag>RAVEN_sample_ID</sampleTag>
-    </general>
-  </DataSet>
-  
-</DataObjectMetadata>
+<data name="fullprint_HistorySet" type="HistorySet"><input>CladFailureDist,auxBackupTimeDist,Gauss1,Gauss2</input><output>out1,out2,time</output><inputFilename>fullprint_HistorySet.csv</inputFilename><metadata><SamplerType>array([u'MonteCarlo', u'MonteCarlo', u'MonteCarlo', u'MonteCarlo',
+       u'MonteCarlo', u'MonteCarlo', u'MonteCarlo', u'MonteCarlo'], dtype=object)</SamplerType><crowDist>array([ {u'Gauss1': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'Gauss2': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0}', u'auxBackupTimeDist': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'CladFailureDist': '{"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 3.0, "xMax": 3.0, "xMin": -0.1, "xPeak": 1.0}'},
+       {u'Gauss1': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'Gauss2': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0}', u'auxBackupTimeDist': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'CladFailureDist': '{"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 3.0, "xMax": 3.0, "xMin": -0.1, "xPeak": 1.0}'},
+       {u'Gauss1': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'Gauss2': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0}', u'auxBackupTimeDist': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'CladFailureDist': '{"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 3.0, "xMax": 3.0, "xMin": -0.1, "xPeak": 1.0}'},
+       {u'Gauss1': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'Gauss2': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0}', u'auxBackupTimeDist': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'CladFailureDist': '{"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 3.0, "xMax": 3.0, "xMin": -0.1, "xPeak": 1.0}'},
+       {u'Gauss1': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'Gauss2': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0}', u'auxBackupTimeDist': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'CladFailureDist': '{"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 3.0, "xMax": 3.0, "xMin": -0.1, "xPeak": 1.0}'},
+       {u'Gauss1': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'Gauss2': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0}', u'auxBackupTimeDist': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'CladFailureDist': '{"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 3.0, "xMax": 3.0, "xMin": -0.1, "xPeak": 1.0}'},
+       {u'Gauss1': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'Gauss2': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0}', u'auxBackupTimeDist': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'CladFailureDist': '{"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 3.0, "xMax": 3.0, "xMin": -0.1, "xPeak": 1.0}'},
+       {u'Gauss1': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'Gauss2': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0}', u'auxBackupTimeDist': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'CladFailureDist': '{"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 3.0, "xMax": 3.0, "xMin": -0.1, "xPeak": 1.0}'}], dtype=object)</crowDist><SampledVars>array([ {u'auxBackupTimeDist': 0.99986675525271529, u'Gauss2': 1.9872137547498299, u'Gauss1': 0.99959557508559493, u'CladFailureDist': 2.2261687473964353},
+       {u'auxBackupTimeDist': 1.0001683507947545, u'Gauss2': 1.50265571073309, u'Gauss1': 1.0000412196520843, u'CladFailureDist': 0.45212036489514729},
+       {u'auxBackupTimeDist': 1.0000683181665129, u'Gauss2': 0.84893211765524079, u'Gauss1': 0.99911335678324376, u'CladFailureDist': 1.3434707735593705},
+       {u'auxBackupTimeDist': 0.99942669369441772, u'Gauss2': 1.1067803304022741, u'Gauss1': 0.99964842302552448, u'CladFailureDist': 2.3900450562389191},
+       {u'auxBackupTimeDist': 0.99988918941585792, u'Gauss2': 0.65217597983185305, u'Gauss1': 1.0023810727917302, u'CladFailureDist': 0.87836824697878402},
+       {u'auxBackupTimeDist': 0.99978804743577432, u'Gauss2': 0.76011676365328373, u'Gauss1': 0.99920096358351729, u'CladFailureDist': 0.6823105484696429},
+       {u'auxBackupTimeDist': 0.99986675525271529, u'Gauss2': 1.9872137547498299, u'Gauss1': 0.99959557508559493, u'CladFailureDist': 2.2261687473964353},
+       {u'auxBackupTimeDist': 1.0001683507947545, u'Gauss2': 1.50265571073309, u'Gauss1': 1.0000412196520843, u'CladFailureDist': 0.45212036489514729}], dtype=object)</SampledVars><ProbabilityWeight>array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])</ProbabilityWeight><prefix>array(['1', '2', '3', '4', '5', '6', '1', '2'], dtype=object)</prefix><SampledVarsPb>array([ {u'auxBackupTimeDist': 395.41650975822853, u'Gauss2': 0.048038736954019286, u'Gauss1': 367.61529233109405, u'CladFailureDist': 0.2496229847108273},
+       {u'auxBackupTimeDist': 393.3287399893461, u'Gauss2': 0.45853353819973824, u'Gauss1': 398.6035109399853, u'CladFailureDist': 0.3238242609355702},
+       {u'auxBackupTimeDist': 398.01235990487896, u'Gauss2': 0.9403831224980295, u'Gauss1': 269.27917019477286, u'CladFailureDist': 0.5343642665937515},
+       {u'auxBackupTimeDist': 338.4839532513193, u'Gauss2': 0.97454744177873, u'Gauss1': 375.0328271803878, u'CladFailureDist': 0.19675965927776803},
+       {u'auxBackupTimeDist': 396.5004805280013, u'Gauss2': 0.6919662841277738, u'Gauss1': 23.431070154518313, u'CladFailureDist': 0.5738230187558849},
+       {u'auxBackupTimeDist': 390.08115258810074, u'Gauss2': 0.8436853994071385, u'Gauss1': 289.9148178683989, u'CladFailureDist': 0.458833166257855},
+       {u'auxBackupTimeDist': 395.41650975822853, u'Gauss2': 0.048038736954019286, u'Gauss1': 367.61529233109405, u'CladFailureDist': 0.2496229847108273},
+       {u'auxBackupTimeDist': 393.3287399893461, u'Gauss2': 0.45853353819973824, u'Gauss1': 398.6035109399853, u'CladFailureDist': 0.3238242609355702}], dtype=object)</SampledVarsPb><PointProbability>array([  1743.10889696,  23279.6952117 ,  53856.92507565,  24341.44836492,
+         3688.9157981 ,  43778.48382475,   1743.10889696,  23279.6952117 ])</PointProbability></metadata></data>

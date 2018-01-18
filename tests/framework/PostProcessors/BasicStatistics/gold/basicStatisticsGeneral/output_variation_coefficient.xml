@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<BasicStatisticsPP type="Static">
+  <y0>
+    <variationCoefficient>0.0113128983744</variationCoefficient>
+  </y0>
+
+  <y>
+    <variationCoefficient>0.0112455433226</variationCoefficient>
+  </y>
+
+  <x>
+    <variationCoefficient>0.176795081939</variationCoefficient>
+  </x>
+
+  <x0>
+    <variationCoefficient>inf</variationCoefficient>
+  </x0>
+
+  <z>
+    <variationCoefficient>0.156545224383</variationCoefficient>
+  </z>
+
+  <z0>
+    <variationCoefficient>0.150734289937</variationCoefficient>
+  </z0>
+
+</BasicStatisticsPP>

@@ -73,6 +73,7 @@ class HS2PS(PostProcessorInterfaceBase):
     if self.pivotParameter == None:
       self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' : pivotParameter is not specified')
 
+
   def run(self,inputDic):
     """
     This method performs the actual transformation of the data object from history set to point set
@@ -82,47 +83,64 @@ class HS2PS(PostProcessorInterfaceBase):
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
-      inputDict = inputDic[0]
-      outputDic = {'data': {}}
-      outputDic['dims'] = {}
-      numSamples = inputDict['numberRealizations']
+      inputDic = inputDic[0]
+      outputDic={}
+      outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
+      outputDic['data'] = {}
+      outputDic['data']['output'] = {}
+      outputDic['data']['input']  = {}
 
-      # generate the input part of the output dictionary
-      for inputVar in inputDict['inpVars']:
-        outputDic['data'][inputVar] = inputDict['data'][inputVar]
+      #generate the input part of the output dictionary
+      inputVars = inputDic['data']['input'][inputDic['data']['input'].keys()[0]].keys()
+      for inputVar in inputVars:
+        outputDic['data']['input'][inputVar] = np.empty(0)
 
-      # generate the output part of the output dictionary
+      for hist in inputDic['data']['input']:
+        for inputVar in inputVars:
+          outputDic['data']['input'][inputVar] = np.append(outputDic['data']['input'][inputVar], copy.deepcopy(inputDic['data']['input'][hist][inputVar]))
+
+      #generate the output part of the output dictionary
       if self.features == 'all':
-        self.features = inputDict['outVars']
+        self.features = []
+        historiesID = inputDic['data']['output'].keys()
+        self.features = inputDic['data']['output'][historiesID[0]].keys()
 
-      historyLength = len(inputDict['data'][self.features[0]][0])
-      numVariables = historyLength*len(self.features)
-      for history in inputDict['data'][self.features[0]]:
-        if len(history) != historyLength:
+      referenceHistory = inputDic['data']['output'].keys()[0]
+      referenceTimeAxis = inputDic['data']['output'][referenceHistory][self.pivotParameter]
+      for hist in inputDic['data']['output']:
+        if (str(inputDic['data']['output'][hist][self.pivotParameter]) != str(referenceTimeAxis)):
           self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' : one or more histories in the historySet have different time scale')
 
       tempDict = {}
-      matrix = np.zeros((numSamples,numVariables), dtype=object)
-      for i in range(numSamples):
-        temp = np.empty(0)
+
+      for hist in inputDic['data']['output'].keys():
+        tempDict[hist] = np.empty(0)
         for feature in self.features:
-          temp=np.append(temp,inputDict['data'][feature][i])
-        matrix[i,:]=temp
+          if feature != self.pivotParameter:
+            tempDict[hist] = np.append(tempDict[hist],copy.deepcopy(inputDic['data']['output'][hist][feature]))
+        length = np.size(tempDict[hist])
 
-      for key in range(numVariables):
-        outputDic['data'][str(key)] = np.empty((1,), dtype=object)
-        outputDic['data'][str(key)] = matrix[:,key]
-        outputDic['dims'][str(key)] = []
+      for hist in tempDict:
+        if np.size(tempDict[hist]) != length:
+          self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' : one or more histories in the historySet have different length')
 
-      outputDic['data']['ProbabilityWeight'] = inputDict['data']['ProbabilityWeight']
-      outputDic['data']['prefix'] = inputDict['data']['prefix']
+      for key in range(length):
+        if key != self.pivotParameter:
+          outputDic['data']['output'][key] = np.empty(0)
+
+      for hist in inputDic['data']['output'].keys():
+        for key in outputDic['data']['output'].keys():
+          outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key], copy.deepcopy(tempDict[hist][int(key)]))
 
       self.transformationSettings['vars'] = copy.deepcopy(self.features)
-      self.transformationSettings['timeLength'] = historyLength
-      self.transformationSettings['timeAxis'] = inputDict['data'][self.pivotParameter][0]
-      self.transformationSettings['dimID'] = outputDic['data'].keys()
+      self.transformationSettings['vars'].remove(self.pivotParameter)
+      self.transformationSettings['timeLength'] = int(length/len(self.transformationSettings['vars']))
+      self.transformationSettings['timeAxis'] = inputDic['data']['output'][1][self.pivotParameter]
+      self.transformationSettings['dimID'] = outputDic['data']['output'].keys()
 
       return outputDic
+
+
 
   def _inverse(self,inputDic):
 

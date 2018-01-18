@@ -1,9 +1,0 @@
-<DataObjectMetadata name="analyticalTest_basicStatPP">
-  <DataSet type="Static">
-    <general>
-      <outputs>skew_x1,skew_y1,vc_x1,vc_y1,percentile_5_x1,percentile_95_x1,percentile_5_y1,percentile_95_y1,mean_x1,mean_y1,kurt_x1,kurt_y1,median_x1,median_y1,max_x1,max_y1,min_x1,min_y1,samp_x1,samp_y1,var_x1,var_y1,sigma_x1,sigma_y1,nsen_x1_x1,nsen_x1_y1,nsen_y1_x1,nsen_y1_y1,sen_x1_x1,sen_x1_y1,sen_y1_x1,sen_y1_y1,pear_x1_x1,pear_x1_y1,pear_y1_x1,pear_y1_y1,cov_x1_x1,cov_x1_y1,cov_y1_x1,cov_y1_y1,vsen_x1_x1,vsen_x1_y1,vsen_y1_x1,vsen_y1_y1</outputs>
-      <sampleTag>RAVEN_sample_ID</sampleTag>
-    </general>
-  </DataSet>
-  
-</DataObjectMetadata>

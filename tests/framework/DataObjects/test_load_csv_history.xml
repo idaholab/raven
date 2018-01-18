@@ -46,10 +46,7 @@
   <DataObjects>
     <HistorySet name="data">
       <Input>b,c</Input>
-      <Output>1</Output>
-      <options>
-        <pivotParameter>Time</pivotParameter>
-      </options>
+      <Output>1,Time</Output>
     </HistorySet>
   </DataObjects>
 

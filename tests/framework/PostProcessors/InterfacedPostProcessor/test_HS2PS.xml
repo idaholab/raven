@@ -22,17 +22,18 @@
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"    >MC_external</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >outMC</Output>
-      <Output  class="OutStreams"  type="Print"         >PrintHistorySet_dump</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="Databases" type="HDF5">out_db</Output>
+      <Output class="OutStreams" type="Print">PrintHistorySet_dump</Output>
     </MultiRun>
     <PostProcess name="PP">
-      <Input  class="DataObjects" type="HistorySet"     >outMC</Input>
-      <Model  class="Models"      type="PostProcessor"  >HS2PS</Model>
-      <Output class="DataObjects" type="PointSet"       >outMC_PP</Output>
-      <Output class="OutStreams"  type="Print"          >PrintPPPointSet_dump</Output>
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Model class="Models" type="PostProcessor">HS2PS</Model>
+      <Output class="DataObjects" type="PointSet">outMC_PP</Output>
+      <Output class="OutStreams" type="Print">PrintPPPointSet_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -78,6 +79,10 @@
     </MonteCarlo>
   </Samplers>
 
+  <Databases>
+    <HDF5 name="out_db" readMode="overwrite"/>
+  </Databases>
+
   <OutStreams>
     <Print name="PrintHistorySet_dump">
       <type>csv</type>
@@ -87,6 +92,30 @@
       <type>csv</type>
       <source>outMC_PP</source>
     </Print>
+    <Plot  name="plot1" overwrite="False">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>100</interpPointsX>
+          <x>outMC|Output|time</x>
+          <y>outMC|Output|x</y>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>outMC_PP|Output|time</x>
+          <y>outMC_PP|Output|x</y>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+        <title>
+          <text>Plot History</text>
+        </title>
+      </actions>
+    </Plot>
   </OutStreams>
 
   <DataObjects>
@@ -95,8 +124,8 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="outMC_PP">
-      <Input>y0,x0,z0</Input>
-      <Output>3,2,1,0,5,4</Output>
+      <Input>x0,y0,z0</Input>
+      <Output>0,1,2,3,4,5</Output>
     </PointSet>
     <HistorySet name="outMC">
       <Input>x0,y0,z0</Input>

@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>badData</WorkingDir>
-    <Sequence>readData,prepData</Sequence>
+    <Sequence>readData,prepData</Sequence> 
   </RunInfo>
 
   <Files>
@@ -21,24 +21,18 @@
   <DataObjects>
     <HistorySet name="data">
       <Input>index,scaling</Input>
-      <Output>number</Output>
-      <options>
-        <pivotParameter>seconds</pivotParameter>
-      </options>
+      <Output>seconds,number</Output>
     </HistorySet>
     <HistorySet name="typicalData">
       <Input>index,scaling</Input>
-      <Output>number</Output>
-      <options>
-        <pivotParameter>seconds</pivotParameter>
-      </options>
+       <Output>seconds,number</Output>
     </HistorySet>
   </DataObjects>
 
   <Steps>
     <IOStep name='readData'>
       <Input  class='Files'       type=''          >rawDataFile</Input>
-      <Output class='DataObjects' type='HistorySet'>data</Output>
+      <Output class='DataObjects' type='HistorySet'>data</Output>          
     </IOStep>
     <PostProcess name='prepData'>
       <Input  class='DataObjects' type='HistorySet'   >data</Input>

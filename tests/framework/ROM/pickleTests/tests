@@ -3,13 +3,13 @@
     type  = 'RavenFramework'
     input = 'stochpoly_pickle.xml'
     xml = 'StochasticPolyPickleTest/Udump.xml StochasticPolyPickleTest/pdump.xml'
-    UnorderedCsv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
+    csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
     remove_unicode_identifier = true
   [../]
   [./coldRestart]
     type  = 'RavenFramework'
     input = 'restart_stochpoly_rom.xml'
-    UnorderedCsv = 'ColdRestart/solns.csv'
+    csv = 'ColdRestart/solns.csv'
     prereq = stochPolyPickleTest
   [../]
   [./loadUntrainedError]

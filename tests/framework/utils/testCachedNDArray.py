@@ -89,7 +89,6 @@ checkAnswer('index max',testArray.returnIndexMax(),6)
 #test min
 checkAnswer('index min',testArray.returnIndexMin(),5)
 
-
 #test repr
 msg = str(testArray)
 right = 'array([ -3.14   ,   2.99792,   2.718  ,   8.987  ,   0.618  ,  -6.626  ,\n        12.56   ,   6.67   ])'

@@ -1,0 +1,116 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.testLimitSurfaceMultiGridSampling</name>
+    <author>alfoa</author>
+    <created>2015-09-10</created>
+    <classesTested>Samplers.LimitSurfaceSearch, Functions.External</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to perform an adaptive sampling strategy of type LimitSurfaceSearch
+       when using the convergence acceleration scheme of type Multi-Grid.
+    </description>
+    <revisions>
+      <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
+      <revision author="alfoa" date="2015-10-05">Modified multigrid test to make it faster</revision>
+      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+      <revision author="maljdan" date="2016-11-08">Serializing the adaptive tests and regolding the multigrid case since I can validate the results look good. I am still trying to understand what the correct results for the 3D case are.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>limitSurfaceMultiGrid</WorkingDir>
+    <Sequence>GoalOrientedStep,dumpLSout</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="GoalOrientedStep" pauseAtEnd="False">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="LimitSurfaceSearch">workshopAdaptive</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
+      <Output class="DataObjects" type="PointSet">outAdaptive</Output>
+    </MultiRun>
+    <IOStep name="dumpLSout" pauseAtEnd="False">
+      <Input class="DataObjects" type="PointSet">limitSurface</Input>
+      <Output class="OutStreams" type="Print">limitSurfaceTwoIslandsCSV</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outAdaptive">
+      <Input>x1,x2</Input>
+      <Output>y4,failure</Output>
+    </PointSet>
+    <PointSet name="limitSurface">
+      <Input>x1,x2</Input>
+      <Output>goalFunction</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+    <Normal name="normal_trunc">
+      <mean>0</mean>
+      <sigma>1</sigma>
+      <lowerBound>-1.5</lowerBound>
+      <upperBound>1.5</upperBound>
+    </Normal>
+    <Normal name="normal">
+      <mean>0</mean>
+      <sigma>1</sigma>
+      <lowerBound>-1.5</lowerBound>
+      <upperBound>1.5</upperBound>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <LimitSurfaceSearch name="workshopAdaptive">
+      <ROM class="Models" type="ROM">AccelerationROM</ROM>
+      <Function class="Functions" type="External">goalFunction</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">outAdaptive</TargetEvaluation>
+      <Convergence forceIteration="False" limit="50000" persistence="10" subGridTol="0.0001" weight="CDF">0.0004</Convergence>
+      <variable name="x1">
+        <distribution>normal_trunc</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>normal</distribution>
+      </variable>
+    </LimitSurfaceSearch>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="twoIslandsModel" name="PythonModule" subType="">
+      <variables>x1,x2,y4,failure</variables>
+    </ExternalModel>
+    <ROM name="AccelerationROM" subType="SciKitLearn">
+      <Features>x1,x2</Features>
+      <Target>goalFunction</Target>
+      <SKLtype>svm|SVC</SKLtype>
+      <kernel>rbf</kernel>
+      <gamma>10</gamma>
+      <tol>1e-6</tol>
+      <C>50</C>
+    </ROM>
+  </Models>
+
+  <Functions>
+    <External file="limitSurfaceMultiGrid/goalFunctionTwoIslands" name="goalFunction">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>y4</variable>
+      <variable>failure</variable>
+    </External>
+  </Functions>
+
+  <OutStreams>
+    <Print name="limitSurfaceTwoIslandsCSV">
+      <type>csv</type>
+      <source>limitSurface</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

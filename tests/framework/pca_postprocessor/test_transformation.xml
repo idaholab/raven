@@ -5,7 +5,6 @@
     <Sequence>FirstMRun,computeRank</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pca_grid/transformationMatrix</name>
     <author>wangc</author>
@@ -14,13 +13,12 @@
     <description>
       Tests the ImportanceRank postprocessor to output transformation and inverse transformation matrices.
     </description>
-    <revisions>
-      <revision author="wangc" date="2017-12-13">convert test to use the new dataobjects</revision>
-    </revisions>
   </TestInfo>
 
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
+    <Input name="output.xml" type="">output.xml</Input>
+    <Input name="output.csv" type="">output.csv</Input>
   </Files>
 
   <Models>
@@ -88,8 +86,10 @@
     <PostProcess name="computeRank">
       <Input class="DataObjects" type="PointSet">solns</Input>
       <Model class="Models" type="PostProcessor">test_importantRank</Model>
-      <Output class="DataObjects" type="PointSet">test_importantRank_Dataset</Output>
-      <Output class="OutStreams" type="Print">test_importantRank_transform_Dataset_dump</Output>
+      <Output class="Files" type="">output.xml</Output>
+      <Output class="Files" type="">output.csv</Output>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+      <Output class="OutStreams" type="Print">importantRank</Output>
     </PostProcess>
   </Steps>
 
@@ -97,10 +97,6 @@
     <Print name="importantRank">
       <type>csv</type>
       <source>solns</source>
-    </Print>
-    <Print name="test_importantRank_transform_Dataset_dump">
-      <type>csv</type>
-      <source>test_importantRank_Dataset</source>
     </Print>
   </OutStreams>
 
@@ -113,35 +109,6 @@
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="test_importantRank_Dataset">
-      <Output>test_importantRank_vars</Output>
-    </PointSet>
   </DataObjects>
-
-  <VariableGroups>
-    <Group name="test_importantRank_vars">transformation_z0_y1,
-                 transformation_z0_x1,
-                 transformation_x0_y1,
-                 transformation_x0_x1,
-                 transformation_y0_y1,
-                 transformation_y0_x1,
-                 inverseTransformation_y1_z0,
-                 inverseTransformation_y1_x0,
-                 inverseTransformation_y1_y0,
-                 inverseTransformation_x1_z0,
-                 inverseTransformation_x1_x0,
-                 inverseTransformation_x1_y0,
-                 manifestSensitivity_x_z0,
-                 manifestSensitivity_x_x0,
-                 manifestSensitivity_x_y0,
-                 manifestSensitivity_y_z0,
-                 manifestSensitivity_y_x0,
-                 manifestSensitivity_y_y0,
-                 manifestSensitivity_z_z0,
-                 manifestSensitivity_z_x0,
-                 manifestSensitivity_z_y0,
-                 pcaIndex_y1,
-                 pcaIndex_x1</Group>
-  </VariableGroups>
 
 </Simulation>

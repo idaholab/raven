@@ -13,9 +13,8 @@
    type = 'RavenFramework'
    input = test_perturb_mammoth_bison_relap7.xml
    output = 'MammothInterface/Bison_Relap7/perturb_mammoth.csv MammothInterface/Bison_Relap7/MCTestMammoth/1/bison.i MammothInterface/Bison_Relap7/MCTestMammoth/1/relap.i MammothInterface/Bison_Relap7/MCTestMammoth/2/bison.i MammothInterface/Bison_Relap7/MCTestMammoth/2/relap.i MammothInterface/Bison_Relap7/MCTestMammoth/3/bison.i MammothInterface/Bison_Relap7/MCTestMammoth/3/relap.i'
-   UnorderedCsv = 'MammothInterface/Bison_Relap7/perturb_mammoth_0.csv MammothInterface/Bison_Relap7/perturb_mammoth_1.csv MammothInterface/Bison_Relap7/perturb_mammoth_2.csv'
+   csv = 'MammothInterface/Bison_Relap7/perturb_mammoth_0.csv MammothInterface/Bison_Relap7/perturb_mammoth_1.csv MammothInterface/Bison_Relap7/perturb_mammoth_2.csv'
    test_interface_only = True
-   rel_err = 0.000001
  [../]
 
  [./testMCMammothNoExecutableBisonRelap7WithHDF5restart]

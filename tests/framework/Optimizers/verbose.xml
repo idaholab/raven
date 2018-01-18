@@ -9,9 +9,6 @@
     <description>
       This tests the output of preset verbosity options (_stepSize, etc) for optimizer runs.
     </description>
-    <revisions>
-      <revision author='talbpaul' date='2018-01-03'>Switched from snapshot to writeSteps as final</revision>
-    </revisions>
   </TestInfo>
 
   <!-- actual RAVEN input -->
@@ -26,7 +23,7 @@
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
-      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
@@ -40,18 +37,17 @@
       <initialization>
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
-        <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <gradientThreshold>1e-1</gradientThreshold>
+          <gradientThreshold>1e-1</gradientThreshold>
       </convergence>
-      <variable name="x">
+      <variable name='x'>
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
         <initial>0</initial>
       </variable>
-      <variable name="y">
+      <variable name='y'>
         <upperBound>4.5</upperBound>
         <lowerBound>-4.5</lowerBound>
         <initial>0</initial>
@@ -80,10 +76,10 @@
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate</Output>
     </PointSet>
-    <PointSet name="opt_export">
+    <HistorySet name="opt_export">
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate,stepSize,gradient_x,gradient_y,convergenceAbs,convergenceRel,convergenceGrad</Output>
-    </PointSet>
+    </HistorySet>
   </DataObjects>
 
   <OutStreams>

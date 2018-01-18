@@ -119,7 +119,6 @@
     <Print name="dump">
       <type>csv</type>
       <source>solns</source>
-      <what>input, output</what>
     </Print>
     <Print name="dumprom">
       <type>xml</type>

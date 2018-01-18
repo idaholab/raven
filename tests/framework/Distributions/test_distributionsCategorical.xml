@@ -10,48 +10,50 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
-      <revision author="wangc" date="2017-12-20">convert test to use the new DataObjects with the new structure of basic statistic</revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>test_categorical/</WorkingDir>
-    <Sequence>MCrun,PP_MC,GridRun,PP_Grid, OutStreams</Sequence>
+    <Sequence>MCrun,PP_MC,GridRun,PP_Grid,OutStreams</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
+  <Files>
+    <Input name="output_basicStatistics_Grid.csv" type="">output_basicStatistics_Grid.csv</Input>
+    <Input name="output_basicStatistics_MC.csv"   type="">output_basicStatistics_MC.csv</Input>
+  </Files>
+
   <Steps>
-    <MultiRun name="MCrun">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
-      <Output class="DataObjects" type="PointSet">PointSet_MC</Output>
+    <MultiRun  name="MCrun">
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
     </MultiRun>
     <PostProcess name="PP_MC">
-      <Input class="DataObjects" type="PointSet">PointSet_MC</Input>
-      <Model class="Models" type="PostProcessor">BS</Model>
-      <Output class="DataObjects" type="PointSet">BS_basicStatPP</Output>
-      <Output class="OutStreams" type="Print">BS_basicStatPP_dump</Output>
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
+      <Model  class="Models"       type="PostProcessor" >BS</Model>
+      <Output class="Files"        type=""              >output_basicStatistics_MC.csv</Output>
     </PostProcess>
-    <MultiRun name="GridRun">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="MonteCarlo">Grid</Sampler>
-      <Output class="DataObjects" type="PointSet">PointSet_Grid</Output>
+    <MultiRun  name="GridRun">
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >Grid</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_Grid</Output>
     </MultiRun>
     <PostProcess name="PP_Grid">
-      <Input class="DataObjects" type="PointSet">PointSet_Grid</Input>
-      <Model class="Models" type="PostProcessor">BS</Model>
-      <Output class="DataObjects" type="PointSet">BS_basicStatPP_grid</Output>
-      <Output class="OutStreams" type="Print">BS_basicStatPP_grid_dump</Output>
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_Grid</Input>
+      <Model  class="Models"       type="PostProcessor" >BS</Model>
+      <Output class="Files"        type=""              >output_basicStatistics_Grid.csv</Output>
     </PostProcess>
     <IOStep name="OutStreams" pauseAtEnd="false">
-      <Input class="DataObjects" type="PointSet">PointSet_MC</Input>
-      <Input class="DataObjects" type="PointSet">PointSet_Grid</Input>
-      <Output class="OutStreams" type="Print">MC_dump</Output>
-      <Output class="OutStreams" type="Print">Grid_dump</Output>
-      <Output class="OutStreams" type="Plot">plotXMC</Output>
-      <Output class="OutStreams" type="Plot">plotYMC</Output>
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_Grid</Input>
+      <Output class="OutStreams"   type="Print"         >MC_dump</Output>
+      <Output class="OutStreams"   type="Print"         >Grid_dump</Output>
+      <Output class="OutStreams"   type="Plot"          >plotXMC</Output>
+      <Output class="OutStreams"   type="Plot"          >plotYMC</Output>
     </IOStep>
   </Steps>
 
@@ -60,15 +62,15 @@
       <variables>x,y</variables>
     </ExternalModel>
     <PostProcessor name="BS" subType="BasicStatistics" verbosity="debug">
-      <expectedValue prefix="mean">x,y</expectedValue>
+      <expectedValue>x,y</expectedValue>
     </PostProcessor>
   </Models>
 
   <Distributions>
     <Categorical name="x_dist">
-      <state outcome="1">0.2</state>
-      <state outcome="2.0">0.3</state>
-      <state outcome="2.5">0.5</state>
+      <state outcome='1'   >0.2</state>
+      <state outcome='2.0' >0.3</state>
+      <state outcome='2.5' >0.5</state>
     </Categorical>
   </Distributions>
 
@@ -94,14 +96,12 @@
     <Print name="MC_dump">
       <type>csv</type>
       <source>PointSet_MC</source>
-      <what>input,output</what>
     </Print>
     <Print name="Grid_dump">
       <type>csv</type>
       <source>PointSet_Grid</source>
-      <what>input,output</what>
     </Print>
-    <Plot name="plotXMC" overwrite="false" verbosity="debug">
+    <Plot  name="plotXMC" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -114,7 +114,7 @@
         <how>pdf</how>
       </actions>
     </Plot>
-    <Plot name="plotYMC" overwrite="false" verbosity="debug">
+    <Plot  name="plotYMC" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -127,14 +127,6 @@
         <how>pdf</how>
       </actions>
     </Plot>
-    <Print name="BS_basicStatPP_dump">
-      <type>csv</type>
-      <source>BS_basicStatPP</source>
-    </Print>
-    <Print name="BS_basicStatPP_grid_dump">
-      <type>csv</type>
-      <source>BS_basicStatPP_grid</source>
-    </Print>
   </OutStreams>
 
   <DataObjects>
@@ -150,17 +142,6 @@
       <Input>x</Input>
       <Output>y</Output>
     </PointSet>
-    <PointSet name="BS_basicStatPP">
-      <Output>BS_vars</Output>
-    </PointSet>
-    <PointSet name="BS_basicStatPP_grid">
-      <Output>BS_vars</Output>
-    </PointSet>
   </DataObjects>
-
-  <VariableGroups>
-    <Group name="BS_vars">mean_x,
-                 mean_y</Group>
-  </VariableGroups>
 
 </Simulation>

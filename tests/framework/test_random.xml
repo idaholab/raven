@@ -92,7 +92,6 @@
     <Print name="outSet_dump">
       <type>csv</type>
       <source>outSet</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

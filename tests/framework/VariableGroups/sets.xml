@@ -128,32 +128,26 @@
     <Print name="dump_standard">
       <type>csv</type>
       <source>standard</source>
-      <what>input, output</what>
     </Print>
     <Print name="dump_addrem">
       <type>csv</type>
       <source>addrem</source>
-      <what>input, output</what>
     </Print>
     <Print name="dump_uni">
       <type>csv</type>
       <source>uni</source>
-      <what>input, output</what>
     </Print>
     <Print name="dump_comp">
       <type>csv</type>
       <source>comp</source>
-      <what>input, output</what>
     </Print>
     <Print name="dump_intx">
       <type>csv</type>
       <source>intx</source>
-      <what>input, output</what>
     </Print>
     <Print name="dump_sdiff">
       <type>csv</type>
       <source>sdiff</source>
-      <what>input, output</what>
     </Print>
   </OutStreams>
 

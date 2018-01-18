@@ -53,13 +53,11 @@
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>
-      <what>input,output</what>
       <filename>outDataExponential</filename>
     </Print>
     <Print name="trainingData">
       <type>csv</type>
       <source>trainingData</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

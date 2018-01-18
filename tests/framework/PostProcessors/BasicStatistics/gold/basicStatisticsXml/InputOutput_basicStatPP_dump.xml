@@ -1,9 +1,0 @@
-<DataObjectMetadata name="InputOutput_basicStatPP">
-  <DataSet type="Static">
-    <general>
-      <outputs>skew_x0,skew_x01,skew_y0,skew_y02,vc_x0,vc_x01,vc_y0,vc_y02,percentile_5_x0,percentile_95_x0,percentile_5_x01,percentile_95_x01,percentile_5_y0,percentile_95_y0,percentile_5_y02,percentile_95_y02,mean_x0,mean_x01,mean_y0,mean_y02,kurt_x0,kurt_x01,kurt_y0,kurt_y02,median_x0,median_x01,median_y0,median_y02,max_x0,max_x01,max_y0,max_y02,min_x0,min_x01,min_y0,min_y02,samp_x0,samp_x01,samp_y0,samp_y02,var_x0,var_x01,var_y0,var_y02,sigma_x0,sigma_x01,sigma_y0,sigma_y02,nsen_x0_x0,nsen_x0_x01,nsen_x0_y0,nsen_x0_y02,nsen_x01_x0,nsen_x01_x01,nsen_x01_y0,nsen_x01_y02,nsen_y0_x0,nsen_y0_x01,nsen_y0_y0,nsen_y0_y02,nsen_y02_x0,nsen_y02_x01,nsen_y02_y0,nsen_y02_y02,sen_x0_x0,sen_x0_x01,sen_x0_y0,sen_x0_y02,sen_x01_x0,sen_x01_x01,sen_x01_y0,sen_x01_y02,sen_y0_x0,sen_y0_x01,sen_y0_y0,sen_y0_y02,sen_y02_x0,sen_y02_x01,sen_y02_y0,sen_y02_y02,pear_x0_x0,pear_x0_x01,pear_x0_y0,pear_x0_y02,pear_x01_x0,pear_x01_x01,pear_x01_y0,pear_x01_y02,pear_y0_x0,pear_y0_x01,pear_y0_y0,pear_y0_y02,pear_y02_x0,pear_y02_x01,pear_y02_y0,pear_y02_y02,cov_x0_x0,cov_x0_x01,cov_x0_y0,cov_x0_y02,cov_x01_x0,cov_x01_x01,cov_x01_y0,cov_x01_y02,cov_y0_x0,cov_y0_x01,cov_y0_y0,cov_y0_y02,cov_y02_x0,cov_y02_x01,cov_y02_y0,cov_y02_y02,vsen_x0_x0,vsen_x0_x01,vsen_x0_y0,vsen_x0_y02,vsen_x01_x0,vsen_x01_x01,vsen_x01_y0,vsen_x01_y02,vsen_y0_x0,vsen_y0_x01,vsen_y0_y0,vsen_y0_y02,vsen_y02_x0,vsen_y02_x01,vsen_y02_y0,vsen_y02_y02</outputs>
-      <sampleTag>RAVEN_sample_ID</sampleTag>
-    </general>
-  </DataSet>
-  
-</DataObjectMetadata>

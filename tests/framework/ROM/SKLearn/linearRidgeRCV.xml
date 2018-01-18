@@ -60,7 +60,6 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outLinearRidgeRCV</filename>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

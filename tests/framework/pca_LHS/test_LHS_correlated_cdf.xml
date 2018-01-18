@@ -5,7 +5,6 @@
     <Sequence>LHSRun,Dump,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pca_LHS/LHSCorrelated</name>
     <author>wangc</author>
@@ -14,13 +13,11 @@
     <description>
       Tests use of the PCA method to sample in LHS surrogate input space.  The distributions are a multivariate normal.
     </description>
-    <revisions>
-      <revision author="wangc" date="2017-12-20">convert test to use the new DataObjects with the new structure of basic statistic</revision>
-    </revisions>
   </TestInfo>
 
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
+    <Input name="output_basicStatistics.csv" type="">output_basicStatistics.csv</Input>
   </Files>
 
   <Models>
@@ -28,37 +25,10 @@
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
-      <skewness prefix="skew">x,y,z</skewness>
-      <variationCoefficient prefix="vc">x,y,z</variationCoefficient>
-      <percentile prefix="percentile">x,y,z</percentile>
-      <expectedValue prefix="mean">x,y,z</expectedValue>
-      <kurtosis prefix="kurt">x,y,z</kurtosis>
-      <median prefix="median">x,y,z</median>
-      <maximum prefix="max">x,y,z</maximum>
-      <minimum prefix="min">x,y,z</minimum>
-      <samples prefix="samp">x,y,z</samples>
-      <variance prefix="var">x,y,z</variance>
-      <sigma prefix="sigma">x,y,z</sigma>
-      <NormalizedSensitivity prefix="nsen">
+      <all>
         <targets>x,y,z</targets>
         <features>x,y,z</features>
-      </NormalizedSensitivity>
-      <sensitivity prefix="sen">
-        <targets>x,y,z</targets>
-        <features>x,y,z</features>
-      </sensitivity>
-      <pearson prefix="pear">
-        <targets>x,y,z</targets>
-        <features>x,y,z</features>
-      </pearson>
-      <covariance prefix="cov">
-        <targets>x,y,z</targets>
-        <features>x,y,z</features>
-      </covariance>
-      <VarianceDependentSensitivity prefix="vsen">
-        <targets>x,y,z</targets>
-        <features>x,y,z</features>
-      </VarianceDependentSensitivity>
+      </all>
     </PostProcessor>
   </Models>
 
@@ -115,8 +85,7 @@
     <PostProcess name="PP">
       <Input class="DataObjects" type="PointSet">testPrintPointSet</Input>
       <Model class="Models" type="PostProcessor">InputOutput</Model>
-      <Output class="DataObjects" type="PointSet">InputOutput_basicStatPP</Output>
-      <Output class="OutStreams" type="Print">InputOutput_basicStatPP_dump</Output>
+      <Output class="Files" type="">output_basicStatistics.csv</Output>
     </PostProcess>
   </Steps>
 
@@ -126,108 +95,17 @@
       <source>testPrintPointSet</source>
       <what>Input|x1,Input|y1,Input|z1,Input|x0,Input|y0,Input|z0,Output|x,Output|y,Output|z,Input|PointProbability,Input|ProbabilityWeight</what>
     </Print>
-    <Print name="InputOutput_basicStatPP_dump">
-      <type>csv</type>
-      <source>InputOutput_basicStatPP</source>
-    </Print>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="testPrintPointSet">
-      <Input>x1,y1,z1,x0,y0,z0</Input>
+      <Input>x0,y0,z0,x1,y1,z1</Input>
       <Output>x,y,z</Output>
     </PointSet>
     <PointSet name="inputPlaceHolder">
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="InputOutput_basicStatPP">
-      <Output>InputOutput_vars</Output>
-    </PointSet>
   </DataObjects>
-
-  <VariableGroups>
-    <Group name="InputOutput_vars">skew_x,
-                 skew_y,
-                 skew_z,
-                 vc_x,
-                 vc_y,
-                 vc_z,
-                 percentile_5_x,
-                 percentile_95_x,
-                 percentile_5_y,
-                 percentile_95_y,
-                 percentile_5_z,
-                 percentile_95_z,
-                 mean_x,
-                 mean_y,
-                 mean_z,
-                 kurt_x,
-                 kurt_y,
-                 kurt_z,
-                 median_x,
-                 median_y,
-                 median_z,
-                 max_x,
-                 max_y,
-                 max_z,
-                 min_x,
-                 min_y,
-                 min_z,
-                 samp_x,
-                 samp_y,
-                 samp_z,
-                 var_x,
-                 var_y,
-                 var_z,
-                 sigma_x,
-                 sigma_y,
-                 sigma_z,
-                 nsen_x_x,
-                 nsen_x_y,
-                 nsen_x_z,
-                 nsen_y_x,
-                 nsen_y_y,
-                 nsen_y_z,
-                 nsen_z_x,
-                 nsen_z_y,
-                 nsen_z_z,
-                 sen_x_x,
-                 sen_x_y,
-                 sen_x_z,
-                 sen_y_x,
-                 sen_y_y,
-                 sen_y_z,
-                 sen_z_x,
-                 sen_z_y,
-                 sen_z_z,
-                 pear_x_x,
-                 pear_x_y,
-                 pear_x_z,
-                 pear_y_x,
-                 pear_y_y,
-                 pear_y_z,
-                 pear_z_x,
-                 pear_z_y,
-                 pear_z_z,
-                 cov_x_x,
-                 cov_x_y,
-                 cov_x_z,
-                 cov_y_x,
-                 cov_y_y,
-                 cov_y_z,
-                 cov_z_x,
-                 cov_z_y,
-                 cov_z_z,
-                 vsen_x_x,
-                 vsen_x_y,
-                 vsen_x_z,
-                 vsen_y_x,
-                 vsen_y_y,
-                 vsen_y_z,
-                 vsen_z_x,
-                 vsen_z_y,
-                 vsen_z_z</Group>
-  </VariableGroups>
 
 </Simulation>

@@ -6,7 +6,7 @@
     <created>2013-10-15</created>
     <classesTested>Sampler.Grid</classesTested>
     <description>
-       This test is aimed to check the capability in RAVEN to employ a Grid sampling strategy. Since the goal of the test is to testify
+       This test is aimed to check the capability in RAVEN to employ a Grid sampling strategy. Since the goal of the test is to testify 
        that the Grid sampling strategy is functional, a Dummy model is used.
     </description>
     <revisions>
@@ -75,7 +75,8 @@
 
   <DataObjects>
     <PointSet name="outGrid">
-      <Input>VarGauss2,VarGauss1,VarTri1</Input>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="dummyIN">
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
@@ -87,7 +88,6 @@
     <Print name="outGrid_dump">
       <type>csv</type>
       <source>outGrid</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

@@ -54,23 +54,23 @@
 
   <DataObjects>
     <PointSet name="grd_vl_ql_smp_dpt_dt">
-      <Input>x2,x1,gammay</Input>
+      <Input>x1,x2,gammay</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="nt_phy_dpt_dt">
-      <Input>x2,x1,gammay</Input>
+      <Input>x1,x2,gammay</Input>
       <Output>g</Output>
     </PointSet>
     <PointSet name="bln_smp_dt">
-      <Input>x2,x1,gammay</Input>
+      <Input>x1,x2,gammay</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="lmt_srf_dt">
-      <Input>x2,x1,gammay</Input>
+      <Input>x1,x2,gammay</Input>
       <Output>g_zr</Output>
     </PointSet>
     <PointSet name="sfs_pnt_dt_cdf">
-      <Input>x2,x1,gammay</Input>
+      <Input>x1,x2,gammay</Input>
       <Output>p</Output>
     </PointSet>
   </DataObjects>
@@ -145,7 +145,6 @@
       <Distribution class="Distributions" type="Normal">x1_dst</Distribution>
       <Distribution class="Distributions" type="Normal">x2_dst</Distribution>
       <Distribution class="Distributions" type="Normal">gammay_dst</Distribution>
-      <outputName>p</outputName>
       <controllable>
         <variable name="x1">
           <distribution>x1_dst</distribution>
@@ -175,12 +174,10 @@
     <Print name="lmt_srf_dmp">
       <type>csv</type>
       <source>lmt_srf_dt</source>
-      <what>input,output</what>
     </Print>
     <Print name="sfs_pnt_cdf_dmp">
       <type>csv</type>
       <source>sfs_pnt_dt_cdf</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

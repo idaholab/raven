@@ -22,7 +22,6 @@ warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
-import xarray
 import math
 import os
 #External Modules End--------------------------------------------------------------------------------
@@ -76,9 +75,6 @@ class LimitSurfaceIntegral(PostProcessor):
     LSITargetInput = InputData.parameterInputFactory("target", contentType=InputData.StringType)
     inputSpecification.addSub(LSITargetInput)
 
-    LSIOutputNameInput = InputData.parameterInputFactory("outputName", contentType=InputData.StringType)
-    inputSpecification.addSub(LSIOutputNameInput)
-
     return inputSpecification
 
   def __init__(self, messageHandler):
@@ -96,7 +92,6 @@ class LimitSurfaceIntegral(PostProcessor):
     self.matrixDict = {}  # dictionary of arrays and target
     self.lowerUpperDict = {}
     self.functionS = None
-    self.computationPrefix = None
     self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue']
     self.addAssemblerObject('Distribution','n', newXmlFlg = False)
@@ -186,8 +181,6 @@ class LimitSurfaceIntegral(PostProcessor):
           np.random.seed(self.seed)
       elif child.getName() == 'target':
         self.target = child.value
-      elif child.getName() == 'outputName':
-        self.computationPrefix = child.value
       else:
         self.raiseAnError(NameError, 'invalid or missing labels after the variables call. Only "variable" is accepted.tag: ' + child.getName())
       # if no distribution, we look for the integration domain in the input
@@ -208,7 +201,7 @@ class LimitSurfaceIntegral(PostProcessor):
     """
     self.inputToInternal(inputs)
     if self.integralType in ['montecarlo']:
-      self.stat.toDo = {'expectedValue':[{'targets':set([self.target]), 'prefix':self.computationPrefix}]}
+      self.stat.toDo = {'expectedValue':set([self.target])}
       self.stat.initialize(runInfo, inputs, initDict)
     self.functionS = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':','.join(list(self.variableDist.keys())), 'Target':self.target})
     self.functionS.train(self.matrixDict)
@@ -223,27 +216,25 @@ class LimitSurfaceIntegral(PostProcessor):
      @ In, currentInput, object, an object that needs to be converted
      @ Out, None
     """
-    if len(currentInput) > 1:
-      self.raiseAnError(IOError,"This PostProcessor can accept only a single input! Got: "+ str(len(currentInput))+"!")
-    item = currentInput[0]
-    if item.type == 'PointSet':
-      if not set(item.getVars('input')) == set(self.variableDist.keys()):
-        self.raiseAnError(IOError, 'The variables inputted and the features in the input PointSet ' + item.name + 'do not match!!!')
-      outputKeys = item.getVars('output')
-      if self.target is None:
-        self.target = utils.first(outputKeys)
-      elif self.target not in outputKeys:
-        self.raiseAnError(IOError, 'The target ' + self.target + 'is not present among the outputs of the PointSet ' + item.name)
-      # construct matrix
-      dataSet = item.asDataset()
-      self.matrixDict = {varName: dataSet[varName].values for varName in self.variableDist}
-      responseArray = dataSet[self.target].values
-      if len(np.unique(responseArray)) != 2:
-        self.raiseAnError(IOError, 'The target ' + self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
-      responseArray[responseArray == -1] = 0.0
-      self.matrixDict[self.target] = responseArray
-    else:
-      self.raiseAnError(IOError, 'Only PointSet is accepted as input!!!!')
+    for item in currentInput:
+      if item.type == 'PointSet':
+        self.matrixDict = {}
+        if not set(item.getParaKeys('inputs')) == set(self.variableDist.keys()):
+          self.raiseAnError(IOError, 'The variables inputted and the features in the input PointSet ' + item.name + 'do not match!!!')
+        if self.target == None:
+          self.target = item.getParaKeys('outputs')[-1]
+        if self.target not in item.getParaKeys('outputs'):
+          self.raiseAnError(IOError, 'The target ' + self.target + 'is not present among the outputs of the PointSet ' + item.name)
+        # construct matrix
+        for  varName in self.variableDist.keys():
+          self.matrixDict[varName] = item.getParam('input', varName)
+        outputarr = item.getParam('output', self.target)
+        if len(set(outputarr)) != 2:
+          self.raiseAnError(IOError, 'The target ' + self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
+        outputarr[outputarr == -1] = 0.0
+        self.matrixDict[self.target] = outputarr
+      else:
+        self.raiseAnError(IOError, 'Only PointSet is accepted as input!!!!')
 
   def run(self, input):
     """
@@ -262,7 +253,7 @@ class LimitSurfaceIntegral(PostProcessor):
           f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float])
           randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
-      pb = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+      pb = self.stat.run({'targets':{self.target:self.functionS.evaluate(tempDict)[self.target]}})['expectedValue'][self.target]
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
     return pb
@@ -277,35 +268,39 @@ class LimitSurfaceIntegral(PostProcessor):
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-    pb = evaluation[1]
-    lms = evaluation[0][0]
-    if output.type == 'PointSet':
-      # we store back the limitsurface
-      dataSet = lms.asDataset()
-      loadDict = {key: dataSet[key].values for key in lms.getVars()}
-      loadDict[self.computationPrefix] = np.full(len(lms), pb)
-      output.load(loadDict,'dict')
-    # NB I keep this commented part in case we want to keep the possibility to have outputfiles for PP
-    #elif isinstance(output,Files.File):
-    #  headers = lms.getParaKeys('inputs') + lms.getParaKeys('outputs')
-    #  if 'EventProbability' not in headers:
-    #    headers += ['EventProbability']
-    #  stack = [None] * len(headers)
-    #  output.close()
-    #  # If the file already exist, we will erase it.
-    #  if os.path.exists(output.getAbsFile()):
-    #    self.raiseAWarning('File %s already exists, this file will be erased!' %output.getAbsFile())
-    #    output.open('w')
-    #    output.close()
-    #  outIndex = 0
-    #  for key, value in lms.getParametersValues('input').items():
-    #    stack[headers.index(key)] = np.asarray(value).flatten()
-    #  for key, value in lms.getParametersValues('output').items():
-    #    stack[headers.index(key)] = np.asarray(value).flatten()
-    #    outIndex = headers.index(key)
-    #  stack[headers.index('EventProbability')] = np.array([pb] * len(stack[outIndex])).flatten()
-    #  stacked = np.column_stack(stack)
-    #  np.savetxt(output, stacked, delimiter = ',', header = ','.join(headers),comments='')
-    #  #N.B. without comments='' you get a "# " at the top of the header row
     else:
-      self.raiseAnError(Exception, self.type + ' accepts PointSet only')
+      pb = evaluation[1]
+      lms = evaluation[0][0]
+      if output.type == 'PointSet':
+        # we store back the limitsurface
+        for key, value in lms.getParametersValues('input').items():
+          for val in value:
+            output.updateInputValue(key, val)
+        for key, value in lms.getParametersValues('output').items():
+          for val in value:
+            output.updateOutputValue(key, val)
+        for _ in range(len(lms)):
+          output.updateOutputValue('EventProbability', pb)
+      elif isinstance(output,Files.File):
+        headers = lms.getParaKeys('inputs') + lms.getParaKeys('outputs')
+        if 'EventProbability' not in headers:
+          headers += ['EventProbability']
+        stack = [None] * len(headers)
+        output.close()
+        # If the file already exist, we will erase it.
+        if os.path.exists(output.getAbsFile()):
+          self.raiseAWarning('File %s already exists, this file will be erased!' %output.getAbsFile())
+          output.open('w')
+          output.close()
+        outIndex = 0
+        for key, value in lms.getParametersValues('input').items():
+          stack[headers.index(key)] = np.asarray(value).flatten()
+        for key, value in lms.getParametersValues('output').items():
+          stack[headers.index(key)] = np.asarray(value).flatten()
+          outIndex = headers.index(key)
+        stack[headers.index('EventProbability')] = np.array([pb] * len(stack[outIndex])).flatten()
+        stacked = np.column_stack(stack)
+        np.savetxt(output, stacked, delimiter = ',', header = ','.join(headers),comments='')
+        #N.B. without comments='' you get a "# " at the top of the header row
+      else:
+        self.raiseAnError(Exception, self.type + ' accepts PointSet or File type only')

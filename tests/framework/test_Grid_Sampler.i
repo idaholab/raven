@@ -135,9 +135,6 @@
       [./source]
         value = outGrid
       [../]
-      [./what]
-        value = input,output
-      [../]
     [../]
   [../]
 

@@ -103,7 +103,6 @@
     <Print name="metaModelOutputTestDump">
       <type>csv</type>
       <source>metaModelOutputTest</source>
-      <what>input, output</what>
     </Print>
   </OutStreams>
 

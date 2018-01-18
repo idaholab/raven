@@ -57,7 +57,6 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outLinearOMPCV</filename>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

@@ -59,7 +59,6 @@
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>
-      <what>input,output</what>
       <filename>outDTC</filename>
     </Print>
   </OutStreams>

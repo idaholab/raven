@@ -91,7 +91,6 @@
     <Print name="Ndump">
       <type>csv</type>
       <source>Ntests</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

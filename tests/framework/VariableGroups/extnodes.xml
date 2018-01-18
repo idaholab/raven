@@ -75,7 +75,6 @@
     <Print name="dump_standard">
       <type>csv</type>
       <source>standard</source>
-      <what>input, output</what>
     </Print>
   </OutStreams>
 

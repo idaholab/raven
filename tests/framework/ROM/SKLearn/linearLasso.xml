@@ -61,7 +61,6 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outLinearLasso</filename>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 

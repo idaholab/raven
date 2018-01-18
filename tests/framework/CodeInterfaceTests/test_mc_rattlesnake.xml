@@ -88,13 +88,12 @@
     <Print name="out_mc_dump">
       <type>csv</type>
       <source>outMC</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="outMC">
-      <Input>c22,n11,f11,f22,t11,n22,c11,t22,Materials|seed11|densities</Input>
+      <Input>f11,f22,c11,c22,t11,t22,n11,n22,Materials|seed11|densities</Input>
       <Output>eigenvalue</Output>
     </PointSet>
   </DataObjects>

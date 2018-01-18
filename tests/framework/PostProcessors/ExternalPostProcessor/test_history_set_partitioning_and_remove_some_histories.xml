@@ -127,15 +127,7 @@
     </HistorySet>
     <HistorySet name="partitionedHistorySet">
         <Input>x0,y0,z0</Input>
-        <Output>
-            partitionHistorySetAndRemoveSomeHistories_time,
-            partitionHistorySetAndRemoveSomeHistories_x,
-            partitionHistorySetAndRemoveSomeHistories_y,
-            partitionHistorySetAndRemoveSomeHistories_z
-       </Output>
-        <options>
-            <pivotParameter>partitionHistorySetAndRemoveSomeHistories_time</pivotParameter>
-        </options>
+        <Output>time,x,y,z</Output>
     </HistorySet>
   </DataObjects>
 

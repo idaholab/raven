@@ -93,7 +93,6 @@
     <Print name="Udump">
       <type>csv</type>
       <source>Utests</source>
-      <what>input,output</what>
     </Print>
     <Print name="Udumprom">
       <type>xml</type>

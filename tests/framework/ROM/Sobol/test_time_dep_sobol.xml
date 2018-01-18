@@ -82,7 +82,6 @@
     <Print name="train_data">
       <type>csv</type>
       <source>trainset</source>
-      <what>input,output</what>
     </Print>
     <Print name="trom_dump">
       <type>xml</type>
@@ -98,7 +97,7 @@
     </PointSet>
     <HistorySet name="trainset">
       <Input>x0,y0</Input>
-      <Output>y,x,r,time</Output>
+      <Output>time,x,y,r</Output>
     </HistorySet>
   </DataObjects>
 

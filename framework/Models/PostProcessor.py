@@ -119,21 +119,6 @@ class PostProcessor(Model):
     self.workingDir = ''
     self.printTag = 'POSTPROCESSOR MODEL'
 
-  def provideExpectedMetaKeys(self):
-    """
-      Overrides the base class method to assure child postprocessor is also polled for its keys.
-      @ In, None
-      @ Out, meta, set(str), expected keys (empty if none)
-    """
-    # get keys as per base class
-    keys = Model.provideExpectedMetaKeys(self)
-    # add postprocessor keys
-    try:
-      keys = keys.union(self.interface.provideExpectedMetaKeys())
-    except AttributeError:
-      pass # either "interface" has no method for returning meta keys, or "interface" is not established yet.
-    return keys
-
   def whatDoINeed(self):
     """
       This method is used mainly by the Simulation class at the Step construction stage.

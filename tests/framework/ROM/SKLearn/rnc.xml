@@ -58,7 +58,6 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outRNC</filename>
-      <what>input,output, metadata|ProbabilityWeight</what>
     </Print>
   </OutStreams>
 

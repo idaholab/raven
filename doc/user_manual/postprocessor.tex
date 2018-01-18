@@ -547,9 +547,7 @@ At present only the ``equal'' grid type is available.
                 \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
     identifier or sub-type.
         \end{itemize}
-             \item  \xmlNode{outputName}, \xmlDesc{string, required field}, specifies the name of the output variable where the probability is going to be stored.
-               \nb This variable name must be listed in the \xmlNode{Output} field of the Output DataObject
-        \item \xmlNode{controllable}, \xmlDesc{XML node, required field},  lists the controllable variables.
+        \item \xmlNode{controllable} lists the controllable variables.
   %
   Each variable is associated with its name and the two items below:
         \begin{itemize}
@@ -560,7 +558,7 @@ At present only the ``equal'' grid type is available.
     tolerance of the sampling grid.
     %
         \end{itemize}
-        \item \xmlNode{non-controllable}, \xmlDesc{XML node, required field}, lists the non-controllable variables.
+        \item \xmlNode{non-controllable} lists the non-controllable variables.
   %
   Each variable is associated with its name and the two items below:
         \begin{itemize}
@@ -702,16 +700,13 @@ The \textbf{LimitSurfaceIntegral} post-processor is aimed to compute the likelih
 represented by the Limit Surface (either from the LimitSurface post-processor or Adaptive sampling strategies).
 The inputted Limit Surface needs to be, in the  \textbf{PostProcess} step, of type  \textbf{PointSet} and needs to contain
 both boundary sides (-1.0, +1.0).
-%\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as outputs both files (CSV) and/or  \textbf{PointSet}s.
-\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as output  \textbf{PointSet}s only.
+\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as outputs both files (CSV) and/or  \textbf{PointSet}s.
 
 \ppType{LimitSurfaceIntegral}{LimitSurfaceIntegral}
 \begin{itemize}
 \item \variableDescription
  \variableChildIntro
  \begin{itemize}
-     \item  \xmlNode{outputName}, \xmlDesc{string, required field}, specifies the name of the output variable where the probability is going to be stored.
-               \nb This variable name must be listed in the \xmlNode{Output} field of the Output DataObject
     \item   \xmlNode{distribution}, \xmlDesc{string,
                optional field}, name of the distribution that is associated to this variable.
               Its name needs to be contained in the \xmlNode{Distributions} block explained
@@ -749,7 +744,6 @@ both boundary sides (-1.0, +1.0).
         <integralType>MonteCarlo</integralType>
         <seed>20021986</seed>
         <target>goalFunctionOutput</target>
-        <outputName>EventProbability</outputName>
         <variable name='x0'>
           <distribution>x0_distrib</distribution>
         </variable>
@@ -762,7 +756,6 @@ both boundary sides (-1.0, +1.0).
         <integralType>MonteCarlo</integralType>
         <seed>20021986</seed>
         <target>goalFunctionOutput</target>
-        <outputName>EventProbability</outputName>
         <variable name='x0'>
           <lowerBound>-2.0</lowerBound>
           <upperBound>12.0</upperBound>

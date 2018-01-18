@@ -14,14 +14,11 @@
       This test uses Mishra's Bird function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
-    <revisions>
-      <revision author="talbpaul" date="2018-01-04">switch from snapshot to writeSteps final</revision>
-    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Constrained</WorkingDir>
-    <Sequence>optimize,print</Sequence>
+    <Sequence>optimize,getOptPoint,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -30,13 +27,21 @@
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">mishra</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
-      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">opt_soln</Input>
       <Input class="DataObjects" type="HistorySet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
     </IOStep>
+    <PostProcess name="getOptPoint">
+      <Input class="DataObjects" type="HistorySet">opt_export</Input>
+      <Model class="Models" type="PostProcessor">snapshot</Model>
+      <Output class="DataObjects" type="PointSet">opt_soln</Output>
+      <Output class="OutStreams" type="Print">opt_soln</Output>
+    </PostProcess>
   </Steps>
 
   <Functions>
@@ -50,21 +55,20 @@
     <SPSA name="opter">
       <initialization>
         <initialSeed>42</initialSeed>
-        <writeSteps>final</writeSteps>
       </initialization>
       <Function class="Functions" type="External">mishra</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <gradientThreshold>1e-2</gradientThreshold>
-        <gainGrowthFactor>2</gainGrowthFactor>
-        <gainShrinkFactor>1.25</gainShrinkFactor>
+          <gradientThreshold>1e-2</gradientThreshold>
+          <gainGrowthFactor>2</gainGrowthFactor>
+          <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
-      <variable name="x">
+      <variable name='x'>
         <upperBound>0</upperBound>
         <lowerBound>-10</lowerBound>
         <initial>-3,-6,-9</initial>
       </variable>
-      <variable name="y">
+      <variable name='y'>
         <upperBound>0</upperBound>
         <lowerBound>-6</lowerBound>
         <initial>-5,-1.5,-2.5</initial>
@@ -78,6 +82,11 @@
     <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/mishra_bird" name="mishra" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
+    <PostProcessor name="snapshot" subType="InterfacedPostProcessor">
+      <method>HistorySetSnapShot</method>
+      <type>max</type>
+      <pivotVar>varsUpdate</pivotVar>
+    </PostProcessor>
   </Models>
 
   <DataObjects>
@@ -89,16 +98,24 @@
       <Input>x,y</Input>
       <Output>ans</Output>
     </PointSet>
-    <PointSet name="opt_export">
+    <PointSet name="opt_soln">
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate</Output>
     </PointSet>
+    <HistorySet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </HistorySet>
   </DataObjects>
 
   <OutStreams>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
+    </Print>
+    <Print name="opt_soln">
+      <type>csv</type>
+      <source>opt_soln</source>
     </Print>
   </OutStreams>
 

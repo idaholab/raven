@@ -64,7 +64,6 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outLinearARD</filename>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 
