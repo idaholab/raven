@@ -687,7 +687,9 @@ data.asDataset()
 checkRlz('Adding asynchronous histories, dataset[0]',data.realization(index=0),rlz1,skip=['time'])
 checkRlz('Adding asynchronous histories, dataset[1]',data.realization(index=1),rlz2,skip=['time'])
 # check expected error in case index and index-dependent variable have different shape
-data.addRealization(rlzFoulty)
+data = XHistorySet.HistorySet()
+data.messageHandler = mh
+data._readMoreXML(xml)
 checkFails('Expected error foulty realization (index/variable no matching shape), rlzFoulty', "SyntaxError: Realization was not formatted correctly", data.addRealization, args=(rlzFoulty,))
 
 print(results)
