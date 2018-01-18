@@ -9,14 +9,13 @@
     <childs>5</childs>
   </node>
   <node name='3'>
-    <childs>5</childs>x
+    <childs>5</childs>
   </node>
   <node name='4'>
     <childs>5</childs>
   </node>
   <node name='5'>
     <childs>6,7,8</childs>
-    <deg>.9</deg>
   </node>
   <node name='6'>
     <childs>SG1,SG2,SG3</childs>

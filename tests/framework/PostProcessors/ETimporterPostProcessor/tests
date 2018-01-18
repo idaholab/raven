@@ -29,4 +29,10 @@
     csv    = 'ETimporterExpand/PrintPS.csv'
     output = 'ETimporterExpand/PrintPS.xml'
   [../]
+  [./ET_importer_3branches]
+    type   = 'RavenFramework'
+    input  = 'test_ETimporter_3branches.xml'
+    csv    = 'ETimporter_3branches/PrintPS.csv'
+    output = 'ETimporter_3branches/PrintPS.xml'
+  [../]
 []
