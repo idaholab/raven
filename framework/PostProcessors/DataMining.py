@@ -779,7 +779,7 @@ class DataMining(PostProcessor):
                   loc = clusterCentersIndices[timeIdx].index(rlzIndex)
                   timeSeries[timeIdx] = self.unSupervisedEngine.metaDict['clusterCenters'][timeIdx][loc,featureIdx]
                 else:
-                  timeSeries[timeIdx] = np.nan
+                  timeSeries[timeIdx] = np.atleast_1d(np.nan)
 
               ## In summary, for each feature, we fill a temporary array and
               ## stuff it into the solutionExport, one question is how do we
@@ -789,10 +789,11 @@ class DataMining(PostProcessor):
               ## call updateInputValue again, it will move the pointer? This
               ## needs verified
               if feat not in rlzs.keys():
-                rlzs[feat] = copy.copy(timeSeries)
+                rlzs[feat] = np.zeros((len(clusterLabels), numberOfHistoryStep))
+                rlzs[feat][rlzIndex] = copy.copy(timeSeries)
                 rlzDims[feat] = [self.pivotParameter]
               else:
-                rlzs[feat] = np.vstack((rlzs[feat], copy.copy(timeSeries)))
+                rlzs[feat][rlzIndex] = copy.copy(timeSeries)
           self.solutionExport.load(rlzs, style='dict',dims=rlzDims)
 
       if 'inertia' in self.unSupervisedEngine.outputDict.keys():

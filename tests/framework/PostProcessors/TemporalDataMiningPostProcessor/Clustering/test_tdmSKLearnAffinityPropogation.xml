@@ -145,7 +145,8 @@
 
   <DataObjects>
     <HistorySet name='clusterInfo'>
-      <Output>x1,x2,labels</Output>
+      <Input>labels</Input>
+      <Output>x1,x2</Output>
       <options>
           <pivotParameter>Time</pivotParameter>
       </options>
