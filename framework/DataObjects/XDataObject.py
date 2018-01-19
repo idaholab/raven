@@ -104,11 +104,11 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.name      = 'DataObject'
     self.printTag  = self.name
     self.sampleTag = 'RAVEN_sample_ID' # column name to track samples
-
-    self._inputs   = []     # list(str) if input variables
-    self._outputs  = []     # list(str) of output variables
-    self._metavars = []     # list(str) of POINTWISE metadata variables
-    self._orderedVars = []     # list(str) of vars IN ORDER of their index
+    self.protectedTags = ['RAVEN_parentID','RAVEN_isEnding'] # list(str) protected RAVEN tags
+    self._inputs   = []                                      # list(str) if input variables
+    self._outputs  = []                                      # list(str) of output variables
+    self._metavars = []                                      # list(str) of POINTWISE metadata variables
+    self._orderedVars = []                                   # list(str) of vars IN ORDER of their index
 
     self._meta         = {}     # dictionary to collect meta until data is collapsed
     self._heirarchal   = False  # if True, non-traditional format (not yet implemented)
@@ -207,6 +207,10 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       except ValueError:
         pass #not requested as input anyway
     self._orderedVars = self._inputs + self._outputs
+    # check if protected vars have been violated
+    if set(self.protectedTags).issubset(set(self._orderedVars)):
+      self.raiseAnError(IOError, 'Input, Output and Index variables can not be part of RAVEN protected tags: '+','.join(self.protectedTags))
+    self.protectedTags
     if self.messageHandler is None:
       self.messageHandler = MessageCourier()
 

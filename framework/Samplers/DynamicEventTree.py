@@ -425,7 +425,8 @@ class DynamicEventTree(Grid):
     self.inputInfo['branchChangedParamValue'   ] = [b'None']
     self.inputInfo['startTime'                 ] = -sys.float_info.max
     self.inputInfo['endTimeStep'               ] = 0
-    self.inputInfo['parentID'                  ] = 'root'
+    self.inputInfo['RAVEN_parentID'            ] = None
+    self.inputInfo['RAVEN_isEnding'            ] = True
     self.inputInfo['conditionalPb'             ] = [1.0]
     self.inputInfo['conditionalPbr'            ] = 1.0
     self.inputInfo['happenedEvent'             ] = False
@@ -452,6 +453,7 @@ class DynamicEventTree(Grid):
         self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
+    self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
 
     if(self.maxSimulTime):
       self.inputInfo['endTime'] = self.maxSimulTime
@@ -591,8 +593,10 @@ class DynamicEventTree(Grid):
                 'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
                 'conditionalPb':subGroup.get('conditionalPbr'),
                 'startTime':endInfo['parentNode'].get('endTime'),
-                'parentID':subGroup.get('parent')}
+                'RAVEN_parentID':subGroup.get('parent'),
+                'RAVEN_isEnding':True}
 
+      #'RAVEN_parentID','RAVEN_isEnding'
       self.inputInfo['happenedEvent'] = subGroup.get('happenedEvent')
       # add additional edits if needed
       model.getAdditionalInputEdits(self.inputInfo)
@@ -949,3 +953,5 @@ class DynamicEventTree(Grid):
       #self.branchProbabilities[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
       self.branchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
     self.limit = sys.maxsize
+    # add expected metadata
+    self.addMetaKeys(*['RAVEN_parentID','RAVEN_isEnding'])
