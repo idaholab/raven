@@ -110,18 +110,19 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._metavars = []                                      # list(str) of POINTWISE metadata variables
     self._orderedVars = []                                   # list(str) of vars IN ORDER of their index
 
-    self._meta         = {}     # dictionary to collect meta until data is collapsed
-    self._heirarchal   = False  # if True, non-traditional format (not yet implemented)
-    self._selectInput  = None   # if not None, describes how to collect input data from history
-    self._selectOutput = None   # if not None, describes how to collect output data from history
-    self._pivotParams  = {}     # independent dimensions as keys, values are the vars that depend on them
-    self._aliases      = {}     # variable aliases
+    self._meta            = {}     # dictionary to collect meta until data is collapsed
+    self._heirarchal      = False  # if True, non-traditional format (not yet implemented)
+    self._selectInput     = None   # if not None, describes how to collect input data from history
+    self._selectOutput    = None   # if not None, describes how to collect output data from history
+    self._pivotParams     = {}     # independent dimensions as keys, values are the vars that depend on them
+    self._fromVarToIndex  = {}     # mapping between variables and indexes ({var:index})
+    self._aliases         = {}     # variable aliases
 
-    self._data         = None   # underlying data structure
-    self._collector    = None   # object used to collect samples
+    self._data            = None   # underlying data structure
+    self._collector       = None   # object used to collect samples
 
-    self._inputKDTree  = None   # for finding outputs given inputs (pointset only?)
-    self._scaleFactors = None   # scaling factors inputs as {var:(mean,scale)}
+    self._inputKDTree     = None   # for finding outputs given inputs (pointset only?)
+    self._scaleFactors    = None   # scaling factors inputs as {var:(mean,scale)}
 
   def _readMoreXML(self,xmlNode):
     """
@@ -193,7 +194,13 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     # check if protected vars have been violated
     if set(self.protectedTags).issubset(set(self._orderedVars)):
       self.raiseAnError(IOError, 'Input, Output and Index variables can not be part of RAVEN protected tags: '+','.join(self.protectedTags))
-    self.protectedTags
+
+    # create dict var to index
+    # FIXME: this dict will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
+    if self.indexes:
+      for ind in self.indexes:
+        self._fromVarToIndex.update(dict.fromkeys( self._pivotParams[ind], ind))
+
     if self.messageHandler is None:
       self.messageHandler = MessageCourier()
 
