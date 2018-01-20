@@ -1038,7 +1038,7 @@ class DataSet(DataObject):
         self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(key,type(value)))
         return False
       # check if index-dependent variables have matching shapes
-      # FIXME: this check will not work in case of variables depending on multiple indexes. When this need comes, we will change this (alfoa)
+      # FIXME: this check will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
       okay = True if len(self._pivotParams) == 0 else all([True if key not in v else rlz[k].shape == rlz[key].shape for k,v in self._pivotParams.items()])
       if not okay:
         self.raiseAWarning('Variable "{}" has not a consistent shape with respect its indexes!'.format(key))
