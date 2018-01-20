@@ -542,3 +542,86 @@ def diffWithInfinites(a,b):
   else:
     res = a-b
   return res
+
+def isSingleValued(val,nanOk=True):
+  """
+    Determine if a single-entry value (by traditional standards).
+    Single entries include strings, numbers, NaN, inf, None
+    NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAScalar, bool, result
+  """
+  # TODO most efficient order for checking?
+  return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
+
+def isAString(val):
+  """
+    Determine if a string value (by traditional standards).
+    @ In, val, object, check
+    @ Out, isAString, bool, result
+  """
+  # str,unicode inherit from basestring
+  return isinstance(val,basestring)
+
+def isAFloatOrInt(val,nanOk=True):
+  """
+    Determine if a float or integer value
+    Should be faster than checking (isAFloat || isAnInteger) due to checking against np.number
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAFloatOrInt, bool, result
+  """
+  if isinstance(val,(float,int,np.number)):
+    # bools are ints, unfortunately
+    if isABoolean(val):
+      return False
+    # nan and inf are floats
+    if nanOk:
+      return True
+    elif val not in [np.inf,np.nan]:
+      return True
+  return False
+
+def isAFloat(val,nanOk=True):
+  """
+    Determine if a float value (by traditional standards).
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAFloat, bool, result
+  """
+  if isinstance(val,(float,np.number)):
+    # exclude ints, which are np.number
+    if isAnInteger(val):
+      return False
+    # np.float32 (or 16) is niether a float nor a np.float (it is a np.number)
+    if nanOk:
+      return True
+    elif val not in [np.nan,np.inf]:
+      return True
+  return False
+
+def isAnInteger(val,nanOk=False):
+  """
+    Determine if an integer value (by traditional standards).
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAnInteger, bool, result
+  """
+  if isinstance(val,(int,np.integer)):
+    # exclude booleans
+    if isABoolean(val):
+      return False
+    return True
+  # also include inf and nan, if requested
+  if nanOk and val in [np.nan,np.inf]:
+    return True
+  return False
+
+def isABoolean(val):
+  """
+    Determine if a boolean value (by traditional standards).
+    @ In, val, object, check
+    @ Out, isABoolean, bool, result
+  """
+  return isinstance(val,(bool,np.bool_))
