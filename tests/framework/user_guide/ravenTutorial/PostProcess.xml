@@ -109,14 +109,14 @@
     <PostProcess name="statAnalysis_1">
       <Input class="DataObjects" type="PointSet">samplesMC</Input>
       <Model class="Models" type="PostProcessor">statisticalAnalysis</Model>
-      <Output class="DataObjects" type="HistorySet">statisticalAnalysis_basicStatPP</Output>
+      <Output class="DataObjects" type="PointSet">statisticalAnalysis_basicStatPP</Output>
       <Output class="OutStreams" type="Print">statisticalAnalysis_basicStatPP_dump</Output>
     </PostProcess>
     <PostProcess name="statAnalysis_2">
-      <Input class="DataObjects" type="PointSet">histories</Input>
+      <Input class="DataObjects" type="HistorySet">histories</Input>
       <Model class="Models" type="PostProcessor">statisticalAnalysis</Model>
-      <Output class="DataObjects" type="HistorySet">statisticalAnalysis_basicStatPP</Output>
-      <Output class="OutStreams" type="Print">statisticalAnalysis_basicStatPP_dump</Output>
+      <Output class="DataObjects" type="HistorySet">statisticalAnalysis_basicStatPP_time</Output>
+      <Output class="OutStreams" type="Print">statisticalAnalysis_basicStatPP_time_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -125,11 +125,14 @@
       <Input>sigma-A,decay-A</Input>
       <Output>A,B,C,D</Output>
     </PointSet>
+    <PointSet name="statisticalAnalysis_basicStatPP">
+      <Output>statisticalAnalysis_vars</Output>
+    </PointSet>
     <HistorySet name="histories">
       <Input>sigma-A,decay-A</Input>
       <Output>A,B,C,D,time</Output>
     </HistorySet>
-    <HistorySet name="statisticalAnalysis_basicStatPP">
+    <HistorySet name="statisticalAnalysis_basicStatPP_time">
       <options>
         <pivotParameter>time</pivotParameter>
       </options>
@@ -166,6 +169,10 @@
     <Print name="statisticalAnalysis_basicStatPP_dump">
       <type>csv</type>
       <source>statisticalAnalysis_basicStatPP</source>
+    </Print>
+    <Print name="statisticalAnalysis_basicStatPP_time_dump">
+      <type>csv</type>
+      <source>statisticalAnalysis_basicStatPP_time</source>
     </Print>
   </OutStreams>
 
