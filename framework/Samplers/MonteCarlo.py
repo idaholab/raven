@@ -123,6 +123,7 @@ class MonteCarlo(ForwardSampler):
       @ Out, None
     """
     # create values dictionary
+    weight = 1.0
     for key in self.distDict:
       # check if the key is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
@@ -177,11 +178,13 @@ class MonteCarlo(ForwardSampler):
         self.raiseAnError(IOError,"Total dimension for given distribution should be >= 1")
 
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
-      self.inputInfo['PointProbability'  ]  = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-      if self.samplingType == 'uniform':
-        self.inputInfo['ProbabilityWeight'  ] = weight
-      else:
-        self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
+      self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    else:
+      self.inputInfo['PointProbability'] = 1.0
+    if self.samplingType == 'uniform':
+      self.inputInfo['ProbabilityWeight'  ] = weight
+    else:
+      self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
     # reassign SampledVarsPb to fully correlated variables
     self._reassignSampledVarsPbToFullyCorrVars()
     self.inputInfo['SamplerType'] = 'MonteCarlo'
