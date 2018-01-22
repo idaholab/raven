@@ -611,10 +611,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         preResults = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
       except RuntimeError:
         self.raiseAnError(RuntimeError,'There was an error running the preconditioner for batch "{}"! See messages above for details.'.format(batch))
-      print('DEBUGG preres:',preResults)
       # flatten results #TODO breaks for multi-entry arrays
       for key,val in preResults.items():
-        print('DEBUGG key:',key,val)
         preResults[key] = float(val)
       #restore to normalized space if the original point was normalized space
       if denormalize:
