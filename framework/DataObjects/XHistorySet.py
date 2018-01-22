@@ -192,7 +192,7 @@ class HistorySet(DataSet):
         # pivot variables are included here in "else"; remove them after they're used in operators
         else:
           continue
-        if method in ['inputRow','outputRow']:
+        if method in ['inputRow']:
           # zero-d xarrays give false behavior sometimes
           # TODO formatting should not be necessary once standardized history,float realizations are established
           if type(val) == list:
@@ -204,16 +204,12 @@ class HistorySet(DataSet):
             rlz[var] = float(val)
           else:
             rlz[var] = float(val[indic])
-        elif method in ['inputPivotValue','outputPivotValue']:
+        elif method in ['inputPivotValue']:
           pivotParam = self.getDimensions(var)
           assert(len(pivotParam) == 1) # TODO only handle History for now
           pivotParam = pivotParam[var][0]
           idx = (np.abs(rlz[pivotParam] - indic)).argmin()
           rlz[var] = rlz[var][idx]
-          # if history is dataarray -> not currently possible, but keep for when it's needed
-          #if type(rlz[var]).__name__ == 'DataArray':
-          #  rlz[var] = float(val.sel(**{pivotParam:indic, 'method':b'nearest'})) #casting as str not unicode
-          # TODO allowing inexact matches; it's finding the nearest
         elif method == 'operator':
           if indic == 'max':
             rlz[var] = float(val.max())
@@ -222,8 +218,6 @@ class HistorySet(DataSet):
           elif indic in ['mean','expectedValue','average']:
             rlz[var] = float(val.mean())
       # otherwise, leave it alone
-    for var in toRemove:
-      del rlz[var]
     return rlz
 
 
