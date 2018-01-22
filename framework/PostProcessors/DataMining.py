@@ -231,7 +231,7 @@ class DataMining(PostProcessor):
       if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
         self.raiseAnError(IOError, "The data provided by the DataObject ", currentInput.name, " is not synchronized!")
       # for testing time dependent data mining - time dependent clustering
-      self.pivotVariable = np.asarray([dataSet.isel(**{currentInput.sampleTag:i})[self.pivotParameter].dropna(self.pivotParameter).values for i in range(len(currentInput))])
+      self.pivotVariable = np.asarray([dataSet.isel(**{currentInput.sampleTag:i}).dropna(self.pivotParameter)[self.pivotParameter].values for i in range(len(currentInput))])
       historyKey          = dataSet[self.pivotParameter].values
       numberOfSample      = len(dataSet['RAVEN_sample_ID'].values)
       numberOfHistoryStep = len(dataSet[self.pivotParameter].values)
@@ -254,17 +254,17 @@ class DataMining(PostProcessor):
         self.raiseAnError(ValueError, 'KDD Post-processor for time dependent data with metric provided allows only output variables (time-dependent)')
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
         numberOfSample = currentInput.size
-        self.pivotVariable = np.asarray([dataSet.isel(RAVEN_sample_ID=i)[self.pivotParameter].dropna(self.pivotParameter).values for i in range(len(currentInput))])
+        self.pivotVariable = np.asarray([dataSet.isel(**{currentInput.sampleTag:i}).dropna(self.pivotParameter)[self.pivotParameter].values for i in range(len(currentInput))])
         for i in range(numberOfSample):
           rlz = currentInput.realization(index=i)
           inputDict['Features'][i] = {}
           for var in currentInput.getVars('output'):
             inputDict['Features'][i][var] = rlz[var]
-          inputDict['Features'][i][self.pivotParameter] = self.pivotVariable
+          inputDict['Features'][i][self.pivotParameter] = self.pivotVariable[i]
 
     elif self.PreProcessor is not None:
       self.pivotParameter = currentInput.indexes[-1]
-      self.pivotVariable = np.asarray([dataSet.isel(RAVEN_sample_ID=i)[self.pivotParameter].dropna(self.pivotParameter).values for i in range(len(currentInput))])
+      self.pivotVariable = np.asarray([dataSet.isel(RAVEN_sample_ID=i).dropna(self.pivotParameter)[self.pivotParameter].values for i in range(len(currentInput))])
       return self.inputToInternalForPreProcessor(currentInput)
 
     inputDict['metadata'] = currentInput.getMeta(pointwise=True,general=True)
@@ -534,7 +534,7 @@ class DataMining(PostProcessor):
         for index, value in enumerate(values):
           timeLength = len(self.pivotVariable[index])
           arrayBase = value * np.ones(timeLength)
-          xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter))
+          xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter), coords=[self.pivotVariable[index]])
           expValues[index] = xrArray
         outputObject.addVariable(key, expValues,classify='output')
     ## End data augmentation
@@ -779,7 +779,7 @@ class DataMining(PostProcessor):
                   loc = clusterCentersIndices[timeIdx].index(rlzIndex)
                   timeSeries[timeIdx] = self.unSupervisedEngine.metaDict['clusterCenters'][timeIdx][loc,featureIdx]
                 else:
-                  timeSeries[timeIdx] = np.nan
+                  timeSeries[timeIdx] = np.atleast_1d(np.nan)
 
               ## In summary, for each feature, we fill a temporary array and
               ## stuff it into the solutionExport, one question is how do we
@@ -789,10 +789,11 @@ class DataMining(PostProcessor):
               ## call updateInputValue again, it will move the pointer? This
               ## needs verified
               if feat not in rlzs.keys():
-                rlzs[feat] = copy.copy(timeSeries)
+                rlzs[feat] = np.zeros((len(clusterLabels), numberOfHistoryStep))
+                rlzs[feat][rlzIndex] = copy.copy(timeSeries)
                 rlzDims[feat] = [self.pivotParameter]
               else:
-                rlzs[feat] = np.vstack((rlzs[feat], copy.copy(timeSeries)))
+                rlzs[feat][rlzIndex] = copy.copy(timeSeries)
           self.solutionExport.load(rlzs, style='dict',dims=rlzDims)
 
       if 'inertia' in self.unSupervisedEngine.outputDict.keys():

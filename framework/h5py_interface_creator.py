@@ -185,11 +185,11 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, source, File object, data source (for example, csv file)
       @ Out, None
     """
-    parentID  = rlz.get("parentID",[None])[0]
+    parentID  = rlz.get("RAVEN_parentID",[None])[0]
     groupName = str(rlz.get("prefix")[0] if not isinstance(rlz.get("prefix"),basestring) else rlz.get("prefix"))
     if parentID:
       #If Hierarchical structure, firstly add the root group
-      if not self.firstRootGroup or parentID == 'root':
+      if not self.firstRootGroup or parentID is None:
         self.__addGroupRootLevel(groupName,rlz)
         self.firstRootGroup = True
         self.type = 'DET'
@@ -319,9 +319,9 @@ class hdf5Database(MessageHandler.MessageUser):
     # add some info
     group.attrs[b'groupName'     ] = name
     group.attrs[b'endGroup'      ] = True
-    group.attrs[b'parentID'      ] = group.parent.name
-    group.attrs[b'nVarsIntfloat'] = len(varKeysIntfloat)
-    group.attrs[b'nVarsOther'   ] = len(varKeysOther)
+    group.attrs[b'RAVEN_parentID'] = group.parent.name
+    group.attrs[b'nVarsIntfloat' ] = len(varKeysIntfloat)
+    group.attrs[b'nVarsOther'    ] = len(varKeysOther)
 
 
   def __addGroupRootLevel(self,groupName,rlz):
@@ -363,7 +363,7 @@ class hdf5Database(MessageHandler.MessageUser):
       groupName = groupName + "_" + groupName
 
     # retrieve parentID
-    parentID = rlz.get("parentID")
+    parentID = rlz.get("RAVEN_parentID")
     parentName = parentID
 
     # Find parent group path
