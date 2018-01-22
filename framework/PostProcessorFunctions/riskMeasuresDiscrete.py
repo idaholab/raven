@@ -349,6 +349,8 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
   def runDynamic(self,inputDic,timeHistory):
     """
      This method performs the dynamic calculation of the risk measures
+     FIXME - Note for new development: clean this part so that the [0] index is removed from the timeHistory
+     RECALL - The gold files for this PP are theoretical values and hence they should be part of the analytical tests
      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
      @ In, timeHistory, dict, dictionary containing  boolean temporal profiles (0 or 1) of a sub set of the input variables. Note that this
                               history must contain a single history
