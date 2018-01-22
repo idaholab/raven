@@ -18,7 +18,7 @@
   </TestInfo>
   <RunInfo>
     <WorkingDir>./mode_test</WorkingDir>
-    <Sequence>FirstMRun</Sequence>
+    <Sequence>FirstMRun,dump</Sequence>
     <batchSize>3</batchSize>
     <CustomMode class="NewMode" file="./mode_test/new_mode.py">a_new_mode</CustomMode>
     <mode>a_new_mode</mode>
@@ -87,6 +87,10 @@
       <Output class="Databases" type="HDF5">testMCDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
     </MultiRun>
+    <IOStep name="dump">
+      <Input  class="DataObjects" type="HistorySet">stories</Input>
+      <Output class="OutStreams"  type="Print">output_test</Output>
+    </IOStep>
   </Steps>
 
   <Databases>
@@ -99,5 +103,12 @@
       <Output>pipe1_Hw</Output>
     </HistorySet>
   </DataObjects>
+  
+  <OutStreams>
+    <Print name="output_test">
+      <type>csv</type>
+      <source>stories</source>
+    </Print>
+  </OutStreams>
 
 </Simulation>
