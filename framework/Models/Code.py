@@ -643,6 +643,7 @@ class Code(Model):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
+
     self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(AttributeError,"No available Output to collect")
