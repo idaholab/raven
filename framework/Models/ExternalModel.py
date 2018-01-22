@@ -253,15 +253,14 @@ class ExternalModel(Dummy):
     # collect results from model run
     result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
     # build realization
-    ## list the variables RAVEN sampled
-    #sampledVars = kwargs['SampledVars'].keys()
-    ## list the collected results
-    #resultVars = result.keys()
-    ## get any additional variables added by the user to the dictionary: anything in inRun that isn't sampled or results
-    #userVars = list(var for var in inRun.keys() if (var not in sampledVars and var not in resultVars))
+    ## do it in this order to make sure only the right variables are overwritten
+    ## first inRun, which has everything from self.* and Input[*]
     rlz =      dict((var,np.atleast_1d(val)) for var,val in inRun.items())
+    ## then result, which has the expected outputs and possibly changed inputs
     rlz.update(dict((var,np.atleast_1d(val)) for var,val in result.items()))
+    ## then get the metadata from kwargs
     rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs.items()))
+    ## then get the inputs from SampledVars (overwriting any other entries)
     rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs['SampledVars'].items()))
     return rlz
 
