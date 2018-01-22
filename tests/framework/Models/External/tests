@@ -1,8 +1,8 @@
 [Tests]
  [./all_methods]
   type = 'RavenFramework'
-  input = 'AllMethods/all_methods.xml'
-  csv = 'samples_out.csv'
+  input = 'all_methods.xml'
+  csv = 'AllMethods/samples_out.csv'
  [../]
 []
 
