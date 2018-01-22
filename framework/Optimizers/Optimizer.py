@@ -608,7 +608,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       for key,value in self.constants.items():
         infoDict['SampledVars'][key] = value
       try:
-        _,(preResults,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
+        preResults = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
       except RuntimeError:
         self.raiseAnError(RuntimeError,'There was an error running the preconditioner for batch "{}"! See messages above for details.'.format(batch))
       # flatten results #TODO breaks for multi-entry arrays
