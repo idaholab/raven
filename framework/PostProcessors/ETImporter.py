@@ -209,7 +209,7 @@ class ETImporter(PostProcessor):
     if len(zeroColumns)==0:
       self.raiseAnError(IOError, 'No root ET')
     if len(zeroColumns)==1:
-      rootETID = listETs[zeroColumns]
+      rootETID = listETs[zeroColumns[0]]
       self.raiseADebug("ETImporter Root ET: " + str(rootETID))
 
     leafs = []
