@@ -260,19 +260,9 @@ class ExternalModel(Dummy):
     ## get any additional variables added by the user to the dictionary: anything in inRun that isn't sampled or results
     #userVars = list(var for var in inRun.keys() if (var not in sampledVars and var not in resultVars))
     rlz =      dict((var,np.atleast_1d(val)) for var,val in inRun.items())
-    rlz.update(dict((var,np.atleast_1d(val)) for var,val in result.items())
-    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs.items())
-    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs['SampledVars]'.items())
-    return rlz
-
-
-    ##### OLD #####
-    ## assure rlz has all metadata
-    rlz = dict((var,np.atleast_1d(kwargs[var])) for var in kwargs.keys())
-    ## update rlz with requested variables: get it from SampledVars if an input, results if output, and inRun otherwise
-    rlz.update(dict((var,np.atleast_1d(kwargs['SampledVars'][var] if var in sampledVars
-                                       else (result[var] if var in resultVars else inRun[var])))
-                     for var in self.listOfRavenAwareVars))
+    rlz.update(dict((var,np.atleast_1d(val)) for var,val in result.items()))
+    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs.items()))
+    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs['SampledVars'].items()))
     return rlz
 
   def collectOutput(self,finishedJob,output,options=None):
