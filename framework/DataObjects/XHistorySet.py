@@ -220,10 +220,6 @@ class HistorySet(DataSet):
       # otherwise, leave it alone
     return rlz
 
-
-
-    return DataSet._selectiveRealization(self,rlz)
-
   def _toCSV(self,fileName,start=0,**kwargs):
     """
       Writes this data objcet to CSV file (for metadata see _toCSVXML)
