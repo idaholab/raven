@@ -226,7 +226,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           # only the data points that contains componentConfig are in fact considered
           # indexUpdatedData contains the indexes of those data points
           indexUpdatedData = None
-          
+
           for var in componentConfig.keys():
             if componentConfig[var] == 0:
               inputVar = np.asarray(inp['data'][var])
@@ -235,7 +235,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
                 indexUpdatedData = copy.deepcopy(indexCompOut)
               else:
                 indexUpdatedData = np.intersect1d(indexUpdatedData,indexCompOut)
-          
+
           if indexUpdatedData is not None:
             inputName    = inp['name']
             inputDataIn  = {}
@@ -378,7 +378,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         for var in self.variables:
           outputDic['data'][var + '_' + measure]    = np.zeros(1, dtype=object)
           outputDic['data'][var + '_' + measure][0] = np.zeros(len(timeHistory['data'][self.temporalID][0]))
-    
+
     previousSystemConfig = {}
     for index,value in enumerate(timeHistory['data'][self.temporalID][0]):
       systemConfig={}

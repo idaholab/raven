@@ -434,7 +434,7 @@ class GradientBasedOptimizer(Optimizer):
           if len(inp) < 1: #empty
             continue
           removeLocalFlag = True
-          dist = np.sqrt(np.sum(list((inp[var] - currentInput[var])**2 for var in self.getOptVars())))
+          dist = np.sqrt(np.sum(list((inp[var] - currentInput[var])**2 for var in self.getOptVars(traj=trajToRemove))))
           if dist < self.thresholdTrajRemoval:
             self.raiseADebug('Halting trajectory "{}" because it is following trajectory "{}"'.format(trajToRemove,traj))
             self.trajectoriesKilled[traj].append(trajToRemove)

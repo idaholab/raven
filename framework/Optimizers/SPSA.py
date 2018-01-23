@@ -478,7 +478,7 @@ class SPSA(GradientBasedOptimizer):
     except (TypeError,IndexError):
       gain = [ak]*len(self.getOptVars()) #technically incorrect, but missing ones will be *0 anyway just below here
     gain = np.asarray(gain)
-    for index,var in enumerate(self.getOptVars()): #get full opt vars so all variables carried through
+    for index,var in enumerate(self.getOptVars(traj=traj)): #get full opt vars so all variables carried through
       varKPlus[var] = varK[var]-gain[index]*gradient.get(var,0.0)*1.0
     satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(varKPlus))
     if satisfied:
