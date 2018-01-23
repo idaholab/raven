@@ -141,6 +141,10 @@
       <type>csv</type>
       <source>Out</source>
     </Print>
+    <Print name="timeDepBasicStat_basicStatPP_dump">
+      <type>csv</type>
+      <source>timeDepBasicStat_basicStatPP</source>
+    </Print>
     <Plot name="PlotStatsT1" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -265,10 +269,6 @@
         </title>
       </actions>
     </Plot>
-    <Print name="timeDepBasicStat_basicStatPP_dump">
-      <type>csv</type>
-      <source>timeDepBasicStat_basicStatPP</source>
-    </Print>
   </OutStreams>
 
   <VariableGroups>
