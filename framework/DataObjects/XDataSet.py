@@ -981,7 +981,6 @@ class DataSet(DataObject):
     if self._collector is not None and len(self._collector) > 0:
       # keep track of the first sampling index, if we already have some samples (otherwise 0)
       firstSample = int(self._data[self.sampleTag][-1])+1 if self._data is not None else 0
-      print('DEBUGG first sample is:',firstSample)
       # storage array for each variable's xr.DataArray with all rlz data from every rlz
       arrays = {}
       # loop over variables IN ORDER of collector storage to collapse data into nice xr.DataArray of realization data
@@ -1217,10 +1216,8 @@ class DataSet(DataObject):
     # set datatypes for each variable
     rlz = self.realization(index=0)
     self._setDataTypes(rlz)
-    print('DEBUGG after collection, as dataset:')
-    print(self.asDataset())
     # collapse into xr.Dataset
-    # TODO re-enable self.asDataset()
+    self.asDataset()
 
   def _fromNetCDF(self,fileName, **kwargs):
     """
