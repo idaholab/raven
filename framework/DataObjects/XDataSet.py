@@ -871,10 +871,7 @@ class DataSet(DataObject):
       new = xr.Dataset(array)
     except ValueError as e:
       self.raiseAnError(RuntimeError,'While trying to create a new Dataset, a variable has itself as an index!  Error: ' +str(e))
-<<<<<<< HEAD
     # if "action" is "extend" but self._data is None, then we really want to "replace".
-=======
->>>>>>> aaaf595e0cae4dd76ef57a78b627f0fc42d4e1fa
     if action == 'extend' and self._data is None:
       action = 'replace'
     if action == 'return':
@@ -978,13 +975,13 @@ class DataSet(DataObject):
       Efficiency note: this is the slowest part of typical data collection.
       @ In, None
       @ Out, xarray.Dataset, all the data from this data object.
-      P.S.: this was the old asDataset(self)
     """
     # TODO make into a protected method? Should it be called from outside?
     # if we have collected data, collapse it
     if self._collector is not None and len(self._collector) > 0:
       # keep track of the first sampling index, if we already have some samples (otherwise 0)
       firstSample = int(self._data[self.sampleTag][-1])+1 if self._data is not None else 0
+      print('DEBUGG first sample is:',firstSample)
       # storage array for each variable's xr.DataArray with all rlz data from every rlz
       arrays = {}
       # loop over variables IN ORDER of collector storage to collapse data into nice xr.DataArray of realization data
@@ -1040,8 +1037,9 @@ class DataSet(DataObject):
               raise e
           # create single dataarrays
           arrays[var] = self._collapseNDtoDataArray(varData,var,dtype=dtype)
-          # re-index samples
-          arrays[var][self.sampleTag] += firstSample
+        # END if for variable data type (ndarray, xarray, or scalar)
+        # re-index samples
+        arrays[var][self.sampleTag] += firstSample
       # collect all data into dataset, and update self._data
       if self._data is None:
         self._convertArrayListToDataset(arrays,action='replace')
@@ -1219,8 +1217,10 @@ class DataSet(DataObject):
     # set datatypes for each variable
     rlz = self.realization(index=0)
     self._setDataTypes(rlz)
+    print('DEBUGG after collection, as dataset:')
+    print(self.asDataset())
     # collapse into xr.Dataset
-    self.asDataset()
+    # TODO re-enable self.asDataset()
 
   def _fromNetCDF(self,fileName, **kwargs):
     """
