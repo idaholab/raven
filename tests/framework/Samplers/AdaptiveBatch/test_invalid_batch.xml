@@ -35,7 +35,7 @@
       <Output class="DataObjects" type="PointSet">response</Output>
     </MultiRun>
     <MultiRun name="adapt">
-      <Input class="DataObjects" type="PointSet">response</Input>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">function</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">limit_surface</SolutionExport>
@@ -51,6 +51,10 @@
     <PointSet name="response">
       <Input>x2,x1</Input>
       <Output>y</Output>
+    </PointSet>
+    <PointSet name="inputHolder">
+      <Input>x2,x1</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="limit_surface">
       <Input>x2,x1</Input>

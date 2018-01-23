@@ -331,7 +331,8 @@ class OutStreamPlot(OutStreamManager):
             outputIndexes = self.sourceData[pltIndex].indexes if xSplit[1].lower() == 'output' else []
             if xSplit[2].strip() not in self.sourceData[pltIndex].getVars(xSplit[1].lower())+outputIndexes:
               self.raiseAnError(IOError, 'Not found variable "'+ xSplit[2] + '" in "'+xSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-            self.xValues[pltIndex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[xSplit[2]].values.astype(float, copy=False))
+            # for variable from input space, it will return array(float), not 1d array
+            self.xValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt)[xSplit[2]].values.astype(float, copy=False)))
             maxSize = self.xValues[pltIndex][cnt][-1].size if self.xValues[pltIndex][cnt][-1].size > maxSize else maxSize
           if self.yCoordinates :
             for i in range(len(self.yCoordinates [pltIndex])):
@@ -339,7 +340,7 @@ class OutStreamPlot(OutStreamManager):
               outputIndexes = self.sourceData[pltIndex].indexes if ySplit[1].lower() == 'output' else []
               if ySplit[2].strip() not in self.sourceData[pltIndex].getVars(ySplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ ySplit[2] + '" in "'+ySplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.yValues[pltIndex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[ySplit[2]].values.astype(float, copy=False))
+              self.yValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt)[ySplit[2]].values.astype(float, copy=False)))
               maxSize = self.yValues[pltIndex][cnt][-1].size if self.yValues[pltIndex][cnt][-1].size > maxSize else maxSize
           if self.zCoordinates  and self.dim > 2:
             for i in range(len(self.zCoordinates [pltIndex])):
@@ -347,7 +348,7 @@ class OutStreamPlot(OutStreamManager):
               outputIndexes = self.sourceData[pltIndex].indexes if zSplit[1].lower() == 'output' else []
               if zSplit[2].strip() not in self.sourceData[pltIndex].getVars(zSplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ zSplit[2] + '" in "'+zSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.zValues[pltIndex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[zSplit[2]].values.astype(float, copy=False))
+              self.zValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt)[zSplit[2]].values.astype(float, copy=False)))
               maxSize = self.zValues[pltIndex][cnt][-1].size if self.zValues[pltIndex][cnt][-1].size > maxSize else maxSize
           if self.colorMapCoordinates[pltIndex] != None:
             for i in range(len(self.colorMapCoordinates[pltIndex])):
@@ -1105,7 +1106,7 @@ class OutStreamPlot(OutStreamManager):
               scatterPlotOptions.update(plotSettings.get('attributes', {}))
               if self.dim == 2:
                 if self.colorMapCoordinates[pltIndex] != None:
-                  scatterPlotOptions['c'] = self.colorMapValues[pltIndex][key]
+                  scatterPlotOptions['c'] = self.colorMapValues[pltIndex][key][xIndex]
                   scatterPlotOptions['cmap'] = matplotlib.cm.get_cmap("winter")
                   if self.actcm:
                     first = False
@@ -1148,7 +1149,7 @@ class OutStreamPlot(OutStreamManager):
               elif self.dim == 3:
                 for zIndex in range(len(self.zValues[pltIndex][key])):
                   if self.colorMapCoordinates[pltIndex] != None:
-                    scatterPlotOptions['c'] = self.colorMapValues[pltIndex][key]
+                    scatterPlotOptions['c'] = self.colorMapValues[pltIndex][key][zIndex]
                     if self.actcm:
                       first = False
                     else:
@@ -1751,7 +1752,7 @@ class OutStreamPlot(OutStreamManager):
                 elif self.dim == 3:
                   for zIndex in range(len(self.zValues[pltIndex][key])):
                     clusterDict[pltIndex]['clusterValues'][:, 2] = self.zValues[pltIndex][key][zIndex]
-                  for k, col in zip(range(clusterDict[pltIndex]['noClusters']), colors):
+                  for k, col in zip(range(int(clusterDict[pltIndex]['noClusters'])), colors):
                     myMembers = self.clusterValues[pltIndex][1][0] == k
                     self.actPlot = self.plt3D.scatter(clusterDict[pltIndex]['clusterValues'][myMembers, 0], clusterDict[pltIndex]['clusterValues'][myMembers, 1], clusterDict[pltIndex]['clusterValues'][myMembers, 2], color = col, **dataMiningPlotOptions)
 

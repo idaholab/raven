@@ -179,9 +179,9 @@ class InterfacedPostProcessor(PostProcessor):
       @ Out, form, str, format of either input or output
     """
     if location == 'input':
-      form = self.inputFormat
+      form = self.postProcessor.inputFormat
     elif location == 'output':
-      form = self.outputFormat
+      form = self.postProcessor.outputFormat
     return form
 
   def collectOutput(self, finishedJob, output):

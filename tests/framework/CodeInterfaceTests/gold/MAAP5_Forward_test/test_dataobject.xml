@@ -5,7 +5,7 @@
     </dims>
     <general>
       <inputs>TIMELOCA</inputs>
-      <pointwise_meta>ProbabilityWeight</pointwise_meta>
+      <pointwise_meta>ProbabilityWeight,ProbabilityWeight-AFWOFF,prefix,PointProbability,ProbabilityWeight-TIMELOCA</pointwise_meta>
       <outputs>PPS,PSGGEN(1),ZWDC2SG(1),WWBBN(1),WWTOTFW(1)</outputs>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>

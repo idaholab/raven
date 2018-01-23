@@ -1,0 +1,74 @@
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>innerRunDir</WorkingDir>
+    <Sequence>sample,stats</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime='1e-6'>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">attenuate</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">inner_samples</Output>
+    </MultiRun>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="PointSet">inner_samples</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="DataObjects" type="PointSet">stats</Output>
+      <Output class="OutStreams" type="Print">inner_out</Output>
+    </PostProcess>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="attenuate" name="attenuate" subType="">
+      <variables>y1,y2,ans</variables>
+    </ExternalModel>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <expectedValue prefix="mean">y1,y2,ans</expectedValue>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Uniform name="dist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="y1">
+        <distribution>dist</distribution>
+      </variable>
+      <variable name="y2">
+        <distribution>dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="inner_out">
+      <type>csv</type>
+      <source>stats</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>y1,y2</Input>
+    </PointSet>
+    <PointSet name="inner_samples">
+      <Input>y1,y2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="stats">
+      <Input>mean_y1,mean_y2</Input>
+      <Output>mean_ans</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

@@ -661,7 +661,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #self.inputInfo['counter'] = self.counter
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
-
+    # split the sampled vars Pb among the different correlated variables
+    self._reassignSampledVarsPbToFullyCorrVars()
     ##### TRANSFORMATION #####
     # add latent variables and original variables to self.inputInfo
     if self.variablesTransformationDict:
@@ -825,6 +826,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if "," in varName:
         for subVarName in varName.split(","):
           self.inputInfo['ProbabilityWeight-' + subVarName.strip()] = self.inputInfo['ProbabilityWeight-' + varName]
+
+  def finalizeSampler(self,failedRuns):
+    """
+      Method called at the end of the Step when no more samples will be taken.  Closes out sampler for step.
+      @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
+      @ Out, None
+    """
+    self.handleFailedRuns(failedRuns)
 
   def handleFailedRuns(self,failedRuns):
     """

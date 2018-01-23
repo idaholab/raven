@@ -120,8 +120,10 @@ class PointSet(DataSet):
     # then select the point we want
     toRemove = []
     for var,val in rlz.items():
+      if var in self.protectedTags:
+        continue
       # only modify it if it is not already scalar
-      if not isinstance(val,(float,int,str,unicode)):
+      if not mathUtils.isSingleValued(val):
         # treat inputs, outputs differently TODO this should extend to per-variable someday
         ## inputs
         if var in self._inputs:
