@@ -101,6 +101,14 @@
       <source>PointSet_Grid</source>
       <what>input,output</what>
     </Print>
+    <Print name="BS_basicStatPP_dump">
+      <type>csv</type>
+      <source>BS_basicStatPP</source>
+    </Print>
+    <Print name="BS_basicStatPP_grid_dump">
+      <type>csv</type>
+      <source>BS_basicStatPP_grid</source>
+    </Print>
     <Plot name="plotXMC" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -127,14 +135,6 @@
         <how>pdf</how>
       </actions>
     </Plot>
-    <Print name="BS_basicStatPP_dump">
-      <type>csv</type>
-      <source>BS_basicStatPP</source>
-    </Print>
-    <Print name="BS_basicStatPP_grid_dump">
-      <type>csv</type>
-      <source>BS_basicStatPP_grid</source>
-    </Print>
   </OutStreams>
 
   <DataObjects>
