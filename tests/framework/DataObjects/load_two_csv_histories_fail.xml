@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/DataObjects.load_two_csv_histories</name>
-    <author>maljdan</author>
-    <created>2017-06-26</created>
+    <name>framework/DataObjects.load_two_csv_histories_fail</name>
+    <author>talbpaul</author>
+    <created>2018-01-23</created>
     <classesTested>DataObjects.HistorySet</classesTested>
     <description>
-       This test verifies that multiple csv files can be loaded into a single
-       history set without destroying the information from each other.
+      The input variable "b" is missing in the second history set, replaced by "e", so
+      the result dataobject fails to construct.  This test checks the error received.
     </description>
   </TestInfo>
   <RunInfo>
@@ -18,7 +18,7 @@
 
   <Files>
     <Input name="input">./td_input.csv</Input>
-    <Input name="input2">./td_input2.csv</Input>
+    <Input name="input3">./td_input3.csv</Input>
   </Files>
 
   <Models>
@@ -27,7 +27,7 @@
   <Steps>
     <IOStep name="in">
       <Input class="Files" type="">input</Input>
-      <Input class="Files" type="">input2</Input>
+      <Input class="Files" type="">input3</Input>
       <Output class="DataObjects" type="HistorySet">data</Output>
       <Output class="DataObjects" type="HistorySet">data</Output>
     </IOStep>
@@ -39,7 +39,7 @@
 
   <OutStreams>
     <Print name="td_output">
-      <filename>td_output2</filename>
+      <filename>td_output3</filename>
       <type>csv</type>
       <source>data</source>
     </Print>
