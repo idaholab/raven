@@ -321,7 +321,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
               'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
               'conditionalPb':subGroup.get('conditionalPbr'),
               'startTime':info['parentNode'].get('endTime'),
-              'parentID':subGroup.get('parent')}
+              'RAVEN_parentID':subGroup.get('parent'),
+              'RAVEN_isEnding':True}
     # add the newer branch name to the map
     self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
     # check if it is a preconditioned DET sampling, if so add the relative information

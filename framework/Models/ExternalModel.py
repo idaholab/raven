@@ -242,7 +242,7 @@ class ExternalModel(Dummy):
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
         @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+           a mandatory key is the 'SampledVars' that contains a dictionary {'name variable':value}
         @ Out, returnValue, tuple, This will hold two pieces of information,
           the first item will be the input data used to generate this sample,
           the second item will be the output of this model given the specified
@@ -253,11 +253,15 @@ class ExternalModel(Dummy):
     # collect results from model run
     result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
     # build realization
-    # assure rlz has all metadata
-    rlz = dict((var,np.atleast_1d(kwargs[var])) for var in kwargs.keys())
-    # update rlz with input space from inRun and output space from result
-    rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(result.keys()+inRun.keys())))
-    #rlz.update(dict((var,np.atleast_1d(inRun[var] if var in inRun else result[var])) for var in set(result.keys()+inRun.keys())))
+    ## do it in this order to make sure only the right variables are overwritten
+    ## first inRun, which has everything from self.* and Input[*]
+    rlz =      dict((var,np.atleast_1d(val)) for var,val in inRun.items())
+    ## then result, which has the expected outputs and possibly changed inputs
+    rlz.update(dict((var,np.atleast_1d(val)) for var,val in result.items()))
+    ## then get the metadata from kwargs
+    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs.items()))
+    ## then get the inputs from SampledVars (overwriting any other entries)
+    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs['SampledVars'].items()))
     return rlz
 
   def collectOutput(self,finishedJob,output,options=None):

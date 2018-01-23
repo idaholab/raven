@@ -80,6 +80,18 @@ class HistorySet(DataSet):
     self.printTag  = self.name
     self._tempPivotParam = None
 
+  def _readMoreXML(self,xmlNode):
+    """
+      Initializes data object based on XML input.
+      @ In, xmlNode, xml.etree.ElementTree.Element or InputData.ParameterInput, input specification
+      @ Out, None
+    """
+    DataSet._readMoreXML(self,xmlNode)
+    # default to taking last point if no other spec was used
+    # TODO throw a warning here, once we figure out how to give message handler in all cases
+    if self._selectInput is None:
+      self._selectInput = ('inputRow',-1)
+
   def _setDefaultPivotParams(self):
     """
       Sets default pivot parameters.
@@ -166,7 +178,47 @@ class HistorySet(DataSet):
     """
     # TODO this could be much more efficient on the parallel (finalizeCodeOutput) than on serial
     # TODO someday needs to be implemented for when ND data is collected!  For now, use base class.
-    return DataSet._selectiveRealization(self,rlz)
+    # TODO externalize it in the DataObject base class
+    toRemove = []
+    for var,val in rlz.items():
+      if var in self.protectedTags:
+        continue
+      # only modify it if it is not already scalar
+      if not mathUtils.isSingleValued(val):
+        # treat inputs, outputs differently TODO this should extend to per-variable someday
+        ## inputs
+        if var in self._inputs:
+          method,indic = self._selectInput
+        # pivot variables are included here in "else"; remove them after they're used in operators
+        else:
+          continue
+        if method in ['inputRow']:
+          # zero-d xarrays give false behavior sometimes
+          # TODO formatting should not be necessary once standardized history,float realizations are established
+          if type(val) == list:
+            val = np.array(val)
+          elif type(val).__name__ == 'DataArray':
+            val = val.values
+          # FIXME this is largely a biproduct of old length-one-vector approaches in the deprecataed data objects
+          if val.size == 1:
+            rlz[var] = float(val)
+          else:
+            rlz[var] = float(val[indic])
+        elif method in ['inputPivotValue']:
+          pivotParam = self.getDimensions(var)
+          assert(len(pivotParam) == 1) # TODO only handle History for now
+          pivotParam = pivotParam[var][0]
+          idx = (np.abs(rlz[pivotParam] - indic)).argmin()
+          rlz[var] = rlz[var][idx]
+        elif method == 'operator':
+          if indic == 'max':
+            rlz[var] = float(val.max())
+          elif indic == 'min':
+            rlz[var] = float(val.min())
+          elif indic in ['mean','expectedValue','average']:
+            rlz[var] = float(val.mean())
+      # otherwise, leave it alone
+    return rlz
 
   def _toCSV(self,fileName,start=0,**kwargs):
     """

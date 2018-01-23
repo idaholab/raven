@@ -288,7 +288,7 @@ rlz1 = {              'a':np.array([1.0        ]),
                       'b':np.array([0.1,0.2,0.3]),
                    'time':np.array([1.0,2.0,3.0])*1e-6,
                  'prefix':np.array(["1"        ]),
-         'RAVEN_parentID':np.array([None       ]),
+         'RAVEN_parentID':np.array(["None"     ]),
          'RAVEN_isEnding':np.array([True       ])}
 
 rlz1_1 = {            'a':np.array([1.0        ]),

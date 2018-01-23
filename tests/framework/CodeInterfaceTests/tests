@@ -103,7 +103,7 @@
  [./RELAP5interfaceTestNoExecutable]
   type = 'RavenFramework'
   input = 'test_relap5_code_interface.xml'
-  output = 'RELAP5interfaceTest/testDummyStep/1/snc01.i RELAP5interfaceTest/testDummyStep/2/snc01.i RELAP5interfaceTest/testDummyStep/3/snc01.i RELAP5interfaceTest/testDummyStep/4/snc01.i RELAP5interfaceTest/testDummyStep/5/snc01.i'
+  output = 'RELAP5interfaceTest/testDummyStep/3/snc01.i RELAP5interfaceTest/testDummyStep/4/snc01.i RELAP5interfaceTest/testDummyStep/5/snc01.i'
   csv = 'RELAP5interfaceTest/testDummyStep/1/out~snc01.csv RELAP5interfaceTest/testDummyStep/2/out~snc01.csv RELAP5interfaceTest/testDummyStep/3/out~snc01.csv RELAP5interfaceTest/testDummyStep/4/out~snc01.csv RELAP5interfaceTest/testDummyStep/5/out~snc01.csv'
   text = 'RELAP5interfaceTest/testDummyStep/1/snc01.i RELAP5interfaceTest/testDummyStep/2/snc01.i'
   test_interface_only = True
@@ -119,7 +119,7 @@
  [./RELAP5interfaceTestAliasAliasNoExecutable]
   type = 'RavenFramework'
   input = 'test_relap5_code_interface_alias.xml'
-  output = 'RELAP5interfaceTestAlias/testDummyStep/1/snc01.i RELAP5interfaceTestAlias/testDummyStep/2/snc01.i RELAP5interfaceTestAlias/testDummyStep/3/snc01.i RELAP5interfaceTestAlias/testDummyStep/4/snc01.i RELAP5interfaceTestAlias/testDummyStep/5/snc01.i'
+  output = 'RELAP5interfaceTestAlias/testDummyStep/3/snc01.i RELAP5interfaceTestAlias/testDummyStep/4/snc01.i RELAP5interfaceTestAlias/testDummyStep/5/snc01.i'
   csv = 'RELAP5interfaceTestAlias/testDummyStep/1/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/2/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/3/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/4/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/5/out~snc01.csv'
   text = 'RELAP5interfaceTestAlias/testDummyStep/1/snc01.i RELAP5interfaceTestAlias/testDummyStep/2/snc01.i'
   test_interface_only = True
@@ -178,7 +178,7 @@
 [./DymolaTestTimeDepNoExecutableEnsembleModel]
   type = 'RavenFramework'
   input = 'test_Dymola_code_interface_timedep.xml'
-  output = 'DMInterfaceTestTimedep/testDummyStep/BouncingBall++1/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++2/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++3/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++4/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++5/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++1/addinp.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++2/addinp.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++3/addinp.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++4/addinp.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++5/addinp.txt'
+  output = 'DMInterfaceTestTimedep/testDummyStep/BouncingBall++2/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++3/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++4/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++2/addinp.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++3/addinp.txt'
   csv = 'DMInterfaceTestTimedep/testDummyStep/BouncingBall++1/out~dsin.csv DMInterfaceTestTimedep/testDummyStep/BouncingBall++5/out~dsin.csv'
   UnorderedXml= 'DMInterfaceTestTimedep/DB_BouncingBallDump_unstructured_inputs.xml'
   text = 'DMInterfaceTestTimedep/testDummyStep/BouncingBall++1/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++1/addinp.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++5/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++5/addinp.txt'

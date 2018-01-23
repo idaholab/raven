@@ -189,7 +189,7 @@ class hdf5Database(MessageHandler.MessageUser):
     groupName = str(rlz.get("prefix")[0] if not isinstance(rlz.get("prefix"),basestring) else rlz.get("prefix"))
     if parentID:
       #If Hierarchical structure, firstly add the root group
-      if not self.firstRootGroup or parentID is None:
+      if not self.firstRootGroup or parentID != "None":
         self.__addGroupRootLevel(groupName,rlz)
         self.firstRootGroup = True
         self.type = 'DET'

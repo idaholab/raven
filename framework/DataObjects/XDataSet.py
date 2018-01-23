@@ -784,14 +784,13 @@ class DataSet(DataObject):
       # get the parent ID
       parentID = rlz[idVar]
       # if root or parentless, nothing to do
-      if parentID is None:
+      if parentID == "None":
         return
       # otherwise, find the index of the match
       idx,match = self.realization(matchDict={'prefix':parentID})
       self._changeVariableValue(idx,endVar,False)
-    else:
-      # no action taken for data without hierarchical information
-      pass
+    #else # no action taken for data without hierarchical information
+
 
   def _collapseNDtoDataArray(self,data,var,labels=None,dtype=None):
     """
@@ -1755,7 +1754,7 @@ class DataSet(DataObject):
     for e,ending in enumerate(endings):
       # reconstruct path that leads to this ending
       path = [ending['prefix']]
-      while ending['RAVEN_parentID'] is not None and not pd.isnull(ending['RAVEN_parentID']):
+      while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']):
         _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
         path.append(ending['prefix'])
       # sort it in order by progression
