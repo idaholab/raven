@@ -76,6 +76,31 @@ case = $RAVEN-out$
 ...
 \end{lstlisting}
 
+
+%%%%
+
+If a code has hard-coded output file names that are not changeable,
+the GenericCode interface can be invoked using the \xmlNode{fileargs}
+node of type \xmlAttr{output} specifying the output file name in the
+  \xmlAttr{args}  attribute.
+ For example, in the previous example, say instead of \texttt{-a gen.two} and \texttt{-o myOut}
+in the command line, the code always produce a CSV file named ``fixed@output.csv''; 
+
+Then, our example XML for the code would be
+
+Example:
+\begin{lstlisting}[style=XML]
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterface/poly_inp.py</executable>
+      <inputExtentions>.one,.two</inputExtentions>
+      <clargs   type='prepend' arg='python'/>
+      <clargs   type='input'   arg='-i'  extension='.one'/>
+      <fileargs type='input'   arg='two' extension='.two'/>
+      <fileargs  type="output" arg="fixed_output.csv"/>
+      <prepend>python</prepend>
+    </Code>
+\end{lstlisting}
+
 In addition, the ``wild-cards'' above can contain two special and optional symbols:
 \begin{itemize}
   \item  \texttt{:}, that defines an eventual default value;

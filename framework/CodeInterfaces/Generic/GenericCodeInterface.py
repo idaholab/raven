@@ -132,8 +132,16 @@ class GenericCode(CodeInterfaceBase):
     #FIXME I think if you give multiple output flags this could result in overwriting
     self.caseName = inputFiles[index].getBase()
     outfile = 'out~'+self.caseName
-    if 'output' in clargs.keys():
+    if 'output' in clargs:
+      toAppend = clargs['output']+' '+outfile
       todo+=' '+clargs['output']+' '+outfile
+    elif 'output' in fargs:
+      outfile = fargs['output']
+      if '.' in outfile:
+        splitted = outfile.split(".")
+        outfile, userExt = '.'.join(splitted[0:-1]), splitted[-1].strip()
+        if userExt != 'csv':
+          raise IOError('user defined output extension "'+userExt+'" is not a "csv"!')
     #text flags
     todo+=' '+clargs['text']
     #postpend
