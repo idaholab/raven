@@ -404,7 +404,6 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     # reassign probability weight to correlated variables
     self._reassignPbWeightToCorrelatedVars()
     self.inputInfo['SamplerType'] = 'Adaptive Sparse Grids for Sobol'
-
   def _addPointToDataObject(self,subset,point):
     """
       Adds a cut point to the data object for the subset sampler.
