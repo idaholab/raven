@@ -1,0 +1,112 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.Distributions.categorical</name>
+    <author>wangc</author>
+    <created>2018-01-24</created>
+    <classesTested>Distributions.Markov</classesTested>
+    <description>
+       This test is aimed to test the capability of RAVEN to use 1D Markov Categorical distributions.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>test_markov</WorkingDir>
+    <Sequence>MCrun,GridRun,OutStreams</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="transitionFile"   type="">transition.csv</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun  name="MCrun">
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
+    </MultiRun>
+    <MultiRun  name="GridRun">
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >Grid</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_Grid</Output>
+    </MultiRun>
+    <IOStep name="OutStreams" pauseAtEnd="false">
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_Grid</Input>
+      <Output class="OutStreams"   type="Print"         >MC_dump</Output>
+      <Output class="OutStreams"   type="Print"         >Grid_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="simple" name="PythonModule" subType="">
+      <variables>x,y</variables>
+    </ExternalModel>
+    <PostProcessor name="BS" subType="BasicStatistics" verbosity="debug">
+      <expectedValue>x,y</expectedValue>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Markov name="x_dist">
+        <!--dataFile fileType='csv'>transitionFile</dataFile>
+        <workingDir>test_markov</workingDir-->
+        <transition>
+            -1.5   0.8   0.7
+            0.8    -1.0  0.2
+            0.3    0.6   -0.9
+        </transition>
+        <state outcome='1' index='1'/>
+        <state outcome='2' index='2'/>
+        <state outcome='4' index='3'/>
+    </Markov>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>1234</initialSeed>
+      </samplerInit>
+      <variable name="x">
+        <distribution>x_dist</distribution>
+      </variable>
+    </MonteCarlo>
+    <Grid name="Grid">
+      <variable name="x">
+        <distribution>x_dist</distribution>
+        <grid construction="custom" type="value">1.0 2.0 4.0</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="MC_dump">
+      <type>csv</type>
+      <source>PointSet_MC</source>
+    </Print>
+    <Print name="Grid_dump">
+      <type>csv</type>
+      <source>PointSet_Grid</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="PointSet_MC">
+      <Input>x</Input>
+      <Output>y</Output>
+    </PointSet>
+    <PointSet name="PointSet_Grid">
+      <Input>x</Input>
+      <Output>y</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
