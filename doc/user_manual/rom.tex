@@ -2804,6 +2804,105 @@ The disadvantages of Gaussian Processes for Machine Learning include:
 </Simulation>
 \end{lstlisting}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ %%%%% ROM Model - SciKitLearn: Neural Network Models %%%%%%%
+\paragraph{Neural Network Models}
+\label{DNN}
+It has been more than 70 years since Warren McCulloch and Water Pitts modeled the first
+artificial neural network (ANN) that mimicked the way brains work. These day, deep learning
+based on ANN is showing outstanding results for solving a wide variety of robotic tasks in
+the areas of perception, planning, localization, and control. 
+%
+\textbf{Multi-layer Perceptron (MLP)} is a supervised learning algorithm that can learn
+a non-linear function approximator for either classifcation or regression. It is different
+from logistic regression, in that between the input and output layer, there can be one
+or more non-linear layers, called hidden layers.
+%
+The advantages of Multi-layer Perceptron are:
+\begin{itemize}
+  \item Capability to learn non-linear models
+  \item Capability to learn models in real-time (on-line learning)
+\end{itemize}
+The disadvantages of Multi-layer Perceptron include:
+\begin{itemize}
+  \item MLP with hidden layers have a non-convex loss function where there exists more than
+    one local minimum. Therefore different random weight initializations can lead to different
+    validation accuracy.
+  \item MLP requires tuning a number of hyperparameters such as the number of hidden neurons, layers
+    and iterations.
+  \item MLP is sensitive to feature scaling
+\end{itemize}
+
+\zNormalizationPerformed{Multi-layer Perceptron}
+
+In the following, Multi-layer perceptron classification and regression algorithms available in RAVEN are reported.
+
+%%%%%%%%%%%%%%%
+\subparagraph{MLPClassifier}
+\mbox{}
+\\The \textit{MLPClassifier} implements a multi-layer perceptron algorithm that trains using \textbf{Backpropagation}
+More precisely, it trains using some form of gradient descent and the gradients are calculated using Backpropagation.
+For classification, it minimizes the Cross-Entropy loss function, and it supports multi-class classification.
+
+\skltype{MLPClassifier}{neural\_network|MLPClassifier}
+\begin{itemize}
+  \item \hiddenLayerSizesMLPDescription{(100,)}
+  \item \activationMLPDescription{`relu'}
+  \item \solverMLPDescription{`adam'}
+  \item \alphaMLPDescription{0.0001}
+  \item \batchSizeMLPDescription{`auto'}
+  \item \learningRateMLPDescription{`constant'}
+  \item \learningRateInitMLPDescription{0.001}
+  \item \powerTMLPDescription{0.5}
+  \item \maxIterMLPDescription{200}
+  \item \shuffleMLPDescription{True}
+  \item \randomStateMLPDescription{None}
+  \item \tolMLPDescription{1e-4}
+  \item \verboseMLPDescription{False}
+  \item \warmStartMLPDescription{False}
+  \item \momentumMLPDescription{0.9}
+  \item \nesterovsMomentumMLPDescription{True}
+  \item \earlyStoppingMLPDescription{False}
+  \item \validationFractionMLPDescription{0.1}
+  \item \betaAMLPDescription{0.9}
+  \item \betaBMLPDescription{0.999}
+  \item \epsilonMLPDescription{1e-8}
+\end{itemize}
+
+%%%%%%%%%%%%%%%
+\subparagraph{MLPRegressor}
+\mbox{}
+\\The \textit{MLPRegressor} implements a multi-layer perceptron algorithm that trains using \textbf{Backpropagation} with
+no activation function in the output layer, which can also be seen as using the identity function as activation function.
+Therefore, it uses the square error as the loss function, and the output is a set of continuous values.
+\textit{MLPRegressor} also supports multi-output regression, in which a sample can have more than one target.
+
+\skltype{MLPRegressor}{neural\_network|MLPRegressor}
+\begin{itemize}
+  \item \hiddenLayerSizesMLPDescription{(100,)}
+  \item \activationMLPDescription{`relu'}
+  \item \solverMLPDescription{`adam'}
+  \item \alphaMLPDescription{0.0001}
+  \item \batchSizeMLPDescription{`auto'}
+  \item \learningRateMLPDescription{`constant'}
+  \item \learningRateInitMLPDescription{0.001}
+  \item \powerTMLPDescription{0.5}
+  \item \maxIterMLPDescription{200}
+  \item \shuffleMLPDescription{True}
+  \item \randomStateMLPDescription{None}
+  \item \tolMLPDescription{1e-4}
+  \item \verboseMLPDescription{False}
+  \item \warmStartMLPDescription{False}
+  \item \momentumMLPDescription{0.9}
+  \item \nesterovsMomentumMLPDescription{True}
+  \item \earlyStoppingMLPDescription{False}
+  \item \validationFractionMLPDescription{0.1}
+  \item \betaAMLPDescription{0.9}
+  \item \betaBMLPDescription{0.999}
+  \item \epsilonMLPDescription{1e-8}
+\end{itemize}
+
 %%%% ROM Model - ARMA  %%%%%%%
 \subsubsection{ARMA}
 \label{subsubsec:arma}

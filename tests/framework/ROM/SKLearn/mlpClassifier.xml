@@ -1,0 +1,75 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/ROM/SKLearn.MLPClassifier</name>
+    <author>wangc</author>
+    <created>2017-10-25</created>
+    <classesTested>SupervisedLearning.SciKitLearn</classesTested>
+    <description>
+       An example exercising supervised sklearn methods, specifically
+       the neural_network.MLPRegressor model is tested here.
+
+       Note, all of the tests in SKLearn operate on a 2D input domain with
+       the goal of fitting a paraboloid function. The input dimensions are
+       of largely different scales and one dimension is off-centered from
+       the origin to ensure that normalization is being handled correctly.
+       Classifiers will use this same function to determine if a point is
+       above 0.25, and multitask methods will additionally fit an additive
+       model (x+y).
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resample
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./testClassifier" name="foo" subType="">
+      <variables>X,Y,Z</variables>
+    </ExternalModel>
+    <ROM name="modelUnderTest" subType="SciKitLearn">
+      <SKLtype>neural_network|MLPClassifier</SKLtype>
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <hidden_layer_sizes>(6,4)</hidden_layer_sizes>
+      <activation>logistic</activation>
+      <solver>adam</solver>
+      <alpha>0.0001</alpha>
+      <batch_size>auto</batch_size>
+      <learning_rate>constant</learning_rate>
+      <learning_rate_init>0.001</learning_rate_init>
+      <power_t>0.5</power_t>
+      <max_iter>200</max_iter>
+      <shuffle>False</shuffle>
+      <random_state>130168</random_state>
+      <tol>1e-4</tol>
+      <verbose>False</verbose>
+      <warm_start>False</warm_start>
+      <momentum>0.9</momentum>
+      <nesterovs_momentum>True</nesterovs_momentum>
+      <early_stopping>False</early_stopping>
+      <validation_fraction>0.1</validation_fraction>
+      <beta_1>0.9</beta_1>
+      <beta_2>0.999</beta_2>
+      <epsilon>1e-8</epsilon>
+    </ROM>
+  </Models>
+
+  <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
+  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+      <filename>outMLPClassifier</filename>
+    </Print>
+  </OutStreams>
+
+  <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
+</Simulation>
