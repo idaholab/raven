@@ -702,7 +702,7 @@ class DataSet(DataObject):
     assert(var in self._orderedVars)
     assert(type(value).__name__ in ['float','str','int','unicode','bool'])
     lenColl = len(self._collector) if self._collector is not None else 0
-    lenData = len(self._data     ) if self._data      is not None else 0
+    lenData = len(self._data[self.sampleTag]) if self._data      is not None else 0
     # if it's in the data ...
     if index < lenData:
       self._data[var].values[index] = value
@@ -1756,6 +1756,8 @@ class DataSet(DataObject):
       path = [ending['prefix']]
       while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']):
         _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
+        if pd.isnull(ending):
+          print("aaa")
         path.append(ending['prefix'])
       # sort it in order by progression
       path.reverse()
@@ -1779,7 +1781,7 @@ class DataSet(DataObject):
       # first get rows from collector
       fromColl = self._collector[:][np.where(self._collector[:,self._orderedVars.index('RAVEN_isEnding')])]
       # then turn them into realization-like
-      fromColl = list( dict(zip(self._orderedVars,c)) for c in fromColl if self._orderedVars[c] in self.getVars())
+      fromColl = list( dict(zip(self._orderedVars,c)) for c in fromColl ) #if self._orderedVars[c] in self.getVars())
     else:
       fromColl = []
     # then get from data

@@ -70,7 +70,7 @@
       <source>Pointset</source>
       <what>Output,Input|dummy_for_branch</what>
     </Print>
-    <Plot  interactive="false" name="2DHistoryPlot" overwrite="false">
+    <Plot  interactive="false" name="2DHistoryPlot" overwrite="true">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -91,7 +91,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot  interactive="false" name="2DHistoryPlot_tps" overwrite="false">
+    <Plot  interactive="false" name="2DHistoryPlot_tps" overwrite="true">
       <plotSettings>
         <plot>
           <type>scatter</type>
