@@ -1036,8 +1036,8 @@ class DataSet(DataObject):
               raise e
           # create single dataarrays
           arrays[var] = self._collapseNDtoDataArray(varData,var,dtype=dtype)
-          # re-index samples
-          arrays[var][self.sampleTag] += firstSample
+        # re-index samples
+        arrays[var][self.sampleTag] += firstSample
       # collect all data into dataset, and update self._data
       if self._data is None:
         self._convertArrayListToDataset(arrays,action='replace')
@@ -1756,8 +1756,6 @@ class DataSet(DataObject):
       path = [ending['prefix']]
       while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']):
         _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
-        if pd.isnull(ending):
-          print("aaa")
         path.append(ending['prefix'])
       # sort it in order by progression
       path.reverse()

@@ -369,6 +369,8 @@ checkRlz('Path endings[2]',endings[2],rlz1_2_2,skip='time')
 checkRlz('Path endings[3]',endings[3],rlz1_1_1,skip='time')
 
 # check paths
+# calling data.asDataset() will change the order of the ending hierarchical paths
+# If, in the future, we need to have a deterministic behavior we will address this feature
 paths = data._generateHierPaths()
 checkArray('Path paths[0]',paths[3],['1','2','4'],str)
 checkArray('Path paths[1]',paths[0],['1','2','5'],str)
