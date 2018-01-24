@@ -133,7 +133,6 @@ class GenericCode(CodeInterfaceBase):
     self.caseName = inputFiles[index].getBase()
     outfile = 'out~'+self.caseName
     if 'output' in clargs:
-      toAppend = clargs['output']+' '+outfile
       todo+=' '+clargs['output']+' '+outfile
     elif 'output' in fargs:
       outfile = fargs['output']
