@@ -45,6 +45,22 @@ class GenericCode(CodeInterfaceBase):
     self.execPrefix       = ''       # executioner command prefix (e.g., 'python ')
     self.execPostfix      = ''       # executioner command postfix (e.g. -zcvf)
     self.caseName         = None     # base label for outgoing files, should default to inputFileName
+    self.fixedOutFileName = None     # CSV output file name of the run code (in case it is hardcoded in the driven code)
+
+  def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this class and
+      initialize some members based on inputs.
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None
+    """
+    outFileName = xmlNode.find("outputFile")
+    self.fixedOutFileName = outFileName.text if outFileName is not None else None
+    if self.fixedOutFileName is not None:
+      if '.' in self.fixedOutFileName and self.fixedOutFileName.split(".")[-1] != 'csv':
+        raise IOError('user defined output extension "'+userExt+'" is not a "csv"!')
+      else:
+        self.fixedOutFileName = '.'.join(self.fixedOutFileName.split(".")[:-1])
 
   def addDefaultExtension(self):
     """
@@ -134,14 +150,8 @@ class GenericCode(CodeInterfaceBase):
     outfile = 'out~'+self.caseName
     if 'output' in clargs:
       todo+=' '+clargs['output']+' '+outfile
-    elif 'output' in fargs:
-      outfile = fargs['output']
-      if '.' in outfile:
-        splitted = outfile.split(".")
-        outfile, userExt = '.'.join(splitted[0:-1]), splitted[-1].strip()
-        if userExt != 'csv':
-          raise IOError('user defined output extension "'+userExt+'" is not a "csv"!')
-    #text flags
+    if self.fixedOutFileName is not None:
+      outfile = self.fixedOutFileName
     todo+=' '+clargs['text']
     #postpend
     todo+=' '+clargs['post']

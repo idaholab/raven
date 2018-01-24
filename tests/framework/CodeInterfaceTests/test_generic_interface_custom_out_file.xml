@@ -9,7 +9,7 @@
        An example of using the the Model Code of type GenericCode with a code
        that produces CSV output file.
        This test is aimed to test the IO system present in the GenericCode interface.
-       In XML node fileargs of type output the user can specify the specific output
+       In XML node outputFile the user can specify the specific output
        file name RAVEN is going to load.
     </description>
     <revisions>
@@ -34,8 +34,8 @@
       <clargs arg="python" type="prepend"/>
       <clargs arg="-i" extension=".one" type="input"/>
       <fileargs arg="aux" extension=".two" type="input"/>
-      <!-- THIS fileargs is used to specify a fixed output file (ONLY CSV) from which RAVEN will collect the results -->
-      <fileargs arg="fixed_output.csv" type="output"/>
+      <!-- THIS outputFile xml node is used to specify a fixed output file (ONLY CSV) from which RAVEN will collect the results -->
+      <outputFile>fixed_output.csv</outputFile>
       <prepend>python</prepend>
     </Code>
   </Models>
