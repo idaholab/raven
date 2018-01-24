@@ -12,6 +12,7 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2017-02-03">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
     </revisions>
   </TestInfo>
     
@@ -79,8 +80,9 @@
     </Steps>
     <OutStreams>		
         <Print name = 'writeSynDataOut'>
-       <type>csv</type>
-       <source>synData</source>
+          <type>csv</type>
+          <source>synData</source>
+          <what>input, output</what>
         </Print>	
 		<Plot name="plotSynData" overwrite="false" >
 			<plotSettings>
@@ -104,11 +106,17 @@
       </PointSet>
       <HistorySet name="rawData">
         <Input>scaling</Input>
-        <Output>Time,Speed</Output>
+        <Output>Speed,Time</Output>
+        <options>
+            <pivotParameter>Time</pivotParameter>
+        </options>
       </HistorySet>
       <HistorySet name="synData">
        <Input>scaling</Input>
-       <Output>Time,Speed</Output>
+       <Output>Speed,Time</Output>
+       <options>
+           <pivotParameter>Time</pivotParameter>
+       </options>
       </HistorySet>
     </DataObjects>
 </Simulation>

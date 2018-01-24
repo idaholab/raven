@@ -30,7 +30,7 @@ import h5py  as h5
 import numpy as np
 import os
 import copy
-import json
+import cPickle
 import string
 import difflib
 #External Modules End--------------------------------------------------------------------------------
@@ -132,8 +132,8 @@ class hdf5Database(MessageHandler.MessageUser):
     if not self.fileOpen:
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'a')
     if 'allGroupPaths' in self.h5FileW.attrs and 'allGroupEnds' in self.h5FileW.attrs:
-      self.allGroupPaths = json.loads(self.h5FileW.attrs['allGroupPaths'])
-      self.allGroupEnds  = json.loads(self.h5FileW.attrs['allGroupEnds'])
+      self.allGroupPaths = cPickle.loads(self.h5FileW.attrs['allGroupPaths'])
+      self.allGroupEnds  = cPickle.loads(self.h5FileW.attrs['allGroupEnds'])
     else:
       self.h5FileW.visititems(self.__isGroup)
     self.raiseAMessage('TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
@@ -157,6 +157,26 @@ class hdf5Database(MessageHandler.MessageUser):
         self.raiseAWarning('not found attribute endGroup in group ' + name + '.Set True.')
     return
 
+  def addExpectedMeta(self, keys):
+    """
+      Store expected metadata
+      @ In, keys, set(), the metadata list
+      @ Out, None
+    """
+    self.h5FileW.attrs['expectedMetadata'] = cPickle.dumps(list(keys))
+
+  def provideExpectedMetaKeys(self):
+    """
+      Provides the registered list of metadata keys for this entity.
+      @ In, None
+      @ Out, meta, set(str), expected keys (empty if none)
+    """
+    meta = set()
+    gotMeta = self.h5FileW.attrs.get('expectedMetadata',None)
+    if gotMeta is not None:
+      meta = set(cPickle.loads(gotMeta))
+    return meta
+
   def addGroup(self,rlz):
     """
       Function to add a group into the database
@@ -165,26 +185,24 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, source, File object, data source (for example, csv file)
       @ Out, None
     """
-    parentID  = rlz.get("parentID",[None])[0]
-    groupName = rlz.get("prefix")[0]
-
+    parentID  = rlz.get("RAVEN_parentID",[None])[0]
+    groupName = str(rlz.get("prefix")[0] if not isinstance(rlz.get("prefix"),basestring) else rlz.get("prefix"))
     if parentID:
       #If Hierarchical structure, firstly add the root group
-      if not self.firstRootGroup or parentID == 'root':
+      if not self.firstRootGroup or parentID is None:
         self.__addGroupRootLevel(groupName,rlz)
         self.firstRootGroup = True
         self.type = 'DET'
       else:
         # Add sub group in the Hierarchical structure
         self.__addSubGroup(groupName,rlz)
-      endif
     else:
       # Parallel structure (always root level)
       self.__addGroupRootLevel(groupName,rlz)
       self.firstRootGroup = True
       self.type = 'MC'
-    self.h5FileW.attrs['allGroupPaths'] = json.dumps(self.allGroupPaths)
-    self.h5FileW.attrs['allGroupEnds'] = json.dumps(self.allGroupEnds)
+    self.h5FileW.attrs['allGroupPaths'] = cPickle.dumps(self.allGroupPaths)
+    self.h5FileW.attrs['allGroupEnds'] = cPickle.dumps(self.allGroupEnds)
     self.h5FileW.flush()
 
 
@@ -198,7 +216,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     attribs = {} if attributes is None else attributes
-    groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H")
+    groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H-%S")
     for index in xrange(len(self.allGroupPaths)):
       comparisonName = self.allGroupPaths[index]
       splittedPath=comparisonName.split('/')
@@ -228,9 +246,22 @@ class hdf5Database(MessageHandler.MessageUser):
     grp.attrs[b'groupName'] = groupNameInit
     self.allGroupPaths.append("/" + groupNameInit)
     self.allGroupEnds["/" + groupNameInit] = False
-    self.h5FileW.attrs['allGroupPaths'] = json.dumps(self.allGroupPaths)
-    self.h5FileW.attrs['allGroupEnds'] = json.dumps(self.allGroupEnds)
+    self.h5FileW.attrs['allGroupPaths'] = cPickle.dumps(self.allGroupPaths)
+    self.h5FileW.attrs['allGroupEnds'] = cPickle.dumps(self.allGroupEnds)
     self.h5FileW.flush()
+
+  def __checkTypeHDF5(self, value, neg):
+    """
+      Local utility function to check the type
+      @ In, value, object, the value to check
+      @ In, neg, bool, to use the "not" or not
+      @ Out, check, bool, the check
+    """
+    if neg:
+      check = type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'] and type(value) not in [float,int]
+    else:
+      check = type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value) in [float,int]
+    return check
 
   def __populateGroup(self, group, name,  rlz):
     """
@@ -241,49 +272,56 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, rlz, dict, dictionary with the data and metadata to add
       @ Out, None
     """
-    # add pointwise metadata (in this case, they are group-wise)
-    #group.attrs[b'point_wise_metadata_keys'] = json.dumps(self._metavars)
     group.attrs[b'hasIntfloat'] = False
     group.attrs[b'hasOther'   ] = False
-    # get the data floats and other types
-    dataIntfloat = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'])
-    dataOther    = dict( (key, value) for (key, value) in rlz.items() if type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'])
+    if self.variables is not None:
+      # check if all variables are contained in the rlz dictionary
+      if not set(self.variables).issubset(rlz.keys()):
+        self.raiseAnError(IOError, "Not all the requested variables have been passed in the realization. Missing are: "+
+                          ",".join(list(set(self.variables).symmetric_difference(set(rlz.keys())))))
+    # get the data floats or arrays
+    if self.variables is None:
+      dataIntFloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) )
+    else:
+      dataIntFloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) and key in self.variables)
+    # get other dtype data (strings and objects)
+    dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, True) )
     # get size of each data variable (float)
-    varKeysIntfloat = dataIntfloat.keys()
+    varKeysIntfloat = dataIntFloat.keys()
     if len(varKeysIntfloat) > 0:
-      varShapeIntfloat = [dataIntfloat[key].shape for key in varKeysIntfloat]
+      varShapeIntfloat = [dataIntFloat[key].shape for key in varKeysIntfloat]
       # get data names
-      group.attrs[b'data_namesIntfloat'] = json.dumps(varKeysIntfloat)
+      group.attrs[b'data_namesIntfloat'] = cPickle.dumps(varKeysIntfloat)
       # get data shapes
-      group.attrs[b'data_shapesIntfloat'] = json.dumps(varShapeIntfloat)
+      group.attrs[b'data_shapesIntfloat'] = cPickle.dumps(varShapeIntfloat)
       # get data shapes
       end   = np.cumsum(varShapeIntfloat)
       begin = np.concatenate(([0],end[0:-1]))
-      group.attrs[b'data_begin_endIntfloat'] = json.dumps((begin.tolist(),end.tolist()))
+      group.attrs[b'data_begin_endIntfloat'] = cPickle.dumps((begin.tolist(),end.tolist()))
       # get data names
-      group.create_dataset(name + "_dataIntfloat", dtype="float", data=(np.concatenate( dataIntfloat.values()).ravel()))
+      group.create_dataset(name + "_dataIntFloat", dtype="float", data=(np.concatenate( dataIntFloat.values()).ravel()))
       group.attrs[b'hasIntfloat'] = True
     # get size of each data variable (other type)
     varKeysOther = dataOther.keys()
     if len(varKeysOther) > 0:
       varShapeOther = [dataOther[key].shape for key in varKeysOther]
       # get data names
-      group.attrs[b'data_namesOther'] = json.dumps(varKeysOther)
+      group.attrs[b'data_namesOther'] = cPickle.dumps(varKeysOther)
       # get data shapes
-      group.attrs[b'data_shapesOther'] = json.dumps(varShapeOther)
+      group.attrs[b'data_shapesOther'] = cPickle.dumps(varShapeOther)
       # get data shapes
       end   = np.cumsum(varShapeOther)
       begin = np.concatenate(([0],end[0:-1]))
-      group.attrs[b'data_begin_endOther'] = json.dumps((begin.tolist(),end.tolist()))
+      group.attrs[b'data_begin_endOther'] = cPickle.dumps((begin.tolist(),end.tolist()))
       # get data names
-      group.create_dataset(name + "_dataOther", data=(json.dumps(np.concatenate( dataOther.values()).ravel().tolist())))
+      group.attrs[name + b'_dataOther'] = cPickle.dumps(np.concatenate( dataOther.values()).ravel().tolist())
       group.attrs[b'hasOther'] = True
     # add some info
     group.attrs[b'groupName'     ] = name
     group.attrs[b'endGroup'      ] = True
-    group.attrs[b'parentID'      ] = group.parent.name
-    group.attrs[b'nVarsIntfloat'] = len(varKeysIntfloat)
-    group.attrs[b'nVarsOther'   ] = len(varKeysOther)
+    group.attrs[b'RAVEN_parentID'] = group.parent.name
+    group.attrs[b'nVarsIntfloat' ] = len(varKeysIntfloat)
+    group.attrs[b'nVarsOther'    ] = len(varKeysOther)
 
 
   def __addGroupRootLevel(self,groupName,rlz):
@@ -325,7 +363,7 @@ class hdf5Database(MessageHandler.MessageUser):
       groupName = groupName + "_" + groupName
 
     # retrieve parentID
-    parentID = rlz.get("parentID")
+    parentID = rlz.get("RAVEN_parentID")
     parentName = parentID
 
     # Find parent group path
@@ -427,8 +465,10 @@ class hdf5Database(MessageHandler.MessageUser):
       @ InOut, backGroups, list, list of group instances (from the deepest to the root)
     """
     if grp.parent and grp.parent != grp:
-      backGroups.append(grp.parent)
-      self.__getListOfParentGroups(grp.parent, backGroups)
+      parentGroup = grp.parent
+      if not parentGroup.attrs.get("rootname",False):
+        backGroups.append(parentGroup)
+        self.__getListOfParentGroups(parentGroup, backGroups)
     return backGroups
 
   def __getNewDataFromGroup(self, group, name):
@@ -438,24 +478,26 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, name, str, the group name
       @ Out, newData, dict, the dictionary with the data
     """
+    newData = {}
     hasIntfloat = group.attrs['hasIntfloat']
     hasOther    = group.attrs['hasOther']
     if hasIntfloat:
-      datasetIntfloat = group[name + "_dataIntfloat"]
+      dataSetIntFloat = group[name + "_dataIntFloat"]
       # Get some variables of interest
       nVarsIntfloat      = group.attrs[b'nVarsIntfloat']
-      varShapeIntfloat   = json.loads(group.attrs[b'data_shapesIntfloat'])
-      varKeysIntfloat    = json.loads(group.attrs[b'data_namesIntfloat'])
-      begin, end          = json.loads(group.attrs[b'data_begin_endIntfloat'])
+      varShapeIntfloat   = cPickle.loads(group.attrs[b'data_shapesIntfloat'])
+      varKeysIntfloat    = cPickle.loads(group.attrs[b'data_namesIntfloat'])
+      begin, end          = cPickle.loads(group.attrs[b'data_begin_endIntfloat'])
       # Reconstruct the dataset
-      newData = {key : np.reshape(datasetIntfloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt]) for cnt,key in enumerate(varKeysIntfloat)}
+      newData = {key : np.reshape(dataSetIntFloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt]) for cnt,key in enumerate(varKeysIntfloat)}
     if hasOther:
-      datasetOther = group[name + "_dataOther"]
+      # get the "other" data
+      datasetOther = cPickle.loads(group.attrs[name + "_dataOther"])
       # Get some variables of interest
       nVarsOther      = group.attrs[b'nVarsOther']
-      varShapeOther   = json.loads(group.attrs[b'data_shapesOther'])
-      varKeysOther    = json.loads(group.attrs[b'data_namesOther'])
-      begin, end       = json.loads(group.attrs[b'data_begin_endOther'])
+      varShapeOther   = cPickle.loads(group.attrs[b'data_shapesOther'])
+      varKeysOther    = cPickle.loads(group.attrs[b'data_namesOther'])
+      begin, end       = cPickle.loads(group.attrs[b'data_begin_endOther'])
       # Reconstruct the dataset
       newData.update({key : np.reshape(datasetOther[begin[cnt]:end[cnt]], varShapeOther[cnt]) for cnt,key in enumerate(varKeysOther)})
     return newData
@@ -541,4 +583,5 @@ class hdf5Database(MessageHandler.MessageUser):
     else:
       parentGroupName = '/'
     return parentGroupName
+
 

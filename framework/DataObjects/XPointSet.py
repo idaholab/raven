@@ -93,39 +93,12 @@ class PointSet(DataSet):
       self._selectOutput = ('outputRow',-1)
 
   ### INTERNAL USE FUNCTIONS ###
-  def _collapseNDtoDataArray(self,data,var,labels=None):
-    """
-      Converts a row of numpy samples into a single DataArray suitable for a xr.Dataset.
-      @ In, data, np.ndarray, array of either float or xr.DataArray; array must be single-dimension
-      @ In, var, str, name of the variable being acted on
-      @ In, labels, list, list of labels to use for collapsed array under self.sampleTag title
-      @ Out, DataArray, xr.DataArray, single dataarray object
-    """
-    # TODO this is slightly different but quite similar to the base class.  Should it be separate?
-    assert(isinstance(data,np.ndarray))
-    assert(len(data.shape) == 1)
-    if labels is None:
-      labels = range(len(data))
-    else:
-      assert(len(labels) == len(data))
-    # ALL should be floats or otherwise 1d
-    #assert(isinstance(data[0],(float,str,unicode,int,type(None)))) # --> in LimitSurfaceSearch, first can be "None", floats come later
-    try:
-      assert(isinstance(data[0],(float,str,unicode,int,))) # --> in LimitSurfaceSearch, first can be "None", floats come later
-    except AssertionError as e:
-      raise e
-    array = xr.DataArray(data,
-                         dims=[self.sampleTag],
-                         coords={self.sampleTag:labels},
-                         name=var)
-    array.rename(var)
-    return array
-
-  def _convertFinalizedDataRealizationToDict(self,rlz):
+  def _convertFinalizedDataRealizationToDict(self,rlz, unpackXArray=False):
     """
       After collapsing into xr.Dataset, all entries are stored as xr.DataArrays.
       This converts them into a dictionary like the realization sent in.
       @ In, rlz, dict(varname:xr.DataArray), "row" from self._data
+      @ In, unpackXArray, bool, optional, For now it is just a by-pass here
       @ Out, new, dict(varname:value), where "value" could be singular (float,str) or xr.DataArray
     """
     new = {}
@@ -147,8 +120,10 @@ class PointSet(DataSet):
     # then select the point we want
     toRemove = []
     for var,val in rlz.items():
+      if var in self.protectedTags:
+        continue
       # only modify it if it is not already scalar
-      if not isinstance(val,(float,int,str,unicode)):
+      if not mathUtils.isSingleValued(val):
         # treat inputs, outputs differently TODO this should extend to per-variable someday
         ## inputs
         if var in self._inputs:
@@ -156,12 +131,9 @@ class PointSet(DataSet):
         elif var in self._outputs or var in self._metavars:
           # TODO where does metadata get picked from?  Seems like output fits best?
           method,indic = self._selectOutput
-        # pivot variables might be included here; try removing them
-        elif var in self.indexes:
-          continue # don't need to handle coordinate dimensions, they come with values
+        # pivot variables are included here in "else"; remove them after they're used in operators
         else:
           toRemove.append(var)
-          print('DEBUGG unhandled:',var)
           continue
         if method in ['inputRow','outputRow']:
           # zero-d xarrays give false behavior sometimes
@@ -179,7 +151,11 @@ class PointSet(DataSet):
           pivotParam = self.getDimensions(var)
           assert(len(pivotParam) == 1) # TODO only handle History for now
           pivotParam = pivotParam[var][0]
-          rlz[var] = float(val.sel(**{pivotParam:indic, 'method':b'nearest'})) #casting as str not unicode
+          idx = (np.abs(rlz[pivotParam] - indic)).argmin()
+          rlz[var] = rlz[var][idx]
+          # if history is dataarray -> not currently possible, but keep for when it's needed
+          #if type(rlz[var]).__name__ == 'DataArray':
+          #  rlz[var] = float(val.sel(**{pivotParam:indic, 'method':b'nearest'})) #casting as str not unicode
           # TODO allowing inexact matches; it's finding the nearest
         elif method == 'operator':
           if indic == 'max':

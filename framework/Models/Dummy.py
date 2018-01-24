@@ -75,11 +75,10 @@ class Dummy(Model):
       inRun = dataIn[0][0]
     return inRun
 
-  def _inputToInternal(self,dataIN,full=False):
+  def _inputToInternal(self,dataIN):
     """
       Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data
       @ In, dataIn, object, the object that needs to be manipulated
-      @ In, full, bool, optional, does the full input needs to be retrieved or just the last element?
       @ Out, localInput, dict, the manipulated input
     """
     #self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
@@ -105,7 +104,8 @@ class Dummy(Model):
             for entries in dataIN.getVars('input'):
               if localInput[entries] is None:
                 localInput[entries] = []
-              localInput[entries].append(np.full((sizeIndex,),dataSet.isel(RAVEN_sample_ID=hist)[entries].values))
+              value = dataSet.isel(**{dataIN.sampleTag:hist})[entries].values
+              localInput[entries].append(np.full((sizeIndex,),value,dtype=value.dtype))
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getVars('output'):
         localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
@@ -167,10 +167,13 @@ class Dummy(Model):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
+    # alias system
+    self._replaceVariablesNamesWithAliasSystem(inRun,'input',True)
+    self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',True)
     # build realization using input space from inRun and metadata from kwargs
     rlz = dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else kwargs[var])) for var in set(kwargs.keys()+inRun.keys()))
     # add dummy output space
-    rlz['OutputPlaceHolder'] = np.atleast_1d(float(Input[1]['prefix'][0]))
+    rlz['OutputPlaceHolder'] = np.atleast_1d(float(Input[1]['prefix']))
     return rlz
 
   def collectOutput(self,finishedJob,output,options=None):
@@ -185,8 +188,9 @@ class Dummy(Model):
     # TODO apparently sometimes "options" can include 'exportDict'; what do we do for this?
     # TODO consistency with old HDF5; fix this when HDF5 api is in place
     # TODO expensive deepcopy prevents modification when sent to multiple outputs
-    result = copy.deepcopy(finishedJob.getEvaluation())
-    self._replaceVariablesNamesWithAliasSystem(result)
+    result = finishedJob.getEvaluation()
+    # alias system
+    self._replaceVariablesNamesWithAliasSystem(result,'output',True)
     if isinstance(result,Runners.Error):
       self.raiseAnError(Runners.Error,'No available output to collect!')
     output.addRealization(result)

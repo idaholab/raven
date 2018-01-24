@@ -134,6 +134,7 @@
     <Print name="coarse">
       <type>csv</type>
       <source>solns</source>
+      <what>input,output</what>
     </Print>
     <Print name="fine">
       <type>csv</type>

@@ -158,30 +158,37 @@
     <Print name="printFinalResults">
       <type>csv</type>
       <source>finalResponses</source>
+      <what>input,output</what>
     </Print>
     <Print name="printResponseModel1">
         <type>csv</type>
         <source>responseModel1</source>
+        <what>input,output</what>
     </Print>
     <Print name="printResponseModel2">
         <type>csv</type>
         <source>responseModel2</source>
+        <what>input,output</what>
     </Print>
     <Print name="printResponseModel1HS">
         <type>csv</type>
         <source>responseModel1HS</source>
+        <what>input,output</what>
     </Print>
     <Print name="printResponseModel2HS">
         <type>csv</type>
         <source>responseModel2HS</source>
+        <what>input,output</what>
     </Print>
     <Print name="printResponseModel1_from_hdf5">
         <type>csv</type>
         <source>responseModel1_from_optional_hdf5_output</source>
+        <what>input,output</what>
     </Print>
     <Print name="printResponseModel2_from_hdf5">
         <type>csv</type>
         <source>responseModel2_from_optional_hdf5_output</source>
+        <what>input,output</what>
     </Print>
     
   </OutStreams>

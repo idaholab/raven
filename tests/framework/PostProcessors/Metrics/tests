@@ -2,7 +2,6 @@
   [./simpleMetric]
     type = 'RavenFramework'
     input = 'test_metric.xml'
-    UnorderedXml = 'mcMetricRun/dumpMC.xml mcMetricRun/pp1_metric_dump.xml'
     UnorderedCsv = 'mcMetricRun/dumpMC.csv mcMetricRun/pp1_metric_dump.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
@@ -11,7 +10,6 @@
   [./multipleInputs]
     type = 'RavenFramework'
     input = 'test_metric_multiple_input_objects.xml'
-    output = 'multipleInputObjects/pp1_metric_dump.xml'
     UnorderedCsv = 'multipleInputObjects/pp1_metric_dump.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9

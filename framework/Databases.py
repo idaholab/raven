@@ -75,6 +75,9 @@ class DateBase(BaseType):
     """
     if 'directory' in paramInput.parameterValues:
       self.databaseDir = copy.copy(paramInput.parameterValues['directory'])
+      # if not absolute path, join with working directory
+      if not os.path.isabs(self.databaseDir):
+        self.databaseDir = os.path.abspath(os.path.join(self.workingDir,self.databaseDir))
     else:
       self.databaseDir = os.path.join(self.workingDir,'DatabaseStorage')
     if 'filename' in paramInput.parameterValues:
@@ -88,6 +91,10 @@ class DateBase(BaseType):
     # read mode
     self.readMode = paramInput.parameterValues['readMode'].strip().lower()
     self.raiseADebug('HDF5 Read Mode is "'+self.readMode+'".')
+    if self.readMode == 'overwrite':
+      # check if self.databaseDir exists or create in case not
+      if not os.path.exists(self.databaseDir):
+        os.mkdir(self.databaseDir)
     # get full path
     fullpath = os.path.join(self.databaseDir,self.filename)
     if os.path.isfile(fullpath):
@@ -99,7 +106,7 @@ class DateBase(BaseType):
     else:
       #file does not exist in path
       if self.readMode == 'read':
-        self.raiseAWarning('Requested to read from database, but it does not exist at:',fullpath,'; continuing without reading...')
+        self.raiseAnError(IOError, 'Requested to read from database, but it does not exist at:',fullpath,'; The path to the database must be either absolute or relative to <workingDir>!')
       self.exist = False
       self.database  = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist,self.variables)
     self.raiseAMessage('Database is located at:',fullpath)
@@ -246,8 +253,16 @@ class HDF5(DateBase):
       @ In, keys, set(str), keys to register
       @ Out, None
     """
-    #self.database.addExpectedMeta(keys)
+    self.database.addExpectedMeta(keys)
     self.addMetaKeys(*keys)
+
+  def provideExpectedMetaKeys(self):
+    """
+      Provides the registered list of metadata keys for this entity.
+      @ In, None
+      @ Out, meta, set(str), expected keys (empty if none)
+    """
+    return self.database.provideExpectedMetaKeys()
 
   def initialize(self,gname,options=None):
     """
@@ -280,6 +295,8 @@ class HDF5(DateBase):
       @ Out, allData, list of arrays, all the data from this data object.
     """
     allRealizationNames = self.database.retrieveAllHistoryNames()
+    # instead to use a OrderedDict in the database, I sort the names here (it is much faster)
+    allRealizationNames.sort()
     allData = [self.realization(name) for name in allRealizationNames]
     return allData
 
@@ -297,7 +314,8 @@ class HDF5(DateBase):
     assert (matchDict is None)
     if (not self.exist) and (not self.built):
       self.raiseAnError(Exception,'Can not retrieve a realization from Database' + self.name + '.It has not been built yet!')
-    if type(index).__name__ == 'int': allRealizations = self.database.retrieveAllHistoryNames()
+    if type(index).__name__ == 'int':
+      allRealizations = self.database.retrieveAllHistoryNames()
     if type(index).__name__ == 'int' and index > len(allRealizations):
       rlz = None
     else:
@@ -342,3 +360,4 @@ def returnInputParameter():
     @ Out, returnInputParameter, DatabasesCollection, class for parsing.
   """
   return DatabasesCollection()
+

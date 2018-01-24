@@ -1,0 +1,96 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.Models.External.all_methods</name>
+    <author>talbpaul</author>
+    <created>2018-01-17</created>
+    <classesTested>Models.ExternalModel</classesTested>
+    <description>
+      This test is used to exercise all of the optional ExternalModel methods and assure they behave as expected.
+    </description>
+    <analytic>
+      This test uses the analytic model "attenuate", which is documented in the analytical test documentation.
+      Additionally, values of the "from" variables are exactly determined because they are set in the extmod methods:
+      \begin{itemize}
+        \item fromReadMoreXML: pi         (3.14159)
+        \item fromInit       : sqrt(pi)   (1.77245)
+        \item fromCNISelf    : pi/2       (1.57080)
+        \item fromCNIDict    : 2*sqrt(pi) (3.54491)
+      \end{itemize}
+      The exit strength "ans" is analytic with results as follows (Note that for testing purposes, the model always adds
+      0.05 to \texttt{y2} before calculating the exit strength):
+      \begin{itemize}
+        \item \texttt{y1}, \texttt{y2}, \texttt{ans}
+        \item 0.0, 0.0, 0.97531
+        \item 0.0, 1.0, 0.59156
+        \item 1.0, 0.0, 0.59156
+        \item 1.0, 1.0, 0.35880
+      \end{itemize}
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>AllMethods</WorkingDir>
+    <Sequence>sample,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">attenuate</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Output class="OutStreams" type="Print">samples_out</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="attenuate" name="attenuate" subType="">
+      <variables>y1,y2,ans,fromInit,fromReadMoreXML,fromCNISelf,fromCNIDict</variables>
+      <moreXMLInfo>
+        <valueForXML>3.14159</valueForXML>
+      </moreXMLInfo>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="dist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="y1">
+        <distribution>dist</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+      </variable>
+      <variable name="y2">
+        <distribution>dist</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="samples_out">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>y1,y2</Input>
+    </PointSet>
+    <PointSet name="samples">
+      <Input>y1,y2</Input>
+      <Output>ans,fromInit,fromReadMoreXML,fromCNISelf,fromCNIDict</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

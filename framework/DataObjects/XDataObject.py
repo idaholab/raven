@@ -104,11 +104,11 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.name      = 'DataObject'
     self.printTag  = self.name
     self.sampleTag = 'RAVEN_sample_ID' # column name to track samples
-
-    self._inputs   = []     # list(str) if input variables
-    self._outputs  = []     # list(str) of output variables
-    self._metavars = []     # list(str) of POINTWISE metadata variables
-    self._allvars  = []     # list(str) of vars IN ORDER of their index
+    self.protectedTags = ['RAVEN_parentID','RAVEN_isEnding'] # list(str) protected RAVEN tags
+    self._inputs   = []                                      # list(str) if input variables
+    self._outputs  = []                                      # list(str) of output variables
+    self._metavars = []                                      # list(str) of POINTWISE metadata variables
+    self._orderedVars = []                                   # list(str) of vars IN ORDER of their index
 
     self._meta         = {}     # dictionary to collect meta until data is collapsed
     self._heirarchal   = False  # if True, non-traditional format (not yet implemented)
@@ -155,11 +155,11 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     for child in inp.subparts:
       # TODO check for repeats, "notAllowdInputs", names in both input and output space
       if child.getName() == 'Input':
-        self._inputs.extend(list(x for x in child.value.split(',') if x.strip()!=''))
+        self._inputs.extend(list(x.strip() for x in child.value.split(',') if x.strip()!=''))
       elif child.getName() == 'Output':
-        self._outputs.extend(list(x for x in child.value.split(',') if x.strip()!=''))
+        self._outputs.extend(list(x.strip() for x in child.value.split(',') if x.strip()!=''))
       elif child.getName() == 'Index':
-        depends = child.value.split(',')
+        depends = list(d.strip() for d in child.value.split(','))
         var = child.parameterValues['var']
         self._pivotParams[var] = depends
       # options node
@@ -189,6 +189,11 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           self.raiseAWarning('Multiple options were given to specify the output row to read! Using last entry:',self._selectOutput)
       # end options node
     # end input reading
+    # clear keywords InputPlaceHolder but NOT the OutputPlaceHolder, for legacy reasons
+    while 'InputPlaceHolder' in self._inputs:
+      self._inputs.remove('InputPlaceHolder')
+    #while 'OutputPlaceHolder' in self._outputs:
+    #  self._outputs.remove('OutputPlaceHolder')
     # set default pivot parameters, if needed
     self._setDefaultPivotParams()
     # remove index variables from input/output spaces, but silently, since we'll still have them available later
@@ -201,7 +206,11 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self._inputs.remove(index)
       except ValueError:
         pass #not requested as input anyway
-    self._allvars = self._inputs + self._outputs
+    self._orderedVars = self._inputs + self._outputs
+    # check if protected vars have been violated
+    if set(self.protectedTags).issubset(set(self._orderedVars)):
+      self.raiseAnError(IOError, 'Input, Output and Index variables can not be part of RAVEN protected tags: '+','.join(self.protectedTags))
+    self.protectedTags
     if self.messageHandler is None:
       self.messageHandler = MessageCourier()
 

@@ -90,6 +90,7 @@
     <Print name="printFinalResults">
       <type>csv</type>
       <source>finalResponses</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

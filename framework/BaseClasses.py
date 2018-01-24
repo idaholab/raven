@@ -246,7 +246,7 @@ class BaseType(MessageHandler.MessageUser):
     """
       Provides the registered list of metadata keys for this entity.
       @ In, None
-      @ Out, meta, list(str), expected keys (empty if none)
+      @ Out, meta, set(str), expected keys (empty if none)
     """
     return self.metadataKeys
 
@@ -256,4 +256,6 @@ class BaseType(MessageHandler.MessageUser):
       @ In, args, list(str), keywords to register
       @ Out, None
     """
+    if any(not isinstance(a,basestring) for a in args):
+      self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
     self.metadataKeys = self.metadataKeys.union(set(args))

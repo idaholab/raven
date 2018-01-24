@@ -169,7 +169,7 @@ class BasicStatistics(PostProcessor):
     if type(currentInput).__name__ =='dict':
       if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys():
         self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
-      return currentInput
+      return [currentInput]
     if currentInput.type not in ['PointSet','HistorySet']:
       self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
 
@@ -814,14 +814,12 @@ class BasicStatistics(PostProcessor):
         percent = float(targetDict['percent'])
         prefix = targetDict['prefix'].strip()
         for targetP in targetDict['targets']:
+          varName = '_'.join([prefix, targetDict['percent'].strip(), targetP])
           if pbPresent:
             relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+            outputDict[varName] = np.atleast_1d(self._computeWeightedPercentile(inputDict['targets'][targetP].values,relWeight,percent=float(percent)/100.0))
           else:
-            lenght = len(inputDict['targets'][targetP].values)
-            relWeight  = np.full((lenght,),1./float(lenght))
-          varName = prefix + '_' + targetDict['percent'].strip() + '_' + targetP
-          outputDict[varName] = np.atleast_1d(self._computeWeightedPercentile(inputDict['targets'][targetP].values,relWeight,percent=float(percent)/100.0))
-
+            outputDict[varName] = np.percentile(inputDict['targets'][targetP].values, float(percent), interpolation='lower')
     #collect only the requested calculations except percentile, since it has been already collected
     #in the outputDict.
     for metric, requestList  in self.toDo.items():
@@ -962,3 +960,4 @@ class BasicStatistics(PostProcessor):
       corrMatrix = covM / covM
     # to prevent numerical instability
     return corrMatrix
+

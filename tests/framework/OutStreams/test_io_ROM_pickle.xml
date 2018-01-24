@@ -131,18 +131,22 @@
     <Print name="PrintData_data2">
       <type>csv</type>
       <source>Data2</source>
+      <what>input,output</what>
     </Print>
     <Print name="PrintData_data1">
       <type>csv</type>
       <source>Data1</source>
+      <what>input,output</what>
     </Print>
     <Print name="PrintData">
       <type>csv</type>
       <source>Data3</source>
+      <what>input,output</what>
     </Print>
     <Print name="PrintData_Pickle">
       <type>csv</type>
       <source>Data4</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

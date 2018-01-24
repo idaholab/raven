@@ -222,6 +222,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     paramInput = self._readMoreXMLbase(xmlNode)
     self.localInputAndChecks(xmlNode, paramInput)
 
+
   def _readMoreXMLbase(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to the base sampler only
@@ -307,7 +308,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     if self.initSeed == None:
       self.initSeed = randomUtils.randomIntegers(0,2**31,self)
-    # Creation of the self.distributions2variablesMapping dictionary: {'distName': ({'variable_name1': dim1}, {'variable_name2': dim2})}
+    # Creation of the self.distributions2variablesMapping dictionary: {'distName': [{'variable_name1': dim1}, {'variable_name2': dim2}]}
     for variable in self.variables2distributionsMapping.keys():
       distName = self.variables2distributionsMapping[variable]['name']
       dim      = self.variables2distributionsMapping[variable]['dim']
@@ -325,6 +326,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       for var in self.distributions2variablesMapping[distName]:
         position = utils.first(var.values())
         positionList.append(position)
+      if sum(set(positionList)) > 1 and len(positionList) != len(set(positionList)):
+        dups = set(str(var) for var in positionList if positionList.count(var) > 1)
+        self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple variables in Samplers: "{}"'.format(', '.join(dups)),
+                ' associated to ND distribution ', distName, '. This is currently not allowed!')
       positionList = list(set(positionList))
       positionList.sort()
       self.distributions2variablesIndexList[distName] = positionList
@@ -366,7 +371,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.raiseAnError(IOError,'The maximum dim = ' + str(max(listIndex)) + ' defined for latent variables is exceeded the dimension of the problem ' + str(maxDim))
         if len(set(listIndex)) != len(listIndex):
           dups = set(var+1 for var in listIndex if listIndex.count(var) > 1)
-          self.raiseAnError(IOError,'Each of the following dimensions  are assigned to multiple latent variables in Samplers: ' + str(dups))
+          self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple latent variables in Samplers: ' + str(dups))
         # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
     return paramInput
@@ -577,7 +582,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.entitiesToRemove.append('transformation-'+distName)
 
     # Register expected metadata
-    meta = ['ProbabilityWeight','prefix']
+    meta = ['ProbabilityWeight','prefix','PointProbability']
+    for var in self.toBeSampled.keys():
+      meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
     self.addMetaKeys(*meta)
 
   def localInitialize(self):
@@ -601,7 +608,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # we consider that CDF of the constant variables is equal to 1 (same as its Pb Weight)
       self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(),1.0))
       pbKey = ['ProbabilityWeight-'+key for key in self.constants.keys()]
-      self.addMetaKeys(pbKey)
+      self.addMetaKeys(*pbKey)
       self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
 
   def amIreadyToProvideAnInput(self): #inLastOutput=None):
@@ -654,7 +661,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #self.inputInfo['counter'] = self.counter
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
-
+    # split the sampled vars Pb among the different correlated variables
+    self._reassignSampledVarsPbToFullyCorrVars()
     ##### TRANSFORMATION #####
     # add latent variables and original variables to self.inputInfo
     if self.variablesTransformationDict:
@@ -704,9 +712,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # DO format the data as atleast_1d so it's consistent in the ExternalModel for users (right?)
       rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
       rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output'))
-      rlz['metadata'] = {'prefix':self.inputInfo['prefix'],
-                         'ProbabilityWeight':self.inputInfo['ProbabilityWeight'],
-                        }
+      rlz['metadata'] = copy.deepcopy(self.inputInfo) # TODO need deepcopy only because inputInfo is on self
       return 1,rlz
 
   def pcaTransform(self,varsDict,dist):
@@ -805,6 +811,29 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for key in fullyCorrVars:
       for kkey in key.split(","):
         self.inputInfo['SampledVarsPb'][kkey] = fullyCorrVars[key]
+
+  def _reassignPbWeightToCorrelatedVars(self):
+    """
+      Method to reassign probability weight to the correlated variables
+      @ In, None
+      @ Out, None
+    """
+    for varName, varInfo in self.variables2distributionsMapping.items():
+      # Handle ND Case
+      if varInfo['totDim'] > 1:
+        distName = self.variables2distributionsMapping[varName]['name']
+        self.inputInfo['ProbabilityWeight-' + varName] = self.inputInfo['ProbabilityWeight-' + distName]
+      if "," in varName:
+        for subVarName in varName.split(","):
+          self.inputInfo['ProbabilityWeight-' + subVarName.strip()] = self.inputInfo['ProbabilityWeight-' + varName]
+
+  def finalizeSampler(self,failedRuns):
+    """
+      Method called at the end of the Step when no more samples will be taken.  Closes out sampler for step.
+      @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
+      @ Out, None
+    """
+    self.handleFailedRuns(failedRuns)
 
   def handleFailedRuns(self,failedRuns):
     """

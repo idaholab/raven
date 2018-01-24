@@ -296,7 +296,7 @@ class GradientBasedOptimizer(Optimizer):
 
     ## first, determine if we want to keep the new point
     # obtain the old loss value
-    oldLossVal = self.counter['recentOptHist'][traj][0]['output']
+    oldLossVal = self.counter['recentOptHist'][traj][0][self.objVar]
     # see if new point is better than old point
     newerIsBetter = self.checkIfBetter(currentLossVal,oldLossVal)
     # if this was a recommended preconditioning point, we should not be converged.
@@ -379,7 +379,7 @@ class GradientBasedOptimizer(Optimizer):
 
         #same coordinate check
         oldInputSpace = set(self.optVarsHist[traj][varsUpdate].items())
-        curInputSpace = set(self.counter['recentOptHist'][traj][0]['inputs'].items())
+        curInputSpace = set(dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars()).items())
         sameCoordinateCheck = oldInputSpace == curInputSpace
         self.raiseAMessage(printString.format('Same coordinate check',str(minStepSizeCheck)))
         converged = converged or sameCoordinateCheck
@@ -434,7 +434,7 @@ class GradientBasedOptimizer(Optimizer):
           if len(inp) < 1: #empty
             continue
           removeLocalFlag = True
-          dist = np.sqrt(np.sum(list((inp[var] - currentInput[var])**2 for var in self.getOptVars())))
+          dist = np.sqrt(np.sum(list((inp[var] - currentInput[var])**2 for var in self.getOptVars(traj=trajToRemove))))
           if dist < self.thresholdTrajRemoval:
             self.raiseADebug('Halting trajectory "{}" because it is following trajectory "{}"'.format(trajToRemove,traj))
             self.trajectoriesKilled[traj].append(trajToRemove)
@@ -548,64 +548,79 @@ class GradientBasedOptimizer(Optimizer):
               except KeyError:
                 # this means we don't have an entry for this trajectory yet, so don't copy anything
                 pass
-              self.counter['recentOptHist'][traj][0] = {}
-              self.counter['recentOptHist'][traj][0]['inputs'] = self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
-              self.counter['recentOptHist'][traj][0]['output'] = currentObjectiveValue
+              # store realization of most recent developments
+              rlz = {}
+              rlz.update(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
+              rlz.update(outputs)
+              self.counter['recentOptHist'][traj][0] = rlz
               if traj not in self.counter['prefixHistory']:
                 self.counter['prefixHistory'][traj] = []
               self.counter['prefixHistory'][traj].append(prefix)
             # update solution export
             #FIXME much of this should move to the base class!
             if not failedTraj:
-              # create realization to add to data object
-              rlz = {}
-              badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
-              for var in self.solutionExport.getVars():
-                if var in self.getOptVars():
-                  new = self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs'])[var]
-                elif var == self.objVar:
-                  new = self.counter['recentOptHist'][traj][0]['output']
-                elif var in outputs.keys():
-                  new = outputs[var]
-                elif var == 'varsUpdate':
-                  new = self.counter['solutionUpdate'][traj]
-                elif var == 'trajID':
-                  new = traj+1 # +1 is for historical reasons, when histories were indexed on 1 instead of 0
-                elif var == 'stepSize':
-                  try:
-                    new = self.counter['lastStepSize'][traj]
-                  except KeyError:
-                    new = badValue
-                elif var.startswith( 'gradient_'):
-                  varName = var[9:]
-                  vec = self.counter['gradientHistory'][traj][0].get(varName,None)
-                  if vec is not None:
-                    new = vec*self.counter['gradNormHistory'][traj][0]
-                  else:
-                    new = badValue
-                elif var.startswith( 'convergenceAbs'):
-                  try:
-                    new = self.convergenceProgress[traj].get('abs',badValue)
-                  except KeyError:
-                    new = badValue
-                elif var.startswith( 'convergenceRel'):
-                  try:
-                    new = self.convergenceProgress[traj].get('rel',badValue)
-                  except KeyError:
-                    new = badValue
-                elif var.startswith( 'convergenceGrad'):
-                  try:
-                    new = self.convergenceProgress[traj].get('grad',badValue)
-                  except KeyError:
-                    new = badValue
-                else:
-                  self.raiseAnError(IOError,'Unrecognized output request:',var)
-                # format for realization
-                rlz[var] = np.atleast_1d(new)
-              self.solutionExport.addRealization(rlz)
+              # only write here if we want to write on EVERY optimizer iteration (each new optimal point)
+              if self.writeSolnExportOn == 'every':
+                self.writeToSolutionExport(traj)
+              # whether we wrote to solution export or not, update the counter
               self.counter['solutionUpdate'][traj] += 1
           else: #not ready to update solutionExport
             break
+
+  def writeToSolutionExport(self,traj):
+    """
+      Standardizes how the solution export is written to.
+      Uses data from "recentOptHist" and other counters to fill in values.
+      @ In, traj, int, the trajectory for which an entry is being written
+      @ Out, None
+    """
+    # create realization to add to data object
+    rlz = {}
+    badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
+    recent = self.counter['recentOptHist'][traj][0]
+    for var in self.solutionExport.getVars():
+      # inputs, objVar, other outputs
+      if var in recent.keys():
+        new = self.denormalizeData(recent)[var]
+      # custom counters: varsUpdate, trajID, stepSize
+      elif var == 'varsUpdate':
+        new = self.counter['solutionUpdate'][traj]
+      elif var == 'trajID':
+        new = traj+1 # +1 is for historical reasons, when histories were indexed on 1 instead of 0
+      elif var == 'stepSize':
+        try:
+          new = self.counter['lastStepSize'][traj]
+        except KeyError:
+          new = badValue
+      # variable-dependent information: gradients
+      elif var.startswith( 'gradient_'):
+        varName = var[9:]
+        vec = self.counter['gradientHistory'][traj][0].get(varName,None)
+        if vec is not None:
+          new = vec*self.counter['gradNormHistory'][traj][0]
+        else:
+          new = badValue
+      # convergence metrics
+      elif var.startswith( 'convergenceAbs'):
+        try:
+          new = self.convergenceProgress[traj].get('abs',badValue)
+        except KeyError:
+          new = badValue
+      elif var.startswith( 'convergenceRel'):
+        try:
+          new = self.convergenceProgress[traj].get('rel',badValue)
+        except KeyError:
+          new = badValue
+      elif var.startswith( 'convergenceGrad'):
+        try:
+          new = self.convergenceProgress[traj].get('grad',badValue)
+        except KeyError:
+          new = badValue
+      else:
+        self.raiseAnError(IOError,'Unrecognized output request:',var)
+      # format for realization
+      rlz[var] = np.atleast_1d(new)
+    self.solutionExport.addRealization(rlz)
 
   def fractionalStepChangeFromGradHistory(self,traj):
     """
@@ -687,3 +702,27 @@ class GradientBasedOptimizer(Optimizer):
     Optimizer.proposeNewPoint(self,traj,point)
     self.counter['varsUpdate'][traj] += 1 #usually done when evaluating gradient, but we're bypassing that
     self.queueUpOptPointRuns(traj,self.recommendedOptPoint[traj])
+
+  def finalizeSampler(self,failedRuns):
+    """
+      Method called at the end of the Step when no more samples will be taken.  Closes out optimizer.
+      @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
+      @ Out, None
+    """
+    Optimizer.handleFailedRuns(self,failedRuns)
+    # if writing soln export only on final, now is the time to do it
+    if self.writeSolnExportOn == 'final':
+      # get the most optimal point among the trajectories
+      bestValue = None
+      bestTraj = None
+      for traj in self.counter['recentOptHist'].keys():
+        value = self.counter['recentOptHist'][traj][0][self.objVar]
+        if bestTraj is None:
+          bestTraj = traj
+          bestValue = value
+          continue
+        if self.checkIfBetter(value,bestValue):
+          bestTraj = traj
+          bestValue = value
+      # now have the best trajectory, so write solution export
+      self.writeToSolutionExport(bestTraj)

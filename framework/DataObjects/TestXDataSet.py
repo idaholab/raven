@@ -26,6 +26,7 @@ import sys, os
 import pickle as pk
 import numpy as np
 import xarray as xr
+import copy
 frameworkDir = os.path.dirname(os.path.abspath(os.path.join(sys.argv[0],'..')))
 
 sys.path.append(frameworkDir)
@@ -37,7 +38,7 @@ import XDataSet
 import MessageHandler
 
 mh = MessageHandler.MessageHandler()
-mh.initialize({'verbosity':'silent', 'callerLength':10, 'tagLength':10})
+mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 print('Module undergoing testing:')
 print (XDataSet )
@@ -278,7 +279,7 @@ data._readMoreXML(xml)
 # NOTE histories are currently disabled pending future work (c,y are history vars)
 checkArray('DataSet __init__ inp',data._inputs,['a','b','c'],str)
 checkArray('DataSet __init__ out',data._outputs,['x','y','z'],str)
-checkArray('DataSet __init__ all',data._allvars,['a','b','c','x','y','z'],str)
+checkArray('DataSet __init__ all',data.vars,['a','b','c','x','y','z'],str)
 checkNone('DataSet __init__ _data',data._data)
 checkNone('DataSet __init__ _collector',data._collector)
 
@@ -619,6 +620,7 @@ dataCSV = XDataSet.DataSet()
 dataCSV.messageHandler = mh
 dataCSV._readMoreXML(xml)
 dataCSV.load(csvname,style='CSV')
+
 for var in data.getVars():
   if var == 'z':
     # not included in XML input specs, so should be left out
@@ -714,7 +716,7 @@ data = XDataSet.DataSet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 # load with insufficient values
-checkFails('Load from dict missing variable','Variables are missing from "source" that are required for this data object: set([u\'a\'])',data.load,args=[seed],kwargs=dict(style='dict',dims=data.getDimensions()))
+checkFails('Load from dict missing variable','Variables are missing from "source" that are required for data object " DataSet ": a',data.load,args=[seed],kwargs=dict(style='dict',dims=data.getDimensions()))
 # add a scalar variable, 10 entries
 seed['a'] = np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9])
 # load properly
@@ -725,8 +727,6 @@ checkArray('load from dict "b"[3]',data.asDataset().isel(True,RAVEN_sample_ID=3)
 rlz = data.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
-
-
 # Here I am testing the functionality that converts the dataObject into a dict
 convertedDict = data.asDataset(outType='dict')
 # check that the dictionary entries are the same
@@ -756,6 +756,35 @@ rlz = dataRe.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
 
+# construct from dict, but data is provided in numpy ND array instead of np array of np array objects
+seed = {}
+seed['a'] = np.array([0., 1., 2., 3.])
+seed['b'] = np.array([ [0.1, 0.2, 0.3],
+                       [1.1, 1.2, 1.3],
+                       [2.1, 2.2, 2.3],
+                       [3.1, 3.2, 3.3]])
+seed['t'] = np.array([ [1e-6,2e-6,3e-6],
+                       [1e-6,2e-6,3e-6],
+                       [1e-6,2e-6,3e-6],
+                       [1e-6,2e-6,3e-6]])
+# set up data object
+xml = createElement('DataSet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a'))
+xml.append(createElement('Output',text='b'))
+xml.append(createElement('Index',attrib={'var':'t'},text='b'))
+data = XDataSet.DataSet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+# load
+data.load(seed,style='dict',dims=data.getDimensions())
+# check data
+checkArray('load from dict of ND, "a"',data.asDataset()['a'].values,seed['a'],float)
+checkArray('load from dict of ND, "b[0]"',data.asDataset()['b'][0].values,seed['b'][0],float)
+checkArray('load from dict of ND, "b[1]"',data.asDataset()['b'][1].values,seed['b'][1],float)
+checkArray('load from dict of ND, "b[2]"',data.asDataset()['b'][2].values,seed['b'][2],float)
+checkArray('load from dict of ND, "b[3]"',data.asDataset()['b'][3].values,seed['b'][3],float)
+
+
 ######################################
 #        REMOVING VARIABLES          #
 ######################################
@@ -775,7 +804,6 @@ checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
 # check we can add a new realization
 data.addRealization({'a':np.array([2.1]), 't':np.array([0])})
 
-
 ######################################
 #          CLUSTER LABELING          #
 ######################################
@@ -791,42 +819,43 @@ data._readMoreXML(xml)
 # register "trajID" (cluster label) and "varsUpdate" (iteration number/monotonically increasing var) as meta
 data.addExpectedMeta(['trajID','varsUpdate'])
 # add two trajectories to get started, like starting two trajectories
-rlz0_0 = {'trajID': np.atleast_1d(1),
-          'a': np.atleast_1d(  1.0),
-          'b': np.atleast_1d(  5.0),
-          'x': np.atleast_1d( 10.0),
-          'y': np.atleast_1d(100.0),
-          'varsUpdate': np.atleast_1d(0)}
-rlz1_0 = {'trajID': np.atleast_1d(2),
-          'a': np.atleast_1d(  2.0),
-          'b': np.atleast_1d(  6.0),
-          'x': np.atleast_1d( 20.0),
-          'y': np.atleast_1d(200.0),
-          'varsUpdate': np.atleast_1d(0)}
+rlz0_0 = {'trajID': np.array([1]),
+          'a': np.array([  1.0]),
+          'b': np.array([  5.0]),
+          'x': np.array([ 10.0]),
+          'y': np.array([100.0]),
+          'varsUpdate': np.array([0])}
+rlz1_0 = {'trajID': np.array([2]),
+          'a': np.array([  2.0]),
+          'b': np.array([  6.0]),
+          'x': np.array([ 20.0]),
+          'y': np.array([200.0]),
+          'varsUpdate': np.array([0])}
 data.addRealization(rlz0_0)
 data.addRealization(rlz1_0)
 checkRlz('Cluster initial traj 1',data.realization(index=0),rlz0_0,skip='varsUpdate')
 checkRlz('Cluster initial traj 2',data.realization(index=1),rlz1_0,skip='varsUpdate')
 # now sample a new trajectory point, going into the collector
-rlz0_1 = {'trajID': np.atleast_1d(1),
-          'a': np.atleast_1d(  1.1),
-          'b': np.atleast_1d(  5.1),
-          'x': np.atleast_1d( 10.1),
-          'y': np.atleast_1d(100.1),
-          'varsUpdate': np.atleast_1d(1)}
+rlz0_1 = {'trajID': np.array([1]),
+          'a': np.array([  1.1]),
+          'b': np.array([  5.1]),
+          'x': np.array([ 10.1]),
+          'y': np.array([100.1]),
+          'varsUpdate': np.array([1])}
 data.addRealization(rlz0_1)
 checkRlz('Cluster extend traj 1[0]',data.realization(matchDict={'trajID':1,'varsUpdate':0})[1],rlz0_0,skip='varsUpdate')
 checkRlz('Cluster extend traj 1[1]',data.realization(matchDict={'trajID':1,'varsUpdate':1})[1],rlz0_1,skip='varsUpdate')
 checkRlz('Cluster extend traj 2[0]',data.realization(matchDict={'trajID':2,'varsUpdate':0})[1],rlz1_0,skip='varsUpdate')
 # now collapse and then append to the data
 data.asDataset()
-rlz1_1 = {'trajID': np.atleast_1d(2),
-          'a': np.atleast_1d(  2.1),
-          'b': np.atleast_1d(  6.1),
-          'x': np.atleast_1d( 20.1),
-          'y': np.atleast_1d(200.1),
-          'varsUpdate': np.atleast_1d(1)}
+rlz1_1 = {'trajID': np.array([    2]),
+               'a': np.array([  2.1]),
+               'b': np.array([  6.1]),
+               'x': np.array([ 20.1]),
+               'y': np.array([200.1]),
+          'varsUpdate': np.array([1])}
 data.addRealization(rlz1_1)
+tid = data._collector[-1,data._orderedVars.index('trajID')]
 checkRlz('Cluster extend traj 2[1]',data.realization(matchDict={'trajID':2,'varsUpdate':1})[1],rlz1_1,skip='varsUpdate')
 # print it
 fname = 'XDataUnitTestClusterLabels'
@@ -882,6 +911,128 @@ correct = {'a':np.array([  2.0,  2.1]),
            'y':np.array([200.0,200.1]),
            'trajID':np.array([2])}
 checkRlz('Cluster read [1]',data2.realization(index=1),correct)
+
+######################################
+#             DATA TYPING            #
+######################################
+## check that types are set correctly, both for histories and scalars
+xml = createElement('DataSet',attrib={'name':'test'})
+xml.append(createElement('Input', text=' fl, in, st, un, bo'))
+xml.append(createElement('Output',text='dfl,din,dst,dun,dbo'))
+xml.append(createElement('Index',attrib={'var':'t'},text='dfl,din,dst,dun,dbo'))
+data = XDataSet.DataSet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+
+rlz = {'fl' :np.array([   1.0]),
+       'in' :np.array([     2]),
+       'st' :np.array([ 'msg']),
+       'un' :np.array([u'utf']),
+       'bo' :np.array([  True]),
+       'dfl':np.array([ 1.0,   2.0,  3.0]),
+       'din':np.array([   4,     5,    6]),
+       'dst':np.array([ 'a',   'b',  'c']),
+       'dun':np.array([ u'x', u'y', u'z']),
+       'dbo':np.array([ True,False, True]),
+         't':np.array(['one','two','three'])}
+rlz2= {'fl' :np.array([   10.0]),
+       'in' :np.array([     20]),
+       'st' :np.array([ 'msg2']),
+       'un' :np.array([u'utf2']),
+       'bo' :np.array([  False]),
+       'dfl':np.array([ 10.0,   20.0,  30.0]),
+       'din':np.array([   40,     50,    60]),
+       'dst':np.array([ 'a2',   'b2',  'c2']),
+       'dun':np.array([ u'x2', u'y2', u'z2']),
+       'dbo':np.array([ False,  True, False]),
+         't':np.array(['one','two','manystringchars'])}
+data.addRealization(rlz)
+data.asDataset()
+# check types
+for var in rlz.keys():
+  correct = rlz[var].dtype
+  if correct.type in [np.unicode_,np.string_,basestring]:
+    correct = object
+  checkSame('dtype checking "{}"'.format(var),data.asDataset()[var].dtype,correct)
+
+data.addRealization(rlz2)
+
+######################################
+#          DATA RENAMING             #
+######################################
+# use the renaming, needed for alias operations
+xml = createElement('DataSet',attrib={'name':'test'})
+xml.append(createElement('Input', text='a,b'))
+xml.append(createElement('Output',text='c,d'))
+xml.append(createElement('Index',attrib={'var':'t'},text='b,d'))
+data = XDataSet.DataSet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+data.addExpectedMeta(['prefix'])
+rlz0 = {'a':np.array([0.0]),
+        'b':np.array([0.0, 0.1, 0.2]),
+        'c':np.array([0.5]),
+        'd':np.array([0.5, 0.6, 0.7]),
+        'prefix':np.array(['0']),
+        't':np.array([0.01, 0.02, 0.03])}
+data.addRealization(rlz0)
+# make a copy, to test renaming with just collector
+data2 = copy.deepcopy(data)
+data2.renameVariable('a','alpha')
+data2.renameVariable('b','beta')
+data2.renameVariable('c','gamma')
+data2.renameVariable('d','delta')
+data2.renameVariable('prefix','jobID')
+data2.renameVariable('t','timelike')
+# check everything was changed
+correct0 = {'alpha':np.array([0.0]),
+            'beta':np.array([0.0, 0.1, 0.2]),
+            'gamma':np.array([0.5]),
+            'delta':np.array([0.5, 0.6, 0.7]),
+            'jobID':np.array(['0']),
+            'timelike':np.array([0.01, 0.02, 0.03])}
+checkRlz('Rename in collector: variables',data2.realization(index=0),correct0,skip='timelike')
+checkArray('Rename in collector: index',data2.indexes,['timelike'],str)
+
+# now asDataset(), then rename
+data3 = copy.deepcopy(data)
+data3.asDataset()
+data3.renameVariable('a','alpha')
+data3.renameVariable('b','beta')
+data3.renameVariable('c','gamma')
+data3.renameVariable('d','delta')
+data3.renameVariable('prefix','jobID')
+data3.renameVariable('t','timelike')
+checkRlz('Rename in dataset: variables',data3.realization(index=0),correct0,skip='timelike')
+checkArray('Rename in dataset: index',data3.indexes,['timelike'],str)
+
+# now asDatset, then append, then rename
+data.asDataset()
+rlz1 = {'a':np.array([1.0]),
+        'b':np.array([1.0, 1.1, 1.2]),
+        'c':np.array([1.5]),
+        'd':np.array([1.5, 1.6, 1.7]),
+        'prefix':np.array(['1']),
+        't':np.array([0.01, 0.02, 0.03])}
+data.addRealization(rlz1)
+data.renameVariable('a','alpha')
+data.renameVariable('b','beta')
+data.renameVariable('c','gamma')
+data.renameVariable('d','delta')
+data.renameVariable('prefix','jobID')
+data.renameVariable('t','timelike')
+correct1 = {'alpha':np.array([1.0]),
+            'beta':np.array([1.0, 1.1, 1.2]),
+            'gamma':np.array([1.5]),
+            'delta':np.array([1.5, 1.6, 1.7]),
+            'jobID':np.array(['1']),
+            'timelike':np.array([0.01, 0.02, 0.03])}
+checkRlz('Rename in both: variables[0]',data.realization(index=0),correct0,skip='timelike')
+checkRlz('Rename in both: variables[1]',data.realization(index=1),correct1,skip='timelike')
+checkArray('Rename in both: index',data.indexes,['timelike'],str)
+# make sure adding a new realization without the renaming fails
+checkFails('Add old-named data after renaming variables','Provided realization does not have all requisite values for object \"DataSet\": \"alpha\"',data.addRealization,args=[rlz1])
+
 
 
 print(results)

@@ -17,6 +17,7 @@
       <xsd:element name="what"   type="xsd:string" minOccurs="0"/>
       <xsd:element name="target"   type="xsd:string" minOccurs="0"/>
       <xsd:element name="filename" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="clusterLabel" type="xsd:string" minOccurs="0"/>
     </xsd:all>
     <xsd:attribute name="name"      type="xsd:string" use="required"/>
     <xsd:attribute name="verbosity" type="verbosityAttr"/>

@@ -209,7 +209,7 @@ class ETImporter(PostProcessor):
     if len(zeroColumns)==0:
       self.raiseAnError(IOError, 'No root ET')
     if len(zeroColumns)==1:
-      rootETID = listETs[zeroColumns]
+      rootETID = listETs[zeroColumns[0]]
       self.raiseADebug("ETImporter Root ET: " + str(rootETID))
 
     leafs = []
@@ -449,7 +449,7 @@ class ETImporter(PostProcessor):
     outputDict, variables = evaluation[1]
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
-    if not set(output.getParaKeys('inputs')) == set(variables):
+    if not set(output.getVars('input')) == set(variables):
       self.raiseAnError(RuntimeError, ' ETImporter: set of branching variables in the '
                                       'ET ( ' + str(output.getParaKeys('inputs')) + ' ) is not identical to the'
                                       ' set of input variables specified in the PointSet (' + str(variables) +')')
@@ -459,15 +459,7 @@ class ETImporter(PostProcessor):
                                       'dataObject (' + str(set(output.getVars())) + ') is different form the set of '
                                       'variables specified in the ET (' + str(set(outputDict.keys())))
     if output.type in ['PointSet']:
-      for key in outputDict.keys():
-        output.addVariable(key,outputDict[key])
-      '''
-      for key in output.getParaKeys('inputs'):
-        for value in outputDict['inputs'][key]:
-          output.updateInputValue(str(key),value)
-      for key in output.getParaKeys('outputs'):
-        for value in outputDict['outputs'][key]:
-          output.updateOutputValue(str(key),value)'''
+      output.load(outputDict,style='dict')
     else:
         self.raiseAnError(RuntimeError, 'ETImporter failed: Output type ' + str(output.type) + ' is not supported.')
 

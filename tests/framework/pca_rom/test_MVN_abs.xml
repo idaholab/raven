@@ -64,6 +64,7 @@
     <Print name="testPrintPointSetAbs_dump">
       <type>csv</type>
       <source>testPrintPointSetAbs</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
