@@ -385,9 +385,6 @@ class DataSet(DataObject):
       @ In, kwargs, dict, optional, additional arguments to pass to reading function
       @ Out, None
     """
-    if len(self) > 0:
-      self.raiseAnError(IOError, "Attempting to load data from a '{}', but target DataObject is not empty!".format(style)
-              + " This operation is not permitted; try outputting to a clean DataObject.")
     style = style.lower()
     # if fileToLoad in kwargs, then filename is actualle fileName/fileToLoad
     if 'fileToLoad' in kwargs.keys():
@@ -873,6 +870,9 @@ class DataSet(DataObject):
       new = xr.Dataset(array)
     except ValueError as e:
       self.raiseAnError(RuntimeError,'While trying to create a new Dataset, a variable has itself as an index!  Error: ' +str(e))
+    # if "action" is "extend" but self._data is None, then we really want to "replace".
+    if action == 'extend' and self._data is None:
+      action = 'replace'
     if action == 'return':
       return new
     elif action == 'replace':
@@ -974,7 +974,6 @@ class DataSet(DataObject):
       Efficiency note: this is the slowest part of typical data collection.
       @ In, None
       @ Out, xarray.Dataset, all the data from this data object.
-      P.S.: this was the old asDataset(self)
     """
     # TODO make into a protected method? Should it be called from outside?
     # if we have collected data, collapse it
@@ -1036,8 +1035,9 @@ class DataSet(DataObject):
               raise e
           # create single dataarrays
           arrays[var] = self._collapseNDtoDataArray(varData,var,dtype=dtype)
-          # re-index samples
-          arrays[var][self.sampleTag] += firstSample
+        # END if for variable data type (ndarray, xarray, or scalar)
+        # re-index samples
+        arrays[var][self.sampleTag] += firstSample
       # collect all data into dataset, and update self._data
       if self._data is None:
         self._convertArrayListToDataset(arrays,action='replace')
@@ -1147,7 +1147,7 @@ class DataSet(DataObject):
         data = df[[var,self.sampleTag]].groupby(self.sampleTag).first().values[:,0]
         dtype = self._getCompatibleType(data.item(0))
         arrays[var] = self._collapseNDtoDataArray(data,var,labels=samples,dtype=dtype)
-    self._convertArrayListToDataset(arrays,action='replace')
+    self._convertArrayListToDataset(arrays,action='extend')
 
   def _fromCSVXML(self,fileName):
     """

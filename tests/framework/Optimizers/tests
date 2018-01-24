@@ -59,8 +59,7 @@
   [./Preconditioner]
     type = 'RavenFramework'
     input = 'precondition.xml'
-    csv = 'Precondition/opt_soln.csv'
-    rel_err = 1.e-3
+    csv = 'Precondition/opt_export.csv'
   [../]
   [./Constraint]
     type = 'RavenFramework'
@@ -78,8 +77,7 @@
   [./MultiLevelWithMultiTrajectory]
     type = 'RavenFramework'
     input = 'multilevel_with_multitraj.xml'
-    csv = 'MTML/opt_soln.csv'
-    rel_err = 1.e-3
+    csv = 'MTML/opt_export.csv'
   [../]
   [./multitrajlevelWithModelHolding]
     type = 'RavenFramework'
