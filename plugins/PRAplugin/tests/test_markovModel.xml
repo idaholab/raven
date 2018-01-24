@@ -1,0 +1,137 @@
+<Simulation verbosity="debug">
+
+  <RunInfo>
+    <WorkingDir>markovModel</WorkingDir>
+    <Sequence>simRun,plot</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Distributions>
+    <Categorical name='InitialStateDist'>
+      <state outcome="1">1.</state>
+      <state outcome="2">0.</state>
+      <state outcome="3">0.</state>
+    </Categorical>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>1000</limit>
+      </samplerInit>
+      <variable name="initialState">
+        <distribution>InitialStateDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+  
+  <Models>
+    <ExternalModel name="markov2" subType="markovModel">
+      <variables>initialState,finalState</variables>
+      <!-- xml portion for this plugin only 
+           https://en.wikipedia.org/wiki/Markov_chain -->
+      <calcMode>simulated</calcMode> 
+      <initState>initialState</initState>
+      <finState>finalState</finState>
+      <endTime>1000</endTime>
+      <deltaT>1</deltaT>
+      <state name='1'> <!-- OK -->
+        <transition type='lambda' value='0.6' >2</transition>
+      </state>
+      <state name='2'> <!-- Failed -->
+        <transition type='lambda' value='0.4'>1</transition>
+      </state>     
+    </ExternalModel>
+    <ExternalModel name="markov" subType="markovModel">
+      <variables>initialState,finalState</variables>
+      <!-- xml portion for this plugin only 
+           https://en.wikipedia.org/wiki/Markov_chain -->
+      <calcMode>simulated</calcMode> 
+      <initState>initialState</initState>
+      <finState>finalState</finState>
+      <endTime>1000</endTime>
+      <deltaT>1</deltaT>
+      <state name='1'> <!-- OK -->
+        <transition type='lambda' value='0.02' >2</transition>
+        <transition type='lambda' value='0.005'>3</transition>
+      </state>
+      <state name='2'> <!-- Failed -->
+        <transition type='lambda' value='0.3'>1</transition>
+        <transition type='lambda' value='0.2'>3</transition>
+      </state>
+      <state name='3'> <!-- Repair -->
+        <transition type='lambda' value='0.02'>1</transition>
+        <transition type='lambda' value='0.4' >2</transition>
+      </state>      
+    </ExternalModel>
+    <ExternalModel name="markovMio" subType="markovModel">
+      <variables>initialState,finalState</variables>
+      <!-- xml portion for this plugin only -->
+      <calcMode>simulated</calcMode> 
+      <initState>initialState</initState>
+      <finState>finalState</finState>
+      <endTime>1000</endTime>
+      <deltaT>1</deltaT>
+      <state name='1'> <!-- OK -->
+        <transition type='lambda' value='0.01'>2</transition>
+        <transition type='lambda' value='0.05'>3</transition>
+      </state>
+      <state name='2'> <!-- Failed -->
+        <transition type='lambda' value='0.01'>3</transition>
+      </state>
+      <state name='3'> <!-- Repair -->
+        <transition type='lambda' value='0.1' >1</transition>
+      </state>      
+    </ExternalModel>
+  </Models>
+
+  <Steps>
+    <MultiRun name="simRun">
+      <Input   class="DataObjects"  type="PointSet"        >inputPlaceHolder</Input>
+      <Model   class="Models"       type="ExternalModel"   >markov</Model>
+      <Sampler class="Samplers"     type="MonteCarlo"      >MC_external</Sampler>
+      <Output  class="DataObjects"  type="PointSet"        >sim_PS</Output>
+    </MultiRun>
+    <IOStep name="plot">
+      <Input   class="DataObjects"  type="PointSet"        >sim_PS</Input>
+      <Output  class="OutStreams"   type="Plot"            >hist</Output>
+      <Output  class="OutStreams"   type="Print"           >Print_sim_PS</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="Print_sim_PS">
+      <type>csv</type>
+      <source>sim_PS</source>
+    </Print>
+    <Plot  name="hist" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>sim_PS|Output|finalState</x>
+          <normed>True</normed>
+        </plot>
+        <xlabel>finalState</xlabel>
+        <ylabel>pdf</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text>Test MarkovModel</text>
+        </title>
+      </actions>
+    </Plot>
+  </OutStreams>
+  
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>initialState</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="sim_PS">
+      <Input>initialState</Input>
+      <Output>finalState</Output>
+    </PointSet>
+  </DataObjects>
+  
+</Simulation>

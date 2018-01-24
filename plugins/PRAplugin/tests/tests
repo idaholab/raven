@@ -1,0 +1,9 @@
+[Tests]
+ [./TestGraphModel]
+  type = 'RavenFramework'
+  input = 'test_graphModel.xml'
+  csv = 'graphModel/Print_sim_PS.csv'
+ [../]
+[]
+
+
