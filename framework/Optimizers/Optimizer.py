@@ -604,16 +604,23 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       precond.createNewInput([{}],'Optimizer')
       if denormalize:
         originalPoint = self.denormalizeData(originalPoint)
-      infoDict = {'SampledVars':originalPoint}
+      infoDict = {'SampledVars':dict(originalPoint)}
+      # remove preconditioned space from infoDict sampledVars
+      # -> we do this because we copy infoDict[SampledVars] values to overwrite results values
+      #    but we want to retain the values given by the preconditioner, not the infoDict value.
+      for var in self.mlBatches[batch]:
+        del infoDict['SampledVars'][var]
+      # add constants in
       for key,value in self.constants.items():
         infoDict['SampledVars'][key] = value
+      # run the preconditioner
       try:
         preResults = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
       except RuntimeError:
         self.raiseAnError(RuntimeError,'There was an error running the preconditioner for batch "{}"! See messages above for details.'.format(batch))
       # flatten results #TODO breaks for multi-entry arrays
       for key,val in preResults.items():
-        preResults[key] = float(val)
+        preResults[key] = val.item(0)
       #restore to normalized space if the original point was normalized space
       if denormalize:
         preResults = self.normalizeData(preResults)

@@ -114,6 +114,7 @@ class HistorySet(DataSet):
       @ In, kwargs, dict, optional arguments
       @ Out, None
     """
+    # TODO would this be faster by manually filling the "collector" than using the dict?
     # data dict for loading data
     data = {}
     # load in metadata
