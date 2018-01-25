@@ -79,7 +79,7 @@
             <color>green</color>
             <label>pipe1-Hw</label>
           </kwargs>
-          <interpPointsX>50</interpPointsX>
+          <interpPointsX>100</interpPointsX>
           <xlabel>time [s]</xlabel>
           <ylabel>evolution</ylabel>
         </plot>

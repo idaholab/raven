@@ -9,9 +9,8 @@
  [./testHybridDETshortRAVEN]
   type = 'RavenFramework'
   input = 'testHybridDET.xml'
-  output = 'HybridDynamicEventTree/HybridDETrunTest/HybridDET_test_5-1-2/out~pump_fake HybridDynamicEventTree/testprint_hist_hier_HybridDET_test_5-2-1.csv HybridDynamicEventTree/testprint_hist_hier_variables_HybridDET_test_1-1-2-2.csv HybridDynamicEventTree/2DHistoryPlot_line.pdf'
-  csv = 'HybridDynamicEventTree/HybridDETrunTest/HybridDET_test_5-1-2/out~pump_fake.csv'
-  skip = 'Did not consistently run Windows'
+  output = 'HybridDynamicEventTree/HybridDETrunTest/HybridDET_test_5-1-2/out~pump_fake HybridDynamicEventTree/print_and_plot_outputs/testprint_hist_hier_28.csv HybridDynamicEventTree/print_and_plot_outputs/2DHistoryPlot_line.pdf'
+  UnorderedCsv = 'HybridDynamicEventTree/print_and_plot_outputs/testprint_tpset_hier.csv'
  [../]
 
  [./testAdaptiveDynamicEventTreeRAVEN]
