@@ -2273,7 +2273,7 @@ As well as \xmlNode{Model}, \xmlNode{Sampler} and outputs, such as \xmlNode{OutS
 \subsection{MELCOR Interface}
 \label{subsec:MELCORInterface}
 
-The current implementation of MELCOR interfaface is valid for MELCOR 2.1/2.2; its validity for MELCOR
+The current implementation of MELCOR interface is valid for MELCOR 2.1/2.2; its validity for MELCOR
 1.8 is \textbf{not been tested}.
 
 \subsubsection{Sequence}
@@ -2302,7 +2302,7 @@ look like the example below:
   <batchSize>8</batchSize>
 </RunInfo>
 \end{lstlisting}
-In this example, the \xmlNode{batchSize} is set to $8$; this means that 8 simulatenous (parallel) instances
+In this example, the \xmlNode{batchSize} is set to $8$; this means that 8 simultaneous (parallel) instances
 of MELCOR are going to be executed when a sampling strategy is employed.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Files}
@@ -2326,7 +2326,7 @@ It is a good practice to put inside the working directory (\xmlNode{WorkingDir})
 
 \textcolor{red}{
 \textbf{It is important to notice that the interface output collection  (i.e. the parser of the MELCOR output)
-currently is able to extract \textit{CONTROL VOLUME HYDRODYNAMICS EDIT} data only. Only those
+currently is able to extract \textit{CONTROL VOLUME HYDRODYNAMICS EDIT AND CONTROL FUNCTION EDIT} data only. Only those
 variables are going to be exported and make available to RAVEN.
 In addition, it is important to notice that:}
 \begin{itemize}
@@ -2352,7 +2352,9 @@ In addition, it is important to notice that:}
 \end{itemize}
 }
 
-Remeber also that a MELCOR simulation run is considered successfull (i.e., the simualtion did not crash) if it terminates with the
+CONTROL FUCTION EDIT data will not be converted in this manner.
+
+Remember also that a MELCOR simulation run is considered successful (i.e., the simulation did not crash) if it terminates with the
 following message:
 
 \textcolor{red}{Normal termination}
@@ -2393,7 +2395,7 @@ The \xmlNode{Distribution} block defines the distributions that are going
 to be used for the sampling of the variables defined in the \xmlNode{Samplers}
 block.
 %
-For all the possibile distributions and all their possible inputs please see the
+For all the possible distributions and all their possible inputs please see the
 chapter about Distributions (see~\ref{sec:distributions}).
 %
 Here we report an example of a Normal distribution:
@@ -2420,7 +2422,7 @@ to be sampled.
 \textbf{Example}:
 We want to do the sampling of 1 single variable:
 \begin{itemize}
-  \item The in pressure ($P\_in$) of a control volume regolated by a Tabular Function $TF\_TAB$
+  \item The in pressure ($P\_in$) of a control volume regulated by a Tabular Function $TF\_TAB$
 \end{itemize}
 
 We are going to sample this variable using two different sampling methods:
