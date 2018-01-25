@@ -88,7 +88,7 @@ class UnorderedCSVDiffer:
       # load test file
       testFilename = os.path.join(self.__test_dir,outFile)
       try:
-        testCSV = pd.read_csv(testFilename)
+        testCSV = pd.read_csv(testFilename,sep=',')
       # if file is empty, we can check that's consistent, too
       except pd.errors.EmptyDataError:
         testCSV = None
@@ -99,7 +99,7 @@ class UnorderedCSVDiffer:
       # load gold file
       goldFilename = os.path.join(self.__test_dir, 'gold', outFile)
       try:
-        goldCSV = pd.read_csv(goldFilename)
+        goldCSV = pd.read_csv(goldFilename,sep=',')
       # if file is empty, we can check that's consistent, too
       except pd.errors.EmptyDataError:
         goldCSV = None
