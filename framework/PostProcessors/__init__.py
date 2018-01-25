@@ -26,7 +26,7 @@ from __future__ import absolute_import
 ## of this submodule
 from .PostProcessor import PostProcessor
 from .BasicStatistics import BasicStatistics
-from .ComparisonStatistics import ComparisonStatistics
+from .ComparisonStatisticsModule import ComparisonStatistics
 from .ExternalPostProcessor import ExternalPostProcessor
 from .ImportanceRank import ImportanceRank
 from .InterfacedPostProcessor import InterfacedPostProcessor
@@ -37,6 +37,9 @@ from .SafestPoint import SafestPoint
 
 from .TopologicalDecomposition import TopologicalDecomposition
 from .DataMining import DataMining
+from .Metric import Metric
+from .CrossValidation import CrossValidation
+from .ETImporter import ETImporter
 
 additionalModules = []
 ## These utilize the optional prequisite library PySide, so don't error if they
@@ -66,4 +69,7 @@ __all__ = ['PostProcessor',
            'RavenOutput',
            'SafestPoint',
            'TopologicalDecomposition',
-           'DataMining'] + additionalModules
+           'DataMining',
+           'Metric',
+           'CrossValidation',
+           'ETImporter'] + additionalModules

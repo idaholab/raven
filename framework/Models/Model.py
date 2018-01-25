@@ -25,6 +25,7 @@ import copy
 import numpy as np
 import abc
 import sys
+import importlib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -41,6 +42,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     it could as complex as a stand alone code, a reduced order model trained somehow or something
     externally build and imported by the user
   """
+  plugins = importlib.import_module("Models.ModelPlugInFactory")
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -122,7 +125,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type']         = ['SPSA']
+  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifferenceGradientOptimizer']
 
   @classmethod
   def generateValidateDict(cls):
@@ -179,7 +182,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
-        raise IOError('It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
+        raise IOError('It is not possible to use '+anItem['class']+' type = ' +anItem['type']+' as '+who)
     return True
 
   def __init__(self,runInfoDict):
@@ -278,7 +281,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     if "subType" in paramInput.parameterValues:
-      self.subType = paraminput.parameterValues["subType"]
+      self.subType = paramInput.parameterValues["subType"]
     else:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)

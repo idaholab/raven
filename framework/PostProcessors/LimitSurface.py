@@ -33,6 +33,7 @@ from utils import utils
 import LearningGate
 import GridEntities
 import Files
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class LimitSurface(PostProcessor):
@@ -163,7 +164,6 @@ class LimitSurface(PostProcessor):
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
     self.gridEntity = GridEntities.returnInstance("MultiGridEntity",self,self.messageHandler)
-    self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
       self.ROM = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':[self.externalFunction.name]})
@@ -347,6 +347,14 @@ class LimitSurface(PostProcessor):
     """
     paramInput = LimitSurface.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     initDict = {}
     for child in paramInput.subparts:
       initDict[child.getName()] = child.value
@@ -360,10 +368,12 @@ class LimitSurface(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    self.raiseADebug(str(finishedJob.getEvaluation()))
-    limitSurf = finishedJob.getEvaluation()[1]
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
+    self.raiseADebug(str(evaluation))
+    limitSurf = evaluation[1]
     if limitSurf[0] is not None:
       for varName in output.getParaKeys('inputs'):
         for varIndex in range(len(self.axisName)):

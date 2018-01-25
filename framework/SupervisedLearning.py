@@ -314,6 +314,14 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     return self._dynamicHandling
 
+  def reseed(self,seed):
+    """
+      Used to reset the seed of the ROM.  By default does nothing; overwrite in the inheriting classes as needed.
+      @ In, seed, int, new seed to use
+      @ Out, None
+    """
+    return
+
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -2353,7 +2361,7 @@ class ARMA(superVisedLearning):
     """
     seed = d.pop('random seed',None)
     if seed is not None:
-      randomUtils.randomSeed(seed)
+      self.reseed(seed)
     self.__dict__ = d
 
   def _localNormalizeData(self,values,names,feat): # This function is not used in this class and can be removed
@@ -2387,9 +2395,9 @@ class ARMA(superVisedLearning):
     else:
       self.armaPara['rSeries'] = self.timeSeriesDatabase
 
-#     Transform data to obatain normal distrbuted series. See
-#     J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
-#     Applied Energy, 87(2010) 843-855
+    # Transform data to obatain normal distrbuted series. See
+    # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
+    # Applied Energy, 87(2010) 843-855
     self.__generateCDF__(self.armaPara['rSeries'])
     self.armaPara['rSeriesNorm'] = self.__dataConversion__(self.armaPara['rSeries'], obj='normalize')
 
@@ -2728,6 +2736,7 @@ class ARMA(superVisedLearning):
 
     numTimeStep = len(self.pivotParameterValues)
     tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
+    # TODO This could probably be vectorized for speed gains
     for t in range(numTimeStep):
       for n in range(self.armaPara['dimension']):
         tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult['sig'][0,n]
@@ -2790,6 +2799,14 @@ class ARMA(superVisedLearning):
       Currently not implemented for ARMA
     """
     pass
+
+  def reseed(self,seed):
+    """
+      Used to set the underlying random seed.
+      @ In, seed, int, new seed to use
+      @ Out, None
+    """
+    randomUtils.randomSeed(seed)
 
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom

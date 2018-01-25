@@ -23,7 +23,7 @@ This is common classes for testing the xsd program.
 from __future__ import division, print_function, unicode_literals, absolute_import
 import xml.etree.ElementTree as ET
 
-import InputData
+from utils import InputData
 
 class Sub1Input(InputData.ParameterInput):
   """
@@ -65,6 +65,7 @@ InnerInput.createClass("inner")
 InnerInput.addParam("data_1")
 InnerInput.addParam("int_value", InputData.IntegerType)
 InnerInput.addParam("required_string", InputData.StringType, True)
+InnerInput.addParam("list_of_strings", InputData.StringListType)
 InnerInput.addSub(Sub1Input)
 InnerInput.addSub(Sub2Input)
 InnerInput.addSub(Sub3Input)

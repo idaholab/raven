@@ -24,6 +24,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import math
 import copy
+import scipy
 from scipy import interpolate, stats, integrate
 import numpy as np
 from utils.utils import UreturnPrintTag,UreturnPrintPostTag
@@ -70,8 +71,11 @@ def createInterp(x, y, lowFill, highFill, kind='linear'):
      @ In, kind, string, optional, interpolation type (default=linear)
      @ Out, interp, function(float) returns float, an interpolation function that takes a single float value and return its interpolated value using lowFill or highFill when the input value is outside of the interpolation range.
   """
+  sv = str(scipy.__version__).split('.')
+  if int(sv[0])> 0 or int(sv[1]) >= 17:
+    interp = interpolate.interp1d(x, y, kind, bounds_error=False, fill_value=([lowFill], [highFill]))
+    return interp
   interp = interpolate.interp1d(x, y, kind)
-  # interp = interpolate.interp1d(x, y, kind, bounds_error=False, fill_value=lowFill)
   low = x[0]
   def myInterp(value):
     """
@@ -107,104 +111,6 @@ def simpson(f, a, b, n):
     x[i] = a + i*h
     y[i] = f(x[i])
   return integrate.simps(y, x)
-
-def getGraphs(functions, fZStats = False):
-  """
-    Returns the graphs of the functions.
-    The functions are a list of (dataStats, cdf_function, pdf_function,name)
-    It returns a dictionary with the graphs and other statistics calculated.
-    @ In, functions, list, list of functions (data_stats_dict, cdf_function, pdf_function,name)
-    @ In, fZStats, bool, optional, true if the F(z) (cdf) needs to be computed
-    @ Out, retDict, dict, the return dictionary
-  """
-  retDict = {}
-  dataStats = [x[0] for x in functions]
-  means = [x["mean"] for x in dataStats]
-  stddevs = [x["stdev"] for x in dataStats]
-  cdfs = [x[1] for x in functions]
-  pdfs = [x[2] for x in functions]
-  names = [x[3] for x in functions]
-  low = min([m - 3.0*s for m,s in zip(means,stddevs)])
-  high = max([m + 3.0*s for m,s in zip(means,stddevs)])
-  lowLow = min([m - 5.0*s for m,s in zip(means,stddevs)])
-  highHigh = max([m + 5.0*s for m,s in zip(means,stddevs)])
-  minBinSize = min([x["minBinSize"] for x in dataStats])
-  print("Graph from ",low,"to",high)
-  n = int(math.ceil((high-low)/minBinSize))
-  interval = (high - low)/n
-
-  #Print the cdfs and pdfs of the data to be compared.
-  origCdfAndPdfArray = []
-  origCdfAndPdfArray.append(["x"])
-  for name in names:
-    origCdfAndPdfArray.append([name+'_cdf'])
-    origCdfAndPdfArray.append([name+'_pdf'])
-
-  for i in range(n):
-    x = low+interval*i
-    origCdfAndPdfArray[0].append(x)
-    k = 1
-    for stats, cdf, pdf, name in functions:
-      origCdfAndPdfArray[k].append(cdf(x))
-      origCdfAndPdfArray[k+1].append(pdf(x))
-      k += 2
-  retDict["cdf_and_pdf_arrays"] = origCdfAndPdfArray
-
-  def fZ(z):
-    """
-      Compute f(z) with a simpson rule
-      @ In, z, float, the coordinate
-      @ Out, fZ, the f(z)
-    """
-    return simpson(lambda x: pdfs[0](x)*pdfs[1](x-z), lowLow, highHigh, 1000)
-
-  if len(means) < 2:
-    return
-  midZ = means[0]-means[1]
-  lowZ = midZ - 3.0*max(stddevs[0],stddevs[1])
-  highZ = midZ + 3.0*max(stddevs[0],stddevs[1])
-
-  #print the difference function table.
-  fZTable = [["z"],["f_z(z)"]]
-  zN = 20
-  intervalZ = (highZ - lowZ)/zN
-  for i in range(zN):
-    z = lowZ + intervalZ*i
-    fZTable[0].append(z)
-    fZTable[1].append(fZ(z))
-  cdfAreaDifference = simpson(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh,100000)
-  retDict["f_z_table"] = fZTable
-
-  def firstMomentSimpson(f, a, b, n):
-    """
-      Compute the first simpson method
-      @ In, f, method, the function f(x)
-      @ In, a, float, lower bound
-      @ In, b, float, upper bound
-      @ In, n, int, the number of discretizations
-      @ Out, firstMomentSimpson, float, the moment
-    """
-    return simpson(lambda x:x*f(x), a, b, n)
-
-  #print a bunch of comparison statistics
-  pdfCommonArea = simpson(lambda x:min(pdfs[0](x),pdfs[1](x)),
-                            lowLow,highHigh,100000)
-  for i in range(len(pdfs)):
-    pdfArea = simpson(pdfs[i],lowLow,highHigh,100000)
-    retDict['pdf_area_'+names[i]] = pdfArea
-    dataStats[i]["pdf_area"] = pdfArea
-  retDict['cdf_area_difference'] = cdfAreaDifference
-  retDict['pdf_common_area'] = pdfCommonArea
-  dataStats[0]["cdf_area_difference"] = cdfAreaDifference
-  dataStats[0]["pdf_common_area"] = pdfCommonArea
-  if fZStats:
-    sumFunctionDiff = simpson(fZ, lowZ, highZ, 1000)
-    firstMomentFunctionDiff = firstMomentSimpson(fZ, lowZ,highZ, 1000)
-    varianceFunctionDiff = simpson(lambda x:((x-firstMomentFunctionDiff)**2)*fZ(x),lowZ,highZ, 1000)
-    retDict['sum_function_diff'] = sumFunctionDiff
-    retDict['first_moment_function_diff'] = firstMomentFunctionDiff
-    retDict['variance_function_diff'] = varianceFunctionDiff
-  return retDict
 
 def countBins(sortedData, binBoundaries):
   """
@@ -543,7 +449,7 @@ def relativeDiff(f1,f2):
       f2 = float(f2)
     except ValueError:
       raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  Second argument is %s type %s' %(str(f2),type(f2)))
-  diff = abs(f1-f2)
+  diff = abs(diffWithInfinites(f1,f2))
   #"scale" is the relative scaling factor
   scale = f2
   #protect against div 0
@@ -554,6 +460,12 @@ def relativeDiff(f1,f2):
     #at this point, they're both equal to zero, so just divide by 1.0
     else:
       scale = 1.0
+  if abs(scale) == np.inf:
+    #no mathematical rigor here, but typical algorithmic use cases
+    if diff == np.inf:
+      return np.inf # assumption: inf/inf = 1
+    else:
+      return 0.0 # assumption: x/inf = 0 for all finite x
   return diff/abs(scale)
 
 def compareFloats(f1,f2,tol=1e-6):
@@ -611,3 +523,22 @@ def numBinsDraconis(data):
   numBins = int((max(data)-min(data))/binSize)
   binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
   return numBins,binEdges
+
+def diffWithInfinites(a,b):
+  """
+    Calculates the difference a-b and treats infinites.  We consider infinites to have equal values, but
+    inf - (- inf) = inf.
+    @ In, a, float, first value (could be infinite)
+    @ In, b, float, second value (could be infinite)
+    @ Out, res, float, b-a (could be infinite)
+  """
+  if abs(a) == np.inf or abs(b) == np.inf:
+    if a == b:
+      res = 0 #not mathematically rigorous, but useful algorithmically
+    elif a > b:
+      res = np.inf
+    else: # b > a
+      res = -np.inf
+  else:
+    res = a-b
+  return res

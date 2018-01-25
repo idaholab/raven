@@ -25,9 +25,9 @@ import sys, os
 
 ravenDir = os.path.dirname(os.path.dirname(os.getcwd()))
 frameworkDir = os.path.join(ravenDir,"framework")
-sys.path.append(os.path.join(frameworkDir,'utils'))
+sys.path.append(frameworkDir)
 
-import InputData
+from utils import InputData
 import test_classes
 
 
@@ -74,6 +74,7 @@ print('sub_value_2', repr(outerInput.subparts[2].subparts[0].value),
       repr(outerInput.subparts[2].subparts[0].name))
 checkAnswer('sub_value_2', outerInput.subparts[2].subparts[0].value)
 
+checkAnswer(["1", "abc", "3"], outerInput.subparts[1].parameterValues['list_of_strings'])
 
 outside = InputData.createXSD(test_classes.OuterInput)
 outsideTree = ET.ElementTree(outside)

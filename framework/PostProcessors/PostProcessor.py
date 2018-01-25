@@ -66,7 +66,7 @@ class PostProcessor(Assembler):
 
     return inputSpecification
 
-  def initialize(self, runInfo, inputs, initDict) :
+  def initialize(self, runInfo, inputs, initDict=None) :
     """
       Method to initialize the pp.
       @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
@@ -76,6 +76,7 @@ class PostProcessor(Assembler):
     """
     # if 'externalFunction' in initDict.keys(): self.externalFunction = initDict['externalFunction']
     self.inputs = inputs
+    self._workingDir = runInfo['WorkingDir']
 
   def inputToInternal(self, currentInput):
     """

@@ -23,6 +23,7 @@ warnings.simplefilter('default', DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import math
+import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -31,6 +32,7 @@ from .BasicStatistics import BasicStatistics
 from utils import InputData
 import LearningGate
 import Files
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -132,6 +134,14 @@ class LimitSurfaceIntegral(PostProcessor):
     """
     paramInput = LimitSurfaceIntegral.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     for child in paramInput.subparts:
       varName = None
       if child.getName() == 'variable':
@@ -255,11 +265,12 @@ class LimitSurfaceIntegral(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, 'no available output to collect.')
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
     else:
-      pb = finishedJob.getEvaluation()[1]
-      lms = finishedJob.getEvaluation()[0][0]
+      pb = evaluation[1]
+      lms = evaluation[0][0]
       if output.type == 'PointSet':
         # we store back the limitsurface
         for key, value in lms.getParametersValues('input').items():
@@ -276,6 +287,11 @@ class LimitSurfaceIntegral(PostProcessor):
           headers += ['EventProbability']
         stack = [None] * len(headers)
         output.close()
+        # If the file already exist, we will erase it.
+        if os.path.exists(output.getAbsFile()):
+          self.raiseAWarning('File %s already exists, this file will be erased!' %output.getAbsFile())
+          output.open('w')
+          output.close()
         outIndex = 0
         for key, value in lms.getParametersValues('input').items():
           stack[headers.index(key)] = np.asarray(value).flatten()

@@ -45,6 +45,22 @@ class GenericCode(CodeInterfaceBase):
     self.execPrefix       = ''       # executioner command prefix (e.g., 'python ')
     self.execPostfix      = ''       # executioner command postfix (e.g. -zcvf)
     self.caseName         = None     # base label for outgoing files, should default to inputFileName
+    self.fixedOutFileName = None     # CSV output file name of the run code (in case it is hardcoded in the driven code)
+
+  def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this class and
+      initialize some members based on inputs.
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None
+    """
+    outFileName = xmlNode.find("outputFile")
+    self.fixedOutFileName = outFileName.text if outFileName is not None else None
+    if self.fixedOutFileName is not None:
+      if '.' in self.fixedOutFileName and self.fixedOutFileName.split(".")[-1] != 'csv':
+        raise IOError('user defined output extension "'+userExt+'" is not a "csv"!')
+      else:
+        self.fixedOutFileName = '.'.join(self.fixedOutFileName.split(".")[:-1])
 
   def addDefaultExtension(self):
     """
@@ -132,9 +148,10 @@ class GenericCode(CodeInterfaceBase):
     #FIXME I think if you give multiple output flags this could result in overwriting
     self.caseName = inputFiles[index].getBase()
     outfile = 'out~'+self.caseName
-    if 'output' in clargs.keys():
+    if 'output' in clargs:
       todo+=' '+clargs['output']+' '+outfile
-    #text flags
+    if self.fixedOutFileName is not None:
+      outfile = self.fixedOutFileName
     todo+=' '+clargs['text']
     #postpend
     todo+=' '+clargs['post']

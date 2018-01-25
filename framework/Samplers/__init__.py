@@ -33,7 +33,7 @@ from .FactorialDesign       import FactorialDesign
 from .ResponseSurfaceDesign import ResponseSurfaceDesign
 from .Sobol                 import Sobol
 from .SparseGridCollocation import SparseGridCollocation
-from .EnsembleForward       import EnsembleForwardSampler
+from .EnsembleForward       import EnsembleForward
 from .CustomSampler         import CustomSampler
 
 # Adaptive Samplers
@@ -43,7 +43,7 @@ from .AdaptiveSobol        import AdaptiveSobol
 from .AdaptiveSparseGrid   import AdaptiveSparseGrid
 # Dynamic Event Tree-based Samplers
 from .DynamicEventTree         import DynamicEventTree
-from .AdaptiveDynamicEventTree import AdaptiveDET
+from .AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
 # Factory methods
 from .Factory import knownTypes
 from .Factory import returnInstance

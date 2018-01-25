@@ -55,12 +55,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #FIXME: Since the similarity of this class with the base sampler, we should merge this
     BaseType.__init__(self)
     Assembler.__init__(self)
+    self.ableToHandelFailedRuns         = False                     # is this optimizer able to handle failed runs?
     #counters
     self.counter                        = {}                        # Dict containing counters used for based and derived class
     self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.counter['recentOptHist']       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
     self.counter['prefixHistory']       = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
+    self.counter['persistence'  ]       = {}                        # as {traj: n} where n is the number of consecutive converges
     #limits
     self.limit                          = {}                        # Dict containing limits for each counter
     self.limit['mdlEval']               = 2000                      # Maximum number of the loss function evaluation
@@ -87,6 +89,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.thresholdTrajRemoval           = None                      # Threshold used to determine the convergence of parallel optimization trajectories
     self.absConvergenceTol              = 0.0                       # Convergence threshold (absolute value)
     self.relConvergenceTol              = 1.e-3                     # Convergence threshold (relative value)
+    self.convergencePersistence         = 1                         # number of retries to attempt before accepting convergence
     # TODO REWORK minStepSize is for gradient-based specifically
     self.minStepSize                    = 1e-9                      # minimum allowable step size (in abs. distance, in input space)
     #sampler-step communication
@@ -218,7 +221,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
               try:
                 self.optVarsInit['initial'][varname][trajInd] = float(initVal)
               except ValueError:
-                self.raiseAnError(ValueError, "Unable to convert to float the intial value for variable "+varname+ " in trajectory "+str(trajInd))
+                self.raiseAnError(ValueError, 'Unable to convert to float the intial value for variable "{}" in trajectory "{}": {}'.format(varname,trajInd,initVal))
             if self.optTraj == None:
               self.optTraj = range(len(self.optVarsInit['initial'][varname].keys()))
       elif child.tag == "constant":
@@ -253,12 +256,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for childChild in child:
           if childChild.tag == "iterationLimit":
             self.limit['varsUpdate'] = int(childChild.text)
-          if childChild.tag == "absoluteThreshold":
+          elif childChild.tag == "absoluteThreshold":
             self.absConvergenceTol = float(childChild.text)
-          if childChild.tag == "relativeThreshold":
+          elif childChild.tag == "relativeThreshold":
             self.relConvergenceTol = float(childChild.text)
-          if childChild.tag == "minStepSize":
+          elif childChild.tag == "minStepSize":
             self.minStepSize = float(childChild.text)
+          elif childChild.tag == 'persistence':
+            self.convergencePersistence = int(childChild.text)
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
 
@@ -315,7 +320,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if len(self.optVarsInit['initial'][varname]) == 0:
         for traj in self.optTraj:
           self.optVarsInit['initial'][varname][traj] = None
-    self.optTrajLive = copy.deepcopy(self.optTraj)
+    # NOTE: optTraj can be changed in "initialize" if the user provides a sampler for seeding
     if self.multilevel:
       if len(self.mlSequence) < 1:
         self.raiseAnError(IOError,'No "sequence" was specified for multilevel optimization!')
@@ -415,9 +420,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    self.counter['mdlEval'] = 0
-    self.counter['varsUpdate'] = [0]*len(self.optTraj)
-
     for entry in self.assemblerDict.get('Preconditioner',[]):
       cls,typ,name,model = entry
       if cls != 'Models' or typ != 'ExternalModel':
@@ -445,31 +447,36 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         if key.startswith("sampled variable:"):
           var = key.replace("sampled variable:","").strip()
           # check if the sampled variables are among the optimization parameters
-          if var not in self.fullOptVars:
+          if var not in self.getOptVars():
             self.raiseAnError(IOError,'The variable "'+var+'" sampled by the initialization Sampler "'+self.initializationSampler.name+'" is not among the optimization parameters!')
           # check if the sampled variables have been already initialized in the optimizer (i.e. <initial>)
           if self.optVarsInitialized[var]:
             self.raiseAnError(IOError,'The variable "'+var+'" sampled by the initialization Sampler "'+self.initializationSampler.name+
                                       '" has been already initialized in the Optimizer block. Remove <initial> XML node in Optimizer or the <variable> XML node in the Sampler!')
-        # generate the initial coordinates by the sampler and check if they are inside the boundaries
-        self.initializationSampler.initialize(externalSeeding)
-        # check the number of trajectories (i.e. self.initializationSample.limit in the Sampler)
-        currentNumberTrajectories = len(self.optTraj)
-        if currentNumberTrajectories > 1:
-          if currentNumberTrajectories != self.initializationSampler.limit:
-            self.raiseAnError(IOError,"The number of samples generated by the initialization Sampler are different "+
-                                      "than the one inputted in the Optimizer (from the variables where the <initial> XML block has been inputted)")
-        else:
-          self.optTraj = [i for i in range(self.initializationSampler.limit)]
-          for varName in self.optVarsInit['initial'].keys():
-            self.optVarsInit['initial'][varName] = dict.fromkeys(self.optTraj, self.optVarsInit['initial'][varName][0])
-        while self.initializationSampler.amIreadyToProvideAnInput():
-          self.initializationSampler.localGenerateInput(None,None)
-          self.initializationSampler.inputInfo['prefix'] = self.initializationSampler.counter
-          sampledVars = self.initializationSampler.inputInfo['SampledVars']
-          for varName, value in sampledVars.items():
-            self.optVarsInit['initial'][varName][self.initializationSampler.counter] = value
-          self.initializationSampler.counter +=1
+      # generate the initial coordinates by the sampler and check if they are inside the boundaries
+      self.initializationSampler.initialize(externalSeeding)
+      # check the number of trajectories (i.e. self.initializationSample.limit in the Sampler)
+      currentNumberTrajectories = len(self.optTraj)
+      if currentNumberTrajectories > 1:
+        if currentNumberTrajectories != self.initializationSampler.limit:
+          self.raiseAnError(IOError,"The number of samples generated by the initialization Sampler are different "+
+                                    "than the one inputted in the Optimizer (from the variables where the <initial> XML block has been inputted)")
+      else:
+        self.optTraj = range(self.initializationSampler.limit)
+        for varName in self.optVarsInit['initial'].keys():
+          self.optVarsInit['initial'][varName] = dict.fromkeys(self.optTraj, self.optVarsInit['initial'][varName][0])
+      while self.initializationSampler.amIreadyToProvideAnInput():
+        self.initializationSampler.localGenerateInput(None,None)
+        self.initializationSampler.inputInfo['prefix'] = self.initializationSampler.counter
+        sampledVars = self.initializationSampler.inputInfo['SampledVars']
+        for varName, value in sampledVars.items():
+          self.optVarsInit['initial'][varName][self.initializationSampler.counter] = value
+        self.initializationSampler.counter +=1
+
+    # NOTE: counter['varsUpdate'] needs to be set AFTER self.optTraj length is set by the sampler (if used exclusively)
+    self.counter['mdlEval'] = 0
+    self.counter['varsUpdate'] = [0]*len(self.optTraj)
+    self.optTrajLive = copy.deepcopy(self.optTraj)
 
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
     # check if the TargetEvaluation feature and target spaces are consistent
@@ -608,7 +615,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       return results
     else:
       return originalPoint
-
 
   def localInitialize(self,solutionExport):
     """

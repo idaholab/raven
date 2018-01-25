@@ -29,7 +29,7 @@ if not 'xrange' in dir(__builtins__):
 from utils import utils
 from .PostProcessor import PostProcessor
 from .BasicStatistics import BasicStatistics
-from .ComparisonStatistics import ComparisonStatistics
+from .ComparisonStatisticsModule import ComparisonStatistics
 from .ExternalPostProcessor import ExternalPostProcessor
 from .ImportanceRank import ImportanceRank
 from .InterfacedPostProcessor import InterfacedPostProcessor
@@ -40,7 +40,8 @@ from .SafestPoint import SafestPoint
 
 from .TopologicalDecomposition import TopologicalDecomposition
 from .DataMining import DataMining
-
+from .Metric import Metric
+from .CrossValidation import CrossValidation
 ## These utilize the optional prequisite library PySide, so don't error if they
 ## do not import appropriately.
 try:
@@ -50,6 +51,7 @@ except ImportError:
   pass
 
 ## [ Add new class here ]
+from .ETImporter import ETImporter
 
 ################################################################################
 ## Alternatively, to fully automate this file:

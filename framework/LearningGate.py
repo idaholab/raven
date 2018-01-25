@@ -205,6 +205,14 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
           resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
     return resultsDict
 
+  def reseed(self,seed):
+    """
+      Used to reset the seed of the underlying ROMs.
+      @ In, seed, int, new seed to use
+      @ Out, None
+    """
+    for rom in self.supervisedContainer:
+      rom.reseed(seed)
 
 __interfaceDict                         = {}
 __interfaceDict['SupervisedGate'      ] = supervisedLearningGate

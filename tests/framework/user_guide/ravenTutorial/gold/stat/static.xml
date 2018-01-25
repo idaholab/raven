@@ -12,41 +12,25 @@
     <skewness>2.15720281224</skewness>
     <kurtosis>3.74709807563</kurtosis>
     <samples>20</samples>
+    <sensitivity>
+      <sigma-A>-0.000232048449985</sigma-A>
+      <decay-A>-2694261.47847</decay-A>
+    </sensitivity>
+    <covariance>
+      <sigma-A>-26.6391818766</sigma-A>
+      <decay-A>-2.69242269629e-09</decay-A>
+    </covariance>
+    <pearson>
+      <sigma-A>-0.604013729222</sigma-A>
+      <decay-A>-0.644269384254</decay-A>
+    </pearson>
+    <NormalizedSensitivity>
+      <sigma-A>-1.29457438836</sigma-A>
+      <decay-A>-2.61167223428e-21</decay-A>
+    </NormalizedSensitivity>
+    <VarianceDependentSensitivity>
+      <sigma-A>-0.000281386309425</sigma-A>
+      <decay-A>-5.15280283444e-15</decay-A>
+    </VarianceDependentSensitivity>
   </A>
-
-  <sigma-A>
-    <sensitivity>
-      <A>-1296.55414236</A>
-    </sensitivity>
-    <covariance>
-      <A>-26.6391818766</A>
-    </covariance>
-    <pearson>
-      <A>-0.604013729222</A>
-    </pearson>
-    <NormalizedSensitivity>
-      <A>-0.382487297488</A>
-    </NormalizedSensitivity>
-    <VarianceDependentSensitivity>
-      <A>-1759.70984592</A>
-    </VarianceDependentSensitivity>
-  </sigma-A>
-
-  <decay-A>
-    <sensitivity>
-      <A>-1.31042755593e-07</A>
-    </sensitivity>
-    <covariance>
-      <A>-2.69242269629e-09</A>
-    </covariance>
-    <pearson>
-      <A>-0.644269384254</A>
-    </pearson>
-    <NormalizedSensitivity>
-      <A>-0.333300790494</A>
-    </NormalizedSensitivity>
-    <VarianceDependentSensitivity>
-      <A>-1.68931831504e-07</A>
-    </VarianceDependentSensitivity>
-  </decay-A>
 </BasicStatisticsPP>

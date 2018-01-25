@@ -62,7 +62,8 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileArgs)
     else:
       subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileArgs,preExec=preExec)
-    if os.environ['RAVENinterfaceCheck'].lower() in utils.stringsThatMeanTrue():
+
+    if os.environ.get('RAVENinterfaceCheck','False').lower() in utils.stringsThatMeanTrue():
       return [('parallel','')],outputfileroot
     returnCommand = subcodeCommand,outputfileroot
     return returnCommand
@@ -84,7 +85,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    pass #afaik, this is only used in GenericCodeInterface currently.
+    pass
 
   @abc.abstractmethod
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec=None):

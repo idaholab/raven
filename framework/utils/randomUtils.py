@@ -96,6 +96,7 @@ def randomSeed(value):
     npStochEnv = np.random.RandomState(value)
   else:
     crowStochEnv.seedRandom(value) #this has a void return, right?
+  print('randomUtils: Global random number seed has been changed to',value)
 
 def random(dim=1,samples=1,keepMatrix=False):
   """

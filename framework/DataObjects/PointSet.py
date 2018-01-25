@@ -534,4 +534,3 @@ class PointSet(Data):
         self._dataContainer["outputs"][key] = c1darray(values=np.array(inoutDict[key]))
       else:
         self._dataContainer["outputs"][key].append(c1darray(values=np.array(inoutDict[key])))
-

@@ -32,6 +32,7 @@ from .BasicStatistics import BasicStatistics
 from utils import InputData
 from utils.RAVENiterators import ravenArrayIterator
 import DataObjects
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SafestPoint(PostProcessor):
@@ -117,6 +118,15 @@ class SafestPoint(PostProcessor):
     """
     paramInput = SafestPoint.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+
     for child in paramInput.subparts:
       if child.getName() == 'controllable' or  child.getName() == 'non-controllable':
         for childChild in child.subparts:
@@ -353,10 +363,11 @@ class SafestPoint(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, 'no available output to collect (the run is likely not over yet).')
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
     else:
-      dataCollector = finishedJob.getEvaluation()[1]
+      dataCollector = evaluation[1]
       if output.type != 'PointSet':
         self.raiseAnError(TypeError, 'output item type must be "PointSet".')
       else:

@@ -1,0 +1,56 @@
+[Tests]
+  [./simpleMetric]
+    type = 'RavenFramework'
+    input = 'test_metric.xml'
+    UnorderedXml = 'mcMetricRun/output_metric.xml'
+    UnorderedCsv = 'mcMetricRun/dumpMC.csv'
+    output = 'mcMetricRun/output_metric.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./multipleInputs]
+    type = 'RavenFramework'
+    input = 'test_metric_multiple_input_objects.xml'
+    UnorderedXml = 'multipleInputObjects/output_metric.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./sklMetric]
+    type = 'RavenFramework'
+    input = 'test_metric_skl.xml'
+    UnorderedXml = 'sklMetrics/output_metric.xml sklMetrics/chi2_metric.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./minkowskiMetric]
+    type = 'RavenFramework'
+    input = 'test_Minkowski.xml'
+    UnorderedXml = 'minkowskiMetric/output_metric.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./test_comparison_statistics_metrics]
+    type = 'RavenFramework'
+    input = 'test_comparison_stats_metrics.xml'
+    xml = 'compStats/output_cdf_diff.xml compStats/output_pdf_area.xml'
+  [../]
+  [./test_comparison_statistics_metrics_grid]
+    type = 'RavenFramework'
+    input = 'test_comparison_stats_metrics_grid.xml'
+    xml = 'compStatsGrid/output_cdf_diff.xml compStatsGrid/output_pdf_area.xml'
+  [../]
+  [./test_comparison_statistics_metrics_dists]
+    type = 'RavenFramework'
+    input = 'test_comparison_stats_metrics_dists.xml'
+    xml = 'compStatsDists/output_metric.xml'
+  [../]
+  [./test_comparison_statistics_unit]
+    type = 'RavenPython'
+    input = 'unit_test_comparison_statistics.py'
+    requires_swig2 = True
+  [../]
+[]

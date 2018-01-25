@@ -5,7 +5,8 @@
     <!-- *********************************************************************** -->
     <xsd:complexType name="OptimizerData">
         <xsd:sequence>
-            <xsd:element name="SPSA"                  type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="SPSA"                              type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="FiniteDifferenceGradientOptimizer" type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -46,6 +47,7 @@
             <xsd:element name="gainGrowthFactor"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
             <xsd:element name="gainShrinkFactor"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
             <xsd:element name="minStepSize"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="persistence"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
          </xsd:all>
     </xsd:complexType>
 
