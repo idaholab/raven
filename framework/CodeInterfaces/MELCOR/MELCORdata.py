@@ -16,6 +16,11 @@
   @author: Matteo Donorio (University of Rome La Sapienza),
            Fabio Gianneti (University of Rome La Sapienza),
            Andrea Alfonsi (INL)
+           
+  Modified on January 24, 2018
+  @author: Violet Olson
+           Thomas Riley (Oregon State University)
+  Change Summary: Added Control Function parsing
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -26,7 +31,7 @@ import copy
 class MELCORdata:
   """
     class that parses output of MELCOR 2.1 output file and reads in trip, minor block and write a csv file
-    For now, Only the data associated to control volumes are parsed and output
+    For now, Only the data associated to control volumes and control functions are parsed and output
   """
   def __init__(self,filen):
     """
@@ -39,6 +44,7 @@ class MELCORdata:
     self.timeParams = {}
     volForEachTime  = self.returnVolumeHybro(timeBlocks)
     self.timeParams.update(volForEachTime)
+    self.functions  = self.returnControlFunctions(timeBlocks)
 
   def getTimeBlocks(self):
     """
@@ -56,6 +62,29 @@ class MELCORdata:
       timeBlock[info[1]] = self.lines[info[0]+1:endLineCnt]
     return timeBlock
 
+  def returnControlFunctions(self, timeBlock):
+    """
+      CONTROL FUNCTIONS EDIT
+      @ In, timeBlock, dict, {"time":[lines Of Output for that time]}
+    """
+    functionValuesForEachTime = {}
+    startRegex = re.compile("\s*CONTROL\s*FUNCTION\s*NUMBER\s*CURRENT\s*VALUE")
+    regex = re.compile("^\s*(?P<name>( ?([0-9a-zA-Z-]+))*)\s+([0-9]+)\s*(?P<value>((([0-9.-]+)E(\+|-)[0-9][0-9])|((T|F))))\s*.*$")
+    for time,listOfLines in timeBlock.items():
+      functionValues = {}
+      start = -1
+      for lineNumber, line in enumerate(listOfLines):
+        if re.search(startRegex, line):
+          start = lineNumber + 1
+          break
+      if start > 0:
+        for lineNumber, line in enumerate(listOfLines[start:]):
+          if (line.startswith("!)")):
+            break
+          match = re.match(regex, line)
+          functionValues[match.groupdict()["name"]] = match.groupdict()["value"]
+      functionValuesForEachTime[time] = functionValues
+    return functionValuesForEachTime
   def returnVolumeHybro(self,timeBlock):
     """
       CONTROL VOLUME HYDRODYNAMICS EDIT
@@ -94,12 +123,15 @@ class MELCORdata:
     """
     IOcsvfile=open(filen,'w+')
     getHeaders = self.timeParams.values()[0].keys()
-    header = ','.join(getHeaders)
+    CFHeaders = self.functions.values()[0].keys()
+    header = ','.join(getHeaders + CFHeaders)
     header = "time,"+header+"\n"
     IOcsvfile.write(header)
     for time in self.timeParams.keys():
       stringToWrite = str(time)
       for value in self.timeParams[time].values():
+        stringToWrite+=","+str(value)
+      for value in self.functions[time].values():
         stringToWrite+=","+str(value)
       stringToWrite+="\n"
       IOcsvfile.write(stringToWrite)
