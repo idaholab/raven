@@ -1577,6 +1577,7 @@ class DataSet(DataObject):
     else:
       data = self._data
       mode = 'w'
+
     data = data.drop(toDrop)
     self.raiseADebug('Printing data to CSV: "{}"'.format(filenameLocal+'.csv'))
     # get the list of elements the user requested to write

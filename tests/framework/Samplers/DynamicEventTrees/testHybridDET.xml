@@ -23,7 +23,7 @@
   <RunInfo>
     <WorkingDir>HybridDynamicEventTree</WorkingDir>
     <Sequence>HybridDETrunTest,testOutstreamStep</Sequence>
-    <batchSize>4</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>

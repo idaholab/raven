@@ -232,16 +232,20 @@ class HistorySet(DataSet):
     # specialized to write custom RAVEN-style history CSVs
     # TODO some overlap with DataSet implementation, but not much.
     keep = self._getRequestedElements(kwargs)
+    toDrop = list(var for var in self._orderedVars if var not in keep)
     # don't rewrite everything; if we've written some already, just append (using mode)
-    if start > 0:
-      # slice data starting at "start"
-      sl = slice(start,None,None)
-      data = self._data.isel(**{self.sampleTag:sl})
-      mode = 'a'
+    mode = 'a' if start > 0 else 'w'
+    # hierarchical (get just the ending)
+    if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
+      fullData = self._constructHierPaths()[start:]
+      data = self._data.where(self._data['RAVEN_isEnding']==True,drop=True)
+      if start > 0:
+        data = self._data.isel(**{self.sampleTag:data[self.sampleTag].values[start:]})
     else:
       data = self._data
-      mode = 'w'
-    toDrop = list(var for var in self._orderedVars if var not in keep)
+      if start > 0:
+        data = self._data.isel(**{self.sampleTag:slice(start,None,None)})
+
     data = data.drop(toDrop)
     self.raiseADebug('Printing data to CSV: "{}"'.format(fileName+'.csv'))
     # specific implementation
@@ -261,10 +265,21 @@ class HistorySet(DataSet):
     self._usePandasWriteCSV(fileName,inpData,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
     ## obtain slices to write subset CSVs
     ordered = list(o for o in self.getVars('output') if o in keep)
+
     if len(ordered):
-      for i in range(len(data[self.sampleTag].values)):
-        filename = subFiles[i][:-4]
-        rlz = data.isel(**{self.sampleTag:i})[ordered].dropna(self.indexes[0])
-        self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
+      # hierarchical
+      if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
+        for i in range(len(fullData)):
+          mode = 'w'
+          filename = subFiles[i][:-4]
+          for subSampleTag in range(len(fullData[i][self.sampleTag].values)):
+            rlz = fullData[i].isel(**{self.sampleTag:subSampleTag})[ordered].dropna(self.indexes[0])
+            self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True,mode=mode)
+            mode = 'a'
+      else:
+        for i in range(len(data[self.sampleTag].values)):
+          filename = subFiles[i][:-4]
+          rlz = data.isel(**{self.sampleTag:i})[ordered].dropna(self.indexes[0])
+          self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
     else:
       self.raiseAWarning('No output space variables have been requested for DataObject "{}"! No history files will be printed!'.format(self.name))

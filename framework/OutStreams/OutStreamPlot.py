@@ -1948,6 +1948,9 @@ class OutStreamPlot(OutStreamManager):
       else:
         name = prefix + self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "")
 
+      if self.subDirectory is not None:
+        name = os.path.join(self.subDirectory,name)
+
       plt.savefig(name + '.' + fileType, format = fileType)
     if 'screen' not in self.destinations:
       plt.close()

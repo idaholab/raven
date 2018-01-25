@@ -18,9 +18,9 @@ Created on 2016-Jan-26
 
 This a library for defining the data used and for reading it in.
 """
-
 from __future__ import division, print_function, unicode_literals, absolute_import
 import xml.etree.ElementTree as ET
+from utils import utils
 
 class InputType(object):
   """
@@ -202,13 +202,26 @@ class EnumBaseType(InputType):
 #
 #
 #
+
+
 class BoolType(EnumBaseType):
   """
     A type that allows True or False
   """
-  pass
 
-BoolType.createClass("bool","boolType",["True","False"])
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a bool.
+      @ In, value, string, the value to convert
+      @ Out, convert, float, the converted value
+    """
+    if value in utils.stringsThatMeanTrue():
+      return True
+    else:
+      return False
+
+BoolType.createClass("bool","boolType", utils.stringsThatMeanTrue() + utils.stringsThatMeanFalse())
 
 #
 #

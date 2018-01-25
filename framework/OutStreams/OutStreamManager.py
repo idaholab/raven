@@ -25,6 +25,7 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
+import os
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -65,6 +66,8 @@ class OutStreamManager(BaseType):
     self.availableOutStreamType = []
     # number of agregated outstreams
     self.numberAggregatedOS = 1
+    # optional sub directory for printing and plotting
+    self.subDirectory = None
     self.printTag = 'OUTSTREAM MANAGER'
     self.filename = ''
 
@@ -82,7 +85,13 @@ class OutStreamManager(BaseType):
         self.overwrite = True
       else:
         self.overwrite = False
+    if 'dir' in xmlNode.attrib:
+      self.subDirectory =  xmlNode.attrib['dir']
+      if '~' in self.subDirectory:
+        self.subDirectory= os.path.expanduser(self.subDirectory)
+
     self.localReadXML(xmlNode)
+
 
   def getInitParams(self):
     """
@@ -124,6 +133,11 @@ class OutStreamManager(BaseType):
       current step. The sources are searched into this.
       @ Out, None
     """
+    if self.subDirectory is not None:
+      self.subDirectory = os.path.abspath(self.subDirectory)
+      if not os.path.exists(self.subDirectory):
+        os.makedirs(self.subDirectory)
+
     self.sourceData = []
     for agrosindex in range(self.numberAggregatedOS):
       foundData = False

@@ -66,9 +66,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
     inputSpecification = super(DataObject,cls).getInputSpecification()
-    inputSpecification.addParam('hierarchical',InputData.StringType)
-    inputSpecification.addParam('inputTs',InputData.StringType)
-    inputSpecification.addParam('historyName',InputData.StringType)
+    inputSpecification.addParam('hierarchical', InputData.BoolType)
 
     inputInput = InputData.parameterInputFactory('Input',contentType=InputData.StringType) #TODO list
     inputSpecification.addSub(inputInput)
@@ -123,6 +121,8 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
     self._inputKDTree     = None   # for finding outputs given inputs (pointset only?)
     self._scaleFactors    = None   # scaling factors inputs as {var:(mean,scale)}
+    self.hierarchical     = False  # this flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
+                                   # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
 
   def _readMoreXML(self,xmlNode):
     """
@@ -135,6 +135,10 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       inp = DataObject.getInputSpecification()()
       inp.parseNode(xmlNode)
+
+    # get hierarchical strategy
+    self.hierarchical = inp.parameterValues.get("hierarchical", False)
+
     pivotParam = None # single pivot parameter given in the input
     for child in inp.subparts:
       # TODO check for repeats, "notAllowdInputs", names in both input and output space
