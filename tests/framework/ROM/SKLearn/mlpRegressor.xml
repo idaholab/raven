@@ -68,6 +68,7 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outMLPRegressor</filename>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
