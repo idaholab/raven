@@ -146,20 +146,28 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
         # the ROM is able to manage the time dependency on its own
         self.supervisedContainer[0].train(trainingSet)
       else:
+        print('DEBUGG NOT handle on own')
         # we need to construct a chain of ROMs
         # the check on the number of time steps (consistency) is performed inside the historySnapShoots method
         # get the time slices
         newTrainingSet = mathUtils.historySnapShoots(trainingSet, len(self.historySteps))
-        if type(newTrainingSet).__name__ != 'list':
-          self.raiseAnError(IOError,newTrainingSet)
+        print('DEBUGG snapshoots:')
+        for s in newTrainingSet:
+          print('DEBUGG ...',s)
+        print('DEBUGG steps:',self.historySteps)
+        assert(type(newTrainingSet).__name__ == 'list')
         # copy the original ROM
-        originalROM = copy.deepcopy(self.supervisedContainer[0])
+        originalROM = self.supervisedContainer[0]
         # start creating and training the time-dep ROMs
         self.supervisedContainer = [] # [copy.deepcopy(originalROM) for _ in range(len(self.historySteps))]
         # train
         for ts in range(len(self.historySteps)):
+          print('DEBUGG ts:',ts)
+          print('DEBUGG training data:',newTrainingSet[ts])
           self.supervisedContainer.append(copy.deepcopy(originalROM))
           self.supervisedContainer[-1].train(newTrainingSet[ts])
+        print('DEBUGG trained:')
+        print('DEBUGG ...',self.supervisedContainer)
     else:
       #self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
       self.supervisedContainer[0].train(trainingSet)
@@ -196,13 +204,16 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     if not self.amITrained:
       self.raiseAnError(RuntimeError, "ROM "+self.initializationOptions['name']+" has not been trained yet and, consequentially, can not be evaluated!")
     resultsDict = {}
+    print('DEBUGG evaluate')
     for rom in self.supervisedContainer:
       sliceEvaluation = rom.evaluate(request)
+      print('DEBUGG slice:',sliceEvaluation)
       if len(resultsDict.keys()) == 0:
         resultsDict.update(sliceEvaluation)
       else:
         for key in resultsDict.keys():
           resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
+      print('DEBUGG results:',resultsDict)
     return resultsDict
 
   def reseed(self,seed):
