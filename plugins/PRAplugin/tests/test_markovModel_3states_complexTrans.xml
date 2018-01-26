@@ -31,9 +31,8 @@
       <initState>initialState</initState>
       <finState>finalState</finState>
       <endTime>1000</endTime>
-      <deltaT>1</deltaT>
       <state name='1'> <!-- Bull market -->
-        <transition type='instant' value='5.5' >2</transition>
+        <transition type='instant' value='4.0' >2</transition>
       </state>
       <state name='2'> <!-- Bear market -->
         <transition type='unif' value='0.0,4.0' >1</transition>

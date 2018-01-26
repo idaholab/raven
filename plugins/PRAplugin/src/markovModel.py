@@ -13,6 +13,7 @@ from operator import mul
 
 #Internal Modules---------------------------------------------------------------
 from PluginsBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
+from utils.randomUtils import random
 #Internal Modules End-----------------------------------------------------------
 
 
@@ -28,6 +29,8 @@ class markovModel(ExternalModelPluginBase):
     container.initState = None
     container.finState  = None
     container.states = {}
+
+    np.random.seed(250678)
 
     for child in xmlNode:
       if   child.tag == 'initState':
@@ -45,7 +48,7 @@ class markovModel(ExternalModelPluginBase):
             elif childChild.get('type') == 'tau':
               value = 1. / float(childChild.get('value'))
             elif childChild.get('type') == 'instant':
-              value = [childChild.get('value')]
+              value = [float(childChild.get('value'))]
             elif childChild.get('type') == 'unif':
               value = [float(var.strip()) for var in childChild.get('value').split(",")]
             container.states[child.get('name')][childChild.text.strip()] = value
@@ -82,10 +85,12 @@ class markovModel(ExternalModelPluginBase):
     """
     time = 0.
     actualState = str(int(Inputs[container.initState][0]))
+    #print(time,actualState)
     while True:
       transitionDict = copy.deepcopy(container.states[actualState])
       transitionTime , newState = self.newState(transitionDict)   
       time += transitionTime
+      #print(time,actualState)
       if time >= container.endTime:
         break
       else:
@@ -93,19 +98,20 @@ class markovModel(ExternalModelPluginBase):
     container.finalState = int(actualState)
 
   def newState(self,dictIn):
-    detTrans  = {}
+    detTrans   = {}
     stochTrans = {}
+    detTransitionTime   = sys.float_info.max
+    stochTransitionTime = sys.float_info.max
+
     for key in dictIn.keys():
       if type(dictIn[key]) is list:
         detTrans[key]  = copy.deepcopy(dictIn[key])
       else:
         stochTrans[key] = copy.deepcopy(dictIn[key])
-
-    if not detTrans:
+    if detTrans:
       detTransitionTime, detState     = self.detNewState(detTrans)
-    if not stochTans:
-      stochTransitionTime, stochState = self.stochNewState(detTrans)
-
+    if stochTrans:
+      stochTransitionTime, stochState = self.stochNewState(stochTrans)
     if stochTransitionTime < detTransitionTime:
       return stochTransitionTime, stochState
     else:
@@ -120,26 +126,25 @@ class markovModel(ExternalModelPluginBase):
         if time<detTransitionTime:
           detTransitionTime = time
           detTransitionState = key
-      if len(detTrans[key]) == 2:
+      elif len(detTrans[key]) == 2:
         lowVal  = min(detTrans[key])
         highVal = max(detTrans[key])       
         time = np.random.uniform(low=lowVal, high=highVal)
         if time<detTransitionTime:
           detTransitionTime = time
           detTransitionState = key
+    
     return detTransitionTime, detTransitionState
 
-  def stochNewState(self,detTrans):
-    np.random.seed(250678)
-    totLambda = sum(detTrans.values())
+  def stochNewState(self,stochTrans):
+    totLambda = sum(stochTrans.values())
     transitionTime = np.random.exponential(1./totLambda)
-    for transition in detTrans.keys():
-      detTrans[transition] = detTrans[transition]/totLambda
-    state = np.random.choice(detTrans.keys(), size = 1, p=detTrans.values())[0]
+    for transition in stochTrans.keys():
+      stochTrans[transition] = stochTrans[transition]/totLambda
+    state = np.random.choice(stochTrans.keys(), size = 1, p=stochTrans.values())[0]
     return transitionTime, state
 
-  def newState(self,dictIn):
-    np.random.seed(250678)
+  def newStateOLD(self,dictIn):
     if type(dictIn.values()[0]) is list and len(dictIn.values())==1:
       if len(dictIn.values()[0]) == 2:
         lowVal  = min(dictIn.values()[0])
