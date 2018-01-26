@@ -35,7 +35,7 @@ def inPython3():
 modules_to_try = [("numpy",'numpy.version.version',"1.8.0","1.11.0",None),
                   ("h5py",'h5py.__version__','2.4.0','2.6.0',None),
                   ("scipy",'scipy.__version__',"0.14.0","0.17.1",None),
-                  ("sklearn",'sklearn.__version__',"0.18.0","0.19.1",None),
+                  ("sklearn",'sklearn.__version__',"0.18.0","0.18.0",None),
                   ("matplotlib",'matplotlib.__version__',"1.3.1","1.5.3",None)]
 
 def __lookUpPreferredVersion(name):
