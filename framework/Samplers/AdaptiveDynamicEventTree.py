@@ -382,46 +382,22 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     if self.startAdaptive:
       #if self._endJobRunnable != 1: self._endJobRunnable = 1
       # retrieve the endHistory branches
-      completedHistNames, finishedHistNames = [], []
-      hybridTrees = self.TreeInfo.values() if self.hybridDETstrategy in [1,None] else [self.TreeInfo[self.actualHybridTree]]
-      
-      finishedHistNames = [elem[-1] for elem in self.lastOutput._generateHierPaths()]
-      completedHistNames   = dict(zip(finishedHistNames, self.lastOutput._constructHierPaths())) #  self.lastOutput._generateHierPaths()      
-      #for treer in hybridTrees:
-      #  # this needs to be solved
-      #  finishedHistNames = [elm[-1] for elem in self.lastOutput._generateHierPaths()]
-      #  completedHistNames   = dict(zip(finishedHistNames, self.lastOutput._constructHierPaths())) #  self.lastOutput._generateHierPaths()
-      #  #completedHistValues =  self.lastOutput._constructHierPaths()
-      #  #for ending in treer.iterProvidedFunction(self._checkCompleteHistory):
-      #  #  completedHistNames.append(self.lastOutput.getParam(typeVar='inout',keyword='none',nodeId=ending.get('name'),serialize=False))
-      #   # finishedHistNames.append(utils.first(completedHistNames[-1].keys()))
+      #completedHistNames, finishedHistNames = [], []
+      #hybridTrees = self.TreeInfo.values() if self.hybridDETstrategy in [1,None] else [self.TreeInfo[self.actualHybridTree]]
+      #finishedHistNames = [elem[-1] for elem in self.lastOutput._generateHierPaths()]
+      #completedHistNames   = dict(zip(finishedHistNames, self.lastOutput._constructHierPaths())) #  self.lastOutput._generateHierPaths()
       # assemble a dictionary
-      if len(completedHistNames) > self.completedHistCnt:
-        # sort the list of histories
-        self.sortedListOfHists.extend(list(set(finishedHistNames) - set(self.sortedListOfHists)))
-        completedHistNames = [completedHistNames[finishedHistNames.index(elem)] for elem in self.sortedListOfHists]
-        if len(completedHistNames[-1].values()) > 0:
-          lastOutDict = {'inputs':{},'outputs':{}}
-          for histd in completedHistNames:
-            histdict = histd.values()[-1]
-            for key in histdict['inputs' ].keys():
-              if key not in lastOutDict['inputs'].keys():
-                lastOutDict['inputs'][key] = np.atleast_1d(histdict['inputs'][key])
-              else:
-                lastOutDict['inputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['inputs'][key]),np.atleast_1d(histdict['inputs'][key])))
-            for key in histdict['outputs'].keys():
-              if key not in lastOutDict['outputs'].keys():
-                lastOutDict['outputs'][key] = np.atleast_1d(histdict['outputs'][key])
-              else:
-                lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),np.atleast_1d(histdict['outputs'][key])))
-        else:
-          self.raiseAWarning('No Completed HistorySet! Not possible to start an adaptive search! Something went wrong!')
-      if len(completedHistNames) > self.completedHistCnt:
+      data = self.lastOutput.asDataset()
+      endingData = data.where(data['RAVEN_isEnding']==True,drop=True)
+      numbCompletedHistories = len(endingData['RAVEN_isEnding'])
+      if numbCompletedHistories > self.completedHistCnt:
+        lastOutDict = {key:endingData[key].values for key in endingData.keys()}
+      if numbCompletedHistories > self.completedHistCnt:
         actualLastOutput      = self.lastOutput
         self.lastOutput       = copy.deepcopy(lastOutDict)
         ready                 = LimitSurfaceSearch.localStillReady(self,ready)
         self.lastOutput       = actualLastOutput
-        self.completedHistCnt = len(completedHistNames)
+        self.completedHistCnt = numbCompletedHistories
         self.raiseAMessage("Completed full histories are "+str(self.completedHistCnt))
       else:
         ready = False
