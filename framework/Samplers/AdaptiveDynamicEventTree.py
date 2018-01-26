@@ -384,13 +384,17 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       # retrieve the endHistory branches
       completedHistNames, finishedHistNames = [], []
       hybridTrees = self.TreeInfo.values() if self.hybridDETstrategy in [1,None] else [self.TreeInfo[self.actualHybridTree]]
-      for treer in hybridTrees:
-        # this needs to be solved
-        completedHistNames   =self.lastOutput._generateHierPaths()
-        completedHistValues =  self.lastOutput._constructHierPaths()
-        for ending in treer.iterProvidedFunction(self._checkCompleteHistory):
-          completedHistNames.append(self.lastOutput.getParam(typeVar='inout',keyword='none',nodeId=ending.get('name'),serialize=False))
-          finishedHistNames.append(utils.first(completedHistNames[-1].keys()))
+      
+      finishedHistNames = [elem[-1] for elem in self.lastOutput._generateHierPaths()]
+      completedHistNames   = dict(zip(finishedHistNames, self.lastOutput._constructHierPaths())) #  self.lastOutput._generateHierPaths()      
+      #for treer in hybridTrees:
+      #  # this needs to be solved
+      #  finishedHistNames = [elm[-1] for elem in self.lastOutput._generateHierPaths()]
+      #  completedHistNames   = dict(zip(finishedHistNames, self.lastOutput._constructHierPaths())) #  self.lastOutput._generateHierPaths()
+      #  #completedHistValues =  self.lastOutput._constructHierPaths()
+      #  #for ending in treer.iterProvidedFunction(self._checkCompleteHistory):
+      #  #  completedHistNames.append(self.lastOutput.getParam(typeVar='inout',keyword='none',nodeId=ending.get('name'),serialize=False))
+      #   # finishedHistNames.append(utils.first(completedHistNames[-1].keys()))
       # assemble a dictionary
       if len(completedHistNames) > self.completedHistCnt:
         # sort the list of histories
