@@ -1764,6 +1764,8 @@ class MarkovCategorical(Categorical):
       elif child.getName() == "transition":
         transition = [float(value) for value in child.value.split()]
         dim = int(np.sqrt(len(transition)))
+        if dim == 1:
+          self.raiseAnError(IOError, "The dimension of transition matrix should be greater than 1!")
         if dim**2 != len(transition):
           self.raiseAnError(IOError, "The transition matrix is not a square matrix!")
         self.transition = np.asarray(transition).reshape((-1,dim))

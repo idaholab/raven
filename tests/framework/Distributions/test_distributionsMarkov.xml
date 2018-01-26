@@ -87,6 +87,7 @@
     <Print name="MC_dump">
       <type>csv</type>
       <source>PointSet_MC</source>
+      <what>input,output</what>
     </Print>
     <Print name="Grid_dump">
       <type>csv</type>
