@@ -47,6 +47,10 @@ class FTmodel(ExternalModelPluginBase):
     #container.faultTreeModel = FTstructure(inputFiles, self.messageHandler, container.topEventID)
     container.faultTreeModel = FTstructure(inputFiles, container.topEventID)
 
+  #def createNewInput(self, container, inputs, samplerType, **Kwargs):
+  #  return
+  #  ripassa sampled vars
+
   def run(self, container, Inputs):
     """
       This is a simple example of the run method in a plugin.
