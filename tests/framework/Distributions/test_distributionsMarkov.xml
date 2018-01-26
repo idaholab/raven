@@ -51,7 +51,7 @@
   </Models>
 
   <Distributions>
-    <Markov name="x_dist">
+    <MarkovCategorical name="x_dist">
         <!--dataFile fileType='csv'>transitionFile</dataFile>
         <workingDir>test_markov</workingDir-->
         <transition>
@@ -62,7 +62,7 @@
         <state outcome='1' index='1'/>
         <state outcome='2' index='2'/>
         <state outcome='4' index='3'/>
-    </Markov>
+    </MarkovCategorical>
   </Distributions>
 
   <Samplers>

@@ -33,6 +33,8 @@ import operator
 from collections import OrderedDict
 import csv
 from scipy.interpolate import UnivariateSpline
+from numpy import linalg as LA
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -70,6 +72,7 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'Custom1D':'Custom1DDistribution',
                               'Exponential':'ExponentialDistribution',
                               'Categorical':'Categorical',
+                              'MarkovCategorical':'MarkovCategorical',
                               'LogNormal':'LogNormalDistribution',
                               'Weibull':'WeibullDistribution',
                               'NDInverseWeight': 'NDInverseWeightDistribution',
@@ -1685,7 +1688,7 @@ class Categorical(Distribution):
 
 DistributionsCollection.addSub(Categorical.getInputSpecification())
 
-class Markov(Categorical):
+class MarkovCategorical(Categorical):
   """
     Class for the Markov categorical distribution based on "Markov Model"
     Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
@@ -1731,7 +1734,7 @@ class Markov(Categorical):
     #self.values         = set()
     #self.dimensionality = 1
     #self.disttype       = 'Discrete'
-    self.type           = 'Markov'
+    self.type           = 'MarkovCategorical'
     self.steadyStatePb  = None
     self.transition     = None
     self.dataFile       = None
@@ -1805,16 +1808,15 @@ class Markov(Categorical):
       @ Out, None
     """
     # Load the transition matrix
-    if not self.transition:
+    if self.transition is None:
       self.transition = self.loadData(self.dataFile, fileType=self.dataFileType)
     self.steadyStatePb = self.computeSteadyStatePb(self.transition)
-    if not mathUtils.compareFloats(np.sum(self.steadyStatePb), 1.0)
-      self.raiseAnError(IOError,'Markov Categorical distribution cannot be initialized: sum of calculated probabilities is not 1.0')
     for key, value in self.mapping.items():
       try:
-        self.mapping[key] = self.steadyStatePb[value]
+        self.mapping[key] = self.steadyStatePb[value - 1]
       except IndexError:
         self.raiseAnError(IOError, "Index ",value, " for outcome ", key, " is out of bounds! Maximum index should be ", len(self.steadyStatePb))
+    Categorical.initializeDistribution(self)
 
   def loadData(self,filename,fileType='csv'):
     """
@@ -1829,16 +1831,18 @@ class Markov(Categorical):
     """
       Function that compute the steady state probabilities for given transition matrix
       @ In, transition, numpy.array, transition matrix for Markov model
-      @ Out, steadyStatePb, list, list of steady state probabilities
+      @ Out, steadyStatePb, numpy.array, 1-D array of steady state probabilities
     """
-
-    steadyStatePb = []
-    # compute
-
+    dim = transition.shape[0]
+    perturbTransition = copy.copy(transition)
+    perturbTransition[0] = 1
+    q = np.zeros(dim)
+    q[0] = 1
+    steadyStatePb = np.dot(LA.inv(perturbTransition),q)
 
     return steadyStatePb
 
-DistributionsCollection.addSub(Markov.getInputSpecification())
+DistributionsCollection.addSub(MarkovCategorical.getInputSpecification())
 
 class Logistic(BoostDistribution):
   """
@@ -3493,6 +3497,7 @@ __interFaceDict['Poisson'           ] = Poisson
 __interFaceDict['Binomial'          ] = Binomial
 __interFaceDict['Bernoulli'         ] = Bernoulli
 __interFaceDict['Categorical'       ] = Categorical
+__interFaceDict['MarkovCategorical' ] = MarkovCategorical
 __interFaceDict['Logistic'          ] = Logistic
 __interFaceDict['Exponential'       ] = Exponential
 __interFaceDict['LogNormal'         ] = LogNormal
