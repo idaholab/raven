@@ -150,10 +150,9 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
         # the check on the number of time steps (consistency) is performed inside the historySnapShoots method
         # get the time slices
         newTrainingSet = mathUtils.historySnapShoots(trainingSet, len(self.historySteps))
-        if type(newTrainingSet).__name__ != 'list':
-          self.raiseAnError(IOError,newTrainingSet)
+        assert(type(newTrainingSet).__name__ == 'list')
         # copy the original ROM
-        originalROM = copy.deepcopy(self.supervisedContainer[0])
+        originalROM = self.supervisedContainer[0]
         # start creating and training the time-dep ROMs
         self.supervisedContainer = [] # [copy.deepcopy(originalROM) for _ in range(len(self.historySteps))]
         # train

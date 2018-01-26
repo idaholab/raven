@@ -96,10 +96,12 @@
     <Print name="testPrintHistorySet_dump">
       <type>csv</type>
       <source>testPrintHistorySet</source>
+      <what>input,output</what>
     </Print>
     <Print name="testPointSet_dump">
       <type>csv</type>
       <source>testPointSet</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
@@ -110,11 +112,11 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="testPointSet">
-      <Input>loss_factor,tollerance,DeltaTimeScramToAux,DG1recoveryTime</Input>
+      <Input>loss_factor,DeltaTimeScramToAux,tollerance,DG1recoveryTime</Input>
       <Output>CladTempThreshold</Output>
     </PointSet>
     <HistorySet name="testPrintHistorySet">
-      <Input>loss_factor,tollerance,DeltaTimeScramToAux,DG1recoveryTime</Input>
+      <Input>loss_factor,DeltaTimeScramToAux,tollerance,DG1recoveryTime</Input>
       <Output>CladTempThreshold</Output>
     </HistorySet>
   </DataObjects>
