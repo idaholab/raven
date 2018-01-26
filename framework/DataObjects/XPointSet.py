@@ -189,7 +189,7 @@ class PointSet(DataSet):
         mode = 'w'
 
       #FIXME: THIS IS EXTREMELY SLOW
-      full = self._constructHierPaths()[start:]
+      full = self._constructHierPaths()[start-1:]
       # set up data to write
       mode = 'a' if start > 0 else 'w'
 

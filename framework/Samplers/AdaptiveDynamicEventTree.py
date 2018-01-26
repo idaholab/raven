@@ -386,6 +386,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       hybridTrees = self.TreeInfo.values() if self.hybridDETstrategy in [1,None] else [self.TreeInfo[self.actualHybridTree]]
       for treer in hybridTrees:
         # this needs to be solved
+        completedHistNames   =self.lastOutput._generateHierPaths()
+        completedHistValues =  self.lastOutput._constructHierPaths()
         for ending in treer.iterProvidedFunction(self._checkCompleteHistory):
           completedHistNames.append(self.lastOutput.getParam(typeVar='inout',keyword='none',nodeId=ending.get('name'),serialize=False))
           finishedHistNames.append(utils.first(completedHistNames[-1].keys()))

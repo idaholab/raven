@@ -611,7 +611,10 @@ class DataSet(DataObject):
     # TODO dask?
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized write style: "{}"'.format(style))
-    return len(self) # so that other entities can track which realization we've written
+    if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
+      return len(self._data.where(self._data['RAVEN_isEnding']==True,drop=True)['RAVEN_isEnding'])
+    else:
+      return len(self) # so that other entities can track which realization we've written
 
   ### INITIALIZATION ###
   # These are the necessary functions to construct and initialize this data object

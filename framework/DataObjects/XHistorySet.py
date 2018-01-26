@@ -237,10 +237,10 @@ class HistorySet(DataSet):
     mode = 'a' if start > 0 else 'w'
     # hierarchical (get just the ending)
     if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
-      fullData = self._constructHierPaths()[start:]
+      fullData = self._constructHierPaths()[start-1:]
       data = self._data.where(self._data['RAVEN_isEnding']==True,drop=True)
       if start > 0:
-        data = self._data.isel(**{self.sampleTag:data[self.sampleTag].values[start:]})
+        data = self._data.isel(**{self.sampleTag:data[self.sampleTag].values[start-1:]})
     else:
       data = self._data
       if start > 0:
