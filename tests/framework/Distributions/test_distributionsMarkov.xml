@@ -38,6 +38,8 @@
       <Input  class="DataObjects"  type="PointSet"      >PointSet_Grid</Input>
       <Output class="OutStreams"   type="Print"         >MC_dump</Output>
       <Output class="OutStreams"   type="Print"         >Grid_dump</Output>
+      <Output class="OutStreams"   type="Plot"          >plotXMC</Output>
+      <Output class="OutStreams"   type="Plot"          >plotYMC</Output>
     </IOStep>
   </Steps>
 
@@ -55,8 +57,8 @@
         <!--dataFile fileType='csv'>transitionFile</dataFile>
         <workingDir>test_markov</workingDir-->
         <transition>
-            -1.5   0.8   0.7
-            0.8    -1.0  0.2
+            -1.1   0.8   0.7
+            0.8    -1.4  0.2
             0.3    0.6   -0.9
         </transition>
         <state outcome='1' index='1'/>
@@ -68,7 +70,7 @@
   <Samplers>
     <MonteCarlo name="MC">
       <samplerInit>
-        <limit>10</limit>
+        <limit>100</limit>
         <initialSeed>1234</initialSeed>
       </samplerInit>
       <variable name="x">
@@ -93,6 +95,32 @@
       <type>csv</type>
       <source>PointSet_Grid</source>
     </Print>
+    <Plot  name="plotXMC" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>PointSet_MC|Input|x</x>
+          <bins>30</bins>
+        </plot>
+        <xlabel>x</xlabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
+    <Plot  name="plotYMC" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>PointSet_MC|Output|y</x>
+          <bins>30</bins>
+        </plot>
+        <xlabel>x</xlabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
   </OutStreams>
 
   <DataObjects>
