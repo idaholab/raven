@@ -13,8 +13,4 @@
 # limitations under the License.
 
 def __residuumSign(self):
-  timeLPR = self.time_LPI + self.time_LPR
-  if timeLPR < self.endTime:
-    return 0.
-  else:
-    return 1.
+  return self.LPI_status

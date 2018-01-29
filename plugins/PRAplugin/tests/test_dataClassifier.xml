@@ -61,7 +61,7 @@
   
   <Models>
     <ExternalModel ModuleToLoad="THmodel" name="PythonModule" subType="">
-      <variables>ACC_status,time_LPI,time_LPR,out,ACC_act,LPI_act,LPR_act</variables>
+      <variables>ACC_status,time_LPI,time_LPR,out,LPI_status,LPR_status</variables>
     </ExternalModel>
     <PostProcessor name="ETimporter" subType="ETImporter">
       <fileFormat>OpenPSA</fileFormat>
@@ -131,7 +131,7 @@
     </PointSet>
     <PointSet name="sim_PS">
       <Input>ACC_status,time_LPI,time_LPR</Input>
-      <Output>out,ACC_act,LPI_act,LPR_act,endTime</Output>
+      <Output>out,LPI_status,LPR_status,endTime</Output>
     </PointSet>
   </DataObjects>
   
