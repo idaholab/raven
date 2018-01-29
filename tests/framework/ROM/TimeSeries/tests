@@ -21,7 +21,7 @@
   [./ARMAreseedTest]
    type = 'RavenFramework'
    input = 'arma_reseed_test.xml'
-   csv = 'ARMAparallel/results_0.csv''
+   csv = 'ARMAparallel/results_0.csv'
    expected_fail = true
    prereq = ARMAreseedPrecursor
   [../]

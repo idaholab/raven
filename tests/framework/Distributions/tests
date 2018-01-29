@@ -18,4 +18,9 @@
    csv    = 'test_geometric/MC_dump.csv'
  [../]
 
+ [./MarkovCategorical]
+   type   = 'RavenFramework'
+   input  = 'test_distributionsMarkov.xml'
+   csv    = 'test_markov/Grid_dump.csv test_markov/MC_dump.csv'
+ [../]
 []

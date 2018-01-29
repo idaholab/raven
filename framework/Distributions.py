@@ -33,6 +33,8 @@ import operator
 from collections import OrderedDict
 import csv
 from scipy.interpolate import UnivariateSpline
+from numpy import linalg as LA
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -70,6 +72,7 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'Custom1D':'Custom1DDistribution',
                               'Exponential':'ExponentialDistribution',
                               'Categorical':'Categorical',
+                              'MarkovCategorical':'MarkovCategorical',
                               'LogNormal':'LogNormalDistribution',
                               'Weibull':'WeibullDistribution',
                               'NDInverseWeight': 'NDInverseWeightDistribution',
@@ -1684,6 +1687,164 @@ class Categorical(Distribution):
     return rvsValue
 
 DistributionsCollection.addSub(Categorical.getInputSpecification())
+
+class MarkovCategorical(Categorical):
+  """
+    Class for the Markov categorical distribution based on "Markov Model"
+    Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
+  """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
+
+    StatePartInput = InputData.parameterInputFactory("state", contentType=InputData.StringType)
+    StatePartInput.addParam("outcome", InputData.FloatType, True)
+    StatePartInput.addParam("index", InputData.IntegerType, True)
+    TransitionInput = InputData.parameterInputFactory("transition", contentType=InputData.StringType)
+    DataFileInput = InputData.parameterInputFactory("dataFile", contentType=InputData.StringType)
+    DataFileInput.addParam("fileType", InputData.StringType, False)
+
+    inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
+    inputSpecification.addSub(TransitionInput, InputData.Quantity.zero_to_one)
+    inputSpecification.addSub(DataFileInput, InputData.Quantity.zero_to_one)
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputData.StringType))
+    ## Because we do not inherit from the base class, we need to manually
+    ## add the name back in.
+    inputSpecification.addParam("name", InputData.StringType, True)
+
+    return inputSpecification
+
+  def __init__(self):
+    """
+      Function that initializes the categorical distribution
+      @ In, None
+      @ Out, none
+    """
+    Categorical.__init__(self)
+    # remove before merge
+    #self.mapping        = {}
+    #self.values         = set()
+    #self.dimensionality = 1
+    #self.disttype       = 'Discrete'
+    self.type           = 'MarkovCategorical'
+    self.steadyStatePb  = None
+    self.transition     = None
+    self.dataFile       = None
+    self.dataFileType   = None
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    workingDir = paramInput.findFirst('workingDir')
+    if workingDir != None:
+      self.workingDir = workingDir.value
+    else:
+      self.workingDir = os.getcwd()
+
+    for child in paramInput.subparts:
+      if child.getName() == "state":
+        outcome = child.parameterValues["outcome"]
+        markovIndex = child.parameterValues["index"]
+        self.mapping[outcome] = markovIndex
+        if float(outcome) in self.values:
+          self.raiseAnError(IOError,'Markov Categorical distribution has identical outcomes')
+        else:
+          self.values.add(float(outcome))
+      elif child.getName() == "transition":
+        transition = [float(value) for value in child.value.split()]
+        dim = int(np.sqrt(len(transition)))
+        if dim == 1:
+          self.raiseAnError(IOError, "The dimension of transition matrix should be greater than 1!")
+        if dim**2 != len(transition):
+          self.raiseAnError(IOError, "The transition matrix is not a square matrix!")
+        self.transition = np.asarray(transition).reshape((-1,dim))
+      elif child.getName() == "dataFile":
+        self.dataFile = os.path.join(self.workingDir, child.value.strip())
+        if 'fileType' in child.parameterValues:
+          self.dataFileType = child.parameterValues['fileType']
+        else:
+          self.dataFileType = 'csv'
+    #Check the correctness of user inputs
+    invalid = self.dataFile is None and self.transition is None
+    if invalid:
+      self.raiseAnError(IOError, "Transition matrix is not provided, please use 'transition' or 'dataFile' node to provide the transition matrix!")
+    invalid = self.dataFile is not None and self.transition is not None
+    if invalid:
+      self.raiseAnError(IOError, "Both 'transition' and 'dataFile' nodes are used to provide the transition matrix, this is currently not allowed!")
+      self.dataFile = None
+    if len(self.mapping.values()) != len(set(self.mapping.values())):
+      self.raiseAnError(IOError, "The states of Markov Categorical distribution have identifcal indices!")
+
+    self.initializeDistribution()
+
+  def getInitParams(self):
+    """
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = Distribution.getInitParams(self)
+    paramDict['mapping'] = self.mapping
+    paramDict['values'] = self.values
+    paramDict['transition'] = self.transition
+    paramDict['steadyStatePb'] = self.steadyStatePb
+    return paramDict
+
+  def initializeDistribution(self):
+    """
+      Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
+      @ In, None
+      @ Out, None
+    """
+    # Load the transition matrix
+    if self.transition is None:
+      self.transition = self.loadData(self.dataFile, fileType=self.dataFileType)
+    self.steadyStatePb = self.computeSteadyStatePb(self.transition)
+    for key, value in self.mapping.items():
+      try:
+        self.mapping[key] = self.steadyStatePb[value - 1]
+      except IndexError:
+        self.raiseAnError(IOError, "Index ",value, " for outcome ", key, " is out of bounds! Maximum index should be ", len(self.steadyStatePb))
+    Categorical.initializeDistribution(self)
+
+  def loadData(self,filename,fileType='csv'):
+    """
+      Function that load transition matrix from file
+      @ In, filename, string, the name of transition matrix file
+      @ In, fileType, string, the type of transition matrix file, default is 'csv'
+      @ Out, transition, numpy.array, the transition matrix
+    """
+    pass
+
+  def computeSteadyStatePb(self, transition):
+    """
+      Function that compute the steady state probabilities for given transition matrix
+      @ In, transition, numpy.array, transition matrix for Markov model
+      @ Out, steadyStatePb, numpy.array, 1-D array of steady state probabilities
+    """
+    dim = transition.shape[0]
+    perturbTransition = copy.copy(transition)
+    perturbTransition[0] = 1
+    q = np.zeros(dim)
+    q[0] = 1
+    steadyStatePb = np.dot(LA.inv(perturbTransition),q)
+
+    return steadyStatePb
+
+DistributionsCollection.addSub(MarkovCategorical.getInputSpecification())
 
 class Logistic(BoostDistribution):
   """
@@ -3338,6 +3499,7 @@ __interFaceDict['Poisson'           ] = Poisson
 __interFaceDict['Binomial'          ] = Binomial
 __interFaceDict['Bernoulli'         ] = Bernoulli
 __interFaceDict['Categorical'       ] = Categorical
+__interFaceDict['MarkovCategorical' ] = MarkovCategorical
 __interFaceDict['Logistic'          ] = Logistic
 __interFaceDict['Exponential'       ] = Exponential
 __interFaceDict['LogNormal'         ] = LogNormal
