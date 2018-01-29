@@ -18,7 +18,7 @@ from collections import OrderedDict
 
 #class ETstructure(MessageHandler.MessageUser):
 class ETstructure():
-    
+
     #def __init__(self, expand, inputs, messageHandler):
     def __init__(self, expand, inputs):
         """
@@ -34,30 +34,30 @@ class ETstructure():
         connectivityMatrix = np.zeros(sizes)
         listETs=[]
         listRoots=[]
-    
+
         for file in inputs:
             eventTree = ET.parse(file.getPath() + file.getFilename())
             listETs.append(eventTree.getroot().get('name'))
             listRoots.append(eventTree.getroot())
         links = self.createLinkList(listRoots)
-    
+
         if len(inputs)>0:
             rootETID = self.checkETstructure(links,listETs,connectivityMatrix)
-    
+
         if len(links)>=1 and len(inputs)>1:
             finalAssembledTree = self.analyzeMultipleET(inputs,links,listRoots,listETs,rootETID)
             self.pointSet = self.analyzeSingleET(finalAssembledTree)
-    
+
         if len(links)==0 and len(inputs)>1:
             raise IOError('Multiple ET files have provided but they are not linked')
-    
+
         if len(links)>1 and len(inputs)==1:
             raise IOError('A single ET files has provided but it contains a link to an additional ET')
-    
+
         if len(links)==0 and len(inputs)==1:
             eventTree = ET.parse(inputs[0].getPath() + inputs[0].getFilename())
-            self.pointSet = self.analyzeSingleET(eventTree.getroot())    
-        
+            self.pointSet = self.analyzeSingleET(eventTree.getroot())
+
     def solve(self,combination):
         combinationArray=np.zeros(len(self.variables))
         outcome = -1
@@ -67,7 +67,7 @@ class ETstructure():
             if self.pointSet[:len(self.variables)] == combinationArray:
                 outcome = self.pointSet[:, -1]
         return outcome
-    
+
     def returnDict(self):
         outputDict = {}
         outputDict['inputs'] = {}
@@ -75,9 +75,9 @@ class ETstructure():
         for index, var in enumerate(self.variables):
             outputDict['inputs'][var] = self.pointSet[:, index]
         outputDict['outputs']['sequence'] = self.pointSet[:, -1]
-    
+
         return outputDict, self.variables
-        
+
     def createLinkList(self,listRoots):
         """
           This method identifies the links among ETs. It saves such links in the variable links.
@@ -236,7 +236,7 @@ class ETstructure():
 
         if self.expand:
             pointSet = self.expandPointSet(pointSet)
-            
+
         return pointSet
 
     def expandPointSet(self,pointSet):
@@ -253,7 +253,7 @@ class ETstructure():
                     rowToBeAdded = copy.deepcopy(pointSet[idx,:])
                     rowToBeAdded[col] = +1
                     pointSet = np.vstack([pointSet,rowToBeAdded])
-                    pointSet[idx,col] = 0          
+                    pointSet[idx,col] = 0
                     #self.expandRow(pointSet,idx,col)
         return pointSet
 

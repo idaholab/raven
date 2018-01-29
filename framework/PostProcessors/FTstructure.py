@@ -18,7 +18,7 @@ from collections import OrderedDict
 
 #class FTstructure(MessageHandler.MessageUser):
 class FTstructure():
-    
+
     #def __init__(self, inputs, messageHandler, topEventID):
     def __init__(self, inputs, topEventID):
         """
@@ -31,7 +31,7 @@ class FTstructure():
         self.gateList    = {}
         self.gateID      = []
         self.topEventID  = topEventID
-        
+
         for file in inputs:
             faultTree = ET.parse(file.getPath() + file.getFilename())
             faultTree = findAllRecursive(faultTree,'opsa-mef')
@@ -55,15 +55,15 @@ class FTstructure():
                     #self.raiseAnError(IOError,'FTImporterPostProcessor Post-Processor ' + self.name + ': house event ' + str(basicEvent.get('name')) + ' has a not boolean value (True or False)')
                     raise IOError('FTImporterPostProcessor Post-Processor ' + self.name + ': house event ' + str(basicEvent.get('name')) + ' has a not boolean value (True or False)')
                 self.houseEvents[houseEvent.get('name')] = value
-      
+
         if not self.topEventID in self.gateID:
             #self.raiseAnError(IOError,'FTImporterPostProcessor: specified top event ' + str(self.topEventID) + ' is not contained in the fault-tree; available gates are: ' + str(self.gateID))
             raise IOError('FTImporterPostProcessor: specified top event ' + str(self.topEventID) + ' is not contained in the fault-tree; available gates are: ' + str(self.gateID))
-            
+
     def returnDict(self):
         self.FTsolver()
-        outcome = self.constructData()    
-        return outcome        
+        outcome = self.constructData()
+        return outcome
 
     def FTsolver(self):
         """
@@ -123,7 +123,7 @@ class FTstructure():
                 outcome[key][index]=float(combinationDict[key])
             outcome[self.topEventID][index] = out[self.topEventID]
         return outcome
-    
+
 def findAllRecursive(node, element):
     """
       A function for recursively traversing a node in an elementTree to find

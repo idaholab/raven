@@ -101,9 +101,9 @@ class ETImporter(PostProcessor):
     self.fileFormat = fileFormat.value
     if self.fileFormat not in self.allowedFormats:
       self.raiseAnError(IOError, 'ETImporterPostProcessor Post-Processor ' + self.name + ', format ' + str(self.fileFormat) + ' : is not supported')
-    
+
     expand = paramInput.findFirst('expand')
-    self.expand = expand.value  
+    self.expand = expand.value
     if self.expand in ['True','true']:
       self.expand = True
     elif self.expand in ['false','False']:

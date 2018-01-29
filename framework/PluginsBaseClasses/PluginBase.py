@@ -41,7 +41,7 @@ class PluginBase(object):
       @ Out, None
     """
     pass
-   
+
   @classmethod
   def isAvalidPlugin(cls):
     """

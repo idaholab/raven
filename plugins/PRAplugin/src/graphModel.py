@@ -8,7 +8,7 @@ import math
 import xml.etree.ElementTree as ET
 from utils import utils
 from utils import graphStructure as GS
-import copy 
+import copy
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -62,7 +62,7 @@ class graphModel(ExternalModelPluginBase):
     if container.nodesOUT is None:
       print('nodesOUT Error')
     if container.modelFile is None:
-      print('modelFile Error')  
+      print('modelFile Error')
 
     if set(variables) != set(container.mapping.keys()):
       print('variables error')
@@ -77,7 +77,7 @@ class graphModel(ExternalModelPluginBase):
       @ In, inputFiles, list, list of input files (if any)
       @ Out, None
     """
-    container.nodes = {}  
+    container.nodes = {}
     container.deg   = {}
 
     container.runInfo = runInfoDict
@@ -124,7 +124,7 @@ class graphModel(ExternalModelPluginBase):
           for node in nodes.keys():
             if mapping[key] in nodes[node]:
               nodes[node].remove(mapping[key])
-    
+
     ravenGraph = GS.graphObject(nodes)
 
     dictOUT = {}
@@ -138,7 +138,7 @@ class graphModel(ExternalModelPluginBase):
       else:
         dictOUT[var] = np.asarray(1.)
     return dictOUT
-    
+
 def runTimeDep(self, container, Inputs):
   pass
   '''
@@ -156,7 +156,7 @@ def runTimeDep(self, container, Inputs):
     dictOUT = self.runStatic(container, inputToPass)
     if not dictOUTpre:
       pass
-      #for var in 
+      #for var in
       #dictOUTpre = copy.deepcopy(dictOUT)
   '''
 

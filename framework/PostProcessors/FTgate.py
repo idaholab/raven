@@ -18,7 +18,7 @@ from collections import OrderedDict
 
 #class FTgate(MessageHandler.MessageUser):
 class FTgate():
-    
+
     #def __init__(self, xmlNode, messageHandler):
     def __init__(self, xmlNode):
         """
@@ -41,7 +41,7 @@ class FTgate():
                 self.params = child.attrib
             if child.tag in self.allowedGates.keys():
                 self.gate = child.tag
-            else: 
+            else:
                 raise IOError('FTImporterPostProcessor Post-Processor; gate ' + str(child.tag) + ' : is not recognized. Allowed gates are: '+ str(self.allowedGates.keys()))
 
         for node in findAllRecursive(xmlNode, 'gate'):
@@ -60,7 +60,7 @@ class FTgate():
                     if len(event)>2:
                         raise IOError('FTImporterPostProcessor Post-Processor; gate ' + str(self.name) + ' contains a negations of multiple basic events')
                     elif event[1].tag in ['gate','basic-event','house-event']:
-                        self.negations.append(event[1].get('name'))          
+                        self.negations.append(event[1].get('name'))
 
         if self.gate in ['iff'] and len(self.arguments)>self.allowedGates['iff']:
             raise IOError('FTImporterPostProcessor Post-Processor; iff gate ' + str(self.name) + ' has more than 2 events')
@@ -73,14 +73,14 @@ class FTgate():
           @ In, None
           @ Out, self.arguments, list, list that contains the arguments of the gate
         """
-        return self.arguments    
+        return self.arguments
 
     def evaluate(self,argValues):
         """
-          Method that evaluates the gate 
+          Method that evaluates the gate
           @ In, argValues, dict, dictionary containing all available variables
           @ Out, outcome, float, calculated outcome of the gate
-        """  
+        """
         argumentValues = copy.deepcopy(argValues)
         for key in self.negations:
             if argumentValues[key]==1:
@@ -102,7 +102,7 @@ class FTgate():
           Note that argumentValues is passed directly (instead of argumentValues.values()) in case of the imply gate since the events IDs are important
           @ In, argumentValues, OrderedDict, dictionary containing only the variables of interest to the gate
           @ Out, outcome, float, calculated outcome of the gate
-        """ 
+        """
         if self.gate == 'and':
             outcome = ANDgate(argumentValues.values())
         elif self.gate == 'or':
@@ -127,24 +127,24 @@ class FTgate():
 
 def NOTgate(value):
     """
-      Method that evaluates the NOT gate 
+      Method that evaluates the NOT gate
       @ In, value, list, list of values
       @ Out, outcome, float, calculated outcome of the gate
-    """ 
+    """
     if len(value)>1:
         raise IOError('NOT gate has received in input ' + str(len(value)) + ' values instead of 1.')
     if value[0]==0:
         outcome = 1
     else:
         outcome = 0
-    return outcome 
+    return outcome
 
 def ANDgate(argumentValues):
     """
-      Method that evaluates the AND gate 
+      Method that evaluates the AND gate
       @ In, argumentValues, list, list of values
       @ Out, outcome, float, calculated outcome of the gate
-    """ 
+    """
     if 0 in argumentValues:
         outcome = 0
     else:
@@ -153,10 +153,10 @@ def ANDgate(argumentValues):
 
 def ORgate(argumentValues):
     """
-      Method that evaluates the OR gate 
+      Method that evaluates the OR gate
       @ In, argumentValues, list, list of values
       @ Out, outcome, float, calculated outcome of the gate
-    """ 
+    """
     if 1 in argumentValues:
         outcome = 1
     else:
@@ -165,10 +165,10 @@ def ORgate(argumentValues):
 
 def NANDgate(argumentValues):
     """
-      Method that evaluates the NAND gate 
+      Method that evaluates the NAND gate
       @ In, argumentValues, list, list of values
       @ Out, outcome, float, calculated outcome of the gate
-    """ 
+    """
     out = []
     out.append(ANDgate(argumentValues))
     outcome = NOTgate(out)
@@ -176,10 +176,10 @@ def NANDgate(argumentValues):
 
 def NORgate(argumentValues):
     """
-      Method that evaluates the NOR gate 
+      Method that evaluates the NOR gate
       @ In, argumentValues, list, list of values
       @ Out, outcome, float, calculated outcome of the gate
-    """   
+    """
     out = []
     out.append(ORgate(argumentValues))
     outcome = NOTgate(out)
@@ -187,12 +187,12 @@ def NORgate(argumentValues):
 
 def XORgate(argumentValues):
     """
-      Method that evaluates the XOR gate 
+      Method that evaluates the XOR gate
       The XOR gate gives a true (1 or HIGH) output when the number of true inputs is odd.
       https://electronics.stackexchange.com/questions/93713/how-is-an-xor-with-more-than-2-inputs-supposed-to-work
       @ In, argumentValues, list, list of values
       @ Out, outcome, float, calculated outcome of the gate
-    """ 
+    """
     if argumentValues.count(1.) % 2 != 0:
         outcome = 1
     else:
@@ -201,10 +201,10 @@ def XORgate(argumentValues):
 
 def IFFgate(argumentValues):
     """
-      Method that evaluates the IFF gate 
+      Method that evaluates the IFF gate
       @ In, argumentValues, list, list of values
       @ Out, outcome, float, calculated outcome of the gate
-    """ 
+    """
     out = []
     out.append(XORgate(argumentValues))
     outcome = NOTgate(out)
@@ -212,7 +212,7 @@ def IFFgate(argumentValues):
 
 def IMPLYgate(argumentValues):
     """
-      Method that evaluates the IMPLY gate 
+      Method that evaluates the IMPLY gate
       Note that this gate requires a specific definition of the two inputs. This definition is specifed in the order of the events provided in the input file
       As an example, BE1->BE2 is translated as:
         <define-gate name="TOP">
@@ -223,7 +223,7 @@ def IMPLYgate(argumentValues):
         </define-gate>
       @ In, argumentValues, list, list of values
       @ Out, outcome, float, calculated outcome of the gate
-    """ 
+    """
     keys = argumentValues.keys()
     if argumentValues[keys[0]]==1 and argumentValues[keys[1]]==0:
         outcome = 0
@@ -233,11 +233,11 @@ def IMPLYgate(argumentValues):
 
 def ATLEASTgate(argumentValues,k):
     """
-      Method that evaluates the ATLEAST gate 
+      Method that evaluates the ATLEAST gate
       @ In, argumentValues, list, list of values
       @ In, k, float, max number of allowed events
       @ Out, outcome, float, calculated outcome of the gate
-    """ 
+    """
     if argumentValues.count(1) >= k:
         outcome = 1
     else:
@@ -246,12 +246,12 @@ def ATLEASTgate(argumentValues,k):
 
 def CARDINALITYgate(argumentValues,l,h):
     """
-      Method that evaluates the CARDINALITY gate 
+      Method that evaluates the CARDINALITY gate
       @ In, argumentValues, list, list of values
       @ In, l, float, min number of allowed events
       @ In, h, float, max number of allowed events
       @ Out, outcome, float, calculated outcome of the gate
-    """ 
+    """
     nOcc = argumentValues.count(1)
     if nOcc >= l and nOcc <= h:
         outcome = 1

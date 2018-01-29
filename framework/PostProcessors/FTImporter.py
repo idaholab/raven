@@ -102,7 +102,7 @@ class FTImporter(PostProcessor):
     self.fileFormat = fileFormat.value
     if self.fileFormat not in self.allowedFormats:
       self.raiseAnError(IOError, 'FTImporterPostProcessor Post-Processor ' + self.name + ', format ' + str(self.fileFormat) + ' : is not supported')
-    
+
     topEventID = paramInput.findFirst('topEventID')
     self.topEventID = topEventID.value
 
@@ -125,7 +125,7 @@ class FTImporter(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    outputDict = evaluation[1]  
+    outputDict = evaluation[1]
     # Output to file
     if output.type in ['PointSet']:
       for key in output.getParaKeys('inputs'):
@@ -135,7 +135,7 @@ class FTImporter(PostProcessor):
         for value in outputDict[key]:
           output.updateOutputValue(str(key),value)
     else:
-        self.raiseAnError(RuntimeError, 'FTImporter failed: Output type ' + str(output.type) + ' is not supported.')    
+        self.raiseAnError(RuntimeError, 'FTImporter failed: Output type ' + str(output.type) + ' is not supported.')
 
   def collectOutput_NEW_dataObject(self, finishedJob, output):
     """
@@ -145,4 +145,4 @@ class FTImporter(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    outputDict = evaluation[1]  
+    outputDict = evaluation[1]

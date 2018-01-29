@@ -75,7 +75,7 @@ class markovModel(ExternalModelPluginBase):
       @ Out, None
     """
     pass
-    
+
   def run(self, container, Inputs):
     """
       This is a simple example of the run method in a plugin.
@@ -88,7 +88,7 @@ class markovModel(ExternalModelPluginBase):
     #print(time,actualState)
     while True:
       transitionDict = copy.deepcopy(container.states[actualState])
-      transitionTime , newState = self.newState(transitionDict)   
+      transitionTime , newState = self.newState(transitionDict)
       time += transitionTime
       #print(time,actualState)
       if time >= container.endTime:
@@ -128,12 +128,12 @@ class markovModel(ExternalModelPluginBase):
           detTransitionState = key
       elif len(detTrans[key]) == 2:
         lowVal  = min(detTrans[key])
-        highVal = max(detTrans[key])       
+        highVal = max(detTrans[key])
         time = np.random.uniform(low=lowVal, high=highVal)
         if time<detTransitionTime:
           detTransitionTime = time
           detTransitionState = key
-    
+
     return detTransitionTime, detTransitionState
 
   def stochNewState(self,stochTrans):
@@ -151,7 +151,7 @@ class markovModel(ExternalModelPluginBase):
         highVal = max(dictIn.values()[0])
         state = dictIn.keys()[0]
         transitionTime = np.random.uniform(low=lowVal, high=highVal)
-        return transitionTime, state 
+        return transitionTime, state
       else:
         print('error 234')
     product = reduce(mul, dictIn.values(), 1)
