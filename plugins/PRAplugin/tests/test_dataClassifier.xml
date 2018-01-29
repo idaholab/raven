@@ -11,7 +11,7 @@
       <p>0.4</p>
     </Bernoulli>
     <Normal name="LPI_distrib">
-      <mean>4</mean>
+      <mean>5</mean>
       <sigma>1</sigma>
     </Normal>
     <Normal name="LPR_distrib">

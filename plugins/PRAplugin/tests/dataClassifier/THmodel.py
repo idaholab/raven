@@ -20,15 +20,17 @@ def run(self,Input):
   self.time_LPI   = Input['time_LPI']
   self.time_LPR   = Input['time_LPR']
 
-  timeToCD = 20.
-  self.out = 0.
+  timeToCD_LPI = 6.
+  timeToCD_LPR = 11.
 
   if self.ACC_status == 1.:
     self.out = 1.
-
-  self.LPI_act = self.time_LPI + 1
-  if self.time_LPI > timeToCD:
+  self.LPI_act = self.time_LPI + 1.
+  if self.LPI_act > timeToCD_LPI:
     self.out = 1.
-
-<Input>ACC_status,time_LPI,time_LPR</Input>
-<Output>out,ACC_act,LPI_act,LPR_act</Output>
+  else:
+    self.LPR_act = self.LPI_act + 10.
+    if self.LPR_act > timeToCD_LPR:
+      self.out = 1.
+    else:
+      self.out = 0.
