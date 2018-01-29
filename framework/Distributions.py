@@ -1781,7 +1781,7 @@ class MarkovCategorical(Categorical):
       self.raiseAnError(IOError, "Transition matrix is not provided, please use 'transition' or 'dataFile' node to provide the transition matrix!")
     invalid = self.dataFile is not None and self.transition is not None
     if invalid:
-      self.raiseAWarning("Both 'transition' and 'dataFile' nodes are used to provide the transition matrix, only information from 'transition' will be used!")
+      self.raiseAnError(IOError, "Both 'transition' and 'dataFile' nodes are used to provide the transition matrix, this is currently not allowed!")
       self.dataFile = None
     if len(self.mapping.values()) != len(set(self.mapping.values())):
       self.raiseAnError(IOError, "The states of Markov Categorical distribution have identifcal indices!")
