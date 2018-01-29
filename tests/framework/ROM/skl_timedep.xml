@@ -49,6 +49,7 @@
   <DataObjects>
     <PointSet name="placeholder">
       <Input>v0,y0,ang</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="innerPS">
       <Input>v0,y0,ang</Input>
