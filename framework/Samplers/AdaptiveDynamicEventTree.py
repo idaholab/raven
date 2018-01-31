@@ -218,7 +218,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     if nntrain is not None:
       neigh = neighbors.NearestNeighbors(n_neighbors=len(mapping.keys()))
       neigh.fit(nntrain)
-      valBranch = self._checkValidityOfBranch(neigh.kneighbors(lowerCdfValues.values()),mapping)
+      valBranch = self._checkValidityOfBranch(neigh.kneighbors([lowerCdfValues.values()]),mapping)
       if self.hybridDETstrategy is not None:
         returnTuple = valBranch,cdfValues,treer
       else:
@@ -269,12 +269,16 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     self.branchCountOnLevel = info['actualBranchOnLevel']+1
     # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
     rname = info['parentNode'].get('name') + '-' + str(self.branchCountOnLevel)
+    if rname == 'adaptive_2-2':
+      print("aaaa")    
     info['parentNode'].add('completedHistory', False)
     self.raiseADebug(str(rname))
     bcnt = self.branchCountOnLevel
     while info['parentNode'].isAnActualBranch(rname):
       bcnt += 1
       rname = info['parentNode'].get('name') + '-' + str(bcnt)
+      if rname == 'adaptive_2-2':
+        print("aaaa")        
     # create a subgroup that will be appended to the parent element in the xml tree structure
     subGroup = ETS.HierarchicalNode(self.messageHandler,rname)
     subGroup.add('parent', info['parentNode'].get('name'))
@@ -345,6 +349,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     for varname in self.standardDETvariables:
       self.inputInfo['SampledVars'  ][varname] = self.distDict[varname].ppf(cdfValues[varname])
       self.inputInfo['SampledVarsPb'][varname] = cdfValues[varname]
+      if (self.inputInfo['SampledVarsPb'][varname] - 0.000588235294117647) <= 0.0000001:
+        print("aaaa")      
     # constant variables
     self._constantVariables()
     if precSampled:
@@ -389,15 +395,15 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       # assemble a dictionary
       data = self.lastOutput.asDataset()
       endingData = data.where(data['RAVEN_isEnding']==True,drop=True)
-      numbCompletedHistories = len(endingData['RAVEN_isEnding'])
-      if numbCompletedHistories > self.completedHistCnt:
+      numCompletedHistories = len(endingData['RAVEN_isEnding'])
+      if numCompletedHistories > self.completedHistCnt:
         lastOutDict = {key:endingData[key].values for key in endingData.keys()}
-      if numbCompletedHistories > self.completedHistCnt:
+      if numCompletedHistories > self.completedHistCnt:
         actualLastOutput      = self.lastOutput
         self.lastOutput       = copy.deepcopy(lastOutDict)
         ready                 = LimitSurfaceSearch.localStillReady(self,ready)
         self.lastOutput       = actualLastOutput
-        self.completedHistCnt = numbCompletedHistories
+        self.completedHistCnt = numCompletedHistories
         self.raiseAMessage("Completed full histories are "+str(self.completedHistCnt))
       else:
         ready = False
@@ -472,6 +478,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
                 self.raiseADebug("epistemic var " + str(key)+" value = "+str(self.values[key]))
                 hybridStrategy['SampledVars'][key]   = copy.copy(self.values[key])
                 hybridStrategy['SampledVarsPb'][key] = self.distDict[key].pdf(self.values[key])
+                if (hybridStrategy['SampledVarsPb'][key] - 0.000588235294117647) <= 0.0000001:
+                  print("aaaa")                
                 hybridStrategy['prefix'] = len(self.TreeInfo.values())+1
             # TODO: find a strategy to recompute the probability weight here (for now == PointProbability)
             hybridStrategy['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())

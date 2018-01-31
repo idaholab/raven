@@ -212,7 +212,10 @@ class DynamicEventTree(Grid):
       @ Out, None
     """
     self.workingDir = model.workingDir
-
+    
+    if jobObject.identifier == 'adaptive_2-2':
+      print("aaaa")
+    
     # returnBranchInfo = self.__readBranchInfo(jobObject.output)
     # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
     parentNode = self._retrieveParentNode(jobObject.identifier)
@@ -261,10 +264,10 @@ class DynamicEventTree(Grid):
     # get the branchedLevel dictionary
     branchedLevel = {}
     for distk, distpb in zip(endInfo['parentNode'].get('SampledVarsPb').keys(),endInfo['parentNode'].get('SampledVarsPb').values()):
-    #for distk, distpb in zip(endInfo['parentNode'].get('initiatorDistribution'),endInfo['parentNode'].get('PbThreshold')):
       if distk not in self.epistemicVariables.keys():
         branchedLevel[distk] = utils.index(self.branchProbabilities[distk],distpb)
-
+        if utils.index(self.branchProbabilities[distk],distpb) is None:
+          print("aaaa")
     if not branchedLevel:
       self.raiseAnError(RuntimeError,'branchedLevel of node '+jobObject.identifier+'not found!')
     # Loop of the parameters that have been changed after a trigger gets activated
@@ -413,6 +416,8 @@ class DynamicEventTree(Grid):
     precSampled = rootTree.getrootnode().get('hybridsamplerCoordinate')
     rootnode    =  rootTree.getrootnode()
     rname       = rootnode.name
+    if rname == 'adaptive_2-2':
+      print("aaaa")    
     rootnode.add('completedHistory', False)
     # Fill th values dictionary in
     if precSampled:
@@ -443,6 +448,8 @@ class DynamicEventTree(Grid):
       self.inputInfo['SampledVars'  ][varname] = self.branchValues[varname][branchedLevel[varname]]
       #self.inputInfo['SampledVars'  ][varname] = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
       self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname] ]
+      if (self.inputInfo['SampledVarsPb'][varname] - 0.000588235294117647) <= 0.0000001:
+        print("aaaa")      
       #self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
     # constant variables
     self._constantVariables()
@@ -524,7 +531,10 @@ class DynamicEventTree(Grid):
       branchedLevel = copy.deepcopy(branchedLevelParent)
       # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
       rname = endInfo['parentNode'].get('name') + '-' + str(self.branchCountOnLevel)
-
+      
+      if rname == 'adaptive_2-2':
+        print("aaaa")
+      
       # create a subgroup that will be appended to the parent element in the xml tree structure
       subGroup = ETS.HierarchicalNode(self.messageHandler,rname.encode())
       subGroup.add('parent', endInfo['parentNode'].get('name'))
@@ -635,6 +645,8 @@ class DynamicEventTree(Grid):
       for varname in self.standardDETvariables:
         self.inputInfo['SampledVars'][varname]   = self.branchValues[varname][branchedLevel[varname]]
         self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname]]
+        if (self.inputInfo['SampledVarsPb'][varname] - 0.000588235294117647) <= 0.0000001:
+          print("aaaa")        
         #self.inputInfo['SampledVars'][varname]   = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
         #self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
       self._constantVariables()

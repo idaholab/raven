@@ -203,7 +203,6 @@ class EnumBaseType(InputType):
 #
 #
 
-
 class BoolType(EnumBaseType):
   """
     A type that allows True or False
