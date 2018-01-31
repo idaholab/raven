@@ -29,6 +29,7 @@ import sys
 import copy
 import abc
 import json
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -135,7 +136,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     return inputSpecification
 
-
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -222,6 +222,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     paramInput = self._readMoreXMLbase(xmlNode)
     self.localInputAndChecks(xmlNode, paramInput)
 
+
   def _readMoreXMLbase(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to the base sampler only
@@ -307,7 +308,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     if self.initSeed == None:
       self.initSeed = randomUtils.randomIntegers(0,2**31,self)
-    # Creation of the self.distributions2variablesMapping dictionary: {'distName': ({'variable_name1': dim1}, {'variable_name2': dim2})}
+    # Creation of the self.distributions2variablesMapping dictionary: {'distName': [{'variable_name1': dim1}, {'variable_name2': dim2}]}
     for variable in self.variables2distributionsMapping.keys():
       distName = self.variables2distributionsMapping[variable]['name']
       dim      = self.variables2distributionsMapping[variable]['dim']
@@ -325,6 +326,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       for var in self.distributions2variablesMapping[distName]:
         position = utils.first(var.values())
         positionList.append(position)
+      if sum(set(positionList)) > 1 and len(positionList) != len(set(positionList)):
+        dups = set(str(var) for var in positionList if positionList.count(var) > 1)
+        self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple variables in Samplers: "{}"'.format(', '.join(dups)),
+                ' associated to ND distribution ', distName, '. This is currently not allowed!')
       positionList = list(set(positionList))
       positionList.sort()
       self.distributions2variablesIndexList[distName] = positionList
@@ -366,7 +371,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.raiseAnError(IOError,'The maximum dim = ' + str(max(listIndex)) + ' defined for latent variables is exceeded the dimension of the problem ' + str(maxDim))
         if len(set(listIndex)) != len(listIndex):
           dups = set(var+1 for var in listIndex if listIndex.count(var) > 1)
-          self.raiseAnError(IOError,'Each of the following dimensions  are assigned to multiple latent variables in Samplers: ' + str(dups))
+          self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple latent variables in Samplers: ' + str(dups))
         # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
     return paramInput
@@ -518,7 +523,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if self.initSeed == None:
       self.initSeed = randomUtils.randomIntegers(0,2**31,self)
     self.counter = 0
-    if   not externalSeeding          :
+    if not externalSeeding:
       randomUtils.randomSeed(self.initSeed)       #use the sampler initialization seed
       self.auxcnt = self.initSeed
     elif externalSeeding=='continue':
@@ -531,36 +536,22 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
       self.restartData = self.assemblerDict['Restart'][0][3]
       self.raiseAMessage('Restarting from '+self.restartData.name)
-      #check consistency of data
-      try:
-        rdata = self.restartData.getAllMetadata()['crowDist']
-        sdata = self.inputInfo['crowDist']
-        self.raiseAMessage('sampler inputs:')
-        for sk,sv in sdata.items():
-          self.raiseAMessage('|   '+str(sk)+': '+str(sv))
-        for i,r in enumerate(rdata):
-          if type(r) != dict:
-            continue
-          if not r==sdata:
-            self.raiseAMessage('restart inputs %i:' %i)
-            for rk,rv in r.items():
-              self.raiseAMessage('|   '+str(rk)+': '+str(rv))
-            self.raiseAnError(IOError,'Restart "%s" data[%i] does not have same inputs as sampler!' %(self.restartData.name,i))
-      except KeyError as e:
-        self.raiseAWarning("No CROW distribution available in restart -",e)
+      # we used to check distribution consistency here, but we want to give more flexibility to using
+      #   restart data, so do NOT check distributions of restart data.
     else:
       self.raiseAMessage('No restart for '+self.printTag)
 
     #load restart data into existing points
-    if self.restartData is not None:
-      if not self.restartData.isItEmpty():
-        inps = self.restartData.getInpParametersValues()
-        outs = self.restartData.getOutParametersValues()
-        #FIXME there is no guarantee ordering is accurate between restart data and sampler
-        inputs = list(v for v in inps.values())
-        existingInps = zip(*inputs)
-        outVals = zip(*list(v for v in outs.values()))
-        self.existing = dict(zip(existingInps,outVals))
+    # TODO do not copy data!  Read directly from restart.
+    #if self.restartData is not None:
+    #  if len(self.restartData) > 0:
+    #    inps = self.restartData.getInpParametersValues()
+    #    outs = self.restartData.getOutParametersValues()
+    #    #FIXME there is no guarantee ordering is accurate between restart data and sampler
+    #    inputs = list(v for v in inps.values())
+    #    existingInps = zip(*inputs)
+    #    outVals = zip(*list(v for v in outs.values()))
+    #    self.existing = dict(zip(existingInps,outVals))
 
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None:
@@ -590,6 +581,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.inputInfo['transformation-'+distName] = transformDict
           self.entitiesToRemove.append('transformation-'+distName)
 
+    # Register expected metadata
+    meta = ['ProbabilityWeight','prefix','PointProbability']
+    for var in self.toBeSampled.keys():
+      meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
+    self.addMetaKeys(*meta)
+
   def localInitialize(self):
     """
       use this function to add initialization features to the derived class
@@ -610,6 +607,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.inputInfo['SampledVars'  ].update(self.constants)
       # we consider that CDF of the constant variables is equal to 1 (same as its Pb Weight)
       self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(),1.0))
+      pbKey = ['ProbabilityWeight-'+key for key in self.constants.keys()]
+      self.addMetaKeys(*pbKey)
       self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
 
   def amIreadyToProvideAnInput(self): #inLastOutput=None):
@@ -683,9 +682,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ##### RESTART #####
     #check if point already exists
     if self.restartData is not None:
-      inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance)
+      # FIXME
+      index,inExisting = self.restartData.realization(matchDict=self.values,tol=self.restartTolerance)
+      # OLD inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance)
     else:
       inExisting = None
+    # reformat metadata into acceptable format for dataojbect
+    # DO NOT format here, let that happen when a realization is made in collectOutput for each Model.  Sampler doesn't care about this.
+    # self.inputInfo['ProbabilityWeight'] = np.atleast_1d(self.inputInfo['ProbabilityWeight'])
+    # self.inputInfo['prefix'] = np.atleast_1d(self.inputInfo['prefix'])
     #if not found or not restarting, we have a new point!
     if inExisting is None:
       self.raiseADebug('Found new point to sample:',self.values)
@@ -700,13 +705,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       return 0,oldInput
     #otherwise, return the restart point
     else:
-      self.raiseADebug('Point found in restart:',inExisting['inputs'])
-      realization = {}
-      realization['metadata'] = copy.deepcopy(self.inputInfo)
-      realization['inputs'] = inExisting['inputs']
-      realization['outputs'] = inExisting['outputs']
-      realization['prefix'] = self.inputInfo['prefix']
-      return 1,realization
+      # TODO use realization format as per new data object (no subspaces)
+      self.raiseADebug('Point found in restart!')
+      rlz = {}
+      # we've fixed it so teh input and output space don't really matter, so use restartData's own definition
+      # DO format the data as atleast_1d so it's consistent in the ExternalModel for users (right?)
+      rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
+      rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output'))
+      rlz['metadata'] = copy.deepcopy(self.inputInfo) # TODO need deepcopy only because inputInfo is on self
+      return 1,rlz
 
   def pcaTransform(self,varsDict,dist):
     """
@@ -804,6 +811,29 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for key in fullyCorrVars:
       for kkey in key.split(","):
         self.inputInfo['SampledVarsPb'][kkey] = fullyCorrVars[key]
+
+  def _reassignPbWeightToCorrelatedVars(self):
+    """
+      Method to reassign probability weight to the correlated variables
+      @ In, None
+      @ Out, None
+    """
+    for varName, varInfo in self.variables2distributionsMapping.items():
+      # Handle ND Case
+      if varInfo['totDim'] > 1:
+        distName = self.variables2distributionsMapping[varName]['name']
+        self.inputInfo['ProbabilityWeight-' + varName] = self.inputInfo['ProbabilityWeight-' + distName]
+      if "," in varName:
+        for subVarName in varName.split(","):
+          self.inputInfo['ProbabilityWeight-' + subVarName.strip()] = self.inputInfo['ProbabilityWeight-' + varName]
+
+  def finalizeSampler(self,failedRuns):
+    """
+      Method called at the end of the Step when no more samples will be taken.  Closes out sampler for step.
+      @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
+      @ Out, None
+    """
+    self.handleFailedRuns(failedRuns)
 
   def handleFailedRuns(self,failedRuns):
     """

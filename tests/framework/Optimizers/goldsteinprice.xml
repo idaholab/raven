@@ -14,11 +14,14 @@
       This test uses the Goldstein-Price function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
+    <revisions>
+      <revision author="talbpaul" date="2018-01-04">switched from snapshot to writeSteps final</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>GoldsteinPrice</WorkingDir>
-    <Sequence>optimize,getOptPoint,print</Sequence>
+    <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -27,19 +30,13 @@
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">gp</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
-      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="HistorySet">opt_export</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
     </IOStep>
-    <PostProcess name="getOptPoint">
-      <Input class="DataObjects" type="HistorySet">opt_export</Input>
-      <Model class="Models" type="PostProcessor">snapshot</Model>
-      <Output class="DataObjects" type="PointSet">opt_soln</Output>
-      <Output class="OutStreams" type="Print">opt_soln</Output>
-    </PostProcess>
   </Steps>
 
   <Optimizers>
@@ -48,21 +45,22 @@
         <limit>4000</limit>
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-3</thresholdTrajRemoval>
+        <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <iterationLimit>400</iterationLimit>
-          <relativeThreshold>1e-8</relativeThreshold>
-          <absoluteThreshold>1e-6</absoluteThreshold>
-          <gradientThreshold>1e-3</gradientThreshold>
-          <minStepSize>1e-7</minStepSize>
+        <iterationLimit>400</iterationLimit>
+        <relativeThreshold>1e-8</relativeThreshold>
+        <absoluteThreshold>1e-6</absoluteThreshold>
+        <gradientThreshold>1e-3</gradientThreshold>
+        <minStepSize>1e-7</minStepSize>
       </convergence>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>1.5</upperBound>
         <lowerBound>-1.5</lowerBound>
         <initial>1,1,0,-1,-1</initial>
       </variable>
-      <variable name='y'>
+      <variable name="y">
         <upperBound>1.5</upperBound>
         <lowerBound>-1.5</lowerBound>
         <initial>1,-1,0,1,-1</initial>
@@ -80,11 +78,6 @@
     <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/goldstein_price" name="gp" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
-    <PostProcessor name="snapshot" subType="InterfacedPostProcessor">
-      <method>HistorySetSnapShot</method>
-      <type>max</type>
-      <pivotVar>varsUpdate</pivotVar>
-    </PostProcessor>
   </Models>
 
   <DataObjects>
@@ -96,24 +89,16 @@
       <Input>x,y</Input>
       <Output>ans</Output>
     </PointSet>
-    <PointSet name="opt_soln">
+    <PointSet name="opt_export">
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate</Output>
     </PointSet>
-    <HistorySet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
-    </HistorySet>
   </DataObjects>
 
   <OutStreams>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
-    </Print>
-    <Print name="opt_soln">
-      <type>csv</type>
-      <source>opt_soln</source>
     </Print>
   </OutStreams>
 

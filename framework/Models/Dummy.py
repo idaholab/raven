@@ -75,11 +75,10 @@ class Dummy(Model):
       inRun = dataIn[0][0]
     return inRun
 
-  def _inputToInternal(self,dataIN,full=False):
+  def _inputToInternal(self,dataIN):
     """
       Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data
       @ In, dataIn, object, the object that needs to be manipulated
-      @ In, full, bool, optional, does the full input needs to be retrieved or just the last element?
       @ Out, localInput, dict, the manipulated input
     """
     #self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
@@ -87,34 +86,28 @@ class Dummy(Model):
       if dataIN.type not in self.admittedData:
         self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
     if type(dataIN)!=dict:
-      localInput = dict.fromkeys(dataIN.getParaKeys('inputs' )+dataIN.getParaKeys('outputs' ),None)
-      if not dataIN.isItEmpty():
+      #localInput = dict.fromkeys(dataIN.getParaKeys('inputs' )+dataIN.getParaKeys('outputs' ),None)
+      localInput = dict.fromkeys(dataIN.getVars('input')+dataIN.getVars('output')+dataIN.indexes,None)
+      if not len(dataIN) == 0:
+        dataSet = dataIN.asDataset()
         if dataIN.type == 'PointSet':
-          for entries in dataIN.getParaKeys('inputs' ):
-            localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[0 if full else -1:])
-          for entries in dataIN.getParaKeys('outputs'):
-            localInput[entries] = copy.copy(np.array(dataIN.getParam('output',entries))[0 if full else -1:])
+          for entries in dataIN.getVars('input')+dataIN.getVars('output'):
+            localInput[entries] = copy.copy(dataSet[entries].values)
         else:
-          if full:
-            for hist in range(len(dataIN)):
-              realization = dataIN.getRealization(hist)
-              for entries in dataIN.getParaKeys('inputs' ):
-                if localInput[entries] is None:
-                  localInput[entries] = c1darray(shape=(1,))
-                localInput[entries].append(realization['inputs'][entries])
-              for entries in dataIN.getParaKeys('outputs' ):
-                if localInput[entries] is None:
-                  localInput[entries] = []
-                localInput[entries].append(realization['outputs'][entries])
-          else:
-            realization = dataIn.getRealization(len(dataIn)-1)
-            for entries in dataIN.getParaKeys('inputs' ):
-              localInput[entries] = [realization['inputs'][entries]]
-            for entries in dataIN.getParaKeys('outputs' ):
-              localInput[entries] = [realization['outputs'][entries]]
-
+          sizeIndex = 0
+          for hist in range(len(dataIN)):
+            for indexes in dataIN.indexes+dataIN.getVars('output'):
+              if localInput[indexes] is None:
+                localInput[indexes] = []
+              localInput[indexes].append(dataSet.isel(RAVEN_sample_ID=hist)[indexes].values)
+              sizeIndex = len(localInput[indexes][-1])
+            for entries in dataIN.getVars('input'):
+              if localInput[entries] is None:
+                localInput[entries] = []
+              value = dataSet.isel(**{dataIN.sampleTag:hist})[entries].values
+              localInput[entries].append(np.full((sizeIndex,),value,dtype=value.dtype))
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
-      if 'OutputPlaceHolder' in dataIN.getParaKeys('outputs'):
+      if 'OutputPlaceHolder' in dataIN.getVars('output'):
         localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
     else:
       localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
@@ -174,8 +167,14 @@ class Dummy(Model):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-    returnValue = (inRun,{'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))})
-    return returnValue
+    # alias system
+    self._replaceVariablesNamesWithAliasSystem(inRun,'input',True)
+    self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',True)
+    # build realization using input space from inRun and metadata from kwargs
+    rlz = dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else kwargs[var])) for var in set(kwargs.keys()+inRun.keys()))
+    # add dummy output space
+    rlz['OutputPlaceHolder'] = np.atleast_1d(float(Input[1]['prefix']))
+    return rlz
 
   def collectOutput(self,finishedJob,output,options=None):
     """
@@ -185,12 +184,17 @@ class Dummy(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    # create the export dictionary
-    if options is not None and 'exportDict' in options:
-      exportDict = options['exportDict']
-    else:
-      exportDict = self.createExportDictionaryFromFinishedJob(finishedJob)
-    self.addOutputFromExportDictionary(exportDict, output, options, finishedJob.identifier)
+    # TODO START can be abstracted to base class
+    # TODO apparently sometimes "options" can include 'exportDict'; what do we do for this?
+    # TODO consistency with old HDF5; fix this when HDF5 api is in place
+    # TODO expensive deepcopy prevents modification when sent to multiple outputs
+    result = finishedJob.getEvaluation()
+    # alias system
+    self._replaceVariablesNamesWithAliasSystem(result,'output',True)
+    if isinstance(result,Runners.Error):
+      self.raiseAnError(Runners.Error,'No available output to collect!')
+    output.addRealization(result)
+    # END can be abstracted to base class
 
   def collectOutputFromDict(self,exportDict,output,options=None):
     """
@@ -203,28 +207,18 @@ class Dummy(Model):
     #prefix is not generally useful for dummy-related models, so we remove it but store it
     if 'prefix' in exportDict.keys():
       prefix = exportDict.pop('prefix')
-    #check for name usage, depends on where it comes from
     if 'inputSpaceParams' in exportDict.keys():
       inKey = 'inputSpaceParams'
       outKey = 'outputSpaceParams'
     else:
       inKey = 'inputs'
       outKey = 'outputs'
-    if not set(output.getParaKeys('inputs') + output.getParaKeys('outputs')).issubset(set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))):
-      missingParameters = set(output.getParaKeys('inputs') + output.getParaKeys('outputs')) - set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))
-      self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")
 
-    for key in output.getParaKeys('inputs'):
-      if key in exportDict[inKey ]:
-        output.updateInputValue(key,exportDict[inKey ][key],options)
-      else:
-        self.raiseAnError(Exception, "the input parameter "+key+" requested in the DataObject "+output.name+
-                                  " has not been found among the Model input paramters ("+",".join(exportDict[inKey ].keys())+"). Check your input!")
-    for key in output.getParaKeys('outputs'):
-      if key in exportDict[outKey]:
-        output.updateOutputValue(key,exportDict[outKey][key],options)
-      else:
-        self.raiseAnError(Exception, "the output parameter "+key+" requested in the DataObject "+output.name+
-                                  " has not been found among the Model output paramters ("+",".join(exportDict[outKey].keys())+"). Check your input!")
-    for key in exportDict['metadata']:
-      output.updateMetadata(key,exportDict['metadata'][key])
+    rlz = {}
+    rlz.update(exportDict[inKey])
+    rlz.update(exportDict[outKey])
+    rlz.update(exportDict['metadata'])
+    for k,v in rlz.items():
+      rlz[k] = np.atleast_1d(v)
+    output.addRealization(rlz)
+    return

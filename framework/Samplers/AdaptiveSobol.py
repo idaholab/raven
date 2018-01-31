@@ -345,6 +345,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #note: pointsNeeded is the collection of points needed by sampler,
     #      while neededPoints is just the reference point that needs running
     #if there's a point that THIS sampler needs, prioritize it
+    self.inputInfo['ProbabilityWeight'] = 1.0
     if len(self.neededPoints)>0:
       pt = self.neededPoints.pop()
     #otherwise, take from the highest-impact sampler's needed points
@@ -374,7 +375,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         for key in varName.strip().split(','):
           self.values[key] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['ProbabilityWeight-'+varName] = self.inputInfo['SampledVarsPb'][varName]
       # compute the SampledVarsPb for N-D distribution
       elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
         dist = self.variables2distributionsMapping[varName]['name']
@@ -395,11 +396,14 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
           for key in var.strip().split(','):
             self.values[key] = pt[location]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-        self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['ProbabilityWeight-'+dist] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['ProbabilityWeight']*=self.inputInfo['ProbabilityWeight-'+dist]
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     # reassign SampledVarsPb to fully correlated variables
+    self._reassignSampledVarsPbToFullyCorrVars()
+    # reassign probability weight to correlated variables
+    self._reassignPbWeightToCorrelatedVars()
     self.inputInfo['SamplerType'] = 'Adaptive Sparse Grids for Sobol'
-
   def _addPointToDataObject(self,subset,point):
     """
       Adds a cut point to the data object for the subset sampler.
@@ -409,12 +413,10 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     pointSet = self.samplers[subset].solns
     #first, check if the output is in the subset's existing solution set already
-    inExisting = self.solns.getMatchingRealization(self._tupleToDict(self._expandCutPoint(subset,point)))
+    _,inExisting = self.solns.realization(matchDict=self._tupleToDict(self._expandCutPoint(subset,point)))
     #add the point to the data set.
-    for var in pointSet.getParaKeys('inputs'):
-      pointSet.updateInputValue(var,inExisting['inputs'][var])
-    for var in pointSet.getParaKeys('outputs'):
-      pointSet.updateOutputValue(var,inExisting['outputs'][var])
+    rlz = dict((var,np.atleast_1d(inExisting[var])) for var in pointSet.getVars())
+    pointSet.addRealization(rlz)
 
   def _calcActualImpact(self,subset,target):
     """
@@ -809,8 +811,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     for inp in self.sorted:
       if self._checkCutPoint(subset,inp):
         #get the solution
-        inExisting = self.solns.getMatchingRealization(self._tupleToDict(inp))
-        soln = self._dictToTuple(inExisting['outputs'],output=True)
+        _,inExisting = self.solns.realization(matchDict=self._tupleToDict(inp))
+        soln = self._dictToTuple(inExisting,output=True)
         #get the cut point
         cinp = self._extractCutPoint(subset,inp)
         self._addPointToDataObject(subset,cinp)
@@ -884,7 +886,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       cutpt = sampler.neededPoints.pop()
       fullPoint = self._expandCutPoint(subset,cutpt)
       #if this point already in local existing, put it straight into collected and sampler existing
-      inExisting = self.solns.getMatchingRealization(self._tupleToDict(fullPoint))
+      _,inExisting = self.solns.realization(matchDict=self._tupleToDict(fullPoint))
       if inExisting is not None:
         self.pointsCollected[subset].append(cutpt)
         self._addPointToDataObject(subset,cutpt)
@@ -899,13 +901,13 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       @ Out, None
     """
     #if there's no solutions in the set, no work to do
-    if self.solns.isItEmpty():
+    if len(self.solns) == 0:
       return
     #update self.exisitng for adaptive sobol sampler (this class)
     for i in range(len(self.solns)):
-      existing = self.solns.getRealization(i)
-      inp = self._dictToTuple(existing['inputs'])
-      soln = self._dictToTuple(existing['outputs'],output=True)
+      existing = self.solns.realization(index=i)
+      inp = self._dictToTuple(existing)
+      soln = self._dictToTuple(existing,output=True)
       #if point already sorted, don't re-do work
       if inp not in self.submittedNotCollected:
         continue

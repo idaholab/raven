@@ -81,6 +81,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.optVarsInit['ranges']          = {}                        # Dict of the ranges (min and max) of each variable's domain
     self.initSeed                       = None                      # Seed for random number generators
     self.optType                        = None                      # Either max or min
+    self.writeSolnExportOn              = None                      # Determines when we write to solution export (every step or final solution)
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
     self.initializationSampler          = None                      # Sampler that can be used to initialize the optimizer trajectories
     self.optVarsInitialized             = {}                        # Dict {var1:<initial> present?,var2:<initial> present?}
@@ -102,7 +103,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #functions and dataojbects
     self.constraintFunction             = None                      # External constraint function, could be not present
     self.preconditioners                = {}                        # by name, Models that might be used as preconditioners
-    self.solutionExport                 = None                      # This is the data used to export the solution (it could also not be present)
+    self.solutionExport                 = None                      # This is the data used to export the solution
     self.mdlEvalHist                    = None                      # Containing information of all model evaluation
     self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
     #multilevel
@@ -249,8 +250,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.initSeed = int(childChild.text)
           elif childChild.tag == 'thresholdTrajRemoval':
             self.thresholdTrajRemoval = float(childChild.text)
+          elif childChild.tag == 'writeSteps':
+            if childChild.text.strip().lower() == 'every':
+              self.writeSolnExportOn = 'every'
+            elif childChild.text.strip().lower() == 'final':
+              self.writeSolnExportOn = 'final'
+            else:
+              self.raiseAnError(IOError,'Unexpected frequency for <writeSteps>: "{}". Expected "every" or "final".')
           else:
-            self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
+            self.raiseAnError(IOError,'Unknown tag: '+childChild.tag)
 
       elif child.tag == "convergence":
         for childChild in child:
@@ -297,6 +305,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           elif subnode.tag == 'sequence':
             self.mlSequence = list(x.strip() for x in subnode.text.split(','))
 
+    if self.writeSolnExportOn is None:
+      # default
+      self.writeSolnExportOn = 'every'
+    self.raiseAMessage('Writing to solution export on "{}" optimizer iteration.'.format(self.writeSolnExportOn))
     if self.optType is None:
       self.optType = 'min'
     if self.thresholdTrajRemoval is None:
@@ -480,8 +492,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
     # check if the TargetEvaluation feature and target spaces are consistent
-    ins  = self.mdlEvalHist.getParaKeys("inputs")
-    outs = self.mdlEvalHist.getParaKeys("outputs")
+    ins  = self.mdlEvalHist.getVars("input")
+    outs = self.mdlEvalHist.getVars("output")
     for varName in self.fullOptVars:
       if varName not in ins:
         self.raiseAnError(RuntimeError,"the optimization variable "+varName+" is not contained in the TargetEvaluation object "+self.mdlEvalHist.name)
@@ -492,8 +504,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if self.solutionExport is None:
       self.raiseAnError(IOError,'The results of optimization cannot be obtained without a SolutionExport defined in the Step!')
 
-    if type(solutionExport).__name__ != "HistorySet":
-      self.raiseAnError(IOError,'solutionExport type is not a HistorySet. Got '+ type(solutionExport).__name__+ '!')
+    if type(solutionExport).__name__ != "PointSet":
+      self.raiseAnError(IOError,'solutionExport type must be a PointSet. Got '+ type(solutionExport).__name__+ '!')
 
     if 'Function' in self.assemblerDict.keys():
       self.constraintFunction = self.assemblerDict['Function'][0][3]
@@ -592,16 +604,23 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       precond.createNewInput([{}],'Optimizer')
       if denormalize:
         originalPoint = self.denormalizeData(originalPoint)
-      infoDict = {'SampledVars':originalPoint}
+      infoDict = {'SampledVars':dict(originalPoint)}
+      # remove preconditioned space from infoDict sampledVars
+      # -> we do this because we copy infoDict[SampledVars] values to overwrite results values
+      #    but we want to retain the values given by the preconditioner, not the infoDict value.
+      for var in self.mlBatches[batch]:
+        del infoDict['SampledVars'][var]
+      # add constants in
       for key,value in self.constants.items():
         infoDict['SampledVars'][key] = value
+      # run the preconditioner
       try:
-        _,(preResults,_) = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
+        preResults = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
       except RuntimeError:
         self.raiseAnError(RuntimeError,'There was an error running the preconditioner for batch "{}"! See messages above for details.'.format(batch))
       # flatten results #TODO breaks for multi-entry arrays
       for key,val in preResults.items():
-        preResults[key] = float(val)
+        preResults[key] = val.item(0)
       #restore to normalized space if the original point was normalized space
       if denormalize:
         preResults = self.normalizeData(preResults)
@@ -660,7 +679,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         # do we have any opt points yet?
         if len(self.counter['recentOptHist'][traj][0]) > 0:
           # get the latset optimization point (normalized)
-          latestPoint = self.counter['recentOptHist'][traj][0]['inputs']
+          latestPoint = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars())
           #some flags for clarity of checking
           justStarted = self.mlDepth[traj] is None
           inInnermost = self.mlDepth[traj] is not None and self.mlDepth[traj] == len(self.mlSequence)-1
@@ -808,17 +827,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       Method to get the Loss Function value given an evaluation ID
       @ In, evaluationID, string, the evaluation identifier (prefix)
-      @ Out, functionValue, float, the loss function value
+      @ Out, objeciveValue, float, the loss function value
     """
-    objective  = self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')[self.objVar]
-    prefix = self.mdlEvalHist.getMetadata('prefix',nodeId='RecontructEnding')
-    if len(prefix) > 0 and utils.returnIdSeparator() in prefix[0]:
-      # ensemble model id modification
-      # FIXME: Need to find a better way to handle this case
-      prefix = [key.split(utils.returnIdSeparator())[-1] for key in prefix]
-    search = dict(zip(prefix, objective))
-    functionValue = search.get(evaluationID,None)
-    return functionValue
+    # get matching realization by matching "prefix"
+    # TODO the EnsembleModel prefix breaks this pattern!
+    _,rlz  = self.mdlEvalHist.realization(matchDict={'prefix':evaluationID})
+    # if no match found, return None
+    if rlz is None:
+      return None
+    # otherwise, return value (float assures single value)
+    return float(rlz[self.objVar])
 
   def checkConstraint(self, optVars):
     """
@@ -908,19 +926,19 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localGenerateInput(model,oldInput)
     ####   UPDATE STATICS   ####
     # get trajectory asking for eval from LGI variable set
-    traj = self.inputInfo['trajectory']
+    traj = self.inputInfo['trajID'] - 1
 
     self.values.update(self.denormalizeData(self.mlStaticValues[traj]))
     staticOutputVars = self.mlOutputStaticVariables[traj] if traj in self.mlOutputStaticVariables else None #self.mlOutputStaticVariables.pop(traj,None)
     #if "holdOutputSpace" in self.inputInfo:
     #  self.inputInfo.pop("holdOutputSpace")
-    if staticOutputVars is not None:
-      # check if the model can hold a portion of the output space
-      if not model.acceptHoldOutputSpace():
-        self.raiseAnError(RuntimeError,'The user requested to hold a certain output space but the model "'+model.name+'" does not allow it!')
-      # try to hold this output variables (multilevel)
-      ID = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj]-1,"")
-      self.inputInfo["holdOutputErase"] = ID
+    #if staticOutputVars is not None:
+    #  # check if the model can hold a portion of the output space
+    #  if not model.acceptHoldOutputSpace():
+    #    self.raiseAnError(RuntimeError,'The user requested to hold a certain output space but the model "'+model.name+'" does not allow it!')
+    #  # try to hold this output variables (multilevel)
+    #  ID = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj]-1,"")
+    #  self.inputInfo["holdOutputErase"] = ID
     #### CONSTANT VARIABLES ####
     if len(self.constants) > 0:
       self.values.update(self.constants)
@@ -997,6 +1015,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
+  def finalizeSampler(self,failedRuns):
+    """
+      Method called at the end of the Step when no more samples will be taken.  Closes out the optimizer for this step.
+      @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
+      @ Out, None
+    """
+    self.handleFailedRuns(failedRuns)
+
   def handleFailedRuns(self,failedRuns):
     """
       Collects the failed runs from the Step and allows optimizer to handle them individually if need be.
@@ -1046,3 +1072,4 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       return a <= b
     elif self.optType == 'max':
       return a >= b
+

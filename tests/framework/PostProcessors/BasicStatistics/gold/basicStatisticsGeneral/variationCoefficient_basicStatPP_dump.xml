@@ -1,0 +1,9 @@
+<DataObjectMetadata name="variationCoefficient_basicStatPP">
+  <DataSet type="Static">
+    <general>
+      <outputs>vc_x0,vc_y0,vc_z0,vc_x,vc_y,vc_z</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

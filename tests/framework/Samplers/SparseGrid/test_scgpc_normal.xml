@@ -93,6 +93,7 @@
     <Print name="Ndump">
       <type>csv</type>
       <source>Ntests</source>
+      <what>input,output</what>
     </Print>
     <Print name="Ndumprom">
       <type>xml</type>

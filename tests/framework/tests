@@ -54,24 +54,25 @@
   type = 'RavenFramework'
   input = 'test_output.xml'
   output = 'output_check/1-plot7_stem.png output_check/1-2DHistoryPlot_histogram.png output_check/1-test_line-line.png output_check/1-plot2_line-line.png output_check/1-plot4_scatter-scatter.png output_check/1-plot3_scatter-scatter.png output_check/1-plot9_stem.png output_check/1-plot8_stem.png output_check/1-plot6_histogram.png output_check/1-plot5_histogram.png output_check/1-plot11_step.png output_check/1-plot10_stem.png output_check/1-plot14_tri-surface-tri-surface.png output_check/1-plot13_surface-surface.png output_check/1-plot12_pseudocolor.png output_check/1-plot17_contour3D-filledContour3D.png output_check/1-plot16_contour-filledContour.png output_check/1-plot15_wireframe-wireframe.png output_check/1-plot18_scatter.png output_check/1-plot19_scatter.png output_check/fullprint_Pointset.csv'
-  csv = 'output_check/fullprint_HistorySet_2.csv output_check/test_4.csv output_check/testprint_selective_hist1_4.csv output_check/testprint_selective_hist2_4.csv output_check/testprint_selective_hist3_4.csv output_check/testprint_selective_Pointset.csv'
+  csv = 'output_check/fullprint_HistorySet_2.csv output_check/test_4.csv output_check/testprint_selective_hist1_4.csv output_check/testprint_selective_Pointset.csv'
   xml = 'output_check/fullprint_HistorySet.xml output_check/fullprint_Pointset.xml'
   remove_unicode_identifier = true
+   rel_err = 0.00002
  [../]
 
  [./test_push_into_hdf5]
   type = 'RavenFramework'
   input = 'test_push_into_hdf5.xml'
-  csv = 'test_extract_data_s_from_hdf5/Pointset_from_database_dump.csv test_extract_data_s_from_hdf5/Pointset_IN_database_dump.csv'
+  UnorderedCsv = 'test_extract_data_s_from_hdf5/Pointset_from_database_dump.csv test_extract_data_s_from_hdf5/Pointset_IN_database_dump.csv test_extract_data_s_from_hdf5/HistorySet_from_database_dump_0.csv test_extract_data_s_from_hdf5/HistorySet_IN_database_dump_0.csv'
   max_time = 500
-  rel_err = 0.01
+  rel_err = 0.0001
  [../]
 
  [./test_merge_2_databases]
   type = 'RavenFramework'
   input = 'test_merge_2_databases.xml'
-  csv = 'test_merge_2_databases/Pointset_from_database_dump.csv test_merge_2_databases/Pointset_IN_database_dump.csv
-  test_merge_2_databases/Historyset_from_database_dump_0.csv test_merge_2_databases/Historyset_from_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_0.csv test_merge_2_databases/Historyset_IN_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_2.csv test_merge_2_databases/Historyset_IN_database_dump_3.csv'
+  UnorderedCsv = 'test_merge_2_databases/Pointset_from_database_dump.csv test_merge_2_databases/Pointset_IN_database_dump.csv test_merge_2_databases/Historyset_from_database_dump_0.csv test_merge_2_databases/Historyset_from_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_0.csv test_merge_2_databases/Historyset_IN_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_2.csv test_merge_2_databases/Historyset_IN_database_dump_3.csv'
+  rel_err = 0.000001
  [../]
 
  [./test_rom_trainer_raven]
@@ -199,6 +200,7 @@
   type = 'RavenFramework'
   input = 'test_Lorentz.xml'
   output = 'externalModel/testPrintHistorySet_dump_0.csv externalModel/testPrintHistorySet_dump_1.csv externalModel/testPrintHistorySet_dump_2.csv externalModel/testPointSet_dump.csv'
+  UnorderedCsv = 'externalModel/testPrintHistorySet_dump.csv'
   max_time = 500
   rel_err = 0.001
  [../]
@@ -209,34 +211,6 @@
   output = 'externalModel/testPrintHistorySet_dump_0.csv externalModel/testPrintHistorySet_dump_1.csv externalModel/testPrintHistorySet_dump_2.csv'
   max_time = 100
   rel_err = 0.001
- [../]
-
- [./testLimitSurfacePostProcessor]
-  #REQUIREMENT_TEST R-RA-1
-  type = 'RavenFramework'
-  input = 'test_LimitSurface.xml'
-  csv = 'limitSurface/LimitSurfaceNegative_dump.csv limitSurface/LimitSurfacePositiveNegative_dump.csv limitSurface/LimitSurfacePositive_dump.csv'
-  max_time = 300
-  rel_err = 0.0001
-  #skip = ‘need to be fixed’
- [../]
-
- [./testLimitSurfaceIntegralPP]
-  type = 'RavenFramework'
-  input = 'test_LimitSurface_and_integral.xml'
-  output = 'limitSurface_integral/LimitSurfaceUnWeightedPb_dump.xml limitSurface_integral/LimitSurfaceWeightedPb_dump.xml'
-  csv = 'limitSurface_integral/LimitSurfaceWeightedPb_FileObj.csv limitSurface_integral/LimitSurfaceUnWeightedPb_FileObj.csv limitSurface_integral/LimitSurfaceWeightedPb_dump.csv limitSurface_integral/LimitSurfaceUnWeightedPb_dump.csv'
-  max_time = 300
-  rel_err = 0.0001
-  #skip = ‘need to be fixed’
- [../]
-
- [./testLimitSurfaceMultiGridSampling]
-  type = 'RavenFramework'
-  input = 'test_limitSurfaceMultiGridMethod.xml'
-  csv = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
-  max_time = 300
-  rel_err = 0.0001
  [../]
 
  [./test_bison_mc_simple_and_alias_system]
@@ -252,7 +226,7 @@
  [./test_custom_mode]
   type = 'RavenFramework'
   input = 'test_custom_mode.xml'
-  output = 'mode_test/FirstMRun/1/out~pump_fake mode_test/FirstMRun/2/out~pump_fake'
+  output = 'mode_test/FirstMRun/1/out~pump_fake mode_test/FirstMRun/2/out~pump_fake mode_test/output_test.csv mode_test/output_test_1.csv'
   csv = 'mode_test/FirstMRun/2/out~pump_fake.csv'
  [../]
 
@@ -268,6 +242,19 @@
   type = 'RavenPython'
   input = '../../framework/TestFiles.py'
  [../]
+
+  [./unit_test_DataSets]
+    type = 'RavenPython'
+    input = '../../framework/DataObjects/TestXDataSet.py'
+  [../]
+  [./unit_test_HistorySets]
+    type = 'RavenPython'
+    input = '../../framework/DataObjects/TestXHistorySet.py'
+  [../]
+  [./unit_test_PointSets]
+    type = 'RavenPython'
+    input = '../../framework/DataObjects/TestXPointSet.py'
+  [../]
 
  [./test_xsd_input_data]
   type = 'RavenPython'
@@ -304,21 +291,17 @@
    prereq = test_output
    remove_unicode_identifier = true
    remove_whitespace = true
+   rel_err = 9.0E-4
  [../]
 
  [./load_and_push_reusing_same_hdf5]
    type = 'RavenFramework'
    input = 'test_load_and_push_reusing_same_hdf5.xml'
-   output = 'GridTestSameHDF5/MonteCarloRestarted/1/out~massflowrate_fake GridTestSameHDF5/outGrid_dump.csv GridTestSameHDF5/outGridMax_dump.csv GridTestSameHDF5/outGridMin_dump.csv GridTestSameHDF5/outGridAverage_dump.csv GridTestSameHDF5/stories2_dump_4.csv'
+   output = 'GridTestSameHDF5/GridRestarted/1/out~massflowrate_fake GridTestSameHDF5/outGrid_dump.csv GridTestSameHDF5/outGridMax_dump.csv GridTestSameHDF5/outGridMin_dump.csv GridTestSameHDF5/outGridAverage_dump.csv'
    prereq = testGrid
    method = 'devel opt'
  [../]
 
- [./adaptive_sampler_ext_model]
-  type = 'RavenFramework'
-  input = 'test_adaptive_sampler.xml'
-  csv = 'Adapt/limitSurfaceDump.csv'
- [../]
 
  [./safest_point_pp]
   type = 'RavenFramework'
@@ -397,12 +380,14 @@
    input = 'test_redundant_scgpc.xml'
    output = 'RedundantInputs/sc_out.xml'
    UnorderedCsv = 'RedundantInputs/sc_out.csv'
+   rel_err = 1.0E-6
  [../]
  [./redundantInputsSobol]
    type = 'RavenFramework'
    input = 'test_redundant_sobol.xml'
    output = 'RedundantInputs/hdmr_out.xml'
    UnorderedCsv = 'RedundantInputs/hdmr_out.csv'
+   rel_err = 1.0E-6
  [../]
 
  [./failrunsMC]
@@ -479,19 +464,12 @@
    output = 'GridTestHDF5WithFileName/DatabaseStorage/userSpecifiedFileName.h5'
  [../]
 
- [./testLimitSurfacePostProcessorWithRegressor]
-  type = 'RavenFramework'
-  input = 'test_LimitSurface_regressor_inverseWeight.xml'
-  csv = 'limitSurfaceWithRegressor/LimitSurfaceNegative_dump.csv limitSurfaceWithRegressor/LimitSurfacePositiveNegative_dump.csv limitSurfaceWithRegressor/LimitSurfacePositive_dump.csv'
-  max_time = 300
-  rel_err = 0.0001
- [../]
-
   [./HDF5selective]
     type = 'RavenErrors'
     input = 'hdf5_selective.xml'
-    expect_err = 'RuntimeError: the parameter square has not been found in'
+    expect_err = 'Provided realization does not have all requisite values for object'
   [../]
+
   [./HDF5location]
     type = 'RavenFramework'
     input = 'hdf5_location.xml'

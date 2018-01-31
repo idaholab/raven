@@ -91,6 +91,7 @@
     <Print name="TDdump">
       <type>csv</type>
       <source>TDtests</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

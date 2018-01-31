@@ -1,0 +1,9 @@
+<DataObjectMetadata name="checkIfMatrixCanBeComputed_basicStatPP">
+  <DataSet type="Static">
+    <general>
+      <outputs>skew_x,vc_x,percentile_5_x,percentile_95_x,mean_x,kurt_x,median_x,max_x,min_x,samp_x,var_x,sigma_x</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

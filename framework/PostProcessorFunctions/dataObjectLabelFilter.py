@@ -71,7 +71,6 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
       elif child.tag !='method':
         self.raiseAnError(IOError, 'dataObjectLabelFilter Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
-
   def run(self,inputDic):
     """
      Method to post-process the dataObjects
@@ -81,32 +80,32 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
-      inputDic = copy.deepcopy(inputDic[0])
-      outputDic={}
-      outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
-      outputDic['data'] = {}
-      outputDic['data']['input'] = {}
-      outputDic['data']['output'] = {}
-
-      if self.inputFormat == 'HistorySet':
-        for hist in inputDic['data']['output']:
-          if int(inputDic['data']['output'][hist][self.label][0]) in self.clusterIDs:
-            outputDic['data']['input'][hist]  = copy.deepcopy(inputDic['data']['input'][hist])
-            outputDic['data']['output'][hist] = copy.deepcopy(inputDic['data']['output'][hist])
-
+      inputDict = inputDic[0]
+      outputDict = {}
+      outputDict['data'] ={}
+      outputDict['dims'] = {}
+      outputDict['metadata'] = copy.deepcopy(inputDict['metadata']) if 'metadata' in inputDict.keys() else {}
+      labelType = type(inputDict['data'][self.label][0])
+      if labelType != np.ndarray:
+        indexes = np.where(np.in1d(inputDict['data'][self.label],self.clusterIDs))[0]
+        for key in inputDict['data'].keys():
+          outputDict['data'][key] = inputDict['data'][key][indexes]
+          outputDict['dims'][key] = []
       else:
-        # self.outFormat == 'PointSet'
-        for key in inputDic['data']['input']:
-          outputDic['data']['input'][key] = np.zeros(0)
-        for key in inputDic['data']['output']:
-          outputDic['data']['output'][key] = np.zeros(0)
-
-        for pos,val in np.ndenumerate(inputDic['data']['output'][self.label]):
-          if val in self.clusterIDs:
-            for key in inputDic['data']['input']:
-              outputDic['data']['input'][key]  = np.append(outputDic['data']['input'][key],copy.deepcopy(inputDic['data']['input'][key][pos[0]]))
-            for key in inputDic['data']['output']:
-              outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key],copy.deepcopy(inputDic['data']['output'][key][pos[0]]))
-
-
-      return outputDic
+        for key in inputDict['data'].keys():
+          if type(inputDict['data'][key][0]) == np.ndarray:
+            temp = []
+            for cnt in range(len(inputDict['data'][self.label])):
+              indexes = np.where(np.in1d(inputDict['data'][self.label][cnt],self.clusterIDs))[0]
+              if len(indexes) > 0:
+                temp.append(copy.deepcopy(inputDict['data'][key][cnt][indexes]))
+            outputDict['data'][key] = np.asanyarray(temp)
+            outputDict['dims'][key] = []
+          else:
+            outputDict['data'][key] = np.empty(0)
+            for cnt in range(len(inputDict['data'][self.label])):
+              indexes = np.where(np.in1d(inputDict['data'][self.label][cnt],self.clusterIDs))[0]
+              if len(indexes) > 0:
+                outputDict['data'][key] = np.append(outputDict['data'][key], copy.deepcopy(inputDict['data'][key][cnt]))
+              outputDict['dims'][key] = []
+    return outputDict

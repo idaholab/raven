@@ -1,26 +1,10 @@
-<data name="testPrintPointSetRel_dump" type="Pointset"><input>y0,x0,z0</input><output>y,x,z</output><inputFilename>testPrintPointSetRel_dump.csv</inputFilename><metadata><SamplerType>array([u'MonteCarlo', u'MonteCarlo', u'MonteCarlo', u'MonteCarlo',
-       u'MonteCarlo', u'MonteCarlo', u'MonteCarlo', u'MonteCarlo',
-       u'MonteCarlo', u'MonteCarlo'], dtype=object)</SamplerType><crowDist>array([ {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
-       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
-       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
-       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
-       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
-       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
-       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
-       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
-       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
-       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'}], dtype=object)</crowDist><SampledVars>array([ {u'y0': 1.2457925609597429, u'x0': 0.13363727448845031, u'z0': 1.2457925609597429},
-       {u'y0': 2.7289361159827514, u'x0': 1.2092549570027478, u'z0': 2.7289361159827514},
-       {u'y0': 2.0097923307267749, u'x0': 0.81286060155041207, u'z0': 2.0097923307267749},
-       {u'y0': 3.0585219579876299, u'x0': 1.703773237407912, u'z0': 3.0585219579876299},
-       {u'y0': 3.2155680773062878, u'x0': 1.6481425343101266, u'z0': 3.2155680773062878},
-       {u'y0': 0.95358039021159535, u'x0': 0.51249827909501922, u'z0': 0.95358039021159535},
-       {u'y0': 1.0585173815054227, u'x0': 0.50347615644553101, u'z0': 1.0585173815054227},
-       {u'y0': 3.1865394749052776, u'x0': 1.7444011529627792, u'z0': 3.1865394749052776},
-       {u'y0': 2.9814950398891749, u'x0': 2.8290035221306393, u'z0': 2.9814950398891749},
-       {u'y0': 2.3874485108521606, u'x0': 2.2793869820037114, u'z0': 2.3874485108521606}], dtype=object)</SampledVars><ProbabilityWeight>array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])</ProbabilityWeight><prefix>array(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], dtype=object)</prefix><SampledVarsPb>array([{u'x0': 0.14479064662293434}, {u'x0': 0.051368694956054214},
-       {u'x0': 0.500963488971254}, {u'x0': 0.01446950464839492},
-       {u'x0': 0.0026726746116583775}, {u'x0': 0.008395711621787802},
-       {u'x0': 0.02186072966434775}, {u'x0': 0.004994287895476874},
-       {u'x0': 0.07040732170007327}, {u'x0': 0.214774955255826}], dtype=object)</SampledVarsPb><PointProbability>array([ 0.14479065,  0.05136869,  0.50096349,  0.0144695 ,  0.00267267,
-        0.00839571,  0.02186073,  0.00499429,  0.07040732,  0.21477496])</PointProbability></metadata></data>
+<DataObjectMetadata name="testPrintPointSetRel">
+  <DataSet type="Static">
+    <general>
+      <inputs>x0,y0,z0</inputs>
+      <outputs>x,y,z</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

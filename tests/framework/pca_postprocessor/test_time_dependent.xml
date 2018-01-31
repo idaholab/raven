@@ -5,6 +5,7 @@
     <Sequence>FirstMRun,computeRank</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_grid/timeDepImportanceRank</name>
     <author>wangc</author>
@@ -13,12 +14,13 @@
     <description>
       Tests the ImportanceRank postprocessor for time-dependent problems.
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-13">convert test to use the new dataobjects</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
-    <Input name="output.xml" type="">output_timeDep.xml</Input>
-    <Input name="output.csv" type="">output_timeDep.csv</Input>
   </Files>
 
   <Models>
@@ -30,14 +32,14 @@
       <targets>x,y,z</targets>
       <pivotParameter>time</pivotParameter>
       <features>
-          <manifest>
-              <variables>z0,x0,y0</variables>
-              <dimensions>3,1,2</dimensions>
-          </manifest>
-          <latent>
-              <variables>y1,x1</variables>
-              <dimensions>2,1</dimensions>
-          </latent>
+        <manifest>
+          <variables>z0,x0,y0</variables>
+          <dimensions>3,1,2</dimensions>
+        </manifest>
+        <latent>
+          <variables>y1,x1</variables>
+          <dimensions>2,1</dimensions>
+        </latent>
       </features>
       <mvnDistribution>MVN</mvnDistribution>
     </PostProcessor>
@@ -87,10 +89,8 @@
     <PostProcess name="computeRank">
       <Input class="DataObjects" type="HistorySet">solns</Input>
       <Model class="Models" type="PostProcessor">test_importantRank</Model>
-      <Output class="Files" type="">output.xml</Output>
-      <Output class="Files" type="">output.csv</Output>
-      <Output class="DataObjects" type="HistorySet">solns</Output>
-      <Output class="OutStreams" type="Print">importantRank_timeDep</Output>
+      <Output class="DataObjects" type="HistorySet">test_importantRank_Dataset</Output>
+      <Output class="OutStreams" type="Print">test_importantRank_Dataset_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -98,6 +98,10 @@
     <Print name="importantRank_timeDep">
       <type>csv</type>
       <source>solns</source>
+    </Print>
+    <Print name="test_importantRank_Dataset_dump">
+      <type>csv</type>
+      <source>test_importantRank_Dataset</source>
     </Print>
   </OutStreams>
 
@@ -110,6 +114,29 @@
       <Input>x0,y0,z0,x1,y1</Input>
       <Output>x,y,z,time</Output>
     </HistorySet>
+    <HistorySet name="test_importantRank_Dataset">
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+      <Output>test_importantRank_vars</Output>
+    </HistorySet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="test_importantRank_vars">importanceIndex_x_y1,
+                 importanceIndex_x_x1,
+                 importanceIndex_y_y1,
+                 importanceIndex_y_x1,
+                 importanceIndex_z_y1,
+                 importanceIndex_z_x1,
+                 sensitivityIndex_x_y1,
+                 sensitivityIndex_x_x1,
+                 sensitivityIndex_y_y1,
+                 sensitivityIndex_y_x1,
+                 sensitivityIndex_z_y1,
+                 sensitivityIndex_z_x1,
+                 pcaIndex_y1,
+                 pcaIndex_x1</Group>
+  </VariableGroups>
 
 </Simulation>
