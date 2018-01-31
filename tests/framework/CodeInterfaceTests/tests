@@ -196,6 +196,7 @@
    input = 'generic_parallel.xml'
    output = 'GenericInterfaceParallel/samples.csv'
  [../]
+
  [./genericInterface2]
    type = 'RavenFramework'
    input = 'test_generic_interface.xml'
@@ -210,6 +211,13 @@
    input = 'test_generic_IO.xml'
    output = 'GenericInterfaceIO/samples.xml'
    csv = 'GenericInterfaceIO/samples.csv'
+ [../]
+
+ [./genericInterfaceIOCustomOutput]
+   type = 'RavenFramework'
+   input = 'test_generic_interface_custom_out_file.xml'
+   output = 'GenericInterfaceIOCustomOutput/samples.xml'
+   csv = 'GenericInterfaceIOCustomOutput/samples.csv'
  [../]
 
  [./CubitMooseInterface]
