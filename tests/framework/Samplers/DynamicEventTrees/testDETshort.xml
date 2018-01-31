@@ -198,10 +198,6 @@
       <Input>dummy_for_branch</Input>
       <Output>pump_mass_flow_rate,time</Output>
     </PointSet>
-    <HistorySet hierarchical="true" name="stories">
-      <Input>dummy_for_branch</Input>
-      <Output>pump_mass_flow_rate,time</Output>
-    </HistorySet>
     <!--
      hierarchical="false" is the default value. It means that all the histories
      are going to be reconstructed from all the branches
@@ -210,7 +206,20 @@
         <Input>dummy_for_branch</Input>
         <Output>pump_mass_flow_rate,time</Output>
     </PointSet>
+    <!--
+     hierarchical="true" means that all the histories
+     are not going to be reconstructed. All the branches are going to be
+     printed or plotted independently
+     -->
     <HistorySet hierarchical="false" name="storiesCollapsed">
+        <Input>dummy_for_branch</Input>
+        <Output>pump_mass_flow_rate,time</Output>
+    </HistorySet>
+    <!--
+     hierarchical="false" is the default value. It means that all the histories
+     are going to be reconstructed from all the branches
+     -->
+    <HistorySet hierarchical="true" name="stories">
         <Input>dummy_for_branch</Input>
         <Output>pump_mass_flow_rate,time</Output>
     </HistorySet>
