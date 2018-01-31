@@ -214,7 +214,7 @@ class BoolType(EnumBaseType):
     """
       Converts value from string to a bool.
       @ In, value, string, the value to convert
-      @ Out, convert, float, the converted value
+      @ Out, convert, bool, the converted value
     """
     if value in utils.stringsThatMeanTrue():
       return True

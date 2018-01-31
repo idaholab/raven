@@ -134,7 +134,6 @@ class OutStreamManager(BaseType):
       @ Out, None
     """
     if self.subDirectory is not None:
-      self.subDirectory = os.path.abspath(self.subDirectory)
       if not os.path.exists(self.subDirectory):
         os.makedirs(self.subDirectory)
 

@@ -179,15 +179,13 @@ class PointSet(DataSet):
                 'clusterLabel': name of variable to cluster printing by.  If included then triggers history-like printing.
       @ Out, None
     """
+    # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
+    # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
+    # In this case, if self.hierarchical is False, the histories are going to be reconstructed
+    # (see _constructHierPaths for further explainations)
     if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
       keep = self._getRequestedElements(kwargs)
       toDrop = list(var for var in self.getVars() if var not in keep)
-      # set up data to write
-      if start > 0:
-        mode = 'a'
-      else:
-        mode = 'w'
-
       #FIXME: THIS IS EXTREMELY SLOW
       full = self._constructHierPaths()[start-1:]
       # set up data to write

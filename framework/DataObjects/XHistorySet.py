@@ -235,7 +235,10 @@ class HistorySet(DataSet):
     toDrop = list(var for var in self._orderedVars if var not in keep)
     # don't rewrite everything; if we've written some already, just append (using mode)
     mode = 'a' if start > 0 else 'w'
-    # hierarchical (get just the ending)
+    # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
+    # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
+    # In this case, if self.hierarchical is False, the histories are going to be reconstructed
+    # (see _constructHierPaths for further explainations)
     if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
       fullData = self._constructHierPaths()[start-1:]
       data = self._data.where(self._data['RAVEN_isEnding']==True,drop=True)
@@ -267,19 +270,29 @@ class HistorySet(DataSet):
     ordered = list(o for o in self.getVars('output') if o in keep)
 
     if len(ordered):
-      # hierarchical
+      # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
+      # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
+      # In this case, if self.hierarchical is False, the histories are going to be reconstructed
+      # (see _constructHierPaths for further explainations)
       if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
         for i in range(len(fullData)):
+          # the mode is at the begin 'w' since we want to write the first portion of the history from scratch
+          # once the first history portion is written, we change the mode to 'a' (append) since we continue
+          # writing the other portions to the same file, in order to reconstruct the "full history" in the same
+          # file.
+          # FIXME: This approach is drammatically SLOW!
           mode = 'w'
           filename = subFiles[i][:-4]
           for subSampleTag in range(len(fullData[i][self.sampleTag].values)):
-            rlz = fullData[i].isel(**{self.sampleTag:subSampleTag})[ordered].dropna(self.indexes[0])
+            rlz = fullData[i].isel(**{self.sampleTag:subSampleTag}).dropna(self.indexes[0])[ordered]
             self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True,mode=mode)
             mode = 'a'
       else:
+        #  if self.hierarchical is True or the DataObject is not hierarchical we write
+        # all the histories (full histories if not hierarchical or branch-histories otherwise) independently
         for i in range(len(data[self.sampleTag].values)):
           filename = subFiles[i][:-4]
-          rlz = data.isel(**{self.sampleTag:i})[ordered].dropna(self.indexes[0])
+          rlz = data.isel(**{self.sampleTag:i}).dropna(self.indexes[0])[ordered]
           self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
     else:
       self.raiseAWarning('No output space variables have been requested for DataObject "{}"! No history files will be printed!'.format(self.name))

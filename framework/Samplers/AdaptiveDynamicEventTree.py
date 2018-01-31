@@ -384,9 +384,9 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       # retrieve the endHistory branches
       completedHistNames, finishedHistNames = [], []
       hybridTrees = self.TreeInfo.values() if self.hybridDETstrategy in [1,None] else [self.TreeInfo[self.actualHybridTree]]
-      
+
       finishedHistNames = [elem[-1] for elem in self.lastOutput._generateHierPaths()]
-      completedHistNames   = dict(zip(finishedHistNames, self.lastOutput._constructHierPaths())) #  self.lastOutput._generateHierPaths()      
+      completedHistNames   = dict(zip(finishedHistNames, self.lastOutput._constructHierPaths())) #  self.lastOutput._generateHierPaths()
       #for treer in hybridTrees:
       #  # this needs to be solved
       #  finishedHistNames = [elm[-1] for elem in self.lastOutput._generateHierPaths()]

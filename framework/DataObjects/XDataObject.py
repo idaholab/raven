@@ -109,11 +109,10 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._orderedVars = []                                   # list(str) of vars IN ORDER of their index
 
     self._meta            = {}     # dictionary to collect meta until data is collapsed
-    self._heirarchal      = False  # if True, non-traditional format (not yet implemented)
     self._selectInput     = None   # if not None, describes how to collect input data from history
     self._selectOutput    = None   # if not None, describes how to collect output data from history
     self._pivotParams     = {}     # independent dimensions as keys, values are the vars that depend on them
-    self._fromVarToIndex  = {}     # mapping between variables and indexes ({var:index})
+    self._fromVarToIndex  = {}     # mapping between variables and indexes ({var:index}). "index" here refers to dimensional variables (e.g. time, x, y, z etc)
     self._aliases         = {}     # variable aliases
 
     self._data            = None   # underlying data structure

@@ -756,6 +756,30 @@ class DataSet(DataObject):
         # otherwise, you're misaligned, and have been since before this realization, no action.
       return
 
+  def _checkRealizationFormat(self,rlz):
+    """
+      Checks that a passed-in realization has a format acceptable to data objects.
+      Data objects require a CSV-like result with either float or np.ndarray instances.
+      @ In, rlz, dict, realization with {key:value} pairs.
+      @ Out, okay, bool, True if acceptable or False if not
+    """
+    okay = True
+    if not isinstance(rlz,dict):
+      self.raiseAWarning('Realization is not a "dict" instance!')
+      return False
+    for key,value in rlz.items():
+      #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
+      if not isinstance(value,np.ndarray):
+        self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(key,type(value)))
+        return False
+      # check if index-dependent variables have matching shapes
+      # FIXME: this check will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
+      if self.indexes:
+        if key in self._fromVarToIndex and rlz[self._fromVarToIndex[key]].shape != rlz[key].shape:
+          self.raiseAWarning('Variable "{}" has not a consistent shape with respect its index "{}": shape({}) /= shape({})!'.format(key,self._fromVarToIndex[key],rlz[key].shape,lz[self._fromVarToIndex[key]].shape))
+          return False
+    return okay
+
   def _clearAlignment(self):
     """
       Clears the alignment tracking for the collector, and removes columns from it if necessary
@@ -1055,30 +1079,6 @@ class DataSet(DataObject):
       # clear alignment tracking for indexes
       self._clearAlignment()
     return self._data
-
-  def _checkRealizationFormat(self,rlz):
-    """
-      Checks that a passed-in realization has a format acceptable to data objects.
-      Data objects require a CSV-like result with either float or np.ndarray instances.
-      @ In, rlz, dict, realization with {key:value} pairs.
-      @ Out, okay, bool, True if acceptable or False if not
-    """
-    okay = True
-    if not isinstance(rlz,dict):
-      self.raiseAWarning('Realization is not a "dict" instance!')
-      return False
-    for key,value in rlz.items():
-      #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
-      if not isinstance(value,np.ndarray):
-        self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(key,type(value)))
-        return False
-      # check if index-dependent variables have matching shapes
-      # FIXME: this check will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
-      if self.indexes:
-        if key in self._fromVarToIndex and rlz[self._fromVarToIndex[key]].shape != rlz[key].shape:
-          self.raiseAWarning('Variable "{}" has not a consistent shape with respect its index "{}": shape({}) /= shape({})!'.format(key,self._fromVarToIndex[key],rlz[key].shape,lz[self._fromVarToIndex[key]].shape))
-          return False
-    return okay
 
   def _formatRealization(self,rlz):
     """
@@ -1783,7 +1783,7 @@ class DataSet(DataObject):
       # first get rows from collector
       fromColl = self._collector[:][np.where(self._collector[:,self._orderedVars.index('RAVEN_isEnding')])]
       # then turn them into realization-like
-      fromColl = list( dict(zip(self._orderedVars,c)) for c in fromColl ) #if self._orderedVars[c] in self.getVars())
+      fromColl = list( dict(zip(self._orderedVars,c)) for c in fromColl )
     else:
       fromColl = []
     # then get from data
