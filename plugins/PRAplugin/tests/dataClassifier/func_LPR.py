@@ -13,4 +13,4 @@
 # limitations under the License.
 
 def evaluate(self):
-  return self.LPI_status
+  return self.LPR_status

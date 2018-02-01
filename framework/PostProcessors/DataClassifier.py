@@ -22,6 +22,7 @@ warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import copy
+import numpy as np
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -135,7 +136,7 @@ class DataClassifier(PostProcessor):
         func = child.findFirst('Function')
         funcType = func.parameterValues['type']
         funcName = func.value.strip()
-        self.mapping[child.getName()] = (funcType, funcName)
+        self.mapping[child.parameterValues['name']] = (funcType, funcName)
       elif child.getName() == 'label':
         self.label = child.value.strip()
 
@@ -202,7 +203,7 @@ class DataClassifier(PostProcessor):
     outputDict = {}
     outputType = targetDict['type']
     outputDict['dataType'] = outputType
-    outputDict['dataFrom'] = targetDict[name]
+    outputDict['dataFrom'] = targetDict['name']
 
     if outputType == 'PointSet':
       outputDict[self.label] = np.empty(0)
