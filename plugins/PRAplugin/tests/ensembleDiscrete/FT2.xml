@@ -1,0 +1,17 @@
+
+<opsa-mef>    
+    <define-fault-tree name="FT">
+        <define-gate name="alpha">
+            <or>
+                <basic-event name="A"/>
+                <basic-event name="C"/>
+            </or>
+        </define-gate>
+        <define-basic-event name="A">
+            <float value="1.2e-3"/>
+        </define-basic-event>
+        <define-basic-event name="C">
+            <float value="3.7e-4"/>
+        </define-basic-event>
+    </define-fault-tree>
+</opsa-mef>
