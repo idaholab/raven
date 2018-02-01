@@ -16,23 +16,26 @@ import numpy as np
 
 def run(self,Input):
 
-  self.ACC_status = Input['ACC_status']
-  self.time_LPI   = Input['time_LPI']
-  self.time_LPR   = Input['time_LPR']
+  self.ACC_status = Input['ACC_status'][0]
+  self.time_LPI   = Input['time_LPI'][0]
+  self.time_LPR   = Input['time_LPR'][0]
 
   timeToCD_LPI = 6.
   timeToCD_LPR = 11.
 
   if self.ACC_status == 1.:
     self.out = 1.
+    self.LPI_status = 1.
+    self.LPR_status = 1.
   else:
     self.LPI_act = self.time_LPI + 1.
     if self.LPI_act > timeToCD_LPI:
       self.out = 1.
       self.LPI_status = 1.
+      self.LPR_status = 1.
     else:
       self.LPI_status = 0.
-      self.LPR_act = self.LPI_act + 10.
+      self.LPR_act = self.LPI_act + self.time_LPR
       if self.LPR_act > timeToCD_LPR:
         self.out = 1.
         self.LPR_status = 1.
