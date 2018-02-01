@@ -192,10 +192,25 @@ class DataClassifier(PostProcessor):
           newInput[dataType]['name'] = inputObject.name
         else:
           # only extract the last element in each realization for the HistorySet
-          newInput[dataType]['input'] = copy.deepcopy(inputObject.getInpParametersValues())
-          newInput[dataType]['output'] = copy.deepcopy(inputObject.getOutParametersValues())
+          newInput[dataType]['input'] = dict.fromkeys(inputObject.getParaKeys('inputs'), None)
+          newInput[dataType]['output'] = dict.fromkeys(inputObject.getParaKeys('outputs'), None)
           newInput[dataType]['type'] = inputObject.type
           newInput[dataType]['name'] = inputObject.name
+
+          rlzKeys = inputObject.getOutParametersValues.keys()
+          newInput[dataType]['historySizes'] = dict.fromkeys(rlzKeys, None)
+          for rlzIndex, rlzKey in enumerate(rlzKeys):
+            realization = inputObject.getRealization(rlzIndex)
+            for param in inputObject.getParaKeys('inputs'):
+              if newInput[dataType]['input'][param] is None:
+                newInput[dataType]['input'][param] = np.empty(0)
+              newInput[dataType]['input'][param] = np.append(newInput[dataType]['input'][param], realization['inputs'][param][-1])
+            for param in inputObject.getParaKeys('outputs'):
+              if newInput[dataType]['output'][param] is None:
+                newInput[dataType]['output'][param] = np.empty(0)
+              newInput[dataType]['output'][param] = np.append(newInput[dataType]['output'][param], realization['outputs'][param][-1])
+              if newInput[dataType]['historySizes'][rlzKey] is None:
+                newInput[dataType]['historySizes'][rlzKey] = len(realization['outputs'][param])
 
     return newInput
 
@@ -212,31 +227,29 @@ class DataClassifier(PostProcessor):
     outputType = targetDict['type']
     outputDict['dataType'] = outputType
     outputDict['dataFrom'] = targetDict['name']
+    if outputType == 'HistorySet':
+      outputDict['historySizes'] = copy.copy(targetDict['historySizes'])
 
-    if outputType == 'PointSet':
-      outputDict[self.label] = np.empty(0)
-      numRlz = targetDict['input'].values()[0].size
-      for i in range(numRlz):
-        tempTargDict = {}
-        for param, vals in targetDict['input'].items():
-          tempTargDict[param] = vals[i]
-        for param, vals in targetDict['output'].items():
-          tempTargDict[param] = vals[i]
-        tempClfList = []
-        labelIndex = None
-        for key, values in classifierDict['input'].items():
-          calcVal = self.funcDict[key].evaluate("evaluate", tempTargDict)
-          inds, = np.where(values == calcVal)
-          if labelIndex is None:
-             labelIndex = set(inds)
-          else:
-            labelIndex = labelIndex & set(inds)
-        if len(labelIndex) != 1:
-          self.raiseAnError(IOError, "The parameters", ",".join(tempTargDict.keys()), "with values", ",".join([str(el) for el in tempTargDict.values()]), "could not be classifier!")
-        outputDict[self.label] = np.append(outputDict[self.label], classifierDict['output'][self.label][list(labelIndex)[0]])
-
-    else: # HistorySet
-      pass
+    outputDict[self.label] = np.empty(0)
+    numRlz = targetDict['input'].values()[0].size
+    for i in range(numRlz):
+      tempTargDict = {}
+      for param, vals in targetDict['input'].items():
+        tempTargDict[param] = vals[i]
+      for param, vals in targetDict['output'].items():
+        tempTargDict[param] = vals[i]
+      tempClfList = []
+      labelIndex = None
+      for key, values in classifierDict['input'].items():
+        calcVal = self.funcDict[key].evaluate("evaluate", tempTargDict)
+        inds, = np.where(values == calcVal)
+        if labelIndex is None:
+           labelIndex = set(inds)
+        else:
+          labelIndex = labelIndex & set(inds)
+      if len(labelIndex) != 1:
+        self.raiseAnError(IOError, "The parameters", ",".join(tempTargDict.keys()), "with values", ",".join([str(el) for el in tempTargDict.values()]), "could not be classifier!")
+      outputDict[self.label] = np.append(outputDict[self.label], classifierDict['output'][self.label][list(labelIndex)[0]])
 
     return outputDict
 
@@ -296,7 +309,10 @@ class DataClassifier(PostProcessor):
       for val in outputDict[self.label]:
         output.updateOutputValue(self.label, val)
     elif output.type == 'HistorySet':
-      histKey = output.getOutParametersValues.keys()
-      for ind, key in enumerate(histKey):
-        output.updateOutputValue([key, self.label], outputDict[self.label][ind,:])
+      rlzKeys = output.getOutParametersValues.keys()
+      for ind, key in enumerate(rlzKeys):
+        histSize = outputDict['historySizes'][key]
+        labelValues = np.empty(histSize)
+        labelValues.fill(outputDict[self.label][ind])
+        output.updateOutputValue([key, self.label], labelValues)
 
