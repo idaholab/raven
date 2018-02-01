@@ -9,11 +9,14 @@
   <Files>
     <Input name="faultTree1" type="">FT1.xml</Input>
     <Input name="faultTree2" type="">FT2.xml</Input>
+    <Input name="eventTree"  type="">eventTree.xml</Input>
   </Files>
 
   <Steps>
     <MultiRun name="simRun">
-      <Input   class="DataObjects"  type="PointSet"        >inputPlaceHolder</Input>
+      <Input   class="Files"        type=""                >eventTree</Input>
+      <Input   class="Files"        type=""                >faultTree1</Input>
+      <Input   class="Files"        type=""                >faultTree2</Input>
       <Model   class="Models"       type="ExternalModel"   >PRA_Model</Model>
       <Sampler class="Samplers"     type="MonteCarlo"      >MC_external</Sampler>
       <Output  class="DataObjects"  type="PointSet"        >sim_PS</Output>
@@ -30,14 +33,14 @@
 
   <Distributions>
     <Bernoulli name="distrib">
-      <p>0.5</p>
+      <p>0.1</p>
     </Bernoulli>
   </Distributions>
 
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>1</limit>
+        <limit>100</limit>
       </samplerInit>
       <variable name="A">
         <distribution>distrib</distribution>
@@ -54,7 +57,7 @@
       <variable name="gamma">
         <distribution>distrib</distribution>
       </variable>
-      <variable name="initState">
+      <variable name="initialState">
         <distribution>distrib</distribution>
       </variable>
       <variable name="initEvent">
@@ -65,7 +68,7 @@
   
   <Models>
     <ExternalModel name="ET" subType="ETmodel">
-      <variables>initEvent,statusACC,statusLPI,statusLPR,sequence</variables>
+      <variables>initEvent,statusACC,statusLPI,LPR,sequence</variables>
       <map var='initEvent' >IE</map>
       <map var='statusACC' >ACC</map>
       <map var='statusLPI' >LPI</map>
@@ -84,27 +87,25 @@
       <variables>A,C,alpha</variables>
       <topEvents>alpha</topEvents>
       <map var='A'>A</map>
-      <map var='B'>C</map>
+      <map var='C'>C</map>
     </ExternalModel>
 
     <ExternalModel name="graph" subType="graphModel">
-      <variables>alpha,beta,gamma,signal,ACC</variables>
+      <variables>alpha,beta,gamma,statusACC</variables>
       <modelFile>RBD</modelFile>
       <nodesIN>signal</nodesIN>
       <nodesOUT>ACC</nodesOUT>
       <map var='alpha'  >alpha</map>
       <map var='beta'   >beta</map>
       <map var='gamma'  >gamma</map>
-      <map var='signal' >signal</map>
       <map var='statusACC' >ACC</map>
     </ExternalModel>
 
     <ExternalModel name="markov" subType="markovModel">
-      <variables>initState,statusLPI</variables>
-      <initState>initState</initState>
+      <variables>initialState,statusLPI</variables>
+      <initState>initialState</initState>
       <finState>statusLPI</finState>
       <endTime>10</endTime>
-      <deltaT>1</deltaT>
       <state name='0'>
         <transition type='tau' value='1.25' >1</transition>
       </state>
@@ -116,7 +117,7 @@
     <EnsembleModel name="PRA_Model" subType="">
       <Model class="Models" type="ExternalModel">
         ET
-        <Input            class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+        <Input            class="Files"       type=""        >eventTree</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">ET_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
@@ -126,7 +127,7 @@
       </Model>
       <Model class="Models" type="ExternalModel">
         graph
-        <Input            class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+        <Input            class="DataObjects" type="PointSet">graph_input</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">graph_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
@@ -144,11 +145,11 @@
   
   <DataObjects>
     <PointSet name="inputPlaceHolder">
-      <Input>A,B,C,beta,gamma,initState,initEvent</Input>
+      <Input>A,B,C,beta,gamma,initialState,initEvent</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="sim_PS">
-      <Input>A,B,C,beta,gamma,initState,initEvent</Input>
+      <Input>A,B,C,beta,gamma,initialState,initEvent</Input>
       <Output>sequence</Output>
     </PointSet>
     <PointSet name="ET_PS">
@@ -164,12 +165,16 @@
       <Output>alpha</Output>
     </PointSet>
     <PointSet name="markov_input">
-      <Input>initState</Input>
+      <Input>initialState</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="markov_PS">
-      <Input>initState</Input>
+      <Input>initialState</Input>
       <Output>statusLPI</Output>
+    </PointSet>
+    <PointSet name="graph_input">
+      <Input>alpha,beta,gamma</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="graph_PS">
       <Input>alpha,beta,gamma</Input>

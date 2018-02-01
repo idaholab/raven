@@ -33,8 +33,10 @@
                         <sequence name="4"/>
                     </path>
                 </fork>
+            </path>
             <path state="+1">
                 <sequence name="5"/>
-            </path>            
+            </path> 
+        </fork>           
     </initial-state>
 </define-event-tree>

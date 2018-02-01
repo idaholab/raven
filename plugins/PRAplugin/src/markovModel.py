@@ -85,17 +85,15 @@ class markovModel(ExternalModelPluginBase):
     """
     time = 0.
     actualState = str(int(Inputs[container.initState][0]))
-    #print(time,actualState)
     while True:
       transitionDict = copy.deepcopy(container.states[actualState])
       transitionTime , newState = self.newState(transitionDict)
       time += transitionTime
-      #print(time,actualState)
       if time >= container.endTime:
         break
       else:
         actualState = newState
-    container.finalState = int(actualState)
+    container.__dict__[container.finState] = int(actualState)
 
   def newState(self,dictIn):
     detTrans   = {}
