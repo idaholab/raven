@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on July 10, 2013
+Created on Jan 29, 2018
 
-@author: alfoa
+@author: Congjian Wang
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
 import warnings
