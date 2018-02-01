@@ -220,7 +220,8 @@ class BoolType(EnumBaseType):
     else:
       return False
 
-BoolType.createClass("bool","boolType", utils.stringsThatMeanTrue() + utils.stringsThatMeanFalse())
+boolTypeList = utils.stringsThatMeanTrue() + utils.stringsThatMeanFalse()
+BoolType.createClass("bool","boolType", boolTypeList + [elm.capitalize() for elm in boolTypeList])
 
 #
 #
