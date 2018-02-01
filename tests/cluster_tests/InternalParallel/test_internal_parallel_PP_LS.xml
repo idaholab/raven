@@ -31,6 +31,7 @@
       <integralType>MonteCarlo</integralType>
       <seed>20021986</seed>
       <target>goalFunctionForLimitSurface</target>
+      <outputName>EventProbability</outputName>
       <variable name="x0">
         <distribution>x0_distrib</distribution>
       </variable>
@@ -43,6 +44,7 @@
       <integralType>MonteCarlo</integralType>
       <seed>20021986</seed>
       <target>goalFunctionForLimitSurface</target>
+      <outputName>EventProbability</outputName>
       <variable name="x0">
         <lowerBound>-2.0</lowerBound>
         <upperBound>12.0</upperBound>
