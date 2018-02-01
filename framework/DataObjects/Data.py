@@ -545,7 +545,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     haveSet = set(self.getParaKeys('inputs'))
     missing = requestSet.difference(haveSet)
     # if we're missing variables, we need to look farther or skip restarting
-    if len(missing) > 1:
+    if len(missing) == 0:
+      return True
+    else:
       # get the list of sampled variables from the metadata
       metaSet = self.getAllMetadata()['SampledVars'][0].keys()
       # reduce this list by removing the variables in the normal input space of this data object
@@ -557,8 +559,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self.raiseADebug('DataObject Space:',haveSet.union(metaSet))
         self.raiseAWarning('Requested realization input space does not match DataObject input space!  Assuming not found. Run with debug verbosity for more information.')
         return False
-    else:
-      return True
 
   def getMatchingRealization(self,requested,tol=1e-15,skipInputCheck=False):
     """
@@ -589,28 +589,19 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #   This speedup was realized both in formatting, as well as creating the tree/querying the tree
     ### if inputs have changed or this if first query, build the tree
     ### TODO what if getMatchingRealization is called with a different set of keys in "requested"? Tree needs rebuilding?
-    print('\n tol:',tol,len(self))
     if self.inputKDTree is None:
       self._constructKDTree(requested)
-    print('DEBUGG looking for match to:')
-    for k,v in requested.items():
-      print('DEBUGG    ',k,v)
     #query the tree for all float variables
     floatVars = list(r for r in requested if r in self.getParaKeys('inputs'))
     normMatchPoint = tuple((requested[v]-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in floatVars)
-    print('DEBUGG interrogating KDTree at',floatVars)
     distances,indices = self.inputKDTree.query(normMatchPoint,
                   distance_upper_bound=tol, #acceptable distance
                   k=1,                      #number of points to find
                   p=2)                      #use Euclidean distance
     #if multiple entries were within tolerance, accept the minimum one
     if hasattr(distances,'__len__'):
-      print('DEBUGG found:')
-      for i in range(len(distances)):
-        print('DEBUGG   ',distances[i],indices[i])
       index = indices[distances.index(min(distances))]
     else:
-      print('DEBUGG found:',indices,distances)
       index = indices
     #"not found" case
     #KDTree reports a "not found" as at infinite distance, at len(data) index
@@ -620,9 +611,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #at this point, we've found a realization with matches for our float variables
     #if self.type == 'HistorySet':
     realization = self.getRealization(index)
-    print('DEBUGG matched floats:')
-    for k,v in realization.items():
-      print('DEBUGG    ',k,v)
     ## Second, check if remaining string variables match in the realization we found
     match = True
     metaVars = set(requested.keys()).difference(set(realization['inputs'].keys()))
@@ -634,7 +622,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     for var in metaVars:
       if requested[var] != metaVals[var][index]:
         match = False
-        print('DEBUGG failed',var,requested[var],metaVals[var][index])
         break
     if not match:
       self.raiseADebug('No matching restart point found (strings).')

@@ -597,9 +597,6 @@ class HistorySet(Data):
       mean,scale = mathUtils.normalizationFactors(inpVals[v])
       self.treeScalingFactors[v] = (mean,scale)
     # create normalized tree
-    print('DEBUGG training KDTree on',floatVars)
-    for v in floatVars:
-      print('DEBUGG ...',v,inpVals[v])
     data = np.dstack(tuple((inpVals[v]-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in floatVars))[0]
     self.inputKDTree = spatial.KDTree(data)
 

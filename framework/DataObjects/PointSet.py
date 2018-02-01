@@ -527,7 +527,6 @@ class PointSet(Data):
     for v in floatVars:
       mean,scale = mathUtils.normalizationFactors(inpVals[v])
       self.treeScalingFactors[v] = (mean,scale)
-    print('DEBUGG constructing KDTree on',floatVars)
     #convert data into a matrix in the order of requested
     data = np.dstack(tuple((np.array(inpVals[v])-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in floatVars))[0]
     self.inputKDTree = spatial.KDTree(data)
