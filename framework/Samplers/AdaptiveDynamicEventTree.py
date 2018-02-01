@@ -269,16 +269,12 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     self.branchCountOnLevel = info['actualBranchOnLevel']+1
     # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
     rname = info['parentNode'].get('name') + '-' + str(self.branchCountOnLevel)
-    if rname == 'adaptive_2-2':
-      print("aaaa")
     info['parentNode'].add('completedHistory', False)
     self.raiseADebug(str(rname))
     bcnt = self.branchCountOnLevel
     while info['parentNode'].isAnActualBranch(rname):
       bcnt += 1
       rname = info['parentNode'].get('name') + '-' + str(bcnt)
-      if rname == 'adaptive_2-2':
-        print("aaaa")
     # create a subgroup that will be appended to the parent element in the xml tree structure
     subGroup = ETS.HierarchicalNode(self.messageHandler,rname)
     subGroup.add('parent', info['parentNode'].get('name'))
@@ -349,8 +345,6 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     for varname in self.standardDETvariables:
       self.inputInfo['SampledVars'  ][varname] = self.distDict[varname].ppf(cdfValues[varname])
       self.inputInfo['SampledVarsPb'][varname] = copy.copy(cdfValues[varname])
-      if (self.inputInfo['SampledVarsPb'][varname] - 0.000588235294117647) <= 0.0000001:
-        print("aaaa")
     # constant variables
     self._constantVariables()
     if precSampled:
@@ -359,17 +353,17 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditionalPbr')
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
+    self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
     # add additional edits if needed
     model.getAdditionalInputEdits(self.inputInfo)
     # Add the new input path into the RunQueue system
-    newInputs = {'args':[str(self.type)], 'kwargs': copy.deepcopy(dict(self.inputInfo))}
+    newInputs = {'args':[str(self.type)], 'kwargs': dict(self.inputInfo)}
     self.RunQueue['queue'].append(newInputs)
     self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
     for key,value in self.inputInfo.items():
       subGroup.add(key,copy.copy(value))
     if endInfo:
       subGroup.add('endInfo',copy.deepcopy(endInfo))
-    print(self.inputInfo)
 
   def localStillReady(self,ready): #, lastOutput= None
     """
@@ -425,18 +419,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    if 'adaptive_2' in self.TreeInfo:
-      if len(self.TreeInfo['adaptive_2'].getrootnode()._branches) > 0:
-        print("***5 _ "+ str(self.TreeInfo['adaptive_2'].getrootnode()._branches[0].get("SampledVarsPb")))
-
     if self.startAdaptive == True and self.adaptiveReady == True:
-      if 'adaptive_2' in self.TreeInfo:
-        if len(self.TreeInfo['adaptive_2'].getrootnode()._branches) > 0:
-          print("aaaa")
       LimitSurfaceSearch.localGenerateInput(self,model,myInput)
-      if 'adaptive_2' in self.TreeInfo:
-        if len(self.TreeInfo['adaptive_2'].getrootnode()._branches) > 0:
-          print("***5.1 _ "+ str(self.TreeInfo['adaptive_2'].getrootnode()._branches[0].get("SampledVarsPb")))
       #the adaptive sampler created the next point sampled vars
       #find the closest branch
       if self.hybridDETstrategy is not None:
@@ -457,7 +441,6 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         investigatedPoint[key] = value
       # collect investigated point
       self.investigatedPoints.append(investigatedPoint)
-      print(cdfValues)
       if closestBranch:
         info = self._retrieveBranchInfo(closestBranch)
         self._constructEndInfoFromBranch(model, myInput, info, cdfValues)
@@ -489,19 +472,15 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
                 self.raiseADebug("epistemic var " + str(key)+" value = "+str(self.values[key]))
                 hybridStrategy['SampledVars'][key]   = copy.copy(self.values[key])
                 hybridStrategy['SampledVarsPb'][key] = self.distDict[key].pdf(self.values[key])
-                if (hybridStrategy['SampledVarsPb'][key] - 0.000588235294117647) <= 0.0000001:
-                  print("aaaa")
                 hybridStrategy['prefix'] = len(self.TreeInfo.values())+1
             # TODO: find a strategy to recompute the probability weight here (for now == PointProbability)
             hybridStrategy['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
             hybridStrategy['ProbabilityWeight'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
           elm.add('hybridsamplerCoordinate', hybridSampled)
+        self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
         # Here it is stored all the info regarding the DET => we create the info for all the branchings and we store them
         self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.HierarchicalTree(self.messageHandler,elm)
         self._createRunningQueueBeginOne(self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys()))],branchedLevel, model,myInput)
-    if 'adaptive_2' in self.TreeInfo:
-      if len(self.TreeInfo['adaptive_2'].getrootnode()._branches) > 0:
-        print("***6 _ "+ str(self.TreeInfo['adaptive_2'].getrootnode()._branches[0].get("SampledVarsPb")))
     return DynamicEventTree.localGenerateInput(self,model,myInput)
 
   def localInputAndChecks(self,xmlNode, paramInput):
@@ -634,12 +613,6 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       @ Out, None
     """
     returncode = DynamicEventTree.localFinalizeActualSampling(self,jobObject,model,myInput,genRunQueue=False)
-    if 'adaptive_2' in self.TreeInfo:
-      if len(self.TreeInfo['adaptive_2'].getrootnode()._branches) > 0:
-        print("***7 _ "+ str(self.TreeInfo['adaptive_2'].getrootnode()._branches[0].get("SampledVarsPb")))
     forceEvent = True if self.startAdaptive else False
     if returncode:
       self._createRunningQueue(model,myInput, forceEvent)
-    if 'adaptive_2' in self.TreeInfo:
-      if len(self.TreeInfo['adaptive_2'].getrootnode()._branches) > 0:
-        print("***8 _ "+ str(self.TreeInfo['adaptive_2'].getrootnode()._branches[0].get("SampledVarsPb")))
