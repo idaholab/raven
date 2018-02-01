@@ -717,7 +717,9 @@ class OutStreamPlot(OutStreamManager):
     if 'figureProperties' in self.options.keys():
       key = 'figureProperties'
       if 'figsize' not in self.options[key].keys():
-        self.options[key]['figsize'  ] = 'None'
+        self.options[key]['figsize'  ] = None
+      else:
+        self.options[key]['figsize'  ] = tuple([float(elm) for elm in  ast.literal_eval(self.options[key]['figsize'])])
       if 'dpi' not in self.options[key].keys():
         self.options[key]['dpi'      ] = 'None'
       if 'facecolor' not in self.options[key].keys():
@@ -730,7 +732,7 @@ class OutStreamPlot(OutStreamManager):
         self.options[key]['frameon'] = 'True'
       elif self.options[key]['frameon'].lower() in utils.stringsThatMeanFalse():
         self.options[key]['frameon'] = 'False'
-      self.fig = plt.figure(self.name, figsize = ast.literal_eval(self.options[key]['figsize']), dpi = ast.literal_eval(self.options[key]['dpi']), facecolor = self.options[key]['facecolor'], edgecolor = self.options[key]['edgecolor'], frameon = ast.literal_eval(self.options[key]['frameon']), **self.options[key].get('attributes', {}))
+      self.fig = plt.figure(self.name, figsize = self.options[key]['figsize'], dpi = ast.literal_eval(self.options[key]['dpi']), facecolor = self.options[key]['facecolor'], edgecolor = self.options[key]['edgecolor'], frameon = ast.literal_eval(self.options[key]['frameon']), **self.options[key].get('attributes', {}))
     else:
       self.fig = plt.figure(self.name)
 
