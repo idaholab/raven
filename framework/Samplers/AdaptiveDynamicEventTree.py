@@ -297,16 +297,13 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       subGroup.add('branchChangedParamPb',branchChangedParamPb)
     else:
       pass
-    #condPbC = condPbC + copy.deepcopy(endInfo['branchChangedParams'][key]['unchangedConditionalPb'])
     # add conditional probability
     subGroup.add('conditionalPbr',condPbC)
     # add initiator distribution info, start time, etc.
-    #subGroup.add('initiatorDistribution',copy.deepcopy(endInfo['branchDist']))
     subGroup.add('startTime', info['parentNode'].get('endTime'))
     # initialize the endTime to be equal to the start one... It will modified at the end of this branch
     subGroup.add('endTime', info['parentNode'].get('endTime'))
     # add the branchedLevel dictionary to the subgroup
-    #branchedLevel[endInfo['branchDist']] = branchedLevel[endInfo['branchDist']] - 1
     # branch calculation info... running, queue, etc are set here
     subGroup.add('runEnded',False)
     subGroup.add('running',False)
@@ -326,10 +323,6 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     # add the newer branch name to the map
     self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
     # check if it is a preconditioned DET sampling, if so add the relative information
-    # precSampled = endInfo['parentNode'].get('hybridsamplerCoordinate')
-    # if precSampled:
-    #   self.inputInfo['hybridsamplerCoordinate'] = copy.deepcopy(precSampled)
-    #   subGroup.add('hybridsamplerCoordinate', precSampled)
     # it exists only in case an hybridDET strategy is activated
     precSampled = info['parentNode'].get('hybridsamplerCoordinate')
     if precSampled:
@@ -344,7 +337,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     self.inputInfo['SampledVarsPb'         ] = {}
     for varname in self.standardDETvariables:
       self.inputInfo['SampledVars'  ][varname] = self.distDict[varname].ppf(cdfValues[varname])
-      self.inputInfo['SampledVarsPb'][varname] = copy.copy(cdfValues[varname])
+      self.inputInfo['SampledVarsPb'][varname] = cdfValues[varname]
     # constant variables
     self._constantVariables()
     if precSampled:
@@ -382,12 +375,6 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     self._checkIfStartAdaptive()
     if self.startAdaptive:
       #if self._endJobRunnable != 1: self._endJobRunnable = 1
-      # retrieve the endHistory branches
-      #completedHistNames, finishedHistNames = [], []
-      #hybridTrees = self.TreeInfo.values() if self.hybridDETstrategy in [1,None] else [self.TreeInfo[self.actualHybridTree]]
-      #finishedHistNames = [elem[-1] for elem in self.lastOutput._generateHierPaths()]
-      #completedHistNames   = dict(zip(finishedHistNames, self.lastOutput._constructHierPaths())) #  self.lastOutput._generateHierPaths()
-      # assemble a dictionary
       data = self.lastOutput.asDataset()
       endingData = data.where(data['RAVEN_isEnding']==True,drop=True)
       numCompletedHistories = len(endingData['RAVEN_isEnding'])
