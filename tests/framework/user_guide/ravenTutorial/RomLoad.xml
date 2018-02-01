@@ -63,7 +63,7 @@
         <Output class="Models" type="ROM">rom</Output>
     </IOStep>
     <MultiRun name="sampleROM">
-      <Input class="DataObjects" type="HistorySet">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ROM">rom</Model>
       <Sampler class="Samplers" type="MonteCarlo">monteCarlo</Sampler>
       <Output class="DataObjects" type="HistorySet">histories</Output>
@@ -76,10 +76,10 @@
   </Steps>
 
   <DataObjects>
-    <HistorySet name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <Input>sigma-A,decay-A</Input>
       <Output>OutputPlaceHolder</Output>
-    </HistorySet>
+    </PointSet>
     <HistorySet name="histories">
       <Input>sigma-A,decay-A</Input>
       <Output>A, time</Output>

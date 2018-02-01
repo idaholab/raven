@@ -251,7 +251,7 @@ class Relap5(CodeInterfaceBase):
       #if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
       if str(Kwargs['startTime']) != 'Initial':
         modifDict = {}
-        #restart_parent = Kwargs['parentID']+'~restart.r'
+        #restart_parent = Kwargs['RAVEN_parentID']+'~restart.r'
         #new_restart = Kwargs['prefix']+'~restart.r'
         #shutil.copyfile(restart_parent,new_restart)
         modifDict['name'] = ['Executioner']

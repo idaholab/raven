@@ -96,8 +96,15 @@ available attributes:
 %  %
 %  \default{None}
 
-  \item \xmlAttr{hierarchical}, \xmlDesc{optional boolean attribute}, if True
-  this data object will be constructed, if possible, in a hierarchical fashion.
+  \item \xmlAttr{hierarchical}, \xmlDesc{optional boolean attribute}, 
+  This flag is going to ``control'' the printing/plotting of the DataObject in 
+  case a hierarchical structure is determined (e.g.
+  data coming from Dynamic Event Tree-like approaches):
+  \begin{itemize}
+    \item if \textbf{True} all the branches of the tree are going to be printed/plotted independently 
+               (i.e. all the branches are going to be exposed independently)
+    \item if \textbf{False} all the branches are going to be walked back and reconstructed in order to create independent histories
+  \end{itemize}
   %
   \default{False}
 \end{itemize}

@@ -221,10 +221,6 @@ class HistorySet(DataSet):
       # otherwise, leave it alone
     return rlz
 
-
-
-    return DataSet._selectiveRealization(self,rlz)
-
   def _toCSV(self,fileName,start=0,**kwargs):
     """
       Writes this data objcet to CSV file (for metadata see _toCSVXML)
@@ -236,16 +232,23 @@ class HistorySet(DataSet):
     # specialized to write custom RAVEN-style history CSVs
     # TODO some overlap with DataSet implementation, but not much.
     keep = self._getRequestedElements(kwargs)
+    toDrop = list(var for var in self._orderedVars if var not in keep)
     # don't rewrite everything; if we've written some already, just append (using mode)
-    if start > 0:
-      # slice data starting at "start"
-      sl = slice(start,None,None)
-      data = self._data.isel(**{self.sampleTag:sl})
-      mode = 'a'
+    mode = 'a' if start > 0 else 'w'
+    # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
+    # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
+    # In this case, if self.hierarchical is False, the histories are going to be reconstructed
+    # (see _constructHierPaths for further explainations)
+    if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
+      fullData = self._constructHierPaths()[start-1:]
+      data = self._data.where(self._data['RAVEN_isEnding']==True,drop=True)
+      if start > 0:
+        data = self._data.isel(**{self.sampleTag:data[self.sampleTag].values[start-1:]})
     else:
       data = self._data
-      mode = 'w'
-    toDrop = list(var for var in self._orderedVars if var not in keep)
+      if start > 0:
+        data = self._data.isel(**{self.sampleTag:slice(start,None,None)})
+
     data = data.drop(toDrop)
     self.raiseADebug('Printing data to CSV: "{}"'.format(fileName+'.csv'))
     # specific implementation
@@ -265,10 +268,31 @@ class HistorySet(DataSet):
     self._usePandasWriteCSV(fileName,inpData,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
     ## obtain slices to write subset CSVs
     ordered = list(o for o in self.getVars('output') if o in keep)
+
     if len(ordered):
-      for i in range(len(data[self.sampleTag].values)):
-        filename = subFiles[i][:-4]
-        rlz = data.isel(**{self.sampleTag:i})[ordered].dropna(self.indexes[0])
-        self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
+      # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
+      # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
+      # In this case, if self.hierarchical is False, the histories are going to be reconstructed
+      # (see _constructHierPaths for further explainations)
+      if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
+        for i in range(len(fullData)):
+          # the mode is at the begin 'w' since we want to write the first portion of the history from scratch
+          # once the first history portion is written, we change the mode to 'a' (append) since we continue
+          # writing the other portions to the same file, in order to reconstruct the "full history" in the same
+          # file.
+          # FIXME: This approach is drammatically SLOW!
+          mode = 'w'
+          filename = subFiles[i][:-4]
+          for subSampleTag in range(len(fullData[i][self.sampleTag].values)):
+            rlz = fullData[i].isel(**{self.sampleTag:subSampleTag}).dropna(self.indexes[0])[ordered]
+            self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True,mode=mode)
+            mode = 'a'
+      else:
+        #  if self.hierarchical is True or the DataObject is not hierarchical we write
+        # all the histories (full histories if not hierarchical or branch-histories otherwise) independently
+        for i in range(len(data[self.sampleTag].values)):
+          filename = subFiles[i][:-4]
+          rlz = data.isel(**{self.sampleTag:i}).dropna(self.indexes[0])[ordered]
+          self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
     else:
       self.raiseAWarning('No output space variables have been requested for DataObject "{}"! No history files will be printed!'.format(self.name))

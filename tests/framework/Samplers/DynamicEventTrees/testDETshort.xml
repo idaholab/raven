@@ -6,7 +6,7 @@
     <created>2015-10-05</created>
     <classesTested>Samplers.DynamicEventTree, Models.Code</classesTested>
     <description>
-       An example of using the Dynamic Event Tree Methodology with an external Code (RELAP7 in this case).
+       An example of using the Dynamic Event Tree Methodology with an external Code (RELAP7-like in this case).
        This test is a fast executing one that is aimed to check the mechanics of the DET methodology.
     </description>
     <revisions>
@@ -17,11 +17,12 @@
       <revision author="maljdan" date="2016-08-08">Fixing DET test case.</revision>
       <revision author="alfoa" date="2016-10-20">Modified XSD and removed dim attribute from all the tests</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2018-01-24">Modification for new DataObject and new option to specify printing and plotting subdirectories (attribute ``dir'')</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
     <WorkingDir>DETshort</WorkingDir>
-    <Sequence>DETrunTest</Sequence>
+    <Sequence>DETrunTest,dump_results</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
 
@@ -52,25 +53,23 @@
   </Samplers>
 
   <OutStreams>
-    <Print name="testprint_hist_hier">
+    <Print name="testprint_hist_hier" dir="output_hier">
       <type>csv</type>
       <source>stories</source>
     </Print>
-    <Print name="testprint_tpset_hier">
+    <Print name="testprint_tpset_hier" dir="output_hier">
       <type>csv</type>
       <source>Pointset</source>
     </Print>
-    <Print name="testprint_hist_hier_variables">
-      <type>csv</type>
-      <source>stories</source>
-      <what>Output,Input|dummy_for_branch</what>
+    <Print name="testprint_hist_collapsed" dir="output_collapsed">
+        <type>csv</type>
+        <source>storiesCollapsed</source>
     </Print>
-    <Print name="testprint_tpset_hier_variables">
-      <type>csv</type>
-      <source>Pointset</source>
-      <what>Output,Input|dummy_for_branch</what>
+    <Print name="testprint_tpset_collapsed" dir="output_collapsed">
+        <type>csv</type>
+        <source>PointsetCollapsed</source>
     </Print>
-    <Plot  interactive="false" name="2DHistoryPlot" overwrite="false">
+    <Plot  interactive="false" name="2DHistoryPlotHier" overwrite="false" dir="output_hier">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -80,6 +79,7 @@
             <color>green</color>
             <label>pipe1-Hw</label>
           </kwargs>
+          <interpPointsX>100</interpPointsX>
           <xlabel>time [s]</xlabel>
           <ylabel>evolution</ylabel>
         </plot>
@@ -91,7 +91,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot  interactive="false" name="2DHistoryPlot_tps" overwrite="false">
+    <Plot  interactive="false" name="2DHistoryPlot_tpsHier" overwrite="false" dir="output_hier">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -112,6 +112,49 @@
         </title>
       </actions>
     </Plot>
+    <Plot  interactive="false" name="2DHistoryPlotCollapsed" overwrite="false" dir="output_collapsed">
+        <plotSettings>
+            <plot>
+                <type>line</type>
+                <x>storiesCollapsed|Output|time</x>
+                <y>storiesCollapsed|Output|pump_mass_flow_rate</y>
+                <kwargs>
+                    <color>green</color>
+                    <label>pipe1-Hw</label>
+                </kwargs>
+                <interpPointsX>50</interpPointsX>
+                <xlabel>time [s]</xlabel>
+                <ylabel>evolution</ylabel>
+            </plot>
+        </plotSettings>
+        <actions>
+            <how>pdf</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
+    </Plot>
+    <Plot  interactive="false" name="2DHistoryPlot_tpsCollapsed" overwrite="false" dir="output_collapsed">
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>PointsetCollapsed|Output|time</x>
+                <y>PointsetCollapsed|Output|pump_mass_flow_rate</y>
+                <kwargs>
+                    <color>green</color>
+                    <label>pipe1-Hw</label>
+                </kwargs>
+                <xlabel>time [s]</xlabel>
+                <ylabel>evolution</ylabel>
+            </plot>
+        </plotSettings>
+        <actions>
+            <how>pdf</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
+    </Plot>
   </OutStreams>
 
   <Steps>
@@ -122,13 +165,23 @@
       <Output class="Databases" type="HDF5">testBranchDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">Pointset</Output>
-      <Output class="OutStreams" type="Print">testprint_hist_hier</Output>
-      <Output class="OutStreams" type="Print">testprint_tpset_hier</Output>
-      <Output class="OutStreams" type="Print">testprint_hist_hier_variables</Output>
-      <Output class="OutStreams" type="Print">testprint_tpset_hier_variables</Output>
-      <Output class="OutStreams" type="Plot">2DHistoryPlot</Output>
-      <Output class="OutStreams" type="Plot">2DHistoryPlot_tps</Output>
+      <Output class="DataObjects" type="HistorySet">storiesCollapsed</Output>
+      <Output class="DataObjects" type="PointSet">PointsetCollapsed</Output>
     </MultiRun>
+    <IOStep name="dump_results">
+        <Input class="DataObjects" type="PointSet">Pointset</Input>
+        <Input class="DataObjects" type="PointSet">PointsetCollapsed</Input>
+        <Input class="DataObjects" type="HistorySet">stories</Input>
+        <Input class="DataObjects" type="HistorySet">storiesCollapsed</Input>
+        <Output class="OutStreams" type="Print">testprint_hist_hier</Output>
+        <Output class="OutStreams" type="Print">testprint_tpset_hier</Output>
+        <Output class="OutStreams" type="Plot">2DHistoryPlotHier</Output>
+        <Output class="OutStreams" type="Plot">2DHistoryPlot_tpsHier</Output>
+        <Output class="OutStreams" type="Print">testprint_hist_collapsed</Output>
+        <Output class="OutStreams" type="Print">testprint_tpset_collapsed</Output>
+        <Output class="OutStreams" type="Plot">2DHistoryPlotCollapsed</Output>
+        <Output class="OutStreams" type="Plot">2DHistoryPlot_tpsCollapsed</Output>
+    </IOStep>
   </Steps>
 
   <Databases>
@@ -136,13 +189,39 @@
   </Databases>
 
   <DataObjects>
+      <!--
+       hierarchical="true" means that all the histories
+       are not going to be reconstructed. All the branches are going to be
+       printed or plotted independently
+       -->
     <PointSet hierarchical="true" name="Pointset">
       <Input>dummy_for_branch</Input>
       <Output>pump_mass_flow_rate,time</Output>
     </PointSet>
+    <!--
+     hierarchical="false" is the default value. It means that all the histories
+     are going to be reconstructed from all the branches
+     -->
+    <PointSet hierarchical="false" name="PointsetCollapsed">
+        <Input>dummy_for_branch</Input>
+        <Output>pump_mass_flow_rate,time</Output>
+    </PointSet>
+    <!--
+     hierarchical="true" means that all the histories
+     are not going to be reconstructed. All the branches are going to be
+     printed or plotted independently
+     -->
+    <HistorySet hierarchical="false" name="storiesCollapsed">
+        <Input>dummy_for_branch</Input>
+        <Output>pump_mass_flow_rate,time</Output>
+    </HistorySet>
+    <!--
+     hierarchical="false" is the default value. It means that all the histories
+     are going to be reconstructed from all the branches
+     -->
     <HistorySet hierarchical="true" name="stories">
-      <Input>dummy_for_branch</Input>
-      <Output>pump_mass_flow_rate,time</Output>
+        <Input>dummy_for_branch</Input>
+        <Output>pump_mass_flow_rate,time</Output>
     </HistorySet>
   </DataObjects>
 
