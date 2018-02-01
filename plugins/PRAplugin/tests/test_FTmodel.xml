@@ -12,7 +12,7 @@
   
   <Models> 
     <ExternalModel name="FT" subType="FTmodel">
-      <variables>statusBE1,statusBE2,statusBE3,statusBE4</variables>
+      <variables>statusBE1,statusBE2,statusBE3,statusBE4,TOP</variables>
       <!-- xml portion for this plugin only -->
       <topEvents>TOP</topEvents>
       <map var='statusBE1'>BE1</map>
@@ -31,7 +31,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>2</limit>
+        <limit>10</limit>
       </samplerInit>
       <variable name="statusBE1">
         <distribution>distrib</distribution>
@@ -71,7 +71,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="sim_PS">
-      <Input>BE1,BE2,BE3,BE4</Input>
+      <Input>statusBE1,statusBE2,statusBE3,statusBE4</Input>
       <Output>TOP</Output>
     </PointSet>
   </DataObjects>

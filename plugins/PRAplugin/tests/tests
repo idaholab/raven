@@ -29,4 +29,14 @@
   input = 'test_markovModel_2states_tau.xml'
   csv = 'markovModel_2states_tau/Print_sim_PS.csv'
  [../]
+ [./TestETModel]
+  type = 'RavenFramework'
+  input = 'test_ETmodel.xml'
+  csv = 'ETmodel/Print_sim_PS.csv'
+ [../]
+ [./TestFTModel]
+  type = 'RavenFramework'
+  input = 'test_FTmodel.xml'
+  csv = 'FTmodel/Print_sim_PS.csv'
+ [../]
 []

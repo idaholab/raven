@@ -1,3 +1,14 @@
+<!-- 
+This FT compute the follwoing:
+TOP = G1+G2+G3
+G1 = BE1 BE2
+G2 = BE1 BE3
+G3 = BE1 BE4
+
+TOP = BE1 BE2 + BE1 BE3 + BE1 BE4 =
+    = BE1 + (BE2 + BE3 + BE4)
+-->
+
 <opsa-mef>
     <define-fault-tree name="FT">
         <define-gate name="TOP">

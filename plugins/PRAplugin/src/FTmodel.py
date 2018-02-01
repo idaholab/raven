@@ -44,12 +44,12 @@ class FTmodel(ExternalModelPluginBase):
       @ In, inputFiles, list, list of input files (if any)
       @ Out, None
     """
-    #container.faultTreeModel = FTstructure(inputFiles, self.messageHandler, container.topEventID)
-    container.faultTreeModel = FTstructure(inputFiles, container.topEventID)
+    #container.faultTreeModel = FTstructure(container['files'], container.topEventID)
 
-  #def createNewInput(self, container, inputs, samplerType, **Kwargs):
-  #  return
-  #  ripassa sampled vars
+  def createNewInput(self, container, inputs, samplerType, **Kwargs):
+    container.faultTreeModel = FTstructure(inputs, container.topEventID)
+    container.faultTreeModel.FTsolver()
+    return Kwargs  
 
   def run(self, container, Inputs):
     """
@@ -60,5 +60,8 @@ class FTmodel(ExternalModelPluginBase):
       @ In, Inputs, dict, dictionary of inputs from RAVEN
 
     """
-    value = container.faultTreeModel.evaluateFT(Inputs)
-    container.__dict__[container.topEventID]= value
+    inputForFT = {}
+    for key in container.InvMapping.keys():
+      inputForFT[key] = Inputs[container.InvMapping[key]]
+    value = container.faultTreeModel.evaluateFT(inputForFT)
+    container.__dict__[container.topEventID]= value[container.topEventID]

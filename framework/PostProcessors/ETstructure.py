@@ -63,9 +63,10 @@ class ETstructure():
         outcome = -1
         for index, var in enumerate(self.variables):
             combinationArray[index] = combination[var]
-        for row in self.pointSet:
-            if self.pointSet[:len(self.variables)] == combinationArray:
-                outcome = self.pointSet[:, -1]
+        inputData = self.pointSet[:,:len(self.variables)]
+        for row in self.pointSet:   
+            if np.array_equal(row[:len(self.variables)],combinationArray):
+                outcome = row[-1]
         return outcome
 
     def returnDict(self):
