@@ -30,6 +30,8 @@ from BaseClasses import BaseType
 from utils import InputData
 from .PostProcessor import PostProcessor
 import MessageHandler
+import Runners
+import Files
 #Internal Modules End-----------------------------------------------------------
 
 class DataClassifier(PostProcessor):
@@ -183,11 +185,17 @@ class DataClassifier(PostProcessor):
             self.raiseAnError(IOError, "None of the input DataObjects can be used as the reference classifier! Either the label", \
                     self.label, "is not exist in the output of the DataObjects or the inputs of the DataObjects are not the same as", \
                     ','.join(self.mapping.keys()))
-
-        newInput[dataType]['input'] = copy.deepcopy(inputObject.getInpParametersValues())
-        newInput[dataType]['output'] = copy.deepcopy(inputObject.getOutParametersValues())
-        newInput[dataType]['type'] = inputObject.type
-        newInput[dataType]['name'] = inputObject.name
+        if inputObject.type == 'PointSet':
+          newInput[dataType]['input'] = copy.deepcopy(inputObject.getInpParametersValues())
+          newInput[dataType]['output'] = copy.deepcopy(inputObject.getOutParametersValues())
+          newInput[dataType]['type'] = inputObject.type
+          newInput[dataType]['name'] = inputObject.name
+        else:
+          # only extract the last element in each realization for the HistorySet
+          newInput[dataType]['input'] = copy.deepcopy(inputObject.getInpParametersValues())
+          newInput[dataType]['output'] = copy.deepcopy(inputObject.getOutParametersValues())
+          newInput[dataType]['type'] = inputObject.type
+          newInput[dataType]['name'] = inputObject.name
 
     return newInput
 
@@ -212,18 +220,20 @@ class DataClassifier(PostProcessor):
         tempTargDict = {}
         for param, vals in targetDict['input'].items():
           tempTargDict[param] = vals[i]
+        for param, vals in targetDict['output'].items():
+          tempTargDict[param] = vals[i]
         tempClfList = []
         labelIndex = None
         for key, values in classifierDict['input'].items():
           calcVal = self.funcDict[key].evaluate("evaluate", tempTargDict)
           inds, = np.where(values == calcVal)
           if labelIndex is None:
-             lableIndex = set(inds)
+             labelIndex = set(inds)
           else:
             labelIndex = labelIndex & set(inds)
         if len(labelIndex) != 1:
           self.raiseAnError(IOError, "The parameters", ",".join(tempTargDict.keys()), "with values", ",".join([str(el) for el in tempTargDict.values()]), "could not be classifier!")
-        outputDict[self.label] = np.append(outputDict[self.label], classifierDict['output'][self.label][labelIndex[0]])
+        outputDict[self.label] = np.append(outputDict[self.label], classifierDict['output'][self.label][list(labelIndex)[0]])
 
     else: # HistorySet
       pass
