@@ -523,9 +523,11 @@ class PointSet(Data):
     #set up data scaling, so that relative distances are used
     # scaling is so that scaled = (actual - mean)/scale
     inpVals = self.getParametersValues('inputs')
-    for v in requested.keys():
+    floatVars = list(r for r in requested if r in inpVals.keys())
+    for v in floatVars:
       mean,scale = mathUtils.normalizationFactors(inpVals[v])
       self.treeScalingFactors[v] = (mean,scale)
+    print('DEBUGG constructing KDTree on',floatVars)
     #convert data into a matrix in the order of requested
-    data = np.dstack(tuple((np.array(inpVals[v])-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in requested.keys()))[0] #[0] is for t
+    data = np.dstack(tuple((np.array(inpVals[v])-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in floatVars))[0]
     self.inputKDTree = spatial.KDTree(data)

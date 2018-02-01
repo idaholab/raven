@@ -29,12 +29,13 @@ import copy
 import itertools
 import numpy as np
 import os
+from scipy import spatial
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils.cached_ndarray import c1darray
 from .Data import Data, NotConsistentData, ConstructError
-from utils import utils
+from utils import utils,mathUtils
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -577,59 +578,28 @@ class HistorySet(Data):
 
     self.checkConsistency()
 
-#   COMMENTED BECUASE NOT USED. NEED TO BE REMOVED IN THE FUTURE
-#   def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
-#     """
-#       specialization of extractValue for this data type
-#       @ In, inOutType, string, the type of data to extract (input or output)
-#       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
-#       @ In, varName, string, is the name of the variable that should be recovered
-#       @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
-#         if varID.type!=tuple only one point along sampling of that variable is retrieved
-#           else:
-#             if varID=(int,int) the slicing is [varID[0]:varID[1]]
-#             if varID=(int,None) the slicing is [varID[0]:]
-#       @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
-#           if stepID.type!=tuple only one point along the history is retrieved
-#           else:
-#             if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
-#             if stepID=(int,None) the slicing is [stepID[0]:]
-#       @ In, nodeId, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
-#       @ Out, value, varTyp, the requested value
-#     """
-#     if varTyp!='numpy.ndarray':
-#       if varName in self._dataParameters['inParam']:
-#         if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName]')
-#         else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)')
-#       else:
-#         if varID!=None:
-#           if stepID!=None and type(stepID)!=tuple: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName][stepID]')
-#           else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)')
-#         else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)')
-#     else:
-#       if varName in self._dataParameters['inParam']:
-#         myOut=np.zeros(len(self.getInpParametersValues().keys()))
-#         for key in self.getInpParametersValues().keys():
-#           myOut[int(key)]=self.getParam(inOutType,key)[varName][0]
-#         return myOut
-#       else:
-#         if varID!=None:
-#           if stepID==None:
-#             return self.getParam(inOutType,varID)[varName]
-#           elif type(stepID)==tuple:
-#             if stepID[1]==None: return self.getParam(inOutType,varID)[varName][stepID[0]:]
-#             else: return self.getParam(inOutType,varID)[varName][stepID[0]:stepID[1]]
-#           else: return self.getParam(inOutType,varID)[varName][stepID]
-#         else:
-#           if stepID==None: self.raiseAnError(RuntimeError,'more info needed trying to extract '+varName+' from data '+self.name)
-#           elif type(stepID)==tuple:
-#             if stepID[1]!=None:
-#               myOut=np.zeros((len(self.getOutParametersValues().keys()),stepID[1]-stepID[0]))
-#               for key in self.getOutParametersValues().keys():
-#                 myOut[int(key),:]=self.getParam(inOutType,key)[varName][stepID[0]:stepID[1]]
-#             else: self.raiseAnError(RuntimeError,'more info needed trying to extract '+varName+' from data '+self.name)
-#           else:
-#             myOut=np.zeros(len(self.getOutParametersValues().keys()))
-#             for key in self.getOutParametersValues().keys():
-#               myOut[int(key)]=self.getParam(inOutType,key)[varName][stepID]
-#             return myOut
+  def _constructKDTree(self,requested):
+    """
+      Constructs a KD tree consisting of the variable values in "requested"
+      @ In, requested, list, requested variable names
+      @ Out, None
+    """
+    # get by-sample data
+    samples = self.getParametersValues('inputs')
+    # this preserves the order of "requested" variables, which is critical to the KDTree
+    ## the non-float variables will be handled outside the KD tree.
+    floatVars = list(r for r in requested if r in samples.values()[0].keys())
+    inpVals = {}
+    #set up data scaling, so that relative distances are used
+    # scaling is so that scaled = (actual - mean)/scale
+    for v in floatVars:
+      inpVals[v] = np.array(list(samples[i][v][0] for i in samples))
+      mean,scale = mathUtils.normalizationFactors(inpVals[v])
+      self.treeScalingFactors[v] = (mean,scale)
+    # create normalized tree
+    print('DEBUGG training KDTree on',floatVars)
+    for v in floatVars:
+      print('DEBUGG ...',v,inpVals[v])
+    data = np.dstack(tuple((inpVals[v]-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in floatVars))[0]
+    self.inputKDTree = spatial.KDTree(data)
+

@@ -683,7 +683,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.values[corrVar.strip()] = test
     ##### RESTART #####
     #check if point already exists
-    if self.restartData is not None and len(self.restartData)>0:
+    if self.restartData is not None:
       # check if restart data object is compatible
       if self.restartIsCompatible is None:
         self.restartIsCompatible = self.restartData.checkInputCompatibility(self.values.keys())

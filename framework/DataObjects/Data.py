@@ -553,7 +553,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       if all(m in metaSet for m in missing):
         return True
       else:
-        self.raiseADebug('Requested Space :',requested.keys())
+        self.raiseADebug('Requested Space :',requested)
         self.raiseADebug('DataObject Space:',haveSet.union(metaSet))
         self.raiseAWarning('Requested realization input space does not match DataObject input space!  Assuming not found. Run with debug verbosity for more information.')
         return False
@@ -571,37 +571,74 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #if there's no entries, just return
     if len(self) < 1:
       return
-    #check input spaces match
+    #check input spaces match (unless requested to skip that)
     if not skipInputCheck:
       compatible = self.checkInputCompatibility(requested)
       if not compatible:
         return
-    # TODO check variables from meta vars, separately from variables in input space
-    print('DEBUGG inputs:',self.getParametersValues('inputs'))
-    inpVals = self.getParametersValues('inputs')
-    #in benchmarking, using KDTree to query was shown to be consistently and on-average faster
-    #  for each tensor case of dimensions=[2,5,10], number of realizations=[10,100,1000]
-    #  when compared with brute force search through tuples
-    #  This speedup was realized both in formatting, as well as creating the tree/querying the tree
-    #if inputs have changed or this if first query, build the tree
-    # TODO what if getMatchingRealization is called with a different set of keys in "requested"? Tree needs rebuilding?
+    # Two steps in finding matching realization:
+    #   1. Find the matching float values, using a KDTree approach
+    #   2. Check to make sure other values (e.g. strings) match in the realization obtained from (1).
+    # This works because strings can only come from function/constants, not from sampled variables.
+    #
+    ## First, obtain matching float realization
+    ### Note about benchmarking KDTree:
+    #  in benchmarking, using KDTree to query was shown to be consistently and on-average faster
+    #   for each tensor case of numVariables=[2,5,10], number of realizations=[10,100,1000]
+    #   when compared with brute force search through tuples
+    #   This speedup was realized both in formatting, as well as creating the tree/querying the tree
+    ### if inputs have changed or this if first query, build the tree
+    ### TODO what if getMatchingRealization is called with a different set of keys in "requested"? Tree needs rebuilding?
+    print('\n tol:',tol,len(self))
     if self.inputKDTree is None:
       self._constructKDTree(requested)
-    #query the tree
-    distances,indices = self.inputKDTree.query(tuple((v-self.treeScalingFactors[k][0])/self.treeScalingFactors[k][1] for k,v in requested.items()),\
+    print('DEBUGG looking for match to:')
+    for k,v in requested.items():
+      print('DEBUGG    ',k,v)
+    #query the tree for all float variables
+    floatVars = list(r for r in requested if r in self.getParaKeys('inputs'))
+    normMatchPoint = tuple((requested[v]-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in floatVars)
+    print('DEBUGG interrogating KDTree at',floatVars)
+    distances,indices = self.inputKDTree.query(normMatchPoint,
                   distance_upper_bound=tol, #acceptable distance
-                  k=1, #number of points to find
-                  p=2) #use Euclidean distance
+                  k=1,                      #number of points to find
+                  p=2)                      #use Euclidean distance
     #if multiple entries were within tolerance, accept the minimum one
     if hasattr(distances,'__len__'):
+      print('DEBUGG found:')
+      for i in range(len(distances)):
+        print('DEBUGG   ',distances[i],indices[i])
       index = indices[distances.index(min(distances))]
     else:
+      print('DEBUGG found:',indices,distances)
       index = indices
+    #"not found" case
     #KDTree reports a "not found" as at infinite distance, at len(data) index
     if index >= len(self):
+      self.raiseADebug('No matching restart point found (floats).')
       return None
-    else:
-      realization = self.getRealization(index)
+    #at this point, we've found a realization with matches for our float variables
+    #if self.type == 'HistorySet':
+    realization = self.getRealization(index)
+    print('DEBUGG matched floats:')
+    for k,v in realization.items():
+      print('DEBUGG    ',k,v)
+    ## Second, check if remaining string variables match in the realization we found
+    match = True
+    metaVars = set(requested.keys()).difference(set(realization['inputs'].keys()))
+    metaVals = self.getMetadata('SampledVars')
+    if self.type == 'HistorySet':
+      metaVals = dict((var,np.array(list(metaVals[idx][var] for idx in range(len(metaVals))))) for var in metaVars)
+      #index += 1
+    # values are specific to point set/history set
+    for var in metaVars:
+      if requested[var] != metaVals[var][index]:
+        match = False
+        print('DEBUGG failed',var,requested[var],metaVals[var][index])
+        break
+    if not match:
+      self.raiseADebug('No matching restart point found (strings).')
+      return None
     return realization
 
   def _constructKDTree(self,requested):
@@ -1149,29 +1186,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.raiseAnError(RuntimeError,"specializedloadXMLandCSV not implemented "+str(self))
 
   ##Private Methods
-
-#   COMMENTED SINCE NO USED. NEEDS TO BE REMOVED IN THE FUTURE
-#   @abc.abstractmethod
-#   def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
-#     """
-#       This method has to be override to implement the specialization of extractValue for each data class
-#       @ In, inOutType, string, the type of data to extract (input or output)
-#       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
-#       @ In, varName, string, is the name of the variable that should be recovered
-#       @ In, varID, tuple or int, optional,  is the ID of the value that should be retrieved within a set
-#         if varID.type!=tuple only one point along sampling of that variable is retrieved
-#           else:
-#             if varID=(int,int) the slicing is [varID[0]:varID[1]]
-#             if varID=(int,None) the slicing is [varID[0]:]
-#       @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
-#           if stepID.type!=tuple only one point along the history is retrieved
-#           else:
-#             if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
-#             if stepID=(int,None) the slicing is [stepID[0]:]
-#       @ In, nodeId, string, optional, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
-#       @ Out, value, the requested value
-#     """
-#     pass
 
   def __getVariablesToPrint(self,var,inOrOut):
     """
