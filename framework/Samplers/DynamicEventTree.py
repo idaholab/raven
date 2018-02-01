@@ -212,10 +212,14 @@ class DynamicEventTree(Grid):
       @ Out, None
     """
     self.workingDir = model.workingDir
-    
+
+    if 'adaptive_2' in self.TreeInfo:
+      if len(self.TreeInfo['adaptive_2'].getrootnode()._branches) > 0:
+        print("***1 _ "+ str(self.TreeInfo['adaptive_2'].getrootnode()._branches[0].get("SampledVarsPb")))
+
     if jobObject.identifier == 'adaptive_2-2':
       print("aaaa")
-    
+
     # returnBranchInfo = self.__readBranchInfo(jobObject.output)
     # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
     parentNode = self._retrieveParentNode(jobObject.identifier)
@@ -318,7 +322,9 @@ class DynamicEventTree(Grid):
     # Create the inputs and put them in the runQueue dictionary (if genRunQueue is true)
     if genRunQueue:
       self._createRunningQueue(model,myInput)
-
+    if 'adaptive_2' in self.TreeInfo:
+      if len(self.TreeInfo['adaptive_2'].getrootnode()._branches) > 0:
+        print("***2 _ "+ str(self.TreeInfo['adaptive_2'].getrootnode()._branches[0].get("SampledVarsPb")))
     return True
 
   def computeConditionalProbability(self,index=None):
@@ -417,7 +423,7 @@ class DynamicEventTree(Grid):
     rootnode    =  rootTree.getrootnode()
     rname       = rootnode.name
     if rname == 'adaptive_2-2':
-      print("aaaa")    
+      print("aaaa")
     rootnode.add('completedHistory', False)
     # Fill th values dictionary in
     if precSampled:
@@ -449,7 +455,7 @@ class DynamicEventTree(Grid):
       #self.inputInfo['SampledVars'  ][varname] = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
       self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname] ]
       if (self.inputInfo['SampledVarsPb'][varname] - 0.000588235294117647) <= 0.0000001:
-        print("aaaa")      
+        print("aaaa")
       #self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
     # constant variables
     self._constantVariables()
@@ -465,14 +471,18 @@ class DynamicEventTree(Grid):
     if(self.maxSimulTime):
       self.inputInfo['endTime'] = self.maxSimulTime
     # Add the new input path into the RunQueue system
-    newInputs = {'args':[str(self.type)], 'kwargs':dict(self.inputInfo)}
+    newInputs = {'args':[str(self.type)], 'kwargs':copy.deepcopy(dict(self.inputInfo))}
     for key,value in self.inputInfo.items():
-      rootnode.add(key,value)
+      rootnode.add(key,copy.copy(value))
     self.RunQueue['queue'].append(newInputs)
     self.RunQueue['identifiers'].append(self.inputInfo['prefix'].encode())
     self.rootToJob[self.inputInfo['prefix']] = rname
     del newInputs
     self.counter += 1
+    if 'adaptive_2' in self.TreeInfo:
+      if len(self.TreeInfo['adaptive_2'].getrootnode()._branches) > 0:
+        print("***3 _ "+ str(self.TreeInfo['adaptive_2'].getrootnode()._branches[0].get("SampledVarsPb")))
+    print(self.inputInfo)
 
   def _createRunningQueueBegin(self,model,myInput):
     """
@@ -531,10 +541,10 @@ class DynamicEventTree(Grid):
       branchedLevel = copy.deepcopy(branchedLevelParent)
       # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
       rname = endInfo['parentNode'].get('name') + '-' + str(self.branchCountOnLevel)
-      
+
       if rname == 'adaptive_2-2':
         print("aaaa")
-      
+
       # create a subgroup that will be appended to the parent element in the xml tree structure
       subGroup = ETS.HierarchicalNode(self.messageHandler,rname.encode())
       subGroup.add('parent', endInfo['parentNode'].get('name'))
@@ -646,7 +656,7 @@ class DynamicEventTree(Grid):
         self.inputInfo['SampledVars'][varname]   = self.branchValues[varname][branchedLevel[varname]]
         self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname]]
         if (self.inputInfo['SampledVarsPb'][varname] - 0.000588235294117647) <= 0.0000001:
-          print("aaaa")        
+          print("aaaa")
         #self.inputInfo['SampledVars'][varname]   = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
         #self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
       self._constantVariables()
@@ -658,14 +668,18 @@ class DynamicEventTree(Grid):
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
       self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
       # Add the new input path into the RunQueue system
-      newInputs = {'args': [str(self.type)], 'kwargs': dict(self.inputInfo)}
+      newInputs = {'args': [str(self.type)], 'kwargs': copy.deepcopy(dict(self.inputInfo))}
       self.RunQueue['queue'].append(newInputs)
       self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
       for key,value in self.inputInfo.items():
-        subGroup.add(key,value)
+        subGroup.add(key,copy.copy(value))
       popped = endInfo.pop('parentNode')
       subGroup.add('endInfo',copy.deepcopy(endInfo))
       endInfo['parentNode'] = popped
+      print(self.inputInfo)
+      if 'adaptive_2' in self.TreeInfo:
+        if len(self.TreeInfo['adaptive_2'].getrootnode()._branches) > 0:
+          print("***4 _ "+ str(self.TreeInfo['adaptive_2'].getrootnode()._branches[0].get("SampledVarsPb")))
       del branchedLevel
 
   def _createRunningQueue(self, model, myInput, forceEvent=False):
