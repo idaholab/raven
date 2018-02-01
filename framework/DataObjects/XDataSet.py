@@ -813,8 +813,6 @@ class DataSet(DataObject):
       # otherwise, find the index of the match
       idx,match = self.realization(matchDict={'prefix':parentID})
       self._changeVariableValue(idx,endVar,False)
-    #else # no action taken for data without hierarchical information
-
 
   def _collapseNDtoDataArray(self,data,var,labels=None,dtype=None):
     """
