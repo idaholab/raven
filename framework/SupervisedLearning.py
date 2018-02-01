@@ -47,6 +47,10 @@ else:
   from sklearn import lda
 # from sklearn import discriminant_analysis
 
+# To be removed when the supported minimum version of sklearn is moved to 0.18
+if int(sklearn.__version__.split(".")[1]) > 17:
+  from sklearn import neural_network
+
 from sklearn import tree
 
 from sklearn import gaussian_process
@@ -2110,6 +2114,13 @@ class SciKitLearn(superVisedLearning):
 
   availImpl['GaussianProcess'] = {}
   availImpl['GaussianProcess']['GaussianProcess'          ] = (gaussian_process.GaussianProcess         , 'float' ,  False)
+  # Neural network models (supervised)
+  # To be removed when the supported minimum version of sklearn is moved to 0.18
+  if int(sklearn.__version__.split(".")[1]) > 17:
+    availImpl['neural_network'] = {}
+    availImpl['neural_network']['MLPClassifier'              ] = (neural_network.MLPClassifier             , 'int'   ,  True)  # Multi-layer perceptron classifier.
+    availImpl['neural_network']['MLPRegressor'               ] = (neural_network.MLPRegressor              , 'float' ,  True)  # Multi-layer perceptron regressor.
+
   #test if a method to estimate the probability of the prediction is available
   qualityEstTypeDict = {}
   for key1, myDict in availImpl.items():
@@ -2210,11 +2221,11 @@ class SciKitLearn(superVisedLearning):
     if self.intrinsicMultiTarget:
       self.ROM[0].fit(featureVals,targetVals)
     else:
-      if not all([len(np.unique(targetVals[:,index]))>1 for index in range(len(self.ROM))]):
+      # if all targets only have a single unique value, just store that value, no need to fit/train
+      if all([len(np.unique(targetVals[:,index])) == 1 for index in range(len(self.ROM))]):
         self.myNumber = [np.unique(targetVals[:,index])[0] for index in range(len(self.ROM)) ]
         self.evaluate = self._readdressEvaluateConstResponse
       else:
-
         for index in range(len(self.ROM)):
           self.ROM[index].fit(featureVals,targetVals[:,index])
         self.evaluate = self._readdressEvaluateRomResponse

@@ -655,6 +655,204 @@
 }
 %%%%%%%%%%%%%%%%%%%% End Common Gaussian Process Parameters %%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%% Common Multi-layer Perceptron Parameters %%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\hiddenLayerSizesMLPDescription}[1]
+{
+  \xmlNode{hidden\_layer\_sizes}, \xmlDesc{tuple, length = n\_layers - 2, optional field}, the ith
+  element represents the number of neurons in the ith hidden layer.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\activationMLPDescription}[1]
+{
+  \xmlNode{activation}, \xmlDesc{string, optional field}, activation function for the hidden layer.
+  \begin{itemize}
+    \item \textit{identity}, no-op activation, useful to implement linear bottleneck, returns
+      f(x) = x
+    \item \textit{logistic}, the logistic sigmoid function, returns f(x) = 1/(1+exp(-x))
+    \item \textit{tanh}, the hyperbolic tan function, returns f(x) = tanh(x)
+    \item \textit{relu}, the rectified linear function, returns f(x) = max(0, x)
+  \end{itemize}
+
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\solverMLPDescription}[1]
+{
+  \xmlNode{solver}, \xmlDesc{string, optional field}, The solver for weight optimization.
+  \begin{itemize}
+    \item \textit{lbfgs}, is an optimizer in the family of quasi-Newton methods
+    \item \textit{sgd}, refers to stochastic gradient descent
+    \item \textit{adam}, refers to a stochastic gradient-based optimizer proposed by
+      Kingma, Diederik, and Jimmy Ba.
+  \end{itemize}
+  \nb The default solver \textit{adam} works pretty well on relatively large datasets
+  (with thousands of training samples or more) in terms of both training time and validation
+  score. For small datasets, however, \textit{lbfgs} can converge faster and perform better.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+
+\newcommand{\alphaMLPDescription}[1]
+{
+  \xmlNode{alpha}, \xmlDesc{float, optional field}, L2 penalty parameter
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\batchSizeMLPDescription}[1]
+{
+  \xmlNode{batch\_size}, \xmlDesc{int or `auto', optional field}, Size of minibatches for stochastic
+  optimizers. If the solver is \textit{lbfgs}, the classifier will not use minibatch. When
+  set to \textit{auto}, batch\_size = min(200, n\_samples)
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+
+\newcommand{\learningRateMLPDescription}[1]
+{
+  \xmlNode{learning\_rate}, \xmlDesc{string, optional field}, Learning rate schedule for weight updates
+  \begin{itemize}
+    \item \textit{constant}, is a constant learning rate given by \textit{learning\_rate\_init}
+    \item \textit{invscaling}, gradually decreases the learning rate at each time step `t' using an
+      inverse scaling exponent of `power\_t'. effective\_learning\_rate = learning\_rate\_init / pow(t, power\_t)
+    \item \textit{adaptive}, keeps the learning rate constant to `learning\_rate\_init' as long as
+      training loss keeps decreasing. Each time two consecutive epochs fail to decrease training loss by at least
+       tol, or fail to increase validation score by at least tol if `early\_stopping' is on, the current
+       learning rate is divided by 5.
+       \nb Only used when \textit{solver = `sgd'}
+  \end{itemize}
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\learningRateInitMLPDescription}[1]
+{
+  \xmlNode{learning\_rate\_init}, \xmlDesc{float, optional field}, The initial learning rate used. It
+  controls the step-size in updating the weights. Only used when solver = `sgd' or `adam'
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+
+\newcommand{\powerTMLPDescription}[1]
+{
+  \xmlNode{power\_t}, \xmlDesc{float, optional field}, the exponent for inverse scaling learning rate.
+  It is used in updating effective learning rate when the learning\_rate is set to `invscaling'. only
+  used when solver = `sgd'
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\maxIterMLPDescription}[1]
+{
+  \xmlNode{max\_iter}, \xmlDesc{int, optional field}, maximum number of iterations. The solver iterates until
+  convergence (determined by `tol') or this number of iterations. For stochastic solvers (`sgd', `adam'), note
+  that this determines the number of epochs (how many times each data point will be used), not the number
+  of gradient steps
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+
+
+\newcommand{\shuffleMLPDescription}[1]
+{
+  \xmlNode{shuffle}, \xmlDesc{bool, optional field}, whether to shuffle samples in each iteration. Only used
+  when solver = `sgd' or `adam'
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\randomStateMLPDescription}[1]
+{
+  \xmlNode{random\_state}, \xmlDesc{int, RandomState instance or None, optional field}
+  if int, random\_state is the seed used by the random number generator; If RandomState
+  instance, random\_state is the random number generator; If None, the random number
+  generator is the RandomState instance used by np.random.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\tolMLPDescription}[1]
+{
+  \xmlNode{tol}, \xmlDesc{float, optional field}, tolerance for optimization. When the loss or
+  score is not improving by at least tol for two consecutive iterations, unless learning\_rate
+  is set to `adaptive', convergence is considered to be reached and training stops.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\verboseMLPDescription}[1]
+{
+  \xmlNode{verbose}, \xmlDesc{bool, optional field}, whether to print progress messages or stdout
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\warmStartMLPDescription}[1]
+{
+  \xmlNode{warm\_start}, \xmlDesc{bool, optional field}, when set to True, reuse the solution of 
+  previous call to fit as initialization, otherise, just erase the previous solution.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\momentumMLPDescription}[1]
+{
+  \xmlNode{momentum}, \xmlDesc{float, optional field}, momentum for gradient descent update.
+  Should be between 0 and 1. Only used when solver = `sgd'.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\nesterovsMomentumMLPDescription}[1]
+{
+  \xmlNode{nesterovs\_momentum}, \xmlDesc{bool, optional field}, whether to use Nesterov's momentum.
+  Only used when solver='sgd' and momentum > 0.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\earlyStoppingMLPDescription}[1]
+{
+  \xmlNode{early\_stopping}, \xmlDesc{bool, optional field}, whether to use early stopping to terminate
+  training when validation score is not improving. If set to true, it will automatically set aside 10\%
+  of training data as validation and terminate training when validation score is not improving by at
+  least tol for two consecutive epochs. Only effective when solver=`sgd' or `adam'.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\validationFractionMLPDescription}[1]
+{
+  \xmlNode{validation\_fraction}, \xmlDesc{float, optional field}, the proportion of training data to set
+  aside as validation set for early stopping. Must be between 0 and 1. Only used if early\_stopping is True.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\epsilonMLPDescription}[1]
+{
+  \xmlNode{epsilon}, \xmlDesc{float, optional field}, value for numerical stability in adam. Only used
+  when solver = `adam'
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\betaAMLPDescription}[1]
+{
+  \xmlNode{beta\_1}, \xmlDesc{float, optional field}, exponential decay rate for estimates of first moment
+  vector in adam. should be in [0, 1). only used when solver = `adam'
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\betaBMLPDescription}[1]
+{
+  \xmlNode{beta\_2}, \xmlDesc{float, optional field}, exponentail decay rate for estimates of second moment
+  vector in adam. should be in [0, 1). only used when solver = `adam'
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+%%%%%%%%%%%%%%%%%%%% End Common Multi-layer Perceptron Parameters %%%%%%%%%%%%%%%%%%%%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In RAVEN, \textbf{Models} are important entities.
