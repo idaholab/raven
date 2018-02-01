@@ -187,7 +187,7 @@ class PointSet(DataSet):
       keep = self._getRequestedElements(kwargs)
       toDrop = list(var for var in self.getVars() if var not in keep)
       #FIXME: THIS IS EXTREMELY SLOW
-      full = self._constructHierPaths()[start-1:]
+      full = self._constructHierPaths()[start:]
       # set up data to write
       mode = 'a' if start > 0 else 'w'
 
