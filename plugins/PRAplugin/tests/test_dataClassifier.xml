@@ -2,13 +2,13 @@
 
   <RunInfo>
     <WorkingDir>dataClassifier</WorkingDir>
-    <Sequence>simRun,import_ET_PS,classify,printOnFile_ET_PS,printOnFile_sim_PS</Sequence>
+    <Sequence>simRun,printOnFile_sim_PS</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Distributions>
     <Bernoulli name="ACC_distrib">
-      <p>0.4</p>
+      <p>0.5</p>
     </Bernoulli>
     <Normal name="LPI_distrib">
       <mean>5</mean>
@@ -23,7 +23,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>10</limit>
+        <limit>50</limit>
       </samplerInit>
       <variable name="ACC_status">
         <distribution>ACC_distrib</distribution>
@@ -101,11 +101,11 @@
     </PostProcess>
     <IOStep name="printOnFile_ET_PS">
       <Input   class="DataObjects"  type="PointSet"        >ET_PS</Input>
-      <Output  class="OutStreams"   type="Print"           >Print_ET_PS</Output>
+      <Output  class="OutStreams"   type="Print"           >printOnFile_ET_PS</Output>
     </IOStep>
     <IOStep name="printOnFile_sim_PS">
       <Input   class="DataObjects"  type="PointSet"        >sim_PS</Input>
-      <Output  class="OutStreams"   type="Print"           >Print_sim_PS</Output>
+      <Output  class="OutStreams"   type="Print"           >printOnFile_sim_PS</Output>
     </IOStep>
   </Steps>
 
@@ -131,7 +131,7 @@
     </PointSet>
     <PointSet name="sim_PS">
       <Input>ACC_status,time_LPI,time_LPR</Input>
-      <Output>out,LPI_status,LPR_status,endTime</Output>
+      <Output>out,LPI_status,LPR_status</Output>
     </PointSet>
   </DataObjects>
   
