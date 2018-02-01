@@ -140,6 +140,10 @@
       <type>csv</type>
       <source>histories</source>
     </Print>
+    <Print name="LSintegral">
+      <type>csv</type>
+      <source>limitSurfaceIntegral</source>
+    </Print>
     <Plot name="historyPlot" overwrite="false" verbosity="debug">
       <plotSettings>
         <gridSpace>2 2</gridSpace>
@@ -262,10 +266,6 @@
         </title>
       </actions>
     </Plot>
-    <Print name="LSintegral">
-      <type>csv</type>
-      <source>limitSurfaceIntegral</source>
-    </Print>
   </OutStreams>
 
 </Simulation>

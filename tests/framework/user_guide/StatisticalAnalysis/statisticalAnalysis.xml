@@ -123,13 +123,13 @@
       <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
       <Output>A,B,C,D</Output>
     </PointSet>
+    <PointSet name="statisticalAnalysis_basicStatPP">
+        <Output>statisticalAnalysis_vars</Output>
+    </PointSet>
     <HistorySet name="histories">
       <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
       <Output>A,B,C,D,time</Output>
     </HistorySet>
-    <PointSet name="statisticalAnalysis_basicStatPP">
-      <Output>statisticalAnalysis_vars</Output>
-    </PointSet>
   </DataObjects>
 
   <VariableGroups>
