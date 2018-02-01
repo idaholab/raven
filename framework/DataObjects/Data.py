@@ -530,39 +530,63 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       return self._dataContainer['inputs'] if not unstructuredInputs else self._dataContainer['unstructuredInputs']
 
-  def getMatchingRealization(self,requested,tol=1e-15):
+  def checkInputCompatibility(self,requested):
+    """
+      Checks if all the elements of "requested" are in this data object's input space (including metadata)
+      @ In, requested, list(str), variable names to check for
+      @ Out, compatible, bool, True if all inputs found
+    """
+    #FIXME We only check that all the inputs we need are in this data object's input space; we ignore other variables we don't need
+    #  that are in the data object.  This is because, for example, the Transformed space puts all the variables in the input space,
+    #  and we don't need them to restart.  However, this means it is possible to take values in misleading ways from a higher-dimensional
+    #  input space!
+    compatible = True
+    requestSet = set(requested)
+    haveSet = set(self.getParaKeys('inputs'))
+    missing = requestSet.difference(haveSet)
+    # if we're missing variables, we need to look farther or skip restarting
+    if len(missing) > 1:
+      # get the list of sampled variables from the metadata
+      metaSet = self.getAllMetadata()['SampledVars'][0].keys()
+      # reduce this list by removing the variables in the normal input space of this data object
+      metaSet = set(metaSet).difference(haveSet)
+      if all(m in metaSet for m in missing):
+        return True
+      else:
+        self.raiseADebug('Requested Space :',requested.keys())
+        self.raiseADebug('DataObject Space:',haveSet.union(metaSet))
+        self.raiseAWarning('Requested realization input space does not match DataObject input space!  Assuming not found. Run with debug verbosity for more information.')
+        return False
+    else:
+      return True
+
+  def getMatchingRealization(self,requested,tol=1e-15,skipInputCheck=False):
     """
       Finds first appropriate match within tolerance and returns it.
       @ In, requested, dict, {inName:inValue, inName:inValue}
-      @ In, tol, float, relative tolerance with which to match
+      @ In, tol, float, optional, relative tolerance with which to match
+      @ In, skipInputCheck, bool, optional, allows skipping the checkInputCompatibility if desired (e.g. called beforehand from outside)
       @ Out, realization, dict, {'inputs':{inpName:value, inpName:value},'outputs':{outName:value, outName:value}} or None if not found
     """
     #if there's no entries, just return
     if len(self) < 1:
       return
     #check input spaces match
-    #FIXME I don't like this fix.  Because of the Transformed space, our internal space includes latent variables, so we check subset.
-    #  This is potentially flawed, though, in case you're taking points from a higher-dimension space!
-    if not set(requested.keys()).issubset(set(self.getParaKeys('inputs'))):
-      self.raiseADebug('Requested Space :',requested.keys())
-      self.raiseADebug('DataObject Space:',self.getParaKeys('inputs'))
-      self.raiseADebug('Requested realization input space does not match DataObject input space!  Assuming not found...')
-      return
+    if not skipInputCheck:
+      compatible = self.checkInputCompatibility(requested)
+      if not compatible:
+        return
+    # TODO check variables from meta vars, separately from variables in input space
+    print('DEBUGG inputs:',self.getParametersValues('inputs'))
     inpVals = self.getParametersValues('inputs')
     #in benchmarking, using KDTree to query was shown to be consistently and on-average faster
     #  for each tensor case of dimensions=[2,5,10], number of realizations=[10,100,1000]
     #  when compared with brute force search through tuples
     #  This speedup was realized both in formatting, as well as creating the tree/querying the tree
     #if inputs have changed or this if first query, build the tree
+    # TODO what if getMatchingRealization is called with a different set of keys in "requested"? Tree needs rebuilding?
     if self.inputKDTree is None:
-      #set up data scaling, so that relative distances are used
-      # scaling is so that scaled = (actual - mean)/scale
-      for v in requested.keys():
-        mean,scale = mathUtils.normalizationFactors(inpVals[v])
-        self.treeScalingFactors[v] = (mean,scale)
-      #convert data into a matrix in the order of requested
-      data = np.dstack(tuple((np.array(inpVals[v])-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in requested.keys()))[0] #[0] is for the way dstack constructs the stack
-      self.inputKDTree = spatial.KDTree(data)
+      self._constructKDTree(requested)
     #query the tree
     distances,indices = self.inputKDTree.query(tuple((v-self.treeScalingFactors[k][0])/self.treeScalingFactors[k][1] for k,v in requested.items()),\
                   distance_upper_bound=tol, #acceptable distance
@@ -580,17 +604,14 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       realization = self.getRealization(index)
     return realization
 
-    #brute force approach, for comparison
-    #prepare list of tuples to search from
-    #have = []
-    #for i in range(len(inpVals.values()[0])):
-    #  have.append(tuple(inpVals[var][i] for var in requested.keys()))
-    #have = np.array(have)
-    #found,idx,match = mathUtils.NDInArray(have,tuple(val for val in requested.values()),tol=tol)
-    #if not found:
-    #  return
-    #realization = self.getRealization(idx)
-    #return realization
+  def _constructKDTree(self,requested):
+    """
+      Constructs a KD tree consisting of the variable values in "requested".
+      Requires specialized implementations.
+      @ In, requested, list, requested variable names
+      @ Out, None
+    """
+    self.raiseAnError(NotImplementedError,'Base Data has no method for constructing a KDTree!  Should be implemented by inheritors.')
 
   def getMetadata(self,keyword,nodeId=None,serialize=False):
     """
