@@ -52,7 +52,7 @@ def convert(tree,fileName=None):
         outputName = ET.Element('outputName')
         outputName.text = 'EventProbability'
         model.append(outputName)
-       outputNamesVariables.append(model.find('outputName').text)
+      outputNamesVariables.append(model.find('outputName').text)
     if model.tag == 'PostProcessor' and model.attrib['subType'] == 'LimitSurface':
       limitSurfaceNames.append(model.attrib['name'])
   # check the steps if there are files and replace them with a dataObject outstream
