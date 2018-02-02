@@ -276,7 +276,5 @@ class Grid(ForwardSampler):
           self.inputInfo['ProbabilityWeight-'+distName] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
           weight *= self.distDict[varName].cellIntegral(ndCoordinate,dxs)
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    # reassign probability weight to correlated variables
-    self._reassignPbWeightToCorrelatedVars()
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Grid'

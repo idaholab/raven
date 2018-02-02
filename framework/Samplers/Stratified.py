@@ -265,7 +265,5 @@ class Stratified(Grid):
             self.inputInfo['lower'][subVar] = min(upper,lower)
 
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    # reassign probability weight to correlated variables
-    self._reassignPbWeightToCorrelatedVars()
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'
