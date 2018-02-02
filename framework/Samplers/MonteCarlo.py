@@ -185,8 +185,6 @@ class MonteCarlo(ForwardSampler):
       self.inputInfo['ProbabilityWeight'  ] = weight
     else:
       self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
-    # reassign SampledVarsPb to fully correlated variables
-    self._reassignSampledVarsPbToFullyCorrVars()
     self.inputInfo['SamplerType'] = 'MonteCarlo'
 
   def _localHandleFailedRuns(self,failedRuns):
