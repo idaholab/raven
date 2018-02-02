@@ -1,0 +1,175 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/InterfacedPostProcessor.HStoPSoperators</name>
+    <author>alfoa</author>
+    <created>2018-02-01</created>
+    <classesTested>InterfacedPostProcessor</classesTested>
+    <description>
+      This test is aimed to show how to use the ``HStoPSoperator'' InterfacedPostProcessor.
+      The 3 basic functionalities are testes:
+      1) row-based projection, 2) pivot-value-based projection and 3) operator-based projection (max, min, average)
+    </description>
+  </TestInfo>
+  
+  <RunInfo>
+    <WorkingDir>HStoPSoperators</WorkingDir>
+    <Sequence>
+        CreateData,
+        PP_HStoPSoperatorRows,
+        PP_HStoPSoperatorPivotValues,
+        PP_HStoPSoperatorOperatorMax,
+        PP_HStoPSoperatorOperatorMin,
+        PP_HStoPSoperatorOperatorAverage
+    </Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="lorentzAttractor" name="simple_model" subType="">
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+    </ExternalModel>
+    <PostProcessor name="HStoPSoperatorRows" subType="InterfacedPostProcessor">
+      <method>HStoPSoperator</method>
+      <row>-1</row>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorPivotValues" subType="InterfacedPostProcessor">
+        <method>HStoPSoperator</method>
+        <pivotParameter>time</pivotParameter>
+        <pivotValue>0.3</pivotValue>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorOperatorMax" subType="InterfacedPostProcessor">
+        <method>HStoPSoperator</method>
+        <pivotParameter>time</pivotParameter>
+        <operator>max</operator>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorOperatorMin" subType="InterfacedPostProcessor">
+        <method>HStoPSoperator</method>
+        <pivotParameter>time</pivotParameter>
+        <operator>min</operator>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorOperatorAverage" subType="InterfacedPostProcessor">
+        <method>HStoPSoperator</method>
+        <pivotParameter>time</pivotParameter>
+        <operator>average</operator>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="dist_generator">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit> <limit>2</limit> </samplerInit>
+      <variable name="x0"> <distribution>dist_generator</distribution> </variable>
+      <variable name="y0"> <distribution>dist_generator</distribution> </variable>
+      <variable name="z0"> <distribution>dist_generator</distribution> </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="out_PP_HStoPSRows_dump">
+      <type>csv</type>
+      <source>out_PP_HStoPSRows</source>
+    </Print>
+    <Print name="out_PP_HStoPSPivotValues_dump">
+        <type>csv</type>
+        <source>out_PP_HStoPSPivotValues</source>
+    </Print>
+    <Print name="out_PP_HStoPSPivotOperatorMax_dump">
+        <type>csv</type>
+        <source>out_PP_HStoPSPivotOperatorMax</source>
+    </Print>
+    <Print name="out_PP_HStoPSPivotOperatorMin_dump">
+        <type>csv</type>
+        <source>out_PP_HStoPSPivotOperatorMin</source>
+    </Print>
+    <Print name="out_PP_HStoPSPivotOperatorAverage_dump">
+        <type>csv</type>
+        <source>out_PP_HStoPSPivotOperatorAverage</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    
+    <PointSet name="out_PP_HStoPSRows">
+      <Input>x0,y0,z0</Input>
+      <Output>x,y,z</Output>
+    </PointSet>
+    <PointSet name="out_PP_HStoPSPivotValues">
+        <Input>x0,y0,z0</Input>
+        <Output>x,y,z</Output>
+    </PointSet>
+    <PointSet name="out_PP_HStoPSPivotOperatorMax">
+        <Input>x0,y0,z0</Input>
+        <Output>x,y,z</Output>
+    </PointSet>
+    <PointSet name="out_PP_HStoPSPivotOperatorMin">
+        <Input>x0,y0,z0</Input>
+        <Output>x,y,z</Output>
+    </PointSet>
+    <PointSet name="out_PP_HStoPSPivotOperatorAverage">
+        <Input>x0,y0,z0</Input>
+        <Output>x,y,z</Output>
+    </PointSet>
+    
+    <HistorySet name="outMC">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
+  
+  <Steps>
+      <!-- create data-->
+      <MultiRun name="CreateData" >
+          <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+          <Model class="Models" type="ExternalModel">simple_model</Model>
+          <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+          <Output class="DataObjects" type="HistorySet">outMC</Output>
+      </MultiRun>
+      <!-- apply row-based projection -->
+      <PostProcess name="PP_HStoPSoperatorRows">
+          <Input class="DataObjects" type="HistorySet">outMC</Input>
+          <Model class="Models" type="PostProcessor">HStoPSoperatorRows</Model>
+          <Output class="DataObjects" type="PointSet">out_PP_HStoPSRows</Output>
+          <Output class="OutStreams" type="Print">out_PP_HStoPSRows_dump</Output>
+      </PostProcess>
+      <!-- apply pivot-value-based projection -->
+      <PostProcess name="PP_HStoPSoperatorPivotValues">
+          <Input class="DataObjects" type="HistorySet">outMC</Input>
+          <Model class="Models" type="PostProcessor">HStoPSoperatorPivotValues</Model>
+          <Output class="DataObjects" type="PointSet">out_PP_HStoPSPivotValues</Output>
+          <Output class="OutStreams" type="Print">out_PP_HStoPSPivotValues_dump</Output>
+      </PostProcess>
+      <!-- apply operator-based projection Max -->
+      <PostProcess name="PP_HStoPSoperatorOperatorMax">
+          <Input class="DataObjects" type="HistorySet">outMC</Input>
+          <Model class="Models" type="PostProcessor">HStoPSoperatorOperatorMax</Model>
+          <Output class="DataObjects" type="PointSet">out_PP_HStoPSPivotOperatorMax</Output>
+          <Output class="OutStreams" type="Print">out_PP_HStoPSPivotOperatorMax_dump</Output>
+      </PostProcess>
+      <!-- apply operator-based projection Min -->
+      <PostProcess name="PP_HStoPSoperatorOperatorMin">
+          <Input class="DataObjects" type="HistorySet">outMC</Input>
+          <Model class="Models" type="PostProcessor">HStoPSoperatorOperatorMin</Model>
+          <Output class="DataObjects" type="PointSet">out_PP_HStoPSPivotOperatorMin</Output>
+          <Output class="OutStreams" type="Print">out_PP_HStoPSPivotOperatorMin_dump</Output>
+      </PostProcess>
+      <!-- apply operator-based projection Average -->
+      <PostProcess name="PP_HStoPSoperatorOperatorAverage">
+          <Input class="DataObjects" type="HistorySet">outMC</Input>
+          <Model class="Models" type="PostProcessor">HStoPSoperatorOperatorAverage</Model>
+          <Output class="DataObjects" type="PointSet">out_PP_HStoPSPivotOperatorAverage</Output>
+          <Output class="OutStreams" type="Print">out_PP_HStoPSPivotOperatorAverage_dump</Output>
+      </PostProcess>
+  </Steps>
+
+</Simulation>

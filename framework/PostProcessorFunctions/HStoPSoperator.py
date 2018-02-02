@@ -27,7 +27,6 @@ if not 'xrange' in dir(__builtins__):
 #External Modules------------------------------------------------------------------------------------
 import os
 import copy
-import itertools
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -40,7 +39,7 @@ class HStoPSoperator(PostProcessorInterfaceBase):
    The conversion is performed based on any of the following operations:
    - row value
    - pivot value
-   - operator 
+   - operator
   """
 
   def initialize(self):
@@ -55,9 +54,8 @@ class HStoPSoperator(PostProcessorInterfaceBase):
     #pivotParameter identify the ID of the temporal variable in the data set based on which
     # the operations are performed. Optional (defaul=time)
     self.pivotParameter = 'time'
-    self.settings       = {'inputSpace':{'operationType':None,'operationValue':None},
-                           'outputSpace':{'operationType':None,'operationValue':None}}  
-    
+    self.settings       = {'operationType':None,'operationValue':None}
+
   def readMoreXML(self,xmlNode):
     """
       Function that reads elements this post-processor will use
@@ -66,26 +64,13 @@ class HStoPSoperator(PostProcessorInterfaceBase):
     """
     foundPivot = False
     for child in xmlNode:
-      if child.tag == 'pivotParameter':
+      if child.tag  == 'pivotParameter':
         foundPivot, self.pivotParameter = True,child.text
-      elif child.tag in ['inputSpace','outputSpace']:
-        row        = child.find("row")
-        pivotValue = child.find("pivotValue")
-        operator   = child.find("operator")
-        if [row,pivotValue,operator].count(None) < 2:
-          self.raiseAnError(IOError, 'Only one among the parameters "row", "pivotValue" and "operator" can be specified!')
-        if row:
-          self.settings[child.tag]['operationType'] = 'row'
-          self.settings[child.tag]['operationValue'] = int(row.text)
-        if pivotValue:
-          self.settings[child.tag]['operationType'] = 'pivotValue'
-          self.settings[child.tag]['operationValue'] = float(pivotValue.text)
-        if operator:
-          self.settings[child.tag]['operationType'] = 'operator'
-          self.settings[child.tag]['operationValue'] = None
+      elif child.tag in ['row','pivotValue','operator']:
+        self.settings['operationType'] = child.tag
+        self.settings['operationValue'] = float(child.text) if child.tag != 'operator' else child.text
       elif child.tag !='method':
         self.raiseAnError(IOError, 'XML node ' + str(child.tag) + ' is not recognized')
-
     if not foundPivot:
       self.raiseAWarning('"pivotParameter" is not inputted! Default is "'+ self.pivotParameter +'"!')
 
@@ -115,43 +100,30 @@ class HStoPSoperator(PostProcessorInterfaceBase):
         for inputVar in inputVars:
           outputDic['data']['input'][inputVar] = np.append(outputDic['data']['input'][inputVar], copy.deepcopy(inputDic['data']['input'][hist][inputVar]))
 
-      #generate the output part of the output dictionary
-      if self.features == 'all':
-        self.features = []
-        historiesID = inputDic['data']['output'].keys()
-        self.features = inputDic['data']['output'][historiesID[0]].keys()
+      outputVars = inputDic['data']['output'][inputDic['data']['output'].keys()[0]].keys()
+      for outputVar in outputVars:
+        outputDic['data']['output'][outputVar] = np.empty(0)
 
-      referenceHistory = inputDic['data']['output'].keys()[0]
-      referenceTimeAxis = inputDic['data']['output'][referenceHistory][self.pivotParameter]
+      # check if pivot value is present
+      if self.settings['operationType'] == 'pivotValue':
+        if self.pivotParameter not in outputVars:
+            self.raiseAnError(RuntimeError,'Pivot Variable "'+str(self.pivotParameter)+'" not found in data !')
+
       for hist in inputDic['data']['output']:
-        if (str(inputDic['data']['output'][hist][self.pivotParameter]) != str(referenceTimeAxis)):
-          self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' : one or more histories in the historySet have different time scale')
-
-      tempDict = {}
-
-      for hist in inputDic['data']['output'].keys():
-        tempDict[hist] = np.empty(0)
-        for feature in self.features:
-          if feature != self.pivotParameter:
-            tempDict[hist] = np.append(tempDict[hist],copy.deepcopy(inputDic['data']['output'][hist][feature]))
-        length = np.size(tempDict[hist])
-
-      for hist in tempDict:
-        if np.size(tempDict[hist]) != length:
-          self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' : one or more histories in the historySet have different length')
-
-      for key in range(length):
-        if key != self.pivotParameter:
-          outputDic['data']['output'][key] = np.empty(0)
-
-      for hist in inputDic['data']['output'].keys():
-        for key in outputDic['data']['output'].keys():
-          outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key], copy.deepcopy(tempDict[hist][int(key)]))
-
-      self.transformationSettings['vars'] = copy.deepcopy(self.features)
-      self.transformationSettings['vars'].remove(self.pivotParameter)
-      self.transformationSettings['timeLength'] = int(length/len(self.transformationSettings['vars']))
-      self.transformationSettings['timeAxis'] = inputDic['data']['output'][1][self.pivotParameter]
-      self.transformationSettings['dimID'] = outputDic['data']['output'].keys()
-
+        for outputVar in outputVars:
+          if self.settings['operationType'] == 'row':
+            if int(self.settings['operationValue']) >= len(inputDic['data']['output'][hist][outputVar]):
+              self.raiseAnError(RuntimeError,'row value > of size of history "'+str(hist)+'" !')
+            outputDic['data']['output'][outputVar] = np.append(outputDic['data']['output'][outputVar], copy.deepcopy(inputDic['data']['output'][hist][outputVar][int(self.settings['operationValue'])]))
+          elif self.settings['operationType'] == 'pivotValue':
+            idx = (np.abs(np.asarray(inputDic['data']['output'][hist][self.pivotParameter])-float(self.settings['operationValue']))).argmin()
+            outputDic['data']['output'][outputVar] = np.append(outputDic['data']['output'][outputVar], copy.deepcopy(inputDic['data']['output'][hist][outputVar][idx]))
+          else:
+            # operator
+            if self.settings['operationValue'] == 'max':
+              outputDic['data']['output'][outputVar] = np.append(outputDic['data']['output'][outputVar], copy.deepcopy(np.max(inputDic['data']['output'][hist][outputVar])))
+            elif self.settings['operationValue'] == 'min':
+              outputDic['data']['output'][outputVar] = np.append(outputDic['data']['output'][outputVar], copy.deepcopy(np.min(inputDic['data']['output'][hist][outputVar])))
+            elif self.settings['operationValue'] == 'average':
+              outputDic['data']['output'][outputVar] = np.append(outputDic['data']['output'][outputVar], copy.deepcopy(np.mean(inputDic['data']['output'][hist][outputVar])))
       return outputDic

@@ -1101,6 +1101,66 @@ inputDict['output']['data'][hist2] = {'time': array([ .1,.2,.3]),
                               'outputVar1':array([ .14,.15,.16])}
 \end{lstlisting}
 
+
+\paragraph{Method: HStoPSoperator}
+
+This Post-Processor performs the conversion from HistorySet to PointSet performing a projection of the output space.
+
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are available:
+
+\begin{itemize}
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable. Default is ``time''. 
+   \nb Used just in case the  \xmlNode{pivotValue}-based operation  is requested
+    \item \xmlNode{operator}, \xmlDesc{string, optional field}, the operation to perform on the output space:
+      \begin{itemize}
+        \item \textbf{min}, compute the minimum along each single history
+         \item \textbf{max}, compute the maximum along each single history
+         \item \textbf{min}, compute the average along each single history
+       \end{itemize}
+        \nb This node can be inputted only if \xmlNode{pivotValue} and \xmlNode{row} are not present
+     \item \xmlNode{pivotValue}, \xmlDesc{float, optional field}, the value of the pivotParameter with respect the other outputs need to be extracted.
+       \nb This node can be inputted only if \xmlNode{operator} and \xmlNode{row} are not present
+     \item \xmlNode{row}, \xmlDesc{int, optional field}, the row index at which the outputs need to be extracted.
+       \nb This node can be inputted only if \xmlNode{operator} and \xmlNode{pivotValue} are not present   
+\end{itemize}
+
+This example will show how to XML input block would look like:
+
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="HStoPSoperatorRows" subType="InterfacedPostProcessor">
+      <method>HStoPSoperator</method>
+      <row>-1</row>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorPivotValues" subType="InterfacedPostProcessor">
+        <method>HStoPSoperator</method>
+        <pivotParameter>time</pivotParameter>
+        <pivotValue>0.3</pivotValue>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorOperatorMax" subType="InterfacedPostProcessor">
+        <method>HStoPSoperator</method>
+        <pivotParameter>time</pivotParameter>
+        <operator>max</operator>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorOperatorMin" subType="InterfacedPostProcessor">
+        <method>HStoPSoperator</method>
+        <pivotParameter>time</pivotParameter>
+        <operator>min</operator>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorOperatorAverage" subType="InterfacedPostProcessor">
+        <method>HStoPSoperator</method>
+        <pivotParameter>time</pivotParameter>
+        <operator>average</operator>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
 \paragraph{Method: HistorySetSampling}
 This Post-Processor performs the conversion from HistorySet to HistorySet
 The conversion is made so that each history H is re-sampled accordingly  to a
