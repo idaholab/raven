@@ -92,8 +92,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     inputSpecification.addSub(outputInput)
 
     optionsInput = InputData.parameterInputFactory("options")
-    for option in ['inputRow','inputPivotValue','outputRow','outputPivotValue','operator','pivotParameter']:
+    for option in ['operator','pivotParameter']:
       optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.StringType)
+      optionsInput.addSub(optionSubInput)
+    for option in ['inputRow','outputRow']:
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.IntegerType)
       optionsInput.addSub(optionSubInput)
     inputSpecification.addSub(optionsInput)
 

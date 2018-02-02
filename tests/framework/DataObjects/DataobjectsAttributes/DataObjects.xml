@@ -37,7 +37,6 @@
     <HistorySet name="stories2">
       <options>
         <inputRow>-1</inputRow>
-        <outputRow>2</outputRow>
       </options>
       <Input>Tw</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>

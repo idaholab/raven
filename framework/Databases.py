@@ -358,7 +358,7 @@ class HDF5(DateBase):
       if histVar[0][:,0].size == 0:
         self.raiseAnError(IOError,'History %s is empty, cannot retrieve row %d.'.format(attributes['history'], outputRow))
       if inputRow > histVar[0][:,0].size-1:
-        self.raiseAnError(IOError,'inputRow is greater than the number of rows in history %s.'.format(attributes['history']))
+        self.raiseAnError(IOError,'inputRow is greater than the number of rows in history {}.'.format(attributes['history']))
 
       # check metadata
       if 'metadata' in histVar[1].keys():

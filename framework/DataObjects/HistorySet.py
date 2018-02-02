@@ -121,22 +121,19 @@ class HistorySet(Data):
     rows = None
     if self._dataParameters is not None:
       rows = self._dataParameters.get('inputRow', None)
-      operator = self._dataParameters.get('operator', None)
+      #operator = self._dataParameters.get('operator', None)
       ## Zero or one indexed?
       # if rows  > 0:
       #   rows  -= 1
 
     if rows is None:
       rows = range(len(value))
-
-    if operator == 'max':
-      value = np.max(value)
-    elif operator == 'min':
-      value = np.min(value)
-    elif operator == 'average':
-      value = np.average(value)
     else:
-      value = value[rows]
+      if rows > len(value):
+        rows = range(len(value))
+        self.raiseAWarning("inputRow > len of history! Taking last row!")
+
+    value = value[rows]
 
     # if this flag is true, we accept realizations in the input space that are not only scalar but can be 1-D arrays!
     #acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
@@ -284,22 +281,17 @@ class HistorySet(Data):
     rows = None
     if self._dataParameters is not None:
       rows = self._dataParameters.get('outputRow', None)
-      operator = self._dataParameters.get('operator', None)
       ## Zero or one indexed?
       # if rows  > 0:
       #   rows  -= 1
 
     if rows is None:
       rows = range(len(value))
-
-    if operator == 'max':
-      value = np.max(value)
-    elif operator == 'min':
-      value = np.min(value)
-    elif operator == 'average':
-      value = np.average(value)
     else:
-      value = np.atleast_1d(value[rows])
+      if rows > len(value):
+        rows = range(len(value))
+        self.raiseAWarning("inputRow > len of history! Taking last row!")
+    value = np.atleast_1d(value[rows])
 
     if isinstance(value,np.ndarray):
       #self.raiseADebug('FIXME: Converted np.ndarray into c1darray in HistorySet!')
