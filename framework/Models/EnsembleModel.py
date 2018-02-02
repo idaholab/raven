@@ -442,6 +442,7 @@ class EnsembleModel(Dummy):
     joinedResponse = {}
     joinedGeneralMetadata = {}
     targetEvaluationNames = {}
+    optionalOutputNames = []
     for modelIn in self.modelsDictionary.keys():
       targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation'].name] = modelIn
       # collect data
@@ -452,8 +453,9 @@ class EnsembleModel(Dummy):
           optionalModelOutput.addRealization(optionalOutputs[modelIn])
       joinedResponse.update(outcomes[modelIn]['response'])
       joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
-    # collect the output of the STEP
-    optionalOutputNames = [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject'] for modelIn in self.modelsDictionary]
+      # collect the output of the STEP
+      optionalOutputNames.extend( [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject']])
+    #optionalOutputNames = [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject'] for modelIn in self.modelsDictionary]
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
         output.addRealization(joinedResponse)
