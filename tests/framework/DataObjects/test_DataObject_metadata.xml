@@ -2,8 +2,8 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/DataObjects.dataObject_metadata</name>
-    <author>wangc</author>
-    <created>2015-09-02</created>
+    <author>maljdan</author>
+    <created>2016-06-23</created>
     <classesTested>DataObjects.PointSet</classesTested>
     <description>
        Test to check the functionalities of DataObjects.PointSet, when metadata need to be dumped out.

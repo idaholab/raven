@@ -298,38 +298,8 @@ class HDF5(DateBase):
 
     inputRow = copy.deepcopy(attributes.get('inputRow', 0))
     outputRow = copy.deepcopy(attributes.get('outputRow', -1))
-
     operator = attributes.get('operator',None)
-
-    ## Disabled feature
-    # pivotParameter = attributes.get('pivotParameter',None)
-    # inputPivotVal = attributes.get('inputPivotValue',None)
-    # outputPivotVal = attributes.get('outputPivotValue',None)
-
     allOutParam  = outParam == 'all'
-
-    # if outputPivotVal is not None:
-    #   if isinstance(outputPivotVal,collections.Sequence) and 'end' in outputPivotVal:
-    #     outputPivotValEnd = True
-    #   else:
-    #     outputPivotValEnd = False
-    #     outputPivotVal = float(outputPivotVal)
-    # else:
-    #   if operator is None:
-    #     outputPivotValEnd = True
-    #   else:
-    #     outputPivotValEnd = False
-
-    # if inputRow is None and inputPivotVal is None:
-    #   inputRow = 0
-
-    ## Zero or one indexed?
-    # if inputRow  > 0:
-    #   inputRow  -= 1
-
-    ## Zero or one indexed?
-    # if outputRow > 0:
-    #   outputRow -= 1
 
     inDict   = {}
     outDict  = {}
@@ -353,7 +323,7 @@ class HDF5(DateBase):
         pivotIndex = 0
 
       ## First check if the array is empty because if so, then the error
-      ## message would look funny claiming something something like -1 is
+      ## message would look funny claiming something  like -1 is
       ## larger than the size of the actual rows in the database.
       if histVar[0][:,0].size == 0:
         self.raiseAnError(IOError,'History %s is empty, cannot retrieve row %d.'.format(attributes['history'], outputRow))
@@ -396,9 +366,7 @@ class HDF5(DateBase):
           for key in histVar[1]['outputSpaceHeaders']:
             if i == 0:
               outDict[key] = np.zeros(len(histList))
-
             keyIndex = histVar[1]['outputSpaceHeaders'].index(key)
-
             if operator == 'max':
               outDict[key][i] = np.max(histVar[0][:,keyIndex])
             if operator == 'min':
@@ -422,13 +390,12 @@ class HDF5(DateBase):
                 outDict[key][i] = np.min(histVar[0][:, keyIndex])
               if operator == 'average':
                 outDict[key][i] = np.average(histVar[0][:, keyIndex])
-
             else:
               self.raiseAnError(IOError,"the parameter " + str(key) + " has not been found")
 
       else:
         ## First check if the array is empty because if so, then the error
-        ## message would look funny claiming something something like -1 is
+        ## message would look funny claiming something  like -1 is
         ## larger than the size of the actual rows in the database.
         if histVar[0][:,0].size == 0:
           self.raiseAnError(IOError,'Database %s is empty, cannot retrieve row %d.'.format(self.name, outputRow))
@@ -452,27 +419,6 @@ class HDF5(DateBase):
                 outDict[key][i] = histVar[0][outputRow,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))]
             else:
               self.raiseAnError(IOError,"the parameter " + str(key) + " has not been found")
-
-      # else:
-      #   # Arbitrary point in outputPivotVal case... If the requested outputPivotVal point Set does not match any of the stored ones and
-      #   # start_outputPivotVal <= requested_outputPivotVal_point <= end_outputPivotVal, compute an interpolated value
-      #   if allOutParam:
-      #     for key in histVar[1]['outputSpaceHeaders']:
-      #       if i == 0:
-      #         outDict[key] = np.zeros(len(histList))
-      #       outDict[key][i] = interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)], kind='linear')(outputPivotVal)
-      #   else:
-      #     for key in outParam:
-      #       if i == 0:
-      #         outDict[key] = np.zeros(len(histList))
-      #       if key in histVar[1]['outputSpaceHeaders'] or \
-      #          utils.toBytes(key) in histVar[1]['outputSpaceHeaders']:
-      #         if key in histVar[1]['outputSpaceHeaders']:
-      #           outDict[key][i] = interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)], kind='linear')(outputPivotVal)
-      #         else:
-      #           outDict[key][i] = interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))], kind='linear')(outputPivotVal)
-      #       else:
-      #         self.raiseAnError(IOError,"the parameter " + key + " has not been found")
       del histVar
     # return tuple of PointSet
     return (copy.copy(inDict),copy.copy(outDict),copy.copy(metaDict))

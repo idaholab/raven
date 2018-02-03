@@ -33,7 +33,7 @@ import numpy as np
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 
 
-class HStoPSoperator(PostProcessorInterfaceBase):
+class HStoPSOperator(PostProcessorInterfaceBase):
   """
    This Post-Processor performs the conversion from HistorySet to PointSet
    The conversion is performed based on any of the following operations:
@@ -84,7 +84,7 @@ class HStoPSoperator(PostProcessorInterfaceBase):
 
   def run(self,inputDic):
     """
-    This method performs the actual transformation of the data object from history set to point set
+      This method performs the actual transformation of the data object from history set to point set
       @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
       @ Out, outputDic, dict, output dictionary
     """

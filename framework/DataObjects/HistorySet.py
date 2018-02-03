@@ -121,11 +121,6 @@ class HistorySet(Data):
     rows = None
     if self._dataParameters is not None:
       rows = self._dataParameters.get('inputRow', None)
-      #operator = self._dataParameters.get('operator', None)
-      ## Zero or one indexed?
-      # if rows  > 0:
-      #   rows  -= 1
-
     if rows is None:
       rows = range(len(value))
     else:
@@ -281,10 +276,6 @@ class HistorySet(Data):
     rows = None
     if self._dataParameters is not None:
       rows = self._dataParameters.get('outputRow', None)
-      ## Zero or one indexed?
-      # if rows  > 0:
-      #   rows  -= 1
-
     if rows is None:
       rows = range(len(value))
     else:
@@ -294,7 +285,6 @@ class HistorySet(Data):
     value = np.atleast_1d(value[rows])
 
     if isinstance(value,np.ndarray):
-      #self.raiseADebug('FIXME: Converted np.ndarray into c1darray in HistorySet!')
       value = c1darray(values=value)
     if not isinstance(value,c1darray):
       self.raiseAnError(NotConsistentData,'HistorySet Data accepts only cached_ndarray as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))

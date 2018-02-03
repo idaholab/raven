@@ -1102,7 +1102,7 @@ inputDict['output']['data'][hist2] = {'time': array([ .1,.2,.3]),
 \end{lstlisting}
 
 
-\paragraph{Method: HStoPSoperator}
+\paragraph{Method: HStoPSOperator}
 
 This Post-Processor performs the conversion from HistorySet to PointSet performing a projection of the output space.
 
@@ -1118,13 +1118,13 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are avai
          \item \textbf{min}, compute the average along each single history
        \end{itemize}
         \nb This node can be inputted only if \xmlNode{pivotValue} and \xmlNode{row} are not present
-     \item \xmlNode{pivotValue}, \xmlDesc{float, optional field}, the value of the pivotParameter with respect the other outputs need to be extracted.
+     \item \xmlNode{pivotValue}, \xmlDesc{float, optional field}, the value of the pivotParameter with respect to the other outputs need to be extracted.
        \nb This node can be inputted only if \xmlNode{operator} and \xmlNode{row} are not present
      \item \xmlNode{pivotStrategy}, \xmlDesc{string, optional field}, The strategy to use for the pivotValue:
        \begin{itemize}
         \item \textbf{nearest}, find the value that is the nearest with respect the \xmlNode{pivotValue}
-        \item \textbf{floor}, find the value that is the nearest with respect the \xmlNode{pivotValue} but < of the  \xmlNode{pivotValue}
-        \item \textbf{celing}, find the value that is the nearest with respect the \xmlNode{pivotValue} but > of the  \xmlNode{pivotValue}
+        \item \textbf{floor}, find the value that is the nearest with respect to the \xmlNode{pivotValue} but less then the  \xmlNode{pivotValue}
+        \item \textbf{celing}, find the value that is the nearest with respect to the \xmlNode{pivotValue} but greater then the  \xmlNode{pivotValue}
         \item \textbf{interpolate}, if the exact  \xmlNode{pivotValue}  can not be found, interpolate using a linear approach
        \end{itemize}
        
@@ -1133,34 +1133,34 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are avai
        \nb This node can be inputted only if \xmlNode{operator} and \xmlNode{pivotValue} are not present   
 \end{itemize}
 
-This example will show how to XML input block would look like:
+This example will show how the XML input block would look like:
 
 \begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
 <Simulation>
   ...
   <Models>
     ...
-    <PostProcessor name="HStoPSoperatorRows" subType="InterfacedPostProcessor">
-      <method>HStoPSoperator</method>
+    <PostProcessor name="HStoPSperatorRows" subType="InterfacedPostProcessor">
+      <method>HStoPSOperator</method>
       <row>-1</row>
     </PostProcessor>
     <PostProcessor name="HStoPSoperatorPivotValues" subType="InterfacedPostProcessor">
-        <method>HStoPSoperator</method>
+        <method>HStoPSOperator</method>
         <pivotParameter>time</pivotParameter>
         <pivotValue>0.3</pivotValue>
     </PostProcessor>
     <PostProcessor name="HStoPSoperatorOperatorMax" subType="InterfacedPostProcessor">
-        <method>HStoPSoperator</method>
+        <method>HStoPSOperator</method>
         <pivotParameter>time</pivotParameter>
         <operator>max</operator>
     </PostProcessor>
     <PostProcessor name="HStoPSoperatorOperatorMin" subType="InterfacedPostProcessor">
-        <method>HStoPSoperator</method>
+        <method>HStoPSOperator</method>
         <pivotParameter>time</pivotParameter>
         <operator>min</operator>
     </PostProcessor>
     <PostProcessor name="HStoPSoperatorOperatorAverage" subType="InterfacedPostProcessor">
-        <method>HStoPSoperator</method>
+        <method>HStoPSOperator</method>
         <pivotParameter>time</pivotParameter>
         <operator>average</operator>
     </PostProcessor>

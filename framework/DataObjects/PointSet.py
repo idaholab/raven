@@ -127,20 +127,6 @@ class PointSet(Data):
       row = -1
       if self._dataParameters is not None:
         row = self._dataParameters.get('inputRow', -1)
-        #operator = self._dataParameters.get('operator', None)
-
-      ## Zero or one indexed?
-      # if row  > 0:
-      #   row  -= 1
-
-      #if operator == 'max':
-      #  reducedValue = np.max(value)
-      #elif operator == 'min':
-      #  reducedValue = np.min(value)
-      #elif operator == 'average':
-      #  reducedValue = np.average(value)
-      #else: #elif outputRow is not None:
-      #  reducedValue = value[row]
       reducedValue = value[row]
       ## We don't have access to the pivot parameter's information at this
       ## point, so I will forego this implementation for now -- DPM 5/3/2017
@@ -264,11 +250,6 @@ class PointSet(Data):
       if self._dataParameters is not None:
         row = self._dataParameters.get('outputRow', -1)
         operator = self._dataParameters.get('operator', None)
-
-      ## Zero or one indexed?
-      # if row  > 0:
-      #   row  -= 1
-
       if operator == 'max':
         value = np.max(value)
       elif operator == 'min':
