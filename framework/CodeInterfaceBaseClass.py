@@ -85,7 +85,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    pass #afaik, this is only used in GenericCodeInterface currently.
+    pass
 
   @abc.abstractmethod
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec=None):
