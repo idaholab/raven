@@ -1,20 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/DataObjects.test_output_attributes</name>
+    <name>framework/DataObjects.test_output_point_attributes</name>
     <author>alfoa</author>
-    <created>2015-06-16</created>
+    <created>2018-02-01</created>
     <classesTested>DataObjects.PointSet, Models.ExternalModel</classesTested>
     <description>
-       Test to check the functionalities of DataObjects preprocess the data applying simple 
-       operator (e.g. max value, average, min value, etc.), in the $options$ XML node.
+        Test to check the functionalities of DataObjects preprocess the data applying simple
+        operator (e.g. max value, average, min value, etc.), in the $options$ XML node.
+        In this case it tests the attributes for PointSet.
     </description>
-    <revisions>
-      <revision author="maljdan" date="2016-06-23">Moving test case into a specific DataObjects folder</revision>
-      <revision author="cogljj" date="2016-08-23">Converting test dataobjects attributes to external model. Refs #94</revision>
-      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
-      <revision author="maljdan" date="2017-07-31">Splitting original test case file (test_dataobjects_attributes.xml or framework/DataObjects.test_output_attributes) into more granular test cases</revision>
-    </revisions>
   </TestInfo>
 
   <ExternalXML node="RunInfo" xmlToLoad="DataobjectsAttributes/RunInfo.xml"/>
