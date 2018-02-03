@@ -1,11 +1,27 @@
 [Tests]
 
- [./test_output_attributes]
+ [./test_output_point_attributes]
   type = 'RavenFramework'
-  input = 'test_dataobjects_attributes.xml'
-  output = 'DataobjectsAttributes/stories2_from_DB_dump_5.csv DataobjectsAttributes/stories2_from_DB_dump_4.csv DataobjectsAttributes/stories2_from_DB_dump_3.csv DataobjectsAttributes/stories2_from_DB_dump_2.csv DataobjectsAttributes/stories2_from_DB_dump_1.csv DataobjectsAttributes/stories2_from_DB_dump_0.csv DataobjectsAttributes/stories2_from_DB_dump.csv DataobjectsAttributes/stories2_dump_5.csv DataobjectsAttributes/stories2_dump_4.csv DataobjectsAttributes/stories2_dump_3.csv DataobjectsAttributes/stories2_dump_2.csv DataobjectsAttributes/stories2_dump_1.csv DataobjectsAttributes/stories2_dump_0.csv DataobjectsAttributes/stories2_dump.csv DataobjectsAttributes/stories1_from_DB_dump_5.csv DataobjectsAttributes/stories1_from_DB_dump_4.csv DataobjectsAttributes/stories1_from_DB_dump_3.csv DataobjectsAttributes/stories1_from_DB_dump_2.csv DataobjectsAttributes/stories1_from_DB_dump_1.csv DataobjectsAttributes/stories1_from_DB_dump_0.csv DataobjectsAttributes/stories1_from_DB_dump.csv DataobjectsAttributes/stories1_dump_5.csv DataobjectsAttributes/stories1_dump_4.csv DataobjectsAttributes/stories1_dump_3.csv DataobjectsAttributes/stories1_dump_2.csv DataobjectsAttributes/stories1_dump_1.csv DataobjectsAttributes/stories1_dump_0.csv DataobjectsAttributes/outGridTPS2_from_DB_dump.csv DataobjectsAttributes/outGridTPS2_dump.csv DataobjectsAttributes/outGridTPS1_from_DB_dump.csv DataobjectsAttributes/outGridTPS1_dump.csv'
-  csv = 'DataobjectsAttributes/stories2_from_DB_dump_5.csv DataobjectsAttributes/stories2_from_DB_dump_4.csv DataobjectsAttributes/stories2_from_DB_dump_3.csv DataobjectsAttributes/stories2_from_DB_dump_2.csv DataobjectsAttributes/stories2_from_DB_dump_1.csv DataobjectsAttributes/stories2_from_DB_dump_0.csv DataobjectsAttributes/stories2_dump_5.csv DataobjectsAttributes/stories2_dump_4.csv DataobjectsAttributes/stories2_dump_3.csv DataobjectsAttributes/stories2_dump_2.csv DataobjectsAttributes/stories2_dump_1.csv DataobjectsAttributes/stories2_dump_0.csv DataobjectsAttributes/stories1_from_DB_dump_5.csv DataobjectsAttributes/stories1_from_DB_dump_4.csv DataobjectsAttributes/stories1_from_DB_dump_3.csv DataobjectsAttributes/stories1_from_DB_dump_2.csv DataobjectsAttributes/stories1_from_DB_dump_1.csv DataobjectsAttributes/stories1_from_DB_dump_0.csv DataobjectsAttributes/stories1_dump_5.csv DataobjectsAttributes/stories1_dump_4.csv DataobjectsAttributes/stories1_dump_3.csv DataobjectsAttributes/stories1_dump_2.csv DataobjectsAttributes/stories1_dump_1.csv DataobjectsAttributes/stories1_dump_0.csv DataobjectsAttributes/outGridTPS2_from_DB_dump.csv DataobjectsAttributes/outGridTPS2_dump.csv DataobjectsAttributes/outGridTPS1_from_DB_dump.csv DataobjectsAttributes/outGridTPS1_dump.csv'
-   required_executable = '../../../RAVEN-%METHOD%'
+  input = 'pointSetAttributes.xml'
+  csv = 'DataobjectsAttributes/outGridTPS2_dump.csv DataobjectsAttributes/outGridTPS1_dump.csv'
+ [../]
+
+ [./test_output_history_attributes]
+  type = 'RavenFramework'
+  input = 'historySetAttributes.xml'
+  csv = 'DataobjectsAttributes/stories2_dump_5.csv DataobjectsAttributes/stories2_dump_4.csv DataobjectsAttributes/stories2_dump_3.csv DataobjectsAttributes/stories2_dump_2.csv DataobjectsAttributes/stories2_dump_1.csv DataobjectsAttributes/stories2_dump_0.csv DataobjectsAttributes/stories1_dump_5.csv DataobjectsAttributes/stories1_dump_4.csv DataobjectsAttributes/stories1_dump_3.csv DataobjectsAttributes/stories1_dump_2.csv DataobjectsAttributes/stories1_dump_1.csv DataobjectsAttributes/stories1_dump_0.csv'
+ [../]
+
+ [./test_output_from_db_point_attributes]
+  type = 'RavenFramework'
+  input = 'pointSetFromDBAttributes.xml'
+  csv = 'DataobjectsAttributes/outGridTPS2_from_DB_dump.csv DataobjectsAttributes/outGridTPS1_from_DB_dump.csv'
+ [../]
+
+ [./test_output_from_db_history_attributes]
+  type = 'RavenFramework'
+  input = 'historySetFromDBAttributes.xml'
+  csv = 'DataobjectsAttributes/stories2_from_DB_dump_5.csv DataobjectsAttributes/stories2_from_DB_dump_4.csv DataobjectsAttributes/stories2_from_DB_dump_3.csv DataobjectsAttributes/stories2_from_DB_dump_2.csv DataobjectsAttributes/stories2_from_DB_dump_1.csv DataobjectsAttributes/stories2_from_DB_dump_0.csv DataobjectsAttributes/stories1_from_DB_dump_5.csv DataobjectsAttributes/stories1_from_DB_dump_4.csv DataobjectsAttributes/stories1_from_DB_dump_3.csv DataobjectsAttributes/stories1_from_DB_dump_2.csv DataobjectsAttributes/stories1_from_DB_dump_1.csv DataobjectsAttributes/stories1_from_DB_dump_0.csv'
  [../]
 
  [./dataObject_metadata]
