@@ -1,0 +1,93 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.genericInterfaceIOCustomOutput</name>
+    <author>alfoa</author>
+    <created>2017-01-24</created>
+    <classesTested>Models.Code.GenericCode</classesTested>
+    <description>
+       An example of using the the Model Code of type GenericCode with a code
+       that produces CSV output file.
+       This test is aimed to test the IO system present in the GenericCode interface.
+       In XML node outputFile the user can specify the specific output
+       file name RAVEN is going to load.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-01-24">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <JobName>GenericInterfaceIOCustomOutput</JobName>
+    <Sequence>sample</Sequence>
+    <WorkingDir>GenericInterfaceIOCustomOutput</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="gen.one" type="">gen.one</Input>
+    <Input name="gen.two" type="">gen.two</Input>
+  </Files>
+
+  <Models>
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterfaceIOCustomOutput/poly_inp_io.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".one" type="input"/>
+      <fileargs arg="aux" extension=".two" type="input"/>
+      <!-- THIS outputFile xml node is used to specify a fixed output file (ONLY CSV) from which RAVEN will collect the results -->
+      <outputFile>fixed_output.csv</outputFile>
+      <prepend>python</prepend>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="xd">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+    <Uniform name="yd">
+      <lowerBound>1.0</lowerBound>
+      <upperBound>2.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="x">
+        <distribution>xd</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.3 0.7</grid>
+      </variable>
+      <variable name="y">
+        <distribution>yd</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.3 0.7</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="Files" type="">gen.one</Input>
+      <Input class="Files" type="">gen.two</Input>
+      <Model class="Models" type="Code">poly</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="samples">
+      <Input>y,x</Input>
+      <Output>poly</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
