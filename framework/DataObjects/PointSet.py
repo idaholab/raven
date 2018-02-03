@@ -117,6 +117,22 @@ class PointSet(Data):
       @ In,  value, float, newer value (single value)
       @ Out, None
     """
+
+    ## So, you are trying to update a single data point, but you passed in
+    ## more information, this means we need to reduce it down using one of our
+    ## recipes, but only if it is not an unstructured input. Please refer
+    ## questions about unstructured input to alfoa. -- DPM 8/28/17
+    reducedValue = value = np.atleast_1d(value).flatten()
+    if len(value) > 1:
+      row = -1
+      if self._dataParameters is not None:
+        row = self._dataParameters.get('inputRow', -1)
+      reducedValue = value[row]
+      ## We don't have access to the pivot parameter's information at this
+      ## point, so I will forego this implementation for now -- DPM 5/3/2017
+      #else:
+      #  value = interp1d(data[:,pivotIndex], value, kind='linear')(outputPivotVal)
+
     # if this flag is true, we accept realizations in the input space that are not only scalar but can be 1-D arrays!
     #acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
     unstructuredInput = False
@@ -151,7 +167,7 @@ class PointSet(Data):
       if name not in self._dataParameters['inParam']:
         self._dataParameters['inParam'].append(name)
       if not unstructuredInput:
-        self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(value)[-1]))
+        self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(reducedValue)[-1]))
       else:
         self._dataContainer['unstructuredInputs'][name] = [c1darray(values=np.atleast_1d(np.ravel(value)))]
       #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
@@ -160,7 +176,7 @@ class PointSet(Data):
       if name in itertools.chain(self._dataContainer['inputs'].keys(),self._dataContainer['unstructuredInputs'].keys()):
         #popped = self._dataContainer['inputs'].pop(name)
         if not unstructuredInput:
-          self._dataContainer['inputs'][name].append(np.atleast_1d(np.ravel(value)[-1]))
+          self._dataContainer['inputs'][name].append(np.atleast_1d(np.ravel(reducedValue)[-1]))
         else:
           self._dataContainer['unstructuredInputs'][name].append(np.atleast_1d(np.ravel(value)))
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))                     copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
@@ -170,7 +186,7 @@ class PointSet(Data):
         #if name not in self._dataParameters['inParam']: self.raiseAnError(NotConsistentData,'The input variable '+name+'is not among the input space of the DataObject '+self.name)
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
         if not unstructuredInput:
-          self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(value)[-1]))
+          self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(reducedValue)[-1]))
         else:
           self._dataContainer['unstructuredInputs'][name] = [c1darray(values=np.atleast_1d(np.ravel(value)))]
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
@@ -230,23 +246,10 @@ class PointSet(Data):
     value = np.atleast_1d(value).flatten()
     if len(value) > 1:
 
-      if options is None:
-        outputRow = -1
-        outputPivotVal = None
-        operator = None
-      else:
-        ## Not sure if any of these are necessary, but I am trying to replicate
-        ## the magic that takes place in the CsvLoader -- DPM 5/3/2017
-        outputRow = copy.deepcopy(options.get('outputRow',-1))
-        outputPivotVal = options.get('outputPivotValue',None)
-        operator = options.get('operator',None)
-
-      if outputRow is None:
-        if outputPivotVal is not None and 'end' in outputPivotVal:
-          outputRow = -1
-        # elif outputPivotVal != None:
-        #   outputPivotVal = float(outputPivotVal)
-
+      row = -1
+      if self._dataParameters is not None:
+        row = self._dataParameters.get('outputRow', -1)
+        operator = self._dataParameters.get('operator', None)
       if operator == 'max':
         value = np.max(value)
       elif operator == 'min':
@@ -254,7 +257,7 @@ class PointSet(Data):
       elif operator == 'average':
         value = np.average(value)
       else: #elif outputRow is not None:
-        value = value[outputRow]
+        value = value[row]
       ## We don't have access to the pivot parameter's information at this
       ## point, so I will forego this implementation for now -- DPM 5/3/2017
       #else:
