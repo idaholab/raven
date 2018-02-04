@@ -28,9 +28,7 @@
 
     <PostProcessor name="DNBR" subType="BasicStatistics">
         <pivotParameter>time</pivotParameter>
-        <expectedValue>
-           cntrlvar_106
-        </expectedValue>
+        <expectedValue prefix="mean"> cntrlvar_106 </expectedValue>
     </PostProcessor> 
   </Models>
 
