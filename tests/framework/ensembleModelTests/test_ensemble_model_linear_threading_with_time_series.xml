@@ -8,13 +8,14 @@
     <description>
        Example of usage of the Ensemble Model capability in RAVEN, connecting multiple External Models.
        This test is aimed to check the functionality of assembling multiple Models, when they result in a single chain
-       of Models (linear system) and they need to transfer ``time series'' type of data (vectors).
+       of Models (linear system) and they need to transfer ``time series'' type of data (vectors) using the DataSet DataObject.
        This test checks the functionality of the model using a multi threading parallelization scheme.
     </description>
     <revisions>
       <revision author="alfoa" date="2016-11-29">Added test for time series</revision>
       <revision author="alfoa" date="2016-12-01">Fixed order of objects in test inputs in order to respect the XSD schema</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2018-02-03">Modified test for the new DataObject system. Usage of DataSet.</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -51,7 +52,12 @@
       <Model class="Models" type="ExternalModel">
           heatTransfer
         <Input            class="DataObjects" type="PointSet">inputHolder</Input>
-        <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
+        <TargetEvaluation class="DataObjects" type="DataSet">heatTransferContainer</TargetEvaluation>
+      
+        <!--
+           *** New way to work with "time-series" in the input space is the DataSet ***
+           <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
+         -->
       </Model>
     </EnsembleModel>
   </Models>
@@ -79,11 +85,11 @@
       <Output class="DataObjects" type="PointSet">metaModelOutputTestPointSet</Output>
       <Output class="DataObjects" type="PointSet">metaModelOutputTestHistorySet</Output>
       <Output class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Output>
-      <Output class="DataObjects" type="PointSet">heatTransferContainer</Output>
+      <Output class="DataObjects" type="DataSet">heatTransferContainer</Output>
       <Output class="Databases"   type="HDF5">testOutputDatabase</Output>
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">heatTransferContainer</Input>
+      <Input class="DataObjects" type="DataSet">heatTransferContainer</Input>
       <Input class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Input>
       <Input class="DataObjects" type="PointSet">metaModelOutputTestPointSet</Input>
       <Input class="DataObjects" type="HistorySet">metaModelOutputTestHistorySet</Input>
@@ -206,10 +212,22 @@
       <Input>leftTemperature,rightTemperature</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+    <!--
+     The way we store the timeseries (or any other dimensional array) in the input space is changed in the new DataObject structure
+     the PointSet is not adequate anymore. WE MUST USE THE DataSet (see below)
     <PointSet name="heatTransferContainer">
       <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
       <Output>solution</Output>
     </PointSet>
+    -->
+    <DataSet name="heatTransferContainer">
+        <!-- This is the new way to store and pass information in case not-scalar values are stored in the input space -->
+        <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
+        <Output>solution</Output>
+        <!-- with the <Index> XML block, we are informing RAVEN that "k" in the dataobject is a dependent variable and depens on "timeFromFirstModel" -->
+        <Index var="timeFromFirstModel">k</Index>
+    </DataSet>
+    
     <PointSet name="metaModelOutputTestPointSet">
       <Input>leftTemperature,rightTemperature</Input>
       <Output>k,solution</Output>

@@ -19,7 +19,6 @@
    input = 'test_ensemble_model_linear_threading_with_time_series.xml'
    output = 'metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestPointSetSolution_scatter.png metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestPointSetK_scatter.png metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestHistorySetk_scatter.png metaModelLinearThreadWithTimeSeries/heatTransferContainerDump.xml metaModelLinearThreadWithTimeSeries/metaModelOutputTestPointSetDump.xml metaModelLinearThreadWithTimeSeries/thermalConductivityComputationContainerDump.xml'
    UnorderedCsv = 'metaModelLinearThreadWithTimeSeries/heatTransferContainerDump.csv metaModelLinearThreadWithTimeSeries/metaModelOutputTestPointSetDump.csv metaModelLinearThreadWithTimeSeries/thermalConductivityComputationContainerDump.csv'
-   xml = 'metaModelLinearThreadWithTimeSeries/heatTransferContainerDump_unstructured_inputs.xml'
    rel_err=1.e-4
  [../]
 

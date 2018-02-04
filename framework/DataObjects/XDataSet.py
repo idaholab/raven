@@ -566,6 +566,8 @@ class DataSet(DataObject):
     self._collector = None
     self._meta = {}
     # TODO others?
+    self._alignedIndexes = {}
+    self._scaleFactors = {}
 
   def sliceByIndex(self,index):
     """
