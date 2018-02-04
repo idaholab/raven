@@ -53,7 +53,6 @@
           heatTransfer
         <Input            class="DataObjects" type="PointSet">inputHolder</Input>
         <TargetEvaluation class="DataObjects" type="DataSet">heatTransferContainer</TargetEvaluation>
-      
         <!--
            *** New way to work with "time-series" in the input space is the DataSet ***
            <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
@@ -212,22 +211,6 @@
       <Input>leftTemperature,rightTemperature</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <!--
-     The way we store the timeseries (or any other dimensional array) in the input space is changed in the new DataObject structure
-     the PointSet is not adequate anymore. WE MUST USE THE DataSet (see below)
-    <PointSet name="heatTransferContainer">
-      <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
-      <Output>solution</Output>
-    </PointSet>
-    -->
-    <DataSet name="heatTransferContainer">
-        <!-- This is the new way to store and pass information in case not-scalar values are stored in the input space -->
-        <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
-        <Output>solution</Output>
-        <!-- with the <Index> XML block, we are informing RAVEN that "k" in the dataobject is a dependent variable and depens on "timeFromFirstModel" -->
-        <Index var="timeFromFirstModel">k</Index>
-    </DataSet>
-    
     <PointSet name="metaModelOutputTestPointSet">
       <Input>leftTemperature,rightTemperature</Input>
       <Output>k,solution</Output>
@@ -243,6 +226,21 @@
             <pivotParameter>timeFromFirstModel</pivotParameter>
         </options>
     </HistorySet>
+    <!--
+     The way we store the timeseries (or any other dimensional array) in the input space is changed in the new DataObject structure
+     the PointSet is not adequate anymore. WE MUST USE THE DataSet (see below)
+     <PointSet name="heatTransferContainer">
+     <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
+     <Output>solution</Output>
+     </PointSet>
+     -->
+    <DataSet name="heatTransferContainer">
+        <!-- This is the new way to store and pass information in case not-scalar values are stored in the input space -->
+        <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
+        <Output>solution</Output>
+        <!-- with the Index XML block, we are informing RAVEN that "k" in the dataobject is a dependent variable and depens on "timeFromFirstModel" -->
+        <Index var="timeFromFirstModel">k</Index>
+    </DataSet>
   </DataObjects>
 
 </Simulation>
