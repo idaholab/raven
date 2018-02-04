@@ -756,7 +756,7 @@ class DataSet(DataObject):
             # it's already gone; this can happen if this pivot parameter is only being used to collapse data (like in PointSet case)
             pass
         # otherwise, you're misaligned, and have been since before this realization, no action.
-      return
+    return
 
   def _checkRealizationFormat(self,rlz):
     """
