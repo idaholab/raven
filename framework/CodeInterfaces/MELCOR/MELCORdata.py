@@ -66,6 +66,7 @@ class MELCORdata:
     """
       CONTROL FUNCTIONS EDIT
       @ In, timeBlock, dict, {"time":[lines Of Output for that time]}
+      @ Out, functionValuesForEachTime, dict, {"time":{"functionName":"functionValue"}}
     """
     functionValuesForEachTime = {}
     startRegex = re.compile("\s*CONTROL\s*FUNCTION\s*NUMBER\s*CURRENT\s*VALUE")
