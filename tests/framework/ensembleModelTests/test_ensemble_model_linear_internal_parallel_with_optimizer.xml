@@ -102,7 +102,7 @@
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">heatTransferContainer</Input>
-      <Input class="DataObjects" type="HistorySet">optData</Input>
+      <Input class="DataObjects" type="PointSet">optData</Input>
       <Input class="DataObjects" type="PointSet">optOutput</Input>
       <Input class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Input>
       <Input class="DataObjects" type="PointSet">metaModelOutputTest</Input>
