@@ -260,13 +260,22 @@ class EnsembleModel(Dummy):
           self.mods.append(mm)
       # retrieve 'TargetEvaluation' object, i.e. DataObjects
       self.modelsDictionary[modelIn[2]]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
-      if self.modelsDictionary[modelIn[2]]['TargetEvaluation'].type not in ['PointSet','HistorySet']:
+      if self.modelsDictionary[modelIn[2]]['TargetEvaluation'].type not in ['PointSet','HistorySet','DataSet']:
         self.raiseAnError(IOError, "Only DataObjects are allowed as TargetEvaluation object. Got "+ str(self.modelsDictionary[modelIn[2]]['TargetEvaluation'].type)+"!")
       self.tempTargetEvaluations[modelIn[2]]                = copy.deepcopy(self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
       # attention: from now on, the values for the following dict with respect to 'Input' and 'Output' keys are changed
       # to the liss of input or output parameters names
-      self.modelsDictionary[modelIn[2]]['Input' ]           = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getVars('input')
-      self.modelsDictionary[modelIn[2]]['Output']           = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getVars("output") + self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getVars('indexes')
+      # get input variables
+      inps   = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getVars('input')
+      # get pivot parameters in input space if any and add it in the 'Input' list
+      inDims = [item for sublist in self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getDimensions(var="input").values() for item in sublist]
+      # assemble the two lists
+      self.modelsDictionary[modelIn[2]]['Input'] = inps + list(set(inDims) - set(inps))
+      # get output variables
+      outs = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getVars("output")
+      # get pivot parameters in output space if any and add it in the 'Output' list
+      outDims = [item for sublist in self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getDimensions(var="output").values() for item in sublist]
+      self.modelsDictionary[modelIn[2]]['Output'] = outs + list(set(outDims) - set(outs))
     # check if all the inputs passed in the step are linked with at least a model
     if not all(checkDictInputsUsage.values()):
       unusedFiles = ""
