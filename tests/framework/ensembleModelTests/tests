@@ -47,7 +47,7 @@
    type = 'RavenFramework'
    input = 'test_ensemble_model_linear_internal_parallel_with_optimizer.xml'
    output = 'metaModelLinearParallelWithOptimizer/1-metaModelOutputTestK_scatter.png metaModelLinearParallelWithOptimizer/1-metaModelOutputTestSolution_scatter.png metaModelLinearParallelWithOptimizer/heatTransferContainerDump.csv metaModelLinearParallelWithOptimizer/heatTransferContainerDump.xml metaModelLinearParallelWithOptimizer/metaModelOutputTestDump.csv metaModelLinearParallelWithOptimizer/metaModelOutputTestDump.xml metaModelLinearParallelWithOptimizer/thermalConductivityComputationContainerDump.csv metaModelLinearParallelWithOptimizer/thermalConductivityComputationContainerDump.xml metaModelLinearParallelWithOptimizer/optimizationHistoryDump.csv'
-   csv = 'metaModelLinearParallelWithOptimizer/mdlDataDump.csv metaModelLinearParallelWithOptimizer/optimizationHistoryDump_0.csv'
+   csv = 'metaModelLinearParallelWithOptimizer/mdlDataDump.csv metaModelLinearParallelWithOptimizer/optimizationHistoryDump_1.csv'
    rel_err=1.e-4
  [../]
 

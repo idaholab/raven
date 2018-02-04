@@ -464,6 +464,8 @@ class EnsembleModel(Dummy):
       joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
       # collect the output of the STEP
       optionalOutputNames.extend( [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject']])
+    # the prefix is re-set here
+    joinedResponse['prefix'] = np.asarray([finishedJob.identifier])
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
         output.addRealization(joinedResponse)
