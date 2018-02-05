@@ -1566,13 +1566,13 @@ It is important to notice that when the EnsembleModel detects a chain of models 
  \newline \xmlNode{TargetEvaluation} determines how the data are going to be transferred from a model to
   the other. If for example the chain of models is $A \rightarrow B$:}}
 \begin{itemize}
-  \item \textcolor{red} { \textbf{ If model $B$ expects as Input scalars and outputs time-series, the \xmlNode{TargetEvaluation}  
+  \item \textcolor{red} { \textbf{ If model $B$ expects as input scalars and outputs time-series, the \xmlNode{TargetEvaluation}  
   of the  model $B$ will be a \textit{HistorySet} and the  \xmlNode{TargetEvaluation} of the model $A$ will be either 
   a \textit{PointSet} or a \textit{DataSet} (where the output variables that need to be transferred to the model $A$ are scalars) }    }
-   \item \textcolor{red} { \textbf{ If model $B$ expects as Input scalars and time-series and outputs time-series or scalars or both, the \xmlNode{TargetEvaluation}  
+   \item \textcolor{red} { \textbf{ If model $B$ expects as input scalars and time-series and outputs time-series or scalars or both, the \xmlNode{TargetEvaluation}  
   of the  model $B$ will be a \textit{DataSet} and the \newline  \xmlNode{TargetEvaluation} of the model $A$ will be either 
   a \textit{HistorySet} or a \textit{DataSet}  }    }
-  \item \textcolor{red} { \textbf{ If both model $A$ and $B$ expect as Input scalars and output scalars, the \xmlNode{TargetEvaluation}  
+  \item \textcolor{red} { \textbf{ If both model $A$ and $B$ expect as input scalars and output scalars, the \xmlNode{TargetEvaluation}  
   of the  both models  $A$  and $B$ will be  \textit{PointSet}s  }  }
 \end{itemize}
 
