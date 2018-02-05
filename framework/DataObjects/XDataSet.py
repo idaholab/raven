@@ -1711,9 +1711,13 @@ class DataSet(DataObject):
         if not localIndex:
           data.to_csv(fileName+'.csv',mode=mode,header=header, index=localIndex)
         else:
-          data.to_csv(fileName+'.csv',mode=mode,header=header)#, index=localIndex)
-          ##FIXME: This is extremely bad and not elegant
-          ##FIXME:  It is just needed to go on with the "regolding" of the tests
+          data.to_csv(fileName+'.csv',mode=mode,header=header)
+          ## START garbled index fix ##
+          ## At one point we were seeing "garbled" indexes printed from Pandas: a,b,(RAVEN_sample_ID,),c
+          ## Here, commented is a workaround that @alfoa set up to prevent that problem.
+          ## However, it is painfully slow, so if garbled data shows up again, we can
+          ##   revisit this fix.
+          ## When using this fix, comment out the data.to_csv line above.
           #dataString = data.to_string()
           # find headers
           #splitted = [",".join(elm.split())+"\n" for elm in data.to_string().split("\n")]
@@ -1722,6 +1726,7 @@ class DataSet(DataObject):
           #toPrint = [",".join(header).replace("\n","")+"\n"]+stringData
           #with open(fileName+'.csv', mode='w+') as fileObject:
           #  fileObject.writelines(toPrint)
+          ## END garbled index fix ##
       # if keepIndex, then print as is
       elif keepIndex:
         data.to_csv(fileName+'.csv',mode=mode,header=header)
