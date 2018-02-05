@@ -566,6 +566,8 @@ class DataSet(DataObject):
     self._collector = None
     self._meta = {}
     # TODO others?
+    self._alignedIndexes = {}
+    self._scaleFactors = {}
 
   def sliceByIndex(self,index):
     """
@@ -754,7 +756,7 @@ class DataSet(DataObject):
             # it's already gone; this can happen if this pivot parameter is only being used to collapse data (like in PointSet case)
             pass
         # otherwise, you're misaligned, and have been since before this realization, no action.
-      return
+    return
 
   def _checkRealizationFormat(self,rlz):
     """
@@ -776,7 +778,7 @@ class DataSet(DataObject):
       # FIXME: this check will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
       if self.indexes:
         if key in self._fromVarToIndex and rlz[self._fromVarToIndex[key]].shape != rlz[key].shape:
-          self.raiseAWarning('Variable "{}" has not a consistent shape with respect its index "{}": shape({}) /= shape({})!'.format(key,self._fromVarToIndex[key],rlz[key].shape,lz[self._fromVarToIndex[key]].shape))
+          self.raiseAWarning('Variable "{}" has not a consistent shape with respect its index "{}": shape({}) /= shape({})!'.format(key,self._fromVarToIndex[key],rlz[key].shape,rlz[self._fromVarToIndex[key]].shape))
           return False
     return okay
 

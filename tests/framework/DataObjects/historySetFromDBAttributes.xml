@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/DataObjects.test_output_from_db_history_attributes</name>
+    <author>alfoa</author>
+    <created>2018-02-01</created>
+    <classesTested>DataObjects.HistorySet, Models.ExternalModel</classesTested>
+    <description>
+        Test to check the functionalities of DataObjects preprocess the data applying simple
+        operator (e.g. max value, average, min value, etc.), in the $options$ XML node.
+        In this case it tests the attributes for HistorySet coming from a DataBase.
+    </description>
+  </TestInfo>
+
+  <ExternalXML node="RunInfo" xmlToLoad="DataobjectsAttributes/RunInfo.xml"/>
+
+  <Steps>
+    <IOStep name="TestDataObjectAttributes">
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Output class="DataObjects" type="HistorySet">stories1</Output>
+      <Output class="DataObjects" type="HistorySet">stories2</Output>
+      <Output class="OutStreams" type="Print">stories1_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">stories2_from_DB_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <ExternalXML node="Databases" xmlToLoad="DataobjectsAttributes/Database.xml"/>
+  <ExternalXML node="OutStreams" xmlToLoad="DataobjectsAttributes/OutStreams.xml"/>
+  <ExternalXML node="DataObjects" xmlToLoad="DataobjectsAttributes/DataObjects.xml"/>
+
+</Simulation>

@@ -3,10 +3,12 @@
 <!-- *********************************************************************** -->
 <!--                               DataObjects                               -->
 <!-- *********************************************************************** -->
+
   <xsd:complexType name="DataObjectsData">
     <xsd:sequence>
-      <xsd:element name="PointSet" type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="HistorySet"    type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="PointSet"   type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="HistorySet" type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="DataSet"    type="dataSetData"            minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
   </xsd:complexType>
 
@@ -23,7 +25,7 @@
       <!-- Either inputRow or inputPivotValue  will be specified (mutually exclusive) -->
       <xsd:choice>
         <xsd:element name="inputRow"         type="xsd:integer" minOccurs="0"/>
-        <xsd:element name="inputPivotValue"  type="xsd:float"   minOccurs="0"/>
+        <!--  <xsd:element name="inputPivotValue"  type="xsd:float"   minOccurs="0"/> -->
       </xsd:choice>
       <xsd:element name="pivotParameter"   type="xsd:string"  minOccurs="0"/>
       <!-- Either operator, outputRow, or outputPivotValue will be specified
@@ -31,7 +33,7 @@
       <xsd:choice>
         <xsd:element name="outputRow"        type="xsd:integer" minOccurs="0"/>
         <xsd:element name="operator"         type="operatorType"  minOccurs="0"/>
-        <xsd:element name="outputPivotValue" type="xsd:string"  minOccurs="0"/>
+        <!-- <xsd:element name="outputPivotValue" type="xsd:string"  minOccurs="0"/> -->
       </xsd:choice>
    </xsd:sequence>
   </xsd:complexType>
@@ -44,5 +46,24 @@
     </xsd:all>
     <xsd:attribute name="name"         type="xsd:string"  use="required"/>
     <xsd:attribute name="hierarchical" type="RavenBool"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="dataSetData">
+      <xsd:sequence>
+          <xsd:element name="Input"   type="xsd:string"  minOccurs="0"/>
+          <xsd:element name="Output"  type="xsd:string"  minOccurs="0"/>
+          <xsd:element name="Index"   type="IndexType"   minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="options" type="optionsType" minOccurs="0"/>
+      </xsd:sequence>
+      <xsd:attribute name="name"         type="xsd:string"  use="required"/>
+      <xsd:attribute name="hierarchical" type="RavenBool"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="IndexType">
+      <xsd:simpleContent>
+          <xsd:extension base="xsd:string">
+              <xsd:attribute name="var" type="xsd:string" use="required"/>
+          </xsd:extension>
+      </xsd:simpleContent>
   </xsd:complexType>
 </xsd:schema>

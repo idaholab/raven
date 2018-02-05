@@ -1510,8 +1510,8 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
-        Currently, the  \xmlNode{EnsembleModel} accept ``DataObjects''  both of type
-        ``PointSet'' and ``HistorySet''.
+        Currently, the  \xmlNode{EnsembleModel} accept all ``DataObjects''  types:
+        ``PointSet'',  ``HistorySet'' and ``DataSet''.
         \nb The  \xmlNode{TargetEvaluation} is primary used for input-output identification. If the linked
         DataObject is not placed as additional output of the Step where the EnsembleModel is used, it will
         not be filled with the data coming from the calculation and it will be kept empty.
@@ -1530,7 +1530,7 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         As an example, the Output dataObjects cannot contained variables that are defined at the Ensemble model level.
         %
         The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of both classes ``DataObjects'' and ``Databases'' 
-        (e.g. PointSet, HistorySet, HDF5).
+        (e.g. PointSet, HistorySet, DataSet, HDF5).
         \nb \textbf{The \xmlNode{Output} (s) here specified MUST be listed in the Step in which the EnsembleModel is used.}
     \end{itemize}
   %
@@ -1561,6 +1561,21 @@ It is important to notice that when the EnsembleModel detects a chain of models 
         otherwise an error will be raised.
   \end{itemize}
 \end{itemize}
+
+\nb \textcolor{red} { \textbf{ It is crucial to understand that the choice of the \xmlNode{DataObject} used as
+ \newline \xmlNode{TargetEvaluation} determines how the data are going to be transferred from a model to
+  the other. If for example the chain of models is $A \rightarrow B$:}}
+\begin{itemize}
+  \item \textcolor{red} { \textbf{ If model $B$ expects as Input scalars and outputs time-series, the \xmlNode{TargetEvaluation}  
+  of the  model $B$ will be a \textit{HistorySet} and the  \xmlNode{TargetEvaluation} of the model $A$ will be either 
+  a \textit{PointSet} or a \textit{DataSet} (where the output variables that need to be transferred to the model $A$ are scalars) }    }
+   \item \textcolor{red} { \textbf{ If model $B$ expects as Input scalars and time-series and outputs time-series or scalars or both, the \xmlNode{TargetEvaluation}  
+  of the  model $B$ will be a \textit{DataSet} and the \newline  \xmlNode{TargetEvaluation} of the model $A$ will be either 
+  a \textit{HistorySet} or a \textit{DataSet}  }    }
+  \item \textcolor{red} { \textbf{ If both model $A$ and $B$ expect as Input scalars and output scalars, the \xmlNode{TargetEvaluation}  
+  of the  both models  $A$  and $B$ will be  \textit{PointSet}s  }  }
+\end{itemize}
+
 \textbf{Example (Linear System):}
 \begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
 <Simulation>

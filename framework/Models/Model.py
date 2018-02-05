@@ -89,7 +89,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   #the possible outputs
   validateDict['Output'].append(testDict.copy())
   validateDict['Output' ][0]['class'       ] = 'DataObjects'
-  validateDict['Output' ][0]['type'        ] = ['PointSet','HistorySet']
+  validateDict['Output' ][0]['type'        ] = ['PointSet','HistorySet','DataSet']
   validateDict['Output' ][0]['required'    ] = False
   validateDict['Output' ][0]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())

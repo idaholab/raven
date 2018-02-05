@@ -1,18 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests/DymolaTestTimeDepNoExecutableEnsembleModel</name>
+    <name>framework/CodeInterfaceTests.DymolaTestTimeDepNoExecutableEnsembleModel</name>
     <author>alfoa</author>
     <created>2016-11-11</created>
-    <revisions>
-      <revision date="2016-12-01" author="@alfoa">Fixed order of test inputs to respect XSD schema</revision>
-    </revisions>
     <classesTested>Models.EnsembleModel,CodeInterfaces.OpenModelica</classesTested>
     <description>
        The purpose of this test is to ensure that the Dyola external code interface functions properly with the
        new ensemble model functionality.  Since the output files have been pre-generated, a Dymola executable is
        not necessary to run this test.
     </description>
+    <revisions>
+        <revision author="alfoa" date="2016-12-01" >Fixed order of test inputs to respect XSD schema</revision>
+        <revision author="alfoa" date="2018-02-04">Modified test in order to work with the new DataObject structure (Usage of DataSet)</revision>
+    </revisions>
   </TestInfo>
   <Files>
     <Input name="dsin.txt" type="DymolaInitialisation">dsin.txt</Input>
@@ -25,8 +26,9 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="CreateHIST" name="CreateHIST" subType=""> 
-        <variables>G_a, G_b, G_c, G_vect</variables>
+    <ExternalModel ModuleToLoad="CreateHIST" name="CreateHIST" subType="">
+        <variables>G_a, G_b, G_c, G_vect, Time</variables>
+        <alias variable="TimeFirstModel" type="output">Time</alias>
     </ExternalModel>
 
     <Code name="BouncingBall" subType="Dymola">
@@ -45,7 +47,7 @@
          BouncingBall
          <Input     class="Files"        type="DymolaInitialisation">dsin.txt</Input>
          <Input     class="Files"        type="DymolaVectors">addinp.txt</Input>
-         <TargetEvaluation class="DataObjects" type="HistorySet">BBHistorySet_out</TargetEvaluation>
+         <TargetEvaluation class="DataObjects" type="DataSet">BBHistorySet_out</TargetEvaluation>
       </Model>
     </EnsembleModel>
   </Models>
@@ -99,11 +101,11 @@
       <Input     class="DataObjects"  type="PointSet">CreateHIST_in</Input>
       <Model     class="Models"       type="EnsembleModel">Ensemble_Model</Model>
       <Sampler   class="Samplers"     type="EnsembleForward">Ensemble_Sampler</Sampler>
-      <Output     class="DataObjects" type="HistorySet">BBHistorySet_out</Output>
+      <Output     class="DataObjects" type="DataSet">BBHistorySet_out</Output>
       <Output    class="Databases"    type="HDF5">DB_BouncingBall</Output>
     </MultiRun>
     <IOStep name="testPrintUnstructuredInputSpace">
-       <Input     class="DataObjects" type="HistorySet">BBHistorySet_out</Input>
+       <Input     class="DataObjects" type="DataSet">BBHistorySet_out</Input>
        <Output    class="OutStreams"  type="Print">DB_BouncingBallDump</Output>
  
     </IOStep>
@@ -119,20 +121,28 @@
        <Input>G_a, G_b, G_c</Input>
        <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <HistorySet name="BBHistorySet_out">
-       <Input>hstart, G_vect</Input>
-       <Output>v,flying,impact</Output>
-       <options>
-           <pivotParameter>Time</pivotParameter>
-       </options>
-     </HistorySet>
     <HistorySet name="CreateHIST_out">
       <Input>G_a, G_b, G_c</Input>
       <Output>G_vect</Output>
        <options>
-           <pivotParameter>Time</pivotParameter>
+           <pivotParameter>TimeFirstModel</pivotParameter>
        </options>
     </HistorySet>
+    <!--
+     <HistorySet name="BBHistorySet_out">
+     <Input>hstart, G_vect</Input>
+     <Output>v,flying,impact</Output>
+     <options>
+     <pivotParameter>Time</pivotParameter>
+     </options>
+     </HistorySet>
+     -->
+    <DataSet name="BBHistorySet_out">
+      <Input>hstart, G_vect</Input>
+      <Output>v,flying,impact</Output>
+      <Index var="Time">v,flying,impact</Index>
+      <Index var="TimeFirstModel">G_vect</Index>
+    </DataSet>
   </DataObjects>
 
   <Databases>
