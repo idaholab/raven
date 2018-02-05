@@ -48,6 +48,21 @@ an input file:
   \nb \textcolor{red} {\textbf{The  \xmlNode{DataSet} is currently usable in the  \xmlNode{EnsembleModel} only (see \ref{subsec:models_EnsembleModel} )}}
 \end{itemize}
 
+In summary, the DataObjects accept the following data in their input/output spaces:
+\begin{table}[h]
+\centering
+\caption{DataObjects' accepted data formats.}
+\label{DataObjectDataFormatTable}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{DataObject}                        & \textbf{Input Space} & \textbf{Output Space} \\ \hline
+{\color[HTML]{FE0000} \textit{PointSet}}   & scalars              & scalars               \\ \hline
+{\color[HTML]{FE0000} \textit{HistorySet}} & scalars              & vectors               \\ \hline
+{\color[HTML]{FE0000} \textit{DataSet}}    & any                  & any                   \\ \hline
+\end{tabular}
+\end{table}
+
+
 As noted above, each data object represents a mapping between a set of
 parameters and the resulting outcomes.
 %
@@ -215,7 +230,7 @@ contain the following optional XML sub-nodes:
            \item if \xmlNode{PointSet}, the output space is retrieved from the last row in the CSVs files or HDF5 tables;
            \item if \xmlNode{HistorySet}, the output space is represented by all the rows found in  the CSVs or HDF5 tables.
            \item if \xmlNode{DataSet}, the output space of the variables that do not depends on any index is retrieved from the last row in the CSVs files or HDF5 tables; 
-           on the contrary, he output space of the variables that depends on indexes is represented by all the rows found in  the CSVs or HDF5 tables (if they match 
+           on the contrary, the output space of the variables that depends on indexes is represented by all the rows found in  the CSVs or HDF5 tables (if they match 
            with the indexes' dimension)
         \end{itemize}
     \end{itemize}

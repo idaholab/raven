@@ -268,13 +268,13 @@ class EnsembleModel(Dummy):
       # get input variables
       inps   = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getVars('input')
       # get pivot parameters in input space if any and add it in the 'Input' list
-      inDims = [item for sublist in self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getDimensions(var="input").values() for item in sublist]
+      inDims = [item for subList in self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getDimensions(var="input").values() for item in subList]
       # assemble the two lists
       self.modelsDictionary[modelIn[2]]['Input'] = inps + list(set(inDims) - set(inps))
       # get output variables
       outs = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getVars("output")
       # get pivot parameters in output space if any and add it in the 'Output' list
-      outDims = [item for sublist in self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getDimensions(var="output").values() for item in sublist]
+      outDims = [item for subList in self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getDimensions(var="output").values() for item in subList]
       self.modelsDictionary[modelIn[2]]['Output'] = outs + list(set(outDims) - set(outs))
     # check if all the inputs passed in the step are linked with at least a model
     if not all(checkDictInputsUsage.values()):
