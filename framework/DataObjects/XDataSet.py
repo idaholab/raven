@@ -1711,16 +1711,17 @@ class DataSet(DataObject):
         if not localIndex:
           data.to_csv(fileName+'.csv',mode=mode,header=header, index=localIndex)
         else:
+          data.to_csv(fileName+'.csv',mode=mode,header=header)#, index=localIndex)
           ##FIXME: This is extremely bad and not elegant
           ##FIXME:  It is just needed to go on with the "regolding" of the tests
-          dataString = data.to_string()
+          #dataString = data.to_string()
           # find headers
-          splitted = [",".join(elm.split())+"\n" for elm in data.to_string().split("\n")]
-          header, stringData = splitted[0:2], splitted[2:]
-          header.reverse()
-          toPrint = [",".join(header).replace("\n","")+"\n"]+stringData
-          with open(fileName+'.csv', mode='w+') as fileObject:
-            fileObject.writelines(toPrint)
+          #splitted = [",".join(elm.split())+"\n" for elm in data.to_string().split("\n")]
+          #header, stringData = splitted[0:2], splitted[2:]
+          #header.reverse()
+          #toPrint = [",".join(header).replace("\n","")+"\n"]+stringData
+          #with open(fileName+'.csv', mode='w+') as fileObject:
+          #  fileObject.writelines(toPrint)
       # if keepIndex, then print as is
       elif keepIndex:
         data.to_csv(fileName+'.csv',mode=mode,header=header)
@@ -1728,6 +1729,27 @@ class DataSet(DataObject):
       else:
         data.to_csv(fileName+'.csv',index=False,mode=mode,header=header)
     #raw_input('Just wrote to CSV "{}.csv", press enter to continue ...'.format(fileName))
+
+  def _useNumpyWriteCSV(self,fileName,data,ordered,keepSampleTag=False,keepIndex=False,mode='w'):
+    # TODO docstrings
+    # TODO assert point set -> does not work right for ND (use Pandas)
+    # TODO the "mode" should be changed for python 3: mode has to be 'ba' if appending, not 'a' when using numpy.savetxt
+    with open(fileName+'.csv',mode) as outFile:
+      if mode == 'w':
+        #write header
+        header = ','.join(ordered)
+      else:
+        header = ''
+      #print('DEBUGG data:',data[ordered])
+      data = data[ordered].to_array()
+      if not keepSampleTag:
+        data = data.drop(self.sampleTag)
+      data = data.values.transpose()
+      # set up formatting for types
+      # TODO potentially slow loop
+      types = list('%.18e' if self._getCompatibleType(data[0][i]) == float else '%s' for i in range(len(ordered)))
+      np.savetxt(outFile,data,header=header,fmt=types)
+    # format data?
 
 
   ### HIERARCHICAL STUFF ###
