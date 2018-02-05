@@ -92,8 +92,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     inputSpecification.addSub(outputInput)
 
     optionsInput = InputData.parameterInputFactory("options")
-    for option in ['inputRow','inputPivotValue','outputRow','outputPivotValue','operator','pivotParameter']:
+    for option in ['operator','pivotParameter']:
       optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.StringType)
+      optionsInput.addSub(optionSubInput)
+    for option in ['inputRow','outputRow']:
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.IntegerType)
       optionsInput.addSub(optionSubInput)
     inputSpecification.addSub(optionsInput)
 
@@ -850,7 +853,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       unstructuredDataFile.write(" "*3+"</unstructuredInputData>\n")
     unstructuredDataFile.write("</unstructuredInputSpace>\n")
     unstructuredDataFile.close()
-
 
   def removeInputValue(self,name):
     """

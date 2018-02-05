@@ -1,0 +1,5 @@
+  <Models>
+    <ExternalModel ModuleToLoad="massflowrate_fake" name="PythonModule" subType="">
+      <variables>time,Tw,Dummy1,pipe_Area,pipe_Tw,pipe_Hw</variables>
+    </ExternalModel>
+  </Models>

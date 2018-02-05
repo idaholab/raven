@@ -1,3 +1,4 @@
+
 # Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -115,6 +116,21 @@ class HistorySet(Data):
       @ In, value, newer value
       @ Out, None
     """
+
+    ## Check if we need to reduce the dataset
+    value = np.atleast_1d(value).flatten()
+    rows = None
+    if self._dataParameters is not None:
+      rows = self._dataParameters.get('inputRow', None)
+    if rows is None:
+      rows = range(len(value))
+    else:
+      if rows > len(value):
+        rows = range(len(value))
+        self.raiseAWarning("inputRow > len of history! Taking last row!")
+
+    value = value[rows]
+
     # if this flag is true, we accept realizations in the input space that are not only scalar but can be 1-D arrays!
     #acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
     unstructuredInput = False
@@ -255,8 +271,21 @@ class HistorySet(Data):
       @ In, value, ?, ?
       @ Out, None
     """
+
+    ## Check if we need to reduce the dataset
+    value = np.atleast_1d(value).flatten()
+    rows = None
+    if self._dataParameters is not None:
+      rows = self._dataParameters.get('outputRow', None)
+    if rows is None:
+      rows = range(len(value))
+    else:
+      if rows > len(value):
+        rows = range(len(value))
+        self.raiseAWarning("inputRow > len of history! Taking last row!")
+    value = np.atleast_1d(value[rows])
+
     if isinstance(value,np.ndarray):
-      #self.raiseADebug('FIXME: Converted np.ndarray into c1darray in HistorySet!')
       value = c1darray(values=value)
     if not isinstance(value,c1darray):
       self.raiseAnError(NotConsistentData,'HistorySet Data accepts only cached_ndarray as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
@@ -577,7 +606,7 @@ class HistorySet(Data):
     self.numAdditionalLoadPoints += len(allLines) #used in checkConsistency
 
     self.checkConsistency()
-
+    
   def _constructKDTree(self,requested):
     """
       Constructs a KD tree consisting of the variable values in "requested"
