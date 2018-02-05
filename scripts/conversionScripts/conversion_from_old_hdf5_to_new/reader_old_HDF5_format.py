@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on Mar 25, 2013
-
+Created on Feb 03, 2018
+based on h5py_interface_creator.py (commit 3469eddfcacec2ab1dc93786ac068cebff5d6e05)
+This module is a stripped version of the h5py_interface_creator.py module present in devel
+(3469eddfcacec2ab1dc93786ac068cebff5d6e05). It is able to read databases generated after Jan 2015.
 @author: alfoa
 """
 #for future compatibility with Python 3--------------------------------------------------------------
@@ -67,10 +69,6 @@ class OldHDF5Database():
     # * MC  = MonteCarlo => Storing by a Parallel structure
     # * DET = Dynamic Event Tree => Storing by a Hierarchical structure
     self.type       = None
-    # specialize printTag (THIS IS THE CORRECT WAY TO DO THIS)
-    self.printTag = 'DATABASE HDF5'
-    # does it exist?
-    self.fileExist = True
     # .H5 file name (to be created or read)
     # File name on disk
     self.onDiskFile = filename
