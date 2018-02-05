@@ -8,8 +8,7 @@ different calculation flows.
 These interactions are made possible through a data handling system that each
 entity understands.
 %
-This system, neglecting the grammar imprecision, is called the ``DataObjects''
-system.
+This system is called the ``DataObjects'' system.
 
 The \xmlNode{DataObjects} tag is a container of data objects of various types that can
 be constructed during the execution of a particular calculation flow.
@@ -17,7 +16,7 @@ be constructed during the execution of a particular calculation flow.
 These data objects can be used as input or output for a particular
 \textbf{Model} (see Roles' meaning in section \ref{sec:models}), etc.
 %
-Currently, RAVEN supports 4 different data types, each with a particular
+Currently, RAVEN supports 3 different data types, each with a particular
 conceptual meaning.
 %
 These data types are instantiated as sub-nodes in the \xmlNode{DataObjects} block of
@@ -35,9 +34,18 @@ an input file:
   input domain.
   %
   It can be considered a mapping between multiple sets of parameters in the
-  input space and the resulting sets of temporal evolutions in the output
+  input space and the resulting sets of temporal evolution in the output
   space.
   %
+   \item \xmlNode{DataSet} is a generalization of the previously described DataObject, 
+   aimed to contain a mixture of data (scalars, arrays, etc.). The variables here stored
+   can be independent (i.e. scalars) or dependent (arrays) on certain dimensions (e.g. time, coordinates, etc.).
+  %
+  It can be considered a mapping between multiple sets of parameters in the
+  input space (both dependent and/or independent) and the resulting sets of evolution in the output
+  space (both dependent and/or independent).
+  %
+  \nb \textcolor{red} {\textbf{The  \xmlNode{DataSet} is currently usable in the  \xmlNode{EnsembleModel} only (see \ref{subsec:models_EnsembleModel} )}}
 \end{itemize}
 
 As noted above, each data object represents a mapping between a set of
@@ -50,12 +58,13 @@ The data objects are defined within the main XML block called \xmlNode{DataObjec
   <DataObjects>
     <PointSet name='***'>...</PointSet>
     <HistorySet name='***'>...</HistorySet>
+    <DataSet name='***'>...</DataSet>
   </DataObjects>
    ...
 </Simulation>
 \end{lstlisting}
 
-Independent of the type of data, the respective XML node has the following
+Independently on the type of data, the respective XML node has the following
 available attributes:
 \vspace{-5mm}
 \begin{itemize}
@@ -109,16 +118,31 @@ available attributes:
   \default{False}
 \end{itemize}
 \vspace{-5mm}
-In each XML node (e.g. \xmlNode{PointSet} or \xmlNode{HistorySet}), the user
+In each XML node (e.g. \xmlNode{PointSet}, \xmlNode{HistorySet} or  \xmlNode{DataSet}), the user
 needs to specify the following sub-nodes:
 \begin{itemize}
-  \item \xmlNode{Input}, \xmlDesc{comma separated string, required field} lists
+  \item \xmlNode{Input}, \xmlDesc{comma separated string, required field}, lists
   the input parameters to which this data is connected.
   %
-  \item \xmlNode{Output}, \xmlDesc{comma separated string, required field} lists
+  \item \xmlNode{Output}, \xmlDesc{comma separated string, required field}, lists
   the output parameters to which this data is connected.
   %
 \end{itemize}
+
+The  \xmlNode{PointSet} and  \xmlNode{HistorySet} objects are a specialization of the  \xmlNode{DataSet} where the 
+independent dimensions are defaulted to none, for the \xmlNode{PointSet}, or to the \textit{pivotParameter} (e.g. time), for the \xmlNode{HistorySet}.
+If a  \xmlNode{DataSet} needs to be constructed, an additional information (e.g. sub-node) needs to be inputted, the  \xmlNode{Index}:
+
+\begin{itemize}
+  \item \xmlNode{Index}, \xmlDesc{comma separated string, required field (if  \xmlNode{DataSet})}, lists
+  the dependent variables that depend on this index (specified through the attribute  \xmlAttr{var}).
+  This XML node requires the following attribute:
+   \begin{itemize}
+       \item \xmlAttr{var}, \xmlDesc{required string attribute}, the dimension name of this index (e.g. time)
+   \end{itemize}
+  %
+\end{itemize}
+
 
 In addition to the XML nodes \xmlNode{Input} and \xmlNode{Output} explained above, the user
 can optionally specify a XML node named  \xmlNode{options}. The  \xmlNode{options} node can
@@ -183,16 +207,22 @@ contain the following optional XML sub-nodes:
   %
   It needs to be noticed that if the optional nodes in the block \xmlNode{options} are not inputted, the following default are applied:
     \begin{itemize}
-       \item the Input space is retrieved from the first row in the CSVs files or HDF5 tables (if the parameters specified are not among the variables sampled by RAVEN);
+       \item the Input space (scalars) is retrieved from the first row in the CSVs files or HDF5 tables (if the parameters specified are not 
+          among the variables sampled by RAVEN); In case of the  \xmlNode{DataSet}, if any of the input space variables depend on an \xmlNode{Index}, they 
+          are going to be linked to the \xmlNode{Index} variable
        \item  the output space defaults are as follows:
        \begin{itemize}
            \item if \xmlNode{PointSet}, the output space is retrieved from the last row in the CSVs files or HDF5 tables;
            \item if \xmlNode{HistorySet}, the output space is represented by all the rows found in  the CSVs or HDF5 tables.
+           \item if \xmlNode{DataSet}, the output space of the variables that do not depends on any index is retrieved from the last row in the CSVs files or HDF5 tables; 
+           on the contrary, he output space of the variables that depends on indexes is represented by all the rows found in  the CSVs or HDF5 tables (if they match 
+           with the indexes' dimension)
         \end{itemize}
     \end{itemize}
+    
 \end{itemize}
 
-\begin{lstlisting}[style=XML,morekeywords={inputTs,operator,hierarchical,name,history}]
+\begin{lstlisting}[style=XML,morekeywords={operator,hierarchical,name,var}]
   <DataObjects>
     <PointSet name='outTPS1'>
       <options>
@@ -210,6 +240,11 @@ contain the following optional XML sub-nodes:
       <Input>pipe_Area,pipe_Dh</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
+    <DataSet name='aDataSet'>
+      <Input>pipe_Area,pipe_Dh</Input>
+      <Output>pipe_Hw,pipe_Tw</Output>
+      <Index var="time">pipe_Hw,pipe_Tw</Index>
+    </DataSet>
   </DataObjects>
 \end{lstlisting}
 
