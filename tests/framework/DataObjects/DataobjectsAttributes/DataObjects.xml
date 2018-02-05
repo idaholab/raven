@@ -1,0 +1,45 @@
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>Tw, Dummy1</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+
+    <!-- Point Sets for Testing -->
+    <PointSet name="outGridTPS1">
+      <options>
+        <inputRow>0</inputRow>
+        <outputRow>-1</outputRow>
+      </options>
+      <Input>Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </PointSet>
+    <PointSet name="outGridTPS2">
+      <options>
+        <inputRow>-1</inputRow>
+        <outputRow>2</outputRow>
+      </options>
+      <Input>Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </PointSet>
+
+    <!-- History Sets for Testing -->
+    <HistorySet name="allStories">
+      <Input>Tw,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </HistorySet>
+    <HistorySet name="stories1">
+      <options>
+        <inputRow>0</inputRow>
+      </options>
+      <Input>Tw</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </HistorySet>
+    <HistorySet name="stories2">
+      <options>
+        <inputRow>-1</inputRow>
+      </options>
+      <Input>Tw</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </HistorySet>
+
+  </DataObjects>
