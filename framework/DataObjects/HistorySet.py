@@ -606,7 +606,7 @@ class HistorySet(Data):
     self.numAdditionalLoadPoints += len(allLines) #used in checkConsistency
 
     self.checkConsistency()
-    
+
   def _constructKDTree(self,requested):
     """
       Constructs a KD tree consisting of the variable values in "requested"
@@ -628,4 +628,3 @@ class HistorySet(Data):
     # create normalized tree
     data = np.dstack(tuple((inpVals[v]-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in floatVars))[0]
     self.inputKDTree = spatial.KDTree(data)
-
