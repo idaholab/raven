@@ -196,6 +196,7 @@
    input = 'generic_parallel.xml'
    output = 'GenericInterfaceParallel/samples.csv'
  [../]
+
  [./genericInterface2]
    type = 'RavenFramework'
    input = 'test_generic_interface.xml'
@@ -210,6 +211,13 @@
    input = 'test_generic_IO.xml'
    output = 'GenericInterfaceIO/samples.xml'
    csv = 'GenericInterfaceIO/samples.csv'
+ [../]
+
+ [./genericInterfaceIOCustomOutput]
+   type = 'RavenFramework'
+   input = 'test_generic_interface_custom_out_file.xml'
+   output = 'GenericInterfaceIOCustomOutput/samples.xml'
+   csv = 'GenericInterfaceIOCustomOutput/samples.csv'
  [../]
 
  [./CubitMooseInterface]
@@ -277,7 +285,6 @@
    type = 'RavenFramework'
    input = 'test_maap5_code_interface_adaptive_det.xml'
    UnorderedCsv = 'MAAP5_adaptiveDET_test/limitSurfDump.csv'
-   UnorderedXml = 'MAAP5_adaptiveDET_test/limitSurfDump.xml'
    test_interface_only = True
    rel_err = 0.0001
  [../]
@@ -285,7 +292,6 @@
    type = 'RavenFramework'
    input = 'test_maap5_code_interface_adaptive_hybrid_det.xml'
    UnorderedCsv = 'MAAP5_adaptiveHybridDET_test/limitSurfDump.csv'
-   UnorderedXml = 'MAAP5_adaptiveHybridDET_test/limitSurfDump.xml'
    test_interface_only = True
    rel_err = 0.0001
  [../]

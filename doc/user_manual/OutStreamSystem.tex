@@ -175,6 +175,14 @@ available attributes:
     %
   \nb As with other objects, this name can be used to refer to this specific
   entity from other input blocks in the XML.
+  %
+  \item \xmlAttr{dir}, \xmlDesc{optional string attribute}, is a user-defined
+  directory in which the data are going to be streamed (i.e. printed). The 
+  directory can be either inputted with an relative (with respect the \xmlNode{workingDir} specified
+  in the   \xmlNode{RunInfo} XML node)  or absolute path 
+  %
+  \default{\xmlNode{workingDir}}
+  %
  \end{itemize}
 As shown in the examples below, every \xmlNode{Print} block must contain, at
 least, the two required tags:
@@ -362,6 +370,13 @@ In addition, the Plot block accepts the following attributes:
   same name) is requested.
   %
   \default{False}
+  %
+    \item \xmlAttr{dir}, \xmlDesc{optional string attribute}, is a user-defined
+  directory in which the data are going to be streamed (i.e. printed). The 
+  directory can be either inputted with an relative (with respect the \xmlNode{workingDir} specified
+  in the   \xmlNode{RunInfo} XML node)  or absolute path 
+  %
+  \default{\xmlNode{workingDir}}
   %
 \end{itemize}
 \vspace{-5mm}

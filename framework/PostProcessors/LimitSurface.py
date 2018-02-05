@@ -177,8 +177,7 @@ class LimitSurface(PostProcessor):
     """
     self.raiseADebug('Initiate training')
     if type(inp) == dict:
-      self.functionValue.update(inp['inputs' ])
-      self.functionValue.update(inp['outputs'])
+      self.functionValue.update(inp)
     else:
       dataSet = inp.asDataset("dict")
       self.functionValue.update(dataSet['data'])
@@ -203,10 +202,8 @@ class LimitSurface(PostProcessor):
       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0:
         self.raiseAnError(IOError, 'LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
       if type(inp).__name__ in ['dict','OrderedDict']:
-        if self.externalFunction.name in inp['inputs' ].keys():
-          inp['inputs' ][self.externalFunction.name] = np.concatenate((inp['inputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
-        if self.externalFunction.name in inp['outputs'].keys():
-          inp['outputs'][self.externalFunction.name] = np.concatenate((inp['outputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
+        if self.externalFunction.name in inp:
+          inp[self.externalFunction.name] = np.concatenate((inp[self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
       if raiseErrorIfNotFound:
         self.raiseAnError(ValueError, 'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')

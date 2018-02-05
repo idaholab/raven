@@ -170,6 +170,17 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedValue", InputData.IntegerType))
+    # inputs for neural_network
+    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("activation", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("batch_size", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("learning_rate_init", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("momentum", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("nesterovs_momentum", InputData.StringType)) # bool
+    inputSpecification.addSub(InputData.parameterInputFactory("early_stopping", InputData.StringType)) # bool
+    inputSpecification.addSub(InputData.parameterInputFactory("validation_fraction", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta_1", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta_2", InputData.FloatType))
 
     inputSpecification.addSub(InputData.parameterInputFactory("maxNumberExpTerms", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("numberExpTerms", InputData.IntegerType))

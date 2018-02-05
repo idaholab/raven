@@ -1,0 +1,4 @@
+v0,y0,ang,y,x,ProbabilityWeight,ProbabilityWeight-v0,prefix,PointProbability,ProbabilityWeight-y0,ProbabilityWeight-ang
+1.0,0,45,0.0217106781187,0.0707106781187,0.25,0.25,1,0.25,1.0,1.0
+3.0,0,45,0.163132034356,0.212132034356,0.5,0.5,2,0.25,1.0,1.0
+5.0,0,45,0.304553390593,0.353553390593,0.25,0.25,3,0.25,1.0,1.0

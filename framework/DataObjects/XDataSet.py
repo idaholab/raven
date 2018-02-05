@@ -611,7 +611,10 @@ class DataSet(DataObject):
     # TODO dask?
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized write style: "{}"'.format(style))
-    return len(self) # so that other entities can track which realization we've written
+    if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
+      return len(self._data.where(self._data['RAVEN_isEnding']==True,drop=True)['RAVEN_isEnding'])
+    else:
+      return len(self) # so that other entities can track which realization we've written
 
   ### INITIALIZATION ###
   # These are the necessary functions to construct and initialize this data object
@@ -699,7 +702,7 @@ class DataSet(DataObject):
     assert(var in self._orderedVars)
     assert(type(value).__name__ in ['float','str','int','unicode','bool'])
     lenColl = len(self._collector) if self._collector is not None else 0
-    lenData = len(self._data     ) if self._data      is not None else 0
+    lenData = len(self._data[self.sampleTag]) if self._data      is not None else 0
     # if it's in the data ...
     if index < lenData:
       self._data[var].values[index] = value
@@ -753,6 +756,30 @@ class DataSet(DataObject):
         # otherwise, you're misaligned, and have been since before this realization, no action.
       return
 
+  def _checkRealizationFormat(self,rlz):
+    """
+      Checks that a passed-in realization has a format acceptable to data objects.
+      Data objects require a CSV-like result with either float or np.ndarray instances.
+      @ In, rlz, dict, realization with {key:value} pairs.
+      @ Out, okay, bool, True if acceptable or False if not
+    """
+    okay = True
+    if not isinstance(rlz,dict):
+      self.raiseAWarning('Realization is not a "dict" instance!')
+      return False
+    for key,value in rlz.items():
+      #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
+      if not isinstance(value,np.ndarray):
+        self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(key,type(value)))
+        return False
+      # check if index-dependent variables have matching shapes
+      # FIXME: this check will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
+      if self.indexes:
+        if key in self._fromVarToIndex and rlz[self._fromVarToIndex[key]].shape != rlz[key].shape:
+          self.raiseAWarning('Variable "{}" has not a consistent shape with respect its index "{}": shape({}) /= shape({})!'.format(key,self._fromVarToIndex[key],rlz[key].shape,lz[self._fromVarToIndex[key]].shape))
+          return False
+    return okay
+
   def _clearAlignment(self):
     """
       Clears the alignment tracking for the collector, and removes columns from it if necessary
@@ -781,14 +808,11 @@ class DataSet(DataObject):
       # get the parent ID
       parentID = rlz[idVar]
       # if root or parentless, nothing to do
-      if parentID is None:
+      if parentID == "None":
         return
       # otherwise, find the index of the match
       idx,match = self.realization(matchDict={'prefix':parentID})
       self._changeVariableValue(idx,endVar,False)
-    else:
-      # no action taken for data without hierarchical information
-      pass
 
   def _collapseNDtoDataArray(self,data,var,labels=None,dtype=None):
     """
@@ -1074,7 +1098,7 @@ class DataSet(DataObject):
     # for now, leave them as the arrays they are, except single entries need converting
     for var,val in rlz.items():
       # if an index variable, skip it
-      if var in self._pivotParams.keys():
+      if var in self._pivotParams:
         continue
       dims = self.getDimensions(var)[var]
       ## change dimensionless to floats -> TODO use operator to collapse!
@@ -1553,6 +1577,7 @@ class DataSet(DataObject):
     else:
       data = self._data
       mode = 'w'
+
     data = data.drop(toDrop)
     self.raiseADebug('Printing data to CSV: "{}"'.format(filenameLocal+'.csv'))
     # get the list of elements the user requested to write
@@ -1730,7 +1755,7 @@ class DataSet(DataObject):
     for e,ending in enumerate(endings):
       # reconstruct path that leads to this ending
       path = [ending['prefix']]
-      while ending['RAVEN_parentID'] is not None and not pd.isnull(ending['RAVEN_parentID']):
+      while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']):
         _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
         path.append(ending['prefix'])
       # sort it in order by progression
@@ -1755,7 +1780,7 @@ class DataSet(DataObject):
       # first get rows from collector
       fromColl = self._collector[:][np.where(self._collector[:,self._orderedVars.index('RAVEN_isEnding')])]
       # then turn them into realization-like
-      fromColl = list( dict(zip(self._orderedVars,c)) for c in fromColl if self._orderedVars[c] in self.getVars())
+      fromColl = list( dict(zip(self._orderedVars,c)) for c in fromColl )
     else:
       fromColl = []
     # then get from data

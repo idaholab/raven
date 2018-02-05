@@ -374,7 +374,8 @@ class EnsembleModel(Dummy):
     selectedkwargs['SampledVars'], selectedkwargs['SampledVarsPb'] = {}, {}
     for key in kwargs["SampledVars"].keys():
       if key in self.modelsDictionary[modelName]['Input']:
-        selectedkwargs['SampledVars'][key], selectedkwargs['SampledVarsPb'][key] =  kwargs["SampledVars"][key],  kwargs["SampledVarsPb"][key] if 'SampledVarsPb' in kwargs.keys() else 1.0
+        selectedkwargs['SampledVars'][key]   = kwargs["SampledVars"][key]
+        selectedkwargs['SampledVarsPb'][key] = kwargs["SampledVarsPb"][key] if 'SampledVarsPb' in kwargs.keys() and key in kwargs["SampledVarsPb"].keys() else 1.0
     return selectedkwargs
 
   def createNewInput(self,myInput,samplerType,**kwargs):
@@ -439,29 +440,27 @@ class EnsembleModel(Dummy):
     except ValueError:
       jobIndex = None
 
-    #joinedGeneralMetadata = {}
     joinedResponse = {}
+    joinedGeneralMetadata = {}
     targetEvaluationNames = {}
     for modelIn in self.modelsDictionary.keys():
       targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation'].name] = modelIn
       # collect data
+      #dataSet = targetEvaluations[modelIn].asDataset()
       # collect optional output if present and not already collected
       if jobIndex is not None:
         for optionalModelOutput in self.modelsDictionary[modelIn]['OutputObject']:
           optionalModelOutput.addRealization(optionalOutputs[modelIn])
-      # update the responses
       joinedResponse.update(outcomes[modelIn]['response'])
-
-      # get general metadata
-      #joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
+      joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
     # collect the output of the STEP
     optionalOutputNames = [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject'] for modelIn in self.modelsDictionary]
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
         output.addRealization(joinedResponse)
       else:
-        joinedModelResponse = optionalOutputs[targetEvaluationNames[output.name]]
         output.addRealization(outcomes[targetEvaluationNames[output.name]]['response'])
+        #output.addMeta()
 
   def getAdditionalInputEdits(self,inputInfo):
     """
