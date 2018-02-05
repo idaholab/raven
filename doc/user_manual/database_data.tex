@@ -48,6 +48,18 @@ an input file:
   \nb \textcolor{red} {\textbf{The  \xmlNode{DataSet} is currently usable in the  \xmlNode{EnsembleModel} only (see \ref{subsec:models_EnsembleModel} )}}
 \end{itemize}
 
+In summary, the DataObjects accept the following data in their input/output spaces:
+\begin{table}
+  \centering
+  \begin{tabular}{c|c|c}
+    Data Object & Input Space & Output Space \\
+    DataSet     & any         & any \\
+    PointSet    & scalars     & scalars \\
+    HistorySet  & scalars     & vectors
+  \end{tabular}
+\end{table}
+
+
 As noted above, each data object represents a mapping between a set of
 parameters and the resulting outcomes.
 %
