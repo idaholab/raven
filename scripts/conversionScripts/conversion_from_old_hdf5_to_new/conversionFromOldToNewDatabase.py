@@ -39,7 +39,7 @@ if __name__=='__main__':
   oldDatabase = OldHDF5Database("old_database", os.path.dirname(oldDataBase),os.path.basename(oldDataBase))
   newDatabase = hdf5Database("new_database", os.path.dirname(newDataBase), mh, os.path.basename(newDataBase), False)
   historyNames = oldDatabase.retrieveAllHistoryNames()
-  
+
   for hist in historyNames:
     rlz = {}
     # retrieve old data
