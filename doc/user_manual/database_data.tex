@@ -49,14 +49,17 @@ an input file:
 \end{itemize}
 
 In summary, the DataObjects accept the following data in their input/output spaces:
-\begin{table}
-  \centering
-  \begin{tabular}{c|c|c}
-    Data Object & Input Space & Output Space \\
-    DataSet     & any         & any \\
-    PointSet    & scalars     & scalars \\
-    HistorySet  & scalars     & vectors
-  \end{tabular}
+\begin{table}[h]
+\centering
+\caption{DataObjects' accepted data formats.}
+\label{DataObjectDataFormatTable}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{DataObject}                        & \textbf{Input Space} & \textbf{Output Space} \\ \hline
+{\color[HTML]{FE0000} \textit{PointSet}}   & scalars              & scalars               \\ \hline
+{\color[HTML]{FE0000} \textit{HistorySet}} & scalars              & vectors               \\ \hline
+{\color[HTML]{FE0000} \textit{DataSet}}    & any                  & any                   \\ \hline
+\end{tabular}
 \end{table}
 
 
