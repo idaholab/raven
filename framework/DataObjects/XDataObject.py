@@ -66,9 +66,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
     inputSpecification = super(DataObject,cls).getInputSpecification()
-    inputSpecification.addParam('hierarchical',InputData.StringType)
-    inputSpecification.addParam('inputTs',InputData.StringType)
-    inputSpecification.addParam('historyName',InputData.StringType)
+    inputSpecification.addParam('hierarchical', InputData.BoolType)
 
     inputInput = InputData.parameterInputFactory('Input',contentType=InputData.StringType) #TODO list
     inputSpecification.addSub(inputInput)
@@ -110,35 +108,20 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._metavars = []                                      # list(str) of POINTWISE metadata variables
     self._orderedVars = []                                   # list(str) of vars IN ORDER of their index
 
-    self._meta         = {}     # dictionary to collect meta until data is collapsed
-    self._heirarchal   = False  # if True, non-traditional format (not yet implemented)
-    self._selectInput  = None   # if not None, describes how to collect input data from history
-    self._selectOutput = None   # if not None, describes how to collect output data from history
-    self._pivotParams  = {}     # independent dimensions as keys, values are the vars that depend on them
-    self._aliases      = {}     # variable aliases
+    self._meta            = {}     # dictionary to collect meta until data is collapsed
+    self._selectInput     = None   # if not None, describes how to collect input data from history
+    self._selectOutput    = None   # if not None, describes how to collect output data from history
+    self._pivotParams     = {}     # independent dimensions as keys, values are the vars that depend on them
+    self._fromVarToIndex  = {}     # mapping between variables and indexes ({var:index}). "index" here refers to dimensional variables (e.g. time, x, y, z etc)
+    self._aliases         = {}     # variable aliases
 
-    self._data         = None   # underlying data structure
-    self._collector    = None   # object used to collect samples
+    self._data            = None   # underlying data structure
+    self._collector       = None   # object used to collect samples
 
-    self._inputKDTree  = None   # for finding outputs given inputs (pointset only?)
-    self._scaleFactors = None   # scaling factors inputs as {var:(mean,scale)}
-
-  def _checkRealizationFormat(self,rlz):
-    """
-      Checks that a passed-in realization has a format acceptable to data objects.
-      Data objects require a CSV-like result with either float or np.ndarray instances.
-      @ In, rlz, dict, realization with {key:value} pairs.
-      @ Out, okay, bool, True if acceptable or False if not
-    """
-    if not isinstance(rlz,dict):
-      self.raiseAWarning('Realization is not a "dict" instance!')
-      return False
-    for key,value in rlz.items():
-      #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
-      if not isinstance(value,np.ndarray):
-        self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(key,type(value)))
-        return False
-    return True
+    self._inputKDTree     = None   # for finding outputs given inputs (pointset only?)
+    self._scaleFactors    = None   # scaling factors inputs as {var:(mean,scale)}
+    self.hierarchical     = False  # this flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
+                                   # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
 
   def _readMoreXML(self,xmlNode):
     """
@@ -151,6 +134,10 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       inp = DataObject.getInputSpecification()()
       inp.parseNode(xmlNode)
+
+    # get hierarchical strategy
+    self.hierarchical = inp.parameterValues.get("hierarchical", False)
+
     pivotParam = None # single pivot parameter given in the input
     for child in inp.subparts:
       # TODO check for repeats, "notAllowdInputs", names in both input and output space
@@ -210,7 +197,13 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     # check if protected vars have been violated
     if set(self.protectedTags).issubset(set(self._orderedVars)):
       self.raiseAnError(IOError, 'Input, Output and Index variables can not be part of RAVEN protected tags: '+','.join(self.protectedTags))
-    self.protectedTags
+
+    # create dict var to index
+    # FIXME: this dict will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
+    if self.indexes:
+      for ind in self.indexes:
+        self._fromVarToIndex.update(dict.fromkeys( self._pivotParams[ind], ind))
+
     if self.messageHandler is None:
       self.messageHandler = MessageCourier()
 

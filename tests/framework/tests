@@ -255,6 +255,10 @@
     type = 'RavenPython'
     input = '../../framework/DataObjects/TestXPointSet.py'
   [../]
+  [./unit_test_HierachicalDataObject]
+    type = 'RavenPython'
+    input = '../../framework/DataObjects/TestHierarchal.py'
+  [../]
 
  [./test_xsd_input_data]
   type = 'RavenPython'

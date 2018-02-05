@@ -55,17 +55,23 @@ class Grid(ForwardSampler):
         specifying input of cls.
     """
     inputSpecification = super(Grid, cls).getInputSpecification()
-
-    oldSub = inputSpecification.popSub("variable")
-    newVariableInput = InputData.parameterInputFactory("variable", baseNode=oldSub)
+    # grid input
     gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
     gridInput.addParam("type", InputData.StringType)
     gridInput.addParam("construction", InputData.StringType)
     gridInput.addParam("steps", InputData.IntegerType)
-
+    # old outer distribution input
+    oldSubOutDist =  inputSpecification.popSub("Distribution")
+    newOuterDistributionInput = InputData.parameterInputFactory("Distribution", baseNode=oldSubOutDist)
+    # old variable input
+    oldSub = inputSpecification.popSub("variable")
+    newVariableInput = InputData.parameterInputFactory("variable", baseNode=oldSub)
+    # update variable input with new grid input
     newVariableInput.addSub(gridInput)
-
     inputSpecification.addSub(newVariableInput)
+    # update outer distribution input with new grid input
+    newOuterDistributionInput.addSub(gridInput)
+    inputSpecification.addSub(newOuterDistributionInput)
 
     return inputSpecification
 
@@ -270,9 +276,5 @@ class Grid(ForwardSampler):
           self.inputInfo['ProbabilityWeight-'+distName] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
           weight *= self.distDict[varName].cellIntegral(ndCoordinate,dxs)
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    # reassign SampledVarsPb to fully correlated variables
-    self._reassignSampledVarsPbToFullyCorrVars()
-    # reassign probability weight to correlated variables
-    self._reassignPbWeightToCorrelatedVars()
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Grid'

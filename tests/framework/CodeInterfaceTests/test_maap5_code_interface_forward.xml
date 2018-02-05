@@ -76,7 +76,7 @@
   </Steps>
 
   <DataObjects>
-    <HistorySet name="Temporal_Evolution">
+    <HistorySet name="Temporal_Evolution" hierarchical="true">
       <Input>TIMELOCA</Input>
       <Output>PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1)</Output>
       <options>

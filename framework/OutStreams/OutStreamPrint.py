@@ -23,6 +23,9 @@ warnings.simplefilter('default',DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3-------------------------------------------
+#External Modules---------------------------------------------------------------
+import os
+#External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
 import DataObjects
@@ -65,6 +68,7 @@ class OutStreamPrint(OutStreamManager):
     self.what = None
     # dictionary of what indices have already been printed, so we don't duplicate writing efforts
     self.indexPrinted = {} # keys are filenames, which should be reset at the end of every step
+    self.subDirectory = None # subdirectory where to store the outputs
 
   def localGetInitParams(self):
     """
@@ -102,7 +106,7 @@ class OutStreamPrint(OutStreamManager):
     """
     self.type = 'OutStreamPrint'
     for subnode in xmlNode:
-      if subnode.tag not in ['type','source','what','filename','target','clusterLabel']:
+      if subnode.tag not in ['type','source','what','filename','target','clusterLabel','directory']:
         self.raiseAnError(IOError, ' Print Outstream object ' + str(self.name) + ' contains the following unknown node: ' + str(subnode.tag))
       if subnode.tag == 'source':
         self.sourceName = subnode.text.split(',')
@@ -131,6 +135,8 @@ class OutStreamPrint(OutStreamManager):
     dictOptions['filenameroot'] = self.name
     if len(self.filename) > 0:
       dictOptions['filenameroot'] = self.filename
+    if self.subDirectory is not None:
+      dictOptions['filenameroot'] = os.path.join(self.subDirectory,dictOptions['filenameroot'])
 
     if self.what:
       dictOptions['what'] = self.what

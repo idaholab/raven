@@ -168,3 +168,39 @@ class PointSet(DataSet):
     for var in toRemove:
       del rlz[var]
     return rlz
+
+  def _toCSV(self,fileName,start=0,**kwargs):
+    """
+      Writes this data object to CSV file (except the general metadata, see _toCSVXML)
+      @ In, fileName, str, path/name to write file
+      @ In, start, int, optional, first realization to start printing from (if > 0, implies append mode)
+      @ In, kwargs, dict, optional, keywords for options
+            Possibly includes:
+                'clusterLabel': name of variable to cluster printing by.  If included then triggers history-like printing.
+      @ Out, None
+    """
+    # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
+    # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
+    # In this case, if self.hierarchical is False, the histories are going to be reconstructed
+    # (see _constructHierPaths for further explainations)
+    if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
+      keep = self._getRequestedElements(kwargs)
+      toDrop = list(var for var in self.getVars() if var not in keep)
+      #FIXME: THIS IS EXTREMELY SLOW
+      full = self._constructHierPaths()[start:]
+      # set up data to write
+      mode = 'a' if start > 0 else 'w'
+
+      self.raiseADebug('Printing data to CSV: "{}"'.format(fileName+'.csv'))
+      # get the list of elements the user requested to write
+      # order data according to user specs # TODO might be time-inefficient, allow user to skip?
+      ordered = list(i for i in self._inputs if i in keep)
+      ordered += list(o for o in self._outputs if o in keep)
+      ordered += list(m for m in self._metavars if m in keep)
+      for data in full:
+        data = data.drop(toDrop)
+        data = data.where(data[self.sampleTag]==data[self.sampleTag].values[-1],drop=True)
+        self._usePandasWriteCSV(fileName,data,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
+        mode = 'a'
+    else:
+      DataSet._toCSV(self, fileName, start, **kwargs)

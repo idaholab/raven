@@ -20,6 +20,7 @@
       <xsd:element name="clusterLabel" type="xsd:string" minOccurs="0"/>
     </xsd:all>
     <xsd:attribute name="name"      type="xsd:string" use="required"/>
+    <xsd:attribute name="dir"       type="xsd:string" />
     <xsd:attribute name="verbosity" type="verbosityAttr"/>
   </xsd:complexType>
 
@@ -59,6 +60,7 @@
     <xsd:attribute name="name"        type="xsd:string" use="required"/>
     <xsd:attribute name="interactive" type="RavenBool" default="false"/>
     <xsd:attribute name="overwrite"   type="RavenBool" default="false"/>
+    <xsd:attribute name="dir"         type="xsd:string" />
     <!-- Does this exist? -->
     <xsd:attribute name="verbosity"   type="xsd:string"/>
   </xsd:complexType>
