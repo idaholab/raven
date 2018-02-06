@@ -88,7 +88,7 @@
  [./IndexInputOutput]
    type = 'RavenFramework'
    input = 'index_input_output.xml'
-   UnorderedCsv = 'IndexInputOutput/step_out.csv IndexInputOutput/step_out_2.csv IndexInputOutput/step_out_4.csv IndexInputOutput/step_out_6.csv IndexInputOutput/step_out_8.csv '
+   UnorderedCsv = 'IndexInputOutput/step_out.csv IndexInputOutput/step_out_2.csv IndexInputOutput/step_out_4.csv IndexInputOutput/step_out_6.csv IndexInputOutput/step_out_8.csv'
  [../]
 
 

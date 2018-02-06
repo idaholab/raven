@@ -74,13 +74,6 @@
       <variables>scalar2,hist1,hist2,t</variables>
     </ExternalModel>
     <EnsembleModel name="ens" subType="">
-      <settings>
-        <initialStartModels>model1</initialStartModels>
-        <initialConditions>
-          <scalar1>0.0</scalar1>
-          <scalar2>0.0</scalar2>
-        </initialConditions>
-      </settings>
       <Model class="Models" type="ExternalModel">
         model1
         <Input class="DataObjects" type="PointSet">first_in</Input>
