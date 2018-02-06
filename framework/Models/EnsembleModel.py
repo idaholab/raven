@@ -750,7 +750,11 @@ class EnsembleModel(Dummy):
           iterOne  += residueContainer[modelIn]['iterValues'][1].values()
         residueContainer['TotalResidue'] = np.linalg.norm(np.asarray(iterOne)-np.asarray(iterZero))
         self.raiseAMessage("Picard's Iteration Norm: "+ str(residueContainer['TotalResidue']))
-        if all(residueContainer['TotalResidue'] <= self.convergenceTol):
+        residualPass = residueContainer['TotalResidue'] <= self.convergenceTol
+        # sometimes there can be multiple residual values
+        if hasattr(residualPass,'__len__'):
+          residual = all(residualPass)
+        if residualPass:
           self.raiseAMessage("Picard's Iteration converged. Norm: "+ str(residueContainer['TotalResidue']))
           break
     returnEvaluation = returnDict, tempTargetEvaluations, tempOutputs
