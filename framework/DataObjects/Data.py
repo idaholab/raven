@@ -617,7 +617,16 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     ## Second, check if remaining string variables match in the realization we found
     match = True
     metaVars = set(requested.keys()).difference(set(realization['inputs'].keys()))
-    metaVals = self.getMetadata('SampledVars')
+    # look to see if metadata about sampled variables is available
+    try:
+      metaVals = self.getMetadata('SampledVars')
+    # if the SampledVars key isn't found, a RuntimeError is thrown.
+    except RuntimeError:
+      metaVals = {}
+    if not all(var in metaVals for var in metaVars):
+      missing = set(metaVars) - set(metaVals.keys())
+      self.raiseADebug('Necessary variables not found for restart in data or metadata: "{}".  No match found for restart.'.format(missing))
+      return None
     if self.type == 'HistorySet':
       metaVals = dict((var,np.array(list(metaVals[idx][var] for idx in range(len(metaVals))))) for var in metaVars)
       #index += 1
