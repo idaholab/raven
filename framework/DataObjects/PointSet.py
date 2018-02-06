@@ -29,13 +29,14 @@ import itertools
 import numpy as np
 import os
 import copy
+from scipy import spatial
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils.cached_ndarray import c1darray
 from .Data import Data, NotConsistentData, ConstructError
 import Files
-from utils import utils
+from utils import utils,mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PointSet(Data):
@@ -515,3 +516,20 @@ class PointSet(Data):
         self._dataContainer["outputs"][key] = c1darray(values=np.array(inoutDict[key]))
       else:
         self._dataContainer["outputs"][key].append(c1darray(values=np.array(inoutDict[key])))
+
+  def _constructKDTree(self,requested):
+    """
+      Constructs a KD tree consisting of the variable values in "requested"
+      @ In, requested, list, requested variable names
+      @ Out, None
+    """
+    #set up data scaling, so that relative distances are used
+    # scaling is so that scaled = (actual - mean)/scale
+    inpVals = self.getParametersValues('inputs')
+    floatVars = list(r for r in requested if r in inpVals.keys())
+    for v in floatVars:
+      mean,scale = mathUtils.normalizationFactors(inpVals[v])
+      self.treeScalingFactors[v] = (mean,scale)
+    #convert data into a matrix in the order of requested
+    data = np.dstack(tuple((np.array(inpVals[v])-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in floatVars))[0]
+    self.inputKDTree = spatial.KDTree(data)
