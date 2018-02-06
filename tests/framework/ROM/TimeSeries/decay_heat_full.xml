@@ -16,7 +16,7 @@
     
     <RunInfo>
         <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/ROM/TimeSeries/PolyExponential</WorkingDir>
-		 <Sequence>readIn,RAVENsurrogateTrain,PolyTrain,pickleRom,runRAVENsurrogate,runPoly,plot,writeOut</Sequence>
+		 <Sequence>readIn,RAVENsurrogateTrain,PolyTrain,pickleRom,runRAVENsurrogate,runPoly,writeOut</Sequence>
         <batchSize>1</batchSize>
     </RunInfo>
     <Files>
