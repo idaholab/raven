@@ -61,7 +61,7 @@ CF_ARG    1 ! NARG   CHARG        ARSCAL   ARADCN
               1      EXEC-TIME    0.0      0.0
 !
 CF_INPUT   !
-CF_ID 'Test CF'       02  EQUALS   !
+CF_ID 'Test_CF'       02  EQUALS   !
 CF_SAI   1.0   0.0    0.0                                 !  CFSCAL CFADCN CFVALR (INITIAL VALUE)
 CF_ARG    1 ! NARG   CHARG        ARSCAL   ARADCN
               1      EXEC-TIME    2.0      1.0
