@@ -1,0 +1,118 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ensembleModelTests.indexInputOutput</name>
+    <author>talbpaul</author>
+    <created>2018-02-06</created>
+    <classesTested>Models.EnsembleModel, Models.ExternalModel, DataObject.DataSet</classesTested>
+    <description>
+      Tests that an index can be depended on by variables in both in input and output space of an ensembled model.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>IndexInputOutput</WorkingDir>
+    <Sequence>sample,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">first_in</Input>
+      <Model class="Models" type="EnsembleModel">ens</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="HistorySet">step_out</Output>
+    </MultiRun>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">step_out</Input>
+      <Output class="OutStreams"  type="Print">step_out</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="step_in">
+      <Input>scalar1,scalar2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="step_out">
+      <Input>scalar1,scalar2</Input>
+      <Output>hist1,hist2</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+    <PointSet name="first_in">
+      <Input>scalar1</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="second_in">
+      <Input>scalar2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <DataSet name="first_target">
+      <Input>scalar1</Input>
+      <Output>hist1</Output>
+      <Index var="t">hist1</Index>
+    </DataSet>
+    <DataSet name="second_target">
+      <Input>scalar2,hist1</Input>
+      <Output>hist2</Output>
+      <Index var="t">hist1,hist2</Index>
+    </DataSet>
+  </DataObjects>
+
+  <Distributions>
+    <Uniform name="sc_dist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="model1" name="model1" subType="">
+      <variables>scalar1,hist1,t</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="model2" name="model2" subType="">
+      <variables>scalar2,hist1,hist2,t</variables>
+    </ExternalModel>
+    <EnsembleModel name="ens" subType="">
+      <settings>
+        <initialStartModels>model1</initialStartModels>
+        <initialConditions>
+          <scalar1>0.0</scalar1>
+          <scalar2>0.0</scalar2>
+        </initialConditions>
+      </settings>
+      <Model class="Models" type="ExternalModel">
+        model1
+        <Input class="DataObjects" type="PointSet">first_in</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet">first_target</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="ExternalModel">
+        model2
+        <Input class="DataObjects" type="PointSet">second_in</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet">second_target</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="scalar1">
+        <distribution>sc_dist</distribution>
+        <grid construction="equal" steps="2" type="CDF">0 1</grid>
+      </variable>
+      <variable name="scalar2">
+        <distribution>sc_dist</distribution>
+        <grid construction="equal" steps="2" type="CDF">0 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="step_out">
+      <type>csv</type>
+      <source>step_out</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>

@@ -221,9 +221,8 @@ class EnsembleModel(Dummy):
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    # in here we store the job ids for which we did not collected the optional output yet
+    # store the job ids for jobs that we haven't collected optional output from
     self.tempOutputs['uncollectedJobIds'] = []
-    #self.tempOutputs['forHold'] = {}
     # collect name of all the outputs in the Step
     outputsNames = []
     if initDict is not None:
@@ -234,6 +233,7 @@ class EnsembleModel(Dummy):
     for inp in inputs:
       checkDictInputsUsage[inp] = False
 
+    # collect the models
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
       inputInstancesForModel = []
@@ -380,7 +380,8 @@ class EnsembleModel(Dummy):
       @ Out, selectedkwargs , dict, the subset of variables (in a swallow copy of the kwargs  dict)
     """
     selectedkwargs = copy.copy(kwargs)
-    selectedkwargs['SampledVars'], selectedkwargs['SampledVarsPb'] = {}, {}
+    selectedkwargs['SampledVars'] = {}
+    selectedkwargs['SampledVarsPb'] = {}
     for key in kwargs["SampledVars"].keys():
       if key in self.modelsDictionary[modelName]['Input']:
         selectedkwargs['SampledVars'][key]   = kwargs["SampledVars"][key]
@@ -626,6 +627,7 @@ class EnsembleModel(Dummy):
         self.raiseAMessage("Picard's Iteration "+ str(iterationCount))
 
       for modelCnt, modelIn in enumerate(self.orderList):
+        # clear the model's Target Evaluation data object
         tempTargetEvaluations[modelIn].reset()
         # in case there are metadataToTransfer, let's collect them from the source
         metadataToTransfer = None
@@ -741,7 +743,7 @@ class EnsembleModel(Dummy):
           iterOne  += residueContainer[modelIn]['iterValues'][1].values()
         residueContainer['TotalResidue'] = np.linalg.norm(np.asarray(iterOne)-np.asarray(iterZero))
         self.raiseAMessage("Picard's Iteration Norm: "+ str(residueContainer['TotalResidue']))
-        if residueContainer['TotalResidue'] <= self.convergenceTol:
+        if all(residueContainer['TotalResidue'] <= self.convergenceTol):
           self.raiseAMessage("Picard's Iteration converged. Norm: "+ str(residueContainer['TotalResidue']))
           break
     returnEvaluation = returnDict, tempTargetEvaluations, tempOutputs
