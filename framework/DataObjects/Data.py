@@ -623,8 +623,15 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     # if the SampledVars key isn't found, a RuntimeError is thrown.
     except RuntimeError:
       metaVals = {}
-    if not all(var in metaVals for var in metaVars):
-      missing = set(metaVars) - set(metaVals.keys())
+    # check to see the variables we need are present
+    ## point set/no SampledVars
+    if type(metaVals) == dict:
+      have = metaVals.keys()
+    ## history set
+    else:
+      have = metaVals[0].keys()
+    if not all(var in have for var in metaVars):
+      missing = set(metaVars) - set(have)
       self.raiseADebug('Necessary variables not found for restart in data or metadata: "{}".  No match found for restart.'.format(missing))
       return None
     if self.type == 'HistorySet':
