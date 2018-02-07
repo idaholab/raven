@@ -28,10 +28,6 @@
   </Steps>
 
   <DataObjects>
-    <PointSet name="step_in">
-      <Input>scalar1,scalar2</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
     <PointSet name="first_in">
       <Input>scalar1</Input>
       <Output>OutputPlaceHolder</Output>

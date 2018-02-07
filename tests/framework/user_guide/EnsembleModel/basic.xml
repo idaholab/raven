@@ -1,0 +1,133 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/user_guide/Simple</name>
+    <author>talbpaul</author>
+    <created>2018-02-07</created>
+    <classesTested>Models.EnsembleModel</classesTested>
+    <description>
+      Provides a user case of a simple ensemble model.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>run_basic</WorkingDir>
+    <Sequence>sample,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="Files" type="">ballistics_input</Input>
+      <Input class="Files" type="">impact_input</Input>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Model class="Models" type="EnsembleModel">ballistic_and_impact</Model>
+      <Output class="DataObjects" type="PointSet">final_results</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">final_results</Input>
+      <Output class="OutStreams" type="Print">results</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="ballistics_data">
+      <Input>y0,v0,ang,m</Input>
+      <Output>E</Output>
+    </PointSet>
+    <PointSet name="impact_data">
+      <Input>E,m,r</Input>
+      <Output>D</Output>
+    </PointSet>
+    <PointSet name="final_results">
+      <Input>y0,v0,ang,m,r</Input>
+      <Output>E,D</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Files>
+    <Input name="ballistics_input">ballistics_template.txt</Input>
+    <Input name="impact_input">impact_template.txt</Input>
+  </Files>
+
+  <Models>
+    <Code name="ballistics" subType="GenericCode">
+      <executable>run_basic/ballistics.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".txt" type="input"/>
+      <clargs arg="-o" type="output"/>
+    </Code>
+    <Code name="impact" subType="GenericCode">
+      <executable>run_basic/impact.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".txt" type="input"/>
+      <clargs arg="-o" type="output"/>
+    </Code>
+    <EnsembleModel name="ballistic_and_impact" subType="">
+      <Model class="Models" type="Code">
+        ballistics
+        <Input class="Files" type="">ballistics_input</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">ballistics_data</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="Code">
+        impact
+        <Input class="Files" type="">impact_input</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">impact_data</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="y0_dist">
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+    <Uniform name="ang_dist">
+      <lowerBound>15</lowerBound>
+      <upperBound>75</upperBound>
+    </Uniform>
+    <Normal name="v0_dist">
+      <mean>10</mean>
+      <sigma>2</sigma>
+    </Normal>
+    <Normal name="m_dist">
+      <mean>1</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+    <Normal name="r_dist">
+      <mean>0.125</mean>
+      <sigma>0.02</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="y0">
+        <distribution>y0_dist</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+      </variable>
+      <variable name="ang">
+        <distribution>ang_dist</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+      </variable>
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="m">
+        <distribution>m_dist</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="r">
+        <distribution>r_dist</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0.01 0.99</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="results">
+      <type>csv</type>
+      <source>final_results</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
