@@ -32,13 +32,6 @@
       <Input>scalar1,scalar2</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <HistorySet name="step_out">
-      <Input>scalar1,scalar2</Input>
-      <Output>hist1,hist2</Output>
-      <options>
-        <pivotParameter>t</pivotParameter>
-      </options>
-    </HistorySet>
     <PointSet name="first_in">
       <Input>scalar1</Input>
       <Output>OutputPlaceHolder</Output>
@@ -47,6 +40,13 @@
       <Input>scalar2</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+    <HistorySet name="step_out">
+      <Input>scalar1,scalar2</Input>
+      <Output>hist1,hist2</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
     <DataSet name="first_target">
       <Input>scalar1</Input>
       <Output>hist1</Output>
