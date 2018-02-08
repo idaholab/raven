@@ -2983,39 +2983,60 @@ class PolyExponential(superVisedLearning):
         tooWrite = [str(np.ravel(targetVals[smp,:index,pivotParamIndex])[cnt]),str(np.ravel(targetVals[smp,:index,targetParamIndex])[cnt]),str(prediction[cnt]*self.polyExpParams['initialScaling']),str(absolute_difference[cnt]), str(error[cnt])]
         fileObject.write(",".join(tooWrite)+"\n")
     self.pivotValues = targetVals[0,:index,pivotParamIndex]
-    # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
-    self.model = make_pipeline(PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
     # the targets are the coefficients
-    expTermCoeff = np.concatenate( (aij,bij), axis=1)
-    self.model.fit(featureVals, expTermCoeff)
-    # get feature names
-    featureNames = self.__constructPolyString()
-    # print the coefficient
-    coefficients = self.model.steps[1][1].coef_
-    self.raiseAMessage("Polynomial coefficients:")
-    self.raiseAMessage("  Monomials:")
-    self.raiseAMessage("  "+" ".join(featureNames))
-    for l, coeff in enumerate(coefficients):
-      if l < self.polyExpParams['expTerms']:
-        coeff_str = "    a_"+str(l+1)
-      else:
-        coeff_str = "    b_"+str((l-self.polyExpParams['expTerms'])+1)
-      coeff_str+="(" + ",".join(self.features)+"):"
-      self.raiseAMessage(coeff_str)
-      self.raiseAMessage("      "+" ".join([str(elm) for elm in coefficients[l]]))
+    expTermCoeff = np.concatenate( (aij,bij), axis=1)    
+    what = 1
+    if what == 1:
+      # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
+      self.model = make_pipeline(PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
+    
+      self.model.fit(featureVals, expTermCoeff)
+      # get feature names
+      featureNames = self.__constructPolyString()
+      # print the coefficient
+      coefficients = self.model.steps[1][1].coef_
+      self.raiseAMessage("Polynomial coefficients:")
+      self.raiseAMessage("  Monomials:")
+      self.raiseAMessage("  "+" ".join(featureNames))
+      for l, coeff in enumerate(coefficients):
+        if l < self.polyExpParams['expTerms']:
+          coeff_str = "    a_"+str(l+1)
+        else:
+          coeff_str = "    b_"+str((l-self.polyExpParams['expTerms'])+1)
+        coeff_str+="(" + ",".join(self.features)+"):"
+        self.raiseAMessage(coeff_str)
+        self.raiseAMessage("      "+" ".join([str(elm) for elm in coefficients[l]]))
+  if what == 2:
+    #svr
+    dualCoefficients = []
+    supportVectors = []
+    rho = []
+    self.model = [svm.SVR(kernel='rbf', degree=3, gamma='auto', tol=1e-3, C=1.0) for _ in range(self.polyExpParams['expTerms']*2)]
+    for cnt, model in enumerate(self.model):
+      model.fit(featureVals, expTermCoeff[:,cnt])
+      dualCoefficients.append(model.dual_coef_)
+      supportVectors.append(model.support_vectors_)
+      rho.append(model.intercept_)
+  
 
   def __evaluateLocal__(self,featureVals):
     """
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
-    evaluation = self.model.predict(featureVals)
+    if isinstance(self.model, list):
+      evaluation = []
+      for cnt,model in range(len(self.model)):
+        evaluation.append(model.predict(featureVals))
+    else:
+      evaluation = self.model.predict(featureVals)
     returnEvaluation = {}
     for point in range(len(evaluation)):
       l = int(evaluation[point].size/2)
       returnEvaluation[self.pivotParameterID] = self.pivotValues.ravel()
       returnEvaluation[self.targetID] =  self.__evaluateExponentialTerm(self.pivotValues , evaluation[point][:l], evaluation[point][l:])*self.polyExpParams['initialScaling']
     return returnEvaluation
+
   def __confidenceLocal__(self,featureVals):
     """
       This method is currently not needed for ARMA
