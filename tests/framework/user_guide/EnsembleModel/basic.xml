@@ -18,8 +18,8 @@
     <MultiRun name="sample">
       <Input class="Files" type="">ballistics_input</Input>
       <Input class="Files" type="">impact_input</Input>
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Model class="Models" type="EnsembleModel">ballistic_and_impact</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">final_results</Output>
     </MultiRun>
     <IOStep name="print">
