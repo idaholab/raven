@@ -187,6 +187,8 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("maxPolyOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("polyOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("initialScaling", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("cutPivotValue", InputData.FloatType))
+
 
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
