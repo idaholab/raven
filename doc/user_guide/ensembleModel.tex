@@ -1,4 +1,4 @@
-\section{Using the Ensemble Model}
+\section{Ensemble Models}
 \label{sec:ensembleModel}
 
 % TODO
@@ -162,6 +162,20 @@ raven/tests/framework/user_guide/EnsembleModel/run_basic/results.csv
 
 
 
-%\subsection{External Models in Ensemble Models}
-% TODO there's some tricks that should be known, including the [0] for scalars, how to request time-dependent
-% variables and the index, etc.
+\subsection{External Models in Ensemble Models}
+There are a few details that can make handling \xmlNode{ExternalModel} models challenging in Ensemble Models.
+We'll cover a few of these to help smooth over some potential bumps.
+
+Firstly, as noted above, both External Models and ROMs differ from Code models in a significant way: they
+(usually) do not require any input files.  So what do you put as the \xmlNode{Input} for an External Model or
+ROM?  To maintain consistency, we leave the \xmlNode{Input} node in place.  Instead of specifying a file, a
+placeholder data object can be used instead.  A placeholder data object has variables listed in its input, but
+for output either the \xmlNode{Output} is omitted, or the special keyword \texttt{OutputPlaceHolder} is used
+instead.  For example, see the excerpt from a regression test:
+\xmlExample{framework/ensembleModelTests/index_input_output.xml}{DataObjects.first_in}
+The inputs
+
+
+
+ TODO there's some tricks that should be known, including the [0] for scalars, how to request time-dependent
+ variables and the index, etc.
