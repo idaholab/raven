@@ -134,9 +134,9 @@ Where,
 \label{subsec:RAVENInterface}
 The RAVEN interface is meant to provide the possibility to execute a RAVEN input file
 driving a set of SLAVE RAVEN calculations. For example, if the user wants to optimize the parameters
-of a surrogate model (e.g. minimizing the distance between the surrogate predictions and the real data), he 
+of a surrogate model (e.g. minimizing the distance between the surrogate predictions and the real data), he
 can achieve this task by setting up  a RAVEN input file (master) that performs an optimization on the feature
-space characterized by the surrogate model parameters, whose training and validation assessment  is performed in the SLAVE 
+space characterized by the surrogate model parameters, whose training and validation assessment  is performed in the SLAVE
 RAVEN runs.
 \\ There are some limitations for this interface:
 \begin{itemize}
@@ -150,7 +150,7 @@ Like for every other interface, most of the RAVEN workflow stays the same indepe
 \\ Similarly to any other code interface, the user provides paths to executables and aliases for sampled variables within the
 \xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes \xmlAttr{name} and
 \xmlAttr{subType}.  \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
-\xmlAttr{subType} specifies which code interface the model will use (In this case \xmlAttr{subType}=``RAVEN''). 
+\xmlAttr{subType} specifies which code interface the model will use (In this case \xmlAttr{subType}=``RAVEN'').
 The \xmlNode{executable}
 block should contain the absolute or relative (with respect to the current working
 directory) path to the RAVEN framework script (\textbf{raven\_framework}).
@@ -167,37 +167,37 @@ directory) path to the RAVEN framework script (\textbf{raven\_framework}).
           \begin{lstlisting}[language=python]
 def manipulateScalarSampledVariables(sampledVariables):
   """
-  This method is aimed to manipulate scalar variables. 
-  The user can create new variables based on the 
+  This method is aimed to manipulate scalar variables.
+  The user can create new variables based on the
   variables sampled by RAVEN
-   @ In, sampledVariables, dict, dictionary of 
+   @ In, sampledVariables, dict, dictionary of
        sampled variables ({"var1":value1,"var2":value2})
-   @ Out, None, the new variables should be 
+   @ Out, None, the new variables should be
                  added in the "sampledVariables" dictionary
   """
-  newVariableValue = 
-    sampledVariables['Distributions|Uniform@name:a_dist|lowerBound'] 
+  newVariableValue =
+    sampledVariables['Distributions|Uniform@name:a_dist|lowerBound']
     + 1.0
-  sampledVariables['Distributions|Uniform@name:a_dist|upperBound'] = 
+  sampledVariables['Distributions|Uniform@name:a_dist|upperBound'] =
     newVariableValue
   return
            \end{lstlisting}
 
-         \item \textbf{\textit{convertNotScalarSampledVariables}}, a method that is aimed to convert not scalar variables (e.g. 1D arrays) into multiple scalar variables 
+         \item \textbf{\textit{convertNotScalarSampledVariables}}, a method that is aimed to convert not scalar variables (e.g. 1D arrays) into multiple scalar variables
          (e.g.  \xmlNode{constant}(s) in a sampling strategy).
-          This method is going to be required in case not scalar variables are detected by the interface. 
+          This method is going to be required in case not scalar variables are detected by the interface.
           Example:
           \begin{lstlisting}[language=python]
  def convertNotScalarSampledVariables(noScalarVariables):
   """
-  This method is aimed to convert not scalar 
+  This method is aimed to convert not scalar
   variables into multiple scalar variables. The user MUST
    create new variables based on the not Scalar Variables
     sampled (and passed in) by RAVEN
-  @ In, noScalarVariables, dict, dictionary of sampled 
+  @ In, noScalarVariables, dict, dictionary of sampled
        variables that are not scalar ({"var1":1Darray1,"var2":1Darray2})
-  @ Out, newVars, dict,  the new variables that have 
-       been created based on the not scalar variables 
+  @ Out, newVars, dict,  the new variables that have
+       been created based on the not scalar variables
        contained in "noScalarVariables" dictionary
   """
   oneDimensionalArray =
@@ -205,7 +205,7 @@ def manipulateScalarSampledVariables(sampledVariables):
   newVars = {}
   for cnt, value in enumerate(oneDimensionalArray):
     newVars['Samplers|MonteCarlo@name:myMC|constant'+
-               '@name=temperatureHistory'+str(cnt)] = 
+               '@name=temperatureHistory'+str(cnt)] =
                oneDimensionalArray[cnt]
   return newVars
            \end{lstlisting}
@@ -225,7 +225,7 @@ Code input example:
     </Code>
 \end{lstlisting}
 
-Like for every other interface,  the syntax of the variable names is important to make the parser understand how to perturb an input file. 
+Like for every other interface,  the syntax of the variable names is important to make the parser understand how to perturb an input file.
 \\ For the RAVEN interface, a syntax inspired by the XPath nomenclature is used.
 \begin{lstlisting}[style=XML]
   <Samplers>
@@ -251,7 +251,7 @@ The first variable above will be pointing to the following XML sub-node ( \xmlNo
 \begin{lstlisting}[style=XML]
       <Models>
         <ROM name="ROM1" subType="SciKitLearn">
-           ...   
+           ...
            <C>10.0</C>
           ...
        </ROM>
@@ -261,7 +261,7 @@ The second variable above will be pointing to the following XML sub-node ( \xmlN
 \begin{lstlisting}[style=XML]
       <Models>
         <ROM name="ROM1" subType="SciKitLearn">
-           ...   
+           ...
            <tol>0.0001</tol>
           ...
        </ROM>
@@ -275,9 +275,9 @@ The third variable above will be pointing to the following XML attribute ( \xmlA
       <variable name="var1">
          ...
         <grid construction="equal" type="value" steps="1">0 1</grid>
-         ... 
+         ...
       </variable>
- 
+
       ...
     </MonteCarlo>
   </Samplers>
@@ -1303,20 +1303,20 @@ The model executable is specified to RAVEN using the \textless Models\textgreate
     ...
 </Simulation>
 \end{lstlisting}
-RAVEN works best with Comma-Separated Value (CSV) files.  Therefore, the default 
+RAVEN works best with Comma-Separated Value (CSV) files.  Therefore, the default
 .mat output type needs to be converted to .csv output.
-The Dymola interface will automatically convert the .mat output to human-readable 
+The Dymola interface will automatically convert the .mat output to human-readable
 forms, i.e., .csv output, through its implementation of the finalizeCodeOutput function.
 \\In order to speed up the reading and conversion of the .mat file, the user can specify
-the list of variables (in addition to the Time variable) that need to be imported and 
-converted into a csv file minimizing 
-the IO memory usage as much as possible. Within the \xmlNode{Code} the following 
-XML 
+the list of variables (in addition to the Time variable) that need to be imported and
+converted into a csv file minimizing
+the IO memory usage as much as possible. Within the \xmlNode{Code} the following
+XML
 node (in addition ot the \xmlNode{executable} one) can be inputted:
 
 \begin{itemize}
-   \item \xmlNode{outputVariablesToLoad}, \xmlDesc{space separated list, optional 
-   parameter}, a space separated list of variables that need be exported from the .mat 
+   \item \xmlNode{outputVariablesToLoad}, \xmlDesc{space separated list, optional
+   parameter}, a space separated list of variables that need be exported from the .mat
    file (in addition to the Time variable). \default{all the variables in the .mat file}.
 \end{itemize}
 For example:
