@@ -233,6 +233,7 @@ class EnsembleModel(Dummy):
     checkDictInputsUsage = dict((inp,False) for inp in inputs)
 
     # collect the models
+    self.allOutputs = set()
     for modelClass,modelType,modelName,modelInstance in self.assemblerDict['Model']:
       self.modelsDictionary[modelName]['Instance'] = modelInstance
       inputInstancesForModel = []
@@ -280,8 +281,11 @@ class EnsembleModel(Dummy):
       outDims = set([item for subList in self.modelsDictionary[modelName]['TargetEvaluation'].getDimensions(var="output").values() for item in subList])
       ## note, if a dimension is in both the input space AND output space, consider it an input
       outDims = outDims - inDims
-      self.modelsDictionary[modelName]['Output'] = outs + list(set(outDims) - set(outs))
+      newOuts = outs + list(set(outDims) - set(outs))
+      self.modelsDictionary[modelName]['Output'] = newOuts
+      self.allOutputs = self.allOutputs.union(newOuts)
     # END loop to collect models
+    self.allOutputs = list(self.allOutputs)
 
     # check if all the inputs passed in the step are linked with at least a model
     if not all(checkDictInputsUsage.values()):
@@ -338,11 +342,11 @@ class EnsembleModel(Dummy):
         self.raiseAnError(IOError, "The 'initialStartModels' xml node is not needed for non-Picard calculations, since the running sequence can be automatically determined by the code! Please delete this node to avoid a mistake.")
       self.raiseAMessage("EnsembleModel connections determined a linear system. Picard's iterations not activated!")
 
-    self.allOutputs = []
+    #self.allOutputs = []
     for modelIn in self.modelsDictionary.keys():
-      for modelInOut in self.modelsDictionary[modelIn]['Output']:
-        if modelInOut not in self.allOutputs:
-          self.allOutputs.append(modelInOut)
+      #for modelInOut in self.modelsDictionary[modelIn]['Output']:
+      #  if modelInOut not in self.allOutputs:
+      #    self.allOutputs.append(modelInOut)
       # in case there are metadataToTransfer, let's check if the source model is executed before the one that requests info
       if self.modelsDictionary[modelIn]['metadataToTransfer']:
         indexModelIn = self.orderList.index(modelIn)
@@ -679,6 +683,7 @@ class EnsembleModel(Dummy):
             if jobHandler.availability() > 0:
               # run the model
               #if modelIn not in modelsOnHold:
+              self.raiseADebug('Submitting model',modelIn)
               self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
               # wait until the model finishes, in order to get ready to run the subsequential one
               while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):

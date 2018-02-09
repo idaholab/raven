@@ -186,26 +186,29 @@ class RAVEN(CodeInterfaceBase):
     # get sampled variables
     modifDict = Kwargs['SampledVars']
     # check if there are noscalar variables
-    noscalarVars, totSizeExpected = {}, 0
+    vectorVars = {}
+    totSizeExpected = 0
     for var, value in modifDict.items():
       if np.asarray(value).size > 1:
-        noscalarVars[var] = np.asarray(value)
-        totSizeExpected += noscalarVars[var].size
-    if len(noscalarVars) > 0 and not self.hasMethods['noscalar']:
-      raise IOError(self.printTag+' ERROR: No scalar variables ('+','.join(noscalarVars.keys())
+        vectorVars[var] = np.asarray(value)
+        print('DEBUGG ... for var',var,'have',vectorVars[var].size)
+        totSizeExpected += vectorVars[var].size
+    if len(vectorVars) > 0 and not self.hasMethods['noscalar']:
+      raise IOError(self.printTag+' ERROR: No scalar variables ('+','.join(vectorVars.keys())
                                   + ') have been detected but no convertNotScalarSampledVariables has been inputted!')
     # check if ext module has been inputted
     if self.hasMethods['noscalar'] or self.hasMethods['scalar']:
       extModForVarsManipulation = utils.importFromPath(self.extModForVarsManipulationPath)
     if self.hasMethods['noscalar']:
-      if len(noscalarVars) > 0:
-        toPopOut = noscalarVars.keys()
+      if len(vectorVars) > 0:
+        toPopOut = vectorVars.keys()
         try:
-          newVars = extModForVarsManipulation.convertNotScalarSampledVariables(noscalarVars)
+          newVars = extModForVarsManipulation.convertNotScalarSampledVariables(vectorVars)
           if type(newVars).__name__ != 'dict':
             raise IOError(self.printTag+' ERROR: convertNotScalarSampledVariables must return a dictionary!')
-          if len(newVars) != totSizeExpected:
-            raise IOError(self.printTag+' ERROR: The total number of variables expected from method convertNotScalarSampledVariables is "'+str(totSizeExpected)+'". Got:"'+str(len(newVars))+'"!')
+          # DEBUGG this is failing b/c Index and Variable both being counted!
+          #if len(newVars) != totSizeExpected:
+          #  raise IOError(self.printTag+' ERROR: The total number of variables expected from method convertNotScalarSampledVariables is "'+str(totSizeExpected)+'". Got:"'+str(len(newVars))+'"!')
           modifDict.update(newVars)
           for noscalarVar in toPopOut:
             modifDict.pop(noscalarVar)
