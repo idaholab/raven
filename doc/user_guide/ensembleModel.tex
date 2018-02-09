@@ -43,7 +43,7 @@ iteration.
 In general, the EnsembleModel also has some finite capacity for resolving circular dependencies using Picard
 iteration.  See the manual for more information on this capability.
 
-Setting up an ensemble model can be a tricky process, so we'll walk through the input using our example
+Setting up an ensemble model can be more complex than other models, so we'll walk through the input using our example
 outlined above.  For
 our purposes, we're going to let RAVEN perturb the codes using the GenericCode interface.  We'll call the
 ballistics code \texttt{ballistics.py} with keyword input file \texttt{ballistics\_input.txt} and similarly the impact
@@ -136,7 +136,7 @@ After the \xmlString{ballistics} model, we see a similar structure pointing to t
 The only differences between this model specification and the ballistics model specificatoin are the names of
 the \xmlNode{Input} file and \xmlNode{TargetEvaluation} data object.
 
-That's it!  With the two models defined, and the Ensemble Model assembled, no more work is required to
+With the two models defined, and the Ensemble Model assembled, no more work is required to
 prepare these two models to run.  More complicated systems may require additional nodes in the ensemble model;
 see the user manual for details.
 

@@ -256,12 +256,10 @@ class EnsembleModel(Dummy):
 
       # initialize model
       self.modelsDictionary[modelName]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
-
       # Generate a list of modules that needs to be imported for internal parallelization (parallel python)
       for mm in self.modelsDictionary[modelName]['Instance'].mods:
         if mm not in self.mods:
           self.mods.append(mm)
-
       # retrieve 'TargetEvaluation' DataObjects
       self.modelsDictionary[modelName]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelName]['TargetEvaluation'])
       # assert acceptable TargetEvaluation types are used
