@@ -24,7 +24,7 @@ The key to the Ensemble Model is careful definition of the inputs and outputs of
 Ensemble Model is defined in a RAVEN run, RAVEN will automatically scan the inputs and outputs of each model
 and determine the right order to evaluate the models in (or \emph{graph}).
 
-\subsubsection{Example: ballistics and impact}
+\subsection{Example: ballistics and impact}
 % TODO add an image showing these two models, their inputs and outputs
 As a basic example, consider two physics models.  The first is a ballistics code, used to determine the
 kinetic energy $E$ of a ball when it hits the ground, with a path depending on its initial height $y_0$, initial velocity
@@ -58,7 +58,7 @@ with run directory \texttt{run\_basic}.  The models and inputs are in the run di
 Now we turn our attention to the RAVEN input file. We will discuss \xmlNode{DataObjects}, \xmlNode{Files},
 \xmlNode{Models}, and \xmlNode{Steps} in detail; the rest are typical usage and need no special attention.
 
-\subsection{DataObjects}
+\subsubsection{DataObjects}
 The key to a successful EnsembleModel is setting up the data object inputs and outputs.  Each model has a
 \xmlNode{TargetEvaluation} data object that specifies what the inputs and outputs are for that model.  In
 addition, any \xmlNode{Output} data objects in the \xmlNode{MultiRun} step can collect any or all of the
@@ -83,7 +83,7 @@ we want to collect all the variables in their original spaces, so we take \textt
 \texttt{E,D} as outputs.
 
 
-\subsection{Files}
+\subsubsection{Files}
 Since we know both of our models take input files to set the variable values, we inform RAVEN about the
 template input files and
 give those files RAVEN names in the \xmlNode{Files} block.  In this example, our input file for \texttt{ballistics.py} is
@@ -98,7 +98,7 @@ two models.  Having a template input file may not be required for all code inter
 the Generic interface. See more about this interface in the Models section and in the user manual.
 
 
-\subsection{Models}
+\subsubsection{Models}
 Once we've specified the data objects and files, we are prepared to set up the \xmlNode{Models} block.  To set
 up an ensemble model, we define each sub-module by itself as if it were a stand-alone RAVEN model, and then
 combine them by defining an \xmlNode{EnsembleModel}:
@@ -140,7 +140,7 @@ That's it!  With the two models defined, and the Ensemble Model assembled, no mo
 prepare these two models to run.  More complicated systems may require additional nodes in the ensemble model;
 see the user manual for details.
 
-\subsection{Steps}
+\subsubsection{Steps}
 Finally, to put all the pieces together, we consider the \xmlNode{Steps} node:
 \xmlExample{framework/user_guide/EnsembleModel/basic.xml}{Steps}
 We take two steps in this simulation, one \xmlNode{MultiRun} called \xmlString{sample} to sample the ensemble model on a grid,
@@ -166,16 +166,64 @@ raven/tests/framework/user_guide/EnsembleModel/run_basic/results.csv
 There are a few details that can make handling \xmlNode{ExternalModel} models challenging in Ensemble Models.
 We'll cover a few of these to help smooth over some potential bumps.
 
+\subsubsection{Input Placeholder Data Objects}
 Firstly, as noted above, both External Models and ROMs differ from Code models in a significant way: they
 (usually) do not require any input files.  So what do you put as the \xmlNode{Input} for an External Model or
-ROM?  To maintain consistency, we leave the \xmlNode{Input} node in place.  Instead of specifying a file, a
-placeholder data object can be used instead.  A placeholder data object has variables listed in its input, but
-for output either the \xmlNode{Output} is omitted, or the special keyword \texttt{OutputPlaceHolder} is used
+ROM?  To maintain consistency, we leave the \xmlNode{Input} node in place.  Instead of specifying a file
+however, a
+placeholder data object is used instead.  A placeholder data object has variables listed in its input, but
+for output either the \xmlNode{Output} node is omitted, or the special keyword \texttt{OutputPlaceHolder} is used
 instead.  For example, see the excerpt from a regression test:
-\xmlExample{framework/ensembleModelTests/index_input_output.xml}{DataObjects.first_in}
-The inputs
+\xmlExample{framework/ensembleModelTests/index_input_output.xml}{DataObjects}
+The inputs \xmlString{first\_in} and \xmlString{second\_in} are placeholder data objects, with a scalar input
+variable for the \xmlNode{Input} and placeholder OutputPlaceHolder as \xmlNode{Output}.  It is always a
+\xmlNode{PointSet} type of data object.  The key
+\texttt{OutputPlaceHolder} is recognized specially in RAVEN and translates into an empty output space.  This
+type of data object is the only suitable input for an External Model or ROM without an input file.
 
+\subsubsection{Data Sets}
+Because of the complexity of Ensemble Models, it is possible to have mixed scalars and vectors as variable
+inputs to a particular model in the Ensemble.  Furthermore, it is possible to have multiple vector variables
+that depend on different independent variables (for example, ``time'' and ``space'').  To accommodate this,
+the \xmlNode{DataSet} data object can be used.  More can be found on this data structure in the RAVEN user
+manual. % TODO is this true?
 
+\subsubsection{Scalar Variables}
+Because of the flexibility of the Ensemble Models, and to maintain a level of consistency across all
+variables, scalar variables in the Ensemble Model are stored as Numpy arrays with length 1.  In general this
+should be transparent for most operations; however, occasionally it may be required to access a scalar
+variable by accessing it at index 0.  For example, see the variable ``scalar2'' in a model used in the
+regression tests for the Ensemble Model:
+\begin{verbatim}
+raven/tests/framework/ensembleModelTests/IndexInputOutput/model2.py
+\end{verbatim}
+\lstinputlisting{../../tests/framework/ensembleModelTests/IndexInputOutput/model2.py}
 
- TODO there's some tricks that should be known, including the [0] for scalars, how to request time-dependent
- variables and the index, etc.
+\subsubsection{Independent Variables}
+One feature of External Models is their capacity to take variables exactly as they are from RAVEN, without
+going through file IO.  As a result, Ensemble Models frequently contain models that produce pivot-dependent data
+that can be used as inputs for other models in the Ensemble. Several terms aptly describe these variables on
+which other variables depend, including ``independent variables,'' ``indexes'', and ``pivots''.  In general,
+we refer to them as ``indexes''.  While the index is often ``time'' or something
+similar, it can be any monotonically-increasing variable.
+
+However, when it is stored in RAVEN, the indexes are not stored like other variables,
+because it is a coordinate axes that supports other variables.  This allows RAVEN to do a great many flexible
+operations internally.  However, it also means that any time you want to pass an index variable from one model
+to an External Model, it can only come attached to another variable that depends on that input.
+
+For example, consider two models.  In the first model, a path followed by a charged particle is traced out in
+time.  The outputs of the first model are time $t$, lateral position $x$, and vertical position $y$.  The
+second model calculates the energy of the particle at each point in time; however, the second model is written
+such that it does not require any specific time values (it just reads them from the input).
+
+To run these two models in Ensemble configuration, \xmlNode{TargetEvaluation} data object of the second model
+must request one of the time-dependent variables from the first model, $x$ or $y$.  If $t$ is directly
+requested, it will not be made available in the second External Model.  Additionally, in the \xmlNode{Model}
+definition, all variables (dependent or index) should be listed.  In this example, when defining the model,
+$t$ should be listed as well as $x$ in the \xmlNode{variables} node in the second \xmlNode{Model} definition.
+
+For an example of time dependent data passing, consider the regression test example at
+\begin{verbatim}
+raven/tests/framework/ensembleModelTests/index_intput_output.xml
+\end{verbatim}
