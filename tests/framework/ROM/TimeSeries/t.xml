@@ -69,10 +69,13 @@
 		<ROM name='PolyExp' subType='PolyExponential'>
 			<Target>time,decay_heat</Target>
 			<Features>enrichment,temperature,burnup</Features>
-			<pivotParameter>time</pivotParameter>
+            <pivotParameter>time</pivotParameter>
             <numberExpTerms>10</numberExpTerms>
-            <polyOrder>1</polyOrder>
-            <!-- <initialScaling>30000.</initialScaling> -->
+            <polyOrder>2</polyOrder>
+            <initialScaling>30000.</initialScaling>
+            <max_iter>10</max_iter>
+            <tol>0.001</tol>
+            <cutPivotValue>1000.</cutPivotValue>
 		</ROM>
         <ROM name='RAVENsurrogate' subType='NDinvDistWeight'>
             <Target>time,decay_heat</Target>

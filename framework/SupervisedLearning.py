@@ -1964,7 +1964,7 @@ class NDsplineRom(NDinterpolatorRom):
     NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
     self.printTag = 'ND-SPLINE ROM'
     for _ in range(len(self.target)):
-      self.interpolator.append(interpolationND.NDspline())
+      self.interpolator.append(interpolationND.NDSpline())
 
   def __resetLocal__(self):
     """
@@ -2911,8 +2911,8 @@ class PolyExponential(superVisedLearning):
     error = (y-prediction)/y
     for cnt in range(len(x)):
       print(str(x[cnt]) + " , " + str(error[cnt]))
-    print(self.features)
-    print(x)
+    #print(self.features)
+    #print(x)
     print("fi:")
     print(fi)
     print("taui:")
@@ -2984,12 +2984,12 @@ class PolyExponential(superVisedLearning):
         fileObject.write(",".join(tooWrite)+"\n")
     self.pivotValues = targetVals[0,:index,pivotParamIndex]
     # the targets are the coefficients
-    expTermCoeff = np.concatenate( (aij,bij), axis=1)    
-    what = 2
+    expTermCoeff = np.concatenate( (aij,bij), axis=1)
+    what = 3
     if what == 1:
       # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
       self.model = make_pipeline(PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
-    
+
       self.model.fit(featureVals, expTermCoeff)
       # get feature names
       featureNames = self.__constructPolyString()
@@ -3011,13 +3011,13 @@ class PolyExponential(superVisedLearning):
       from sklearn import preprocessing
       from sklearn.model_selection import GridSearchCV
       self.scaler = preprocessing.StandardScaler().fit(featureVals)
-      X_scaled = self.scaler.transform(featureVals)  
+      X_scaled = self.scaler.transform(featureVals)
       fileObject = open("support_vectors.csv","w+")
-      parameters = {'kernel':('linear', 'rbf','poly'), 
+      parameters = {'kernel':('linear', 'rbf','poly'),
                     'C':[1.0,2.0,5.0,7.0,10.0,15.0,20.,25., 30],
                     'gamma':[0.8,1.0,1.4,1.8,2.4,3.6,5.0,7.5,10.],
                     'epsilon':[0.05,0.1,0.2, 0.3, 0.5]}
-      
+
       #self.model = [svm.SVR(kernel='rbf', tol=1e-3, C=30,verbose=True) for _ in range(self.polyExpParams['expTerms']*2)]
       self.model = [None for _ in range(self.polyExpParams['expTerms']*2)]
       for cnt in range(len(self.model )):
@@ -3028,7 +3028,7 @@ class PolyExponential(superVisedLearning):
         self.model[cnt] = search.best_estimator_
         #model.fit(X_scaled, expTermCoeff[:,cnt])
         if cnt < self.polyExpParams['expTerms']:
-          coeff_str = "a_"+str(cnt+1)    
+          coeff_str = "a_"+str(cnt+1)
         else:
           coeff_str = "b_"+str((cnt-self.polyExpParams['expTerms'])+1)
         fileObject.write("term"+","+"nSV"+",rho\n")
@@ -3037,7 +3037,18 @@ class PolyExponential(superVisedLearning):
         for j in range(model.dual_coef_.shape[-1]):
           strSupportVectors = [str(elm) for elm in model.support_vectors_[j,:]]
           fileObject.write(str(model.dual_coef_[0,j]) +","+",".join(strSupportVectors)+"\n")
-      fileObject.close() 
+      fileObject.close()
+    if what == 3:
+      targets = []
+      for cnt in range(self.polyExpParams['expTerms']*2):
+        if cnt < self.polyExpParams['expTerms']: coeff_str = "a_"+str(cnt+1)
+        else: coeff_str = "b_"+str((cnt-self.polyExpParams['expTerms'])+1)
+        targets.append(coeff_str)
+      self.model = NDinvDistWeight(self.messageHandler,**{'Features':','.join(self.features),'Target':",".join(targets),'p':2})
+      #self.model = [NDsplineRom(self.messageHandler,**{'Features':','.join(self.features),'Target':str(i)}) for i in range(self.polyExpParams['expTerms']*2)]
+      #for cnt in range(len(self.model )):
+      self.model.__class__.__trainLocal__(self.model,featureVals,expTermCoeff)#[:,cnt])
+
 
   def __evaluateLocal__(self,featureVals):
     """
@@ -3049,7 +3060,14 @@ class PolyExponential(superVisedLearning):
       for cnt,model in enumerate(self.model):
         evaluation[:,cnt] = model.predict(self.scaler.transform(featureVals) )
     else:
-      evaluation = self.model.predict(featureVals)
+      if 'predict' in dir(self.model):
+        evaluation = self.model.predict(featureVals)
+      else:
+        evaluation = np.zeros((len(featureVals),len(self.model.target)))
+        evalDict = self.model.__class__.__evaluateLocal__(self.model,featureVals)
+        for cnt,targ in enumerate(self.model.target):
+          evaluation[:,cnt] = evalDict[targ][:]
+
     returnEvaluation = {}
     for point in range(len(evaluation)):
       l = int(evaluation[point].size/2)
