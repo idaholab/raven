@@ -191,7 +191,6 @@ class RAVEN(CodeInterfaceBase):
     for var, value in modifDict.items():
       if np.asarray(value).size > 1:
         vectorVars[var] = np.asarray(value)
-        print('DEBUGG ... for var',var,'have',vectorVars[var].size)
         totSizeExpected += vectorVars[var].size
     if len(vectorVars) > 0 and not self.hasMethods['noscalar']:
       raise IOError(self.printTag+' ERROR: No scalar variables ('+','.join(vectorVars.keys())
