@@ -221,61 +221,70 @@ class EnsembleModel(Dummy):
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    # in here we store the job ids for which we did not collected the optional output yet
+    # store the job ids for jobs that we haven't collected optional output from
     self.tempOutputs['uncollectedJobIds'] = []
-    #self.tempOutputs['forHold'] = {}
     # collect name of all the outputs in the Step
     outputsNames = []
     if initDict is not None:
       outputsNames = [output.name for output in initDict['Output']]
 
     # here we check if all the inputs inputted in the Step containing the EnsembleModel are actually used
-    checkDictInputsUsage = {}
-    for inp in inputs:
-      checkDictInputsUsage[inp] = False
+    # -> but why?  Does this check prevent problems later?
+    checkDictInputsUsage = dict((inp,False) for inp in inputs)
 
-    for modelIn in self.assemblerDict['Model']:
-      self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
+    # collect the models
+    self.allOutputs = set()
+    for modelClass,modelType,modelName,modelInstance in self.assemblerDict['Model']:
+      self.modelsDictionary[modelName]['Instance'] = modelInstance
       inputInstancesForModel = []
-      for inputName in self.modelsDictionary[modelIn[2]]['Input']:
+      for inputName in self.modelsDictionary[modelName]['Input']:
         inputInstancesForModel.append(self.retrieveObjectFromAssemblerDict('Input',inputName))
         checkDictInputsUsage[inputInstancesForModel[-1]] = True
-      self.modelsDictionary[modelIn[2]]['InputObject'] = inputInstancesForModel
+      self.modelsDictionary[modelName]['InputObject'] = inputInstancesForModel
 
       # retrieve 'Output' objects, such as DataObjects, Databases
-      if self.modelsDictionary[modelIn[2]]['Output'] is not None:
+      if self.modelsDictionary[modelName]['Output'] is not None:
         outputInstancesForModel = []
-        for output in self.modelsDictionary[modelIn[2]]['Output']:
+        for output in self.modelsDictionary[modelName]['Output']:
           outputObject = self.retrieveObjectFromAssemblerDict('Output',output)
           if outputObject.name not in outputsNames:
-            self.raiseAnError(IOError, "The optional Output "+outputObject.name+" listed for Model "+modelIn[2]+" is not present among the Step outputs!!!")
+            self.raiseAnError(IOError, "The optional Output "+outputObject.name+" listed for Model "+modelName+" is not present among the Step outputs!!!")
           outputInstancesForModel.append(outputObject)
-        self.modelsDictionary[modelIn[2]]['OutputObject'] = outputInstancesForModel
+        self.modelsDictionary[modelName]['OutputObject'] = outputInstancesForModel
       else:
-        self.modelsDictionary[modelIn[2]]['OutputObject'] = []
-      self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
+        self.modelsDictionary[modelName]['OutputObject'] = []
+
+      # initialize model
+      self.modelsDictionary[modelName]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
       # Generate a list of modules that needs to be imported for internal parallelization (parallel python)
-      for mm in self.modelsDictionary[modelIn[2]]['Instance'].mods:
+      for mm in self.modelsDictionary[modelName]['Instance'].mods:
         if mm not in self.mods:
           self.mods.append(mm)
-      # retrieve 'TargetEvaluation' object, i.e. DataObjects
-      self.modelsDictionary[modelIn[2]]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
-      if self.modelsDictionary[modelIn[2]]['TargetEvaluation'].type not in ['PointSet','HistorySet','DataSet']:
-        self.raiseAnError(IOError, "Only DataObjects are allowed as TargetEvaluation object. Got "+ str(self.modelsDictionary[modelIn[2]]['TargetEvaluation'].type)+"!")
-      self.tempTargetEvaluations[modelIn[2]]                = copy.deepcopy(self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
-      # attention: from now on, the values for the following dict with respect to 'Input' and 'Output' keys are changed
-      # to the liss of input or output parameters names
+      # retrieve 'TargetEvaluation' DataObjects
+      self.modelsDictionary[modelName]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelName]['TargetEvaluation'])
+      # assert acceptable TargetEvaluation types are used
+      if self.modelsDictionary[modelName]['TargetEvaluation'].type not in ['PointSet','HistorySet','DataSet']:
+        self.raiseAnError(IOError, "Only DataObjects are allowed as TargetEvaluation object. Got "+ str(self.modelsDictionary[modelName]['TargetEvaluation'].type)+"!")
+      # tempTargetEvaluations are for passing data and then resetting, not keeping data between samples
+      self.tempTargetEvaluations[modelName] = copy.deepcopy(self.modelsDictionary[modelName]['TargetEvaluation'])
       # get input variables
-      inps   = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getVars('input')
+      inps   = self.modelsDictionary[modelName]['TargetEvaluation'].getVars('input')
       # get pivot parameters in input space if any and add it in the 'Input' list
-      inDims = [item for subList in self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getDimensions(var="input").values() for item in subList]
+      inDims = set([item for subList in self.modelsDictionary[modelName]['TargetEvaluation'].getDimensions(var="input").values() for item in subList])
       # assemble the two lists
-      self.modelsDictionary[modelIn[2]]['Input'] = inps + list(set(inDims) - set(inps))
+      self.modelsDictionary[modelName]['Input'] = inps + list(inDims - set(inps))
       # get output variables
-      outs = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getVars("output")
+      outs = self.modelsDictionary[modelName]['TargetEvaluation'].getVars("output")
       # get pivot parameters in output space if any and add it in the 'Output' list
-      outDims = [item for subList in self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getDimensions(var="output").values() for item in subList]
-      self.modelsDictionary[modelIn[2]]['Output'] = outs + list(set(outDims) - set(outs))
+      outDims = set([item for subList in self.modelsDictionary[modelName]['TargetEvaluation'].getDimensions(var="output").values() for item in subList])
+      ## note, if a dimension is in both the input space AND output space, consider it an input
+      outDims = outDims - inDims
+      newOuts = outs + list(set(outDims) - set(outs))
+      self.modelsDictionary[modelName]['Output'] = newOuts
+      self.allOutputs = self.allOutputs.union(newOuts)
+    # END loop to collect models
+    self.allOutputs = list(self.allOutputs)
+
     # check if all the inputs passed in the step are linked with at least a model
     if not all(checkDictInputsUsage.values()):
       unusedFiles = ""
@@ -331,11 +340,7 @@ class EnsembleModel(Dummy):
         self.raiseAnError(IOError, "The 'initialStartModels' xml node is not needed for non-Picard calculations, since the running sequence can be automatically determined by the code! Please delete this node to avoid a mistake.")
       self.raiseAMessage("EnsembleModel connections determined a linear system. Picard's iterations not activated!")
 
-    self.allOutputs = []
     for modelIn in self.modelsDictionary.keys():
-      for modelInOut in self.modelsDictionary[modelIn]['Output']:
-        if modelInOut not in self.allOutputs:
-          self.allOutputs.append(modelInOut)
       # in case there are metadataToTransfer, let's check if the source model is executed before the one that requests info
       if self.modelsDictionary[modelIn]['metadataToTransfer']:
         indexModelIn = self.orderList.index(modelIn)
@@ -380,7 +385,8 @@ class EnsembleModel(Dummy):
       @ Out, selectedkwargs , dict, the subset of variables (in a swallow copy of the kwargs  dict)
     """
     selectedkwargs = copy.copy(kwargs)
-    selectedkwargs['SampledVars'], selectedkwargs['SampledVarsPb'] = {}, {}
+    selectedkwargs['SampledVars'] = {}
+    selectedkwargs['SampledVarsPb'] = {}
     for key in kwargs["SampledVars"].keys():
       if key in self.modelsDictionary[modelName]['Input']:
         selectedkwargs['SampledVars'][key]   = kwargs["SampledVars"][key]
@@ -626,6 +632,7 @@ class EnsembleModel(Dummy):
         self.raiseAMessage("Picard's Iteration "+ str(iterationCount))
 
       for modelCnt, modelIn in enumerate(self.orderList):
+        # clear the model's Target Evaluation data object
         tempTargetEvaluations[modelIn].reset()
         # in case there are metadataToTransfer, let's collect them from the source
         metadataToTransfer = None
@@ -670,6 +677,7 @@ class EnsembleModel(Dummy):
             if jobHandler.availability() > 0:
               # run the model
               #if modelIn not in modelsOnHold:
+              self.raiseADebug('Submitting model',modelIn)
               self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
               # wait until the model finishes, in order to get ready to run the subsequential one
               while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
@@ -741,7 +749,11 @@ class EnsembleModel(Dummy):
           iterOne  += residueContainer[modelIn]['iterValues'][1].values()
         residueContainer['TotalResidue'] = np.linalg.norm(np.asarray(iterOne)-np.asarray(iterZero))
         self.raiseAMessage("Picard's Iteration Norm: "+ str(residueContainer['TotalResidue']))
-        if residueContainer['TotalResidue'] <= self.convergenceTol:
+        residualPass = residueContainer['TotalResidue'] <= self.convergenceTol
+        # sometimes there can be multiple residual values
+        if hasattr(residualPass,'__len__'):
+          residual = all(residualPass)
+        if residualPass:
           self.raiseAMessage("Picard's Iteration converged. Norm: "+ str(residueContainer['TotalResidue']))
           break
     returnEvaluation = returnDict, tempTargetEvaluations, tempOutputs

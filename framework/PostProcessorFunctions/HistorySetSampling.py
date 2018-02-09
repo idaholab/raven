@@ -97,38 +97,43 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
       @ Out, outputDic, dict, dictionary of resampled histories
     """
+    # check that we only have one data object
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
-    else:
-      inputDic = inputDic[0]
-      outputDic={'data':{}}
 
-      for var in inputDic['inpVars']:
-        outputDic['data'][var] = copy.deepcopy(inputDic['data'][var])
+    # grab the first (and only) data object
+    inputDic = inputDic[0]
+    outputDic={'data':{}}
+    # load up the input data into the output
+    for var in inputDic['inpVars']:
+      outputDic['data'][var] = copy.deepcopy(inputDic['data'][var])
 
-      for hist in range(inputDic['numberRealizations']):
-        rlz={}
-        for var in inputDic['outVars']:
-          rlz[var] = inputDic['data'][var][hist]
-        rlz[self.pivotParameter]=inputDic['data'][self.pivotParameter][hist]
+    # loop over realizations and find the desired sample points
+    for hist in range(inputDic['numberRealizations']):
+      # set up the realization
+      rlz={}
+      for var in inputDic['outVars']:
+        rlz[var] = inputDic['data'][var][hist]
+      rlz[self.pivotParameter]=inputDic['data'][self.pivotParameter][hist]
 
-        if self.samplingType in ['uniform','firstDerivative','secondDerivative']:
-          outData = self.varsTimeInterp(rlz)
-        elif self.samplingType in ['filteredFirstDerivative','filteredSecondDerivative']:
-          outData = timeSeriesFilter(self.pivotParameter,rlz,self.samplingType,self.tolerance)
-        else:
-          self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : not recognized samplingType')
+      # do the sampling based on what the user requested
+      if self.samplingType in ['uniform','firstDerivative','secondDerivative']:
+        outData = self.varsTimeInterp(rlz)
+      elif self.samplingType in ['filteredFirstDerivative','filteredSecondDerivative']:
+        outData = timeSeriesFilter(self.pivotParameter,rlz,self.samplingType,self.tolerance)
+      else:
+        self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : not recognized samplingType')
 
-        for var in outData.keys():
-          outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
-          outputDic['data'][var][hist] = outData[var]
+      for var in outData.keys():
+        outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
+        outputDic['data'][var][hist] = outData[var]
 
-      if 'ProbabilityWeight' in inputDic['data'].keys():
-        outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
-      if 'prefix' in inputDic['data'].keys():
-        outputDic['data']['prefix'] = inputDic['data']['prefix']
-      outputDic['dims'] = copy.deepcopy(inputDic['dims'])
-      return outputDic
+    if 'ProbabilityWeight' in inputDic['data'].keys():
+      outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+    if 'prefix' in inputDic['data'].keys():
+      outputDic['data']['prefix'] = inputDic['data']['prefix']
+    outputDic['dims'] = copy.deepcopy(inputDic['dims'])
+    return outputDic
 
   def varsTimeInterp(self, vars):
     """
