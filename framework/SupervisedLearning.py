@@ -2897,7 +2897,7 @@ class PolyExponential(superVisedLearning):
     x = np.array(x)
     y = np.array(y)
     bounds = [[min(x), max(x)]]*self.polyExpParams['expTerms'] + [[min(y), max(y)]]*self.polyExpParams['expTerms']
-    result = differential_evolution(objective, bounds, maxiter=self.polyExpParams['max_iter'], tol=self.polyExpParams['tol'],disp=True)
+    result = differential_evolution(objective, bounds, maxiter=self.polyExpParams['max_iter'], tol=self.polyExpParams['tol'],disp=False)
     taui, fi = np.split(result['x'], 2)
     sortIndexes = np.argsort(fi)
     fi = fi[sortIndexes]
