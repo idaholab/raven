@@ -3142,9 +3142,9 @@ class DynamicModeDecomposition(superVisedLearning):
     #self.polyExpParams['maxExpTerms']  = int(kwargs.get('maxNumberExpTerms',20)) # maximum number of exponential terms
     #self.polyExpParams['maxPolyOrder'] = int(kwargs.get('maxPolyOrder',20))      # the maximum polynomial order
 
-    self.polyExpParams['expTerms']        = int(kwargs.get('numberExpTerms',3))      # the number of exponential terms (by default an optimization problem is run in order to get the best number of terms)
-    self.polyExpParams['polyOrder']       = int(kwargs.get('polyOrder',2))           # the polynomial order (by default an optimization problem is run in order to get the best order)
-    self.polyExpParams['initialScaling']  = float(kwargs.get('initialScaling',1.))
+    #self.polyExpParams['expTerms']        = int(kwargs.get('numberExpTerms',3))      # the number of exponential terms (by default an optimization problem is run in order to get the best number of terms)
+    #self.polyExpParams['polyOrder']       = int(kwargs.get('polyOrder',2))           # the polynomial order (by default an optimization problem is run in order to get the best order)
+    #self.polyExpParams['initialScaling']  = float(kwargs.get('initialScaling',1.))
     self.polyExpParams['cutPivotValue']   = float(kwargs.get('cutPivotValue',1095.))
     self.model = None
     # check if the pivotParameter is among the targetValues
@@ -3326,6 +3326,7 @@ __interfaceDict['HDMRRom'             ] = HDMRRom
 __interfaceDict['MSR'                 ] = MSR
 __interfaceDict['ARMA'                ] = ARMA
 __interfaceDict['PolyExponential'     ] = PolyExponential
+__interfaceDict['DMD'                 ] = DynamicModeDecomposition
 __interfaceDict['pickledROM'          ] = pickledROM
 __base                                  = 'superVisedLearning'
 
