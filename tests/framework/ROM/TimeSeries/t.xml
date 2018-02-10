@@ -16,22 +16,23 @@
     
     <RunInfo>
         <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/ROM/TimeSeries/PolyExponential</WorkingDir>
-		<Sequence>
-            readIn,
-            timeDepBasicStatPPRawData,
-            RAVENsurrogateTrain,
-            runRAVENsurrogate,
-            timeDepBasicStatPPRAVENsurrogate,
-            PolyTrain,
-            runPoly,
-            timeDepBasicStatPPPoly,
-            writeOut
-        </Sequence>
+		 <Sequence>
+             readIn,
+             timeDepBasicStatPPRowData,
+             RAVENsurrogateTrain,
+             PolyTrain,
+             pickleRom,
+             runRAVENsurrogate,
+             timeDepBasicStatPPsynDataRAVENsurrogate,
+             runPoly,
+             timeDepBasicStatPPsynDataPolyExp,
+             writeOut</Sequence>
         <batchSize>1</batchSize>
     </RunInfo>
- 
     <Files>
         <Input name="rawDataFile">./decay_heat.csv</Input>
+        <Input name="decay_heat_samples.csv">decay_heat_samples.csv</Input>
+        <Input name="ROMpk" type="">ROMpk</Input>
     </Files>
     <Distributions>
 		<Uniform name="enrichmentDist">
@@ -49,53 +50,61 @@
 	</Distributions>
 
 	<Samplers>
-		<Grid name="mcSampler">
+		<MonteCarlo name="mcSampler">
+			<samplerInit>
+                <limit>1000</limit>
+                <initialSeed>20021986</initialSeed>
+			</samplerInit>
 			<variable name="enrichment">
 				<distribution>enrichmentDist</distribution>
-                <grid construction="custom" type="value">3.4 4.0 5.0 5.9 6.5 7.2 8.0 9.9</grid>
 			</variable>
             <variable name="temperature">
                 <distribution>temperatureDist</distribution>
-                <grid construction="custom" type="value">600 750 900 1050 1200</grid>
             </variable>
             <variable name="burnup">
                 <distribution>burnupDist</distribution>
-                <grid construction="custom" type="value">16.501 17.500 18.858 20.5 21.98 24.0 26.402</grid>
             </variable>
-        </Grid>
+        </MonteCarlo>
+        <CustomSampler name="customSamplerFile">
+            <Source class="Files" type="">decay_heat_samples.csv</Source>
+            <variable name="enrichment"/>
+            <variable name="temperature"/>
+            <variable name="burnup"/>
+        </CustomSampler>
 	</Samplers> 
 
 	<Models>			
 		<ROM name='PolyExp' subType='PolyExponential'>
 			<Target>time,decay_heat</Target>
 			<Features>enrichment,temperature,burnup</Features>
-            <pivotParameter>time</pivotParameter>
+			<pivotParameter>time</pivotParameter>
             <numberExpTerms>10</numberExpTerms>
             <polyOrder>2</polyOrder>
             <initialScaling>30000.</initialScaling>
-            <max_iter>10</max_iter>
+            <max_iter>30000</max_iter>
             <tol>0.001</tol>
-            <cutPivotValue>1000.</cutPivotValue>
+            <cutPivotValue>500.</cutPivotValue>
 		</ROM>
-        <ROM name='RAVENsurrogate' subType='NDinvDistWeight'>
+        <ROM name='RAVENsurrogate' subType='SciKitLearn'>
             <Target>time,decay_heat</Target>
             <Features>enrichment,temperature,burnup</Features>
             <pivotParameter>time</pivotParameter>
-            <p>3</p>
-            <!--
-             
-             
-            <SKLtype>svm|SVR</SKLtype>
+            <SKLtype>GaussianProcess|GaussianProcess</SKLtype>
+            <!-- <SKLtype>svm|SVR</SKLtype>
             <kernel>rbf</kernel>
-            <C>10</C>
-            <gamma>0.8</gamma> -->
+            <tol>0.000001</tol>
+            <C>30.0</C>
+            <gamma>5.0</gamma> -->
         </ROM>
         <PostProcessor name="timeDepBasicStat" subType="BasicStatistics" verbosity="silent">
             <pivotParameter>time</pivotParameter>
-            <variance prefix="var">enrichment,temperature,burnup,decay_heat</variance>
+            <covariance prefix="cov">
+                <targets>decay_heat</targets>
+                <features>enrichment,temperature,burnup</features>
+            </covariance>
             <pearson prefix="pearson">
-                <targets>enrichment,temperature,burnup</targets>
-                <features>decay_heat</features>
+                <targets>decay_heat</targets>
+                <features>enrichment,temperature,burnup</features>
             </pearson>
             <expectedValue prefix="mean">enrichment,temperature,burnup,decay_heat</expectedValue>
             <percentile prefix="percentile">enrichment,temperature,burnup,decay_heat</percentile>
@@ -103,251 +112,543 @@
     </Models>
     <Steps>
         <IOStep name='readIn' pauseAtEnd = 'True'>
-          <Input    class = 'Files'                  type = ''              >rawDataFile</Input>
-          <Output   class = 'DataObjects'            type = 'HistorySet'    >rawData</Output>
-          <Output   class = 'OutStreams'            type = 'Plot'    >plotSynDataTraining</Output>
+         <Input    class = 'Files'                  type = ''              >rawDataFile</Input>
+         <Output   class = 'DataObjects'            type = 'HistorySet'    >rawData</Output>
+         <Output   class = 'OutStreams'  type = 'Plot'                >inputSpacePlot</Output>
         </IOStep>
 		<RomTrainer name='PolyTrain'>
 			<Input    class = 'DataObjects'       type = 'HistorySet'    >rawData</Input>
 			<Output   class='Models' 			  type ='ROM' 	 		 >PolyExp</Output>
 		</RomTrainer>
+        <IOStep name='pickleRom' pauseAtEnd = 'True'>
+            <Input    class = 'Models'       type = 'ROM'    >PolyExp</Input>
+            <Output class="Files" type="">ROMpk</Output>
+        </IOStep>
 		<MultiRun name='runPoly'>
 			<Input    class = 'DataObjects'       type = 'PointSet'      >dataIn</Input>
 			<Model   class='Models' 			  type = 'ROM' 	 		 >PolyExp</Model>
-            <Sampler class="Samplers"             type="Grid"      >mcSampler</Sampler>
+            <Sampler class="Samplers"             type="CustomSampler"      >customSamplerFile</Sampler>
 			<Output    class = 'DataObjects'      type = 'HistorySet'    >synDataPolyExp</Output>
 		</MultiRun>
         <RomTrainer name='RAVENsurrogateTrain'>
             <Input    class = 'DataObjects'       type = 'HistorySet'    >rawData</Input>
-            <Output   class='Models'               type ='ROM'               >RAVENsurrogate</Output>
+            <Output   class='Models' 			  type ='ROM' 	 		 >RAVENsurrogate</Output>
         </RomTrainer>
         <MultiRun name='runRAVENsurrogate'>
             <Input    class = 'DataObjects'       type = 'PointSet'      >dataIn</Input>
-            <Model   class='Models'               type = 'ROM'               >RAVENsurrogate</Model>
-            <Sampler class="Samplers"             type="Grid"      >mcSampler</Sampler>
+            <Model   class='Models' 			  type = 'ROM' 	 		 >RAVENsurrogate</Model>
+            <Sampler class="Samplers"             type="CustomSampler"      >customSamplerFile</Sampler>
             <Output    class = 'DataObjects'      type = 'HistorySet'    >synDataRAVENsurrogate</Output>
         </MultiRun>
-       <PostProcess name="timeDepBasicStatPPRawData">
+        <IOStep name='writeOut' pauseAtEnd = 'True'>
+			<Input    class = 'DataObjects'       type = 'HistorySet'    >synDataRAVENsurrogate</Input>
+            <Input    class = 'DataObjects'       type = 'HistorySet'    >rawData</Input>
+            <Input    class = 'DataObjects'       type = 'HistorySet'    >synDataPolyExp</Input>
+            <Input class="DataObjects" type="HistorySet">basicStatrawData</Input>
+            <Input class="DataObjects" type="HistorySet">basicStatsynDataRAVENsurrogate</Input>
+            <Input class="DataObjects" type="HistorySet">basicStatsynDataPolyExp</Input>
+			<Output   class = 'OutStreams'  type = 'Print'               >writeSynDataOutRAVENsurrogate</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'                >plotSynDataRAVENsurrogate</Output>
+            <Output   class = 'OutStreams'  type = 'Print'               >writeSynDataOutPolyExp</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'                >plotSynDataPolyExp</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'                >plotRowDataAndPolyExp</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'                >plotRowDataAndRAVENsurrogate</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'                >plotRAVENsurrogateStatisticsAndRowDataMean</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'                >plotPolyExpStatisticsAndRowDataMean</Output>
+            
+		</IOStep>
+        <PostProcess name="timeDepBasicStatPPRowData">
             <Input class="DataObjects" type="HistorySet">rawData</Input>
             <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
-            <Output class="DataObjects" type="HistorySet">basicStatHistoryRawData</Output>
-            <Output class="OutStreams" type="Print">basicStatHistoryRawData_dump</Output>
-            <Output class="OutStreams" type="Plot">plotRawDataPercentiles</Output>
+            <Output class="DataObjects" type="HistorySet">basicStatrawData</Output>
+            <Output class="OutStreams" type="Print">basicStatrawData_dump</Output>
+            <Output class="OutStreams" type="Plot">plotRowDataStatistics</Output>
         </PostProcess>
-        <PostProcess name="timeDepBasicStatPPPoly">
-            <Input class="DataObjects" type="HistorySet">synDataPolyExp</Input>
-            <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
-            <Output class="DataObjects" type="HistorySet">basicStatHistoryPoly</Output>
-            <Output class="OutStreams" type="Print">basicStatHistoryPoly_dump</Output>
-            <Output class="OutStreams" type="Plot">plotPolyPercentiles</Output>
-        </PostProcess>
-        <PostProcess name="timeDepBasicStatPPRAVENsurrogate">
+        <PostProcess name="timeDepBasicStatPPsynDataRAVENsurrogate">
             <Input class="DataObjects" type="HistorySet">synDataRAVENsurrogate</Input>
             <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
-            <Output class="DataObjects" type="HistorySet">basicStatHistoryRAVENsurrogate</Output>
-            <Output class="OutStreams" type="Print">basicStatHistoryRAVENsurrogate_dump</Output>
-            <Output class="OutStreams" type="Plot">plotRAVENsurrogatePercentiles</Output>
+            <Output class="DataObjects" type="HistorySet">basicStatsynDataRAVENsurrogate</Output>
+            <Output class="OutStreams" type="Print">basicStatsynDataRAVENsurrogate_dump</Output>
+            <Output class="OutStreams" type="Plot">plotRAVENsurrogateStatistics</Output>
         </PostProcess>
-        <IOStep name='writeOut' pauseAtEnd = 'True'>
-			<Input    class = 'DataObjects'       type = 'HistorySet'    >synDataPolyExp</Input>
-            <Input    class = 'DataObjects'       type = 'HistorySet'    >synDataRAVENsurrogate</Input>
-			<Output   class = 'OutStreams'  type = 'Print'               >writesynDataPolyExpOut</Output>
-            <Output   class = 'OutStreams'  type = 'Print'               >writesynDataRAVENsurrogateOut</Output>
-			<Output   class = 'OutStreams'  type = 'Plot'                >plotSynDataPolyExp</Output>
-            <Output   class = 'OutStreams'  type = 'Plot'                >plotSynDataRAVENsurrogate</Output>
-		</IOStep>	
+        <PostProcess name="timeDepBasicStatPPsynDataPolyExp">
+            <Input class="DataObjects" type="HistorySet">synDataPolyExp</Input>
+            <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
+            <Output class="DataObjects" type="HistorySet">basicStatsynDataPolyExp</Output>
+            <Output class="OutStreams" type="Print">basicStatsynDataPolyExp_dump</Output>
+            <Output class="OutStreams" type="Plot">plotPolyExpStatistics</Output>
+        </PostProcess>
+        
     </Steps>
     <OutStreams>
-        <Plot name="plotSynDataTraining" overwrite="false" >
-            <plotSettings>
-                <plot>
-                    <type>line</type>
-                    <x>rawData|Output|time</x>
-                    <y>rawData|Output|decay_heat</y>
-                    <interpPointsX>200</interpPointsX>
-                </plot>
-            </plotSettings>
-            <actions>
-                <how>png</how>
-                <scale>
-                    <xscale>log</xscale>
-                    <yscale>log</yscale>
-                </scale>
-                <range>
-                    <xmin>0</xmin>
-                    <xmax>120</xmax>
-                </range>
-            </actions>
-        </Plot>
         <Print name = 'writeSynDataOutPolyExp'>
             <type>csv</type>
-            <source>synData</source>
+            <source>synDataPolyExp</source>
         </Print>
-        <Print name = 'writesynDataPolyExpOut'>
-          <type>csv</type>
-          <source>synDataPolyExp</source>
+        
+        <Print name = 'basicStatrawData_dump'>
+            <type>csv</type>
+            <source>basicStatrawData</source>
         </Print>
-        <Print name = 'writesynDataRAVENsurrogateOut'>
+        <Print name = 'basicStatsynDataRAVENsurrogate_dump'>
+            <type>csv</type>
+            <source>basicStatsynDataRAVENsurrogate</source>
+        </Print>
+        <Print name = 'basicStatsynDataPolyExp_dump'>
+            <type>csv</type>
+            <source>basicStatsynDataPolyExp</source>
+        </Print>
+        <Print name = 'writeSynDataOutRAVENsurrogate'>
             <type>csv</type>
             <source>synDataRAVENsurrogate</source>
         </Print>
-        <Print name = 'basicStatHistoryRawData_dump'>
-            <type>csv</type>
-            <source>basicStatHistoryRawData</source>
-        </Print>
-        <Print name = 'basicStatHistoryPoly_dump'>
-            <type>csv</type>
-            <source>basicStatHistoryPoly</source>
-        </Print>
-        <Print name = 'basicStatHistoryRAVENsurrogate_dump'>
-            <type>csv</type>
-            <source>basicStatHistoryRAVENsurrogate</source>
-        </Print>
-        
-        <Plot name="plotRAVENsurrogatePercentiles" overwrite="false" >
-            <plotSettings>
-                <plot>
-                    <type>line</type>
-                    <x>basicStatHistoryRAVENsurrogate|Output|time</x>
-                    <y>basicStatHistoryRAVENsurrogate|Output|mean_decay_heat</y>
-                    <interpPointsX>200</interpPointsX>
-                </plot>
-                <plot>
-                    <type>line</type>
-                    <x>basicStatHistoryRAVENsurrogate|Output|time</x>
-                    <y>basicStatHistoryRAVENsurrogate|Output|percentile_5_decay_heat</y>
-                    <interpPointsX>200</interpPointsX>
-                </plot>
-                <plot>
-                    <type>line</type>
-                    <x>basicStatHistoryRAVENsurrogate|Output|time</x>
-                    <y>basicStatHistoryRAVENsurrogate|Output|percentile_95_decay_heat</y>
-                    <interpPointsX>200</interpPointsX>
-                </plot>
-            </plotSettings>
-            <actions>
-                <scale>
-                    <xscale>log</xscale>
-                    <yscale>log</yscale>
-                </scale>
-                <range>
-                    <xmin>0</xmin>
-                    <xmax>120</xmax>
-                </range>
-                <how>png</how>
-            </actions>
-        </Plot>
-        <Plot name="plotPolyPercentiles" overwrite="false" >
-            <plotSettings>
-                <plot>
-                    <type>line</type>
-                    <x>basicStatHistoryPoly|Output|time</x>
-                    <y>basicStatHistoryPoly|Output|mean_decay_heat</y>
-                    <interpPointsX>200</interpPointsX>
-                </plot>
-                <plot>
-                    <type>line</type>
-                    <x>basicStatHistoryPoly|Output|time</x>
-                    <y>basicStatHistoryPoly|Output|percentile_5_decay_heat</y>
-                    <interpPointsX>200</interpPointsX>
-                </plot>
-                <plot>
-                    <type>line</type>
-                    <x>basicStatHistoryPoly|Output|time</x>
-                    <y>basicStatHistoryPoly|Output|percentile_95_decay_heat</y>
-                    <interpPointsX>200</interpPointsX>
-                </plot>
-                <range>
-                    <xmin>0</xmin>
-                    <xmax>120</xmax>
-                </range>
-            </plotSettings>
-            <actions>
-                <scale>
-                    <xscale>log</xscale>
-                    <yscale>log</yscale>
-                </scale>
-                <how>png</how>
-            </actions>
-        </Plot>
-        <Plot name="plotRawDataPercentiles" overwrite="false" >
-            <plotSettings>
-                <plot>
-                    <type>line</type>
-                    <x>basicStatHistoryRawData|Output|time</x>
-                    <y>basicStatHistoryRawData|Output|mean_decay_heat</y>
-                    <interpPointsX>200</interpPointsX>
-                </plot>
-                <plot>
-                    <type>line</type>
-                    <x>basicStatHistoryRawData|Output|time</x>
-                    <y>basicStatHistoryRawData|Output|percentile_5_decay_heat</y>
-                    <interpPointsX>200</interpPointsX>
-                </plot>
-                <plot>
-                    <type>line</type>
-                    <x>basicStatHistoryRawData|Output|time</x>
-                    <y>basicStatHistoryRawData|Output|percentile_95_decay_heat</y>
-                    <interpPointsX>200</interpPointsX>
-                </plot>
-            </plotSettings>
-            <actions>
-                <scale>
-                    <xscale>log</xscale>
-                    <yscale>log</yscale>
-                </scale>
-                <range>
-                    <xmin>0</xmin>
-                    <xmax>120</xmax>
-                </range>
-                <how>png</how>
-            </actions>
-        </Plot>
-		<Plot name="plotSynDataPolyExp" overwrite="false" >
+		<Plot name="plotSynDataRAVENsurrogate" overwrite="false" >
 			<plotSettings>
 				<plot>
 					<type>line</type>
-					<x>synDataPolyExp|Output|time</x>
-					<y>synDataPolyExp|Output|decay_heat</y>
-					<interpPointsX>200</interpPointsX>
+					<x>synDataRAVENsurrogate|Output|time</x>
+					<y>synDataRAVENsurrogate|Output|decay_heat</y>
+					<interpPointsX>50000</interpPointsX>
 				</plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
 			</plotSettings>
 			<actions>
-                <scale>
-                    <xscale>log</xscale>
-                    <yscale>log</yscale>
-                </scale>
-                <range>
-                    <xmin>0</xmin>
-                    <xmax>120</xmax>
-                </range>
 				<how>png</how>
+                <title>
+                    <text> </text>
+                </title>
 			</actions>
 	    </Plot>
-        <Plot name="plotSynDataRAVENsurrogate" overwrite="false" >
+        <Plot name="inputSpacePlot" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>scatter</type>
+                    <x>rawData|Input|enrichment</x>
+                    <y>rawData|Input|temperature</y>
+                    <z>rawData|Input|burnup</z>
+                </plot>
+                <xlabel>Enrichment (wt.%)</xlabel>
+                <ylabel>Fuel Temp. (K)</ylabel>
+                <zlabel>Burnup (MW/tHM)</zlabel>
+            </plotSettings>
+            <actions>
+                <how>png,pdf</how>
+                <title>
+                    <text> </text>
+                </title>
+            </actions>
+        </Plot>
+        
+        <Plot name="plotSynDataPolyExp" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>line</type>
+                    <x>synDataPolyExp|Output|time</x>
+                    <y>synDataPolyExp|Output|decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                </plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
+            </plotSettings>
+            <actions>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>90</xmax>
+                    <ymin>10</ymin>
+                    <ymax>2500</ymax>
+                </range>
+                <how>png</how>
+                <scale>
+                  <yscale>log</yscale>
+                </scale>
+                <title>
+                    <text> </text>
+                </title>
+            </actions>
+        </Plot>
+        <Plot name="plotRowDataAndPolyExp" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>line</type>
+                    <x>synDataPolyExp|Output|time</x>
+                    <y>synDataPolyExp|Output|decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                </plot>
+                <plot>
+                    <type>scatter</type>
+                    <x>rawData|Output|time</x>
+                    <y>rawData|Output|decay_heat</y>
+                </plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
+ 
+            </plotSettings>
+            <actions>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>90</xmax>
+                    <ymin>10</ymin>
+                    <ymax>2500</ymax>
+                </range>
+                <how>png</how>
+                <scale>
+                    <yscale>log</yscale>
+                </scale>
+                <title>
+                    <text> </text>
+                </title>
+            </actions>
+        </Plot>
+        <Plot name="plotRowDataAndRAVENsurrogate" overwrite="false" >
             <plotSettings>
                 <plot>
                     <type>line</type>
                     <x>synDataRAVENsurrogate|Output|time</x>
                     <y>synDataRAVENsurrogate|Output|decay_heat</y>
-                    <interpPointsX>200</interpPointsX>
+                    <interpPointsX>50000</interpPointsX>
                 </plot>
+                <plot>
+                    <type>scatter</type>
+                    <x>rawData|Output|time</x>
+                    <y>rawData|Output|decay_heat</y>
+                </plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
             </plotSettings>
             <actions>
-                <scale>
-                    <xscale>log</xscale>
-                    <yscale>log</yscale>
-                </scale>
                 <range>
                     <xmin>0</xmin>
-                    <xmax>120</xmax>
+                    <xmax>90</xmax>
+                    <ymin>10</ymin>
+                    <ymax>2500</ymax>
                 </range>
                 <how>png</how>
+                <scale>
+                    <yscale>log</yscale>
+                </scale>
+                <title>
+                    <text> </text>
+                </title>
             </actions>
         </Plot>
-	</OutStreams>
+        <Plot name="plotRowDataStatistics" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatrawData|Output|time</x>
+                    <y>basicStatrawData|Output|mean_decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                    <kwargs>
+                        <label>mean</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatrawData|Output|time</x>
+                    <y>basicStatrawData|Output|percentile_5_decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                    <kwargs>
+                        <label>5%_quantile</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatrawData|Output|time</x>
+                    <y>basicStatrawData|Output|percentile_95_decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                    <kwargs>
+                        <label>95%_quantile</label>
+                    </kwargs>
+                </plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
+                <legend>
+                    <loc>best</loc>
+                    <ncol>2</ncol>
+                </legend>
+            </plotSettings>
+            <actions>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>90</xmax>
+                    <ymin>10</ymin>
+                    <ymax>2500</ymax>
+                </range>
+                <how>png</how>
+                <scale>
+                    <yscale>log</yscale>
+                </scale>
+                <title>
+                    <text> </text>
+                </title>
+            </actions>
+        </Plot>
+        <Plot name="plotPolyExpStatistics" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataPolyExp|Output|time</x>
+                    <y>basicStatsynDataPolyExp|Output|mean_decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                    <kwargs>
+                        <label>mean</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataPolyExp|Output|time</x>
+                    <y>basicStatsynDataPolyExp|Output|percentile_5_decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                    <kwargs>
+                        <label>5%_quantile</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataPolyExp|Output|time</x>
+                    <y>basicStatsynDataPolyExp|Output|percentile_95_decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                    <kwargs>
+                        <label>95%_quantile</label>
+                    </kwargs>
+                </plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
+                <legend>
+                    <loc>best</loc>
+                    <ncol>2</ncol>
+                </legend>
+            </plotSettings>
+            <actions>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>90</xmax>
+                    <ymin>10</ymin>
+                    <ymax>2500</ymax>
+                </range>
+                <how>png</how>
+                <scale>
+                    <yscale>log</yscale>
+                </scale>
+                <title>
+                    <text> </text>
+                </title>
+            </actions>
+        </Plot>
+        <Plot name="plotRAVENsurrogateStatistics" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataRAVENsurrogate|Output|time</x>
+                    <y>basicStatsynDataRAVENsurrogate|Output|mean_decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                    <kwargs>
+                        <label>mean</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataRAVENsurrogate|Output|time</x>
+                    <y>basicStatsynDataRAVENsurrogate|Output|percentile_5_decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                    <kwargs>
+                        <label>5%_quantile</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataRAVENsurrogate|Output|time</x>
+                    <y>basicStatsynDataRAVENsurrogate|Output|percentile_95_decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                    <kwargs>
+                        <label>95%_quantile</label>
+                    </kwargs>
+                </plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
+                <legend>
+                    <loc>best</loc>
+                    <ncol>2</ncol>
+                </legend>
+            </plotSettings>
+            <actions>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>90</xmax>
+                    <ymin>10</ymin>
+                    <ymax>2500</ymax>
+                </range>
+                <how>png</how>
+                <scale>
+                    <yscale>log</yscale>
+                </scale>
+                <title>
+                    <text> </text>
+                </title>
+            </actions>
+        </Plot>
+        <Plot name="plotRAVENsurrogateStatisticsAndRowDataMean" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataRAVENsurrogate|Output|time</x>
+                    <y>basicStatsynDataRAVENsurrogate|Output|mean_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>mean_svr</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatrawData|Output|time</x>
+                    <y>basicStatrawData|Output|mean_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>mean_data</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataRAVENsurrogate|Output|time</x>
+                    <y>basicStatsynDataRAVENsurrogate|Output|percentile_5_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>quantile_5%_svr</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatrawData|Output|time</x>
+                    <y>basicStatrawData|Output|percentile_5_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>quantile_5%_data</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataRAVENsurrogate|Output|time</x>
+                    <y>basicStatsynDataRAVENsurrogate|Output|percentile_95_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>quantile_95%_svr</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatrawData|Output|time</x>
+                    <y>basicStatrawData|Output|percentile_95_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>quantile_95%_data</label>
+                    </kwargs>
+                </plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
+                <legend>
+                    <loc>best</loc>
+                    <ncol>2</ncol>
+                </legend>
+            </plotSettings>
+            <actions>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>90</xmax>
+                    <ymin>10</ymin>
+                    <ymax>2500</ymax>
+                </range>
+                <how>png</how>
+                <scale>
+                    <yscale>log</yscale>
+                </scale>
+                <title>
+                    <text> </text>
+                </title>
+            </actions>
+        </Plot>
+        <Plot name="plotPolyExpStatisticsAndRowDataMean" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataPolyExp|Output|time</x>
+                    <y>basicStatsynDataPolyExp|Output|mean_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>mean_exp_sm</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatrawData|Output|time</x>
+                    <y>basicStatrawData|Output|mean_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>mean_data</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataPolyExp|Output|time</x>
+                    <y>basicStatsynDataPolyExp|Output|percentile_5_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>quantile_5%_exp_sm</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatrawData|Output|time</x>
+                    <y>basicStatrawData|Output|percentile_5_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>quantile_5%_data</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataPolyExp|Output|time</x>
+                    <y>basicStatsynDataPolyExp|Output|percentile_95_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>quantile_95%_exp_sm</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatrawData|Output|time</x>
+                    <y>basicStatrawData|Output|percentile_95_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>quantile_95%_data</label>
+                    </kwargs>
+                </plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
+                <legend>
+                    <loc>best</loc>
+                    <ncol>2</ncol>
+                </legend>
+            </plotSettings>
+            <actions>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>90</xmax>
+                    <ymin>10</ymin>
+                    <ymax>2500</ymax>
+                </range>
+                <how>png</how>
+                <scale>
+                   <yscale>log</yscale>
+                </scale>
+                <title>
+                    <text> </text>
+                </title>
+            </actions>
+        </Plot>
+
+    </OutStreams>
 	
-    
     <DataObjects>
       <PointSet name="dataIn">
         <Input>enrichment,temperature,burnup</Input>
@@ -365,34 +666,37 @@
           <Input>enrichment,temperature,burnup</Input>
           <Output>decay_heat</Output>
       </HistorySet>
-      <HistorySet name="basicStatHistoryPoly">
+      <HistorySet name="basicStatrawData">
           <Output>
+              cov_decay_heat_enrichment, cov_decay_heat_temperature, cov_decay_heat_burnup,
+              pearson_decay_heat_enrichment, pearson_decay_heat_temperature, pearson_decay_heat_burnup,
               mean_enrichment, mean_temperature, mean_burnup, mean_decay_heat,
-              percentile_5_enrichment, percentile_5_temperature, percentile_5_burnup, percentile_5_decay_heat,
-              percentile_95_enrichment, percentile_95_temperature, percentile_95_burnup, percentile_95_decay_heat,
-              pearson_enrichment_decay_heat, pearson_temperature_decay_heat, pearson_burnup_decay_heat
+              percentile_5_enrichment,percentile_5_temperature,percentile_5_burnup,percentile_5_decay_heat,
+              percentile_95_enrichment,percentile_95_temperature,percentile_95_burnup,percentile_95_decay_heat
           </Output>
           <options>
               <pivotParameter>time</pivotParameter>
           </options>
       </HistorySet>
-      <HistorySet name="basicStatHistoryRAVENsurrogate">
+      <HistorySet name="basicStatsynDataRAVENsurrogate">
           <Output>
+              cov_decay_heat_enrichment, cov_decay_heat_temperature, cov_decay_heat_burnup,
+              pearson_decay_heat_enrichment, pearson_decay_heat_temperature, pearson_decay_heat_burnup,
               mean_enrichment, mean_temperature, mean_burnup, mean_decay_heat,
-              percentile_5_enrichment, percentile_5_temperature, percentile_5_burnup, percentile_5_decay_heat,
-              percentile_95_enrichment, percentile_95_temperature, percentile_95_burnup, percentile_95_decay_heat,
-              pearson_enrichment_decay_heat, pearson_temperature_decay_heat, pearson_burnup_decay_heat
+              percentile_5_enrichment,percentile_5_temperature,percentile_5_burnup,percentile_5_decay_heat,
+              percentile_95_enrichment,percentile_95_temperature,percentile_95_burnup,percentile_95_decay_heat
           </Output>
           <options>
               <pivotParameter>time</pivotParameter>
           </options>
       </HistorySet>
-      <HistorySet name="basicStatHistoryRawData">
+      <HistorySet name="basicStatsynDataPolyExp">
           <Output>
+              cov_decay_heat_enrichment, cov_decay_heat_temperature, cov_decay_heat_burnup,
+              pearson_decay_heat_enrichment, pearson_decay_heat_temperature, pearson_decay_heat_burnup,
               mean_enrichment, mean_temperature, mean_burnup, mean_decay_heat,
-              percentile_5_enrichment, percentile_5_temperature, percentile_5_burnup, percentile_5_decay_heat,
-              percentile_95_enrichment, percentile_95_temperature, percentile_95_burnup, percentile_95_decay_heat,
-              pearson_enrichment_decay_heat, pearson_temperature_decay_heat, pearson_burnup_decay_heat
+              percentile_5_enrichment,percentile_5_temperature,percentile_5_burnup,percentile_5_decay_heat,
+              percentile_95_enrichment,percentile_95_temperature,percentile_95_burnup,percentile_95_decay_heat
           </Output>
           <options>
               <pivotParameter>time</pivotParameter>
