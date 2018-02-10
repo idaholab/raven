@@ -19,6 +19,7 @@
 		 <Sequence>
              readIn,
              timeDepBasicStatPPRowData,
+             DMD_sm_train,
              RAVENsurrogateTrain,
              PolyTrain,
              pickleRom,
@@ -96,6 +97,12 @@
             <C>30.0</C>
             <gamma>5.0</gamma> -->
         </ROM>
+        <ROM name='DMD_sm' subType='DMD'>
+            <Target>time,decay_heat</Target>
+            <Features>enrichment,temperature,burnup</Features>
+            <pivotParameter>time</pivotParameter>
+            <cutPivotValue>500.</cutPivotValue>
+        </ROM>
         <PostProcessor name="timeDepBasicStat" subType="BasicStatistics" verbosity="silent">
             <pivotParameter>time</pivotParameter>
             <covariance prefix="cov">
@@ -115,11 +122,17 @@
          <Input    class = 'Files'                  type = ''              >rawDataFile</Input>
          <Output   class = 'DataObjects'            type = 'HistorySet'    >rawData</Output>
          <Output   class = 'OutStreams'  type = 'Plot'                >inputSpacePlot</Output>
+         <Output   class = 'OutStreams'  type = 'Plot'                >outcomeRawData</Output>
+         
         </IOStep>
 		<RomTrainer name='PolyTrain'>
 			<Input    class = 'DataObjects'       type = 'HistorySet'    >rawData</Input>
 			<Output   class='Models' 			  type ='ROM' 	 		 >PolyExp</Output>
 		</RomTrainer>
+        <RomTrainer name='DMD_sm_train'>
+            <Input    class = 'DataObjects'       type = 'HistorySet'    >rawData</Input>
+            <Output   class='Models' 			  type ='ROM' 	 		 >DMD_sm</Output>
+        </RomTrainer>
         <IOStep name='pickleRom' pauseAtEnd = 'True'>
             <Input    class = 'Models'       type = 'ROM'    >PolyExp</Input>
             <Output class="Files" type="">ROMpk</Output>
@@ -234,6 +247,33 @@
             </plotSettings>
             <actions>
                 <how>png,pdf</how>
+                <title>
+                    <text> </text>
+                </title>
+            </actions>
+        </Plot>
+        <Plot name="outcomeRawData" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>line</type>
+                    <x>rawData|Output|time</x>
+                    <y>rawData|Output|decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                </plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
+            </plotSettings>
+            <actions>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>90</xmax>
+                    <ymin>0</ymin>
+                    <ymax>2500</ymax>
+                </range>
+                <how>png</how>
+                <scale>
+                    <yscale>log</yscale>
+                </scale>
                 <title>
                     <text> </text>
                 </title>

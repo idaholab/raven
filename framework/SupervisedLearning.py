@@ -3138,14 +3138,14 @@ class DynamicModeDecomposition(superVisedLearning):
     self.printTag          = 'DynamicModeDecomposition'
     self.pivotParameterID = kwargs.get("pivotParameter","time")
     self._dynamicHandling  = True  # This ROM is able to manage the time-series on its own. No need for special treatment outside
-    self.polyExpParams     = {}
+    self.dmdParams     = {}
     #self.polyExpParams['maxExpTerms']  = int(kwargs.get('maxNumberExpTerms',20)) # maximum number of exponential terms
     #self.polyExpParams['maxPolyOrder'] = int(kwargs.get('maxPolyOrder',20))      # the maximum polynomial order
 
     #self.polyExpParams['expTerms']        = int(kwargs.get('numberExpTerms',3))      # the number of exponential terms (by default an optimization problem is run in order to get the best number of terms)
     #self.polyExpParams['polyOrder']       = int(kwargs.get('polyOrder',2))           # the polynomial order (by default an optimization problem is run in order to get the best order)
     #self.polyExpParams['initialScaling']  = float(kwargs.get('initialScaling',1.))
-    self.polyExpParams['cutPivotValue']   = float(kwargs.get('cutPivotValue',1095.))
+    self.dmdParams['cutPivotValue']   = float(kwargs.get('cutPivotValue',sys.float_info.max))
     self.model = None
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
@@ -3164,130 +3164,57 @@ class DynamicModeDecomposition(superVisedLearning):
     """
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
-  def __computeExponentialTerms(self, x, y):
-    """
-      Method to compute the coefficients of "n" exponential terms that minimize the
-      difference between the training data and the "predicted" data
-      y(x) = \sum_{i=1}^n a_i \exp ( - b_i x )
-      @ In, x, numpy.ndarray, the x values
-      @ In, y, numpy.ndarray, the target values
-      @ Out, (fi, 1/taui), tuple(numpy.ndarray, numpy.ndarray), a_i and b_i
-    """
-    def objective(s):
-      """
-        Objective function for the optimization
-        @ In, s, numpy.ndarray, the array of coefficient
-        @ Out, objective, float, the cumulative difference between the predicted and the real data
-      """
-      l = int(s.size/2)
-      return np.sum((y - np.dot(s[l:], np.exp(-np.outer(1./s[:l], x))))**2.)
-    x = np.array(x)
-    y = np.array(y)
-    bounds = [[min(x), max(x)]]*self.polyExpParams['expTerms'] + [[min(y), max(y)]]*self.polyExpParams['expTerms']
-    result = differential_evolution(objective, bounds)
-    taui, fi = np.split(result['x'], 2)
-    sortIndexes = np.argsort(fi)
-    fi = fi[sortIndexes]
-    taui = taui[sortIndexes]
-
-    print("maximum error:")
-    print(np.max(  (y-self.__evaluateExponentialTerm(x, fi, 1./taui))/y  ))
-    print("error per spot:")
-    print(self.pivotParameterID + " , err_" + self.targetID)
-    for cnt in range(len(x)):
-      arr = (y-self.__evaluateExponentialTerm(x, fi, 1./taui))/y
-      print(str(x[cnt]) + " , " + str(arr[cnt]))
-    return fi, 1./taui
-
-  def __evaluateExponentialTerm(self,x, a, b):
-    """
-      Evaluate exponential term given x, a and b
-      y(x) = \sum_{i=1}^n a_i \exp ( - b_i x )
-      @ In, x, numpy.ndarray, the x values
-      @ In, a, numpy.ndarray, the a values
-      @ In, b, numpy.ndarray, the b values
-      @ Out, y, numpy.ndarray, the outcome y(x)
-    """
-    return np.dot(a, np.exp(-np.outer(b, x)))
-
-  def __constructPolyString(self):
-    """
-     print
-    """
-    powers = self.model.steps[0][1].powers_
-    featureNames = []
-    for row in powers:
-      inds = np.where(row)[0]
-      if len(inds):
-        name = " ".join("%s^%d" % (self.features[ind], exp)
-                                  if exp != 1 else self.features[ind]
-                                  for ind, exp in zip(inds, row[inds]))
-      else:
-        name = "1"
-      name = name.replace(" ","*")
-      featureNames.append(name)
-
-    return featureNames
-
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on input database stored in featureVals.
-
       @ In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
       @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
     """
+    from pydmd import DMD, MrDMD
+    
+    self.fvals = featureVals
+    #fileObject = open("poly_exp_"+"_error.csv", mode='w')
     pivotParamIndex  = self.target.index(self.pivotParameterID)
     targetParamIndex = self.target.index(self.targetID)
     for index in range(len(targetVals[0,:,pivotParamIndex])):
-      if targetVals[0,index,pivotParamIndex] >= self.polyExpParams['cutPivotValue']:
+      if targetVals[0,index,pivotParamIndex] >= self.dmdParams['cutPivotValue']:
         break
     index+=1
+    self.pivotValues = targetVals[0,:,pivotParamIndex]
     nsamples = len(targetVals[:,:,pivotParamIndex])
-    aij   = np.zeros( (nsamples, self.polyExpParams['expTerms']))
-    bij   = np.zeros((nsamples, self.polyExpParams['expTerms']))
-
-    #TODO: this can be parallelized
-    compute = False
-    if compute:
-      for smp in range(nsamples):
-        self.raiseADebug("Computing exponential terms for sample ID "+str(smp+1))
-        aij[smp,:],bij[smp,:] = self.__computeExponentialTerms(np.ravel(targetVals[smp,:index,pivotParamIndex]), np.ravel(targetVals[smp,:index,targetParamIndex])/self.polyExpParams['initialScaling'])
-    else:
-      aij,bij = constructAB()
-    self.pivotValues = targetVals[0,:index,pivotParamIndex]
-    # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
-    self.model = make_pipeline(PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
-    # the targets are the coefficients
-    expTermCoeff = np.concatenate( (aij,bij), axis=1)
-    self.model.fit(featureVals, expTermCoeff)
-    # get feature names
-    featureNames = self.__constructPolyString()
-    # print the coefficient
-    coefficients = self.model.steps[1][1].coef_
-    self.raiseAMessage("Polynomial coefficients:")
-    self.raiseAMessage("  Monomials:")
-    self.raiseAMessage("  "+" ".join(featureNames))
-    for l, coeff in enumerate(coefficients):
-      if l < self.polyExpParams['expTerms']:
-        coeff_str = "    a_"+str(l+1)
-      else:
-        coeff_str = "    b_"+str((l-self.polyExpParams['expTerms'])+1)
-      coeff_str+="(" + ",".join(self.features)+"):"
-      self.raiseAMessage(coeff_str)
-      self.raiseAMessage("      "+" ".join([str(elm) for elm in coefficients[l]]))
+    self.model = DMD(svd_rank=-1, exact=True, opt=True)
+    # super slow
+    snapshots = [targetVals[:,ts,pivotParamIndex-1] for ts in range(len(self.pivotValues))]
+    self.model.fit(snapshots) 
+    self.model.plot_eigs(show_axes=True, show_unit_circle=True)
 
   def __evaluateLocal__(self,featureVals):
     """
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
-    evaluation = self.model.predict(featureVals)
+    reconstructData = self.model.reconstructed_data
+    
+    if isinstance(self.model, list):
+      evaluation = np.zeros((len(featureVals),len(self.model)))
+      for cnt,model in enumerate(self.model):
+        evaluation[:,cnt] = model.predict(self.scaler.transform(featureVals) )
+    else:
+      if 'predict' in dir(self.model):
+        evaluation = self.model.predict(featureVals)
+      else:
+        evaluation = np.zeros((len(featureVals),len(self.model.target)))
+        evalDict = self.model.__class__.__evaluateLocal__(self.model,featureVals)
+        for cnt,targ in enumerate(self.model.target):
+          evaluation[:,cnt] = evalDict[targ][:]
+
     returnEvaluation = {}
     for point in range(len(evaluation)):
       l = int(evaluation[point].size/2)
       returnEvaluation[self.pivotParameterID] = self.pivotValues.ravel()
       returnEvaluation[self.targetID] =  self.__evaluateExponentialTerm(self.pivotValues , evaluation[point][:l], evaluation[point][l:])*self.polyExpParams['initialScaling']
     return returnEvaluation
+
   def __confidenceLocal__(self,featureVals):
     """
       This method is currently not needed for ARMA
