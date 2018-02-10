@@ -3223,10 +3223,157 @@ However, many hidden layers, i.e. deep learning, can be used to model more compl
 relationships. The extra layers enable composition of features from lower layers, potentially
 modeling complex data with fewer units than a similarly performing shallow network.
 
-
 In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
-be \xmlString{KerasMLPClassifier} (see the example below).
-%
+be \xmlString{KerasMLPClassifier} (see the example below). This model can be initialized with
+the following child:
+
+\begin{itemize}
+  \item \xmlNode{hidden\_layer\_sizes}, \xmlDesc{comma separated integers, required field}, the sizes for each
+    hidden layer, the ith element represents the number of neurons in the ith hidden layer.
+  \item \xmlNode{hidden\_layer\_activations}, \xmlDesc{comma separated strings, optional field}, 
+    {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
+    Activation function for the hidden layer.
+    \begin{itemize}
+      \item \textit{relu}, the rectified linear unit function, returns $f(x) = max(0, x)$.
+      \item \textit{tanh}, the hyperbolic tan function, returns $f(x) = tanh(x)$.
+      \item \textit{elu}, exponential linear units try to make the mean activations closer to zero which speeds
+        up learning. $f(x) = x$ if $x \ge 0$, otherwise $(exp(x) - 1.)$.
+      \item \textit{selu}, scaled exponential linear unit.
+      \item \textit{softplus}, a smooth approximation to the rectifier linear unit function, return
+        $f(x) = log(1. + exp(x))$.
+      \item \textit{softsign}, return $f(x) = \frac{x}{1. + |x|}$.
+      \item \textit{sigmoid},return $f(x) = \frac{1.}{1. + exp(-x)}$.
+      \item \textit{hard\_sigmoid}
+      \item \textit{linear}
+      \item \textit{softmax}, softmax activation function.
+    \end{itemize}
+  \default{`relu'}
+  \item \xmlNode{output\_layer\_activation}, \xmlDesc{string, optional field}.
+    i.e. {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
+  \default{softmax}
+  \item \xmlNode{loss}, \xmlDesc{string or comma separated string, optional field}, if the model has multiple outputs, you can use a different
+    loss on each output by passing a list of losses. The loss value that will be minimized by the model will then
+    be the sum of all individual losses. Available loss functions include \textit{mean\_squared\_error},
+    \textit{mean\_absolute\_error}, \textit{mean\_absolute\_percentage\_error}, \textit{mean\_squared\_logarithmic\_error},
+    \textit{squared\_hinge}, \textit{hinge}, \textit{categorical\_hinge}, \textit{logcosh}, \textit{categorical\_crossentropy},
+    \textit{sparse\_categorical\_crossentropy}, \textit{binary\_crossentropy}, \textit{kullback\_leibler\_divergence},
+    \textit{poisson}, \textit{cosine\_proximity}.
+  \default{mean\_squared\_error}
+  \item \xmlNode{metrics}, \xmlDesc{string or comma separated string, optional field}, list of metrics to be evaluated by
+    the model during training and testing. available metrics include
+    \textit{binary\_accuracy}, \textit{categorical\_accuracy}, \textit{sparse\_categorical\_accuracy},
+    \textit{top\_k\_categorical\_accuracy}, \textit{sparse\_top\_k\_categorical\_accuracy}.
+  \default{accuracy}
+  \item \xmlNode{batch\_size}, \xmlDesc{integer, optional field}, number of samples per gradient update.
+  \default{20}
+  \item \xmlNode{epochs}, \xmlDesc{integer, optional field}, number of epochs to train the model. An epoch
+    is an iteration over the entire training data.
+  \default{20}
+  \item \xmlNode{dropout}, \xmlDesc{integer or comma separated integers, optional field}, applies dropout to the input.
+    Dropout consists in randomly setting a fraction rate of input units to 0 at each update during training time,
+    which helps prevent overfitting.
+  \default{0}
+  \item \xmlNode{optimizerSetting}, \xmlDesc{optional field}, including several subnode depending on the type of
+    optimizers.
+    \begin{itemize}
+      \item \xmlNode{optimizer}, \xmlDesc{string, optional field}, name of optimizer.
+    \end{itemize}
+    \default{Adam}
+    \nb The users can also choose different optimizers to train the ROM. The default algorithm is \textit{Adam}. Other
+    available optimizers include:
+    \textit{SGD}, \textit{RMSprop}, \textit{Adagrad}, \textit{Adadelta}, \textit{Adamx}, \textit{Nadam}. The users
+    can use \xmlNode{optimizerSetting} to set the parameters of the optimizer. 
+    \begin{itemize}
+      \item \textbf{Adam}, adam optimizer
+        \begin{itemize}
+          \item \xmlNode{beta\_1}, \xmlDesc{float, optional field}, $0 < beta < 1$. Generally close to 1.
+          \default{0.9}
+          \item \xmlNode{beta\_2}, \xmlDesc{float, optional field}, $0 < beta < 1$. Generally close to 1.
+          \default{0.999}
+          \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, fuzz factor.
+          \default{None}
+          \item \xmlNode{decay}, \xmlDesc{float, optional field}, learning rate decay over each update.
+          \default{0.0}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{0.001}
+        \end{itemize}
+    %
+      \item \textbf{SGD}, stochastic gradient descent optimizer.
+        \begin{itemize}
+          \item \xmlNode{momentum}, \xmlDesc{float, optional field}, $> 0$. Parameter that accelerates SGD in
+            the relevant direction and dampens oscillations.
+          \default{0.0}
+          \item \xmlNode{nesterov}, \xmlDesc{boolean, optional field}, whether to apply Nesterov momentum
+          \default{False}
+          \item \xmlNode{decay}, \xmlDesc{float, optional field}, learning rate decay over each update.
+          \default{0.0}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{0.001}
+        \end{itemize}
+    %
+      \item \textbf{RMSprop}, RMSProp optimizer.
+        \begin{itemize}
+          \item \xmlNode{rho}, \xmlDesc{float, optional field}, $> 0$.
+          \default{0.9}
+          \item \xmlNode{decay}, \xmlDesc{float, optional field}, learning rate decay over each update.
+          \default{0.0}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{0.001}
+          \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, fuzz factor.
+          \default{None}
+        \end{itemize}
+    %
+      \item \textbf{Adagrad}, Adagrad optimizer.
+        \begin{itemize}
+          \item \xmlNode{decay}, \xmlDesc{float, optional field}, learning rate decay over each update.
+          \default{0.0}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{0.01}
+          \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, fuzz factor.
+          \default{None}
+        \end{itemize}
+    %
+      \item \textbf{Adadelta}, Adadelta optimizer.
+        \begin{itemize}
+          \item \xmlNode{decay}, \xmlDesc{float, optional field}, learning rate decay over each update.
+          \default{0.0}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{1.0}
+          \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, fuzz factor.
+          \default{None}
+          \item \xmlNode{rho}, \xmlDesc{float, optional field}, $> 0$.
+          \default{0.95}
+        \end{itemize}
+    %
+      \item \textbf{Adamax}, Adamax optimizer
+        \begin{itemize}
+          \item \xmlNode{beta\_1}, \xmlDesc{float, optional field}, $0 < beta < 1$. Generally close to 1.
+          \default{0.9}
+          \item \xmlNode{beta\_2}, \xmlDesc{float, optional field}, $0 < beta < 1$. Generally close to 1.
+          \default{0.999}
+          \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, fuzz factor.
+          \default{None}
+          \item \xmlNode{decay}, \xmlDesc{float, optional field}, learning rate decay over each update.
+          \default{0.0}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{0.002}
+        \end{itemize}
+    %
+      \item \textbf{Nadam},
+        \begin{itemize}
+          \item \xmlNode{beta\_1}, \xmlDesc{float, optional field}, $0 < beta < 1$. Generally close to 1.
+          \default{0.9}
+          \item \xmlNode{beta\_2}, \xmlDesc{float, optional field}, $0 < beta < 1$. Generally close to 1.
+          \default{0.999}
+          \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, fuzz factor.
+          \default{None}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{0.002}
+        \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+
 \zNormalizationPerformed{KerasMLPClassifier}
 
 \textbf{Example:}

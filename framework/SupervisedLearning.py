@@ -2931,14 +2931,14 @@ class KerasMLPClassifier(superVisedLearning):
     self.targv = None
     name = self.initOptionDict.pop('name','')
     outputLayerActivation = self.initOptionDict.pop('output_layer_activation', 'softmax')
-    hiddenLayerActivation = [elem.strip() for elem in self.initOptionDict.pop('hidden_layer_activations').split(',')]
+    hiddenLayerActivation = [elem.strip() for elem in self.initOptionDict.pop('hidden_layer_activations', 'relu').split(',')]
     hiddenLayerSize = [int(elem) for elem in self.initOptionDict.pop('hidden_layer_sizes').split(',')]
     # Broadcast hidden layer activation function to all hidden layers
     if len(hiddenLayerActivation) == 1 and len(hiddenLayerActivation) < len(hiddenLayerSize):
       hiddenLayerActivation = hiddenLayerActivation * len(hiddenLayerSize)
     elif len(hiddenLayerActivation) != len(hiddenLayerSize):
       self.raiseAnError(IOError, "The number of activation functions for the hidden layer should be equal the number of hidden layers!")
-    lossFunction = self.initOptionDict.pop('loss','mean_squared_error')
+    lossFunction = [ elem.strip() for elem in self.initOptionDict.pop('loss','mean_squared_error').split(',')]
     metrics = [elem.strip() for elem in self.initOptionDict.pop('metrics','accuracy').split(',')]
     self.batchSize = int(self.initOptionDict.pop('batch_size',20))
     self.epochs = int(self.initOptionDict.pop('epochs', 20))
