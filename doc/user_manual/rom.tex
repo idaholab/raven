@@ -45,6 +45,7 @@ one of the following:
   \item \xmlString{ARMA}, for time-dependent stochastic regression (time series generator)
   \item \xmlString{PolyExponential}, for time-dependent regression
   \item \xmlString{DMD}, for time-dependent regression
+  \item \xmlString{KerasMLPClassifier}, for deep neuron network
 \end{itemize}
 
 \specBlock{a}{ROM}
@@ -3161,6 +3162,7 @@ below).
   ...
 </Simulation>
 \end{lstlisting}
+
 Once the ROM  is trained (\textbf{Step} \xmlNode{RomTrainer}), its parameters/coefficients can be exported into an XML file 
 via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
 in \xmlNode{OutStream} of type \xmlAttr{Print}):
@@ -3201,6 +3203,60 @@ in \xmlNode{OutStream} of type \xmlAttr{Print}):
     </Print>
     ...
   </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+
+%%%%% ROM Model - KerasMLPClassifier  %%%%%%%
+\subsubsection{KerasMLPClassifier}
+\label{subsubsec:KerasMLPClassifier}
+
+Multi-Layer Perceptron (MLP) (or Artificial Neural Network - ANN), a class of feedforward
+ANN, can be viewed as a logistic regression classifier where input is first transformed
+using a non-linear transformation. This transformation probjects the input data into a
+space where it becomes linearly separable. This intermediate layer is referred to as a
+\textbf{hidden layer}. An MLP consists of at least three layers of nodes. Except for the
+input nodes, each node is a neuron that uses a nonlinear \textbf{activation function}. MLP
+utilizes a suppervised learning technique called \textbf{Backpropagation} for training.
+Generally, a single hidden layer is sufficient to make MLPs a universal approximator.
+However, many hidden layers, i.e. deep learning, can be used to model more complex nonlinear
+relationships. The extra layers enable composition of features from lower layers, potentially
+modeling complex data with fewer units than a similarly performing shallow network.
+
+
+In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+be \xmlString{KerasMLPClassifier} (see the example below).
+%
+\zNormalizationPerformed{KerasMLPClassifier}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='KerasMLPClassifier'>
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <hidden_layer_sizes>15, 8</hidden_layer_sizes>
+      <hidden_layer_activations>relu, tanh</hidden_layer_activations>
+      <output_layer_activation>sigmoid</output_layer_activation>
+      <loss>mean_squared_error</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>4</batch_size>
+      <epochs>4</epochs>
+      <dropout>0, 0</dropout>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+    </ROM>
+    ...
+  </Models>
   ...
 </Simulation>
 \end{lstlisting}
