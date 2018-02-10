@@ -213,12 +213,19 @@ class ROM(Dummy):
     LRInput = InputData.parameterInputFactory('lr', contentType=InputData.FloatType)
     OptimizerInput = InputData.parameterInputFactory('optimizer', contentType=InputData.StringType)
     EpsilonInput = InputData.parameterInputFactory('epsilon', contentType=InputData.FloatType)
+    MomentumInput = InputData.parameterInputFactory('momentum', contentType=InputData.FloatType)
+    NesterovInput = InputData.parameterInputFactory('nesterov', contentType=InputData.StringType)
+    RhoInput = InputData.parameterInputFactory('rho', contentType=InputData.FloatType)
+
     OptimizerSettingInput.addSub(Beta1Input)
     OptimizerSettingInput.addSub(Beta2Input)
     OptimizerSettingInput.addSub(DecayInput)
     OptimizerSettingInput.addSub(LRInput)
     OptimizerSettingInput.addSub(OptimizerInput)
     OptimizerSettingInput.addSub(EpsilonInput)
+    OptimizerSettingInput.addSub(MomentumInput)
+    OptimizerSettingInput.addSub(NesterovInput)
+    OptimizerSettingInput.addSub(RhoInput)
     inputSpecification.addSub(OptimizerSettingInput)
 
     #Estimators can include ROMs, and so because baseNode does a copy, this

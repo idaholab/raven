@@ -2905,7 +2905,6 @@ class KerasMLPClassifier(superVisedLearning):
   """
     Multi-layer perceptron classifier constructed using Keras API in TensorFlow
   """
-
   # available optimizers in Keras
   ROMType = 'KerasMLPClassifier'
   availOptimizer = {}
@@ -3014,7 +3013,6 @@ class KerasMLPClassifier(superVisedLearning):
     """
       Perform training on samples in featureVals with responses y.
       For an one-class model, +1 or -1 is returned.
-
       @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
         an array of input feature a##aluecriptorOut, targetVals, array, shape = [n_samples], an array of output target
         associated with the corresponding points in featureVals
