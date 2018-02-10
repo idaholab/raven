@@ -2900,7 +2900,6 @@ class ARMA(supervisedLearning):
 #
 #
 #
-
 class KerasMLPClassifier(superVisedLearning):
   """
     Multi-layer perceptron classifier constructed using Keras API in TensorFlow
@@ -2925,6 +2924,15 @@ class KerasMLPClassifier(superVisedLearning):
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag = 'KerasMLPClassifier'
+
+    self.__initLocal__()
+
+  def __initLocal__(self):
+    """
+      Method used to add additional initialization features used by pickling
+      @ In, None
+      @ Out, None
+    """
     self.externalNorm = True
     self.featv = None
     self.targv = None
@@ -2976,16 +2984,6 @@ class KerasMLPClassifier(superVisedLearning):
     # https://github.com/fchollet/keras/issues/2397#issuecomment-306687500
     self.graph = tf.get_default_graph()
 
-    self.__initLocal__()
-
-  def __initLocal__(self):
-    """
-      Method used to add additional initialization features used by pickling
-      @ In, None
-      @ Out, None
-    """
-    pass
-
   def __getstate__(self):
     """
       Overwrite state for pickling
@@ -3007,14 +3005,15 @@ class KerasMLPClassifier(superVisedLearning):
 
     #only train if the original copy was trained
     if self.amITrained:
-      self.__trainLocal__(self.featv,self.targv, epochs=self.epochs,batch_size=self.batchSize)
+      self.__trainLocal__(self.featv,self.targv)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on samples in featureVals with responses y.
       For an one-class model, +1 or -1 is returned.
       @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
-        an array of input feature a##aluecriptorOut, targetVals, array, shape = [n_samples], an array of output target
+        an array of input feature
+      @ Out, targetVals, array, shape = [n_samples], an array of output target
         associated with the corresponding points in featureVals
     """
     self.featv = featureVals
@@ -3049,7 +3048,7 @@ class KerasMLPClassifier(superVisedLearning):
       @ In, None
       @ Out, None
     """
-    pass
+    self.__initLocal__()
 
   def __returnInitialParametersLocal__(self):
     """
