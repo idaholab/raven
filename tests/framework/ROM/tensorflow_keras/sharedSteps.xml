@@ -11,8 +11,13 @@
     <Model class="Models" type="ROM">modelUnderTest</Model>
     <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
     <Output class="DataObjects" type="PointSet">outData</Output>
-    <Output class="OutStreams" type="Print">outData</Output>
   </MultiRun>
+  <IOStep name="print">
+    <Input class="DataObjects" type="PointSet">trainingData</Input>
+    <Input class="DataObjects" type="PointSet">outData</Input>
+    <Output class="OutStreams" type="Print">trainPrint</Output>
+    <Output class="OutStreams" type="Print">outPrint</Output>
+  </IOStep>
   <RomTrainer name="train">
     <Input class="DataObjects" type="PointSet">trainingData</Input>
     <Output class="Models" type="ROM">modelUnderTest</Output>

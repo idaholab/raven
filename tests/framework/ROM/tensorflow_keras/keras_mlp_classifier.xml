@@ -5,7 +5,8 @@
     <Sequence>
       sample,
       train,
-      resample
+      resample,
+      print
     </Sequence>
   </RunInfo>
 
@@ -32,7 +33,6 @@
         <decay>0.0</decay>
         <lr>0.001</lr>
       </optimizerSetting>
-
     </ROM>
   </Models>
 
@@ -41,10 +41,15 @@
   <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
   <OutStreams>
     <!-- A csv file containing the output of the example -->
-    <Print name="outData">
+    <Print name="outPrint">
       <type>csv</type>
       <source>outData</source>
       <filename>outMLPClassifier</filename>
+    </Print>
+    <Print name="trainPrint">
+      <type>csv</type>
+      <source>trainingData</source>
+      <filename>trainDump</filename>
     </Print>
   </OutStreams>
 
