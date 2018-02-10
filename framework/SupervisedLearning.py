@@ -2938,7 +2938,7 @@ class KerasMLPClassifier(superVisedLearning):
       hiddenLayerActivation = hiddenLayerActivation * len(hiddenLayerSize)
     elif len(hiddenLayerActivation) != len(hiddenLayerSize):
       self.raiseAnError(IOError, "The number of activation functions for the hidden layer should be equal the number of hidden layers!")
-    lossFunction = [ elem.strip() for elem in self.initOptionDict.pop('loss','mean_squared_error').split(',')]
+    lossFunction = [elem.strip() for elem in self.initOptionDict.pop('loss','mean_squared_error').split(',')]
     metrics = [elem.strip() for elem in self.initOptionDict.pop('metrics','accuracy').split(',')]
     self.batchSize = int(self.initOptionDict.pop('batch_size',20))
     self.epochs = int(self.initOptionDict.pop('epochs', 20))
@@ -2958,7 +2958,6 @@ class KerasMLPClassifier(superVisedLearning):
         self.ROM.add(KerasLayers.Dense(layerSize, activation=activation))
       self.ROM.add(KerasLayers.Dropout(rate))
     # output layer
-    print(len(self.target))
     self.ROM.add(KerasLayers.Dense(len(self.target), activation=outputLayerActivation))
     # extract settings for optimizer
     optimizerSetting = self.initOptionDict.pop('optimizerSetting', {'optimizer':'adam'})
@@ -3039,13 +3038,11 @@ class KerasMLPClassifier(superVisedLearning):
       @ In, featureVals, numpy.array 2-D, features
       @ Out, prediction, dict, predicted values
     """
-    print('features+++++', featureVals)
     prediction = {}
     with self.graph.as_default():
       outcome = self.ROM.predict(featureVals)
     for index, target in enumerate(self.target):
       prediction[target] = outcome[:,index]
-    print('prediction:' , prediction)
     return prediction
 
   def __resetLocal__(self):
