@@ -73,6 +73,10 @@ from collections import OrderedDict
 from itertools import product
 # modules for tensorflow and keras used for deep neural network
 import tensorflow as tf
+# test if we can reproduce th results
+#from tensorflow import set_random_seed
+#set_random_seed(2017)
+######
 import tensorflow.contrib.keras as keras
 from tensorflow.contrib.keras import models as KerasModels
 from tensorflow.contrib.keras import layers as KerasLayers
