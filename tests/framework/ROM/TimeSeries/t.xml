@@ -20,6 +20,8 @@
              readIn,
              timeDepBasicStatPPRowData,
              DMD_sm_train,
+             runDMD,
+             timeDepBasicStatPPsynDataDMD,
              RAVENsurrogateTrain,
              PolyTrain,
              pickleRom,
@@ -143,6 +145,12 @@
             <Sampler class="Samplers"             type="CustomSampler"      >customSamplerFile</Sampler>
 			<Output    class = 'DataObjects'      type = 'HistorySet'    >synDataPolyExp</Output>
 		</MultiRun>
+        <MultiRun name='runDMD'>
+            <Input    class = 'DataObjects'       type = 'PointSet'      >dataIn</Input>
+            <Model   class='Models'               type = 'ROM'               >DMD_sm</Model>
+            <Sampler class="Samplers"             type="CustomSampler"      >customSamplerFile</Sampler>
+            <Output    class = 'DataObjects'      type = 'HistorySet'    >synDataDMD</Output>
+        </MultiRun>
         <RomTrainer name='RAVENsurrogateTrain'>
             <Input    class = 'DataObjects'       type = 'HistorySet'    >rawData</Input>
             <Output   class='Models' 			  type ='ROM' 	 		 >RAVENsurrogate</Output>
@@ -154,21 +162,26 @@
             <Output    class = 'DataObjects'      type = 'HistorySet'    >synDataRAVENsurrogate</Output>
         </MultiRun>
         <IOStep name='writeOut' pauseAtEnd = 'True'>
-			<Input    class = 'DataObjects'       type = 'HistorySet'    >synDataRAVENsurrogate</Input>
-            <Input    class = 'DataObjects'       type = 'HistorySet'    >rawData</Input>
-            <Input    class = 'DataObjects'       type = 'HistorySet'    >synDataPolyExp</Input>
-            <Input class="DataObjects" type="HistorySet">basicStatrawData</Input>
-            <Input class="DataObjects" type="HistorySet">basicStatsynDataRAVENsurrogate</Input>
-            <Input class="DataObjects" type="HistorySet">basicStatsynDataPolyExp</Input>
-			<Output   class = 'OutStreams'  type = 'Print'               >writeSynDataOutRAVENsurrogate</Output>
-			<Output   class = 'OutStreams'  type = 'Plot'                >plotSynDataRAVENsurrogate</Output>
-            <Output   class = 'OutStreams'  type = 'Print'               >writeSynDataOutPolyExp</Output>
-            <Output   class = 'OutStreams'  type = 'Plot'                >plotSynDataPolyExp</Output>
-            <Output   class = 'OutStreams'  type = 'Plot'                >plotRowDataAndPolyExp</Output>
-            <Output   class = 'OutStreams'  type = 'Plot'                >plotRowDataAndRAVENsurrogate</Output>
-            <Output   class = 'OutStreams'  type = 'Plot'                >plotRAVENsurrogateStatisticsAndRowDataMean</Output>
-            <Output   class = 'OutStreams'  type = 'Plot'                >plotPolyExpStatisticsAndRowDataMean</Output>
-            
+			<Input  class = 'DataObjects' type = 'HistorySet'    >synDataRAVENsurrogate</Input>
+            <Input  class = 'DataObjects' type = 'HistorySet'    >rawData</Input>
+            <Input  class = 'DataObjects' type = 'HistorySet'    >synDataPolyExp</Input>
+            <Input  class = 'DataObjects' type = 'HistorySet'    >synDataDMD</Input>
+            <Input  class = "DataObjects" type = "HistorySet"    >basicStatrawData</Input>
+            <Input  class = "DataObjects" type = "HistorySet"    >basicStatsynDataRAVENsurrogate</Input>
+            <Input  class = "DataObjects" type = "HistorySet"    >basicStatsynDataPolyExp</Input>
+            <Input  class = "DataObjects" type = "HistorySet"    >basicStatsynDataDMD</Input>
+			<Output class = 'OutStreams'  type = 'Print'         >writeSynDataOutRAVENsurrogate</Output>
+			<Output class = 'OutStreams'  type = 'Plot'          >plotSynDataRAVENsurrogate</Output>
+            <Output class = 'OutStreams'  type = 'Print'         >writeSynDataOutPolyExp</Output>
+            <Output class = 'OutStreams'  type = 'Plot'          >plotSynDataPolyExp</Output>
+            <Output class = 'OutStreams'  type = 'Plot'          >plotRowDataAndPolyExp</Output>
+            <Output class = 'OutStreams'  type = 'Print'         >writeSynDataOutDMD</Output>
+            <Output class = 'OutStreams'  type = 'Plot'          >plotSynDataDMD</Output>
+            <Output class = 'OutStreams'  type = 'Plot'          >plotRowDataAndDMD</Output>
+            <Output class = 'OutStreams'  type = 'Plot'          >plotRowDataAndRAVENsurrogate</Output>
+            <Output class = 'OutStreams'  type = 'Plot'          >plotRAVENsurrogateStatisticsAndRowDataMean</Output>
+            <Output class = 'OutStreams'  type = 'Plot'          >plotPolyExpStatisticsAndRowDataMean</Output>
+            <Output class = 'OutStreams'  type = 'Plot'          >plotDMDStatisticsAndRowDataMean</Output>
 		</IOStep>
         <PostProcess name="timeDepBasicStatPPRowData">
             <Input class="DataObjects" type="HistorySet">rawData</Input>
@@ -191,12 +204,23 @@
             <Output class="OutStreams" type="Print">basicStatsynDataPolyExp_dump</Output>
             <Output class="OutStreams" type="Plot">plotPolyExpStatistics</Output>
         </PostProcess>
+        <PostProcess name="timeDepBasicStatPPsynDataDMD">
+            <Input class="DataObjects" type="HistorySet">synDataDMD</Input>
+            <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
+            <Output class="DataObjects" type="HistorySet">basicStatsynDataDMD</Output>
+            <Output class="OutStreams" type="Print">basicStatsynDataDMD_dump</Output>
+            <Output class="OutStreams" type="Plot">plotDMDStatistics</Output>
+        </PostProcess>
         
     </Steps>
     <OutStreams>
         <Print name = 'writeSynDataOutPolyExp'>
             <type>csv</type>
             <source>synDataPolyExp</source>
+        </Print>
+        <Print name = 'writeSynDataOutDMD'>
+            <type>csv</type>
+            <source>synDataDMD</source>
         </Print>
         
         <Print name = 'basicStatrawData_dump'>
@@ -210,6 +234,10 @@
         <Print name = 'basicStatsynDataPolyExp_dump'>
             <type>csv</type>
             <source>basicStatsynDataPolyExp</source>
+        </Print>
+        <Print name = 'basicStatsynDataDMD_dump'>
+            <type>csv</type>
+            <source>basicStatsynDataDMD</source>
         </Print>
         <Print name = 'writeSynDataOutRAVENsurrogate'>
             <type>csv</type>
@@ -307,6 +335,33 @@
                 </title>
             </actions>
         </Plot>
+        <Plot name="plotSynDataDMD" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>line</type>
+                    <x>synDataDMD|Output|time</x>
+                    <y>synDataDMD|Output|decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                </plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
+            </plotSettings>
+            <actions>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>90</xmax>
+                    <ymin>10</ymin>
+                    <ymax>2500</ymax>
+                </range>
+                <how>png</how>
+                <scale>
+                    <yscale>log</yscale>
+                </scale>
+                <title>
+                    <text> </text>
+                </title>
+            </actions>
+        </Plot>
         <Plot name="plotRowDataAndPolyExp" overwrite="false" >
             <plotSettings>
                 <plot>
@@ -323,6 +378,39 @@
                 <xlabel>time (days)</xlabel>
                 <ylabel>decay heat (kW)</ylabel>
  
+            </plotSettings>
+            <actions>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>90</xmax>
+                    <ymin>10</ymin>
+                    <ymax>2500</ymax>
+                </range>
+                <how>png</how>
+                <scale>
+                    <yscale>log</yscale>
+                </scale>
+                <title>
+                    <text> </text>
+                </title>
+            </actions>
+        </Plot>
+        <Plot name="plotRowDataAndDMD" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>line</type>
+                    <x>synDataDMD|Output|time</x>
+                    <y>synDataDMD|Output|decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                </plot>
+                <plot>
+                    <type>scatter</type>
+                    <x>rawData|Output|time</x>
+                    <y>rawData|Output|decay_heat</y>
+                </plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
+                
             </plotSettings>
             <actions>
                 <range>
@@ -448,6 +536,58 @@
                     <type>line</type>
                     <x>basicStatsynDataPolyExp|Output|time</x>
                     <y>basicStatsynDataPolyExp|Output|percentile_95_decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                    <kwargs>
+                        <label>95%_quantile</label>
+                    </kwargs>
+                </plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
+                <legend>
+                    <loc>best</loc>
+                    <ncol>2</ncol>
+                </legend>
+            </plotSettings>
+            <actions>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>90</xmax>
+                    <ymin>10</ymin>
+                    <ymax>2500</ymax>
+                </range>
+                <how>png</how>
+                <scale>
+                    <yscale>log</yscale>
+                </scale>
+                <title>
+                    <text> </text>
+                </title>
+            </actions>
+        </Plot>
+        <Plot name="plotDMDStatistics" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataDMD|Output|time</x>
+                    <y>basicStatsynDataDMD|Output|mean_decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                    <kwargs>
+                        <label>mean</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataDMD|Output|time</x>
+                    <y>basicStatsynDataDMD|Output|percentile_5_decay_heat</y>
+                    <interpPointsX>50000</interpPointsX>
+                    <kwargs>
+                        <label>5%_quantile</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataDMD|Output|time</x>
+                    <y>basicStatsynDataDMD|Output|percentile_95_decay_heat</y>
                     <interpPointsX>50000</interpPointsX>
                     <kwargs>
                         <label>95%_quantile</label>
@@ -686,7 +826,85 @@
                 </title>
             </actions>
         </Plot>
-
+        <Plot name="plotDMDStatisticsAndRowDataMean" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataDMD|Output|time</x>
+                    <y>basicStatsynDataDMD|Output|mean_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>mean_DMD_sm</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatrawData|Output|time</x>
+                    <y>basicStatrawData|Output|mean_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>mean_data</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataDMD|Output|time</x>
+                    <y>basicStatsynDataDMD|Output|percentile_5_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>quantile_5%_DMD_sm</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatrawData|Output|time</x>
+                    <y>basicStatrawData|Output|percentile_5_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>quantile_5%_data</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatsynDataDMD|Output|time</x>
+                    <y>basicStatsynDataDMD|Output|percentile_95_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>quantile_95%_DMD_sm</label>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>line</type>
+                    <x>basicStatrawData|Output|time</x>
+                    <y>basicStatrawData|Output|percentile_95_decay_heat</y>
+                    <interpPointsX>500000</interpPointsX>
+                    <kwargs>
+                        <label>quantile_95%_data</label>
+                    </kwargs>
+                </plot>
+                <xlabel>time (days)</xlabel>
+                <ylabel>decay heat (kW)</ylabel>
+                <legend>
+                    <loc>best</loc>
+                    <ncol>2</ncol>
+                </legend>
+            </plotSettings>
+            <actions>
+                <range>
+                    <xmin>0</xmin>
+                    <xmax>90</xmax>
+                    <ymin>10</ymin>
+                    <ymax>2500</ymax>
+                </range>
+                <how>png</how>
+                <scale>
+                    <yscale>log</yscale>
+                </scale>
+                <title>
+                    <text> </text>
+                </title>
+            </actions>
+        </Plot>
     </OutStreams>
 	
     <DataObjects>
@@ -702,6 +920,11 @@
        <Input>enrichment,temperature,burnup</Input>
        <Output>decay_heat</Output>
       </HistorySet>
+      <HistorySet name="synDataDMD">
+          <Input>enrichment,temperature,burnup</Input>
+          <Output>decay_heat</Output>
+      </HistorySet>
+      
       <HistorySet name="synDataRAVENsurrogate">
           <Input>enrichment,temperature,burnup</Input>
           <Output>decay_heat</Output>
@@ -731,6 +954,18 @@
           </options>
       </HistorySet>
       <HistorySet name="basicStatsynDataPolyExp">
+          <Output>
+              cov_decay_heat_enrichment, cov_decay_heat_temperature, cov_decay_heat_burnup,
+              pearson_decay_heat_enrichment, pearson_decay_heat_temperature, pearson_decay_heat_burnup,
+              mean_enrichment, mean_temperature, mean_burnup, mean_decay_heat,
+              percentile_5_enrichment,percentile_5_temperature,percentile_5_burnup,percentile_5_decay_heat,
+              percentile_95_enrichment,percentile_95_temperature,percentile_95_burnup,percentile_95_decay_heat
+          </Output>
+          <options>
+              <pivotParameter>time</pivotParameter>
+          </options>
+      </HistorySet>
+      <HistorySet name="basicStatsynDataDMD">
           <Output>
               cov_decay_heat_enrichment, cov_decay_heat_temperature, cov_decay_heat_burnup,
               pearson_decay_heat_enrichment, pearson_decay_heat_temperature, pearson_decay_heat_burnup,

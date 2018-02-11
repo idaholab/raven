@@ -2986,7 +2986,7 @@ class PolyExponential(superVisedLearning):
           fileObject.write(",".join(tooWrite)+"\n")
     else:
       aij,bij = constructAB()
-    np.savetxt("expTermCoeff.csv", np.concatenate( (aij,bij), axis=1), delimiter=",")  
+    np.savetxt("expTermCoeff.csv", np.concatenate( (aij,bij), axis=1), delimiter=",")
     self.pivotValues = targetVals[0,:index,pivotParamIndex]
     # the targets are the coefficients
     expTermCoeff = np.concatenate( (aij,bij), axis=1)
@@ -3047,9 +3047,9 @@ class PolyExponential(superVisedLearning):
       from sklearn import preprocessing
       from sklearn.model_selection import GridSearchCV
       self.scaler = preprocessing.StandardScaler().fit(featureVals)
-      X_scaled = self.scaler.transform(featureVals)      
+      X_scaled = self.scaler.transform(featureVals)
       self.model = [None for _ in range(self.polyExpParams['expTerms']*2)]
-      for cnt in range(len(self.model )):      
+      for cnt in range(len(self.model )):
         self.model[cnt] = neighbors.KNeighborsRegressor(n_neighbors=2, weights='distance',p=8)
         self.model[cnt].fit(X_scaled,expTermCoeff[:,cnt])
     if what == 3:
@@ -3171,22 +3171,15 @@ class DynamicModeDecomposition(superVisedLearning):
       @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
     """
     from pydmd import DMD, MrDMD
-    
-    self.fvals = featureVals
-    #fileObject = open("poly_exp_"+"_error.csv", mode='w')
+    self.KDTreeFinder = spatial.KDTree(featureVals)
     pivotParamIndex  = self.target.index(self.pivotParameterID)
     targetParamIndex = self.target.index(self.targetID)
-    for index in range(len(targetVals[0,:,pivotParamIndex])):
-      if targetVals[0,index,pivotParamIndex] >= self.dmdParams['cutPivotValue']:
-        break
-    index+=1
     self.pivotValues = targetVals[0,:,pivotParamIndex]
-    nsamples = len(targetVals[:,:,pivotParamIndex])
     self.model = DMD(svd_rank=-1, exact=True, opt=True)
     # super slow
-    snapshots = [targetVals[:,ts,pivotParamIndex-1] for ts in range(len(self.pivotValues))]
-    self.model.fit(snapshots) 
-    self.model.plot_eigs(show_axes=True, show_unit_circle=True)
+    snapshots = [targetVals[:,ts,targetParamIndex] for ts in range(len(self.pivotValues))]
+    self.model.fit(snapshots)
+    #self.model.plot_eigs(show_axes=True, show_unit_circle=True)
 
   def __evaluateLocal__(self,featureVals):
     """
@@ -3194,25 +3187,17 @@ class DynamicModeDecomposition(superVisedLearning):
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
     reconstructData = self.model.reconstructed_data
-    
-    if isinstance(self.model, list):
-      evaluation = np.zeros((len(featureVals),len(self.model)))
-      for cnt,model in enumerate(self.model):
-        evaluation[:,cnt] = model.predict(self.scaler.transform(featureVals) )
-    else:
-      if 'predict' in dir(self.model):
-        evaluation = self.model.predict(featureVals)
-      else:
-        evaluation = np.zeros((len(featureVals),len(self.model.target)))
-        evalDict = self.model.__class__.__evaluateLocal__(self.model,featureVals)
-        for cnt,targ in enumerate(self.model.target):
-          evaluation[:,cnt] = evalDict[targ][:]
-
+    # find the nearest data and compute weights
+    weights, indexes = self.KDTreeFinder.query(featureVals, k=min(len(self.features),len(reconstructData)))
+    # if 0 (perfect match), assign minimum possible distance
+    weights[weights == 0] = sys.float_info.min
+    weights =1./weights
+    # normalize to 1
+    weights = weights/weights.sum()
     returnEvaluation = {}
-    for point in range(len(evaluation)):
-      l = int(evaluation[point].size/2)
+    for point in range(len(weights)):
+      returnEvaluation[self.targetID]         =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T).real , axis=1)
       returnEvaluation[self.pivotParameterID] = self.pivotValues.ravel()
-      returnEvaluation[self.targetID] =  self.__evaluateExponentialTerm(self.pivotValues , evaluation[point][:l], evaluation[point][l:])*self.polyExpParams['initialScaling']
     return returnEvaluation
 
   def __confidenceLocal__(self,featureVals):
@@ -3293,7 +3278,7 @@ def constructAB():
   default = False
   if default:
     aij   = np.zeros( (48, 10))
-    bij   = np.zeros((48, 10))  
+    bij   = np.zeros((48, 10))
     aij[:,0]=[1.3095000E-04,1.1592000E-04,8.0293459E-05,5.9641824E-05,1.8282000E-04,3.0850000E-04,8.4467738E-05,2.1216000E-04,9.0819652E-05,8.6864550E-05,1.4170000E-04,5.8777881E-05,9.5372655E-05,1.0809000E-04,8.5151959E-05,1.4011000E-04,7.6851612E-05,6.8748036E-05,9.1416271E-05,2.0597000E-04,3.2060000E-04,3.0995000E-04,1.8275000E-04,1.3413000E-04,9.1381893E-05,1.5891000E-04,2.7617000E-04,2.3555000E-04,3.4894000E-04,7.6148659E-05,6.2454447E-05,1.5608000E-04,1.3246000E-04,1.1963000E-04,1.8625000E-04,1.5455000E-04,3.3168000E-04,4.5678000E-04,6.6706768E-05,4.8624431E-05,2.6367000E-04,1.0008000E-04,9.7437945E-05,7.0109587E-05,1.1058000E-04,2.2267000E-04,9.0585234E-05,9.0198248E-05]
     aij[:,1]=[3.2156000E-04,1.3632000E-04,1.6566778E-04,3.1701718E-04,3.7791000E-04,4.3115000E-04,1.7753821E-04,3.2509000E-04,2.9145151E-04,1.7071220E-04,2.1086000E-04,1.8636120E-04,1.0362419E-04,1.2326000E-04,2.0155743E-04,6.0133000E-04,4.0882743E-04,1.8826883E-04,1.3842492E-04,2.3871000E-04,4.4091000E-04,5.9287000E-04,6.2478000E-04,5.1039000E-04,2.5561860E-04,2.1585000E-04,3.4836000E-04,3.0857000E-04,3.9291000E-04,2.9807383E-04,9.4606837E-05,1.6994000E-04,1.7988000E-04,1.8489000E-04,2.5158000E-04,1.7772000E-04,5.5368000E-04,4.7289000E-04,2.3385323E-04,5.0138746E-05,3.3636000E-04,1.0290000E-04,2.8936279E-04,2.0876102E-04,3.9341000E-04,2.3741000E-04,1.4157082E-04,1.8183683E-04]
     aij[:,2]=[9.3220000E-04,1.9703000E-04,4.4228907E-04,4.4475951E-04,5.2337000E-04,8.6907000E-04,2.5550818E-04,3.9890000E-04,8.0515254E-04,2.4582446E-04,3.3597000E-04,2.8833473E-04,5.1240242E-04,1.9915000E-04,3.7860976E-04,6.1001000E-04,9.9555152E-04,2.2828405E-04,6.1927211E-04,5.2614000E-04,6.2802000E-04,6.0382000E-04,7.3595000E-04,5.2474000E-04,4.7939086E-04,2.1667000E-04,3.9810000E-04,3.9146000E-04,5.2982000E-04,4.5538094E-04,2.4748683E-04,4.3361000E-04,4.5220000E-04,2.1812000E-04,5.9658000E-04,4.1408000E-04,7.2693000E-04,6.6651000E-04,3.1249844E-04,2.7051509E-04,4.1648000E-04,3.6023000E-04,3.0444358E-04,3.7195904E-04,4.1003000E-04,4.6607000E-04,8.0329576E-04,2.6542100E-04]
