@@ -2366,7 +2366,7 @@ class ARMA(superVisedLearning):
     if self.reseedCopies:
       rand = randomUtils.randomIntegers(1,int(2**20),self)
       d['random seed'] = rand
-    # ? else keeps main seed? #
+    # else keeps main seed by keeping instance of RNG
     return d
 
   def __setstate__(self,d):
