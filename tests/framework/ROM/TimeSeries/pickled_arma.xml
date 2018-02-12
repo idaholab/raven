@@ -1,0 +1,75 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries.ARMA_pickled</name>
+    <author>talbpaul</author>
+    <created>2018-01-12</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+      Assures that a pickled (serialized) ARMA samples identically to the original model
+      if reseedCopies is False.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ARMA</WorkingDir>
+    <Sequence>load,runARMA,writeOut</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="pkfile">arma_seed.pk</Input>
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="ARMA" subType="pickledROM"/>
+  </Models>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">pkfile</Input>
+      <Output class="Models" type="ROM">ARMA</Output>
+    </IOStep>
+    <MultiRun name="runARMA">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">ARMA</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">synData</Output>
+    </MultiRun>
+    <IOStep name="writeOut" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">synData</Input>
+      <Output class="OutStreams" type="Print">writeSynDataOut_pickled</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="writeSynDataOut_pickled">
+      <type>csv</type>
+      <source>synData</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="synData">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

@@ -23,7 +23,7 @@
 
   <Files>
     <Input name="rawDataFile">../ARMA/dataSet.csv</Input>
-    <Input name="pk">arma.pk</Input>
+    <Input name="pk">arma_noseed.pk</Input>
   </Files>
 
   <Models>
@@ -61,7 +61,7 @@
       <Input>scaling</Input>
       <Output>Speed,Time</Output>
       <options>
-         <pivotParameter>Time</pivotParameter>
+        <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>

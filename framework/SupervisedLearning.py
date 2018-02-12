@@ -2366,6 +2366,7 @@ class ARMA(superVisedLearning):
     if self.reseedCopies:
       rand = randomUtils.randomIntegers(1,int(2**20),self)
       d['random seed'] = rand
+    # ? else keeps main seed? #
     return d
 
   def __setstate__(self,d):
@@ -2404,6 +2405,7 @@ class ARMA(superVisedLearning):
     self.timeSeriesDatabase.shape   = (self.timeSeriesDatabase.size,)
     self.target.pop(self.target.index(self.pivotParameterID))
     # Fit fourier seires
+    self.raiseADebug('Fitting Fourier ...')
     if self.hasFourierSeries:
       self.__trainFourier__()
       self.armaPara['rSeries'] = self.timeSeriesDatabase - self.fourierResult['predict']
@@ -2416,6 +2418,7 @@ class ARMA(superVisedLearning):
     self.__generateCDF__(self.armaPara['rSeries'])
     self.armaPara['rSeriesNorm'] = self.__dataConversion__(self.armaPara['rSeries'], obj='normalize')
 
+    self.raiseADebug('Fitting ARMA ...')
     self.__trainARMA__() # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
 
     del self.timeSeriesDatabase       # Delete to reduce the pickle size, since from now the original data will no longer be used in the evaluation.
@@ -2474,6 +2477,7 @@ class ARMA(superVisedLearning):
     Qmin = self.armaPara['Qmin']
 
     criterionBest = np.inf
+    self.raiseADebug('Finding best data fits ...')
     for p in range(Pmin,Pmax+1):
       for q in range(Qmin,Qmax+1):
         if p is 0 and q is 0:
@@ -2484,6 +2488,7 @@ class ARMA(superVisedLearning):
           init.append(init_S[n1,n1])
 
         rOpt = {}
+        self.raiseADebug(' ... optimizing with p={}, q={} ...'.format(p,q))
         rOpt = optimize.fmin(self.__computeARMALikelihood__,init, args=(p,q) ,full_output = True)
         tmp = (p+q)*self.armaPara['dimension']**2/self.pivotParameterValues.size
         criterionCurrent = self.__computeAICorBIC(self.armaResult['sigHat'],noPara=tmp,cType='BIC',obj='min')
@@ -2495,6 +2500,7 @@ class ARMA(superVisedLearning):
           criterionBest = criterionCurrent
 
     # saving training results
+    self.raiseADebug('Storing training results ...')
     Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],self.armaResult['P'],self.armaResult['Q'],self.armaPara['dimension'] )
     self.armaResult['Phi'] = Phi
     self.armaResult['Theta'] = Theta
@@ -2745,8 +2751,10 @@ class ARMA(superVisedLearning):
 
     # Instantiate a normal distribution for time series synthesis (noise part)
     normEvaluateEngine = Distributions.returnInstance('Normal',self)
-    normEvaluateEngine.mean, normEvaluateEngine.sigma = 0, 1
-    normEvaluateEngine.upperBoundUsed, normEvaluateEngine.lowerBoundUsed = False, False
+    normEvaluateEngine.mean = 0
+    normEvaluateEngine.sigma = 1
+    normEvaluateEngine.upperBoundUsed = False
+    normEvaluateEngine.lowerBoundUsed = False
     normEvaluateEngine.initializeDistribution()
 
     numTimeStep = len(self.pivotParameterValues)
