@@ -86,6 +86,7 @@ class RavenFramework(Tester):
     self.uxml_files  = self.specs['UnorderedXml'].split(" ") if len(self.specs['UnorderedXml']) > 0 else []
     self.text_files  = self.specs['text'        ].split(" ") if len(self.specs['text'        ]) > 0 else []
     self.img_files   = self.specs['image'       ].split(" ") if len(self.specs['image'       ]) > 0 else []
+    self.all_files = self.check_files + self.csv_files + self.xml_files + self.ucsv_files + self.uxml_files + self.text_files + self.img_files
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.minimum_libraries = self.specs['minimum_library_versions'].split(' ')  if len(self.specs['minimum_library_versions']) > 0 else []
@@ -176,7 +177,8 @@ class RavenFramework(Tester):
       the test.
       @ Out, createdFiles, [str], list of files created by the test.
     """
-    return self.check_files + self.csv_files+self.xml_files+self.ucsv_files+self.uxml_files+self.img_files
+    runpath = self.getTestDir()
+    return list(os.path.join(runpath,file) for file in self.all_files)
 
   def prepare(self, options = None):
     self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.check_files]
