@@ -84,6 +84,8 @@ else:
   crowStochEnv = distribution1D.DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
 
+#### GLOBAL METHODS ####
+# For entities using the global seed, the following methods are available
 
 def randomSeed(value):
   """
@@ -221,7 +223,7 @@ def randPointsInHypersphere(dim,samples=1,r=1,keepMatrix=False):
     return _reduceRedundantListing(pts,dim,samples)
   return pts
 
-### internal utilities ###
+# internal utilities
 
 def _reduceRedundantListing(data,dim,samples):
   """
@@ -242,4 +244,150 @@ def _reduceRedundantListing(data,dim,samples):
   #  return data[:,0]
   else:
     return data
+
+
+
+#### RNG CLASS ####
+# TODO make the global RNG a module-level object to reduce duplication
+class CrowRNG: # TODO message user?
+  """
+    For entities that need to rely on a self-controlled random number generator instead
+    of using the global RNG, this tool is offered.
+  """
+  def __init__(self,seed=None,messageHandler=None):
+    """
+      Constructor.
+      @ In, seed, int, optional, if provided then RNG will use the specified seed.  If not specified, the next global random int will be used.
+      @ In, messageHandler, MessageHandler, optional, should be provided for message tracking if at all possible
+      @ Out, None
+    """
+    # hold the message handler at class level
+    self.messageHandler = messageHandler
+    # get a seed if one wasn't provided
+    if seed is None:
+      seed = randomIntegers(0,2**31,self)
+    # set stochastic environment
+    if env is None:
+      env = stochasticEnv
+    self.stochEnvName = env
+    # set the stochastic generator
+    self.stochasticEnv = distribution1D.DistributionContainer.instance() # TODO extend to use numpy?
+    # set the seed
+    self.setSeed(seed)
+
+  def random(self,dim=1,samples=1,keepMatrix=False):
+    """
+      Function to get a single random value, an array of random values, or a matrix of random values, on [0,1]
+      @ In, dim, int, optional, dimensionality of samples
+      @ In, samples, int, optional, number of arrays to deliver
+      @ In, keepMatrix, bool, optional, if True then will always return np.array(np.array(float))
+      @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if sampels>1)
+    """
+    dim = int(dim)
+    samples = int(samples)
+    vals = np.zeros([samples,dim])
+    for i in range(len(vals)):
+      for j in range(len(vals[0])):
+        vals[i][j] = self.stochasticEnv.random()
+    if keepMatrix:
+      return vals
+    else:
+      return _reduceRedundantListing(vals,dim,samples)
+
+  def randomIntegers(self,low,high):
+    """
+      Function to get a random integer
+      @ In, low, int, low boundary
+      @ In, high, int, upper boundary
+      @ Out, rawInt, int, random int
+    """
+    intRange = high-low
+    rawNum = low + random()*intRange
+    rawInt = int(round(rawNum))
+    if rawInt < low or rawInt > high:
+      self.raiseAMessage("Random int out of range")
+      rawInt = max(low,min(rawInt,high))
+    return rawInt
+
+  def randomNormal(self,dim=1,samples=1,keepMatrix=False):
+    """
+      Function to get a single random value, an array of random values, or a matrix of random values, normally distributed
+      @ In, dim, int, optional, dimensionality of samples
+      @ In, samples, int, optional, number of arrays to deliver
+      @ In, keepMatrix, bool, optional, if True then will always return np.array(np.array(float))
+      @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if sampels>1)
+    """
+    dim = int(dim)
+    samples = int(samples)
+    vals = np.zeros([samples,dim])
+    for i in range(len(vals)):
+      for j in range(len(vals[0])):
+        vals[i,j] = boxMullerGen.generate()
+    if keepMatrix:
+      return vals
+    else:
+      return _reduceRedundantListing(vals,dim,samples)
+
+  def randomPermutation(self,l):
+    """
+      Function to get a random permutation
+      @ In, l, list, list to be permuted
+      @ Out, newList, list, randomly permuted list
+    """
+    newList = []
+    oldList = l[:]
+    while len(oldList) > 0:
+      newList.append(oldList.pop(self.randomIntegers(0,len(oldList)-1,self)))
+    return newList
+
+  def randPointsInHypersphere(self,dim,samples=1,r=1,keepMatrix=False):
+    """
+      obtains a random point internal to a hypersphere of dimension "n" with radius "r"
+      see http://www.sciencedirect.com/science/article/pii/S0047259X10001211
+      "On decompositional algorithms for uniform sampling from n-spheres and n-balls", Harman and Lacko, 2010, J. Multivariate Analysis
+      @ In, dim, int, the dimensionality of the hypersphere
+      @ In, r, float, the radius of the hypersphere
+      @ In, keepMatrix, bool, optional, if True then will always return np.array(np.array(float))
+      @ Out, pt, np.array(float), a random point on the surface of the hypersphere
+    """
+    #sample on surface of n+2-sphere and discard the last two dimensions
+    pts = self.randPointsOnHypersphere(dim+2,samples=samples,r=r,keepMatrix=True)[:,:-2]
+    if keepMatrix:
+      return pts
+    else:
+      return _reduceRedundantListing(pts,dim,samples)
+    return pts
+
+  def randPointsOnHypersphere(self,dim,samples=1,r=1,keepMatrix=False):
+    """
+      obtains random points on the surface of a hypersphere of dimension "n" with radius "r".
+      see http://www.sciencedirect.com/science/article/pii/S0047259X10001211
+      "On decompositional algorithms for uniform sampling from n-spheres and n-balls", Harman and Lacko, 2010, J. Multivariate Analysis
+      @ In, dim, int, the dimensionality of the hypersphere
+      @ In, samples, int, optional, the number of samples desired
+      @ In, r, float, optional, the radius of the hypersphere
+      @ In, keepMatrix, bool, optional, if True then will always return np.array(np.array(float))
+      @ Out, pts, np.array(np.array(float)), random points on the surface of the hypersphere [sample#][pt]
+    """
+    ## first fill random samples
+    pts = self.randomNormal(dim,samples=samples,keepMatrix=True)
+    ## extend radius, place inside sphere through normalization
+    rnorm = float(r)/np.linalg.norm(pts,axis=1)
+    pts *= rnorm[:,np.newaxis]
+    #TODO if all values in any given sample are 0,
+    #       this produces an unphysical result, so we should resample;
+    #       however, this probability is miniscule and the speed benefits of skipping checking loop seems worth it.
+    if keepMatrix:
+      return pts
+    else:
+      return _reduceRedundantListing(pts,dim,samples)
+    return pts
+
+  def setSeed(self,value):
+    """
+      Function to set a random seed
+      @ In, value, int, the seed
+      @ Out, None
+    """
+    crowStochEnv.seedRandom(value)
 

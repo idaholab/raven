@@ -23,7 +23,7 @@
     <MonteCarlo name="mcSampler">
       <samplerInit>
         <limit>3</limit>
-        <initialSeed>20021986</initialSeed>
+        <initialSeed>42</initialSeed>
       </samplerInit>
       <constant name="scaling">1</constant>
     </MonteCarlo>
