@@ -39,7 +39,7 @@ public:
   void addDistributionInContainer(const std::string & type, const std::string & name, MooseSharedPointer<BasicDistribution> dist);
   void addDistributionInContainerND(const std::string & type, const std::string & name, MooseSharedPointer<BasicDistributionND> dist);
 
-  void seedRandom(unsigned int seed);
+  void seedRandom(unsigned int seed, unsigned int n = 0);
 
   bool isEmpty()
   {

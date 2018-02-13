@@ -29,7 +29,7 @@ class RandomClass {
 public:
   RandomClass();
   ~RandomClass();
-  void seed(unsigned int seed);
+  void seed(unsigned int seed, unsigned int n = 0);
   double random();
 };
 

@@ -112,12 +112,12 @@ DistributionContainer::getType(const std::string dist_alias){
 }
 
 void
-DistributionContainer::seedRandom(unsigned int seed){
+DistributionContainer::seedRandom(unsigned int seed, unsigned int n){
   //std::cout << "seedRandom " << seed << std::endl;
   //srand( seed );
   //_random.seed(seed);
   //MooseRandom::seed(seed);
-  _random->seed(seed);
+  _random->seed(seed, n);
 
 }
 double
