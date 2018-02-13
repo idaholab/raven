@@ -32,7 +32,7 @@ class BasicDistributionND;
 class DistributionContainer
 {
 public:
-  static DistributionContainer & instance();
+  static DistributionContainer & instance(bool newInstance = false);
   /**
    * Function to construct on the fly this class through the action system
    */

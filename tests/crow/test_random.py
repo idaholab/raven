@@ -21,26 +21,53 @@ import utils
 
 distribution1D = utils.find_distribution1D()
 
-engine = distribution1D.DistributionContainer.instance()
+engine = distribution1D.DistributionContainer.instance(True)
 
 results = {"pass":0,"fail":0}
 
+# test seeds, consistency check
+# seed 42, first two entries are 0.37450114397,  0.796542984386
+# seed 65, first two entries are 0.218645046982, 0.869204071786
+engine.seedRandom(42)
+utils.checkAnswer('First seed, first number',engine.random(),0.374540114397,results)
+engine.seedRandom(65)
+utils.checkAnswer('second seed, first number',engine.random(),0.218645046982,results)
 
-# set a seed
+# test sampled values
+## set a seed
 seed = 42
 engine.seedRandom(seed)
-# get a few values
+## get a few values
 rands = list(engine.random() for _ in range(5))
 expected = [0.37454011439684315, 0.7965429843861012, 0.9507143117838339, 0.1834347877147223, 0.7319939385009916]
 for i in range(5):
   utils.checkAnswer("random {}".format(i),rands[i],expected[i],results)
-# move random number count forward (starting at same seed)
+# test shifting values
+## move random number count forward (starting at same seed)
 shift = 2 # amount to shift evaluations by
 engine.seedRandom(seed,shift)
 rands2 = list(engine.random() for _ in range(5))
 for i in range(5-shift):
   utils.checkAnswer("progressed seed {}".format(i),rands[i+shift],rands2[i],results)
 
+# test two independent engines
+## make engines, set seeds
+eng1 = distribution1D.DistributionContainer.instance(True)
+eng2 = distribution1D.DistributionContainer.instance(True)
+seed = 314159
+eng1.seedRandom(seed)
+eng2.seedRandom(seed)
+# first 6 seeds for 314159 are: 0.81792331017, 0.0776717064617, 0.551046290098, 0.997661588247, 0.419775358732, 0.385839152938
+## check first three samples are the same for each
+for i in range(3):
+  utils.checkAnswer("Parallel engines {}".format(i),eng1.random(),eng2.random(),results)
+## check different with different seeds
+eng1.seedRandom(65535)
+eng2.seedRandom(512)
+rand1 = eng1.random()
+rand2 = eng2.random()
+utils.checkAnswer("Different seeds 1",rand1,0.193341771651,results)
+utils.checkAnswer("Different seeds 2",rand2,0.107295856603,results)
 
 print(results)
 
