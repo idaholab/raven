@@ -12,7 +12,13 @@
   requires_swig2 = True
  [../]
 
-[./test_normal]
+ [./test_random]
+  type = 'CrowPython'
+  input = 'test_random.py'
+  requires_swig2 = True
+ [../]
+
+ [./test_normal]
   type = 'CrowPython'
   input = 'test_normal.py'
   requires_swig2 = True
@@ -95,7 +101,7 @@
   input = 'test_inverse_transformation_matrix.py'
   requires_swig2 = True
  [../]
- 
+
  [./test_symmetric_psd]
   type = 'CrowPython'
   input = 'test_symmetric_psd.py'
