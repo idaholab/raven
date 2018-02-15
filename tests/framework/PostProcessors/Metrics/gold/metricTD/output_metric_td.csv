@@ -1,9 +1,9 @@
 Metrics,x0-y0
-euclidean2_paired_distance_euclidean,4.47105676931
-euclidean_paired_distance_euclidean,4.47105676931
+euclidean2_paired_distance_euclidean,7.15967372017
+euclidean_paired_distance_euclidean,7.15967372017
 Metrics,x-y
-euclidean2_paired_distance_euclidean,18.1945767017
-euclidean_paired_distance_euclidean,18.1945767017
+euclidean2_paired_distance_euclidean,21.9379697886
+euclidean_paired_distance_euclidean,21.9379697886
 Metrics,x-z
-euclidean2_paired_distance_euclidean,77.8071978001
-euclidean_paired_distance_euclidean,77.8071978001
+euclidean2_paired_distance_euclidean,76.1085325437
+euclidean_paired_distance_euclidean,76.1085325437

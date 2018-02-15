@@ -75,7 +75,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="mcRun" re-seeding="20021986">
+    <MultiRun name="mcRun" re-seeding="10311986">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
       <Model class="Models" type="ExternalModel">poly</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>

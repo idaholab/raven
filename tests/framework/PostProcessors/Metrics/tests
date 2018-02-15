@@ -56,4 +56,13 @@
     input = 'unit_test_comparison_statistics.py'
     requires_swig2 = True
   [../]
+  [./testMetricTD]
+    type = 'RavenFramework'
+    input = 'test_metric_td.xml'
+    UnorderedXml = 'metricTD/output_metric_td.xml'
+    UnorderedCsv = 'metricTD/output_metric_td.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
 []
