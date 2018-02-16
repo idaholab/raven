@@ -65,9 +65,17 @@
     zero_threshold = 1e-9
     remove_whitespace = True
   [../]
-  [./sklMetric]
+  [./testScipyMetric]
     type = 'RavenFramework'
     input = 'test_metric_scipy.xml'
+    UnorderedXml = 'scipyMetrics/output_metric.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./testScipyMetricBoolean]
+    type = 'RavenFramework'
+    input = 'test_metric_scipy_boolean.xml'
     UnorderedXml = 'scipyMetrics/output_metric.xml'
     rel_err = 0.00001
     zero_threshold = 1e-9

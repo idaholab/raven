@@ -1,0 +1,13 @@
+<MetricPostProcessor type="Static">
+  <ans-ans2>
+    <dice_boolean_dice>0.384615384615</dice_boolean_dice>
+    <sokalmichener_boolean_sokalmichener>0.666666666667</sokalmichener_boolean_sokalmichener>
+    <yule_boolean_yule>1.2</yule_boolean_yule>
+    <hamming_boolean_hamming>0.5</hamming_boolean_hamming>
+    <kulsinski_boolean_kulsinski>0.733333333333</kulsinski_boolean_kulsinski>
+    <rogerstanimoto_boolean_rogerstanimoto>0.666666666667</rogerstanimoto_boolean_rogerstanimoto>
+    <russellrao_boolean_russellrao>0.6</russellrao_boolean_russellrao>
+    <sokalsneath_boolean_sokalsneath>0.714285714286</sokalsneath_boolean_sokalsneath>
+    <jaccard_boolean_jaccard>0.555555555556</jaccard_boolean_jaccard>
+  </ans-ans2>
+</MetricPostProcessor>

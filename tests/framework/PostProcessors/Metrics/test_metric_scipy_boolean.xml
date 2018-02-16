@@ -1,0 +1,121 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>scipyMetricsBoolean</WorkingDir>
+    <Sequence>mcRun, PP1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/Metric/test_metric_scipy_boolean</name>
+    <author>wangc</author>
+    <created>2018-02-16</created>
+    <classesTested>PostProcessors.Metric</classesTested>
+    <description>
+      This test checks metrics from Scipy library
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="output_metric" type="">output_metric.xml</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="bool.py" name="poly" subType="">
+      <variables>x1,x2,ans,ans2</variables>
+    </ExternalModel>
+    <PostProcessor name="pp1" subType="Metric">
+      <Features type="variable">ans</Features>
+      <Targets type="variable">ans2</Targets>
+      <Metric class="Metrics" type="ScipyMetric">rogerstanimoto</Metric>
+      <Metric class="Metrics" type="ScipyMetric">dice</Metric>
+      <Metric class="Metrics" type="ScipyMetric">hamming</Metric>
+      <Metric class="Metrics" type="ScipyMetric">jaccard</Metric>
+      <Metric class="Metrics" type="ScipyMetric">kulsinski</Metric>
+      <Metric class="Metrics" type="ScipyMetric">russellrao</Metric>
+      <Metric class="Metrics" type="ScipyMetric">sokalmichener</Metric>
+      <Metric class="Metrics" type="ScipyMetric">sokalsneath</Metric>
+      <Metric class="Metrics" type="ScipyMetric">yule</Metric>
+    </PostProcessor>
+  </Models>
+  
+  <Metrics>
+    <ScipyMetric name="rogerstanimoto">
+        <metricType>boolean|rogerstanimoto</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="dice">
+        <metricType>boolean|dice</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="hamming">
+        <metricType>boolean|hamming</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="jaccard">
+        <metricType>boolean|jaccard</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="kulsinski">
+        <metricType>boolean|kulsinski</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="russellrao">
+        <metricType>boolean|russellrao</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="sokalmichener">
+        <metricType>boolean|sokalmichener</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="sokalsneath">
+        <metricType>boolean|sokalsneath</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="yule">
+        <metricType>boolean|yule</metricType>
+    </ScipyMetric>
+  </Metrics>
+
+  <Distributions>
+    <Normal name="dist1">
+      <mean>1</mean>
+      <sigma>0.5</sigma>
+    </Normal>
+    <Normal name="dist2">
+      <mean>0.5</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>20</limit>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>dist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>dist2</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mcRun" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC</Output>
+    </MultiRun>
+    <PostProcess name="PP1">
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="Files" type="">output_metric</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataMC">
+      <Input>x1,x2</Input>
+      <Output>ans,ans2</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
