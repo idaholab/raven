@@ -1,16 +1,31 @@
 <MetricPostProcessor type="Static">
   <x0-y0>
-    <euclidean2_paired_distance_euclidean>7.15967372017</euclidean2_paired_distance_euclidean>
+    <MAE_regression_mean_absolute_error>1.96025470699</MAE_regression_mean_absolute_error>
+    <cosine_paired_distance_cosine>0.630275240712</cosine_paired_distance_cosine>
+    <MSE_regression_mean_squared_error>5.12609277793</MSE_regression_mean_squared_error>
+    <manhattan_paired_distance_manhattan>19.6025470699</manhattan_paired_distance_manhattan>
     <euclidean_paired_distance_euclidean>7.15967372017</euclidean_paired_distance_euclidean>
+    <R2_regression_r2_score>-3.3219894249</R2_regression_r2_score>
+    <EVC_regression_explained_variance_score>-2.03446960513</EVC_regression_explained_variance_score>
   </x0-y0>
 
   <x-y>
-    <euclidean2_paired_distance_euclidean>21.9379697886</euclidean2_paired_distance_euclidean>
+    <MAE_regression_mean_absolute_error>5.61503154289</MAE_regression_mean_absolute_error>
+    <cosine_paired_distance_cosine>0.241895228048</cosine_paired_distance_cosine>
+    <MSE_regression_mean_squared_error>66.3680718828</MSE_regression_mean_squared_error>
+    <manhattan_paired_distance_manhattan>56.1503154289</manhattan_paired_distance_manhattan>
     <euclidean_paired_distance_euclidean>21.9379697886</euclidean_paired_distance_euclidean>
+    <R2_regression_r2_score>-3.75295302988</R2_regression_r2_score>
+    <EVC_regression_explained_variance_score>-1.6522559437</EVC_regression_explained_variance_score>
   </x-y>
 
   <x-z>
-    <euclidean2_paired_distance_euclidean>76.1085325437</euclidean2_paired_distance_euclidean>
+    <MAE_regression_mean_absolute_error>22.9042735443</MAE_regression_mean_absolute_error>
+    <cosine_paired_distance_cosine>0.85380120605</cosine_paired_distance_cosine>
+    <MSE_regression_mean_squared_error>816.319820544</MSE_regression_mean_squared_error>
+    <manhattan_paired_distance_manhattan>229.042735443</manhattan_paired_distance_manhattan>
     <euclidean_paired_distance_euclidean>76.1085325437</euclidean_paired_distance_euclidean>
+    <R2_regression_r2_score>-58.5688065889</R2_regression_r2_score>
+    <EVC_regression_explained_variance_score>-1.57334010205</EVC_regression_explained_variance_score>
   </x-z>
 </MetricPostProcessor>

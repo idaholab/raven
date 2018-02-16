@@ -97,24 +97,37 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
     # FIXME: check the consistence of provided data
     assert(type(pairedData).__name__ == 'tuple', "The paired data is not a tuple!")
     # Error check for input data
+    dynamicOutput = []
     for i in range(len(pairedData)):
       if not self.estimator.acceptsDistribution and isinstance(pairedData[i], Distributions.Distribution):
         self.raiseAnError(IOError, "Distribution is provided, but the metric ", self.estimator.name, " can not handle it!")
-      if isinstance(pairedData[i], Distributions.Distribution):
-        self.raiseAnError(IOError, "Not implemented yet!")
-    featureValues = np.asarray(pairedData[0][0])
-    featureWeights = np.asarray(pairedData[0][1])
-    targetValues = np.asarray(pairedData[1][0])
-    dynamicOutput = []
-    # FIXME: Currently, we only use the weights of given features to compute the metric, this
-    # can be biased or uncorrect. The correct way is to use the joint probability weight.
-    # This needs to be improved in the future when RAVEN can handle the joint probability weight correctly.
-    if self.canHandleDynamicData:
-      dynamicOutput = self.estimator.evaluate(featureValues, targetValues,featureWeights)
-    else:
-      for hist in range(len(featureValues)):
-        out = self.estimator.evaluate(featureValues[:,hist],targetValues[:,hist],featureWeights)
+    feat, targ = pairedData[0], pairedData[1]
+    if isinstance(feat, Distributions.Distribution) and isinstance(targ, Distributions.Distribution):
+      out = self.estimator.evaluate(feat, targ)
+      dynamicOutput.append(out)
+    elif isinstance(feat, Distributions.Distribution):
+      targVals = np.asarray(targ[0])
+      for hist in range(targVals.shape[1]):
+        out = self.estimator.evaluate(feat, targVals[:,hist])
         dynamicOutput.append(out)
+    elif isinstance(targ, Distributions.Distribution):
+      featVals = np.asarray(feat[0])
+      for hist in range(featVals.shape[1]):
+        out = self.estimator.evaluate(featVals[:,hist], targ)
+        dynamicOutput.append(out)
+    else:
+      featVals = np.asarray(feat[0])
+      targVals = np.asarray(targ[0])
+      dataWeight = np.asarray(feat[1])
+      # FIXME: Currently, we only use the weights of given features to compute the metric, this
+      # can be biased or uncorrect. The correct way is to use the joint probability weight.
+      # This needs to be improved in the future when RAVEN can handle the joint probability weight correctly.
+      if self.canHandleDynamicData:
+        dynamicOutput = self.estimator.evaluate(featVals, targVals, dataWeight)
+      else:
+        for hist in range(featVals.shape[1]):
+          out = self.estimator.evaluate(featVals[:,hist], targVals[:,hist], dataWeight)
+          dynamicOutput.append(out)
     if multiOutput == 'mean':
       output = [np.average(dynamicOutput, weights = weights)]
     elif multiOutput == 'max':

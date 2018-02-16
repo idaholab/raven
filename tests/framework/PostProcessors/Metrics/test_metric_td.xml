@@ -28,7 +28,12 @@
       <Features type="variable">x0, x, x</Features>
       <Targets type="variable">y0, y, z</Targets>
       <Metric class="Metrics" type="SKL">euclidean</Metric>
-      <Metric class="Metrics" type="SKL">euclidean2</Metric>
+      <Metric class="Metrics" type="SKL">manhattan</Metric>
+      <Metric class="Metrics" type="SKL">cosine</Metric>
+      <Metric class="Metrics" type="SKL">EVC</Metric>
+      <Metric class="Metrics" type="SKL">MAE</Metric>
+      <Metric class="Metrics" type="SKL">R2</Metric>
+      <Metric class="Metrics" type="SKL">MSE</Metric>
     </PostProcessor>
   </Models>
   
@@ -36,8 +41,23 @@
     <SKL name="euclidean">
       <metricType>paired_distance|euclidean</metricType>
     </SKL>
-    <SKL name="euclidean2">
-      <metricType>paired_distance|euclidean</metricType>
+    <SKL name="manhattan">
+      <metricType>paired_distance|manhattan</metricType>
+    </SKL>
+    <SKL name="cosine">
+      <metricType>paired_distance|cosine</metricType>
+    </SKL>
+    <SKL name="EVC">
+      <metricType>regression|explained_variance_score</metricType>
+    </SKL>
+    <SKL name="MAE">
+      <metricType>regression|mean_absolute_error</metricType>
+    </SKL>
+    <SKL name="R2">
+      <metricType>regression|r2_score</metricType>
+    </SKL>
+    <SKL name="MSE">
+      <metricType>regression|mean_squared_error</metricType>
     </SKL>
   </Metrics>
 

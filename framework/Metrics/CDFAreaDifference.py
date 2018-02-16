@@ -31,6 +31,16 @@ class CDFAreaDifference(Metric):
   """
     Metric to compare two datasets using the CDF Area Difference.
   """
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, NOne
+    """
+    Metric.__init__(self)
+    self.acceptsProbability = True
+    self.acceptsDistribution = True
+
   def _localReadMoreXML(self,xmlNode):
     """
       Method that reads the portion of the xml input that belongs to this specialized class
@@ -38,16 +48,26 @@ class CDFAreaDifference(Metric):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    self.acceptsProbability = True
-    self.acceptsDistribution = True
+    pass
 
-  def distance(self,x,y,**kwargs):
+  def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
     """
-      Calculates the CDF Area Difference between two datasets.
-      @ In, x, something that can be converted into a CDF
-      @ In, y, something that can be converted into a CDF
-      @ In, kwargs, ignored.
-      @ Out, value, float, CDF Area Difference
+      This method computes difference between two points x and y based on given metric
+      @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided,
+        the array will be reshaped via x.reshape(-1,1), shape (n_samples, ), if 2D
+        array is provided, shape (n_samples, n_outputs)
+      @ In, y, numpy.ndarray, array containing data of y, if 1D array is provided,
+        the array will be reshaped via y.reshape(-1,1), shape (n_samples, ), if 2D
+        array is provided, shape (n_samples, n_outputs)
+      @ In, weights, None or array_like (numpy.array or list), optional weights associated
+        with input, shape (n_samples) if axis = 0, otherwise shape (n_outputs)
+      @ In, axis, integer, axis along which a metric is performed, default is 0,
+        i.e. the metric will performed along the first dimension (the "rows").
+        If metric postprocessor is used, the first dimension is the RAVEN_sample_ID,
+        and the second dimension is the pivotParameter if HistorySet is provided.
+      @ In, kwargs, dictionary of parameters characteristic of each metric
+      @ Out, value, numpy.ndarray, metric result, shape (n_outputs) if axis = 0, otherwise
+        shape (n_samples), we assume the dimension of input numpy.ndarray is no more than 2.
     """
     value = Metrics.MetricUtilities._getCDFAreaDifference(x,y)
     return float(value)
