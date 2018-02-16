@@ -31,6 +31,8 @@ import sklearn.metrics.pairwise as pairwise
 from sklearn.metrics import explained_variance_score
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
+# FIXME: median_absolute_error only accepts 1-D numpy array, and if we want to use this metric, it should
+# be handled differently.
 #from sklearn.metrics import median_absolute_error
 from sklearn.metrics import r2_score
 #External Modules End--------------------------------------------------------------------------------
@@ -104,14 +106,31 @@ class SKL(Metric):
       except:
         self.distParams[key] = value
 
-  def __evaluateLocal__(self, x, y, weights = None, **kwargs):
+  def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
     """
-      This method compute difference between two points x and y based on given metric
-      @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided, the array will be reshaped via x.reshape(1,-1)
-      @ In, y, numpy.ndarray, array containing data of y, if 1D array is provided, the array will be reshaped via y.reshape(1,-1)
-      @ In, weights, None or array_like (numpy.array or list), weights associated with input
-      @ Out, value, numpy.ndarray, metric result
+      This method computes difference between two points x and y based on given metric
+      @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided,
+        the array will be reshaped via x.reshape(-1,1), shape (n_samples, ), if 2D
+        array is provided, shape (n_samples, n_outputs)
+      @ In, y, numpy.ndarray, array containing data of y, if 1D array is provided,
+        the array will be reshaped via y.reshape(-1,1), shape (n_samples, ), if 2D
+        array is provided, shape (n_samples, n_outputs)
+      @ In, weights, None or array_like (numpy.array or list), optional weights associated
+        with input, shape (n_samples) if axis = 0, otherwise shape (n_outputs)
+      @ In, axis, integer, axis along which a metric is performed, default is 0,
+        i.e. the metric will performed along the first dimension (the "rows").
+        If metric postprocessor is used, the first dimension is the RAVEN_sample_ID,
+        and the second dimension is the pivotParameter if HistorySet is provided.
+      @ In, kwargs, dictionary of parameters characteristic of each metric
+      @ Out, value, numpy.ndarray, metric result, shape (n_outputs) if axis = 0, otherwise
+        shape (n_samples), we assume the dimension of input numpy.ndarray is no more than 2.
     """
+    #######################################################################################
+    # The inputs of regression metric, i.e. x, y should have shape (n_samples, n_outputs),
+    # and the outputs will have the shape (n_outputs).
+    # However, the inputs of paired metric, i.e. x, y should convert the shape to
+    # (n_outputs, n_samples), and the outputs will have the shape (n_outputs).
+    #######################################################################################
     if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
       assert(x.shape == y.shape, "Input data x, y should have the same shape")
       if weights is not None and self.metricType[0] == 'regression' and 'sample_weight' not in self.distParams.keys():
@@ -126,6 +145,13 @@ class SKL(Metric):
         else:
           x = x.T
           y = y.T
+      if axis == 1:
+        x = x.T
+        y = y.T
+        # check the dimension of weights
+        assert(x.shape[0] == len(weights), "'weights' should have the same length of the first dimension of input data")
+      elif axis != 0:
+        self.raiseAnError(IOError, "Valid axis value should be '0' or '1' for the evaluate method of metric", self. name, "value", axis, "is provided!")
       try:
         value = self.__class__.availMetrics[self.metricType[0]][self.metricType[1]](x, y, **dictTemp)
       except TypeError as e:

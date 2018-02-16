@@ -106,13 +106,15 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
     featureWeights = np.asarray(pairedData[0][1])
     targetValues = np.asarray(pairedData[1][0])
     dynamicOutput = []
+    # FIXME: Currently, we only use the weights of given features to compute the metric, this
+    # can be biased or uncorrect. The correct way is to use the joint probability weight.
+    # This needs to be improved in the future when RAVEN can handle the joint probability weight correctly.
     if self.canHandleDynamicData:
       dynamicOutput = self.estimator.evaluate(featureValues, targetValues,featureWeights)
     else:
       for hist in range(len(featureValues)):
         out = self.estimator.evaluate(featureValues[:,hist],targetValues[:,hist],featureWeights)
         dynamicOutput.append(out)
-
     if multiOutput == 'mean':
       output = [np.average(dynamicOutput, weights = weights)]
     elif multiOutput == 'max':

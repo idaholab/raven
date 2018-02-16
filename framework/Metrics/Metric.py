@@ -66,16 +66,20 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     self._localReadMoreXML(xmlNode)
 
-  def evaluate(self, x, y, weights = None, **kwargs):
+  def evaluate(self, x, y, weights = None, axis = 0, **kwargs):
     """
       This method compute the metric between x and y
       @ In, x, numpy.array, array containing data of x
       @ In, y, numpy.array, array containing data of y
       @ In, weights, None or numpy.array, an array of weights associated with x
+      @ In, axis, integer, axis along which a metric is performed, default is 0,
+        i.e. the metric will performed along the first dimension (the "rows").
+        If metric postprocessor is used, the first dimension is the RAVEN_sample_ID,
+        and the second dimension is the pivotParameter if HistorySet is provided.
       @ In, kwargs, dictionary of parameters characteristic of each metric
       @ Out, value, float or numpy.array, metric results between x and y
     """
-    value = self.__evaluateLocal__(x, y, weights=weights, **kwargs)
+    value = self.__evaluateLocal__(x, y, weights=weights, axis = 0, **kwargs)
 
     return value
 
@@ -89,12 +93,16 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     return self._dynamicHandling
 
   @abc.abstractmethod
-  def __evaluateLocal__(self, x, y, weights = None, **kwargs):
+  def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
     """
       This method compute the metric between x and y
       @ In, x, numpy.array, array containing data of x
       @ In, y, numpy.array, array containing data of y
       @ In, weights, None or numpy.array, an array of weights associated with x
+      @ In, axis, integer, axis along which a metric is performed, default is 0,
+        i.e. the metric will performed along the first dimension (the "rows").
+        If metric postprocessor is used, the first dimension is the RAVEN_sample_ID,
+        and the second dimension is the pivotParameter if HistorySet is provided.
       @ In, kwargs, dictionary of parameters characteristic of each metric
       @ Out, value, float or numpy.array, metric results between x and y
     """
