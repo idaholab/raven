@@ -46,7 +46,6 @@ class SKL(Metric):
   """
     Scikit-learn metrics
   """
-
   availMetrics ={}
   # regression metrics
   availMetrics['regression'] = {}
@@ -68,12 +67,11 @@ class SKL(Metric):
     """
       Constructor
       @ In, None
-      @ Out, NOne
+      @ Out, None
     """
     Metric.__init__(self)
     self.metricType = None
     self._dynamicHandling = True
-    self.acceptsProbability = True
 
   def _localReadMoreXML(self,xmlNode):
     """

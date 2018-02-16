@@ -65,4 +65,12 @@
     zero_threshold = 1e-9
     remove_whitespace = True
   [../]
+  [./sklMetric]
+    type = 'RavenFramework'
+    input = 'test_metric_scipy.xml'
+    UnorderedXml = 'scipyMetrics/output_metric.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
 []
