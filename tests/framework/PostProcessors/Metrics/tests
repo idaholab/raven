@@ -24,15 +24,6 @@
     zero_threshold = 1e-9
     remove_whitespace = True
   [../]
-  [./minkowskiMetric]
-    type = 'RavenFramework'
-    input = 'test_Minkowski.xml'
-    output = 'minkowskiMetric/pp1_metric_dump.xml'
-    UnorderedCsv = 'minkowskiMetric/pp1_metric_dump.csv'
-    rel_err = 0.00001
-    zero_threshold = 1e-9
-    remove_whitespace = True
-  [../]
   [./test_comparison_statistics_metrics]
     type = 'RavenFramework'
     input = 'test_comparison_stats_metrics.xml'
