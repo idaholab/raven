@@ -69,8 +69,10 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def evaluate(self, x, y, weights = None, axis = 0, **kwargs):
     """
       This method compute the metric between x and y
-      @ In, x, numpy.array, array containing data of x
-      @ In, y, numpy.array, array containing data of y
+      @ In, x, numpy.array or instance of Distributions.Distribution, array containing data of x,
+        or given distribution.
+      @ In, y, numpy.array, or instance of Distributions.Distribution, array containing data of y,
+        or given distribution.
       @ In, weights, None or numpy.array, an array of weights associated with x
       @ In, axis, integer, axis along which a metric is performed, default is 0,
         i.e. the metric will performed along the first dimension (the "rows").
@@ -96,8 +98,10 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
     """
       This method compute the metric between x and y
-      @ In, x, numpy.array, array containing data of x
-      @ In, y, numpy.array, array containing data of y
+      @ In, x, numpy.array or instance of Distributions.Distribution, array containing data of x,
+        or given distribution.
+      @ In, y, numpy.array, or instance of Distributions.Distribution, array containing data of y,
+        or given distribution.
       @ In, weights, None or numpy.array, an array of weights associated with x
       @ In, axis, integer, axis along which a metric is performed, default is 0,
         i.e. the metric will performed along the first dimension (the "rows").

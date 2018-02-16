@@ -58,7 +58,25 @@ class Minkowski(Metric):
       if child.tag == 'pivotParameter':
         self.pivotParameter = child.text
 
-  def distance(self,x,y):
+  def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
+    """
+      This method computes difference between two points x and y based on given metric
+      @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided,
+        the array will be reshaped via x.reshape(-1,1), shape (n_samples, ), if 2D
+        array is provided, shape (n_samples, n_outputs)
+      @ In, y, numpy.ndarray, array containing data of y, if 1D array is provided,
+        the array will be reshaped via y.reshape(-1,1), shape (n_samples, ), if 2D
+        array is provided, shape (n_samples, n_outputs)
+      @ In, weights, None or array_like (numpy.array or list), optional weights associated
+        with input, shape (n_samples) if axis = 0, otherwise shape (n_outputs)
+      @ In, axis, integer, axis along which a metric is performed, default is 0,
+        i.e. the metric will performed along the first dimension (the "rows").
+        If metric postprocessor is used, the first dimension is the RAVEN_sample_ID,
+        and the second dimension is the pivotParameter if HistorySet is provided.
+      @ In, kwargs, dictionary of parameters characteristic of each metric
+      @ Out, value, numpy.ndarray, metric result, shape (n_outputs) if axis = 0, otherwise
+        shape (n_samples), we assume the dimension of input numpy.ndarray is no more than 2.
+    """
     """
       This method actually calculates the distance between two dataObects x and y
       @ In, x, dict, dictionary containing data of x
@@ -80,8 +98,8 @@ class Minkowski(Metric):
             value = math.pow(value,1.0/self.p)
             return value
           else:
-            print('Metric Minkowski error: the length of the variable array ' + str(key) +' is not consistent among the two data sets')
+            self.raiseAnError(IOError, 'Metric Minkowski error: the length of the variable array ' + str(key) +' is not consistent among the two data sets')
       else:
-        print('Metric Minkowski error: the two data sets do not contain the same variables')
+        self.raiseAnError(IOError, 'Metric Minkowski error: the two data sets do not contain the same variables')
     else:
-      print('Metric Minkowski error: the structures of the two data sets are different')
+      self.raiseAnError(IOError, 'Metric Minkowski error: the structures of the two data sets are different')
