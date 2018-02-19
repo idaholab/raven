@@ -33,6 +33,9 @@
 
   <Distributions>
     <Bernoulli name="distrib">
+      <p>0.5</p>
+    </Bernoulli>
+    <Bernoulli name="distribLow">
       <p>0.1</p>
     </Bernoulli>
   </Distributions>
@@ -43,13 +46,13 @@
         <limit>100</limit>
       </samplerInit>
       <variable name="A">
-        <distribution>distrib</distribution>
+        <distribution>distribLow</distribution>
       </variable>
       <variable name="B">
-        <distribution>distrib</distribution>
+        <distribution>distribLow</distribution>
       </variable>
       <variable name="C">
-        <distribution>distrib</distribution>
+        <distribution>distribLow</distribution>
       </variable>
       <variable name="beta">
         <distribution>distrib</distribution>
@@ -61,7 +64,7 @@
         <distribution>distrib</distribution>
       </variable>
       <variable name="initEvent">
-        <distribution>distrib</distribution>
+        <distribution>distribLow</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
