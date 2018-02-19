@@ -1,14 +1,43 @@
+
 \section{Metrics}
 \label{sec:Metrics}
 
-The Metrics block allows the user to specify the similarity/dissimilarity metrics to be used in specific clustering algorithms available in RAVEN.
-These metrics are used to calculate the distance values among points and histories.
-The data mining algorithms in RAVEN which accept the definition of a metric are the following:
-\begin{itemize}
-  \item DBSCAN (see Section~\ref{subparagraph:DBSCAN})
-  \item Affinity Propagation (see Section~\ref{subparagraph:Affinity})
-  \item Metric post processor (See Secton \ref{MetricPP})
-\end{itemize}
+\newcommand{\metrictypeI}[3]
+{
+  This metric interface directly with the metric available within \textit{#1}.
+  The specifications of this metric must be defined within the XML block \xmlNode{#2}.
+  This XML node needs to contain the following subnode:
+
+  \begin{itemize}
+    \item \xmlNode{metricType}\texttt{#3}\xmlNode{/metricType}, \xmlDesc{vertical bar (\texttt{|}) separated
+      string, required field}.
+  \end{itemize}
+
+}
+\newcommand{\metrictypeII}[3]
+{
+  \metrictypeI{#1}{#2}{#3}
+
+  In addition to this XML subnode, the users can also specify the weights for given metric:
+  \begin{itemize}
+    \item \xmlNode{w}, \xmlDesc{python list, optional parameter}, the weights for each value in \textit{u}
+      and \textit{v}. Default is None, which gives each value a weight of 1.0.
+  \end{itemize}
+}
+
+\newcommand{\metrictypeIII}[3]
+{
+  \metrictypeI{#1}{#2}{#3}
+
+  In addition to this XML subnode, the users can also specify the weights for given metric:
+  \begin{itemize}
+    \item \xmlNode{sample\_weight}, \xmlDesc{python list, optional parameter}, the weights for each value in \textit{u}
+      and \textit{v}. Default is None, which gives each value a weight of 1.0.
+  \end{itemize}
+}
+
+The Metrics block allows the user to specify the similarity/dissimilarity metrics to be used for other
+RAVEN entities, such as \textbf{PostProcessors}, and \textbf{HybridModel}.
 
 In the RAVEN input file these metrics are defined as follows:
 \begin{lstlisting}[style=XML]
@@ -27,6 +56,340 @@ In the RAVEN input file these metrics are defined as follows:
 </Simulation>
 \end{lstlisting}
 
+The metrics, that are available in RAVEN, can be categorized into several main classes:
+\begin{itemize}
+  \item \textbf{Paired Distance Metric}, distance metrics between two variables $u$ and $v$, such as \xmlString{euclidean},
+    \xmlString{manhattan}, \xmlString{minkowski} and so on.
+  \item \textbf{Regression Metric}, measure the regression performance, such as \xmlString{mean\_squared\_error},
+    \xmlString{r2\_score}, \xmlString{explained\_variance\_score} and \xmlString{mean\_absolute\_error}.
+  \item \textbf{Boolean Metric}, distance metrics between two boolean variables $u$ and $v$, such as
+    \xmlString{dice}, \xmlString{hamming}, \xmlString{yule} and so on.
+  \item \textbf{Other metric}, such as \xmlString{DTW}.
+\end{itemize}
+
+The valid \textbf{MetricID}s are: \xmlNode{SKL}, \xmlNode{ScipyMetric}, \xmlNode{DTW}, \xmlNode{CDFAreaDifference},
+and \xmlNode{PDFCommonArea}. This XML node requires the following attributes:
+\begin{itemize}
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of this metric. \nb As with other
+    objects, this name can be used to refer to this specific entity from other input blocks in the XML.
+\end{itemize}
+
+In RAVEN, lots of metrics are just interfaces directly with metrics available within \textbf{Scipy} and
+\textbf{SciKit-Learn}. In this case, the algorithm for the metrics is choosen by the subnode \xmlNode{metricType}
+under the parent node \xmlNode{SKL} (metric from SciKit-Learn) or \xmlNode{ScipyMetric} (metric from Scipy). For
+example, \xmlNode{metricType}\xmlString{paired\_distance|euclidean}\xmlNode{/metricType}.
+
+In the following sub-sections, the input requirements for all of the metrics are presented in the following sections.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% paired_distance metric
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Paired Distance Metric}
+\label{subsection:pairedDistance}
+
+\subsubsection{Euclidean}
+This metric compute the paired euclidean distances between $u$ and $v$, i.e.
+\begin{equation}
+  {||u-v||}_2
+\end{equation}
+
+\metrictypeI{SciKit-Learn}{SKL}{paired\_distance|euclidean}
+
+\subsubsection{Cosine}
+This metric computes the paired cosine distances between $u$ and $v$, i.e.
+\begin{equation}
+  1 - \frac{u \cdot v}{||u||_2 ||v||_2}
+\end{equation}
+where $u \cdot v$ is the dot product of $u$ and $v$
+
+\metrictypeI{SciKit-Learn}{SKL}{paired\_distance|cosine}
+
+\subsubsection{Manhattan}
+This metric computes the L1 distances between $u$ and $v$, i.e.
+\begin{equation}
+  \sum_i {\left| u_i - v_i \right|}
+\end{equation}
+
+\metrictypeI{SciKit-Learn}{SKL}{paired\_distance|manhattan}
+
+\subsubsection{Braycurtis}
+This metric computes the Bray-Curtis distances between $u$ and $v$, i.e.
+\begin{equation}
+  \sum{|u_i-v_i|} / \sum{|u_i+v_i|}
+\end{equation}
+The Bray-Curtis distance is in the range $[0, 1]$.
+\metrictypeII{Scipy}{ScipyMetric}{paired\_distance|braycurtis}
+
+\subsubsection{Canberra}
+This metric computes the Canberra distance between $u$ and $v$, i.e.
+\begin{equation}
+  d(u,v) = \sum_i \frac{|u_i-v_i|}{|u_i|+|v_i|}
+\end{equation}
+
+\metrictypeII{Scipy}{ScipyMetric}{paired\_distance|canberra}
+
+\subsubsection{Correlation}
+This metric computes the correlation distance between $u$ and $v$, i.e.
+\begin{equation}
+  1 - \frac{(u - \bar{u}) \cdot (v - \bar{v})}{{||(u - \bar{u})||}_2 {||(v - \bar{v})||}_2}
+\end{equation}
+where $\bar{u}$ is the mean of the elements of $u$
+
+\metrictypeII{Scipy}{ScipyMetric}{paired\_distance|correlation}
+
+\subsubsection{Minkowski}
+This metric computes the Minkowski distance between $u$ and $v$, i.e.
+\begin{equation}
+  {||u-v||}_p = (\sum{|u_i - v_i|^p})^{1/p}
+\end{equation}
+
+\metrictypeII{Scipy}{ScipyMetric}{paired\_distance|minkowski}
+
+\begin{itemize}
+  \item \xmlNode{p}, \xmlDesc{float, required field}, value for the parameter $p$
+\end{itemize}
+
+In the RAVEN input file, these metrics are defined as follows:
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Metrics>
+    <SKL name="euclidean">
+        <metricType>paired_distance|euclidean</metricType>
+    </SKL>
+    <SKL name="cosine">
+        <metricType>paired_distance|cosine</metricType>
+    </SKL>
+    <SKL name="manhattan">
+        <metricType>paired_distance|manhattan</metricType>
+    </SKL>
+    <ScipyMetric name="braycurtis">
+      <metricType>paired_distance|braycurtis</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="canberra">
+        <metricType>paired_distance|canberra</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="correlation">
+        <metricType>paired_distance|correlation</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="minkowski">
+        <metricType>paired_distance|minkowski</metricType>
+        <p>5</p>
+        <w>[0.4, 0.3, 0.2, 0.1, 0.5]</w>
+    </ScipyMetric>
+  </Metrics>
+  ...
+</Simulation>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% regression  metric
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Regression Metric}
+\label{subsection:regression}
+
+\subsubsection{Explained variance score}
+This metric computes the explained variance regression score, i.e.
+\begin{equation}
+  1.0 - \frac{Var[u-v]}{Var[u]}
+\end{equation}
+The best possible score is 1.0, lower values are worse.
+
+\metrictypeIII{Scikit-Learn}{SKL}{regression|explained\_variance\_score}
+
+\subsubsection{Mean absolute error}
+This metric computes mean absolute error, a risk metric corresponding to the expected value of the absolute
+error loss or \textit{l1}-norm loss.
+\begin{equation}
+  \frac{1}{n_{samples}}\sum_{i=0}^{n_{samples}-1}|u_i-v_i|
+\end{equation}
+
+\metrictypeIII{Scikit-Learn}{SKL}{regression|mean\_absolute\_error}
+
+\subsubsection{Mean squared error}
+This metric computes mean square error, a risk metric corresponding to the expected value of the
+squared error or loss.
+\begin{equation}
+  \frac{1}{n_{samples}}\sum_{i=0}^{n_{samples}-1}(u_i-v_i)^2
+\end{equation}
+
+\metrictypeIII{Scikit-Learn}{SKL}{regression|mean\_squared\_error}
+
+\subsubsection{R2 score}
+This metric computes the coefficient of determination, i.e.
+\begin{equation}
+  1.0-\frac{\sum_{i=0}^{n_{samples}-1}(u_i-v_i)^2}{\sum_{i=0}^{n_{samples}-1}(u_i-mean[u])^2}
+\end{equation}
+It provides a measure of how well future samples are likely to be predicted by the model.
+Best possible score is 1.0 and it can be negative.
+
+\metrictypeIII{Scikit-Learn}{SKL}{regression|r2\_score}
+
+In the RAVEN input file, these metrics are defined as follows:
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Metrics>
+    <SKL name="explained_variance_score">
+        <metricType>regression|explained_variance_score</metricType>
+        <sample_weight>[0.1,0.1,0.1,0.05,0.05]</sample_weight>
+    </SKL>
+    <SKL name="mean_absolute_error">
+        <metricType>regression|mean_absolute_error</metricType>
+        <sample_weight>[0.1,0.1,0.1,0.05,0.05]</sample_weight>
+    </SKL>
+    <SKL name="r2_score">
+        <metricType>regression|r2_score</metricType>
+        <sample_weight>[0.1,0.1,0.1,0.05,0.05]</sample_weight>
+    </SKL>
+    <SKL name="mean_squared_error">
+        <metricType>regression|mean_squared_error</metricType>
+        <sample_weight>[0.1,0.1,0.1,0.05,0.05]</sample_weight>
+    </SKL>
+  </Metrics>
+  ...
+</Simulation>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% boolean  metric
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Boolean Metric}
+\label{subsection:boolean}
+
+\subsubsection{Dice}
+This metric computes the Dice dissimilarity between two boolean variables $u$ and $v$
+\begin{equation}
+  \frac{c_{TF} + c_{FT}}{2c_{TT} + c_{FT} + c_{TF}}
+\end{equation}
+where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
+
+\metrictypeII{Scipy}{ScipyMetric}{boolean|dice}
+
+\subsubsection{Hamming}
+This metric computes the Hamming distance between two boolean variables $u$ and $v$, i.e.
+\begin{equation}
+  \frac{c_{01} + c_{10}}{n}
+\end{equation}
+where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
+
+\metrictypeII{Scipy}{ScipyMetric}{boolean|hamming}
+
+\subsubsection{Jaccard}
+This metric computes the Jaccard-Needham dissimilarity distance between two boolean variables $u$ and $v$, i.e.
+\begin{equation}
+  \frac{c_{TF} + c_{FT}}{c_{TT} + c_{FT} + c_{TF}}
+\end{equation}
+where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
+
+\metrictypeII{Scipy}{ScipyMetric}{boolean|jaccard}
+
+\subsubsection{Kulsinski}
+This metric computes the Kulsinski dissimilarity distance between two boolean variables $u$ and $v$, i.e.
+\begin{equation}
+  \frac{c_{TF} + c_{FT} - c_{TT} + n}{c_{FT} + c_{TF} + n}
+\end{equation}
+where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
+
+\metrictypeII{Scipy}{ScipyMetric}{boolean|kulsinski}
+
+\subsubsection{Rogerstanimoto}
+This metric computes the Rogers-Tanimoto dissimilarity distance between two boolean variables $u$ and $v$, i.e.
+\begin{equation}
+  \frac{R}{c_{TT} + c_{FF} + R}
+\end{equation}
+where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$
+for $k < n$ and $R = 2(c_{TF} + c_{FT})$
+
+\metrictypeII{Scipy}{ScipyMetric}{boolean|rogerstanimoto}
+
+\subsubsection{Russellrao}
+This metric computes the Russell-Rao dissimilarity distance between two boolean variables $u$ and $v$, i.e.
+\begin{equation}
+  \frac{n - c_{TT}}{n}
+\end{equation}
+where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
+
+\metrictypeII{Scipy}{ScipyMetric}{boolean|russellrao}
+
+\subsubsection{Sokalmichener}
+This metric computes the Sokal-Michener dissimilarity distance between two boolean variables $u$ and $v$, i.e.
+\begin{equation}
+  \frac{R}{S + R}
+\end{equation}
+where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for
+$k < n$, $R = 2 * (c_{TF} + c_{FT})$ and $S = c_{FF} + c_{TT}$
+
+\metrictypeII{Scipy}{ScipyMetric}{boolean|sokalmichener}
+
+\subsubsection{Sokalsneath}
+This metric computes the Sokal-Sneath dissimilarity distance between two boolean variables $u$ and $v$, i.e.
+\begin{equation}
+  \frac{R}{c_{TT} + R}
+\end{equation}
+where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$
+for $k < n$ and $R = 2(c_{TF} + c_{FT})$
+
+\metrictypeII{Scipy}{ScipyMetric}{boolean|sokalsneath}
+
+\subsubsection{Yule}
+This metric computes the Yule dissimilarity distance between two boolean variables $u$ and $v$, i.e.
+\begin{equation}
+  \frac{R}{c_{TT} * c_{FF} + \frac{R}{2}}
+\end{equation}
+where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for
+$k < n$ and $R = 2.0 * c_{TF} * c_{FT}$
+
+\metrictypeII{Scipy}{ScipyMetric}{boolean|yule}
+
+% TODO: the following metrics require different function interfaces
+%  \item From scipy.spatial.distance
+%       and $x \cdot y$ is the dot product of $x$ and $y$
+%       \item mahalanobis: $\sqrt{ (u-v) V^{-1} (u-v)^T }$ where $V$ is the covariance matrix.  Note that the argument $VI$ is the inverse of $V$
+%       \item seuclidean: $\sqrt{\sum {(u_i-v_i)^2 / V[x_i]}}$ where $V$ is the variance vector; $V[i]$ is the variance computed over all the i'th components of the points.
+%        If not passed, it is automatically computed.
+%       \item sqeuclidean: ${||u-v||}_2^2$
+
+An example of Boolean metric defined in RAVEN is provided below:
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Metrics>
+    ...
+    <ScipyMetric name="rogerstanimoto">
+        <metricType>boolean|rogerstanimoto</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="dice">
+        <metricType>boolean|dice</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="hamming">
+        <metricType>boolean|hamming</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="jaccard">
+        <metricType>boolean|jaccard</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="kulsinski">
+        <metricType>boolean|kulsinski</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="russellrao">
+        <metricType>boolean|russellrao</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="sokalmichener">
+        <metricType>boolean|sokalmichener</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="sokalsneath">
+        <metricType>boolean|sokalsneath</metricType>
+    </ScipyMetric>
+    <ScipyMetric name="yule">
+        <metricType>boolean|yule</metricType>
+    </ScipyMetric>
+    ...
+  </Metrics>
+  ...
+</Simulation>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Dynamic Time Warping}
 \label{subsection:DTW}
 The Dynamic Time Warping (DTW) is a distance metrice that can be employed only for HistorySets (i.e., time dependent data).
@@ -67,143 +430,6 @@ An example of Minkowski distance defined in RAVEN is provided below:
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{SKL Metrics}
-\label{subsection:SKL_metrics}
-
-This Metric class interfaces directly with the metric distances available within scikit-learn.
-Note that these distance metrics apply only to PointSets. However, note that this distance metrics can be applied to HistorySets after the HistorySets are converted into PointSets.
-In this respect, the HSPS interfaced Post-Processor (see Section~\ref{Interfaced}) can be employed to perform such conversion.
-
-The specifications of a SKL metric must be defined within the XML block \xmlNode{SKL}.
-This XML node needs to contain the subnode:
-\begin{itemize}
-  \item \xmlNode{metricType}, \xmlDesc{vertical bar (\texttt{|}) separated string, required field}, the type of \textbf{SKL} metrics
-    from the SciKit-Learn, i.e. \xmlString{paired\_distance|euclidean}.
-\end{itemize}
-
-Available metrics from SKL are:
-\begin{itemize}
-  \item   \textbf{paired\_distance} from scikit-learn paired\_distance kernels:
-    \begin{itemize}
-      \item \xmlString{paired\_distance|euclidean}: ${||u-v||}_2$
-      \item \xmlString{paired\_distance|cosine}: $1 - \frac{u \cdot v}{||u||_2 ||v||_2}$ where $u \cdot v$ is the dot product of $u$ and $v$
-      \item \xmlString{paired\_distance|manhattan}: $\sum_i {\left| u_i - v_i \right|}$
-    \end{itemize}
-
-  \item \textbf{regression} from scikit-learn regression metrics:
-    \begin{itemize}
-      \item \xmlString{regression|explained\_variance\_score}: $1.0 - \frac{Var[x-y]}{Var[x]}$
-      \item \xmlString{regression|mean\_absolute\_error}: $\frac{1}{n_{samples}}\sum_{i=0}^{n_{samples}-1}|x_i-y_i|$
-      \item \xmlString{regression|mean\_squared\_error}: $\frac{1}{n_{samples}}\sum_{i=0}^{n_{samples}-1}(x_i-y_i)^2$
-      \item \xmlString{regression|r2\_score}: $1.0-\frac{\sum_{i=0}^{n_{samples}-1}(x_i-y_i)^2}{\sum_{i=0}^{n_{samples}-1}(x_i-mean[x])^2}$
-    \end{itemize}
-     
-\end{itemize}
-
-In the RAVEN input file these metrics are defined as follows:
-\begin{lstlisting}[style=XML]
-<Simulation>
-  ...
-  <Metrics>
-    <SKL name="euclidean">
-        <metricType>paired_distance|euclidean</metricType>
-    </SKL>
-    <SKL name="cosine">
-        <metricType>paired_distance|cosine</metricType>
-        <dense_output>True</dense_output>
-    </SKL>
-    <SKL name="manhattan">
-        <metricType>paired_distance|manhattan</metricType>
-        <sum_over_features>True</sum_over_features>
-        <size_threshold>5e8</size_threshold>
-    </SKL>
-    <SKL name="explained_variance_score">
-        <metricType>regression|explained_variance_score</metricType>
-        <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
-    </SKL>
-    <SKL name="mean_absolute_error">
-        <metricType>regression|mean_absolute_error</metricType>
-        <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
-    </SKL>
-    <SKL name="r2_score">
-        <metricType>regression|r2_score</metricType>
-        <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
-    </SKL>
-    <SKL name="mean_squared_error">
-        <metricType>regression|mean_squared_error</metricType>
-        <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>
-    </SKL>
-  </Metrics>
-  ...
-</Simulation>
-\end{lstlisting}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{ScipyMetric}
-\label{subsection:ScipyMetric}
-This Metric class interfaces directly with the metric distances available within Scipy.
-Note that these distance metrics can apply only to PointSets. 
-The specifications of a Scipy Metric must be defined within the XML block \xmlNode{ScipyMetric}.
-This XML node needs to contain the subnode:
-\begin{itemize}
-  \item \xmlNode{metricType}, \xmlDesc{vertical bar (\texttt{|}) separated string, required field}, the type of \textbf{ScipyMetric} metrics
-    from the Scipy, i.e. \xmlString{paired\_distance|minkowski}.
-\end{itemize}
-Available metrics from ScipyMetric are:
-\begin{itemize}
-  \item   \textbf{paired\_distance} from Scipy:
-    \begin{itemize}
-      \item \xmlString{paired\_distance|braycurtis}: $\sum{|u_i-v_i|} / \sum{|u_i+v_i|}$
-      \item \xmlString{paired\_distance|canberra}: $ d(u,v) = \sum_i \frac{|u_i-v_i|}{|u_i|+|v_i|}$
-      \item \xmlString{paired\_distance|chebyshev}: $\max_i {|u_i-v_i|}$
-      \item \xmlString{paired\_distance|correlation}: $1 - \frac{(u - \bar{u}) \cdot (v - \bar{v})}{{||(u - \bar{u})||}_2 {||(v - \bar{v})||}_2}$
-        where $\bar{u}$ is the mean of the elements of $u$
-      \item \xmlString{paired\_distance|minkowski}: ${||u-v||}_p = (\sum{|u_i - v_i|^p})^{1/p}$
-    \end{itemize}
-
-  \item \textbf{boolean} from Scipy:
-    \begin{itemize}
-      \item \xmlString{boolean|dice}: $\frac{c_{TF} + c_{FT}}{2c_{TT} + c_{FT} + c_{TF}}$
-        where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
-      \item \xmlString{boolean|hamming}: $\frac{c_{01} + c_{10}}{n}$
-        where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
-      \item \xmlString{boolean|jaccard}: $\frac{c_{TF} + c_{FT}}{c_{TT} + c_{FT} + c_{TF}}$
-        where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
-      \item \xmlString{boolean|kulsinski}: $\frac{c_{TF} + c_{FT} - c_{TT} + n}{c_{FT} + c_{TF} + n}$
-        where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
-      \item \xmlString{boolean|rogerstanimoto}: $\frac{R}{c_{TT} + c_{FF} + R}$
-        where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$
-        for $k < n$ and $R = 2(c_{TF} + c_{FT})$
-      \item \xmlString{boolean|russellrao}: $\frac{n - c_{TT}}{n}$
-        where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for $k < n$
-      \item \xmlString{boolean|sokalmichener}: $\frac{R}{S + R}$
-        where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for
-        $k < n$, $R = 2 * (c_{TF} + c_{FT})$ and $S = c_{FF} + c_{TT}$
-      \item \xmlString{boolean|sokalsneath}: $\frac{R}{c_{TT} + R}$
-        where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$
-        for $k < n$ and $R = 2(c_{TF} + c_{FT})$
-      \item \xmlString{boolean|yule}: $\frac{R}{c_{TT} * c_{FF} + \frac{R}{2}}$
-        where $c_{ij}$ is the number of occurrences of $\mathtt{u[k]} = i$ and $\mathtt{v[k]} = j$ for
-        $k < n$ and $R = 2.0 * c_{TF} * c_{FT}$
-    \end{itemize}
-\end{itemize}
-
-%  \item From scipy.spatial.distance
-%       and $x \cdot y$ is the dot product of $x$ and $y$
-%       \item mahalanobis: $\sqrt{ (u-v) V^{-1} (u-v)^T }$ where $V$ is the covariance matrix.  Note that the argument $VI$ is the inverse of $V$
-%       \item minkowski: ${||u-v||}_p = (\sum{|u_i - v_i|^p})^{1/p}$, parameters required: p
-%       \item wminkowski: $\left(\sum{(|w_i (u_i - v_i)|^p)}\right)^{1/p}$, paramteres required: p
-%       \item seuclidean: $\sqrt{\sum {(u_i-v_i)^2 / V[x_i]}}$ where $V$ is the variance vector; $V[i]$ is the variance computed over all the i'th components of the points.
-%        If not passed, it is automatically computed.
-%       \item sqeuclidean: ${||u-v||}_2^2$
-
-%TODO: add tests example, add descriptions about parameters, p, sampled_weight
-
-\begin{itemize}
-  \item \xmlNode{p}, \xmlDesc{float, required field}, value for the parameter $p$
-\end{itemize}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{CDFAreaDifference}
 
 This calculates the difference in area between the two CDFs.  This
@@ -217,6 +443,19 @@ converted to a CDF.
 This metric has the same units as $x$.  The closer the number is
 to zero, the closer the match.  A perfect match would be 0.0.
 
+An example is provided below:
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Metrics>
+    ...
+    <CDFAreaDifference name="cdf_diff" />
+    ...
+  </Metrics>
+  ...
+</Simulation>
+\end{lstlisting}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{PDFCommonArea}
 
@@ -229,3 +468,17 @@ inputs.  Other inputs are converted to a PDF.
 \end{equation}
 
 A perfect match would be 1.0.
+
+
+An example is provided below:
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Metrics>
+    ...
+    <PDFCommonArea name="pdf_area" />
+    ...
+  </Metrics>
+  ...
+</Simulation>
+\end{lstlisting}
