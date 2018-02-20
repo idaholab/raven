@@ -182,5 +182,5 @@ class Assembler(MessageHandler.MessageUser):
           assemblerObject = assemblerObj[3]
           break
       if pop and assemblerObject is not None:
-        self.assemblerDict[objectMainClass].remove(assemblerObject)
+        self.assemblerDict[objectMainClass].remove(assemblerObj)
     return assemblerObject
