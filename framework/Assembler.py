@@ -167,17 +167,20 @@ class Assembler(MessageHandler.MessageUser):
     self.requiredAssObject[1][0].append(name)
     self.requiredAssObject[1][1].append(flag)
 
-  def retrieveObjectFromAssemblerDict(self,objectMainClass,objectName):
+  def retrieveObjectFromAssemblerDict(self,objectMainClass, objectName, pop=False):
     """
       Method to retrieve an object from the assembler
       @ In, objectName, str, the object name that needs to be retrieved
       @ In, objectMainClass, str, the object main Class name (e.g. Input, Model, etc.) of the object that needs to be retrieved
+      @ In, pop, bool, optional, if found, pop it out (i.e. remove it from the self.assemblerDict?). Default = False
       @ Out, assemblerObject, instance, the instance requested (None if not found)
     """
     assemblerObject = None
     if objectMainClass in self.assemblerDict.keys():
-      for assemblerObj in self.assemblerDict[objectMainClass]:
+      for index, assemblerObj in enumerate(self.assemblerDict[objectMainClass]):
         if objectName == assemblerObj[2]:
           assemblerObject = assemblerObj[3]
           break
+      if pop:
+        self.assemblerDict[objectMainClass].pop(index)
     return assemblerObject
