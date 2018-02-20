@@ -261,7 +261,7 @@ class EnsembleModel(Dummy):
       # assert acceptable TargetEvaluation types are used
       if targetEvaluation.type not in ['PointSet','HistorySet','DataSet']:
         self.raiseAnError(IOError, "Only DataObjects are allowed as TargetEvaluation object. Got "+ str(targetEvaluation.type)+"!")
-      # localProjectorTargetEvaluations are for passing data and then resetting, not keeping data between samples
+      # localTargetEvaluations are for passing data and then resetting, not keeping data between samples
       self.localTargetEvaluations[modelName] = copy.deepcopy(targetEvaluation)
       # get input variables
       inps   = targetEvaluation.getVars('input')
