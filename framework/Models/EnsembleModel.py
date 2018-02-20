@@ -69,16 +69,16 @@ class EnsembleModel(Dummy):
       @ Out, None
     """
     Dummy.__init__(self,runInfoDict)
-    self.modelsDictionary      = {}       # dictionary of models that are going to be assembled
-                                          # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
-    self.activatePicard        = False    # is non-linear system beeing identified?
-    self.localProjectorTargetEvaluations = {}       # temporary storage of target evaluation data objects
-    self.maxIterations         = 30       # max number of iterations (in case of non-linear system activated)
-    self.convergenceTol        = 1.e-3    # tolerance of the iteration scheme (if activated) => L2 norm
-    self.initialConditions     = {}       # dictionary of initial conditions in case non-linear system is detected
-    self.initialStartModels    = []       # list of models that will execute first.
-    self.ensembleModelGraph    = None     # graph object (graphStructure.graphObject)
-    self.printTag = 'EnsembleModel MODEL' # print tag
+    self.modelsDictionary       = {}                    # dictionary of models that are going to be assembled
+                                                        # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
+    self.activatePicard         = False                 # is non-linear system beeing identified?
+    self.localTargetEvaluations = {}                    # temporary storage of target evaluation data objects
+    self.maxIterations          = 30                    # max number of iterations (in case of non-linear system activated)
+    self.convergenceTol         = 1.e-3                 # tolerance of the iteration scheme (if activated) => L2 norm
+    self.initialConditions      = {}                    # dictionary of initial conditions in case non-linear system is detected
+    self.initialStartModels     = []                    # list of models that will execute first.
+    self.ensembleModelGraph     = None                  # graph object (graphStructure.graphObject)
+    self.printTag               = 'EnsembleModel MODEL' # print tag
     # assembler objects to be requested
     self.addAssemblerObject('Model','n',True)
     self.addAssemblerObject('TargetEvaluation','n')
@@ -262,7 +262,7 @@ class EnsembleModel(Dummy):
       if targetEvaluation.type not in ['PointSet','HistorySet','DataSet']:
         self.raiseAnError(IOError, "Only DataObjects are allowed as TargetEvaluation object. Got "+ str(targetEvaluation.type)+"!")
       # localProjectorTargetEvaluations are for passing data and then resetting, not keeping data between samples
-      self.localProjectorTargetEvaluations[modelName] = copy.deepcopy(targetEvaluation)
+      self.localTargetEvaluations[modelName] = copy.deepcopy(targetEvaluation)
       # get input variables
       inps   = targetEvaluation.getVars('input')
       # get pivot parameters in input space if any and add it in the 'Input' list
@@ -562,8 +562,8 @@ class EnsembleModel(Dummy):
 
     for modelIn in self.orderList:
       # reset the DataObject for the projection
-      self.localProjectorTargetEvaluations[modelIn].reset()
-      inRunTargetEvaluations[modelIn] = copy.copy(self.localProjectorTargetEvaluations[modelIn])
+      self.localTargetEvaluations[modelIn].reset()
+      inRunTargetEvaluations[modelIn] = copy.copy(self.localTargetEvaluations[modelIn])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
     gotOutputs       = [{}]*len(self.orderList)
     typeOutputs      = ['']*len(self.orderList)
