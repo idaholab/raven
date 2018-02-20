@@ -73,7 +73,6 @@ class EnsembleModel(Dummy):
                                           # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
     self.activatePicard        = False    # is non-linear system beeing identified?
     self.localProjectorTargetEvaluations = {}       # temporary storage of target evaluation data objects
-    self.tempOutputs           = {}       # temporary storage of optional output data objects
     self.maxIterations         = 30       # max number of iterations (in case of non-linear system activated)
     self.convergenceTol        = 1.e-3    # tolerance of the iteration scheme (if activated) => L2 norm
     self.initialConditions     = {}       # dictionary of initial conditions in case non-linear system is detected
@@ -222,14 +221,12 @@ class EnsembleModel(Dummy):
       @ Out, None
     """
     # store the job ids for jobs that we haven't collected optional output from
-    self.tempOutputs['uncollectedJobIds'] = []
     # collect name of all the outputs in the Step
     outputsNames = []
     if initDict is not None:
       outputsNames = [output.name for output in initDict['Output']]
 
     # here we check if all the inputs inputted in the Step containing the EnsembleModel are actually used
-    # -> but why?  Does this check prevent problems later?
     checkDictInputsUsage = dict((inp,False) for inp in inputs)
 
     # collect the models
@@ -242,24 +239,22 @@ class EnsembleModel(Dummy):
         checkDictInputsUsage[inputInstancesForModel[-1]] = True
       self.modelsDictionary[modelName]['InputObject'] = inputInstancesForModel
 
-      # retrieve 'Output' objects, such as DataObjects, Databases
+      # retrieve 'Output' objects, such as DataObjects, Databases to check if they are present in the Step
       if self.modelsDictionary[modelName]['Output'] is not None:
-        outputInstancesForModel = []
+        outputNamesModel = []
         for output in self.modelsDictionary[modelName]['Output']:
-          outputObject = self.retrieveObjectFromAssemblerDict('Output',output)
+          outputObject = self.retrieveObjectFromAssemblerDict('Output',output, True)
           if outputObject.name not in outputsNames:
             self.raiseAnError(IOError, "The optional Output "+outputObject.name+" listed for Model "+modelName+" is not present among the Step outputs!!!")
-          outputInstancesForModel.append(outputObject)
-        self.modelsDictionary[modelName]['OutputObject'] = outputInstancesForModel
+          outputNamesModel.append(outputObject.name)
+        self.modelsDictionary[modelName]['OutputObject'] = outputNamesModel
       else:
         self.modelsDictionary[modelName]['OutputObject'] = []
 
       # initialize model
       self.modelsDictionary[modelName]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
       # Generate a list of modules that needs to be imported for internal parallelization (parallel python)
-      for mm in self.modelsDictionary[modelName]['Instance'].mods:
-        if mm not in self.mods:
-          self.mods.append(mm)
+      self.mods = self.mods +list(set(self.modelsDictionary[modelName]['Instance'].mods) - set(self.mods))
       # retrieve 'TargetEvaluation' DataObjects
       targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelName]['TargetEvaluation'], True)
       #self.modelsDictionary[modelName]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelName]['TargetEvaluation'])
@@ -450,27 +445,18 @@ class EnsembleModel(Dummy):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
     outcomes, targetEvaluations, optionalOutputs = evaluation[1]
-    try:
-      jobIndex = self.tempOutputs['uncollectedJobIds'].index(finishedJob.identifier)
-      self.tempOutputs['uncollectedJobIds'].pop(jobIndex)
-    except ValueError:
-      jobIndex = None
-
     joinedResponse = {}
     joinedGeneralMetadata = {}
     targetEvaluationNames = {}
-    optionalOutputNames = []
+    optionalOutputNames = {}
     for modelIn in self.modelsDictionary.keys():
       targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation']] = modelIn
       # collect data
-      # collect optional output if present and not already collected
-      if jobIndex is not None:
-        for optionalModelOutput in self.modelsDictionary[modelIn]['OutputObject']:
-          optionalModelOutput.addRealization(optionalOutputs[modelIn])
       joinedResponse.update(outcomes[modelIn]['response'])
       joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
       # collect the output of the STEP
-      optionalOutputNames.extend( [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject']])
+      optionalOutputNames.update({outName : modelIn for outName in self.modelsDictionary[modelIn]['OutputObject']})
+      #optionalOutputNames.extend( self.modelsDictionary[modelIn]['OutputObject'] ) #   [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject']])
     # the prefix is re-set here
     joinedResponse['prefix'] = np.asarray([finishedJob.identifier])
     if output.name not in optionalOutputNames:
@@ -478,7 +464,9 @@ class EnsembleModel(Dummy):
         output.addRealization(joinedResponse)
       else:
         output.addRealization(outcomes[targetEvaluationNames[output.name]]['response'])
-        #output.addMeta()
+    else:
+      # collect optional output if present and not already collected
+      output.addRealization(optionalOutputs[optionalOutputNames[output.name]])
 
   def getAdditionalInputEdits(self,inputInfo):
     """
@@ -512,37 +500,6 @@ class EnsembleModel(Dummy):
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
-      This will submit an individual sample to be evaluated by this model to a
-      specified jobHandler. Note, some parameters are needed by createNewInput
-      and thus descriptions are copied from there.
-      @ In, myInput, list, the inputs (list) to start from to generate the new one
-      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In,  jobHandler, JobHandler instance, the global job handler instance
-      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-      @ Out, None
-    """
-    for mm in utils.returnImportModuleString(jobHandler):
-      if mm not in self.mods:
-        self.mods.append(mm)
-
-    prefix = kwargs['prefix']
-    self.tempOutputs['uncollectedJobIds'].append(prefix)
-
-    ## Ensemble models need access to the job handler, so let's stuff it in our
-    ## catch all kwargs where evaluateSample can pick it up, not great, but
-    ## will suffice until we can better redesign this whole process.
-    kwargs['jobHandler'] = jobHandler
-
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
-
-
-  def submitAsClient(self,myInput,samplerType,jobHandler,**kwargs):
-    """
         This will submit an individual sample to be evaluated by this model to a
         specified jobHandler as a client job. Note, some parameters are needed
         by createNewInput and thus descriptions are copied from there.
@@ -556,12 +513,8 @@ class EnsembleModel(Dummy):
           contains a dictionary {'name variable':value}
         @ Out, None
     """
-    for mm in utils.returnImportModuleString(jobHandler):
-      if mm not in self.mods:
-        self.mods.append(mm)
-
+    self.mods = self.mods +list(set(utils.returnImportModuleString(jobHandler)) - set(self.mods))
     prefix = kwargs['prefix']
-    self.tempOutputs['uncollectedJobIds'].append(prefix)
 
     ## Ensemble models need access to the job handler, so let's stuff it in our
     ## catch all kwargs where evaluateSample can pick it up, not great, but
