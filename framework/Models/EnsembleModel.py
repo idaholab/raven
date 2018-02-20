@@ -257,7 +257,6 @@ class EnsembleModel(Dummy):
       self.mods = self.mods +list(set(self.modelsDictionary[modelName]['Instance'].mods) - set(self.mods))
       # retrieve 'TargetEvaluation' DataObjects
       targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelName]['TargetEvaluation'], True)
-      #self.modelsDictionary[modelName]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelName]['TargetEvaluation'])
       # assert acceptable TargetEvaluation types are used
       if targetEvaluation.type not in ['PointSet','HistorySet','DataSet']:
         self.raiseAnError(IOError, "Only DataObjects are allowed as TargetEvaluation object. Got "+ str(targetEvaluation.type)+"!")
@@ -456,7 +455,6 @@ class EnsembleModel(Dummy):
       joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
       # collect the output of the STEP
       optionalOutputNames.update({outName : modelIn for outName in self.modelsDictionary[modelIn]['OutputObject']})
-      #optionalOutputNames.extend( self.modelsDictionary[modelIn]['OutputObject'] ) #   [outObj.name for outObj in self.modelsDictionary[modelIn]['OutputObject']])
     # the prefix is re-set here
     joinedResponse['prefix'] = np.asarray([finishedJob.identifier])
     if output.name not in optionalOutputNames:
@@ -588,7 +586,6 @@ class EnsembleModel(Dummy):
 
       for modelCnt, modelIn in enumerate(self.orderList):
         # clear the model's Target Evaluation data object
-        #inRunTargetEvaluations[modelIn].reset()
         # in case there are metadataToTransfer, let's collect them from the source
         metadataToTransfer = None
         if self.modelsDictionary[modelIn]['metadataToTransfer']:
