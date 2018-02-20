@@ -28,7 +28,6 @@
       <Targets type="variable">ans2</Targets>
       <Metric class="Metrics" type="ScipyMetric">braycurtis</Metric>
       <Metric class="Metrics" type="ScipyMetric">canberra</Metric>
-      <Metric class="Metrics" type="ScipyMetric">cityblock</Metric>
       <Metric class="Metrics" type="ScipyMetric">correlation</Metric>
       <Metric class="Metrics" type="ScipyMetric">minkowski</Metric>
     </PostProcessor>
@@ -40,9 +39,6 @@
     </ScipyMetric>
     <ScipyMetric name="canberra">
         <metricType>paired_distance|canberra</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="cityblock">
-        <metricType>paired_distance|cityblock</metricType>
     </ScipyMetric>
     <ScipyMetric name="correlation">
         <metricType>paired_distance|correlation</metricType>
