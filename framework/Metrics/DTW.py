@@ -25,7 +25,8 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import copy
-import sklearn.metrics.pairwise as pairwise
+#import sklearn.metrics.pairwise as pairwise
+import scipy.spatial.distance as spatialDistance
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -129,7 +130,7 @@ class DTW(Metric):
     D0[0, 1:] = np.inf
     D0[1:, 0] = np.inf
     D1 = D0[1:, 1:]
-    D1 = pairwise.pairwise_distances(x.T,y.T, metric=self.localDistance)
+    D1 = spatialDistance.cdist(x.T,y.T, metric=self.localDistance)
     C = D1.copy()
     for i in range(r):
       for j in range(c):
