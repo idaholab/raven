@@ -1,26 +1,19 @@
 <Graph name="testGraph">
-  <node name='CST'>
-    <childs>1</childs>
+  <node name='in'>
+    <childs>A,B</childs>
   </node>
-  <node name='1'>
-    <childs>2,3,4,SG3</childs>
+  <node name='A'>
+    <childs>D</childs>
   </node>
-  <node name='2'>
-    <childs>5,SG2</childs>
+  <node name='B'>
+    <childs>C</childs>
   </node>
-  <node name='3'>
-    <childs>5,SG2</childs>
+  <node name='C'>
+    <childs>D</childs>
   </node>
-  <node name='4'>
-    <childs>5,SG2</childs>
+  <node name='D'>
+    <childs>out</childs>
   </node>
-  <node name='5'>
-    <childs>SG1</childs>
-  </node>
-  <node name='SG1'>
-  </node>
-  <node name='SG2'>
-  </node>
-  <node name='SG3'>
+  <node name='out'>
   </node>
 </Graph>

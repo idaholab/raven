@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 from utils import utils
 from utils import graphStructure as GS
 import copy
+from sets import Set
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -46,14 +47,6 @@ class graphModel(ExternalModelPluginBase):
         container.InvMapping[child.text.strip()] = child.get('var')
       elif child.tag == 'variables':
         variables = [str(var.strip()) for var in child.text.split(",")]
-      elif child.tag == 'timeDep':
-        container.timeDepVars = [str(var.strip()) for var in child.text.split(",")]
-        if container.timeDepVars:
-          container.calcMode = True
-        else:
-          container.calcMode = False
-        if not container.timeDepVars <= set(container.mapping.values()):
-          print('timeDepVars error')
       else:
         print('xml error')
 
@@ -100,12 +93,25 @@ class graphModel(ExternalModelPluginBase):
       container.deg[nodeName]   = deg
 
   def run(self, container, Inputs):
-    if container.calcMode:
-      self.runTimeDep(container, Inputs)
+    if self.checkTypeOfAnalysis(container,Inputs): 
+      dictOUT = self.runTimeDep(container, Inputs)
     else:
       dictOUT = self.runStatic(container, Inputs)
-      for var in dictOUT.keys():
-        container.__dict__[var] = dictOUT[var]
+    
+    for var in dictOUT.keys():
+      container.__dict__[var] = dictOUT[var]
+  
+  def checkTypeOfAnalysis(self,container,Inputs):
+    # True:  dynamic
+    # False: static
+    arrayValues=set()
+    for key in Inputs.keys():
+      if key in container.mapping.keys():
+        arrayValues.add(Inputs[key][0])
+    if arrayValues.difference({0.,1.}):
+      return True
+    else:
+      return False
 
   def runStatic(self, container, Inputs):
     """
@@ -116,7 +122,7 @@ class graphModel(ExternalModelPluginBase):
     """
     mapping = copy.deepcopy(container.mapping)
     nodes   = copy.deepcopy(container.nodes)
-
+    
     for key in Inputs.keys():
       if key in mapping.keys():
         if mapping[key] in nodes.keys() and Inputs[key][0] == 1.0:
@@ -139,26 +145,44 @@ class graphModel(ExternalModelPluginBase):
         dictOUT[var] = np.asarray(1.)
     return dictOUT
 
-def runTimeDep(self, container, Inputs):
-  pass
-  '''
-  times = []
-  for key in Inputs.keys():
-    times.append(0.0)
-    if key in map.keys():
-      times.append(Inputs[key][0])
-  times = sorted(times, key=float)
+  def runTimeDep(self, container, Inputs):
+    times = []
+    times.append(0.)
+    for key in Inputs.keys():   
+      if key in container.mapping.keys() and Inputs[key][0]!=1.:
+        times.append(Inputs[key][0])
+    times = sorted(times, key=float)
 
-  outcome=[]
-  dictOUTpre={}
-  for time in times:
-    inputToPass={}
-    dictOUT = self.runStatic(container, inputToPass)
-    if not dictOUTpre:
-      pass
-      #for var in
-      #dictOUTpre = copy.deepcopy(dictOUT)
-  '''
+    outcome={}
+    for var in container.nodesOUT:
+      outcome[container.InvMapping[var]] = np.asarray([0.])
+    
+    for time in times:
+      inputToPass=self.inputToBePassed(container,time,Inputs)
+      tempOut = self.runStatic(container, inputToPass)
+      for var in tempOut.keys():
+        if tempOut[var] == 1.:
+          if time == 0.:
+            outcome[var] = np.asarray([1.])
+          else:
+            if outcome[var][0] > 0:
+              pass
+            else:
+              outcome[var] = np.asarray([time])  
+    return outcome
+    
+  def inputToBePassed(self,container,time,Inputs):
+    inputToBePassed = {}
+    for key in Inputs.keys():
+      if key in container.mapping.keys():
+        if Inputs[key][0] == 0. or Inputs[key][0] == 1.:
+          inputToBePassed[key] = Inputs[key]
+        else:
+          if Inputs[key][0] > time:
+            inputToBePassed[key] = np.asarray([0.])
+          else:
+            inputToBePassed[key] = np.asarray([1.])
+    return inputToBePassed
 
 def findAllRecursive(node, element):
   """

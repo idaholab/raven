@@ -39,4 +39,9 @@
   input = 'test_FTmodel.xml'
   csv = 'FTmodel/Print_sim_PS.csv'
  [../]
+ [./TestGraphModelTD]
+  type = 'RavenFramework'
+  input = 'test_graphModel_TD.xml'
+  csv = 'graphModelTD/Print_sim_PS.csv'
+ [../]
 []

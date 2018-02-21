@@ -7,9 +7,9 @@
   </RunInfo>
 
   <Files>
-    <Input name="faultTree1" type="">FT1.xml</Input>
-    <Input name="faultTree2" type="">FT2.xml</Input>
-    <Input name="eventTree"  type="">eventTree.xml</Input>
+    <Input name="faultTree1" type="" >FT1.xml</Input>
+    <Input name="faultTree2" type="" >FT2.xml</Input>
+    <Input name="eventTree"  type="" >eventTree.xml</Input>
   </Files>
 
   <Steps>
@@ -46,10 +46,10 @@
         <limit>100</limit>
       </samplerInit>
       <variable name="A">
-        <distribution>distribLow</distribution>
+        <distribution>distrib</distribution>
       </variable>
       <variable name="B">
-        <distribution>distribLow</distribution>
+        <distribution>distrib</distribution>
       </variable>
       <variable name="C">
         <distribution>distribLow</distribution>
@@ -120,28 +120,28 @@
     <EnsembleModel name="PRA_Model" subType="">
       <Model class="Models" type="ExternalModel">
         ET
-        <Input            class="Files"       type=""        >eventTree</Input>
-        <TargetEvaluation class="DataObjects" type="PointSet">ET_PS</TargetEvaluation>
+        <Input            class="Files"       type=""         >eventTree</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet" >ET_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         markov
-        <Input            class="DataObjects" type="PointSet">markov_input</Input>
-        <TargetEvaluation class="DataObjects" type="PointSet">markov_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet" >markov_input</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet" >markov_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         graph
-        <Input            class="DataObjects" type="PointSet">graph_input</Input>
-        <TargetEvaluation class="DataObjects" type="PointSet">graph_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet" >graph_input</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet" >graph_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         FT1
-        <Input            class="Files"       type=""        >faultTree1</Input>
-        <TargetEvaluation class="DataObjects" type="PointSet">FT1_PS</TargetEvaluation>
+        <Input            class="Files"       type=""         >faultTree1</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet" >FT1_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         FT2
-        <Input            class="Files"       type=""        >faultTree2</Input>
-        <TargetEvaluation class="DataObjects" type="PointSet">FT2_PS</TargetEvaluation>
+        <Input            class="Files"       type=""         >faultTree2</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet" >FT2_PS</TargetEvaluation>
       </Model>
     </EnsembleModel>
   </Models>

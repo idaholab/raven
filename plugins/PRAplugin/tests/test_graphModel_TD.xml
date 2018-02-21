@@ -1,7 +1,7 @@
 <Simulation verbosity="debug">
 
   <RunInfo>
-    <WorkingDir>graphModel</WorkingDir>
+    <WorkingDir>graphModelTD</WorkingDir>
     <Sequence>simRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -19,18 +19,18 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>20</limit>
+        <limit>100</limit>
       </samplerInit>
-      <variable name="status2">
+      <variable name="statusA">
+        <distribution>demand</distribution>
+      </variable>
+      <variable name="statusB">
         <distribution>failTime</distribution>
       </variable>
-      <variable name="status3">
+      <variable name="statusC">
         <distribution>demand</distribution>
       </variable>
-      <variable name="status4">
-        <distribution>demand</distribution>
-      </variable>
-      <variable name="status5">
+      <variable name="statusD">
         <distribution>failTime</distribution>
       </variable>
     </MonteCarlo>
@@ -38,20 +38,15 @@
   
   <Models>
     <ExternalModel name="graph" subType="graphModel">
-      <variables>status2,status3,status4,status5,statusSG1,statusSG2,statusSG3</variables>
-      <!-- xml portion for this plugin only -->
-      <modelFile>graphTest</modelFile>
-      <nodesIN>CST</nodesIN>
-      <nodesOUT>SG1,SG2,SG3</nodesOUT>
-      <map var='status2'>1</map>
-      <map var='status2'>2</map>
-      <map var='status3'>3</map>
-      <map var='status4'>4</map>
-      <map var='status5'>5</map>
-      <map var='statusSG1'>SG1</map>
-      <map var='statusSG2'>SG2</map>
-      <map var='statusSG3'>SG3</map>
-      <timeDep>5,3</timeDep>
+      <variables>statusA,statusB,statusC,statusD,statusOUT</variables>
+      <modelFile>graphTestTD</modelFile>
+      <nodesIN>in</nodesIN>
+      <nodesOUT>out</nodesOUT>
+      <map var='statusA'>A</map>
+      <map var='statusB'>B</map>
+      <map var='statusC'>C</map>
+      <map var='statusD'>D</map>
+      <map var='statusOUT'>out</map>
     </ExternalModel>
   </Models>
 
@@ -74,12 +69,12 @@
   
   <DataObjects>
     <PointSet name="inputPlaceHolder">
-      <Input>status2,status3,status4,status5</Input>
+      <Input>statusA,statusB,statusC,statusD</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="sim_PS">
-      <Input>status2,status3,status4,status5</Input>
-      <Output>statusSG1,statusSG2,statusSG3</Output>
+      <Input>statusA,statusB,statusC,statusD</Input>
+      <Output>statusOUT</Output>
     </PointSet>
   </DataObjects>
   
