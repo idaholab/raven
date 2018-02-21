@@ -1,0 +1,16 @@
+<MetricPostProcessor type="Static">
+  <x1-x2>
+    <dtwII_DTW>1.32253530401</dtwII_DTW>
+    <dtwI_DTW>8.27129561688</dtwI_DTW>
+  </x1-x2>
+
+  <y1-y2>
+    <dtwII_DTW>1.5559785832</dtwII_DTW>
+    <dtwI_DTW>11.3531363942</dtwI_DTW>
+  </y1-y2>
+
+  <z1-z2>
+    <dtwII_DTW>1.67740569611</dtwII_DTW>
+    <dtwI_DTW>24.6944044341</dtwI_DTW>
+  </z1-z2>
+</MetricPostProcessor>

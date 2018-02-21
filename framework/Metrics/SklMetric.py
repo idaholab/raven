@@ -141,6 +141,7 @@ class SKL(Metric):
           x = x.reshape(-1,1)
           y = y.reshape(-1,1)
         else:
+          # Transpose is needed, since paired_distance is operated on the 'row'
           x = x.T
           y = y.T
       if axis == 1:

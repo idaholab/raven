@@ -72,4 +72,12 @@
     zero_threshold = 1e-9
     remove_whitespace = True
   [../]
+  [./test_dtw]
+    type = 'RavenFramework'
+    input = 'test_dtw.xml'
+    UnorderedXml = 'DTW/output_metric.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
 []
