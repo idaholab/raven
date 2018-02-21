@@ -11,6 +11,7 @@
        is dumped in the CSV files, even if it is part of the metadata container.
     </description>
     <revisions>
+      <revision author="maljdan" date="2016-06-23">Moving test case into a specific DataObjects folder</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>

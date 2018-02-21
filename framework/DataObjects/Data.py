@@ -92,8 +92,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     inputSpecification.addSub(outputInput)
 
     optionsInput = InputData.parameterInputFactory("options")
-    for option in ['inputRow','inputPivotValue','outputRow','outputPivotValue','operator','pivotParameter']:
+    for option in ['operator','pivotParameter']:
       optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.StringType)
+      optionsInput.addSub(optionSubInput)
+    for option in ['inputRow','outputRow']:
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.IntegerType)
       optionsInput.addSub(optionSubInput)
     inputSpecification.addSub(optionsInput)
 
@@ -806,7 +809,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     unstructuredDataFile.write("</unstructuredInputSpace>\n")
     unstructuredDataFile.close()
 
-
   def removeInputValue(self,name):
     """
       Function to remove a value from the dictionary inpParametersValues
@@ -1128,29 +1130,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.raiseAnError(RuntimeError,"specializedloadXMLandCSV not implemented "+str(self))
 
   ##Private Methods
-
-#   COMMENTED SINCE NO USED. NEEDS TO BE REMOVED IN THE FUTURE
-#   @abc.abstractmethod
-#   def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
-#     """
-#       This method has to be override to implement the specialization of extractValue for each data class
-#       @ In, inOutType, string, the type of data to extract (input or output)
-#       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
-#       @ In, varName, string, is the name of the variable that should be recovered
-#       @ In, varID, tuple or int, optional,  is the ID of the value that should be retrieved within a set
-#         if varID.type!=tuple only one point along sampling of that variable is retrieved
-#           else:
-#             if varID=(int,int) the slicing is [varID[0]:varID[1]]
-#             if varID=(int,None) the slicing is [varID[0]:]
-#       @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
-#           if stepID.type!=tuple only one point along the history is retrieved
-#           else:
-#             if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
-#             if stepID=(int,None) the slicing is [stepID[0]:]
-#       @ In, nodeId, string, optional, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
-#       @ Out, value, the requested value
-#     """
-#     pass
 
   def __getVariablesToPrint(self,var,inOrOut):
     """

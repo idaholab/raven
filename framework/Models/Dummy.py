@@ -136,9 +136,9 @@ class Dummy(Model):
       for key in kwargs['SampledVars'].keys():
         inputDict[key] = np.atleast_1d(kwargs['SampledVars'][key])
 
-    for val in inputDict.values():
-      if val is None:
-        self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found a None input variable '+ str(inputDict.items()))
+    missing = list(var for var,val in inputDict.items() if val is None)
+    if len(missing) != 0:
+      self.raiseAnError(IOError,'Input values for variables {} not found while preparing the input for model "{}"!'.format(missing,self.name))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
 

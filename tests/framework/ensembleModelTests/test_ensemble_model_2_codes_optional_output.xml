@@ -195,36 +195,36 @@
 
   <DataObjects>
     <PointSet name="samplesMC">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>AtestModel1,BtestModel1,C,D</Output>
+      <Input>decay-B,decay-A,sigma-A,sigma-B</Input>
+      <Output>BtestModel1,C,D,AtestModel1</Output>
     </PointSet>
     <PointSet name="sumData">
       <Input>AtestModel1,BtestModel1</Input>
       <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
     </PointSet>
     <PointSet name="finalResponses">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>AtestModel1,BtestModel1,C,D,AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
+      <Input>decay-B,decay-A,sigma-A,sigma-B</Input>
+      <Output>BtestModel1,C,D,AtestModel1,AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
     </PointSet>
     <PointSet name="responseModel1">
-        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-        <Output>AtestModel1,BtestModel1,C,D</Output>
+        <Input>decay-B,decay-A,sigma-A,sigma-B</Input>
+        <Output>BtestModel1,C,D,AtestModel1</Output>
     </PointSet>
     <PointSet name="responseModel2">
         <Input>AtestModel1,BtestModel1</Input>
         <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
     </PointSet>
     <PointSet name="responseModel1_from_optional_hdf5_output">
-        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-        <Output>AtestModel1,BtestModel1,C,D</Output>
+        <Input>decay-B,decay-A,sigma-A,sigma-B</Input>
+        <Output>BtestModel1,C,D,AtestModel1</Output>
     </PointSet>
     <PointSet name="responseModel2_from_optional_hdf5_output">
         <Input>AtestModel1,BtestModel1</Input>
         <Output>AtestModel2,BtestModel2,CtestModel2,DtestModel2</Output>
     </PointSet>
     <HistorySet name="responseModel1HS">
-        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-        <Output>AtestModel1,BtestModel1,C,D</Output>
+        <Input>decay-B,decay-A,sigma-A,sigma-B</Input>
+        <Output>BtestModel1,C,D,AtestModel1</Output>
     </HistorySet>
     <HistorySet name="responseModel2HS">
         <Input>AtestModel1,BtestModel1</Input>

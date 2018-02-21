@@ -566,6 +566,8 @@ class DataSet(DataObject):
     self._collector = None
     self._meta = {}
     # TODO others?
+    self._alignedIndexes = {}
+    self._scaleFactors = {}
 
   def sliceByIndex(self,index):
     """
@@ -754,7 +756,7 @@ class DataSet(DataObject):
             # it's already gone; this can happen if this pivot parameter is only being used to collapse data (like in PointSet case)
             pass
         # otherwise, you're misaligned, and have been since before this realization, no action.
-      return
+    return
 
   def _checkRealizationFormat(self,rlz):
     """
@@ -776,7 +778,7 @@ class DataSet(DataObject):
       # FIXME: this check will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
       if self.indexes:
         if key in self._fromVarToIndex and rlz[self._fromVarToIndex[key]].shape != rlz[key].shape:
-          self.raiseAWarning('Variable "{}" has not a consistent shape with respect its index "{}": shape({}) /= shape({})!'.format(key,self._fromVarToIndex[key],rlz[key].shape,lz[self._fromVarToIndex[key]].shape))
+          self.raiseAWarning('Variable "{}" has not a consistent shape with respect its index "{}": shape({}) /= shape({})!'.format(key,self._fromVarToIndex[key],rlz[key].shape,rlz[self._fromVarToIndex[key]].shape))
           return False
     return okay
 
@@ -1709,16 +1711,22 @@ class DataSet(DataObject):
         if not localIndex:
           data.to_csv(fileName+'.csv',mode=mode,header=header, index=localIndex)
         else:
-          ##FIXME: This is extremely bad and not elegant
-          ##FIXME:  It is just needed to go on with the "regolding" of the tests
-          dataString = data.to_string()
+          data.to_csv(fileName+'.csv',mode=mode,header=header)
+          ## START garbled index fix ##
+          ## At one point we were seeing "garbled" indexes printed from Pandas: a,b,(RAVEN_sample_ID,),c
+          ## Here, commented is a workaround that @alfoa set up to prevent that problem.
+          ## However, it is painfully slow, so if garbled data shows up again, we can
+          ##   revisit this fix.
+          ## When using this fix, comment out the data.to_csv line above.
+          #dataString = data.to_string()
           # find headers
-          splitted = [",".join(elm.split())+"\n" for elm in data.to_string().split("\n")]
-          header, stringData = splitted[0:2], splitted[2:]
-          header.reverse()
-          toPrint = [",".join(header).replace("\n","")+"\n"]+stringData
-          with open(fileName+'.csv', mode='w+') as fileObject:
-            fileObject.writelines(toPrint)
+          #splitted = [",".join(elm.split())+"\n" for elm in data.to_string().split("\n")]
+          #header, stringData = splitted[0:2], splitted[2:]
+          #header.reverse()
+          #toPrint = [",".join(header).replace("\n","")+"\n"]+stringData
+          #with open(fileName+'.csv', mode='w+') as fileObject:
+          #  fileObject.writelines(toPrint)
+          ## END garbled index fix ##
       # if keepIndex, then print as is
       elif keepIndex:
         data.to_csv(fileName+'.csv',mode=mode,header=header)
@@ -1726,6 +1734,51 @@ class DataSet(DataObject):
       else:
         data.to_csv(fileName+'.csv',index=False,mode=mode,header=header)
     #raw_input('Just wrote to CSV "{}.csv", press enter to continue ...'.format(fileName))
+
+  # _useNumpyWriteCSV (below) is a secondary method to write out POINT SET CSVs.  When benchmarked with Pandas, I tested using
+  # different numbers of variables (M=5,25,100) and different numbers of realizations (R=4,100,1000).
+  # For each test, I did a unit check just on _usePandasWriteCSV versus _useNumpyWriteCSV, and took the average time
+  # to run a trial over 1000 trials (in seconds).  The results are as follows:
+  #    R     M   pandas     numpy       ratio    per float p  per float n  per float ratio
+  #    4     5  0.001748  0.001004  1.741035857   0.00008740   0.00005020  1.741035857
+  #    4    25  0.002855  0.001378  2.071843251   0.00002855   0.00001378  2.071843251
+  #    4   100  0.007006  0.002633  2.660843145   0.00001752   6.5825E-06  2.660843145
+  #  100    5   0.001982  0.001819  1.089609676   0.00000396   0.00000364  1.089609676
+  #  100   25   0.003922  0.003898  1.006182658   1.5688E-06   1.5592E-06  1.006182658
+  #  100  100   0.011124  0.011386  0.976989285   1.1124E-06   1.1386E-06  0.976989285
+  # 1000    5   0.004108  0.008688  0.472859116   8.2164E-07   1.7376E-06  0.472859116
+  # 1000   25   0.013367  0.027660  0.483261027   5.3468E-07   1.1064E-06  0.483261027
+  # 1000  100   0.048791  0.095213  0.512442602   4.8791E-07   9.5213E-07  0.512442602
+  # The per-float columns divide the time taken by (R*M) to give a fair comparison.  The summary of the # var versus # realizations per float is:
+  #          ---------- R ----------------
+  #   M      4             100        1000
+  #   5  1.741035857  1.089609676  0.472859116
+  #  25  2.071843251  1.006182658  0.483261027
+  # 100  2.660843145  0.976989285  0.512442602
+  # When the value is > 1, numpy is better (so when < 1, pandas is better).  It seems that "R" is a better
+  # indicator of which method is better, and R < 100 is a fairly simple case that is pretty fast anyway,
+  # so for now we just keep everything using Pandas. - talbpaul and alfoa, January 2018
+  #
+  #def _useNumpyWriteCSV(self,fileName,data,ordered,keepSampleTag=False,keepIndex=False,mode='w'):
+  #  # TODO docstrings
+  #  # TODO assert point set -> does not work right for ND (use Pandas)
+  #  # TODO the "mode" should be changed for python 3: mode has to be 'ba' if appending, not 'a' when using numpy.savetxt
+  #  with open(fileName+'.csv',mode) as outFile:
+  #    if mode == 'w':
+  #      #write header
+  #      header = ','.join(ordered)
+  #    else:
+  #      header = ''
+  #    #print('DEBUGG data:',data[ordered])
+  #    data = data[ordered].to_array()
+  #    if not keepSampleTag:
+  #      data = data.drop(self.sampleTag)
+  #    data = data.values.transpose()
+  #    # set up formatting for types
+  #    # TODO potentially slow loop
+  #    types = list('%.18e' if self._getCompatibleType(data[0][i]) == float else '%s' for i in range(len(ordered)))
+  #    np.savetxt(outFile,data,header=header,fmt=types)
+  #  # format data?
 
 
   ### HIERARCHICAL STUFF ###

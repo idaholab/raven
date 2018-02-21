@@ -1,3 +1,4 @@
+
 # Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -114,6 +115,21 @@ class HistorySet(Data):
       @ In, value, newer value
       @ Out, None
     """
+
+    ## Check if we need to reduce the dataset
+    value = np.atleast_1d(value).flatten()
+    rows = None
+    if self._dataParameters is not None:
+      rows = self._dataParameters.get('inputRow', None)
+    if rows is None:
+      rows = range(len(value))
+    else:
+      if rows > len(value):
+        rows = range(len(value))
+        self.raiseAWarning("inputRow > len of history! Taking last row!")
+
+    value = value[rows]
+
     # if this flag is true, we accept realizations in the input space that are not only scalar but can be 1-D arrays!
     #acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
     unstructuredInput = False
@@ -254,8 +270,21 @@ class HistorySet(Data):
       @ In, value, ?, ?
       @ Out, None
     """
+
+    ## Check if we need to reduce the dataset
+    value = np.atleast_1d(value).flatten()
+    rows = None
+    if self._dataParameters is not None:
+      rows = self._dataParameters.get('outputRow', None)
+    if rows is None:
+      rows = range(len(value))
+    else:
+      if rows > len(value):
+        rows = range(len(value))
+        self.raiseAWarning("inputRow > len of history! Taking last row!")
+    value = np.atleast_1d(value[rows])
+
     if isinstance(value,np.ndarray):
-      #self.raiseADebug('FIXME: Converted np.ndarray into c1darray in HistorySet!')
       value = c1darray(values=value)
     if not isinstance(value,c1darray):
       self.raiseAnError(NotConsistentData,'HistorySet Data accepts only cached_ndarray as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
@@ -577,59 +606,3 @@ class HistorySet(Data):
 
     self.checkConsistency()
 
-#   COMMENTED BECUASE NOT USED. NEED TO BE REMOVED IN THE FUTURE
-#   def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
-#     """
-#       specialization of extractValue for this data type
-#       @ In, inOutType, string, the type of data to extract (input or output)
-#       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
-#       @ In, varName, string, is the name of the variable that should be recovered
-#       @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
-#         if varID.type!=tuple only one point along sampling of that variable is retrieved
-#           else:
-#             if varID=(int,int) the slicing is [varID[0]:varID[1]]
-#             if varID=(int,None) the slicing is [varID[0]:]
-#       @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
-#           if stepID.type!=tuple only one point along the history is retrieved
-#           else:
-#             if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
-#             if stepID=(int,None) the slicing is [stepID[0]:]
-#       @ In, nodeId, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
-#       @ Out, value, varTyp, the requested value
-#     """
-#     if varTyp!='numpy.ndarray':
-#       if varName in self._dataParameters['inParam']:
-#         if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName]')
-#         else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)')
-#       else:
-#         if varID!=None:
-#           if stepID!=None and type(stepID)!=tuple: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName][stepID]')
-#           else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)')
-#         else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)')
-#     else:
-#       if varName in self._dataParameters['inParam']:
-#         myOut=np.zeros(len(self.getInpParametersValues().keys()))
-#         for key in self.getInpParametersValues().keys():
-#           myOut[int(key)]=self.getParam(inOutType,key)[varName][0]
-#         return myOut
-#       else:
-#         if varID!=None:
-#           if stepID==None:
-#             return self.getParam(inOutType,varID)[varName]
-#           elif type(stepID)==tuple:
-#             if stepID[1]==None: return self.getParam(inOutType,varID)[varName][stepID[0]:]
-#             else: return self.getParam(inOutType,varID)[varName][stepID[0]:stepID[1]]
-#           else: return self.getParam(inOutType,varID)[varName][stepID]
-#         else:
-#           if stepID==None: self.raiseAnError(RuntimeError,'more info needed trying to extract '+varName+' from data '+self.name)
-#           elif type(stepID)==tuple:
-#             if stepID[1]!=None:
-#               myOut=np.zeros((len(self.getOutParametersValues().keys()),stepID[1]-stepID[0]))
-#               for key in self.getOutParametersValues().keys():
-#                 myOut[int(key),:]=self.getParam(inOutType,key)[varName][stepID[0]:stepID[1]]
-#             else: self.raiseAnError(RuntimeError,'more info needed trying to extract '+varName+' from data '+self.name)
-#           else:
-#             myOut=np.zeros(len(self.getOutParametersValues().keys()))
-#             for key in self.getOutParametersValues().keys():
-#               myOut[int(key)]=self.getParam(inOutType,key)[varName][stepID]
-#             return myOut
