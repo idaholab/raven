@@ -118,7 +118,10 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
     else:
       featVals = np.asarray(feat[0])
       targVals = np.asarray(targ[0])
-      dataWeight = np.asarray(feat[1])
+      if feat[1] is not None:
+        dataWeight = np.asarray(feat[1])
+      else:
+        dataWeight = None
       # FIXME: Currently, we only use the weights of given features to compute the metric, this
       # can be biased or uncorrect. The correct way is to use the joint probability weight.
       # This needs to be improved in the future when RAVEN can handle the joint probability weight correctly.

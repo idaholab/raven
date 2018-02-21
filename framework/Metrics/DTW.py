@@ -38,12 +38,13 @@ class DTW(Metric):
     Dynamic Time Warping Metric
     Class for measuring similarity between two variables X and Y, i.e. two temporal sequences
   """
-  def initialize(self, inputDict):
+  def __init__(self):
     """
-      This method initialize the metric object
-      @ In, inputDict, dict, dictionary containing initialization parameters
-      @ Out, none
+      Constructor
+      @ In, None
+      @ Out, None
     """
+    Metric.__init__(self)
     self.order            = None
     self.localDistance    = None
     self._dynamicHandling = True

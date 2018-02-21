@@ -221,7 +221,21 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         keys = tdictNorm.keys()
         for i in range(cardinality):
           for j in range(i+1,cardinality):
-            self.normValues[i][j] = metric.distance(tdictNorm[keys[i]],tdictNorm[keys[j]])
+            # process the input data for the metric, numpy.array is required
+            assert(tdictNorm[keys[i]].keys() == tdictNorm[keys[j]].keys())
+            numParamsI = len(tdictNorm[keys[i]].keys())
+            numStepsI = len(tdictNorm[keys[i]].values()[0])
+            numStepsJ = len(tdictNorm[keys[j]].values()[0])
+
+            inputI = np.empty((numParamsI, numStepsI))
+            inputJ = np.empty((numParamsI, numStepsJ))
+            for ind, params in enumerate(tdictNorm[keys[i]].keys()):
+              valueI = tdictNorm[keys[i]][params]
+              valueJ = tdictNorm[keys[j]][params]
+              inputI[ind] = valueI
+              inputJ[ind] = valueJ
+            pairedData = ((inputI, None), (inputJ, None))
+            self.normValues[i][j] = metric.evaluate(pairedData)
             self.normValues[j][i] = self.normValues[i][j]
       else:
         ## PointSet

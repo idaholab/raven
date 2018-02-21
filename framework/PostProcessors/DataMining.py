@@ -33,6 +33,7 @@ from utils import InputData
 import Files
 import unSupervisedLearning
 import Runners
+import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
 
 class DataMining(PostProcessor):
@@ -584,7 +585,10 @@ class DataMining(PostProcessor):
     """
     self.unSupervisedEngine.features = Input['Features']
     if not self.unSupervisedEngine.amITrained:
-      self.unSupervisedEngine.train(Input['Features'], self.metric)
+      metric = None
+      if self.metric !=None:
+        metric = MetricDistributor.returnInstance('MetricDistributor', self.metric, self)
+      self.unSupervisedEngine.train(Input['Features'], metric)
     self.unSupervisedEngine.confidence()
     self.userInteraction()
     outputDict = self.unSupervisedEngine.outputDict
