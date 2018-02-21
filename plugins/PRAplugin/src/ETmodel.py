@@ -9,11 +9,11 @@ import math
 
 #Internal Modules---------------------------------------------------------------
 from PluginsBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
-from PostProcessors.FTstructure import FTstructure
+from PostProcessors.ETstructure import ETstructure
 #Internal Modules End-----------------------------------------------------------
 
 
-class FTmodel(ExternalModelPluginBase):
+class ETmodel(ExternalModelPluginBase):
 
   def _readMoreXML(self, container, xmlNode):
     """
@@ -33,6 +33,8 @@ class FTmodel(ExternalModelPluginBase):
         container.InvMapping[child.text.strip()] = child.get('var')
       elif child.tag == 'variables':
         variables = [str(var.strip()) for var in child.text.split(",")]
+      elif child.tag == 'sequenceID':
+        container.sequenceID = child.text.strip()
       else:
         print('xml error')
 
@@ -47,83 +49,23 @@ class FTmodel(ExternalModelPluginBase):
     #container.faultTreeModel = FTstructure(container['files'], container.topEventID)
 
   def createNewInput(self, container, inputs, samplerType, **Kwargs):
-    container.faultTreeModel = FTstructure(inputs, container.topEventID)
-    container.faultTreeModel.FTsolver()
+    container.eventTreeModel = ETstructure(inputs=inputs, expand=True)
     return Kwargs  
-  
-  def run(self, container, Inputs):    
-    if self.checkTypeOfAnalysis(container,Inputs): 
-      value = self.runTimeDep(container, Inputs)
-    else:
-      value = self.runStatic(container, Inputs)
-    
-    container.__dict__[container.topEventID]= value[container.topEventID]
-      
-  def checkTypeOfAnalysis(self,container,Inputs):
-    # True:  dynamic
-    # False: static
-    arrayValues=set()
-    for key in Inputs.keys():
-      if key in container.mapping.keys():
-        arrayValues.add(Inputs[key])
-    if arrayValues.difference({0.,1.}):
-      return True
-    else:
-      return False
 
-  def runStatic(self, container, Inputs):
+  def run(self, container, Inputs):
     """
       This is a simple example of the run method in a plugin.
       This method takes the variables in input and computes
       oneOutputOfThisPlugin(t) = var1Coefficient*exp(var1*t)+var2Coefficient*exp(var2*t) ...
       @ In, container, object, self-like object where all the variables can be stored
       @ In, Inputs, dict, dictionary of inputs from RAVEN
-
     """
-    inputForFT = {}
+    inputForET = {}
     for key in container.InvMapping.keys():
-      inputForFT[key] = Inputs[container.InvMapping[key]]
-    value = container.faultTreeModel.evaluateFT(inputForFT)
-    return value
-    #container.__dict__[container.topEventID]= value[container.topEventID]
+      if Inputs[container.InvMapping[key]] > 0:
+        inputForET[key] = 1.0
+      else:
+        inputForET[key] = 0.0  
 
-  def runTimeDep(self, container, Inputs):
-    times = []
-    times.append(0.)
-    for key in Inputs.keys():   
-      if key in container.mapping.keys() and Inputs[key]!=1.:
-        times.append(Inputs[key])
-    times = sorted(times, key=float)
-
-    outcome={}
-    outcome[container.topEventID] = np.asarray([0.])
-    
-    for time in times:
-      inputToPass=self.inputToBePassed(container,time,Inputs)
-      tempOut = self.runStatic(container, inputToPass)
-      for var in outcome.keys():
-        if tempOut[var] == 1.:
-          if time == 0.:
-            outcome[var] = np.asarray([1.])
-          else:
-            if outcome[var][0] > 0:
-              pass
-            else:
-              outcome[var] = np.asarray([time])  
-    return outcome
-    
-  def inputToBePassed(self,container,time,Inputs):
-    inputToBePassed = {}
-    for key in Inputs.keys():
-      if key in container.mapping.keys():
-        if Inputs[key] == 0. or Inputs[key] == 1.:
-          inputToBePassed[key] = Inputs[key]
-        else:
-          if Inputs[key] > time:
-            inputToBePassed[key] = np.asarray([0.])
-          else:
-            inputToBePassed[key] = np.asarray([1.])
-    return inputToBePassed
-  
-  
-  
+    value = container.eventTreeModel.solve(inputForET)
+    container.__dict__[container.sequenceID]= value

@@ -93,6 +93,7 @@ class graphModel(ExternalModelPluginBase):
       container.deg[nodeName]   = deg
 
   def run(self, container, Inputs):
+    print(Inputs)
     if self.checkTypeOfAnalysis(container,Inputs): 
       dictOUT = self.runTimeDep(container, Inputs)
     else:

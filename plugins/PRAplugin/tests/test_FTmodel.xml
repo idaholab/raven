@@ -67,7 +67,7 @@
   
   <DataObjects>
     <PointSet name="inputPlaceHolder">
-      <Input>statusA,statusB,statusD</Input>
+      <Input>statusBE1,statusBE2,statusBE3,statusBE4</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="sim_PS">
