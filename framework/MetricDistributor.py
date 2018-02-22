@@ -108,12 +108,34 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
     elif isinstance(feat, Distributions.Distribution):
       targVals = np.asarray(targ[0])
       for hist in range(targVals.shape[1]):
-        out = self.estimator.evaluate(feat, targVals[:,hist])
+        if targ[1] is not None:
+          targIn = (targVals[:,hist], targ[1])
+        else:
+          targIn = targVals[:,hist]
+        out = self.estimator.evaluate(feat, targIn)
         dynamicOutput.append(out)
     elif isinstance(targ, Distributions.Distribution):
       featVals = np.asarray(feat[0])
       for hist in range(featVals.shape[1]):
-        out = self.estimator.evaluate(featVals[:,hist], targ)
+        if feat[1] is not None:
+          featIn = (featVals[:,hist], feat[1])
+        else:
+          featIn = featVals[:,hist]
+        out = self.estimator.evaluate(featIn, targ)
+        dynamicOutput.append(out)
+    elif self.estimator.type in ['CDFAreaDifference', 'PDFCommonArea']:
+      featVals = np.asarray(feat[0])
+      targVals = np.asarray(targ[0])
+      for hist in range(featVals.shape[1]):
+        if feat[1] is not None:
+          featIn = (featVals[:,hist], feat[1])
+        else:
+          featIn = featVals[:,hist]
+        if targ[1] is not None:
+          targIn = (targVals[:,hist], targ[1])
+        else:
+          targIn = targVals[:,hist]
+        out = self.estimator.evaluate(featIn, targIn)
         dynamicOutput.append(out)
     else:
       featVals = np.asarray(feat[0])
