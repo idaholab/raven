@@ -36,11 +36,11 @@
   </Models>
   
   <Metrics>
-      <DTW name="dtwI" subType="">
+      <DTW name="dtwI">
           <order>0</order>
           <localDistance>euclidean</localDistance>
       </DTW>
-      <DTW name="dtwII" subType="">
+      <DTW name="dtwII">
           <order>1</order>
           <localDistance>euclidean</localDistance>
       </DTW>
