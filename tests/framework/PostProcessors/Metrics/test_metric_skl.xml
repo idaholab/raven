@@ -20,6 +20,10 @@
     </revisions>
   </TestInfo>
 
+  <Files>
+    <Input name="output_metric" type="">output_metric.xml</Input>
+  </Files>
+
   <Models>
     <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
       <variables>x1,x2,ans,ans2</variables>

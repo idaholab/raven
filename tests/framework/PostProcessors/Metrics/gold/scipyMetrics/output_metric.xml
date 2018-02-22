@@ -1,9 +1,8 @@
 <MetricPostProcessor type="Static">
   <ans-ans2>
-    <minkowski_paired_distance_minkowski>5.62766061663</minkowski_paired_distance_minkowski>
-    <cityblock_paired_distance_cityblock>18.6723477175</cityblock_paired_distance_cityblock>
+    <minkowski_paired_distance_minkowski>6.74863984473</minkowski_paired_distance_minkowski>
+    <canberra_paired_distance_canberra>6.41037902528</canberra_paired_distance_canberra>
     <braycurtis_paired_distance_braycurtis>1.06800110361</braycurtis_paired_distance_braycurtis>
     <correlation_paired_distance_correlation>1.98118802292</correlation_paired_distance_correlation>
-    <canberra_paired_distance_canberra>6.41037902528</canberra_paired_distance_canberra>
   </ans-ans2>
 </MetricPostProcessor>

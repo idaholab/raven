@@ -5,7 +5,6 @@
     UnorderedCsv = 'mcMetricRun/dumpMC.csv mcMetricRun/pp1_metric_dump.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
-    remove_whitespace = True
   [../]
   [./multipleInputs]
     type = 'RavenFramework'
@@ -13,16 +12,15 @@
     UnorderedCsv = 'multipleInputObjects/pp1_metric_dump.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
-    remove_whitespace = True
   [../]
   [./sklMetric]
     type = 'RavenFramework'
     input = 'test_metric_skl.xml'
     output = 'sklMetrics/pp1_metric_dump.xml sklMetrics/pp2_metric_dump.xml'
     UnorderedCsv = 'sklMetrics/pp1_metric_dump.csv sklMetrics/pp2_metric_dump.csv'
+    UnorderedXml = 'sklMetrics/output_metric.xml'
     rel_err = 0.00001
     zero_threshold = 1e-9
-    remove_whitespace = True
   [../]
   [./test_comparison_statistics_metrics]
     type = 'RavenFramework'
@@ -51,10 +49,8 @@
     type = 'RavenFramework'
     input = 'test_metric_td.xml'
     UnorderedXml = 'metricTD/output_metric_td.xml'
-    UnorderedCsv = 'metricTD/output_metric_td.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
-    remove_whitespace = True
   [../]
   [./testScipyMetric]
     type = 'RavenFramework'
@@ -62,15 +58,13 @@
     UnorderedXml = 'scipyMetrics/output_metric.xml'
     rel_err = 0.00001
     zero_threshold = 1e-9
-    remove_whitespace = True
   [../]
   [./testScipyMetricBoolean]
     type = 'RavenFramework'
     input = 'test_metric_scipy_boolean.xml'
-    UnorderedXml = 'scipyMetrics/output_metric.xml'
+    UnorderedXml = 'scipyMetricsBoolean/output_metric.xml'
     rel_err = 0.00001
     zero_threshold = 1e-9
-    remove_whitespace = True
   [../]
   [./test_dtw]
     type = 'RavenFramework'
@@ -78,6 +72,5 @@
     UnorderedXml = 'DTW/output_metric.xml'
     rel_err = 0.00001
     zero_threshold = 1e-9
-    remove_whitespace = True
   [../]
 []
