@@ -1,0 +1,132 @@
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+Created on Feb. 16 2018
+
+@author: wangc
+"""
+#for future compatibility with Python 3--------------------------------------------------------------
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3----------------------------------------------------------------
+
+#External Modules------------------------------------------------------------------------------------
+import math
+import scipy
+import numpy as np
+import ast
+import scipy.spatial.distance as spatialDistance
+#External Modules End--------------------------------------------------------------------------------
+
+#Internal Modules------------------------------------------------------------------------------------
+from .Metric import Metric
+from utils import utils
+#Internal Modules End--------------------------------------------------------------------------------
+
+class ScipyMetric(Metric):
+  """
+    ScipyMetric metrics which can be employed for both pointSets and historySets
+  """
+  availMetrics = {}
+  # Distance functions between two numeric vectors
+  availMetrics['paired_distance'] = {}
+  availMetrics['paired_distance']['braycurtis'] = spatialDistance.braycurtis
+  availMetrics['paired_distance']['canberra']   = spatialDistance.canberra
+  availMetrics['paired_distance']['correlation'] = spatialDistance.correlation
+  availMetrics['paired_distance']['minkowski']  = spatialDistance.minkowski
+  # Distance functions between two boolean vectors
+  availMetrics['boolean'] = {}
+  availMetrics['boolean']['rogerstanimoto']     = spatialDistance.rogerstanimoto
+  availMetrics['boolean']['dice']               = spatialDistance.dice
+  availMetrics['boolean']['hamming']            = spatialDistance.hamming
+  availMetrics['boolean']['jaccard']            = spatialDistance.jaccard
+  availMetrics['boolean']['kulsinski']           = spatialDistance.kulsinski
+  availMetrics['boolean']['russellrao']         = spatialDistance.russellrao
+  availMetrics['boolean']['sokalmichener']      = spatialDistance.sokalmichener
+  availMetrics['boolean']['sokalsneath']        = spatialDistance.sokalsneath
+  availMetrics['boolean']['yule']               = spatialDistance.yule
+
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    Metric.__init__(self)
+    self.metricType = None
+
+  def _localReadMoreXML(self,xmlNode):
+    """
+      Method that reads the portion of the xml input that belongs to this specialized class
+      and initialize internal parameters
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
+    """
+    self.distParams = {}
+    for child in xmlNode:
+      if child.tag == 'metricType':
+        self.metricType = list(elem.strip() for elem in child.text.split('|'))
+        if len(self.metricType) != 2:
+          self.raiseAnError(IOError, "Metric type: '", child.tag, "' is not correct, please check the user manual for the detail!")
+      else:
+        self.distParams[str(child.tag)] = utils.tryParse(child.text)
+
+    if self.metricType[0] not in self.__class__.availMetrics.keys() or self.metricType[1] not in self.__class__.availMetrics[self.metricType[0]].keys():
+      self.raiseAnError(IOError, "Metric '", self.name, "' with metricType '", self.metricType[0], "|", self.metricType[1], "' is not valid!")
+
+    for key, value in self.distParams.items():
+      try:
+        newValue = ast.literal_eval(value)
+        if type(newValue) == list:
+          newValue = np.asarray(newValue)
+        self.distParams[key] = newValue
+      except:
+        self.distParams[key] = value
+
+  def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
+    """
+      This method computes difference between two points x and y based on given metric
+      @ In, x, 1-D numpy.ndarray, array containing data of x.
+      @ In, y, 1-D numpy.ndarray, array containing data of y.
+      @ In, weights, None or array_like (numpy.array or list), optional weights associated
+      @ In, axis, integer, default is 0, not used in this metric
+      @ In, kwargs, dictionary of parameters characteristic of each metric
+      @ Out, value, float, metric result
+    """
+    if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
+      assert(x.shape == y.shape, "Input data x, y should have the same shape!")
+      # TODO: weights are supported in scipy.spatial.distance for many distance metrics in v1.0.0
+      # when we switch to scipy 1.0.0, we can enable weights in our metrics calculations
+      sv = str(scipy.__version__).split('.')
+      if int(sv[0]) > 0:
+        if weights is not None and 'w' not in self.distParams.keys():
+          self.distParams['w'] = weights
+        if 'w' in self.distParams.keys():
+          # Normalized weights, since methods exist in Scipy are using unnormalized weights
+          self.distParams['w'] = np.asarray(self.distParams['w'])/np.sum(self.distParams['w'])
+      else:
+        if 'w' in self.distParams.keys():
+          self.raiseAWarning("Weights will not be used, since weights provided with key word 'w' is not supported for your current version of scipy!")
+          self.distParams.pop('w')
+      dictTemp = utils.mergeDictionaries(kwargs, self.distParams)
+      try:
+        value = self.__class__.availMetrics[self.metricType[0]][self.metricType[1]](x, y, **dictTemp)
+      except TypeError as e:
+        self.raiseAWarning('There are some unexpected keyword arguments found in Metric with type', self.metricType[1])
+        self.raiseAnError(TypeError, 'Input parameters error: \n', str(e), '\n')
+    else:
+      self.raiseAnError(IOError, "Input data type is not correct!")
+
+    return value
