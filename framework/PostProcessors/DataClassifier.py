@@ -73,7 +73,6 @@ class DataClassifier(PostProcessor):
     """
     PostProcessor.__init__(self, messageHandler)
     self.printTag   = 'POSTPROCESSOR DataClassifier'
-    self.dynamic    = False
     self.mapping    = {}  # dictionary for mapping input space between different DataObjects {'variableName':'externalFunctionName'}
     self.funcDict   = {}  # Contains the function to be used {'variableName':externalFunctionInstance}
     self.label      = None
@@ -109,7 +108,7 @@ class DataClassifier(PostProcessor):
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
-      Method to initialize the pp.
+      Method to initialize the DataClassifier post-processor.
       @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
       @ In, inputs, list, list of inputs
       @ In, initDict, dict, dictionary with initialization options
@@ -218,7 +217,7 @@ class DataClassifier(PostProcessor):
     """
       This method executes the postprocessor action.
       @ In,  inputIn, list, list of DataObjects
-      @ Out, None
+      @ Out, outputDict, dict, dictionary of outputs
     """
     inputDict = self.inputToInternal(inputIn)
     targetDict = inputDict['target']
@@ -230,8 +229,8 @@ class DataClassifier(PostProcessor):
     if outputType == 'HistorySet':
       outputDict['historySizes'] = copy.copy(targetDict['historySizes'])
 
-    outputDict[self.label] = np.empty(0)
     numRlz = targetDict['input'].values()[0].size
+    outputDict[self.label] = np.empty(numRlz)
     for i in range(numRlz):
       tempTargDict = {}
       for param, vals in targetDict['input'].items():
@@ -244,12 +243,12 @@ class DataClassifier(PostProcessor):
         calcVal = self.funcDict[key].evaluate("evaluate", tempTargDict)
         inds, = np.where(values == calcVal)
         if labelIndex is None:
-           labelIndex = set(inds)
+          labelIndex = set(inds)
         else:
           labelIndex = labelIndex & set(inds)
       if len(labelIndex) != 1:
         self.raiseAnError(IOError, "The parameters", ",".join(tempTargDict.keys()), "with values", ",".join([str(el) for el in tempTargDict.values()]), "could not be classifier!")
-      outputDict[self.label] = np.append(outputDict[self.label], classifierDict['output'][self.label][list(labelIndex)[0]])
+      outputDict[self.label][i] = classifierDict['output'][self.label][list(labelIndex)[0]]
 
     return outputDict
 
