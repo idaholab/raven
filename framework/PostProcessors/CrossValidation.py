@@ -319,10 +319,11 @@ class CrossValidation(PostProcessor):
       ## Compute the distance between ROM and given data using Metric system
       for targetName, targetValue in outputEvaluation.items():
         for metricInstance in self.metricsDict.values():
-          metricValue = metricInstance.distance(targetValue, testDict[targetName])
+          metricValue = metricInstance.evaluate(targetValue, testDict[targetName])
           if hasattr(metricInstance, 'metricType'):
-            if metricInstance.metricType not in self.validMetrics:
-              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType, " can not be used, the accepted metric types are: ", str(self.validMetrics))
+            if metricInstance.metricType[1] not in self.validMetrics:
+              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType[1], " can not be used, the accepted metric types are: ", str(self.validMetrics))
+            metricName = metricInstance.metricType[1]
           else:
             self.raiseAnError(IOError, "The metric: ", metricInstance.name, " can not be used, the accepted metric types are: ", str(self.validMetrics))
           varName = 'cv' + '_' + metricInstance.name + '_' + targetName
