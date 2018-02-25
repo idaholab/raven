@@ -50,16 +50,16 @@ class SKL(Metric):
   # regression metrics
   availMetrics['regression'] = {}
   availMetrics['regression']['explained_variance_score'] = explained_variance_score
-  availMetrics['regression']['mean_absolute_error'] = mean_absolute_error
-  availMetrics['regression']['r2_score'] = r2_score
-  availMetrics['regression']['mean_squared_error'] = mean_squared_error
-  #availMetrics['regression']['median_absolute_error'] = mean_absolute_error # disabled because this metric only accept 1D array, and not weights associated
+  availMetrics['regression']['mean_absolute_error']      = mean_absolute_error
+  availMetrics['regression']['r2_score']                 = r2_score
+  availMetrics['regression']['mean_squared_error']       = mean_squared_error
+  #availMetrics['regression']['median_absolute_error']   = mean_absolute_error # disabled because this metric only accept 1D array, and not weights associated
   # paired distance metrics, no weights
   if int(sklearn.__version__.split(".")[1]) > 17:
     availMetrics['paired_distance'] = {}
-    availMetrics['paired_distance']['euclidean'] = pairwise.paired_euclidean_distances
-    availMetrics['paired_distance']['manhattan'] = pairwise.paired_manhattan_distances
-    availMetrics['paired_distance']['cosine'] = pairwise.paired_cosine_distances
+    availMetrics['paired_distance']['euclidean']         = pairwise.paired_euclidean_distances
+    availMetrics['paired_distance']['manhattan']         = pairwise.paired_manhattan_distances
+    availMetrics['paired_distance']['cosine']            = pairwise.paired_cosine_distances
   # TODO: add more metrics here
   # metric from scipy.spatial.distance, for example mahalanobis, minkowski
 
