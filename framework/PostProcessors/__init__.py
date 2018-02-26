@@ -41,6 +41,7 @@ from .Metric import Metric
 from .CrossValidation import CrossValidation
 from .ETImporter import ETImporter
 from .FTImporter import FTImporter
+from .DataClassifier import DataClassifier
 
 additionalModules = []
 ## These utilize the optional prequisite library PySide, so don't error if they
@@ -74,4 +75,5 @@ __all__ = ['PostProcessor',
            'Metric',
            'CrossValidation',
            'ETImporter',
-           'FTImporter'] + additionalModules
+           'FTImporter',
+           'DataClassifier'] + additionalModules
