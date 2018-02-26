@@ -54,4 +54,14 @@
   input = 'test_ETmodel_TD.xml'
   csv   = 'ETmodelTD/Print_sim_PS.csv'
  [../]
+ [./TestEnesembleDiscrete]
+  type  = 'RavenFramework'
+  input = 'test_ensemblePRAModel_discrete.xml'
+  csv   = 'ensembleDiscrete/Print_sim_PS.csv'
+ [../]
+ [./TestEnesembleMixed]
+  type  = 'RavenFramework'
+  input = 'test_ensemblePRAModel_mixed.xml'
+  csv   = 'ensembleMixed/Print_sim_PS.csv'
+ [../]
 []

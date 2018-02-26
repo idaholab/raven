@@ -119,7 +119,6 @@ class graphModel(ExternalModelPluginBase):
       This is a simple example of the run method in a plugin.
       @ In, container, object, self-like object where all the variables can be stored
       @ In, Inputs, dict, dictionary of inputs from RAVEN
-
     """
     mapping = copy.deepcopy(container.mapping)
     nodes   = copy.deepcopy(container.nodes)
