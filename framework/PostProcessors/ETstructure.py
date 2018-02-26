@@ -144,7 +144,7 @@ class ETstructure():
         if len(zeroColumns)==0:
             raise IOError('No root ET')
         if len(zeroColumns)==1:
-            rootETID = listETs[zeroColumns]
+            rootETID = listETs[zeroColumns.astype(int)[0]]
             print("ETImporter Root ET: " + str(rootETID))
 
         leafs = []

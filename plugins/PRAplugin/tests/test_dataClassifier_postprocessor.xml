@@ -2,16 +2,16 @@
 
   <RunInfo>
     <WorkingDir>dataClassifier</WorkingDir>
-    <Sequence>simRun,printOnFile_sim_PS</Sequence>
+    <Sequence>simRun,import_ET_PS,classify,printOnFile_ET_PS,printOnFile_sim_PS</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Distributions>
     <Bernoulli name="ACC_distrib">
-      <p>0.5</p>
+      <p>0.4</p>
     </Bernoulli>
     <Normal name="LPI_distrib">
-      <mean>5</mean>
+      <mean>4</mean>
       <sigma>1</sigma>
     </Normal>
     <Normal name="LPR_distrib">
@@ -23,7 +23,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>50</limit>
+        <limit>10</limit>
       </samplerInit>
       <variable name="ACC_status">
         <distribution>ACC_distrib</distribution>
@@ -42,18 +42,18 @@
   </Files>
 
   <Functions>
-    <External file="dataClassifier/func_ACC.py" name="func_ACC">
+    <External file="func_ACC.py" name="func_ACC">
       <variable>ACC_status</variable>
       <variable>time_LPI</variable>
       <variable>time_LPR</variable>
     </External>
-    <External file="dataClassifier/func_LPI.py" name="func_LPI">
-      <variable>ACC_status</variable>
+    <External file="func_LPI.py" name="func_LPI">
+      <variable>LPI_status</variable>
       <variable>time_LPI</variable>
       <variable>time_LPR</variable>
     </External>
-    <External file="dataClassifier/func_LPR.py" name="func_LPR">
-      <variable>ACC_status</variable>
+    <External file="func_LPR.py" name="func_LPR">
+      <variable>LPR_status</variable>
       <variable>time_LPI</variable>
       <variable>time_LPR</variable>
     </External>
@@ -67,8 +67,8 @@
       <fileFormat>OpenPSA</fileFormat>
       <expand>True</expand>
     </PostProcessor>   
-    <PostProcessor name="ET_Classifier" subType="InterfacedPostProcessor">
-      <method>dataClassifier</method>
+    <PostProcessor name="ET_Classifier" subType="DataClassifier">
+      <label>sequence</label>
       <variable name='ACC'>
         <Function class="Functions" type="External">func_ACC</Function>
       </variable>
@@ -101,20 +101,20 @@
     </PostProcess>
     <IOStep name="printOnFile_ET_PS">
       <Input   class="DataObjects"  type="PointSet"        >ET_PS</Input>
-      <Output  class="OutStreams"   type="Print"           >printOnFile_ET_PS</Output>
+      <Output  class="OutStreams"   type="Print"           >Print_ET_PS</Output>
     </IOStep>
     <IOStep name="printOnFile_sim_PS">
       <Input   class="DataObjects"  type="PointSet"        >sim_PS</Input>
-      <Output  class="OutStreams"   type="Print"           >printOnFile_sim_PS</Output>
+      <Output  class="OutStreams"   type="Print"           >Print_sim_PS</Output>
     </IOStep>
   </Steps>
 
   <OutStreams>
-    <Print name="printOnFile_ET_PS">
+    <Print name="Print_ET_PS">
       <type>csv</type>
       <source>ET_PS</source>
     </Print>
-    <Print name="printOnFile_sim_PS">
+    <Print name="Print_sim_PS">
       <type>csv</type>
       <source>sim_PS</source>
     </Print>
@@ -131,7 +131,7 @@
     </PointSet>
     <PointSet name="sim_PS">
       <Input>ACC_status,time_LPI,time_LPR</Input>
-      <Output>out,LPI_status,LPR_status</Output>
+      <Output>out, LPI_status, LPR_status</Output>
     </PointSet>
   </DataObjects>
   
