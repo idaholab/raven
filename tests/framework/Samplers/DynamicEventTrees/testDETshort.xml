@@ -18,6 +18,7 @@
       <revision author="alfoa" date="2016-10-20">Modified XSD and removed dim attribute from all the tests</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2018-01-24">Modification for new DataObject and new option to specify printing and plotting subdirectories (attribute ``dir'')</revision>
+      <revision author="alfoa" date="2018-01-26">Added maxqueuesize 1 to be consistent with historical behavior</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
