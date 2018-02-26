@@ -21,6 +21,7 @@
     <WorkingDir>externalModel</WorkingDir>
     <Sequence>FirstMRun,FirstMRun2</Sequence>
     <batchSize>2</batchSize>
+    <maxQueueSize>1</maxQueueSize>
   </RunInfo>
 
   <!-- STEPS -->

@@ -24,6 +24,7 @@
     <WorkingDir>DETshort</WorkingDir>
     <Sequence>DETrunTest,dump_results</Sequence>
     <batchSize>4</batchSize>
+    <maxQueueSize>1</maxQueueSize>
   </RunInfo>
 
   <Files>
