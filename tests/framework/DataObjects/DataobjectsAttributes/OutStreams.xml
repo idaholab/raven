@@ -1,0 +1,46 @@
+  <OutStreams>
+    <Print name="stories1_from_DB_dump">
+      <type>csv</type>
+      <source>stories1</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="stories2_from_DB_dump">
+      <type>csv</type>
+      <source>stories2</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="outGridTPS1_from_DB_dump">
+      <type>csv</type>
+      <source>outGridTPS1</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="outGridTPS2_from_DB_dump">
+      <type>csv</type>
+      <source>outGridTPS2</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="stories1_dump">
+      <type>csv</type>
+      <source>stories1</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="stories2_dump">
+      <type>csv</type>
+      <source>stories2</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="outGridTPS1_dump">
+      <type>csv</type>
+      <source>outGridTPS1</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="outGridTPS2_dump">
+      <type>csv</type>
+      <source>outGridTPS2</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="allStories_dump">
+      <type>csv</type>
+      <source>allStories</source>
+    </Print>
+  </OutStreams>

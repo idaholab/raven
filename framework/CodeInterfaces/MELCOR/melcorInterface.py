@@ -30,14 +30,6 @@ class MelcorApp(MelgenApp):
   """
     This class is the CodeInterface for MELCOR
   """
-  def __init__(self):
-    """
-      Constructor
-      @ In, None
-      @ Out, None
-    """
-    MelgenApp.__init__(self)
-
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """
       Generate a command to run MELCOR

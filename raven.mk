@@ -7,14 +7,24 @@ SHELL := /bin/bash
 ################################################################################
 ## Build system for Approximate Morse-Smale Complex (AMSC)
 include $(RAVEN_DIR)/amsc.mk
-################################################################################
+###############################################################################
 
+<<<<<<< HEAD
 hit $(MOOSE_DIR)/python/hit.so:: $(FRAMEWORK_DIR)/contrib/hit/hit.cpp $(FRAMEWORK_DIR)/contrib/hit/lex.cc $(FRAMEWORK_DIR)/contrib/hit/parse.cc
 	bash -c 'cd scripts/TestHarness/hit-windows && ./build_hit.sh'
 
 framework_modules:: amsc python_crow_modules hit
 
 all:: amsc python_crow_modules hit
+=======
+framework_modules:: amsc python_crow_modules
+	$(MAKE) -C $(FRAMEWORK_DIR)/contrib/hit bindings
+	cp $(FRAMEWORK_DIR)/contrib/hit/hit.so $(MOOSE_DIR)/python/
+
+all:: amsc python_crow_modules
+	$(MAKE) -C $(FRAMEWORK_DIR)/contrib/hit bindings
+	cp $(FRAMEWORK_DIR)/contrib/hit/hit.so $(MOOSE_DIR)/python/
+>>>>>>> dataobject-rework
 
 ####################################################################################
 #           find and remove all the *.pyc files (better safe then sorry)           #
@@ -40,6 +50,7 @@ clean::
 	  $(MOOSE_DIR)/python/hit.pyd
 	@rm -Rf $(RAVEN_DIR)/build $(FRAMEWORK_DIR)/contrib/hit/build
 	@find $(RAVEN_DIR)/framework  -name '*.pyc' -exec rm '{}' \;
+	$(MAKE) -C $(FRAMEWORK_DIR)/contrib/hit clean
 
 cleanall::
 	make -C $(RAVEN_DIR) clean

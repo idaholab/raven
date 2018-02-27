@@ -130,7 +130,7 @@ class DataSet(DataObject):
         # Otherwise, scalarMetric
         else:
           # sanity check to make sure suitable values are passed in
-          assert(isinstance(value,(basestring,float,int)))
+          assert(mathUtils.isSingleValued(value))
           destination.addScalar(target,metric,value)
 
   def addRealization(self,rlz):
@@ -141,7 +141,7 @@ class DataSet(DataObject):
       Before actually adding the realization, data is formatted for this data object.
       @ In, rlz, dict, {var:val} format where
                          "var" is the variable name as a string,
-                         "val" is either a float or a np.ndarray of values.
+                         "val" is a np.ndarray of values.
       @ Out, None
     """
     # protect against back-changing realization
@@ -162,7 +162,7 @@ class DataSet(DataObject):
     rlz = self._selectiveRealization(rlz)
 
     ## check alignment of indexes
-    self._checkAlignedIndexes(rlz) # TODO implement
+    self._checkAlignedIndexes(rlz)
     #  NB If no scalar entry is made, this construction fails.  In that case,
     #  instead of treating each dataarrray as an object, numpy.asarray calls their asarray methods,
     #  unfolding them and making a full numpy array with more dimensions, instead of effectively
@@ -240,7 +240,7 @@ class DataSet(DataObject):
       @ Out, same, bool, if True then alignment is good
     """
     # format request so that indexesToCheck is always a list
-    if isinstance(indexesToCheck,basestring):
+    if mathUtils.isAString(indexesToCheck):
       indexesToCheck = [indexesToCheck]
     elif indexesToCheck is None:
       indexesToCheck = self.indexes[:]
@@ -363,7 +363,7 @@ class DataSet(DataObject):
     # For faster access, consider using data.asDataset()['varName'] for one variable, or
     #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
-    if isinstance(var,basestring):
+    if mathUtils.isAString(var):
       val = self._data[var]
       #format as scalar
       if len(val.dims) == 0:
@@ -385,9 +385,6 @@ class DataSet(DataObject):
       @ In, kwargs, dict, optional, additional arguments to pass to reading function
       @ Out, None
     """
-    if len(self) > 0:
-      self.raiseAnError(IOError, "Attempting to load data from a '{}', but target DataObject is not empty!".format(style)
-              + " This operation is not permitted; try outputting to a clean DataObject.")
     style = style.lower()
     # if fileToLoad in kwargs, then filename is actualle fileName/fileToLoad
     if 'fileToLoad' in kwargs.keys():
@@ -420,9 +417,7 @@ class DataSet(DataObject):
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
-    # FIXME the caller should have no idea whether to read the collector or not.
-    # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in
-    # TODO option to read both collector and data for matches/indices
+    # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in?
     ## first, check that some direction was given, either an index or a match to find
     if (index is None and matchDict is None) or (index is not None and matchDict is not None):
       self.raiseAnError(TypeError,'Either "index" OR "matchDict" (not both) must be specified to use "realization!"')
@@ -526,6 +521,41 @@ class DataSet(DataObject):
     #either way reset kdtree
     self.inputKDTree = None
 
+  def renameVariable(self,old,new):
+    """
+      Changes the name of a variable from "old" to "new".
+      @ In, old, str, old name
+      @ In, new, str, new name
+      @ Out, None
+    """
+    # determine where the old variable was
+    isInput = old in self._inputs
+    isOutput = old in self._outputs
+    isMeta = old in self._metavars
+    isIndex = old in self.indexes
+    # make the changes to the variable listings
+    if isInput:
+      self._inputs = list(a if (a != old) else new for a in self._inputs)
+    if isOutput:
+      self._outputs = list(a if (a != old) else new for a in self._outputs)
+    if isMeta:
+      self._metavars = list(a if (a != old) else new for a in self._metavars)
+    if isIndex:
+      # change the pivotParameters listing, as well as the sync/unsynced listings
+      self._pivotParams[new] = self._pivotParams.pop(old)
+      if old in self._alignedIndexes.keys():
+        self._alignedIndexes[new] = self._alignedIndexes.pop(old)
+      else:
+        self._orderedVars = list(a if a != old else new for a in self._orderedVars)
+    # if in/out/meta, change allvars (TODO wastefully already done if an unaligned index)
+    if isInput or isOutput or isMeta:
+      self._orderedVars = list(a if a != old else new for a in self._orderedVars)
+    # change scaling factor entry
+    if old in self._scaleFactors:
+      self._scaleFactors[new] = self._scaleFactors.pop(old)
+    if self._data is not None:
+      self._data.rename({old:new},inplace=True)
+
   def reset(self):
     """
       Sets this object back to its initial state.
@@ -536,6 +566,8 @@ class DataSet(DataObject):
     self._collector = None
     self._meta = {}
     # TODO others?
+    self._alignedIndexes = {}
+    self._scaleFactors = {}
 
   def sliceByIndex(self,index):
     """
@@ -581,7 +613,10 @@ class DataSet(DataObject):
     # TODO dask?
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized write style: "{}"'.format(style))
-    return len(self) # so that other entities can track which realization we've written
+    if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
+      return len(self._data.where(self._data['RAVEN_isEnding']==True,drop=True)['RAVEN_isEnding'])
+    else:
+      return len(self) # so that other entities can track which realization we've written
 
   ### INITIALIZATION ###
   # These are the necessary functions to construct and initialize this data object
@@ -669,7 +704,7 @@ class DataSet(DataObject):
     assert(var in self._orderedVars)
     assert(type(value).__name__ in ['float','str','int','unicode','bool'])
     lenColl = len(self._collector) if self._collector is not None else 0
-    lenData = len(self._data     ) if self._data      is not None else 0
+    lenData = len(self._data[self.sampleTag]) if self._data      is not None else 0
     # if it's in the data ...
     if index < lenData:
       self._data[var].values[index] = value
@@ -689,11 +724,17 @@ class DataSet(DataObject):
     for index in self.indexes:
       # if it's aligned so far, check if it still is
       if index in self._alignedIndexes.keys():
-        # if close enough, then keep the aligned values; otherwise, take action
-        if isinstance(rlz[index][0],(float,int)):
-          closeEnough = all(np.isclose(rlz[index],self._alignedIndexes[index],rtol=tol))
+        # first, if lengths don't match, they're not aligned.
+        # TODO there are concerns this check may slow down runs; it should be profiled along with other bottlenecks to optimize our efforts.
+        if len(rlz[index]) != len(self._alignedIndexes[index]):
+          closeEnough = False
         else:
-          closeEnough = all(rlz[index] == self._alignedIndexes[index])
+          # "close enough" if float/int, otherwise require exactness
+          if mathUtils.isAFloatOrInt(rlz[index][0]):
+            closeEnough = all(np.isclose(rlz[index],self._alignedIndexes[index],rtol=tol))
+          else:
+            closeEnough = all(rlz[index] == self._alignedIndexes[index])
+        # if close enough, then keep the aligned values; otherwise, take action
         if not closeEnough:
           dtype = rlz[index].dtype
           # TODO add new column to collector, propagate values up to (not incl) current rlz
@@ -715,7 +756,31 @@ class DataSet(DataObject):
             # it's already gone; this can happen if this pivot parameter is only being used to collapse data (like in PointSet case)
             pass
         # otherwise, you're misaligned, and have been since before this realization, no action.
-      return
+    return
+
+  def _checkRealizationFormat(self,rlz):
+    """
+      Checks that a passed-in realization has a format acceptable to data objects.
+      Data objects require a CSV-like result with either float or np.ndarray instances.
+      @ In, rlz, dict, realization with {key:value} pairs.
+      @ Out, okay, bool, True if acceptable or False if not
+    """
+    okay = True
+    if not isinstance(rlz,dict):
+      self.raiseAWarning('Realization is not a "dict" instance!')
+      return False
+    for key,value in rlz.items():
+      #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
+      if not isinstance(value,np.ndarray):
+        self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(key,type(value)))
+        return False
+      # check if index-dependent variables have matching shapes
+      # FIXME: this check will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
+      if self.indexes:
+        if key in self._fromVarToIndex and rlz[self._fromVarToIndex[key]].shape != rlz[key].shape:
+          self.raiseAWarning('Variable "{}" has not a consistent shape with respect its index "{}": shape({}) /= shape({})!'.format(key,self._fromVarToIndex[key],rlz[key].shape,rlz[self._fromVarToIndex[key]].shape))
+          return False
+    return okay
 
   def _clearAlignment(self):
     """
@@ -745,14 +810,11 @@ class DataSet(DataObject):
       # get the parent ID
       parentID = rlz[idVar]
       # if root or parentless, nothing to do
-      if parentID is None:
+      if parentID == "None":
         return
       # otherwise, find the index of the match
       idx,match = self.realization(matchDict={'prefix':parentID})
       self._changeVariableValue(idx,endVar,False)
-    else:
-      # no action taken for data without hierarchical information
-      pass
 
   def _collapseNDtoDataArray(self,data,var,labels=None,dtype=None):
     """
@@ -783,7 +845,7 @@ class DataSet(DataObject):
       dataType = dtype
     # method = 'once' # see below, parallelization is possible but not implemented
     # first case: single entry per node: floats, strings, ints, etc
-    if isinstance(data[i],(float,str,unicode,int,bool,np.bool_)):
+    if mathUtils.isSingleValued(data[i]):
       data = np.array(data,dtype=dataType)
       array = xr.DataArray(data,
                            dims=[self.sampleTag],
@@ -835,6 +897,9 @@ class DataSet(DataObject):
       new = xr.Dataset(array)
     except ValueError as e:
       self.raiseAnError(RuntimeError,'While trying to create a new Dataset, a variable has itself as an index!  Error: ' +str(e))
+    # if "action" is "extend" but self._data is None, then we really want to "replace".
+    if action == 'extend' and self._data is None:
+      action = 'replace'
     if action == 'return':
       return new
     elif action == 'replace':
@@ -936,7 +1001,6 @@ class DataSet(DataObject):
       Efficiency note: this is the slowest part of typical data collection.
       @ In, None
       @ Out, xarray.Dataset, all the data from this data object.
-      P.S.: this was the old asDataset(self)
     """
     # TODO make into a protected method? Should it be called from outside?
     # if we have collected data, collapse it
@@ -998,8 +1062,9 @@ class DataSet(DataObject):
               raise e
           # create single dataarrays
           arrays[var] = self._collapseNDtoDataArray(varData,var,dtype=dtype)
-          # re-index samples
-          arrays[var][self.sampleTag] += firstSample
+        # END if for variable data type (ndarray, xarray, or scalar)
+        # re-index samples
+        arrays[var][self.sampleTag] += firstSample
       # collect all data into dataset, and update self._data
       if self._data is None:
         self._convertArrayListToDataset(arrays,action='replace')
@@ -1035,7 +1100,7 @@ class DataSet(DataObject):
     # for now, leave them as the arrays they are, except single entries need converting
     for var,val in rlz.items():
       # if an index variable, skip it
-      if var in self._pivotParams.keys():
+      if var in self._pivotParams:
         continue
       dims = self.getDimensions(var)[var]
       ## change dimensionless to floats -> TODO use operator to collapse!
@@ -1085,7 +1150,7 @@ class DataSet(DataObject):
         data = df[[var,self.sampleTag]].groupby(self.sampleTag).first().values[:,0]
         dtype = self._getCompatibleType(data.item(0))
         arrays[var] = self._collapseNDtoDataArray(data,var,labels=samples,dtype=dtype)
-    self._convertArrayListToDataset(arrays,action='replace')
+    self._convertArrayListToDataset(arrays,action='extend')
 
   def _fromCSVXML(self,fileName):
     """
@@ -1138,6 +1203,9 @@ class DataSet(DataObject):
       @ In, kwargs, dict, optional, additional arguments
       @ Out, None
     """
+    # if anything is in the collector, collapse it first
+    if self._collector is not None:
+      self.asDataset()
     # not safe to default to dict, so if "dims" not specified set it here
     if dims is None:
       dims = {}
@@ -1203,14 +1271,14 @@ class DataSet(DataObject):
     if isinstance(val,(xr.DataArray,np.ndarray)):
       val = val.item(0)
     # identify other scalars by instance
-    if isinstance(val,float):
+    if mathUtils.isAFloat(val):
       _type = float
-    elif isinstance(val,(bool,np.bool_)):
+    elif mathUtils.isABoolean(val):
       _type = bool
-    elif isinstance(val,int):
+    elif mathUtils.isAnInteger(val):
       _type = int
     # strings and unicode have to be stored as objects to prevent string sizing in numpy
-    elif isinstance(val,basestring):
+    elif mathUtils.isAString(val):
       _type = object
     # catchall
     else:
@@ -1243,7 +1311,7 @@ class DataSet(DataObject):
     for r,row in enumerate(self._collector[:,tuple(self._orderedVars.index(var) for var in match.keys())]):
       match = True
       for e,element in enumerate(row):
-        if isinstance(element,(float,int)):
+        if mathUtils.isAFloatOrInt(element):
           match *= mathUtils.compareFloats(lookingFor[e],element,tol=tol)
           if not match:
             break
@@ -1283,7 +1351,7 @@ class DataSet(DataObject):
     mask = 1.0
     for var,val in match.items():
       # float instances are relative, others are absolute
-      if isinstance(val,(float,int)):
+      if mathUtils.isAFloatOrInt(val):
         # scale if we know how
         try:
           loc,scale = self._scaleFactors[var]
@@ -1348,7 +1416,7 @@ class DataSet(DataObject):
       @ In, fileName, str, name of file without extension
       @ Out, varList, list(str), list of variables
     """
-    with open(fileName+'.csv','r') as f:
+    with open(fileName+'.csv','rU') as f:
       provided = list(s.strip() for s in f.readline().split(','))
     return provided
 
@@ -1476,7 +1544,7 @@ class DataSet(DataObject):
       # if not a float or int, don't scale it
       # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
       #first = self._data.groupby(var).first()[var].item(0)
-      #if (not isinstance(first,(float,int))) or np.isnan(first):# or self._data[var].isnull().all():
+      #if (not mathUtils.isAFloatOrInt(first)) or np.isnan(first):# or self._data[var].isnull().all():
       #  continue
       try:
         mean = float(self._data[var].mean())
@@ -1512,6 +1580,7 @@ class DataSet(DataObject):
     else:
       data = self._data
       mode = 'w'
+
     data = data.drop(toDrop)
     self.raiseADebug('Printing data to CSV: "{}"'.format(filenameLocal+'.csv'))
     # get the list of elements the user requested to write
@@ -1642,16 +1711,22 @@ class DataSet(DataObject):
         if not localIndex:
           data.to_csv(fileName+'.csv',mode=mode,header=header, index=localIndex)
         else:
-          ##FIXME: This is extremely bad and not elegant
-          ##FIXME:  It is just needed to go on with the "regolding" of the tests
-          dataString = data.to_string()
+          data.to_csv(fileName+'.csv',mode=mode,header=header)
+          ## START garbled index fix ##
+          ## At one point we were seeing "garbled" indexes printed from Pandas: a,b,(RAVEN_sample_ID,),c
+          ## Here, commented is a workaround that @alfoa set up to prevent that problem.
+          ## However, it is painfully slow, so if garbled data shows up again, we can
+          ##   revisit this fix.
+          ## When using this fix, comment out the data.to_csv line above.
+          #dataString = data.to_string()
           # find headers
-          splitted = [",".join(elm.split())+"\n" for elm in data.to_string().split("\n")]
-          header, stringData = splitted[0:2], splitted[2:]
-          header.reverse()
-          toPrint = [",".join(header).replace("\n","")+"\n"]+stringData
-          with open(fileName+'.csv', mode='w+') as fileObject:
-            fileObject.writelines(toPrint)
+          #splitted = [",".join(elm.split())+"\n" for elm in data.to_string().split("\n")]
+          #header, stringData = splitted[0:2], splitted[2:]
+          #header.reverse()
+          #toPrint = [",".join(header).replace("\n","")+"\n"]+stringData
+          #with open(fileName+'.csv', mode='w+') as fileObject:
+          #  fileObject.writelines(toPrint)
+          ## END garbled index fix ##
       # if keepIndex, then print as is
       elif keepIndex:
         data.to_csv(fileName+'.csv',mode=mode,header=header)
@@ -1659,6 +1734,51 @@ class DataSet(DataObject):
       else:
         data.to_csv(fileName+'.csv',index=False,mode=mode,header=header)
     #raw_input('Just wrote to CSV "{}.csv", press enter to continue ...'.format(fileName))
+
+  # _useNumpyWriteCSV (below) is a secondary method to write out POINT SET CSVs.  When benchmarked with Pandas, I tested using
+  # different numbers of variables (M=5,25,100) and different numbers of realizations (R=4,100,1000).
+  # For each test, I did a unit check just on _usePandasWriteCSV versus _useNumpyWriteCSV, and took the average time
+  # to run a trial over 1000 trials (in seconds).  The results are as follows:
+  #    R     M   pandas     numpy       ratio    per float p  per float n  per float ratio
+  #    4     5  0.001748  0.001004  1.741035857   0.00008740   0.00005020  1.741035857
+  #    4    25  0.002855  0.001378  2.071843251   0.00002855   0.00001378  2.071843251
+  #    4   100  0.007006  0.002633  2.660843145   0.00001752   6.5825E-06  2.660843145
+  #  100    5   0.001982  0.001819  1.089609676   0.00000396   0.00000364  1.089609676
+  #  100   25   0.003922  0.003898  1.006182658   1.5688E-06   1.5592E-06  1.006182658
+  #  100  100   0.011124  0.011386  0.976989285   1.1124E-06   1.1386E-06  0.976989285
+  # 1000    5   0.004108  0.008688  0.472859116   8.2164E-07   1.7376E-06  0.472859116
+  # 1000   25   0.013367  0.027660  0.483261027   5.3468E-07   1.1064E-06  0.483261027
+  # 1000  100   0.048791  0.095213  0.512442602   4.8791E-07   9.5213E-07  0.512442602
+  # The per-float columns divide the time taken by (R*M) to give a fair comparison.  The summary of the # var versus # realizations per float is:
+  #          ---------- R ----------------
+  #   M      4             100        1000
+  #   5  1.741035857  1.089609676  0.472859116
+  #  25  2.071843251  1.006182658  0.483261027
+  # 100  2.660843145  0.976989285  0.512442602
+  # When the value is > 1, numpy is better (so when < 1, pandas is better).  It seems that "R" is a better
+  # indicator of which method is better, and R < 100 is a fairly simple case that is pretty fast anyway,
+  # so for now we just keep everything using Pandas. - talbpaul and alfoa, January 2018
+  #
+  #def _useNumpyWriteCSV(self,fileName,data,ordered,keepSampleTag=False,keepIndex=False,mode='w'):
+  #  # TODO docstrings
+  #  # TODO assert point set -> does not work right for ND (use Pandas)
+  #  # TODO the "mode" should be changed for python 3: mode has to be 'ba' if appending, not 'a' when using numpy.savetxt
+  #  with open(fileName+'.csv',mode) as outFile:
+  #    if mode == 'w':
+  #      #write header
+  #      header = ','.join(ordered)
+  #    else:
+  #      header = ''
+  #    #print('DEBUGG data:',data[ordered])
+  #    data = data[ordered].to_array()
+  #    if not keepSampleTag:
+  #      data = data.drop(self.sampleTag)
+  #    data = data.values.transpose()
+  #    # set up formatting for types
+  #    # TODO potentially slow loop
+  #    types = list('%.18e' if self._getCompatibleType(data[0][i]) == float else '%s' for i in range(len(ordered)))
+  #    np.savetxt(outFile,data,header=header,fmt=types)
+  #  # format data?
 
 
   ### HIERARCHICAL STUFF ###
@@ -1689,7 +1809,7 @@ class DataSet(DataObject):
     for e,ending in enumerate(endings):
       # reconstruct path that leads to this ending
       path = [ending['prefix']]
-      while ending['RAVEN_parentID'] is not None and not pd.isnull(ending['RAVEN_parentID']):
+      while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']):
         _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
         path.append(ending['prefix'])
       # sort it in order by progression
@@ -1714,7 +1834,7 @@ class DataSet(DataObject):
       # first get rows from collector
       fromColl = self._collector[:][np.where(self._collector[:,self._orderedVars.index('RAVEN_isEnding')])]
       # then turn them into realization-like
-      fromColl = list( dict(zip(self._orderedVars,c)) for c in fromColl if self._orderedVars[c] in self.getVars())
+      fromColl = list( dict(zip(self._orderedVars,c)) for c in fromColl )
     else:
       fromColl = []
     # then get from data

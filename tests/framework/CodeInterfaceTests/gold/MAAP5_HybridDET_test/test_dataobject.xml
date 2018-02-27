@@ -1,85 +1,55 @@
-<data name="test_dataobject" type="HistorySet"><input>TIMELOCA</input><output>PSGGEN(1),WWBBN(1),WWTOTFW(1),PPS,ZWDC2SG(1),TIME</output><inputFilename>test_dataobject.csv</inputFilename><metadata><ProbabilityWeight>array([ 0.08362375,  0.08001575,  0.4348435 ,  0.09291528,  0.41608187,
-        0.08890638,  0.3478748 ,  0.07433222,  0.3328655 ,  0.07112511,
-        0.6957496 ,  0.665731  ])</ProbabilityWeight><executable>array(['', '', '', '', '', '', '', '', '', '', '', ''], dtype=object)</executable><hybridsamplerCoordinate>array([ {u'SamplerType': u'MonteCarlo', u'crowDist': {u'ZCRU': '{"mu": 6.616, "sigma": 0.5, "type": "NormalDistribution"}'}, u'SampledVars': {u'ZCRU': 6.4451026958338344}, u'ProbabilityWeight': 1.0, u'prefix': 1, u'PointProbability': 0.7526137509069741, u'SampledVarsPb': {u'ZCRU': 0.7526137509069741}},
-       {u'SamplerType': u'MonteCarlo', u'crowDist': {u'ZCRU': '{"mu": 6.616, "sigma": 0.5, "type": "NormalDistribution"}'}, u'SampledVars': {u'ZCRU': 6.3895977916388222}, u'ProbabilityWeight': 1.0, u'prefix': 2, u'PointProbability': 0.7201417059294956, u'SampledVarsPb': {u'ZCRU': 0.7201417059294956}},
-       {u'SamplerType': u'MonteCarlo', u'crowDist': {u'ZCRU': '{"mu": 6.616, "sigma": 0.5, "type": "NormalDistribution"}'}, u'SampledVars': {u'ZCRU': 6.4451026958338344}, u'ProbabilityWeight': 1.0, u'prefix': 1, u'PointProbability': 0.7526137509069741, u'SampledVarsPb': {u'ZCRU': 0.7526137509069741}},
-       {u'SamplerType': u'MonteCarlo', u'crowDist': {u'ZCRU': '{"mu": 6.616, "sigma": 0.5, "type": "NormalDistribution"}'}, u'SampledVars': {u'ZCRU': 6.4451026958338344}, u'ProbabilityWeight': 1.0, u'prefix': 1, u'PointProbability': 0.7526137509069741, u'SampledVarsPb': {u'ZCRU': 0.7526137509069741}},
-       {u'SamplerType': u'MonteCarlo', u'crowDist': {u'ZCRU': '{"mu": 6.616, "sigma": 0.5, "type": "NormalDistribution"}'}, u'SampledVars': {u'ZCRU': 6.3895977916388222}, u'ProbabilityWeight': 1.0, u'prefix': 2, u'PointProbability': 0.7201417059294956, u'SampledVarsPb': {u'ZCRU': 0.7201417059294956}},
-       {u'SamplerType': u'MonteCarlo', u'crowDist': {u'ZCRU': '{"mu": 6.616, "sigma": 0.5, "type": "NormalDistribution"}'}, u'SampledVars': {u'ZCRU': 6.3895977916388222}, u'ProbabilityWeight': 1.0, u'prefix': 2, u'PointProbability': 0.7201417059294956, u'SampledVarsPb': {u'ZCRU': 0.7201417059294956}},
-       {u'SamplerType': u'MonteCarlo', u'crowDist': {u'ZCRU': '{"mu": 6.616, "sigma": 0.5, "type": "NormalDistribution"}'}, u'SampledVars': {u'ZCRU': 6.4451026958338344}, u'ProbabilityWeight': 1.0, u'prefix': 1, u'PointProbability': 0.7526137509069741, u'SampledVarsPb': {u'ZCRU': 0.7526137509069741}},
-       {u'SamplerType': u'MonteCarlo', u'crowDist': {u'ZCRU': '{"mu": 6.616, "sigma": 0.5, "type": "NormalDistribution"}'}, u'SampledVars': {u'ZCRU': 6.4451026958338344}, u'ProbabilityWeight': 1.0, u'prefix': 1, u'PointProbability': 0.7526137509069741, u'SampledVarsPb': {u'ZCRU': 0.7526137509069741}},
-       {u'SamplerType': u'MonteCarlo', u'crowDist': {u'ZCRU': '{"mu": 6.616, "sigma": 0.5, "type": "NormalDistribution"}'}, u'SampledVars': {u'ZCRU': 6.3895977916388222}, u'ProbabilityWeight': 1.0, u'prefix': 2, u'PointProbability': 0.7201417059294956, u'SampledVarsPb': {u'ZCRU': 0.7201417059294956}},
-       {u'SamplerType': u'MonteCarlo', u'crowDist': {u'ZCRU': '{"mu": 6.616, "sigma": 0.5, "type": "NormalDistribution"}'}, u'SampledVars': {u'ZCRU': 6.3895977916388222}, u'ProbabilityWeight': 1.0, u'prefix': 2, u'PointProbability': 0.7201417059294956, u'SampledVarsPb': {u'ZCRU': 0.7201417059294956}},
-       {u'SamplerType': u'MonteCarlo', u'crowDist': {u'ZCRU': '{"mu": 6.616, "sigma": 0.5, "type": "NormalDistribution"}'}, u'SampledVars': {u'ZCRU': 6.4451026958338344}, u'ProbabilityWeight': 1.0, u'prefix': 1, u'PointProbability': 0.7526137509069741, u'SampledVarsPb': {u'ZCRU': 0.7526137509069741}},
-       {u'SamplerType': u'MonteCarlo', u'crowDist': {u'ZCRU': '{"mu": 6.616, "sigma": 0.5, "type": "NormalDistribution"}'}, u'SampledVars': {u'ZCRU': 6.3895977916388222}, u'ProbabilityWeight': 1.0, u'prefix': 2, u'PointProbability': 0.7201417059294956, u'SampledVarsPb': {u'ZCRU': 0.7201417059294956}}], dtype=object)</hybridsamplerCoordinate><branchChangedParam>array(['None', 'None', 'TIM100', 'ABBN(1)', 'ABBN(2)', 'ABBN(3)', 'TIM100',
-       'ABBN(1)', 'ABBN(2)', 'ABBN(3)', 'TIM100', 'ABBN(1)', 'ABBN(2)',
-       'ABBN(3)', 'TIM100', 'ABBN(1)', 'ABBN(2)', 'ABBN(3)', 'TIM101',
-       'IEVNT(224)', 'TIM101', 'IEVNT(224)', 'TIM101', 'IEVNT(224)',
-       'TIM101', 'IEVNT(224)', 'TIM100', 'ABBN(1)', 'ABBN(2)', 'ABBN(3)',
-       'TIM100', 'ABBN(1)', 'ABBN(2)', 'ABBN(3)'], dtype=object)</branchChangedParam><SampledVars>array([{'TIMELOCA': 500, 'AFWOFF': 720.0, u'ZCRU': 6.3895977916388222},
-       {'TIMELOCA': 500, 'AFWOFF': 720.0, u'ZCRU': 6.3895977916388222},
-       {'TIMELOCA': 900, 'AFWOFF': 720.0, u'ZCRU': 6.4451026958338344},
-       {'TIMELOCA': 500, 'AFWOFF': 720.0, u'ZCRU': 6.4451026958338344},
-       {'TIMELOCA': 900, 'AFWOFF': 720.0, u'ZCRU': 6.3895977916388222},
-       {'TIMELOCA': 500, 'AFWOFF': 720.0, u'ZCRU': 6.3895977916388222},
-       {'TIMELOCA': 900, 'AFWOFF': 720.0, u'ZCRU': 6.4451026958338344},
-       {'TIMELOCA': 500, 'AFWOFF': 720.0, u'ZCRU': 6.4451026958338344},
-       {'TIMELOCA': 900, 'AFWOFF': 720.0, u'ZCRU': 6.3895977916388222},
-       {'TIMELOCA': 500, 'AFWOFF': 720.0, u'ZCRU': 6.3895977916388222},
-       {'TIMELOCA': 900, 'AFWOFF': 720.0, u'ZCRU': 6.4451026958338344},
-       {'TIMELOCA': 900, 'AFWOFF': 720.0, u'ZCRU': 6.3895977916388222}], dtype=object)</SampledVars><happenedEvent>array([False, False, False,  True, False,  True,  True,  True,  True,
-        True,  True,  True], dtype=bool)</happenedEvent><endTimeStep>array([ 0,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1])</endTimeStep><conditionalPbr>array([ 1.,  1.])</conditionalPbr><ValueThreshold>array([ 500.,  720.,  500.,  720.,  900.,  900.,  720.,  500.,  500.,
-        720.,  900.,  900.,  720.,  500.,  500.,  720.,  720.,  900.,
-        720.,  720.,  500.,  720.,  720.,  900.,  720.,  720.,  500.,
-        720.,  900.,  900.,  720.,  900.,  900.,  720.])</ValueThreshold><PbThreshold>array([ 0.27777778,  0.4       ,  0.27777778,  0.4       ,  0.5       ,
-        0.5       ,  0.4       ,  0.27777778,  0.27777778,  0.4       ,
-        0.5       ,  0.5       ,  0.4       ,  0.27777778,  0.27777778,
-        0.4       ,  0.4       ,  0.5       ,  0.4       ,  0.4       ,
-        0.27777778,  0.4       ,  0.4       ,  0.5       ,  0.4       ,
-        0.4       ,  0.27777778,  0.4       ,  0.5       ,  0.5       ,
-        0.4       ,  0.5       ,  0.5       ,  0.4       ])</PbThreshold><initiatorDistribution>array(['uniform', 'uniform', 'uniform', 'uniform', 'uniform', 'uniform',
-       'uniform', 'uniform', 'uniform', 'uniform', 'uniform', 'uniform',
-       'uniform', 'uniform', 'uniform', 'uniform', 'uniform', 'uniform',
-       'uniform', 'uniform', 'uniform', 'uniform', 'uniform', 'uniform',
-       'uniform', 'uniform', 'uniform', 'uniform', 'uniform', 'uniform',
-       'uniform', 'uniform', 'uniform', 'uniform'], dtype=object)</initiatorDistribution><prefix>array(['hybdet_1', 'hybdet_2', 'hybdet_1-1', 'hybdet_1-2', 'hybdet_2-1',
-       'hybdet_2-2', 'hybdet_1-1-2', 'hybdet_1-2-2', 'hybdet_2-1-2',
-       'hybdet_2-2-2', 'hybdet_1-1-2-2', 'hybdet_2-1-2-2'], dtype=object)</prefix><SampledVarsPb>array([ {'TIMELOCA': 0.2777777777777778, 'AFWOFF': 0.4, u'ZCRU': 0.7201417059294956},
-       {'TIMELOCA': 0.2777777777777778, 'AFWOFF': 0.4, u'ZCRU': 0.7201417059294956},
-       {'TIMELOCA': 0.5, 'AFWOFF': 0.4, u'ZCRU': 0.7526137509069741},
-       {'TIMELOCA': 0.2777777777777778, 'AFWOFF': 0.4, u'ZCRU': 0.7526137509069741},
-       {'TIMELOCA': 0.5, 'AFWOFF': 0.4, u'ZCRU': 0.7201417059294956},
-       {'TIMELOCA': 0.2777777777777778, 'AFWOFF': 0.4, u'ZCRU': 0.7201417059294956},
-       {'TIMELOCA': 0.5, 'AFWOFF': 0.4, u'ZCRU': 0.7526137509069741},
-       {'TIMELOCA': 0.2777777777777778, 'AFWOFF': 0.4, u'ZCRU': 0.7526137509069741},
-       {'TIMELOCA': 0.5, 'AFWOFF': 0.4, u'ZCRU': 0.7201417059294956},
-       {'TIMELOCA': 0.2777777777777778, 'AFWOFF': 0.4, u'ZCRU': 0.7201417059294956},
-       {'TIMELOCA': 0.5, 'AFWOFF': 0.4, u'ZCRU': 0.7526137509069741},
-       {'TIMELOCA': 0.5, 'AFWOFF': 0.4, u'ZCRU': 0.7201417059294956}], dtype=object)</SampledVarsPb><additionalEdits>array([{u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''}], dtype=object)</additionalEdits><startTime>array([ -1.79769313e+308,  -1.79769313e+308,   0.00000000e+000,
-         0.00000000e+000,   5.00182900e+002,   5.00182900e+002,
-         5.00172770e+002,   7.20186560e+002,   7.20143530e+002,
-         7.20124550e+002,   7.20173600e+002,   9.00186560e+002])</startTime><parentID>array([u'root', u'root', u'hybdet_1', u'hybdet_1', u'hybdet_2',
-       u'hybdet_2', u'hybdet_1-1', u'hybdet_1-2', u'hybdet_2-1',
-       u'hybdet_2-2', u'hybdet_1-1-2', u'hybdet_2-1-2'], dtype=object)</parentID><PointProbability>array([ 0.08362375,  0.08001575,  0.4348435 ,  0.09291528,  0.41608187,
-        0.08890638,  0.3478748 ,  0.07433222,  0.3328655 ,  0.07112511,
-        0.6957496 ,  0.665731  ])</PointProbability><conditionalPb>array([ 1.        ,  1.        ,  2.88888889,  1.11111111,  2.88888889,
-        1.11111111,  2.31111111,  0.88888889,  2.31111111,  0.88888889,
-        4.62222222,  4.62222222])</conditionalPb><branchChangedParamValue>array(['None', 'None', '-1.0', '0.000114', '0.000114', '0.000114', '1.0',
-       '0.008', '0.008', '0.008', '-1.0', '0.000114', '0.000114',
-       '0.000114', '1.0', '0.008', '0.008', '0.008', '1.0', '1', '1.0',
-       '1', '1.0', '1', '1.0', '1', '1.0', '0.008', '0.008', '0.008',
-       '1.0', '0.008', '0.008', '0.008'], dtype=object)</branchChangedParamValue><outfile>array([u'out~test', u'out~test', u'out~test', u'out~test', u'out~test',
-       u'out~test', u'out~test', u'out~test', u'out~test', u'out~test',
-       u'out~test', u'out~test'], dtype=object)</outfile><crowDist>array([ {u'TIMELOCA': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1800.0}', u'AFWOFF': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1800.0}'},
-       {u'TIMELOCA': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1800.0}', u'AFWOFF': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1800.0}'}], dtype=object)</crowDist></metadata></data>
+<DataObjectMetadata name="Temporal_Evolution">
+  <DataSet type="Static">
+    <dims>
+      <PPS>TIME</PPS>
+    </dims>
+    <general>
+      <inputs>TIMELOCA</inputs>
+      <pointwise_meta>ProbabilityWeight,RAVEN_isEnding,PointProbability,ProbabilityWeight-AFWOFF,RAVEN_parentID,prefix,ProbabilityWeight-TIMELOCA</pointwise_meta>
+      <outputs>PPS,PSGGEN(1),ZWDC2SG(1),WWBBN(1),WWTOTFW(1)</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+    <Hierarchical>
+      <path>hybdet_1</path>
+      <path>hybdet_1</path>
+      <path>hybdet_2</path>
+      <path>hybdet_2</path>
+      <path>hybdet_1,hybdet_1-1</path>
+      <path>hybdet_2</path>
+      <path>hybdet_1,hybdet_1-1</path>
+      <path>hybdet_1,hybdet_1-2</path>
+      <path>hybdet_1,hybdet_1-1</path>
+      <path>hybdet_1,hybdet_1-2</path>
+      <path>hybdet_2,hybdet_2-1</path>
+      <path>hybdet_1,hybdet_1-1</path>
+      <path>hybdet_1,hybdet_1-2</path>
+      <path>hybdet_2,hybdet_2-1</path>
+      <path>hybdet_2,hybdet_2-2</path>
+      <path>hybdet_1,hybdet_1-2</path>
+      <path>hybdet_2,hybdet_2-1</path>
+      <path>hybdet_2,hybdet_2-2</path>
+      <path>hybdet_1,hybdet_1-1,hybdet_1-1-2</path>
+      <path>hybdet_2,hybdet_2-1</path>
+      <path>hybdet_2,hybdet_2-2</path>
+      <path>hybdet_1,hybdet_1-1,hybdet_1-1-2</path>
+      <path>hybdet_1,hybdet_1-2,hybdet_1-2-2</path>
+      <path>hybdet_2,hybdet_2-2</path>
+      <path>hybdet_1,hybdet_1-1,hybdet_1-1-2</path>
+      <path>hybdet_1,hybdet_1-2,hybdet_1-2-2</path>
+      <path>hybdet_2,hybdet_2-1,hybdet_2-1-2</path>
+      <path>hybdet_1,hybdet_1-1,hybdet_1-1-2</path>
+      <path>hybdet_1,hybdet_1-2,hybdet_1-2-2</path>
+      <path>hybdet_2,hybdet_2-1,hybdet_2-1-2</path>
+      <path>hybdet_2,hybdet_2-2,hybdet_2-2-2</path>
+      <path>hybdet_1,hybdet_1-2,hybdet_1-2-2</path>
+      <path>hybdet_2,hybdet_2-1,hybdet_2-1-2</path>
+      <path>hybdet_2,hybdet_2-2,hybdet_2-2-2</path>
+      <path>hybdet_1,hybdet_1-1,hybdet_1-1-2,hybdet_1-1-2-2</path>
+      <path>hybdet_1,hybdet_1-2,hybdet_1-2-2</path>
+      <path>hybdet_2,hybdet_2-2,hybdet_2-2-2</path>
+      <path>hybdet_1,hybdet_1-1,hybdet_1-1-2,hybdet_1-1-2-2</path>
+      <path>hybdet_2,hybdet_2-1,hybdet_2-1-2,hybdet_2-1-2-2</path>
+    </Hierarchical>
+  </DataSet>
+  
+</DataObjectMetadata>

@@ -661,7 +661,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #self.inputInfo['counter'] = self.counter
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
-
+    # split the sampled vars Pb among the different correlated variables
+    self._reassignSampledVarsPbToFullyCorrVars()
+    self._reassignPbWeightToCorrelatedVars()
     ##### TRANSFORMATION #####
     # add latent variables and original variables to self.inputInfo
     if self.variablesTransformationDict:

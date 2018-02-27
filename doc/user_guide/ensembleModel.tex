@@ -1,0 +1,224 @@
+\section{EnsembleModel}
+\label{sec:ensembleModel}
+
+In most RAVEN MultiRun steps, a sampler provides a variety of inputs to a model, whose outputs then produce a
+set of responses that can be used in many ways.  However, sometimes a single model is insufficient to produce
+the response we want.  When this happens, the EnsembleModel opens up a new vista of simulation options.
+
+The EnsembleModel is a powerful tool for chaining multiple models together, with outputs of some models
+becoming inputs for others.  Whether this is adding a preprocessing or postprocessing model, or linking
+multiple physics-based models together, the EnsembleModel provides the functionality to see many models
+together as a single model in a MultiRun step.
+
+Note that the EnsembleModel combines multiple models for \emph{each sample}; that is, the whole ensemble of
+models is run for each sample taken by RAVEN.  If instead you want to postprocess a batch of sampled data, try
+the PostProcessor models instead.
+
+\subsection{Introduction: The EnsembleModel}
+The key to the EnsembleModel is careful definition of the inputs and outputs of each model.  When an
+EnsembleModel is defined in a RAVEN run, RAVEN will automatically scan the inputs and outputs of each model
+and determine the right order to evaluate the models in (or \emph{graph}).
+
+\subsection{Example: ballistics and impact}
+% TODO add an image showing these two models, their inputs and outputs
+As a basic example, consider two physics models.  The first is a ballistics code, used to determine the
+kinetic energy $E$ of a ball when it hits the ground, with a path depending on its initial height $y_0$, initial velocity
+$v_0$, mass $m$ and initial angle $\theta_0$.  We'll assume we're near the Earth's surface and aside from the initial
+launch height, we're launching over a flat surface.  This can be represented as a functional $E(y_0,v_0,m,\theta_0)$.
+
+The second physics model is an impact code that estimates the diameter of the crater $D$ made when a ball
+impacts.  With a few simplifying assumptions ($D$ is under 1 km, the impact is near Earth's surface, the
+impact is in dry sand with fixed density), size $D$ can be determined as a function of the ball's kinetic
+energy when impacting $E$, its mass $m$, and its radius $r$: $D(E,m,r)$.
+
+We can see that the input $E$ for the impact model is calculated by the ballistics code.  In RAVEN the
+EnsembleModel will automatically detect this, and run the ballistics code before the impact code in each
+iteration.
+
+In general, the EnsembleModel also has some finite capacity for resolving circular dependencies using Picard
+iteration.  See the manual for more information on this capability.
+
+Setting up an EnsembleModel can be more complex than other models, so we'll walk through the input using our example
+outlined above.  For
+our purposes, we're going to let RAVEN perturb the codes using the GenericCode interface.  We'll call the
+ballistics code \texttt{ballistics.py} with keyword input file \texttt{ballistics\_input.txt} and similarly the impact
+code \texttt{impact.py} with keyword input file \texttt{impact\_input.txt}.
+
+The RAVEN input file for this example is located at
+\begin{verbatim}
+raven/tests/framework/user_guide/EnsembleModel/basic.xml
+\end{verbatim}
+with run directory \texttt{run\_basic}.  The models and inputs are in the run directory.
+
+Now we turn our attention to the RAVEN input file. We will discuss \xmlNode{DataObjects}, \xmlNode{Files},
+\xmlNode{Models}, and \xmlNode{Steps} in detail; the rest are typical usage and need no special attention.
+
+\subsubsection{DataObjects}
+The key to a successful EnsembleModel is setting up the DataObject inputs and outputs.  Each model has a
+\xmlNode{TargetEvaluation} DataObject that specifies what the inputs and outputs are for that model.  In
+addition, any \xmlNode{Output} DataObjects in the \xmlNode{MultiRun} step can collect any or all of the
+variables used throughout the EnsembleModel calculation, either as inputs or outputs.
+
+In this
+example, our convention is to name the \xmlNode{TargetEvaluation} DataObjects as \xmlString{model\_data}, replacing
+\xmlString{model} with the model name.  Additionally, we add a DataObject to store the final results of the
+\xmlNode{MultiRun} step:
+\xmlExample{framework/user_guide/EnsembleModel/basic.xml}{DataObjects}
+In this example, we see three DataObjects.  \xmlString{ballistics\_data} determines the inputs and outputs of the
+\texttt{ballistics.py} model, so for its input space we have \texttt{y0,v0,ang,m}, which correspond to
+$y_0,v_0,\theta_0,m$; for the output, we have \texttt{E} (for $E$).
+
+The second DataObject, \xmlString{impact\_data}, delineates the inputs and outputs of the \texttt{impact.py}
+model, so for its input space we have \texttt{E,m,r}, while in the output space we have \texttt{D}.  RAVEN
+will use these first two DataObjects to map the order in which these two models should be run (first
+ballistics, then impact) and transfer data from one to the next.
+
+The third DataObject, \xmlString{final\_results}, can contain any information we want it to.  In this case,
+we want to collect all the variables in their original spaces, so we take \texttt{y0,v0,ang,m,r} as inputs and
+\texttt{E,D} as outputs.
+
+
+\subsubsection{Files}
+Since we know both of our models take input files to set the variable values, we inform RAVEN about the
+template input files and
+give those files RAVEN names in the \xmlNode{Files} block.  In this example, our input file for \texttt{ballistics.py} is
+\texttt{ballistics\_template.txt}, which we simply name \xmlString{ballistics\_input}.  Similarly,
+for \texttt{impact.py} the input file is \texttt{impact\_template.txt}, which we name
+\xmlString{impact\_input}:
+\xmlExample{framework/user_guide/EnsembleModel/basic.xml}{Files}
+We will pause to note that the file \texttt{ballistics\_template.txt} is different than the file
+\texttt{ballistics\_input.py}, and similarly for the impact code.  In the template file, we've replaced
+variable values with the \texttt{\$RAVEN-\$} wildcard, since we will be using the Generic Code model for these
+two models.  Having a template input file may not be required for all code interfaces, but it is required for
+the Generic interface. See more about this interface in the Models section and in the user manual.
+
+
+\subsubsection{Models}
+Once we've specified the DataObjects and files, we are prepared to set up the \xmlNode{Models} block.  To set
+up an EnsembleModel, we define each sub-module by itself as if it were a stand-alone RAVEN model, and then
+combine them by defining an \xmlNode{EnsembleModel}:
+\xmlExample{framework/user_guide/EnsembleModel/basic.xml}{Models}
+The first model we will look at is the definition of the \xmlString{ballistics} model.  We note that is uses
+the \xmlString{GenericCode} subType, so it will use the interface as described in the user manual, where
+wildcards in the input file are replaced with RAVEN's sampled values.  The \xmlNode{clargs} (command line
+arguments) include the \xmlString{python} command, the \xmlString{-i} flag to specify the input file, and the
+\xmlString{-o} flag to specify the output file.  These nodes are specific to the Generic code interface and
+will not apply to all codes or models. The \xmlString{Impact} model is defined in a similar manner.
+
+With both Models defined, we can construct the \xmlNode{EnsembleModel}, which we've named
+\xmlString{ballistic\_and\_impact} to describe the codes that are paired (you can name this whatever you
+want).  There is no \xmlAttr{subType} for the \xmlNode{EnsembleModel} currently, so we leave it blank.
+
+Within the \xmlNode{EnsembleModel} node there are two \xmlNode{Model} nodes listed, which will inform the
+EnsembleModel which models need coupling.  The order listed does not matter; the EnsembleModel will sort out
+the order based on the \xmlNode{TargetEvaluation} DataObject of each model.
+
+The first \xmlNode{Model} we list within the \xmlNode{EnsembleModel} is the \texttt{ballistics} model.  Note
+that the \xmlAttr{class} and \xmlAttr{type} are used along with the name to find the right model.  Note also
+the name of the model goes in the \emph{text} of the \xmlNode{Model} node, right after the first closing angle
+bracket.  The subnodes of the \xmlString{ballistics} model are the \xmlNode{Input}, which points to the input
+template input file we defined in the \xmlNode{Files} block; and the \xmlNode{TargetEvaluation}, which points
+to the \xmlNode{PointSet} we defined in the \xmlNode{DataObjects} block.  These are critical to allowing the
+EnsembleModel both to run the \xmlString{ballistics} model correctly, as well as the entire ensemble in a
+sensible manner.
+
+In general, some models (such as a \xmlNode{ROM} or \xmlNode{ExternalModel}) do not require any files as
+inputs.  In this case, the \xmlNode{Input} for an input-less model should be a placeholder DataObject,
+usually with the same input space as the \xmlNode{TargetEvaluation} DataObject, and a placeholder output.
+For more information, see examples running ExternalModels in these guides as well as the user manual.
+
+After the \xmlString{ballistics} model, we see a similar structure pointing to the \xmlString{impact} model.
+The only differences between this model specification and the ballistics model specificatoin are the names of
+the \xmlNode{Input} file and \xmlNode{TargetEvaluation} DataObject.
+
+With the two models defined, and the EnsembleModel assembled, no more work is required to
+prepare these two models to run.  More complicated systems may require additional nodes in the EnsembleModel;
+see the user manual for details.
+
+\subsubsection{Steps}
+Finally, to put all the pieces together, we consider the \xmlNode{Steps} node:
+\xmlExample{framework/user_guide/EnsembleModel/basic.xml}{Steps}
+We take two steps in this simulation, one \xmlNode{MultiRun} called \xmlString{sample} to sample the EnsembleModel on a grid,
+and one \xmlNode{IOStep} to print the results.  These are constructed just as they would be with any other
+model; as far as the \xmlNode{Steps} are concerned, the EnsembleModel is like any other model.  Note that we
+include the two template input files as \xmlNode{Input} nodes for the sampling step.
+
+We do not discuss the \xmlNode{Distributions}, \xmlNode{Samplers}, or \xmlNode{OutStreams}
+here.  These operate in general as they would in any other RAVEN input file.  We will note, however, that the
+\xmlNode{Grid} sampler named \xmlString{grid} samples all the inputs that are needed by either of the submodels,
+unless the inputs are provided by another model.  In this case, that means we need to sample
+$y_0,\theta_0,v_0,m,r$ but we do not sample $E$ since it is calculated by the \xmlString{ballistics} model.
+
+We can find all the sampled and calculated values from both of the models in the output produced by this run,
+found at
+\begin{verbatim}
+raven/tests/framework/user_guide/EnsembleModel/run_basic/results.csv
+\end{verbatim}
+
+
+
+\subsection{ExternalModel in EnsembleModel}
+There are a few details that can make handling \xmlNode{ExternalModel} models challenging in EnsembleModel.
+We'll cover a few of these to help smooth over some potential bumps.
+
+\subsubsection{Input Placeholder DataObject}
+Firstly, as noted above, both ExternalModel and ROM differ from Code models in a significant way: they
+(usually) do not require any input files.  So what do you put as the \xmlNode{Input} for an ExternalModel or
+ROM?  To maintain consistency, we leave the \xmlNode{Input} node in place.  Instead of specifying a file
+however, a
+placeholder DataObject is used instead.  A placeholder DataObject has variables listed in its input, but
+for output either the \xmlNode{Output} node is omitted, or the special keyword \texttt{OutputPlaceHolder} is used
+instead.  For example, see the excerpt from a regression test:
+\xmlExample{framework/ensembleModelTests/index_input_output.xml}{DataObjects}
+The inputs \xmlString{first\_in} and \xmlString{second\_in} are placeholder DataObject, with a scalar input
+variable for the \xmlNode{Input} and placeholder OutputPlaceHolder as \xmlNode{Output}.  It is always a
+\xmlNode{PointSet} type of DataObject.  The key
+\texttt{OutputPlaceHolder} is recognized specially in RAVEN and translates into an empty output space.  This
+type of DataObject is the only suitable input for an ExternalModel or ROM without an input file.
+
+\subsubsection{DataSet}
+Because of the complexity of EnsembleModel, it is possible to have mixed scalars and vectors as variable
+inputs to a particular model in the Ensemble.  Furthermore, it is possible to have multiple vector variables
+that depend on different independent variables (for example, ``time'' and ``space'').  To accommodate this,
+the \xmlNode{DataSet} DataObject can be used.  More can be found on this data structure in the RAVEN user
+manual. % TODO is this true?
+
+\subsubsection{Scalar Variables}
+Because of the flexibility of the EnsembleModel, and to maintain a level of consistency across all
+variables, scalar variables in the EnsembleModel are stored as Numpy arrays with length 1.  In general this
+should be transparent for most operations; however, occasionally it may be required to access a scalar
+variable by accessing it at index 0.  For example, see the variable ``scalar2'' in a model used in the
+regression tests for the EnsembleModel:
+\begin{verbatim}
+raven/tests/framework/ensembleModelTests/IndexInputOutput/model2.py
+\end{verbatim}
+\lstinputlisting{../../tests/framework/ensembleModelTests/IndexInputOutput/model2.py}
+
+\subsubsection{Independent Variables}
+One feature of ExternalModel is their capacity to take variables exactly as they are from RAVEN, without
+going through file IO.  As a result, EnsembleModel frequently contain models that produce pivot-dependent data
+that can be used as inputs for other models in the Ensemble. Several terms aptly describe these variables on
+which other variables depend, including ``independent variables,'' ``indexes'', and ``pivots''.  In general,
+we refer to them as ``indexes''.  While the index is often ``time'' or something
+similar, it can be any monotonically-increasing variable.
+
+However, when it is stored in RAVEN, the indexes are not stored like other variables,
+because it is a coordinate axes that supports other variables.  This allows RAVEN to do a great many flexible
+operations internally.  However, it also means that any time you want to pass an index variable from one model
+to an ExternalModel, it can only come attached to another variable that depends on that input.
+
+For example, consider two models.  In the first model, a path followed by a charged particle is traced out in
+time.  The outputs of the first model are time $t$, lateral position $x$, and vertical position $y$.  The
+second model calculates the energy of the particle at each point in time; however, the second model is written
+such that it does not require any specific time values (it just reads them from the input).
+
+To run these two models in Ensemble configuration, \xmlNode{TargetEvaluation} DataObject of the second model
+must request one of the time-dependent variables from the first model, $x$ or $y$.  If $t$ is directly
+requested, it will not be made available in the second ExternalModel.  Additionally, in the \xmlNode{Model}
+definition, all variables (dependent or index) should be listed.  In this example, when defining the model,
+$t$ should be listed as well as $x$ in the \xmlNode{variables} node in the second \xmlNode{Model} definition.
+
+For an example of time dependent data passing, consider the regression test example at
+\begin{verbatim}
+raven/tests/framework/ensembleModelTests/index_intput_output.xml
+\end{verbatim}

@@ -28,9 +28,7 @@
 
     <PostProcessor name="DNBR" subType="BasicStatistics">
         <pivotParameter>time</pivotParameter>
-        <expectedValue>
-           cntrlvar_106
-        </expectedValue>
+        <expectedValue prefix="mean"> cntrlvar_106 </expectedValue>
     </PostProcessor> 
   </Models>
 
@@ -60,10 +58,8 @@
       <Input class="Files" type="">dummy.i</Input>
       <Model class="Models" type="Code">MyRELAP</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-      <Output class="Databases" type="HDF5">DataB_REL5_1</Output>
       <Output class="DataObjects" type="PointSet" >samples</Output>
       <Output class="DataObjects" type="HistorySet" >histories</Output>
-      <Output class="OutStreams" type="Print">test_dump</Output>
     </MultiRun>
     <IOStep name="io_test" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">samples</Input>
@@ -80,8 +76,8 @@
     <PostProcess name="post_proc" pauseAtEnd="True">
       <Input class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronized</Input>
       <Model class="Models" type="PostProcessor">DNBR</Model>
-      <Output class="Files" type="">outputDataMChistory.csv</Output>
-      <Output class="Files" type="">outputDataMChistory.xml</Output>
+      <Output class="DataObjects" type="HistorySet">timeDepBasicStat_DNBR</Output>
+      <Output class="OutStreams" type="Print">outputDataMChistory</Output>
     </PostProcess>    
   </Steps>
 
@@ -101,29 +97,26 @@
       <Input>20220000:4</Input>
       <Output>time,cntrlvar_106</Output>
     </HistorySet>
+    <HistorySet name="timeDepBasicStat_DNBR">
+        <options>
+            <pivotParameter>time</pivotParameter>
+        </options>
+        <Output>mean_cntrlvar_106</Output>
+    </HistorySet>
   </DataObjects>
-
-  <Databases>
-    <HDF5 name="DataB_REL5_1" readMode="overwrite"/>
-  </Databases>
 
   <OutStreams>
     <Print name="historiesSetPostProc_dump">
         <type>csv</type>
         <source> histories </source>
     </Print>
- <Print name="test_dump">
-         <type>csv</type>
-         <source> histories </source>
-     </Print>
     <Print name="historiesSetSyncronized_dump">
         <type>csv</type>
         <source> HistorySetPostProcTestSyncronized </source>
     </Print>
-
     <Print name="outputDataMChistory">
         <type>csv</type>
-        <source>histories</source>
+        <source>timeDepBasicStat_DNBR</source>
     </Print>
     <Print name="outputDataMCpoint">
         <type>csv</type>

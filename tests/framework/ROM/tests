@@ -24,4 +24,10 @@
     prereq = timeDepGaussPoly
   [../]
 
+  [./SKL_time]
+    type  = 'RavenFramework'
+    input = 'skl_timedep.xml'
+    csv = 'TimeDepSKL/innerHS.csv TimeDepSKL/innerHS_0.csv TimeDepSKL/innerHS_1.csv TimeDepSKL/innerHS_2.csv TimeDepSKL/train.csv TimeDepSKL/train_0.csv TimeDepSKL/train_1.csv TimeDepSKL/train_2.csv'
+  [../]
+
 []
