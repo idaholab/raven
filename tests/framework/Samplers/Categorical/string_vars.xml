@@ -1,0 +1,103 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Samplers/Categorical.Strings</name>
+    <author>talbpaul</author>
+    <created>2018-01-31</created>
+    <classesTested>Samplers.Categorical,Function</classesTested>
+    <description>
+      Tests the ability to use the Categorical distribution along with Functions to
+      essentially sample strings for variables.  The model run is a simple projectile
+      motion problem that can be run in either "stepper" or "analytic" mode.  The output
+      of the model is "height" as a time-dependent variable.  The analytic mode is exact,
+      but the stepper mode is intentionally chosen to be a poor approximation (too few steps
+      taken).
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>StringVars</WorkingDir>
+    <Sequence>sample,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="HistorySet">samples</Input>
+      <Output class="OutStreams" type="Print">initial_samples</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>v0,y0,modeID</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="samples">
+      <Input>v0,y0,modeID</Input>
+      <Output>y,t,restartID</Output>
+      <!--<options>
+        <pivotParameter>t</pivotParameter>
+      </options>-->
+    </HistorySet>
+  </DataObjects>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+        <grid construction="equal" type="CDF" steps="1">0 1</grid>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_dist</distribution>
+        <grid construction="equal" type="CDF" steps="1">0 1</grid>
+      </variable>
+      <variable name="modeID">
+        <distribution>mode_dist</distribution>
+        <grid construction="equal" type="CDF" steps="1">0 1</grid>
+      </variable>
+      <variable name="mode">
+        <function>modeFunc</function>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Distributions>
+    <Uniform name="v0_dist">
+      <lowerBound>10</lowerBound>
+      <upperBound>20</upperBound>
+    </Uniform>
+    <Uniform name="y0_dist">
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+    <Categorical name='mode_dist'>
+      <state outcome='0'>0.5</state>
+      <state outcome='1'>0.5</state>
+    </Categorical>
+  </Distributions>
+
+  <Functions>
+    <External file="mode_picker.py" name="modeFunc">
+      <variable>modeID</variable>
+    </External>
+  </Functions>
+
+  <Models>
+    <ExternalModel name="projectile" ModuleToLoad="proj_first" subType="">
+      <variables>v0,y0,mode,y,t,restartID</variables>
+    </ExternalModel>
+  </Models>
+
+  <OutStreams>
+    <Print name="initial_samples">
+      <type>csv</type>
+      <source>samples</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+</Simulation>
