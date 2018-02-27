@@ -16,15 +16,6 @@ hit $(MOOSE_DIR)/python/hit.so:: $(FRAMEWORK_DIR)/contrib/hit/hit.cpp $(FRAMEWOR
 framework_modules:: amsc python_crow_modules hit
 
 all:: amsc python_crow_modules hit
-=======
-framework_modules:: amsc python_crow_modules
-	$(MAKE) -C $(FRAMEWORK_DIR)/contrib/hit bindings
-	cp $(FRAMEWORK_DIR)/contrib/hit/hit.so $(MOOSE_DIR)/python/
-
-all:: amsc python_crow_modules
-	$(MAKE) -C $(FRAMEWORK_DIR)/contrib/hit bindings
-	cp $(FRAMEWORK_DIR)/contrib/hit/hit.so $(MOOSE_DIR)/python/
->>>>>>> dataobject-rework
 
 ####################################################################################
 #           find and remove all the *.pyc files (better safe then sorry)           #
