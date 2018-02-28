@@ -12,9 +12,9 @@ python setup.py build_ext --inplace $SETUPTOOLS_COMPILER_FLAG
 popd
 if [[ -f ${HIT_DIR}/hit.so ]]
 then
-    mv ${HIT_DIR}/hit.so $MOOSE_PYTHON_DIR
+    cp ${HIT_DIR}/hit.so $MOOSE_PYTHON_DIR
 elif [[ -f ${HIT_DIR}/hit.pyd ]]
 then
-    mv ${HIT_DIR}/hit.pyd $MOOSE_PYTHON_DIR
+    cp ${HIT_DIR}/hit.pyd $MOOSE_PYTHON_DIR
     touch ${MOOSE_PYTHON_DIR}/hit.so
 fi
