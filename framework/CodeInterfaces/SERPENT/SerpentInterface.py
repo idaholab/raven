@@ -86,16 +86,17 @@ class Serpent(CodeInterfaceBase):
             for ext in exts:
                 found = False
                 for inf in inputFiles:
-                    if '.'+inf.getExt() == ext:
+                    if '.' + inf.getExt() == ext:
                         found = True
                         inFiles.remove(inf)
                         break
                 if not found:
-                    raise IOError('input extension "'+ext +
+                    raise IOError('input extension "' + ext +
                                   '" listed in input but not in inputFiles!')
         # TODO if any remaining, check them against valid inputs
 
-        # PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
+        # PROBLEM this is limited, since we can't figure out which .xml goes to
+        # -i and which to -d, for example.
         def getFileWithExtension(fileList, ext):
             """
             Just a script to get the file with extension ext from the fileList.
@@ -108,12 +109,12 @@ class Serpent(CodeInterfaceBase):
                     found = True
                     break
             if not found:
-                raise IOError('No InputFile with extension '+ext+' found!')
+                raise IOError('No InputFile with extension ' + ext + ' found!')
             return index, inputFile
 
         # prepend
         todo = ''
-        todo += clargs['pre']+' '
+        todo += clargs['pre'] + ' '
         todo += executable
         index = None
         # inputs
@@ -122,28 +123,29 @@ class Serpent(CodeInterfaceBase):
                 for ext in exts:
                     idx, fname = getFileWithExtension(
                         inputFiles, ext.strip('.'))
-                    todo += ' '+fname.getFilename()
+                    todo += ' ' + fname.getFilename()
                     if index == None:
                         index = idx
                 continue
-            todo += ' '+flag
+            todo += ' ' + flag
             for ext in exts:
                 idx, fname = getFileWithExtension(inputFiles, ext.strip('.'))
-                todo += ' '+fname.getFilename()
+                todo += ' ' + fname.getFilename()
                 if index == None:
                     index = idx
         # outputs
-        # FIXME I think if you give multiple output flags this could result in overwriting
+        # FIXME I think if you give multiple output flags this could result in
+        # overwriting
         self.caseName = inputFiles[index].getBase()
-        outfile = 'out~'+self.caseName
+        outfile = 'out~' + self.caseName
         if 'output' in clargs.keys():
-            todo += ' '+clargs['output']+' '+outfile
+            todo += ' ' + clargs['output'] + ' ' + outfile
         # text flags
-        todo += ' '+clargs['text']
+        todo += ' ' + clargs['text']
         # postpend
-        todo += ' '+clargs['post']
+        todo += ' ' + clargs['post']
         returnCommand = [('parallel', todo)], outfile
-        print('Execution Command: '+str(returnCommand[0]))
+        print('Execution Command: ' + str(returnCommand[0]))
         return returnCommand
 
     def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
@@ -181,8 +183,8 @@ class Serpent(CodeInterfaceBase):
         filename_without_extension = output.split('~')[1]
         # resfile would be 'publ_core.serpent_res.m'
         # this is the file produced by RAVEN
-        resfile = os.path.join(workDir, filename+"_res.m")
+        resfile = os.path.join(workDir, filename + "_res.m")
         keff_dict = op.search_keff(resfile)
         # output created has to be 'publ_core.serpent.csv'
-        output_path = os.path.join(workDir, output+'.csv')
+        output_path = os.path.join(workDir, output + '.csv')
         op.csv_render_list_dict(output_path, keff_dict)
