@@ -1,0 +1,94 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>serpent-raven</WorkingDir>
+    <!-- ordered list of step names that RAVEN will run -->
+    <Sequence>runGrid,outputResults</Sequence>
+    <!-- number of parallel runs executed simultaneously -->
+    <batchSize>2</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="originalInput" type="">publ_core.serpent</Input>
+  </Files>
+
+  <Models>
+    <Code name="SERPENT" subType="Serpent">
+      <executable>/projects/sciteam/bahg/serpent/src/sss2 -omp 32 </executable>
+      <clargs arg="aprun -n 32 -d 32 " type="prepend"/>
+      <clargs arg="" extension=".serpent" type="input"/>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <!-- uniform distribution from 0.1 to 1 -->
+    <Uniform name="timedist">
+      <lowerBound>0.1</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="myGrid">
+      <variable name="deptime">
+        <distribution>timedist</distribution>
+        <!-- equally spaced steps with lower and upper bound -->
+        <grid construction="equal" steps="50" type="CDF">0.1 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="runGrid">
+      <!-- runGrid runs serpent by the number of steps with sampled variable -->
+      <Input   class="Files"       type=""          >originalInput</Input>
+      <Model   class="Models"      type="Code"      >SERPENT</Model>
+      <Sampler class="Samplers"    type="Grid"      >myGrid</Sampler>
+      <Output  class="DataObjects" type="HistorySet">outputHistories</Output>
+      <Output  class="DataObjects" type="PointSet"  >outPointSet</Output>
+      <Output  class="DataObjects" type="PointSet"  >outPointSetAverage</Output>
+    </MultiRun>
+    <IOStep name="outputResults">
+      <Input  class="DataObjects" type="HistorySet" >outputHistories</Input>
+      <Input  class="DataObjects" type="PointSet"   >outPointSet</Input>
+      <Input  class="DataObjects" type="PointSet"   >outPointSetAverage</Input>
+      <Output  class="OutStreams"  type="Print"     >outPointSet_dump</Output>
+      <Output  class="OutStreams"  type="Print"     >outPointSetAverage_dump</Output>
+      <Output  class="OutStreams"  type="Print"     >outputHistories_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="outPointSet_dump">
+      <type>csv</type>
+      <source>outPointSet</source>
+    </Print>
+    <Print name="outPointSetAverage_dump">
+      <type>csv</type>
+      <source>outPointSetAverage</source>
+    </Print>
+    <Print name="outputHistories_dump">
+        <type>csv</type>
+        <source>outputHistories</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="outPointSet">
+      <Input>deptime</Input>
+      <Output>keff</Output>
+    </PointSet>
+    <PointSet name="outPointSetAverage">
+      <Input>deptime</Input>
+      <Output>keff</Output>
+      <options>
+        <operator>average</operator>
+      </options>
+    </PointSet>
+    <HistorySet name="outputHistories">
+      <Input>deptime</Input>
+      <Output>keff</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>
