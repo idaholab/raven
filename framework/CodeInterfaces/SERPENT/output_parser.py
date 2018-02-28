@@ -17,7 +17,7 @@ def parse_line(line):
     tuple : (str, float)
         (isotope, atomic density)
     """
-    
+
     # remove whitespace in front
     line = line.lstrip()
     isotope, atom_density = line.split("  ")
@@ -60,9 +60,7 @@ def filter_trace(comp_dict, percent_cutoff):
     for isotope in delete_list:
         del comp_dict[isotope]
 
-
     return comp_dict
-
 
 
 def bumat_read(bumat_file, percent_cutoff):
@@ -121,7 +119,7 @@ def search_keff(res_file):
             sd_list.append(keff_line_parse(lines[i])[1])
 
     keff_dict = {}
-    keff_dict['keff'] = keff_list 
+    keff_dict['keff'] = keff_list
     keff_dict['sd'] = sd_list
     return keff_dict
 
@@ -143,7 +141,7 @@ def keff_line_parse(keff_line):
     new_keff_line = keff_line[start:]
     start = new_keff_line.find('[')
     end = new_keff_line.find(']')
-    
+
     # +3 and -1 is to get rid of leading and trailing whitespace
     keff_sd = new_keff_line[start + 3:end - 1]
     (keff, sd) = keff_sd.split(' ')
@@ -153,7 +151,7 @@ def keff_line_parse(keff_line):
 def csv_render_dict(csv_filename, dictionary, header):
     """renders csv given the dictionary
        column 1 = key, column 2 = value
-    
+
     Parameters
     ----------
     csv_filename: str
@@ -202,10 +200,10 @@ def csv_render_list_dict(csv_filename, list_dict):
         length_list = []
         key_list = []
         for key, value in list_dict.items():
-           length_list.append(len(value))
-           key_list.append(key)
+            length_list.append(len(value))
+            key_list.append(key)
         if len(set(length_list)) != 1:
-            raise ValueError('Lists have to be the same length') 
+            raise ValueError('Lists have to be the same length')
 
         count = 0
         for i in range(0, length_list[0]):
@@ -213,6 +211,6 @@ def csv_render_list_dict(csv_filename, list_dict):
             for key_index in range(0, len(key_list)):
                 temp_list.append(list_dict[key_list[key_index]][i])
             writer.writerow(temp_list)
-            count =+ 1
+            count = + 1
 
         return True
