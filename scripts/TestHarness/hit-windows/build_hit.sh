@@ -11,8 +11,7 @@ then
     cp ${HIT_DIR}/hit.pyd $MOOSE_PYTHON_DIR
     touch ${MOOSE_PYTHON_DIR}/hit.so
 else
-    pushd $HIT_DIR
-    make bindings
+    pushd ../../../moose/test
+    make hit
     popd
-    cp ${HIT_DIR}/hit.so $MOOSE_PYTHON_DIR
 fi
