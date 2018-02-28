@@ -1,0 +1,52 @@
+% --- Surfaces (core pitch = 10.16 cm):
+surf 1  cyl 0.0 0.0 1.71069             % Hole with fuel salt
+surf 2  sqc 0.0 0.0 4.953  0.46         % Graphite square outer wall 1.07
+surf 3  sqc 0.0 0.0 5.08                % Outer boundary
+surf 4  cyl -4.28498 4.53898   0.66802    % Left-upper graphite element 1.15
+surf 5  cyl 4.28498 -4.53898   0.66802    % Right-bottom graphite element
+surf 6  cyl -4.53898 -4.28498  0.66802    % Left-bottom graphite element
+surf 7  cyl 4.53898  4.28498   0.66802   % Right-up graphite element
+surf 8  cyl -4.28498 -5.62102  0.66802   % replay part of left-upper graphite element
+surf 9  cyl  4.28498 5.62102   0.66802   % replay part of right-bottom graphite element
+surf 10 cyl  -5.62102 4.28498  0.66802   % replay part of right-upper graphite element 0.51 octa
+surf 11 cyl  5.62102 -4.28498  0.66802   % replay part of left-bottom graphite element
+surf 12 pz  0
+surf 13 pz  396.24
+
+% --- Cells: Universe 1: Zone I-B
+
+cell 1  1  fuel  -1         12       -13    % Fuel hole
+cell 2  1  moder 1 -2 4 5 6 7 8 9 10 11 12 -13     % Graphite block
+cell 3  1  fuel  2 -3 4 5 6 7 8 9 10 11 12 -13    % Fuel salt outside graphite block
+cell 4  1  moder -4         12       -13    % Left-upper graphite element
+cell 5  1  moder -5         12       -13    % Right-bottom graphite element
+cell 6  1  moder -6         12       -13    % Left-bottom graphite element
+cell 7  1  moder -7         12       -13    % Left-bottom graphite element
+cell 8  1  moder -8         12       -13    % replay part of left-upper graphite element
+cell 9  1  moder -9         12       -13    % replay part of right-bottom graphite element
+cell 10 1  moder -10        12       -13    % replay part of right-upper graphite element
+cell 11 1  moder -11        12       -13    % replay part of left-bottom graphite element
+cell 12 1  outside  -12                     % Outside world
+cell 13 1  outside   13                    % Outside world
+%cell 14 1  outside   3                    % Outside world
+
+% ------------------------------------------------------------
+
+% --- Lattices ("array block"):
+
+% --- Lattice (25x25, round molten salt+fuel channel and graphite around)
+% square lattice=1, x0=0, y0=0, 17 el in x-dir&y-dir, grid step 10.16 cm
+lat 300 1 0 0 2 2 10.16
+1 1 
+1 1 
+
+surf 3000  sqc 0.0 0.0 10.16                  % r=(grid step/2) * number of elements
+surf 3001  pz  0.0
+surf 3002  pz  265
+
+% --- Cells:
+
+cell 300  0    fill 300  -3000 3001 -3002
+cell 301  0    outside   3000  3001 -3002
+cell 302  0    outside   -3001
+cell 303  0    outside   3002
