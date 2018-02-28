@@ -10,9 +10,7 @@ include $(RAVEN_DIR)/amsc.mk
 ###############################################################################
 
 hit $(MOOSE_DIR)/python/hit.so:: $(FRAMEWORK_DIR)/contrib/hit/hit.cpp $(FRAMEWORK_DIR)/contrib/hit/lex.cc $(FRAMEWORK_DIR)/contrib/hit/parse.cc
-	bash -c 'cd scripts/TestHarness/hit-windows && CC=gcc CXX=gcc ./build_hit.sh'
-	echo "ls moose/python"
-	ls $(MOOSE_DIR)/python
+	bash -c 'cd scripts/TestHarness/hit-windows && ./build_hit.sh'
 
 framework_modules:: amsc python_crow_modules hit
 
