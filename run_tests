@@ -12,7 +12,7 @@ source $SCRIPT_DIR/scripts/setup_raven_libs
 # this copy the plugins tests into raven tests
 python $SCRIPT_DIR/scripts/copy_plugins_tests.py
 echo "ls moose/python"
-ls moose/python
+ls -l moose/python
 # run the tests
 ./backend_run_tests --skip-config-check "$@"
 # grep return code
