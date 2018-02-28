@@ -2,7 +2,7 @@
 
 HIT_DIR=../../../moose/framework/contrib/hit
 MOOSE_PYTHON_DIR=../../../moose/python
-if [[ $VSVARSALL ]]
+if [[ $VS90COMNTOOLS ]]
 then
     cp setup.py $HIT_DIR
     pushd $HIT_DIR
