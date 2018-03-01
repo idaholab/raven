@@ -1,3 +1,4 @@
 scaling,filename
-1.0,writeSynDataOut_0.csv
-2.0,writeSynDataOut_1.csv
+1,writeSynDataOut_0.csv
+1,writeSynDataOut_1.csv
+1,writeSynDataOut_2.csv

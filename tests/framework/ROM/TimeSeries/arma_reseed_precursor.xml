@@ -12,6 +12,7 @@
     <revisions>
       <revision author="talbpaul" date="2017-07-12">created</revision>
       <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
+      <revision author="talbpaul" date="2018-01-12">renamed pickle file to avoid conflict with basic ARMA test</revision>
     </revisions>
   </TestInfo>
 
@@ -23,7 +24,7 @@
 
   <Files>
     <Input name="rawDataFile">../ARMA/dataSet.csv</Input>
-    <Input name="pk">arma.pk</Input>
+    <Input name="pk">arma_noseed.pk</Input>
   </Files>
 
   <Models>
@@ -61,7 +62,7 @@
       <Input>scaling</Input>
       <Output>Speed,Time</Output>
       <options>
-         <pivotParameter>Time</pivotParameter>
+        <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>

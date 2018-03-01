@@ -2,9 +2,16 @@
  [./ARMA]
    type = 'RavenFramework'
    input = 'test_ARMA.xml'
-   output = 'ARMA/writeSynDataOut.csv ARMA/writeSynDataOut.xml'
-   #csv = 'ARMA/writeSynDataOut_0.csv'
-   #rel_err = 0.1
+   output = 'ARMA/arma_seed.pk'
+   csv = 'ARMA/writeSynDataOut.csv ARMA/writeSynDataOut_0.csv ARMA/writeSynDataOut_1.csv ARMA/writeSynDataOut_2.csv'
+   rel_err = 1e-8
+  [../]
+ [./ARMA_pickle]
+   type = 'RavenFramework'
+   input = 'pickled_arma.xml'
+   csv = 'ARMA/writeSynDataOut_pickled.csv ARMA/writeSynDataOut_pickled_0.csv ARMA/writeSynDataOut_pickled_1.csv ARMA/writeSynDataOut_pickled_2.csv'
+   rel_err = 1e-8
+   prereq = ARMA
   [../]
   [./ARMAparallel]
    type = 'RavenFramework'
@@ -16,7 +23,7 @@
   [./ARMAreseedPrecursor]
    type = 'RavenFramework'
    input = 'arma_reseed_precursor.xml'
-   output = 'ARMAparallel/arma.pk'
+   output = 'ARMAparallel/arma_noseed.pk'
   [../]
   [./ARMAreseedTest]
    type = 'RavenFramework'

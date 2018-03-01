@@ -26,8 +26,13 @@ public:
 RandomClass::RandomClass() : _rng(new RandomClassImpl()), _range(_rng->_backend.max() - _rng->_backend.min()) {
 }
 
-void RandomClass::seed(unsigned int seed) {
+void RandomClass::seed(unsigned int seed, unsigned int n) {
+  // "n" is the number of entries to move forward within the seed.
     _rng->_backend.seed(seed);
+    long x;
+    for (unsigned int i=0; i<n; ++i){
+      x = this->random();
+    }
   }
 
 double RandomClass::random() {

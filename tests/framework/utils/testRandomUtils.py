@@ -27,6 +27,7 @@ sys.path.append(frameworkDir)
 from utils import utils
 utils.find_crow(frameworkDir)
 from utils import randomUtils
+import cloudpickle as pk
 
 print (randomUtils)
 
@@ -112,6 +113,8 @@ def checkType(comment,value,expected,updateResults=True):
 
 # set the stochastic environment TODO check both someday?
 randomUtils.stochasticEnv = 'crow'
+
+
 
 # randomSeed(), setting the random seed
 randomUtils.randomSeed(42)
@@ -228,6 +231,44 @@ if False:
   y = samps[:,1]
   plt.plot(x,y,'.')
   plt.show()
+
+
+# test shifting seed
+rng1 = randomUtils.CrowRNG()
+rng1.setSeed(42)
+shift = 2
+rand1 = rng1.random(5)
+rng2 = randomUtils.CrowRNG()
+rng2.setSeed(42,shift)
+rand2 = rng2.random(5-shift)
+checkArray('Shifted in seed',rand1[shift:],rand2)
+#check next sample is the same
+r2 = rng1.random()
+r1 = rng2.random()
+print(rng1.engine)
+print(rng2.engine)
+checkAnswer('After shift same',r1,r2)
+
+# try pickling an RNG object
+rng1 = randomUtils.CrowRNG()
+# note the seed
+seed1 = rng1.lastSeed
+# sample a couple times for kicks
+vals1 = rng1.random(3)
+# pickle
+pk.dump(rng1,open('testDumpRNGObject.pk','w'))
+rng2 = pk.load(open('testDumpRNGObject.pk','r'))
+# show they're different objects
+checkTrue('Unpickled RNG is distinct object',rng1==rng2,False)
+# check a few samples
+rand1 = rng1.random(6)
+rand2 = rng2.random(6)
+#print(rand1)
+#print(rand2)
+#print(rng1.count,rng1.lastSeed)
+#print(rng2.count,rng2.lastSeed)
+#checkArray('Unpickled acts same as pickled',rand1,rand2)
+
 
 
 print(results)

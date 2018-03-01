@@ -112,12 +112,12 @@ DistributionContainer::getType(const std::string dist_alias){
 }
 
 void
-DistributionContainer::seedRandom(unsigned int seed){
+DistributionContainer::seedRandom(unsigned int seed, unsigned int n){
   //std::cout << "seedRandom " << seed << std::endl;
   //srand( seed );
   //_random.seed(seed);
   //MooseRandom::seed(seed);
-  _random->seed(seed);
+  _random->seed(seed, n);
 
 }
 double
@@ -406,7 +406,13 @@ int DistributionContainer::returnDimensionality(const char * dist_alias){
         return returnDimensionality(std::string(dist_alias));
 }
 
-DistributionContainer & DistributionContainer::instance() {
+DistributionContainer & DistributionContainer::instance(bool newInstance) {
+  // give a fresh copy if requested, that won't be shared with anyone
+  if (newInstance == true){
+    static DistributionContainer fresh = * (new DistributionContainer());
+    return fresh; //fresh.instance(false);
+  }
+  // otherwise
   if(_instance == NULL){
     _instance = new DistributionContainer();
   }

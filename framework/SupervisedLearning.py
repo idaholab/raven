@@ -2331,12 +2331,18 @@ class ARMA(superVisedLearning):
     self.reseedCopies          = kwargs.get('reseedCopies',True)
     self.outTruncation         = kwargs.get('outTruncation', None)     # Additional parameters to allow user to specify the time series to be all positive or all negative
     self.pivotParameterID      = kwargs.get('pivotParameter', 'Time')
+    self.rngSeed               = kwargs.get('randomSeed',None)
+    if self.rngSeed is None:
+      self.rngSeed = randomUtils.randomInt(1,2**31,self)
     self.pivotParameterValues  = None                                  # In here we store the values of the pivot parameter (e.g. Time)
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
     if len(self.target) > 2:
       self.raiseAnError(IOError,"Multi-target ARMA not available yet!")
+    # set RNG
+    self.rng = randomUtils.CrowRNG(seed=self.rngSeed,messageHandler=self.messageHandler)
+    # TODO seed?
     # Initialize parameters for Fourier detrending
     if 'Fourier' not in self.initOptionDict.keys():
       self.hasFourierSeries = False
@@ -2364,8 +2370,9 @@ class ARMA(superVisedLearning):
     d = copy.copy(self.__dict__)
     # set up a seed for the next pickled iteration
     if self.reseedCopies:
-      rand = randomUtils.randomIntegers(1,int(2**20),self)
+      rand = self.rng.randomIntegers(1,int(2**20))
       d['random seed'] = rand
+    # else keeps main seed by keeping instance of RNG
     return d
 
   def __setstate__(self,d):
@@ -2375,9 +2382,17 @@ class ARMA(superVisedLearning):
       @ Out, None
     """
     seed = d.pop('random seed',None)
+    self.__dict__ = d
     if seed is not None:
       self.reseed(seed)
-    self.__dict__ = d
+
+  def reseed(self,value):
+    """
+      Sets the seed of this object's RNG.
+      @ In, value, int, new seed
+      @ Out, None
+    """
+    self.rng.setSeed(seed)
 
   def _localNormalizeData(self,values,names,feat): # This function is not used in this class and can be removed
     """
@@ -2404,6 +2419,7 @@ class ARMA(superVisedLearning):
     self.timeSeriesDatabase.shape   = (self.timeSeriesDatabase.size,)
     self.target.pop(self.target.index(self.pivotParameterID))
     # Fit fourier seires
+    self.raiseADebug('Fitting Fourier ...')
     if self.hasFourierSeries:
       self.__trainFourier__()
       self.armaPara['rSeries'] = self.timeSeriesDatabase - self.fourierResult['predict']
@@ -2416,6 +2432,7 @@ class ARMA(superVisedLearning):
     self.__generateCDF__(self.armaPara['rSeries'])
     self.armaPara['rSeriesNorm'] = self.__dataConversion__(self.armaPara['rSeries'], obj='normalize')
 
+    self.raiseADebug('Fitting ARMA ...')
     self.__trainARMA__() # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
 
     del self.timeSeriesDatabase       # Delete to reduce the pickle size, since from now the original data will no longer be used in the evaluation.
@@ -2474,6 +2491,7 @@ class ARMA(superVisedLearning):
     Qmin = self.armaPara['Qmin']
 
     criterionBest = np.inf
+    self.raiseADebug('Finding best data fits ...')
     for p in range(Pmin,Pmax+1):
       for q in range(Qmin,Qmax+1):
         if p is 0 and q is 0:
@@ -2484,6 +2502,7 @@ class ARMA(superVisedLearning):
           init.append(init_S[n1,n1])
 
         rOpt = {}
+        self.raiseADebug(' ... optimizing with p={}, q={} ...'.format(p,q))
         rOpt = optimize.fmin(self.__computeARMALikelihood__,init, args=(p,q) ,full_output = True)
         tmp = (p+q)*self.armaPara['dimension']**2/self.pivotParameterValues.size
         criterionCurrent = self.__computeAICorBIC(self.armaResult['sigHat'],noPara=tmp,cType='BIC',obj='min')
@@ -2495,6 +2514,7 @@ class ARMA(superVisedLearning):
           criterionBest = criterionCurrent
 
     # saving training results
+    self.raiseADebug('Storing training results ...')
     Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],self.armaResult['P'],self.armaResult['Q'],self.armaPara['dimension'] )
     self.armaResult['Phi'] = Phi
     self.armaResult['Theta'] = Theta
@@ -2744,17 +2764,20 @@ class ARMA(superVisedLearning):
       self.raiseAnError(ValueError, 'The input feature for ARMA for evaluation cannot have size greater than 1. ')
 
     # Instantiate a normal distribution for time series synthesis (noise part)
-    normEvaluateEngine = Distributions.returnInstance('Normal',self)
-    normEvaluateEngine.mean, normEvaluateEngine.sigma = 0, 1
-    normEvaluateEngine.upperBoundUsed, normEvaluateEngine.lowerBoundUsed = False, False
-    normEvaluateEngine.initializeDistribution()
+    normEvaluateEngine = self.rng
+    #normEvaluateEngine = Distributions.returnInstance('Normal',self)
+    #normEvaluateEngine.mean = 0
+    #normEvaluateEngine.sigma = 1
+    #normEvaluateEngine.upperBoundUsed = False
+    #normEvaluateEngine.lowerBoundUsed = False
+    #normEvaluateEngine.initializeDistribution()
 
     numTimeStep = len(self.pivotParameterValues)
     tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
     # TODO This could probably be vectorized for speed gains
     for t in range(numTimeStep):
       for n in range(self.armaPara['dimension']):
-        tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult['sig'][0,n]
+        tSeriesNoise[t,n] = normEvaluateEngine.randomNormal()*self.armaResult['sig'][0,n]
 
     tSeriesNorm = np.zeros(shape=(numTimeStep,self.armaPara['rSeriesNorm'].shape[1]))
     tSeriesNorm[0,:] = self.armaPara['rSeriesNorm'][0,:]
@@ -2814,14 +2837,6 @@ class ARMA(superVisedLearning):
       Currently not implemented for ARMA
     """
     pass
-
-  def reseed(self,seed):
-    """
-      Used to set the underlying random seed.
-      @ In, seed, int, new seed to use
-      @ Out, None
-    """
-    randomUtils.randomSeed(seed)
 
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom
