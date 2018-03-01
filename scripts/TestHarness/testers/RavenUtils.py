@@ -38,7 +38,7 @@ modules_to_try = [
   ("scipy",'scipy.__version__',"0.14.0","0.17.1",None),
   ("sklearn",'sklearn.__version__',"0.18","0.18.0",None),
   ("matplotlib",'matplotlib.__version__',"1.3.1","1.5.3",None),
-  ("xarray",'xarray.__version__',"0.9.5",None),
+  ("xarray",'xarray.__version__',"0.9.5","0.9.5",None),
 ]
 
 def __lookUpPreferredVersion(name):
@@ -57,6 +57,8 @@ __condaList = [("numpy",__lookUpPreferredVersion("numpy")),
                ("scipy",__lookUpPreferredVersion("scipy")),
                ("scikit-learn",__lookUpPreferredVersion("sklearn")),
                ("matplotlib",__lookUpPreferredVersion("matplotlib")),
+               ("xarray",__lookUpPreferredVersion("xarray")),
+               ("netcdf4",""),
                ("pyside",""),
                ("python","2.7"),
                ("hdf5",""),
