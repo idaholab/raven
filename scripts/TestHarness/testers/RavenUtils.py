@@ -32,11 +32,15 @@ def inPython3():
 #This list is made of (module, how to check the version, minimum version,
 # quality assurance module version, maximum version)
 # Deep learning requires Scikit-Learn version at least 0.18
-modules_to_try = [("numpy",'numpy.version.version',"1.8.0","1.11.0",None),
-                  ("h5py",'h5py.__version__','2.4.0','2.6.0',None),
-                  ("scipy",'scipy.__version__',"0.14.0","0.17.1",None),
-                  ("sklearn",'sklearn.__version__',"0.18","0.18.0",None),
-                  ("matplotlib",'matplotlib.__version__',"1.3.1","1.5.3",None)]
+modules_to_try = [
+  ("numpy",'numpy.version.version',"1.8.0","1.11.0",None),
+  ("h5py",'h5py.__version__','2.4.0','2.6.0',None),
+  ("scipy",'scipy.__version__',"0.14.0","0.17.1",None),
+  ("sklearn",'sklearn.__version__',"0.18","0.18.0",None),
+  ("matplotlib",'matplotlib.__version__',"1.3.1","1.5.3",None),
+  ("xarray",'xarray.__version__',"0.9.5","0.9.5",None),
+  ("pandas",'pandas.__version__',"0.20.1","0.20.1",None),
+]
 
 def __lookUpPreferredVersion(name):
   """
@@ -49,26 +53,32 @@ def __lookUpPreferredVersion(name):
       return qa
   return ""
 
-__condaList = [("numpy",__lookUpPreferredVersion("numpy")),
-               ("h5py",__lookUpPreferredVersion("h5py")),
-               ("scipy",__lookUpPreferredVersion("scipy")),
-               ("scikit-learn",__lookUpPreferredVersion("sklearn")),
-               ("matplotlib",__lookUpPreferredVersion("matplotlib")),
-               ("xarray",""),
-               ("netcdf4",""),
-               ("pyside",""),
-               ("python","2.7"),
-               ("hdf5",""),
-               ("swig",""),
-               ("pylint",""),
-               ("coverage",""),
-               ("lxml","")]
+__condaList = [
+  ("numpy",__lookUpPreferredVersion("numpy")),
+  ("h5py",__lookUpPreferredVersion("h5py")),
+  ("scipy",__lookUpPreferredVersion("scipy")),
+  ("scikit-learn",__lookUpPreferredVersion("sklearn")),
+  ("matplotlib",__lookUpPreferredVersion("matplotlib")),
+  ("xarray",__lookUpPreferredVersion("xarray")),
+  ("pandas",__lookUpPreferredVersion("pandas")),
+  ("netcdf4",""),
+  ("pyside",""),
+  ("python","2.7"),
+  ("hdf5",""),
+  ("swig",""),
+  ("pylint",""),
+  ("coverage",""),
+  ("lxml",""),
+]
 
-__pipList = [("numpy",__lookUpPreferredVersion("numpy")),
-             ("h5py",__lookUpPreferredVersion("h5py")),
-             ("scipy",__lookUpPreferredVersion("scipy")),
-             ("scikit-learn",__lookUpPreferredVersion("sklearn")),
-             ("matplotlib",__lookUpPreferredVersion("matplotlib"))]
+__pipList = [
+  ("numpy",__lookUpPreferredVersion("numpy")),
+  ("h5py",__lookUpPreferredVersion("h5py")),
+  ("scipy",__lookUpPreferredVersion("scipy")),
+  ("scikit-learn",__lookUpPreferredVersion("sklearn")),
+  ("matplotlib",__lookUpPreferredVersion("matplotlib")),
+  ("pandas",__lookUpPreferredVersion("pandas")),
+]
 
 def moduleReport(module,version=''):
   """Checks if the module exists.
