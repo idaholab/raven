@@ -17,7 +17,7 @@ def parse_line(line):
     tuple : (str, float)
         (isotope, atomic density)
     """
-
+    
     # remove whitespace in front
     line = line.lstrip()
     isotope, atom_density = line.split("  ")
@@ -60,7 +60,9 @@ def filter_trace(comp_dict, percent_cutoff):
     for isotope in delete_list:
         del comp_dict[isotope]
 
+
     return comp_dict
+
 
 
 def bumat_read(bumat_file, percent_cutoff):
@@ -88,7 +90,7 @@ def bumat_read(bumat_file, percent_cutoff):
     for i in range(1, len(comp_lines)):
         parsed = parse_line(comp_lines[i])
         # isotope as key, atomic density as value
-        comp_dict[parsed[0]] = parsed[1]
+        comp_dict[parsed[0].split('.')[0]] = parsed[1]
 
     comp_dict = filter_trace(comp_dict, percent_cutoff)
     return comp_dict
@@ -119,7 +121,7 @@ def search_keff(res_file):
             sd_list.append(keff_line_parse(lines[i])[1])
 
     keff_dict = {}
-    keff_dict['keff'] = keff_list
+    keff_dict['keff'] = keff_list 
     keff_dict['sd'] = sd_list
     return keff_dict
 
@@ -141,7 +143,7 @@ def keff_line_parse(keff_line):
     new_keff_line = keff_line[start:]
     start = new_keff_line.find('[')
     end = new_keff_line.find(']')
-
+    
     # +3 and -1 is to get rid of leading and trailing whitespace
     keff_sd = new_keff_line[start + 3:end - 1]
     (keff, sd) = keff_sd.split(' ')
@@ -151,7 +153,7 @@ def keff_line_parse(keff_line):
 def csv_render_dict(csv_filename, dictionary, header):
     """renders csv given the dictionary
        column 1 = key, column 2 = value
-
+    
     Parameters
     ----------
     csv_filename: str
@@ -173,44 +175,87 @@ def csv_render_dict(csv_filename, dictionary, header):
             writer.writerow([key, value])
     return True
 
+def read_file_into_list(file):
+    """ reads file into list, every line as element
 
-def csv_render_list_dict(csv_filename, list_dict):
-    """renders csv given list of data
-       column 1 = entry number, column 2+ = values
+    Parameters
+    ----------
+    file: str
+        name of file
+
+    Returns
+    -------
+    list of contents in the file
+    """
+    read = open(file, 'r')
+    lines = read.readlines()
+    list_from_file = []
+    for line in lines:
+        list_from_file.append(line.strip())
+    read.close()
+    return list_from_file
+
+
+def make_csv(csv_filename, bumat_dict, keff_dict, iso_list):
+    """ renders the  csv as filename with the given
+        bumat dict and keff dict
 
     Parameters
     ----------
     csv_filename: str
-        path of csv file to be created
-    list_dict: dictionary
-        dictionary with lists of values to be rendered
+        filename of csv output
+    bumat_dict: dictionary
+        key: isotope (ZZAAA)
+        value: atomic density
+    keff_dict: dictionary
+        key: 'keff', 'sd'
+        value: keff and sd at EOC
+    iso_list: list
+        list of isotopes to track
+    """
+
+    # parse through, get keff value
+    keff = keff_dict['keff'][0]
+    
+    with open(csv_filename, 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        header_list = iso_list + ['keff']
+        writer.writerow(header_list)
+        # initialize as zero
+        adens_list = [0] * len(iso_list)
+        for key in bumat_dict:
+            if key in iso_list:
+                index = iso_list.index(key)
+                adens_list[index] = bumat_dict[key]
+
+        # add keff value to adens list, like header
+        adens_list.append(keff)
+        writer.writerow(adens_list)
+
+
+def main(csv_filename, iso_file, bumat_file, resfile):
+    """ Main function that puts everything together to create
+        a csv file with all the isotopes in iso_file and keff.
+
+    Parameters
+    ----------
+    csv_filename: str
+        path to output csv file
+    iso_file: str
+        path to file with isotopes to track
+    bumat_file: dictionary
+        key: isotope (ZZAAA)
+        value: atomic density
+    resfile: dictionary
+        key: 'keff', 'sd'
+        value: keff and sd at EOC
 
     Returns
     -------
-    true if successful
+    True if successful
     """
-    with open(csv_filename, 'w') as csv_file:
-        writer = csv.writer(csv_file)
-        # write header
-        header_list = ['number']
-        header_list.extend(list(list_dict.keys()))
-        writer.writerow(header_list)
-
-        # check if lengths of all lists are the same
-        length_list = []
-        key_list = []
-        for key, value in list_dict.items():
-            length_list.append(len(value))
-            key_list.append(key)
-        if len(set(length_list)) != 1:
-            raise ValueError('Lists have to be the same length')
-
-        count = 0
-        for i in range(0, length_list[0]):
-            temp_list = [count + 1]
-            for key_index in range(0, len(key_list)):
-                temp_list.append(list_dict[key_list[key_index]][i])
-            writer.writerow(temp_list)
-            count = + 1
-
-        return True
+    iso_list = read_file_into_list(iso_file)
+    bumat_dict = bumat_read(bumat_dict, 0.01)
+    keff_dict = search_keff(keff_dict)
+    make_csv(csv_filename, bumat_dict, keff_dict, iso_list)
+    return True
