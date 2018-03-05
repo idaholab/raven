@@ -236,25 +236,35 @@ class ETstructure():
             rowCounter += newRows
 
         if self.expand:
-            pointSet = self.expandPointSet(pointSet)
+            pointSet = self.expandPointSet(pointSet,values)
 
         return pointSet
 
-    def expandPointSet(self,pointSet):
+    def expandPointSet(self,pointSet,values):
         """
           This method performs a full-factorial expansion of the ET: if a branch contains a -1 element this method
           duplicate the branch; each duplicated branch contains element values equal to +1 and 0.
           @ In,  pointSet, np.array, original point set
           @ Out, pointSet, np.array, expanded point set
         """
+        print(pointSet)
+        print(values)
         for col in range(pointSet.shape[1]):
             indexes = np.where(pointSet[:,col] == -1)[0]
             if indexes.size>0:
                 for idx in indexes:
-                    rowToBeAdded = copy.deepcopy(pointSet[idx,:])
-                    rowToBeAdded[col] = +1
-                    pointSet = np.vstack([pointSet,rowToBeAdded])
-                    pointSet[idx,col] = 0
+                    var = self.variables[col]
+                    pointSet[idx,col] = values[var][0]
+                    for index, value in enumerate(values[var]):
+                        if index > 0:
+                            rowToBeAdded = copy.deepcopy(pointSet[idx,:])
+                            rowToBeAdded[col] = value
+                            pointSet = np.vstack([pointSet,rowToBeAdded])
+                                                
+                    #rowToBeAdded = copy.deepcopy(pointSet[idx,:])
+                    #rowToBeAdded[col] = +1
+                    #pointSet = np.vstack([pointSet,rowToBeAdded])
+                    #pointSet[idx,col] = 0
                     #self.expandRow(pointSet,idx,col)
         return pointSet
 
@@ -422,7 +432,6 @@ class ETstructure():
           @ In, rowCounter, int, the row we are currently editing in X
           @ Out, offset, int, the number of rows of X this call has populated
         """
-
         # Construct point
         if node.tag == 'sequence':
             col = X.shape[1]-1
@@ -441,7 +450,7 @@ class ETstructure():
                 elif state =='success':
                     val = '0'
                 else:
-                    val = stateMap[event].index(state)
+                    val = int(state)#stateMap[event].index(state)
                 ## Fill in the rest of the data as the recursive nature will only
                 ## fill in the details under this branch, later iterations will
                 ## correct lower rows if a path does change

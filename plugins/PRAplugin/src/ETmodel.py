@@ -46,7 +46,7 @@ class ETmodel(ExternalModelPluginBase):
       @ In, inputFiles, list, list of input files (if any)
       @ Out, None
     """
-    #container.faultTreeModel = FTstructure(container['files'], container.topEventID)
+
 
   def createNewInput(self, container, inputs, samplerType, **Kwargs):
     container.eventTreeModel = ETstructure(inputs=inputs, expand=True)

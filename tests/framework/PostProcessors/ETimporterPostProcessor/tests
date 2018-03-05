@@ -35,4 +35,16 @@
     csv    = 'ETimporter_3branches/PrintPS.csv'
     output = 'ETimporter_3branches/PrintPS.xml'
   [../]
+  [./ETimporter_3branches_NewNumbering]
+    type   = 'RavenFramework'
+    input  = 'test_ETimporter_3branches_NewNumbering.xml'
+    csv    = 'ETimporter_3branches_NewNumbering/PrintPS.csv'
+    output = 'ETimporter_3branches_NewNumbering/PrintPS.xml'
+  [../]
+  [./ETimporter_3branches_NewNumbering_expanded]
+    type   = 'RavenFramework'
+    input  = 'test_ETimporter_3branches_NewNumbering_expanded.xml'
+    csv    = 'ETimporter_3branches_NewNumbering_expanded/PrintPS.csv'
+    output = 'ETimporter_3branches_NewNumbering_expanded/PrintPS.xml'
+  [../]
 []
