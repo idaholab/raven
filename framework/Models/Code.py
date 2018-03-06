@@ -27,6 +27,7 @@ import shutil
 import importlib
 import platform
 import shlex
+import time
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -57,6 +58,7 @@ class Code(Model):
     inputSpecification = super(Code, cls).getInputSpecification()
     inputSpecification.setStrictMode(False) #Code interfaces can allow new elements.
     inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("walltime", contentType=InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
 
     ## Begin command line arguments tag
@@ -114,6 +116,7 @@ class Code(Model):
     self.codeFlags          = None #flags that need to be passed into code interfaces(if present)
     self.printTag           = 'CODE MODEL'
     self.createWorkingDir   = True
+    self.maxWallTime = None
 
   def _readMoreXML(self,xmlNode):
     """
@@ -130,6 +133,8 @@ class Code(Model):
     for child in paramInput.subparts:
       if child.getName() =='executable':
         self.executable = str(child.value)
+      if child.getName() =='walltime':
+        self.maxWallTime = float(child.value)
       if child.getName() =='preexec':
         self.preExec = child.value
       elif child.getName() == 'clargs':
@@ -487,7 +492,20 @@ class Code(Model):
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
-    process.wait()
+
+    if self.maxWallTime is not None:
+      timeout = time.time() + self.maxWallTime
+      while True:
+        time.sleep(0.5)
+        process.poll()
+        if time.time() > timeout and process.returncode is None:
+          self.raiseAWarning('walltime exeeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
+          process.kill()
+          process.returncode = -1
+        if process.returncode is not None or time.time() > timeout:
+          break
+    else:
+      process.wait()
 
     returnCode = process.returncode
     # procOutput = process.communicate()[0]

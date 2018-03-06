@@ -64,7 +64,7 @@ class ETstructure():
         for index, var in enumerate(self.variables):
             combinationArray[index] = combination[var]
         inputData = self.pointSet[:,:len(self.variables)]
-        for row in self.pointSet:   
+        for row in self.pointSet:
             if np.array_equal(row[:len(self.variables)],combinationArray):
                 outcome = row[-1]
         return outcome
@@ -258,7 +258,7 @@ class ETstructure():
                             rowToBeAdded = copy.deepcopy(pointSet[idx,:])
                             rowToBeAdded[col] = value
                             pointSet = np.vstack([pointSet,rowToBeAdded])
-                                                
+
                     #rowToBeAdded = copy.deepcopy(pointSet[idx,:])
                     #rowToBeAdded[col] = +1
                     #pointSet = np.vstack([pointSet,rowToBeAdded])
