@@ -241,13 +241,13 @@ class DataClassifier(PostProcessor):
       labelIndex = None
       for key, values in classifierDict['input'].items():
         calcVal = self.funcDict[key].evaluate("evaluate", tempTargDict)
-        inds, = np.where(values == calcVal)
+        inds, = np.where(np.asarray(values) == calcVal)
         if labelIndex is None:
           labelIndex = set(inds)
         else:
           labelIndex = labelIndex & set(inds)
       if len(labelIndex) != 1:
-        self.raiseAnError(IOError, "The parameters", ",".join(tempTargDict.keys()), "with values", ",".join([str(el) for el in tempTargDict.values()]), "could not be classifier!")
+        self.raiseAnError(IOError, "The parameters", ",".join(tempTargDict.keys()), "with values", ",".join([str(el) for el in tempTargDict.values()]), "could not be classified!")
       outputDict[self.label][i] = classifierDict['output'][self.label][list(labelIndex)[0]]
 
     return outputDict

@@ -561,8 +561,8 @@ class Code(Model):
 
       ## Check if the user specified any file extensions for clean up
       for fileExt in fileExtensionsToDelete:
-        if not fileExt.startswith("."):
-          fileExt = "." + fileExt
+        #if not fileExt.startswith("."):
+        #  fileExt = "." + fileExt
 
         fileList = [ os.path.join(metaData['subDirectory'],f) for f in os.listdir(metaData['subDirectory']) if f.endswith(fileExt) ]
 

@@ -247,8 +247,6 @@ class ETstructure():
           @ In,  pointSet, np.array, original point set
           @ Out, pointSet, np.array, expanded point set
         """
-        print(pointSet)
-        print(values)
         for col in range(pointSet.shape[1]):
             indexes = np.where(pointSet[:,col] == -1)[0]
             if indexes.size>0:
