@@ -702,7 +702,7 @@ class DataSet(DataObject):
       @ Out, None
     """
     assert(var in self._orderedVars)
-    assert(type(value).__name__ in ['float','str','int','unicode','bool'])
+    assert(mathUtils.isSingleValued(value)) #['float','str','int','unicode','bool'])
     lenColl = len(self._collector) if self._collector is not None else 0
     lenData = len(self._data[self.sampleTag]) if self._data      is not None else 0
     # if it's in the data ...

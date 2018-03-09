@@ -361,6 +361,7 @@ checkAnswer('isSingleValued "hombre"',mathUtils.isSingleValued('hombre'),True)
 checkAnswer('isSingleValued None'    ,mathUtils.isSingleValued(None    ),True)
 checkAnswer('isSingleValued True'    ,mathUtils.isSingleValued(True    ),True)
 checkAnswer('isSingleValued False'   ,mathUtils.isSingleValued(False   ),True)
+checkAnswer('isSingleValued long',mathUtils.isSingleValued(123456789012345678901234567890),True)
 
 checkAnswer('isSingleValued inf notok',mathUtils.isSingleValued(np.inf,nanOk=False),False)
 checkAnswer('isSingleValued nan notok',mathUtils.isSingleValued(np.nan,nanOk=False),False)
@@ -392,6 +393,7 @@ checkAnswer('isAFloatOrInt nan ok' ,mathUtils.isAFloatOrInt(np.nan),True)
 checkAnswer('isAFloatOrInt inf ok' ,mathUtils.isAFloatOrInt(np.inf),True)
 checkAnswer('isAFloatOrInt nan not ok',mathUtils.isAFloatOrInt(np.nan, nanOk=False),False)
 checkAnswer('isAFloatOrInt inf not ok',mathUtils.isAFloatOrInt(np.inf, nanOk=False),False)
+checkAnswer('isAFloatOrInt long',mathUtils.isAFloatOrInt(123456789012345678901234567890),True)
 
 # isAFloat
 checkAnswer('isAFloat 3.14'  ,mathUtils.isAFloat(3.14  ),True)
@@ -410,6 +412,7 @@ checkAnswer('isAnInteger 3.14',mathUtils.isAnInteger(3.14   ),False)
 checkAnswer('isAnInteger 1e1' ,mathUtils.isAnInteger(1e1    ),False)
 checkAnswer('isAnInteger str' ,mathUtils.isAnInteger('delta'),False)
 checkAnswer('isAnInteger bool',mathUtils.isAnInteger(True   ),False)
+checkAnswer('isAnInteger long',mathUtils.isAnInteger(123456789012345678901234567890),True)
 
 # isABoolean
 checkAnswer('isABoolean False',mathUtils.isABoolean(False ),True)
@@ -419,6 +422,7 @@ checkAnswer('isABoolean 1'    ,mathUtils.isABoolean(1     ),False)
 checkAnswer('isABoolean -1'   ,mathUtils.isABoolean(-1    ),False)
 checkAnswer('isABoolean str'  ,mathUtils.isABoolean("True"),False)
 checkAnswer('isABoolean 3.14' ,mathUtils.isABoolean(3.14  ),False)
+checkAnswer('isABoolean long' ,mathUtils.isABoolean(123456789012345678901234567890),False)
 
 print(results)
 
