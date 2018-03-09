@@ -36,12 +36,16 @@ def getRegressionTests(skipThese=[],skipExpectedFails=True):
   doTests = {}
   for root,testFilename in testsFilenames:
     testsFile = file(testFilename,'r')
+    testType = "notfound"
     for line in testsFile:
+      if line.strip().startswith('type'):
+        testType = line.strip().split('=')[1].replace("'","").replace('"','').strip()
       if line.strip().startswith('input'):
         newtest = line.split('=')[1].strip().strip("'")
-        if newtest not in skipThese and newtest.endswith('.xml'):
+        if newtest not in skipThese and newtest.endswith('.xml') and testType.lower() not in 'ravenpython':
           if root not in doTests.keys(): doTests[root]=[]
           doTests[root].append(newtest)
+          testType = "notfound"
   return doTests
 
 def getRegressionList(skipThese=[],skipExpectedFails=True):
