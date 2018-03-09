@@ -125,6 +125,3 @@ class MelcorApp(CodeInterfaceBase):
         failure = False
         break
     return failure
-
-
-
