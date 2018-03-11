@@ -44,8 +44,8 @@ TF_TAB    2 !n             x             y
 TF_ID             'T_in'           1.0
 !      size
 TF_TAB    2 !n             x             y
-             1           0.0         400
-             2         100.0         400
+             1           0.0         400.0
+             2         100.0         400.0
 !cc: 3
 !                 tfname        tfscal
 TF_ID             'M_in'           1.0
