@@ -50,7 +50,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules--------------------begin
 import os
 import sys
-import cPickle
+import pickle
 import numpy as np
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
@@ -88,7 +88,7 @@ class ravenROMexternal(object):
     serializedROMlocation = os.path.abspath(binaryFileName)
     if not os.path.exists(serializedROMlocation):
       raise IOError('The serialized (binary) file has not been found in location "' + str(serializedROMlocation)+'" !')
-    self.rom = cPickle.load(open(serializedROMlocation, mode='r'))
+    self.rom = pickle.load(open(serializedROMlocation, mode='r'))
 
   def evaluate(self,request):
     """
