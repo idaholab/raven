@@ -26,6 +26,5 @@
     type = 'RavenPython'
     input = '../../../../scripts/externalROMloader.py load_ROM_externally.xml'
     output = 'output_load_ROM_externally.xml' 
-    prereq = stochPolyPickleTest
   [../]
 []

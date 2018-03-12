@@ -88,7 +88,7 @@ class ravenROMexternal(object):
     serializedROMlocation = os.path.abspath(binaryFileName)
     if not os.path.exists(serializedROMlocation):
       raise IOError('The serialized (binary) file has not been found in location "' + str(serializedROMlocation)+'" !')
-    self.rom = pickle.load(open(serializedROMlocation, mode='r'))
+    self.rom = pickle.load(open(serializedROMlocation, mode='rb'))
 
   def evaluate(self,request):
     """
