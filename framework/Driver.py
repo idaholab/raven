@@ -37,7 +37,7 @@ import traceback
 #warning: this needs to be before importing h5py
 os.environ["MV2_ENABLE_AFFINITY"]="0"
 
-frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
+frameworkDir = os.path.dirname(os.path.abspath(__file__))
 from utils import utils
 import utils.TreeStructure as TS
 utils.find_crow(frameworkDir)
