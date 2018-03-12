@@ -90,7 +90,7 @@ def bumat_read(bumat_file, percent_cutoff):
     for i in range(1, len(comp_lines)):
         parsed = parse_line(comp_lines[i])
         # isotope as key, atomic density as value
-        comp_dict[parsed[0].split('.')[0]] = parsed[1]
+        comp_dict[parsed[0]] = parsed[1]
 
     comp_dict = filter_trace(comp_dict, percent_cutoff)
     return comp_dict
@@ -195,8 +195,39 @@ def read_file_into_list(file):
     read.close()
     return list_from_file
 
+def find_deptime(input_file):
+    """ finds the deptime from the inputfile
 
-def make_csv(csv_filename, bumat_dict, keff_dict, iso_list):
+    Parameters
+    ----------
+    input_file: str
+        input file path
+
+    Returns
+    -------
+    deptime: string
+        depletion time in days
+    """
+    hit = False
+    with open(input_file, 'r') as file:
+        for line in file:
+            if line.split(' ')[0] == 'dep':
+                if line.split(' ')[1] != 'daystep':
+                    print('Currently can only take daystep')
+                    raise ValueError()
+                else:
+                    hit = True
+                    continue
+            if hit:
+                deptime = line.split(' ')[0]
+                break
+
+    return deptime
+
+
+
+def make_csv(csv_filename, in_bumat_dict, out_bumat_dict,
+             keff_dict, iso_list, input_file):
     """ renders the  csv as filename with the given
         bumat dict and keff dict
 
@@ -204,33 +235,45 @@ def make_csv(csv_filename, bumat_dict, keff_dict, iso_list):
     ----------
     csv_filename: str
         filename of csv output
-    bumat_dict: dictionary
+    in_bumat_dict: dictionary
         key: isotope (ZZAAA)
         value: atomic density
+    out_bumat_dict: dictionary
+        key: isotope (ZZAAA)
+        value: atomic density    
     keff_dict: dictionary
         key: 'keff', 'sd'
         value: keff and sd at EOC
     iso_list: list
         list of isotopes to track
+    input_file: str
+        path of input file
     """
 
     # parse through, get keff value
     keff = keff_dict['keff'][0]
+    deptime = find_deptime(input_file)
     
     with open(csv_filename, 'w') as csv_file:
         writer = csv.writer(csv_file)
-        header_list = iso_list + ['keff']
+        # fresh iso_list
+        header_list = ['f'+iso for iso in iso_list] + ['keff'] + ['deptime'] + ['d'+iso for iso in iso_list] 
         writer.writerow(header_list)
         # initialize as zero
-        adens_list = [0] * len(iso_list)
-        for key in bumat_dict:
+        fresh_adens_list = [0] * len(iso_list)
+        dep_adens_list = [0] * len(iso_list)
+        for key in in_bumat_dict:
             if key in iso_list:
                 index = iso_list.index(key)
-                adens_list[index] = bumat_dict[key]
+                fresh_adens_list[index] = in_bumat_dict[key]
+        for key in out_bumat_dict:
+            if key in iso_list:
+                index = iso_list.index(key)
+                dep_adens_list[index] = out_bumat_dict[key] 
 
+        row = fresh_adens_list + [keff, deptime] + dep_adens_list
         # add keff value to adens list, like header
-        adens_list.append(keff)
-        writer.writerow(adens_list)
+        writer.writerow(row)
 
 
 def main(csv_filename, iso_file, bumat_file, resfile):
@@ -259,3 +302,13 @@ def main(csv_filename, iso_file, bumat_file, resfile):
     keff_dict = search_keff(keff_dict)
     make_csv(csv_filename, bumat_dict, keff_dict, iso_list)
     return True
+
+"""
+in_bumat_dict = bumat_read('../serpent-raven/runGrid/1/publ_core.serpent.bumat0', 1e-6)
+out_bumat_dict = bumat_read('../serpent-raven/runGrid/1/publ_core.serpent.bumat1', 1e-6)
+keff_dict = search_keff('../serpent-raven/runGrid/1/publ_core.serpent_res.m')
+iso_list = read_file_into_list('../iso_file')
+input_file = '../serpent-raven/runGrid/1/publ_core.serpent'
+make_csv('csvfile', in_bumat_dict, out_bumat_dict,
+             keff_dict, iso_list, input_file)
+"""

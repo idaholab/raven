@@ -18,12 +18,12 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-import os
+/home/dkadkf/github/serpent-rom-raven/test_input.xml
 import copy
 import GenericParser
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import sys
-sys.path.append("/projects/sciteam/bahg/projects/raven/framework/CodeInterfaces/src")
+sys.path.append("/projects/sciteam/bahg/projects/raven/framework/CodeInterfaces/scripts")
 import output_parser as op
 
 class Serpent(CodeInterfaceBase):
@@ -173,7 +173,9 @@ class Serpent(CodeInterfaceBase):
     # resfile would be 'publ_core.serpent_res.m'
     # this is the file produced by RAVEN
     resfile = os.path.join(workDir, filename+"_res.m")
-    bumatfile = os.path.join(workDir, filename+".bumat1")
+    input_file = os.path.join(workDir, filename)
+    inbumatfile = os.path.join(workDir, filename+".bumat0")
+    outbumatfile = os.path.join(workDir, filename+".bumat1")
     # get the list of isotopes to track
     script_loc = os.path.dirname(os.path.realpath(sys.argv[0]))
     isofile = os.path.join(script_loc, 'CodeInterfaces/SERPENT/iso_file')
@@ -181,7 +183,9 @@ class Serpent(CodeInterfaceBase):
     # parse files into dictionary
     keff_dict = op.search_keff(resfile)
     # the second argument is the percent cutoff 
-    bumat_dict = op.bumat_read(bumatfile, 0.01)
+    in_bumat_dict = op.bumat_read(inbumatfile, 1e-7)
+    out_bumat_dict = op.bumat_read(outbumatfile, 1e-7)
 
     output_path = os.path.join(workDir, output+'.csv')
-    op.make_csv(output_path, bumat_dict, keff_dict, iso_list)
+    op.make_csv(output_path, in_bumat_dict, out_bumat_dict,
+                keff_dict, iso_list, input_file)
