@@ -39,7 +39,6 @@ modules_to_try = [
   ("sklearn",'sklearn.__version__',"0.18","0.18.0",None),
   ("matplotlib",'matplotlib.__version__',"1.3.1","1.5.3",None),
   ("xarray",'xarray.__version__',"0.9.5","0.9.5",None),
-  ("pandas",'pandas.__version__',"0.20.1","0.20.1",None),
 ]
 
 def __lookUpPreferredVersion(name):
@@ -53,32 +52,26 @@ def __lookUpPreferredVersion(name):
       return qa
   return ""
 
-__condaList = [
-  ("numpy",__lookUpPreferredVersion("numpy")),
-  ("h5py",__lookUpPreferredVersion("h5py")),
-  ("scipy",__lookUpPreferredVersion("scipy")),
-  ("scikit-learn",__lookUpPreferredVersion("sklearn")),
-  ("matplotlib",__lookUpPreferredVersion("matplotlib")),
-  ("xarray",__lookUpPreferredVersion("xarray")),
-  ("pandas",__lookUpPreferredVersion("pandas")),
-  ("netcdf4",""),
-  ("pyside",""),
-  ("python","2.7"),
-  ("hdf5",""),
-  ("swig",""),
-  ("pylint",""),
-  ("coverage",""),
-  ("lxml",""),
-]
+__condaList = [("numpy",__lookUpPreferredVersion("numpy")),
+               ("h5py",__lookUpPreferredVersion("h5py")),
+               ("scipy",__lookUpPreferredVersion("scipy")),
+               ("scikit-learn",__lookUpPreferredVersion("sklearn")),
+               ("matplotlib",__lookUpPreferredVersion("matplotlib")),
+               ("xarray",__lookUpPreferredVersion("xarray")),
+               ("netcdf4",""),
+               ("pyside",""),
+               ("python","2.7"),
+               ("hdf5",""),
+               ("swig",""),
+               ("pylint",""),
+               ("coverage",""),
+               ("lxml","")]
 
-__pipList = [
-  ("numpy",__lookUpPreferredVersion("numpy")),
-  ("h5py",__lookUpPreferredVersion("h5py")),
-  ("scipy",__lookUpPreferredVersion("scipy")),
-  ("scikit-learn",__lookUpPreferredVersion("sklearn")),
-  ("matplotlib",__lookUpPreferredVersion("matplotlib")),
-  ("pandas",__lookUpPreferredVersion("pandas")),
-]
+__pipList = [("numpy",__lookUpPreferredVersion("numpy")),
+             ("h5py",__lookUpPreferredVersion("h5py")),
+             ("scipy",__lookUpPreferredVersion("scipy")),
+             ("scikit-learn",__lookUpPreferredVersion("sklearn")),
+             ("matplotlib",__lookUpPreferredVersion("matplotlib"))]
 
 def moduleReport(module,version=''):
   """Checks if the module exists.
