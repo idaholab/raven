@@ -1550,7 +1550,8 @@ class DataSet(DataObject):
         mean = float(self._data[var].mean())
         scale = float(self._data[var].std())
         self._scaleFactors[var] = (mean,scale)
-      except TypeError:
+      except Exception:
+        self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(var))
         pass
 
   def _toCSV(self,fileName,start=0,**kwargs):
