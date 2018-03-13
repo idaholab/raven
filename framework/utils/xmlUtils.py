@@ -317,12 +317,12 @@ def expandExternalXML(root,workingDir):
     @ Out, None
   """
   # find instances of ExteranlXML nodes to replace
-  for subElement in root:
+  for i,subElement in enumerate(root):
     if subElement.tag == 'ExternalXML':
       nodeName = subElement.attrib['node']
       xmlToLoad = subElement.attrib['xmlToLoad'].strip()
       newElement = readExternalXML(xmlToLoad,nodeName,workingDir)
-      root.replace(subElement,newElement)
+      root[i] = newElement
       subElement = newElement
     # whether expanded or not, search each subnodes for more external xml
     expandExternalXML(subElement,workingDir)

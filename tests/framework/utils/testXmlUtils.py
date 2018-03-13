@@ -321,7 +321,14 @@ root = ET.fromstring(strNode)
 cwd = os.path.join(os.path.dirname(__file__),'xml')
 xmlUtils.expandExternalXML(root,cwd)
 correct = """<root>
-  <rootsub>
+  <testMainNode att="attrib1">
+  <firstSubNode>
+    <firstFirstSubNode att="attrib1.1.1">firstFirstSubText</firstFirstSubNode>
+  </firstSubNode>
+  <secondSubNode att="attrib1.2">
+    <secondFirstSubNode>secondFirstSubText</secondFirstSubNode>
+  </secondSubNode>
+</testMainNode><rootsub>
     <testMainNode att="attrib1">
   <firstSubNode>
     <firstFirstSubNode att="attrib1.1.1">firstFirstSubText</firstFirstSubNode>
@@ -330,14 +337,7 @@ correct = """<root>
     <secondFirstSubNode>secondFirstSubText</secondFirstSubNode>
   </secondSubNode>
 </testMainNode></rootsub>
-<testMainNode att="attrib1">
-  <firstSubNode>
-    <firstFirstSubNode att="attrib1.1.1">firstFirstSubText</firstFirstSubNode>
-  </firstSubNode>
-  <secondSubNode att="attrib1.2">
-    <secondFirstSubNode>secondFirstSubText</secondFirstSubNode>
-  </secondSubNode>
-</testMainNode></root>"""
+</root>"""
 if correct != ET.tostring(root):
   print('ERROR: expanded XML node:')
   print(ET.tostring(root))

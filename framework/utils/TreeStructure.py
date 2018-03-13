@@ -435,6 +435,16 @@ class InputNode:
     """
     return self.children[index]
 
+  def __setitem__(self,index,value):
+    """
+      Sets a specific child node.
+      @ In, index, int, the index for the child
+      @ In, value, Node, the child itself
+      @ Out, None
+    """
+    value = self.assureIsNode(value)
+    self.children[index] = value
+
   def __repr__(self):
     """
       String representation.
@@ -563,16 +573,6 @@ class InputNode:
       @ Out, None
     """
     self.children.remove(node)
-
-  def replace(self,old,new):
-    """
-      @ In, old, Node, node to replace (currently in children)
-      @ In, new, Node, node doing replacing
-      @ Out, None
-    """
-    new = self.assureIsNode(new)
-    idx = self.children.index(old)
-    self.children[idx] = new
 
   def items(self):
     """
