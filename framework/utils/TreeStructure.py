@@ -468,7 +468,7 @@ class InputNode:
       @ In, node, Node, node to append to children
       @ Out, None
     """
-    assert isinstance(node,InputNode)
+    node = self.assureIsNode(node)
     self.children.append(node)
 
   def find(self,nodeName):
@@ -524,6 +524,21 @@ class InputNode:
       for e in e.iter(name):
         yield e
 
+  def assureIsNode(self,node):
+    """
+      Takes care of translating XML to Node on demand.
+      @ In, node, Node or ET.Element, node to fix up
+      @ Out, node, fixed node
+    """
+    if not isinstance(node,InputNode):
+      # if XML, convert to InputNode
+      if isinstance(node,ET.Element):
+        tree = ET.ElementTree(node)
+        node = xmlToInputTree(tree).getroot()
+      else:
+        raise TypeError('TREE-STRUCTURE ERROR: When trying to use node "{}", unrecognized type "{}"!'.format(node,type(node)))
+    return node
+
   def printXML(self):
     """
       Returns string representation of tree (in XML format).
@@ -548,6 +563,16 @@ class InputNode:
       @ Out, None
     """
     self.children.remove(node)
+
+  def replace(self,old,new):
+    """
+      @ In, old, Node, node to replace (currently in children)
+      @ In, new, Node, node doing replacing
+      @ Out, None
+    """
+    new = self.assureIsNode(new)
+    idx = self.children.index(old)
+    self.children[idx] = new
 
   def items(self):
     """

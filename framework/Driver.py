@@ -217,7 +217,8 @@ if __name__ == '__main__':
       sys.exit(1)
 
     # call the function to load the external xml files into the input tree
-    simulation.XMLpreprocess(root,inputFileName=inputFile)
+    cwd = os.path.dirname(os.path.abspath(inputFile))
+    simulation.XMLpreprocess(root,cwd)
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
