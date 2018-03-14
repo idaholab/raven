@@ -79,11 +79,16 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     indexInput.addParam('var',InputData.StringType,True)
     inputSpecification.addSub(indexInput)
 
-    optionsInput = InputData.parameterInputFactory('options')
-    for option in ['inputRow','inputPivotValue','outputRow','outputPivotValue','operator','pivotParameter']:
-      optionSubInput = InputData.parameterInputFactory(option,contentType=InputData.StringType)
+    optionsInput = InputData.parameterInputFactory("options")
+    for option in ['operator','pivotParameter']:
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.StringType)
       optionsInput.addSub(optionSubInput)
-    # TODO "operator" has finite options (max, min, average)
+    for option in ['inputRow','outputRow']:
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.IntegerType)
+      optionsInput.addSub(optionSubInput)
+    for option in ['outputPivotValue','inputPivotValue']:
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.FloatType)
+      optionsInput.addSub(optionSubInput)
     inputSpecification.addSub(optionsInput)
 
     #inputSpecification.addParam('type', param_type = InputData.StringType, required = False)
