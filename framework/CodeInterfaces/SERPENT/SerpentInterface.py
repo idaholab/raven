@@ -18,7 +18,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-/home/dkadkf/github/serpent-rom-raven/test_input.xml
+import os
 import copy
 import GenericParser
 from CodeInterfaceBaseClass import CodeInterfaceBase
