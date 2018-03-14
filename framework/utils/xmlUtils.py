@@ -345,6 +345,6 @@ def readExternalXML(extFile,extNode,cwd):
     raise IOError('XML UTILS ERROR: External XML file not found: "{}"'.format(os.path.abspath(extFile)))
   # find the element to read
   root = ET.parse(open(extFile,'r')).getroot()
-  if root.tag != extNode:
+  if root.tag != extNode.strip():
     raise IOError('XML UTILS ERROR: Node "{}" is not the root node of "{}"!'.format(extNode,extFile))
   return root
