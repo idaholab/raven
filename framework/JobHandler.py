@@ -77,7 +77,7 @@ class JobHandler(MessageHandler.MessageUser):
     self.sleepTime  = 0.005
     self.completed = False
 
-    ## Determines whether to print job timing summaries at the end of job runs.
+    ## Determines whether to collect and print job timing summaries at the end of job runs.
     self.__profileJobs = False
 
     ## Prevents the pending queue from growing indefinitely, but also allowing
@@ -355,7 +355,8 @@ class JobHandler(MessageHandler.MessageUser):
         self.__queue.append(runner)
       else:
         self.__clientQueue.append(runner)
-      runner.trackTime('queue')
+      if self.__profileJobs:
+        runner.trackTime('queue')
       self.__submittedJobs.append(runner.identifier)
 
   def addClientJob(self, args, functionToRun, identifier, metadata=None, modulesToImport = [], uniqueHandler="any"):
@@ -684,7 +685,7 @@ class JobHandler(MessageHandler.MessageUser):
             self.__finished[-1].trackTime('jobHandler_finished')
             runList[i] = None
 
-  def setProfileJobs(self,profile=True):
+  def setProfileJobs(self,profile=False):
     """
       Sets whether profiles for jobs are printed or not.
       @ In, profile, bool, optional, if True then print timings for jobs when they are garbage collected
