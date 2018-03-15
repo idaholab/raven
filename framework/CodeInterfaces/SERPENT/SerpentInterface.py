@@ -35,6 +35,17 @@ Modified for SERPENT interface
 March 15th, 2018
 @author: jbae11
 
+comments: Interface for SERPENT Simulation
+
+This script allows RAVEN to interface with SERPENT.
+This script is copied from the GenericCodeInterface.py
+and was modified to parse through SERPENT output files
+into a single csv file. The csv file contains the Beginning
+of Cycle (BOC) composition, depletion time, End of Cycle (EOC)
+composition, BOC k-eff and EOC k-eff. Note that this interface
+is only valid for single depletion cycles. The output csv file
+will only track the isotopes in the `iso_file` 
+
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -45,7 +56,7 @@ import copy
 import GenericParser
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import sys
-sys.path.append("/projects/sciteam/bahg/projects/raven/framework/CodeInterfaces/scripts")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import output_parser as op
 
 class Serpent(CodeInterfaceBase):
