@@ -53,6 +53,7 @@ def __lookUpPreferredVersion(name):
   return ""
 
 __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
+               ("numpy"       ,__lookUpPreferredVersion("numpy"     )),
                ("scipy"       ,__lookUpPreferredVersion("scipy"     )),
                ("scikit-learn",__lookUpPreferredVersion("sklearn"   )),
                ("pandas"      ,__lookUpPreferredVersion("pandas"    )),
