@@ -685,7 +685,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #check if point already exists
     if self.restartData is not None:
       # FIXME
-      index,inExisting = self.restartData.realization(matchDict=self.values,tol=self.restartTolerance)
+      index,inExisting = self.restartData.realization(matchDict=self.values,tol=self.restartTolerance,unpackXArray=True)
       # OLD inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance)
     else:
       inExisting = None
@@ -713,7 +713,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # we've fixed it so teh input and output space don't really matter, so use restartData's own definition
       # DO format the data as atleast_1d so it's consistent in the ExternalModel for users (right?)
       rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
-      rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output'))
+      rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
       rlz['metadata'] = copy.deepcopy(self.inputInfo) # TODO need deepcopy only because inputInfo is on self
       return 1,rlz
 
