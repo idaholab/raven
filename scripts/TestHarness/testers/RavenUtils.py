@@ -73,7 +73,7 @@ __pipList = [("numpy",__lookUpPreferredVersion("numpy")),
              ("scikit-learn",__lookUpPreferredVersion("sklearn")),
              ("matplotlib",__lookUpPreferredVersion("matplotlib")),
              ("xarray",__lookUpPreferredVersion("xarray")),
-             ("netcdf4",__lookUpPreferredVersion("netcdf4")),
+             ("netCDF4",__lookUpPreferredVersion("netcdf4")),
              ("pandas",__lookUpPreferredVersion("pandas")) ]
 
 def moduleReport(module,version=''):
