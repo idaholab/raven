@@ -147,11 +147,11 @@ class GenericCode(CodeInterfaceBase):
     #outputs
     #FIXME I think if you give multiple output flags this could result in overwriting
     self.caseName = inputFiles[index].getBase()
-    outfile = 'out~'+self.caseName
+    outFile = 'out~'+self.caseName
     if 'output' in clargs:
-      todo+=' '+clargs['output']+' '+outfile
+      todo+=' '+clargs['output']+' '+outFile
     if self.fixedOutFileName is not None:
-      outfile = self.fixedOutFileName
+      outFile = self.fixedOutFileName
     todo+=' '+clargs['text']
     #postpend
     todo+=' '+clargs['post']
