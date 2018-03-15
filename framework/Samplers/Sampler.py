@@ -536,7 +536,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if 'Restart' in self.assemblerDict.keys():
       self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
       self.restartData = self.assemblerDict['Restart'][0][3]
-      self.raiseAMessage('Restarting from '+self.restartData.name)
+      # check the right variables are in the restart
+      need = set(self.toBeSampled.keys()+self.dependentSample.keys())
+      if not need.issubset(set(self.restartData.getVars())):
+        missing = need - set(self.restartData.getVars())
+        #TODO this could be a warning, instead, but user wouldn't see it until the run was deep in
+        self.raiseAnError(KeyError,'Restart data object "{}" is missing the following variables: "{}". No restart can be performed.'.format(self.restartData.name,', '.join(missing)))
+      else:
+        self.raiseAMessage('Restarting from '+self.restartData.name)
       # we used to check distribution consistency here, but we want to give more flexibility to using
       #   restart data, so do NOT check distributions of restart data.
     else:
