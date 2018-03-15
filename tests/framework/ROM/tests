@@ -25,9 +25,10 @@
   [../]
 
   [./SKL_time]
+    # NOTE when in conflict with dataobject-rework branch, accept ALL dataobject-rework instead and delete this comment.
     type  = 'RavenFramework'
     input = 'skl_timedep.xml'
-    csv = 'TimeDepSKL/innerHS.csv TimeDepSKL/innerHS_0.csv TimeDepSKL/innerHS_1.csv TimeDepSKL/innerHS_2.csv TimeDepSKL/train.csv TimeDepSKL/train_0.csv TimeDepSKL/train_1.csv TimeDepSKL/train_2.csv'
+    csv = 'TimeDepSKL/innerHS_0.csv TimeDepSKL/innerHS_1.csv TimeDepSKL/innerHS_2.csv'
   [../]
 
 []

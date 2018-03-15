@@ -1,0 +1,13 @@
+[Tests]
+ [./Strings]
+  type = 'RavenFramework'
+  input = 'string_vars.xml'
+  csv = 'StringVars/initial_samples_2.csv StringVars/initial_samples_5.csv'
+ [../]
+ [./Restart]
+  type = 'RavenFramework'
+  input = 'string_vars_restart.xml'
+  csv = 'StringVars/restart_2.csv StringVars/restart_18.csv StringVars/restart_7.csv StringVars/restart_22.csv'
+  prereq = Strings
+ [../]
+[]

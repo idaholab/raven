@@ -30,12 +30,13 @@ import copy
 import itertools
 import numpy as np
 import os
+from scipy import spatial
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils.cached_ndarray import c1darray
 from .Data import Data, NotConsistentData, ConstructError
-from utils import utils
+from utils import utils,mathUtils
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -606,3 +607,24 @@ class HistorySet(Data):
 
     self.checkConsistency()
 
+  def _constructKDTree(self,requested):
+    """
+      Constructs a KD tree consisting of the variable values in "requested"
+      @ In, requested, list, requested variable names
+      @ Out, None
+    """
+    # get by-sample data
+    samples = self.getParametersValues('inputs')
+    # this preserves the order of "requested" variables, which is critical to the KDTree
+    ## the non-float variables will be handled outside the KD tree.
+    floatVars = list(r for r in requested if r in samples.values()[0].keys())
+    inpVals = {}
+    #set up data scaling, so that relative distances are used
+    # scaling is so that scaled = (actual - mean)/scale
+    for v in floatVars:
+      inpVals[v] = np.array(list(samples[i][v][0] for i in samples))
+      mean,scale = mathUtils.normalizationFactors(inpVals[v])
+      self.treeScalingFactors[v] = (mean,scale)
+    # create normalized tree
+    data = np.dstack(tuple((inpVals[v]-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in floatVars))[0]
+    self.inputKDTree = spatial.KDTree(data)
