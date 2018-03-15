@@ -46,16 +46,16 @@
     <HistorySet name="restart">
       <Input>v0,y0,modeID</Input>
       <Output>y,t,restartID</Output>
-      <!--<options>
+      <options>
         <pivotParameter>t</pivotParameter>
-      </options>-->
+      </options>
     </HistorySet>
     <HistorySet name="samples">
       <Input>v0,y0,modeID</Input>
       <Output>y,t,restartID</Output>
-      <!--<options>
+      <options>
         <pivotParameter>t</pivotParameter>
-      </options>-->
+      </options>
     </HistorySet>
   </DataObjects>
 
