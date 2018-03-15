@@ -37,7 +37,7 @@ modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.6.0' ,None 
                   ("sklearn"   ,'sklearn.__version__'   ,"0.18"  ,"0.18.0",None   ),
                   ("pandas"    ,'pandas.__version__'    ,"0.20.0","0.20.3",None   ),
                   ("xarray"    ,'xarray.__version__'    ,"0.9.5" ,"0.9.6" ,"0.9.6"),
-                  ("netcdf4"   ,'netCDF4.__version__'   ,"1.2.3" ,"1.2.4" ,None   ),
+                  ("netCDF4"   ,'netCDF4.__version__'   ,"1.2.3" ,"1.2.4" ,None   ),
                   ("matplotlib",'matplotlib.__version__',"1.3.1" ,"1.5.3" ,None   )]
 
 def __lookUpPreferredVersion(name):
@@ -56,7 +56,7 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                ("scikit-learn",__lookUpPreferredVersion("sklearn"   )),
                ("pandas"      ,__lookUpPreferredVersion("pandas"    )),
                ("xarray"      ,__lookUpPreferredVersion("xarray"    )),
-               ("netcdf4"     ,__lookUpPreferredVersion("netcdf4"   )),
+               ("netcdf4"     ,__lookUpPreferredVersion("netCDF4"   )),
                ("matplotlib"  ,__lookUpPreferredVersion("matplotlib")),
                ("python"      ,"2.7"),
                ("pyside"      ,""),
