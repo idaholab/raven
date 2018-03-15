@@ -33,7 +33,7 @@ def inPython3():
 # quality assurance module version, maximum version)
 # Deep learning requires Scikit-Learn version at least 0.18
 modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.6.0' ,None   ),
-                  ("numpy"     ,'numpy.__version__'     ,"1.8.0" ,"1.11.0",None   ),
+                  ("numpy"     ,'numpy.__version__'     ,"1.8.0" ,"1.14.0",None   ),
                   ("scipy"     ,'scipy.__version__'     ,"0.14.0","0.17.1",None   ),
                   ("sklearn"   ,'sklearn.__version__'   ,"0.18"  ,"0.18.0",None   ),
                   ("pandas"    ,'pandas.__version__'    ,"0.20.0","0.20.3",None   ),
