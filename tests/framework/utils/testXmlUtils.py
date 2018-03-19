@@ -253,6 +253,7 @@ for f in toRemove:
 found = xmlUtils.findPathEllipsesParents(xmlTree.getroot(),'child/cchild')
 print ('ellipses')
 print(xmlUtils.prettify(found,doc=True))
+# TODO is there supposed to be a test here?
 
 #test bad XML tags
 # rule 1: only start with letter or underscore, can't start with xml
@@ -283,6 +284,68 @@ for ok in okay:
   else:
     print('ERROR: Fixing legal XML tag "'+ok+'" FAILED:',fixed,'should be',ok)
     results['fail']+=1
+
+
+# test readExternalXML, use relative path
+extFile = 'GoodExternalXMLFile.xml'
+extNode = 'testMainNode'
+cwd = os.path.join(os.path.dirname(__file__),'xml')
+node = xmlUtils.readExternalXML(extFile,extNode,cwd)
+strNode = """<testMainNode att=\"attrib1\">
+  <firstSubNode>
+    <firstFirstSubNode att=\"attrib1.1.1\">firstFirstSubText</firstFirstSubNode>
+  </firstSubNode>
+  <secondSubNode att=\"attrib1.2\">
+    <secondFirstSubNode>secondFirstSubText</secondFirstSubNode>
+  </secondSubNode>
+</testMainNode>"""
+if strNode != ET.tostring(node):
+  print('ERROR: loaded XML node:')
+  print(ET.tostring(node))
+  print(' ----- does not match expected:')
+  print(strNode)
+  results['fail']+=1
+else:
+  results['pass']+=1
+
+
+# test expandExternalXML, two substitutions
+strNode = """<root>
+  <ExternalXML node="testMainNode" xmlToLoad="GoodExternalXMLFile.xml"/>
+  <rootsub>
+    <ExternalXML node="testMainNode" xmlToLoad="GoodExternalXMLFile.xml"/>
+  </rootsub>
+</root>
+"""
+root = ET.fromstring(strNode)
+cwd = os.path.join(os.path.dirname(__file__),'xml')
+xmlUtils.expandExternalXML(root,cwd)
+correct = """<root>
+  <testMainNode att="attrib1">
+  <firstSubNode>
+    <firstFirstSubNode att="attrib1.1.1">firstFirstSubText</firstFirstSubNode>
+  </firstSubNode>
+  <secondSubNode att="attrib1.2">
+    <secondFirstSubNode>secondFirstSubText</secondFirstSubNode>
+  </secondSubNode>
+</testMainNode><rootsub>
+    <testMainNode att="attrib1">
+  <firstSubNode>
+    <firstFirstSubNode att="attrib1.1.1">firstFirstSubText</firstFirstSubNode>
+  </firstSubNode>
+  <secondSubNode att="attrib1.2">
+    <secondFirstSubNode>secondFirstSubText</secondFirstSubNode>
+  </secondSubNode>
+</testMainNode></rootsub>
+</root>"""
+if correct != ET.tostring(root):
+  print('ERROR: expanded XML node:')
+  print(ET.tostring(root))
+  print(' ----- does not match expected:')
+  print(correct)
+  results['fail']+=1
+else:
+  results['pass']+=1
 
 print(results)
 
