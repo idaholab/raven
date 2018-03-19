@@ -24,5 +24,6 @@
    csv = 'ARMAparallel/results_0.csv'
    expected_fail = true
    prereq = ARMAreseedPrecursor
+   skip = 'Seed not independently controlled (#597)'
   [../]
 []
