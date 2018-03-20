@@ -131,7 +131,12 @@ class JobHandler(MessageHandler.MessageUser):
     """
     self.runInfoDict = runInfoDict
     self.messageHandler = messageHandler
-    self.maxQueueSize = runInfoDict.get('maxQueueSize',runInfoDict.get('batchSize'))
+    # set the maximum queue size (number of jobs to queue past the running number)
+    self.maxQueueSize = runInfoDict['maxQueueSize']
+    # defaults to None; if None, then use batchSize instead
+    if self.maxQueueSize is None:
+      self.maxQueueSize = runInfoDict['batchSize']
+    # if requsted max size less than 1, we can't do that, so take 1 instead
     if self.maxQueueSize < 1:
       self.raiseAWarning('maxQueueSize was set to be less than 1!  Setting to 1...')
       self.maxQueueSize = 1

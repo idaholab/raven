@@ -17,4 +17,5 @@ python $SCRIPT_DIR/scripts/copy_plugins_tests.py
 rc=$?
 # this copy back the plugins and remove them from the source folder
 python $SCRIPT_DIR/scripts/copy_back_plugins_results.py
+# return code
 if [[ $rc != 0 ]]; then exit $rc; fi
