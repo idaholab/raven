@@ -130,7 +130,7 @@ class _Worker(object):
     """
     command = [sys.executable, "-u", "-m", "ppworker"]
 
-    command.append("2>/dev/null")
+    #command.append("2>/dev/null")
 
     def __init__(self, restart_on_free, pickle_proto):
         """Initializes local worker"""
@@ -142,7 +142,7 @@ class _Worker(object):
         """Starts local worker"""
         if _USE_SUBPROCESS:
             proc = subprocess.Popen(self.command, stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    stdout=subprocess.PIPE) #, stderr=subprocess.PIPE)
             self.t = pptransport.CPipeTransport(proc.stdout, proc.stdin)
         else:
             self.t = pptransport.CPipeTransport(
