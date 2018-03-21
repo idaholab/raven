@@ -6,8 +6,8 @@
     <classesTested>SupervisedLearning.SciKitLearn</classesTested>
     <description>
       Tests the construction and sampling of time-dependent ScitKitLearn ROMs.  In particular,
-      tests that if one target (time) has all the same values, but other targets do not, we still
-      fit the other targets using the ROM, not use the EvaluateConstant method.
+      tests that if one target (time) has all the same values, but not others, right action is still
+      taken.
     </description>
   </TestInfo>
 
