@@ -284,7 +284,6 @@ class HDF5(DateBase):
       # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)
       # MC  => The History named ['group'] (one run)
     """
-
     tupleVar = self.database.retrieveHistory(options['history'],options)
     return tupleVar
 

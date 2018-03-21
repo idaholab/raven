@@ -166,6 +166,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.printTag                      = self.type                 # prefix for all prints (sampler type)
     self.restartData                   = None                      # presampled points to restart from
     self.restartTolerance              = 1e-15                     # strictness with which to find matches in the restart data
+    self.restartIsCompatible           = None                      # flags restart as compatible with the sampling scheme (used to speed up checking)
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
@@ -535,7 +536,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if 'Restart' in self.assemblerDict.keys():
       self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
       self.restartData = self.assemblerDict['Restart'][0][3]
-      self.raiseAMessage('Restarting from '+self.restartData.name)
+      # check the right variables are in the restart
+      need = set(self.toBeSampled.keys()+self.dependentSample.keys())
+      if not need.issubset(set(self.restartData.getVars())):
+        missing = need - set(self.restartData.getVars())
+        #TODO this could be a warning, instead, but user wouldn't see it until the run was deep in
+        self.raiseAnError(KeyError,'Restart data object "{}" is missing the following variables: "{}". No restart can be performed.'.format(self.restartData.name,', '.join(missing)))
+      else:
+        self.raiseAMessage('Restarting from '+self.restartData.name)
       # we used to check distribution consistency here, but we want to give more flexibility to using
       #   restart data, so do NOT check distributions of restart data.
     else:
@@ -684,7 +692,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #check if point already exists
     if self.restartData is not None:
       # FIXME
-      index,inExisting = self.restartData.realization(matchDict=self.values,tol=self.restartTolerance)
+      index,inExisting = self.restartData.realization(matchDict=self.values,tol=self.restartTolerance,unpackXArray=True)
       # OLD inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance)
     else:
       inExisting = None
@@ -712,7 +720,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # we've fixed it so teh input and output space don't really matter, so use restartData's own definition
       # DO format the data as atleast_1d so it's consistent in the ExternalModel for users (right?)
       rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
-      rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output'))
+      rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
       rlz['metadata'] = copy.deepcopy(self.inputInfo) # TODO need deepcopy only because inputInfo is on self
       return 1,rlz
 

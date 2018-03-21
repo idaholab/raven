@@ -78,8 +78,7 @@ case = $RAVEN-out$
 
 
 %%%%
-
-If a code has hard-coded output filenames that are not changeable,
+If a code has hard-coded output file names that are not changeable,
 the GenericCode interface can be invoked using the \xmlNode{outputFile}
 node in which the output file name (CSV only) must be specified.
 For example, in the previous example, say instead of \texttt{-a gen.two} and \texttt{-o myOut}
@@ -294,6 +293,12 @@ the module that gets specified by the \xmlNode{conversionModule} in the \xmlNode
     </Input>
 </Files>
 \end{lstlisting}
+
+\subsubsection{ExternalXML and RAVEN interface}
+Care must be taken if the SLAVE RAVEN uses \xmlNode{ExternalXML} nodes.  In this case, each file containing
+external XML nodes must be added in the \xmlNode{Step} as an \xmlNode{Input} class \xmlAttr{Files} to make sure it gets copied to
+the individual run directory.  The type for these files can be anything, with the exception of type
+\xmlString{raven}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% RELAP5  INTERFACE  %%%%%%
