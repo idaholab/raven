@@ -23,12 +23,14 @@
 
 <Files>
     <Input name="test_rom_trainer.xml" type="raven" >test_rom_trainer.xml</Input>
+    <Input name="ext_dataobjects.xml" type="ExternalXML" >ext_dataobjects.xml</Input>
 </Files>
 
   <!-- STEPS -->
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="1">
       <Input class="Files" type="raven">test_rom_trainer.xml</Input>
+      <Input class="Files" type="raven">ext_dataobjects.xml</Input>
       <Model class="Models" type="Code">raven_running_rom</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>

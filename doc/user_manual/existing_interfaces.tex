@@ -294,6 +294,12 @@ the module that gets specified by the \xmlNode{conversionModule} in the \xmlNode
 </Files>
 \end{lstlisting}
 
+\subsubsection{ExternalXML and RAVEN interface}
+Care must be taken if the SLAVE RAVEN uses \xmlNode{ExternalXML} nodes.  In this case, each file containing
+external XML nodes must be added in the \xmlNode{Step} as an \xmlNode{Input} class \xmlAttr{Files} to make sure it gets copied to
+the individual run directory.  The type for these files can be anything, with the exception of type
+\xmlString{raven}.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% RELAP5  INTERFACE  %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -30,6 +30,8 @@ import copy
 import numpy as np
 from collections import OrderedDict
 
+from utils import xmlUtils
+
 class RAVENparser():
   """
     Import the RAVEN input as xml tree, provide methods to add/change entries and print it back
@@ -51,6 +53,11 @@ class RAVENparser():
     except IOError as e:
       raise IOError(self.printTag+' ERROR: Input Parsing error!\n' +str(e)+'\n')
     self.tree = tree.getroot()
+
+    # expand the ExteranlXML nodes
+    cwd = os.path.dirname(inputFile)
+    xmlUtils.expandExternalXML(self.tree,cwd)
+
     # get the variable groups
     variableGroup = self.tree.find('VariableGroups')
     if variableGroup is not None:
