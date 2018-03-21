@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Parallel Python Software: http://www.parallelpython.com
 # Copyright (c) 2005-2012, Vitalii Vanovschi
 # All rights reserved.
@@ -345,7 +345,6 @@ def create_network_server(argv):
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
     for opt, arg in opts:
-        print(opt,arg)
         if opt in ("-h", "--help"):
             print_usage()
             sys.exit()

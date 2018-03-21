@@ -36,21 +36,10 @@ frameworkFolder = os.path.realpath(os.path.join(os.path.dirname(inspect.getfile(
 if frameworkFolder not in sys.path: sys.path.insert(0, frameworkFolder)
 from utils.utils import add_path_recursively, add_path, find_crow
 find_crow(frameworkFolder)
-#add_path_recursively(os.path.join(frameworkFolder,'contrib'))
 add_path_recursively(os.path.join(frameworkFolder,'contrib','pp'))
-#add_path_recursively(os.path.join(frameworkFolder,'contrib','StringIO'))
 add_path(os.path.join(frameworkFolder,'contrib','AMSC'))
 add_path(os.path.join(frameworkFolder,'contrib'))
-
-
-#filepath = os.path.dirname(os.path.abspath(inspect.getsourcefile(lambda _: None)))
-#sys.path.append(os.path.abspath(os.path.join(filepath,'..'+os.path.sep+'..'+os.path.sep ,'utils')))
-#frameworkDir = os.path.abspath(os.path.join(filepath,'..'+os.path.sep+'..'+os.path.sep))
-#from utils import add_path_recursively
-#add_path_recursively(frameworkDir)
 import StringIO
-#import dill as pickle
-#import cPickle as pickle
 import pickle
 import cloudpickle
 import pptransport
@@ -60,9 +49,7 @@ version = "1.6.4"
 
 
 def preprocess(msg):
-    # fname, fsources, imports, pytpath = pickle.loads(msg)
     fname, fsources, imports = pickle.loads(msg)
-    # print(pytpath)
     fobjs = [compile(fsource, '<string>', 'exec') for fsource in fsources]
     for module in imports:
         try:

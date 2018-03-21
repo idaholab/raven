@@ -79,7 +79,6 @@ class Discover(object):
                 self.bsocket.sendto("S", self.broadcast_addr)
                 time.sleep(BROADCAST_INTERVAL)
 
-
     def listen(self):
         """Listens for broadcasts from other clients/servers"""
         self.base.logger.debug("Listening (%s, %i)" % self.interface_addr)
