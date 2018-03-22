@@ -46,6 +46,113 @@ class Optimizer(Sampler):
     Optimizer is a special type of "samplers" that own the optimization strategy (Type) and they generate the input values to optimize a loss function.
     The most significant deviation from the Samplers is that they do not use distributions.
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    #### FULL INPUT LIST SPSA #### -> * means part of FiniteDiff as well
+    # so far, there's no distinction between optimizers, so all the input from SPSA is here.  Fix this when we sort out optimizers.
+
+    inputSpecification = super(Optimizer,cls).getInputSpecification()
+    # assembled objects
+    targEval = inputData.parameterInputFactory('TargetEvaluation', InputData.StringType, True)
+    targEval.addParam('type', contentType=InputData.StringType)
+    targEval.addParam('class', contentType=InputData.StringType)
+    inputSpecification.append(targEval)
+    sampler = inputData.parameterInputFactory('Sampler', InputData.StringType, True)
+    sampler.addParam('type', contentType=InputData.StringType)
+    sampler.addParam('class', contentType=InputData.StringType)
+    inputSpecification.append(sampler)
+    function = inputData.parameterInputFactory('Function', InputData.StringType, True)
+    function.addParam('type', contentType=InputData.StringType)
+    function.addParam('class', contentType=InputData.StringType)
+    inputSpecification.append(function)
+    precond = inputData.parameterInputFactory('Preconditioner', InputData.StringType, True)
+    precond.addParam('type', contentType=InputData.StringType)
+    precond.addParam('class', contentType=InputData.StringType)
+    inputSpecification.append(precond)
+
+    # variable
+    ## was also part of Sampler, but we need to rewrite variable, so remove it first
+    inputSpecification.removeSub('variable')
+    variable = InputData.parameterInputFactory('variable')
+    variable.addParam("name", InputData.StringType, True)
+    upperBound = InputData.parameterInputFactory('upperBound', InputData.FloatType, True)
+    lowerBound = InputData.parameterInputFactory('lowerBound', InputData.FloatType, True)
+    initial = InputData.parameterInputFactory('initial',contentType=InputData.FloatType)
+    variable.addSub(upperBound)
+    variable.addSub(lowerBound)
+    variable.addSub(initial)
+    inputSpecification.addSub(variable)
+    # constant -> use the Sampler's specs.
+
+    # objectVar
+    objectVar = InputData.parameterInputFactory('objectVar', InputData.StringType, True)
+    inputSpecification.addSub(objectVar)
+
+    # initialization
+    init = InputData.parameterInputFactory('initialization')
+    limit      = InputData.parameterInputFactory('limit', contentType=InputData.IntegerType)
+    seed       = InputData.parameterInputFactory('initialSeed', contentType=InputData.IntegerType)
+    minmaxEnum = InputData.makeEnumType('MinMax','OptimizerTypeType',['min','max'])
+    minmax     = InputData.parameterInputFactory('type', contentType=minmaxEnum)
+    thresh     = InputData.parameterInputFactory('thresholdTrajRemoval', contentType=InputData.FloatType)
+    init.addSub(limit )
+    init.addSub(seed  )
+    init.addSub(minmax)
+    init.addSub(thresh)
+    inputSpecification.addSub(initInput)
+
+    # convergence
+    conv = InputData.parameterInputFactory('convergence')
+    itLim   = InputData.parameterInputFactory('iterationLimit'   , contentType=InputData.IntegerType)
+    pers    = inputData.parameterInputFactory('persistence'      , contentType=InputData.IntegerType)
+    rel     = inputData.parameterInputFactory('relativeThreshold', contentType=InputData.FloatType  )
+    abst    = inputData.parameterInputFactory('absoluteThreshold', contentType=InputData.FloatType  )
+    grad    = inputData.parameterInputFactory('gradientThreshold', contentType=InputData.FloatType  )
+    minstep = inputData.parameterInputFactory('minStepSize'      , contentType=InputData.FloatType  )
+    grow    = inputData.parameterInputFactory('gainGrowthSize'   , contentType=InputData.FloatType  )
+    shrink  = inputData.parameterInputFactory('gainShrinkSize'   , contentType=InputData.FloatType  )
+    conv.addSub(itLim  )
+    conv.addSub(pers   )
+    conv.addSub(rel    )
+    conv.addSub(abst   )
+    conv.addSub(grad   )
+    conv.addSub(minstep)
+    conv.addSub(grow   )
+    conv.addSub(shrink )
+    inputSpecification.addSub(conv)
+
+    # parameter
+    param = InputData.parameterInputFactory('parameter')
+    stochEnum = InputData.makeEnumType('StochDistEnum','StochDistType',['Hypersphere','Bernoulli'])
+    num    = InputData.parameterInputFactory('numGradAvgIterations'   , contentType=InputData.IntegerType)
+    stoch  = InputData.parameterInputFactory('stochasticDistribution' , contentType=stochEnum            )
+    bisect = InputData.parameterInputFactory('innerBisectionThreshold', contentType=InputData.FloatType  )
+    loop   = InputData.parameterInputFactory('innerLoopLimit'         , contentType=InputData.IntegerType)
+    param.addSub(numi  )
+    param.addSub(stoch )
+    param.addSub(bisect)
+    param.addSub(loop  )
+    inputSpecification.addSub(param)
+
+    # multilevel
+    multilevel = InputData.parameterInputFactory('multilevel')
+    sequence = InputData.parameterInputFactory('sequence', contentType=InputData.StringType)
+    multilevel.addSub(sequence)
+    subspace = InputData.parameterInputFactory('subspace', contentType=InputData.StringType)
+    subspace.addParam('name', InputData.StringType)
+    subspace.addParam('precond', InputData.StringType)
+    subspace.addParam('holdOutputSpace', InputData.StringType)
+    multilevel.addSub(subspace)
+    inputSpecification.addSub(multilevel)
+
+    return inputSpecification
+
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -220,6 +327,12 @@ class Optimizer(Sampler):
                 self.raiseAnError(ValueError, 'Unable to convert to float the intial value for variable "{}" in trajectory "{}": {}'.format(varname,trajInd,initVal))
             if self.optTraj == None:
               self.optTraj = range(len(self.optVarsInit['initial'][varname].keys()))
+          elif childChild.tag == 'shape':
+            try:
+              variableShape = tuple(int(i) for i in childChild.value.split(','))
+            except ValueError as e:
+              self.raiseAnError(IOError,'Failed to interpret "shape" for variable "{}"! Should be comma-separated list of integers.'.format(varname))
+            self.variableShapes[varname] = variableShape
 
       elif child.tag == "constant":
         value = utils.partialEval(child.text)
