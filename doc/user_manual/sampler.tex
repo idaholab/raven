@@ -133,6 +133,16 @@ XML node and the requirements for other attributes change:
  \nb{Alternatively, this node must be ommitted
   if the \xmlNode{distribution} node is supplied.}
 }
+\newcommand{\shapeDescription}
+{
+  \xmlNode{shape}, \xmlDesc{comma-separated integers,
+  optional field}, determines the number of samples and shape of samples
+  to be taken.  For example, \xmlNode{shape}2,3\xmlNode{/shape} will provide
+  a 2 x 3 matrix of values.  In general, samplers will simply replicate
+  the single sampled value into each point of the matrix. Omitting this optional
+  node will result in a single scalar value instead.  Note that a model interface
+  must be prepared to handle non-scalar inputs to use this option.
+}
 
 
 
@@ -567,6 +577,7 @@ bound specified (i.e., \xmlNode{lowerBound} and \xmlNode{upperBound}). Allowed f
  \begin{itemize}
     \item \distributionDescription
     \item \functionDescription
+    \item \shapeDescription
  \end{itemize}
  \item \constantVariablesDescription
 \end{itemize}
@@ -656,6 +667,7 @@ Regarding the N-dimensional distributions, the user can specify for each dimensi
     \item \distributionDescription
     \item \functionDescription
     \item \gridDescription
+    \item \shapeDescription
   \end{itemize}
 \item \constantVariablesDescription
 \end{itemize}
@@ -752,6 +764,7 @@ which use reduced combinations of polynomial orders to reduce the necessary samp
  \begin{itemize}
     \item \distributionDescription
     \item \functionDescription
+    \item \shapeDescription
  \end{itemize}
  \item \constantVariablesDescription
 \end{itemize}
@@ -891,6 +904,7 @@ multivariate normal distribution objects. The \xmlNode{Sobol} node supports the 
  \begin{itemize}
     \item \distributionDescription
     \item \functionDescription
+    \item \shapeDescription
  \end{itemize}
 \item \constantVariablesDescription
 \end{itemize}
@@ -967,6 +981,7 @@ constructed in equally-probable CDF bins.
     \item \distributionDescription
     \item \functionDescription
     \item \gridDescription
+    \item \shapeDescription
   \end{itemize}
 \item \constantVariablesDescription
 \end{itemize}
@@ -1181,6 +1196,7 @@ defined within a \xmlNode{ResponseSurfaceDesign} block.
     \item \functionDescription
      \item \gridDescriptionOnlyCustom
      \nb{Only the construction ``custom'' is available. In the \xmlNode{grid} body only the lower and upper bounds can be inputted (2 numbers only).}
+    \item \shapeDescription
  \end{itemize}
  \item \constantVariablesDescription
 \item \xmlNode{ResponseSurfaceDesignSettings}, \xmlDesc{required},
@@ -1368,6 +1384,7 @@ defined within a \xmlNode{FactorialDesign} block.
       \item \distributionDescription
       \item \functionDescription
       \item \gridDescription
+    \item \shapeDescription
     \end{itemize}
   \item \constantVariablesDescription
 \end{itemize}
@@ -1777,6 +1794,7 @@ space.
     \item \distributionDescription
     \item \functionDescription
     \item \gridDescription
+    \item \shapeDescription
   \end{itemize}
   \item \constantVariablesDescription
 \end{itemize}
@@ -1887,6 +1905,7 @@ For this reason, its specifications must be defined within a
     \item \distributionDescription
     \item \functionDescription
     \item \gridDescription
+    \item \shapeDescription
   \end{itemize}
  \item \constantVariablesDescription
 \end{itemize}
@@ -1924,6 +1943,7 @@ As already mentioned, these variables are specified within consecutive
     \begin{itemize}
       \item \distributionDescription
       \item \functionDescription
+    \item \shapeDescription
     \end{itemize}
   \item \constantVariablesDescription
  \end{itemize}
@@ -2070,6 +2090,7 @@ the input space in proximity of the limit surface.
     \begin{itemize}
       \item \distributionDescription
       \item \functionDescription
+      \item \shapeDescription
     \end{itemize}
 \end{itemize}
 
@@ -2306,6 +2327,7 @@ the input space in proximity of the limit surface.
     \item \distributionDescription
     \item \functionDescription
     \item \gridDescription
+    \item \shapeDescription
   \end{itemize}
   \item \constantVariablesDescription
 \end{itemize}
@@ -2460,6 +2482,7 @@ For this reason, its specifications must be defined within a
     \item \distributionDescription
     \item \functionDescription
     \item \gridDescription
+    \item \shapeDescription
   \end{itemize}
   \item \constantVariablesDescription
 \end{itemize}
@@ -2532,6 +2555,7 @@ As already mentioned, these variables are specified within consecutive
     \begin{itemize}
       \item \distributionDescription
       \item \functionDescription
+    \item \shapeDescription
     \end{itemize}
   \item \constantVariablesDescription
  \end{itemize}
@@ -2629,6 +2653,7 @@ algorithm fails for the model $f(x)=x\cdot y$.
     \begin{itemize}
       \item \distributionDescription
     \item \functionDescription
+    \item \shapeDescription
     \end{itemize}
     \item \constantVariablesDescription
 \end{itemize}
@@ -2809,6 +2834,7 @@ Note that the ROM specified for this sampler \emph{must} be an HDMRRom specified
     \begin{itemize}
       \item \distributionDescription
     \item \functionDescription
+    \item \shapeDescription
     \end{itemize}
     \item \constantVariablesDescription
 \end{itemize}

@@ -56,7 +56,7 @@
   </Samplers>
 
   <Models>
-    <ExternalModel ModuleToLoad="vectorInputModel" name="model" subType="">
+    <ExternalModel ModuleToLoad="../vectorInputModel" name="model" subType="">
       <variables>scalarIn,vectorIn,scalarOut,vectorOut,t</variables>
     </ExternalModel>
   </Models>
