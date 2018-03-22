@@ -78,7 +78,6 @@ class MonteCarlo(ForwardSampler):
 
     return inputSpecification
 
-
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
