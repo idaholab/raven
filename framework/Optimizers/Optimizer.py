@@ -33,7 +33,7 @@ from collections import deque
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils,randomUtils
+from utils import utils,randomUtils,InputData
 from BaseClasses import BaseType
 from Assembler import Assembler
 import SupervisedLearning
@@ -58,31 +58,31 @@ class Optimizer(Sampler):
 
     inputSpecification = super(Optimizer,cls).getInputSpecification()
     # assembled objects
-    targEval = inputData.parameterInputFactory('TargetEvaluation', InputData.StringType, True)
-    targEval.addParam('type', contentType=InputData.StringType)
-    targEval.addParam('class', contentType=InputData.StringType)
-    inputSpecification.append(targEval)
-    sampler = inputData.parameterInputFactory('Sampler', InputData.StringType, True)
-    sampler.addParam('type', contentType=InputData.StringType)
-    sampler.addParam('class', contentType=InputData.StringType)
-    inputSpecification.append(sampler)
-    function = inputData.parameterInputFactory('Function', InputData.StringType, True)
-    function.addParam('type', contentType=InputData.StringType)
-    function.addParam('class', contentType=InputData.StringType)
-    inputSpecification.append(function)
-    precond = inputData.parameterInputFactory('Preconditioner', InputData.StringType, True)
-    precond.addParam('type', contentType=InputData.StringType)
-    precond.addParam('class', contentType=InputData.StringType)
-    inputSpecification.append(precond)
+    targEval = InputData.parameterInputFactory('TargetEvaluation', contentType=InputData.StringType, strictMode=True)
+    targEval.addParam('type', InputData.StringType, True)
+    targEval.addParam('class', InputData.StringType, True)
+    inputSpecification.addSub(targEval)
+    sampler = InputData.parameterInputFactory('Sampler', contentType=InputData.StringType, strictMode=True)
+    sampler.addParam('type', InputData.StringType, True)
+    sampler.addParam('class', InputData.StringType, True)
+    inputSpecification.addSub(sampler)
+    function = InputData.parameterInputFactory('Function', contentType=InputData.StringType, strictMode=True)
+    function.addParam('type', InputData.StringType, True)
+    function.addParam('class', InputData.StringType, True)
+    inputSpecification.addSub(function)
+    precond = InputData.parameterInputFactory('Preconditioner', contentType=InputData.StringType, strictMode=True)
+    precond.addParam('type', InputData.StringType, True)
+    precond.addParam('class', InputData.StringType, True)
+    inputSpecification.addSub(precond)
 
     # variable
     ## was also part of Sampler, but we need to rewrite variable, so remove it first
     inputSpecification.removeSub('variable')
-    variable = InputData.parameterInputFactory('variable')
+    variable = InputData.parameterInputFactory('variable', strictMode=True)
     variable.addParam("name", InputData.StringType, True)
-    upperBound = InputData.parameterInputFactory('upperBound', InputData.FloatType, True)
-    lowerBound = InputData.parameterInputFactory('lowerBound', InputData.FloatType, True)
-    initial = InputData.parameterInputFactory('initial',contentType=InputData.FloatType)
+    upperBound = InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType, strictMode=True)
+    lowerBound = InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType, strictMode=True)
+    initial = InputData.parameterInputFactory('initial',contentType=InputData.StringListType)
     variable.addSub(upperBound)
     variable.addSub(lowerBound)
     variable.addSub(initial)
@@ -90,32 +90,35 @@ class Optimizer(Sampler):
     # constant -> use the Sampler's specs.
 
     # objectVar
-    objectVar = InputData.parameterInputFactory('objectVar', InputData.StringType, True)
+    objectVar = InputData.parameterInputFactory('objectVar', contentType=InputData.StringType, strictMode=True)
     inputSpecification.addSub(objectVar)
 
     # initialization
-    init = InputData.parameterInputFactory('initialization')
+    init = InputData.parameterInputFactory('initialization', strictMode=True)
+    whenWriteEnum = InputData.makeEnumType('whenWriteEnum','whenWriteType',['final','every'])
     limit      = InputData.parameterInputFactory('limit', contentType=InputData.IntegerType)
     seed       = InputData.parameterInputFactory('initialSeed', contentType=InputData.IntegerType)
     minmaxEnum = InputData.makeEnumType('MinMax','OptimizerTypeType',['min','max'])
     minmax     = InputData.parameterInputFactory('type', contentType=minmaxEnum)
     thresh     = InputData.parameterInputFactory('thresholdTrajRemoval', contentType=InputData.FloatType)
+    write      = InputData.parameterInputFactory('writeSteps',contentType=whenWriteEnum)
     init.addSub(limit )
     init.addSub(seed  )
     init.addSub(minmax)
     init.addSub(thresh)
-    inputSpecification.addSub(initInput)
+    init.addSub(write)
+    inputSpecification.addSub(init)
 
     # convergence
-    conv = InputData.parameterInputFactory('convergence')
+    conv = InputData.parameterInputFactory('convergence', strictMode=True)
     itLim   = InputData.parameterInputFactory('iterationLimit'   , contentType=InputData.IntegerType)
-    pers    = inputData.parameterInputFactory('persistence'      , contentType=InputData.IntegerType)
-    rel     = inputData.parameterInputFactory('relativeThreshold', contentType=InputData.FloatType  )
-    abst    = inputData.parameterInputFactory('absoluteThreshold', contentType=InputData.FloatType  )
-    grad    = inputData.parameterInputFactory('gradientThreshold', contentType=InputData.FloatType  )
-    minstep = inputData.parameterInputFactory('minStepSize'      , contentType=InputData.FloatType  )
-    grow    = inputData.parameterInputFactory('gainGrowthSize'   , contentType=InputData.FloatType  )
-    shrink  = inputData.parameterInputFactory('gainShrinkSize'   , contentType=InputData.FloatType  )
+    pers    = InputData.parameterInputFactory('persistence'      , contentType=InputData.IntegerType)
+    rel     = InputData.parameterInputFactory('relativeThreshold', contentType=InputData.FloatType  )
+    abst    = InputData.parameterInputFactory('absoluteThreshold', contentType=InputData.FloatType  )
+    grad    = InputData.parameterInputFactory('gradientThreshold', contentType=InputData.FloatType  )
+    minstep = InputData.parameterInputFactory('minStepSize'      , contentType=InputData.FloatType  )
+    grow    = InputData.parameterInputFactory('gainGrowthFactor' , contentType=InputData.FloatType  )
+    shrink  = InputData.parameterInputFactory('gainShrinkFactor' , contentType=InputData.FloatType  )
     conv.addSub(itLim  )
     conv.addSub(pers   )
     conv.addSub(rel    )
@@ -127,24 +130,24 @@ class Optimizer(Sampler):
     inputSpecification.addSub(conv)
 
     # parameter
-    param = InputData.parameterInputFactory('parameter')
+    param = InputData.parameterInputFactory('parameter', strictMode=True)
     stochEnum = InputData.makeEnumType('StochDistEnum','StochDistType',['Hypersphere','Bernoulli'])
     num    = InputData.parameterInputFactory('numGradAvgIterations'   , contentType=InputData.IntegerType)
     stoch  = InputData.parameterInputFactory('stochasticDistribution' , contentType=stochEnum            )
     bisect = InputData.parameterInputFactory('innerBisectionThreshold', contentType=InputData.FloatType  )
     loop   = InputData.parameterInputFactory('innerLoopLimit'         , contentType=InputData.IntegerType)
-    param.addSub(numi  )
+    param.addSub(num   )
     param.addSub(stoch )
     param.addSub(bisect)
     param.addSub(loop  )
     inputSpecification.addSub(param)
 
     # multilevel
-    multilevel = InputData.parameterInputFactory('multilevel')
+    multilevel = InputData.parameterInputFactory('multilevel', strictMode=True)
     sequence = InputData.parameterInputFactory('sequence', contentType=InputData.StringType)
     multilevel.addSub(sequence)
-    subspace = InputData.parameterInputFactory('subspace', contentType=InputData.StringType)
-    subspace.addParam('name', InputData.StringType)
+    subspace = InputData.parameterInputFactory('subspace', contentType=InputData.StringType, strictMode=True)
+    subspace.addParam('name', InputData.StringType, True)
     subspace.addParam('precond', InputData.StringType)
     subspace.addParam('holdOutputSpace', InputData.StringType)
     multilevel.addSub(subspace)
@@ -297,127 +300,132 @@ class Optimizer(Sampler):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node1
       @ Out, None
     """
+    paramInput = self.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+
     # TODO some merging with base sampler XML reading might be possible, but in general requires different entries
     # first read all XML nodes
-    for child in xmlNode:
+    for child in paramInput.subparts:
       #FIXME: the common variable reading should be wrapped up in a method to reduce the code redundancy
-      if child.tag == "variable":
+      if child.getName() == "variable":
         if self.fullOptVars is None:
           self.fullOptVars = []
         try:
-          varname = child.attrib['name']
-          self.optVarsInitialized[varname] = False
+          varName = child.parameterValues['name']
+          self.optVarsInitialized[varName] = False
         except KeyError:
-          self.raiseAnError(IOError, child.tag+' node does not have the "name" attribute')
-        self.fullOptVars.append(varname)
-        self.optVarsInit['initial'][varname] = {}
-        for childChild in child:
-          if   childChild.tag == "upperBound":
-            self.optVarsInit['upperBound'][varname] = float(childChild.text)
-          elif childChild.tag == "lowerBound":
-            self.optVarsInit['lowerBound'][varname] = float(childChild.text)
-          elif childChild.tag == "initial":
-            self.optVarsInit['initial'][varname] = {}
-            self.optVarsInitialized[varname] = True
-            temp = childChild.text.split(',')
-            for trajInd, initVal in enumerate(temp):
+          self.raiseAnError(IOError, '"{}" node does not have the "name" attribute'.format(child.getName()))
+        self.fullOptVars.append(varName)
+        self.optVarsInit['initial'][varName] = {}
+        for childChild in child.subparts:
+          if childChild.getName() == "upperBound":
+            self.optVarsInit['upperBound'][varName] = float(childChild.value)
+          elif childChild.getName() == "lowerBound":
+            self.optVarsInit['lowerBound'][varName] = float(childChild.value)
+          elif childChild.getName() == "initial":
+            self.optVarsInit['initial'][varName] = {}
+            self.optVarsInitialized[varName] = True
+            initPoints = childChild.value
+            for trajInd, initVal in enumerate(initPoints):
               try:
-                self.optVarsInit['initial'][varname][trajInd] = float(initVal)
+                self.optVarsInit['initial'][varName][trajInd] = float(initVal)
               except ValueError:
-                self.raiseAnError(ValueError, 'Unable to convert to float the intial value for variable "{}" in trajectory "{}": {}'.format(varname,trajInd,initVal))
+                self.raiseAnError(ValueError, 'Unable to convert to float the intial value for variable "{}" in trajectory "{}": {}'.format(varName,trajInd,initVal))
             if self.optTraj == None:
-              self.optTraj = range(len(self.optVarsInit['initial'][varname].keys()))
-          elif childChild.tag == 'shape':
+              self.optTraj = range(len(self.optVarsInit['initial'][varName].keys()))
+          elif childChild.getName() == 'shape':
             try:
-              variableShape = tuple(int(i) for i in childChild.value.split(','))
+              variableShape = tuple(int(i) for i in childChild.value)
             except ValueError as e:
-              self.raiseAnError(IOError,'Failed to interpret "shape" for variable "{}"! Should be comma-separated list of integers.'.format(varname))
-            self.variableShapes[varname] = variableShape
+              self.raiseAnError(IOError,'Failed to interpret "shape" for variable "{}"! Should be comma-separated list of integers.'.format(varName))
+            self.variableShapes[varName] = variableShape
 
-      elif child.tag == "constant":
-        value = utils.partialEval(child.text)
+      elif child.getName() == "constant":
+        value = utils.partialEval(child.value)
         if value is None:
-          self.raiseAnError(IOError,'The body of "constant" XML block should be a number. Got: ' +child.text)
+          self.raiseAnError(IOError,'The body of "constant" XML block should be a number. Got: ' +child.value)
         try:
-          self.constants[child.attrib['name']] = value
+          self.constants[child.parameterValues['name']] = value
         except KeyError:
-          self.raiseAnError(KeyError,child.tag+' must have the attribute "name"!!!')
+          self.raiseAnError(KeyError,child.getName()+'"constant" nodes must have the attribute "name" (missing in "{}").'.format(self.name))
 
-      elif child.tag == "objectVar":
-        self.objVar = child.text.strip()
+      elif child.getName() == "objectVar":
+        self.objVar = child.value.strip()
 
-      elif child.tag == "initialization":
+      elif child.getName() == "initialization":
         self.initSeed = randomUtils.randomIntegers(0,2**31,self)
-        for childChild in child:
-          if childChild.tag == "limit":
-            self.limit['mdlEval'] = int(childChild.text)
+        for childChild in child.subparts:
+          if childChild.getName() == "limit":
+            self.limit['mdlEval'] = int(childChild.value)
             #the manual once claimed that "A" defaults to iterationLimit/10, but it's actually this number/10.
-          elif childChild.tag == "type":
-            self.optType = childChild.text
+          elif childChild.getName() == "type":
+            self.optType = childChild.value
             if self.optType not in ['min', 'max']:
-              self.raiseAnError(IOError, 'Unknown optimization type '+childChild.text+'. Available: "min" or "max"')
-          elif childChild.tag == "initialSeed":
-            self.initSeed = int(childChild.text)
-          elif childChild.tag == 'thresholdTrajRemoval':
-            self.thresholdTrajRemoval = float(childChild.text)
-          elif childChild.tag == 'writeSteps':
-            if childChild.text.strip().lower() == 'every':
+              self.raiseAnError(IOError, 'Unknown optimization type "{}". Available: "min" or "max"'.format(childChild.value))
+          elif childChild.getName() == "initialSeed":
+            self.initSeed = int(childChild.value)
+          elif childChild.getName() == 'thresholdTrajRemoval':
+            self.thresholdTrajRemoval = float(childChild.value)
+          elif childChild.getName() == 'writeSteps':
+            whenToWrite = childChild.value.strip().lower()
+            if whenToWrite == 'every':
               self.writeSolnExportOn = 'every'
-            elif childChild.text.strip().lower() == 'final':
+            elif whenToWrite == 'final':
               self.writeSolnExportOn = 'final'
             else:
-              self.raiseAnError(IOError,'Unexpected frequency for <writeSteps>: "{}". Expected "every" or "final".')
+              self.raiseAnError(IOError,'Unexpected frequency for <writeSteps>: "{}". Expected "every" or "final".'.format(whenToWrite))
           else:
-            self.raiseAnError(IOError,'Unknown tag: '+childChild.tag)
+            self.raiseAnError(IOError,'Unknown tag: '+childChild.getName())
 
-      elif child.tag == "convergence":
-        for childChild in child:
-          if childChild.tag == "iterationLimit":
-            self.limit['varsUpdate'] = int(childChild.text)
-          elif childChild.tag == "absoluteThreshold":
-            self.absConvergenceTol = float(childChild.text)
-          elif childChild.tag == "relativeThreshold":
-            self.relConvergenceTol = float(childChild.text)
-          elif childChild.tag == "minStepSize":
-            self.minStepSize = float(childChild.text)
-          elif childChild.tag == 'persistence':
-            self.convergencePersistence = int(childChild.text)
-      elif child.tag == "restartTolerance":
-        self.restartTolerance = float(child.text)
+      elif child.getName() == "convergence":
+        for childChild in child.subparts:
+          if childChild.getName() == "iterationLimit":
+            self.limit['varsUpdate'] = int(childChild.value)
+          elif childChild.getName() == "absoluteThreshold":
+            self.absConvergenceTol = float(childChild.value)
+          elif childChild.getName() == "relativeThreshold":
+            self.relConvergenceTol = float(childChild.value)
+          elif childChild.getName() == "minStepSize":
+            self.minStepSize = float(childChild.value)
+          elif childChild.getName() == 'persistence':
+            self.convergencePersistence = int(childChild.value)
 
-      elif child.tag == 'parameter':
-        for childChild in child:
-          self.paramDict[childChild.tag] = childChild.text
+      elif child.getName() == "restartTolerance":
+        self.restartTolerance = float(child.value)
 
-      elif child.tag == 'multilevel':
+      elif child.getName() == 'parameter':
+        for childChild in child.subparts:
+          self.paramDict[childChild.getName()] = childChild.value
+
+      elif child.getName() == 'multilevel':
         self.multilevel = True
-        for subnode in child:
-          if subnode.tag == 'subspace':
+        for subnode in child.subparts:
+          if subnode.getName() == 'subspace':
             #subspace name
             try:
-              name = subnode.attrib['name']
+              name = subnode.parameterValues['name']
             except KeyError:
               self.raiseAnError(IOError, 'A multilevel subspace is missing the "name" attribute!')
             if name in self.mlBatches.keys():
               self.raiseAnError(IOError,'Multilevel subspace "{}" has a duplicate name!'.format(name))
-            if "holdOutputSpace" in subnode.attrib:
-              self.mlHoldBatches[name] =  [var.strip() for var in subnode.attrib['holdOutputSpace'].split(",")]
+            if "holdOutputSpace" in subnode.parameterValues:
+              self.mlHoldBatches[name] =  [var.strip() for var in subnode.parameterValues['holdOutputSpace'].split(",")]
               self.raiseAMessage('For subspace "'+name+'" the following output space is asked to be kept on hold: '+','.join(self.mlHoldBatches[name]))
             #subspace text
-            subspaceVars = list(x.strip() for x in subnode.text.split(','))
+            subspaceVars = list(x.strip() for x in subnode.value.split(','))
             if len(subspaceVars) < 1:
               self.raiseAnError(IOError,'Multilevel subspace "{}" has no variables specified!'.format(name))
             self.mlBatches[name] = subspaceVars
             #subspace preconditioner
-            precond = subnode.attrib.get('precond')
+            precond = subnode.parameterValues.get('precond')
             if precond is not None:
               self.mlPreconditioners[name] = precond
-          elif subnode.tag == 'sequence':
-            self.mlSequence = list(x.strip() for x in subnode.text.split(','))
+          elif subnode.getName() == 'sequence':
+            self.mlSequence = list(x.strip() for x in subnode.value.split(','))
 
     # now that XML is read, do some checks and defaults
+    # set defaults
     if self.writeSolnExportOn is None:
-      # default
       self.writeSolnExportOn = 'every'
     self.raiseAMessage('Writing to solution export on "{}" optimizer iteration.'.format(self.writeSolnExportOn))
     if self.optType is None:
@@ -426,24 +434,29 @@ class Optimizer(Sampler):
       self.thresholdTrajRemoval = 0.05
     if self.initSeed is None:
       self.initSeed = randomUtils.randomIntegers(0,2**31,self)
+    # NOTE: optTraj can be changed in "initialize" if the user provides a sampler for seeding
+    if self.optTraj is None:
+      self.optTraj = [0]
+
+    # check required settings TODO this can probably be removed thanks to the input checking!
     if self.objVar is None:
       self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
     if self.fullOptVars is None:
-      self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
+      self.raiseAnError(IOError, 'Decision variable(s) not specified for optimizer!')
+
     self.fullOptVars.sort()
-    if self.optTraj is None:
-      self.optTraj = [0]
-    for varname in self.fullOptVars:
-      if varname not in self.optVarsInit['upperBound'].keys():
-        self.raiseAnError(IOError, 'Upper bound for '+varname+' is not provided' )
-      if varname not in self.optVarsInit['lowerBound'].keys():
-        self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
+
+    for varName in self.fullOptVars:
+      if varName not in self.optVarsInit['upperBound'].keys():
+        self.raiseAnError(IOError, 'Upper bound for '+varName+' is not provided' )
+      if varName not in self.optVarsInit['lowerBound'].keys():
+        self.raiseAnError(IOError, 'Lower bound for '+varName+' is not provided' )
       #store ranges of variables
-      self.optVarsInit['ranges'][varname] = self.optVarsInit['upperBound'][varname] - self.optVarsInit['lowerBound'][varname]
-      if len(self.optVarsInit['initial'][varname]) == 0:
+      self.optVarsInit['ranges'][varName] = self.optVarsInit['upperBound'][varName] - self.optVarsInit['lowerBound'][varName]
+      if len(self.optVarsInit['initial'][varName]) == 0:
         for traj in self.optTraj:
-          self.optVarsInit['initial'][varname][traj] = None
-    # NOTE: optTraj can be changed in "initialize" if the user provides a sampler for seeding
+          self.optVarsInit['initial'][varName][traj] = None
+
     if self.multilevel:
       if len(self.mlSequence) < 1:
         self.raiseAnError(IOError,'No "sequence" was specified for multilevel optimization!')
@@ -639,17 +652,17 @@ class Optimizer(Sampler):
     # check the constraint here to check if the initial values violate it
     varK = {}
     for trajInd in self.optTraj:
-      for varname in self.getOptVars():
-        varK[varname] = self.optVarsInit['initial'][varname][trajInd]
+      for varName in self.getOptVars():
+        varK[varName] = self.optVarsInit['initial'][varName][trajInd]
       satisfied, _ = self.checkConstraint(varK)
       if not satisfied:
         # get a random value between the the lower and upper bounds
         self.raiseAWarning("the initial values specified for trajectory "+str(trajInd)+" do not satify the contraints. Picking random ones!")
         randomGuessesCnt = 0
         while not satisfied and randomGuessesCnt < self.constraintHandlingPara['innerLoopLimit']:
-          for varname in self.getOptVars():
-            varK[varname] = self.optVarsInit['lowerBound'][varname]+randomUtils.random()*self.optVarsInit['ranges'][varname]
-            self.optVarsInit['initial'][varname][trajInd] = varK[varname]
+          for varName in self.getOptVars():
+            varK[varName] = self.optVarsInit['lowerBound'][varName]+randomUtils.random()*self.optVarsInit['ranges'][varName]
+            self.optVarsInit['initial'][varName][trajInd] = varK[varName]
           satisfied, _ = self.checkConstraint(varK)
         if not satisfied:
           self.raiseAnError(Exception,"It was not possible to find any initial values that could satisfy the constraints for trajectory "+str(trajInd))
