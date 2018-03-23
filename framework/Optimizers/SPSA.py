@@ -36,7 +36,7 @@ import scipy
 #Internal Modules------------------------------------------------------------------------------------
 from .GradientBasedOptimizer import GradientBasedOptimizer
 import Distributions
-from utils import mathUtils,randomUtils
+from utils import mathUtils,randomUtils,InputData
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -44,6 +44,27 @@ class SPSA(GradientBasedOptimizer):
   """
     Simultaneous Perturbation Stochastic Approximation Optimizer
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls
+    """
+    inputSpecification = super(SPSA,cls).getInputSpecification()
+
+    # add additional parameters to "parameter"
+    param = inputSpecification.popSub('parameter')
+    param.addSub(InputData.parameterInputFactory('gamma', contentType=InputData.FloatType, strictMode=True))
+    param.addSub(InputData.parameterInputFactory('c'    , contentType=InputData.FloatType, strictMode=True))
+    param.addSub(InputData.parameterInputFactory('a'    , contentType=InputData.FloatType, strictMode=True))
+    param.addSub(InputData.parameterInputFactory('alpha', contentType=InputData.FloatType, strictMode=True))
+    param.addSub(InputData.parameterInputFactory('A'    , contentType=InputData.FloatType, strictMode=True))
+
+    inputSpecification.addSub(param)
+    return inputSpecification
+
+
   def __init__(self):
     """
       Default Constructor
