@@ -387,7 +387,7 @@ class Simulation(MessageHandler.MessageUser):
       @ Out, None
     """
     #TODO update syntax to note that we read InputTrees not XmlTrees
-    unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity','color'],list(xmlNode.attrib.keys()))
+    unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity','color','profile'],list(xmlNode.attrib.keys()))
     if len(unknownAttribs) > 0:
       errorMsg = 'The following attributes are unknown:'
       for element in unknownAttribs:
@@ -400,6 +400,10 @@ class Simulation(MessageHandler.MessageUser):
     if 'color' in xmlNode.attrib.keys():
       self.raiseADebug('Setting color output mode to',xmlNode.attrib['color'])
       self.messageHandler.setColor(xmlNode.attrib['color'])
+    if 'profile' in xmlNode.attrib.keys():
+      thingsToProfile = list(p.strip().lower() for p in xmlNode.attrib['profile'].split(','))
+      if 'jobs' in thingsToProfile:
+        self.jobHandler.setProfileJobs(True)
     self.messageHandler.verbosity = self.verbosity
     runInfoNode = xmlNode.find('RunInfo')
     if runInfoNode is None:

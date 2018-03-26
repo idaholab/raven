@@ -622,6 +622,7 @@ class MultiRun(SingleRun):
       # collect finished jobs
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
+        finishedJob.trackTime('step_collected')
         # update number of collected runs
         self.counter +=1
         # collect run if it succeeded
@@ -655,6 +656,7 @@ class MultiRun(SingleRun):
             self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
         # finalize actual sampler
         sampler.finalizeActualSampling(finishedJob,model,inputs)
+        finishedJob.trackTime('step_finished')
         # add new job
 
         isEnsemble = isinstance(model, Models.EnsembleModel)
