@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="debug" profile="jobs">
   <RunInfo>
     <WorkingDir>mc</WorkingDir>
     <Sequence>makeCoarse,makeRestart,makeFine,print</Sequence>
