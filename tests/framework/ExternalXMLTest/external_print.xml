@@ -1,0 +1,5 @@
+<Print name="outGrid_dump">
+	<ExternalXML node="type" xmlToLoad="ExternalXMLTest/external_printtype.xml"/>
+	<ExternalXML node="source" xmlToLoad="ExternalXMLTest/external_printsource.xml"/>
+	<what>input, output</what>
+</Print>
