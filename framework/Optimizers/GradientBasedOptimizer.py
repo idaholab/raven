@@ -202,6 +202,7 @@ class GradientBasedOptimizer(Optimizer):
     gradient = None # for now...most of the stuff in the localEvaluate can be performed here
     gradient = self.localEvaluateGradient(optVarsValues, traj, gradient)
     # we intend for gradient to give direction only
+    # DEBUGG VARIABLE VECTOR OPTION 2: how to find "norm" with mixed vectors?
     gradientNorm = np.linalg.norm(gradient.values()) #might be infinite!
     #fix inf
     if gradientNorm == np.inf:

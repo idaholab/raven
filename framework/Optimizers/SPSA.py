@@ -64,7 +64,6 @@ class SPSA(GradientBasedOptimizer):
     inputSpecification.addSub(param)
     return inputSpecification
 
-
   def __init__(self):
     """
       Default Constructor
@@ -150,7 +149,6 @@ class SPSA(GradientBasedOptimizer):
       del self.counter['lastStepSize'][traj]
       self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
     self.queueUpOptPointRuns(traj,varKPlus)
-
 
   def localStillReady(self, ready, convergence = False):
     """
@@ -277,29 +275,45 @@ class SPSA(GradientBasedOptimizer):
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     gradArray = {}
+    # number of gradient evaluations to consider (denoising or resampling)
+    numGrads = self.gradDict['numIterForAve']
+    # prepopulate array of collected gradient
     for var in self.getOptVars(traj=traj):
-      gradArray[var] = np.zeros(0)
+      gradArray[var] = np.zeros(numGrads,dtype=object)
     # Evaluate gradient at each point
-    for i in range(self.gradDict['numIterForAve']):
-      opt  = optVarsValues[i]                                  #the latest opt point
-      pert = optVarsValues[i + self.gradDict['numIterForAve']] #the perturbed point
+    for i in range(numGrads):
+      opt  = optVarsValues[i]            #the latest opt point
+      pert = optVarsValues[i + numGrads] #the perturbed point
       # calculate grad(F) wrt each input variable
       # fix infinities!
       lossDiff = mathUtils.diffWithInfinites(pert['output'],opt['output'])
       #cover "max" problems
       # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
       #   sign flipping was only called when evaluating the gradient.
+      #   Perhaps the sign should flip when evaluating the next point to take, instead of forcing gradient descent
       if self.optType == 'max':
         lossDiff *= -1.0
       for var in self.getOptVars(traj=traj):
-        # gradient is calculated in normalized space
+        # NOTE: gradient is calculated in normalized space
         dh = pert['inputs'][var] - opt['inputs'][var]
-        if abs(dh) < 1e-15:
-          self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
-        gradArray[var] = np.append(gradArray[var], lossDiff/dh)
+        # a sample so close cannot be taken without violiting minimum step, so this check should not be necessary
+        #if abs(dh) < 1e-15:
+        #  self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" of zero was found for var:',var)
+        gradArray[var][i] = lossDiff/dh
+        print('DEBUGG var:',var)
+        print('DEBUGG   dh:',dh)
     gradient = {}
     for var in self.getOptVars(traj=traj):
-      gradient[var] = gradArray[var].mean()
+      mean = gradArray[var].mean()
+      # DEBUGG VARIABLE VECTOR OPTION 1: convert them all into independent variables (bad)
+      #if var in self.variableShapes:
+      #  gradient.update(dict((var+'_'+str(i),val) for i,val in enumerate(mean)))
+      #else:
+      gradient[var] = mean
+    print('DEBUGG gradients:')
+    for var,grad in gradient.items():
+      print ('DEBUGG  ',var,grad)
+    #aaaaa
     return gradient
 
   def localGenerateInput(self,model,oldInput):
@@ -411,11 +425,15 @@ class SPSA(GradientBasedOptimizer):
       @ In, pertLow, float, the perturbation to apply in case the lower bound is violated
       @ Out, convertedValue, float, the modified value in case the boundaries are violated
     """
-    convertedValue = currentValue
-    if currentValue >= upperBound:
-      convertedValue = pertUp*varRange + lowerBound
-    if currentValue <= lowerBound:
-      convertedValue = pertLow*varRange + lowerBound
+    # if variable is a vector of values, treat each independently
+    if isinstance(currentValue,np.ndarray):
+      convertedValue = np.asarray([self._checkBoundariesAndModify(upperBound,lowerBound,varRange,value,pertUp,pertLow) for value in currentValue])
+    else:
+      convertedValue = currentValue
+      if currentValue >= upperBound:
+        convertedValue = pertUp*varRange + lowerBound
+      if currentValue <= lowerBound:
+        convertedValue = pertLow*varRange + lowerBound
     return convertedValue
 
   def clearCurrentOptimizationEffort(self,traj):

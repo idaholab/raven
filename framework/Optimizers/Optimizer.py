@@ -83,9 +83,11 @@ class Optimizer(Sampler):
     upperBound = InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType, strictMode=True)
     lowerBound = InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType, strictMode=True)
     initial = InputData.parameterInputFactory('initial',contentType=InputData.StringListType)
+    shape = InputData.parameterInputFactory('shape',contentType=InputData.StringListType)
     variable.addSub(upperBound)
     variable.addSub(lowerBound)
     variable.addSub(initial)
+    variable.addSub(shape)
     inputSpecification.addSub(variable)
     # constant -> use the Sampler's specs.
 
@@ -154,7 +156,6 @@ class Optimizer(Sampler):
     inputSpecification.addSub(multilevel)
 
     return inputSpecification
-
 
   def __init__(self):
     """
@@ -255,6 +256,14 @@ class Optimizer(Sampler):
     self.addAssemblerObject('Function','-1')
     self.addAssemblerObject('Preconditioner','-n')
     self.addAssemblerObject('Sampler','-1')   #This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
+
+  def _expandVectorVariables(self):
+    """
+      Normally used to extend variables; in the Optimizer, we do that in localGenerateInput
+      @ In, None
+      @ Out, None
+    """
+    pass
 
   def _localGenerateAssembler(self,initDict):
     """
@@ -667,7 +676,15 @@ class Optimizer(Sampler):
         if not satisfied:
           self.raiseAnError(Exception,"It was not possible to find any initial values that could satisfy the constraints for trajectory "+str(trajInd))
 
-    if self.initSeed != None:
+    # extend multivalue variables (aka vector variables, or variables with "shape")
+    ## TODO someday take array of initial values from a data object
+    for var,shape in self.variableShapes.items():
+      for traj in self.optTraj:
+        baseVal = self.optVarsInit['initial'][var][traj]
+        newVal = np.ones(shape)*baseVal
+        self.optVarsInit['initial'][var][traj] = newVal
+
+    if self.initSeed is not None:
       randomUtils.randomSeed(self.initSeed)
 
     self.localInitialize(solutionExport=solutionExport)
