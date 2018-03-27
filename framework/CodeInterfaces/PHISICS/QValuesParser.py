@@ -3,21 +3,21 @@ Created on June 19th, 2017
 @author: rouxpn
 """
 import os
-import re 
-from shutil import copyfile 
-from decimal import Decimal 
+import re
+from shutil import copyfile
+from decimal import Decimal
 from random import *
 
 class QValuesParser():
   """
-    Parses the PHISICS Qvalues library and replaces the nominal values by the perturbed values 
+    Parses the PHISICS Qvalues library and replaces the nominal values by the perturbed values
   """
   def matrix_printer(self, infile, outfile):
     """
-      Prints the perturbed Qvalues matrix in the outfile 
-      @ In, infile, string, input file name 
-      @ In, outfile, string, output file name 
-      @ Out, None 
+      Prints the perturbed Qvalues matrix in the outfile
+      @ In, infile, string, input file name
+      @ In, outfile, string, output file name
+      @ Out, None
     """
     for line in infile :
       line = line.upper().split()
@@ -26,49 +26,49 @@ class QValuesParser():
         if line[0] == isotopeID :
           try :
             line[1] = str(self.listedQValuesDict.get(isotopeID))
-          except : 
+          except :
             raise Exception('Error. Check if the unperturbed library has defined values relative to the requested perturbed isotopes')
       try :
         if len(line) > 1:
           line[0] = "{0:<7s}".format(line[0])
           line[1] = "{0:<7s}".format(line[1])
-          outfile.writelines(' '+line[0]+line[1]+"\n") 
-      except KeyError: 
+          outfile.writelines(' '+line[0]+line[1]+"\n")
+      except KeyError:
         pass
 
   def hardcopy_printer(self,modifiedFile):
     """
       Prints the hardcopied information at the begining of the xml file
       @ In, modifiedFile, string, output temperary file name
-      @ Out, None 
+      @ Out, None
     """
     with open(modifiedFile, 'a') as outfile:
       with open(self.inputFiles) as infile:
         for line in infile:
-          if not line.split(): continue   # if the line is blank, ignore it 
-          if re.match(r'(.*?)\s+\w+\s+\d+.\d+',line) : 
+          if not line.split(): continue   # if the line is blank, ignore it
+          if re.match(r'(.*?)\s+\w+\s+\d+.\d+',line) :
             break
           outfile.writelines(line)
         self.matrix_printer(infile, outfile)
-        
+
   def __init__(self, inputFiles, **pertDict):
-    """  
-      @ In, inputFiles, string, Qvalues library file 
+    """
+      @ In, inputFiles, string, Qvalues library file
       @ In, pertDict, dictionary, dictionary of perturbed variables
       @ Out, None
     """
     self.inputFiles = inputFiles
     self.pertQValuesDict = pertDict
-    for key, value in self.pertQValuesDict.iteritems(): 
+    for key, value in self.pertQValuesDict.iteritems():
       self.pertQValuesDict[key] = '%.3E' % Decimal(str(value)) #convert the values into scientific values
-    self.fileReconstruction()    
-    
+    self.fileReconstruction()
+
   def fileReconstruction(self):
     """
-      Converts the formatted dictionary pertdict -> {'QVALUES|U235':1.30} 
+      Converts the formatted dictionary pertdict -> {'QVALUES|U235':1.30}
       into a dictionary of dictionaries that has the format -> {'QVALUES':{'U235':1.30}}
-      @ In, None  
-      @ Out, None 
+      @ In, None
+      @ Out, None
     """
     self.listedQValuesDict = {}
     perturbedIsotopes = []
@@ -81,27 +81,27 @@ class QValuesParser():
       isotopeName = isotopeKeyName.split('|')
       self.listedQValuesDict[isotopeName[1]] = QValue
     self.printInput()
-  
+
   def removeRandomlyNamedFiles(self, modifiedFile):
     """
       Removes the temporary file with a random name in the working directory
       @ In, modifiedFile, string
-      @ Out, None 
+      @ Out, None
     """
     os.remove(modifiedFile)
-  
+
   def generateRandomName(self):
     """
       Generates a random file name for the modified file
       @ In, None
       @ Out, string
     """
-    return str(randint(1,1000000000000))+'.dat'  
-      
+    return str(randint(1,1000000000000))+'.dat'
+
   def printInput(self):
     """
-      Prints out the pertubed Qvalues library into a file 
-      @ In, None 
+      Prints out the pertubed Qvalues library into a file
+      @ In, None
       @ Out, None
     """
     modifiedFile = self.generateRandomName()

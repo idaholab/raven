@@ -4,23 +4,23 @@ Created on June 19th, 2017
 """
 import os
 import sys
-import re 
-from shutil import copyfile 
-import fileinput 
-from decimal import Decimal 
+import re
+from shutil import copyfile
+import fileinput
+from decimal import Decimal
 from random import *
 
 class DecayParser():
   """
-    Parses the PHISICS decay library and replaces the nominal values by the perturbed values 
+    Parses the PHISICS decay library and replaces the nominal values by the perturbed values
   """
   def matrix_printer(self, infile, outfile, atomicNumber):
     """
-      Prints the perturbed decay matrix in the outfile 
-      @ In, infile, string, input file name 
-      @ In, outfile, string, output file name 
+      Prints the perturbed decay matrix in the outfile
+      @ In, infile, string, input file name
+      @ In, outfile, string, output file name
       @ In, atomicNumber, integer, indicates if the isotope parsed is an actinide (0) or a fission product (1)
-      @ Out, None 
+      @ Out, None
     """
     for line in infile :
       line = line.upper().split()
@@ -31,25 +31,25 @@ class DecayParser():
           typeOfDecayPerturbed = self.listedDict.get(isotopeID,{}).keys()
           for i in xrange (0, len(typeOfDecayPerturbed)):
             try :
-              if self.isotopeClassifier.get(isotopeID) == self.isotopeParsed[0]:  # it means the isotope is an actinide 
+              if self.isotopeClassifier.get(isotopeID) == self.isotopeParsed[0]:  # it means the isotope is an actinide
                 line[self.decayModeNumbering.get(atomicNumber).get(typeOfDecayPerturbed[i])] = str(self.listedDict.get(isotopeID).get(typeOfDecayPerturbed[i]))
-              elif self.isotopeClassifier.get(isotopeID) == self.isotopeParsed[1]:  # it means the isotope is a FP 
+              elif self.isotopeClassifier.get(isotopeID) == self.isotopeParsed[1]:  # it means the isotope is a FP
                 line[self.decayModeNumbering.get(atomicNumber).get(typeOfDecayPerturbed[i])] = str(self.listedDict.get(isotopeID).get(typeOfDecayPerturbed[i]))
-            except : 
+            except :
               raise Exception('you used the decay mode'+str(typeOfDecayPerturbed)+'Check if the decay mode '+str(typeOfDecayPerturbed)+'exist in the decay library. You can also check if you perturbed dictionary is under the format |DECAY|DECAYMODE|ISOTOPEID.')
-      if   any('ACTINIDES' in s for s in line)  : 
+      if   any('ACTINIDES' in s for s in line)  :
         flag = self.isotopeParsed[0]
-      elif any('FPRODUCTS' in s for s in line)  : 
+      elif any('FPRODUCTS' in s for s in line)  :
         flag = self.isotopeParsed[1]
       try :
         if self.isotopeClassifier[line[0]] == atomicNumber :
           line[0] = "{0:<7s}".format(line[0])
           i = 1
-          while i <= len(self.decayModeNumbering[atomicNumber]) : 
+          while i <= len(self.decayModeNumbering[atomicNumber]) :
             line[i] = "{0:<11s}".format(line[i])
-            i = i + 1 
-          outfile.writelines(' '+''.join(line[0:len(self.decayModeNumbering[atomicNumber]) + 1])+"\n") 
-      except KeyError: 
+            i = i + 1
+          outfile.writelines(' '+''.join(line[0:len(self.decayModeNumbering[atomicNumber]) + 1])+"\n")
+      except KeyError:
         pass
 
   def hardcopy_printer(self,atomicNumber,modifiedFile):
@@ -57,23 +57,23 @@ class DecayParser():
       Prints the hardcopied information at the begining of the xml file
       @ In, atomicNumber, integer, indicates if the isotope parsed is an actinide (0) or a fission product (1)
       @ In, modifiedFile, string, output temperary file name
-      @ Out, None 
+      @ Out, None
     """
-    flag = 0 
+    flag = 0
     with open(modifiedFile, 'a') as outfile:
       with open(self.inputFiles) as infile:
         for line in infile:
-          if not line.split(): 
-            continue   # if the line is blank, ignore it 
+          if not line.split():
+            continue   # if the line is blank, ignore it
           if re.match(r'(.*?)'+atomicNumber+'s',line.strip()) and atomicNumber == self.isotopeParsed[0]:
             flag = 2
           if flag == 2 :
-            if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)',line) and any(s in 'BETA' for s in line.split()) and atomicNumber == self.isotopeParsed[0] : 
+            if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)',line) and any(s in 'BETA' for s in line.split()) and atomicNumber == self.isotopeParsed[0] :
               outfile.writelines(line)
               break
             outfile.writelines(line)
           if any(s in atomicNumber+'roducts' for s in line.split()):
-            flag = 1 
+            flag = 1
           if  flag == 1 :
             if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)',line) and any(s in 'BETA' for s in line.split()) and atomicNumber == self.isotopeParsed[1] :
               outfile.writelines(line)
@@ -83,12 +83,12 @@ class DecayParser():
 
   def __init__(self, inputFiles, **pertDict):
     """
-      @ In, inputFiles, string, Decay library file 
+      @ In, inputFiles, string, Decay library file
       @ In, pertDict, dictionary, dictionary of perturbed variables
       @ Out, None
     """
     self.pertDict = pertDict
-    for key, value in self.pertDict.iteritems(): 
+    for key, value in self.pertDict.iteritems():
       self.pertDict[key] = '%.3E' % Decimal(str(value)) #convert the values into scientific values
     numbering    = {}
     concatenateDecayList = []
@@ -97,21 +97,21 @@ class DecayParser():
     lines = OpenInputFile.readlines()
     OpenInputFile.close()
     self.inputFiles = inputFiles
-    self.isotopeClassifier = {}   # FP or Actinide   
+    self.isotopeClassifier = {}   # FP or Actinide
     self.isotopeParsed=['Actinide','FP']
     self.decayModeNumbering = {}
     for line in lines:
-      if   re.match(r'(.*?)Actinides', line) : 
+      if   re.match(r'(.*?)Actinides', line) :
         typeOfIsotopeParsed = self.isotopeParsed[0]
-      elif re.match(r'(.*?)FProducts', line) : 
+      elif re.match(r'(.*?)FProducts', line) :
         typeOfIsotopeParsed = self.isotopeParsed[1]
-      # create dynamic column detector 
+      # create dynamic column detector
       if (re.match(r'(.*?)\w+(\W?)\s+\w+(\W?)\s+\w',line) and any(s in "BETA" for s in line)) :
         count = 0                            # reset the counter and the dictionary numbering if new colum sequence is detected
         numbering = {}
         decayList = []
-        line = re.sub(r'(Yy?)ield',r'',line)          # Remove the word 'yield' in the decay type lines 
-        SplitStringDecayType = line.upper().split()   # Split the words into individual strings 
+        line = re.sub(r'(Yy?)ield',r'',line)          # Remove the word 'yield' in the decay type lines
+        SplitStringDecayType = line.upper().split()   # Split the words into individual strings
         for i in SplitStringDecayType :               # replace + and * by strings
           decayList.append(i.replace('*', 'S').replace('+','PLUS').replace('_',''))
         concatenateDecayList = concatenateDecayList + decayList  # concatenate all the possible decay type (including repetition among actinides and FP)
@@ -119,30 +119,30 @@ class DecayParser():
         for i in xrange(len(decayList)) :
           count = count + 1
           numbering[decayList[i]] = count   # assign the column position of the given decay types
-        if typeOfIsotopeParsed == self.isotopeParsed[0]: 
+        if typeOfIsotopeParsed == self.isotopeParsed[0]:
           self.decayModeNumbering[self.isotopeParsed[0]] = numbering
-        if typeOfIsotopeParsed == self.isotopeParsed[1]: 
+        if typeOfIsotopeParsed == self.isotopeParsed[1]:
           self.decayModeNumbering[self.isotopeParsed[1]] = numbering
       if re.match(r'(.*?)\D+(-?)\d+(M?)\s+\d', line):
-        SplitString = line.upper().split()  
+        SplitString = line.upper().split()
         for i, x in enumerate(SplitString):
           try:
-            SplitString[i] = float(x)   
+            SplitString[i] = float(x)
           except ValueError:
             pass
         SplitString[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)',r'\1\2\4',SplitString[0])   # remove the dash if it the key (isotope ID) contains it
-        if typeOfIsotopeParsed == self.isotopeParsed[0]: 
+        if typeOfIsotopeParsed == self.isotopeParsed[0]:
           self.isotopeClassifier[SplitString[0]] = self.isotopeParsed[0]
-        elif typeOfIsotopeParsed == self.isotopeParsed[1]: 
+        elif typeOfIsotopeParsed == self.isotopeParsed[1]:
           self.isotopeClassifier[SplitString[0]] = self.isotopeParsed[1]
     self.fileReconstruction()
 
   def fileReconstruction(self):
     """
-      Converts the formatted dictionary pertdict -> {'DECAY|ALPHA|U235':1.30} 
+      Converts the formatted dictionary pertdict -> {'DECAY|ALPHA|U235':1.30}
       into a dictionary of dictionaries that has the format -> {'DECAY':{'ALPHA':{'U235'1.30}}}
-      @ In, None  
-      @ Out, None 
+      @ In, None
+      @ Out, None
     """
     self.listedDict = {}
     perturbedIsotopes = []
@@ -150,21 +150,21 @@ class DecayParser():
       splittedDecayKeywords = i.split('|')
       perturbedIsotopes.append(splittedDecayKeywords[2])
     for i in xrange (0,len(perturbedIsotopes)):
-      self.listedDict[perturbedIsotopes[i]] = {}  
+      self.listedDict[perturbedIsotopes[i]] = {}
     for decayTypeKey, decayValue in self.pertDict.iteritems():
       decayKeyWords = decayTypeKey.split('|')
       for i in xrange (0, len(self.allDecayList)):
-        self.listedDict[decayKeyWords[2]][decayKeyWords[1]] = decayValue 
+        self.listedDict[decayKeyWords[2]][decayKeyWords[1]] = decayValue
     self.printInput()
-    
+
   def removeRandomlyNamedFiles(self, modifiedFile):
     """
       Removes the temporary file with a random name in the working directory
       In, modifiedFile, string
-      Out, None 
+      Out, None
     """
     os.remove(modifiedFile)
-  
+
   def generateRandomName(self):
     """
       Generates a random file name for the modified file
@@ -172,14 +172,14 @@ class DecayParser():
       @ Out, string
     """
     return str(randint(1,1000000000000))+'.dat'
-   
+
   def printInput(self):
     """
       Prints out the pertubed Qvalues library into a file
-      @ In, None 
+      @ In, None
       @ Out, None
     """
-    modifiedFile = self.generateRandomName() 
+    modifiedFile = self.generateRandomName()
     open(modifiedFile, 'w')
     for atomicNumber in self.isotopeParsed:
       self.hardcopy_printer(atomicNumber, modifiedFile)
@@ -187,5 +187,5 @@ class DecayParser():
       outfile.writelines(' end')
     copyfile(modifiedFile, self.inputFiles)
     self.removeRandomlyNamedFiles(modifiedFile)
-   
+
 
