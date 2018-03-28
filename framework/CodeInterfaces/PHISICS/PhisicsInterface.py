@@ -314,13 +314,25 @@ class Phisics(CodeInterfaceBase):
       @ In, phiRel, dictionary, contains a key 'phiRel': True if phisics Relap is in coupled mode, empty otherwise
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """
+    phisicsDataDict = {}
     if "phiRel" in phiRel:
       pass 
     else: 
       phiRel['phiRel'] = False 
     splitWorkDir = workingDir.split('/')
     self.pertNumber = splitWorkDir[-1]
-    phisicsdata.phisicsdata(self.instantOutput,workingDir,self.mrtauStandAlone,self.jobTitle,self.outputFileNameDict,self.numberOfMPI,phiRel['phiRel'],self.printSpatialRR,self.printSpatialFlux)
+    
+    phisicsDataDict['instantOutput'] = self.instantOutput
+    phisicsDataDict['workingDir'] = workingDir
+    phisicsDataDict['mrtauStandAlone'] = self.mrtauStandAlone
+    phisicsDataDict['jobTitle'] = self.jobTitle
+    phisicsDataDict['mrtauFileNameDict'] = self.outputFileNameDict
+    phisicsDataDict['numberOfMPI'] = self.numberOfMPI
+    phisicsDataDict['phiRel'] = phiRel['phiRel']
+    phisicsDataDict['printSpatialRR'] = self.printSpatialRR
+    phisicsDataDict['printSpatialFlux'] = self.printSpatialFlux
+    phisicsDataDict['mrtauBool'] = True # flag used to postprocess the mrtau csv output (number.csv)
+    phisicsdata.phisicsdata(phisicsDataDict)
     if self.mrtauStandAlone == False:
       return self.jobTitle+'-'+str(self.pertNumber).strip()
     if self.mrtauStandAlone == True:
