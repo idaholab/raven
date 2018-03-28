@@ -1,3 +1,36 @@
+# Copyright 2018 Jin Whan Bae
+
+# Redistribution and use in source and binary forms,
+# with or without modification, are permitted provided
+# that the following conditions are met:
+
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+
+# 3. Neither the name of the copyright holder nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
+# NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+# EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+# OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+# EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+  Created on March 15th, 2018
+  @author: Jin Whan Bae (University of Illinois - Urbana Champaign)
+"""
 import numpy as np
 import csv
 from pathlib import Path
@@ -10,15 +43,15 @@ def parse_line(line):
     Parameters
     ----------
     line: str
-        line of isotope and composition
+        line of form `[isotope] [atomic density]`
+            e.g.) 2004.09c  0.00000000000000E+00
 
     Returns
     -------
     tuple : (str, float)
         (isotope, atomic density)
     """
-    
-    # remove whitespace in front
+
     line = line.lstrip()
     isotope, atom_density = line.split("  ")
     return (isotope, float(atom_density))
@@ -34,7 +67,7 @@ def filter_trace(comp_dict, percent_cutoff):
         key=isotope
         value=atomic density
     percent_cutoff: float
-        percent cutoff for ignoring isotopes
+        percent cutoff for ignoring isotopes (0 - 100)
 
     Returns
     -------
@@ -48,7 +81,7 @@ def filter_trace(comp_dict, percent_cutoff):
 
     # calculate atomic_density_cutoff
     total_atomic_density = sum(comp_dict.values())
-    atomic_density_cutoff = percent_cutoff * total_atomic_density / 100
+    atomic_density_cutoff = percent_cutoff * total_atomic_density / 100.0
 
     # delete list since cannot change dictionary during iteration
     delete_list = []
@@ -60,9 +93,7 @@ def filter_trace(comp_dict, percent_cutoff):
     for isotope in delete_list:
         del comp_dict[isotope]
 
-
     return comp_dict
-
 
 
 def bumat_read(bumat_file, percent_cutoff):
@@ -72,9 +103,11 @@ def bumat_read(bumat_file, percent_cutoff):
     Parameters
     ----------
     bumat_file: str
-        bumat file path
+        serpent output of extension .bumat that lists 
+        burned materials' isotopic compositions 
+        and densities at each step. 
     percent_cutoff: float
-        percent cutoff for ignoring isotopes
+        percent cutoff for ignoring isotopes (0 -100)
 
     Returns
     -------
@@ -121,7 +154,7 @@ def search_keff(res_file):
             sd_list.append(keff_line_parse(lines[i])[1])
 
     keff_dict = {}
-    keff_dict['keff'] = keff_list 
+    keff_dict['keff'] = keff_list
     keff_dict['sd'] = sd_list
     return keff_dict
 
@@ -143,7 +176,7 @@ def keff_line_parse(keff_line):
     new_keff_line = keff_line[start:]
     start = new_keff_line.find('[')
     end = new_keff_line.find(']')
-    
+
     # +3 and -1 is to get rid of leading and trailing whitespace
     keff_sd = new_keff_line[start + 3:end - 1]
     (keff, sd) = keff_sd.split(' ')
@@ -153,7 +186,7 @@ def keff_line_parse(keff_line):
 def csv_render_dict(csv_filename, dictionary, header):
     """renders csv given the dictionary
        column 1 = key, column 2 = value
-    
+
     Parameters
     ----------
     csv_filename: str
@@ -175,6 +208,7 @@ def csv_render_dict(csv_filename, dictionary, header):
             writer.writerow([key, value])
     return True
 
+
 def read_file_into_list(file):
     """ reads file into list, every line as element
 
@@ -194,6 +228,7 @@ def read_file_into_list(file):
         list_from_file.append(line.strip())
     read.close()
     return list_from_file
+
 
 def find_deptime(input_file):
     """ finds the deptime from the inputfile
@@ -225,7 +260,6 @@ def find_deptime(input_file):
     return deptime
 
 
-
 def make_csv(csv_filename, in_bumat_dict, out_bumat_dict,
              keff_dict, iso_list, input_file):
     """ renders the  csv as filename with the given
@@ -251,16 +285,14 @@ def make_csv(csv_filename, in_bumat_dict, out_bumat_dict,
     """
 
     # parse through, get keff value
-    boc_keff = keff_dict['keff'][0]
-    eoc_keff = keff_dict['keff'][1]
+    keff = keff_dict['keff'][0]
     deptime = find_deptime(input_file)
-    
+
     with open(csv_filename, 'w') as csv_file:
         writer = csv.writer(csv_file)
         # fresh iso_list
-        header_list = (['f'+iso for iso in iso_list] +
-                      ['boc_keff', 'eoc_keff', 'deptime'] +
-                      ['d'+iso for iso in iso_list])
+        header_list = ['f'+iso for iso in iso_list] + \
+            ['keff'] + ['deptime'] + ['d'+iso for iso in iso_list]
         writer.writerow(header_list)
         # initialize as zero
         fresh_adens_list = [0] * len(iso_list)
@@ -272,14 +304,14 @@ def make_csv(csv_filename, in_bumat_dict, out_bumat_dict,
         for key in out_bumat_dict:
             if key in iso_list:
                 index = iso_list.index(key)
-                dep_adens_list[index] = out_bumat_dict[key] 
+                dep_adens_list[index] = out_bumat_dict[key]
 
-        row = fresh_adens_list + [boc_keff, eoc_keff, deptime] + dep_adens_list
+        row = fresh_adens_list + [keff, deptime] + dep_adens_list
         # add keff value to adens list, like header
         writer.writerow(row)
 
 
-def main(csv_filename, iso_file, bumat_file, resfile):
+def main(csv_filename, iso_file, bumat_file, resfile, percent_cutoff):
     """ Main function that puts everything together to create
         a csv file with all the isotopes in iso_file and keff.
 
@@ -295,13 +327,15 @@ def main(csv_filename, iso_file, bumat_file, resfile):
     resfile: dictionary
         key: 'keff', 'sd'
         value: keff and sd at EOC
+    percent_cutoff: float
+        percent cutoff for ignoring isotopes (0 -100)
 
     Returns
     -------
     True if successful
     """
     iso_list = read_file_into_list(iso_file)
-    bumat_dict = bumat_read(bumat_dict, 0.01)
+    bumat_dict = bumat_read(bumat_dict, percent_cutoff)
     keff_dict = search_keff(keff_dict)
     make_csv(csv_filename, bumat_dict, keff_dict, iso_list)
     return True
