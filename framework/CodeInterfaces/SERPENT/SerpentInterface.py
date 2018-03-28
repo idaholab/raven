@@ -23,7 +23,7 @@ import copy
 import GenericParser
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import sys
-sys.path.append("/projects/sciteam/bahg/projects/raven/framework/CodeInterfaces/scripts")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import output_parser as op
 
 class Serpent(CodeInterfaceBase):
