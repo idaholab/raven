@@ -1,4 +1,4 @@
-from Future import division, printFunction, unicodeLiterals, absoluteImport
+from __Future__ import division, printFunction, unicodeLiterals, absoluteImport
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 import numpy as np
@@ -83,7 +83,7 @@ def searchKeff(resFile):
   sdList = []
 
   for i in range(0, len(lines)):
-    if 'IMPKEFF' in lines[i]:
+    if 'IMP_KEFF' in lines[i]:
       keffList.append(keffLineParse(lines[i])[0])
       sdList.append(keffLineParse(lines[i])[1])
 
