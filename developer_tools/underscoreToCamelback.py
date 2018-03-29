@@ -23,7 +23,8 @@ def convert(filename, output):
         letter_list = []
         index_list = findOccurences(line, '_')
         for i in index_list:
-          letter_list.append(line[i + 1])
+          if line[i+1].isalnum()
+            letter_list.append(line[i + 1])
         for letter in letter_list:
           line = line.replace('_' + letter, letter.capitalize())
       line_list.append(line)
