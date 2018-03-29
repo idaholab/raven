@@ -34,7 +34,7 @@ def filter_trace(comp_dict, percent_cutoff):
         key=isotope
         value=atomic density
     percent_cutoff: float
-        percent cutoff for ignoring isotopes
+        percent cutoff for ignoring isotopes (0 - 1)
 
     Returns
     -------
@@ -43,12 +43,12 @@ def filter_trace(comp_dict, percent_cutoff):
         value=atomic density
     """
     # check if percent_cutoff value is valid
-    if percent_cutoff < 0 or percent_cutoff > 100:
-        raise ValueError('Percent has to be between 0 and 100')
+    if percent_cutoff < 0 or percent_cutoff > 1:
+        raise ValueError('Percent has to be between 0 and 1')
 
     # calculate atomic_density_cutoff
     total_atomic_density = sum(comp_dict.values())
-    atomic_density_cutoff = percent_cutoff * total_atomic_density / 100
+    atomic_density_cutoff = percent_cutoff * total_atomic_density
 
     # delete list since cannot change dictionary during iteration
     delete_list = []
@@ -74,7 +74,7 @@ def bumat_read(bumat_file, percent_cutoff):
     bumat_file: str
         bumat file path
     percent_cutoff: float
-        percent cutoff for ignoring isotopes
+        percent cutoff for ignoring isotopes (0 - 1)
 
     Returns
     -------
@@ -301,7 +301,7 @@ def main(csv_filename, iso_file, bumat_file, resfile):
     True if successful
     """
     iso_list = read_file_into_list(iso_file)
-    bumat_dict = bumat_read(bumat_dict, 0.01)
+    bumat_dict = bumat_read(bumat_dict, 1e-7)
     keff_dict = search_keff(keff_dict)
     make_csv(csv_filename, bumat_dict, keff_dict, iso_list)
     return True
