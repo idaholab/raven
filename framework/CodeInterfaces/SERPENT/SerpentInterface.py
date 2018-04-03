@@ -24,7 +24,7 @@ import GenericParser
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import output_parser as op
+import outputParser as op
 
 class Serpent(CodeInterfaceBase):
   """
@@ -166,14 +166,14 @@ class Serpent(CodeInterfaceBase):
 
 
   def finalizeCodeOutput(self, command, output, workDir):
-    # filename would be 'publ_core.serpent'
+    # filename would be 'input.serpent'
     filename = command.strip().split(' ')[-1]
-    # filename_without_extension would be 'publ_core'
+    # filename_without_extension would be 'input'
     filenameWithoutExtension = output.split('~')[1]
-    # resfile would be 'publ_core.serpent_res.m'
+    # resfile would be 'input.serpent_res.m'
     # this is the file produced by RAVEN
     resfile = os.path.join(workDir, filename+"_res.m")
-    input_file = os.path.join(workDir, filename)
+    inputFile = os.path.join(workDir, filename)
     inbumatfile = os.path.join(workDir, filename+".bumat0")
     outbumatfile = os.path.join(workDir, filename+".bumat1")
     # get the list of isotopes to track
