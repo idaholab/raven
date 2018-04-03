@@ -1,4 +1,4 @@
-from __Future__ import division, printFunction, unicodeLiterals, absoluteImport
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 import numpy as np
@@ -8,8 +8,8 @@ from pathlib import Path
 def parseLine(line):
   """
   Parse composition line by deleting whitespace and separating the isotope and atomic density.
-  @ In, line, string, line of isotope and composition
-  @ Out, result, tuple, (isotope, atomic density)
+    @ In, line, string, line of isotope and composition
+    @ Out, result, tuple, (isotope, atomic density)
   """
   line = line.lstrip()
   isotope, atomDensity = line.split("  ")
@@ -19,11 +19,11 @@ def parseLine(line):
 def filterTrace(compDict, percentCutoff):
   """
   Filters isotopes with less than percentCutoff for easier calculation.
-  @ In, compDict, dictionary, key=isotope
-                              value=atomic density
-  @ In, percentCutoff, float, cutoff threshold for ignoring isotopes (0 -1)
-  @ Out, comptDict, dictionary, key=isotope
-                                value=compDict
+    @ In, compDict, dictionary, key=isotope
+                                value=atomic density
+    @ In, percentCutoff, float, cutoff threshold for ignoring isotopes (0 -1)
+    @ Out, comptDict, dictionary, key=isotope
+                                  value=compDict
   """
   # check if percentCutoff value is valid
   if percentCutoff < 0 or percentCutoff > 1:
@@ -50,9 +50,9 @@ def filterTrace(compDict, percentCutoff):
 def bumatRead(bumatFile, percentCutoff):
   """
   Reads serpent .bumat output file and stores the composition in a dictionary.
-  @ In, bumatFile, string, bumat file path
-  @ In, percentCutoff, float, cutoff threshold for ignoring isotopes (0 -1)
-  @ Out, compDict, dictionary, key=isotope
+    @ In, bumatFile, string, bumat file path
+    @ In, percentCutoff, float, cutoff threshold for ignoring isotopes (0 -1)
+    @ Out, compDict, dictionary, key=isotope
                                 value=atomic density
   """
   with open(bumatFile) as f:
@@ -72,9 +72,9 @@ def bumatRead(bumatFile, percentCutoff):
 def searchKeff(resFile):
   """
   Searches and returns the mean keff value in the .res file.
-  @ In, resFile, string, path to .res file
-  @ Out, keffDict, dictionary, key = keff or sd
-                                value = list of keff or sd
+    @ In, resFile, string, path to .res file
+    @ Out, keffDict, dictionary, key = keff or sd
+                                 value = list of keff or sd
   """
   with open(resFile) as f:
     lines = f.readlines()
@@ -96,8 +96,8 @@ def searchKeff(resFile):
 def keffLineParse(keffLine):
   """
   Parses through the anaKeff line in .res file.
-  @ In, keffLine, string, string from .res file listing IMPKEFF
-  @ Out, keffTuple, tuple, (mean IMPKEFF, sd of IMPKEFF)
+    @ In, keffLine, string, string from .res file listing IMPKEFF
+    @ Out, keffTuple, tuple, (mean IMPKEFF, sd of IMPKEFF)
   """
   start = keffLine.find('=')
   newKeffLine = keffLine[start:]
@@ -114,10 +114,10 @@ def keffLineParse(keffLine):
 def csvRenderDict(csvFilename, dictionary, header):
   """
   Renders csv given the dictionary column 1 = key, column 2 = value.
-  @ In, csvFilename, string, path of csv file to be created
-  @ In, dictionary, dictionary, dictionary to be rendered into csv file
-  @ In, header, list, list of length 2 of header strings
-  @ Out, bool, bool, True if successful
+    @ In, csvFilename, string, path of csv file to be created
+    @ In, dictionary, dictionary, dictionary to be rendered into csv file
+    @ In, header, list, list of length 2 of header strings
+    @ Out, bool, bool, True if successful
   """
   with open(csvFilename, 'w') as csvFile:
     writer = csv.writer(csvFile)
@@ -130,8 +130,8 @@ def csvRenderDict(csvFilename, dictionary, header):
 def readFileIntoList(file):
   """ 
   Reads file into list, every line as element.
-  @ In, file, string, name of file
-  @ Out, listFromFile, list, contents in the file as list
+    @ In, file, string, name of file
+    @ Out, listFromFile, list, contents in the file as list
   """
   read = open(file, 'r')
   lines = read.readlines()
@@ -144,8 +144,8 @@ def readFileIntoList(file):
 def findDeptime(inputFile):
   """
   Finds the deptime from the input file.
-  @ In, inputFile, string, input file path
-  @ Out, deptime, string, depletion time in days
+    @ In, inputFile, string, input file path
+    @ Out, deptime, string, depletion time in days
   """
   hit = False
   with open(inputFile, 'r') as file:
@@ -169,16 +169,16 @@ def makeCsv(csvFilename, inBumatDict, outBumatDict,
        keffDict, isoList, inputFile):
   """ 
   Renders the  csv as filename with the given bumat dict and keff dict.
-  @ In, csvFilename, string, filename of csv output
-  @ In, inBumatDict, dictionary, key=isotope
+    @ In, csvFilename, string, filename of csv output
+    @ In, inBumatDict, dictionary, key=isotope
                                    value=atomic density
-  @ In, outBumatDict, dictionary, key=isotope
+    @ In, outBumatDict, dictionary, key=isotope
                                     value=atomic density
-  @ In, keffDict, dictionary, key='keff''sd'
-                               value=keff and sd
-  @ In, isoList, list, list of isotopes to track
-  @ In, inputFile, string, path to input file
-  @ Out, None
+    @ In, keffDict, dictionary, key='keff''sd'
+                                value=keff and sd
+    @ In, isoList, list, list of isotopes to track
+    @ In, inputFile, string, path to input file
+    @ Out, None
   """
 
   # parse through, get keff value
