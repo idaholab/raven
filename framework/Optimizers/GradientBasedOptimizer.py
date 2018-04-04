@@ -578,10 +578,14 @@ class GradientBasedOptimizer(Optimizer):
     rlz = {}
     badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
     recent = self.counter['recentOptHist'][traj][0]
+    print('DEBUGG constants?')
+    print('DEBUGG',self.constants)
     for var in self.solutionExport.getVars():
       # inputs, objVar, other outputs
       if var in recent.keys():
         new = self.denormalizeData(recent)[var]
+      elif var in self.constants:
+        new = self.constants[var]
       # custom counters: varsUpdate, trajID, stepSize
       elif var == 'varsUpdate':
         new = self.counter['solutionUpdate'][traj]
