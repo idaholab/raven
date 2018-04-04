@@ -11,6 +11,7 @@
     </description>
     <revisions>
       <revision author='talbpaul' date='2018-01-03'>Switched from snapshot to writeSteps as final</revision>
+      <revision author='talbpaul' date='2018-04-04'>Added a constant to test passing through</revision>
     </revisions>
   </TestInfo>
 
@@ -56,6 +57,7 @@
         <lowerBound>-4.5</lowerBound>
         <initial>0</initial>
       </variable>
+      <constant name="pi">3.14159</constant>
       <objectVar>ans</objectVar>
     </SPSA>
   </Optimizers>
@@ -63,7 +65,7 @@
   <Models>
     <Dummy name="MyDummy" subType=""/>
     <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
-      <variables>x,y,ans</variables>
+      <variables>x,y,pi,ans</variables>
     </ExternalModel>
   </Models>
 
@@ -73,16 +75,16 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="optOut">
-      <Input>x,y</Input>
+      <Input>x,y,pi</Input>
       <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_soln">
       <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
+      <Output>x,y,pi,ans,varsUpdate</Output>
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate,stepSize,gradient_x,gradient_y,convergenceAbs,convergenceRel,convergenceGrad</Output>
+      <Output>x,y,pi,ans,varsUpdate,stepSize,gradient_x,gradient_y,convergenceAbs,convergenceRel,convergenceGrad</Output>
     </PointSet>
   </DataObjects>
 
