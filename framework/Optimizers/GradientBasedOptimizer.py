@@ -582,6 +582,8 @@ class GradientBasedOptimizer(Optimizer):
       # inputs, objVar, other outputs
       if var in recent.keys():
         new = self.denormalizeData(recent)[var]
+      elif var in self.constants:
+        new = self.constants[var]
       # custom counters: varsUpdate, trajID, stepSize
       elif var == 'varsUpdate':
         new = self.counter['solutionUpdate'][traj]

@@ -640,6 +640,69 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     return ready
 
+  def _incrementCounter(self):
+    """
+      Incrementes counter and sets up prefix.
+      @ In, None
+      @ Out, None
+    """
+    #since we are creating the input for the next run we increase the counter and global counter
+    self.counter +=1
+    self.auxcnt  +=1
+    #exit if over the limit
+    if self.counter > self.limit:
+      self.raiseADebug('Exceeded number of points requested in sampling!  Moving on...')
+    #FIXME, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
+    if self.counter >1:
+      for key in self.entitiesToRemove:
+        self.inputInfo.pop(key,None)
+    if self.reseedAtEachIteration:
+      randomUtils.randomSeed(self.auxcnt-1)
+    self.inputInfo['prefix'] = str(self.counter)
+
+  def _performVariableTransform(self):
+    """
+      Performs variable transformations if existing.
+      @ In, None
+      @ Out, None
+    """
+    # add latent variables and original variables to self.inputInfo
+    if self.variablesTransformationDict:
+      for dist,var in self.variablesTransformationDict.items():
+        if self.transformationMethod[dist] == 'pca':
+          self.pcaTransform(var,dist)
+        else:
+          self.raiseAnError(NotImplementedError,'transformation method is not yet implemented for ' + self.transformationMethod[dist] + ' method')
+
+  def _functionalVariables(self):
+    """
+      Evaluates variables that are functions of other input variables.
+      @ In, None
+      @ Out, None
+    """
+    # generate the function variable values
+    for var in self.dependentSample.keys():
+      test=self.funcDict[var].evaluate("evaluate",self.values)
+      for corrVar in var.split(","):
+        self.values[corrVar.strip()] = test
+
+  def _checkRestartForEvaluation(self):
+    """
+      Checks restart data object (if any) for matching realization.
+      @ In, None
+      @ Out, index, int, index of matching realization in restart (None if not found)
+      @ Out, inExisting, dict, matching realization (None if not found)
+    """
+    #check if point already exists
+    if self.restartData is not None:
+      # FIXME
+      index,inExisting = self.restartData.realization(matchDict=self.values,tol=self.restartTolerance,unpackXArray=True)
+      # OLD inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance)
+    else:
+      index = None
+      inExisting = None
+    return index,inExisting
+
   def generateInput(self,model,oldInput):
     """
       This method has to be overwritten to provide the specialization for the specific sampler
@@ -653,49 +716,20 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         If a restart point is found:
           @ Out, generateInput, tuple(int,dict), (1,realization dictionary)
     """
-    self.counter +=1                              #since we are creating the input for the next run we increase the counter and global counter
-    self.auxcnt  +=1
-    #exit if over the limit
-    if self.counter > self.limit:
-      self.raiseADebug('Exceeded number of points requested in sampling!  Moving on...')
-    #FIXME, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
-    if self.counter >1:
-      for key in self.entitiesToRemove:
-        self.inputInfo.pop(key,None)
-    if self.reseedAtEachIteration:
-      randomUtils.randomSeed(self.auxcnt-1)
-    self.inputInfo['prefix'] = str(self.counter)
-    # used in HybridModel to identify the number of runs
-    #self.inputInfo['counter'] = self.counter
+    self._incrementCounter()
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     # split the sampled vars Pb among the different correlated variables
     self._reassignSampledVarsPbToFullyCorrVars()
     self._reassignPbWeightToCorrelatedVars()
     ##### TRANSFORMATION #####
-    # add latent variables and original variables to self.inputInfo
-    if self.variablesTransformationDict:
-      for dist,var in self.variablesTransformationDict.items():
-        if self.transformationMethod[dist] == 'pca':
-          self.pcaTransform(var,dist)
-        else:
-          self.raiseAnError(NotImplementedError,'transformation method is not yet implemented for ' + self.transformationMethod[dist] + ' method')
+    self._performVariableTransform()
     ##### CONSTANT VALUES ######
     self._constantVariables()
     ##### REDUNDANT FUNCTIONALS #####
-    # generate the function variable values
-    for var in self.dependentSample.keys():
-      test=self.funcDict[var].evaluate("evaluate",self.values)
-      for corrVar in var.split(","):
-        self.values[corrVar.strip()] = test
+    self._functionalVariables()
     ##### RESTART #####
-    #check if point already exists
-    if self.restartData is not None:
-      # FIXME
-      index,inExisting = self.restartData.realization(matchDict=self.values,tol=self.restartTolerance,unpackXArray=True)
-      # OLD inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance)
-    else:
-      inExisting = None
+    index,inExisting = self._checkRestartForEvaluation()
     # reformat metadata into acceptable format for dataojbect
     # DO NOT format here, let that happen when a realization is made in collectOutput for each Model.  Sampler doesn't care about this.
     # self.inputInfo['ProbabilityWeight'] = np.atleast_1d(self.inputInfo['ProbabilityWeight'])
@@ -717,7 +751,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # TODO use realization format as per new data object (no subspaces)
       self.raiseADebug('Point found in restart!')
       rlz = {}
-      # we've fixed it so teh input and output space don't really matter, so use restartData's own definition
+      # we've fixed it so the input and output space don't really matter, so use restartData's own definition
       # DO format the data as atleast_1d so it's consistent in the ExternalModel for users (right?)
       rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
       rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
