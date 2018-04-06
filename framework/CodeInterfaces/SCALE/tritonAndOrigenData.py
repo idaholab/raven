@@ -11,10 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import re
-import xml.etree.ElementTree as ET
 import numpy as np
-import sys
 import os
 import copy
 from sklearn import neighbors
@@ -45,40 +42,76 @@ def _scalingFactorBetweenTimeUOM(targetUOM, inputUOM):
   if inputUOMIndex == targetUOMIndex:
     return 1.0
   else:
-    exponent =1.0 if targetUOMIndex < inputUOMIndex else -1.0
     targetMultiplier, inputMultiplier = 1.0,1.0
     for uom in uoms[0:targetUOMIndex+1]:
       targetMultiplier*= scaling[uom]
     for uom in uoms[0:inputUOMIndex+1]:
       inputMultiplier*= scaling[uom]
-    multiplier = (inputMultiplier/targetMultiplier)**exponent
+    multiplier = inputMultiplier/targetMultiplier
   return multiplier
 
-
-
-class scaleData:
+class origenAndTritonData:
   """
     Class that parses output of scale output (now Triton and/or Orgin only) and write a RAVEN compatible CSV
   """
-  def __init__(self,filen):
+  def __init__(self,filen, timeUOM='s', outputType="triton"):
     """
       Constructor
-      @ In, filen, string, file name to be parsed
+      @ In, filen, string or dict, file name to be parsed or dictionary {'origen':filein1,'triton':filein2}
+      @ In, timeUOM, string, time uom (e.g. s, d, h, y)
+      @ In, outputType, string, output type (i.e. origen, triton or combined). If combined, the triton output (last step) is used as exported as initial condition of the origen one
       @ Out, None
     """
-    self.lines            = open(os.path.abspath(os.path.expanduser(filen)),"r").readlines()
+    if not isinstance(filen,dict):
+      filenames = [filen]
+      outTypeDict = {filen:outputType}
+    else:
+      filenames = [filen[outputType]] if outputType != 'combined' else filen.values()
+      outTypeDict = dict(zip(filen.values(), filen.keys()))
+        
     # retrieve keff and kinf
     self.data = {}
-    self.data['transportInfo']    = self.retrieveKeff()
-    # retrieve nuclide densities
-    self.data['nuclideDensities'] = self.retrieveNuclideConcentrations()
-    # retrieve mixture powers
-    self.data['mixPowers']        = self.retrieveMixtureInfo()
-    # origen history overview and concentration tables
-    self.data['origenData']  = self.retrieveOrigenData()
+    for outFile in filenames:
+      self.lines = open(os.path.abspath(os.path.expanduser(outFile)),"r").readlines()  
+      if outTypeDict[outFile] == 'triton':
+        self.data['transportInfo'] = self.retrieveKeff()
+        if self.data['transportInfo'] is not None:
+          if not self.data['transportInfo']['timeUOM'].strip().startswith(timeUOM):
+            self.data['transportInfo']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['transportInfo']['timeUOM'])*np.asarray(self.data['transportInfo']['time'])).tolist()       
+        # retrieve nuclide densities
+        self.data['nuclideDensities'] = self.retrieveNuclideConcentrations()
+        if self.data['nuclideDensities'] is not None:
+          if not self.data['nuclideDensities']['timeUOM'].strip().startswith(timeUOM):
+            self.data['nuclideDensities']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['nuclideDensities']['timeUOM'])*np.asarray(self.data['nuclideDensities']['time'])).tolist()       
+        # retrieve mixture powers
+        self.data['mixPowers'] = self.retrieveMixtureInfo()
+        if self.data['mixPowers'] is not None:
+          if not self.data['mixPowers']['timeUOM'].strip().startswith(timeUOM):
+            self.data['mixPowers']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['mixPowers']['timeUOM'])*np.asarray(self.data['mixPowers']['time'])).tolist()         
+      elif outTypeDict[outFile] == 'origen':
+        # origen history overview and concentration tables
+        self.data['histOverviewOrigen'] = self.retrieveHistoryOverview()
+        if self.data['histOverviewOrigen'] is not None:
+          self.data['concTablesOrigen'] = self.retrieveConcentrationTables()
+          if not self.data['concTablesOrigen']['timeUOM'].strip().startswith(timeUOM):
+            self.data['concTablesOrigen']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['concTablesOrigen']['timeUOM'])*np.asarray(self.data['concTablesOrigen']['time'])).tolist()    
+          if not self.data['histOverviewOrigen']['timeUOM'].strip().startswith(timeUOM):
+            self.data['histOverviewOrigen']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['histOverviewOrigen']['timeUOM'])*np.asarray(self.data['histOverviewOrigen']['time'])).tolist()    
     # check if something has been found
     if all(v is None for v in self.data.values()):
       raise IOError("No readable outputs have been found!")
+    if outputType == 'combined':
+      # if origen, histOverviewOrigen is always present
+      timeGrid = self.data['histOverviewOrigen']['time']
+      if self.data['transportInfo'] is not None:
+        self.data['transportInfo']['time'] = timeGrid
+        self.data['transportInfo']['values'] = np.array([self.data['transportInfo']['values'][:,-1],]*len(timeGrid)).T
+      if self.data['nuclideDensities'] is not None:
+        self.data['nuclideDensities']['time'] = timeGrid
+        self.data['nuclideDensities']['values'] = np.array([self.data['nuclideDensities']['values'][:,-1],]*len(timeGrid)).T
+      if self.data['mixPowers'] is not None:
+        self.data['mixPowers']['time'] = timeGrid
+        self.data['mixPowers']['values'] = np.array([self.data['mixPowers']['values'][:,-1],]*len(timeGrid)).T
     # check time grid consistency, if not, interpolate by nearest neighbor
     self.dataConsistency()
 
@@ -103,28 +136,6 @@ class scaleData:
         data['values'] = knn.predict(np.atleast_2d([timeGrid]).T).T
         data['time']   = timeGrid
 
-  def retrieveOrigenData(self):
-    """
-      Retrieve Origen Data
-      @ In, None
-      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                               {'time':list(of time values),'info_ids':list(of ids of data),'values':np.ndarray( ntime,nids )}
-    """
-    histOverview = self.retrieveHistoryOverview()
-    overviewTimeUom = histOverview['timeUOM']
-    concTables   = self.retrieveConcentrationTables()
-    concTimeUom = concTables['timeUOM']
-    if overviewTimeUom.strip() != concTimeUom.strip():
-      # convert time
-      multiplier = _scalingFactorBetweenTimeUOM(overviewTimeUom, concTimeUom)
-      test = _scalingFactorBetweenTimeUOM("h", "y")
-      test = _scalingFactorBetweenTimeUOM("y", "s")
-
-
-
-
-
-
   def retrieveHistoryOverview(self):
     """
       Retrieve History Overview (Origen)
@@ -134,11 +145,11 @@ class scaleData:
     """
     # history overview
     outputDict = None
-    try:
-      indexHistOverview = [i+3 for i, x in enumerate(self.lines) if x.strip().startswith('=   History overview for')]
-    except StopIteration:
+    
+    indexHistOverview = [i+3 for i, x in enumerate(self.lines) if x.strip().startswith('=   History overview for')]
+    if len(indexHistOverview) == 0:
       return outputDict
-    if len(indexHistOverview) > 1:
+    elif len(indexHistOverview) > 1:
       raise IOError("Multiple cases have been found in ORIGEN output. Currently Only one is handaled!")
     indexHistOverview = indexHistOverview[0]
     headers = self.lines[indexHistOverview-1].split()
@@ -176,7 +187,6 @@ class scaleData:
       indexHistOverview = [i for i, x in enumerate(self.lines) if x.strip().startswith('=   Nuclide concentrations in')]
     except StopIteration:
       return outputDict
-    headers = []
     values = []
     totals = []
     for cnt, indexConcTable in enumerate(indexHistOverview):
@@ -201,7 +211,7 @@ class scaleData:
             nuclideName = "subtotals_" + isotopeType.replace(" ","_")
           if "---" not in nuclideName:
             outputDict['info_ids'].append(nuclideName+"_"+uom.strip())
-            values.append( [float(elm) if 'E' in elm else float(elm[:elm.index("-" if "-" in elm else "+")] + "E"+elm[elm.index("-" if "-" in elm else "+"):]) for elm in  components[2:] ])
+            values.append( [float(elm) if 'E' in elm else float(elm[:elm.index("-" if "-" in elm else "+")] + "E"+elm[elm.index("-" if "-" in elm else "+"):]) for elm in  components[1:] ])
             if nuclideName.startswith("subtotals"):
               if len(totals) > 0:
                 totals = [subtot + values[-1][cnt] for cnt, subtot in enumerate(totals)]
@@ -211,7 +221,7 @@ class scaleData:
       values.append(totals)
       outputDict['info_ids'].append('totals'+"_"+uom.strip())
 
-    outputDict['values'] = np.atleast_2d(values).T
+    outputDict['values'] = np.atleast_2d(values)
     return outputDict
 
 
@@ -226,7 +236,7 @@ class scaleData:
     indicesKinf = np.asarray([i for i, x in enumerate(self.lines) if x.strip().startswith("Infinite neutron multiplication")])
     if len(indicesKeff) == 0 and len(indicesKinf) == 0:
       return None
-    outputDict = {'time':[],'info_ids':[], 'values':None}
+    outputDict = {'time':[],'info_ids':[],'timeUOM':None, 'values':None}
     values = []
     if len(indicesKeff) > 0:
       outputDict['info_ids'] = ['keff','iter_number','keff_delta','max_flux_delta',"kinf","kinf_epsilon","kinf_p","kinf_f","kinf_eta"]
@@ -235,6 +245,8 @@ class scaleData:
         #keff
         components = self.lines[index].split()
         time = float(components[4][:-1])
+        if outputDict['timeUOM'] is None:
+          outputDict['timeUOM'] = components[4][-1]
         outputDict['time'].append(time)
         values[cnt].append(float(components[2]))
         comps = self.lines[index-1].split()
@@ -259,7 +271,7 @@ class scaleData:
     indicesMatPowers = np.asarray([i+1 for i, x in enumerate(self.lines) if x.strip().startswith("--- Material powers for depletion pass no")])
     if len(indicesMatPowers) == 0:
       return None
-    outputDict = {'time':[],'info_ids':[], 'values':None}
+    outputDict = {'time':[],'info_ids':[],'timeUOM':None, 'values':None}
     values = []
     outputDict['info_ids'] = ['bu']
     for cnt, index in enumerate(indicesMatPowers):
@@ -268,6 +280,8 @@ class scaleData:
       components = self.lines[index].split(",")
       time = float(components[0].split()[2])
       outputDict['time'].append(time)
+      if outputDict['timeUOM'] is None:
+        outputDict['timeUOM'] = components[0].split()[3]    
       bu   = float(components[1].split()[2])
       values[cnt].append(bu)
       startIndex = index + 4
@@ -298,9 +312,9 @@ class scaleData:
 
     # retrieve time grid
     uomTime = self.lines[indexConc+1].split("|")[-1].split()[-1].strip()
-    timeGrid = [float(elm.replace(uomTime[0],"")) for elm in self.lines[indexConc+2].split("|")[-1].split()]
+    timeGrid = [float(elm.replace(uomTime[0],"")) for elm in self.lines[indexConc+2].split("|")[-1].split()]   
     values = []
-    outputDict = {'time':timeGrid,'info_ids':[], 'values':None}
+    outputDict = {'time':timeGrid,'info_ids':[], 'timeUOM':uomTime, 'values':None}
     startIndex = indexConc + 3
     nuclideName = ""
     while nuclideName.lower() != "total":
@@ -337,8 +351,12 @@ class scaleData:
     # print the csv
     np.savetxt(fileObject, outputMatrix.T, delimiter=',', header=','.join(headers), comments='')
 
-
 if __name__ == '__main__':
 
-  test = scaleData("~/Downloads/decay.out")
-  test.writeCSV("figa.csv")
+  #test = origenAndTritonData("~/Downloads/decay.out",'s','origen')
+  #test.writeCSV("origen_test.csv")
+  #test = origenAndTritonData("~/Downloads/5_9pc_1200_numpar30.out")
+  #test.writeCSV("triton_test.csv")  
+  test = origenAndTritonData({'triton': "~/Downloads/5_9pc_1200_numpar30.out",'origen':"~/Downloads/decay.out"},'s','combined')
+  test.writeCSV("combined_test.csv")   
+  

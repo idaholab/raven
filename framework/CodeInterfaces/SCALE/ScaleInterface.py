@@ -129,153 +129,184 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 import shutil
-import tempfile
 from utils import utils
 import xml.etree.ElementTree as ET
-#from OMPython import OMCSession    # Get the library with Open Modelica Session (needed to run OM stuff)
 
+from GenericCodeInterface import GenericParser
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class Scale(CodeInterfaceBase):
   """
-    Provides code to interface RAVEN to OpenModelica
+    Scale Interface. It currently supports Triton and Origen sequences only.
   """
   def __init__(self):
     """
-      Initializes the GenericCode Interface.
+      Constructor 
       @ In, None
       @ Out, None
     """
-    #  Generate the command to run OpenModelica.  The form of the command is:
-    #
-    #    <executable> -f <init file xml> -r <outputfile>
-    #
-    #  Where:
-    #     <executable>     The executable generated from the Modelica model file (.mo extension)
-    #     <init file xml>  XML file containing the initial model parameters.  We will perturb this from the
-    #                          one originally generated as part of the model build process, which is
-    #                          typically called <model name>_init.xml.
-    #     <outputfile>     The simulation output.  We will use the model generation process to set the format
-    #                          of this to CSV, though there are other formats available.
-
-  def generateCommand(self, inputFiles, executable, clargs=None,fargs=None):
+    
+  
+  def _readMoreXML(self,xmlNode):
     """
-      See base class.  Collects all the clargs and the executable to produce the command-line call.
-      Returns tuple of commands and base file name for run.
-      Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
-      @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
-      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
-      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
+      Function to read the portion of the xml input that belongs to this specialized class and initialize
+      some members based on inputs. This can be overloaded in specialize code interface in order to
+      read specific flags
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None.
     """
-    found = False
-    # Find the first file in the inputFiles that is an XML, which is what we need to work with.
-    for index, inputFile in enumerate(inputFiles):
-      if self._isValidInput(inputFile):
-        found = True
-        break
-    if not found:
-      raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
-    # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
-    #   input file passed in: /path/to/file/<Base Name>.ext.  'rawout' indicates that this is the direct
-    #   output from running the OpenModelica executable.
-    outputfile = 'rawout~' + inputFiles[index].getBase() #os.path.splitext(os.path.basename(inputFiles[index]))[0]
-    returnCommand = [('parallel',executable+' -f '+inputFiles[index].getFilename() + ' -r '+ outputfile + '.csv')], outputfile
-    return returnCommand
-
-  def _isValidInput(self, inputFile):
-    """
-      Check if an input file is a xml file, with an extension of .xml, .XML or .Xml .
-      @ In, inputFile, string, the file name to be checked
-      @ Out, valid, bool, 'True' if an input file has an extension of .'xml', 'XML' or 'Xml', otherwise 'False'.
-    """
-    valid = False
-    if inputFile.getExt() in ('xml', 'XML', 'Xml'):
-      valid = True
-    return valid
-
-  def getInputExtension(self):
-    """
-      Return a tuple of possible file extensions for a simulation initialization file (i.e., dsin.txt).
-      @ In, None
-      @ Out, validExtensions, tuple, tuple of valid extensions
-    """
-    validExtensions = ('xml', 'XML', 'Xml')
-    return validExtensions
-
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
-    """
-      Generate a new OpenModelica input file (XML format) from the original, changing parameters
-      as specified in Kwargs['SampledVars']
-      @ In , currentInputFiles, list,  list of current input files (input files from last this method call)
-      @ In , oriInputFiles, list, list of the original input files
-      @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-            where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
-      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
-    """
-    # Since OpenModelica provides a way to do this (the setInitXmlStartValue described above), we'll
-    #   use that.  However, since it can only change one value at a time we'll have to apply it multiple
-    #   times.  Start with the original input file, which we have to find first.
-    found = False
-    for index, inputFile in enumerate(oriInputFiles):
-      if self._isValidInput(inputFile):
-        found = True
-        break
-    if not found:
-      raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
-
-    # Figure out the new file name and put it into the proper place in the return list
-    #newInputFiles = copy.deepcopy(currentInputFiles)
-    originalPath = oriInputFiles[index].getAbsFile()
-    #newPath = os.path.join(os.path.split(originalPath)[0],
-    #                       "OM" + Kwargs['prefix'] + os.path.split(originalPath)[1])
-    #newInputFiles[index].setAbsFile(newPath)
-
-    # Since the input file is XML we can load and edit it directly using etree
-    # Load the original XML into a tree:
-    tree = ET.parse(originalPath)
-
-    # Look at all of the variables in the XML and see if we have changes
-    #   in our dictionary.
-    varDict = Kwargs['SampledVars']
-    for elem in tree.findall('.//ScalarVariable'):
-      if (elem.attrib['name'] in varDict.keys()):
-        # Should contain one sub-element called 'Real' 'Integer' or 'Boolean' (May be others)
-        for subelem in elem:
-          if 'start' in subelem.attrib.keys():
-            # Change the start value to the provided one
-            subelem.set('start', str(varDict[elem.attrib['name']]))
-    # Now write out the modified file
-    tree.write(currentInputFiles[index].getAbsFile())
-    return currentInputFiles
-
+    CodeInterfaceBase._readMoreXML(self,xmlNode)
+    self.sequence = [] # this contains the sequence that needs to be run. For example, ['triton'] or ['origen'] or ['triton','origen']
+    self.include=''
+    self.tilastDict={} #{'folder_name':'tilast'} - this dictionary contains the last simulation time of each branch, this is necessary to define the correct restart time
+    self.branch = {} #{'folder_name':['variable branch','variable value']} where variable branch is the variable sampled for the current branch e.g. {det_1:[timeloca, 200]}
+    self.values = {} #{'folder_name':[['variable branch_1','variable value_1'],['variable branch_2','variable value_2']]} for each DET sampled variables
+    self.printInterval = ''  #value of the print interval
+    self.boolOutputVariables=[] #list of MAAP5 boolean variables of interest
+    self.contOutputVariables=[] #list of MAAP5 continuous variables of interest
+###########
+    self.multiBranchOccurred=[]
+###########
+    for child in xmlNode:
+      if child.tag == 'includeForTimer':
+        if child.text != None:
+          self.include = child.text
+      if child.tag == 'boolMaapOutputVariables':
+        #here we'll store boolean output MAAP variables to look for
+        if child.text != None:
+          self.boolOutputVariables = child.text.split(',')
+      if child.tag == 'contMaapOutputVariables':
+        #here we'll store boolean output MAAP variables to look for
+        if child.text != None:
+          self.contOutputVariables = child.text.split(',')
+      if child.tag == 'stopSimulation':
+        self.stop=child.text #this node defines if the MAAP5 simulation stop condition is: 'mission_time' or the occurrence of a given event e.g. 'IEVNT(691)'
+    if (len(self.boolOutputVariables)==0) and (len(self.contOutputVariables)==0):
+      raise IOError('At least one of two nodes <boolMaapOutputVariables> or <contMaapOutputVariables> has to be specified')
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
-      Called by RAVEN to modify output files (if needed) so that they are in a proper form.
-      In this case, OpenModelica CSV output comes with trailing commas that RAVEN doesn't
-      like.  So we have to strip them.  Also, the first line (with the variable names)
-      has those names enclosed in double quotes (which we have to remove)
+      finalizeCodeOutput checks MAAP csv files and looks for iEvents and
+      continous variables we specified in < boolMaapOutputVariables> and
+      contMaapOutputVairables> sections of RAVEN_INPUT.xml file. Both
+      < boolMaapOutputVariables> and <contMaapOutputVairables> should be
+      contained into csv MAAP csv file
+      In case of DET sampler, if a new branching condition is met, the
+      method writes the xml for creating the two new branches.
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, destFileName, string, present in case the root of the output file gets changed in this method.
+      @ Out, output, string, output csv file containing the variables of interest specified in the input
     """
-    # Make a new temporary file in the working directory and read the lines from the original CSV
-    #   to it, stripping trailing commas in the process.
-    tempOutputFD, tempOutputFileName = tempfile.mkstemp(dir = workingDir, text = True)
-    sourceFileName = os.path.join(workingDir, output)         # The source file comes in without .csv on it
-    print('sourcefilename:',sourceFileName)
-    destFileName = sourceFileName.replace('rawout~', 'out~')  # When fix the CSV, change rawout~ to out~
-    sourceFileName += '.csv'
-    inputFile = open(sourceFileName)
-    for line in inputFile:
-      # Line ends with a comma followed by a newline
-      #XXX toBytes seems to be needed here in python3, despite the text = True
-      os.write(tempOutputFD, utils.toBytes(line.replace('"','').strip().strip(',') + '\n'))
-    inputFile.close()
-    os.close(tempOutputFD)
-    shutil.move(tempOutputFileName, destFileName + '.csv')
-    return destFileName   # Return the name without the .csv on it...RAVEN will add it
+    csvSimulationFiles=[]
+    realOutput=output.split("out~")[1] #rootname of the simulation files
+    inp = os.path.join(workingDir,realOutput + ".inp") #input file of the simulation with the full path
+    filePrefixWithPath=os.path.join(workingDir,realOutput) #rootname of the simulation files with the full path
+    csvSimulationFiles=glob.glob(filePrefixWithPath+".d"+"*.csv") #list of MAAP output files with the evolution of continuous variables
+    mergeCSV=csvU.csvUtilityClass(csvSimulationFiles,1,";",True)
+    dataDict={}
+    dataDict=mergeCSV.mergeCsvAndReturnOutput({'variablesToExpandFrom':['TIME'],'returnAsDict':True})
+    timeFloat=dataDict['TIME']
+    #Here we'll read evolution of continous variables """
+    contVariableEvolution=[] #here we'll store the time evolution of MAAP continous variables
+    if len(self.contOutputVariables)>0:
+      for variableName in self.contOutputVariables:
+        try:
+          (dataDict[variableName])
+        except:
+          raise IOError('define the variable within MAAP5 plotfil: ',variableName)
+        contVariableEvolution.append(dataDict[variableName])
+
+     #here we'll read boolean variables and transform them into continous"""
+     # if the discrete variables of interest are into the csv file:
+    if len(self.boolOutputVariables)>0:
+      boolVariableEvolution=[]
+      for variable in self.boolOutputVariables:
+        variableName=str(variable)
+        try:
+          (dataDict[variableName])
+        except:
+          raise IOError('define the variable within MAAP5 plotfil: ',variableName)
+        boolVariableEvolution.append(dataDict[variableName])
+
+    allVariableTags=[]
+    allVariableTags.append('TIME')
+    if (len(self.contOutputVariables)>0):
+      allVariableTags.extend(self.contOutputVariables)
+    if (len(self.boolOutputVariables)>0):
+      allVariableTags.extend(self.boolOutputVariables)
+
+    allVariableValues=[]
+    allVariableValues.append(dataDict['TIME'])
+    if (len(self.contOutputVariables)>0):
+      allVariableValues.extend(contVariableEvolution)
+    if (len(self.boolOutputVariables)>0):
+      allVariableValues.extend(boolVariableEvolution)
+
+    RAVENoutputFile=os.path.join(workingDir,output+".csv") #RAVEN will look for  output+'.csv'file but in the workingDir, so we need to append it to the filename
+    outputCSVfile=open(RAVENoutputFile,"w+")
+    csvwriter=csv.writer(outputCSVfile,delimiter=b',')
+    csvwriter.writerow(allVariableTags)
+    for i in range(len(allVariableValues[0])):
+      row=[]
+      for j in range(len(allVariableTags)):
+        row.append(allVariableValues[j][i])
+      csvwriter.writerow(row)
+    outputCSVfile.close()
+    #os.chdir(workingDir) NEVER CHANGE THE WORKING DIRECTORY
+
+    if 'DynamicEventTree' in self.samplerType:
+      dictTimer={}
+      for timer in self.timer.values():
+        timer='TIM'+str(timer)
+        try:
+          (dataDict[timer])
+        except:
+          raise IOError('Please ensure that the timer is defined into the include file and then it is contained into MAAP5 plotfil: ',timer)
+        if 1.0 in dataDict[timer].tolist():
+          index=dataDict[timer].tolist().index(1.0)
+          timerActivation= timeFloat.tolist()[index]
+        else:
+          timerActivation=-1
+        dictTimer[timer]=timerActivation
+
+      #
+      #  NOTE THAT THIS ERROR CAN BE WRONG SINCE IT IS POSSIBLE (BRANCHES ON DEMAND) THAT TWO BRANCHES (OR MORE) HAPPEN AT THE SAME TIME! Andrea
+      #
+      dictTimeHappened = []
+      for value in dictTimer.values():
+        if value != -1:
+          dictTimeHappened.append(value)
+      print('DictTimer =', dictTimer)
+      print('Events occur at: ', dictTimeHappened)
+      #if any([dictTimeHappened.count(value) > 1 for value in dictTimer.values()]): raise IOError('Branch must occur at different times')
+      key1 = max(dictTimer.values())
+      d1 = dict((v, k) for k, v in dictTimer.iteritems())
+      timerActivated = d1[key1]
+      key2 = timerActivated.split('TIM')[-1]
+      d2 = dict((v, k) for k, v in self.timer.iteritems())
+      varActivated = d2[key2]
+      currentFolder = os.path.split(workingDir)[-1]
+      for key, value in self.values[currentFolder].items():
+        if key == varActivated:
+          self.branch[currentFolder]=(key,value)
+
+      self.dictVariables(inp)
+      if self.stop.strip()!='mission_time':
+        event=False
+        userStop='IEVNT('+str(self.stop)+')'
+        if dataDict[userStop][-1]==1.0:
+          event=True
+
+      condition=False
+      tilast=str(timeFloat[-1])
+      self.tilastDict[currentFolder]=tilast
+      if self.stop.strip()=='mission_time':
+        condition=(math.floor(float(tilast)) >= math.floor(float(self.endTime)))
+      else:
+        condition=(event or (math.floor(float(tilast)) >= math.floor(float(self.endTime))))
+      if not condition:
+        DictBranchCurrent='Dict'+str(self.branch[currentFolder][0])
+        DictChanged=self.DictAllVars[DictBranchCurrent]
+        self.branchXml(tilast, DictChanged,inp,dataDict)
+
