@@ -1,0 +1,128 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/Scale.ScaleCombined</name>
+    <author>alfoa</author>
+    <created>2018-04-04</created>
+    <classesTested>Models.Code.Scale</classesTested>
+    <description>
+       An example of using the the Model Code of type Scale, with Forward Sampling and combined calcolation
+       (Triton to Origen)
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-04-04">Created test</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>SCALE_triton_origen_combined</WorkingDir>
+    <Sequence>sampleScale</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="test.inp" type="origen">test.inp</Input>
+    <Input name="test.inp" type="triton">test.inp</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyScale" subType="MAAP5">
+      <executable>
+      </executable>
+      <sequence>triton,origen</sequence>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="normal">
+      <mean>500</mean>
+      <sigma>25</sigma>
+    </Normal>
+    <Uniform name="uniform">
+      <upperBound>1000</upperBound>
+      <lowerBound>200</lowerBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC">
+      <samplerInit>
+        <limit>3</limit>
+      </samplerInit>
+      <variable name="TIMELOCA">
+        <distribution>normal</distribution>
+      </variable>
+      <variable name="AFWOFF">
+        <distribution>uniform</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name=" sampleScale" re-seeding="1">
+      <Input class="Files" type="">test.inp</Input>
+      <Model class="Models" type="Code">MyScale</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
+      <Output class="Databases" type="HDF5">DataB_MAAP5_1</Output>
+      <Output class="DataObjects" type="HistorySet">Temporal_Evolution</Output>
+      <Output class="OutStreams" type="Print">test_dataobject</Output>
+      <Output class="OutStreams" type="Plot">plotWWBBN</Output>
+      <Output class="OutStreams" type="Plot">plotAFW</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="Temporal_Evolution" hierarchical="true">
+      <Input>TIMELOCA</Input>
+      <Output>PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1)</Output>
+      <options>
+          <pivotParameter>TIME</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="test_dataobject">
+      <type>csv</type>
+      <source>Temporal_Evolution</source>
+    </Print>
+    <Plot name="plotWWBBN" overwrite="False">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>Temporal_Evolution|Output|TIME</x>
+          <y>Temporal_Evolution|Output|WWBBN(1)</y>
+        </plot>
+        <xlabel>Time[s]</xlabel>
+        <ylabel>Break [kg/s]</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text>Plot_Break</text>
+        </title>
+      </actions>
+    </Plot>
+    <Plot name="plotAFW" overwrite="False">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>Temporal_Evolution|Output|TIME</x>
+          <y>Temporal_Evolution|Output|WWTOTFW(1)</y>
+        </plot>
+        <xlabel>Time[s]</xlabel>
+        <ylabel>AFW [kg/s]</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text>Plot_AFW</text>
+        </title>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <Databases>
+    <HDF5 name="DataB_MAAP5_1" readMode="overwrite"/>
+  </Databases>
+
+</Simulation>

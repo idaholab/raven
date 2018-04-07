@@ -68,35 +68,35 @@ class origenAndTritonData:
     else:
       filenames = [filen[outputType]] if outputType != 'combined' else filen.values()
       outTypeDict = dict(zip(filen.values(), filen.keys()))
-        
+
     # retrieve keff and kinf
     self.data = {}
     for outFile in filenames:
-      self.lines = open(os.path.abspath(os.path.expanduser(outFile)),"r").readlines()  
+      self.lines = open(os.path.abspath(os.path.expanduser(outFile)),"r").readlines()
       if outTypeDict[outFile] == 'triton':
         self.data['transportInfo'] = self.retrieveKeff()
         if self.data['transportInfo'] is not None:
           if not self.data['transportInfo']['timeUOM'].strip().startswith(timeUOM):
-            self.data['transportInfo']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['transportInfo']['timeUOM'])*np.asarray(self.data['transportInfo']['time'])).tolist()       
+            self.data['transportInfo']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['transportInfo']['timeUOM'])*np.asarray(self.data['transportInfo']['time'])).tolist()
         # retrieve nuclide densities
         self.data['nuclideDensities'] = self.retrieveNuclideConcentrations()
         if self.data['nuclideDensities'] is not None:
           if not self.data['nuclideDensities']['timeUOM'].strip().startswith(timeUOM):
-            self.data['nuclideDensities']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['nuclideDensities']['timeUOM'])*np.asarray(self.data['nuclideDensities']['time'])).tolist()       
+            self.data['nuclideDensities']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['nuclideDensities']['timeUOM'])*np.asarray(self.data['nuclideDensities']['time'])).tolist()
         # retrieve mixture powers
         self.data['mixPowers'] = self.retrieveMixtureInfo()
         if self.data['mixPowers'] is not None:
           if not self.data['mixPowers']['timeUOM'].strip().startswith(timeUOM):
-            self.data['mixPowers']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['mixPowers']['timeUOM'])*np.asarray(self.data['mixPowers']['time'])).tolist()         
+            self.data['mixPowers']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['mixPowers']['timeUOM'])*np.asarray(self.data['mixPowers']['time'])).tolist()
       elif outTypeDict[outFile] == 'origen':
         # origen history overview and concentration tables
         self.data['histOverviewOrigen'] = self.retrieveHistoryOverview()
         if self.data['histOverviewOrigen'] is not None:
           self.data['concTablesOrigen'] = self.retrieveConcentrationTables()
           if not self.data['concTablesOrigen']['timeUOM'].strip().startswith(timeUOM):
-            self.data['concTablesOrigen']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['concTablesOrigen']['timeUOM'])*np.asarray(self.data['concTablesOrigen']['time'])).tolist()    
+            self.data['concTablesOrigen']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['concTablesOrigen']['timeUOM'])*np.asarray(self.data['concTablesOrigen']['time'])).tolist()
           if not self.data['histOverviewOrigen']['timeUOM'].strip().startswith(timeUOM):
-            self.data['histOverviewOrigen']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['histOverviewOrigen']['timeUOM'])*np.asarray(self.data['histOverviewOrigen']['time'])).tolist()    
+            self.data['histOverviewOrigen']['time'] = (_scalingFactorBetweenTimeUOM(timeUOM, self.data['histOverviewOrigen']['timeUOM'])*np.asarray(self.data['histOverviewOrigen']['time'])).tolist()
     # check if something has been found
     if all(v is None for v in self.data.values()):
       raise IOError("No readable outputs have been found!")
@@ -145,7 +145,7 @@ class origenAndTritonData:
     """
     # history overview
     outputDict = None
-    
+
     indexHistOverview = [i+3 for i, x in enumerate(self.lines) if x.strip().startswith('=   History overview for')]
     if len(indexHistOverview) == 0:
       return outputDict
@@ -281,7 +281,7 @@ class origenAndTritonData:
       time = float(components[0].split()[2])
       outputDict['time'].append(time)
       if outputDict['timeUOM'] is None:
-        outputDict['timeUOM'] = components[0].split()[3]    
+        outputDict['timeUOM'] = components[0].split()[3]
       bu   = float(components[1].split()[2])
       values[cnt].append(bu)
       startIndex = index + 4
@@ -312,7 +312,7 @@ class origenAndTritonData:
 
     # retrieve time grid
     uomTime = self.lines[indexConc+1].split("|")[-1].split()[-1].strip()
-    timeGrid = [float(elm.replace(uomTime[0],"")) for elm in self.lines[indexConc+2].split("|")[-1].split()]   
+    timeGrid = [float(elm.replace(uomTime[0],"")) for elm in self.lines[indexConc+2].split("|")[-1].split()]
     values = []
     outputDict = {'time':timeGrid,'info_ids':[], 'timeUOM':uomTime, 'values':None}
     startIndex = indexConc + 3
@@ -350,13 +350,10 @@ class origenAndTritonData:
         outputMatrix[startIndex:endIndex,:] = data['values'][:,:]
     # print the csv
     np.savetxt(fileObject, outputMatrix.T, delimiter=',', header=','.join(headers), comments='')
+    fileObject.close()
 
 if __name__ == '__main__':
 
-  #test = origenAndTritonData("~/Downloads/decay.out",'s','origen')
-  #test.writeCSV("origen_test.csv")
-  #test = origenAndTritonData("~/Downloads/5_9pc_1200_numpar30.out")
-  #test.writeCSV("triton_test.csv")  
   test = origenAndTritonData({'triton': "~/Downloads/5_9pc_1200_numpar30.out",'origen':"~/Downloads/decay.out"},'s','combined')
-  test.writeCSV("combined_test.csv")   
-  
+  test.writeCSV("combined_test.csv")
+
