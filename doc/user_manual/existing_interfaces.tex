@@ -20,6 +20,8 @@ If a code contains cross-dependent data, the generic interface is not able to
 edit the correct values.  For example, if a geometry-building script specifies
 inner\_radius, outer\_radius, and thickness, the generic interface cannot
 calculate the thickness given the outer and inner radius, or vice versa.
+In this case, the \textit{function} method explained in the Samplers (see \ref{sec:Samplers}) 
+and Optimizers (see \ref{sec:Optimizers}) sections can be used.
 
  An example of the code interface is shown here.  The input parameters are read
  from the input files \texttt{gen.one} and \texttt{gen.two} respectively.
@@ -2381,7 +2383,7 @@ In addition, it is important to notice that:}
 \end{itemize}
 }
 
-Remeber also that a MELCOR simulation run is considered successfull (i.e., the simualtion did not crash) if it terminates with the
+Remember also that a MELCOR simulation run is considered successful (i.e., the simulation did not crash) if it terminates with the
 following message:
 
 \textcolor{red}{Normal termination}
@@ -2620,9 +2622,9 @@ So the user needs to input the following block as well, where the Input and Outp
 \end{lstlisting}
 As mentioned before, this will create $4$ DataObjects.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SCALE  INTERFACE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% SCALE  INTERFACE %%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{SCALE Interface}
 This section presents the main aspects of the interface between RAVEN and SCALE system,
 the consequent RAVEN input adjustments and the modifications of the SCALE
@@ -2636,198 +2638,311 @@ currently limited in driving the following SCALE calculation codes:}}
 \end{itemize}
 }
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{RAVEN Input files}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{Files}
-The \xmlNode{Files} XML node has to contain all the files required by the particular 
-sequence of 
-the external model (MAAP5) to be run, all these files need to be included within this node.
-This involves not only the input file (.inp) but also the include file, the parameter file, all the
-files defining the different ``PLOTFILs'', if any, and the other files which could
-result useful for the MAAP5 simulation run.
+In the following sections a short explanation on how to use RAVEN coupled with SCALE is reported.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Models}
+As for any other Code, in order to activate the SCALE interface, a  \xmlNode{Code} XML node needs to be inputted, within the 
+main XML node \xmlNode{Models}. 
+\\The  \xmlNode{Code} XML node contains the 
+information needed to execute the specific External Code.
+
+\attrsIntro
+%
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, specifies the
+  code that needs to be associated to this Model.
+  %
+  \nb See Section~\ref{sec:existingInterface} for a list of currently supported
+  codes.
+  %
+\end{itemize}
+\vspace{-5mm}
+
+\subnodesIntro
+%
+\begin{itemize}
+  \item \xmlNode{executable} \xmlDesc{string, required field} specifies the path
+  of the executable to be used.
+  %
+  \nb Either an absolute or relative path can be used.
+  \item \aliasSystemDescription{Code}
+  %
+\end{itemize}
+
+In addition (and specifc for the SCALE interface), the  \xmlNode{Code} can contain the following optional nodes:
+
+\begin{itemize}
+  \item \xmlNode{sequence}, optional, comma separated list. In this node the user can specify a list of sequences that need to be
+  executed in sequence. For example, if a TRITON calculation needs to be followed by an ORIGEN decay heat calculation the user
+  would input here the sequence ``\textit{triton,origen}''. \default{triton}. 
+  \\\nb Currently only the following entries are supported:
+    \begin{itemize}
+     \item  ``\textit{triton}''
+     \item  ``\textit{origen}''
+     \item  ``\textit{triton,origen}''
+    \end{itemize}
+  \item \xmlNode{timeUOM}, optional, string. In this node the user can specify  the \textit{units} for the independent variable ``time''.
+   If the outputs are exported by SCALE in a different unit (e.g days, years, etc.), the SCALE interface will convert all the different 
+   time scales into the unit here specified (in order to have a consistent  (and unique) time scale). Available are:
+    \begin{itemize}
+     \item ``\textit{s}'', seconds
+     \item ``\textit{m}'', minutes
+     \item ``\textit{h}'', hours
+     \item ``\textit{d}'', days
+     \item ``\textit{y}'', years
+    \end{itemize}
+    \default{s}
+\end{itemize}
+
+An example  is shown  below:
+\begin{lstlisting}[style=XML]
+<Models>
+    <Code name="MyScale" subType="Scale">
+      <executable>path/to/scalerte</executable>
+      <sequence>triton,origen</sequence>
+      <timeUOM>d</timeUOM>
+    </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The \xmlNode{Files} XML node has to contain all the files required by the particular 
+sequence (s) of the external code  (SCALE) to be run.
+This involves not only the input file(s) (.inp) but also the auxiliary files that might be needed (e.g. binary initial compositions, etc.).
+As mentioned, the current SCALE interface only supports TRITON and ORIGEN sequences; For this reason, depending on the
+type of sequence (see previous section) to be run, the relative input files need to be marked with the sequence they are associated
+with. This means that the type of the input file must be either ``triton'' or ``origen''. The auxiliary files that might be needed by
+a particular sequence (e.g. binary initial compositions, etc.) should not be marked with any specific type (i.e. \textit{type=``''}).
 Example:
 \begin{lstlisting}[style=XML]
 <Files>
-  <Input name="test.inp" type="">test.inp</Input>
-  <Input name="include" type="">include</Input>
-  <Input name="plot.txt" type="">plot.txt</Input>
-  <Input name="plant.par" type="">plant.par</Input>
+  <Input name="triton_input" type="triton">pwr_depletion.inp</Input>
+  <Input name="origen_input" type="origen">decay_calc.inp</Input>
+  <Input name="binary_comp" type="">pwr_depletion.f71</Input>
 </Files>
 \end{lstlisting}
 All the files here mentioned in this section
- need, then, to be put into the working directory specified
-by the \xmlNode{workingDir} node into the \xmlNode{RunInfo} block.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{Models}
-The \xmlNode{Models} block contains the name of the executable file of MAAP5
-(with the path, if necessary),
-and the name of the interface (e.g. MAAP5\_GenericV7).
-The block has also some required nodes:
+ need, then, to be placed into the working directory specified
+by the \xmlNode{workingDir} node in the \xmlNode{RunInfo} XML node.
+
+\paragraph{Output Files conversion}
+Since RAVEN expects to receive a CSV file containing the outputs of the simulation, the results in the SCALE output
+files need to be converted by the code interface.
+\\As mentioned, the current interface \textcolor{red}{ is able to collect data from TRITON and ORIGEN sequences only}.  
+%% TRITON
+\\The following information is collected from TRITON output:
 \begin{itemize}
-  \item \xmlNode{boolMaapOutputVariables}: containing the number of the MAAP5 IEVNT corresponding to the boolean events of interest;
-  \item \xmlNode{contMaapOutputVariables}: containing the list of all the continuous variables we are interested at,
-  and that we want to monitor;
-  \item \xmlNode{stopSimulation}: this node is required only in case of DET sampling strategy.
-The user needs to specify
-  if the MAAP5 simulation run stops due to the reached END TIME, specifying ''mission\_time'',
-or due to the occurrence of a specific event by
-  inserting the number of the corresponding MAAP5 IEVNT (e.g IEVNT(691) for core uncovery)
- \item \xmlNode{includeForTimer}: also this node is required only in case of DET sampling
- strategy and it contains the name of the
- MAAP5 include file where the TIMERS for the different variables are defined
-(see paragraph ''MAAP5 include file below'' for more information about timers).
+  \item \textit{\textbf{k-eff and k-inf time-dep information}}
+  \begin{lstlisting}[basicstyle=\tiny]
+  Outer   Eigenvalue Eigenvalue Max Flux   Max Flux     Max Fuel   Max Fuel     Wall   Elapsed   Iteration  CPU   Inners
+ Iter. #              Delta      Delta   Location(r,g)   Delta   Location(r,g) Clock   CPU Time   CPU Time Usage Converged
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     1    1.00000   0.000E+00 6.480E+09 (    4,252)   1.000E+00 (  614,  0) 14:16:42   89.9 s    89.9 s  92.7%    F
+     2    0.35701   1.801E+00 4.149E+01 (  319,  4)   2.673E+00 ( 7035,  0) 14:18:16  182.8 s    92.9 s  98.8%    F
+ k-eff =       0.94724509     Time=      0.00d Nominal conditions                                             
+
+   Four-Factor Estimate of k-infinity.  Fast/Thermal boundary:   0.6250 eV
+      Fiss. neutrons/thermal abs. (eta):          1.279827
+      Thermal utilization (f):                    0.960903
+      Resonance Escape probability (p):           0.706209
+      Fast-fission factor (epsilon):              1.091716
+                                            --------------
+      Infinite neutron multiplication             0.948143
+
+\end{lstlisting}
+   that will be converted in the following way (CSV):
+   \begin{table}[h]
+    \centering
+    \caption{CSV transport info}
+    \label{CSVkeff}
+    \tabcolsep=0.11cm
+    \tiny
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+     time & keff       & iter\_number & keff\_delta & max\_flux\_delta & kinf     & kinf\_epsilon & kinf\_p  & kinf\_f  & kinf\_eta \\
+     0.00 & 0.94724509 & 2            & 1.801E+00   & 4.149e+01        & 0.948143 & 1.091716      & 0.706209 & 0.960903 & 1.279827 
+    \end{tabular}
+   \end{table}
+   
+  \item \textit{\textbf{material powers}}
+  \begin{lstlisting}[basicstyle=\tiny]
+  --- Material powers for depletion pass no.   1 (MW/MITHM) ---
+       Time =     0.00 days (   0.000 y), Burnup =    0.000     GWd/MTIHM, Transport k=  0.9473
+
+                    Total    Fractional  Mixture     Mixture       Mixture
+         Mixture    Power      Power      Power    Thermal Flux  Total Flux
+          Number (MW/MTIHM)    (---)   (MW/MTIHM)  n/(cm^2*sec)  n/(cm^2*sec)
+            13      32.985    0.99054     32.985    5.3666e+13    1.2574e+14    
+             6       0.252    0.00757     N/A       2.7587e+13    9.1781e+13   
+         Total      33.300    1.00000
+\end{lstlisting}
+   that will be converted in the following way (CSV):
+   \begin{table}[h]
+     \centering
+     \caption{CSV material powers}
+     \label{CSVmatPowers}
+     \tabcolsep=0.11cm
+     \tiny
+     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|l}
+     \cline{1-10}
+     time    & bu  & tot\_power\_mix\_13 & fract\_power\_mix\_13 & th\_flux\_mix\_13 & tot\_flux\_mix\_13 & tot\_power\_mix\_6 & fract\_power\_mix\_6 & th\_flux\_mix\_6 & tot\_flux\_mix\_6 &  \\ \cline{1-10}
+     1.0E-06 & 0.0 & 32.985              & 0.99054               & 5.3666e+13        & 1.2574e+14         & 0.252              & 0.00757              & 2.7587e+13       & 9.1781e+13        &  \\ \cline{1-10}
+     \end{tabular}
+   \end{table}   
+   
+ 
+ \item \textit{\textbf{nuclide/element tables}}
+  \begin{lstlisting}[basicstyle=\tiny]
+            | nuclide concentrations
+            | time: days
+      grams |    0.00e+00d 
+------------+--------------------
+       u235 |   2.9619e+04  
+       u238 |   9.6993e+05  
+   subtotal |   1.0010e+06  
+      total |   1.1858e+06  
+\end{lstlisting}
+   that will be converted in the following way (CSV):
+   \begin{table}[h]
+    \centering
+    \caption{CSV Nuclide/element Tables}
+    \label{CSVnuclideTables}
+    \tabcolsep=0.11cm
+    \tiny
+    \begin{tabular}{|c|c|c|}
+     time & u235\_conc       & u238\_conc   \\
+     0.00 & 2.9619e+04  & 9.6993e+05        
+    \end{tabular}
+   \end{table}
+\end{itemize}
+%% ORIGEN
+The following information is collected from ORIGEN output:
+\begin{itemize}
+  \item \textit{\textbf{history overview}}
+  \begin{lstlisting}[basicstyle=\tiny]
+=========================================================================================================================
+=   History overview for case 'decay' (#1/1)                                                                            =
+-------------------------------------------------------------------------------------------------------------------------
+   step          t0          t1          dt           t        flux     fluence       power      energy
+    (-)       (sec)       (sec)         (s)         (s)   (n/cm2-s)     (n/cm2)        (MW)       (MWd)
+      1  0.0000E+00  1.0000E-06  1.0000E-06  1.0000E-06  0.0000E+00  0.0000E+00  0.0000E+00  0.0000E+00
+\end{lstlisting}
+   that will be converted in the following way (CSV):
+    \begin{table}[h]
+    \centering
+    \caption{CSV History Overview}
+    \label{CSVhistoryOverview}
+    \tabcolsep=0.11cm
+    \tiny
+    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+     time    & t0  & t1      & dt      & flux & fluence & power & energy \\  
+     1.0E-06 & 0.0 & 1.0E-06 & 1.0E-06 & 0.0  & 0.0     & 0.0   & 0.0      
+    \end{tabular}
+   \end{table}
+   
+   \item \textit{\textbf{concentration tables}} 
+  \begin{lstlisting}[basicstyle=\tiny]
+=========================================================================================================================
+=   Nuclide concentrations in watts, actinides for case 'decay' (#1/1)                                                  =
+-------------------------------------------------------------------------------------------------------------------------
+  (relative cutoff; integral of concentrations over time >   1.00E-04 % of integral of all concentrations over time)
+.
+                0.0E+00sec  1.0E-06sec  
+  th231       8.6167E-08  8.6167E-08  
+  th234       7.7763E-09  7.7763E-09 
+------------
+  totals       4.6831E+03  4.6831E+03  
+=========================================================================================================================
+.
+.
+=========================================================================================================================
+=   Nuclide concentrations in watts, fission products for case 'decay' (#1/1)                                           =
+-------------------------------------------------------------------------------------------------------------------------
+  (relative cutoff; integral of concentrations over time >   1.00E-04 % of integral of all concentrations over time)
+.
+                0.0E+00sec  1.0E-06sec  
+  ga74        2.4264E-01  2.4264E-01  
+  ga75        1.8106E+00  1.8106E+00  
+------------
+  totals       1.2266E+06  1.2266E+06 
+  \end{lstlisting}
+  that will be converted in the following way (CSV):
+   \begin{table}[h]
+    \centering
+    \caption{CSV Concentration Tables}
+    \label{CSVconcentrationTables}
+    \tabcolsep=0.11cm
+    \tiny
+    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+     time    & ga74\_watts  & ga75\_watts      & subtotals\_fission\_products      & th231\_watts & th234\_watts & subtotals\_actinides & totals\_watts \\ \hline
+     0.0E+00 & 2.4264E-01 & 1.8106E+00 & 1.2266E+06 & 8.6167E-08  & 7.7763E-09     & 4.6831E+03   & 1.2313E+06    \\ 
+     1.0E-06 & 2.4264E-01 & 1.8106E+00 & 1.2266E+06 & 8.6167E-08  & 7.7763E-09     & 4.6831E+03  & 1.2313E+06      
+    \end{tabular}
+   \end{table}
 \end{itemize}
 
-A \xmlNode{Models} block is shown as an example below:
-\begin{lstlisting}[style=XML]
-<Models>
-  <Code name="MyMAAP" subType="MAAP5\_GenericV7">
-    <executable>MAAP5.exe</executable>
-    <clargs type='input' extension='.inp'/>
-    <boolMaapOutputVariables>691</boolMaapOutputVariables>
-    <contMaapOutputVariables>PPS,PSGGEN(1),ZWDC2SG(1)
-    </contMaapOutputVariables>
-    <stopSimulation>mission_time</stopSimulation>
-    <includeForTimer>include</includeForTimer>
-  </Code>
-</Models>
-\end{lstlisting}
+\textbf{Remember also that a SCALE simulation run is considered successful (i.e., the simulation did not crash) if it does not contain, in 
+the last 20 lines, the following message:}
+
+\textcolor{red}{terminated due to errors}
+
+\textbf{If the a SCALE simulation terminates with this message, the simulation is considered ``failed'', i.e., it will not be saved.}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{Other blocks}
-All the other blocks (e.g. \xmlNode{Distributions}, \xmlNode{Samplers}, \xmlNode{Steps},
- \xmlNode{Databases}, \xmlNode{OutStream}, etc.)
-do not require any particular arrangements than already provided by a RAVEN input.
-User can, therefore, refer to the corresponding sections of the User's Manual.
-This is valid for both forward sampling and DET.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{MAAP5 Input files}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The coupling of RAVEN and MAAP5 requires modifications to some
-MAAP5 files in order to work. This is particularly true when a DET analysis is performed.
-The MAAP5 input files that need to be modified are:
-\begin{itemize}
-  \item MAAP5 include file
-  \item MAAP5 input file (.inp)
-  \item PLOTFIL blocks
-\end{itemize}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{MAAP5 include file}
-Usually MAAP5 simulation provides the presence of some include files, for example,
-containing the user-defined variables, timers, definition of the plotfil, etc.
-The adjustments explained in this section are required only in case of a DET analysis.
-The user needs to modify the include file containing the set of the
-timers used into the run, by adding the definition of the different timers,
-one for each variable that causes a branching.
-The include file to be modified should correspond to that one defined in the \xmlNode{includeForTimer}
-block of the RAVEN xml input.
-
-User is supposed to check that the numbers used for the different timers definition
-are not already used in any of the other MAAP5 files.
-These timers should be preceeded by a line reporting ''C Branching + name of the variable
-sampled by RAVEN causing the branching''.
-
-For example, we assume that DIESEL is the name of the variable corresponding to the failure time
-of the Diesel generators (user defined). User has to firstly ensure that, for example,
-''TIMER 100'' is not already used into the model, then the following lines
-need to be added into the selected include file for the set of the timer corresponding
-to the Diesel generators failure:
-\begin{lstlisting}[style=XML]
-C Branching DIESEL
-WHEN (TIM>DIESEL)
-   SET TIMER 100
-END
+\subsubsection{Samplers or Optimizers}
+In the \xmlNode{Samplers} or  \xmlNode{Optimizers} block we want to define the variables that are going
+to be sampled or optimized.
+%
+\\The perturbation or optimization of the input of any SCALE sequence is performed using the approach detailed in the \textit{Generic Interface} section (see \ref{subsec:genericInterface}). Briefly, this approach uses 
+ ``wild-cards'' (placed in the original input files) for injecting the perturbed values.
+ For example, if the original input file (that needs to be perturbed) is the following:
+\begin{lstlisting}[language=python]
+=origen
+case(actual_mass){
+  lib{ file="end7dec" }
+  mat{ iso=[zr-95=1.0] units="moles" }
+  time=[1.0] %1 day
+}
+end
 \end{lstlisting}
-It is worth mentioning that at this step a TIMER should be defined
-also for the event IEVNT specified into the \xmlNode{stopSimulation},
- if this is the stop condition for the MAAP5 run:
-\begin{lstlisting}[style=XML]
-WHEN IEVNT(691) == 1.0
-  SET TIMER 10
-END
+and  the initial moles of ``zr-95'' need to be perturbed, a RAVEN ``wild-card'' will be defined:
+\begin{lstlisting}[language=python]
+=origen
+case(actual_mass){
+  lib{ file="end7dec" }
+  mat{ iso=[zr-95=$RAVEN-zrMoles$] units="moles" }
+  time=[1.0] %1 day
+}
+end
 \end{lstlisting}
-The interface will check that one timer is defined for each variable
-of the DET. If not, an error arises suggesting to user the name of the variable having no
-timer defined.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{MAAP5 input file}
-In the ''parameter change'' section of the MAAP5 input file, the user should declare
-the name of the variables sampled by RAVEN according to the following statement:
+
+Finally, the variable \textbf{\textit{zrMoles}} needs to be specified in the specific Sampler or Optimizer that will be used:
+
 \begin{lstlisting}[style=XML]
- variable = $ RAVEN-variable:default$
+...
+<Samplers>
+  <aSampler name='aUserDefinedName' >
+    <variable name='zrMoles'>
+      ...
+    </variable>
+  </aSampler>
+</Samplers>
+...
+<Optimizers>
+  <anOptimizer name='aUserDefinedName' >
+    <variable name='zrMoles'>
+      ...
+    </variable>
+  </anOptimizer>
+</Samplers>
+...
 \end{lstlisting}
-where the dafault value is optional.
-
-For example:
-\begin{lstlisting}[style=XML]
-DIESEL = $RAVEN-DIESEL:-1$
-\end{lstlisting}
-This is valid for both forward and DET sampled variables.
-In particular, in case of DET analysis, the variables causing the occurrence of the branch should be
-assigned within a block identified by the comment ''C DET Sampled variables'':
-\begin{lstlisting}[style=XML]
-C DET Sampled Variables
-DIESEL = $RAVEN-DIESEL:-1$
-C End DET Sampled Variables
-\end{lstlisting}
-If the sampled variables are user-defined, then the user shall ensure that they are initialized
-(to the default value) and set within the user-defined variables section of one of the include
-file.
-As usual, a distribution and a sampling strategy should then correspond to each of these variables
-into the RAVEN xml input file.
-
-Only for the DET analysis, then, the occurence of a branch will be identified by a comment before. This comment is
- ''C BRANCHING + name of the variable determining the branch'' and acts as a sort of branching marker.
-Looking for these markers, indeed, the interface (in case of DET sampler) verifies that at least
-one branching exists, and furthermore, that one branching is defined for each of the
-variables contained into ''DET sampled variables''.
-
-Within the block, the occurrence of the branching leads the value of a variable (user-defined)
-called ''TIM+number of the corresponding timer set into
-the include file'' to switch to 1.0. The code, in fact, detects if a branch has occurred by monitoring
-the value of these kind of variables. SInce these variables are user-defined, they need to be
-initialized to a value (different from 1.0), into the ''user-defined variables'' section of one of the include
-files.
-
-Therefore following the previous example, if we want that, when the diesels failure occurs it leads
-to the event ''Loss of AC Power'' (IEVNT(205) of MAAP5), we will have:
-\begin{lstlisting}[style=XML]
-C Branching TIMELOCA
-WHEN TIM > DIESEL
- TIM100=1.0
- IEVNT(205)=1.0
-END
-\end{lstlisting}
-It is worth noticing that no comments should be contained within the line of assignment
-(i.e. IEVNT(205)=1.0 //LOSS OF AC POWER is not allowed).
-
-Finally, only in case of DET analysis, a stop simulation condition (provided by the comment
-''C Stop Simulation condition'') needs to be put into the input.
-The original input should have all the timers (linked with the branching) separated by an OR
-condition, even including that one of the event that stops the simulation (e.g. IEVNT(691)),
-if any.
-\begin{lstlisting}[style=XML]
-C Stop Simulation condition
-IF (TIMER 10 > 0) OR (TIMER 100 > 0) OR ... (TIMER N > 0)
- TILAST=TIM
-END
-\end{lstlisting}
-This allows the simulation run to stop when a branch condition occurs, creating the restart file that will
-be used by the two following branches.
-
-For each branch, then, the interface will automatically update the name of the RESTART FILE to be used and
-of the RESTART TIME that will be equal to the difference between the END TIME of the ''parent'' simulation
-and the PRINT INTERVAL (which specifies the interval at which the restart output is written).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{MAAP5 PLOTFIL blocks}
-This section refers to the ''PLOTFIL blocks'' used to modify the plot file (.csv) defined into the parameter file.
-These blocks need to be modified in order to include some variables.
-It is important, indeed, that the MAAP5 csv PLOTFIL files contain the evolution of:
-\begin{itemize}
-  \item RAVEN sampled variables (e.g. DIESEL) (both for Forward and DET sampling)
-  \item the variables whose value is modified by the occurrence of one of the branches, either continuous or boolean (e.g. IEVNT(225))
-  \item the variables of interest defined within \xmlNode{boolMaapOutputVariables}
-  and \\ \xmlNode{contMaapOutputVariables} blocks (both for Forward and DET sampling)
-\end{itemize}
-If one of these variables is not contained into one of csv files, RAVEN will give an error.
+%
