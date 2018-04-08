@@ -20,53 +20,70 @@
   </RunInfo>
 
   <Files>
-    <Input name="test.inp" type="origen">test.inp</Input>
-    <Input name="test.inp" type="triton">test.inp</Input>
+    <Input name="decay_origen" type="origen">decay_origen.inp</Input>
+    <Input name="htr_triton" type="triton">htr_triton.inp</Input>
   </Files>
 
   <Models>
-    <Code name="MyScale" subType="MAAP5">
-      <executable>
-      </executable>
+    <Code name="MyScale" subType="Scale">
+      <executable>/Applications/SCALE-6.2.app/Contents/Resources/bin/scalerte</executable>
       <sequence>triton,origen</sequence>
     </Code>
   </Models>
 
   <Distributions>
-    <Normal name="normal">
-      <mean>500</mean>
-      <sigma>25</sigma>
-    </Normal>
-    <Uniform name="uniform">
-      <upperBound>1000</upperBound>
-      <lowerBound>200</lowerBound>
+    <Uniform name="bu_dist">
+      <upperBound>60.0</upperBound>
+      <lowerBound>0.0</lowerBound>
+    </Uniform>
+    <Uniform name="enrichment_dist">
+      <upperBound>20.0</upperBound>
+      <lowerBound>3.</lowerBound>
     </Uniform>
   </Distributions>
 
-  <Samplers>
-    <MonteCarlo name="MC">
-      <samplerInit>
-        <limit>3</limit>
-      </samplerInit>
-      <variable name="TIMELOCA">
-        <distribution>normal</distribution>
-      </variable>
-      <variable name="AFWOFF">
-        <distribution>uniform</distribution>
-      </variable>
-    </MonteCarlo>
-  </Samplers>
+  <Functions>
+    <External file="u235_density_computation.py" name="u235density">
+        <variable>enrichment</variable>
+    </External>
+    <External file="u238_density_computation.py" name="u238density">
+        <variable>enrichment</variable>
+    </External>
+    <External file="burning_time_computation.py" name="computeBurningTime">
+        <variable>burnup</variable>
+    </External>
+  </Functions>
 
+  <Samplers>
+    <Grid name="MC">
+      
+      <variable name="burnup">
+        <distribution>bu_dist</distribution>
+        <grid construction="equal" steps="10" type="value">1E-4 60</grid>
+      </variable>
+      <variable name="enrichment">
+        <distribution>enrichment_dist</distribution>
+        <grid construction="equal" steps="10" type="value">3. 20.</grid>
+      </variable>
+      <variable name="u235dens">
+          <function>u235density</function>
+      </variable>
+      <variable name="u238dens">
+          <function>u238density</function>
+      </variable>
+      <variable name="burning_time">
+          <function>computeBurningTime</function>
+      </variable>
+    </Grid>
+  </Samplers>
+ 
   <Steps>
-    <MultiRun name=" sampleScale" re-seeding="1">
-      <Input class="Files" type="">test.inp</Input>
+    <MultiRun name="sampleScale" re-seeding="1">
+      <Input class="Files" type="origen">decay_origen</Input>
+      <Input class="Files" type="triton">htr_triton</Input>
       <Model class="Models" type="Code">MyScale</Model>
-      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
-      <Output class="Databases" type="HDF5">DataB_MAAP5_1</Output>
-      <Output class="DataObjects" type="HistorySet">Temporal_Evolution</Output>
-      <Output class="OutStreams" type="Print">test_dataobject</Output>
-      <Output class="OutStreams" type="Plot">plotWWBBN</Output>
-      <Output class="OutStreams" type="Plot">plotAFW</Output>
+      <Sampler class="Samplers" type="Grid">MC</Sampler>
+      <Output class="Databases" type="HDF5">DataB_Scale</Output>
     </MultiRun>
   </Steps>
 
@@ -122,7 +139,7 @@
   </OutStreams>
 
   <Databases>
-    <HDF5 name="DataB_MAAP5_1" readMode="overwrite"/>
+    <HDF5 name="DataB_Scale" readMode="overwrite"/>
   </Databases>
 
 </Simulation>

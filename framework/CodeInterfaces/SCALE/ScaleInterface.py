@@ -56,14 +56,14 @@ class Scale(CodeInterfaceBase):
       @ Out, None.
     """
     CodeInterfaceBase._readMoreXML(self,xmlNode)
-    sequence = xmlNode.find("./sequence")
+    sequence = xmlNode.find("sequence")
     if sequence is None:
       self.sequence = ['triton']
     else:
       self.sequence = [elm.strip() for elm in sequence.text.split(",")]
     if self.sequence.count('triton') > 1 or self.sequence.count('origen') > 1:
       raise IOError("Multiple triton or orgine sequences are not supported yet!")
-    timeUOM = xmlNode.find("./timeUOM")
+    timeUOM = xmlNode.find("timeUOM")
     if timeUOM is not None:
       self.timeUOM = timeUOM.text.strip()
       if self.timeUOM not in ['s','m','h','d','y']:
@@ -78,7 +78,7 @@ class Scale(CodeInterfaceBase):
       inputDict = {}
       inputDict['origen'] = []
       inputDict['triton'] = []
-      allowedDriverAppInput = ['bisoninput','rattlesnakeinput','relap7input']
+
       for inputFile in inputFiles:
         if inputFile.getType().strip().lower() == "triton":
           inputDict['triton'].append(inputFile)
@@ -89,54 +89,78 @@ class Scale(CodeInterfaceBase):
       if len(inputDict['origen']) > 1:
         raise IOError('multiple origen input files have been found. Only one is allowed!')
       # Check if the input requested by the sequence has been found
-      if self.sequence.count('triton') != inputDict['triton'].count('triton'):
+      if self.sequence.count('triton') != len(inputDict['triton']):
         raise IOError('triton input file has not been found. Files type must be set to "triton"!')
-      if self.sequence.count('origen') != inputDict['origen'].count('origen'):
+      if self.sequence.count('origen') != len(inputDict['origen']):
         raise IOError('origen input file has not been found. Files type must be set to "origen"!')
       return inputDict
 
-    def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
-      """
-        Generate a command to run Mammoth using an input with sampled variables
-        See base class.  Collects all the clargs and the executable to produce the command-line call.
-        Returns tuple of commands and base file name for run.
-        Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-        @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have
-          been added in the Step is running this code)
-        @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
-        @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input
-          (e.g. under the node < Code >< clargstype = 0 input0arg = 0 i0extension = 0 .inp0/ >< /Code >)
-        @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify
-          in the input (e.g. under the node < Code >< fargstype = 0 input0arg = 0 aux0extension = 0 .aux0/ >< /Code >)
-        @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the
-          code (string), returnCommand[1] is the name of the output root
-      """
-      inputDict = self.findInps(inputFiles)
-      executeCommand = []
-      for seq in self.sequence:
-        self.outputRoot[seq.lower()] = inputDict[seq.lower()][0].getBase()
-        executeCommand.append(('parallel',executable+' '+inputDict[seq.lower()][0].getFilename()))
-      returnCommand = executeCommand, self.outputRoot.values()[-1]
-      return returnCommand
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
+    """
+      Generate a command to run Mammoth using an input with sampled variables
+      See base class.  Collects all the clargs and the executable to produce the command-line call.
+      Returns tuple of commands and base file name for run.
+      Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have
+        been added in the Step is running this code)
+      @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input
+        (e.g. under the node < Code >< clargstype = 0 input0arg = 0 i0extension = 0 .inp0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify
+        in the input (e.g. under the node < Code >< fargstype = 0 input0arg = 0 aux0extension = 0 .aux0/ >< /Code >)
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the
+        code (string), returnCommand[1] is the name of the output root
+    """
+    inputDict = self.findInps(inputFiles)
+    executeCommand = []
+    for seq in self.sequence:
+      self.outputRoot[seq.lower()] = inputDict[seq.lower()][0].getBase()
+      executeCommand.append(('parallel',executable+' '+inputDict[seq.lower()][0].getFilename()))
+    returnCommand = executeCommand, self.outputRoot.values()[-1]
+    return returnCommand
 
-    def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
-      """
-        Generates new perturbed input files for Scale sequences
-        @ In, currentInputFiles, list,  list of current input files
-        @ In, origInputFiles, list, list of the original input files
-        @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-        @ In, Kwargs, dict, dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-          where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
-        @ Out, newInputFiles, list, list of new input files (modified or not)
-      """
-      if 'dynamiceventtree' in str(samplerType).lower():
-        raise IOError("Dynamic Event Tree-bases samplers not supported by Scale interface yet!")
-      currentInputsToPerturb = [item for subList in self.findInps(currentInputFiles).values() for item in subList]
-      originalInputs         = [item for subList in self.findInps(origInputFiles).values() for item in subList]
-      parser = GenericParser.GenericParser(currentInputsToPerturb)
-      parser.modifyInternalDictionary(**Kwargs)
-      parser.writeNewInput(currentInputsToPerturb,originalInputs)
-      return currentInputFiles
+  def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
+    """
+      Generates new perturbed input files for Scale sequences
+      @ In, currentInputFiles, list,  list of current input files
+      @ In, origInputFiles, list, list of the original input files
+      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In, Kwargs, dict, dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+        where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of new input files (modified or not)
+    """
+    if 'dynamiceventtree' in str(samplerType).lower():
+      raise IOError("Dynamic Event Tree-bases samplers not supported by Scale interface yet!")
+    currentInputsToPerturb = [item for subList in self.findInps(currentInputFiles).values() for item in subList]
+    originalInputs         = [item for subList in self.findInps(origInputFiles).values() for item in subList]
+    parser = GenericParser.GenericParser(currentInputsToPerturb)
+    parser.modifyInternalDictionary(**Kwargs)
+    parser.writeNewInput(currentInputsToPerturb,originalInputs)
+    return currentInputFiles
+
+  def checkForOutputFailure(self,output,workingDir):
+    """
+      This method is called by the RAVEN code at the end of each run  if the return code is == 0.
+      This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
+      This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
+      This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
+      (e.g. in RELAP5 would be the keyword "********")
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, failure, bool, True if the job is failed, False otherwise
+    """
+    failure = False
+    badWords  = ['terminated due to errors']
+    try:
+      outputToRead = open(os.path.join(workingDir,output+'.out'),"r")
+    except:
+      return True
+    readLines = outputToRead.readlines()
+
+    for badMsg in badWords:
+      if any(badMsg in x for x in readLines[-20:]):
+        failure = True
+    return failure
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
