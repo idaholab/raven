@@ -172,7 +172,7 @@ read keep
  newt
 end keep 
 read burndata
-  power=33.3  burn=$RAVEN-burning_time$    down=0.   nlib=15 end
+  power=33.3  burn=$RAVEN-burning_time$    down=0.   nlib=10 end
 end burndata
 read opus 
   units=gram symnuc=Ra-226 Ra-228 Ac-227 Ac-228 Th-228 Th-229

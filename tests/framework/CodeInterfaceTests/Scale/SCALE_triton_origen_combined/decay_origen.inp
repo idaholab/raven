@@ -8,7 +8,7 @@ case(decay){
     lib { file="decay_block.f33" }  
     % load material from first position on ft71 (last step above)
     mat {
-          load{ file="decay_block.f71" pos=48 }
+          load{ file="decay_block.f71" pos=30 }
     }
     time {t=[0.000001 1 2 3 4 5 10 20 40 80 160 320 640 2560 10240 40960 259200 518400 777600
             1036800 1296000 1555200 1814400 2073600 2332800 2592000 3024000 3456000 3888000 % 120 days

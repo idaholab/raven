@@ -10,13 +10,13 @@
        (Triton to Origen)
     </description>
     <revisions>
-      <revision author="alfoa" date="2018-04-04">Created test</revision>
+      <revision author="alfoa" date="2018-04-04">Test created</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
     <WorkingDir>SCALE_triton_origen_combined</WorkingDir>
     <Sequence>sampleScale</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>8</batchSize>
   </RunInfo>
 
   <Files>
@@ -78,61 +78,44 @@
   </Samplers>
  
   <Steps>
-    <MultiRun name="sampleScale" re-seeding="1">
+    <MultiRun name="sampleScale" >
       <Input class="Files" type="origen">decay_origen</Input>
       <Input class="Files" type="triton">htr_triton</Input>
       <Model class="Models" type="Code">MyScale</Model>
       <Sampler class="Samplers" type="Grid">MC</Sampler>
       <Output class="Databases" type="HDF5">DataB_Scale</Output>
+      <Output class="DataObjects" type="HistorySet">time_evolution</Output>
+      <Output class="OutStreams" type="Print">output_time_evolution</Output>
+      <Output class="OutStreams" type="Plot">plot_decay_heat</Output>
     </MultiRun>
   </Steps>
 
   <DataObjects>
-    <HistorySet name="Temporal_Evolution" hierarchical="true">
-      <Input>TIMELOCA</Input>
-      <Output>PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1)</Output>
-      <options>
-          <pivotParameter>TIME</pivotParameter>
-      </options>
+    <HistorySet name="time_evolution">
+      <Input>burnup,enrichment,u235dens,u238dens</Input>
+      <Output>subtotals_fission_products_watts,subtotals_actinides_watts,totals_watts,bu</Output>
     </HistorySet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="test_dataobject">
+    <Print name="output_time_evolution">
       <type>csv</type>
-      <source>Temporal_Evolution</source>
+      <source>time_evolution</source>
     </Print>
-    <Plot name="plotWWBBN" overwrite="False">
+    <Plot name="plot_decay_heat" overwrite="False">
       <plotSettings>
         <plot>
-          <type>line</type>
-          <x>Temporal_Evolution|Output|TIME</x>
-          <y>Temporal_Evolution|Output|WWBBN(1)</y>
+          <type>scatter</type>
+          <x>time_evolution|Output|time</x>
+          <y>time_evolution|Output|totals_watts</y>
         </plot>
-        <xlabel>Time[s]</xlabel>
-        <ylabel>Break [kg/s]</ylabel>
+        <xlabel>Time (s)</xlabel>
+        <ylabel>DH (W)</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
         <title>
-          <text>Plot_Break</text>
-        </title>
-      </actions>
-    </Plot>
-    <Plot name="plotAFW" overwrite="False">
-      <plotSettings>
-        <plot>
-          <type>line</type>
-          <x>Temporal_Evolution|Output|TIME</x>
-          <y>Temporal_Evolution|Output|WWTOTFW(1)</y>
-        </plot>
-        <xlabel>Time[s]</xlabel>
-        <ylabel>AFW [kg/s]</ylabel>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-        <title>
-          <text>Plot_AFW</text>
+          <text> </text>
         </title>
       </actions>
     </Plot>
