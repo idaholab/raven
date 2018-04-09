@@ -19,7 +19,6 @@ Created on Feb 20, 2013
 
 This is the Driver of RAVEN
 """
-
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
