@@ -20,6 +20,7 @@
   Modified on January 24, 2018
   @author: Violet Olson
            Thomas Riley (Oregon State University)
+           Robert Shannon (Oregon State University)
   Change Summary: Added Control Function parsing
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -69,6 +70,8 @@ class MELCORdata:
       @ Out, functionValuesForEachTime, dict, {"time":{"functionName":"functionValue"}}
     """
     functionValuesForEachTime = {}
+    timeOneRegex_name = re.compile("^\s*CONTROL\s+FUNCTION\s+(?P<name>[^\(]*)\s+(\(.*\))?\s*IS\s+.+\s+TYPE.*$")
+    timeOneRegex_value = re.compile("^\s*VALUE\s+=\s+(?P<value>[^\s]*)")
     startRegex = re.compile("\s*CONTROL\s*FUNCTION\s*NUMBER\s*CURRENT\s*VALUE")
     regex = re.compile("^\s*(?P<name>( ?([0-9a-zA-Z-]+))*)\s+([0-9]+)\s*(?P<value>((([0-9.-]+)E(\+|-)[0-9][0-9])|((T|F))))\s*.*$")
     for time,listOfLines in timeBlock.items():
@@ -78,14 +81,26 @@ class MELCORdata:
         if re.search(startRegex, line):
           start = lineNumber + 1
           break
+        elif re.search(timeOneRegex_name, line):
+          start = -2
+          break
       if start > 0:
         for lineNumber, line in enumerate(listOfLines[start:]):
-          if (line.startswith("!)")):
+          if line.startswith(" END OF EDIT FOR CF"):
             break
           match = re.match(regex, line)
-          functionValues[match.groupdict()["name"]] = match.groupdict()["value"]
+          if match is not None:
+    	  	functionValues[match.groupdict()["name"]] = match.groupdict()["value"]
+      elif start == -2:
+      	for lineNumber, line in enumerate(listOfLines):
+      		fcnName = re.match(timeOneRegex_name, line)
+      		if fcnName is not None:
+      			fcnValue = re.match(timeOneRegex_value, listOfLines[lineNumber+1])
+      			if fcnValue is not None:
+      				functionValues[fcnName.groupdict()["name"]] = fcnValue.groupdict()["value"]
       functionValuesForEachTime[time] = functionValues
     return functionValuesForEachTime
+    
   def returnVolumeHybro(self,timeBlock):
     """
       CONTROL VOLUME HYDRODYNAMICS EDIT
