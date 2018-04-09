@@ -1,0 +1,75 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">parabola</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </IOStep>
+  </Steps>
+
+  <Optimizers>
+    <SPSA name="opter">
+      <initialization>
+        <limit>100</limit>
+        <initialSeed>42</initialSeed>
+        <type>max</type>
+        <writeSteps>final</writeSteps>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <convergence>
+        <gradientThreshold>1e-3</gradientThreshold>
+        <gainGrowthFactor>1.5</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
+      </convergence>
+      <variable name="x">
+        <upperBound>2</upperBound>
+        <lowerBound>-2</lowerBound>
+        <initial>-0.75</initial>
+      </variable>
+      <constant name="center">1</constant>
+      <objectVar>reg</objectVar>
+    </SPSA>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="parabola" name="parabola" subType="">
+      <variables>x,center,reg</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,center</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="optOut">
+      <Input>x,center</Input>
+      <Output>reg</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,center,reg,varsUpdate</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
