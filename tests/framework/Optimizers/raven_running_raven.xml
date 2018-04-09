@@ -1,0 +1,76 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.RrR</name>
+    <author>talbpaul</author>
+    <created>2018-04-09</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      Tests the Raven-running-Raven interface to assure correct operation with optimizer pass-back.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>RavenRunningRaven</WorkingDir>
+    <Sequence>sample,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="Files" type="raven">template</Input>
+      <Model class="Models" type="Code">rrr</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">grid_out</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">grid_out</Input>
+      <Output class="OutStreams" type="Print">grid_out</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="template" type="raven">inner_opt.xml</Input>
+  </Files>
+
+  <Distributions>
+    <Uniform name="uni">
+      <lowerBound>-1</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="center">
+        <distribution>uni</distribution>
+        <grid type='value' construction='custom'>-1 0 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Models>
+    <Code name='rrr' subType='RAVEN'>
+      <executable>../../../raven_framework</executable>
+      <outputExportOutStreams>opt_export</outputExportOutStreams>
+      <alias variable="center" type="input">Optimizers|SPSA|constant@name:center</alias>
+    </Code>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>center</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="grid_out">
+      <Input>center,x</Input>
+      <Output>reg</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="grid_out">
+      <type>csv</type>
+      <source>grid_out</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
