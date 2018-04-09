@@ -125,7 +125,7 @@ class CustomSampler(ForwardSampler):
       # check if the correct method is present
       if "evaluate" not in self.funcDict[key].availableMethods():
         self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
-    
+
     if 'Source' not in self.assemblerDict:
       self.raiseAnError(IOError,"No Source object has been found!")
 
