@@ -62,7 +62,7 @@ class Scale(CodeInterfaceBase):
     else:
       self.sequence = [elm.strip() for elm in sequence.text.split(",")]
     if self.sequence.count('triton') > 1 or self.sequence.count('origen') > 1:
-      raise IOError("Multiple triton or orgine sequences are not supported yet!")
+      raise IOError("Multiple triton or origen sequences are not supported yet!")
     timeUOM = xmlNode.find("timeUOM")
     if timeUOM is not None:
       self.timeUOM = timeUOM.text.strip()
