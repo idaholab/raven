@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests/Scale.ScaleCombined</name>
+    <name>framework/CodeInterfaceTests/Scale.ScaleTritonOrigenCombined</name>
     <author>alfoa</author>
     <created>2018-04-04</created>
     <classesTested>Models.Code.Scale</classesTested>
@@ -16,32 +16,21 @@
   <RunInfo>
     <WorkingDir>SCALE_triton_origen_combined</WorkingDir>
     <Sequence>sampleScale</Sequence>
-    <batchSize>8</batchSize>
-    <deleteOutExtension>ps</deleteOutExtension>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
     <Input name="decay_origen" type="origen">decay_origen.inp</Input>
-    <Input name="htr_triton" type="triton">htr_triton.inp</Input>
+    <Input name="input_triton" type="triton">input_triton.inp</Input>
+    <Input name="samples.csv"  type=""      >samples.csv</Input>
   </Files>
 
   <Models>
     <Code name="MyScale" subType="Scale">
-      <executable>/Applications/SCALE-6.2.app/Contents/Resources/bin/scalerte</executable>
+      <executable>xxx</executable>
       <sequence>triton,origen</sequence>
     </Code>
   </Models>
-
-  <Distributions>
-    <Uniform name="bu_dist">
-      <upperBound>60.0</upperBound>
-      <lowerBound>0.0</lowerBound>
-    </Uniform>
-    <Uniform name="enrichment_dist">
-      <upperBound>20.0</upperBound>
-      <lowerBound>3.</lowerBound>
-    </Uniform>
-  </Distributions>
 
   <Functions>
     <External file="u235_density_computation.py" name="u235density">
@@ -56,38 +45,30 @@
   </Functions>
 
   <Samplers>
-    <Grid name="MC">
-      
-      <variable name="burnup">
-        <distribution>bu_dist</distribution>
-        <grid construction="equal" steps="10" type="value">1E-4 60</grid>
-      </variable>
-      <variable name="enrichment">
-        <distribution>enrichment_dist</distribution>
-        <grid construction="equal" steps="10" type="value">3. 20.</grid>
-      </variable>
+    <CustomSampler name="customSample">
+      <Source class="Files" type="">samples.csv</Source>
+      <variable name="burnup"/>
+      <variable name="enrichment"/>
       <variable name="u235dens">
-          <function>u235density</function>
+        <function>u235density</function>
       </variable>
       <variable name="u238dens">
-          <function>u238density</function>
+        <function>u238density</function>
       </variable>
       <variable name="burning_time">
-          <function>computeBurningTime</function>
+        <function>computeBurningTime</function>
       </variable>
-    </Grid>
+    </CustomSampler>
   </Samplers>
  
   <Steps>
     <MultiRun name="sampleScale" >
       <Input class="Files" type="origen">decay_origen</Input>
-      <Input class="Files" type="triton">htr_triton</Input>
+      <Input class="Files" type="triton">input_triton</Input>
       <Model class="Models" type="Code">MyScale</Model>
-      <Sampler class="Samplers" type="Grid">MC</Sampler>
-      <Output class="Databases" type="HDF5">DataB_Scale</Output>
+      <Sampler class="Samplers" type="CustomSampler">customSample</Sampler>
       <Output class="DataObjects" type="HistorySet">time_evolution</Output>
       <Output class="OutStreams" type="Print">output_time_evolution</Output>
-      <Output class="OutStreams" type="Plot">plot_decay_heat</Output>
     </MultiRun>
   </Steps>
 
@@ -103,27 +84,7 @@
       <type>csv</type>
       <source>time_evolution</source>
     </Print>
-    <Plot name="plot_decay_heat" overwrite="False">
-      <plotSettings>
-        <plot>
-          <type>scatter</type>
-          <x>time_evolution|Output|time</x>
-          <y>time_evolution|Output|totals_watts</y>
-        </plot>
-        <xlabel>Time (s)</xlabel>
-        <ylabel>DH (W)</ylabel>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-        <title>
-          <text> </text>
-        </title>
-      </actions>
-    </Plot>
   </OutStreams>
 
-  <Databases>
-    <HDF5 name="DataB_Scale" readMode="overwrite"/>
-  </Databases>
 
 </Simulation>

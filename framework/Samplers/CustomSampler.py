@@ -79,7 +79,11 @@ class CustomSampler(ForwardSampler):
     self.readSamplerInit(xmlNode)
     for child in xmlNode:
       if child.tag == 'variable':
-        self.toBeSampled[child.attrib['name']] = 'custom'
+        funct = child.find("function")
+        if funct is None:
+          self.toBeSampled[child.attrib['name']] = 'custom'
+        else:
+          self.dependentSample[child.attrib['name']] = funct.text.strip()
       if child.tag == 'Source'  :
         if child.attrib['class'] not in ['Files','DataObjects']:
           self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
@@ -95,7 +99,11 @@ class CustomSampler(ForwardSampler):
       @ In, None
       @ Out, needDict, dict, list of objects needed (in this case it is empty, since no distrubtions are needed and the Source is loaded automatically)
     """
-    return {}
+    needDict = {}
+    needDict['Functions']     = [] # In case functions have been inputted
+    for func in self.dependentSample.values():
+      needDict['Functions'].append((None,func))
+    return needDict
 
   def _localGenerateAssembler(self,initDict):
     """
@@ -110,7 +118,15 @@ class CustomSampler(ForwardSampler):
         self.assemblerDict[key] =  []
         for interface in value:
           self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
-    if len(self.assemblerDict.keys()) == 0:
+    for key,val in self.dependentSample.items():
+      if val not in initDict['Functions'].keys():
+        self.raiseAnError('Function',val,'was not found among the available functions:',initDict['Functions'].keys())
+      self.funcDict[key] = initDict['Functions'][val]
+      # check if the correct method is present
+      if "evaluate" not in self.funcDict[key].availableMethods():
+        self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+    
+    if 'Source' not in self.assemblerDict:
       self.raiseAnError(IOError,"No Source object has been found!")
 
   def localInitialize(self):
