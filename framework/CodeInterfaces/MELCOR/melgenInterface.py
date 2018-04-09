@@ -14,17 +14,17 @@
 """
   Created on April 18, 2017
   @author: Matteo Donorio (University of Rome La Sapienza)
+  This is a utility class for the creation of the command.
+  It is not an interface that can work on its own
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import os
-import GenericParser
 from utils import utils
-from CodeInterfaceBaseClass import CodeInterfaceBase
 
-class MelgenApp(CodeInterfaceBase):
+class MelgenApp():
   """
     This class is the CodeInterface for MELGEN (a sub-module of Melcor)
   """
@@ -34,7 +34,6 @@ class MelgenApp(CodeInterfaceBase):
       @ In, None
       @ Out, None
     """
-    CodeInterfaceBase.__init__(self)
     self.inputExtensions = ['i','inp']
 
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
@@ -54,11 +53,11 @@ class MelgenApp(CodeInterfaceBase):
     found = False
 
     for index, inputFile in enumerate(inputFiles):
-      if inputFile.getExt() in self.getInputExtension():
+      if inputFile.getExt() in self.inputExtensions:
         found = True
         break
     if not found:
-      raise IOError("Unknown input extension. Expected input file extensions are "+ ",".join(self.getInputExtension()))
+      raise IOError("Unknown input extension. Expected input file extensions are "+ ",".join(self.inputExtensions))
     if clargs:
       precommand = executable + clargs['text']
     else     :
@@ -67,56 +66,5 @@ class MelgenApp(CodeInterfaceBase):
     returnCommand = executeCommand, outputfile
     return returnCommand
 
-  def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
-    """
-      This generates a new input file depending on which sampler has been chosen
-      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
-      @ In, oriInputFiles, list, list of the original input files
-      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
-      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
-    """
-    if "dynamicevent" in samplerType.lower():
-      raise IOError("Dynamic Event Tree-based samplers not implemented for MELCOR yet!")
-    indexes  = []
-    inFiles  = []
-    origFiles= []
-    #FIXME possible danger here from reading binary files
-    for index,inputFile in enumerate(currentInputFiles):
-      if inputFile.getExt() in self.getInputExtension():
-        indexes.append(index)
-        inFiles.append(inputFile)
-    for index,inputFile in enumerate(origInputFiles):
-      if inputFile.getExt() in self.getInputExtension():
-        origFiles.append(inputFile)
-    parser = GenericParser.GenericParser(inFiles)
-    parser.modifyInternalDictionary(**Kwargs)
-    parser.writeNewInput(currentInputFiles,origFiles)
-    return currentInputFiles
 
-  def checkForOutputFailure(self,output,workingDir):
-    """
-      This method is called by the RAVEN code at the end of each run  if the return code is == 0.
-      This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
-      This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
-      This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
-      (e.g. in MELCOR would be the expression "Normal termination")
-      @ In, output, string, the Output name root
-      @ In, workingDir, string, current working dir
-      @ Out, failure, bool, True if the job is failed, False otherwise
-    """
-    failure = True
-    errorWord = ["Normal termination"]
-    try:
-      outputToRead = open(os.path.join(workingDir,output+'.out'),"r")
-    except IOError:
-      # the output does not exist => MELCOR failed
-      return failure
-    readLines = outputToRead.readlines()
-    for goodMsg in errorWord:
-      if any(goodMsg in x for x in readLines):
-        failure = False
-        break
-    return failure
 

@@ -47,8 +47,7 @@ import OutStreams
 from JobHandler import JobHandler
 import MessageHandler
 import VariableGroups
-from utils import utils
-from utils import TreeStructure
+from utils import utils,TreeStructure,xmlUtils
 from Application import __QtAvailable
 from Interaction import Interaction
 if __QtAvailable:
@@ -370,49 +369,14 @@ class Simulation(MessageHandler.MessageUser):
     path = os.path.normpath(self.runInfoDict['WorkingDir'])
     curfile.prependPath(path) #this respects existing path from the user input, if any
 
-  def ExternalXMLread(self,externalXMLFile,externalXMLNode,xmlFileName=None):
-    """
-      parses the external xml input file
-      @ In, externalXMLFile, string, the filename for the external xml file that will be loaded
-      @ In, externalXMLNode, string, decribes which node will be loaded to raven input file
-      @ In, xmlFileName, string, optional, the raven input file name
-      @ Out, externalElemment, xml.etree.ElementTree.Element, object that will be added to the current tree of raven input
-    """
-    #TODO make one for getpot too
-    if '~' in externalXMLFile:
-      externalXMLFile = os.path.expanduser(externalXMLFile)
-    if not os.path.isabs(externalXMLFile):
-      if xmlFileName == None:
-        self.raiseAnError(IOError,'Relative working directory requested but input xmlFileName is None.')
-      xmlDirectory = os.path.dirname(os.path.abspath(xmlFileName))
-      externalXMLFile = os.path.join(xmlDirectory,externalXMLFile)
-    if os.path.exists(externalXMLFile):
-      externalTree = TreeStructure.parse(externalXMLFile)
-      externalElement = externalTree.getroot()
-      if externalElement.tag != externalXMLNode:
-        self.raiseAnError(IOError,'The required node is: ' + externalXMLNode + 'is different from the provided external xml type: ' + externalElement.tag)
-    else:
-      self.raiseAnError(IOError,'The external xml input file ' + externalXMLFile + ' does not exist!')
-    return externalElement
-
-  def XMLpreprocess(self,node,inputFileName=None):
+  def XMLpreprocess(self,node,cwd):
     """
       Preprocess the input file, load external xml files into the main ET
       @ In, node, TreeStructure.InputNode, element of RAVEN input file
-      @ In, inputFileName, string, optional, the raven input file name
+      @ In, cwd, string, current working directory (for relative path searches)
       @ Out, None
     """
-    self.verbosity = node.attrib.get('verbosity','all').lower()
-    for element in node.iter():
-      for subElement in element:
-        if subElement.tag == 'ExternalXML':
-          self.raiseADebug('-'*2+' Loading external xml within block '+ element.tag+ ' for: {0:15}'.format(str(subElement.attrib['node']))+2*'-')
-          nodeName = subElement.attrib['node']
-          xmlToLoad = subElement.attrib['xmlToLoad'].strip()
-          newElement = self.ExternalXMLread(xmlToLoad,nodeName,inputFileName)
-          element.append(newElement)
-          element.remove(subElement)
-          self.XMLpreprocess(node,inputFileName)
+    xmlUtils.expandExternalXML(node,cwd)
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     """
@@ -423,7 +387,7 @@ class Simulation(MessageHandler.MessageUser):
       @ Out, None
     """
     #TODO update syntax to note that we read InputTrees not XmlTrees
-    unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity','color'],list(xmlNode.attrib.keys()))
+    unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity','color','profile'],list(xmlNode.attrib.keys()))
     if len(unknownAttribs) > 0:
       errorMsg = 'The following attributes are unknown:'
       for element in unknownAttribs:
@@ -436,6 +400,10 @@ class Simulation(MessageHandler.MessageUser):
     if 'color' in xmlNode.attrib.keys():
       self.raiseADebug('Setting color output mode to',xmlNode.attrib['color'])
       self.messageHandler.setColor(xmlNode.attrib['color'])
+    if 'profile' in xmlNode.attrib.keys():
+      thingsToProfile = list(p.strip().lower() for p in xmlNode.attrib['profile'].split(','))
+      if 'jobs' in thingsToProfile:
+        self.jobHandler.setProfileJobs(True)
     self.messageHandler.verbosity = self.verbosity
     runInfoNode = xmlNode.find('RunInfo')
     if runInfoNode is None:
