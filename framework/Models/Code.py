@@ -571,7 +571,15 @@ class Code(Model):
           ## combine ProbabilityWeights # TODO FIXME these are a rough attempt at getting it right!
           rlz['ProbabilityWeight'] = np.atleast_1d(rlz.get('ProbabilityWeight',1.0) * kwargs.get('ProbabilityWeight',1.0))
           rlz['PointProbability'] = np.atleast_1d(rlz.get('PointProbability',1.0) * kwargs.get('PointProbability',1.0))
-          rlz['prefix'] = np.atleast_1d(kwargs['prefix']+'_'+str(n))
+          # FIXME: adding "_n" to Optimizer samples scrambles its ability to find evaluations!
+          ## temporary fix: only append if there's multiple realizations, and error out if sampler is an optimizer.
+          if numRlz > 1:
+            if '_' in kwargs['prefix']:
+              self.raiseAnError(RuntimeError,'OUTER RAVEN is using an OPTIMIZER, but INNER RAVEN is returning multiple realizations!')
+            addon = '_{}'.format(n)
+          else:
+            addon = ''
+          rlz['prefix'] = np.atleast_1d(kwargs['prefix']+addon)
           ## add the rest of the metadata # TODO slow
           for var,val in kwargs.items():
             if var not in rlz.keys():

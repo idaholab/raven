@@ -12,7 +12,7 @@ np.random.seed(42)
 
 def base(values):
   center = values.get('center',0.0)
-  return -sum( (l-center)*(l-center) for l in values.values() if str(l) != 'center')+1.
+  return -sum( l*l for k,l in values.items() if k != 'center') + center
 
 def random(scale=0.5,loc=-1.0):
   return scale*(2.*np.random.rand()+loc)

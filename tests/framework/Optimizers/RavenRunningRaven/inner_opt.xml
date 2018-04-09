@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>innerRun</WorkingDir>
     <Sequence>optimize,print</Sequence>
   </RunInfo>
 
@@ -68,7 +68,6 @@
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
-      <what>input,output</what>
     </Print>
   </OutStreams>
 
