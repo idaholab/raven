@@ -12,5 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 def evaluate(self):
+  """
+    Compute depletion time based on specific power and burnup
+    @ In, None
+    @ Out, evaluate, float, the depletion time
+  """
   specificPw = 33.3
   return (self.burnup/specificPw)*1000.0

@@ -17,6 +17,7 @@
     <WorkingDir>SCALE_triton_origen_combined</WorkingDir>
     <Sequence>sampleScale</Sequence>
     <batchSize>8</batchSize>
+    <deleteOutExtension>ps</deleteOutExtension>
   </RunInfo>
 
   <Files>

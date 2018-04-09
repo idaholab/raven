@@ -15,6 +15,7 @@ import numpy as np
 import os
 import copy
 from sklearn import neighbors
+import re
 """
 Created on March 25, 2018
 
@@ -58,7 +59,7 @@ class origenAndTritonData:
     """
       Constructor
       @ In, filen, string or dict, file name to be parsed or dictionary {'origen':filein1,'triton':filein2}
-      @ In, timeUOM, string, time uom (e.g. s, d, h, y)
+      @ In, timeUOM, string, time uom (e.g. s, m, d, h, y)
       @ In, outputType, string, output type (i.e. origen, triton or combined). If combined, the triton output (last step) is used as exported as initial condition of the origen one
       @ Out, None
     """
@@ -141,7 +142,10 @@ class origenAndTritonData:
       Retrieve History Overview (Origen)
       @ In, None
       @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                               {'time':list(of time values),'info_ids':list(of ids of data),'values':np.ndarray( ntime,nids )}
+                               {'time':list(of time values),
+                                'timeUOM':string - time units,
+                                'info_ids':list(of ids of data),
+                                'values':np.ndarray( ntime,nids )}
     """
     # history overview
     outputDict = None
@@ -179,7 +183,10 @@ class origenAndTritonData:
       Retrieve History Nuclide Evolutions (Origen) - Concentration tables
       @ In, None
       @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                               {'time':list(of time values),'info_ids':list(of ids of data),'values':np.ndarray( ntime,nids )}
+                               {'time':list(of time values),
+                                'timeUOM':string - time units,
+                                'info_ids':list(of ids of data),
+                                'values':np.ndarray( ntime,nids )}
     """
     # Concentration tables
     outputDict = None
@@ -190,24 +197,29 @@ class origenAndTritonData:
     values = []
     totals = []
     for cnt, indexConcTable in enumerate(indexHistOverview):
-      uom = self.lines[indexConcTable].split(",")[0].split()[-1].strip()
-      isotopeType = self.lines[indexConcTable].split(",")[-1].split("for case")[0].strip()
+      splitted = self.lines[indexConcTable].split(",")
+      if len(splitted) > 1:
+        uom = splitted[0].split()[-1].strip()
+        isotopeType = splitted[-1].split("for case")[0].strip()
+      else:
+        uom = splitted[0].split("for case")[0].split()[-1].strip()
+        isotopeType = None
       indexConcTable+=4
-      timeUom = self.lines[indexConcTable].split()[0][self.lines[indexConcTable].split()[0].index("E+")+4:].strip()
+      timeUom = re.split('(\d+)', self.lines[indexConcTable].split()[0])[-1].strip()
       timeGrid = [float(elm.replace(timeUom.strip(),"")) for elm in  self.lines[indexConcTable].split()]
 
       if outputDict is None:
         outputDict = {'time':timeGrid,'timeUOM':timeUom, 'info_ids':[], 'values':None}
       startIndex = indexConcTable
       nuclideName = ""
-      while not nuclideName.strip().startswith('subtotals'):
+      while not (nuclideName.strip().startswith('subtotals') or nuclideName.strip().startswith('totals')):
         startIndex+=1
         components = self.lines[startIndex].split()
         nuclideName   = ""
         if len(components) > 0:
           components = self.lines[startIndex].split()
           nuclideName = components[0].strip()
-          if nuclideName == 'totals':
+          if nuclideName == 'totals' and isotopeType is not None:
             nuclideName = "subtotals_" + isotopeType.replace(" ","_")
           if "---" not in nuclideName:
             outputDict['info_ids'].append(nuclideName+"_"+uom.strip())
@@ -217,7 +229,7 @@ class origenAndTritonData:
                 totals = [subtot + values[-1][cnt] for cnt, subtot in enumerate(totals)]
               else:
                 totals = values[-1]
-    if len(totals)>0:
+    if len(totals)>0 and isotopeType is not None:
       values.append(totals)
       outputDict['info_ids'].append('totals'+"_"+uom.strip())
 
@@ -230,7 +242,10 @@ class origenAndTritonData:
       Retrieve Summary Keff info
       @ In, None
       @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                               {'time':list(of time values),'info_ids':list(of ids of data),'values':np.ndarray( ntime,nids )}
+                               {'time':list(of time values),
+                                'timeUOM':string - time units,
+                                'info_ids':list(of ids of data),
+                                'values':np.ndarray( ntime,nids )}
     """
     indicesKeff = np.asarray([i for i, x in enumerate(self.lines) if x.strip().startswith("k-eff =")])
     indicesKinf = np.asarray([i for i, x in enumerate(self.lines) if x.strip().startswith("Infinite neutron multiplication")])
@@ -252,12 +267,12 @@ class origenAndTritonData:
         comps = self.lines[index-1].split()
         values[cnt].extend([int(comps[0]),float(comps[2]),float(comps[3])])
         # kinf
-        kinf_index = indicesKinf[cnt]
-        values[cnt].append(float(self.lines[kinf_index].split()[-1]))
-        values[cnt].append(float(self.lines[kinf_index-2].split()[-1]))
-        values[cnt].append(float(self.lines[kinf_index-3].split()[-1]))
-        values[cnt].append(float(self.lines[kinf_index-4].split()[-1]))
-        values[cnt].append(float(self.lines[kinf_index-5].split()[-1]))
+        kinfIndex = indicesKinf[cnt]
+        values[cnt].append(float(self.lines[kinfIndex].split()[-1]))
+        values[cnt].append(float(self.lines[kinfIndex-2].split()[-1]))
+        values[cnt].append(float(self.lines[kinfIndex-3].split()[-1]))
+        values[cnt].append(float(self.lines[kinfIndex-4].split()[-1]))
+        values[cnt].append(float(self.lines[kinfIndex-5].split()[-1]))
       outputDict['values'] = np.atleast_2d(values).T
     return outputDict
 
@@ -266,7 +281,10 @@ class origenAndTritonData:
       Retrieve Summary of Triton Mixture Info
       @ In, None
       @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                               {'time':list(of time values),'info_ids':list(of ids of data),'values':np.ndarray( ntime,nids )}
+                               {'time':list(of time values),
+                                'timeUOM':string - time units,
+                                'info_ids':list(of ids of data),
+                                'values':np.ndarray( ntime,nids )}
     """
     indicesMatPowers = np.asarray([i+1 for i, x in enumerate(self.lines) if x.strip().startswith("--- Material powers for depletion pass no")])
     if len(indicesMatPowers) == 0:
@@ -302,7 +320,10 @@ class origenAndTritonData:
       Retrieve Summary of Triton Nuclide Concentration
       @ In, None
       @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                               {'time':list(of time values),'info_ids':list(of ids of data),'values':np.ndarray( ntime,nids )}
+                               {'time':list(of time values),
+                                'timeUOM':string - time units,
+                                'info_ids':list(of ids of data),
+                                'values':np.ndarray( ntime,nids )}
     """
     outputDict = None
     try:
@@ -351,9 +372,4 @@ class origenAndTritonData:
     # print the csv
     np.savetxt(fileObject, outputMatrix.T, delimiter=',', header=','.join(headers), comments='')
     fileObject.close()
-
-if __name__ == '__main__':
-
-  test = origenAndTritonData({'triton': "~/Downloads/5_9pc_1200_numpar30.out",'origen':"~/Downloads/decay.out"},'s','combined')
-  test.writeCSV("combined_test.csv")
 

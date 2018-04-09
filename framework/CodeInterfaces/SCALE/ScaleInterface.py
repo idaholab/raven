@@ -43,9 +43,9 @@ class Scale(CodeInterfaceBase):
       @ Out, None
     """
     CodeInterfaceBase.__init__(self)
-    self.sequence = []  # this contains the sequence that needs to be run. For example, ['triton'] or ['origen'] or ['triton','origen']
-    self.timeUOM  = 's' # uom of time (i.e. s, h, m, d, y )
-    self.outputRoot = {'triton':None,'origen':None} # the root of the output sequences
+    self.sequence = []   # this contains the sequence that needs to be run. For example, ['triton'] or ['origen'] or ['triton','origen']
+    self.timeUOM  = 's'  # uom of time (i.e. s, h, m, d, y )
+    self.outputRoot = {} # the root of the output sequences
 
   def _readMoreXML(self,xmlNode):
     """
@@ -76,28 +76,33 @@ class Scale(CodeInterfaceBase):
         @ Out, inputDict, dict, dictionary containing Scale required input files
       """
       inputDict = {}
-      inputDict['origen'] = []
-      inputDict['triton'] = []
+      origen = []
+      triton = []
 
       for inputFile in inputFiles:
         if inputFile.getType().strip().lower() == "triton":
-          inputDict['triton'].append(inputFile)
+          triton.append(inputFile)
         elif inputFile.getType().strip().lower() == "origen":
-          inputDict['origen'].append(inputFile)
-      if len(inputDict['triton']) > 1:
+          origen.append(inputFile)
+      if len(triton) > 1:
         raise IOError('multiple triton input files have been found. Only one is allowed!')
-      if len(inputDict['origen']) > 1:
+      if len(origen) > 1:
         raise IOError('multiple origen input files have been found. Only one is allowed!')
       # Check if the input requested by the sequence has been found
-      if self.sequence.count('triton') != len(inputDict['triton']):
+      if self.sequence.count('triton') != len(triton):
         raise IOError('triton input file has not been found. Files type must be set to "triton"!')
-      if self.sequence.count('origen') != len(inputDict['origen']):
+      if self.sequence.count('origen') != len(origen):
         raise IOError('origen input file has not been found. Files type must be set to "origen"!')
+      # add inputs
+      if len(origen) > 0:
+        inputDict['origen'] = origen
+      if len(triton) > 0:
+        inputDict['triton'] = triton
       return inputDict
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """
-      Generate a command to run Mammoth using an input with sampled variables
+      Generate a command to run SCALE using an input with sampled variables
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
@@ -130,7 +135,7 @@ class Scale(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of new input files (modified or not)
     """
     if 'dynamiceventtree' in str(samplerType).lower():
-      raise IOError("Dynamic Event Tree-bases samplers not supported by Scale interface yet!")
+      raise IOError("Dynamic Event Tree-based samplers not supported by Scale interface yet!")
     currentInputsToPerturb = [item for subList in self.findInps(currentInputFiles).values() for item in subList]
     originalInputs         = [item for subList in self.findInps(origInputFiles).values() for item in subList]
     parser = GenericParser.GenericParser(currentInputsToPerturb)
@@ -143,8 +148,7 @@ class Scale(CodeInterfaceBase):
       This method is called by the RAVEN code at the end of each run  if the return code is == 0.
       This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
       This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
-      This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
-      (e.g. in RELAP5 would be the keyword "********")
+      In the case of SCALE, we look for the expression "terminated due to errors". If it is present, the run is considered to be failed.
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
       @ Out, failure, bool, True if the job is failed, False otherwise
@@ -171,9 +175,10 @@ class Scale(CodeInterfaceBase):
       @ Out, output, string, output csv file containing the variables of interest specified in the input
     """
     outputType   = 'combined' if len(self.sequence) > 1 else self.sequence[0]
-    filesIn = copy.copy(self.outputRoot)
-    for key in filesIn.keys():
-      filesIn[key] = os.path.join(workingDir,filesIn[key]+'.out')
+    filesIn = {}
+    for key in self.outputRoot.keys():
+      if self.outputRoot[key] is not None:
+        filesIn[key] = os.path.join(workingDir,self.outputRoot[key]+'.out')
     outputParser = origenAndTritonData(filesIn, self.timeUOM, outputType)
     outputParser.writeCSV(os.path.join(workingDir,output+".csv"))
 

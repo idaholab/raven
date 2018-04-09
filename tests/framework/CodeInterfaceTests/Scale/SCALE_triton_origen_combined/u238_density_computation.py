@@ -12,5 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 def evaluate(self):
+  """
+    Compute u238 density based on the sampled enrichment
+    @ In, None
+    @ Out, evaluate, float, u238 density
+  """
   totDensity = 2.320730E-02
   return totDensity - (self.enrichment/100.0)*totDensity
