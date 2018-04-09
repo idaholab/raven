@@ -65,21 +65,23 @@ def __lookUpPreferredVersion(name):
       return qa
   return ""
 
-__condaList = [("numpy"       ,__lookUpPreferredVersion("numpy")),
-               ("h5py"        ,__lookUpPreferredVersion("h5py")),
-               ("scipy"       ,__lookUpPreferredVersion("scipy")),
-               ("scikit-learn",__lookUpPreferredVersion("sklearn")),
+__condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
+               #("numpy"       ,__lookUpPreferredVersion("numpy"     )),
+               ("scipy"       ,__lookUpPreferredVersion("scipy"     )),
+               ("scikit-learn",__lookUpPreferredVersion("sklearn"   )),
+               ("pandas"      ,__lookUpPreferredVersion("pandas"    )),
+               ("xarray"      ,__lookUpPreferredVersion("xarray"    )),
+               ("netcdf4"     ,__lookUpPreferredVersion("netCDF4"   )),
                ("matplotlib"  ,__lookUpPreferredVersion("matplotlib")),
-               ("xarray"      ,__lookUpPreferredVersion("xarray")),
-               ("pandas"      ,__lookUpPreferredVersion("pandas")),
-               ("netcdf4"     ,""),
-               ("pyside"      ,""),
                ("python"      ,"2.7"),
-               ("hdf5"        ,""),
+               ("pyside"      ,""),
                ("swig"        ,""),
                ("pylint"      ,""),
                ("coverage"    ,""),
-               ("lxml"        ,"")]
+               ("lxml"        ,""),
+               ("nomkl"       ,""),
+               ("numexpr"     ,"")
+               ]
 
 __pipList = [#("numpy",__lookUpPreferredVersion("numpy")),
              ("h5py",__lookUpPreferredVersion("h5py")),
