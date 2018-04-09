@@ -1257,6 +1257,8 @@ class DataSet(DataObject):
     # TODO set up to use dask for on-disk operations -> or is that a different data object?
     # TODO are these fair assertions?
     self._data = xr.open_dataset(fileName)
+    # NOTE: open_dataset does NOT close the file object after loading (lazy loading)
+    ## -> if you try to rm the file in Windows before closing, it will fail with WindowsError 32: file in use!
     # convert metadata back to XML files
     for key,val in self._data.attrs.items():
       self._meta[key] = pk.loads(val.encode('utf-8'))
