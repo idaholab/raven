@@ -48,7 +48,7 @@ class Phisics_Relap5(CodeInterfaceBase):
   
   def definePhisicsVariables(self):
     """
-      lists the variables perturbable within PHISICS. The other variables will be related to relap. 
+      Lists the variables perturbable within PHISICS. The other variables will be related to relap. 
       @ In, None, 
       @ Out, phisicsVariables, list 
     """
@@ -56,7 +56,7 @@ class Phisics_Relap5(CodeInterfaceBase):
   
   def defineRelapInput(self):
     """
-      lists the input file types relative to RELAP5. The other input types will be related to PHISICS. 
+      Lists the input file types relative to RELAP5. The other input types will be related to PHISICS. 
       @ In, None, 
       @ Out, RelapInputTypes, list 
     """
@@ -90,6 +90,11 @@ class Phisics_Relap5(CodeInterfaceBase):
     return self.__base 
   
   def addDefaultExtension(self):
+    """
+      Possible input extensions found in the input files. 
+      @ In, None
+      @ Out, None 
+    """
     self.addInputExtension(['xml','dat','path'])
   
   def depTime(self,inputXML,searchDict,dictKeys):
