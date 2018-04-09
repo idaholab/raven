@@ -1,0 +1,2222 @@
+ COMMAND-LINE:   /usr/local/neapps/melcor/melcor_2_2/melcor i=test.i
+ COMMAND-LINE ARGUMENTS:
+
+ MELCOR    BASE CODE VERSION
+ 2.2 08-31-2017          
+
+ This is an official build.
+ MELCOR 2.2.10167
+ 
+ !!!LICENSING HAS BEEN DISABLED!!!
+ 
+ This is an official build.
+ MELCOR 2.2.10167
+ Executing on: Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+ Configuration information:
+ Configuration RL_NL_CHECKALL
+ Subversion revision: 10167
+ 
+ Build Processor: Intel(R) Xeon(R) CPU E5-2643 v2 @ 3.50GHz
+ 
+ Compiler: Intel(R) Visual Fortran Compiler Professional for applications runnin
+ g on IA-32, Version 11.1    Build 20100414
+ 
+ Compiler settings:
+ /fpp /nologo /O2 /Oy- /DNIGHTLY_TESTING /DLICENSING_INACTIVE /DWINDOWS /DARCH_I
+ NT /DGET_CPU_INFO /DINTEROP  /I..\compiled_modules /check:all /check:uninit /ch
+ eck:noarg_temp_created /check:nooutput_conversion /assume:nocc_omp /assume:prot
+ ect-parens /noaltparam /error_limit:25 /warn:errors /real_size:64  /Qauto /Qpre
+ c-div /Qprec-sqrt /libs:static /threads /iface:cvf /align:rec8byte /align:dcomm
+ ons /align:records /traceback /fp:source /module:..\compiled_modules /warn:noal
+ ign /debug:all /Qdiag-disable:8291 /F20000000 /Qmkl:sequential /fpe0
+ 
+ Linker settings:
+ /NODEFAULTLIB:LIBCMT /LIBPATH:..\RL_NL_CHECKALL_Library /LIBPATH:C:\Program Fil
+ es (x86)\Microsoft SDKs\Windows\v7.1A\Lib  /LIBPATH:C:\Program Files (x86)\Inte
+ l\Compiler\11.1\065\lib\ia32 /LIBPATH:..\lib
+ 
+ !!!LICENSING HAS BEEN DISABLED!!!
+ 
+
+MELCOR OUTPUT FILENAMES
+  TEXT OUTPUT: OUTPUT_MELCOR.out
+  DIAGNOSTIC FILE: MELDIA_v2-0
+  EXTENDED DIAGNOSTIC FILE: extDIAG_v2-0
+  RESTART FILE: MELRST_v2-0
+  PLOTFILE: MELPTF.PTF
+  STOP FILE: MELSTP_v2-0
+  MESSAGE FILE: MELMES_v2-0
+  STATUS FILE: MELSTT_v2-0
+  PAUSE FILE: PAUSEFN
+  CFEXFILE: CFEXFILE
+  CFEXWRITE: CFEXWRITE
+
+
+ Opening user input file test.i
+
+ Computer environment = ANY
+
+ WWWWWWWWWWWWW MELCOR input WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+ 
+
+ 1      Input file: test.i
+ 2      *m: SNAP:Symbolic Nuclear Analysis Package,  Version 2.4.0, July 09, 2015
+ 3      *m: PLUGIN:MELCOR Version 2.3.0
+ 4      *m: CODE:MELCOR Version 2.1
+ 5      *m: DATE:12/16/16
+ 6      !
+ 7      !MEG_DIAGFILE 'MEGDIA.TXT'
+ 8      !MEG_OUTPUTFILE 'MEGOUT.TXT'
+ 9      MEL_OUTPUTFILE 'OUTPUT_MELCOR.out'
+ 10     !MEG_RESTARTFILE 'MELRST.RST'
+ 11     !PLOTFILE 'MELPTF.PTF'
+ 12     !MESSAGEFILE 'MELMES.TXT'
+ 13     !EXTDIAGFILE 'EXTDIAG.TXT'
+ 14     !
+ 15     !*************************************************
+ 16     !'test_1'
+ 17     !*************************************************
+ 18     !
+ 19     !
+ 20     !
+ 21     !* Block: MEX (Exec) data ****************************
+ 22     EXEC_INPUT
+ 23     EXEC_TITLE test_1        ! Title of the calculation
+ 24     EXEC_TEND 10.0E+03                                                   !*  ! End of calculation time
+ 25     EXEC_TIME 2 !*NUMBER   TIME            DTMAX        DTMIN        DTEDT        DTPLT        DTRST          DCRST
+ 26                    1       0.00            0.1000E+00    0.10000E-06    2.50000E+03    1.00000E+01    1.00000E+03  0.10000000E+11
+ 27                    2       1.50000E+02    0.2000E+00    0.10000E-09    2.50000E+03    1.00000E+01    1.0000E+03     0.10000000E+1
+ 28
+ 29     EXEC_CPULEFT 1000.                                                    ! cpu sec left at end of calculation
+ 30     EXEC_CPULIM 4000000.                                                ! Maximum number of CPU seconds allowed for this executio
+ 31     EXEC_NOFLUSH                                                        ! Suppress Explicit Buffer Flushing
+ 32     EXEC_CYMESF		100	1000	1	1
+ 33     !* END MEX (Exec) ******************************
+ 34     !
+ 35     !*CVH_INPUT
+ 36     !*CVH_TRACE 3
+ 37
+ <Diagnostic Message>  Time= 0.0000E+00 Dt= 1.0000E-04 Cycle= 0 (MEX)
+  ERROR IN MEXSET                                                                                                                     
+
+
+ TITLES DO NOT MATCH TO SPECIFIED LENGTH
+  /TEST_1              
+  /test_1              
+
+
+ RUN TITLE : TEST_1
+
+ RUN ID    : IRDKESE     4/09/18  10:52:56 
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during MELCOR input processing EXEC package:
+
+ MEGEDG 1111, IOUTSW            4
+
+
+        TIME STEP AND EDIT INTERVALS (S)
+
+          TIME          DTMAX       DTMIN      DTEDIT      DTPLOT     DTRESTART
+       0.0000E+00
+                     1.0000E-01  1.0000E-07  2.5000E+03  1.0000E+01  1.0000E+03
+       1.5000E+02
+                     2.0000E-01  1.0000E-10  2.5000E+03  1.0000E+01  1.0000E+03
+       1.0000E+04    ( = TEND )
+
+
+        NO EXACT TIME VALUES REQUESTED
+
+        SOFTDTMIN UNDERRUN NOT ALLOWED
+
+        FORCEPLOT DT REDUCTION FOR EXTRA FORCED PLOT DUMP = 2.00000E-01
+        MAXIMUM NUMBER OF EXTRA PLOT DUMPS PER EXECUTION =   20
+
+        RESTART REQUESTED FROM LAST AVAILABLE CYCLE
+        or FIRST TIME >=   0.0000E+00
+
+        CPU LIMIT FOR EXECUTION = 4.00000E+06
+
+        CPU LEFT AT TERMINATION = 1.00000E+03
+
+        FILE      MESSAGE LEVEL FOR LIST
+        STANDARD   OUTPUT    2
+        DIAGNOSTIC OUTPUT    2
+        TERMINAL   OUTPUT   -1
+
+NO Errors during MELCOR input processing EXEC package
+     MEX PACKAGE IS ACTIVE
+     NCG PACKAGE IS ACTIVE
+     CVH PACKAGE IS ACTIVE
+     FL  PACKAGE IS ACTIVE
+     CVT PACKAGE IS ACTIVE
+     INP PACKAGE IS ACTIVE
+     CRA PACKAGE IS ACTIVE
+     CF  PACKAGE IS ACTIVE
+     TF  PACKAGE IS ACTIVE
+     MES PACKAGE IS ACTIVE
+     H2O PACKAGE IS ACTIVE
+     SC  PACKAGE IS ACTIVE
+     ESF PACKAGE IS ACTIVE
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during PASS2 input processing CF package:
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during MELCOR PASS2 input processing EXEC package:
+NO Errors during MELCOR PASS2 input processing EXEC package
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+Diagnostics during MELCOR PASS2 input processing ESF package:
+NO Errors during MELCOR PASS2 input processing ESF package
+
+
+ GRAPHICS KEY DIRECTORY
+
+ CFVALU                  CVH-ATM-FR              CVH-CLIQLEV             
+ CVH-CPUC                CVH-CPUE                CVH-CPUR                
+ CVH-CPUT                CVH-CVOLLIQ             CVH-E                   
+ CVH-E.1                 CVH-E.2                 CVH-E.3                 
+ CVH-ECV                 CVH-ECV.1               CVH-ECV.2               
+ CVH-ECV.3               CVH-GR-ATMS             CVH-GR-POOL             
+ CVH-H                   CVH-H.1                 CVH-H.2                 
+ CVH-H.3                 CVH-H2O-ERR             CVH-H2O-ERR0            
+ CVH-LIQLEV              CVH-MASS                CVH-MASS.1              
+ CVH-MASS.2              CVH-MASS.3              CVH-NCYCLE              
+ CVH-P                   CVH-PPART.1             CVH-PPART.2             
+ CVH-PPART.3             CVH-PR-ATMS             CVH-PR-POOL             
+ CVH-PSAT(TLIQ)          CVH-PSAT(TVAP)          CVH-QUALITY             
+ CVH-RHO                 CVH-RHO.1               CVH-RHO.2               
+ CVH-RHO.3               CVH-SC-ATMS             CVH-TLIQ                
+ CVH-TOT-E               CVH-TOT-M               CVH-TSAT(A)             
+ CVH-TSAT(P)             CVH-TVAP                CVH-VELLIQCV            
+ CVH-VELVAPCV            CVH-VIRVOLIQ            CVH-VIRVOVAP            
+ CVH-VOID-P              CVH-VOID-T              CVH-VOIDSG              
+ CVH-VOLFOG              CVH-VOLLIQ              CVH-VOLVAP              
+ CVH-X.3                 FL-CHOKE                FL-CONDITION            
+ FL-EFLOW.A              FL-EFLOW.P              FL-I-EFLOW.A            
+ FL-I-EFLOW.P            FL-I-H2O-MFLOW          FL-I-MFLOW.1            
+ FL-I-MFLOW.2            FL-I-MFLOW.3            FL-MFLOW                
+ FL-MFLOW.1              FL-MFLOW.2              FL-MFLOW.3              
+ FL-PMP-QFLO             FL-VELLIQ               FL-VELVAP               
+ FL-VOID                 GLOBALENERGYERR         LOCALWARP               
+ Messages                Messages-Details        WARP                    
+
+
+          **  **  **  **  **  **  **  **
+          **  RESTART SETUP COMPLETE  **
+          **  **  **  **  **  **  **  **
+
+
+1* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ TIME= 0.0000E+00 s = 0.0000E+00 min = 0.0000E+00 hrs = 0.0000E+00 days
+ DT(LAST)= 1.000000E-04 s    CYCLE=       0        CPU TIME= 3.0000E-06
+   *******  TIME EDIT  *****
+
+ MELCOR    BASE CODE VERSION
+ 2.2 08-31-2017          
+
+ This is an official build.
+ MELCOR 2.2.10167
+ 
+ !!!LICENSING HAS BEEN DISABLED!!!
+ 
+ IRDKESE     4/09/18  10:52:56 
+
+ TEST_1                                                                       
+ CYCLES/CPU = 0.00000E+00 (1/s)    TIME/CPU= 0.00000E+00
+
+
+               *** GLOBAL ENERGY BALANCE EDIT ***
+
+     GLOBAL ENERGY ERROR                     =     0.00000E+00
+     GLOBAL ENERGY ERROR / ENERGY IN PROBLEM =     0.00000E+00
+
+
+  ENERGY EDIT FOR PACKAGE ESF
+  ENERGY NOW         =     0.00000E+00     ORIGINAL ENERGY  =     0.00000E+00
+  ENERGY TRANSMITTED =     0.00000E+00     ENERGY CREATED   =     0.00000E+00
+  ENERGY ERROR       =     0.00000E+00     REL ENERGY ERROR =     0.00000E+00
+
+  ENERGY EDIT FOR PACKAGE CVH
+  ENERGY NOW         =     3.41469E+10     ORIGINAL ENERGY  =     3.41469E+10
+  ENERGY TRANSMITTED =     0.00000E+00     ENERGY CREATED   =     0.00000E+00
+  ENERGY ERROR       =     0.00000E+00     REL ENERGY ERROR =     0.00000E+00
+
+USER-MODIFIED SENSITIVITY COEFFICIENTS
+
+
+
+     NON-CONDENSIBLE GAS TIME INDEPENDENT DATA EDIT
+
+
+
+
+         3 MATERIALS ARE DEFINED FOR THIS CALCULATION
+
+ MATERIAL  MATERIAL   MOLECULAR    INTERNAL  
+  NUMBER     NAME       WEIGHT    ENERGY ZERO
+                       (KG/MOL)     (J/KG)   
+
+     1     POOL        1.8016E-02  0.0000E+00-ELV
+     2     FOG         1.8016E-02  0.0000E+00-ELV
+     3     H2O-VAP     1.8016E-02  0.0000E+00
+
+
+
+     MATERIAL CONSTANTS FOR CV(T)
+
+ NUMB    CV0         CV1         CV2         CV3      CVSQRT
+       J/KG-K     J/KG-K**2   J/KG-K**3   J/KG-K**4  J/KG-K**(3/2)
+         CVM1        CVM2        TLOW         TUP
+         J/KG       J-K/KG         K           K
+
+    3   1.507E+03   0.000E+00   0.000E+00   0.000E+00   0.000E+00
+        0.000E+00   0.000E+00   1.000E+00   1.000E+04
+
+ END OF EDIT FOR NCG
+
+
+          ***************************************
+          *                                     *
+          *  CONTROL VOLUME HYDRODYNAMICS EDIT  *
+          *                                     *
+          ***************************************
+
+
+
+           VOLUME    PRESSURE      TLIQ        TVAP      MASS        ENERGY     DENSITY     ENTHALPY    QUALITY       VOID      CVVELO(1)   CVVELO(2)
+                        PA           K           K        KG          J/KG      KG/M**3       J/KG                  FRACTION       M/S         M/S
+                1  1.0000E+07    584.2315    584.2315  1.6640E+03  2.5445E+06  5.5466E+01  2.7248E+06  1.0000E+00  1.0000E+00  0.0000E+00  0.0000E+00
+                2  9.9999E+06    399.9999    399.9999  2.8274E+04  5.2897E+05  9.4248E+02  5.3958E+05  0.0000E+00  0.0000E+00  0.0000E+00  0.0000E+00
+                3  9.9999E+06    399.9999    399.9999  2.8274E+04  5.2897E+05  9.4248E+02  5.3958E+05  0.0000E+00  0.0000E+00  0.0000E+00  0.0000E+00
+
+
+           VOLUME    VOLLIQ     VOLFOG     VOLVAP    VIRVOLLIQ  VIRVOLVAP  ENERGY    VOLUME            VOLUME
+                      M**3       M**3       M**3       M**3       M**3        J        NAME              TYPE
+                1  0.000E+00  0.000E+00  3.000E+01  0.000E+00  0.000E+00  4.234E+09  IN                                
+                2  3.000E+01  0.000E+00  0.000E+00  0.000E+00  0.000E+00  1.496E+10  CENTR                             
+                3  3.000E+01  0.000E+00  0.000E+00  0.000E+00  0.000E+00  1.496E+10  OUT                               
+
+
+           VOLUME    S-Z-POOL    C-Z-POOL    ENERGY       AREA      VOLUME
+                        M           M           J          M**2      NAME
+                1   1.0000E+01  1.0000E+01  4.2341E+09  0.0000E+00 IN              
+                2   1.1000E+01  1.1000E+01  1.4956E+10  3.0000E+01 CENTR           
+                3   1.1000E+01  1.1000E+01  1.4956E+10  0.0000E+00 OUT             
+
+
+           VOLUME      T(P)
+                         K
+               1   5.8423E+02  IN              
+               2   5.8423E+02  CENTR           
+               3   5.8423E+02  OUT             
+
+
+ VOLUME             MATERIAL         MASS      DENSITY        E         PPART        ECV
+                   NUM  NAME          KG       KG/M**3       J/KG         PA          J
+ IN                  3  H2O-VAP   1.6640E+03  5.5466E+01  2.5445E+06  1.0000E+07  4.2341E+09
+ CENTR               1  POOL      2.8274E+04  9.4248E+02  5.2897E+05  9.9999E+06  1.4956E+10
+ OUT                 1  POOL      2.8274E+04  9.4248E+02  5.2897E+05  9.9999E+06  1.4956E+10
+
+
+  MATERIAL           TOTAL       ORIGINAL        MASS        MASS
+ NUM  NAME           MASS          MASS         SOURCE        ERROR
+                     (KG)          (KG)          (KG)          (KG)
+ 1-3  WATER       5.82126E+04   5.82126E+04   0.00000E+00   0.00000E+00
+
+
+     TOTAL      ORIGINAL   POOL ENERGY  ATMOS ENERGY       POOL     ENERGY
+     ENERGY      ENERGY       SOURCE       SOURCE        SURFACE    ERROR
+       (J)         (J)          (J)          (J)           (J)       (J)
+   3.4147E+10   3.4147E+10   0.0000E+00   0.0000E+00   0.0000E+00   0.0000E+00
+
+
+     MASS SOURCE EDIT
+
+  MASS SOURCE OF CONTROL VOLUME IN              
+   DELM( 1: 3)=  0.0000E+00  0.0000E+00  0.0000E+00
+  MASS SOURCE OF CONTROL VOLUME CENTR           
+   DELM( 1: 3)=  0.0000E+00  0.0000E+00  0.0000E+00
+  MASS SOURCE OF CONTROL VOLUME OUT             
+   DELM( 1: 3)=  0.0000E+00  0.0000E+00  0.0000E+00
+
+
+     ENERGY SOURCE EDIT
+
+ VOLUME            POOL ENERGY   ATMOS ENERGY   POOL S ENERGY
+                       (J)           (J)           (J)
+ IN                  0.0000E+00    0.0000E+00    0.0000E+00
+ CENTR               0.0000E+00    0.0000E+00    0.0000E+00
+ OUT                 0.0000E+00    0.0000E+00    0.0000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME IN              
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME CENTR           
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME OUT             
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+
+   *** VELOCITY CALCULATION STATISTICS EDIT ***
+       NUMBER OF MATRIX INVERSIONS             =       0
+       NUMBER OF FLOW REVERSALS                =       0
+       NUMBER OF EXPLICIT INTEGRATIONS         =       0
+       NUMBER OF SIGNIFICANT DIGITS INVERSIONS =       0
+       NUMBER OF WATER PACKINGS IDENTIFIED     =       0
+       NUMBER OF CHOKED-FLOW-BASED RESOLVES    =       0
+
+
+   TOTAL CPU TIME FOR CVH AND FL PACKAGES    =    1.13900E-03
+   CPU TIME FOR CVH AND FL PKGS CALCULATIONS =    0.00000E+00
+   CPU TIME FOR CVH AND FL PKGS EDITS        =    1.00000E-03
+   CPU TIME FOR CVH AND FL PACKAGES RESTARTS =    1.39000E-04
+
+
+   *** SUBCYCLE STATISTICS EDIT ***
+       NUMBER OF SUBCYCLES                    =       0
+       NUMBER OF REPEATED SUBCYCLES           =       0
+       NUMBER OF MOMENTUM BALANCE CALLS       =       0
+       PRESENT SUBCYCLE TIMESTEP              =    0.00000E+00
+
+ end OF EDIT FOR CVH
+
+
+          ******************************
+          *                            *
+          *   FLOW PATH PACKAGE EDIT   *
+          *                            *
+          ******************************
+
+
+
+
+ Number FLOW PATH        FROM VOLUME      TO VOLUME           VELLIQ      VELVAP      MFLOW        AREA       TYP ACT CHOKED  TIMES
+                                                                M/S         M/S         KG/S        M**2                      CHOKED
+     11 FP1_2            IN               CENTR             1.0000E+00  1.0000E+00  0.0000E+00  1.0000E+00     0   0   NO        0.
+     12 FP2_3            CENTR            OUT               0.0000E+00  0.0000E+00  0.0000E+00  1.0000E+00     0   0   NO        0.
+
+
+ Number FLOW PATH        FROM VOLUME      TO VOLUME         MATERIAL         MFLOW      INT-MFLOW
+                                                           NUM  NAME          KG/S         KG
+     11 FP1_2            IN               CENTR              1  POOL      0.00000E+00  0.00000E+00
+     12 FP2_3            CENTR            OUT                1  POOL      0.00000E+00  0.00000E+00
+
+
+ Number FLOW PATH          P HEAD       FRACTION     OPEN AREA       ALPHA
+                            (PA)          OPEN         (M**2)
+     11 FP1_2            0.0000E+00    1.0000E+00    1.0000E+00    5.0000E-01
+     12 FP2_3            0.0000E+00    1.0000E+00    1.0000E+00    0.0000E+00
+
+
+ Number PUMP NAME          SPEED          FLOW         HEAD        HYD TRQ        RHO MIX        FR TRQ        MOT TRQ       INRT
+                           (RPM)         (m3/s)        (Pa)         (N*m)         (kg/m3)        (N*m)         (N*m)        (kg*m2)
+
+
+ Number PUMP NAME         DEL POW         DISS         DISPOL        DISATM            EFF
+                            (W)           (W)           (W)           (W)              (%)
+
+
+          ******************************************
+          *                                        *
+          *  FLOW PATH TIME INDEPENDENT DATA EDIT  *
+          *                                        *
+          ******************************************
+
+
+ NUMBER FLOW PATH        FROM VOLUME      TO VOLUME          ORIENTATION  FLOW TYPE    OTHER     SPARC     FLASH
+                                                                                       MODEL     FM  TO    FM  TO
+     11 FP1_2            IN               CENTR              VERTICAL     NORMAL       V(T)      N   N     N   N
+     12 FP2_3            CENTR            OUT                VERTICAL     NORMAL                 N   N     N   N
+
+
+ NUMBER FLOW PATH        FROM VOLUME      TO VOLUME          JUNCTION ELEVATION        LENGTH       AREA         FRACT OPEN
+                                                              FM (M)      TO (M)        (M)          (M**2)       (-)
+     11 FP1_2            IN               CENTR              1.0500E+01   1.0500E+01   1.0000E+01   1.0000E+00   1.0000E+00
+     12 FP2_3            CENTR            OUT                1.0500E+01   1.0500E+01   1.0000E+01   1.0000E+00   1.0000E+00
+
+
+ NUMBER FLOW PATH        FROM VOLUME      TO VOLUME          'FM' JUNCTION OPENING     'TO' JUNCTION OPENING     MOM.EXCH.L
+                                                              BOTTOM (M)   TOP (M)      BOTTOM (M)   TOP (M)      (M)
+     11 FP1_2            IN               CENTR              1.0218E+01   1.0782E+01   1.0218E+01   1.0782E+01   5.6419E-01
+     12 FP2_3            CENTR            OUT                1.0218E+01   1.0782E+01   1.0218E+01   1.0782E+01   5.6419E-01
+
+
+ NUMBER FLOW PATH        FROM VOLUME      TO VOLUME           LOSS COEFFICIENT          DISCHARGE COEFFICIENT
+                                                              FWD (-)      REV (-)      FWD (-)      REV (-)
+     11 FP1_2            IN               CENTR              1.0000E+00   1.0000E+00    1.0000E+00   1.0000E+00
+     12 FP2_3            CENTR            OUT                1.0000E+00   1.0000E+00    1.0000E+00   1.0000E+00
+
+
+ Number FLOW PATH        FROM VOLUME      TO VOLUME          SEG AREA     SEG LEN      HYD DIA      ROUGHNESS    F.LAMINAR
+                                                              (M**2)       (M)          (M)          (M)          (-)
+     11 FP1_2            IN               CENTR              1.0000E+00   1.0000E+01   1.0000E+00   5.0000E-05   1.6000E+01      
+     12 FP2_3            CENTR            OUT                1.0000E+00   1.0000E+01   1.0000E+00   5.0000E-05   1.6000E+01      
+
+
+              *** CONTROL VOLUME CONNECTIVITY DATA ***
+ VOLUME             CONNECTING FLOW PATH        VOLUME
+ IN                 FP1_2               TO      CENTR           
+ CENTR              FP1_2              FROM     IN              
+                    FP2_3               TO      OUT             
+ OUT                FP2_3              FROM     CENTR           
+
+  IHX PACKAGE IS NOT ACTIVE
+
+
+  MCH PACKAGE IS NOT ACTIVE
+
+
+  CCF PACKAGE IS NOT ACTIVE
+
+
+ end OF EDIT FOR FL 
+
+
+
+     ***** CONTROL VOLUME THERMODYNAMICS STATISTICS EDIT *****
+                     VALUES SINCE LAST EDIT
+
+
+    CALLS TO MAIN PROGRAM (CVTHRM)                    =       0
+      NUMBER OF CONTROL VOLUMES PROCESSED             =       0
+    CALLS TO WATER EQUILIBRIUM PACKAGE (CVTWE)        =       0
+    CALLS TO GAS EQUILIBRIUM PACKAGE (CVTGE)          =       0
+    CALLS TO WATER + GAS EQUILIBRIUM PACKAGE (CVTWGE) =       0
+      STATISTICS ON WATER + GAS EQUILIBRIUM PACKAGE
+      NUMBER OF TEMPERATURE ITERATIONS =      0
+      AVERAGE TEMPERATURE ITERATIONS PER CALL = 0.00000E+00
+      NUMBER OF DENSITY ITERATIONS =      0
+      AVERAGE DENSITY ITERATIONS PER CALL = 0.00000E+00
+      AVERAGE DENSITY ITERATIONS PER TEMPERATURE ITERATION =  0.00000E+00
+    CALLS TO WATER + GAS NON-EQUILIBRIUM PACKAGE (CVTNEQ) =      0
+      STATISTICS ON WATER + GAS NON-EQUILIBRIUM PACKAGE
+      NUMBER OF ITERATIONS =      0
+      AVERAGE ITERATIONS PER CALL = 0.00000E+00
+
+
+
+
+     ************************************
+     *       CONTROL FUNCTION EDIT      *
+     ************************************
+
+
+
+     NUMBER OF CONTROL FUNCTIONS                =     2
+     NUMBER OF REAL VALUED CONTROL FUNCTIONS    =     2
+     NUMBER OF LOGICAL VALUED CONTROL FUNCTIONS =     0
+     NUMBER OF ARGUMENTS                        =     2
+
+
+CONTROL FUNCTION ORDER OF EVALUATION
+         1   ZERO   (CF       1)
+         2   Test CF   (CF       2)
+ 
+
+  CONTROL FUNCTION ZERO (CF       1) IS REAL TYPE EQUALS
+    VALUE =  0.0000E+00
+    SCALE FACTOR =  1.0000E+00  ADDITIVE CONSTANT =  0.0000E+00
+    UPPER BOUND =     3.4028E+38  LOWER BOUND =    -3.4028E+38
+    NUMBER OF ARGUMENTS =    1
+    ARGUMENT NUMBER =    1 HAS CHARACTER IDENTIFIER =EXEC-TIME
+      IS REAL VALUED
+      MULTIPLICATIVE CONSTANT =   0.0000E+00  ADDITIVE CONSTANT =   0.0000E+00
+
+  CONTROL FUNCTION Test CF (CF       2) IS REAL TYPE EQUALS
+    VALUE =  0.0000E+00
+    SCALE FACTOR =  1.0000E+00  ADDITIVE CONSTANT =  0.0000E+00
+    UPPER BOUND =     3.4028E+38  LOWER BOUND =    -3.4028E+38
+    NUMBER OF ARGUMENTS =    1
+    ARGUMENT NUMBER =    1 HAS CHARACTER IDENTIFIER =EXEC-TIME
+      IS REAL VALUED
+      MULTIPLICATIVE CONSTANT =   2.0000E+00  ADDITIVE CONSTANT =   1.0000E+00
+
+ END OF EDIT FOR CF 
+
+
+      ***** TABULAR FUNCTION EDIT *****
+
+
+ TOTAL NUMBER OF TABULAR FUNCTIONS =     3
+ TOTAL NUMBER OF DATA PAIRS        =     6
+
+
+
+ TABULAR FUNCTION  P_in            
+ MULTIPLICATIVE CONSTANT = 1.00000E+00   ADDITIVE CONSTANT = 0.00000E+00
+ LOWER BD CONDITION SWITCH =  0    UPPER BD CONDITION SWITCH =  0
+      I          X              Y
+      1    0.00000E+00    1.00000E+07
+      2    1.00000E+02    1.00000E+07
+
+ TABULAR FUNCTION  T_in            
+ MULTIPLICATIVE CONSTANT = 1.00000E+00   ADDITIVE CONSTANT = 0.00000E+00
+ LOWER BD CONDITION SWITCH =  0    UPPER BD CONDITION SWITCH =  0
+      I          X              Y
+      1    0.00000E+00    4.00000E+02
+      2    1.00000E+02    4.00000E+02
+
+ TABULAR FUNCTION  M_in            
+ MULTIPLICATIVE CONSTANT = 1.00000E+00   ADDITIVE CONSTANT = 0.00000E+00
+ LOWER BD CONDITION SWITCH =  0    UPPER BD CONDITION SWITCH =  0
+      I          X              Y
+      1    0.00000E+00    1.00000E+00
+      2    1.00000E+02    1.00000E+00
+
+ END OF EDIT FOR TF 
+
+
+ H2O PACKAGE CALL STATISTICS
+
+
+ CALLS TO  H2OEST    H2O1PH    H2O2PH    H2OSAT    H2OSAU    H2O2PD    H2O2PL
+ EDIT    0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00
+ RUN     0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00
+
+ Not Quite Equilibrium model is disabled
+
+ END OF EDIT FOR ESF
+
+
+
+ DT CALCULATION SUMMARY
+
+ DT= 1.00000E-04  DTMAX= 1.00000E-01  DTMIN= 1.00000E-07
+ DT CONTROL=(INC,  0)  DT CUTS=  0
+ DT(LAST CYCLE)= 0.00000E+00
+ CYCLE= 0 T= 0.000000E+00 DT(INC)= 9.999900E-05 CPU= 3.000000E-06
+ CYCLE= 1000 T= 9.866279E+01 DT(MAX)= 1.000000E-01 CPU= 1.389020E-01
+1* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ TIME= 1.5006E+02 s = 2.5010E+00 min = 4.1684E-02 hrs = 1.7368E-03 days
+ DT(LAST)= 1.000000E-01 s    CYCLE=    1514        CPU TIME= 2.0699E-01
+   *******  TIME EDIT  *****
+
+ MELCOR    BASE CODE VERSION
+ 2.2 08-31-2017          
+
+ This is an official build.
+ MELCOR 2.2.10167
+ 
+ !!!LICENSING HAS BEEN DISABLED!!!
+ 
+ IRDKESE     4/09/18  10:52:56 
+
+ TEST_1                                                                       
+ CYCLES/CPU = 7.31429E+03 (1/s)    TIME/CPU= 7.24969E+02
+
+
+               *** GLOBAL ENERGY BALANCE EDIT ***
+
+     GLOBAL ENERGY ERROR                     =    -1.81198E-05
+     GLOBAL ENERGY ERROR / ENERGY IN PROBLEM =    -6.69158E-16
+
+
+  ENERGY EDIT FOR PACKAGE ESF
+  ENERGY NOW         =     0.00000E+00     ORIGINAL ENERGY  =     0.00000E+00
+  ENERGY TRANSMITTED =     0.00000E+00     ENERGY CREATED   =     0.00000E+00
+  ENERGY ERROR       =     0.00000E+00     REL ENERGY ERROR =     0.00000E+00
+
+  ENERGY EDIT FOR PACKAGE CVH
+  ENERGY NOW         =     2.70785E+10     ORIGINAL ENERGY  =     3.41469E+10
+  ENERGY TRANSMITTED =     0.00000E+00     ENERGY CREATED   =    -7.06835E+09
+  ENERGY ERROR       =    -1.81198E-05     REL ENERGY ERROR =    -6.69158E-16
+
+USER-MODIFIED SENSITIVITY COEFFICIENTS
+
+
+ END OF EDIT FOR NCG
+
+
+          ***************************************
+          *                                     *
+          *  CONTROL VOLUME HYDRODYNAMICS EDIT  *
+          *                                     *
+          ***************************************
+
+
+
+           VOLUME    PRESSURE      TLIQ        TVAP      MASS        ENERGY     DENSITY     ENTHALPY    QUALITY       VOID      CVVELO(1)   CVVELO(2)
+                        PA           K           K        KG          J/KG      KG/M**3       J/KG                  FRACTION       M/S         M/S
+                1  1.0000E+07    584.2315    584.2315  1.6640E+03  2.5445E+06  5.5466E+01  2.7248E+06  1.0000E+00  1.0000E+00  0.0000E+00  0.0000E+00
+                2  1.0003E+07    430.4339    584.2568  8.4692E+03  9.3138E+05  2.8231E+02  9.6681E+05  1.4470E-01  7.3629E-01  3.0202E-03  3.3910E-02
+                3  9.9999E+06    399.9999    399.9999  2.8274E+04  5.2897E+05  9.4248E+02  5.3958E+05  0.0000E+00  0.0000E+00  0.0000E+00  0.0000E+00
+
+
+           VOLUME    VOLLIQ     VOLFOG     VOLVAP    VIRVOLLIQ  VIRVOLVAP  ENERGY    VOLUME            VOLUME
+                      M**3       M**3       M**3       M**3       M**3        J        NAME              TYPE
+                1  0.000E+00  0.000E+00  3.000E+01  0.000E+00  0.000E+00  4.234E+09  IN                                
+                2  7.911E+00  0.000E+00  2.209E+01  0.000E+00  0.000E+00  7.888E+09  CENTR                             
+                3  3.000E+01  0.000E+00  0.000E+00  0.000E+00  0.000E+00  1.496E+10  OUT                               
+
+
+           VOLUME    S-Z-POOL    C-Z-POOL    ENERGY       AREA      VOLUME
+                        M           M           J          M**2      NAME
+                1   1.0000E+01  1.0000E+01  4.2341E+09  0.0000E+00 IN              
+                2   1.0264E+01  1.0264E+01  7.8880E+09  3.0000E+01 CENTR           
+                3   1.1000E+01  1.1000E+01  1.4956E+10  0.0000E+00 OUT             
+
+
+           VOLUME      T(P)
+                         K
+               1   5.8423E+02  IN              
+               2   5.8425E+02  CENTR           
+               3   5.8423E+02  OUT             
+
+
+ VOLUME             MATERIAL         MASS      DENSITY        E         PPART        ECV
+                   NUM  NAME          KG       KG/M**3       J/KG         PA          J
+ IN                  3  H2O-VAP   1.6640E+03  5.5466E+01  2.5445E+06  1.0000E+07  4.2341E+09
+ CENTR               1  POOL      7.2437E+03  9.1562E+02  6.5847E+05  1.0003E+07  4.7697E+09
+                     3  H2O-VAP   1.2255E+03  5.5481E+01  2.5445E+06  1.0003E+07  3.1183E+09
+ OUT                 1  POOL      2.8274E+04  9.4248E+02  5.2897E+05  9.9999E+06  1.4956E+10
+
+
+  MATERIAL           TOTAL       ORIGINAL        MASS        MASS
+ NUM  NAME           MASS          MASS         SOURCE        ERROR
+                     (KG)          (KG)          (KG)          (KG)
+ 1-3  WATER       3.84075E+04   5.82126E+04  -1.98051E+04   4.36557E-11
+
+
+     TOTAL      ORIGINAL   POOL ENERGY  ATMOS ENERGY       POOL     ENERGY
+     ENERGY      ENERGY       SOURCE       SOURCE        SURFACE    ERROR
+       (J)         (J)          (J)          (J)           (J)       (J)
+   2.7079E+10   3.4147E+10  -1.2197E+10   5.1288E+09   0.0000E+00   2.2888E-05
+
+
+     MASS SOURCE EDIT
+
+  MASS SOURCE OF CONTROL VOLUME IN              
+   DELM( 1: 3)=  0.0000E+00  0.0000E+00  8.3234E+03
+  MASS SOURCE OF CONTROL VOLUME CENTR           
+   DELM( 1: 3)=  0.0000E+00  0.0000E+00  0.0000E+00
+  MASS SOURCE OF CONTROL VOLUME OUT             
+   DELM( 1: 3)= -2.1687E+04  0.0000E+00 -6.4412E+03
+
+
+     ENERGY SOURCE EDIT
+
+ VOLUME            POOL ENERGY   ATMOS ENERGY   POOL S ENERGY
+                       (J)           (J)           (J)
+ IN                  0.0000E+00    2.2680E+10    0.0000E+00
+ CENTR               0.0000E+00    0.0000E+00    0.0000E+00
+ OUT                -1.2197E+10   -1.7551E+10    0.0000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME IN              
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME CENTR           
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME OUT             
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+
+   *** VELOCITY CALCULATION STATISTICS EDIT ***
+       NUMBER OF MATRIX INVERSIONS             =    3030
+       NUMBER OF FLOW REVERSALS                =       0
+       NUMBER OF EXPLICIT INTEGRATIONS         =       0
+       NUMBER OF SIGNIFICANT DIGITS INVERSIONS =    1515
+       NUMBER OF WATER PACKINGS IDENTIFIED     =       0
+       NUMBER OF CHOKED-FLOW-BASED RESOLVES    =       0
+
+
+   TOTAL CPU TIME FOR CVH AND FL PACKAGES    =    7.82260E-02
+   CPU TIME FOR CVH AND FL PKGS CALCULATIONS =    7.62450E-02
+   CPU TIME FOR CVH AND FL PKGS EDITS        =    1.84200E-03
+   CPU TIME FOR CVH AND FL PACKAGES RESTARTS =    1.39000E-04
+
+
+   *** SUBCYCLE STATISTICS EDIT ***
+       NUMBER OF SUBCYCLES                    =    1515
+       NUMBER OF REPEATED SUBCYCLES           =       0
+       NUMBER OF MOMENTUM BALANCE CALLS       =    1515
+       PRESENT SUBCYCLE TIMESTEP              =    1.58480E-01
+
+ end OF EDIT FOR CVH
+
+
+          ******************************
+          *                            *
+          *   FLOW PATH PACKAGE EDIT   *
+          *                            *
+          ******************************
+
+
+
+
+ Number FLOW PATH        FROM VOLUME      TO VOLUME           VELLIQ      VELVAP      MFLOW        AREA       TYP ACT CHOKED  TIMES
+                                                                M/S         M/S         KG/S        M**2                      CHOKED
+     11 FP1_2            IN               CENTR             0.0000E+00  1.0000E+00  5.5466E+01  1.0000E+00     0   0   NO        0.
+     12 FP2_3            CENTR            OUT               9.0607E-02  1.0361E+00  5.9553E+01  1.0000E+00     0   0   NO        0.
+
+
+ Number FLOW PATH        FROM VOLUME      TO VOLUME         MATERIAL         MFLOW      INT-MFLOW
+                                                           NUM  NAME          KG/S         KG
+     11 FP1_2            IN               CENTR              1  POOL      0.00000E+00  0.00000E+00
+                                                             3  H2O VAP   5.54662E+01  8.32342E+03
+     12 FP2_3            CENTR            OUT                1  POOL      6.73674E+00  2.16874E+04
+                                                             3  H2O VAP   5.28164E+01  6.44118E+03
+
+
+ Number FLOW PATH          P HEAD       FRACTION     OPEN AREA       ALPHA
+                            (PA)          OPEN         (M**2)
+     11 FP1_2            0.0000E+00    1.0000E+00    1.0000E+00    1.0000E+00
+     12 FP2_3            0.0000E+00    1.0000E+00    1.0000E+00    9.1880E-01
+
+
+ Number PUMP NAME          SPEED          FLOW         HEAD        HYD TRQ        RHO MIX        FR TRQ        MOT TRQ       INRT
+                           (RPM)         (m3/s)        (Pa)         (N*m)         (kg/m3)        (N*m)         (N*m)        (kg*m2)
+
+
+ Number PUMP NAME         DEL POW         DISS         DISPOL        DISATM            EFF
+                            (W)           (W)           (W)           (W)              (%)
+
+
+      ********************************
+      *       IHX PACKAGE EDIT       *
+      ********************************
+
+
+         Integral Heat Exchangers
+         (Currently treated as part of FL)
+
+      =====================
+       Time-Dependent data 
+      =====================
+
+
+      ********************************
+      *       MCH PACKAGE EDIT       *
+      ********************************
+
+
+         Machinery
+         (Currently treated as part of FL)
+
+      =====================
+       Time-Dependent data 
+      =====================
+
+
+      ********************************
+      *       CCF PACKAGE EDIT       *
+      ********************************
+
+
+         Counter Current Flow limit through coupled paths
+
+
+ end OF EDIT FOR FL 
+
+
+
+     ***** CONTROL VOLUME THERMODYNAMICS STATISTICS EDIT *****
+                     VALUES SINCE LAST EDIT
+
+
+    CALLS TO MAIN PROGRAM (CVTHRM)                    =    3030
+      NUMBER OF CONTROL VOLUMES PROCESSED             =    6060
+    CALLS TO WATER EQUILIBRIUM PACKAGE (CVTWE)        =       0
+    CALLS TO GAS EQUILIBRIUM PACKAGE (CVTGE)          =       0
+    CALLS TO WATER + GAS EQUILIBRIUM PACKAGE (CVTWGE) =    1515
+      STATISTICS ON WATER + GAS EQUILIBRIUM PACKAGE
+      NUMBER OF TEMPERATURE ITERATIONS =      0
+      AVERAGE TEMPERATURE ITERATIONS PER CALL = 0.00000E+00
+      NUMBER OF DENSITY ITERATIONS =      0
+      AVERAGE DENSITY ITERATIONS PER CALL = 0.00000E+00
+      AVERAGE DENSITY ITERATIONS PER TEMPERATURE ITERATION =  0.00000E+00
+    CALLS TO WATER + GAS NON-EQUILIBRIUM PACKAGE (CVTNEQ) =   3030
+      STATISTICS ON WATER + GAS NON-EQUILIBRIUM PACKAGE
+      NUMBER OF ITERATIONS =      0
+      AVERAGE ITERATIONS PER CALL = 0.00000E+00
+
+
+
+
+     ************************************
+     *       CONTROL FUNCTION EDIT      *
+     ************************************
+
+
+
+     NUMBER OF CONTROL FUNCTIONS                =     2
+     NUMBER OF REAL VALUED CONTROL FUNCTIONS    =     2
+     NUMBER OF LOGICAL VALUED CONTROL FUNCTIONS =     0
+     NUMBER OF ARGUMENTS                        =     2
+
+
+  CONTROL FUNCTION NUMBER  CURRENT VALUE
+ ZERO                    1        0.00000E+00
+ Test CF                 2        3.01126E+02
+
+ END OF EDIT FOR CF 
+
+ END OF EDIT FOR TF 
+
+
+ H2O PACKAGE CALL STATISTICS
+
+
+ CALLS TO  H2OEST    H2O1PH    H2O2PH    H2OSAT    H2OSAU    H2O2PD    H2O2PL
+ EDIT    9.248E+04 3.676E+04 9.032E+04 4.800E+01 1.666E+04 1.058E+04 3.030E+03
+ RUN     9.248E+04 3.676E+04 9.032E+04 4.800E+01 1.666E+04 1.058E+04 3.030E+03
+
+ Not Quite Equilibrium model is disabled
+
+ END OF EDIT FOR ESF
+
+
+
+ DT CALCULATION SUMMARY
+
+ DT= 1.58480E-01  DTMAX= 2.00000E-01  DTMIN= 1.00000E-10
+ DT CONTROL=(INC,  0)  DT CUTS=  0
+ DT(CVH)= 9.10000E-01
+ DT(LAST CYCLE)= 1.00000E-01
+                                   THIS EXECUTION  LOCAL AVERAGE
+ NUMBER OF COMPLETED CYCLE           =     1515
+ NUMBER OF FALLBACKS                 =        0       0.0000E+00
+ NUMBER OF FALLBACKS (MEXDTH 1/2 DT) =        0       0.0000E+00
+ NUMBER OF FALLBACKS (MEXLOP)        =        0       0.0000E+00
+ NUMBER OF CVH SUBCYCLES PER CYCLE   =    1.000       1.0000E+00
+ Restart written  TIME =   1.500628E+02 CYCLE=     1514
+ CYCLE= 2000 T= 2.472213E+02 DT(MAX)= 2.000000E-01 CPU= 2.868680E-01
+ CYCLE= 3000 T= 4.472213E+02 DT(MAX)= 2.000000E-01 CPU= 4.315990E-01
+ CYCLE= 4000 T= 6.472213E+02 DT(MAX)= 2.000000E-01 CPU= 5.872260E-01
+ CYCLE= 5000 T= 8.472213E+02 DT(MAX)= 2.000000E-01 CPU= 7.367070E-01
+ CYCLE= 6000 T= 1.047221E+03 DT(MAX)= 2.000000E-01 CPU= 8.763510E-01
+ Restart written  TIME =   1.150021E+03 CYCLE=     6514
+ CYCLE= 7000 T= 1.247221E+03 DT(MAX)= 2.000000E-01 CPU= 1.013480E+00
+ CYCLE= 8000 T= 1.447221E+03 DT(MAX)= 2.000000E-01 CPU= 1.144211E+00
+ CYCLE= 9000 T= 1.647221E+03 DT(MAX)= 2.000000E-01 CPU= 1.276076E+00
+ CYCLE= 10000 T= 1.847221E+03 DT(MAX)= 2.000000E-01 CPU= 1.417202E+00
+ CYCLE= 11000 T= 2.047221E+03 DT(MAX)= 2.000000E-01 CPU= 1.541850E+00
+ Restart written  TIME =   2.150021E+03 CYCLE=    11514
+ CYCLE= 12000 T= 2.247221E+03 DT(MAX)= 2.000000E-01 CPU= 1.672173E+00
+ CYCLE= 13000 T= 2.447221E+03 DT(MAX)= 2.000000E-01 CPU= 1.814599E+00
+ CYCLE= 14000 T= 2.647221E+03 DT(MAX)= 2.000000E-01 CPU= 1.952939E+00
+1* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ TIME= 2.6500E+03 s = 4.4167E+01 min = 7.3612E-01 hrs = 3.0672E-02 days
+ DT(LAST)= 2.000000E-01 s    CYCLE=   14014        CPU TIME= 1.9556E+00
+   *******  TIME EDIT  *****
+
+ MELCOR    BASE CODE VERSION
+ 2.2 08-31-2017          
+
+ This is an official build.
+ MELCOR 2.2.10167
+ 
+ !!!LICENSING HAS BEEN DISABLED!!!
+ 
+ IRDKESE     4/09/18  10:52:58 
+
+ TEST_1                                                                       
+ CYCLES/CPU = 7.16605E+03 (1/s)    TIME/CPU= 1.35509E+03
+
+
+               *** GLOBAL ENERGY BALANCE EDIT ***
+
+     GLOBAL ENERGY ERROR                     =    -7.62939E-05
+     GLOBAL ENERGY ERROR / ENERGY IN PROBLEM =    -2.59487E-15
+
+
+  ENERGY EDIT FOR PACKAGE ESF
+  ENERGY NOW         =     0.00000E+00     ORIGINAL ENERGY  =     0.00000E+00
+  ENERGY TRANSMITTED =     0.00000E+00     ENERGY CREATED   =     0.00000E+00
+  ENERGY ERROR       =     0.00000E+00     REL ENERGY ERROR =     0.00000E+00
+
+  ENERGY EDIT FOR PACKAGE CVH
+  ENERGY NOW         =     2.94018E+10     ORIGINAL ENERGY  =     3.41469E+10
+  ENERGY TRANSMITTED =     0.00000E+00     ENERGY CREATED   =    -4.74506E+09
+  ENERGY ERROR       =    -7.62939E-05     REL ENERGY ERROR =    -2.59487E-15
+
+USER-MODIFIED SENSITIVITY COEFFICIENTS
+
+
+ END OF EDIT FOR NCG
+
+
+          ***************************************
+          *                                     *
+          *  CONTROL VOLUME HYDRODYNAMICS EDIT  *
+          *                                     *
+          ***************************************
+
+
+
+           VOLUME    PRESSURE      TLIQ        TVAP      MASS        ENERGY     DENSITY     ENTHALPY    QUALITY       VOID      CVVELO(1)   CVVELO(2)
+                        PA           K           K        KG          J/KG      KG/M**3       J/KG                  FRACTION       M/S         M/S
+                1  1.0000E+07    584.2315    584.2315  1.6640E+03  2.5445E+06  5.5466E+01  2.7248E+06  1.0000E+00  1.0000E+00  0.0000E+00  0.0000E+00
+                2  1.0002E+07    563.9050    584.2558  6.7543E+03  1.5118E+06  2.2514E+02  1.5563E+06  1.8496E-01  7.5058E-01  3.7775E-04  3.4208E-02
+                3  9.9999E+06    399.9999    399.9999  2.8274E+04  5.2897E+05  9.4248E+02  5.3958E+05  0.0000E+00  0.0000E+00  0.0000E+00  0.0000E+00
+
+
+           VOLUME    VOLLIQ     VOLFOG     VOLVAP    VIRVOLLIQ  VIRVOLVAP  ENERGY    VOLUME            VOLUME
+                      M**3       M**3       M**3       M**3       M**3        J        NAME              TYPE
+                1  0.000E+00  0.000E+00  3.000E+01  0.000E+00  0.000E+00  4.234E+09  IN                                
+                2  7.483E+00  0.000E+00  2.252E+01  0.000E+00  0.000E+00  1.021E+10  CENTR                             
+                3  3.000E+01  0.000E+00  0.000E+00  0.000E+00  0.000E+00  1.496E+10  OUT                               
+
+
+           VOLUME    S-Z-POOL    C-Z-POOL    ENERGY       AREA      VOLUME
+                        M           M           J          M**2      NAME
+                1   1.0000E+01  1.0000E+01  4.2341E+09  0.0000E+00 IN              
+                2   1.0249E+01  1.0249E+01  1.0211E+10  3.0000E+01 CENTR           
+                3   1.1000E+01  1.1000E+01  1.4956E+10  0.0000E+00 OUT             
+
+
+           VOLUME      T(P)
+                         K
+               1   5.8423E+02  IN              
+               2   5.8425E+02  CENTR           
+               3   5.8423E+02  OUT             
+
+
+ VOLUME             MATERIAL         MASS      DENSITY        E         PPART        ECV
+                   NUM  NAME          KG       KG/M**3       J/KG         PA          J
+ IN                  3  H2O-VAP   1.6640E+03  5.5466E+01  2.5445E+06  1.0000E+07  4.2341E+09
+ CENTR               1  POOL      5.5050E+03  7.3570E+02  1.2775E+06  1.0002E+07  7.0325E+09
+                     3  H2O-VAP   1.2493E+03  5.5480E+01  2.5445E+06  1.0002E+07  3.1788E+09
+ OUT                 1  POOL      2.8274E+04  9.4248E+02  5.2897E+05  9.9999E+06  1.4956E+10
+
+
+  MATERIAL           TOTAL       ORIGINAL        MASS        MASS
+ NUM  NAME           MASS          MASS         SOURCE        ERROR
+                     (KG)          (KG)          (KG)          (KG)
+ 1-3  WATER       3.66926E+04   5.82126E+04  -2.15200E+04  -8.00355E-11
+
+
+     TOTAL      ORIGINAL   POOL ENERGY  ATMOS ENERGY       POOL     ENERGY
+     ENERGY      ENERGY       SOURCE       SOURCE        SURFACE    ERROR
+       (J)         (J)          (J)          (J)           (J)       (J)
+   2.9402E+10   3.4147E+10  -1.6154E+10   1.1408E+10   0.0000E+00   1.4496E-04
+
+
+     MASS SOURCE EDIT
+
+  MASS SOURCE OF CONTROL VOLUME IN              
+   DELM( 1: 3)=  0.0000E+00  0.0000E+00  1.4699E+05
+  MASS SOURCE OF CONTROL VOLUME CENTR           
+   DELM( 1: 3)=  0.0000E+00  0.0000E+00  0.0000E+00
+  MASS SOURCE OF CONTROL VOLUME OUT             
+   DELM( 1: 3)= -2.5707E+04  0.0000E+00 -1.4280E+05
+
+
+     ENERGY SOURCE EDIT
+
+ VOLUME            POOL ENERGY   ATMOS ENERGY   POOL S ENERGY
+                       (J)           (J)           (J)
+ IN                  0.0000E+00    4.0051E+11    0.0000E+00
+ CENTR               0.0000E+00    0.0000E+00    0.0000E+00
+ OUT                -1.6154E+10   -3.8910E+11    0.0000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME IN              
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME CENTR           
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME OUT             
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+
+   *** VELOCITY CALCULATION STATISTICS EDIT ***
+       NUMBER OF MATRIX INVERSIONS             =   28030
+       NUMBER OF FLOW REVERSALS                =       0
+       NUMBER OF EXPLICIT INTEGRATIONS         =       0
+       NUMBER OF SIGNIFICANT DIGITS INVERSIONS =   14015
+       NUMBER OF WATER PACKINGS IDENTIFIED     =       0
+       NUMBER OF CHOKED-FLOW-BASED RESOLVES    =       0
+
+
+   TOTAL CPU TIME FOR CVH AND FL PACKAGES    =    6.78588E-01
+   CPU TIME FOR CVH AND FL PKGS CALCULATIONS =    6.74831E-01
+   CPU TIME FOR CVH AND FL PKGS EDITS        =    2.54900E-03
+   CPU TIME FOR CVH AND FL PACKAGES RESTARTS =    1.20800E-03
+
+
+   *** SUBCYCLE STATISTICS EDIT ***
+       NUMBER OF SUBCYCLES                    =   14015
+       NUMBER OF REPEATED SUBCYCLES           =       0
+       NUMBER OF MOMENTUM BALANCE CALLS       =   14015
+       PRESENT SUBCYCLE TIMESTEP              =    2.00000E-01
+
+ end OF EDIT FOR CVH
+
+
+          ******************************
+          *                            *
+          *   FLOW PATH PACKAGE EDIT   *
+          *                            *
+          ******************************
+
+
+
+
+ Number FLOW PATH        FROM VOLUME      TO VOLUME           VELLIQ      VELVAP      MFLOW        AREA       TYP ACT CHOKED  TIMES
+                                                                M/S         M/S         KG/S        M**2                      CHOKED
+     11 FP1_2            IN               CENTR             0.0000E+00  1.0000E+00  5.5466E+01  1.0000E+00     0   0   NO        0.
+     12 FP2_3            CENTR            OUT               1.1333E-02  1.0540E+00  5.5677E+01  1.0000E+00     0   0   NO        0.
+
+
+ Number FLOW PATH        FROM VOLUME      TO VOLUME         MATERIAL         MFLOW      INT-MFLOW
+                                                           NUM  NAME          KG/S         KG
+     11 FP1_2            IN               CENTR              1  POOL      0.00000E+00  0.00000E+00
+                                                             3  H2O VAP   5.54662E+01  1.46987E+05
+     12 FP2_3            CENTR            OUT                1  POOL      4.65765E-01  2.57069E+04
+                                                             3  H2O VAP   5.52109E+01  1.42800E+05
+
+
+ Number FLOW PATH          P HEAD       FRACTION     OPEN AREA       ALPHA
+                            (PA)          OPEN         (M**2)
+     11 FP1_2            0.0000E+00    1.0000E+00    1.0000E+00    1.0000E+00
+     12 FP2_3            0.0000E+00    1.0000E+00    1.0000E+00    9.4414E-01
+
+
+ Number PUMP NAME          SPEED          FLOW         HEAD        HYD TRQ        RHO MIX        FR TRQ        MOT TRQ       INRT
+                           (RPM)         (m3/s)        (Pa)         (N*m)         (kg/m3)        (N*m)         (N*m)        (kg*m2)
+
+
+ Number PUMP NAME         DEL POW         DISS         DISPOL        DISATM            EFF
+                            (W)           (W)           (W)           (W)              (%)
+
+
+      ********************************
+      *       IHX PACKAGE EDIT       *
+      ********************************
+
+
+         Integral Heat Exchangers
+         (Currently treated as part of FL)
+
+      =====================
+       Time-Dependent data 
+      =====================
+
+
+      ********************************
+      *       MCH PACKAGE EDIT       *
+      ********************************
+
+
+         Machinery
+         (Currently treated as part of FL)
+
+      =====================
+       Time-Dependent data 
+      =====================
+
+
+      ********************************
+      *       CCF PACKAGE EDIT       *
+      ********************************
+
+
+         Counter Current Flow limit through coupled paths
+
+
+ end OF EDIT FOR FL 
+
+
+
+     ***** CONTROL VOLUME THERMODYNAMICS STATISTICS EDIT *****
+                     VALUES SINCE LAST EDIT
+
+
+    CALLS TO MAIN PROGRAM (CVTHRM)                    =   25000
+      NUMBER OF CONTROL VOLUMES PROCESSED             =   50000
+    CALLS TO WATER EQUILIBRIUM PACKAGE (CVTWE)        =       0
+    CALLS TO GAS EQUILIBRIUM PACKAGE (CVTGE)          =       0
+    CALLS TO WATER + GAS EQUILIBRIUM PACKAGE (CVTWGE) =   12500
+      STATISTICS ON WATER + GAS EQUILIBRIUM PACKAGE
+      NUMBER OF TEMPERATURE ITERATIONS =      0
+      AVERAGE TEMPERATURE ITERATIONS PER CALL = 0.00000E+00
+      NUMBER OF DENSITY ITERATIONS =      0
+      AVERAGE DENSITY ITERATIONS PER CALL = 0.00000E+00
+      AVERAGE DENSITY ITERATIONS PER TEMPERATURE ITERATION =  0.00000E+00
+    CALLS TO WATER + GAS NON-EQUILIBRIUM PACKAGE (CVTNEQ) =  25000
+      STATISTICS ON WATER + GAS NON-EQUILIBRIUM PACKAGE
+      NUMBER OF ITERATIONS =      0
+      AVERAGE ITERATIONS PER CALL = 0.00000E+00
+
+
+
+
+     ************************************
+     *       CONTROL FUNCTION EDIT      *
+     ************************************
+
+
+
+     NUMBER OF CONTROL FUNCTIONS                =     2
+     NUMBER OF REAL VALUED CONTROL FUNCTIONS    =     2
+     NUMBER OF LOGICAL VALUED CONTROL FUNCTIONS =     0
+     NUMBER OF ARGUMENTS                        =     2
+
+
+  CONTROL FUNCTION NUMBER  CURRENT VALUE
+ ZERO                    1        0.00000E+00
+ Test CF                 2        5.30104E+03
+
+ END OF EDIT FOR CF 
+
+ END OF EDIT FOR TF 
+
+
+ H2O PACKAGE CALL STATISTICS
+
+
+ CALLS TO  H2OEST    H2O1PH    H2O2PH    H2OSAT    H2OSAU    H2O2PD    H2O2PL
+ EDIT    4.833E+05 1.880E+05 4.702E+05 7.500E+02 1.375E+05 7.704E+03 2.500E+04
+ RUN     5.757E+05 2.248E+05 5.605E+05 7.980E+02 1.542E+05 1.828E+04 2.803E+04
+
+ Not Quite Equilibrium model is disabled
+
+ END OF EDIT FOR ESF
+
+
+
+ DT CALCULATION SUMMARY
+
+ DT= 2.00000E-01  DTMAX= 2.00000E-01  DTMIN= 1.00000E-10
+ DT CONTROL=(MAX, -1)  DT CUTS=  0
+ DT(CVH)= 1.82000E+00
+ DT(LAST CYCLE)= 2.00000E-01
+                                   THIS EXECUTION  LOCAL AVERAGE
+ NUMBER OF COMPLETED CYCLE           =    14015
+ NUMBER OF FALLBACKS                 =        0       0.0000E+00
+ NUMBER OF FALLBACKS (MEXDTH 1/2 DT) =        0       0.0000E+00
+ NUMBER OF FALLBACKS (MEXLOP)        =        0       0.0000E+00
+ NUMBER OF CVH SUBCYCLES PER CYCLE   =    1.000       1.0000E+00
+ CYCLE= 15000 T= 2.847221E+03 DT(MAX)= 2.000000E-01 CPU= 2.087425E+00
+ CYCLE= 16000 T= 3.047221E+03 DT(MAX)= 2.000000E-01 CPU= 2.254320E+00
+ Restart written  TIME =   3.150021E+03 CYCLE=    16514
+ CYCLE= 17000 T= 3.247221E+03 DT(MAX)= 2.000000E-01 CPU= 2.394919E+00
+ CYCLE= 18000 T= 3.447221E+03 DT(MAX)= 2.000000E-01 CPU= 2.536022E+00
+ CYCLE= 19000 T= 3.647221E+03 DT(MAX)= 2.000000E-01 CPU= 2.694278E+00
+ CYCLE= 20000 T= 3.847221E+03 DT(MAX)= 2.000000E-01 CPU= 2.817051E+00
+ CYCLE= 21000 T= 4.047221E+03 DT(MAX)= 2.000000E-01 CPU= 2.946875E+00
+ Restart written  TIME =   4.150021E+03 CYCLE=    21514
+ CYCLE= 22000 T= 4.247221E+03 DT(MAX)= 2.000000E-01 CPU= 3.082000E+00
+ CYCLE= 23000 T= 4.447221E+03 DT(MAX)= 2.000000E-01 CPU= 3.236195E+00
+ CYCLE= 24000 T= 4.647221E+03 DT(MAX)= 2.000000E-01 CPU= 3.372704E+00
+ CYCLE= 25000 T= 4.847221E+03 DT(MAX)= 2.000000E-01 CPU= 3.503513E+00
+ CYCLE= 26000 T= 5.047221E+03 DT(MAX)= 2.000000E-01 CPU= 3.643297E+00
+1* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ TIME= 5.1500E+03 s = 8.5834E+01 min = 1.4306E+00 hrs = 5.9607E-02 days
+ DT(LAST)= 2.000000E-01 s    CYCLE=   26514        CPU TIME= 3.7059E+00
+   *******  TIME EDIT  *****
+
+ MELCOR    BASE CODE VERSION
+ 2.2 08-31-2017          
+
+ This is an official build.
+ MELCOR 2.2.10167
+ 
+ !!!LICENSING HAS BEEN DISABLED!!!
+ 
+ IRDKESE     4/09/18  10:53:00 
+
+ TEST_1                                                                       
+ CYCLES/CPU = 7.15457E+03 (1/s)    TIME/CPU= 1.38969E+03
+
+
+               *** GLOBAL ENERGY BALANCE EDIT ***
+
+     GLOBAL ENERGY ERROR                     =    -1.74522E-04
+     GLOBAL ENERGY ERROR / ENERGY IN PROBLEM =    -5.91865E-15
+
+
+  ENERGY EDIT FOR PACKAGE ESF
+  ENERGY NOW         =     0.00000E+00     ORIGINAL ENERGY  =     0.00000E+00
+  ENERGY TRANSMITTED =     0.00000E+00     ENERGY CREATED   =     0.00000E+00
+  ENERGY ERROR       =     0.00000E+00     REL ENERGY ERROR =     0.00000E+00
+
+  ENERGY EDIT FOR PACKAGE CVH
+  ENERGY NOW         =     2.94868E+10     ORIGINAL ENERGY  =     3.41469E+10
+  ENERGY TRANSMITTED =     0.00000E+00     ENERGY CREATED   =    -4.66004E+09
+  ENERGY ERROR       =    -1.74522E-04     REL ENERGY ERROR =    -5.91865E-15
+
+USER-MODIFIED SENSITIVITY COEFFICIENTS
+
+
+ END OF EDIT FOR NCG
+
+
+          ***************************************
+          *                                     *
+          *  CONTROL VOLUME HYDRODYNAMICS EDIT  *
+          *                                     *
+          ***************************************
+
+
+
+           VOLUME    PRESSURE      TLIQ        TVAP      MASS        ENERGY     DENSITY     ENTHALPY    QUALITY       VOID      CVVELO(1)   CVVELO(2)
+                        PA           K           K        KG          J/KG      KG/M**3       J/KG                  FRACTION       M/S         M/S
+                1  1.0000E+07    584.2315    584.2315  1.6640E+03  2.5445E+06  5.5466E+01  2.7248E+06  1.0000E+00  1.0000E+00  0.0000E+00  0.0000E+00
+                2  1.0002E+07    578.4274    584.2558  6.4863E+03  1.5874E+06  2.1621E+02  1.6337E+06  1.9293E-01  7.5188E-01  9.3745E-05  3.4229E-02
+                3  9.9999E+06    399.9999    399.9999  2.8274E+04  5.2897E+05  9.4248E+02  5.3958E+05  0.0000E+00  0.0000E+00  0.0000E+00  0.0000E+00
+
+
+           VOLUME    VOLLIQ     VOLFOG     VOLVAP    VIRVOLLIQ  VIRVOLVAP  ENERGY    VOLUME            VOLUME
+                      M**3       M**3       M**3       M**3       M**3        J        NAME              TYPE
+                1  0.000E+00  0.000E+00  3.000E+01  0.000E+00  0.000E+00  4.234E+09  IN                                
+                2  7.444E+00  0.000E+00  2.256E+01  0.000E+00  0.000E+00  1.030E+10  CENTR                             
+                3  3.000E+01  0.000E+00  0.000E+00  0.000E+00  0.000E+00  1.496E+10  OUT                               
+
+
+           VOLUME    S-Z-POOL    C-Z-POOL    ENERGY       AREA      VOLUME
+                        M           M           J          M**2      NAME
+                1   1.0000E+01  1.0000E+01  4.2341E+09  0.0000E+00 IN              
+                2   1.0248E+01  1.0248E+01  1.0296E+10  3.0000E+01 CENTR           
+                3   1.1000E+01  1.1000E+01  1.4956E+10  0.0000E+00 OUT             
+
+
+           VOLUME      T(P)
+                         K
+               1   5.8423E+02  IN              
+               2   5.8425E+02  CENTR           
+               3   5.8423E+02  OUT             
+
+
+ VOLUME             MATERIAL         MASS      DENSITY        E         PPART        ECV
+                   NUM  NAME          KG       KG/M**3       J/KG         PA          J
+ IN                  3  H2O-VAP   1.6640E+03  5.5466E+01  2.5445E+06  1.0000E+07  4.2341E+09
+ CENTR               1  POOL      5.2349E+03  7.0327E+02  1.3586E+06  1.0002E+07  7.1120E+09
+                     3  H2O-VAP   1.2514E+03  5.5480E+01  2.5445E+06  1.0002E+07  3.1843E+09
+ OUT                 1  POOL      2.8274E+04  9.4248E+02  5.2897E+05  9.9999E+06  1.4956E+10
+
+
+  MATERIAL           TOTAL       ORIGINAL        MASS        MASS
+ NUM  NAME           MASS          MASS         SOURCE        ERROR
+                     (KG)          (KG)          (KG)          (KG)
+ 1-3  WATER       3.64246E+04   5.82126E+04  -2.17880E+04  -3.63798E-11
+
+
+     TOTAL      ORIGINAL   POOL ENERGY  ATMOS ENERGY       POOL     ENERGY
+     ENERGY      ENERGY       SOURCE       SOURCE        SURFACE    ERROR
+       (J)         (J)          (J)          (J)           (J)       (J)
+   2.9487E+10   3.4147E+10  -1.6933E+10   1.2273E+10   0.0000E+00   2.9755E-04
+
+
+     MASS SOURCE EDIT
+
+  MASS SOURCE OF CONTROL VOLUME IN              
+   DELM( 1: 3)=  0.0000E+00  0.0000E+00  2.8565E+05
+  MASS SOURCE OF CONTROL VOLUME CENTR           
+   DELM( 1: 3)=  0.0000E+00  0.0000E+00  0.0000E+00
+  MASS SOURCE OF CONTROL VOLUME OUT             
+   DELM( 1: 3)= -2.6292E+04  0.0000E+00 -2.8115E+05
+
+
+     ENERGY SOURCE EDIT
+
+ VOLUME            POOL ENERGY   ATMOS ENERGY   POOL S ENERGY
+                       (J)           (J)           (J)
+ IN                  0.0000E+00    7.7835E+11    0.0000E+00
+ CENTR               0.0000E+00    0.0000E+00    0.0000E+00
+ OUT                -1.6933E+10   -7.6608E+11    0.0000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME IN              
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME CENTR           
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME OUT             
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+
+   *** VELOCITY CALCULATION STATISTICS EDIT ***
+       NUMBER OF MATRIX INVERSIONS             =   53030
+       NUMBER OF FLOW REVERSALS                =       0
+       NUMBER OF EXPLICIT INTEGRATIONS         =       0
+       NUMBER OF SIGNIFICANT DIGITS INVERSIONS =   26515
+       NUMBER OF WATER PACKINGS IDENTIFIED     =       0
+       NUMBER OF CHOKED-FLOW-BASED RESOLVES    =       0
+
+
+   TOTAL CPU TIME FOR CVH AND FL PACKAGES    =    1.26951E+00
+   CPU TIME FOR CVH AND FL PKGS CALCULATIONS =    1.26409E+00
+   CPU TIME FOR CVH AND FL PKGS EDITS        =    3.49300E-03
+   CPU TIME FOR CVH AND FL PACKAGES RESTARTS =    1.92500E-03
+
+
+   *** SUBCYCLE STATISTICS EDIT ***
+       NUMBER OF SUBCYCLES                    =   26515
+       NUMBER OF REPEATED SUBCYCLES           =       0
+       NUMBER OF MOMENTUM BALANCE CALLS       =   26515
+       PRESENT SUBCYCLE TIMESTEP              =    2.00000E-01
+
+ end OF EDIT FOR CVH
+
+
+          ******************************
+          *                            *
+          *   FLOW PATH PACKAGE EDIT   *
+          *                            *
+          ******************************
+
+
+
+
+ Number FLOW PATH        FROM VOLUME      TO VOLUME           VELLIQ      VELVAP      MFLOW        AREA       TYP ACT CHOKED  TIMES
+                                                                M/S         M/S         KG/S        M**2                      CHOKED
+     11 FP1_2            IN               CENTR             0.0000E+00  1.0000E+00  5.5466E+01  1.0000E+00     0   0   NO        0.
+     12 FP2_3            CENTR            OUT               2.8123E-03  1.0552E+00  5.5515E+01  1.0000E+00     0   0   NO        0.
+
+
+ Number FLOW PATH        FROM VOLUME      TO VOLUME         MATERIAL         MFLOW      INT-MFLOW
+                                                           NUM  NAME          KG/S         KG
+     11 FP1_2            IN               CENTR              1  POOL      0.00000E+00  0.00000E+00
+                                                             3  H2O VAP   5.54662E+01  2.85652E+05
+     12 FP2_3            CENTR            OUT                1  POOL      1.05920E-01  2.62922E+04
+                                                             3  H2O VAP   5.54095E+01  2.81148E+05
+
+
+ Number FLOW PATH          P HEAD       FRACTION     OPEN AREA       ALPHA
+                            (PA)          OPEN         (M**2)
+     11 FP1_2            0.0000E+00    1.0000E+00    1.0000E+00    1.0000E+00
+     12 FP2_3            0.0000E+00    1.0000E+00    1.0000E+00    9.4645E-01
+
+
+ Number PUMP NAME          SPEED          FLOW         HEAD        HYD TRQ        RHO MIX        FR TRQ        MOT TRQ       INRT
+                           (RPM)         (m3/s)        (Pa)         (N*m)         (kg/m3)        (N*m)         (N*m)        (kg*m2)
+
+
+ Number PUMP NAME         DEL POW         DISS         DISPOL        DISATM            EFF
+                            (W)           (W)           (W)           (W)              (%)
+
+
+      ********************************
+      *       IHX PACKAGE EDIT       *
+      ********************************
+
+
+         Integral Heat Exchangers
+         (Currently treated as part of FL)
+
+      =====================
+       Time-Dependent data 
+      =====================
+
+
+      ********************************
+      *       MCH PACKAGE EDIT       *
+      ********************************
+
+
+         Machinery
+         (Currently treated as part of FL)
+
+      =====================
+       Time-Dependent data 
+      =====================
+
+
+      ********************************
+      *       CCF PACKAGE EDIT       *
+      ********************************
+
+
+         Counter Current Flow limit through coupled paths
+
+
+ end OF EDIT FOR FL 
+
+
+
+     ***** CONTROL VOLUME THERMODYNAMICS STATISTICS EDIT *****
+                     VALUES SINCE LAST EDIT
+
+
+    CALLS TO MAIN PROGRAM (CVTHRM)                    =   25000
+      NUMBER OF CONTROL VOLUMES PROCESSED             =   50000
+    CALLS TO WATER EQUILIBRIUM PACKAGE (CVTWE)        =       0
+    CALLS TO GAS EQUILIBRIUM PACKAGE (CVTGE)          =       0
+    CALLS TO WATER + GAS EQUILIBRIUM PACKAGE (CVTWGE) =   12500
+      STATISTICS ON WATER + GAS EQUILIBRIUM PACKAGE
+      NUMBER OF TEMPERATURE ITERATIONS =      0
+      AVERAGE TEMPERATURE ITERATIONS PER CALL = 0.00000E+00
+      NUMBER OF DENSITY ITERATIONS =      0
+      AVERAGE DENSITY ITERATIONS PER CALL = 0.00000E+00
+      AVERAGE DENSITY ITERATIONS PER TEMPERATURE ITERATION =  0.00000E+00
+    CALLS TO WATER + GAS NON-EQUILIBRIUM PACKAGE (CVTNEQ) =  25000
+      STATISTICS ON WATER + GAS NON-EQUILIBRIUM PACKAGE
+      NUMBER OF ITERATIONS =      0
+      AVERAGE ITERATIONS PER CALL = 0.00000E+00
+
+
+
+
+     ************************************
+     *       CONTROL FUNCTION EDIT      *
+     ************************************
+
+
+
+     NUMBER OF CONTROL FUNCTIONS                =     2
+     NUMBER OF REAL VALUED CONTROL FUNCTIONS    =     2
+     NUMBER OF LOGICAL VALUED CONTROL FUNCTIONS =     0
+     NUMBER OF ARGUMENTS                        =     2
+
+
+  CONTROL FUNCTION NUMBER  CURRENT VALUE
+ ZERO                    1        0.00000E+00
+ Test CF                 2        1.03010E+04
+
+ END OF EDIT FOR CF 
+
+ END OF EDIT FOR TF 
+
+
+ H2O PACKAGE CALL STATISTICS
+
+
+ CALLS TO  H2OEST    H2O1PH    H2O2PH    H2OSAT    H2OSAU    H2O2PD    H2O2PL
+ EDIT    4.459E+05 1.709E+05 4.334E+05 7.500E+02 1.375E+05 0.000E+00 2.500E+04
+ RUN     1.022E+06 3.957E+05 9.938E+05 1.548E+03 2.917E+05 1.828E+04 5.303E+04
+
+ Not Quite Equilibrium model is disabled
+
+ END OF EDIT FOR ESF
+
+
+
+ DT CALCULATION SUMMARY
+
+ DT= 2.00000E-01  DTMAX= 2.00000E-01  DTMIN= 1.00000E-10
+ DT CONTROL=(MAX, -1)  DT CUTS=  0
+ DT(CVH)= 1.82000E+00
+ DT(LAST CYCLE)= 2.00000E-01
+                                   THIS EXECUTION  LOCAL AVERAGE
+ NUMBER OF COMPLETED CYCLE           =    26515
+ NUMBER OF FALLBACKS                 =        0       0.0000E+00
+ NUMBER OF FALLBACKS (MEXDTH 1/2 DT) =        0       0.0000E+00
+ NUMBER OF FALLBACKS (MEXLOP)        =        0       0.0000E+00
+ NUMBER OF CVH SUBCYCLES PER CYCLE   =    1.000       1.0000E+00
+ Restart written  TIME =   5.150021E+03 CYCLE=    26514
+ CYCLE= 27000 T= 5.247221E+03 DT(MAX)= 2.000000E-01 CPU= 3.769048E+00
+ CYCLE= 28000 T= 5.447221E+03 DT(MAX)= 2.000000E-01 CPU= 3.899985E+00
+ CYCLE= 29000 T= 5.647221E+03 DT(MAX)= 2.000000E-01 CPU= 4.028836E+00
+ CYCLE= 30000 T= 5.847221E+03 DT(MAX)= 2.000000E-01 CPU= 4.150715E+00
+ CYCLE= 31000 T= 6.047221E+03 DT(MAX)= 2.000000E-01 CPU= 4.278346E+00
+ Restart written  TIME =   6.150021E+03 CYCLE=    31514
+ CYCLE= 32000 T= 6.247221E+03 DT(MAX)= 2.000000E-01 CPU= 4.404067E+00
+ CYCLE= 33000 T= 6.447221E+03 DT(MAX)= 2.000000E-01 CPU= 4.560245E+00
+ CYCLE= 34000 T= 6.647221E+03 DT(MAX)= 2.000000E-01 CPU= 4.700426E+00
+ CYCLE= 35000 T= 6.847221E+03 DT(MAX)= 2.000000E-01 CPU= 4.835798E+00
+ CYCLE= 36000 T= 7.047221E+03 DT(MAX)= 2.000000E-01 CPU= 4.967461E+00
+ Restart written  TIME =   7.150021E+03 CYCLE=    36514
+ CYCLE= 37000 T= 7.247221E+03 DT(MAX)= 2.000000E-01 CPU= 5.089076E+00
+ CYCLE= 38000 T= 7.447221E+03 DT(MAX)= 2.000000E-01 CPU= 5.208195E+00
+ CYCLE= 39000 T= 7.647221E+03 DT(MAX)= 2.000000E-01 CPU= 5.360898E+00
+1* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ TIME= 7.6500E+03 s = 1.2750E+02 min = 2.1250E+00 hrs = 8.8542E-02 days
+ DT(LAST)= 2.000000E-01 s    CYCLE=   39014        CPU TIME= 5.3636E+00
+   *******  TIME EDIT  *****
+
+ MELCOR    BASE CODE VERSION
+ 2.2 08-31-2017          
+
+ This is an official build.
+ MELCOR 2.2.10167
+ 
+ !!!LICENSING HAS BEEN DISABLED!!!
+ 
+ IRDKESE     4/09/18  10:53:01 
+
+ TEST_1                                                                       
+ CYCLES/CPU = 7.27380E+03 (1/s)    TIME/CPU= 1.42628E+03
+
+
+               *** GLOBAL ENERGY BALANCE EDIT ***
+
+     GLOBAL ENERGY ERROR                     =    -1.57356E-04
+     GLOBAL ENERGY ERROR / ENERGY IN PROBLEM =    -5.33439E-15
+
+
+  ENERGY EDIT FOR PACKAGE ESF
+  ENERGY NOW         =     0.00000E+00     ORIGINAL ENERGY  =     0.00000E+00
+  ENERGY TRANSMITTED =     0.00000E+00     ENERGY CREATED   =     0.00000E+00
+  ENERGY ERROR       =     0.00000E+00     REL ENERGY ERROR =     0.00000E+00
+
+  ENERGY EDIT FOR PACKAGE CVH
+  ENERGY NOW         =     2.94985E+10     ORIGINAL ENERGY  =     3.41469E+10
+  ENERGY TRANSMITTED =     0.00000E+00     ENERGY CREATED   =    -4.64840E+09
+  ENERGY ERROR       =    -1.57356E-04     REL ENERGY ERROR =    -5.33439E-15
+
+USER-MODIFIED SENSITIVITY COEFFICIENTS
+
+
+ END OF EDIT FOR NCG
+
+
+          ***************************************
+          *                                     *
+          *  CONTROL VOLUME HYDRODYNAMICS EDIT  *
+          *                                     *
+          ***************************************
+
+
+
+           VOLUME    PRESSURE      TLIQ        TVAP      MASS        ENERGY     DENSITY     ENTHALPY    QUALITY       VOID      CVVELO(1)   CVVELO(2)
+                        PA           K           K        KG          J/KG      KG/M**3       J/KG                  FRACTION       M/S         M/S
+                1  1.0000E+07    584.2315    584.2315  1.6640E+03  2.5445E+06  5.5466E+01  2.7248E+06  1.0000E+00  1.0000E+00  0.0000E+00  0.0000E+00
+                2  1.0002E+07    581.9940    584.2557  6.4145E+03  1.6070E+06  2.1382E+02  1.6538E+06  1.9517E-01  7.5215E-01  3.0470E-05  3.4232E-02
+                3  9.9999E+06    399.9999    399.9999  2.8274E+04  5.2897E+05  9.4248E+02  5.3958E+05  0.0000E+00  0.0000E+00  0.0000E+00  0.0000E+00
+
+
+           VOLUME    VOLLIQ     VOLFOG     VOLVAP    VIRVOLLIQ  VIRVOLVAP  ENERGY    VOLUME            VOLUME
+                      M**3       M**3       M**3       M**3       M**3        J        NAME              TYPE
+                1  0.000E+00  0.000E+00  3.000E+01  0.000E+00  0.000E+00  4.234E+09  IN                                
+                2  7.435E+00  0.000E+00  2.256E+01  0.000E+00  0.000E+00  1.031E+10  CENTR                             
+                3  3.000E+01  0.000E+00  0.000E+00  0.000E+00  0.000E+00  1.496E+10  OUT                               
+
+
+           VOLUME    S-Z-POOL    C-Z-POOL    ENERGY       AREA      VOLUME
+                        M           M           J          M**2      NAME
+                1   1.0000E+01  1.0000E+01  4.2341E+09  0.0000E+00 IN              
+                2   1.0248E+01  1.0248E+01  1.0308E+10  3.0000E+01 CENTR           
+                3   1.1000E+01  1.1000E+01  1.4956E+10  0.0000E+00 OUT             
+
+
+           VOLUME      T(P)
+                         K
+               1   5.8423E+02  IN              
+               2   5.8425E+02  CENTR           
+               3   5.8423E+02  OUT             
+
+
+ VOLUME             MATERIAL         MASS      DENSITY        E         PPART        ECV
+                   NUM  NAME          KG       KG/M**3       J/KG         PA          J
+ IN                  3  H2O-VAP   1.6640E+03  5.5466E+01  2.5445E+06  1.0000E+07  4.2341E+09
+ CENTR               1  POOL      5.1626E+03  6.9432E+02  1.3796E+06  1.0002E+07  7.1225E+09
+                     3  H2O-VAP   1.2519E+03  5.5480E+01  2.5445E+06  1.0002E+07  3.1855E+09
+ OUT                 1  POOL      2.8274E+04  9.4248E+02  5.2897E+05  9.9999E+06  1.4956E+10
+
+
+  MATERIAL           TOTAL       ORIGINAL        MASS        MASS
+ NUM  NAME           MASS          MASS         SOURCE        ERROR
+                     (KG)          (KG)          (KG)          (KG)
+ 1-3  WATER       3.63528E+04   5.82126E+04  -2.18598E+04   7.27596E-12
+
+
+     TOTAL      ORIGINAL   POOL ENERGY  ATMOS ENERGY       POOL     ENERGY
+     ENERGY      ENERGY       SOURCE       SOURCE        SURFACE    ERROR
+       (J)         (J)          (J)          (J)           (J)       (J)
+   2.9498E+10   3.4147E+10  -1.7147E+10   1.2499E+10   0.0000E+00   3.3951E-04
+
+
+     MASS SOURCE EDIT
+
+  MASS SOURCE OF CONTROL VOLUME IN              
+   DELM( 1: 3)=  0.0000E+00  0.0000E+00  4.2432E+05
+  MASS SOURCE OF CONTROL VOLUME CENTR           
+   DELM( 1: 3)=  0.0000E+00  0.0000E+00  0.0000E+00
+  MASS SOURCE OF CONTROL VOLUME OUT             
+   DELM( 1: 3)= -2.6447E+04  0.0000E+00 -4.1973E+05
+
+
+     ENERGY SOURCE EDIT
+
+ VOLUME            POOL ENERGY   ATMOS ENERGY   POOL S ENERGY
+                       (J)           (J)           (J)
+ IN                  0.0000E+00    1.1562E+12    0.0000E+00
+ CENTR               0.0000E+00    0.0000E+00    0.0000E+00
+ OUT                -1.7147E+10   -1.1437E+12    0.0000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME IN              
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME CENTR           
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME OUT             
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+
+   *** VELOCITY CALCULATION STATISTICS EDIT ***
+       NUMBER OF MATRIX INVERSIONS             =   78030
+       NUMBER OF FLOW REVERSALS                =       0
+       NUMBER OF EXPLICIT INTEGRATIONS         =       0
+       NUMBER OF SIGNIFICANT DIGITS INVERSIONS =   39015
+       NUMBER OF WATER PACKINGS IDENTIFIED     =       0
+       NUMBER OF CHOKED-FLOW-BASED RESOLVES    =       0
+
+
+   TOTAL CPU TIME FOR CVH AND FL PACKAGES    =    1.81033E+00
+   CPU TIME FOR CVH AND FL PKGS CALCULATIONS =    1.80313E+00
+   CPU TIME FOR CVH AND FL PKGS EDITS        =    4.21400E-03
+   CPU TIME FOR CVH AND FL PACKAGES RESTARTS =    2.98700E-03
+
+
+   *** SUBCYCLE STATISTICS EDIT ***
+       NUMBER OF SUBCYCLES                    =   39015
+       NUMBER OF REPEATED SUBCYCLES           =       0
+       NUMBER OF MOMENTUM BALANCE CALLS       =   39015
+       PRESENT SUBCYCLE TIMESTEP              =    2.00000E-01
+
+ end OF EDIT FOR CVH
+
+
+          ******************************
+          *                            *
+          *   FLOW PATH PACKAGE EDIT   *
+          *                            *
+          ******************************
+
+
+
+
+ Number FLOW PATH        FROM VOLUME      TO VOLUME           VELLIQ      VELVAP      MFLOW        AREA       TYP ACT CHOKED  TIMES
+                                                                M/S         M/S         KG/S        M**2                      CHOKED
+     11 FP1_2            IN               CENTR             0.0000E+00  1.0000E+00  5.5466E+01  1.0000E+00     0   0   NO        0.
+     12 FP2_3            CENTR            OUT               9.1411E-04  1.0554E+00  5.5482E+01  1.0000E+00     0   0   NO        0.
+
+
+ Number FLOW PATH        FROM VOLUME      TO VOLUME         MATERIAL         MFLOW      INT-MFLOW
+                                                           NUM  NAME          KG/S         KG
+     11 FP1_2            IN               CENTR              1  POOL      0.00000E+00  0.00000E+00
+                                                             3  H2O VAP   5.54662E+01  4.24318E+05
+     12 FP2_3            CENTR            OUT                1  POOL      3.36847E-02  2.64466E+04
+                                                             3  H2O VAP   5.54483E+01  4.19731E+05
+
+
+ Number FLOW PATH          P HEAD       FRACTION     OPEN AREA       ALPHA
+                            (PA)          OPEN         (M**2)
+     11 FP1_2            0.0000E+00    1.0000E+00    1.0000E+00    1.0000E+00
+     12 FP2_3            0.0000E+00    1.0000E+00    1.0000E+00    9.4693E-01
+
+
+ Number PUMP NAME          SPEED          FLOW         HEAD        HYD TRQ        RHO MIX        FR TRQ        MOT TRQ       INRT
+                           (RPM)         (m3/s)        (Pa)         (N*m)         (kg/m3)        (N*m)         (N*m)        (kg*m2)
+
+
+ Number PUMP NAME         DEL POW         DISS         DISPOL        DISATM            EFF
+                            (W)           (W)           (W)           (W)              (%)
+
+
+      ********************************
+      *       IHX PACKAGE EDIT       *
+      ********************************
+
+
+         Integral Heat Exchangers
+         (Currently treated as part of FL)
+
+      =====================
+       Time-Dependent data 
+      =====================
+
+
+      ********************************
+      *       MCH PACKAGE EDIT       *
+      ********************************
+
+
+         Machinery
+         (Currently treated as part of FL)
+
+      =====================
+       Time-Dependent data 
+      =====================
+
+
+      ********************************
+      *       CCF PACKAGE EDIT       *
+      ********************************
+
+
+         Counter Current Flow limit through coupled paths
+
+
+ end OF EDIT FOR FL 
+
+
+
+     ***** CONTROL VOLUME THERMODYNAMICS STATISTICS EDIT *****
+                     VALUES SINCE LAST EDIT
+
+
+    CALLS TO MAIN PROGRAM (CVTHRM)                    =   25000
+      NUMBER OF CONTROL VOLUMES PROCESSED             =   50000
+    CALLS TO WATER EQUILIBRIUM PACKAGE (CVTWE)        =       0
+    CALLS TO GAS EQUILIBRIUM PACKAGE (CVTGE)          =       0
+    CALLS TO WATER + GAS EQUILIBRIUM PACKAGE (CVTWGE) =   12500
+      STATISTICS ON WATER + GAS EQUILIBRIUM PACKAGE
+      NUMBER OF TEMPERATURE ITERATIONS =      0
+      AVERAGE TEMPERATURE ITERATIONS PER CALL = 0.00000E+00
+      NUMBER OF DENSITY ITERATIONS =      0
+      AVERAGE DENSITY ITERATIONS PER CALL = 0.00000E+00
+      AVERAGE DENSITY ITERATIONS PER TEMPERATURE ITERATION =  0.00000E+00
+    CALLS TO WATER + GAS NON-EQUILIBRIUM PACKAGE (CVTNEQ) =  25000
+      STATISTICS ON WATER + GAS NON-EQUILIBRIUM PACKAGE
+      NUMBER OF ITERATIONS =      0
+      AVERAGE ITERATIONS PER CALL = 0.00000E+00
+
+
+
+
+     ************************************
+     *       CONTROL FUNCTION EDIT      *
+     ************************************
+
+
+
+     NUMBER OF CONTROL FUNCTIONS                =     2
+     NUMBER OF REAL VALUED CONTROL FUNCTIONS    =     2
+     NUMBER OF LOGICAL VALUED CONTROL FUNCTIONS =     0
+     NUMBER OF ARGUMENTS                        =     2
+
+
+  CONTROL FUNCTION NUMBER  CURRENT VALUE
+ ZERO                    1        0.00000E+00
+ Test CF                 2        1.53010E+04
+
+ END OF EDIT FOR CF 
+
+ END OF EDIT FOR TF 
+
+
+ H2O PACKAGE CALL STATISTICS
+
+
+ CALLS TO  H2OEST    H2O1PH    H2O2PH    H2OSAT    H2OSAU    H2O2PD    H2O2PL
+ EDIT    4.316E+05 1.566E+05 4.191E+05 7.500E+02 1.375E+05 0.000E+00 2.500E+04
+ RUN     1.453E+06 5.523E+05 1.413E+06 2.298E+03 4.292E+05 1.828E+04 7.803E+04
+
+ Not Quite Equilibrium model is disabled
+
+ END OF EDIT FOR ESF
+
+
+
+ DT CALCULATION SUMMARY
+
+ DT= 2.00000E-01  DTMAX= 2.00000E-01  DTMIN= 1.00000E-10
+ DT CONTROL=(MAX, -1)  DT CUTS=  0
+ DT(CVH)= 1.82000E+00
+ DT(LAST CYCLE)= 2.00000E-01
+                                   THIS EXECUTION  LOCAL AVERAGE
+ NUMBER OF COMPLETED CYCLE           =    39015
+ NUMBER OF FALLBACKS                 =        0       0.0000E+00
+ NUMBER OF FALLBACKS (MEXDTH 1/2 DT) =        0       0.0000E+00
+ NUMBER OF FALLBACKS (MEXLOP)        =        0       0.0000E+00
+ NUMBER OF CVH SUBCYCLES PER CYCLE   =    1.000       1.0000E+00
+ CYCLE= 40000 T= 7.847221E+03 DT(MAX)= 2.000000E-01 CPU= 5.528950E+00
+ CYCLE= 41000 T= 8.047221E+03 DT(MAX)= 2.000000E-01 CPU= 5.686795E+00
+ Restart written  TIME =   8.150021E+03 CYCLE=    41514
+ CYCLE= 42000 T= 8.247221E+03 DT(MAX)= 2.000000E-01 CPU= 5.854023E+00
+ CYCLE= 43000 T= 8.447221E+03 DT(MAX)= 2.000000E-01 CPU= 6.018049E+00
+ CYCLE= 44000 T= 8.647221E+03 DT(MAX)= 2.000000E-01 CPU= 6.139831E+00
+ CYCLE= 45000 T= 8.847221E+03 DT(MAX)= 2.000000E-01 CPU= 6.268591E+00
+ CYCLE= 46000 T= 9.047221E+03 DT(MAX)= 2.000000E-01 CPU= 6.402658E+00
+ Restart written  TIME =   9.150021E+03 CYCLE=    46514
+ CYCLE= 47000 T= 9.247221E+03 DT(MAX)= 2.000000E-01 CPU= 6.531960E+00
+ CYCLE= 48000 T= 9.447221E+03 DT(MAX)= 2.000000E-01 CPU= 6.681590E+00
+ CYCLE= 49000 T= 9.647221E+03 DT(MAX)= 2.000000E-01 CPU= 6.845768E+00
+ CYCLE= 50000 T= 9.847221E+03 DT(MAX)= 2.000000E-01 CPU= 6.972043E+00
+
+ JOB TERMINATION PROCEDURE STARTED
+
+1* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ TIME= 1.0000E+04 s = 1.6667E+02 min = 2.7778E+00 hrs = 1.1574E-01 days
+ DT(LAST)= 2.000000E-01 s    CYCLE=   50764        CPU TIME= 7.0650E+00
+   *******  TIME EDIT  *****
+
+ MELCOR    BASE CODE VERSION
+ 2.2 08-31-2017          
+
+ This is an official build.
+ MELCOR 2.2.10167
+ 
+ !!!LICENSING HAS BEEN DISABLED!!!
+ 
+ IRDKESE     4/09/18  10:53:03 
+
+ TEST_1                                                                       
+ CYCLES/CPU = 7.18528E+03 (1/s)    TIME/CPU= 1.41543E+03
+
+
+               *** GLOBAL ENERGY BALANCE EDIT ***
+
+     GLOBAL ENERGY ERROR                     =    -1.69754E-04
+     GLOBAL ENERGY ERROR / ENERGY IN PROBLEM =    -5.75407E-15
+
+
+  ENERGY EDIT FOR PACKAGE ESF
+  ENERGY NOW         =     0.00000E+00     ORIGINAL ENERGY  =     0.00000E+00
+  ENERGY TRANSMITTED =     0.00000E+00     ENERGY CREATED   =     0.00000E+00
+  ENERGY ERROR       =     0.00000E+00     REL ENERGY ERROR =     0.00000E+00
+
+  ENERGY EDIT FOR PACKAGE CVH
+  ENERGY NOW         =     2.95016E+10     ORIGINAL ENERGY  =     3.41469E+10
+  ENERGY TRANSMITTED =     0.00000E+00     ENERGY CREATED   =    -4.64529E+09
+  ENERGY ERROR       =    -1.69754E-04     REL ENERGY ERROR =    -5.75407E-15
+
+USER-MODIFIED SENSITIVITY COEFFICIENTS
+
+
+ END OF EDIT FOR NCG
+
+
+          ***************************************
+          *                                     *
+          *  CONTROL VOLUME HYDRODYNAMICS EDIT  *
+          *                                     *
+          ***************************************
+
+
+
+           VOLUME    PRESSURE      TLIQ        TVAP      MASS        ENERGY     DENSITY     ENTHALPY    QUALITY       VOID      CVVELO(1)   CVVELO(2)
+                        PA           K           K        KG          J/KG      KG/M**3       J/KG                  FRACTION       M/S         M/S
+                1  1.0000E+07    584.2315    584.2315  1.6640E+03  2.5445E+06  5.5466E+01  2.7248E+06  1.0000E+00  1.0000E+00  0.0000E+00  0.0000E+00
+                2  1.0002E+07    583.1678    584.2557  6.3904E+03  1.6135E+06  2.1301E+02  1.6605E+06  1.9592E-01  7.5223E-01  1.2565E-05  3.4233E-02
+                3  9.9999E+06    399.9999    399.9999  2.8274E+04  5.2897E+05  9.4248E+02  5.3958E+05  0.0000E+00  0.0000E+00  0.0000E+00  0.0000E+00
+
+
+           VOLUME    VOLLIQ     VOLFOG     VOLVAP    VIRVOLLIQ  VIRVOLVAP  ENERGY    VOLUME            VOLUME
+                      M**3       M**3       M**3       M**3       M**3        J        NAME              TYPE
+                1  0.000E+00  0.000E+00  3.000E+01  0.000E+00  0.000E+00  4.234E+09  IN                                
+                2  7.433E+00  0.000E+00  2.257E+01  0.000E+00  0.000E+00  1.031E+10  CENTR                             
+                3  3.000E+01  0.000E+00  0.000E+00  0.000E+00  0.000E+00  1.496E+10  OUT                               
+
+
+           VOLUME    S-Z-POOL    C-Z-POOL    ENERGY       AREA      VOLUME
+                        M           M           J          M**2      NAME
+                1   1.0000E+01  1.0000E+01  4.2341E+09  0.0000E+00 IN              
+                2   1.0248E+01  1.0248E+01  1.0311E+10  3.0000E+01 CENTR           
+                3   1.1000E+01  1.1000E+01  1.4956E+10  0.0000E+00 OUT             
+
+
+           VOLUME      T(P)
+                         K
+               1   5.8423E+02  IN              
+               2   5.8425E+02  CENTR           
+               3   5.8423E+02  OUT             
+
+
+ VOLUME             MATERIAL         MASS      DENSITY        E         PPART        ECV
+                   NUM  NAME          KG       KG/M**3       J/KG         PA          J
+ IN                  3  H2O-VAP   1.6640E+03  5.5466E+01  2.5445E+06  1.0000E+07  4.2341E+09
+ CENTR               1  POOL      5.1384E+03  6.9127E+02  1.3867E+06  1.0002E+07  7.1253E+09
+                     3  H2O-VAP   1.2520E+03  5.5480E+01  2.5445E+06  1.0002E+07  3.1858E+09
+ OUT                 1  POOL      2.8274E+04  9.4248E+02  5.2897E+05  9.9999E+06  1.4956E+10
+
+
+  MATERIAL           TOTAL       ORIGINAL        MASS        MASS
+ NUM  NAME           MASS          MASS         SOURCE        ERROR
+                     (KG)          (KG)          (KG)          (KG)
+ 1-3  WATER       3.63287E+04   5.82126E+04  -2.18839E+04  -5.82077E-11
+
+
+     TOTAL      ORIGINAL   POOL ENERGY  ATMOS ENERGY       POOL     ENERGY
+     ENERGY      ENERGY       SOURCE       SOURCE        SURFACE    ERROR
+       (J)         (J)          (J)          (J)           (J)       (J)
+   2.9502E+10   3.4147E+10  -1.7219E+10   1.2574E+10   0.0000E+00  -4.9591E-05
+
+
+     MASS SOURCE EDIT
+
+  MASS SOURCE OF CONTROL VOLUME IN              
+   DELM( 1: 3)=  0.0000E+00  0.0000E+00  5.5466E+05
+  MASS SOURCE OF CONTROL VOLUME CENTR           
+   DELM( 1: 3)=  0.0000E+00  0.0000E+00  0.0000E+00
+  MASS SOURCE OF CONTROL VOLUME OUT             
+   DELM( 1: 3)= -2.6498E+04  0.0000E+00 -5.5005E+05
+
+
+     ENERGY SOURCE EDIT
+
+ VOLUME            POOL ENERGY   ATMOS ENERGY   POOL S ENERGY
+                       (J)           (J)           (J)
+ IN                  0.0000E+00    1.5114E+12    0.0000E+00
+ CENTR               0.0000E+00    0.0000E+00    0.0000E+00
+ OUT                -1.7219E+10   -1.4988E+12    0.0000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME IN              
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME CENTR           
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+     VOLUME - ALTITUDE TABLE FOR CONTROL VOLUME OUT             
+
+             ALTITUDE        VOLUME       MATL VOLUME    VIRT VOLUME
+               (M)           (M**3)         (M**3)         (M**3)
+      2     1.10000E+01    3.00000E+01    3.00000E+01    0.00000E+00
+      1     1.00000E+01    0.00000E+00    0.00000E+00    0.00000E+00
+
+
+   *** VELOCITY CALCULATION STATISTICS EDIT ***
+       NUMBER OF MATRIX INVERSIONS             =  101528
+       NUMBER OF FLOW REVERSALS                =       0
+       NUMBER OF EXPLICIT INTEGRATIONS         =       0
+       NUMBER OF SIGNIFICANT DIGITS INVERSIONS =   50764
+       NUMBER OF WATER PACKINGS IDENTIFIED     =       0
+       NUMBER OF CHOKED-FLOW-BASED RESOLVES    =       0
+
+
+   TOTAL CPU TIME FOR CVH AND FL PACKAGES    =    2.37935E+00
+   CPU TIME FOR CVH AND FL PKGS CALCULATIONS =    2.37041E+00
+   CPU TIME FOR CVH AND FL PKGS EDITS        =    5.14100E-03
+   CPU TIME FOR CVH AND FL PACKAGES RESTARTS =    3.80100E-03
+
+
+   *** SUBCYCLE STATISTICS EDIT ***
+       NUMBER OF SUBCYCLES                    =   50764
+       NUMBER OF REPEATED SUBCYCLES           =       0
+       NUMBER OF MOMENTUM BALANCE CALLS       =   50764
+       PRESENT SUBCYCLE TIMESTEP              =    2.00000E-01
+
+ end OF EDIT FOR CVH
+
+
+          ******************************
+          *                            *
+          *   FLOW PATH PACKAGE EDIT   *
+          *                            *
+          ******************************
+
+
+
+
+ Number FLOW PATH        FROM VOLUME      TO VOLUME           VELLIQ      VELVAP      MFLOW        AREA       TYP ACT CHOKED  TIMES
+                                                                M/S         M/S         KG/S        M**2                      CHOKED
+     11 FP1_2            IN               CENTR             0.0000E+00  1.0000E+00  5.5466E+01  1.0000E+00     0   0   NO        0.
+     12 FP2_3            CENTR            OUT               3.7694E-04  1.0555E+00  5.5473E+01  1.0000E+00     0   0   NO        0.
+
+
+ Number FLOW PATH        FROM VOLUME      TO VOLUME         MATERIAL         MFLOW      INT-MFLOW
+                                                           NUM  NAME          KG/S         KG
+     11 FP1_2            IN               CENTR              1  POOL      0.00000E+00  0.00000E+00
+                                                             3  H2O VAP   5.54662E+01  5.54664E+05
+     12 FP2_3            CENTR            OUT                1  POOL      1.37949E-02  2.64983E+04
+                                                             3  H2O VAP   5.54589E+01  5.50049E+05
+
+
+ Number FLOW PATH          P HEAD       FRACTION     OPEN AREA       ALPHA
+                            (PA)          OPEN         (M**2)
+     11 FP1_2            0.0000E+00    1.0000E+00    1.0000E+00    1.0000E+00
+     12 FP2_3            0.0000E+00    1.0000E+00    1.0000E+00    9.4706E-01
+
+
+ Number PUMP NAME          SPEED          FLOW         HEAD        HYD TRQ        RHO MIX        FR TRQ        MOT TRQ       INRT
+                           (RPM)         (m3/s)        (Pa)         (N*m)         (kg/m3)        (N*m)         (N*m)        (kg*m2)
+
+
+ Number PUMP NAME         DEL POW         DISS         DISPOL        DISATM            EFF
+                            (W)           (W)           (W)           (W)              (%)
+
+
+      ********************************
+      *       IHX PACKAGE EDIT       *
+      ********************************
+
+
+         Integral Heat Exchangers
+         (Currently treated as part of FL)
+
+      =====================
+       Time-Dependent data 
+      =====================
+
+
+      ********************************
+      *       MCH PACKAGE EDIT       *
+      ********************************
+
+
+         Machinery
+         (Currently treated as part of FL)
+
+      =====================
+       Time-Dependent data 
+      =====================
+
+
+      ********************************
+      *       CCF PACKAGE EDIT       *
+      ********************************
+
+
+         Counter Current Flow limit through coupled paths
+
+
+ end OF EDIT FOR FL 
+
+
+
+     ***** CONTROL VOLUME THERMODYNAMICS STATISTICS EDIT *****
+                     VALUES SINCE LAST EDIT
+
+
+    CALLS TO MAIN PROGRAM (CVTHRM)                    =   23498
+      NUMBER OF CONTROL VOLUMES PROCESSED             =   46996
+    CALLS TO WATER EQUILIBRIUM PACKAGE (CVTWE)        =       0
+    CALLS TO GAS EQUILIBRIUM PACKAGE (CVTGE)          =       0
+    CALLS TO WATER + GAS EQUILIBRIUM PACKAGE (CVTWGE) =   11749
+      STATISTICS ON WATER + GAS EQUILIBRIUM PACKAGE
+      NUMBER OF TEMPERATURE ITERATIONS =      0
+      AVERAGE TEMPERATURE ITERATIONS PER CALL = 0.00000E+00
+      NUMBER OF DENSITY ITERATIONS =      0
+      AVERAGE DENSITY ITERATIONS PER CALL = 0.00000E+00
+      AVERAGE DENSITY ITERATIONS PER TEMPERATURE ITERATION =  0.00000E+00
+    CALLS TO WATER + GAS NON-EQUILIBRIUM PACKAGE (CVTNEQ) =  23498
+      STATISTICS ON WATER + GAS NON-EQUILIBRIUM PACKAGE
+      NUMBER OF ITERATIONS =      0
+      AVERAGE ITERATIONS PER CALL = 0.00000E+00
+
+
+
+
+     ************************************
+     *       CONTROL FUNCTION EDIT      *
+     ************************************
+
+
+
+     NUMBER OF CONTROL FUNCTIONS                =     2
+     NUMBER OF REAL VALUED CONTROL FUNCTIONS    =     2
+     NUMBER OF LOGICAL VALUED CONTROL FUNCTIONS =     0
+     NUMBER OF ARGUMENTS                        =     2
+
+
+  CONTROL FUNCTION NUMBER  CURRENT VALUE
+ ZERO                    1        0.00000E+00
+ Test CF                 2        2.00010E+04
+
+ END OF EDIT FOR CF 
+
+ END OF EDIT FOR TF 
+
+
+ H2O PACKAGE CALL STATISTICS
+
+
+ CALLS TO  H2OEST    H2O1PH    H2O2PH    H2OSAT    H2OSAU    H2O2PD    H2O2PL
+ EDIT    3.614E+05 1.137E+05 3.567E+05 7.050E+02 1.292E+05 0.000E+00 2.350E+04
+ RUN     1.815E+06 6.660E+05 1.770E+06 3.003E+03 5.584E+05 1.828E+04 1.015E+05
+
+ Not Quite Equilibrium model is disabled
+
+ END OF EDIT FOR ESF
+
+
+
+ DT CALCULATION SUMMARY
+
+ DT= 2.00000E-01  DTMAX= 2.00000E-01  DTMIN= 1.00000E-10
+ DT CONTROL=(MAX, -1)  DT CUTS=  0
+ DT(CVH)= 1.82000E+00
+ DT(LAST CYCLE)= 2.00000E-01
+                                   THIS EXECUTION  LOCAL AVERAGE
+ NUMBER OF COMPLETED CYCLE           =    50765
+ NUMBER OF FALLBACKS                 =        0       0.0000E+00
+ NUMBER OF FALLBACKS (MEXDTH 1/2 DT) =        0       0.0000E+00
+ NUMBER OF FALLBACKS (MEXLOP)        =        0       0.0000E+00
+ NUMBER OF CVH SUBCYCLES PER CYCLE   =    1.000       1.0000E+00
+ Restart written  TIME =   1.000002E+04 CYCLE=    50764
+
+
+ FOR THIS RUN THERE WERE
+
+ PLOT TIME RECORDS =    1001
+
+ EDIT TIME RECORDS =       6
+
+ START MESSAGE FILE *************
+
+  MELCOR message output   IRDKESE    4/09/18  10:52:56
+  TEST_1
+  Listing written TIME=  0.00000E+00 CYCLE=        0
+  Listing written TIME=  1.50063E+02 CYCLE=     1514
+  Restart written   TIME =   1.500628E+02 CYCLE=     1514
+  Restart written   TIME =   1.150021E+03 CYCLE=     6514
+  Restart written   TIME =   2.150021E+03 CYCLE=    11514
+  Listing written TIME=  2.65002E+03 CYCLE=    14014
+  Restart written   TIME =   3.150021E+03 CYCLE=    16514
+  Restart written   TIME =   4.150021E+03 CYCLE=    21514
+  Listing written TIME=  5.15002E+03 CYCLE=    26514
+  Restart written   TIME =   5.150021E+03 CYCLE=    26514
+  Restart written   TIME =   6.150021E+03 CYCLE=    31514
+  Restart written   TIME =   7.150021E+03 CYCLE=    36514
+  Listing written TIME=  7.65002E+03 CYCLE=    39014
+  Restart written   TIME =   8.150021E+03 CYCLE=    41514
+  Restart written   TIME =   9.150021E+03 CYCLE=    46514
+  Listing written TIME=  1.00000E+04 CYCLE=    50764
+  Restart written   TIME =   1.000002E+04 CYCLE=    50764
+ Begin normal termination
+  Time   10000.0212728003
+  CPU   7.06499500000000
+  Relative Energy Error -5.754070000000000E-015
+  CVH-H2O-RELERR  3.998693332606853E-012
+  Normal termination  TIME= 1.00000E+04 CYCLE= 50764 CPU =  7.06500E+00
