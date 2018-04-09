@@ -21,20 +21,13 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import os
-import copy
-import shutil
 import re
-from  __builtin__ import any as bAny
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import phisicsdata
 import relapdata
 from PhisicsInterface import Phisics
 from Relap5Interface import Relap5
 import xml.etree.ElementTree as ET
-from xml.etree.ElementTree import Element, SubElement, Comment
-from xml.dom import minidom
-import fileinput 
-import sys
 
 
 class Phisics_Relap5(CodeInterfaceBase):
