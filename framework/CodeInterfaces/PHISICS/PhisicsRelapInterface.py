@@ -12,14 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on February 1st 2018  
-
-@author: rouxpn 
+Created on February 1st 2018
+@author: rouxpn
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-
 import os
 import re
 from CodeInterfaceBaseClass import CodeInterfaceBase
@@ -29,14 +27,13 @@ from PhisicsInterface import Phisics
 from Relap5Interface import Relap5
 import xml.etree.ElementTree as ET
 
-
-class Phisics_Relap5(CodeInterfaceBase):
+class PhisicsRelap5(CodeInterfaceBase):
   """
-    class that links the phisics and relap interfaces
+    Class that links the PHISICS and RELAP interfaces.
   """ 
   def __init__(self):
     """
-      Constructor
+      Constructor.
       @ In, None
       @ Out, None
     """
@@ -45,20 +42,20 @@ class Phisics_Relap5(CodeInterfaceBase):
     self.PhisicsInterface.addDefaultExtension()
     self.Relap5Interface = Relap5()
     self.Relap5Interface.addDefaultExtension()
-  
+
   def definePhisicsVariables(self):
     """
-      Lists the variables perturbable within PHISICS. The other variables will be related to relap. 
-      @ In, None, 
-      @ Out, phisicsVariables, list 
+      Lists the variables perturbable within PHISICS. The other variables will be related to RELAP.
+      @ In, None
+      @ Out, phisicsVariables, list
     """
     self.phisicsVariables = ['DENSITY','XS','DECAY','FY','QVALUES','ALPHADECAY','BETA+DECAY','BETA+XDECAY','BETADECAY','BETAXDECAY','INTTRADECAY']
-  
+
   def defineRelapInput(self):
     """
-      Lists the input file types relative to RELAP5. The other input types will be related to PHISICS. 
-      @ In, None, 
-      @ Out, RelapInputTypes, list 
+      Lists the input file types relative to RELAP5. The other input types will be related to PHISICS.
+      @ In, None
+      @ Out, RelapInputTypes, list
     """
     self.relapInputTypes = ['relapInp','h2o','he','rellic','executable']
   
@@ -80,30 +77,32 @@ class Phisics_Relap5(CodeInterfaceBase):
       @ Out, __path, string, path
     """
     return self.__path
-    
+
   def getBase(self):
     """
       Retriever for file base.
       @ In, None
       @ Out, __base, string path
     """
-    return self.__base 
-  
+    return self.__base
+
   def addDefaultExtension(self):
     """
-      Possible input extensions found in the input files. 
+      Possible input extensions found in the input files.
       @ In, None
-      @ Out, None 
+      @ Out, None
     """
     self.addInputExtension(['xml','dat','path'])
   
   def depTime(self,inputXML,searchDict,dictKeys):
     """
-      Figures out if a depletion scheme is on. If it is, this modules synchronizes the PHISICS time and RELAP time based on the input. 
-      The input read are dep.xml and inst_cont.xml. The resulting ditionary is use in the "combine" class to print the PHISICS and RELAP 
-      csv output in the proper time lines. 
-      @ In, depInp, depletion input name (dep.xml) 
-      @ Out, timeDict, dictionary 
+      Synchronizes the PHISICS time and RELAP time based on the input.
+      The input read are dep.xml and inst_cont.xml. The resulting ditionary is use in the "combine" class to print the PHISICS and RELAP
+      csv output in the proper time lines.
+      @ In, inputXML, depletion input name 
+      @ In, searchDict, dictionary, dictionary containing dummy keys, and the searched keywords as values
+      @ In, dictKeys, dictionary, dictionary containing dummy keys, the values are the keys of the output dict timeDict
+      @ Out, timeDict, dictionary
     """
     timeDict = {}
     libraryTree = ET.parse(inputXML)
@@ -111,8 +110,8 @@ class Phisics_Relap5(CodeInterfaceBase):
     for key in searchDict:
       for child in libraryRoot.getiterator(searchDict[key]):
         timeDict[dictKeys[key]] = child.text
-        return timeDict 
-  
+        return timeDict
+
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize
@@ -120,10 +119,10 @@ class Phisics_Relap5(CodeInterfaceBase):
       read specific flags.
       Only one option is possible. You can choose here, if multi-deck mode is activated, from which deck you want to load the results
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-      @ Out, None.
+      @ Out, None
     """
     self.xmlNode = xmlNode
-   
+
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
@@ -139,45 +138,44 @@ class Phisics_Relap5(CodeInterfaceBase):
     dict = self.mapInputFileType(inputFiles)
     outputfile = 'out~'+inputFiles[dict['relapInp'.lower()]].getBase()
     self.outFileName = inputFiles[dict['relapInp'.lower()]].getBase()
-    commandToRun = executable + ' -i ' +inputFiles[dict['relapInp'.lower()]].getFilename() + ' -o  ' + self.outFileName+'.o' 
+    commandToRun = executable + ' -i ' +inputFiles[dict['relapInp'.lower()]].getFilename() + ' -o  ' + self.outFileName+'.o'
     commandToRun = commandToRun.replace("\n"," ")
-    commandToRun  = re.sub("\s\s+" , " ", commandToRun )
+    commandToRun  = re.sub("\s\s+", " ",commandToRun)
     returnCommand = [('parallel',commandToRun)], outputfile
     return returnCommand
-    
+
   def mapInputFileType(self,currentInputFiles):
     """
-      Assigns a number to the input file Types 
+      Assigns a number to the input file Types.
       @ In, currentInputFiles,  list,  list of current input files (input files from last this method call)
       @ Out, keyWordDict, dictionary, dictionary have input file types as keyword, and its related order of appearance (interger) as value
     """
-    keyWordDict = {} 
+    keyWordDict = {}
     count = 0
     for inFile in currentInputFiles:
-      keyWordDict[inFile.getType().lower()] = count 
-      count = count + 1  
+      keyWordDict[inFile.getType().lower()] = count
+      count = count + 1
     return keyWordDict
-      
+
   def finalizeCodeOutput(self,command,output,workingDir):
     """
       This method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
       It can be used for those codes, that do not create CSV files to convert the whatever output format into a csv
-      This methods also calls the method 'mergeOutput' if MPI mode is used, in order to merge all the output files into one 
+      This methods also calls the method 'mergeOutput' if MPI mode is used, in order to merge all the output files into one.
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
+      @ Out, None
     """
-    ### relap
+    # RELAP
     self.Relap5Interface.finalizeCodeOutput(command,self.outFileName,workingDir)
-    ### phisics
-    #output = 'unused'
+    # PHISICS
     self.PhisicsInterface.finalizeCodeOutput(command,output,workingDir,phiRel=True)
-    import combine 
+    import combine
     jobTitle = self.PhisicsInterface.jobTitle
     self.perturbationNumber = workingDir.split('/')[-1]
     combine.combine(workingDir,os.path.join(workingDir,self.outFileName+'.csv'),os.path.join(workingDir,jobTitle+'-'+self.perturbationNumber+'.csv'),self.depTimeDict,self.inpTimeDict)
- 
+
   def checkForOutputFailure(self,output,workingDir):
     """
       This method is called by the RAVEN code at the end of each run  if the return code is == 0.
@@ -187,32 +185,33 @@ class Phisics_Relap5(CodeInterfaceBase):
       (e.g. in RELAP5 would be the keyword "********")
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, failure, bool, True if the job is failed, False otherwise
+      @ Out, None
     """
     self.Relap5Interface.checkForOutputFailure(output,workingDir)
   
   def tailorRelap5InputFiles(self,currentInputFiles):
     """
-      Generates a list of relap5 files only, in order to pass it to the relap5 parsers
+      Generates a list of relap5 files only, in order to pass it to the RELAP parsers.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
-      @ Out, relap5CurrentInputFiles, list , list of relap5 current input files (input files from last this method call)
+      @ Out, relap5CurrentInputFiles, list, list of RELAP current input files (input files from last this method call)
+      @ Out, phisicsCurrentInputFiles, list, list of PHISICS current input files (input files from last this method call)
     """
     self.defineRelapInput()
     relap5CurrentInputFiles = []
     phisicsCurrentInputFiles = []
     for index,inFile in enumerate(currentInputFiles):
-      if inFile.getType() in set(self.relapInputTypes): 
+      if inFile.getType() in set(self.relapInputTypes):
         relap5CurrentInputFiles.append(inFile)
       else:
         phisicsCurrentInputFiles.append(inFile)
     return relap5CurrentInputFiles, phisicsCurrentInputFiles
-  
+
   def tailorSampledVariables(self,perturbedVars):
     """
-      Shapes the the key 'SampledVars' from the Kwargs that suits properly the code of interest. 
-      Hence, the variables relative to PHISICS and RELAP5 are separated to feed to the two codes only the variables they recognize. 
-      @ In, perturbedVars, Dictionary, dictionary of the PHISICS and RELAP variables 
-      @ Out, None 
+      Shapes the key 'SampledVars' from the Kwargs that suits properly the code of interest.
+      Hence, the variables relative to PHISICS and RELAP5 are separated to feed to the two codes only the variables they recognize.
+      @ In, perturbedVars, Dictionary, dictionary of the PHISICS and RELAP variables
+      @ Out, None
     """
     passToDesignatedCode = {}
     passToDesignatedCode['phisics'] = {}
@@ -222,39 +221,37 @@ class Phisics_Relap5(CodeInterfaceBase):
     for var,value in perturbedVars.iteritems():
       if var.split('|')[0] in set(self.phisicsVariables):
         passToDesignatedCode['phisics']['SampledVars'][var] = value
-      else: 
+      else:
         passToDesignatedCode['relap5']['SampledVars'][var] = value
     return passToDesignatedCode
-  
+
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
-      this generate a new input file depending on which sampler is chosen
+      Generates a new input file depending on which sampler is chosen.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
       @ In, oriInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
       @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
-      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
-    """ 
-    self.definePhisicsVariables()    
-    perturbedVars = Kwargs['SampledVars']    
-    passToDesignatedCode = self.tailorSampledVariables(perturbedVars)    
+      @ Out, currentInputFiles, list, list of newer input files, list of the new input files (modified and not)
+    """
+    self.definePhisicsVariables()
+    perturbedVars = Kwargs['SampledVars']
+    passToDesignatedCode = self.tailorSampledVariables(perturbedVars)
 
     for tag,value in Kwargs.iteritems():
       if tag != 'SampledVars':
-        passToDesignatedCode['phisics'][tag] = value  
+        passToDesignatedCode['phisics'][tag] = value
         passToDesignatedCode['relap5'][tag] = value
 
     relap5CurrentInputFiles, phisicsCurrentInputFiles = self.tailorRelap5InputFiles(currentInputFiles)
-    ### Phisics  
+    # PHISICS
     self.PhisicsInterface._readMoreXML(self.xmlNode)
     self.PhisicsInterface.createNewInput(phisicsCurrentInputFiles,oriInputFiles,samplerType,**passToDesignatedCode['phisics'])
-    ### Relap 
+    # RELAP
     self.Relap5Interface._readMoreXML(self.xmlNode)
     self.outputDeck = self.Relap5Interface.outputDeck
-    self.Relap5Interface.createNewInput(relap5CurrentInputFiles,oriInputFiles,samplerType,**passToDesignatedCode['relap5'])    
+    self.Relap5Interface.createNewInput(relap5CurrentInputFiles,oriInputFiles,samplerType,**passToDesignatedCode['relap5']) 
     self.depTimeDict = self.depTime(self.PhisicsInterface.depInp,{'search1':'n_tab_interval','search2':'tab_time_step'},{'search1':'nBUsteps','search2':'timeSteps'})
     self.inpTimeDict = self.depTime(self.PhisicsInterface.phisicsInp,{'search1':'TH_between_BURN'},{'search1':'TH_between_BURN'})
-    return currentInputFiles   
-    
-
+    return currentInputFiles
