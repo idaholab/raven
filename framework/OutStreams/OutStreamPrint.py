@@ -135,8 +135,10 @@ class OutStreamPrint(OutStreamManager):
     dictOptions['filenameroot'] = self.name
     if len(self.filename) > 0:
       dictOptions['filenameroot'] = self.filename
-    if self.subDirectory is not None:
-      dictOptions['filenameroot'] = os.path.join(self.subDirectory,dictOptions['filenameroot'])
+    # OLD operation; however, head file is in subDirectory already, so no need to append it to path.
+    # Leaving here for now in case this comes up in the short term.
+    #if self.subDirectory is not None:
+    #  dictOptions['filenameroot'] = os.path.join(self.subDirectory,dictOptions['filenameroot'])
 
     if self.what:
       dictOptions['what'] = self.what
