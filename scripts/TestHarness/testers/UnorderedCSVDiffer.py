@@ -70,7 +70,16 @@ class UnorderedCSVDiffer:
         match = match[(abs(match[idx] - val) < self.__rel_err)]
       except TypeError:
         # otherwise, use exact matching
-        match = match[match[idx] == val]
+        try:
+          match = match[match[idx] == val]
+        except TypeError as e:
+          print('Type problem!')
+          print('  ... dir:',self.__test_dir)
+          print('  ... val:',val,type(val))
+          print('  ... match:',match[idx],type(match[idx]))
+          print('  ... csv:',match)
+          print('  ... row:',row)
+          raise e
     return match
 
   def diff(self):
