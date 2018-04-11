@@ -66,12 +66,12 @@ class UnorderedCSVDiffer:
       elif pd.isnull(val):
         val = sys.maxint
       # relative error (scale by "val" unless it's 0)
-      if val == 0:
-        scale = 1.0
-      else:
-        scale = abs(val)
       try:
         # try float/int first
+        if val == 0:
+          scale = 1.0
+        else:
+          scale = abs(val)
         match = match[(abs(match[idx] - val) < scale*self.__rel_err)]
       except TypeError:
         # otherwise, use exact matching
