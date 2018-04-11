@@ -169,31 +169,46 @@ double NDSpline::getGradientAt(std::vector<double> /* point_coordinate */){
 }
 
 void NDSpline::fit(std::vector< std::vector<double> > coordinates , std::vector<double> values ){
-    std::vector< std::vector<double> >  discretization_values;
     _dimensions=coordinates[0].size();
+    // create mapping
+    std::map<std::vector<double>,int> sample_to_value;
+    // local values
+    std::vector<double> vals;
+    // indexes
+    std::vector<int> indexes;
+    int tot_num_values = values.size();
+    int tot_num_combinations = 1;
+    
+    // get discretization values
     for (int n=0; n<_dimensions; n++)
     {
         std::vector<double>  d_values;
         
         for (int d=0; d<coordinates.size(); n++)
         {
-            coordinates
-            if (std::find(d_values.begin(), d_values.end(), value) != d_values.end())
-                d_values.push_back(value)
+            if (std::find(d_values.begin(), d_values.end(), coordinates[d][n]) != d_values.end())
+            {
+                d_values.push_back(coordinates[d][n]);
+            }
+            sample_to_value[coordinates[d]] = d
         }
+        _discretizations.push_back(d_values);
+        tot_num_combinations *= d_values.size()
+    }
+    if (tot_num_combinations != tot_num_values)
+        throw ("Error in NDSpline::fit: the feature grid is not a regular cartesian grid!");
+    
+    
+    for (int n=0; n<tot_num_combinations; n++)
+    {
         
         
-        if (std::find(d_values.begin(), d_values.end(), value) != d_values.end())
-          d_values.push_back(value)
-        values.push_back(data[startingPoint]);
-        startingPoint++;
+        
+        vals
     }
     
-    _discretizations =
-    _discretizations
     
-    
-     _discretizations, _values
+     _values
   _completed_init = true;
 }
 
