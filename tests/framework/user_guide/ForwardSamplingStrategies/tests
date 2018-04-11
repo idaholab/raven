@@ -12,8 +12,8 @@
     type = 'RavenFramework'
     input = 'forwardSamplingGrid.xml'
     UnorderedCsv = 'RunDir/Grid/histories_0.csv'
-    #image = 'RunDir/Grid/1-historyPlot_line-line-line-line.png RunDir/Grid/1-samplesPlot3D_scatter-scatter-scatter-scatter.png'
-    #required_libraries = 'PIL'
+    image = 'RunDir/Grid/1-historyPlot_line-line-line-line.png RunDir/Grid/1-samplesPlot3D_scatter-scatter-scatter-scatter.png'
+    required_libraries = 'PIL'
     rel_err = 0.01
   [../]
 
