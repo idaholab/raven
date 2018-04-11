@@ -140,28 +140,39 @@ contain the following optional XML sub-nodes:
        \xmlNode{outputRow} and  \xmlNode{outputPivotValue} can not be inputted (mutually exclusive).
        \\\nb This XML node is available for DataObjects of type \xmlNode{PointSet} only;
   %
-  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field} the name of
-    the parameter whose values need to be used as reference for the values
-    specified in the XML nodes \xmlNode{inputPivotValue},
-    \xmlNode{outputPivotValue}, or \xmlNode{inputPivotValue} (if inputted).
-    This field can be used, for example, if the driven code output file uses  a
-    different name for the variable ``time'' or to specify a different reference
-    parameter (e.g. PRESSURE). Default value is \xmlString{time}.
-    \\\nb The variable specified here should be monotonic; the code does not
-    check for eventual oscillation and is going to take the first occurance for
-    the values specified in the XML nodes \xmlNode{inputPivotValue},
-    \xmlNode{outputPivotValue}, and  \xmlNode{inputPivotValue};
-  %
-  \item \xmlNode{inputPivotValue}, \xmlDesc{float, optional field}, the value of the \xmlNode{pivotParameter} at which the input space needs to be retrieved
-    If this node is inputted, the node  \xmlNode{inputRow} can not be inputted (mutually exclusive).
-    %
-  \item \xmlNode{outputPivotValue}. This node can be either a float or a list of floats, depending on the type of DataObjects:
-   \begin{itemize}
-      \item if \xmlNode{HistorySet},\xmlNode{outputPivotValue}, \xmlDesc{list of floats, optional field},  list of values of the
-                          \xmlNode{pivotParameter} at which the output space needs to be retrieved;
-      \item if \xmlNode{PointSet},\xmlNode{outputPivotValue}, \xmlDesc{float, optional field},  the value of the \xmlNode{pivotParameter}
-         at which the output space needs to be retrieved. If this node is inputted, the node  \xmlNode{outputRow} can not be inputted (mutually exclusive);
-   \end{itemize}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%% This feature is being disabled until the DataObjects handle data in a
+  %%%% more encapsulated fashion. When the data can handle this all internally
+  %%%% then we can re-add this feature. As of now, determining the rows
+  %%%% associated to the outputPivotValue or inputPivotValue requires knowing
+  %%%% information outside of the "value" passed into
+  %%%% DataObject.updateOutputValue or DataObject.updateInputValue, thus the
+  %%%% caller has to do this computation, but currently the caller occurs in ~50
+  %%%% different places according to my grep of "updateOutputValue"
+  %%%% -- DPM 8/29/2017
+  % \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field} the name of
+  %   the parameter whose values need to be used as reference for the values
+  %   specified in the XML nodes \xmlNode{inputPivotValue},
+  %   \xmlNode{outputPivotValue}, or \xmlNode{inputPivotValue} (if inputted).
+  %   This field can be used, for example, if the driven code output file uses  a
+  %   different name for the variable ``time'' or to specify a different reference
+  %   parameter (e.g. PRESSURE). Default value is \xmlString{time}.
+  %   \\\nb The variable specified here should be monotonic; the code does not
+  %   check for eventual oscillation and is going to take the first occurance for
+  %   the values specified in the XML nodes \xmlNode{inputPivotValue},
+  %   \xmlNode{outputPivotValue}, and  \xmlNode{inputPivotValue};
+  % %
+  % \item \xmlNode{inputPivotValue}, \xmlDesc{float, optional field}, the value of the \xmlNode{pivotParameter} at which the input space needs to be retrieved
+  %   If this node is inputted, the node  \xmlNode{inputRow} can not be inputted (mutually exclusive).
+  %   %
+  % \item \xmlNode{outputPivotValue}. This node can be either a float or a list of floats, depending on the type of DataObjects:
+  %  \begin{itemize}
+  %     \item if \xmlNode{HistorySet},\xmlNode{outputPivotValue}, \xmlDesc{list of floats, optional field},  list of values of the
+  %                         \xmlNode{pivotParameter} at which the output space needs to be retrieved;
+  %     \item if \xmlNode{PointSet},\xmlNode{outputPivotValue}, \xmlDesc{float, optional field},  the value of the \xmlNode{pivotParameter}
+  %        at which the output space needs to be retrieved. If this node is inputted, the node  \xmlNode{outputRow} can not be inputted (mutually exclusive);
+  %  \end{itemize}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
   It needs to be noticed that if the optional nodes in the block \xmlNode{options} are not inputted, the following default are applied:
     \begin{itemize}
@@ -184,30 +195,13 @@ contain the following optional XML sub-nodes:
       <Input>pipe_Area,pipe_Dh,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
-    <PointSet name='outTPS2'>
-        <options>
-            <inputPivotValue>0.00011</inputPivotValue>
-            <pivotParameter>time</pivotParameter>
-            <outputPivotValue>0.00012345</outputPivotValue>
-        </options>
-        <Input>pipe_Area,pipe_Dh,Dummy1</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
-    </PointSet>
     <HistorySet name='stories1'>
         <options>
             <inputRow>1</inputRow>
+            <outputRow>-1</outputRow>
         </options>
       <Input>pipe_Area,pipe_Dh</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
-    </HistorySet>
-    <HistorySet name='stories2'>
-        <options>
-            <inputRow>-1</inputRow>
-            <pivotParameter>time</pivotParameter>
-            <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
-        </options>
-        <Input>pipe_Area,pipe_Dh</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
   </DataObjects>
 \end{lstlisting}

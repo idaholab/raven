@@ -276,7 +276,7 @@ XML node and the requirements for other attributes change:
 {
     \begin{itemize}
       \item \xmlNode{Restart}, \xmlDesc{string, optional field}, the
-        body of this XML node must contain the name of an appropriate \textbf{PointSet} defined in the
+        body of this XML node must contain the name of an appropriate \textbf{DataObject} defined in the
         \xmlNode{DataObjects} block (see Section~\ref{sec:DataObjects}).  It is used as a
         ``restart'' tool, where it accepts pre-existing solutions in the PointSet instead
         of recalculating solutions.
@@ -290,7 +290,7 @@ XML node and the requirements for other attributes change:
         body of this XML node must contain a valid floating point value.  If a \xmlNode{Restart} node is
         supplied for this \xmlNode{Sampler}, this node offers a way to determine how strictly matching points
         are determined.  Given a point in the input space, if that point is within a relative Euclidean
-        distance (equal to the tolerance) of a restart point, the nearest restart point will be used instead.
+        distance (equal to the tolerance) of a restart point, the nearest restart point will be used.
         \default{1e-15}
     \end{itemize}
 }

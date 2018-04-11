@@ -92,8 +92,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     inputSpecification.addSub(outputInput)
 
     optionsInput = InputData.parameterInputFactory("options")
-    for option in ['inputRow','inputPivotValue','outputRow','outputPivotValue','operator','pivotParameter']:
+    for option in ['operator','pivotParameter']:
       optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.StringType)
+      optionsInput.addSub(optionSubInput)
+    for option in ['inputRow','outputRow']:
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.IntegerType)
       optionsInput.addSub(optionSubInput)
     inputSpecification.addSub(optionsInput)
 
@@ -530,67 +533,128 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       return self._dataContainer['inputs'] if not unstructuredInputs else self._dataContainer['unstructuredInputs']
 
-  def getMatchingRealization(self,requested,tol=1e-15):
+  def checkInputCompatibility(self,requested):
+    """
+      Checks if all the elements of "requested" are in this data object's input space (including metadata)
+      @ In, requested, list(str), variable names to check for
+      @ Out, compatible, bool, True if all inputs found
+    """
+    #FIXME We only check that all the inputs we need are in this data object's input space; we ignore other variables we don't need
+    #  that are in the data object.  This is because, for example, the Transformed space puts all the variables in the input space,
+    #  and we don't need them to restart.  However, this means it is possible to take values in misleading ways from a higher-dimensional
+    #  input space!
+    compatible = True
+    requestSet = set(requested)
+    haveSet = set(self.getParaKeys('inputs'))
+    missing = requestSet.difference(haveSet)
+    # if we're missing variables, we need to look farther or skip restarting
+    if len(missing) == 0:
+      return True
+    else:
+      # get the list of sampled variables from the metadata
+      metaSet = self.getAllMetadata()['SampledVars'][0].keys()
+      # reduce this list by removing the variables in the normal input space of this data object
+      metaSet = set(metaSet).difference(haveSet)
+      if all(m in metaSet for m in missing):
+        return True
+      else:
+        self.raiseADebug('Requested Space :',requested)
+        self.raiseADebug('DataObject Space:',haveSet.union(metaSet))
+        self.raiseAWarning('Requested realization input space does not match DataObject input space!  Assuming not found. Run with debug verbosity for more information.')
+        return False
+
+  def getMatchingRealization(self,requested,tol=1e-15,skipInputCheck=False):
     """
       Finds first appropriate match within tolerance and returns it.
       @ In, requested, dict, {inName:inValue, inName:inValue}
-      @ In, tol, float, relative tolerance with which to match
+      @ In, tol, float, optional, relative tolerance with which to match
+      @ In, skipInputCheck, bool, optional, allows skipping the checkInputCompatibility if desired (e.g. called beforehand from outside)
       @ Out, realization, dict, {'inputs':{inpName:value, inpName:value},'outputs':{outName:value, outName:value}} or None if not found
     """
     #if there's no entries, just return
     if len(self) < 1:
       return
-    #check input spaces match
-    #FIXME I don't like this fix.  Because of the Transformed space, our internal space includes latent variables, so we check subset.
-    #  This is potentially flawed, though, in case you're taking points from a higher-dimension space!
-    if not set(requested.keys()).issubset(set(self.getParaKeys('inputs'))):
-      self.raiseADebug('Requested Space :',requested.keys())
-      self.raiseADebug('DataObject Space:',self.getParaKeys('inputs'))
-      self.raiseADebug('Requested realization input space does not match DataObject input space!  Assuming not found...')
-      return
-    inpVals = self.getParametersValues('inputs')
-    #in benchmarking, using KDTree to query was shown to be consistently and on-average faster
-    #  for each tensor case of dimensions=[2,5,10], number of realizations=[10,100,1000]
-    #  when compared with brute force search through tuples
-    #  This speedup was realized both in formatting, as well as creating the tree/querying the tree
-    #if inputs have changed or this if first query, build the tree
+    #check input spaces match (unless requested to skip that)
+    if not skipInputCheck:
+      compatible = self.checkInputCompatibility(requested)
+      if not compatible:
+        return
+    # Two steps in finding matching realization:
+    #   1. Find the matching float values, using a KDTree approach
+    #   2. Check to make sure other values (e.g. strings) match in the realization obtained from (1).
+    # This works because strings can only come from function/constants, not from sampled variables.
+    #
+    ## First, obtain matching float realization
+    ### Note about benchmarking KDTree:
+    #  in benchmarking, using KDTree to query was shown to be consistently and on-average faster
+    #   for each tensor case of numVariables=[2,5,10], number of realizations=[10,100,1000]
+    #   when compared with brute force search through tuples
+    #   This speedup was realized both in formatting, as well as creating the tree/querying the tree
+    ### if inputs have changed or this if first query, build the tree
+    ### TODO what if getMatchingRealization is called with a different set of keys in "requested"? Tree needs rebuilding?
     if self.inputKDTree is None:
-      #set up data scaling, so that relative distances are used
-      # scaling is so that scaled = (actual - mean)/scale
-      for v in requested.keys():
-        mean,scale = mathUtils.normalizationFactors(inpVals[v])
-        self.treeScalingFactors[v] = (mean,scale)
-      #convert data into a matrix in the order of requested
-      data = np.dstack(tuple((np.array(inpVals[v])-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in requested.keys()))[0] #[0] is for the way dstack constructs the stack
-      self.inputKDTree = spatial.KDTree(data)
-    #query the tree
-    distances,indices = self.inputKDTree.query(tuple((v-self.treeScalingFactors[k][0])/self.treeScalingFactors[k][1] for k,v in requested.items()),\
+      self._constructKDTree(requested)
+    #query the tree for all float variables
+    floatVars = list(r for r in requested if r in self.getParaKeys('inputs'))
+    normMatchPoint = tuple((requested[v]-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in floatVars)
+    distances,indices = self.inputKDTree.query(normMatchPoint,
                   distance_upper_bound=tol, #acceptable distance
-                  k=1, #number of points to find
-                  p=2) #use Euclidean distance
+                  k=1,                      #number of points to find
+                  p=2)                      #use Euclidean distance
     #if multiple entries were within tolerance, accept the minimum one
     if hasattr(distances,'__len__'):
       index = indices[distances.index(min(distances))]
     else:
       index = indices
+    #"not found" case
     #KDTree reports a "not found" as at infinite distance, at len(data) index
     if index >= len(self):
+      self.raiseADebug('No matching restart point found (floats).')
       return None
+    #at this point, we've found a realization with matches for our float variables
+    #if self.type == 'HistorySet':
+    realization = self.getRealization(index)
+    ## Second, check if remaining string variables match in the realization we found
+    match = True
+    metaVars = set(requested.keys()).difference(set(realization['inputs'].keys()))
+    # look to see if metadata about sampled variables is available
+    try:
+      metaVals = self.getMetadata('SampledVars')
+    # if the SampledVars key isn't found, a RuntimeError is thrown.
+    except RuntimeError:
+      metaVals = {}
+    # check to see the variables we need are present
+    ## point set/no SampledVars
+    if type(metaVals) == dict:
+      have = metaVals.keys()
+    ## history set
     else:
-      realization = self.getRealization(index)
+      have = metaVals[0].keys()
+    if not all(var in have for var in metaVars):
+      missing = set(metaVars) - set(have)
+      self.raiseADebug('Necessary variables not found for restart in data or metadata: "{}".  No match found for restart.'.format(missing))
+      return None
+    if self.type == 'HistorySet':
+      metaVals = dict((var,np.array(list(metaVals[idx][var] for idx in range(len(metaVals))))) for var in metaVars)
+      #index += 1
+    # values are specific to point set/history set
+    for var in metaVars:
+      if requested[var] != metaVals[var][index]:
+        match = False
+        break
+    if not match:
+      self.raiseADebug('No matching restart point found (strings).')
+      return None
     return realization
 
-    #brute force approach, for comparison
-    #prepare list of tuples to search from
-    #have = []
-    #for i in range(len(inpVals.values()[0])):
-    #  have.append(tuple(inpVals[var][i] for var in requested.keys()))
-    #have = np.array(have)
-    #found,idx,match = mathUtils.NDInArray(have,tuple(val for val in requested.values()),tol=tol)
-    #if not found:
-    #  return
-    #realization = self.getRealization(idx)
-    #return realization
+  def _constructKDTree(self,requested):
+    """
+      Constructs a KD tree consisting of the variable values in "requested".
+      Requires specialized implementations.
+      @ In, requested, list, requested variable names
+      @ Out, None
+    """
+    self.raiseAnError(NotImplementedError,'Base Data has no method for constructing a KDTree!  Should be implemented by inheritors.')
 
   def getMetadata(self,keyword,nodeId=None,serialize=False):
     """
@@ -805,7 +869,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       unstructuredDataFile.write(" "*3+"</unstructuredInputData>\n")
     unstructuredDataFile.write("</unstructuredInputSpace>\n")
     unstructuredDataFile.close()
-
 
   def removeInputValue(self,name):
     """
@@ -1128,29 +1191,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.raiseAnError(RuntimeError,"specializedloadXMLandCSV not implemented "+str(self))
 
   ##Private Methods
-
-#   COMMENTED SINCE NO USED. NEEDS TO BE REMOVED IN THE FUTURE
-#   @abc.abstractmethod
-#   def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
-#     """
-#       This method has to be override to implement the specialization of extractValue for each data class
-#       @ In, inOutType, string, the type of data to extract (input or output)
-#       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
-#       @ In, varName, string, is the name of the variable that should be recovered
-#       @ In, varID, tuple or int, optional,  is the ID of the value that should be retrieved within a set
-#         if varID.type!=tuple only one point along sampling of that variable is retrieved
-#           else:
-#             if varID=(int,int) the slicing is [varID[0]:varID[1]]
-#             if varID=(int,None) the slicing is [varID[0]:]
-#       @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
-#           if stepID.type!=tuple only one point along the history is retrieved
-#           else:
-#             if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
-#             if stepID=(int,None) the slicing is [stepID[0]:]
-#       @ In, nodeId, string, optional, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
-#       @ Out, value, the requested value
-#     """
-#     pass
 
   def __getVariablesToPrint(self,var,inOrOut):
     """
