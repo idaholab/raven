@@ -5,14 +5,14 @@
 !
 !MEG_DIAGFILE 'MEGDIA.TXT'
 !MEG_OUTPUTFILE 'MEGOUT.TXT'
-MEL_OUTPUTFILE 'OUTPUT_MELCOR.ou     '
+MEL_OUTPUTFILE 'OUTPUT_MELCOR.out'
 !MEG_RESTARTFILE 'MELRST.RST'
 !PLOTFILE 'MELPTF.PTF'
 !MESSAGEFILE 'MELMES.TXT'
 !EXTDIAGFILE 'EXTDIAG.TXT'
 !
 !*************************************************
-!'     es     _1'
+!'test_1'
 !*************************************************
 !
 !
@@ -20,18 +20,18 @@ PROGRAM MELGEN
 !
 EXEC_INPUT
 !
-EXEC_TITLE '     es     _1'
+EXEC_TITLE 'test_1'
 !
 EXEC_DTTIME 1.0E-4
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!       Tabular Func     ions Da     a         !
+!       Tabular Functions Data         !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 TF_INPUT
 !
 !
 !cc: 1
-!                      fname             fscal
+!                 tfname          tfscal
 TF_ID             'P_in'           1.0
 !      size
 TF_TAB    2 !n             x             y
@@ -40,14 +40,14 @@ TF_TAB    2 !n             x             y
 !
 !
 !cc: 2
-!                      fname             fscal
+!                 tfname          tfscal
 TF_ID             'T_in'           1.0
 !      size
 TF_TAB    2 !n             x             y
              1           0.0         400.0
              2         100.0         400.0
 !cc: 3
-!                      fname             fscal
+!                 tfname          tfscal
 TF_ID             'M_in'           1.0
 !      size
 TF_TAB    2 !n             x             y
@@ -72,9 +72,9 @@ CVH_INPUT
 !
 !                   cvname        icvnum
 CV_ID                'IN'             1
-!             icv     hr         ipfsw         icvac
+!             icvthr         ipfsw         icvact
 CV_THR      NONEQUIL           FOG PROP-SPECIFIED
-!              i     yp     h         ipora         wa     er
+!              itypth         ipora         water
 CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED
 !             keyword          flag          pvol
 CV_PTD           PVOL            TF        'P_in'
@@ -86,13 +86,13 @@ CV_VAT    2 !n           cvz         cvvol
 !
 !                   cvname        icvnum
 CV_ID             'CENTR'             2
-!             icv     hr         ipfsw         icvac
+!             icvthr         ipfsw         icvact
 CV_THR      NONEQUIL           FOG         ACTIVE
-!              i     yp     h         ipora         wa     er
+!              itypth         ipora         water
 CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED
-!               p     di               pvol
+!               ptdit          pvol
 CV_PTD           PVOL         1.0E7
-!                    pol
+!              tpol
 CV_PAD         400.0
 !      size
 CV_VAT    2 !n           cvz         cvvol
@@ -102,11 +102,11 @@ CV_VAT    2 !n           cvz         cvvol
 !
 !                   cvname        icvnum
 CV_ID               'OUT'             3
-!             icv     hr         ipfsw         icvac
+!             icvthr         ipfsw         icvact
 CV_THR      NONEQUIL           FOG     TIME-INDEP
-!              i     yp     h         ipora         wa     er
+!              itypth         ipora         water
 CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED
-!               p     di               pvol
+!               ptdit          pvol
 CV_PTD           PVOL         1.0E7
 !                    pol
 CV_PAD         400.0
@@ -118,14 +118,14 @@ CV_VAT    2 !n           cvz         cvvol
 ESF_INPUT
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!       Flow Pa     hs         !
+!       Flow Paths         !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 FL_INPUT
 !
 !
 !              fpname        ifpnum
 FL_ID         'FP1_2'            11
-!               kcvfm         kcv     o           zfm           z     o
+!               kcvfm         kcvto           zfm           zto
 FL_FT            'IN'       'CENTR'          10.5          10.5
 !               flara         fllen         flopo
 FL_GEO            1.0          10.0           1.0
@@ -138,7 +138,7 @@ FL_VTM  1
 !
 !              fpname        ifpnum
 FL_ID         'FP2_3'            12
-!               kcvfm         kcv     o           zfm           z     o
+!               kcvfm         kcvto           zfm           zto
 FL_FT         'CENTR'         'OUT'          10.5          10.5
 !               flara         fllen         flopo
 FL_GEO            1.0          10.0           1.0
@@ -149,22 +149,22 @@ FL_SEG    1 !n sarea slen shyd srgh lamflg slam
 END PROGRAM MELGEN
 Program MELCOR
 !
-!* Block: MEX (Exec) da     a ****************************
+!* Block: MEX (Exec) data ****************************
 EXEC_INPUT
-EXEC_TITLE      es     _1        ! Ti     le of      he calcula     ion
-EXEC_TEND 10.0E+03                                                   !*  ! End of calcula     ion      ime
+EXEC_TITLE test_1        ! Title of the calculation
+EXEC_TEND 10.0E+03                                                   !*  ! End of calculation time
 EXEC_TIME 2 !*NUMBER   TIME            DTMAX        DTMIN        DTEDT        DTPLT        DTRST          DCRST
                1       0.00            0.1000E+00    0.10000E-06    2.50000E+03    1.00000E+01    1.00000E+03  0.10000000E+11
                2       1.50000E+02    0.2000E+00    0.10000E-09    2.50000E+03    1.00000E+01    1.0000E+03     0.10000000E+11
 
-EXEC_CPULEFT 1000.                                                    ! cpu sec lef      a      end of calcula     ion
-EXEC_CPULIM 4000000.                                                ! Maximum number of CPU seconds allowed for      his execu     ion
-EXEC_NOFLUSH                                                        ! Suppress Explici      Buffer Flushing
+EXEC_CPULEFT 1000.                                                    ! cpu sec left at end of calculation
+EXEC_CPULIM 4000000.                                                ! Maximum number of CPU seconds allowed for this execution
+EXEC_NOFLUSH                                                        ! Suppress Explicit Buffer Flushing
 EXEC_CYMESF		100	1000	1	1
 !* END MEX (Exec) ******************************
 !
 !*CVH_INPUT
 !*CVH_TRACE 3
 
-END Program MELCOR da     a
+END Program MELCOR data
 !
