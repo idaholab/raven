@@ -1,0 +1,8 @@
+[Tests]
+ [./inputTest]
+  type = 'InputParsing'
+  input = 'inputTest.xml'
+  text = 'sampleInput/1/testInput.serpent sampleInput/2/testInput.serpent'
+  test_interface_only = True 
+ [../]
+[]
