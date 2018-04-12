@@ -72,7 +72,7 @@ CVH_INPUT
 !
 !                   cvname        icvnum
 CV_ID                'IN'             1
-!             icv     hr         ipfsw         icvac     
+!             icv     hr         ipfsw         icvac
 CV_THR      NONEQUIL           FOG PROP-SPECIFIED
 !              i     yp     h         ipora         wa     er
 CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED
@@ -86,7 +86,7 @@ CV_VAT    2 !n           cvz         cvvol
 !
 !                   cvname        icvnum
 CV_ID             'CENTR'             2
-!             icv     hr         ipfsw         icvac     
+!             icv     hr         ipfsw         icvac
 CV_THR      NONEQUIL           FOG         ACTIVE
 !              i     yp     h         ipora         wa     er
 CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED
@@ -102,7 +102,7 @@ CV_VAT    2 !n           cvz         cvvol
 !
 !                   cvname        icvnum
 CV_ID               'OUT'             3
-!             icv     hr         ipfsw         icvac     
+!             icv     hr         ipfsw         icvac
 CV_THR      NONEQUIL           FOG     TIME-INDEP
 !              i     yp     h         ipora         wa     er
 CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED
