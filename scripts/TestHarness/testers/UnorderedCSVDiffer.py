@@ -81,14 +81,15 @@ class UnorderedCSVDiffer:
       print('Looking in:\n',csv)
     match = csv.copy()
     # reduce all values under threshold to 0
-    match = match.replace(np.inf,-sys.maxint)
-    match = match.replace(np.nan,sys.maxint)
+    #match = match.replace(np.inf,-sys.maxint)
+    #match = match.replace(np.nan,sys.maxint)
     # mask inf as -sys.max and nan as +sys.max
     for idx, val in row.iteritems():
       if debug:
         print('  checking index',idx)
       # check type consistency
       ## get a sample from the matching CSV column
+      ### TODO could check indices ONCE and re-use instead of checking each time
       matchVal = match[idx].values.item(0) if match[idx].values.shape[0] != 0 else None
       ## find out if match[idx] and/or "val" are numbers
       matchIsNumber = mathUtils.isAFloatOrInt(matchVal)
@@ -106,16 +107,16 @@ class UnorderedCSVDiffer:
       ## if a number, condition depends on chosen tools
       else:
         ## apply zero threshold
-        if self.__zero_threshold is not None:
-          match[idx][abs(match[idx]) < self.__zero_threshold] = 0
-          if debug:
-            print('  After applying zero threshold, options are:',match[idx])
-          val = 0 if abs(val) < self.__zero_threshold else val
+        #if False:# FIXME tooooo slooooowwwwww self.__zero_threshold is not None:
+        #  match[idx][abs(match[idx]) < self.__zero_threshold] = 0
+        #  if debug:
+        #    print('  After applying zero threshold, options are:',match[idx])
+        #  val = 0 if abs(val) < self.__zero_threshold else val
         ## mask infinity
-        if val == np.inf:
-          val = -sys.maxint
-        elif pd.isnull(val):
-          val = sys.maxint
+        #if val == np.inf:
+        #  val = -sys.maxint
+        #elif pd.isnull(val):
+        #  val = sys.maxint
         ## value check: absolute
         if self.__check_absolute_values:
           cond = abs(match[idx] - val) < self.__rel_err
@@ -200,6 +201,9 @@ class UnorderedCSVDiffer:
       ## at this point both CSVs have the same shape, with the same header contents.
       ## align columns
       testCSV = testCSV[goldCSV.columns.tolist()]
+      ## set marginal values to zero
+      testCSV = self.marginalizeZeros(testCSV,self.__zero_threshold)
+      goldCSV = self.marginalizeZeros(goldCSV,self.__zero_threshold)
       ## check for matching rows
       for idx in goldCSV.index:
         find = goldCSV.iloc[idx].rename(None)
@@ -212,6 +216,24 @@ class UnorderedCSVDiffer:
       self.finalizeMessage(same,msg,testFilename)
     return self.__same, self.__message
 
-  ## accessors
-
+  def marginalizeZeros(self,csv,tol):
+    """
+      For any columns that contain numbers, drop near-zero numbers to zero
+      @ In, csv, pd.DataFrame, contents to reduce
+      @ In, tol, float, tolerance sufficently near zero
+      @ Out, csv, converted dataframe
+    """
+    # use absolute or relative?
+    key = {'atol':tol} if self.__check_absolute_values else {'rtol':tol}
+    # take care of infinites
+    csv = csv.replace(np.inf,-sys.maxint)
+    csv = csv.replace(np.nan,sys.maxint)
+    for col in csv.columns:
+      example = csv[col].values.item(0) if csv[col].values.shape[0] != 0 else None
+      # skip columns that aren't numbers TODO might skip float columns with "None" early on
+      if not mathUtils.isAFloatOrInt(example):
+        continue
+      # flatten near-zeros
+      csv[col][np.isclose(csv[col],0,**key)] = 0
+    return csv
 
