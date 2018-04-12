@@ -108,7 +108,7 @@ CV_THR      NONEQUIL           FOG     TIME-INDEP
 CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED
 !               ptdit          pvol
 CV_PTD           PVOL         1.0E7
-!                    pol
+!               tpol
 CV_PAD         400.0
 !      size
 CV_VAT    2 !n           cvz         cvvol
