@@ -151,7 +151,7 @@ Program MELCOR
 !
 !* Block: MEX (Exec) da     a ****************************
 EXEC_INPUT
-EXEC_TITLE      es     _1        ! Ti     le of      he calcula     ion
+EXEC_TITLE test_1        ! Title of the calculation
 EXEC_TEND 10.0E+03                                                   !*  ! End of calcula     ion      ime
 EXEC_TIME 2 !*NUMBER   TIME            DTMAX        DTMIN        DTEDT        DTPLT        DTRST          DCRST
                1       0.00            0.1000E+00    0.10000E-06    2.50000E+03    1.00000E+01    1.00000E+03  0.10000000E+11
