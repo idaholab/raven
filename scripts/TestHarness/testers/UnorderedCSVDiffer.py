@@ -24,7 +24,7 @@ except ImportError:
   sys.path.append(new)
   from utils import mathUtils
 
-whoAmI = True # enable to show test dir and out files
+whoAmI = False # enable to show test dir and out files
 debug = False # enable to increase printing
 
 class UnorderedCSVDiffer:
