@@ -1,0 +1,66 @@
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>inputTest</WorkingDir>
+    <!-- ordered list of step names that RAVEN will run -->
+    <Sequence>sampleInput</Sequence>
+    <!-- number of parallel runs executed simultaneously -->
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="originalInput" type="">testInput.serpent</Input>
+  </Files>
+
+  <Models>
+    <Code name="SERPENT" subType="Serpent">
+      <executable>/projects/sciteam/bahg/serpent/src/sss2 -omp 32 </executable>
+      <clargs arg="aprun -n 9 -d 32 " type="prepend"/>
+      <clargs arg="" extension=".serpent" type="input"/>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <!-- uniform distribution from 0.1 to 1 -->
+    <Uniform name="timedist">
+      <lowerBound>0</lowerBound>
+      <upperBound>10</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="myGrid">
+      <variable name="deptime">
+        <distribution>timdist</distribution>
+        <!-- equally spaced steps with lower and upper bound -->
+        <grid construction="custom" type="CDF">0.1 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sampleInput">
+      <!-- runGrid runs serpent by the number of steps with sampled variable -->
+      <Input   class="Files"       type=""          >originalInput</Input>
+      <Sampler class="Samplers"    type="Grid"      >myGrid</Sampler>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="outPointSet">
+      <Input>feature_space</Input>
+      <Output>target_space</Output>
+    </PointSet>
+  </DataObjects>
+
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/Serpent.inputTest</name>
+    <author>jbae11</author>
+    <created>2018-04-12</created>
+    <classesTested>Serpent</classesTested>
+    <description>
+        The input parsing method, where the sampled distribution is plugged into the 
+        input placeholder, is tested for SERPENT input files.
+    </description>
+  </TestInfo>
+
+</Simulation>
