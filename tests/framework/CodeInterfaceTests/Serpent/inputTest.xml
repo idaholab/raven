@@ -41,6 +41,7 @@
     <MultiRun name="sampleInput">
       <!-- runGrid runs serpent by the number of steps with sampled variable -->
       <Input   class="Files"       type=""          >originalInput</Input>
+      <Model   class="Models"      type="Code"      >SERPENT</Model>
       <Sampler class="Samplers"    type="Grid"      >myGrid</Sampler>
     </MultiRun>
   </Steps>
