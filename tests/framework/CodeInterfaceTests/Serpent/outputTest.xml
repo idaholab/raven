@@ -1,0 +1,68 @@
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>inputTest</WorkingDir>
+    <!-- ordered list of step names that RAVEN will run -->
+    <Sequence>sampleOutput</Sequence>
+    <!-- number of parallel runs executed simultaneously -->
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="originalInput" type="">testInput.serpent</Input>
+  </Files>
+
+  <Models>
+    <Code name="SERPENT" subType="Serpent">
+      <executable>/projects/sciteam/bahg/serpent/src/sss2 -omp 32 </executable>
+      <clargs arg="aprun -n 9 -d 32 " type="prepend"/>
+      <clargs arg="" extension=".serpent" type="input"/>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <!-- uniform distribution from 0.1 to 1 -->
+    <Uniform name="timedist">
+      <lowerBound>0</lowerBound>
+      <upperBound>10</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="myGrid">
+      <variable name="deptime">
+        <distribution>timdist</distribution>
+        <!-- equally spaced steps with lower and upper bound -->
+        <grid construction="custom" type="CDF">0.1 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sampleInput">
+      <!-- runGrid runs serpent by the number of steps with sampled variable -->
+      <Input   class="Files"       type=""          >originalInput</Input>
+      <Model   class="Models"      type="Code"      >SERPENT</Model>
+      <Sampler class="Samplers"    type="Grid"      >myGrid</Sampler>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="outPointSet">
+      <Input>feature_space</Input>
+      <Output>target_space</Output>
+    </PointSet>
+  </DataObjects>
+
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/Serpent.outputTest</name>
+    <author>jbae11</author>
+    <created>2018-04-12</created>
+    <classesTested>Serpent</classesTested>
+    <description>
+      The output parsing method, where the `_res' and `bumat' files
+      are extracted to create a csv with input and output compositions,
+      depletion time, and mean EOC BOC keff values.
+    </description>
+  </TestInfo>
+
+</Simulation>

@@ -5,4 +5,11 @@
   text = 'sampleInput/1/testInput.serpent sampleInput/2/testInput.serpent'
   test_interface_only = True 
  [../]
+ [./outputTest]
+  type = 'OutputParsing'
+  input = 'outputTest.xml'
+  csv = 'sampleOutput/output.csv'
+  test_interface_only = True
+  rel_err = 1e-4
+ [../]
 []
