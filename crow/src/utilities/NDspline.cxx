@@ -15,6 +15,7 @@
 #include "ND_Interpolation_Functions.h"
 #include <cmath>
 #include <vector>
+#include <map>
 #include <iostream>
 #include <limits>
 #include <iso646.h>
@@ -184,9 +185,9 @@ void NDSpline::fit(std::vector< std::vector<double> > coordinates , std::vector<
     {
         std::vector<double>  d_values;
         
-        for (int d=0; d<coordinates.size(); n++)
+        for (unsigned int d=0; d<coordinates.size(); n++)
         {
-            if (std::find(d_values.begin(), d_values.end(), coordinates[d][n]) != d_values.end())
+            if (std::find(d_values.begin(), d_values.end(), coordinates.at(d)[n]) != d_values.end())
             {
                 d_values.push_back(coordinates[d][n]);
             }
