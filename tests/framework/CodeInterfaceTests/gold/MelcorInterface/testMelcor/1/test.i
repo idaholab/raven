@@ -108,7 +108,7 @@ CV_THR      NONEQUIL           FOG     TIME-INDEP
 CV_PAS       SEPARATE      ONLYPOOL     SUBCOOLED
 !               ptdit          pvol
 CV_PTD           PVOL         1.0E7
-!                    pol
+!               tpol
 CV_PAD         400.0
 !      size
 CV_VAT    2 !n           cvz         cvvol
@@ -160,7 +160,7 @@ EXEC_TIME 2 !*NUMBER   TIME            DTMAX        DTMIN        DTEDT        DT
 EXEC_CPULEFT 1000.                                                    ! cpu sec left at end of calculation
 EXEC_CPULIM 4000000.                                                ! Maximum number of CPU seconds allowed for this execution
 EXEC_NOFLUSH                                                        ! Suppress Explicit Buffer Flushing
-EXEC_CYMESF		100	1000	1	1
+EXEC_CYMESF    100  1000  1  1
 !* END MEX (Exec) ******************************
 !
 !*CVH_INPUT

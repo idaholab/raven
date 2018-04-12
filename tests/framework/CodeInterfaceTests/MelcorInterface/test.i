@@ -160,7 +160,7 @@ EXEC_TIME 2 !*NUMBER   TIME            DTMAX        DTMIN        DTEDT        DT
 EXEC_CPULEFT 1000.                                                    ! cpu sec left at end of calculation
 EXEC_CPULIM 4000000.                                                ! Maximum number of CPU seconds allowed for this execution
 EXEC_NOFLUSH                                                        ! Suppress Explicit Buffer Flushing
-EXEC_CYMESF		100	1000	1	1
+EXEC_CYMESF    100  1000  1  1
 !* END MEX (Exec) ******************************
 !
 !*CVH_INPUT
