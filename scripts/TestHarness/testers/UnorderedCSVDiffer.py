@@ -24,6 +24,7 @@ except ImportError:
   sys.path.append(new)
   from utils import mathUtils
 
+whoAmI = True # enable to show test dir and out files
 debug = False # enable to increase printing
 
 class UnorderedCSVDiffer:
@@ -47,9 +48,10 @@ class UnorderedCSVDiffer:
     self.__check_absolute_values = absolute_check
     self.__rel_err = relative_error
     self.__zero_threshold = float(zeroThreshold) if zeroThreshold is not None else None
-    if debug:
+    if debug or whoAmI:
       print('test dir :',self.__test_dir)
       print('out files:',self.__out_files)
+    if debug:
       print('err      :',self.__rel_err)
       print('abs check:',self.__check_absolute_values)
       print('zero thr :',self.__zero_threshold)
