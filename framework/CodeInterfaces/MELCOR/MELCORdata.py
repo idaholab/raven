@@ -100,7 +100,7 @@ class MELCORdata:
               functionValues[fcnName.groupdict()["name"]] = fcnValue.groupdict()["value"]
       functionValuesForEachTime[time] = functionValues
     return functionValuesForEachTime
-    
+
   def returnVolumeHybro(self,timeBlock):
     """
       CONTROL VOLUME HYDRODYNAMICS EDIT
