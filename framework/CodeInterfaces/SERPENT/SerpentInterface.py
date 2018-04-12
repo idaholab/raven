@@ -10,9 +10,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created March 17th, 2015
+Created March 28th, 2018
 
-@author: talbpaul
+@author: jbae11
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -24,22 +24,22 @@ import GenericParser
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import output_parser as op
+import outputParser as op
 
 class Serpent(CodeInterfaceBase):
   """
     Provides code to interface RAVEN to SERPENT
     The name of this class is to represent the type in the RAVEN input file
 
-    This class is used as a generic code interface for Model.Code in Raven.  It expects
-    input paremeters to be specified by input file, input files be specified by either
+    This class is used as a code interface for SERPENT in Raven.  It expects
+    input parameters to be specified by input file, input files be specified by either
     command line or in a main input file, and produce a csv output.  It makes significant
     use of the 'clargs', 'fileargs', 'prepend', 'text', and 'postpend' nodes in the input
     XML file.  See base class for more details.
   """
   def __init__(self):
     """
-      Initializes the GenericCode Interface.
+      Initializes the SERPENT Interface.
       @ In, None
       @ Out, None
     """
@@ -72,7 +72,7 @@ class Serpent(CodeInterfaceBase):
       if ext not in usedExt:
         usedExt.append(ext)
       else:
-        raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
+        raise IOError('SERPENT cannot handle multiple input files with the same extension.  You may need to write your own interface.')
 
     #check all required input files are there
     inFiles=inputFiles[:]
@@ -166,26 +166,26 @@ class Serpent(CodeInterfaceBase):
 
 
   def finalizeCodeOutput(self, command, output, workDir):
-    # filename would be 'publ_core.serpent'
+    # filename would be 'input.serpent'
     filename = command.strip().split(' ')[-1]
-    # filename_without_extension would be 'publ_core'
-    filename_without_extension = output.split('~')[1]
-    # resfile would be 'publ_core.serpent_res.m'
+    # filename_without_extension would be 'input'
+    filenameWithoutExtension = output.split('~')[1]
+    # resfile would be 'input.serpent_res.m'
     # this is the file produced by RAVEN
     resfile = os.path.join(workDir, filename+"_res.m")
-    input_file = os.path.join(workDir, filename)
+    inputFile = os.path.join(workDir, filename)
     inbumatfile = os.path.join(workDir, filename+".bumat0")
     outbumatfile = os.path.join(workDir, filename+".bumat1")
     # get the list of isotopes to track
-    script_loc = os.path.dirname(os.path.realpath(sys.argv[0]))
-    isofile = os.path.join(script_loc, 'CodeInterfaces/SERPENT/aux-input-files/iso_file')
-    iso_list = op.read_file_into_list(isofile)
+    scriptLoc = os.path.dirname(os.path.realpath(sys.argv[0]))
+    isofile = os.path.join(scriptLoc, 'CodeInterfaces/SERPENT/aux-input-files/isoFile')
+    isoList = op.readFileIntoList(isofile)
     # parse files into dictionary
-    keff_dict = op.search_keff(resfile)
+    keffDict = op.searchKeff(resfile)
     # the second argument is the percent cutoff 
-    in_bumat_dict = op.bumat_read(inbumatfile, 1e-7)
-    out_bumat_dict = op.bumat_read(outbumatfile, 1e-7)
+    inBumatDict = op.bumatRead(inbumatfile, 1e-7)
+    outBumatDict = op.bumatRead(outbumatfile, 1e-7)
 
-    output_path = os.path.join(workDir, output+'.csv')
-    op.make_csv(output_path, in_bumat_dict, out_bumat_dict,
-                keff_dict, iso_list, input_file)
+    outputPath = os.path.join(workDir, output+'.csv')
+    op.makeCsv(outputPath, inBumatDict, outBumatDict,
+                keffDict, isoList, inputFile)
