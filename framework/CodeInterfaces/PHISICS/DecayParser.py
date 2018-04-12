@@ -13,13 +13,33 @@ class DecayParser():
   """
     Parses the PHISICS xml decay file and replaces the nominal values by the perturbed values.
   """
+  def __init__(self,inputFiles,workingDir,**pertDict):
+    """
+      Constructor
+      @ In, inputFiles, string, .dat Decay file.
+      @ In, workingDir, string, absolute path to the working directory
+      @ In, pertDict, dictionary, dictionary of perturbed variables
+      @ Out, None
+    """  
+    self.allDecayList = []        # All possible types of decay for actinides and FP
+    self.isotopeClassifier = {}   # String, FP or Actinide
+    self.decayModeNumbering = {}  # Gives the column number of each decay type
+    self.isotopeParsed = ['Actinide','FP']
+    self.listedDict = {}          # Nested dictionary of perturbed variables 
+    
+    self.inputFiles = inputFiles
+    self.pertDict = self.scientificNotation(pertDict)
+    self.characterizeLibrary()
+    self.fileReconstruction()
+    self.printInput(workingDir)
+    
   def matrixPrinter(self,infile,outfile,atomicNumber):
     """
       The xml files is split into two categories: hardcopied lines (banner, column labels etc.) that cannot
       be modified by RAVEN variable definition, and matrix lines that can be modified by RAVEN variable definition.
       This method treats the matrix lines, and print them into the perturbed file.
-      @ In, infile, string, input file name
-      @ In, outfile, string, output file name
+      @ In, infile, file object, input file in file object format
+      @ In, outfile, file object, output file in file object format
       @ In, atomicNumber, integer, indicates if the isotope parsed is an actinide (0) or a fission product (1)
       @ Out, None
     """
@@ -107,8 +127,8 @@ class DecayParser():
         decayList = []
         line = re.sub(r'(Yy?)ield',r'',line)          # Remove the word 'yield' in the decay type lines
         splitStringDecayType = line.upper().split()   # Split the words into individual strings
-        for i in splitStringDecayType :               # replace + and * by strings
-          decayList.append(i.replace('*', 'S').replace('+','PLUS').replace('_',''))
+        for decayType in splitStringDecayType :               # replace + and * by strings
+          decayList.append(decayType.replace('*', 'S').replace('+','PLUS').replace('_',''))
         concatenateDecayList = concatenateDecayList + decayList  # concatenate all the possible decay type (including repetition among actinides and FP)
         self.allDecayList = list(set(concatenateDecayList))
         for i in range(len(decayList)):
@@ -120,9 +140,9 @@ class DecayParser():
           self.decayModeNumbering[self.isotopeParsed[1]] = numbering
       if re.match(r'(.*?)\D+(-?)\d+(M?)\s+\d', line):
         splitString = line.upper().split()
-        for i, x in enumerate(splitString):
+        for i, decayConstant in enumerate(splitString):
           try:
-            splitString[i] = float(x)
+            splitString[i] = float(decayConstant)
           except ValueError:
             pass # the element is a string (isotope tag). It can be ignored
         splitString[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)',r'\1\2\4',splitString[0])   # remove the dash if it the key (isotope ID) contains it
@@ -140,25 +160,6 @@ class DecayParser():
     for key, value in pertDict.iteritems():
       pertDict[key] = '%.3E' % Decimal(str(value)) 
     return pertDict
-    
-  def __init__(self,inputFiles,workingDir,**pertDict):
-    """
-      Constructor
-      @ In, inputFiles, string, .dat Decay file.
-      @ In, workingDir, string, absolute path to the working directory
-      @ In, pertDict, dictionary, dictionary of perturbed variables
-      @ Out, None
-    """  
-    self.allDecayList = []
-    self.isotopeClassifier = {}   # FP or Actinide
-    self.decayModeNumbering = {}
-    self.isotopeParsed=['Actinide','FP']
-    
-    self.inputFiles = inputFiles
-    self.pertDict = self.scientificNotation(pertDict)
-    self.characterizeLibrary()
-    self.fileReconstruction()
-    self.printInput(workingDir)
 
   def fileReconstruction(self):
     """
@@ -167,10 +168,9 @@ class DecayParser():
       @ In, None
       @ Out, None
     """
-    self.listedDict = {}
     perturbedIsotopes = []
-    for i in self.pertDict.iterkeys() :
-      splittedDecayKeywords = i.split('|')
+    for key in self.pertDict.iterkeys() :
+      splittedDecayKeywords = key.split('|')
       perturbedIsotopes.append(splittedDecayKeywords[2])
     for i in range (len(perturbedIsotopes)):
       self.listedDict[perturbedIsotopes[i]] = {}
