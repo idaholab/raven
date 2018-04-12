@@ -176,7 +176,11 @@ void NDSpline::fit(std::vector< std::vector<double> > coordinates , std::vector<
     // local values
     std::vector<double> vals;
     // indexes
-    std::vector<int> indexes;
+    std::vector<int> idxs(_dimensions,0);
+    // coordinates
+    std::vector<double> coords(_dimensions);
+    int j = 0;
+    int i = 0;
     int tot_num_values = values.size();
     int tot_num_combinations = 1;
     
@@ -184,7 +188,6 @@ void NDSpline::fit(std::vector< std::vector<double> > coordinates , std::vector<
     for (int n=0; n<_dimensions; n++)
     {
         std::vector<double>  d_values;
-        
         for (unsigned int d=0; d<coordinates.size(); n++)
         {
             if (std::find(d_values.begin(), d_values.end(), coordinates.at(d)[n]) != d_values.end())
@@ -199,17 +202,23 @@ void NDSpline::fit(std::vector< std::vector<double> > coordinates , std::vector<
     if (tot_num_combinations != tot_num_values)
         throw ("Error in NDSpline::fit: the feature grid is not a regular cartesian grid!");
     
-    
-    for (int n=0; n<tot_num_combinations; n++)
+    for (i = 0; i < tot_num_combinations; i++)
     {
+        for (j = 0; j < _discretizations.size(); j++)
+        {
+            idxs[j]++;
+            if (idxs[j] < _discretizations[j].size()) break;
+            idxs[j] = 0;
+        }
         
         
-        
-        vals
+    
     }
     
     
-     _values
+    
+    
+    
   _completed_init = true;
 }
 
