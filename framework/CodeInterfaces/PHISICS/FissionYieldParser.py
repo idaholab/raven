@@ -13,11 +13,83 @@ class FissionYieldParser():
   """
     Parses the PHISICS xml fission yield file and replaces the nominal values by the perturbed values.
   """
+  def __init__(self,inputFiles,workingDir,**pertDict):
+    """
+      Constructor.
+      @ In, inputFiles, string, xml fission yield file.
+      @ In, workingDir, string, absolute path to the working directory
+      @ In, pertDict, dictionary, dictionary of perturbed variables
+      @ Out, None
+    """
+    self.allYieldList = []              # Contains all the fission yield families in fast and thermal spectrum
+    self.inputFiles = inputFiles
+    self.spectrum = ['Thermal','Fast']  # Possible spectrum found in the library. Each of them have an independent library
+    self.typeOfSpectrum = None          # Flag. Takes the value of one of the possible spectrum, depending what line of the file is parsed
+    self.isotopeList = []               # Fission products having a fission yield defined
+    self.spectrumNumbering = {}         # Keys: type of spectrum (fast or theraml), values: numbering dictionary 
+    self.listedYieldDict = {}           # Nested dictionary of perturbed variables
+    
+    self.pertYieldDict = self.scientificNotation(pertDict) # Perturbed variables
+    self.characterizeLibrary()
+    self.isotopeList = list(set(self.isotopeList)) # Removes all the repetion in the isotope list
+    self.numberOfIsotopes = len(self.isotopeList)
+    self.fileReconstruction()   # Puts the perturbed variables in a dictionary
+    self.printInput(workingDir) # Replaces the the nominal values by the perturbed one and print in a file
+  
+  def scientificNotation(self,pertDict):
+    """
+      Converts the numerical values into a scientific notation.
+      @ In, pertDict, dictionary, perturbed variables
+      @ Out, pertDict, dictionary, perturbed variables in scientific format
+    """
+    for key, value in pertDict.iteritems():
+      pertDict[key] = '%.3E' % Decimal(str(value)) 
+    return pertDict
+  
+  def characterizeLibrary(self):
+    """
+      Characterizes the structure of the library. Teaches the type of decay available for the fast spectrum family and thermal family.
+      @ In, None
+      @ Out, None
+    """
+    concatenateYieldList = []
+    OpenInputFile = open (self.inputFiles, "r")
+    lines = OpenInputFile.readlines()
+    OpenInputFile.close()
+    for line in lines:
+      if re.match(r'(.*?)Thermal Fission Yield', line):
+        self.typeOfSpectrum = self.spectrum[0]
+      elif re.match(r'(.*?)Fast Fission Yield', line):
+        self.typeOfSpectrum = self.spectrum[1]
+      if (re.match(r'(.*?)\w+(-?)\d+\s+\w+\s+\w(-?)\d+\s+\w',line) and any(s in "FY" for s in line)) : # create dynamic column detector
+        count = 0
+        FYgroup = []  # reset the counter and the dictionary numbering if new colum sequence is detected
+        numbering = {}
+        line = re.sub(r'FY',r'',line)
+        splitStringYieldType = line.upper().split()
+        for i in splitStringYieldType:
+          FYgroup.append(i.replace('-','')) # get the fission yield group's names (U235, Pu239 etc.) and remove the dash in those IDs
+        concatenateYieldList = concatenateYieldList + FYgroup  # concatenate all the possible yield type (including repetition among actinides and FP)
+        self.allYieldList = list(set(concatenateYieldList))
+
+        for i in range(len(splitStringYieldType)) :   # assign the column position of the given yield types
+          count = count + 1
+          numbering[FYgroup[i]] = count   # assign the column position of the given Yield types
+          splitStringYieldType[i] = re.sub(r'(.*?)(\w+)(-)(\d+M?)',r'\1\2\4', splitStringYieldType[i])
+          if self.typeOfSpectrum == self.spectrum[0]:
+            self.spectrumNumbering[self.spectrum[0]] = numbering
+          if self.typeOfSpectrum == self.spectrum[1]:
+            self.spectrumNumbering[self.spectrum[1]] = numbering
+          numbering[splitStringYieldType[i]] = count
+      if re.match(r'(.*?)\s+\D+(-?)\d+(M?)\s+\d+.\d', line) or re.match(r'(.*?)ALPHA\s+\d+.\d', line):
+        isotopeLines = line.split()
+        self.isotopeList.append(isotopeLines[0])
+        
   def matrixPrinter(self,infile,outfile,spectra):
     """
       Prints the perturbed decay matrix in the outfile.
-      @ In, infile, string, input file name
-      @ In, outfile, string, output file name
+      @ In, infile, file object, input file in file object format
+      @ In, outfile, file object, output file in file object format
       @ In, spectra, integer, indicates if the yields are related to a thermal spectrum (0) or a fast spectrum (1)
       @ Out, None
     """
@@ -38,7 +110,7 @@ class FissionYieldParser():
               typeOfYieldPerturbed = []
               self.spectrumUpperCase = [x.upper() for x in self.spectrum]
               typeOfYieldPerturbed = self.listedYieldDict.get(spectraUpper).get(fissionProductID).keys()
-              for i in xrange (0, len(typeOfYieldPerturbed)):
+              for i in range (len(typeOfYieldPerturbed)):
                 try:
                   if self.listedYieldDict.get(spectraUpper).get(fissionProductID).get(typeOfYieldPerturbed[i]) != {}:
                     line[self.spectrumNumbering.get(spectra).get(typeOfYieldPerturbed[i])] = str(self.listedYieldDict.get(spectraUpper).get(fissionProductID).get(typeOfYieldPerturbed[i]))
@@ -90,66 +162,8 @@ class FissionYieldParser():
               break
             outfile.writelines(line)
         self.matrixPrinter(infile, outfile, spectra)
-  
-  def __init__(self,inputFiles,workingDir,**pertDict):
-    """
-      Constructor.
-      @ In, inputFiles, string, xml fission yield file.
-      @ In, workingDir, string, absolute path to the working directory
-      @ In, pertDict, dictionary, dictionary of perturbed variables
-      @ Out, None
-    """
-    numbering = {}
-    concatenateYieldList = []
-    self.allYieldList = []
-    self.inputFiles = inputFiles
-    spectrumCounter = 0
-    self.inputFiles = inputFiles
-    OpenInputFile = open (self.inputFiles, "r")
-    lines = OpenInputFile.readlines()
-    OpenInputFile.close()
-    self.spectrum = ['Thermal', 'Fast']
-    self.typeOfSpectrum = None
-    self.isotopeList = []
-    self.spectrumNumbering = {}
-    self.pertYieldDict = pertDict
-    
-    for key, value in self.pertYieldDict.iteritems():
-      self.pertYieldDict[key] = '%.3E' % Decimal(str(value)) #convert the values into scientific values
-
-    for line in lines:
-      if re.match(r'(.*?)Thermal Fission Yield', line):
-        self.typeOfSpectrum = self.spectrum[0]
-      elif re.match(r'(.*?)Fast Fission Yield', line):
-        self.typeOfSpectrum = self.spectrum[1]
-      if (re.match(r'(.*?)\w+(-?)\d+\s+\w+\s+\w(-?)\d+\s+\w',line) and any(s in "FY" for s in line)) : # create dynamic column detector
-        count = 0
-        FYgroup = []  # reset the counter and the dictionary self.numbering if new colum sequence is detected
-        numbering = {}
-        line = re.sub(r'FY',r'',line)
-        splitStringYieldType = line.upper().split()
-        for i in splitStringYieldType:
-          FYgroup.append(i.replace('-','')) # get the fission yield group's names (U235, Pu239 etc.) and remove the dash in those IDs
-        concatenateYieldList = concatenateYieldList + FYgroup  # concatenate all the possible decay type (including repetition among actinides and FP)
-        self.allYieldList = list(set(concatenateYieldList))
-
-        for i in xrange(len(splitStringYieldType)) :   # assign the column position of the given yield types
-          count = count + 1
-          numbering[FYgroup[i]] = count   # assign the column position of the given Yield types
-          splitStringYieldType[i] = re.sub(r'(.*?)(\w+)(-)(\d+M?)',r'\1\2\4', splitStringYieldType[i])
-          if self.typeOfSpectrum == self.spectrum[0]:
-            self.spectrumNumbering[self.spectrum[0]] = numbering
-          if self.typeOfSpectrum == self.spectrum[1]:
-            self.spectrumNumbering[self.spectrum[1]] = numbering
-          numbering[splitStringYieldType[i]] = count
-      if re.match(r'(.*?)\s+\D+(-?)\d+(M?)\s+\d+.\d', line) or re.match(r'(.*?)ALPHA\s+\d+.\d', line):
-        isotopeLines = line.split()
-        self.isotopeList.append(isotopeLines[0])
-    self.isotopeList = list(set(self.isotopeList))
-    self.numberOfIsotopes = len(self.isotopeList)
-    self.fileReconstruction()
-    self.printInput(workingDir)
-            
+      outfile.close()
+      
   def fileReconstruction(self):
     """
       Converts the formatted dictionary pertdict -> {'FY|THERMAL|U235|XE135':1.30}.
@@ -157,32 +171,31 @@ class FissionYieldParser():
       @ In, None
       @ Out, None
     """
-    self.listedYieldDict = {}
     fissioningActinide = []
     resultingFP = []
     spectrumType = []
-    for i in self.pertYieldDict.iterkeys():
-      splittedYieldKeywords = i.split('|')
+    for key in self.pertYieldDict.iterkeys():
+      splittedYieldKeywords = key.split('|')
       spectrumType.append(splittedYieldKeywords[1])
       fissioningActinide.append(splittedYieldKeywords[2])
       resultingFP.append(splittedYieldKeywords[3])
-    for i in xrange (0,len(spectrumType)):
+    for i in range (len(spectrumType)):
       self.listedYieldDict[spectrumType[i]] = {}
-      for j in xrange (0,len(resultingFP)):
+      for j in range (len(resultingFP)):
         self.listedYieldDict[spectrumType[i]][resultingFP[j]] = {}   # declare all the dictionaries
-        for k in xrange(0,len(fissioningActinide)):
+        for k in range(len(fissioningActinide)):
           self.listedYieldDict[spectrumType[i]][resultingFP[j]][fissioningActinide[k]] = {}
     for yieldTypeKey, yieldValue in self.pertYieldDict.iteritems():
-      yieldKeyWords = yieldTypeKey.split('|')
-      for i in xrange (0, len(self.allYieldList)):
-        self.listedYieldDict[yieldKeyWords[1]][yieldKeyWords[3]][yieldKeyWords[2]] = yieldValue
+      self.listedYieldDict[yieldTypeKey.split('|')[1]][yieldTypeKey.split('|')[3]][yieldTypeKey.split('|')[2]] = yieldValue
    
   def printInput(self,workingDir):
     """
-      Prints out the pertubed fission yield into a file.
+      Prints out the pertubed fission yield library into a .dat file. The workflow is: 
+      open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and  
+      replace with perturbed variables if necessary, Change the name of the dummy file. 
       @ In, workingDir, string, path to working directory
       @ Out, None
-    """   
+    """
     modifiedFile = os.path.join(workingDir,'test.dat')
     open(modifiedFile, 'w')
     for spectra in self.spectrum:
@@ -190,4 +203,3 @@ class FissionYieldParser():
     with open(modifiedFile, 'a') as outfile:
       outfile.writelines(' end')
     os.rename(modifiedFile,self.inputFiles)
-
