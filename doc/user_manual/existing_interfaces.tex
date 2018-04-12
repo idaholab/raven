@@ -2591,3 +2591,172 @@ So the user needs to input the following block as well, where the Input and Outp
 \end{lstlisting}
 As mentioned before, this will create $4$ DataObjects.
 %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% SERPENT  INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{SERPENT Interface}
+\label{subsec:serpentInterface}
+The Serpent interface is meant to run multiple user-defined SERPENT simulations
+while storing the following values: 
+\begin{itemize}
+\item Input composition
+\item Depletion time
+\item Output composition
+\item Beginning Of Cycle / End Of Cycle Keff
+\end{itemize}
+
+It allows users to run SERPENT by varying a value
+(e.g. depletion time, input composition) from a template input file.
+For example, a user can run a \texttt{MultiRun} where the depletion
+time of a fixed input composition is varied, to see the effect of 
+depletion time on the output composition and End Of Cycle Keff.
+
+There are some limitations for this interface:
+\begin{itemize}
+\item Only the parameters mentioned above will be stored in the output csv file
+\item You cannot run multiple depletion steps
+\end{itemize}
+
+Note that due to the number of isotopes to track,
+we use the \xmlnode{ExternalXML} to import from a file.
+The user must edit the \texttt{aux-input-files} so that it
+matches the exact isotope nomenclature used in the SERPENT simulations for the isotopes
+to be in the output csv file. To do so:
+
+\begin{enumerate}
+\item Edit \texttt{aux-input-files/isoFile} to match isotope nomenclature in SERPENT
+\item while in \texttt{framework/CodeInterfaces/SERPENT}, run \texttt{python generateCustomVariable.py}
+\end{enumerate}
+
+This will automatically generate the feature and target space with isotopes.
+
+
+\subsubsection{Models}
+In order to run the code, make sure you have a valid SERPENT input file,
+and generated the \texttt{aux-input-files} to match the isotope nomenclature.
+
+In the RAVEN input file, your \xmlnode{Models} node should look like:
+\begin{lstlisting}[style=XML]
+<Models>
+    <Code name="SERPENT" subType="Serpent">
+      <!-- path to your serpent executable -->
+      <executable>/projects/sciteam/bahg/serpent/src/sss2 -omp 32 </executable>
+      <clargs arg="aprun -n 9 -d 32 " type="prepend"/>
+      <clargs arg="" extension=".serpent" type="input"/>
+    </Code>
+</Models>
+\end{lstlisting}
+where the \xmlnode{executable} and \xmlnode{clargs} should me modified
+to create the appropriate run command for SERPENT. In this example, the command
+to run raven is:
+\begin{lstlisting}[language=bash]
+aprun -n 9 -d 32 /projects/sciteam/bahg/serpent/src/sss2 -omp 32 [inputFile]
+\end{lstlisting}
+where the \texttt{inputFile} is defined in the \xmlnode{Files} node as:
+\begin{lstlisting}[style=XML]
+<Files>
+    <Input name="originalInput" type="">serpent_input.serpent</Input>
+</Files>
+\end{lstlisting}
+
+\subsubsection{Files}
+The only input file needed is a complete SERPENT input file,
+which means that it should either be self sufficient, or includes
+the necessary files (e.g. geometry, material definition files).
+The input file extension will depend on the the extension definition
+in the \xmlnode{Models} node.
+
+
+
+
+
+the GenericCode interface should cover the code for RAVEN.
+
+If a code contains cross-dependent data, the generic interface is not able to
+edit the correct values.  For example, if a geometry-building script specifies
+inner\_radius, outer\_radius, and thickness, the generic interface cannot
+calculate the thickness given the outer and inner radius, or vice versa.
+
+ An example of the code interface is shown here.  The input parameters are read
+ from the input files \texttt{gen.one} and \texttt{gen.two} respectively.
+ The code is run using \texttt{python}, so that is part of the \xmlNode{prepend} node.
+ The command line entry to normally run the code is
+\begin{lstlisting}[language=bash]
+python poly_inp.py -i gen.one -a gen.two -o myOut
+\end{lstlisting}
+and produces the output \texttt{myOut.csv}.
+
+Example:
+\begin{lstlisting}[style=XML]
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterface/poly_inp.py</executable>
+      <inputExtentions>.one,.two</inputExtentions>
+      <clargs type='prepend' arg='python'/>
+      <clargs type='input'   arg='-i' extension='.one'/>
+      <clargs type='input'   arg='-a' extension='.two'/>
+      <clargs type='output'  arg='-o'/>
+      <prepend>python</prepend>
+    </Code>
+\end{lstlisting}
+
+If a code doesn't accept necessary Raven-editable auxiliary input files
+or output filenames through the command line, the GenericCode interface
+can also edit the input files and insert the filenames there.  For example,
+in the previous example, say instead of \texttt{-a gen.two} and \texttt{-o myOut}
+in the command line, \texttt{gen.one} has the following lines:
+\begin{lstlisting}[language=python]
+...
+auxfile = gen.two
+case = myOut
+...
+\end{lstlisting}
+Then, our example XML for the code would be
+
+Example:
+\begin{lstlisting}[style=XML]
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterface/poly_inp.py</executable>
+      <inputExtentions>.one,.two</inputExtentions>
+      <clargs   type='prepend' arg='python'/>
+      <clargs   type='input'   arg='-i'  extension='.one'/>
+      <fileargs type='input'   arg='two' extension='.two'/>
+      <fileargs type='output'  arg='out'/>
+      <prepend>python</prepend>
+    </Code>
+\end{lstlisting}
+and the corresponding template input file lines would be changed to read
+\begin{lstlisting}[language=python]
+...
+auxfile = $RAVEN-two$
+case = $RAVEN-out$
+...
+\end{lstlisting}
+
+In addition, the ``wild-cards'' above can contain two special and optional symbols:
+\begin{itemize}
+  \item  \texttt{:}, that defines an eventual default value;
+  \item  \texttt{|}, that defines the format of the value. The  Generic Interface currently supports the following formatting options (* in the examples means blank space):
+    \begin{itemize}
+       \item \textbf{plain integer}, in this case  the value that is going to be replaced by the Generic Interface, will be left-justified with a string length equal to the integer value specified here (e.g. ``\texttt{|}6'', the value is left-justified with a string length of 6);
+      \item \textbf{d}, signed integer decimal, the value is going to be formatted as an integer (e.g.  if the value is 9 and the format ``\texttt{|}10d'', the replaced value will be formatted as follows: ``*********9'');
+      \item \textbf{e}, floating point exponential format (lowercase), the value is going to be formatted as a float in scientific notation (e.g. if the value is 9.1234 and the format ``\texttt{|}10.3e'', the replaced value will be formatted as follows: ``*9.123e+00'' );
+      \item \textbf{E}, floating point exponential format (uppercase), the value is going to be formatted as a float in scientific notation (e.g. if the value is 9.1234 and the format ``\texttt{|}10.3E'', the replaced value will be formatted as follows: ``*9.123E+00'' );
+      \item \textbf{f or F}, floating point decimal format, the value is going to be formatted as a float in decimal notation (e.g. if the value is 9.1234 and the format ``\texttt{|}10.3f'', the replaced value will be formatted as follows: ``*****9.123'' );
+      \item \textbf{g}, floating point format. Uses lowercase exponential format if exponent is less than -4 or not less than precision, decimal format otherwise (e.g. if the value is 9.1234 and the format ``\texttt{|}10.3g'', the replaced value will be formatted as follows: ``******9.12'' );
+      \item \textbf{G}, floating point format. Uses uppercase exponential format if exponent is less than -4 or not less than precision, decimal format otherwise (e.g. if the value is 0.000009 and the format ``\texttt{|}10.3G'', the replaced value will be formatted as follows: ``*****9E-06'' ).
+    \end{itemize}|
+\end{itemize}
+For example:
+\begin{lstlisting}[language=python]
+...
+auxfile = $RAVEN-two:3$
+case = $RAVEN-out:5|10$
+...
+\end{lstlisting}
+Where,
+\begin{itemize}
+  \item  \texttt{:}, in case the variable ``two'' is not defined in the RAVEN XML input file, the Parser, will replace it with the value ``3''.;
+  \item  \texttt{|}, the value that is going to be replaced by the Generic Interface, will be left- justified with a string length of ``10'';
+\end{itemize}
