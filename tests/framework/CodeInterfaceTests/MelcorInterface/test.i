@@ -5,7 +5,7 @@
 !
 !MEG_DIAGFILE 'MEGDIA.TXT'
 !MEG_OUTPUTFILE 'MEGOUT.TXT'
-MEL_OUTPUTFILE 'OUTPUT_MELCOR.ou     '
+MEL_OUTPUTFILE 'OUTPUT_MELCOR.out'
 !MEG_RESTARTFILE 'MELRST.RST'
 !PLOTFILE 'MELPTF.PTF'
 !MESSAGEFILE 'MELMES.TXT'
@@ -25,7 +25,7 @@ EXEC_TITLE '     es     _1'
 EXEC_DTTIME 1.0E-4
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!       Tabular Func     ions Da     a         !
+!       Tabular Funcions Data         !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 TF_INPUT
 !
