@@ -1,8 +1,8 @@
 <Simulation verbosity="all">
   <RunInfo>
-    <WorkingDir>inputTest</WorkingDir>
+    <WorkingDir>SerpentTest1</WorkingDir>
     <!-- ordered list of step names that RAVEN will run -->
-    <Sequence>sampleInput</Sequence>
+    <Sequence>sampleInput, outputResults</Sequence>
     <!-- number of parallel runs executed simultaneously -->
     <batchSize>1</batchSize>
   </RunInfo>
@@ -30,7 +30,7 @@
   <Samplers>
     <Grid name="myGrid">
       <variable name="deptime">
-        <distribution>timdist</distribution>
+        <distribution>timedist</distribution>
         <!-- equally spaced steps with lower and upper bound -->
         <grid construction="custom" type="CDF">0.1 1</grid>
       </variable>
@@ -43,13 +43,25 @@
       <Input   class="Files"       type=""          >originalInput</Input>
       <Model   class="Models"      type="Code"      >SERPENT</Model>
       <Sampler class="Samplers"    type="Grid"      >myGrid</Sampler>
+      <Output  class="DataObjects" type="PointSet"  >outPointSet</Output>
     </MultiRun>
+    <IOStep name="outputResults">
+      <Input  class="DataObjects" type="PointSet"   >outPointSet</Input>
+      <Output  class="OutStreams"  type="Print"     >RAVENout</Output>
+    </IOStep>
   </Steps>
+
+  <OutStreams>
+    <Print name="RAVENout">
+      <type>csv</type>
+      <source>outPointSet</source>
+    </Print>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="outPointSet">
-      <Input>feature_space</Input>
-      <Output>target_space</Output>
+      <Input>deptime</Input>
+      <Output>boc_keff, eoc_keff</Output>
     </PointSet>
   </DataObjects>
 

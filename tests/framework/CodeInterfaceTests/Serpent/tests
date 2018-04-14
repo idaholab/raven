@@ -3,7 +3,7 @@
   type = 'RavenFramework'
   input = 'RAVENinput.xml'
   text = 'SerpentTest1/sampleInput/1/testInput.serpent SerpentTest1/sampleInput/2/testInput.serpent'
-  output = 'SerpentTest1/sampleInput/1/my_serpent.csv'
+  output = 'SerpentTest1/sampleInput/1/out~testInput.csv SerpentTest1/sampleInput/2/out~testInput.csv'
   csv = 'SerpentTest1/RAVENout.csv'
   test_interface_only = True 
  [../]
