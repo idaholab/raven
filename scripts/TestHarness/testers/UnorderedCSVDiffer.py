@@ -16,11 +16,22 @@ import sys,os
 import numpy as np
 import pandas as pd
 
+# get access to math tools from RAVEN
+try:
+  from utils import mathUtils
+except ImportError:
+  new = os.path.realpath(os.path.join(os.path.realpath(__file__),'..','..','..','..','framework'))
+  sys.path.append(new)
+  from utils import mathUtils
+
+whoAmI = False # enable to show test dir and out files
+debug = False # enable to increase printing
+
 class UnorderedCSVDiffer:
   """
     Used for comparing two CSV files without regard for column, row orders
   """
-  def __init__(self, test_dir, out_files,relative_error=1e-10,absolute_check=False):
+  def __init__(self, test_dir, out_files,relative_error=1e-10,absolute_check=False,zeroThreshold=None):
     """
       Create an UnorderedCSVDiffer class
       Note naming conventions are out of our control due to MOOSE test harness standards.
@@ -36,6 +47,14 @@ class UnorderedCSVDiffer:
     self.__test_dir = test_dir
     self.__check_absolute_values = absolute_check
     self.__rel_err = relative_error
+    self.__zero_threshold = float(zeroThreshold) if zeroThreshold is not None else None
+    if debug or whoAmI:
+      print('test dir :',self.__test_dir)
+      print('out files:',self.__out_files)
+    if debug:
+      print('err      :',self.__rel_err)
+      print('abs check:',self.__check_absolute_values)
+      print('zero thr :',self.__zero_threshold)
 
   def finalizeMessage(self,same,msg,filename):
     """
@@ -52,34 +71,67 @@ class UnorderedCSVDiffer:
   def findRow(self,row,csv):
     """
       Searches for "row" in "csv"
-      @ In, row, TODO, row of data
+      @ In, row, pd.Series, row of data
       @ In, csv, pd.Dataframe, dataframe to look in
-      @ Out, match, TODO, matching row of data
+      @ Out, match, pd.Dataframe or list, matching row of data (or empty list if none found)
     """
+    if debug:
+      print('')
+      print('Looking for:\n',row)
+      print('Looking in:\n',csv)
     match = csv.copy()
-    match = match.replace(np.inf,-sys.maxint)
-    match = match.replace(np.nan,sys.maxint)
+    # reduce all values under threshold to 0
+    #match = match.replace(np.inf,-sys.maxint)
+    #match = match.replace(np.nan,sys.maxint)
     # mask inf as -sys.max and nan as +sys.max
     for idx, val in row.iteritems():
-      if val == np.inf:
-        val = -sys.maxint
-      elif pd.isnull(val):
-        val = sys.maxint
-      try:
-        # try float/int first
-        match = match[(abs(match[idx] - val) < self.__rel_err)]
-      except TypeError:
-        # otherwise, use exact matching
-        try:
-          match = match[match[idx] == val]
-        except TypeError as e:
-          print('Type problem!')
-          print('  ... dir:',self.__test_dir)
-          print('  ... val:',val,type(val))
-          print('  ... match:',match[idx],type(match[idx]))
-          print('  ... csv:',match)
-          print('  ... row:',row)
-          raise e
+      if debug:
+        print('  checking index',idx)
+      # check type consistency
+      ## get a sample from the matching CSV column
+      ### TODO could check indices ONCE and re-use instead of checking each time
+      matchVal = match[idx].values.item(0) if match[idx].values.shape[0] != 0 else None
+      ## find out if match[idx] and/or "val" are numbers
+      matchIsNumber = mathUtils.isAFloatOrInt(matchVal)
+      valIsNumber = mathUtils.isAFloatOrInt(val)
+      ## if one is a number and the other is not, consider it a non-match.
+      if matchIsNumber != valIsNumber:
+        if debug:
+          print('  Not same type (number)! lfor: "{}" lin: "{}"'.format(valIsNumber,matchIsNumber))
+        return []
+      # compare
+      # process: determine a condition "cond" whereby to reduce the possible matches
+      ## if not a number, absolute check
+      if not valIsNumber:
+        cond = match[idx] == val
+      ## if a number, condition depends on chosen tools
+      else:
+        ## apply zero threshold
+        #if False:# FIXME tooooo slooooowwwwww self.__zero_threshold is not None:
+        #  match[idx][abs(match[idx]) < self.__zero_threshold] = 0
+        #  if debug:
+        #    print('  After applying zero threshold, options are:',match[idx])
+        #  val = 0 if abs(val) < self.__zero_threshold else val
+        ## mask infinity
+        #if val == np.inf:
+        #  val = -sys.maxint
+        #elif pd.isnull(val):
+        #  val = sys.maxint
+        ## value check: absolute
+        if self.__check_absolute_values:
+          cond = abs(match[idx] - val) < self.__rel_err
+        ## value check: relative
+        else:
+          # set relative scaling factor to protect against div by 0
+          if val == 0:
+            scale = 1.0
+          else:
+            scale = abs(val)
+          cond = abs(match[idx] - val) < scale*self.__rel_err
+      # limit matches by condition determined
+      match = match[cond]
+      if debug:
+        print('  After searching for {}={}, remaining matches:\n'.format(idx,val),match)
     return match
 
   def diff(self):
@@ -149,11 +201,14 @@ class UnorderedCSVDiffer:
       ## at this point both CSVs have the same shape, with the same header contents.
       ## align columns
       testCSV = testCSV[goldCSV.columns.tolist()]
+      ## set marginal values to zero
+      testCSV = self.marginalizeZeros(testCSV,self.__zero_threshold)
+      goldCSV = self.marginalizeZeros(goldCSV,self.__zero_threshold)
       ## check for matching rows
       for idx in goldCSV.index:
         find = goldCSV.iloc[idx].rename(None)
         match = self.findRow(find,testCSV)
-        if not len(match) > 0:
+        if len(match) == 0:
           same = False
           msg.append('Could not find match for row "{}" in Gold:\n{}'.format(idx+1,find)) #+1 because of header row
           # stop looking once a mismatch is found
@@ -161,6 +216,24 @@ class UnorderedCSVDiffer:
       self.finalizeMessage(same,msg,testFilename)
     return self.__same, self.__message
 
-  ## accessors
-
+  def marginalizeZeros(self,csv,tol):
+    """
+      For any columns that contain numbers, drop near-zero numbers to zero
+      @ In, csv, pd.DataFrame, contents to reduce
+      @ In, tol, float, tolerance sufficently near zero
+      @ Out, csv, converted dataframe
+    """
+    # use absolute or relative?
+    key = {'atol':tol} if self.__check_absolute_values else {'rtol':tol}
+    # take care of infinites
+    csv = csv.replace(np.inf,-sys.maxint)
+    csv = csv.replace(np.nan,sys.maxint)
+    for col in csv.columns:
+      example = csv[col].values.item(0) if csv[col].values.shape[0] != 0 else None
+      # skip columns that aren't numbers TODO might skip float columns with "None" early on
+      if not mathUtils.isAFloatOrInt(example):
+        continue
+      # flatten near-zeros
+      csv[col][np.isclose(csv[col],0,**key)] = 0
+    return csv
 

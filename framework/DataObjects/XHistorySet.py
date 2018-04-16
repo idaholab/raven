@@ -259,8 +259,10 @@ class HistorySet(DataSet):
     inpData = data[ordered]
     ### add column for realization information, pointing to the appropriate CSV
     subFiles = np.array(list('{}_{}.csv'.format(fileName,rid) for rid in data[self.sampleTag].values),dtype=object)
+    #### don't print directories in the file names, since the files are in that directory
+    subFilesNames = np.array(list(os.path.split(s)[1] for s in subFiles),dtype=object)
     ### add column to dataset
-    column = self._collapseNDtoDataArray(subFiles,'filename',labels=data[self.sampleTag])
+    column = self._collapseNDtoDataArray(subFilesNames,'filename',labels=data[self.sampleTag])
     inpData = inpData.assign(filename=column)
     ### also add column name to "ordered"
     ordered += ['filename']

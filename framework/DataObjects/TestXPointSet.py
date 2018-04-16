@@ -442,8 +442,6 @@ dataNET = XPointSet.PointSet()
 dataNET.messageHandler = mh
 dataNET.load(netname,style='netcdf')
 # validity of load is checked below, in ACCESS USING GETTERS section
-## remove files, for cleanliness (comment out to debug)
-os.remove(netname) # if this is a problem because of lazy loading, force dataNET to load completely
 
 # to CSV
 ## test writing to file
@@ -532,6 +530,10 @@ idx,rlz = dataCSV.realization(matchDict={'prefix':'third'})
 checkSame('XPointSet full csvxml match idx',idx,2)
 checkRlz('XPointSet full csvxml match',rlz,rlz2)
 # TODO metadata checks?
+
+## remove files, for cleanliness (comment out to debug)
+dataNET._data.close()
+os.remove(netname) # if this is a problem because of lazy loading, force dataNET to load completely
 
 ######################################
 #         SELECTIVE SAMPLING         #

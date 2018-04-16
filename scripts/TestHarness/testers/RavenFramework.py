@@ -221,10 +221,18 @@ class RavenFramework(Tester):
 
     #unordered csv
     checkAbsoluteValue = self.specs["check_absolute_value"]
+    zeroThreshold = self.specs["zero_threshold"]
     if len(self.specs["rel_err"]) > 0:
-      ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],self.ucsv_files,relative_error=float(self.specs["rel_err"]),absolute_check=checkAbsoluteValue)
+      ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],
+                  self.ucsv_files,
+                  relative_error = float(self.specs["rel_err"]),
+                  absolute_check = checkAbsoluteValue,
+                  zeroThreshold = zeroThreshold)
     else:
-      ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],self.ucsv_files,absolute_check=checkAbsoluteValue)
+      ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],
+                  self.ucsv_files,
+                  absolute_check = checkAbsoluteValue,
+                  zeroThreshold = zeroThreshold)
 
     ucsv_same,ucsv_messages = ucsv_diff.diff()
     if not ucsv_same:

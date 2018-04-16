@@ -564,8 +564,6 @@ dataNET = XDataSet.DataSet()
 dataNET.messageHandler = mh
 dataNET.load(netname,style='netcdf')
 # validity of load is checked below, in ACCESS USING GETTERS section
-## remove files, for cleanliness (comment out to debug)
-os.remove(netname) # if this is a problem because of lazy loading, force dataNET to load completely
 
 # to CSV
 ## test writing to file
@@ -655,6 +653,10 @@ checkSame('Dataset full csvxml match idx',idx,2)
 checkRlz('Dataset full csvxml match',rlz,rlz2,skip=['time','z'])
 # TODO metadata checks?
 
+## remove files, for cleanliness (comment out to debug)
+## first have to close file (for Windows' sake)
+dataNET._data.close()
+os.remove(netname)
 
 ######################################
 #        ADDING NEW VARIABLE         #
