@@ -80,17 +80,20 @@ void NDSpline::ndSplineInit(std::vector< std::vector<double> > & discretizations
          for (int nDim=0; nDim<_dimensions; nDim++){
                  int length = _discretizations.at(nDim).size();
              _hj.push_back((_discretizations.at(nDim).at(length-1) - _discretizations.at(nDim).at(0))/(length-1));
+             
+             std::cerr <<  "_hj[nDim] " << _hj[nDim]    <<std::endl;
+             
              _min_disc.push_back(_discretizations.at(nDim).at(0));
              _max_disc.push_back(_discretizations.at(nDim).at(length-1));
          }
-
+ std::cerr << "figa"<<std::endl;
          _completed_init = true;
 
          if (_dimensions > 1)
           calculateCoefficients();
          else
           _spline_coefficients = getCoefficients(_values, _hj.at(0), _alpha.at(0), _beta.at(0));
-
+ std::cerr << "figa2"<<std::endl;
             for (int i=0; i<_dimensions; i++){
               _cell_point_0.push_back(_discretizations.at(i).at(0));
               _cell_dxs.push_back(_discretizations.at(i).at(_discretizations.at(i).size()-1)-_discretizations.at(i).at(0));
@@ -189,9 +192,9 @@ void NDSpline::fit(std::vector< std::vector<double> > coordinates , std::vector<
     for (int n=0; n<_dimensions; n++)
     {
         std::vector<double>  d_values;
-        for (unsigned int d=0; d<coordinates.size(); n++)
+        for (unsigned int d=0; d<coordinates.size(); d++)
         {
-            if (std::find(d_values.begin(), d_values.end(), coordinates[d][n]) != d_values.end())
+            if (std::find(d_values.begin(), d_values.end(), coordinates[d][n]) == d_values.end())
             {
                 d_values.push_back(coordinates[d][n]);
             }
@@ -200,14 +203,22 @@ void NDSpline::fit(std::vector< std::vector<double> > coordinates , std::vector<
         _discretizations.push_back(d_values);
         tot_num_combinations *= d_values.size();
     }
+    
     if (tot_num_combinations != tot_num_values)
+    {
+        std::cerr << "Error in NDSpline::fit: the feature grid is not a regular cartesian grid!" <<  std::endl;
         throw ("Error in NDSpline::fit: the feature grid is not a regular cartesian grid!");
+    }
 
     // reorder values in the way expected by the Spline interpolator
     for (int n=0; n<tot_num_combinations; n++)
     {
+        std::cerr << "INDEXES: " <<  std::endl;
+        for (unsigned int d=0; d<floating_indexes.size(); d++) {
+            std::cerr <<  indexes[d] <<  std::endl;
+        }
         // add values
-        _values.push_back(sample_to_value[floating_indexes]);
+        _values.push_back(values[sample_to_value[floating_indexes]]);
         // recompute indexes
         for (unsigned int d=0; d<floating_indexes.size(); d++)
         {
@@ -250,6 +261,19 @@ double NDSpline::splineCartesianInterpolation(std::vector<double> point_coordina
 
 void NDSpline::calculateCoefficients(){
  std::vector<int> loop_locator (_dimensions);
+
+ std::cerr << "_dimensions " << _dimensions <<std::endl;
+    
+  for (unsigned int i=0; i<_values.size(); i++){
+   std::cerr << "_values " << i << " " << _values[i] <<std::endl;
+  }
+  for (unsigned int i=0; i<_discretizations.size(); i++){
+      for (unsigned int j=0; j<_discretizations[i].size(); j++){
+          std::cerr << "_discretizations "<<i <<","<<j <<" "<< _discretizations[i][j] <<std::endl;
+      }
+  }
+ 
+ std::cerr << "size _discretizations " << _discretizations.size() <<std::endl;
  std::vector<double> coeff = fillArrayCoefficient(_dimensions, _values, loop_locator);
  _spline_coefficients = coeff;
 }
@@ -259,28 +283,33 @@ std::vector<double> NDSpline::fillArrayCoefficient(int n_dimensions, std::vector
  std::vector<std::vector<double> > tempCoefficients;
  std::vector<double> temp;
  std::vector<double> y;
-
+ std::cerr << "aaa " << _discretizations.size() <<std::endl;
+    
  for(unsigned int n=0; n<_discretizations.at(n_dimensions-1).size(); n++){
   loop_locator.at(n_dimensions-1)=n;
-
+  
   if (n_dimensions>2){
    int tempIndex=n_dimensions-1;
+   std::cerr << "bbb " << _discretizations.size() <<std::endl;
    temp = fillArrayCoefficient(tempIndex, data, loop_locator);
-
+   std::cerr << "ccc " << _discretizations.size() <<std::endl;
    tempCoefficients.push_back(temp);
    temp.clear();
   }
   else{  // n=1
+   std::cerr << "ddd " << _discretizations.size() <<std::endl;
    y = getValues(loop_locator); // get data
-
+   std::cerr << "eee " << n_dimensions <<std::endl;
    tempCoefficients.push_back(getCoefficients(y, _hj.at(n_dimensions-1), _alpha.at(n_dimensions-1), _beta.at(n_dimensions-1)));
+   std::cerr << "fff " << n_dimensions <<std::endl;
    y.clear();
   }
  }
+ std::cerr << "hhh " << _discretizations.size() <<std::endl;
  std::vector<std::vector<double> > finalCoefficients = tensorProductInterpolation(tempCoefficients, _hj.at(n_dimensions-1), _alpha.at(n_dimensions-1), _beta.at(n_dimensions-1));
-
+ std::cerr << "iii " << _discretizations.size() <<std::endl;
  std::vector<double> coefficients = coefficientRestructuring(finalCoefficients);
-
+ std::cerr << "lll " << _discretizations.size() <<std::endl;
  tempCoefficients.clear();
  finalCoefficients.clear();
 
