@@ -702,7 +702,7 @@ class DataSet(DataObject):
       @ Out, None
     """
     assert(var in self._orderedVars)
-    assert(type(value).__name__ in ['float','str','int','unicode','bool'])
+    assert(mathUtils.isSingleValued(value)) #['float','str','int','unicode','bool'])
     lenColl = len(self._collector) if self._collector is not None else 0
     lenData = len(self._data[self.sampleTag]) if self._data      is not None else 0
     # if it's in the data ...
@@ -1257,6 +1257,8 @@ class DataSet(DataObject):
     # TODO set up to use dask for on-disk operations -> or is that a different data object?
     # TODO are these fair assertions?
     self._data = xr.open_dataset(fileName)
+    # NOTE: open_dataset does NOT close the file object after loading (lazy loading)
+    ## -> if you try to rm the file in Windows before closing, it will fail with WindowsError 32: file in use!
     # convert metadata back to XML files
     for key,val in self._data.attrs.items():
       self._meta[key] = pk.loads(val.encode('utf-8'))
@@ -1550,7 +1552,8 @@ class DataSet(DataObject):
         mean = float(self._data[var].mean())
         scale = float(self._data[var].std())
         self._scaleFactors[var] = (mean,scale)
-      except TypeError:
+      except Exception:
+        self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(var))
         pass
 
   def _toCSV(self,fileName,start=0,**kwargs):
