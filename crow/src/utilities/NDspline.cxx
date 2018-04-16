@@ -176,9 +176,11 @@ void NDSpline::fit(std::vector< std::vector<double> > coordinates , std::vector<
     // local values
     std::vector<double> vals;
     // indexes
-    std::vector<int> indexes;
+    std::vector<double> floating_indexes(_dimensions,0.);
+    std::vector<unsigned int> indexes(_dimensions,0);
     int tot_num_values = values.size();
     int tot_num_combinations = 1;
+    unsigned int dim_tracking = 0;
     
     // get discretization values
     for (int n=0; n<_dimensions; n++)
@@ -191,25 +193,43 @@ void NDSpline::fit(std::vector< std::vector<double> > coordinates , std::vector<
             {
                 d_values.push_back(coordinates[d][n]);
             }
-            sample_to_value[coordinates[d]] = d
+            sample_to_value[coordinates[d]] = d;
         }
         _discretizations.push_back(d_values);
-        tot_num_combinations *= d_values.size()
+        tot_num_combinations *= d_values.size();
     }
     if (tot_num_combinations != tot_num_values)
         throw ("Error in NDSpline::fit: the feature grid is not a regular cartesian grid!");
     
-    
-    for (int n=0; n<tot_num_combinations; n++)
+    // initialize the floating_indexes
+    for (unsigned int d=0; d<floating_indexes.size(); d++)
     {
+        floating_indexes[d] = _discretizations[d][0];
+    }
+    _values.push_back(sample_to_value[floating_indexes]);
+    // reorder values in the way expected by the Spline interpolator
+    for (unsigned int n=1; n<tot_num_combinations; n++)
+    {
+        indexes[dim_tracking]++;
+        if (indexes[dim_tracking] == _discretizations[dim_tracking].size())
+        {
+            
+        }
+        
+        
+        for (unsigned int d=0; d<floating_indexes.size(); d++)
+        {
+            indexes[d]++
+            
+            
+        }
         
         
         
-        vals
     }
     
     
-     _values
+    
   _completed_init = true;
 }
 
