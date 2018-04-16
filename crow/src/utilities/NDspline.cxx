@@ -15,6 +15,7 @@
 #include "ND_Interpolation_Functions.h"
 #include <cmath>
 #include <vector>
+#include <algorithm>
 #include <map>
 #include <iostream>
 #include <limits>
@@ -173,14 +174,16 @@ void NDSpline::fit(std::vector< std::vector<double> > coordinates , std::vector<
     _dimensions=coordinates[0].size();
     // create mapping
     std::map<std::vector<double>,int> sample_to_value;
-    // local values
-    std::vector<double> vals;
-    // indexes
+    // coordinates
     std::vector<double> floating_indexes(_dimensions,0.);
+    // indexes
     std::vector<unsigned int> indexes(_dimensions,0);
+    // alpha beta
+    std::vector<double> alpha(_dimensions, 0.);
+    std::vector<double> beta(_dimensions,0.);
+    // local counters
     int tot_num_values = values.size();
     int tot_num_combinations = 1;
-    unsigned int dim_tracking = 0;
     
     // get discretization values
     for (int n=0; n<_dimensions; n++)
@@ -188,7 +191,7 @@ void NDSpline::fit(std::vector< std::vector<double> > coordinates , std::vector<
         std::vector<double>  d_values;
         for (unsigned int d=0; d<coordinates.size(); n++)
         {
-            if (std::find(d_values.begin(), d_values.end(), coordinates.at(d)[n]) != d_values.end())
+            if (std::find(d_values.begin(), d_values.end(), coordinates[d][n]) != d_values.end())
             {
                 d_values.push_back(coordinates[d][n]);
             }
@@ -199,35 +202,27 @@ void NDSpline::fit(std::vector< std::vector<double> > coordinates , std::vector<
     }
     if (tot_num_combinations != tot_num_values)
         throw ("Error in NDSpline::fit: the feature grid is not a regular cartesian grid!");
-    // initialize the floating_indexes
-    for (unsigned int d=0; d<floating_indexes.size(); d++)
-    {
-        floating_indexes[d] = _discretizations[d][0];
-    }
-    _values.push_back(sample_to_value[floating_indexes]);
+
     // reorder values in the way expected by the Spline interpolator
-    for (unsigned int n=1; n<tot_num_combinations; n++)
+    for (int n=0; n<tot_num_combinations; n++)
     {
-        indexes[dim_tracking]++;
-        if (indexes[dim_tracking] == _discretizations[dim_tracking].size())
-        {
-            
-        }
-        
-        
+        // add values
+        _values.push_back(sample_to_value[floating_indexes]);
+        // recompute indexes
         for (unsigned int d=0; d<floating_indexes.size(); d++)
         {
-            indexes[d]++
-            
-            
+            indexes[d]++;
+            if (indexes[d] < _discretizations[d].size()) break;
+            indexes[d] = 0;
         }
-        
-        
-
+        // get new coordinates
+        for (unsigned int d=0; d<floating_indexes.size(); d++)
+        {
+            floating_indexes[d] = _discretizations[d][indexes[d]];
+        }
     }
-    
-    
-  _completed_init = true;
+    ndSplineInit(_discretizations, _values, alpha, beta);
+    _completed_init = true;
 }
 
 double NDSpline::splineCartesianInterpolation(std::vector<double> point_coordinate){
