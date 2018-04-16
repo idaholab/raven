@@ -20,7 +20,7 @@
 
  [./ScaleTritonOrigenCombined]
    type = 'RavenFramework'
-   input = test_scale_triton_forward.xml
+   input = test_scale_combined_forward.xml
    output = 'SCALE_triton_origen_combined/sampleScale/1/decay_origen.csv SCALE_triton_origen_combined/sampleScale/2/decay_origen.csv'
    csv = 'SCALE_triton_origen_combined/output_time_evolution.csv'
    rel_err = 0.00001
