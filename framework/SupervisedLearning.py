@@ -2002,7 +2002,7 @@ class NDsplineRom(NDinterpolatorRom):
         newTargetVals[:,index] = nr.predict(newFeatureVals)
       targetVals  = newTargetVals
       featureVals = newFeatureVals
-
+    # fit the model
     self.featv, self.targv = featureVals,targetVals
     featv = interpolationND.vectd2d(featureVals[:][:])
     for index, target in enumerate(self.target):
