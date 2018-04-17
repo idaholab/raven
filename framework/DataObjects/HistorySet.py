@@ -1,4 +1,3 @@
-
 # Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,618 +12,289 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on Feb 16, 2013
-
-@author: alfoa
+  Specialized implementation of DataObject for data with single-valued inputs and outputs that share
+  a single common pivot parameter in the outputs, for each realization.
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+#For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
-#End compatibility block for Python 3----------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
+import sys,os
+import __builtin__
+import functools
 import copy
+import cPickle as pk
 import itertools
+import xml.etree.ElementTree as ET
+
+import abc
 import numpy as np
-import os
-from scipy import spatial
-#External Modules End--------------------------------------------------------------------------------
+import pandas as pd
+import xarray as xr
 
-#Internal Modules------------------------------------------------------------------------------------
-from utils.cached_ndarray import c1darray
-from .Data import Data, NotConsistentData, ConstructError
-from utils import utils,mathUtils
-import Files
-#Internal Modules End--------------------------------------------------------------------------------
+from BaseClasses import BaseType
+from Files import StaticXMLOutput
+from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
+try:
+  from .DataSet import DataSet
+except ValueError: #attempted relative import in non-package
+  from DataSet import DataSet
 
-class HistorySet(Data):
+# for profiling with kernprof
+try:
+  __builtin__.profile
+except AttributeError:
+  # profiler not preset, so pass through
+  def profile(func):
+    """
+      Dummy for when profiler is not present.
+      @ In, func, method, method to run
+      @ Out, func, method, method to run
+    """
+    return func
+
+#
+#
+#
+#
+class HistorySet(DataSet):
   """
-    HistorySet is an object that stores multiple sets of inputs and associated history for output parameters.
+    DataObject developed Oct 2017 to obtain linear performance from data objects when appending, over
+    thousands of variables and millions of samples.  Wraps np.ndarray for collecting and uses xarray.Dataset
+    for final form.  This form is a shortcut for ASSUMED only-float inputs and shared-single-pivot outputs
   """
+  # only a few changes from the base class; the external API is identical.
+
+  ### INITIALIZATION ###
+  # These are the necessary functions to construct and initialize this data object
   def __init__(self):
     """
-      Constructor
+      Constructor.
       @ In, None
       @ Out, None
     """
-    Data.__init__(self)
+    DataSet.__init__(self)
+    self.name      = 'HistorySet'
+    self.type      = 'HistorySet'
+    self.printTag  = self.name
+    self._tempPivotParam = None
 
-  def _specializedInputCheckParam(self,paramInput):
+  def _readMoreXML(self,xmlNode):
     """
-      Here we check if the parameters read by the global reader are compatible with this type of Data
-      @ In, paramInput, ParameterInput, the input
+      Initializes data object based on XML input.
+      @ In, xmlNode, xml.etree.ElementTree.Element or InputData.ParameterInput, input specification
       @ Out, None
     """
-    if set(self._dataParameters.keys()).issubset(['operator','outputRow']):
-      self.raiseAnError(IOError,"Inputted operator or outputRow attributes are available for Point and PointSet only!")
+    DataSet._readMoreXML(self,xmlNode)
+    # default to taking last point if no other spec was used
+    # TODO throw a warning here, once we figure out how to give message handler in all cases
+    if self._selectInput is None:
+      self._selectInput = ('inputRow',-1)
 
-  def addSpecializedReadingSettings(self):
+  def _setDefaultPivotParams(self):
     """
-      This function adds in the _dataParameters dictionary the options needed for reading and constructing this class
-      @ In,  None
+      Sets default pivot parameters.
+      @ In, None
       @ Out, None
     """
-    if self._dataParameters['hierarchical']:
-      self._dataParameters['type'] = 'History'
-    else:
-      self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
-    if hasattr(self._toLoadFromList[-1],'type'):
-      sourceType = self._toLoadFromList[-1].type
-    else:
-      sourceType = None
-    if('HDF5' == sourceType):
-      self._dataParameters['type']      =  self.type
-      self._dataParameters['filter'   ] = 'whole'
+    # If not set, use "time" as default.
+    if self._tempPivotParam is None:
+      self.raiseAWarning('No pivot parameter provided; defaulting to \"time\".')
+      self._tempPivotParam = 'time'
+    # propagate provided pivot parameter to all variables.
+    # don't use setter, set directly, since there's only one var
+    self._pivotParams = {self._tempPivotParam:self._outputs[:]}
 
-  def checkConsistency(self):
+  ### INTERNAL USE FUNCTIONS ###
+  def _fromCSV(self,fileName,**kwargs):
     """
-      This method performs the consistency check for the structured data HistorySet
-      @ In,  None
+      Loads a dataset from custom RAVEN history csv.
+      @ In, fileName, str, filename to load from (not including .csv or .xml)
+      @ In, kwargs, dict, optional arguments
       @ Out, None
     """
-    sourceType = self._toLoadFromList[-1].type
-    lenMustHave = self.numAdditionalLoadPoints
-    # here we assume that the outputs are all read....so we need to compute the total number of time point sets
-    if self._dataParameters['hierarchical']:
-      for key in self._dataContainer['inputs'].keys():
-        if (self._dataContainer['inputs'][key].size) != 1:
-          self.raiseAnError(NotConsistentData,'The input parameter value, for key ' + key + ' has not a consistent shape for History in HistorySet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key])))
-      for key in self._dataContainer['outputs'].keys():
-        if (self._dataContainer['outputs'][key].ndim) != 1:
-          self.raiseAnError(NotConsistentData,'The output parameter value, for key ' + key + ' has not a consistent shape for History in HistorySet ' + self.name + '!! It should be an 1D array since we are in hierarchical mode.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
+    # TODO would this be faster by manually filling the "collector" than using the dict?
+    # data dict for loading data
+    data = {}
+    # load in metadata
+    self._loadCsvMeta(fileName)
+    # load in main CSV
+    ## read into dataframe
+    main = self._readPandasCSV(fileName+'.csv')
+    nSamples = len(main.index)
+    ## collect input space data
+    for inp in self._inputs + self._metavars:
+      data[inp] = main[inp].values
+    ## get the sampleTag values if they're present, in case it's not just range
+    if self.sampleTag in main:
+      labels = main[self.sampleTag].values
     else:
-      if(lenMustHave != len(self._dataContainer['inputs'].keys())):
-        self.raiseAnError(NotConsistentData,'Number of HistorySet contained in HistorySet data ' + self.name + ' != number of loading sources!!! ' + str(lenMustHave) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
-      for key in self._dataContainer['inputs'].keys():
-        for key2 in self._dataContainer['inputs'][key].keys():
-          if (self._dataContainer['inputs'][key][key2].size) != 1:
-            self.raiseAnError(NotConsistentData,'The input parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in HistorySet ' +self.name+ '!! It should be a single value.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key][key2])))
-      for key in self._dataContainer['outputs'].keys():
-        for key2 in self._dataContainer['outputs'][key].keys():
-          if (self._dataContainer['outputs'][key][key2].ndim) != 1:
-            self.raiseAnError(NotConsistentData,'The output parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in HistorySet ' +self.name+ '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key][key2].ndim))
+      labels = None
+    # load subfiles for output spaces
+    subFiles = main['filename'].values
+    # pre-build realization spots
+    for out in self._outputs + self.indexes:
+      data[out] = np.zeros(nSamples,dtype=object)
+    # read in secondary CSVs
+    for i,sub in enumerate(subFiles):
+      subFile = sub
+      # check if the sub has an absolute path, otherwise take it from the master file (fileName)
+      if not os.path.isabs(subFile):
+        subFile = os.path.join(os.path.dirname(fileName),subFile)
+      # read in file
+      subDat = self._readPandasCSV(subFile)
+      # first time create structures
+      if len(set(subDat.keys()).intersection(self.indexes)) != len(self.indexes):
+        self.raiseAnError(IOError,'Importing HistorySet from .csv: the pivot parameters "'+', '.join(self.indexes)+'" have not been found in the .csv file. Check that the '
+                                  'correct <pivotParameter> has been specified in the dataObject or make sure the <pivotParameter> is included in the .csv files')
+      for out in self._outputs+self.indexes:
+        data[out][i] = subDat[out].values
+    # construct final data object
+    self.load(data,style='dict',dims=self.getDimensions())
 
-  def _updateSpecializedInputValue(self,name,value,options=None):
+  def _identifyVariablesInCSV(self,fileName):
     """
-      This function performs the updating of the values (input space) into this Data
-      @ In,  name, either 1) list (size = 2), name[0] == history number(ex. 1 or 2 etc) - name[1], parameter name (ex. cladTemperature)
-                       or 2) string, parameter name (ex. cladTemperature) -> in this second case,the parameter is added in the last history (if not present),
-                                                                             otherwise a new history is created and the new value is inserted in it
-      @ In, value, newer value
-      @ Out, None
+      Gets the list of available variables from the file "fileName.csv".
+      @ In, fileName, str, name of base file without extension.
+      @ Out, varList, list(str), list of variables
     """
+    with open(fileName+'.csv','r') as base:
+      inputAvail = list(s.strip() for s in base.readline().split(','))
+      # get one of the subCSVs from the first row of data in the base file
+      # ASSUMES that filename is the last column.  Currently, there's no way for that not to be true.
+      subFile = base.readline().split(',')[-1].strip()
+      # check if abs path otherwise take the dirpath from the master file (fileName)
+      if not os.path.isabs(subFile):
+        subFile = os.path.join(os.path.dirname(fileName),subFile)
+    with open(subFile,'r') as sub:
+      outputAvail = list(s.strip() for s in sub.readline().split(','))
+    return inputAvail + outputAvail
 
-    ## Check if we need to reduce the dataset
-    value = np.atleast_1d(value).flatten()
-    rows = None
-    if self._dataParameters is not None:
-      rows = self._dataParameters.get('inputRow', None)
-    if rows is None:
-      rows = range(len(value))
-    else:
-      if rows > len(value):
-        rows = range(len(value))
-        self.raiseAWarning("inputRow > len of history! Taking last row!")
-
-    value = value[rows]
-
-    # if this flag is true, we accept realizations in the input space that are not only scalar but can be 1-D arrays!
-    #acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
-    unstructuredInput = False
-    if isinstance(value,np.ndarray):
-      if value.shape == (): #can't cast single-entry ND array into a c1darray, so make it into a single entry
-        value = value.dtype.type(value)
-      else:
-        value = c1darray(values=value)
-    if not isinstance(value,(float,int,bool,c1darray)):
-      self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array  or a single value for method <_updateSpecializedInputValue>. Got type ' + str(type(value)))
-    if isinstance(value,c1darray):
-      if np.asarray(value).ndim > 1 and max(value.values.shape) != np.asarray(value).size:
-        self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a 1 Dimensional numpy array or a single value for method <_updateSpecializedInputValue>. Array shape is ' + str(value.shape))
-      #if value.size != 1 and not acceptArrayRealizations: self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
-      unstructuredInput = True if value.size > 1 else False
-    containerType = 'inputs' if not unstructuredInput else 'unstructuredInputs'
-    if options and self._dataParameters['hierarchical']:
-      # we retrieve the node in which the specialized 'History' has been stored
-      parentID = None
-      if type(name) == list:
-        namep = name[1]
-        if type(name[0]) == str:
-          nodeId = name[0]
+  def _selectiveRealization(self,rlz):
+    """
+      Uses "options" parameters from input to select part of the collected data
+      @ In, rlz, dict, {var:val} format (see addRealization)
+      @ Out, rlz, dict, {var:val} modified
+    """
+    # TODO this could be much more efficient on the parallel (finalizeCodeOutput) than on serial
+    # TODO someday needs to be implemented for when ND data is collected!  For now, use base class.
+    # TODO externalize it in the DataObject base class
+    toRemove = []
+    for var,val in rlz.items():
+      if var in self.protectedTags:
+        continue
+      # only modify it if it is not already scalar
+      if not mathUtils.isSingleValued(val):
+        # treat inputs, outputs differently TODO this should extend to per-variable someday
+        ## inputs
+        if var in self._inputs:
+          method,indic = self._selectInput
+        # pivot variables are included here in "else"; remove them after they're used in operators
         else:
-          if 'metadata' in options.keys():
-            nodeId = options['metadata']['prefix']
-            if 'parentID' in options['metadata'].keys():
-              parentID = options['metadata']['parentID']
+          continue
+        if method in ['inputRow']:
+          # zero-d xarrays give false behavior sometimes
+          # TODO formatting should not be necessary once standardized history,float realizations are established
+          if type(val) == list:
+            val = np.array(val)
+          elif type(val).__name__ == 'DataArray':
+            val = val.values
+          # FIXME this is largely a biproduct of old length-one-vector approaches in the deprecataed data objects
+          if val.size == 1:
+            rlz[var] = float(val)
           else:
-            nodeId = options['prefix']
-            if 'parentID' in options.keys():
-              parentID = options['parentID']
-      else:
-        if 'metadata' in options.keys():
-          nodeId = options['metadata']['prefix']
-          if 'parentID' in options['metadata'].keys():
-            parentID = options['metadata']['parentID']
-        else:
-          nodeId = options['prefix']
-          if 'parentID' in options.keys():
-            parentID = options['parentID']
-        namep = name
-      if parentID:
-        tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
-      else:
-        tsnode = self.retrieveNodeInTreeMode(nodeId)
-      self._dataContainer = tsnode.get('dataContainer')
-      if not self._dataContainer:
-        tsnode.add('dataContainer',{'inputs':{},'unstructuredInputs':{},'outputs':{}})
-        self._dataContainer = tsnode.get('dataContainer')
-      if namep in self._dataContainer[containerType].keys():
-        self._dataContainer[containerType].pop(name)
-      if namep not in self._dataParameters['inParam']:
-        self._dataParameters['inParam'].append(namep)
-      self._dataContainer[containerType][namep] = c1darray(values=np.ravel(value)) # np.atleast_1d(np.array(value))
-      self.addNodeInTreeMode(tsnode,options)
-    else:
-      if type(name) == list:
-        # there are info regarding the history number
-        if name[0] in self._dataContainer[containerType].keys():
-          gethistory = self._dataContainer[containerType].pop(name[0])
-          gethistory[name[1]] = c1darray(values=np.ravel(np.array(value,dtype=float)))
-          self._dataContainer[containerType][name[0]] = gethistory
-        else:
-          self._dataContainer[containerType][name[0]] = {name[1]:c1darray(values=np.ravel(np.array(value,dtype=float)))}
-      else:
-        # no info regarding the history number => use internal counter
-        if len(self._dataContainer[containerType].keys()) == 0:
-          self._dataContainer[containerType][1] = {name:c1darray(values=np.ravel(np.array(value,dtype=float)))}
-        else:
-          hisn = max(self._dataContainer[containerType].keys())
-          if name in list(self._dataContainer[containerType].values())[-1]:
-            hisn += 1
-            self._dataContainer[containerType][hisn] = {}
-          self._dataContainer[containerType][hisn][name] = c1darray(values=np.ravel(np.array(value,dtype=float))) # np.atleast_1d(np.array(value))
+            rlz[var] = float(val[indic])
+        elif method in ['inputPivotValue']:
+          pivotParam = self.getDimensions(var)
+          assert(len(pivotParam) == 1) # TODO only handle History for now
+          pivotParam = pivotParam[var][0]
+          idx = (np.abs(rlz[pivotParam] - indic)).argmin()
+          rlz[var] = rlz[var][idx]
+        elif method == 'operator':
+          if indic == 'max':
+            rlz[var] = float(val.max())
+          elif indic == 'min':
+            rlz[var] = float(val.min())
+          elif indic in ['mean','expectedValue','average']:
+            rlz[var] = float(val.mean())
+      # otherwise, leave it alone
+    return rlz
 
-  def _updateSpecializedMetadata(self,name,value,valueType,options=None):
+  def _toCSV(self,fileName,start=0,**kwargs):
     """
-      This function performs the updating of the values (metadata) into this Data
-      @ In, name, string, parameter name (ex. probability)
-      @ In, value, object, newer value
-      @ In, valueType, dtype, the value type
-      @ Out, None
-      NB. This method, if the metadata name is already present, replaces it with the new value. No appending here, since the metadata are dishomogenius and a common updating strategy is not feasable.
-    """
-    if options and self._dataParameters['hierarchical']:
-      # we retrieve the node in which the specialized 'Point' has been stored
-      parentID = None
-      if type(name) == list:
-        if type(name[0]) == str:
-          nodeId = name[0]
-        else:
-          if 'metadata' in options.keys():
-            nodeId = options['metadata']['prefix']
-            if 'parentID' in options['metadata'].keys():
-              parentID = options['metadata']['parentID']
-          else:
-            nodeId = options['prefix']
-            if 'parentID' in options.keys():
-              parentID = options['parentID']
-      else:
-        if 'metadata' in options.keys():
-          nodeId = options['metadata']['prefix']
-          if 'parentID' in options['metadata'].keys():
-            parentID = options['metadata']['parentID']
-        else:
-          nodeId = options['prefix']
-          if 'parentID' in options.keys():
-            parentID = options['parentID']
-      if parentID:
-        tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
-      self._dataContainer = tsnode.get('dataContainer')
-      if not self._dataContainer:
-        tsnode.add('dataContainer',{'metadata':{}})
-        self._dataContainer = tsnode.get('dataContainer')
-      else:
-        if 'metadata' not in self._dataContainer.keys():
-          self._dataContainer['metadata'] ={}
-      if name in self._dataContainer['metadata'].keys():
-        self._dataContainer['metadata'][name].append(np.atleast_1d(np.array(value)))
-      else:
-        valueToAdd = np.array(value,dtype=valueType) if valueType is not None else np.array(value)
-        self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(valueToAdd)))
-      self.addNodeInTreeMode(tsnode,options)
-    else:
-      if name in self._dataContainer['metadata'].keys():
-        self._dataContainer['metadata'][name].append(np.atleast_1d(value))
-      else:
-        valueToAdd = np.array(value,dtype=valueType) if valueType is not None else np.array(value)
-        self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(valueToAdd)))
-
-  def _updateSpecializedOutputValue(self,name,value,options=None):
-    """
-      This function performs the updating of the values (output space) into this Data
-      @ In,  name, either 1) list (size = 2), name[0] == history number(ex. 1 or 2 etc) - name[1], parameter name (ex. cladTemperature)
-                       or 2) string, parameter name (ex. cladTemperature) -> in this second case,the parameter is added in the last history (if not present),
-                                                                             otherwise a new history is created and the new value is inserted in it
-      @ In, value, ?, ?
+      Writes this data objcet to CSV file (for metadata see _toCSVXML)
+      @ In, fileName, str, path/name to write file
+      @ In, start, int, optional, starting realization to print
+      @ In, kwargs, dict, optional, keywords for options
       @ Out, None
     """
-
-    ## Check if we need to reduce the dataset
-    value = np.atleast_1d(value).flatten()
-    rows = None
-    if self._dataParameters is not None:
-      rows = self._dataParameters.get('outputRow', None)
-    if rows is None:
-      rows = range(len(value))
+    # specialized to write custom RAVEN-style history CSVs
+    # TODO some overlap with DataSet implementation, but not much.
+    keep = self._getRequestedElements(kwargs)
+    toDrop = list(var for var in self._orderedVars if var not in keep)
+    # don't rewrite everything; if we've written some already, just append (using mode)
+    mode = 'a' if start > 0 else 'w'
+    # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
+    # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
+    # In this case, if self.hierarchical is False, the histories are going to be reconstructed
+    # (see _constructHierPaths for further explainations)
+    if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
+      fullData = self._constructHierPaths()[start-1:]
+      data = self._data.where(self._data['RAVEN_isEnding']==True,drop=True)
+      if start > 0:
+        data = self._data.isel(**{self.sampleTag:data[self.sampleTag].values[start-1:]})
     else:
-      if rows > len(value):
-        rows = range(len(value))
-        self.raiseAWarning("inputRow > len of history! Taking last row!")
-    value = np.atleast_1d(value[rows])
+      data = self._data
+      if start > 0:
+        data = self._data.isel(**{self.sampleTag:slice(start,None,None)})
 
-    if isinstance(value,np.ndarray):
-      value = c1darray(values=value)
-    if not isinstance(value,c1darray):
-      self.raiseAnError(NotConsistentData,'HistorySet Data accepts only cached_ndarray as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
+    data = data.drop(toDrop)
+    self.raiseADebug('Printing data to CSV: "{}"'.format(fileName+'.csv'))
+    # specific implementation
+    ## write input space CSV with pointers to history CSVs
+    ### get list of input variables to keep
+    ordered = list(i for i in itertools.chain(self._inputs,self._metavars) if i in keep)
+    ### select input part of dataset
+    inpData = data[ordered]
+    ### add column for realization information, pointing to the appropriate CSV
+    subFiles = np.array(list('{}_{}.csv'.format(fileName,rid) for rid in data[self.sampleTag].values),dtype=object)
+    #### don't print directories in the file names, since the files are in that directory
+    subFilesNames = np.array(list(os.path.split(s)[1] for s in subFiles),dtype=object)
+    ### add column to dataset
+    column = self._collapseNDtoDataArray(subFilesNames,'filename',labels=data[self.sampleTag])
+    inpData = inpData.assign(filename=column)
+    ### also add column name to "ordered"
+    ordered += ['filename']
+    ### write CSV
+    self._usePandasWriteCSV(fileName,inpData,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
+    ## obtain slices to write subset CSVs
+    ordered = list(o for o in self.getVars('output') if o in keep)
 
-    if options and self._dataParameters['hierarchical']:
-      parentID = None
-      if type(name) == list:
-        namep = name[1]
-        if type(name[0]) == str:
-          nodeId = name[0]
-        else:
-          if 'metadata' in options.keys():
-            nodeId = options['metadata']['prefix']
-            if 'parentID' in options['metadata'].keys():
-              parentID = options['metadata']['parentID']
-          else:
-            nodeId = options['prefix']
-            if 'parentID' in options.keys():
-              parentID = options['parentID']
+    if len(ordered):
+      # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
+      # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
+      # In this case, if self.hierarchical is False, the histories are going to be reconstructed
+      # (see _constructHierPaths for further explainations)
+      if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
+        for i in range(len(fullData)):
+          # the mode is at the begin 'w' since we want to write the first portion of the history from scratch
+          # once the first history portion is written, we change the mode to 'a' (append) since we continue
+          # writing the other portions to the same file, in order to reconstruct the "full history" in the same
+          # file.
+          # FIXME: This approach is drammatically SLOW!
+          mode = 'w'
+          filename = subFiles[i][:-4]
+          for subSampleTag in range(len(fullData[i][self.sampleTag].values)):
+            rlz = fullData[i].isel(**{self.sampleTag:subSampleTag}).dropna(self.indexes[0])[ordered]
+            self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True,mode=mode)
+            mode = 'a'
       else:
-        if 'metadata' in options.keys():
-          nodeId = options['metadata']['prefix']
-          if 'parentID' in options['metadata'].keys():
-            parentID = options['metadata']['parentID']
-        else:
-          nodeId = options['prefix']
-          if 'parentID' in options.keys():
-            parentID = options['parentID']
-        namep = name
-      if parentID:
-        tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
-
-      # we store the pointer to the container in the self._dataContainer because checkConsistency acts on this
-      self._dataContainer = tsnode.get('dataContainer')
-      if not self._dataContainer:
-        tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
-        self._dataContainer = tsnode.get('dataContainer')
-      if namep in self._dataContainer['outputs'].keys():
-        self._dataContainer['outputs'].pop(namep)
-      if namep not in self._dataParameters['outParam']:
-        self._dataParameters['outParam'].append(namep)
-      self._dataContainer['outputs'][namep] = c1darray(values=np.atleast_1d(np.array(value,dtype=float)))
-      self.addNodeInTreeMode(tsnode,options)
+        #  if self.hierarchical is True or the DataObject is not hierarchical we write
+        # all the histories (full histories if not hierarchical or branch-histories otherwise) independently
+        for i in range(len(data[self.sampleTag].values)):
+          filename = subFiles[i][:-4]
+          rlz = data.isel(**{self.sampleTag:i}).dropna(self.indexes[0])[ordered]
+          self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
     else:
-      resultsArray = c1darray(values=np.atleast_1d(np.array(value,dtype=float)))
-      if type(name) == list:
-        # there are info regarding the history number
-        try:
-          self._dataContainer['outputs'][name[0]][name[1]] = resultsArray
-        except KeyError:
-          self._dataContainer['outputs'][name[0]] = {name[1]:resultsArray}
-      else:
-        # no info regarding the history number => use internal counter
-        if len(self._dataContainer['outputs']) == 0:
-          self._dataContainer['outputs'][1] = {name:resultsArray}
-        else:
-          hisn = max(self._dataContainer['outputs'].keys())
-          if name in list(self._dataContainer['outputs'].values())[-1]:
-            hisn += 1
-            self._dataContainer['outputs'][hisn] = {}
-          self._dataContainer['outputs'][hisn][name] = copy.copy(resultsArray) #FIXME why deepcopy here but not elsewhere?
-
-  def specializedPrintCSV(self,filenameLocal,options):
-    """
-      This function prints a CSV file with the content of this class (Input and Output space)
-      @ In,  filenameLocal, string, filename root (for example, 'homo_homini_lupus' -> the final file name is going to be called 'homo_homini_lupus.csv')
-      @ In,  options, dictionary, dictionary of printing options
-      @ Out, None (a csv is gonna be printed)
-    """
-
-    if self._dataParameters['hierarchical']:
-      outKeys   = []
-      inpKeys   = []
-      inpValues = []
-      outValues = []
-      # retrieve a serialized of DataObjects from the tree
-      O_o = self.getHierParam('inout','*',serialize=True)
-      for key in O_o.keys():
-        inpKeys.append([])
-        inpValues.append([])
-        outKeys.append([])
-        outValues.append([])
-        if 'what' in options.keys():
-          for var in options['what']:
-            splitted = var.split('|')
-            variableName = "|".join(splitted[1:])
-            varType = splitted[0]
-            if varType == 'input':
-              if variableName not in self.getParaKeys('input'):
-                self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
-              inpKeys[-1].append(variableName)
-              axa = np.zeros(len(O_o[key]))
-              for index in range(len(O_o[key])):
-                axa[index] = O_o[key][index]['inputs'][variableName][0]
-              inpValues[-1].append(axa)
-            if varType == 'output':
-              if variableName not in self.getParaKeys('output'):
-                self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
-              outKeys[-1].append(variableName)
-              axa = O_o[key][0]['outputs'][variableName]
-              for index in range(len(O_o[key])-1):
-                axa = np.concatenate((axa,O_o[key][index+1]['outputs'][variableName]))
-              outValues[-1].append(axa)
-        else:
-          inpKeys[-1] = O_o[key][0]['inputs'].keys()
-          outKeys[-1] = O_o[key][0]['outputs'].keys()
-          for var in O_o[key][0]['inputs'].keys():
-            axa = np.zeros(len(O_o[key]))
-            for index in range(len(O_o[key])):
-              axa[index] = O_o[key][index]['inputs'][var][0]
-            inpValues[-1].append(axa)
-          for var in O_o[key][0]['outputs'].keys():
-            axa = O_o[key][0]['outputs'][var]
-            for index in range(len(O_o[key])-1):
-              axa = np.concatenate((axa,O_o[key][index+1]['outputs'][var]))
-            outValues[-1].append(axa)
-
-        if len(inpKeys) > 0 or len(outKeys) > 0:
-          myFile = open(filenameLocal + '_' + key + '.csv', 'w')
-        else:
-          return
-        myFile.write('Ending branch,'+key+'\n')
-        myFile.write('branch #')
-        for item in inpKeys[-1]:
-          myFile.write(',' + item)
-        myFile.write('\n')
-        # write the input paramters' values for each branch
-        for i in range(inpValues[-1][0].size):
-          myFile.write(str(i+1))
-          for index in range(len(inpValues[-1])):
-            myFile.write(',' + str(inpValues[-1][index][i]))
-          myFile.write('\n')
-        # write out keys
-        myFile.write('\n')
-        myFile.write('TimeStep #')
-        for item in outKeys[-1]:
-          myFile.write(',' + item)
-        myFile.write('\n')
-        for i in range(outValues[-1][0].size):
-          myFile.write(str(i+1))
-          for index in range(len(outValues[-1])):
-            myFile.write(',' + str(outValues[-1][index][i]))
-          myFile.write('\n')
-        myFile.close()
-    else:
-      #if not hierarchical
-      #For HistorySet, create an XML file, and multiple CSV
-      #files.  The first CSV file has a header with the input names,
-      #and a column for the filenames.  There is one CSV file for each
-      #data line in the first CSV and they are named with the
-      #filename.  They have the output names for a header, a column
-      #for time, and the rest of the file is data for different times.
-      inpValues = list(self._dataContainer['inputs'].values())
-      outKeys   = self._dataContainer['outputs'].keys()
-      outValues = list(self._dataContainer['outputs'].values())
-      unstructuredInpKeys   = self._dataContainer['unstructuredInputs'].keys()
-      unstructuredInpValues = list(self._dataContainer['unstructuredInputs'].values())
-      #Create Input file
-      myFile = open(filenameLocal + '.csv','w')
-      if len(unstructuredInpValues) > 0 and len(unstructuredInpValues[0].keys())>0:
-        unstructuredInpKeysFiltered, unstructuredInpValuesFiltered = [], []
-      else:
-        unstructuredInpKeysFiltered, unstructuredInpValuesFiltered = None, None
-      for n in range(len(outKeys)):
-        inpKeys_h   = []
-        inpValues_h = []
-        outKeys_h   = []
-        outValues_h = []
-        if unstructuredInpKeysFiltered is not None:
-          unstructuredInpKeysFiltered.append([])
-          unstructuredInpValuesFiltered.append([])
-
-        if 'what' in options.keys():
-          for var in options['what']:
-            splitted = var.split('|')
-            variableName = "|".join(splitted[1:])
-            varType = splitted[0]
-            if varType == 'input':
-              if variableName not in self.getParaKeys('input'):
-                self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
-              if variableName in inpValues[n].keys():
-                inpKeys_h.append(variableName)
-                inpValues_h.append(inpValues[n][variableName])
-              else:
-                if unstructuredInpKeysFiltered is not None:
-                  unstructuredInpKeysFiltered[n].append(variableName)
-                  unstructuredInpValuesFiltered[n].append(unstructuredInpValues[n][variableName])
-                else:
-                  self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
-            if varType == 'output':
-              if variableName not in self.getParaKeys('output'):
-                self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
-              outKeys_h.append(variableName)
-              outValues_h.append(outValues[n][variableName])
-        else:
-          inpKeys_h   = list(inpValues[n].keys())
-          inpValues_h = list(inpValues[n].values())
-          if unstructuredInpKeysFiltered is not None:
-            unstructuredInpKeysFiltered[n] = list(unstructuredInpValues[n].keys())
-            unstructuredInpValuesFiltered[n] =  list(unstructuredInpValues[n].values())
-          outKeys_h   = list(outValues[n].keys())
-          outValues_h = list(outValues[n].values())
-
-        dataFilename = filenameLocal + '_'+ str(n) + '.csv'
-        if len(inpKeys_h) > 0 or len(outKeys_h) > 0:
-          myDataFile = open(dataFilename, 'w')
-        else:
-          return #XXX should this just skip this iteration?
-
-        #Write header for main file
-        if n == 0:
-          myFile.write(','.join([item for item in itertools.chain(inpKeys_h,['filename'])]))
-          myFile.write('\n')
-          self._createXMLFile(filenameLocal,'HistorySet',inpKeys_h,outKeys_h)
-        myFile.write(','.join([str(item[0]) for item in
-                                itertools.chain(inpValues_h,[[dataFilename]])]))
-        myFile.write('\n')
-        #Data file
-        #Print time + output values
-        myDataFile.write(','.join([item for item in outKeys_h]))
-        if len(outKeys_h) > 0:
-          myDataFile.write('\n')
-          for j in range(outValues_h[0].size):
-            myDataFile.write(','.join([str(item[j]) for item in
-                                    outValues_h]))
-            myDataFile.write('\n')
-        myDataFile.close()
-      myFile.close()
-      if unstructuredInpKeysFiltered is not None and len(unstructuredInpKeysFiltered) > 0:
-        # write unstructuredData
-        self._writeUnstructuredInputInXML(filenameLocal +'_unstructured_inputs',unstructuredInpKeysFiltered,unstructuredInpValuesFiltered)
-
-  def _specializedLoadXMLandCSV(self, filenameRoot, options):
-    """
-      Function to load the xml additional file of the csv for data
-      (it contains metadata, etc). It must be implemented by the specialized classes
-      @ In, filenameRoot, string, file name root
-      @ In, options, dict, dictionary -> options for loading
-      @ Out, None
-    """
-    #For HistorySet, create an XML file, and multiple CSV
-    #files.  The first CSV file has a header with the input names,
-    #and a column for the filenames.  There is one CSV file for each
-    #data line in the first CSV and they are named with the
-    #filename.  They have the output names for a header, a column
-    #for time, and the rest of the file is data for different times.
-    if options is not None and 'fileToLoad' in options.keys():
-      name = os.path.join(options['fileToLoad'].getPath(),options['fileToLoad'].getBase())
-    else:
-      name = self.name
-
-    filenameLocal = os.path.join(filenameRoot,name)
-
-    if os.path.isfile(filenameLocal+'.xml'):
-      xmlData = self._loadXMLFile(filenameLocal)
-      assert(xmlData["fileType"] == "HistorySet")
-      if "metadata" in xmlData:
-        self._dataContainer['metadata'] = xmlData["metadata"]
-      mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
-    else:
-      mainCSV = os.path.join(filenameRoot,name+'.csv')
-
-    myFile = open(mainCSV,"rU")
-    header = myFile.readline().rstrip()
-    inpKeys = header.split(",")[:-1]
-    inpValues = []
-    outKeys   = []
-    outValues = []
-    allLines  = myFile.readlines()
-    for mainLine in allLines:
-      mainLineList = mainLine.rstrip().split(",")
-      inpValues_h = [utils.partialEval(a) for a in mainLineList[:-1]]
-      inpValues.append(inpValues_h)
-      dataFilename = mainLineList[-1]
-      subCSVFilename = os.path.join(filenameRoot,dataFilename)
-      subCSVFile = Files.returnInstance("CSV", self)
-      subCSVFile.setFilename(subCSVFilename)
-      self._toLoadFromList.append(subCSVFile)
-      with open(subCSVFilename, "rU") as myDataFile:
-        header = myDataFile.readline().rstrip()
-        outKeys_h = header.split(",")
-        outValues_h = [[] for a in range(len(outKeys_h))]
-        for lineNumber,line in enumerate(myDataFile.readlines(),2):
-          lineList = line.rstrip().split(",")
-          for i in range(len(outKeys_h)):
-            datum = utils.partialEval(lineList[i])
-            if datum == '':
-              self.raiseAnError(IOError, 'Invalid data in input file: {} at line {}: "{}"'.format(subCSVFilename,lineNumber,line.rstrip()))
-            outValues_h[i].append(datum)
-        myDataFile.close()
-      outKeys.append(outKeys_h)
-      outValues.append(outValues_h)
-
-
-    ## Do not reset these containers because it will wipe whatever information
-    ## already exists in this HistorySet. This is not one of the use cases for
-    ## our data objects. We claim in the manual to construct or update
-    ## information. These should be non-destructive operations. -- DPM 6/26/17
-    # self._dataContainer['inputs'] = {} #XXX these are indexed by 1,2,...
-    # self._dataContainer['outputs'] = {} #XXX these are indexed by 1,2,...
-    startKey = len(self._dataContainer['inputs'].keys())
-    for i in range(len(inpValues)):
-      mainKey = startKey + i + 1
-      subInput = {}
-      subOutput = {}
-      for key,value in zip(inpKeys,inpValues[i]):
-        #subInput[key] = c1darray(values=np.array([value]*len(outValues[0][0])))
-        if key in self.getParaKeys('inputs'):
-          subInput[key] = c1darray(values=np.array([value]))
-      for key,value in zip(outKeys[i],outValues[i]):
-        if key in self.getParaKeys('outputs'):
-          subOutput[key] = c1darray(values=np.array(value))
-
-      self._dataContainer['inputs'][mainKey] = subInput
-      self._dataContainer['outputs'][mainKey] = subOutput
-
-    #extend the expected size of this point set
-    self.numAdditionalLoadPoints += len(allLines) #used in checkConsistency
-
-    self.checkConsistency()
-
-  def _constructKDTree(self,requested):
-    """
-      Constructs a KD tree consisting of the variable values in "requested"
-      @ In, requested, list, requested variable names
-      @ Out, None
-    """
-    # get by-sample data
-    samples = self.getParametersValues('inputs')
-    # this preserves the order of "requested" variables, which is critical to the KDTree
-    ## the non-float variables will be handled outside the KD tree.
-    floatVars = list(r for r in requested if r in samples.values()[0].keys())
-    inpVals = {}
-    #set up data scaling, so that relative distances are used
-    # scaling is so that scaled = (actual - mean)/scale
-    for v in floatVars:
-      inpVals[v] = np.array(list(samples[i][v][0] for i in samples))
-      mean,scale = mathUtils.normalizationFactors(inpVals[v])
-      self.treeScalingFactors[v] = (mean,scale)
-    # create normalized tree
-    data = np.dstack(tuple((inpVals[v]-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in floatVars))[0]
-    self.inputKDTree = spatial.KDTree(data)
+      self.raiseAWarning('No output space variables have been requested for DataObject "{}"! No history files will be printed!'.format(self.name))

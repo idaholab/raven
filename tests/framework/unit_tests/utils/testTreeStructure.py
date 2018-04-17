@@ -24,7 +24,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import os,sys
 import numpy as np
 
-frameworkDir = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'framework'))
+frameworkDir = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
 print('framework:',frameworkDir)
 sys.path.append(frameworkDir)
 

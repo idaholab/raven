@@ -36,9 +36,9 @@ import xarray as xr
 
 # relative import for RAVEN, local import for unit tests
 try:
-  from .XDataObject import DataObject
+  from .DataObject import DataObject
 except ValueError:
-  from XDataObject import DataObject
+  from DataObject import DataObject
 from Files import StaticXMLOutput
 from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 

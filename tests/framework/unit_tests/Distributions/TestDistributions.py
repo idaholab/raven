@@ -25,15 +25,16 @@ import xml.etree.ElementTree as ET
 import sys, os
 import pickle as pk
 import numpy as np
-frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
+
+# find location of crow, message handler
+frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
+sys.path.append(frameworkDir)
 
 from utils.utils import find_crow
+find_crow(frameworkDir)
 
-find_crow(os.path.dirname(os.path.abspath(sys.argv[0])))
-
-
-import Distributions
 import MessageHandler
+import Distributions
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug'})

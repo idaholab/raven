@@ -25,12 +25,13 @@ import sys, os
 import cPickle as pk
 import numpy as np
 import xml.etree.ElementTree as ET
-frameworkDir = os.path.dirname(os.path.abspath(os.path.join(sys.argv[0])))
 
+# find location of crow, message handler
+frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
 sys.path.append(frameworkDir)
-from utils.utils import find_crow
-from utils import xmlUtils
 
+from utils import xmlUtils
+from utils.utils import find_crow
 find_crow(frameworkDir)
 
 import MessageHandler
@@ -39,7 +40,7 @@ mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 import Files
 print('Module undergoing testing:')
-print (Files )
+print(Files)
 print('')
 
 results = {"pass":0,"fail":0}
