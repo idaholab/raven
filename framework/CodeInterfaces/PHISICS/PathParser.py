@@ -43,8 +43,8 @@ class PathParser():
   def matrixPrinter(self,line,outfile):
     """
       Prints the perturbed decay matrix in the outfile.
-      @ In, line, string, input file line
-      @ In, outfile, file object, input file in file object format
+      @ In, line, file object, input file in file object format
+      @ In, outfile, file object, output file in file object format
       @ Out, None
     """
     line = re.sub(r'(.*?)(\w+)(-)(\d+M?)',r'\1\2\4',line)

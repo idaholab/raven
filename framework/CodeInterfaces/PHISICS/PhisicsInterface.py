@@ -239,16 +239,7 @@ class Phisics(CodeInterfaceBase):
           self.perturbXS = child.text.lower()
         else:
           raise ValueError("\n\nThe type of perturbation --"+child.text.lower()+"-- is not valid. You can choose one of the following \n"+"\n".join(set(validPerturbation)))
-      
-      if child.tag == 'tabulation':
-        self.tabulation = None
-        if (child.text.lower() == 't' or child.text.lower() == 'true'):
-          self.tabulation = True
-        elif (child.text.lower() == 'f' or child.text.lower() == 'false'):
-          self.tabulation = False
-        else:
-          raise ValueError("\n\n The tabulation node -- <"+child.tag+"> -- only supports the following text (case insensitive): \n True \n T \n False \n F")
-      
+
       if child.tag == 'mrtauStandAlone':
         self.mrtauStandAlone = None
         if (child.text.lower() == 't' or child.text.lower() == 'true'):
@@ -288,13 +279,13 @@ class Phisics(CodeInterfaceBase):
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-    dict = self.mapInputFileType(inputFiles)
+    mapDict = self.mapInputFileType(inputFiles)
     if self.mrtauStandAlone == True:
       executable = self.mrtauExecutable
       commandToRun = executable
-    outputfile = 'out~'+inputFiles[dict['inp'.lower()]].getBase()
+    outputfile = 'out~'+inputFiles[mapDict['inp'.lower()]].getBase()
     if self.mrtauStandAlone == False:
-      commandToRun = executable + ' ' +inputFiles[dict['inp'.lower()]].getFilename() + ' ' + inputFiles[dict['Xs-library'.lower()]].getFilename() + ' ' + inputFiles[dict['Material'.lower()]].getFilename() + ' ' + inputFiles[dict['Depletion_input'.lower()]].getFilename() + ' ' + self.instantOutput
+      commandToRun = executable + ' ' +inputFiles[mapDict['inp'.lower()]].getFilename() + ' ' + inputFiles[mapDict['Xs-library'.lower()]].getFilename() + ' ' + inputFiles[mapDict['Material'.lower()]].getFilename() + ' ' + inputFiles[mapDict['Depletion_input'.lower()]].getFilename() + ' ' + self.instantOutput
       commandToRun = commandToRun.replace("\n"," ")
       commandToRun  = re.sub("\s\s+" , " ", commandToRun)
     returnCommand = [('parallel',commandToRun)], outputfile
@@ -328,6 +319,7 @@ class Phisics(CodeInterfaceBase):
     phisicsDataDict['phiRel'] = phiRel['phiRel']
     phisicsDataDict['printSpatialRR'] = self.printSpatialRR
     phisicsDataDict['printSpatialFlux'] = self.printSpatialFlux
+    phisicsDataDict['pertVariablesDict'] = self.distributedPerturbedVars
     phisicsdata.phisicsdata(phisicsDataDict)
     if self.mrtauStandAlone == False:
       return self.jobTitle+'-'+str(self.pertNumber).strip()
@@ -364,6 +356,19 @@ class Phisics(CodeInterfaceBase):
       keyWordDict[inFile.getType().lower()] = count
       count = count + 1
     return keyWordDict
+  
+  def isThereTabMappinp(self,currentInputFiles):
+    """
+      If the file with has type attribute 'tabMapping', is tabulation mapping is considered to be True.
+      No tabulation mapping otherwise. 
+      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ Out, isThereTabMappinp, boolean, True if a tabulation mapping file exist, flase otherwise
+      @ Out, isThereTabMappinp, string, path to tabulation mapping file name
+    """
+    try: 
+      return True,currentInputFiles[self.typeDict['tabmap']].getAbsFile()
+    except KeyError: # no tabMap type attribute, hence, no tab Mapping desired
+      return False,None 
     
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
@@ -392,6 +397,7 @@ class Phisics(CodeInterfaceBase):
     self.forcePrintLibraries(currentInputFiles[self.typeDict['xs-library']].getAbsFile())
     self.depInp = currentInputFiles[self.typeDict['depletion_input']].getAbsFile()
     self.phisicsInp = currentInputFiles[self.typeDict['inp']].getAbsFile()
+    booleanTabMap,tabMapFileName = self.isThereTabMappinp(currentInputFiles)
     if Kwargs['precommand'] == '':
       self.numberOfMPI = 1
     else: 
@@ -419,5 +425,5 @@ class Phisics(CodeInterfaceBase):
       if perturbedParam == 'INTTRADECAY':
         PathParser.PathParser(currentInputFiles[self.typeDict['inttradecay']].getAbsFile(),currentInputFiles[self.typeDict['inttradecay']].getPath(),**self.distributedPerturbedVars[perturbedParam])
       if perturbedParam == 'XS':
-        XSCreator.XSCreator(currentInputFiles[self.typeDict['xs']].getAbsFile(), self.tabulation,currentInputFiles[self.typeDict['xs']].getPath(),**self.distributedPerturbedVars[perturbedParam])
+        XSCreator.XSCreator(currentInputFiles[self.typeDict['xs']].getAbsFile(),booleanTabMap,currentInputFiles[self.typeDict['xs']].getPath(),tabMapFileName,**self.distributedPerturbedVars[perturbedParam])
     return currentInputFiles

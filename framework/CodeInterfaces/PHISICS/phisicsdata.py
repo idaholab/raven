@@ -46,7 +46,11 @@ class phisicsdata():
     if phisicsDataDict['mrtauStandAlone'] == False:   # MRTAU/INSTANT are coupled
       mrtauTimeSteps = self.getMrtauInstantTimeSteps()
       instantTimeSteps = self.getInstantTimeSteps(instantOutput[0])
-      xsLabelList, xsList = self.getAbsoluteXS(instantOutput[1])
+      if 'XS' in phisicsDataDict['pertVariablesDict']: # only run the following method if XS are perturbed
+        xsLabelList, xsList = self.getAbsoluteXS(instantOutput[1])
+      else: 
+        xsLabelList = ['NoXS']
+        xsList = [0.0000]
     if phisicsDataDict['mrtauStandAlone'] == True:    # MRTAU is standalone mode
       mrtauTimeSteps = self.getMrtauTimeSteps()
       self.getMrtauIsotopeList()
@@ -455,38 +459,41 @@ class phisicsdata():
     count = 0
     countTimeStep = 0
     for mpi in xrange (0,numberOfMPI): # parse all the segmented files
-      with open(os.path.join(self.workingDir,self.instantOutputFileMPI[mpi]), 'r') as outfile:
-        for line in outfile:
-          if re.search(r'averaged flux\s+power', line):
-            if mpi == 0:
-              self.numberingRR = self.mapColumns(line,count)
-              reactionRateDict = self.declareDict('reactionRates',self.numberingRR)
-            flagStart = 1
-            countTimeStep = countTimeStep + 1
-          if re.search(r'Fission matrices of all',line):
-            flagStart = 2
-          if flagStart == 1:
-            if self.printSpatialRR is True:  # if the spatial reaction rates are printed
-              if re.search(r'\w+\s+\w+',line):
-                line = re.sub(r'[\|]',' ',line)
-                line = line.split()
-                stringIsNumber = self.isNumber(line)
-                if stringIsNumber == True :
+      if mpi >= numberOfMPI  -1 and self.phisicsRelap is True:
+        pass
+      else:
+        with open(os.path.join(self.workingDir,self.instantOutputFileMPI[mpi]), 'r') as outfile:
+          for line in outfile:
+            if re.search(r'averaged flux\s+power', line):
+              if mpi == 0:
+                self.numberingRR = self.mapColumns(line,count)
+                reactionRateDict = self.declareDict('reactionRates',self.numberingRR)
+              flagStart = 1
+              countTimeStep = countTimeStep + 1
+            if re.search(r'Fission matrices of all',line):
+              flagStart = 2
+            if flagStart == 1:
+              if self.printSpatialRR is True:  # if the spatial reaction rates are printed
+                if re.search(r'\w+\s+\w+',line):
+                  line = re.sub(r'[\|]',' ',line)
+                  line = line.split()
+                  stringIsNumber = self.isNumber(line)
+                  if stringIsNumber == True :
+                    for i in xrange (0,len(self.numberingRR)):
+                      groupNum  = line[0]
+                      regionNum = line[1]
+                      if self.paramList[i] == 'Group':
+                        pass
+                      else:
+                        reactionRateDict[groupNum][regionNum][self.paramList[i]][mpi] = line[self.numberingRR.get(self.paramList[i])]
+              if self.printSpatialRR is False:  # if the spatial reaction rates are not printed
+                if re.search(r'Total',line):
+                  line = line.split()
                   for i in xrange (0,len(self.numberingRR)):
-                    groupNum  = line[0]
-                    regionNum = line[1]
-                    if self.paramList[i] == 'Group':
+                    if self.paramList[i] == 'Group' or self.paramList[i] == 'Region':
                       pass
-                    else:
-                      reactionRateDict[groupNum][regionNum][self.paramList[i]][mpi] = line[self.numberingRR.get(self.paramList[i])]
-            if self.printSpatialRR is False:  # if the spatial reaction rates are not printed
-              if re.search(r'Total',line):
-                line = line.split()
-                for i in xrange (0,len(self.numberingRR)):
-                  if self.paramList[i] == 'Group' or self.paramList[i] == 'Region':
-                    pass
-                  else:                
-                    reactionRateDict[self.paramList[i]][mpi] = line[self.numberingRR.get(self.paramList[i])]
+                    else:                
+                      reactionRateDict[self.paramList[i]][mpi] = line[self.numberingRR.get(self.paramList[i])]
     if reactionRateDict != {}:
       return reactionRateDict
     
@@ -523,7 +530,6 @@ class phisicsdata():
               line = re.sub(r'[\|]',' ',line)
               line = line.split()
               for i in xrange (1,len(self.matrixNumbering) + 1):
-                print mpi
                 matrixDict[line[0]][str(regionNumber)][str(i)][str(mpi)] = line[self.matrixNumbering.get(str(i)) + 1]  
     return matrixDict
   
@@ -941,7 +947,7 @@ class phisicsdata():
           instantWriter.writerow([str(matchedTimeSteps[timeStepIndex])] + instantDict.get('keff') + instantDict.get('errorKeff') + rrValues + instantDict.get('fluxList') + instantDict.get('matFluxList') + instantDict.get('depList') + instantDict.get('decayList') + instantDict.get('xsList') + instantDict.get('cpuTime'))
       if self.phisicsRelap is True:
         with open(csvOutput, 'a+') as f:
-          instantWriter = csv.writer(f, delimiter=',',quotechar=',', quoting=csv.QUOTE_MINIMAL)
+          instantWriter = csv.writer(f, delimiter=str(u',').encode('utf-8'),quotechar=str(u',').encode('utf-8'), quoting=csv.QUOTE_MINIMAL)
           if timeStepIndex == 0:
             instantWriter.writerow(['timeMrTau'] + ['keff'] + ['errorKeff'] + rrNames + instantDict.get('fluxLabelList') + instantDict.get('powerDensLabelList') + instantDict.get('depLabelList') + instantDict.get('decayLabelList') + instantDict.get('xsLabelList') + ['cpuTime'])
           instantWriter.writerow([str(matchedTimeSteps[timeStepIndex])] + instantDict.get('keff') + instantDict.get('errorKeff') + rrValues + instantDict.get('fluxList') + instantDict.get('powerDensList') + instantDict.get('depList') + instantDict.get('decayList') + instantDict.get('xsList') + [instantDict.get('cpuTime')])

@@ -13,11 +13,35 @@ class QValuesParser():
   """
     Parses the PHISICS Qvalues library and replaces the nominal values by the perturbed values.
   """
+  def __init__(self,inputFiles,workingDir,**pertDict):
+    """
+      Constructor.
+      @ In, inputFiles, string, Qvalues library file.
+      @ In, workingDir, string, path to working directory
+      @ In, pertDict, dictionary, dictionary of perturbed variables
+      @ Out, None
+    """
+    self.listedQValuesDict = {}
+    self.inputFiles = inputFiles
+    self.pertQValuesDict = self.scientificNotation(pertDict)
+    self.fileReconstruction()
+    self.printInput(workingDir)
+    
+  def scientificNotation(self,pertDict):
+    """
+      Converts the numerical values into a scientific notation.
+      @ In, pertDict, dictionary, perturbed variables
+      @ Out, pertDict, dictionary, perturbed variables in scientific format
+    """
+    for key, value in pertDict.iteritems():
+      pertDict[key] = '%.3E' % Decimal(str(value)) 
+    return pertDict 
+    
   def matrixPrinter(self,infile,outfile):
     """
       Prints the perturbed Qvalues matrix in the outfile.
-      @ In, infile, string, input file name
-      @ In, outfile, string, output file name
+      @ In, infile, file object, input file in file object format
+      @ In, outfile, file object, output file in file object format
       @ Out, None
     """
     for line in infile :
@@ -27,15 +51,12 @@ class QValuesParser():
         if line[0] == isotopeID:
           try:
             line[1] = str(self.listedQValuesDict.get(isotopeID))
-          except:
-            raise Exception('Error. Check if the unperturbed library has defined values relative to the requested perturbed isotopes')
-      try:
-        if len(line) > 1:
-          line[0] = "{0:<7s}".format(line[0])
-          line[1] = "{0:<7s}".format(line[1])
-          outfile.writelines(' '+line[0]+line[1]+"\n")
-      except KeyError:
-        pass
+          except KeyError:
+            raise KeyError('Error. Check if the unperturbed library has defined values relative to the requested perturbed isotopes')
+      if len(line) > 1:
+        line[0] = "{0:<7s}".format(line[0])
+        line[1] = "{0:<7s}".format(line[1])
+        outfile.writelines(' '+line[0]+line[1]+"\n")
 
   def hardcopyPrinter(self,modifiedFile):
     """
@@ -46,26 +67,12 @@ class QValuesParser():
     with open(modifiedFile, 'a') as outfile:
       with open(self.inputFiles) as infile:
         for line in infile:
-          if not line.split(): continue   # if the line is blank, ignore it
+          if not line.split(): 
+            continue   # if the line is blank, ignore it
           if re.match(r'(.*?)\s+\w+\s+\d+.\d+',line):
             break
           outfile.writelines(line)
         self.matrixPrinter(infile, outfile)
-        
-  def __init__(self,inputFiles,workingDir,**pertDict):
-    """
-      Constructor.
-      @ In, inputFiles, string, Qvalues library file.
-      @ In, workingDir, string, path to working directory
-      @ In, pertDict, dictionary, dictionary of perturbed variables
-      @ Out, None
-    """
-    self.inputFiles = inputFiles
-    self.pertQValuesDict = pertDict
-    for key, value in self.pertQValuesDict.iteritems():
-      self.pertQValuesDict[key] = '%.3E' % Decimal(str(value)) #convert the values into scientific values
-    self.fileReconstruction()
-    self.printInput(workingDir)
     
   def fileReconstruction(self):
     """
@@ -74,23 +81,23 @@ class QValuesParser():
       @ In, None
       @ Out, None
     """
-    self.listedQValuesDict = {}
     perturbedIsotopes = []
-    for i in self.pertQValuesDict.iterkeys():
-      splittedDecayKeywords = i.split('|')
-      perturbedIsotopes.append(splittedDecayKeywords[1])
-    for i in xrange (0,len(perturbedIsotopes)):
-      self.listedQValuesDict[perturbedIsotopes[i]] = {}   # declare all the dictionaries
+    for key in self.pertQValuesDict.iterkeys():
+      perturbedIsotopes.append(key.split('|')[1])
+    for perturbedIsotope in perturbedIsotopes:
+      self.listedQValuesDict[perturbedIsotope] = {}   # declare all the dictionaries
     for isotopeKeyName, QValue in self.pertQValuesDict.iteritems():
       isotopeName = isotopeKeyName.split('|')
       self.listedQValuesDict[isotopeName[1]] = QValue
   
   def printInput(self,workingDir):
     """
-      Prints out the pertubed Qvalues library into a file.
+      Prints out the pertubed fission qvalue file into a .dat file. The workflow is: 
+      open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and  
+      replace with perturbed variables if necessary, Change the name of the dummy file. 
       @ In, workingDir, string, path to working directory
       @ Out, None
-    """
+    """ 
     modifiedFile = os.path.join(workingDir,'test.dat')
     open(modifiedFile, 'w')
     self.hardcopyPrinter(modifiedFile)
