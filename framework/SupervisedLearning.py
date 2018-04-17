@@ -1977,18 +1977,32 @@ class NDsplineRom(NDinterpolatorRom):
       @ Out, targetVals, array, shape = [n_samples], an array of output target
         associated with the corresponding points in featureVals
     """
-    numDiscrPerDimension = math.ceil(len(targetVals)**(1./len(self.features)))
+    numDiscrPerDimension = int(math.ceil(len(targetVals)**(1./len(self.features))))
+    newNumberSamples     = numDiscrPerDimension**len(self.features)
     # get discretizations
-    discretizations = [ list(set(featureVals[d].tolist())) for d in range(len(featureVals))]
+    discretizations = [ list(set(featureVals[:,d].tolist())) for d in range(len(self.features))]
     # check if it is a tensor grid or not
-    if np.prod( [len(d) for d in discretizations] ) != len(targetVals):
-      # not a tensor grid => interpolate
-      nr = neighbors.KNeighborsRegressor(n_neighbors= min(5,len(targetVals)), weights='distance')
-      nr.fit(featureVals, targetVals)
-      # new feature vals
+    tensorGrid = False if np.prod( [len(d) for d in discretizations] ) != len(targetVals) else True
+    if not tensorGrid:
+      self.raiseAWarning("Training set for NDSpline is not a cartesian grid. The training Tensor Grid is going to be create by interpolation!")
+      # isolate training data
+      featureVals = copy.deepcopy(featureVals)
+      targetVals  = copy.deepcopy(targetVals)
+      # new discretization
       newDiscretizations = [np.linspace(min(discretizations[d]), max(discretizations[d]), num=numDiscrPerDimension, dtype=float).tolist() for d in range(len(self.features))]
-      featureVals = np.atleast_2d(np.asarray(list(product(*newDiscretizations))))
-      targetVals = nr.predict(featureVals)
+      # new feature values
+      newFeatureVals = np.atleast_2d(np.asarray(list(product(*newDiscretizations))))
+      # new valuesContainer
+      newTargetVals = np.zeros( (newNumberSamples,len(self.target)) )
+      for index in range(len(self.target)):
+        # not a tensor grid => interpolate
+        nr = neighbors.KNeighborsRegressor(n_neighbors= min(2**len(self.features),len(targetVals)), weights='distance')
+        nr.fit(featureVals, targetVals[:,index])
+        # new target values
+        newTargetVals[:,index] = nr.predict(newFeatureVals)
+      targetVals  = newTargetVals
+      featureVals = newFeatureVals
+
     self.featv, self.targv = featureVals,targetVals
     featv = interpolationND.vectd2d(featureVals[:][:])
     for index, target in enumerate(self.target):

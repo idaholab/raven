@@ -8,7 +8,9 @@
     <description>
        This case is aimed to test the functionalities of the Tensor Spline Surrogate Model. It trains
        the Tensor Spline on a MC generated sampling the ``projectile'' model and inquires it on a
-       Grid. This tests the capability to accept not cartesian grids as training sets
+       Grid. This tests the capability to accept not cartesian grids as training sets.
+       It is important to notice that this tests demonstrates that the mechanics work but does not
+       suggest to train the NDSpline ROM on not a cartesian grid.
     </description>
     <revisions>
       <revision author="alfoa" date="2018-04-12">Created test and added description</revision>
@@ -48,7 +50,7 @@
   <Samplers>
       <MonteCarlo name="MCTest">
           <samplerInit>
-              <limit>20</limit>
+              <limit>200</limit>
           </samplerInit>
           <variable name="x0">
               <distribution>x0_d</distribution>

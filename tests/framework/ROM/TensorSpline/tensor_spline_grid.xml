@@ -68,9 +68,6 @@
       </Grid>
   </Samplers>
 
-<Steps>
-    <MultiRun name="FirstMRun" re-seeding="1">
-  
   <Steps>
     <MultiRun name="sampleModel" verbosity="debug">
       <Input   class="DataObjects" type="PointSet"     >inputHolder</Input>
