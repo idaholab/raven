@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This Module performs Unit Tests for the Distribution class.
+  This Module performs Unit Tests for the DataSet class.
   It can not be considered part of the active code but of the regression test system
 """
 
@@ -27,21 +27,25 @@ import pickle as pk
 import numpy as np
 import xarray as xr
 import copy
-frameworkDir = os.path.dirname(os.path.abspath(os.path.join(sys.argv[0],'..')))
 
+# find location of crow, message handler
+frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
 sys.path.append(frameworkDir)
+
 from utils.utils import find_crow
-
 find_crow(frameworkDir)
-
-import XDataSet
 import MessageHandler
+
+# find location of data objects
+sys.path.append(os.path.join(frameworkDir,'DataObjects'))
+
+import DataSet
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 print('Module undergoing testing:')
-print (XDataSet )
+print(DataSet )
 print('')
 
 def createElement(tag,attrib=None,text=None):
@@ -266,7 +270,7 @@ xml.append(createElement('Output',text='x,y,z'))
 xml.append(createElement('Index',attrib={'var':'time'},text='c,y'))
 
 # check construction
-data = XDataSet.DataSet()
+data = DataSet.DataSet()
 # inputs, outputs
 checkSame('DataSet __init__ name',data.name,'DataSet')
 checkSame('DataSet __init__ print tag',data.printTag,'DataSet')
@@ -539,7 +543,7 @@ xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a'))
 xml.append(createElement('Output',text='b'))
 xml.append(createElement('Index',attrib={'var':'t'},text='b'))
-dataAlign = XDataSet.DataSet()
+dataAlign = DataSet.DataSet()
 dataAlign.messageHandler = mh
 dataAlign._readMoreXML(xml)
 rlz = {'a':np.array([1.9]),
@@ -560,7 +564,7 @@ netname = 'DataSetUnitTest.nc'
 data.write(netname,style='netcdf',format='NETCDF4') # WARNING this will fail if netCDF4 not installed
 checkTrue('Wrote to netcdf',os.path.isfile(netname))
 ## read fresh from netCDF
-dataNET = XDataSet.DataSet()
+dataNET = DataSet.DataSet()
 dataNET.messageHandler = mh
 dataNET.load(netname,style='netcdf')
 # validity of load is checked below, in ACCESS USING GETTERS section
@@ -614,7 +618,7 @@ xml = createElement('DataSet',attrib={'name':'csv'})
 xml.append(createElement('Input',text='a,x,y'))
 xml.append(createElement('Output',text='c,b'))
 xml.append(createElement('Index',attrib={'var':'t'},text='y,c'))
-dataCSV = XDataSet.DataSet()
+dataCSV = DataSet.DataSet()
 dataCSV.messageHandler = mh
 dataCSV._readMoreXML(xml)
 dataCSV.load(csvname,style='CSV')
@@ -714,7 +718,7 @@ xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a'))
 xml.append(createElement('Output',text='b'))
 xml.append(createElement('Index',attrib={'var':'t'},text='b'))
-data = XDataSet.DataSet()
+data = DataSet.DataSet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 # load with insufficient values
@@ -747,7 +751,7 @@ xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a'))
 xml.append(createElement('Output',text='b'))
 xml.append(createElement('Index',attrib={'var':'t'},text='b'))
-dataRe = XDataSet.DataSet()
+dataRe = DataSet.DataSet()
 dataRe.messageHandler = mh
 dataRe._readMoreXML(xml)
 dataRe.load(convertedDict['data'],style='dict',dims=convertedDict['dims'])
@@ -774,7 +778,7 @@ xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a'))
 xml.append(createElement('Output',text='b'))
 xml.append(createElement('Index',attrib={'var':'t'},text='b'))
-data = XDataSet.DataSet()
+data = DataSet.DataSet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 # load
@@ -815,7 +819,7 @@ data.addRealization({'a':np.array([2.1]), 't':np.array([0])})
 xml = createElement('PointSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a,b'))
 xml.append(createElement('Output',text='x,y'))
-data = XDataSet.DataSet()
+data = DataSet.DataSet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 # register "trajID" (cluster label) and "varsUpdate" (iteration number/monotonically increasing var) as meta
@@ -860,7 +864,7 @@ data.addRealization(rlz1_1)
 tid = data._collector[-1,data._orderedVars.index('trajID')]
 checkRlz('Cluster extend traj 2[1]',data.realization(matchDict={'trajID':2,'varsUpdate':1})[1],rlz1_1,skip='varsUpdate')
 # print it
-fname = 'XDataUnitTestClusterLabels'
+fname = 'DataUnitTestClusterLabels'
 data.write(fname,style='csv',clusterLabel='trajID')
 # manually check contents
 for l,line in enumerate(open(fname+'.csv','r')):
@@ -889,7 +893,7 @@ for l,line in enumerate(open(fname+'_2.csv','r')):
     line = list(float(x) for x in line.split(','))
     checkArray('Cluster CSV id1 [1]',line,[2.1,6.1,20.1,200.1,1],float)
 # load it as a history # TODO first, loading needs to be fixed to use DataObject params instead of XML params
-from XHistorySet import HistorySet
+from HistorySet import HistorySet
 xml = createElement('HistorySet',attrib={'name':'test'})
 xml.append(createElement('Input',text='trajID'))
 xml.append(createElement('Output',text='a,b,x,y'))
@@ -922,7 +926,7 @@ xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input', text=' fl, in, st, un, bo'))
 xml.append(createElement('Output',text='dfl,din,dst,dun,dbo'))
 xml.append(createElement('Index',attrib={'var':'t'},text='dfl,din,dst,dun,dbo'))
-data = XDataSet.DataSet()
+data = DataSet.DataSet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 
@@ -967,7 +971,7 @@ xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input', text='a,b'))
 xml.append(createElement('Output',text='c,d'))
 xml.append(createElement('Index',attrib={'var':'t'},text='b,d'))
-data = XDataSet.DataSet()
+data = DataSet.DataSet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 data.addExpectedMeta(['prefix'])

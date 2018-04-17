@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This Module performs Unit Tests for the XPointSet class.
+  This Module performs Unit Tests for the PointSet data objects.
   It can not be considered part of the active code but of the regression test system
 """
 
@@ -26,21 +26,25 @@ import sys, os, copy
 import pickle as pk
 import numpy as np
 import xarray as xr
-frameworkDir = os.path.dirname(os.path.abspath(os.path.join(sys.argv[0],'..')))
 
+# find location of crow, message handler
+frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
 sys.path.append(frameworkDir)
+
 from utils.utils import find_crow
-
 find_crow(frameworkDir)
-
-import XPointSet
 import MessageHandler
+
+# find location of data objects
+sys.path.append(os.path.join(frameworkDir,'DataObjects'))
+
+import PointSet
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 print('Module undergoing testing:')
-print (XPointSet )
+print(PointSet)
 print('')
 
 def createElement(tag,attrib=None,text=None):
@@ -256,7 +260,7 @@ xml.append(createElement('Input',text='a,b'))
 xml.append(createElement('Output',text='x,z'))
 
 # check construction
-data = XPointSet.PointSet()
+data = PointSet.PointSet()
 # inputs, outputs
 checkSame('DataSet __init__ name',data.name,'PointSet')
 checkSame('DataSet __init__ print tag',data.printTag,'PointSet')
@@ -300,31 +304,31 @@ formatRealization(rlz0)
 formatRealization(rlz1)
 formatRealization(rlz2)
 # test missing data
-checkFails('XPointSet addRealization err','Provided realization does not have all requisite values for object \"PointSet\": \"z\"',data.addRealization,args=[rlz0])
+checkFails('PointSet addRealization err','Provided realization does not have all requisite values for object \"PointSet\": \"z\"',data.addRealization,args=[rlz0])
 rlz0['z'] = 6.0
 formatRealization(rlz0)
 # test appending
 data.addRealization(rlz0)
 # get realization by index, from collector
-checkRlz('XPointSet append 0',data.realization(index=0),rlz0)
+checkRlz('PointSet append 0',data.realization(index=0),rlz0)
 # try to access the inaccessible
-checkFails('XPointSet inaccessible index check','Requested index \"1\" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
+checkFails('PointSet inaccessible index check','Requested index \"1\" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
 # add more data
 data.addRealization(rlz1)
 data.addRealization(rlz2)
 # get realization by index
-checkRlz('XPointSet append 1 idx 0',data.realization(index=0),rlz0)
-checkRlz('XPointSet append 1 idx 1',data.realization(index=1),rlz1)
-checkRlz('XPointSet append 1 idx 2',data.realization(index=2),rlz2)
+checkRlz('PointSet append 1 idx 0',data.realization(index=0),rlz0)
+checkRlz('PointSet append 1 idx 1',data.realization(index=1),rlz1)
+checkRlz('PointSet append 1 idx 2',data.realization(index=2),rlz2)
 ######################################
 #      GET MATCHING REALIZATION      #
 ######################################
 m,match = data.realization(matchDict={'a':11.0})
-checkSame('XPointSet append 1 match index',m,1)
-checkRlz('XPointSet append 1 match',match,rlz1)
+checkSame('PointSet append 1 match index',m,1)
+checkRlz('PointSet append 1 match',match,rlz1)
 idx,rlz = data.realization(matchDict={'x':1.0})
-checkSame('XPointSet find bogus match index',idx,3)
-checkNone('XPointSet find bogus match',rlz)
+checkSame('PointSet find bogus match index',idx,3)
+checkNone('PointSet find bogus match',rlz)
 
 ######################################
 #        COLLAPSING DATA SET         #
@@ -332,11 +336,11 @@ checkNone('XPointSet find bogus match',rlz)
 # collapse dataset
 data.asDataset()
 # check sample tag IDs
-checkArray('XPointSet first collapse sample IDs',data._data['RAVEN_sample_ID'].values,[0,1,2],float)
+checkArray('PointSet first collapse sample IDs',data._data['RAVEN_sample_ID'].values,[0,1,2],float)
 # check time coordinate
 # check values for scalars "a"
-checkArray('XPointSet first collapse "a"',data._data['a'].values,[1.0,11.0,21.0],float)
-checkArray('XPointSet first collapse "prefix"',data._data['prefix'].values,['first','second','third'],str)
+checkArray('PointSet first collapse "a"',data._data['a'].values,[1.0,11.0,21.0],float)
+checkArray('PointSet first collapse "prefix"',data._data['prefix'].values,['first','second','third'],str)
 # TODO test "getting" data from _data instead of _collector
 
 ######################################
@@ -351,16 +355,16 @@ rlz3 = {'a': 31.0,
        }
 formatRealization(rlz3)
 data.addRealization(rlz3)
-checkRlz('XPointSet append 2 idx 0',data.realization(index=3),rlz3)
+checkRlz('PointSet append 2 idx 0',data.realization(index=3),rlz3)
 # TODO test reading from both main and collector
 
 data.asDataset()
 # check new sample IDs
-checkArray('XPointSet first collapse sample IDs',data._data['RAVEN_sample_ID'].values,[0,1,2,3],float)
+checkArray('PointSet first collapse sample IDs',data._data['RAVEN_sample_ID'].values,[0,1,2,3],float)
 # check new "a"
-checkArray('XPointSet first collapse "a"',data._data['a'].values,[1.0,11.0,21.0,31.0],float)
+checkArray('PointSet first collapse "a"',data._data['a'].values,[1.0,11.0,21.0,31.0],float)
 # check string prefix
-checkArray('XPointSet first collapse "prefix"',data._data['prefix'].values,['first','second','third','fourth'],str)
+checkArray('PointSet first collapse "prefix"',data._data['prefix'].values,['first','second','third','fourth'],str)
 
 ######################################
 #         GENERAL META DATA          #
@@ -434,11 +438,11 @@ checkFails('Metadata get missing general','Some requested keys could not be foun
 #        READ/WRITE FROM FILE        #
 ######################################
 # to netCDF
-netname = 'DataSetUnitTest.nc'
+netname = 'PointSetUnitTest.nc'
 data.write(netname,style='netcdf',format='NETCDF4') # WARNING this will fail if netCDF4 not installed
 checkTrue('Wrote to netcdf',os.path.isfile(netname))
 ## read fresh from netCDF
-dataNET = XPointSet.PointSet()
+dataNET = PointSet.PointSet()
 dataNET.messageHandler = mh
 dataNET.load(netname,style='netcdf')
 # validity of load is checked below, in ACCESS USING GETTERS section
@@ -487,7 +491,7 @@ checkArray('CSV XML',lines,correct,str)
 xml = createElement('PointSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a,b'))
 xml.append(createElement('Output',text='x,z'))
-dataCSV = XPointSet.PointSet()
+dataCSV = PointSet.PointSet()
 dataCSV.messageHandler = mh
 dataCSV._readMoreXML(xml)
 ### load the data (with both CSV, XML)
@@ -516,19 +520,19 @@ os.remove(csvname+'.csv')
 ######################################
 # test contents of data in parallel (base, netcdf, csv)
 # by index
-checkRlz('XPointSet full origin idx 1',data.realization(index=1),rlz1)
-checkRlz('XPointSet full netcdf idx 1',dataNET.realization(index=1),rlz1)
-checkRlz('XPointSet full csvxml idx 1',dataCSV.realization(index=1),rlz1)
+checkRlz('PointSet full origin idx 1',data.realization(index=1),rlz1)
+checkRlz('PointSet full netcdf idx 1',dataNET.realization(index=1),rlz1)
+checkRlz('PointSet full csvxml idx 1',dataCSV.realization(index=1),rlz1)
 # by match
 idx,rlz = data.realization(matchDict={'prefix':'third'})
-checkSame('XPointSet full origin match idx',idx,2)
-checkRlz('XPointSet full origin match',rlz,rlz2)
+checkSame('PointSet full origin match idx',idx,2)
+checkRlz('PointSet full origin match',rlz,rlz2)
 idx,rlz = dataNET.realization(matchDict={'prefix':'third'})
-checkSame('XPointSet full netcdf match idx',idx,2)
-checkRlz('XPointSet full netCDF match',rlz,rlz2)
+checkSame('PointSet full netcdf match idx',idx,2)
+checkRlz('PointSet full netCDF match',rlz,rlz2)
 idx,rlz = dataCSV.realization(matchDict={'prefix':'third'})
-checkSame('XPointSet full csvxml match idx',idx,2)
-checkRlz('XPointSet full csvxml match',rlz,rlz2)
+checkSame('PointSet full csvxml match idx',idx,2)
+checkRlz('PointSet full csvxml match',rlz,rlz2)
 # TODO metadata checks?
 
 ## remove files, for cleanliness (comment out to debug)
@@ -538,7 +542,7 @@ os.remove(netname) # if this is a problem because of lazy loading, force dataNET
 ######################################
 #         SELECTIVE SAMPLING         #
 ######################################
-data = XPointSet.PointSet()
+data = PointSet.PointSet()
 xml = createElement('PointSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a'))
 xml.append(createElement('Output',text='x'))
@@ -552,23 +556,23 @@ rlz0 = {'a': np.array([0.1, 0.2, 0.3, 0.4, 0.5]),
 data.setPivotParams(dict((var,['time']) for var in data.vars)) # this would normally be set through the input xml
 # sampling the last entry (default)
 data.addRealization(rlz0)
-checkRlz('XPointSet selective default',data.realization(index=0),{'a':0.5,'x':1.7})
+checkRlz('PointSet selective default',data.realization(index=0),{'a':0.5,'x':1.7})
 # sampling arbitrary row
 data.setSelectiveInput('inputRow',2)
 data.setSelectiveOutput('outputRow',1)
 data.addRealization(rlz0)
-checkRlz('XPointSet selective default',data.realization(index=1),{'a':0.3,'x':1.2})
+checkRlz('PointSet selective default',data.realization(index=1),{'a':0.3,'x':1.2})
 # sampling value match
 data.setSelectiveInput('inputPivotValue',1.5e-6)
 data.setSelectiveOutput('outputPivotValue',4e-6)
 data.addRealization(rlz0)
-checkRlz('XPointSet selective default',data.realization(index=2),{'a':0.2,'x':1.4})
+checkRlz('PointSet selective default',data.realization(index=2),{'a':0.2,'x':1.4})
 # sampling operator in output, last in input
 data._pivotParam = 'time'
 data.setSelectiveInput('inputRow',-1)
 data.setSelectiveOutput('operator','mean')
 data.addRealization(rlz0)
-checkRlz('XPointSet selective default',data.realization(index=3),{'a':0.5,'x':1.34})
+checkRlz('PointSet selective default',data.realization(index=3),{'a':0.5,'x':1.34})
 
 
 # TODO more exhaustive tests are needed, but this is sufficient for initial work.

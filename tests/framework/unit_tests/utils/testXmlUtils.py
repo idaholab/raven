@@ -25,7 +25,7 @@ import os,sys
 import numpy as np
 import xml.etree.ElementTree as ET
 
-frameworkDir = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'framework'))
+frameworkDir = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
 sys.path.append(frameworkDir)
 from utils import xmlUtils
 

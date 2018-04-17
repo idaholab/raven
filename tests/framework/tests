@@ -243,23 +243,6 @@
   input = '../../framework/TestFiles.py'
  [../]
 
-  [./unit_test_DataSets]
-    type = 'RavenPython'
-    input = '../../framework/DataObjects/TestXDataSet.py'
-  [../]
-  [./unit_test_HistorySets]
-    type = 'RavenPython'
-    input = '../../framework/DataObjects/TestXHistorySet.py'
-  [../]
-  [./unit_test_PointSets]
-    type = 'RavenPython'
-    input = '../../framework/DataObjects/TestXPointSet.py'
-  [../]
-  [./unit_test_HierachicalDataObject]
-    type = 'RavenPython'
-    input = '../../framework/DataObjects/TestHierarchal.py'
-  [../]
-
  [./test_xsd_input_data]
   type = 'RavenPython'
   input = 'TestXSD/TestDataRead.py'

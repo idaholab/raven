@@ -26,15 +26,19 @@ import sys, os
 import pickle as pk
 import numpy as np
 import xarray as xr
-frameworkDir = os.path.dirname(os.path.abspath(os.path.join(sys.argv[0],'..')))
 
+# find location of crow, message handler
+frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
 sys.path.append(frameworkDir)
+
 from utils.utils import find_crow
-
 find_crow(frameworkDir)
-
-import XDataSet
 import MessageHandler
+
+# find location of data objects
+sys.path.append(os.path.join(frameworkDir,'DataObjects'))
+
+import DataSet
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'silent', 'callerLength':10, 'tagLength':10})
@@ -260,7 +264,7 @@ xml.append(createElement('Input',text='a,'))
 xml.append(createElement('Output',text='b'))
 xml.append(createElement('Index',attrib={'var':'time'},text='b'))
 # construct
-data = XDataSet.DataSet()
+data = DataSet.DataSet()
 # initialization
 data.messageHandler = mh
 mh.verbosity = 'debug'

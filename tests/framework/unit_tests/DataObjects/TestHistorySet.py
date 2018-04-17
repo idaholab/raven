@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This Module performs Unit Tests for the Distribution class.
+  This Module performs Unit Tests for the HistorySet data objects.
   It can not be considered part of the active code but of the regression test system
 """
 
@@ -26,21 +26,25 @@ import sys, os
 import pickle as pk
 import numpy as np
 import xarray as xr
-frameworkDir = os.path.dirname(os.path.abspath(os.path.join(sys.argv[0],'..')))
 
+# find location of crow, message handler
+frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
 sys.path.append(frameworkDir)
+
 from utils.utils import find_crow
-
 find_crow(frameworkDir)
-
-import XHistorySet
 import MessageHandler
+
+# find location of data objects
+sys.path.append(os.path.join(frameworkDir,'DataObjects'))
+
+import HistorySet
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 print('Module undergoing testing:')
-print (XHistorySet )
+print(HistorySet )
 print('')
 
 def createElement(tag,attrib=None,text=None):
@@ -267,7 +271,7 @@ options.append(createElement('pivotParameter',text='Timelike'))
 xml.append(options)
 
 # check construction
-data = XHistorySet.HistorySet()
+data = HistorySet.HistorySet()
 # inputs, outputs
 checkSame('HistorySet __init__ name',data.name,'HistorySet')
 checkSame('HistorySet __init__ print tag',data.printTag,'HistorySet')
@@ -510,7 +514,7 @@ netname = 'HistorySetUnitTest.nc'
 data.write(netname,style='netcdf',format='NETCDF4') # WARNING this will fail if netCDF4 not installed
 checkTrue('Wrote to netcdf',os.path.isfile(netname))
 ## read fresh from netCDF
-dataNET = XHistorySet.HistorySet()
+dataNET = HistorySet.HistorySet()
 dataNET.messageHandler = mh
 dataNET.load(netname,style='netcdf')
 # validity of load is checked below, in ACCESS USING GETTERS section
@@ -566,7 +570,7 @@ xml.append(createElement('Output',text='x,y'))
 options = createElement('options')
 options.append(createElement('pivotParameter',text='Timelike'))
 xml.append(options)
-dataCSV = XHistorySet.HistorySet()
+dataCSV = HistorySet.HistorySet()
 dataCSV.messageHandler = mh
 dataCSV._readMoreXML(xml)
 ### load the data (with both CSV, XML)
@@ -633,7 +637,7 @@ options = createElement('options')
 options.append(createElement('pivotParameter',text='Timelike'))
 xml.append(options)
 
-data = XHistorySet.HistorySet()
+data = HistorySet.HistorySet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 rlz = {'x': np.array([1, 2, 3]),
@@ -652,7 +656,7 @@ checkRlz('No input space',rlz0,rlz,skip='Timelike')
 xml = createElement('HistorySet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a,b'))
 xml.append(createElement('Output',text='x,y'))
-data = XHistorySet.HistorySet()
+data = HistorySet.HistorySet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 rlz1 = {'a': np.array([1.0]),
@@ -690,7 +694,7 @@ checkRlz('Adding asynchronous histories, dataset[0]',data.realization(index=0),r
 checkRlz('Adding asynchronous histories, dataset[1]',data.realization(index=1),rlz2,skip=['time'])
 # ADD when EnsembleModel for times series is done
 # check expected error in case index and index-dependent variable have different shape
-#data = XHistorySet.HistorySet()
+#data = HistorySet.HistorySet()
 #data.messageHandler = mh
 #data._readMoreXML(xml)
 #checkFails('Expected error foulty realization (index/variable no matching shape), rlzFoulty', "SyntaxError: Realization was not formatted correctly", data.addRealization, args=(rlzFoulty,))
