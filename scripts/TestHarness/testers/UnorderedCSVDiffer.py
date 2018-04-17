@@ -70,9 +70,9 @@ class UnorderedCSVDiffer:
 
   def findRow(self,row,csv):
     """
-      Searches for "row" in "csv", ASSUMING CSV is sorted in order of columns
+      Searches for "row" in "csv"
       @ In, row, pd.Series, row of data
-      @ In, match, pd.Dataframe, dataframe to look in
+      @ In, csv, pd.Dataframe, dataframe to look in
       @ Out, match, pd.Dataframe or list, matching row of data (or empty list if none found)
     """
     if debug:
@@ -212,7 +212,7 @@ class UnorderedCSVDiffer:
       ## at this point both CSVs have the same shape, with the same header contents.
       ## align columns
       testCSV = testCSV[goldCSV.columns.tolist()]
-      ## set marginal values to zero, fix infinites, and sort
+      ## set marginal values to zero, fix infinites
       testCSV = self.prepDataframe(testCSV,self.__zero_threshold)
       goldCSV = self.prepDataframe(goldCSV,self.__zero_threshold)
       ## check for matching rows
@@ -232,7 +232,6 @@ class UnorderedCSVDiffer:
       Does several prep actions:
         - For any columns that contain numbers, drop near-zero numbers to zero
         - replace infs and nans with symbolic values
-        - sort CSV for easy searching
       @ In, csv, pd.DataFrame, contents to reduce
       @ In, tol, float, tolerance sufficently near zero
       @ Out, csv, converted dataframe
@@ -249,6 +248,6 @@ class UnorderedCSVDiffer:
         continue
       # flatten near-zeros
       csv[col].values[np.isclose(csv[col].values,0,**key)] = 0
-    csv.sort_values(by=list(csv.columns), inplace=True)
+    # TODO would like to sort here, but due to relative errors it doesn't do enough good.  Instead, sort in findRow.
     return csv
 
