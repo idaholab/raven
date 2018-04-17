@@ -125,7 +125,7 @@ set powdens 6.666E-3    %22.2kW/l Robertson
 %set power 2250000000.0 % 2.25 GW(th)
 
 dep daystep % 3x100 + 33 steps
-10 % 30 days cycle
+10.0 % 30 days cycle
 
 
 %---- Print compositions of depleted materials after each step
