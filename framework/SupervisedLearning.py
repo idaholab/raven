@@ -70,6 +70,7 @@ import copy
 import itertools
 from scipy import spatial
 from collections import OrderedDict
+from itertools import product
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -1965,6 +1966,34 @@ class NDsplineRom(NDinterpolatorRom):
     self.printTag = 'ND-SPLINE ROM'
     for _ in range(len(self.target)):
       self.interpolator.append(interpolationND.NDSpline())
+
+  def __trainLocal__(self,featureVals,targetVals):
+    """
+      Perform training on samples. This is a specialization of the
+      Spline Interpolator (since it will create a Cartesian Grid in case
+      the samples are not a tensor)
+      @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+        an array of input feature values
+      @ Out, targetVals, array, shape = [n_samples], an array of output target
+        associated with the corresponding points in featureVals
+    """
+    numDiscrPerDimension = math.ceil(len(targetVals)**(1./len(self.features)))
+    # get discretizations
+    discretizations = [ list(set(featureVals[d].tolist())) for d in range(len(featureVals))]
+    # check if it is a tensor grid or not
+    if np.prod( [len(d) for d in discretizations] ) != len(targetVals):
+      # not a tensor grid => interpolate
+      nr = neighbors.KNeighborsRegressor(n_neighbors= min(5,len(targetVals)), weights='distance')
+      nr.fit(featureVals, targetVals)
+      # new feature vals
+      newDiscretizations = [np.linspace(min(discretizations[d]), max(discretizations[d]), num=numDiscrPerDimension, dtype=float).tolist() for d in range(len(self.features))]
+      featureVals = np.atleast_2d(np.asarray(list(product(*newDiscretizations))))
+      targetVals = nr.predict(featureVals)
+    self.featv, self.targv = featureVals,targetVals
+    featv = interpolationND.vectd2d(featureVals[:][:])
+    for index, target in enumerate(self.target):
+      targv = interpolationND.vectd(targetVals[:,index])
+      self.interpolator[index].fit(featv,targv)
 
   def __resetLocal__(self):
     """

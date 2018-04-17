@@ -1,0 +1,9 @@
+[Tests]
+  [./GridSpline]
+    type  = 'RavenFramework'
+    input = 'tensor_spline_grid.xml'
+    output = 'gridSpline/outputSpline_dump.xml'
+    csv = 'gridSpline/outputSpline_dump.csv’
+  [../]
+
+[]
