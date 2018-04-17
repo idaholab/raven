@@ -47,7 +47,7 @@ class UnorderedCSVDiffer:
     self.__test_dir = test_dir
     self.__check_absolute_values = absolute_check
     self.__rel_err = relative_error
-    self.__zero_threshold = float(zeroThreshold) if zeroThreshold is not None else None
+    self.__zero_threshold = float(zeroThreshold) if zeroThreshold is not None else 0.0
     if debug or whoAmI:
       print('test dir :',self.__test_dir)
       print('out files:',self.__out_files)
@@ -70,9 +70,9 @@ class UnorderedCSVDiffer:
 
   def findRow(self,row,csv):
     """
-      Searches for "row" in "csv"
+      Searches for "row" in "csv", ASSUMING CSV is sorted in order of columns
       @ In, row, pd.Series, row of data
-      @ In, csv, pd.Dataframe, dataframe to look in
+      @ In, match, pd.Dataframe, dataframe to look in
       @ Out, match, pd.Dataframe or list, matching row of data (or empty list if none found)
     """
     if debug:
@@ -80,13 +80,13 @@ class UnorderedCSVDiffer:
       print('Looking for:\n',row)
       print('Looking in:\n',csv)
     match = csv.copy()
-    # reduce all values under threshold to 0
-    #match = match.replace(np.inf,-sys.maxint)
-    #match = match.replace(np.nan,sys.maxint)
-    # mask inf as -sys.max and nan as +sys.max
+    # TODO can I do this as a single search, using binomial on floats +- rel_err?
     for idx, val in row.iteritems():
       if debug:
-        print('  checking index',idx)
+        print('  checking index',idx,'value',val)
+      # Due to relative matches in floats, we may not be sorted with respect to this index.
+      ## In an ideal world with perfect matches, we would be.  Unfortunately, we have to sort again.
+      match = match.sort_values(idx)
       # check type consistency
       ## get a sample from the matching CSV column
       ### TODO could check indices ONCE and re-use instead of checking each time
@@ -99,40 +99,51 @@ class UnorderedCSVDiffer:
         if debug:
           print('  Not same type (number)! lfor: "{}" lin: "{}"'.format(valIsNumber,matchIsNumber))
         return []
-      # compare
-      # process: determine a condition "cond" whereby to reduce the possible matches
-      ## if not a number, absolute check
-      if not valIsNumber:
-        cond = match[idx] == val
-      ## if a number, condition depends on chosen tools
+      # find index of lowest and highest possible matches
+      ## if values are floats, then matches could be as low as val(1-rel_err) and as high as val(1+rel_err)
+      if matchIsNumber:
+        # adjust for negative values
+        sign = np.sign(val)
+        lowest = np.searchsorted(match[idx].values,val*(1.0-sign*self.__rel_err))
+        highest = np.searchsorted(match[idx].values,val*(1.0+sign*self.__rel_err),side='right')-1
+      ## if not floats, then check exact matches
       else:
-        ## apply zero threshold
-        #if False:# FIXME tooooo slooooowwwwww self.__zero_threshold is not None:
-        #  match[idx][abs(match[idx]) < self.__zero_threshold] = 0
-        #  if debug:
-        #    print('  After applying zero threshold, options are:',match[idx])
-        #  val = 0 if abs(val) < self.__zero_threshold else val
-        ## mask infinity
-        #if val == np.inf:
-        #  val = -sys.maxint
-        #elif pd.isnull(val):
-        #  val = sys.maxint
-        ## value check: absolute
-        if self.__check_absolute_values:
-          cond = abs(match[idx] - val) < self.__rel_err
-        ## value check: relative
-        else:
-          # set relative scaling factor to protect against div by 0
-          if val == 0:
-            scale = 1.0
-          else:
-            scale = abs(val)
-          cond = abs(match[idx] - val) < scale*self.__rel_err
-      # limit matches by condition determined
-      match = match[cond]
+        lowest = np.searchsorted(match[idx].values,val)
+        highest = np.searchsorted(match[idx].values,val,side='right')-1
+      if debug:
+        print('  low/hi match index:',lowest,highest)
+      ## if lowest is past end of array, no match found
+      if lowest == len(match[idx]):
+        if debug:
+          print('  Match is past end of sort list!')
+        return []
+      ## if entry at lowest index doesn't match entry, then it's not to be found
+      if not self.matches(match[idx].values[lowest],val,matchIsNumber,self.__rel_err):
+        if debug:
+          print('  Match is not equal to insert point!')
+        return []
+      ## otherwise, we have some range of matches
+      match = match[slice(lowest,highest+1)]
       if debug:
         print('  After searching for {}={}, remaining matches:\n'.format(idx,val),match)
     return match
+
+  def matches(self,a,b,isNumber,tol):
+    """
+      Determines if two objects match within tolerance.
+      @ In, a, object, first object ("measured")
+      @ In, b, object, second object ("actual")
+      @ In, isNumber, bool, if True then treat as float with tolerance (else check equivalence)
+      @ In, tol, float, tolerance at which to hold match (if float)
+      @ Out, matches, bool, True if matching
+    """
+    if not isNumber:
+      return a == b
+    if self.__check_absolute_values:
+      return abs(a-b) < tol
+    # otherwise, relative error
+    scale = abs(b) if b != 0 else 1.0
+    return abs(a-b) < scale*tol
 
   def diff(self):
     """
@@ -201,9 +212,9 @@ class UnorderedCSVDiffer:
       ## at this point both CSVs have the same shape, with the same header contents.
       ## align columns
       testCSV = testCSV[goldCSV.columns.tolist()]
-      ## set marginal values to zero
-      testCSV = self.marginalizeZeros(testCSV,self.__zero_threshold)
-      goldCSV = self.marginalizeZeros(goldCSV,self.__zero_threshold)
+      ## set marginal values to zero, fix infinites, and sort
+      testCSV = self.prepDataframe(testCSV,self.__zero_threshold)
+      goldCSV = self.prepDataframe(goldCSV,self.__zero_threshold)
       ## check for matching rows
       for idx in goldCSV.index:
         find = goldCSV.iloc[idx].rename(None)
@@ -216,9 +227,12 @@ class UnorderedCSVDiffer:
       self.finalizeMessage(same,msg,testFilename)
     return self.__same, self.__message
 
-  def marginalizeZeros(self,csv,tol):
+  def prepDataframe(self,csv,tol):
     """
-      For any columns that contain numbers, drop near-zero numbers to zero
+      Does several prep actions:
+        - For any columns that contain numbers, drop near-zero numbers to zero
+        - replace infs and nans with symbolic values
+        - sort CSV for easy searching
       @ In, csv, pd.DataFrame, contents to reduce
       @ In, tol, float, tolerance sufficently near zero
       @ Out, csv, converted dataframe
@@ -234,6 +248,7 @@ class UnorderedCSVDiffer:
       if not mathUtils.isAFloatOrInt(example):
         continue
       # flatten near-zeros
-      csv[col][np.isclose(csv[col],0,**key)] = 0
+      csv[col].values[np.isclose(csv[col].values,0,**key)] = 0
+    csv.sort_values(by=list(csv.columns), inplace=True)
     return csv
 

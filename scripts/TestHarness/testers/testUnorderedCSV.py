@@ -31,7 +31,7 @@ def checkSame(comment,first,second,msg,results=None):
   return results
 
 def testAFile(fname):
-  differ = UCSV('.',[fname])
+  differ = UCSV('.',[fname],zeroThreshold=5e-14)
   differ.diff()
   return differ.__dict__['_UnorderedCSVDiffer__same'], differ.__dict__['_UnorderedCSVDiffer__message']
 
@@ -46,6 +46,12 @@ if __name__ == '__main__':
   # matching with inf, nan
   ok,msg = testAFile('inf.csv')
   checkSame('Infinity',ok,True,msg,results)
+  # zero threshold
+  ok,msg = testAFile('nearzero.csv')
+  checkSame('Near zero',ok,True,msg,results)
+  # sorting
+  ok,msg = testAFile('sort.csv')
+  checkSame('sort',ok,True,msg,results)
 
 
 
